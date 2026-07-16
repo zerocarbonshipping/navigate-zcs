@@ -1,0 +1,378 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: Apache-2.0
+
+import inspect
+from collections.abc import Iterable
+from enum import Enum
+from itertools import product
+
+import navigate.core.id_ as id_
+from navigate.core.assign import expand_id_wildcard
+from navigate.core.enum_ import EnergyDemandTypeID, FuelTypeID
+from navigate.core.misc import SECTION_BOTH, SECTION_DEFINE
+from navigate.exceptions import CommandError
+from navigate.parser._keywords import SECTION_NAME
+from navigate.util import name_contains_wildcards
+
+# Per-command wildcard domains. Tuple indices correspond to the method's
+# string arguments (excluding self). ``None`` means the argument is a
+# node name — wildcards are passed through for downstream matching.
+# Commands not listed here have no enum arguments.
+_WILDCARD_DOMAINS: dict[str, tuple[type[Enum], ...]] = {
+    'set_slip_fraction':          (FuelTypeID,),
+    'set_consumption_ttw':        (FuelTypeID,),
+    'set_operational_saving_sea': (EnergyDemandTypeID,),
+    'set_operational_saving_port': (EnergyDemandTypeID,),
+    'set_energy_saving':          (EnergyDemandTypeID,),
+    'set_external_power':         (EnergyDemandTypeID,),
+    'set_power_transfer':         (EnergyDemandTypeID, EnergyDemandTypeID),
+}
+
+# high-level class commands to multiple nodes --------------------------------------------------------------------------
+_POLICY_COMMANDS = {'set_include_vessel':           SECTION_BOTH,
+                    'set_global_warming_potential': SECTION_BOTH,
+                    'set_fuel_wtt':                 SECTION_BOTH,
+                    'set_fuel_ttw':                 SECTION_BOTH}
+
+# nodes ----------------------------------------------------------------------------------------------------------------
+_ALTERNATIVE_POWER_COMMANDS = {}
+
+_CONVERTER_COMMANDS = {'set_slip_fraction':   SECTION_BOTH,
+                       'set_consumption_ttw': SECTION_BOTH}
+
+_CURVE_COMMANDS = {}
+_EFFICIENCY_COMMANDS = {}
+_EMISSION_COMMANDS = {}
+
+_FEEDSTOCK_COMMANDS = {}
+
+_FLEET_COMMANDS = {'set_fuel_conversion_cost':      SECTION_BOTH,
+                   'set_fuel_conversion_limit':     SECTION_BOTH,
+                   'set_allow_vessel':              SECTION_BOTH,
+                   'set_newbuild_available':        SECTION_BOTH,
+                   'set_conversion_available':      SECTION_BOTH,
+                   'set_operational_saving_sea':    SECTION_BOTH,
+                   'set_operational_saving_port':   SECTION_BOTH,
+                   'set_initial_technology_share':  SECTION_DEFINE,
+                   'set_newbuild_technology_limit': SECTION_BOTH,
+                   'set_retrofit_technology_limit': SECTION_BOTH,
+                   'set_newbuild_limit':            SECTION_BOTH}
+
+_FORECAST_COMMANDS = {}
+_FUEL_COMMANDS = {'set_ttw': SECTION_DEFINE}
+
+_LEVY_COMMANDS = {**_POLICY_COMMANDS}
+
+_PLANT_COMMANDS = {'set_feed_transport':   SECTION_BOTH,
+                   'set_feed_distance':    SECTION_BOTH}
+
+_PLOT_COMMANDS = {'add_plot': SECTION_DEFINE}
+
+_PORT_COMMANDS = {'set_bunkering_allowed':           SECTION_BOTH,
+                  'set_bunkering_cost':              SECTION_BOTH,
+                  'set_bunkering_limit':             SECTION_BOTH,
+                  'set_bunkering_inertia':           SECTION_BOTH,
+                  'set_handling_cost':               SECTION_BOTH,
+                  'set_bunker_price_overwrite':      SECTION_BOTH,
+                  'set_bunker_wtt_overwrite':        SECTION_BOTH,
+                  'set_shore_power_emission_factor': SECTION_BOTH}
+
+_POWER_SYSTEM_COMMANDS = {}
+_PROCESS_COMMANDS = {}
+
+_PRODUCER_COMMANDS = {'set_existing_pipeline':   SECTION_DEFINE,
+                      'set_allow_plant':         SECTION_BOTH,
+                      'set_feed_constraint':     SECTION_BOTH,
+                      'set_export_distribution': SECTION_BOTH}
+
+_REGION_COMMANDS = {'set_process_capex':                SECTION_BOTH,
+                    'set_process_opex':                 SECTION_BOTH,
+                    'set_process_energy':               SECTION_BOTH,
+                    'set_process_lifetime':             SECTION_BOTH,
+                    'set_process_replacement':          SECTION_BOTH,
+                    'set_process_wtt':                  SECTION_BOTH,
+                    'set_source_capex':                 SECTION_BOTH,
+                    'set_source_opex':                  SECTION_BOTH,
+                    'set_source_wtt':                   SECTION_BOTH,
+                    'set_feedstock_cost':               SECTION_BOTH,
+                    'set_feedstock_wtt':                SECTION_BOTH,
+                    'set_transport_cost':               SECTION_BOTH,
+                    'set_transport_wtt':                SECTION_BOTH}
+
+_REGULATION_COMMANDS = {**_POLICY_COMMANDS,
+                        'set_vessel_threshold': SECTION_BOTH,
+                        'set_vessel_capacity':  SECTION_BOTH}
+
+_REPORT_COMMANDS = {'add_property':            SECTION_DEFINE,
+                    'add_fleet_property':      SECTION_DEFINE,
+                    'add_levy_property':       SECTION_DEFINE,
+                    'add_plant_property':      SECTION_DEFINE,
+                    'add_port_property':       SECTION_DEFINE,
+                    'add_producer_property':   SECTION_DEFINE,
+                    'add_regulation_property': SECTION_DEFINE,
+                    'add_vessel_property':     SECTION_DEFINE}
+
+_ROUTE_COMMANDS = {'set_voyage_distribution':    SECTION_BOTH}
+
+_SOURCE_COMMANDS = {}
+_SURFACE_COMMANDS = {}
+_TANK_COMMANDS = {}
+
+_TECHNOLOGY_COMMANDS = {'set_energy_saving': SECTION_BOTH,
+                        'set_external_power': SECTION_BOTH,
+                        'set_power_transfer': SECTION_BOTH}
+
+_TIMETABLE_COMMANDS = {}
+_TRANSPORT_COMMANDS = {}
+_VARIABLE_COMMANDS = {}
+_VESSEL_COMMANDS = {}
+
+# general nodes --------------------------------------------------------------------------------------------------------
+_BUNKER_LOGISTICS_COMMANDS = {'set_distance':       SECTION_DEFINE,
+                              'set_transport_cost': SECTION_DEFINE,
+                              'set_transport_wtt': SECTION_DEFINE}
+
+_BUNKER_OPTIONS_COMMANDS = {}
+_MODEL_DEFINITION_COMMANDS = {}
+
+# assemble dicts -------------------------------------------------------------------------------------------------------
+NODE_COMMAND_SECTIONS = {id_.CONVERTER:             _CONVERTER_COMMANDS,
+                         id_.CURVE:                 _CURVE_COMMANDS,
+                         id_.EMISSION:              _EMISSION_COMMANDS,
+                         id_.FEEDSTOCK:             _FEEDSTOCK_COMMANDS,
+                         id_.FLEET:                 _FLEET_COMMANDS,
+                         id_.FORECAST:              _FORECAST_COMMANDS,
+                         id_.FUEL:                  _FUEL_COMMANDS,
+                         id_.LEVY:                  _LEVY_COMMANDS,
+                         id_.PLANT:                 _PLANT_COMMANDS,
+                         id_.PLOT:                  _PLOT_COMMANDS,
+                         id_.PORT:                  _PORT_COMMANDS,
+                         id_.POWER_SYSTEM:          _POWER_SYSTEM_COMMANDS,
+                         id_.PROCESS:               _PROCESS_COMMANDS,
+                         id_.PRODUCER:              _PRODUCER_COMMANDS,
+                         id_.REGION:                _REGION_COMMANDS,
+                         id_.REGULATION:            _REGULATION_COMMANDS,
+                         id_.REPORT:                _REPORT_COMMANDS,
+                         id_.ROUTE:                 _ROUTE_COMMANDS,
+                         id_.SOURCE:                _SOURCE_COMMANDS,
+                         id_.SURFACE:               _SURFACE_COMMANDS,
+                         id_.TANK:                  _TANK_COMMANDS,
+                         id_.TECHNOLOGY:            _TECHNOLOGY_COMMANDS,
+                         id_.TIMETABLE:             _TIMETABLE_COMMANDS,
+                         id_.TRANSPORT:             _TRANSPORT_COMMANDS,
+                         id_.VARIABLE:              _VARIABLE_COMMANDS,
+                         id_.VESSEL:                _VESSEL_COMMANDS}
+
+GENERAL_NODE_COMMAND_SECTIONS = {id_.BUNKER_LOGISTICS:  _BUNKER_LOGISTICS_COMMANDS,
+                                 id_.BUNKER_OPTIONS:    _BUNKER_OPTIONS_COMMANDS,
+                                 id_.MODEL_DEFINITION:  _MODEL_DEFINITION_COMMANDS}
+
+
+# classes --------------------------------------------------------------------------------------------------------------
+class CommandReference:
+    """A deferred command invocation stored on a node.
+
+    Parameters
+    ----------
+    command : str
+        Method name to call on the node.
+    inputs : list
+        Positional arguments for the method.
+    source : SourceLoc
+        Source location of the command in the include file.
+    deck_line : int
+        Line in the .nav file of the enclosing INCLUDE directive.
+    """
+
+    def __init__(self, command, inputs, source, deck_line=0):
+        self._command = command
+        self._inputs = inputs
+        self._source = source
+        self._deck_line = deck_line
+
+    def execute(self, node):
+        method = getattr(node, self._command)
+        self._check_command(node, method)
+
+        expanded = _expand_inputs(self._command, self._inputs)
+        for combo in expanded:
+            method(*combo)
+
+    def get_command(self):
+        return self._command
+
+    def get_inputs(self):
+        return self._inputs
+
+    @property
+    def source(self):
+        return self._source
+
+    @property
+    def deck_line(self):
+        return self._deck_line
+
+    def _check_command(self, node, method):
+        # extract a list of parameters
+        method_inputs = inspect.signature(method).parameters
+
+        # find the args and kwargs
+        args = [method_inputs[p].name for p in method_inputs
+                if method_inputs[p].default is inspect.Parameter.empty]
+
+        kwargs = [method_inputs[p].name for p in method_inputs
+                  if method_inputs[p].default is not inspect.Parameter.empty]
+
+        n_args = len(args)
+        n_kwargs = len(kwargs)
+
+        # check that the number of provided inputs
+        # corresponding to the required inputs,
+        # otherwise throw and error.
+        n_given = len(self._inputs)
+
+        if n_given < n_args:
+
+            # join inputs
+            input_names = ""
+            for input_ in args[:-1]:
+                input_names += "'{}', ".format(input_)
+
+            # remove last comma and space if only two inputs
+            input_names = input_names[:-2] + ' ' if len(args) < 3 else input_names
+
+            # add the last input name
+            input_names += "and '{}'".format(args[-1])
+
+            raise CommandError("{}: Command '{}' requires {} inputs, {}, but only {} {} given"
+                               .format(node,
+                                       self._command,
+                                       n_args,
+                                       input_names,
+                                       n_given,
+                                       'was' if n_given == 1 else 'were'))
+
+        elif n_given > (n_args + n_kwargs):
+
+            all_inputs = args + kwargs
+
+            # join inputs
+            input_names = ""
+            for input_ in all_inputs[:-1]:
+                input_names += "'{}', ".format(input_)
+
+            # remove last comma and space if only two inputs
+            input_names = input_names[:-2] + ' ' if len(all_inputs) < 3 else input_names
+
+            # add the last input name
+            input_names += "and '{}'".format(all_inputs[-1])
+
+            raise CommandError("{}: Command '{}' takes up to {} inputs, {}, but {} {} given"
+                               .format(node,
+                                       self._command,
+                                       n_args + n_kwargs,
+                                       input_names,
+                                       n_given,
+                                       'was' if n_given == 1 else 'were'))
+
+
+def _expand_inputs(command: str, inputs: list) -> Iterable[tuple]:
+    """Expand wildcard arguments against their registered enum domains.
+
+    Yields argument tuples — one per combination when wildcards match
+    multiple enum members, or a single tuple when no expansion applies.
+    """
+
+    domains = _WILDCARD_DOMAINS.get(command)
+
+    if not domains:
+        return (tuple(inputs),)
+
+    arg_options = []
+    for i, inp in enumerate(inputs):
+        enum_cls = domains[i] if i < len(domains) else None
+        if enum_cls and isinstance(inp, str) and name_contains_wildcards(inp):
+            arg_options.append(
+                [m.name for m in expand_id_wildcard(inp, enum_cls)]
+            )
+        else:
+            arg_options.append([inp])
+
+    return product(*arg_options)
+
+
+# methods --------------------------------------------------------------------------------------------------------------
+def check_node_command_is_allowed(node_type, command_name, section):
+    """
+
+    Parameters
+    ----------
+    node_type : str
+        The node type.
+    command_name : str
+        The name of the command.
+    section : Enum
+        The section (DEFINE or EVENTS) at which the command is used.
+
+    Returns
+    -------
+    bool
+        Whether the command is allowed.
+    """
+
+    allowed_commands = NODE_COMMAND_SECTIONS[node_type]
+
+    if command_name in allowed_commands:
+
+        allowed_sections = allowed_commands[command_name]
+
+        if section in allowed_sections:
+
+            return True
+
+        else:
+
+            raise CommandError("Nodes of type '{}' does not allow use of command '{}' in '{}'"
+                               .format(node_type, command_name, SECTION_NAME[section]))
+
+    else:
+
+        raise CommandError("Nodes of type '{}' has no command '{}'".format(node_type, command_name))
+
+
+def check_general_node_command_is_allowed(type_, command_name, section):
+    """
+
+    Parameters
+    ----------
+    type_ : str
+        The general node type.
+    command_name : str
+        The name of the command.
+    section : Enum
+        The section (DEFINE or EVENTS) at which the command is used.
+
+    Returns
+    -------
+    bool
+        Whether the command is allowed.
+    """
+
+    allowed_commands = GENERAL_NODE_COMMAND_SECTIONS[type_]
+
+    if command_name in allowed_commands:
+
+        allowed_sections = allowed_commands[command_name]
+
+        if section in allowed_sections:
+
+            return True
+
+        else:
+
+            raise CommandError("'{}' does not allow use of command '{}' in '{}'"
+                               .format(type_, command_name, SECTION_NAME[section]))
+
+    else:
+
+        raise CommandError("'{}' has no command '{}'".format(type_, command_name))

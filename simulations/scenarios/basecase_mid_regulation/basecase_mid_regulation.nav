@@ -1,0 +1,40 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: CC-BY-4.0
+
+DEFINE {
+	Load DefaultModelDefinition
+    Load DefaultBunkerLogistics
+
+    # fleets
+    Load DefaultFleet
+
+    # voyages
+    Load DefaultPort
+
+    # fuels
+    Load DefaultEmission
+    Load DefaultFeedstock
+    Load DefaultFuel
+    Load DefaultProducer
+    Load DefaultPlant
+    Load DefaultRegion
+    Load DefaultSource
+    Load DefaultTransport
+
+    # regulations
+	Load DefaultRegulation
+    Include "../0_includes/mid_regulation.inc"
+
+    # calibration
+    Load DefaultCalibration
+
+	# output
+    Load DefaultReport
+    Load DefaultPlot
+	Load DebugPlot
+}
+
+EVENTS {
+	Load DefaultConverterAvailable
+	Load DefaultTimeStepYearly
+}

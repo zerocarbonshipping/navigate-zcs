@@ -1,0 +1,129 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: Apache-2.0
+
+name: CI
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main, dev ]
+
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Install lint tools
+        run: pip install flake8 flake8-bugbear pep8-naming isort
+
+      - name: Run flake8
+        run: flake8 navigate
+
+      - name: Run isort
+        run: isort navigate --check-only --diff
+
+
+  reuse:
+    name: REUSE compliance
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Install REUSE tool
+        run: pip install reuse
+
+      - name: Check copyright and license metadata
+        run: reuse lint
+
+
+  build:
+    name: Build package
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Build package
+        run: |
+          pip install build
+          python -m build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: dist-artifacts
+          path: dist/
+
+
+  test:
+    name: Run tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: build
+    env:
+      ASSUMPTIONS_DATA_DIR: ${{ github.workspace }}/assumptions
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Conda
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          miniforge-version: latest
+          activate-environment: nav
+          python-version: '3.12'
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: dist-artifacts
+          path: dist/
+
+      - name: Install built wheel with dev dependencies
+        shell: bash -el {0}
+        run: pip install --force-reinstall "$(ls dist/*.whl)[dev]"
+
+      - name: Verify installation
+        shell: bash -el {0}
+        run: navigate --help
+
+      - name: Run unit tests
+        shell: bash -el {0}
+        run: make test-unit
+
+      - name: Run attribute tests
+        shell: bash -el {0}
+        run: make test-attribute
+
+      - name: Run tutorials
+        shell: bash -el {0}
+        run: make test-tutorials
+
+      - name: Run examples
+        shell: bash -el {0}
+        run: make test-examples

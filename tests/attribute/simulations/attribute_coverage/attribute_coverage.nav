@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: CC-BY-4.0
+
+# Attribute coverage test simulation
+#
+# This simulation touches every registered attribute and command in the model
+# to verify they can be parsed and executed through the full pipeline.
+
+DEFINE {
+	Include "includes/nav_core.inc"
+	Include "includes/nav_fuel.inc"
+	Include "includes/nav_calculators.inc"
+	Include "includes/nav_route.inc"
+	Include "includes/nav_supply_chain.inc"
+	Include "includes/nav_fleet.inc"
+	Include "includes/nav_policy.inc"
+	Include "includes/nav_output.inc"
+}
+
+EVENTS {
+	Include "includes/ft_events.inc"
+}

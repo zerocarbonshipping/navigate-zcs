@@ -1,0 +1,89 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: CC-BY-4.0
+
+# ---------------------------------------------------------------------------------
+#
+# SETTING THE SCENE – EXAMPLE 2 (PACIFIC BULK TRADE WITH FAME)
+#
+# A regional bulk carrier operator based in Australia and New Zealand operates 
+# a small fleet of Handysize bulk carriers trading across the South
+# Pacific (Australia, New Zealand, Fiji, Samoa, and Tonga).
+#
+# The fleet is modeled with a single vessel specification, which can operate 
+# on either fossil marine fuels or renewable alternatives such as
+# B100-grade FAME. FAME is assumed to be produced from waste oils under 
+# recognized sustainability schemes, with supply available at the main ports 
+# in Australia and New Zealand. Smaller island ports are assumed to provide 
+# only fossil fuels, requiring planning of bunkering logistics.
+#
+# EU regulatory measures are excluded. Only international/IMO frameworks are 
+# considered (e.g., CII and potential IMO market-based measures).
+#
+# This scenario provides a reference case for assessing the costs and emission 
+# impacts of adopting FAME in Pacific regional bulk trades. Users can adjust 
+# fleet size, routing, fuel availability, costs, emission factors, and 
+# regulatory assumptions in the .inc files to explore sensitivities and
+# alternative policy outcomes.
+#
+# ---------------------------------------------------------------------------------
+
+
+DEFINE {
+
+    # -------------------------- DEFINITIONS --------------------------
+    # Import the default model settings. These provide baseline constants
+    # and parameters that can be overwritten in this scenario.
+    Load DefaultModelDefinition
+
+    # ---------------------- BUNKER LOGISTICS -------------------------
+    # Defines the cost and handling assumptions for transporting and supplying
+    # fuels. This is particularly relevant as FAME is produced in Europe and
+    # shipped to the South Pacific, while fossil fuels are treated as widely
+    # available regionally.
+    Include "includes/bunker_logistics.inc"
+
+    # ---------------------------- FLEET ------------------------------
+    # Defines the vessel type used, size, age structure, and initial uptake
+    # of the operator’s fleet. This section also includes optional energy
+    # efficiency measures.
+    Include "includes/fleet_curves.inc"
+    Include "includes/fleet.inc"
+    Include "includes/energy_efficiencies_curves.inc"
+    Include "includes/energy_efficiencies.inc"
+
+    # ----------------------------- ROUTE -----------------------------
+    # Defines the ports included in the example (Australia, New Zealand, and
+    # selected Pacific island ports) along with their characteristics. The
+    # route file specifies the distribution of voyages, port calls, and
+    # time allocation between sea and port conditions.
+    Include "includes/route.inc"
+    Include "includes/ports.inc"
+
+    # ----------------------------- FUEL ------------------------------
+    # Defines the fuels available in the example, their production processes,
+    # feedstocks, costs, and emission factors. Regional differences and
+    # producer-specific constraints (e.g. feedstock limits) are also captured
+    # here.
+    Include "includes/fuel_production.inc"
+    Include "includes/regions.inc"
+    Include "includes/producer.inc"
+    Load DefaultEmission
+
+    # -------------------------- REGULATION ---------------------------
+    # Defines the relevant international regulatory frameworks affecting the
+    # fleet, such as IMO’s CII, long-term net-zero pathways, and related
+    # measures. EU-specific policies are excluded in this Pacific scenario.
+    Include "includes/cii.inc"
+    Include "includes/net_zero_framework.inc"
+
+    # ----------------------- DECISION PROCESESS --------------------
+    Include "includes/decision_processes.inc"
+	
+	# -------------------------- OUTPUT -----------------------------
+	Load DefaultPlot
+}
+
+EVENTS {
+    # time-steps
+	Load DefaultTimeStepYearly
+}

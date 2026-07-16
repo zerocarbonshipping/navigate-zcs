@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: CC-BY-4.0
+
+# This is the .nav file for Tutorial 2. It is the same as Tutorial 1.
+# You should just make sure that your define and events files are correctly named
+# and are located in the tutorial_2/includes folder.
+
+# Define the model.
+DEFINE {
+	Include "./includes/define.inc"
+}
+
+# Define the timeline and events.
+EVENTS {
+	Include "./includes/events.inc"
+}

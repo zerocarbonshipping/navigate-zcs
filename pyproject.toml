@@ -1,0 +1,76 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: Apache-2.0
+
+[build-system]
+requires = ["setuptools>=68.2", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "navigate-zcs"
+version = "1.0.0"
+authors = [
+    { name = "Frederik Winkel Lehn", email = "frederik.lehn@zerocarbonshipping.com" },
+]
+maintainers = [
+    { name = "Mathias Hintze", email = "mathias.hintze@zerocarbonshipping.com"},
+    { name = "Julius Thomas", email = "julius.thomas@zerocarbonshipping.com" }
+]
+description = "A sectoral integrated assessment model for simulating transitions of the maritime industry"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { file = "LICENSE" }
+
+dependencies = [
+    "highspy",
+    "pandas",
+    "numpy",
+    "matplotlib",
+    "scipy",
+    "XlsxWriter",
+    "tabulate",
+    "openpyxl",
+    "lark"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "flake8",
+    "flake8-bugbear",
+    "pep8-naming",
+    "isort",
+]
+gurobi = [
+    "gurobipy",
+]
+
+[project.urls]
+Homepage = "https://www.zerocarbonshipping.com/"
+Repository = "https://github.com/zerocarbonshipping/navigate-zcs"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+exclude = ["assumptions", "simulations", "tutorials", "tests", "syntax", "docs",
+    "build*", "dist*", "*.egg-info*", "bdist*"]
+
+[tool.setuptools.package-data]
+"navigate" = ["output/preamble.txt"]
+"navigate.parser" = ["grammar.lark"]
+
+[project.scripts]
+navigate = "navigate.__main__:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-x --tb=short -q --import-mode=importlib"
+markers = [
+    "slow: marks tests as slow (> 30s)",
+    "integration: marks large integration tests (> 5 min)",
+]
+
+[tool.isort]
+profile = "black"
+line_length = 120

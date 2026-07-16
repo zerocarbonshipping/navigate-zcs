@@ -1,0 +1,65 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: CC-BY-4.0
+
+# baseline.nav file for tutorial 3
+
+DEFINE {	
+				
+	### model definition and general conditions
+	Include "../../0_includes_global/model_definition.inc"
+	Include "../../0_includes_global/bunker_logistics.inc"
+	
+	# fleets
+	Include "../../0_includes_global/fleet_bulk.inc"
+	Include "../../0_includes_global/fleet_container.inc"
+	Include "../../0_includes_global/fleet_uptake.inc"
+	
+	# vessels
+	Include "../../0_includes_global/container_ice_oil.inc"
+	Include "../../0_includes_global/container_ice_methane.inc"
+	Include "../../0_includes_global/bulk_ice_methanol.inc"
+	Include "../../0_includes_global/bulk_ice_ammonia.inc"
+	Include "../../0_includes_global/tanks.inc"
+
+	# route
+	Include "../../0_includes_global/route.inc"
+	
+	# port
+	Include "../../0_includes_global/port.inc"
+	
+	# fuels
+	Include "../../0_includes_global/plant.inc"
+	Include "../../0_includes_global/fuel.inc"
+	Include "../../0_includes_global/process.inc"
+	Include "../../0_includes_global/feedstock.inc"
+
+	
+	# costs and emission of fuels
+	Include "../../0_includes_global/source.inc"
+	Include "../../0_includes_global/region.inc"
+    Include "../../0_includes_global/emissions.inc"
+
+	# producer
+	Include "../../0_includes_global/producer.inc"
+	Include "../../0_includes_global/producer_uptake.inc"
+	
+	# report
+	Include "../../0_includes_global/report.inc"
+
+	# plots
+	Include "../../0_includes_global/plot.inc"
+}
+
+
+EVENTS {					
+	# engine availability
+	
+	# fuels available
+	
+	# time steps
+	Include "../../0_includes_global/time_steps_yearly.inc"
+}
+
+
+
+

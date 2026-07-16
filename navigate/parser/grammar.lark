@@ -1,0 +1,79 @@
+// SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+// SPDX-License-Identifier: Apache-2.0
+
+// Navigate DSL Grammar (Lark LALR)
+//
+// Two entry points:
+//   - "start"  parses .inc file content (node declarations, timeline, etc.)
+//   - "deck"   parses .nav file content (SIMULATION blocks with directives)
+//
+// Keywords and attributes use Title case. Command names are pure lowercase
+// snake_case with acronyms lowercased (set_fuel_wtt, set_process_capex) and
+// must match the node method name exactly. ALL_CAPS is reserved for enum
+// keyword values (AMMONIA, WTT, FLAT) and the CAPEX/OPEX attribute names.
+
+// ── Deck-level (.nav) ────────────────────────────────────────────────────
+deck: block*
+
+?block: define_block
+      | events_block
+
+define_block: "DEFINE" "{" directive* "}"
+events_block: "EVENTS" "{" directive* "}"
+
+?directive: "Include" QUOTED_STRING    -> include_directive
+          | "Load" NODE_TYPE          -> load_module
+
+// ── Include-level (.inc) ─────────────────────────────────────────────────
+start: stmt*
+
+?stmt: node_decl
+     | general_node_decl
+     | copy_stmt
+     | import_stmt
+     | date_stmt
+     | "Start" -> start_timeline
+     | "End" -> end_timeline
+
+node_decl: NODE_TYPE QUOTED_STRING "{" body_item* "}"
+general_node_decl: NODE_TYPE "{" body_item* "}"
+copy_stmt: "Copy" NODE_TYPE QUOTED_STRING QUOTED_STRING
+import_stmt: "Import" NODE_TYPE QUOTED_STRING
+date_stmt: "Date" QUOTED_STRING
+
+// ── Node body items ──────────────────────────────────────────────────────
+?body_item: assignment
+          | command
+          | TABLE_BLOCK -> table_block
+
+assignment: name "=" value
+command: name "(" arg_list ")"
+?name: NAME | NODE_TYPE
+arg_list: [value ("," value)*]
+
+// ── Values ───────────────────────────────────────────────────────────────
+?value: SIGNED_NUMBER                  -> number
+      | name "(" QUOTED_STRING ")"      -> node_ref
+      | EXPRESSION                     -> expression
+      | WILDCARD_NAME                  -> wildcard_value
+      | NODE_TYPE                       -> ident_value
+      | NAME                           -> ident_value
+      | QUOTED_STRING                  -> string_value
+      | "[" [value ("," value)* ","?] "]"   -> list_value
+      | TABLE_BLOCK                    -> table_value
+      | TEMPLATE                       -> template_value
+
+// ── Terminals ────────────────────────────────────────────────────────────
+NODE_TYPE: /[A-Z][A-Za-z0-9_]*/
+WILDCARD_NAME.1: /[A-Za-z_][A-Za-z0-9_]*[*?][A-Za-z0-9_*?]*|\*/
+NAME: /[A-Za-z_][A-Za-z0-9_]*/
+QUOTED_STRING: /\"[^"]*\"/
+SIGNED_NUMBER.2: /[+-]?(?:(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?|INF)/
+EXPRESSION: /<[^>]+>/
+TABLE_BLOCK.3: /Table\s*=\s*\[[^\]]*\]/
+TEMPLATE: /%[a-z_]+%/
+
+// ── Ignored ──────────────────────────────────────────────────────────────
+COMMENT: /#[^\n]*/
+%ignore COMMENT
+%ignore /[\s]+/

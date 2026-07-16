@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: CC-BY-4.0
+
+Emission "carbon_dioxide" {
+	GlobalWarmingPotential = 1
+}
+
+Emission "methane" {
+	GlobalWarmingPotential = 25
+}
+
+Emission "nitrous_oxide" {
+	GlobalWarmingPotential = 273
+}

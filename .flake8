@@ -1,0 +1,24 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: Apache-2.0
+
+[flake8]
+max-line-length = 128
+
+exclude =
+    __pycache__,
+    build,
+    dist,
+    .venv,
+    venv,
+    .idea,
+    migrations,
+    .claude,
+    .git
+
+ignore = B023, E731, E241, W503, N802, N803, N806
+
+per-file-ignores =
+    __init__.py: F401
+    navigate/bunker/solver.py: N811, N816
+
+extend-select = B,N

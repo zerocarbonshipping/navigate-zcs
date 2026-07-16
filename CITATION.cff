@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: CC-BY-4.0
+
+cff-version: 1.2.0
+title: Navigate
+abstract: "A sectoral integrated assessment model for simulating transitions of the maritime industry"
+type: software
+license: Apache-2.0
+version: 1.0.0
+url: "https://zerocarbonshipping.github.io/navigate-zcs"
+repository-code: "https://github.com/zerocarbonshipping/navigate-zcs"
+date-released: 2026-07-14
+authors:
+  - given-names: "Frederik Winkel"
+    family-names: Lehn
+    email: frederik.lehn@zerocarbonshipping.com
+    affiliation: "Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping"
+  - given-names: Julius
+    family-names: Thomas
+    email: julius.thomas@zerocarbonshipping.com
+    orcid: https://orcid.org/0009-0006-4512-7330
+    affiliation: "Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping"
+  - given-names: Mathias
+    family-names: Hintze
+    email: mathias.hintze@zerocarbonshipping.com
+    affiliation: "Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping"

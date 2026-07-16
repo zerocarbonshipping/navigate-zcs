@@ -1,0 +1,38 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: Apache-2.0
+
+version = 1
+SPDX-PackageName = "Navigate"
+SPDX-PackageSupplier = "Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping <navigate@zerocarbonshipping.com>"
+SPDX-PackageDownloadLocation = "https://github.com/zerocarbonshipping/navigate-zcs"
+
+# Empty placeholder files that keep directories tracked by git.
+[[annotations]]
+path = "**/.gitkeep"
+SPDX-FileCopyrightText = "2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping"
+SPDX-License-Identifier = "Apache-2.0"
+
+# Banner text embedded verbatim in generated output; adding a comment header
+# would alter program output.
+[[annotations]]
+path = "navigate/output/preamble.txt"
+SPDX-FileCopyrightText = "2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping"
+SPDX-License-Identifier = "CC-BY-4.0"
+
+# Documentation-site version switcher; strict JSON cannot carry comments.
+[[annotations]]
+path = "docs/_static/switcher.json"
+SPDX-FileCopyrightText = "2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping"
+SPDX-License-Identifier = "Apache-2.0"
+
+# Packaged VS Code syntax-highlighting extension (binary archive).
+[[annotations]]
+path = "syntax/vscode/*.vsix"
+SPDX-FileCopyrightText = "2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping"
+SPDX-License-Identifier = "Apache-2.0"
+
+# Documentation figures (binary images).
+[[annotations]]
+path = "docs/_static/*.png"
+SPDX-FileCopyrightText = "2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping"
+SPDX-License-Identifier = "CC-BY-4.0"

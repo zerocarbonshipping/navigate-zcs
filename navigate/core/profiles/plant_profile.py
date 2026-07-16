@@ -1,0 +1,144 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: Apache-2.0
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+import numpy as np
+
+from navigate.core.misc import EMPTY_FLOAT, EMPTY_NAN
+from navigate.core.profiles._base_profile import _BaseProfile
+from navigate.core.profiles._container_util import register_single_dict_getters
+from navigate.util import divide_nonzero, extract_from_dict
+
+if TYPE_CHECKING:
+    from navigate.fuel import Emission, Feedstock, Fuel, Process
+
+
+class PlantProfile(_BaseProfile):
+    def __init__(self):
+        super().__init__()
+
+        # constants
+        self._GWP: dict[str, float] = {}                      # global warming potential of emission
+        self._lower_heating_value: float = 0.0                  # lower heating value of fuel
+
+        # production
+        self._capacity: np.ndarray = EMPTY_FLOAT      # production capacity, tons/year
+        self._production: np.ndarray = EMPTY_FLOAT    # actual production, tons/year
+
+        # feed input
+        self._feed_mass: dict[str, np.ndarray] = {}    # input used, ton/ton
+
+        # costs
+        self._investment_cost: np.ndarray = EMPTY_NAN        # expected cost at time of investment, USD/ton
+        self._instantaneous_cost: np.ndarray = EMPTY_NAN     # instantaneous cost, USD/ton
+
+        # emissions
+        self._investment_WTT: dict[str, np.ndarray] = {}       # expected WTT at time of investment, ton emission/ton fuel
+        self._instantaneous_WTT: dict[str, np.ndarray] = {}    # instantaneous WTT at a given time, ton emission/ton fuel
+        self._TTW: dict[str, np.ndarray] = {}                  # fuel TTW (stoichiometric), ton emission/ton fuel
+
+    def initialize(self, timeline: np.ndarray, fuel: Fuel, emissions: dict[str, Emission],
+                   feedstocks: dict[str, Feedstock], processes: dict[str, Process],
+                   emissions_lifetime: float) -> None:
+        """
+
+        Parameters
+        ----------
+        timeline : np.ndarray
+            Simulation timeline in years.
+        fuel : Fuel
+            The fuel produced by the plant.
+        emissions : dict[Emission]
+            All emissions in the simulation.
+        feedstocks : dict[Feedstock]
+            All feedstocks in the simulation.
+        processes : dict[Processes]
+            All processes in the simulation.
+        emissions_lifetime : float
+            GWP lifetime.
+        """
+
+        self._initialize_base(timeline)
+
+        self._capacity = self._default_array()
+        self._production = self._default_array()
+
+        self._feed_mass = self._default_dict({**feedstocks, **processes})
+
+        self._investment_cost = self._default_array(default=np.nan)
+        self._instantaneous_cost = self._default_array(default=np.nan)
+
+        self._investment_WTT = self._default_dict(emissions, default=np.nan)
+        self._instantaneous_WTT = self._default_dict(emissions, default=np.nan)
+
+        self._lower_heating_value = fuel.lower_heating_value.get()
+
+        for emission_name, emission in emissions.items():
+            self._GWP[emission_name] = emission.global_warming_potential.get(emissions_lifetime)
+
+        for emission_name in emissions:
+            self._TTW[emission_name] = self._default_array(default=fuel.get_TTW(emission_name).get())
+
+    @staticmethod
+    def _convert_to_intensity(emission: np.ndarray, energy: np.ndarray) -> np.ndarray:
+        # emissions are converted from ton to g (10^6)
+        # and energy is converted from GJ to MJ (10^3),
+        # so dividing by 10^3
+        return divide_nonzero(emission, (energy / 1e3))
+
+    def set_capacity(self, idx: int, capacity: float) -> None:
+        self._capacity[idx] = capacity
+
+    def set_production(self, idx: int, production: float) -> None:
+        self._production[idx] = production
+
+    def set_feed_mass(self, idx: int, feed_name: str, feed_mass: float) -> None:
+        self._feed_mass[feed_name][idx] = feed_mass
+
+    def set_investment_cost(self, idx: int, investment_cost: float) -> None:
+        self._investment_cost[idx] = investment_cost
+
+    def set_instantaneous_cost(self, idx: int, instantaneous_cost: float) -> None:
+        self._instantaneous_cost[idx] = instantaneous_cost
+
+    def set_investment_WTT(self, idx: int, emission_name: str, investment_WTT: float) -> None:
+        self._investment_WTT[emission_name][idx] = investment_WTT
+
+    def set_instantaneous_WTT(self, idx: int, emission_name: str, instantaneous_WTT: float) -> None:
+        self._instantaneous_WTT[emission_name][idx] = instantaneous_WTT
+
+    def get_capacity(self, idx: int | slice = np.s_[:]) -> np.ndarray:
+        return self._capacity[idx]
+
+    def get_production(self, idx: int | slice = np.s_[:]) -> np.ndarray:
+        return self._production[idx]
+
+    def get_feed_mass(self, feed_name: str, idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
+        return extract_from_dict(self._feed_mass, feed_name, idx)
+
+    def get_investment_cost(self, idx: int | slice = np.s_[:]) -> np.ndarray:
+        return self._investment_cost[idx]
+
+    def get_investment_intensity_cost(self, idx: int | slice = np.s_[:]) -> np.ndarray:
+        return self._investment_cost[idx] / self._lower_heating_value
+
+    def get_instantaneous_intensity_cost(self, idx: int | slice = np.s_[:]) -> np.ndarray:
+        return self._instantaneous_cost[idx] / self._lower_heating_value
+
+    def get_instantaneous_cost(self, idx: int | slice = np.s_[:]) -> np.ndarray:
+        return self._instantaneous_cost[idx]
+
+    # Emission getters generated by factory — see _container_util.py.
+
+
+# PlantProfile emission getter registrations (replaces ~144 lines of hand-written methods)
+_plant_args = dict(gwp_attr='_GWP', lhv_attr='_lower_heating_value', convert_to_intensity='_convert_to_intensity')
+register_single_dict_getters(PlantProfile, 'TTW', data_attr='_TTW', **_plant_args)
+register_single_dict_getters(PlantProfile, 'investment_WTT', data_attr='_investment_WTT', **_plant_args)
+register_single_dict_getters(PlantProfile, 'instantaneous_WTT', data_attr='_instantaneous_WTT', **_plant_args)
+register_single_dict_getters(PlantProfile, 'investment_WTW', source_attrs=['_investment_WTT', '_TTW'], **_plant_args)
+register_single_dict_getters(PlantProfile, 'instantaneous_WTW', source_attrs=['_instantaneous_WTT', '_TTW'], **_plant_args)
+del _plant_args

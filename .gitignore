@@ -1,0 +1,121 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: Apache-2.0
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+docs/_build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Unit tests / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Logs
+*.log
+
+# pyenv
+.python-version
+
+# Environments
+.env
+.venv
+.nav-venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# WSL metadata
+*:Zone.Identifier
+
+# IDEs
+.vscode/
+.idea/
+
+# Agent config folders
+.claude/
+**/.claude/
+.cursor/
+.aider*
+.windsurf/
+.continue/
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Local artifacts
+*.bak
+*.lp
+*.ilp
+*.mps
+
+# Simulation outputs
+# Navigate renders figures and writes reports into plots*/ folders (plots,
+# plots_analysis, plots_debug, ...) inside each run directory. These rules are
+# scoped to the run trees so the source package navigate/illustrations/plots/
+# stays tracked.
+/simulations/**/plots*/
+/simulations/examples/**/*.png
+/simulations/examples/**/*.pkl
+/simulations/examples/**/*.xlsx
+
+/simulations/scenarios/**/*.png
+/simulations/scenarios/**/*.pkl
+/simulations/scenarios/**/*.xlsx
+/simulations/scenarios/debug_plots/
+
+/simulations/debug/*
+!/simulations/debug/.gitkeep
+
+# Tutorial outputs (keep _static assets)
+/tutorials/**/plots*/
+/tutorials/**/*.png
+/tutorials/**/*.pkl
+/tutorials/**/*.prt
+/tutorials/**/*.xlsx
+!/tutorials/_static/**
+
+# Test outputs
+/tests/**/plots*/
+/tests/**/*.png
+/tests/**/*.pkl
+/tests/**/*.xlsx
+/tests/**/output/

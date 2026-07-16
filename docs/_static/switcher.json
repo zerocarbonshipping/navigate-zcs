@@ -1,0 +1,13 @@
+[
+  {
+    "version": "1.0.0",
+    "name": "1.0.0 (latest)",
+    "url": "https://zerocarbonshipping.github.io/navigate-zcs/",
+    "preferred": true
+  },
+  {
+    "version": "dev",
+    "name": "Staging (dev)",
+    "url": "https://zerocarbonshipping.github.io/navigate-zcs/staging/"
+  }
+]

@@ -1,0 +1,362 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: Apache-2.0
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+import numpy as np
+
+from navigate.core.enum_ import FuelTypeID
+from navigate.core.misc import EMPTY_FLOAT, EMPTY_NAN
+from navigate.core.profiles._vessel_aggregate_profile import _VesselAggregateProfile
+
+if TYPE_CHECKING:
+    from navigate.fuel import Emission, Fuel
+
+from navigate.util import extract_from_dict, extract_from_tuple_dict
+
+
+class FleetProfile(_VesselAggregateProfile):
+    def __init__(self):
+        super().__init__()
+
+        self._trade: np.ndarray = EMPTY_FLOAT
+
+        self._existing_vessels: dict[str, np.ndarray] = {}
+        self._average_ages: dict[str, np.ndarray] = {}
+        self._primary_scrap: dict[str, np.ndarray] = {}
+        self._secondary_scrap: dict[str, np.ndarray] = {}
+        self._orderbook_newbuilds: dict[str, np.ndarray] = {}
+        self._inertia_newbuilds: dict[str, np.ndarray] = {}
+        self._modelled_newbuilds: dict[str, np.ndarray] = {}
+        self._newbuild_limit: dict[str, np.ndarray] = {}
+        self._fuel_conversion_existing_total: np.ndarray = EMPTY_FLOAT
+        self._fuel_conversions: dict[tuple[str, str], np.ndarray] = {}
+        self._fuel_conversion_limit: dict[tuple[str, str], np.ndarray] = {}
+        self._technology_uptake: dict[tuple[str, str], np.ndarray] = {}
+        self._newbuild_technology_uptake: dict[tuple[str, str], np.ndarray] = {}
+        self._retrofit_technology_uptake: dict[tuple[str, str], np.ndarray] = {}
+        self._newbuild_technology_limit: dict[str, np.ndarray] = {}
+        self._retrofit_technology_limit: dict[str, np.ndarray] = {}
+        self._newbuild_existing_total: np.ndarray = EMPTY_FLOAT
+
+        self._fuel_type_supply: dict[FuelTypeID, np.ndarray] = {}
+
+        # values across vessel types
+        self._youngest_scrap_age: np.ndarray = EMPTY_FLOAT
+        self._average_scrap_age: np.ndarray = EMPTY_FLOAT
+
+        # speed
+        self._time_at_sea: np.ndarray = EMPTY_NAN       # average time spent at sea, fraction
+        self._reference_speed: np.ndarray = EMPTY_NAN   # average reference speed, knots
+        self._minimum_speed: np.ndarray = EMPTY_NAN     # average minimum possible speed, knots
+        self._maximum_speed: np.ndarray = EMPTY_NAN     # average maximum possible speed, knots
+        self._actual_speed: np.ndarray = EMPTY_NAN      # average actual speed, knots
+        self._optimal_speed: np.ndarray = EMPTY_NAN     # average optimal speed, knots
+        self._lowest_speed: np.ndarray = EMPTY_NAN      # lowest actual speed, knots
+        self._highest_speed: np.ndarray = EMPTY_NAN     # highest actual speed, knots
+
+        self._instantaneous_freight_rate: np.ndarray = EMPTY_NAN   # USD/cargo-mile
+
+    def initialize(self, timeline: np.ndarray,
+                   vessel_names: list[str], technology_names: list[str],
+                   fuels: dict[str, Fuel], emissions: dict[str, Emission], emissions_lifetime: float,
+                   regulation_names: list[str] = (), levy_names: list[str] = ()) -> None:
+        """
+        Parameters
+        ----------
+        timeline :
+            Simulation timeline in years.
+        vessel_names :
+            List of vessel names.
+        technology_names :
+            List of technology names.
+        fuels :
+            All fuels in the simulation.
+        emissions :
+            All emissions in the simulation.
+        emissions_lifetime :
+            Emissions lifetime used for calculating GWP.
+        """
+
+        self._initialize_base(timeline)
+        self._initialize_fuel_base(fuels)
+        self._initialize_fuel_consumer(fuels, emissions, emissions_lifetime, regulation_names, levy_names)
+        self._initialize_vessel_aggregate(fuels)
+
+        self._trade = self._default_array()
+
+        for vessel_name in vessel_names:
+
+            self._existing_vessels[vessel_name] = self._default_array()
+            self._average_ages[vessel_name] = self._default_array()
+            self._primary_scrap[vessel_name] = self._default_array()
+            self._secondary_scrap[vessel_name] = self._default_array()
+            self._orderbook_newbuilds[vessel_name] = self._default_array()
+            self._inertia_newbuilds[vessel_name] = self._default_array()
+            self._modelled_newbuilds[vessel_name] = self._default_array()
+
+        self._newbuild_limit = self._default_dict(vessel_names)
+        self._fuel_conversion_existing_total = self._default_array()
+
+        self._fuel_conversions = self._default_tuple_dict(vessel_names, vessel_names)
+        self._fuel_conversion_limit = self._default_tuple_dict(vessel_names, vessel_names)
+
+        self._technology_uptake = self._default_tuple_dict(vessel_names, technology_names)
+        self._newbuild_technology_uptake = self._default_tuple_dict(vessel_names, technology_names)
+        self._retrofit_technology_uptake = self._default_tuple_dict(vessel_names, technology_names)
+        self._newbuild_technology_limit = self._default_dict(technology_names)
+        self._retrofit_technology_limit = self._default_dict(technology_names)
+        self._newbuild_existing_total = self._default_array()
+
+        self._fuel_type_supply = self._default_dict(FuelTypeID)
+
+        self._youngest_scrap_age = self._default_array()
+        self._average_scrap_age = self._default_array()
+
+        self._time_at_sea = self._default_array(default=np.nan)
+        self._reference_speed = self._default_array(default=np.nan)
+        self._minimum_speed = self._default_array(default=np.nan)
+        self._maximum_speed = self._default_array(default=np.nan)
+        self._actual_speed = self._default_array(default=np.nan)
+        self._optimal_speed = self._default_array(default=np.nan)
+        self._lowest_speed = self._default_array(default=np.nan)
+        self._highest_speed = self._default_array(default=np.nan)
+
+        self._instantaneous_freight_rate = self._default_array(default=np.nan)
+
+    def set_trade(self, idx: int, trade: float) -> None:
+        self._trade[idx] = trade
+
+    def set_youngest_scrap_age(self, idx: int, scrap_age: float) -> None:
+        self._youngest_scrap_age[idx] = scrap_age
+
+    def set_average_scrap_age(self, idx: int, scrap_rate: float) -> None:
+        self._average_scrap_age[idx] = scrap_rate
+
+    def set_existing_vessels(self, idx: int, vessel_name: str, existing_vessels: float) -> None:
+        self._existing_vessels[vessel_name][idx] = existing_vessels
+
+    set_existing_assets = set_existing_vessels
+
+    def set_average_age(self, idx: int, vessel_name: str, average_age: float) -> None:
+        self._average_ages[vessel_name][idx] = average_age
+
+    def set_primary_scrap(self, vessel_name: str, idx: int, primary_scrap: float) -> None:
+        self._primary_scrap[vessel_name][idx] = primary_scrap
+
+    def add_secondary_scrap(self, vessel_name: str, idx: int, secondary_scrap: float) -> None:
+        self._secondary_scrap[vessel_name][idx] += secondary_scrap
+
+    def set_orderbook_newbuilds(self, vessel_name: str, idx: int, orderbook_newbuilds: float) -> None:
+        self._orderbook_newbuilds[vessel_name][idx] = orderbook_newbuilds
+
+    def set_inertia_newbuilds(self, vessel_name: str, idx: int, inertia_newbuilds: float) -> None:
+        self._inertia_newbuilds[vessel_name][idx] = inertia_newbuilds
+
+    def set_modelled_newbuilds(self, vessel_name: str, idx: int, modelled_newbuilds: float) -> None:
+        self._modelled_newbuilds[vessel_name][idx] = modelled_newbuilds
+
+    def set_newbuild_limit(self, vessel_name: str, idx: int, newbuild_limit: float) -> None:
+        self._newbuild_limit[vessel_name][idx] = newbuild_limit
+
+    def set_fuel_conversion_existing_total(self, idx: int, existing_total: float) -> None:
+        self._fuel_conversion_existing_total[idx] = existing_total
+
+    def add_fuel_conversions(self, vessel_name_from: str, vessel_name_to: str, idx: int, conversions: float) -> None:
+        self._fuel_conversions[(vessel_name_from, vessel_name_to)][idx] += conversions
+
+    def set_fuel_conversion_limit(self, vessel_name_from: str, vessel_name_to: str, idx: int,
+                                  fuel_conversion_limit: float) -> None:
+        self._fuel_conversion_limit[(vessel_name_from, vessel_name_to)][idx] = fuel_conversion_limit
+
+    def set_technology_uptake(self, vessel_name: str, technology_name: str, idx: int, uptake: float) -> None:
+        self._technology_uptake[(vessel_name, technology_name)][idx] = uptake
+
+    def set_newbuild_technology_uptake(self, vessel_name: str, technology_name: str, idx: int, uptake: float) -> None:
+        self._newbuild_technology_uptake[(vessel_name, technology_name)][idx] = uptake
+
+    def set_retrofit_technology_uptake(self, vessel_name: str, technology_name: str, idx: int, uptake: float) -> None:
+        self._retrofit_technology_uptake[(vessel_name, technology_name)][idx] = uptake
+
+    def set_newbuild_technology_limit(self, technology_name: str, idx: int, limit: float) -> None:
+        self._newbuild_technology_limit[technology_name][idx] = limit
+
+    def set_retrofit_technology_limit(self, technology_name: str, idx: int, limit: float) -> None:
+        self._retrofit_technology_limit[technology_name][idx] = limit
+
+    def set_newbuild_existing_total(self, idx: int, existing_total: float) -> None:
+        self._newbuild_existing_total[idx] = existing_total
+
+    def add_fuel_type_supply(self, fuel_type: FuelTypeID, supply: float, idx: int | slice = np.s_[:]) -> None:
+        self._fuel_type_supply[fuel_type][idx] += supply
+
+    def set_time_at_sea(self, idx: int, time_at_sea: float) -> None:
+        self._time_at_sea[idx] = time_at_sea
+
+    def set_reference_speed(self, idx: int, reference_speed: float) -> None:
+        self._reference_speed[idx] = reference_speed
+
+    def set_minimum_speed(self, idx: int, minimum_speed: float) -> None:
+        self._minimum_speed[idx] = minimum_speed
+
+    def set_maximum_speed(self, idx: int, maximum_speed: float) -> None:
+        self._maximum_speed[idx] = maximum_speed
+
+    def set_actual_speed(self, idx: int, actual_speed: float) -> None:
+        self._actual_speed[idx] = actual_speed
+
+    def set_optimal_speed(self, idx: int, optimal_speed: float) -> None:
+        self._optimal_speed[idx] = optimal_speed
+
+    def set_lowest_speed(self, idx: int, lowest_speed: float) -> None:
+        self._lowest_speed[idx] = lowest_speed
+
+    def set_highest_speed(self, idx: int, highest_speed: float) -> None:
+        self._highest_speed[idx] = highest_speed
+
+    def set_instantaneous_freight_rate(self, idx: int, instantaneous_freight_rate: float) -> None:
+        self._instantaneous_freight_rate[idx] = instantaneous_freight_rate
+
+    def get_trade(self, idx: int | slice = np.s_[:]) -> np.ndarray:
+        return self._trade[idx]
+
+    def get_existing_vessels(
+            self, vessel_name: str | None = None,
+            idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
+        return extract_from_dict(self._existing_vessels, vessel_name, idx)
+
+    def get_average_ages(self, vessel_name: str | None = None) -> np.ndarray | dict[str, np.ndarray]:
+        if vessel_name is not None:
+            return self._average_ages[vessel_name]
+        else:
+            return np.average.reduce(self._average_ages.values(), weights=self._existing_vessels.values())
+
+    def get_primary_scrap(
+            self, vessel_name: str | None = None,
+            idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
+        return extract_from_dict(self._primary_scrap, vessel_name, idx)
+
+    def get_secondary_scrap(
+            self, vessel_name: str | None = None,
+            idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
+        return extract_from_dict(self._secondary_scrap, vessel_name, idx)
+
+    def get_orderbook_newbuilds(
+            self, vessel_name: str | None = None,
+            idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
+        return extract_from_dict(self._orderbook_newbuilds, vessel_name, idx)
+
+    def get_inertia_newbuilds(
+            self, vessel_name: str | None = None,
+            idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
+        return extract_from_dict(self._inertia_newbuilds, vessel_name, idx)
+
+    def get_modelled_newbuilds(
+            self, vessel_name: str | None = None,
+            idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
+        return extract_from_dict(self._modelled_newbuilds, vessel_name, idx)
+
+    def get_newbuild_limit(
+            self, vessel_name: str | None = None,
+            idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
+        return extract_from_dict(self._newbuild_limit, vessel_name, idx)
+
+    def get_fuel_conversion_existing_total(self, idx: int | slice = np.s_[:]) -> np.ndarray:
+        return self._fuel_conversion_existing_total[idx]
+
+    def get_scrap(self, vessel_name: str | None = None, idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
+        if vessel_name is not None:
+            return self._primary_scrap[vessel_name][idx] + self._secondary_scrap[vessel_name][idx]
+        else:
+            return {vessel_name: self.get_scrap(vessel_name, idx) for vessel_name in self._primary_scrap}
+
+    def get_newbuilds(self, vessel_name: str | None = None, idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
+        if vessel_name is not None:
+            return (self._orderbook_newbuilds[vessel_name][idx]
+                    + self._inertia_newbuilds[vessel_name][idx]
+                    + self._modelled_newbuilds[vessel_name][idx])
+        else:
+            return {vessel_name: self.get_newbuilds(vessel_name, idx) for vessel_name in self._orderbook_newbuilds}
+
+    def get_fuel_conversions(
+            self, vessel_name_to: str | None = None,
+            vessel_name_from: str | None = None,
+            idx: int | slice = np.s_[:]) -> np.ndarray | dict[tuple[str, str], np.ndarray]:
+        return extract_from_tuple_dict(self._fuel_conversions, vessel_name_to, vessel_name_from, idx)
+
+    def get_fuel_conversion_limit(
+            self, vessel_name_to: str | None = None,
+            vessel_name_from: str | None = None,
+            idx: int | slice = np.s_[:]) -> np.ndarray | dict[tuple[str, str], np.ndarray]:
+        return extract_from_tuple_dict(self._fuel_conversion_limit, vessel_name_to, vessel_name_from, idx)
+
+    def get_technology_uptake(
+            self, vessel_name: str | None = None,
+            technology_name: str | None = None,
+            idx: int | slice = np.s_[:]) -> np.ndarray | dict[tuple[str, str], np.ndarray]:
+        return extract_from_tuple_dict(self._technology_uptake, vessel_name, technology_name, idx)
+
+    def get_newbuild_technology_uptake(
+            self, vessel_name: str | None = None,
+            technology_name: str | None = None,
+            idx: int | slice = np.s_[:]) -> np.ndarray | dict[tuple[str, str], np.ndarray]:
+        return extract_from_tuple_dict(self._newbuild_technology_uptake, vessel_name, technology_name, idx)
+
+    def get_retrofit_technology_uptake(
+            self, vessel_name: str | None = None,
+            technology_name: str | None = None,
+            idx: int | slice = np.s_[:]) -> np.ndarray | dict[tuple[str, str], np.ndarray]:
+        return extract_from_tuple_dict(self._retrofit_technology_uptake, vessel_name, technology_name, idx)
+
+    def get_newbuild_technology_limit(
+            self, technology_name: str | None = None,
+            idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
+        return extract_from_dict(self._newbuild_technology_limit, technology_name, idx)
+
+    def get_retrofit_technology_limit(
+            self, technology_name: str | None = None,
+            idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
+        return extract_from_dict(self._retrofit_technology_limit, technology_name, idx)
+
+    def get_newbuild_existing_total(self, idx: int | slice = np.s_[:]) -> np.ndarray:
+        return self._newbuild_existing_total[idx]
+
+    def get_youngest_scrap_age(self, idx: int | slice = np.s_[:]) -> np.ndarray:
+        return self._youngest_scrap_age[idx]
+
+    def get_average_scrap_age(self, idx: int | slice = np.s_[:]) -> np.ndarray:
+        return self._average_scrap_age[idx]
+
+    def get_fuel_type_supply(
+            self, fuel_type: FuelTypeID | None = None,
+            idx: int | slice = np.s_[:]) -> np.ndarray | dict[FuelTypeID, np.ndarray]:
+        return extract_from_dict(self._fuel_type_supply, fuel_type, idx)
+
+    def get_time_at_sea(self, idx: int | slice = np.s_[:]) -> np.ndarray:
+        return self._time_at_sea[idx]
+
+    def get_reference_speed(self, idx: int | slice = np.s_[:]) -> np.ndarray:
+        return self._reference_speed[idx]
+
+    def get_minimum_speed(self, idx: int | slice = np.s_[:]) -> np.ndarray:
+        return self._minimum_speed[idx]
+
+    def get_maximum_speed(self, idx: int | slice = np.s_[:]) -> np.ndarray:
+        return self._maximum_speed[idx]
+
+    def get_actual_speed(self, idx: int | slice = np.s_[:]) -> np.ndarray:
+        return self._actual_speed[idx]
+
+    def get_optimal_speed(self) -> np.ndarray:
+        return self._optimal_speed
+
+    def get_lowest_speed(self, idx: int | slice = np.s_[:]) -> np.ndarray:
+        return self._lowest_speed[idx]
+
+    def get_highest_speed(self, idx: int | slice = np.s_[:]) -> np.ndarray:
+        return self._highest_speed[idx]
+
+    def get_instantaneous_freight_rate(self, idx: int | slice = np.s_[:]) -> np.ndarray:
+        return self._instantaneous_freight_rate[idx]

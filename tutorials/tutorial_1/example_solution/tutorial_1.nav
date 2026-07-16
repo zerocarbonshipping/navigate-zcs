@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: CC-BY-4.0
+
+### START OF tutorial_1.nav FILE ###
+
+# Define the model.
+DEFINE {
+	Include "./includes/define.inc"
+}
+
+
+# Define the timeline and events.
+EVENTS {
+	Include "./includes/events.inc"
+}
+
+
+### END OF tutorial_1.nav FILE ###

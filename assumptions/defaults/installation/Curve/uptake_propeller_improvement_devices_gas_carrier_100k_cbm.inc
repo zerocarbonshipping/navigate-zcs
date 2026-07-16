@@ -1,0 +1,9 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: CC-BY-4.0
+
+Curve "uptake_propeller_improvement_devices_gas_carrier_100k_cbm" {
+	Table = [
+		0	0.25
+		30	0.25
+	]
+}

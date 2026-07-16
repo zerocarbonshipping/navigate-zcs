@@ -1,0 +1,90 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: CC-BY-4.0
+
+# ---------------------------------------------------------------------------------
+# SETTING THE SCENE – EXAMPLE 3 (BALTIC PRODUCT TANKERS WITH E-AMMONIA AND
+# ENERGY EFFICIENCIES)
+#
+# This example is based in Helsinki and is modeled through two operators with
+# similar fleets. Each operates a mix of MR tankers (~47k DWT) and coastal
+# tankers (~7.5k DWT) trading across the Baltic Sea, with regular voyages linking
+# Helsinki, Stockholm, Tallinn, and Gdansk.
+#
+# Both operators can use conventional fossil fuel or transition to
+# e-ammonia as an alternative. Fuel availability is assumed to be uneven:
+# Helsinki and Stockholm provide both fossil fuels and e-ammonia, while Tallinn
+# and Gdansk supply fossil fuels only.
+#
+# The distinction lies in their adoption of energy-efficiency (EE) measures. One
+# operator (EE_fleet) implements a package of EE measures (such as hull and
+# propeller improvements, weather routing, and alternative power devices), while
+# the other (regular_fleet) does not. This setup allows for a direct comparison
+# of the economic and emissions impact of efficiency retrofits, under otherwise
+# identical conditions.
+#
+# Operating within the European regulatory zone, the fleets are subject to both
+# IMO measures (CII and potential NZF) and EU regulations (FuelEU
+# Maritime and the EU ETS). These frameworks create strong incentives for
+# reducing emissions through both fuel switching and efficiency improvements.
+#
+# This scenario provides a reference case for analyzing the combined and
+# comparative impacts of e-ammonia adoption and energy-efficiency measures on
+# short-sea tanker economics in the Baltic. Users can adjust fleet composition,
+# efficiency uptake, fuel costs, and regulatory assumptions in the .inc files to
+# test sensitivities and policy outcomes.
+#
+# ---------------------------------------------------------------------------------
+
+DEFINE {
+
+    # -------------------------- DEFINITIONS --------------------------
+    # Import the default model settings. These provide baseline constants
+    # and parameters that can be overwritten in this scenario.
+    Load DefaultModelDefinition
+
+    # ---------------------------- FLEET ------------------------------
+    # Defines the fleets of the two different operators, contaning multiple
+    # tankers and similar vessel types, but differentiation on the EE-measures.
+    Include "includes/regular_fleet_curves.inc"
+    Include "includes/regular_fleet.inc"
+    Include "includes/efficient_fleet_curves.inc"
+    Include "includes/efficient_fleet.inc"
+
+    # ----------------------------- ROUTE -----------------------------
+    # Defines the ports included in the scenario (Helsinki, Stockholm, Tallinn, 
+    # Gdansk) along with their characteristics. The route file specifies the 
+    # distribution of voyages, port calls, and time allocation between sea 
+    # and port conditions.
+    Include "includes/route.inc"
+    Include "includes/ports.inc"
+    Include "includes/bunker_logistics.inc"
+
+    # ----------------------------- FUEL ------------------------------
+    # Defines the fuels available in the scenario, their production processes,
+    # feedstocks, costs, and emission factors. Regional differences and
+    # plants are also defined here. 
+    Include "includes/fuel_production.inc"
+    Include "includes/regions.inc"
+    Include "includes/producer.inc"
+    Load DefaultEmission
+
+    # -------------------------- REGULATION ---------------------------
+    # Defines the relevant international regulatory frameworks affecting the
+    # fleet. As we operate within EU, both IMO and EU jurisdiction are in 
+    # effect. 
+    Include "includes/cii.inc"
+    Include "includes/eu_ets.inc"
+    Include "includes/fuel_eu.inc"
+    Include "includes/net_zero_framework.inc"
+
+    # ---------------- DECISION PROCESESS ---------------------------
+    Include "includes/decision_processes.inc"
+
+    # -------------------------- OUTPUT -----------------------------
+    Load DefaultPlot
+}
+
+EVENTS {
+    # time-steps
+	Load DefaultTimeStepYearly
+}

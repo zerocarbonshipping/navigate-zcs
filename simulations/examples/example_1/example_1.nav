@@ -1,0 +1,77 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: CC-BY-4.0
+
+# ------------------------------------------------------------------------------
+# SETTING THE SCENE - EXAMPLE 1 (CONTAINER/FEEDER NETWORK)
+#
+# In this scenario, we follow a shipping company operating a logistics network
+# composed of large mainline container vessels and smaller regional feeder ships.
+#
+# The mainline ships sail a global route between Singapore and Rotterdam, carrying 
+# international cargo across 11,000 nautical miles. Once in Europe, feeder vessels 
+# take over the distribution: sailing to Hamburg (a major port with strong infrastructure), 
+# and Aalborg (a smaller, less-equipped port).
+#
+# Each vessel type faces different realities — from fuel infrastructure and technology choices 
+# to emissions regulations and upgrade constraints. The example captures these variations
+# through specific assumptions about fuels, fleet aging, emissions policy, and routing.
+#
+# This case is designed as a step up from basic tutorials. It allows users to explore dynamic 
+# interactions between fuel switching, regulatory costs, and operational performance
+# without the full complexity of large-scale models.
+#
+# Use the .inc files to explore, adjust, and analyze how vessel behavior changes
+# under evolving market and policy conditions.
+# ------------------------------------------------------------------------------
+
+DEFINE {
+	# -------------------------- DEFINITIONS --------------------------
+    # Import the default model configuration for start
+    # date and global warming potential lifetime
+	Load DefaultModelDefinition
+
+    # ---------------------------- FLEET ---------------------------
+    # Define the available vessel options, including
+    # the composition of the existing fleet
+    Include "includes/mainlines_curves.inc"
+    Include "includes/mainlines.inc"
+    Include "includes/feeders_curves.inc"
+    Include "includes/feeders.inc"
+
+    # ----------------------- ROUTE ------------------------
+    # Define the routes the vessels are operating on, including the
+    # bunker price of fossil fuels and handling costs in ports
+    Include "includes/route.inc"
+    Include "includes/ports.inc"
+    Include "includes/bunker_logistics.inc"
+
+    # --------------------------- FUEL -----------------------------
+    # Define the fuel plants that can be built
+    # to meet the demand signals from the fleet
+    Include "includes/fuel_production.inc"
+    Include "includes/regions.inc"
+    Include "includes/producer.inc"
+    Load DefaultEmission
+
+    # ------------------------ REGULATION --------------------------
+    # We also have to take into account the different regulations in place 
+    # in the operating areas. These include the FuelEU, Cii, NZF and EU ETS.
+    Include "includes/cii.inc"
+    Include "includes/eu_ets.inc"
+    Include "includes/fuel_eu.inc"
+    Include "includes/net_zero_framework.inc"
+
+    # ---------------- DECISION PROCESESS ---------------------------
+    Include "includes/decision_processes.inc"
+
+    # -----------------------EXPORT -----------------------------
+    Include "includes/report.inc"
+
+    # -------------------------- OUTPUT -----------------------------
+    Load DefaultPlot
+}
+
+EVENTS {
+    # time-steps
+	Load DefaultTimeStepYearly
+}
