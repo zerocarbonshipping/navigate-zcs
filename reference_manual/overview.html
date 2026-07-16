@@ -1,0 +1,778 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Introduction &#8212; Navigate</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+
+    <script src="../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=fd10adb8"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'reference_manual/overview';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://zerocarbonshipping.github.io/navigate-zcs/_static/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.0.0';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            true;
+        </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="DSL reference" href="dsl_reference.html" />
+    <link rel="prev" title="Reference Manual" href="index.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="1.0.0" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class=" navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Navigate</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class=" navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../tutorials/index.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Reference Manual
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/zerocarbonshipping/navigate-zcs" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../tutorials/index.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Reference Manual
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/zerocarbonshipping/navigate-zcs" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">General</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dsl_reference.html">DSL reference</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">General nodes</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="model_definition.html">ModelDefinition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bunker_logistics.html">BunkerLogistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bunker_options.html">BunkerOptions</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Nodes</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="converter.html">Converter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="curve.html">Curve</a></li>
+<li class="toctree-l1"><a class="reference internal" href="emission.html">Emission</a></li>
+<li class="toctree-l1"><a class="reference internal" href="feedstock.html">Feedstock</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fleet.html">Fleet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="forecast.html">Forecast</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fuel.html">Fuel</a></li>
+<li class="toctree-l1"><a class="reference internal" href="levy.html">Levy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plant.html">Plant</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plot.html">Plot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="port.html">Port</a></li>
+<li class="toctree-l1"><a class="reference internal" href="power_system.html">PowerSystem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="process.html">Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="producer.html">Producer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="region.html">Region</a></li>
+<li class="toctree-l1"><a class="reference internal" href="regulation.html">Regulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="report.html">Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="route.html">Route</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source.html">Source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="surface.html">Surface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tank.html">Tank</a></li>
+<li class="toctree-l1"><a class="reference internal" href="technology.html">Technology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timetable.html">Timetable</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transport.html">Transport</a></li>
+<li class="toctree-l1"><a class="reference internal" href="variable.html">Variable</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vessel.html">Vessel</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Appendix</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="appendix_ids.html">Appendix - ID Overview</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Reference Manual</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Introduction</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <!--
+SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+SPDX-License-Identifier: CC-BY-4.0
+-->
+<section class="tex2jax_ignore mathjax_ignore" id="introduction">
+<h1>Introduction<a class="headerlink" href="#introduction" title="Link to this heading">#</a></h1>
+<p>Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping</p>
+<p>This document is the user manual for the simulation model Navigate that is being developed by the Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping.</p>
+<p>The goal of this document is to provide the reader with information that will allow them to create the files necessary to run a simulation using Navigate. We recommend using a text editor with syntax highlighting for creating and viewing these files. A VS Code extension and Notepad++ user defined language (UDL) files are included in the <code class="docutils literal notranslate"><span class="pre">syntax/</span></code> directory of the Navigate repository.</p>
+<p>The input to Navigate is provided through a set of simulation files which follow a basic hierarchy. The main file which is passed to Navigate is called an <code class="docutils literal notranslate"><span class="pre">.nav</span></code> file. This file will contain paths to other files which are included in the simulation, known as <code class="docutils literal notranslate"><span class="pre">.inc</span></code> files.</p>
+<p>Navigate is a node-based simulator. This introduction will explain how to define nodes and general nodes.</p>
+<section id="writing-an-nav-file">
+<h2>Writing an <code class="docutils literal notranslate"><span class="pre">.nav</span></code> file<a class="headerlink" href="#writing-an-nav-file" title="Link to this heading">#</a></h2>
+<p>There are two file types needed for running a Navigate simulation: An <code class="docutils literal notranslate"><span class="pre">.nav</span></code> file and an <code class="docutils literal notranslate"><span class="pre">.inc</span></code> file. This section explains what a <code class="docutils literal notranslate"><span class="pre">.nav</span></code> file is and how to write one.</p>
+<p>In the <code class="docutils literal notranslate"><span class="pre">.nav</span></code> file, i.e. “Navigate”-file, the user defines which <code class="docutils literal notranslate"><span class="pre">.inc</span></code> files (and the respective assumptions contained in the files) are included in a simulation.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">.nav</span></code> file is split into two sections:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">DEFINE</span></code>: All nodes must be defined here,</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">EVENTS</span></code>: Timeline (including changes to node attributes) is defined here.</p></li>
+</ul>
+<p>The <code class="docutils literal notranslate"><span class="pre">DEFINE</span></code> section is initiated by the keyword:</p>
+<p><code class="docutils literal notranslate"><span class="pre">DEFINE</span> <span class="pre">{</span></code></p>
+<p>In the lines after the brackets, the different <code class="docutils literal notranslate"><span class="pre">.inc</span></code> files are referenced and included like the example below. When including a file the folder location must be defined. This can be done by setting the directory either using the absolute directory or a relative directory (in relation to the file location of the <code class="docutils literal notranslate"><span class="pre">.nav</span></code> file itself). An example of a relative path/directory is shown below:</p>
+<p><code class="docutils literal notranslate"><span class="pre">Include</span> <span class="pre">&quot;../FolderA/file_name.inc&quot;</span></code></p>
+<p>The user can also load pre-defined defaults, called modules, like this:</p>
+<p><code class="docutils literal notranslate"><span class="pre">Load</span> <span class="pre">ModuleName</span></code></p>
+<p>Notice that both the <code class="docutils literal notranslate"><span class="pre">DEFINE</span></code> and <code class="docutils literal notranslate"><span class="pre">EVENTS</span></code> section are terminated with a “}”. The <code class="docutils literal notranslate"><span class="pre">EVENTS</span></code> section is initiated by the keyword:
+<code class="docutils literal notranslate"><span class="pre">EVENTS</span> <span class="pre">{</span></code>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">DEFINE</span> <span class="p">{</span>
+    <span class="c1"># load the default model configuration module</span>
+    <span class="n">Load</span> <span class="n">DefaultModelDefinition</span>
+
+    <span class="c1"># include files with nodes</span>
+    <span class="n">Include</span> <span class="s2">&quot;includes/vessels.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">&quot;includes/ports.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">&quot;includes/fuels.inc&quot;</span>
+
+    <span class="c1"># load the default emission module</span>
+    <span class="n">Load</span> <span class="n">DefaultEmission</span>
+<span class="p">}</span>
+
+<span class="n">EVENTS</span> <span class="p">{</span>
+    <span class="c1"># load a module which defines a yearly timeline</span>
+    <span class="n">Load</span> <span class="n">DefaultTimeStepYearly</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The purpose of the <code class="docutils literal notranslate"><span class="pre">EVENTS</span></code> section is to define the simulation timeline and introduce possible changes to node attributes. See <a class="reference internal" href="dsl_reference.html#default-modules"><span class="std std-ref">Default modules</span></a> for the available <code class="docutils literal notranslate"><span class="pre">Load</span></code> modules.</p>
+</section>
+<section id="writing-an-inc-file">
+<h2>Writing an <code class="docutils literal notranslate"><span class="pre">.inc</span></code> file<a class="headerlink" href="#writing-an-inc-file" title="Link to this heading">#</a></h2>
+<p>A <code class="docutils literal notranslate"><span class="pre">.inc</span></code> file contains information about nodes and if included in the <code class="docutils literal notranslate"><span class="pre">EVENTS</span></code> section also the timeline. As mentioned previously, all nodes must be defined in the <code class="docutils literal notranslate"><span class="pre">DEFINE</span></code> section while all references to the timeline must occur in the <code class="docutils literal notranslate"><span class="pre">EVENTS</span></code> section. For this reason, the <code class="docutils literal notranslate"><span class="pre">.inc</span></code> files in either section are also structured differently.</p>
+<p>This section will illustrate syntax for defining and altering nodes and general nodes. How to interpret this syntax is explained in the subsequent sections <a class="reference internal" href="dsl_reference.html#defining-a-node"><span class="std std-ref">Defining a node</span></a> and <a class="reference internal" href="dsl_reference.html#defining-a-general-node"><span class="std std-ref">Defining a general node</span></a>.</p>
+<section id="define-section">
+<h3>DEFINE section:<a class="headerlink" href="#define-section" title="Link to this heading">#</a></h3>
+<p>An <code class="docutils literal notranslate"><span class="pre">.inc</span></code> file in the <code class="docutils literal notranslate"><span class="pre">DEFINE</span></code> section is made up entirely of a collection of nodes and general nodes.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># define a general node</span>
+<span class="n">ModelDefinition</span> <span class="p">{</span>
+    <span class="n">StartDate</span> <span class="o">=</span> <span class="s2">&quot;01-01-2024&quot;</span>
+<span class="p">}</span>
+
+<span class="c1"># define a node</span>
+<span class="n">Fuel</span> <span class="s2">&quot;methanol_electro&quot;</span><span class="p">{</span>
+    <span class="n">FuelType</span> <span class="o">=</span> <span class="n">METHANOL</span>
+
+    <span class="n">LowerHeatingValue</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="s2">&quot;lower_heating_value_methanol&quot;</span><span class="p">)</span>
+    <span class="n">MassDensity</span> <span class="o">=</span> <span class="mf">0.791</span>
+    
+    <span class="n">set_ttw</span><span class="p">(</span><span class="s2">&quot;carbon_dioxide&quot;</span><span class="p">,</span> <span class="mf">1.38</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1"># define another node</span>
+<span class="n">Plant</span> <span class="s2">&quot;plant_methanol_electro&quot;</span><span class="p">{</span>
+    <span class="n">Fuel</span> <span class="o">=</span> <span class="n">Fuel</span><span class="p">(</span><span class="s2">&quot;methanol_electro&quot;</span><span class="p">)</span>
+    <span class="n">Capacity</span> <span class="o">=</span> <span class="mi">300</span>
+<span class="p">}</span>
+
+<span class="c1"># reassign an attribute on an already defined node</span>
+<span class="n">Plant</span> <span class="s2">&quot;plant_methanol_electro&quot;</span><span class="p">{</span>
+    <span class="n">Capacity</span> <span class="o">=</span> <span class="mi">500</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>As can be seen different attributes require different types of values. This will be further introduced in the section <a class="reference internal" href="dsl_reference.html#assigning-attributes"><span class="std std-ref">Assigning attributes</span></a> and <a class="reference internal" href="dsl_reference.html#assigning-commands"><span class="std std-ref">Assigning commands</span></a>.</p>
+</section>
+<section id="events-section">
+<h3>EVENTS section:<a class="headerlink" href="#events-section" title="Link to this heading">#</a></h3>
+<p>Simulations in Navigate are predicting certain outcomes over time based on a set of assumptions. For every Navigate simulation, a start date is defined in the <a class="reference internal" href="model_definition.html"><span class="std std-doc">ModelDefinition</span></a> general node.</p>
+<p>When the user wants Navigate to run simulations until 2050 (or another time in the future), intermediate time steps until 2050 must be defined separately that the model runs through. Annual time steps are used in the production version of Navigate, but the user could also decide on defining monthly, quarterly, or 5-year time steps, for example.</p>
+<p>For convenience Navigate allows the use of the keyword
+<code class="docutils literal notranslate"><span class="pre">Start</span></code></p>
+<p>Which refers to the <code class="docutils literal notranslate"><span class="pre">StartDate</span></code> defined in the <code class="docutils literal notranslate"><span class="pre">ModelDefinition</span></code>. The end of the timeline is marked with an <code class="docutils literal notranslate"><span class="pre">End</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">End</span></code> does not refer to a specific date but instead terminates the timeline thus allowing for entries of dates prior to the last encountered date. A time-step different from the start date follows this format:</p>
+<p><code class="docutils literal notranslate"><span class="pre">Date</span> <span class="pre">&quot;dd-mm-yyyy&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">Date</span> <span class="pre">&quot;dd/mm/yyyy&quot;</span></code>.</p>
+<p>Changes to nodes will occur at the last encountered date.</p>
+<p>Each <code class="docutils literal notranslate"><span class="pre">.inc</span></code> file must include (in this order):</p>
+<ul class="simple">
+<li><p>Definition of a point in time when the assumptions in the <code class="docutils literal notranslate"><span class="pre">.inc</span></code> file <strong>start</strong> to apply</p></li>
+<li><p>Node definitions that represent the assumptions being made</p></li>
+<li><p>Definition of a point in time when the assumptions in the <code class="docutils literal notranslate"><span class="pre">.inc</span></code> file <strong>end</strong> to apply</p></li>
+</ul>
+<p>There are two ways of defining a start point. The user can</p>
+<ol class="arabic simple">
+<li><p>Write <code class="docutils literal notranslate"><span class="pre">Start</span></code> at the beginning of the file. This is a reference to the start date defined in the model definition. An example of this is included below.</p></li>
+<li><p>Specify a date in the format <code class="docutils literal notranslate"><span class="pre">Date</span> <span class="pre">&quot;dd-mm-yyyy&quot;</span></code>. This is often used when the assumptions defined in the file are only valid from a certain point in time onwards, e.g., when a new policy is introduced from the 1st January 2030 only.</p></li>
+</ol>
+<p>The timeline must be defined in chronological order. While it is technically possible to use the same timeline across multiple <code class="docutils literal notranslate"><span class="pre">.inc</span></code> files by not ending the file with an <code class="docutils literal notranslate"><span class="pre">End</span></code> keyword it is good practice to always terminate the <code class="docutils literal notranslate"><span class="pre">.inc</span></code> files with an <code class="docutils literal notranslate"><span class="pre">End</span></code> and restart the timeline in the subsequent <code class="docutils literal notranslate"><span class="pre">.inc</span></code> file so that they are all self-contained and not dependent on being included in a specific order.</p>
+<p>Below is an example of an <code class="docutils literal notranslate"><span class="pre">.inc</span></code> file included in the <code class="docutils literal notranslate"><span class="pre">EVENTS</span></code> section that complements the definition of the start date “01-01-2024” in the <code class="docutils literal notranslate"><span class="pre">ModelDefinition</span></code> introduced previously.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># start the timeline at &quot;01-01-2024&quot; as defined in ModelDefinition</span>
+<span class="n">Start</span>
+
+<span class="n">Date</span> <span class="s2">&quot;01-01-2025&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2026&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2027&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2028&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2029&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2030&quot;</span>
+
+<span class="c1"># reassign an attribute on a node which was defined in the DEFINE section</span>
+<span class="n">Plant</span> <span class="s2">&quot;plant_methanol_electro&quot;</span><span class="p">{</span>
+    <span class="n">Capacity</span> <span class="o">=</span> <span class="mi">1000</span>
+<span class="p">}</span>
+
+<span class="n">Date</span> <span class="s2">&quot;01-01-2031&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2032&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2033&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2034&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2035&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2036&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2037&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2038&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2039&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2040&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2041&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2042&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2043&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2044&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2045&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2046&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2047&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2048&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2049&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2050&quot;</span>
+
+<span class="n">End</span>
+
+<span class="c1"># end the timeline to allow a new timeline in a different .inc file</span>
+</pre></div>
+</div>
+<p>This example defines that the simulation should take yearly time-steps from “01-01-2024” (<code class="docutils literal notranslate"><span class="pre">Start</span></code>) and until “01-01-2050”. At the date “01-01-2030” the plant capacity of a node that was already defined in the <code class="docutils literal notranslate"><span class="pre">DEFINE</span></code> section is reassigned.</p>
+</section>
+</section>
+<section id="reading-the-log-file">
+<h2>Reading the <code class="docutils literal notranslate"><span class="pre">.log</span></code> file<a class="headerlink" href="#reading-the-log-file" title="Link to this heading">#</a></h2>
+<p>A simulation with Navigate always produces a log file with the extension <code class="docutils literal notranslate"><span class="pre">.log</span></code>, written next to the <code class="docutils literal notranslate"><span class="pre">.nav</span></code> file with the same base name (e.g., running <code class="docutils literal notranslate"><span class="pre">basecase.nav</span></code> produces <code class="docutils literal notranslate"><span class="pre">basecase.log</span></code>). The verbosity of the log is controlled with the <code class="docutils literal notranslate"><span class="pre">-l</span></code>/<code class="docutils literal notranslate"><span class="pre">--log-level</span></code> command line option. The file includes information about how the simulation is progressing. It includes information about three main aspects:</p>
+<ol class="arabic simple">
+<li><p>Reading the simulation deck</p></li>
+<li><p>Initialization of the model</p></li>
+<li><p>Time-step procedure</p></li>
+</ol>
+<p>Information is provided in four levels, namely:</p>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">DEBUG</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">INFO</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">WARNING</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ERROR</span></code></p></li>
+</ol>
+<p><code class="docutils literal notranslate"><span class="pre">DEBUG</span></code> is the most verbose level and adds diagnostic detail that is mainly useful when investigating a problem. Running with <code class="docutils literal notranslate"><span class="pre">-l</span> <span class="pre">DEBUG</span></code> also prints the full Python traceback to the console if the run fails, instead of only the error message.</p>
+<p><code class="docutils literal notranslate"><span class="pre">INFO</span></code> stands for information and refers to general information such as which solver backend is used or which files are exported:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">14</span><span class="p">:</span><span class="mi">29</span><span class="p">:</span><span class="mi">15</span> <span class="p">[</span><span class="n">INFO</span><span class="p">]</span> <span class="n">navigate</span><span class="o">.</span><span class="n">bunker</span><span class="o">.</span><span class="n">solver</span><span class="p">:</span> <span class="n">Gurobi</span> <span class="ow">not</span> <span class="n">available</span> <span class="o">--</span> <span class="n">using</span> <span class="n">HiGHS</span> <span class="n">solver</span> <span class="n">backend</span><span class="o">.</span>
+<span class="mi">14</span><span class="p">:</span><span class="mi">29</span><span class="p">:</span><span class="mi">16</span> <span class="p">[</span><span class="n">INFO</span><span class="p">]</span> <span class="n">navigate</span><span class="o">.</span><span class="n">bunker</span><span class="o">.</span><span class="n">bunker_algorithm</span><span class="p">:</span> <span class="n">Fair</span><span class="o">-</span><span class="n">share</span> <span class="n">bunkering</span> <span class="n">convergence</span> <span class="n">status</span><span class="p">:</span> <span class="n">Successful</span><span class="o">.</span>
+<span class="mi">14</span><span class="p">:</span><span class="mi">29</span><span class="p">:</span><span class="mi">47</span> <span class="p">[</span><span class="n">INFO</span><span class="p">]</span> <span class="n">navigate</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">plot_data</span><span class="p">:</span> <span class="n">Exported</span> <span class="n">plot</span> <span class="n">data</span> <span class="n">to</span> <span class="s1">&#39;plot_data.pkl&#39;</span> <span class="p">(</span><span class="mf">0.1</span> <span class="n">MB</span><span class="p">,</span> <span class="mf">0.2</span><span class="n">s</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">WARNING</span></code> refers to information that has an impact on results. This could be if the code makes automated adjustments to the simulation deck or things that will impact the results in different ways:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">14</span><span class="p">:</span><span class="mi">29</span><span class="p">:</span><span class="mi">16</span> <span class="p">[</span><span class="n">WARNING</span><span class="p">]</span> <span class="n">navigate</span><span class="o">.</span><span class="n">vessel</span><span class="o">.</span><span class="n">fleet</span><span class="o">.</span><span class="n">fleet_technology</span><span class="p">:</span> <span class="n">No</span> <span class="n">technology</span> <span class="n">cost</span> <span class="n">of</span> <span class="n">capital</span> <span class="n">supplied</span> <span class="k">for</span> <span class="n">Fleet</span><span class="p">(</span><span class="s2">&quot;bulk_carrier_handysize&quot;</span><span class="p">),</span> <span class="n">using</span> <span class="n">vessel</span> <span class="n">cost</span> <span class="n">of</span> <span class="n">capital</span><span class="o">.</span> <span class="n">This</span> <span class="n">will</span> <span class="n">likely</span> <span class="n">lead</span> <span class="n">to</span> <span class="n">a</span> <span class="n">higher</span> <span class="n">uptake</span> <span class="n">of</span> <span class="n">technologies</span><span class="o">.</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">ERROR</span></code> means a problem was encountered which was detrimental to the continuation of the simulation. This will occur if there is a spurious formulation in the simulation deck which is not recognized by Navigate. Deck errors state the deck file, the include file, and the line at which the problem occurred:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">14</span><span class="p">:</span><span class="mi">29</span><span class="p">:</span><span class="mi">16</span> <span class="p">[</span><span class="n">ERROR</span><span class="p">]</span> <span class="n">navigate</span><span class="o">.</span><span class="n">__main__</span><span class="p">:</span> <span class="n">Fatal</span> <span class="n">error</span><span class="p">:</span> <span class="n">Error</span> <span class="ow">in</span> <span class="n">deck</span> <span class="n">file</span><span class="p">,</span> <span class="n">line</span> <span class="mi">2</span><span class="p">,</span> <span class="n">include</span> <span class="n">file</span> <span class="s1">&#39;/home/user/sim/includes/fuels.inc&#39;</span><span class="p">,</span> <span class="n">line</span> <span class="mi">14</span><span class="p">:</span> <span class="n">Nodes</span> <span class="n">of</span> <span class="nb">type</span> <span class="s1">&#39;Fuel&#39;</span> <span class="n">has</span> <span class="n">no</span> <span class="n">command</span> <span class="s1">&#39;set_TTW&#39;</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>If an ERROR occurs the simulation stops: the console shows the error message on its own (run with <code class="docutils literal notranslate"><span class="pre">-l</span> <span class="pre">DEBUG</span></code> to also see the full Python traceback there), and the <code class="docutils literal notranslate"><span class="pre">.log</span></code> file records the error together with its full traceback regardless of the chosen log level.</p>
+<p>At the end of a successful run the log closes with a summary table counting the messages of each level, followed by the list of unique warnings.</p>
+<p>Besides the log file, a run may produce additional artifacts in the deck directory: plots and a <code class="docutils literal notranslate"><span class="pre">plot_data.pkl</span></code> file when the deck contains a <a class="reference internal" href="plot.html"><span class="std std-doc">Plot</span></a> node (the <code class="docutils literal notranslate"><span class="pre">.pkl</span></code> file allows regenerating plots with the <code class="docutils literal notranslate"><span class="pre">--replot</span></code> option without rerunning the simulation), and Excel or CSV reports when the deck contains <a class="reference internal" href="report.html"><span class="std std-doc">Report</span></a> nodes.</p>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Reference Manual</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="dsl_reference.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">DSL reference</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#writing-an-nav-file">Writing an <code class="docutils literal notranslate"><span class="pre">.nav</span></code> file</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#writing-an-inc-file">Writing an <code class="docutils literal notranslate"><span class="pre">.inc</span></code> file</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#define-section">DEFINE section:</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#events-section">EVENTS section:</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-the-log-file">Reading the <code class="docutils literal notranslate"><span class="pre">.log</span></code> file</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/reference_manual/overview.md.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026, Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.20.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

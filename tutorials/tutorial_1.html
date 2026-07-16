@@ -1,0 +1,1025 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Tutorial 1 &#8212; Navigate</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+
+    <script src="../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=fd10adb8"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'tutorials/tutorial_1';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://zerocarbonshipping.github.io/navigate-zcs/_static/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.0.0';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            true;
+        </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Tutorial 2" href="tutorial_2.html" />
+    <link rel="prev" title="Setting up Navigate" href="getting_started.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="1.0.0" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class=" navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Navigate</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class=" navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../reference_manual/index.html">
+    Reference Manual
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/zerocarbonshipping/navigate-zcs" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../reference_manual/index.html">
+    Reference Manual
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/zerocarbonshipping/navigate-zcs" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Setting up Navigate</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Tutorial 1</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_2.html">Tutorial 2</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_3.html">Tutorial 3</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Tutorials</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Tutorial 1</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <!--
+SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+SPDX-License-Identifier: CC-BY-4.0
+-->
+<section class="tex2jax_ignore mathjax_ignore" id="tutorial-1">
+<h1>Tutorial 1<a class="headerlink" href="#tutorial-1" title="Link to this heading">#</a></h1>
+<p><strong>Why are you doing this tutorial?</strong></p>
+<p>This tutorial gives you an introduction into how Navigate works, and a walk-through of how to build the necessary input files. This should help you understand the main concepts of Navigate and introduce how to build a Navigate simulation model using assumptions about the fleet, technologies, and fuels.</p>
+<p><strong>How does it work?</strong></p>
+<p>In this document, you have several action points. Mostly, these action points involve writing instructions to define nodes and their attributes, which you do by writing/copying the Navigate instructions from this document into your own working file.
+The input files created in this tutorial reflect the minimum input that you need to get Navigate to run a simulation and receive output.</p>
+<section id="the-tutorial-1-nav-file">
+<h2>The <code class="docutils literal notranslate"><span class="pre">tutorial_1.nav</span></code> file<a class="headerlink" href="#the-tutorial-1-nav-file" title="Link to this heading">#</a></h2>
+<p>In order to run a simulation in Navigate, you always need a “Navigate”-file, i.e. a file with the ending “.nav”. One can think of Navigate (built in Python) as the “program/an application” and of a .nav file as the “instructions” that we give to the program.</p>
+<p>Navigate consists of the DEFINE section and the EVENTS section. These two are dependent on each other and can therefore not run individually. As the .nav file are the “instructions” for Navigate, this <code class="docutils literal notranslate"><span class="pre">tutorial_1.nav</span></code> file is the most important file to run our first simulation. Without it, you could not include the define.inc and events.inc files that you will create later.</p>
+<p>Open the <code class="docutils literal notranslate"><span class="pre">tutorial_1.nav</span></code> file in your VS Code workspace.</p>
+<section id="define-the-define-section">
+<h3>Define the DEFINE section<a class="headerlink" href="#define-the-define-section" title="Link to this heading">#</a></h3>
+<ol class="arabic simple">
+<li><p>Define the DEFINE section.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Include</span></code> the input file <code class="docutils literal notranslate"><span class="pre">define.inc</span></code>, which you will create later in this tutorial.
+In this file you will define all nodes that will be part of the simulation.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">DEFINE</span> <span class="p">{</span>
+    <span class="n">Include</span> <span class="s2">&quot;./includes/define.inc&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="define-the-events-section">
+<h3>Define the EVENTS section<a class="headerlink" href="#define-the-events-section" title="Link to this heading">#</a></h3>
+<ol class="arabic simple">
+<li><p>Define the EVENTS section.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Include</span></code> the input file <code class="docutils literal notranslate"><span class="pre">events.inc</span></code>, which you will create later in this tutorial.
+By doing this, the simulation can access the information about the changes to nodes in time.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">EVENTS</span> <span class="p">{</span>
+    <span class="n">Include</span> <span class="s2">&quot;./includes/events.inc&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<section id="commenting">
+<h4>Commenting<a class="headerlink" href="#commenting" title="Link to this heading">#</a></h4>
+<p>As you continue to work in the file, it will become more complex. Comments can help to structure the document and include explanations. You can write a comment by typing a hashtag (<code class="docutils literal notranslate"><span class="pre">#</span></code>) to mark the beginning of the comment (you can create comments anywhere in the document, also at the end of a line of instructions). You will see that the font color of comments turns to gray.
+Comments are not part of the active instructions, i.e. when the file is run, the comments will not be read by the executing application. You can use this by ‘commenting out’ entire sections of instructions, e.g. if you want to see what happens if a certain node or parameter is not included.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># This is an example comment</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+<section id="the-define-input-file">
+<h2>The DEFINE Input File<a class="headerlink" href="#the-define-input-file" title="Link to this heading">#</a></h2>
+<p>Now you will build the <code class="docutils literal notranslate"><span class="pre">define.inc</span></code> file that you referred to in your <code class="docutils literal notranslate"><span class="pre">tutorial_1.nav</span></code> file.
+Open the <code class="docutils literal notranslate"><span class="pre">define.inc</span></code> file located under <code class="docutils literal notranslate"><span class="pre">tutorial/include/define.inc</span></code></p>
+<ol class="arabic simple">
+<li><p>Create a <code class="docutils literal notranslate"><span class="pre">ModelDefinition</span></code> which is a formal requirement for the file.
+Define a start date for the model, for which we use <code class="docutils literal notranslate"><span class="pre">01/01/2025</span></code>.
+Later, you will define intermediate annual time steps until 2050.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ModelDefinition</span> <span class="p">{</span>
+    <span class="n">StartDate</span> <span class="o">=</span> <span class="s2">&quot;01/01/2025&quot;</span> 
+<span class="p">}</span>
+</pre></div>
+</div>
+<section id="definition-of-a-node">
+<h3>Definition of a Node<a class="headerlink" href="#definition-of-a-node" title="Link to this heading">#</a></h3>
+<p>You will now learn what a node is. In this example, the node is a fuel node and is called <code class="docutils literal notranslate"><span class="pre">&quot;low_sulfur_fuel_oil&quot;</span></code>. A node consists of attributes to which you can assign values or other relevant assumptions for an overview of a node’s components.</p>
+<p><img alt="Node-Definition" src="../_images/node.png" /></p>
+<p>In the instructions, everything within the brackets {} are assignments on the Fuel node <code class="docutils literal notranslate"><span class="pre">low_sulfur_fuel_oil</span></code>. Everything left of an equal sign is an attribute to the specific node. Everything on the right side of an equal sign is the value assigned to the attribute – values can be an ID, a separate node, or a number dependent on the specific attribute being assigned to. If the value of an attribute is another node then that node needs to be defined separately. We e.g., assign a node of the type Variable to the Fuel attribute <code class="docutils literal notranslate"><span class="pre">LowerHeatingValue</span></code>. In the defaults made by Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping, and found in <code class="docutils literal notranslate"><span class="pre">Navigate/navigate/defaults/installation/*</span></code> variables such as the Lower heating value of fuel oil are defined. For simplicity these are not imported in this tutorial modeling, where you will be defining such values yourself. The node <code class="docutils literal notranslate"><span class="pre">ModelDefinition</span></code> you previously defined belongs to a group of unique nodes called General Nodes. Assignment of attributes to these works similar to other nodes but the difference is that general nodes do not have names. This is because only one can be defined per simulation.</p>
+<p><strong>Time to define your first node</strong></p>
+<ol class="arabic simple">
+<li><p>Define the node <code class="docutils literal notranslate"><span class="pre">&quot;fleet&quot;</span></code> with the node type <code class="docutils literal notranslate"><span class="pre">Fleet</span></code>.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Fleet</span> <span class="s2">&quot;fleet&quot;</span> <span class="p">{</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Save your edits.</p>
+<section id="run-navigate-for-the-first-time">
+<h4>Run Navigate for the first time<a class="headerlink" href="#run-navigate-for-the-first-time" title="Link to this heading">#</a></h4>
+<ol class="arabic simple">
+<li><p>Open a terminal in VS Code</p></li>
+<li><p>Verify that you are in the folder <code class="docutils literal notranslate"><span class="pre">tutorial_1</span></code></p></li>
+<li><p>Type <code class="docutils literal notranslate"><span class="pre">navigate</span> <span class="pre">tutorial_1.nav</span></code></p></li>
+</ol>
+<p>This should throw the following error message:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="ne">ValueError</span><span class="p">:</span> <span class="n">Fleet</span><span class="p">(</span><span class="s2">&quot;fleet&quot;</span><span class="p">):</span> <span class="n">Attribute</span> <span class="s1">&#39;Vessel&#39;</span> <span class="ow">is</span> <span class="n">unassigned</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>This is because any node of the type Fleet requires a set of attributes, namely the attributes Vessels and the fuel sensitivities (<code class="docutils literal notranslate"><span class="pre">InterFuelSensitivity</span></code> and <code class="docutils literal notranslate"><span class="pre">IntraFuelSensitivity</span></code>). If the model is run while one of these attributes is not defined, there will be an error message notifying you of the missing attribute, as you saw just now.</p>
+<p>Other nodes can also have mandatory attributes. An error message will tell you if these are not defined yet.</p>
+<p>If you encounter other errors, read the error message. If it says that a name is not recognized, check for errors in spelling, extra or missing indents or signs by comparing to the code in the tables.</p>
+<p>In the next steps, we will define the attributes that are required for a Fleet node.</p>
+</section>
+</section>
+<section id="definition-of-a-fleet">
+<h3>Definition of a <code class="docutils literal notranslate"><span class="pre">Fleet</span></code><a class="headerlink" href="#definition-of-a-fleet" title="Link to this heading">#</a></h3>
+<p>We are going to define a vessel node <code class="docutils literal notranslate"><span class="pre">&quot;vessel_ice_oil&quot;</span></code>.</p>
+<ol class="arabic simple">
+<li><p>As the error message told you, the node Vessel needs to be defined.
+Define Vessel with the node called <code class="docutils literal notranslate"><span class="pre">&quot;vessel_ice_oil&quot;</span></code>.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Vessel</span> <span class="s2">&quot;vessel_ice_oil&quot;</span> <span class="p">{</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li><p>Update <code class="docutils literal notranslate"><span class="pre">&quot;Fleet&quot;</span></code>:
+You have already defined the node <code class="docutils literal notranslate"><span class="pre">&quot;fleet&quot;</span></code> with the node type <code class="docutils literal notranslate"><span class="pre">Fleet</span></code>. Insert Vessel with the node called <code class="docutils literal notranslate"><span class="pre">&quot;vessel_ice_oil&quot;</span></code> between the curly brackets of the fleet node definition.
+In this example, you only have one type of vessel which is a “vessel_ice_oil”. More vessel types can be included, as long as each of them is defined in the DEFINE section.
+“vessel” is in place of the specific vessel type that you will want to simulate. The <code class="docutils literal notranslate"><span class="pre">&quot;ice&quot;</span></code> is an abbreviation for “internal combustion engine”, which is the engine type that extract the energy from fuel <code class="docutils literal notranslate"><span class="pre">&quot;oil&quot;</span></code>. The naming is therefore <code class="docutils literal notranslate"><span class="pre">&quot;vessel</span> <span class="pre">type&quot;_&quot;engine</span> <span class="pre">type&quot;_&quot;fuel</span> <span class="pre">type&quot;</span></code>.
+This is a naming convention we use but is not required; a node can be named anything.</p></li>
+</ol>
+<p>The <code class="docutils literal notranslate"><span class="pre">InterFuelSensitivity</span></code> and <code class="docutils literal notranslate"><span class="pre">IntraFuelSensitivity</span></code> attributes calibrate the discrete choice model, i.e., the model that predicts what percentage of newbuilds will be of fuel type A or B or C, in combination with engine technology X, Y or Z.</p>
+<ol class="arabic simple" start="3">
+<li><p>The <code class="docutils literal notranslate"><span class="pre">InterFuelSensitivity</span></code> attribute controls how strongly the choice <em>between fuel types</em> responds to the levelized cost of transport (LCOT) of each vessel option. Its value is an odds ratio: a value of <code class="docutils literal notranslate"><span class="pre">0.5</span></code> means a fuel whose LCOT is 10% higher receives half the odds of an otherwise identical fuel (lower cost is better, so use a value below <code class="docutils literal notranslate"><span class="pre">1</span></code>).</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">IntraFuelSensitivity</span></code> attribute does the same for the choice <em>between engine technologies within a single fuel type</em> (different engine technologies are for example combustion engines vs. fuel cells). A value of <code class="docutils literal notranslate"><span class="pre">0.5</span></code> likewise means a 10% higher LCOT halves the odds.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">InitialVessels</span></code> describes the number of vessels present at the defined start date. <code class="docutils literal notranslate"><span class="pre">InitialVessels</span></code> is not a mandatory attribute for the node “fleet” and therefore not necessary to run the model, but necessary if we want an output.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Fleet</span> <span class="s2">&quot;fleet&quot;</span> <span class="p">{</span>	 
+    <span class="n">Vessels</span> <span class="o">=</span> <span class="p">[</span><span class="n">Vessel</span><span class="p">(</span><span class="s2">&quot;vessel_ice_oil&quot;</span><span class="p">)]</span>  
+    <span class="n">InterFuelSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
+    <span class="n">IntraFuelSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
+    <span class="n">InitialVessels</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="definition-of-a-vessel">
+<h3>Definition of a <code class="docutils literal notranslate"><span class="pre">Vessel</span></code><a class="headerlink" href="#definition-of-a-vessel" title="Link to this heading">#</a></h3>
+<ol class="arabic simple">
+<li><p>Define vessel node <code class="docutils literal notranslate"><span class="pre">&quot;vessel_ice_oil&quot;</span></code>:
+You already defined a Vessel with the node called <code class="docutils literal notranslate"><span class="pre">&quot;vessel_ice_oil&quot;</span></code>.</p></li>
+<li><p>Within the curly brackets of the vessel node definition, now define the attribute <code class="docutils literal notranslate"><span class="pre">PowerSystem</span></code>.
+In this example, we will be using a simplified power system that is exclusively powered through low sulfur fuel oil.
+Continue to define the other attributes within the curly brackets of the vessel node.</p></li>
+<li><p>Define a Route.
+The attribute Route allows input on the route that a reference ship is taking.</p></li>
+<li><p>Set a value for NominalCapacity.
+Nominal Capacity describes the amount of cargo or load that the vessel can carry. In this example, our vessel can carry 8000 TEUs, i.e., 8000 containers of a certain size. This is an example value.</p></li>
+<li><p>Define the attribute Tanks.
+It allows for input on the characteristics of one or more onboard tanks. The tanks store the fuel onboard the vessel.</p></li>
+<li><p>Set a value for PropulsionLoad.
+It describes the propulsion load level at sea, i.e., how much power we need to move the reference vessel <code class="docutils literal notranslate"><span class="pre">&quot;vessel_ice_oil&quot;</span></code>.
+LoadLevel’s (propulsion, electrical, heat) generally describe power and therefore have the unit MW (mega-watt). It is not a mandatory attribute to run the model, but necessary if we want an output.  We can assign a number, a Curve, or a Surface as the value of the attribute PropulsionLoad.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Vessel</span> <span class="s2">&quot;vessel_ice_oil&quot;</span> <span class="p">{</span>
+    <span class="n">PowerSystem</span> <span class="o">=</span> <span class="n">PowerSystem</span><span class="p">(</span><span class="s2">&quot;ice_oil&quot;</span><span class="p">)</span>
+    <span class="n">Route</span> <span class="o">=</span> <span class="n">Route</span><span class="p">(</span><span class="s2">&quot;route&quot;</span><span class="p">)</span> 	
+    <span class="n">NominalCapacity</span> <span class="o">=</span> <span class="mi">8000</span>
+    <span class="n">Tanks</span> <span class="o">=</span> <span class="p">[</span><span class="n">Tank</span><span class="p">(</span><span class="s2">&quot;main_oil&quot;</span><span class="p">)]</span>
+    <span class="n">PropulsionLoad</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="definition-of-a-powersystem">
+<h3>Definition of a <code class="docutils literal notranslate"><span class="pre">PowerSystem</span></code><a class="headerlink" href="#definition-of-a-powersystem" title="Link to this heading">#</a></h3>
+<p>In the definition of the node <code class="docutils literal notranslate"><span class="pre">&quot;vessel_ice_oil&quot;</span></code>, the attribute, <code class="docutils literal notranslate"><span class="pre">PowerSystem</span></code> has a value, and this value is a separate node <code class="docutils literal notranslate"><span class="pre">PowerSystem</span></code> <code class="docutils literal notranslate"><span class="pre">&quot;ice_oil&quot;</span></code>. In this section, you now need to define the node <code class="docutils literal notranslate"><span class="pre">&quot;ice_oil&quot;</span></code>.
+We assume that there are different energy demands on a vessel. There is a propulsion demand, an electrical demand, and a heat demand onboard of any vessel. To meet these demands, the fuel is converted into energy by converters, e.g., by an engine.</p>
+<ol class="arabic simple">
+<li><p>Define the node PowerSystem by writing this:
+<code class="docutils literal notranslate"><span class="pre">PowerSystem</span> <span class="pre">&quot;ice_oil&quot;</span> <span class="pre">{</span> <span class="pre">...</span> <span class="pre">}</span></code>
+It represents the reference vessel’s combination of engines and boilers.
+The power system is usually the combination of a main engine, auxiliary engine, and boiler, but can also be configured with a single converter. The main engine is responsible for the propulsion of the vessel, the auxiliary engine is responsible for electrical demand, and the boiler is responsible for the heat demand.
+In the next few steps, you will define the node’s attributes. This should be written within the curly brackets <code class="docutils literal notranslate"><span class="pre">{</span> <span class="pre">}</span></code>.</p></li>
+<li><p>Define the engine setup.</p></li>
+<li><p>Define how the <code class="docutils literal notranslate"><span class="pre">Propulsion</span></code> demand is met.
+Usually, the propulsion demand is met through the main engine propelling the vessel forward.</p></li>
+<li><p>Define how the <code class="docutils literal notranslate"><span class="pre">Electrical</span></code> demand is met.
+The electrical demand is often met through an auxiliary engine, which is mostly a smaller engine separate from the main engine.</p></li>
+<li><p>Define how the Heat demand is met.
+The demand is usually met through a boiler.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">PowerSystem</span> <span class="s2">&quot;ice_oil&quot;</span> <span class="p">{</span>
+    <span class="n">Propulsion</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">&quot;propulsion_ice_oil&quot;</span><span class="p">)</span>
+    <span class="n">Electrical</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">&quot;electrical_ice_oil&quot;</span><span class="p">)</span>
+    <span class="n">Heat</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">&quot;heat_boiler_oil&quot;</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="definition-of-a-converter">
+<h3>Definition of a <code class="docutils literal notranslate"><span class="pre">Converter</span></code><a class="headerlink" href="#definition-of-a-converter" title="Link to this heading">#</a></h3>
+<p>We introduced three new nodes of the type <code class="docutils literal notranslate"><span class="pre">Converter</span></code> in the definition of the node PowerSystem.
+Each node needs to be defined by itself.</p>
+<ol class="arabic simple">
+<li><p>Define the node <code class="docutils literal notranslate"><span class="pre">&quot;propulsion_ice_oil&quot;</span></code> of the node type Converter.
+This is the engine that propels the vessel forward.</p></li>
+<li><p>Define the engine’s attribute <code class="docutils literal notranslate"><span class="pre">PowerCapacity</span></code>.
+The power capacity of an engine/boiler is the maximum power capacity of the converter in MW. This is equivalent to the horsepower of the engine for a car.</p></li>
+<li><p>Define the <code class="docutils literal notranslate"><span class="pre">MainFuelTypes</span></code> that the vessel can use.
+Each converter can use one or more fuel types. In this case, the main engine can only use one fuel type, namely fuel oil (OIL). The main fuel types of the main engine, the auxiliary engine, and the boiler are independent of each other, but depend on the number and type of available fuel tanks.</p></li>
+<li><p>Define <code class="docutils literal notranslate"><span class="pre">Efficiency</span></code>.
+Efficiency defines the fraction of chemical energy (e.g., in a fuel) that is converted to kinetic energy (e.g., mechanical).</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Converter</span> <span class="s2">&quot;propulsion_ice_oil&quot;</span> <span class="p">{</span>
+    <span class="n">PowerCapacity</span> <span class="o">=</span> <span class="mi">50</span>
+    <span class="n">MainFuelTypes</span> <span class="o">=</span> <span class="n">OIL</span>
+    <span class="n">Efficiency</span> <span class="o">=</span> <span class="mf">0.5</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Analogously, define converter nodes for electrical ICE and heat boiler.</p>
+<ol class="arabic simple" start="5">
+<li><p>Define the node <code class="docutils literal notranslate"><span class="pre">&quot;electrical_ice_oil&quot;</span></code> of the node type Converter, e.g. a generator that produces electricity.
+Similar to the <code class="docutils literal notranslate"><span class="pre">&quot;propulsion_ice_oil&quot;</span></code>, assign the attributes <code class="docutils literal notranslate"><span class="pre">PowerCapacity</span></code>, <code class="docutils literal notranslate"><span class="pre">MainFuelTypes</span></code>, and <code class="docutils literal notranslate"><span class="pre">Efficiency</span></code> to it.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Converter</span> <span class="s2">&quot;electrical_ice_oil&quot;</span> <span class="p">{</span>
+    <span class="n">PowerCapacity</span> <span class="o">=</span> <span class="mi">10</span>
+    <span class="n">MainFuelTypes</span> <span class="o">=</span> <span class="n">OIL</span>
+    <span class="n">Efficiency</span> <span class="o">=</span> <span class="mf">0.5</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="6">
+<li><p>Define the node <code class="docutils literal notranslate"><span class="pre">&quot;heat_boiler_oil&quot;</span></code> of the node type Converter.
+Define and assign the attributes <code class="docutils literal notranslate"><span class="pre">PowerCapacity</span></code>, <code class="docutils literal notranslate"><span class="pre">MainFuelTypes</span></code>, and <code class="docutils literal notranslate"><span class="pre">Efficiency</span></code> as for <code class="docutils literal notranslate"><span class="pre">&quot;propulsion_ice_oil&quot;</span></code>.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Converter</span> <span class="s2">&quot;heat_boiler_oil&quot;</span> <span class="p">{</span>
+    <span class="n">PowerCapacity</span> <span class="o">=</span> <span class="mi">5</span>
+    <span class="n">MainFuelTypes</span> <span class="o">=</span> <span class="n">OIL</span>
+    <span class="n">Efficiency</span> <span class="o">=</span> <span class="mf">0.5</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="definitions-of-other-nodes-introduced-in-vessel">
+<h3>Definitions of other nodes introduced in <code class="docutils literal notranslate"><span class="pre">Vessel</span></code><a class="headerlink" href="#definitions-of-other-nodes-introduced-in-vessel" title="Link to this heading">#</a></h3>
+<p>You introduced new nodes when you assigned them as values of the <code class="docutils literal notranslate"><span class="pre">&quot;vessel_ice_oil&quot;</span></code>’s attributes. One of them was the node <code class="docutils literal notranslate"><span class="pre">PowerSystem</span></code> which we defined in the above section.
+Others include the definition of a route that the vessel sails, and a definition of a tank node.
+The values assigned to the attributes of a Route, namely Ports, Distances, and Speeds are lists which are marked by squared brackets. In this example, the assigned lists only contain one item, respectively.</p>
+<ol class="arabic simple">
+<li><p>Define the node <code class="docutils literal notranslate"><span class="pre">&quot;main_oil&quot;</span></code> of the node type <code class="docutils literal notranslate"><span class="pre">Tank</span></code>.
+You can further specify the characteristics of the tank. For alternative fuels, a vessel can have a main and a pilot tank.
+Set the fuel types that the tank can hold. In this example, the tank can only use OIL, but we can also specify more than one fuel type. Therefore, we specify that the fuel oil tank is the “main” tank in the vessel.
+Set the tank’s <code class="docutils literal notranslate"><span class="pre">Size</span></code>. It is given in cubic meters.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Tank</span> <span class="s2">&quot;main_oil&quot;</span> <span class="p">{</span>
+    <span class="n">FuelTypes</span> <span class="o">=</span> <span class="n">OIL</span>
+    <span class="n">Size</span> <span class="o">=</span> <span class="mi">9000</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li><p>Define the node <code class="docutils literal notranslate"><span class="pre">&quot;route&quot;</span></code> of the node type <code class="docutils literal notranslate"><span class="pre">Route</span></code>.
+Set the <code class="docutils literal notranslate"><span class="pre">RouteType</span></code>. This can be one of two values: <code class="docutils literal notranslate"><span class="pre">ROUND_TRIP</span></code> or <code class="docutils literal notranslate"><span class="pre">REGIONAL_TRIP</span></code>.
+Set one or more ports at which a vessel stops. In our example, the vessel is only stopping at one port called <code class="docutils literal notranslate"><span class="pre">&quot;port&quot;</span></code>. In your future Navigate modeling, the port often covers a whole region is specified as Africa, Americas, Asia, Europe and Middle East. Hence, a port is often used as a proxy for a region.
+Set the <code class="docutils literal notranslate"><span class="pre">TimeAtSea</span></code>, which defines the proportion of a year that a vessel spends at sea. In our example, the ship is at sea for (0.75*365 days) 273 full days a year.
+Set the <code class="docutils literal notranslate"><span class="pre">ConditionDistribution</span></code>, which defines the proportion of the total TimeAtSea, that is spent for each leg of the journey (here: only one leg, i.e. 100% of the total <code class="docutils literal notranslate"><span class="pre">TimeAtSea</span></code> are spent on the leg).
+Set the Speeds of the vessel, given in knots, at each leg of the journey (here: only one leg).</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Route</span> <span class="s2">&quot;route&quot;</span> <span class="p">{</span>
+    <span class="n">RouteType</span> <span class="o">=</span> <span class="n">REGIONAL_TRIP</span> 
+    <span class="n">Ports</span> <span class="o">=</span> <span class="p">[</span><span class="n">Port</span><span class="p">(</span><span class="s2">&quot;port&quot;</span><span class="p">)]</span> 
+    <span class="n">TimeAtSea</span> <span class="o">=</span> <span class="mf">0.75</span>
+    <span class="n">ConditionDistribution</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">]</span>
+    <span class="n">Speeds</span> <span class="o">=</span> <span class="p">[</span><span class="mi">10</span><span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<section id="run-navigate-again">
+<h4>Run Navigate Again<a class="headerlink" href="#run-navigate-again" title="Link to this heading">#</a></h4>
+<p>All mandatory attributes for the nodes under Vessel are now defined.</p>
+<p>Save the file, open the terminal and run the command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>navigate<span class="w"> </span>tutorial_1.nav
+</pre></div>
+</div>
+<p>You should have received the error message below.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Port</span><span class="p">(</span><span class="s2">&quot;port&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="n">referenced</span> <span class="n">but</span> <span class="ow">not</span> <span class="n">found</span> <span class="ow">in</span> <span class="n">either</span> <span class="n">the</span> <span class="n">deck</span> <span class="ow">or</span> <span class="n">the</span> <span class="n">default</span> <span class="n">location</span> <span class="n">of</span> <span class="n">Port</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>Although you have defined all the attributes that are mandatory for the vessel node, you do not yet have enough input to run the model, e.g., the “port” node.</p>
+<p>In order to run properly, Navigate is missing information about a port it is traveling to, and information about fuels. You will define these in the next section.</p>
+</section>
+</section>
+<section id="definition-of-a-port">
+<h3>Definition of a <code class="docutils literal notranslate"><span class="pre">Port</span></code><a class="headerlink" href="#definition-of-a-port" title="Link to this heading">#</a></h3>
+<ol class="arabic simple">
+<li><p>Define the node <code class="docutils literal notranslate"><span class="pre">&quot;port&quot;</span></code> with the node type <code class="docutils literal notranslate"><span class="pre">Port</span></code>.
+Navigate builds on various underlying assumptions. Amongst these assumptions for bunker price and emissions. These are here overwritten for this tutorial.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Port</span> <span class="s2">&quot;port&quot;</span> <span class="p">{</span>	
+    <span class="n">set_bunker_price_overwrite</span><span class="p">(</span><span class="s2">&quot;heavy_fuel_oil&quot;</span><span class="p">,</span> <span class="mi">250</span><span class="p">)</span>
+    <span class="n">set_bunker_wtt_overwrite</span><span class="p">(</span><span class="s2">&quot;heavy_fuel_oil&quot;</span><span class="p">,</span> <span class="s2">&quot;carbon_dioxide&quot;</span><span class="p">,</span> <span class="mf">0.62</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="definition-of-bunkerlogistics">
+<h3>Definition of <code class="docutils literal notranslate"><span class="pre">BunkerLogistics</span></code><a class="headerlink" href="#definition-of-bunkerlogistics" title="Link to this heading">#</a></h3>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">BunkerLogistics</span></code> is a mandatory general node which for the purpose of this tutorial is used to define that the Fuel <code class="docutils literal notranslate"><span class="pre">&quot;heavy_fuel_oil&quot;</span></code> belongs to a liquid market. This means that the availability of the fuel is unconstrained.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">BunkerLogistics</span> <span class="p">{</span>
+	<span class="n">LiquidMarketFuels</span> <span class="o">=</span> <span class="p">[</span><span class="n">Fuel</span><span class="p">(</span><span class="s2">&quot;heavy_fuel_oil&quot;</span><span class="p">)]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="3">
+<li><p>Run navigate again after saving. <code class="docutils literal notranslate"><span class="pre">navigate</span> <span class="pre">tutorial_1.nav</span></code>. You should recieve the following error:</p></li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Fuel</span><span class="p">(</span><span class="s2">&quot;heavy_fuel_oil&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="n">referenced</span> <span class="n">but</span> <span class="ow">not</span> <span class="n">found</span> <span class="ow">in</span> <span class="n">either</span> <span class="n">the</span> <span class="n">deck</span> <span class="ow">or</span> <span class="n">the</span> <span class="n">default</span> <span class="n">location</span> <span class="n">of</span> <span class="n">Fuel</span><span class="o">.</span>
+</pre></div>
+</div>
+</section>
+<section id="definition-of-a-fuel">
+<h3>Definition of a <code class="docutils literal notranslate"><span class="pre">Fuel</span></code><a class="headerlink" href="#definition-of-a-fuel" title="Link to this heading">#</a></h3>
+<p>Fuels are defined separately from the vessels and the ports.</p>
+<ol class="arabic simple">
+<li><p>Define the node <code class="docutils literal notranslate"><span class="pre">&quot;heavy_fuel_oil&quot;</span></code> with the node type Fuel.</p></li>
+<li><p>Set the <code class="docutils literal notranslate"><span class="pre">FuelType</span></code>.
+Heavy fuel oil is one of several fuels that has the fuel type OIL.
+Different fuels can have the same fuel type, as a fuel essentially is a fuel-pathway (where the pathway describes how it was produced), so e.g., the fuel “blue ammonia” is different from “e-ammonia” due to the way they are produced (their pathway).
+In other words, blue and e-ammonia are two different fuels with the same fuel type.</p></li>
+<li><p>Set the <code class="docutils literal notranslate"><span class="pre">LowerHeatingValue</span></code>.
+Each fuel has a lower heating value which is a physical constant, so this value is not changed. The lower heating value describes the heat energy that is being released when the fuel is combusted at a certain temperature. Given in GJ/ton.</p></li>
+<li><p>Set the <code class="docutils literal notranslate"><span class="pre">MassDensity</span></code>.
+Each fuel has a mass density which is a physical constant, so this value is not changed. Given in kg/m3.</p></li>
+<li><p>Add the Tank-to-Wake (TTW) emission factors of carbon dioxide, methane and nitrous oxide for the process of converting fuel to energy.
+The <code class="docutils literal notranslate"><span class="pre">set_ttw(..)</span></code> marks a command in the Navigate syntax. Commands are similar to functions in programming languages, and have the syntax <code class="docutils literal notranslate"><span class="pre">set_xxx(key1,</span> <span class="pre">key2,</span> <span class="pre">value)</span></code>. A command can take 2-3 inputs. In this instance it only has 2 inputs, namely key1 and value.
+The unit of an emission factor is ton emissions/ton fuel.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Fuel</span> <span class="s2">&quot;heavy_fuel_oil&quot;</span> <span class="p">{</span>	
+    <span class="n">FuelType</span> <span class="o">=</span> <span class="n">OIL</span>
+    
+    <span class="n">LowerHeatingValue</span> <span class="o">=</span> <span class="mf">41.2</span>
+    <span class="n">MassDensity</span> <span class="o">=</span> <span class="mf">0.9</span>
+    
+    <span class="n">set_ttw</span><span class="p">(</span><span class="s2">&quot;carbon_dioxide&quot;</span><span class="p">,</span> <span class="mf">3.114</span><span class="p">)</span>
+    <span class="n">set_ttw</span><span class="p">(</span><span class="s2">&quot;methane&quot;</span><span class="p">,</span> <span class="mf">0.00005</span><span class="p">)</span>
+    <span class="n">set_ttw</span><span class="p">(</span><span class="s2">&quot;nitrous_oxide&quot;</span><span class="p">,</span> <span class="mf">0.00018</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="definition-of-emission">
+<h3>Definition of <code class="docutils literal notranslate"><span class="pre">Emission</span></code><a class="headerlink" href="#definition-of-emission" title="Link to this heading">#</a></h3>
+<ol class="arabic simple">
+<li><p>Define the <code class="docutils literal notranslate"><span class="pre">Emission</span></code> nodes <code class="docutils literal notranslate"><span class="pre">&quot;carbon_dioxide&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;methane&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;nitrous_oxide&quot;</span></code></p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Emission</span> <span class="s2">&quot;carbon_dioxide&quot;</span> <span class="p">{</span>
+	<span class="n">GlobalWarmingPotential</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="p">}</span>
+
+<span class="n">Emission</span> <span class="s2">&quot;methane&quot;</span> <span class="p">{</span>
+	<span class="n">GlobalWarmingPotential</span> <span class="o">=</span> <span class="mi">25</span>
+<span class="p">}</span>
+
+<span class="n">Emission</span> <span class="s2">&quot;nitrous_oxide&quot;</span> <span class="p">{</span>
+	<span class="n">GlobalWarmingPotential</span> <span class="o">=</span> <span class="mi">273</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="definition-of-plot">
+<h3>Definition of <code class="docutils literal notranslate"><span class="pre">Plot</span></code><a class="headerlink" href="#definition-of-plot" title="Link to this heading">#</a></h3>
+<p>So far we have defined <em>what</em> to simulate. The <code class="docutils literal notranslate"><span class="pre">Plot</span></code> node defines <em>what output</em> to produce. Navigate only generates plots when at least one <code class="docutils literal notranslate"><span class="pre">Plot</span></code> node is defined.</p>
+<ol class="arabic simple">
+<li><p>Define a node <code class="docutils literal notranslate"><span class="pre">&quot;plots&quot;</span></code> with the node type <code class="docutils literal notranslate"><span class="pre">Plot</span></code>.</p></li>
+<li><p>Set the <code class="docutils literal notranslate"><span class="pre">Directory</span></code> attribute to <code class="docutils literal notranslate"><span class="pre">&quot;./plots/&quot;</span></code>. This is the subfolder, relative to the <code class="docutils literal notranslate"><span class="pre">.nav</span></code> file, where the plots are saved. Navigate creates the folder if it does not already exist.</p></li>
+<li><p>Use the <code class="docutils literal notranslate"><span class="pre">add_plot(...)</span></code> command once per plot you want produced. Each takes the label of a plot. For this tutorial we produce the absolute emissions, the global fuel mix, and the bunker price at the port.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Plot</span> <span class="s2">&quot;plots&quot;</span> <span class="p">{</span>
+    <span class="n">Directory</span> <span class="o">=</span> <span class="s2">&quot;./plots/&quot;</span>
+
+    <span class="n">add_plot</span><span class="p">(</span><span class="s2">&quot;global_emission_absolute&quot;</span><span class="p">)</span>
+    <span class="n">add_plot</span><span class="p">(</span><span class="s2">&quot;global_fuel_consumed&quot;</span><span class="p">)</span>
+    <span class="n">add_plot</span><span class="p">(</span><span class="s2">&quot;port_bunker_price&quot;</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="the-events-input-file">
+<h2>The EVENTS Input File<a class="headerlink" href="#the-events-input-file" title="Link to this heading">#</a></h2>
+<ol class="arabic simple">
+<li><p>Open the ‘includes’ folder and within open the <code class="docutils literal notranslate"><span class="pre">events.inc</span></code> file.</p></li>
+<li><p>Define the <code class="docutils literal notranslate"><span class="pre">Start</span></code>.
+You will define the End later.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Start</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="3">
+<li><p>Because we want Navigate to run simulations until 2050, you need to define intermediate time steps until 2050. In this tutorial we have decided on annual time-steps, but one could also decide on 5-year time-steps or quarterly time-steps, for example.
+Define annual time-steps with a reference Date.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Date</span> <span class="s2">&quot;01-01-2025&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2026&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2027&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2028&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2029&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2030&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2031&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2032&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2033&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2034&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2035&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2036&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2037&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2038&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2039&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2040&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2041&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2042&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2043&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2044&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2045&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2046&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2047&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2048&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2049&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2050&quot;</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="4">
+<li><p>Mark the end of the timeline with <code class="docutils literal notranslate"><span class="pre">End</span></code>.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">End</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="5">
+<li><p>Let’s run Navigate and see if it works and we get an output.</p></li>
+</ol>
+<p>Navigate should have run error-free now, with PowerShell showing a message like the one in the right column – well done, you’ve defined all the components necessary to run a simulation!</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">...</span>
+<span class="n">Finished</span> <span class="n">EVENTS</span><span class="p">,</span> <span class="n">elapsed</span> <span class="n">time</span><span class="p">:</span> <span class="mi">0</span><span class="n">m</span> <span class="ow">and</span> <span class="mi">5</span><span class="n">s</span><span class="o">.</span>
+</pre></div>
+</div>
+</section>
+<section id="interpret-the-plots">
+<h2>Interpret the plots<a class="headerlink" href="#interpret-the-plots" title="Link to this heading">#</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">tutorial_1</span></code> folder there is a folder called <code class="docutils literal notranslate"><span class="pre">plots</span></code>. Here you can see the output of Navigate. Take a look through it and interpret the results.</p>
+</section>
+<section id="outlook">
+<h2>Outlook<a class="headerlink" href="#outlook" title="Link to this heading">#</a></h2>
+<p>Let’s recap. You have created two input files and a Navigate (.nav) program file to run your first Navigate simulation:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">define.inc</span></code> file: This file includes nodes that access the navigate program. This file includes all the variables you want to investigate with your simulation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">events.inc</span></code> file: This file contains the timesteps that you want your simulation to take.</p></li>
+</ul>
+<p>Together, the input from these three files allowed you to run a simulation in Navigate, and produce plots to compare e.g., global fuel demand and global emissions in different scenarios.</p>
+<p>However, this minimalistic version of a Navigate model is of course extremely simplified so not particularly useful to make predictions. In most real-world fleets/scenarios, there are for example more than one vessel, more than one fuel, and a multitude of different routes that vessels take.</p>
+<p>That is why in the next tutorial, you will add some complexity to the files you have already worked on - for example, adding more fuels and more vessels, so you can experiment with the output you receive and understand the principles of the Navigate analysis in more depth.</p>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="getting_started.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Setting up Navigate</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="tutorial_2.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Tutorial 2</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-tutorial-1-nav-file">The <code class="docutils literal notranslate"><span class="pre">tutorial_1.nav</span></code> file</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#define-the-define-section">Define the DEFINE section</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#define-the-events-section">Define the EVENTS section</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#commenting">Commenting</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-define-input-file">The DEFINE Input File</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#definition-of-a-node">Definition of a Node</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#run-navigate-for-the-first-time">Run Navigate for the first time</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#definition-of-a-fleet">Definition of a <code class="docutils literal notranslate"><span class="pre">Fleet</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#definition-of-a-vessel">Definition of a <code class="docutils literal notranslate"><span class="pre">Vessel</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#definition-of-a-powersystem">Definition of a <code class="docutils literal notranslate"><span class="pre">PowerSystem</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#definition-of-a-converter">Definition of a <code class="docutils literal notranslate"><span class="pre">Converter</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#definitions-of-other-nodes-introduced-in-vessel">Definitions of other nodes introduced in <code class="docutils literal notranslate"><span class="pre">Vessel</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#run-navigate-again">Run Navigate Again</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#definition-of-a-port">Definition of a <code class="docutils literal notranslate"><span class="pre">Port</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#definition-of-bunkerlogistics">Definition of <code class="docutils literal notranslate"><span class="pre">BunkerLogistics</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#definition-of-a-fuel">Definition of a <code class="docutils literal notranslate"><span class="pre">Fuel</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#definition-of-emission">Definition of <code class="docutils literal notranslate"><span class="pre">Emission</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#definition-of-plot">Definition of <code class="docutils literal notranslate"><span class="pre">Plot</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-events-input-file">The EVENTS Input File</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#interpret-the-plots">Interpret the plots</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#outlook">Outlook</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/tutorials/tutorial_1.md.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026, Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.20.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

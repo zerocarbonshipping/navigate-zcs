@@ -1,0 +1,1429 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Tutorial 3 &#8212; Navigate</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+
+    <script src="../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=fd10adb8"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'tutorials/tutorial_3';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://zerocarbonshipping.github.io/navigate-zcs/_static/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.0.0';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            true;
+        </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Reference Manual" href="../reference_manual/index.html" />
+    <link rel="prev" title="Tutorial 2" href="tutorial_2.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="1.0.0" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class=" navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Navigate</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class=" navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../reference_manual/index.html">
+    Reference Manual
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/zerocarbonshipping/navigate-zcs" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../reference_manual/index.html">
+    Reference Manual
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/zerocarbonshipping/navigate-zcs" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Setting up Navigate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_1.html">Tutorial 1</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_2.html">Tutorial 2</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Tutorial 3</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Tutorials</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Tutorial 3</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <!--
+SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+SPDX-License-Identifier: CC-BY-4.0
+-->
+<section class="tex2jax_ignore mathjax_ignore" id="tutorial-3">
+<h1>Tutorial 3<a class="headerlink" href="#tutorial-3" title="Link to this heading">#</a></h1>
+<p><strong>Why are you doing this tutorial?</strong></p>
+<p>The purpose of this tutorial is to introduce you to the concept of modularization of the Navigate files. Essentially splitting the instructions into multiple <code class="docutils literal notranslate"><span class="pre">.inc</span></code> files in order to make them more readable and easier to maintain and update. This is especially relevant when working with scenarios, uncertainties, and sensitivities where there are often only a handful of assumptions that are changed while the majority remain the same across all simulations.</p>
+<p><strong>Setting the scene:</strong></p>
+<p>In this tutorial, you will first be introduced to the structure of the simulation environment we use and have designed for working with multiple projects, scenarios, and uncertainties. This will serve as guidance but is not a mandatory structure. Then you will create your own folder structure for this tutorial.</p>
+<p>You will then divide the content of Tutorial 2’s DEFINE file up into several smaller <code class="docutils literal notranslate"><span class="pre">.inc</span></code> files and store them in the relevant tutorial folders. In the last part, you will run three simulations with different LSFO prices (baseline: 250 USD/ton, Scenario 170 USD/ton, Scenario 100 USD/ton) and briefly review the results.</p>
+<p><strong>How does it work?</strong></p>
+<p>In this document, you have several action points. Mostly, these action points involve writing instructions to define nodes and their attributes (which you do by writing/copying the Navigate instructions from this document into your own working file) or copying and pasting files between folders and editing them.</p>
+<p>You should follow the guide in order as the parts build up on each other.</p>
+<section id="proposed-structure-of-a-simulation-environment">
+<h2>Proposed structure of a simulation environment<a class="headerlink" href="#proposed-structure-of-a-simulation-environment" title="Link to this heading">#</a></h2>
+<p>The way we have structured our simulation environment is as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>production/
+├── 0_includes_global/
+├── project_1/
+│   ├── 0_includes_local/
+│   ├── simulation_1/
+│   │   ├── plots/
+│   │   └── file_name_1.nav
+│   ├── simulation_2/
+│   │   ├── plots/
+│   │   └── file_name_2.nav
+│   └── ...
+├── project_2/
+│   ├── 0_includes_local/
+│   ├── simulation_1/
+│   │   ├── plots/
+│   │   └── file_name_1.nav
+│   ├── simulation_2/
+│   │   ├── plots/
+│   │   └── file_name_2.nav
+│   └── ...
+└── ...
+</pre></div>
+</div>
+<p>In the context of the tutorials the folder <code class="docutils literal notranslate"><span class="pre">project_1</span></code> would correspond to <code class="docutils literal notranslate"><span class="pre">Tutorial_1</span></code>, <code class="docutils literal notranslate"><span class="pre">project_2</span></code> would correspond to <code class="docutils literal notranslate"><span class="pre">Tutorial_2</span></code>, etc. The scenarios you will test in this tutorial then corresponds to the folders <code class="docutils literal notranslate"><span class="pre">simulation_1</span></code>, <code class="docutils literal notranslate"><span class="pre">simulation_2</span></code>, etc., under the relevant project or tutorial.</p>
+<p>The folder <code class="docutils literal notranslate"><span class="pre">0_includes_global</span></code> is placed in the folder with the <code class="docutils literal notranslate"><span class="pre">project</span></code> folders. This folder contains global assumptions that is not dependent on a project or scenario. The <code class="docutils literal notranslate"><span class="pre">0_includes_local</span></code> under the individual projects contains assumptions that are specific to a project or scenario.</p>
+<section id="build-your-folder-structure">
+<h3>Build your folder structure<a class="headerlink" href="#build-your-folder-structure" title="Link to this heading">#</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">tutorial_3</span></code> folder will correspond to the <code class="docutils literal notranslate"><span class="pre">production</span></code> folder from the above graphic.</p>
+<ol class="arabic simple">
+<li><p>In <code class="docutils literal notranslate"><span class="pre">tutorial_3</span></code>, create two new folders:</p>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">0_includes_global</span></code>. This will include <code class="docutils literal notranslate"><span class="pre">.inc</span></code> files with all of your base assumptions.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tutorial_3_scenarios</span></code> (this is your “project” in the tree structure)</p></li>
+</ol>
+</li>
+<li><p>Within the folder <code class="docutils literal notranslate"><span class="pre">tutorial_3_scenarios</span></code>, create four new folders. These are your “simulations” in the tree structure:</p>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">0_includes_local</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">baseline</span></code>. This folder will include the .nav file for the baseline scenario.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">scenario_170</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">scenario_100</span></code></p></li>
+</ol>
+</li>
+<li><p>Within each of the three folders <code class="docutils literal notranslate"><span class="pre">baseline</span></code>, <code class="docutils literal notranslate"><span class="pre">scenario_170</span></code>, and <code class="docutils literal notranslate"><span class="pre">scenario_100</span></code>: Create an empty folder called <code class="docutils literal notranslate"><span class="pre">plots</span></code></p></li>
+</ol>
+<p>Your folder structure should now look like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>tutorial_3/
+├── 0_includes_global/
+└── tutorial_3_scenarios/
+    ├── 0_includes_local/
+    ├── baseline/
+    │   ├── plots/
+    │   └── (baseline .nav file)
+    ├── scenario_170/
+    │   └── plots/
+    └── scenario_100/
+        └── plots/
+</pre></div>
+</div>
+</section>
+</section>
+<section id="split-define-content-into-individual-inc-files">
+<h2>Split DEFINE content into individual <code class="docutils literal notranslate"><span class="pre">.inc</span></code> files.<a class="headerlink" href="#split-define-content-into-individual-inc-files" title="Link to this heading">#</a></h2>
+<p>In the next step, you will split the content from your tutorial 2 DEFINE file into several smaller files.</p>
+<p>You can complete this by opening your finalized DEFINE file from tutorial 2, and paste copies of each individual node, or each section into new .inc files, and save these new files into your <code class="docutils literal notranslate"><span class="pre">tutorial_3</span></code> folder.</p>
+<p>Almost all assumptions are going to stay the same as in tutorial 2, and are constant across the three scenarios (baseline, 100, 170) in this tutorial 3. Those assumptions are going to be saved in the <code class="docutils literal notranslate"><span class="pre">0_includes_global</span></code> folder, because we consider them our ‘default’ assumptions.</p>
+<p>However, the assumptions (files) about LSFO costs are going to be defined (saved) separately outside of the <code class="docutils literal notranslate"><span class="pre">0_includes_local</span></code> folder, because the different assumptions are unique to their respective scenarios and are therefore considered to be ‘local’ assumptions.</p>
+<section id="recap-tutorial-2">
+<h3>Recap Tutorial 2<a class="headerlink" href="#recap-tutorial-2" title="Link to this heading">#</a></h3>
+<p>Let’s recap the different files we had under tutorial 2.
+Open your <code class="docutils literal notranslate"><span class="pre">tutorial_2</span></code> folder and files to remind yourself of the contents.</p>
+<p>In the <code class="docutils literal notranslate"><span class="pre">includes</span></code> folder we had a:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">define.inc</span></code> file: defining the different assumptions related to the definition of nodes (e.g., about vessel and fuel specifications, emissions related with specific fuels, costs, route details etc.)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">events.inc</span></code> file containing the timesteps of the simulations.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tutorial_2.nav</span></code> file: including ‘instructions’ on running the simulation and on which files to include (e.g., define and events files)</p></li>
+</ul>
+</section>
+<section id="new-structure">
+<h3>New Structure<a class="headerlink" href="#new-structure" title="Link to this heading">#</a></h3>
+<p>While all defined nodes and assumptions were in the one DEFINE file, you are now going to split some up and save them into different files.</p>
+<p>There are multiple different ways/logics of how you could split the content of the DEFINE file up, but for this tutorial we are using the following structure:</p>
+<p>(The order of the list is approximately aligned with the order the nodes/assumptions appear in the DEFINE file).</p>
+<section id="nav-files">
+<h4><code class="docutils literal notranslate"><span class="pre">.nav</span></code> files:<a class="headerlink" href="#nav-files" title="Link to this heading">#</a></h4>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">baseline.nav</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">scenario_100.nav</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">scenario_170.nav</span></code></p></li>
+</ol>
+</section>
+<section id="inc-files-0-includes-global">
+<h4><code class="docutils literal notranslate"><span class="pre">.inc</span></code> files (0_includes_global):<a class="headerlink" href="#inc-files-0-includes-global" title="Link to this heading">#</a></h4>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">model_definition.inc</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bunker_logistics.inc</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fleet_bulk.inc</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fleet_container.inc</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fleet_uptake.inc</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">container_ice_oil.inc</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">container_ice_methane.inc</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bulk_ice_methanol.inc</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bulk_ice_ammonia.inc</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tanks.inc</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">route.inc</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">port.inc</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">producer.inc</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">producer_uptake.inc</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">plant.inc</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fuel.inc</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">emissions.inc</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">process.inc</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">feedstock.inc</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">region.inc</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">source.inc</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">report.inc</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">plot.inc</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">time_steps_yearly.inc</span></code></p></li>
+</ol>
+<p>Each section in the list represents a separate <code class="docutils literal notranslate"><span class="pre">.inc</span></code> file in the new file structure.</p>
+<p>We have taken the liberty of creating empty working files for you in the folder <code class="docutils literal notranslate"><span class="pre">tutorial_3</span></code> that you can copy into your newly constructed simulation environment. The <code class="docutils literal notranslate"><span class="pre">.inc</span></code> files should be copied into <code class="docutils literal notranslate"><span class="pre">0_includes_global</span></code> subfolders and the <code class="docutils literal notranslate"><span class="pre">.nav</span></code> files should be placed in the respective scenario folders.</p>
+</section>
+</section>
+<section id="define-file-general-nodes">
+<h3>DEFINE File: General Nodes<a class="headerlink" href="#define-file-general-nodes" title="Link to this heading">#</a></h3>
+<ol class="arabic simple">
+<li><p>Open these files:</p>
+<ul class="simple">
+<li><p>From folder ‘tutorial_3/0_includes_global:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">model_definition.inc</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bunker_logistics.inc</span></code></p></li>
+</ul>
+</li>
+<li><p>From the folder <code class="docutils literal notranslate"><span class="pre">tutorial_2</span></code>:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">define.inc</span></code> (T2DEF)</p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>Copy the relevant section from T2DEF into the corresponding empty file.</p></li>
+<li><p>Copy the node <code class="docutils literal notranslate"><span class="pre">ModelDefinition</span></code> into the file <code class="docutils literal notranslate"><span class="pre">model_definition.inc</span></code>. Copy the node <code class="docutils literal notranslate"><span class="pre">BunkerLogistics</span></code> into the file <code class="docutils literal notranslate"><span class="pre">bunker_logistics.inc</span></code>.</p></li>
+</ol>
+</section>
+<section id="define-file-definition-of-the-fleets">
+<h3>DEFINE File: Definition of the Fleets<a class="headerlink" href="#define-file-definition-of-the-fleets" title="Link to this heading">#</a></h3>
+<p>Open your Tutorial 2 <code class="docutils literal notranslate"><span class="pre">define.inc</span></code> file and copy the depicted nodes into their respective <code class="docutils literal notranslate"><span class="pre">.inc</span></code> file.</p>
+<section id="fleet-bulk-inc">
+<h4><code class="docutils literal notranslate"><span class="pre">fleet_bulk.inc</span></code><a class="headerlink" href="#fleet-bulk-inc" title="Link to this heading">#</a></h4>
+<ol class="arabic simple">
+<li><p>Copy the relevant section from T2DEF into the empty file.</p></li>
+<li><p>Remove the attribute definitions <code class="docutils literal notranslate"><span class="pre">InterFuelSensitivity</span></code> and <code class="docutils literal notranslate"><span class="pre">IntraFuelSensitivity</span></code> from the node definition (they will be set for all fleets at once in <code class="docutils literal notranslate"><span class="pre">fleet_uptake.inc</span></code>).</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Fleet</span> <span class="s2">&quot;bulk_fleet&quot;</span> <span class="p">{</span>	
+   <span class="n">Vessels</span> <span class="o">=</span> <span class="p">[</span><span class="n">Vessel</span><span class="p">(</span><span class="s2">&quot;bulk_ice_methanol&quot;</span><span class="p">),</span> <span class="n">Vessel</span><span class="p">(</span><span class="s2">&quot;bulk_ice_ammonia&quot;</span><span class="p">)]</span> 	
+   <span class="n">InitialVessels</span> <span class="o">=</span> <span class="mi">100</span>
+   <span class="n">TradeGrowth</span> <span class="o">=</span> <span class="mf">0.05</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="fleet-container-inc">
+<h4><code class="docutils literal notranslate"><span class="pre">fleet_container.inc</span></code><a class="headerlink" href="#fleet-container-inc" title="Link to this heading">#</a></h4>
+<ol class="arabic simple">
+<li><p>Copy the relevant section from T2DEF into the empty file.</p></li>
+<li><p>Remove the attribute definitions <code class="docutils literal notranslate"><span class="pre">InterFuelSensitivity</span></code> and <code class="docutils literal notranslate"><span class="pre">IntraFuelSensitivity</span></code> from the node definition (they will be set for all fleets at once in <code class="docutils literal notranslate"><span class="pre">fleet_uptake.inc</span></code>).</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Fleet</span> <span class="s2">&quot;container_fleet&quot;</span> <span class="p">{</span>	
+   <span class="n">Vessels</span> <span class="o">=</span> <span class="p">[</span><span class="n">Vessel</span><span class="p">(</span><span class="s2">&quot;container_ice_oil&quot;</span><span class="p">),</span> <span class="n">Vessel</span><span class="p">(</span><span class="s2">&quot;container_ice_methane&quot;</span><span class="p">)]</span> 	
+   <span class="n">InitialVessels</span> <span class="o">=</span> <span class="mi">100</span>
+   <span class="n">TradeGrowth</span> <span class="o">=</span> <span class="mf">0.05</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="fleet-uptake-inc">
+<h4><code class="docutils literal notranslate"><span class="pre">fleet_uptake.inc</span></code><a class="headerlink" href="#fleet-uptake-inc" title="Link to this heading">#</a></h4>
+<ol class="arabic simple">
+<li><p>Assign the attributes <code class="docutils literal notranslate"><span class="pre">InterFuelSensitivity</span></code> and <code class="docutils literal notranslate"><span class="pre">IntraFuelSensitivity</span></code> to all defined nodes of the type <code class="docutils literal notranslate"><span class="pre">Fleet</span></code>.</p></li>
+<li><p>The star <code class="docutils literal notranslate"><span class="pre">*</span></code> is a ‘wildcard’. So, when we define the node <code class="docutils literal notranslate"><span class="pre">Fleet</span> <span class="pre">&quot;*&quot;</span></code> the listed attributes under it will apply to any node that has the node-type <code class="docutils literal notranslate"><span class="pre">Fleet</span></code>.</p></li>
+<li><p>A value of <code class="docutils literal notranslate"><span class="pre">0.5</span></code> is an odds ratio: a fuel or technology whose levelized cost of transport (LCOT) is 10% higher receives half the odds of an otherwise identical option (lower cost is better, so use a value below <code class="docutils literal notranslate"><span class="pre">1</span></code>).</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Fleet</span> <span class="s2">&quot;*&quot;</span> <span class="p">{</span>	
+   <span class="n">InterFuelSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
+   <span class="n">IntraFuelSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="define-file-definition-of-the-vessels">
+<h3>DEFINE File: Definition of the Vessels<a class="headerlink" href="#define-file-definition-of-the-vessels" title="Link to this heading">#</a></h3>
+<ol class="arabic simple">
+<li><p>Create the listed files in your Tutorial 3 <code class="docutils literal notranslate"><span class="pre">0_includes_global</span></code> folder.</p></li>
+<li><p>Open these files:</p>
+<ul class="simple">
+<li><p>From folder <code class="docutils literal notranslate"><span class="pre">tutorial_3/0_includes_global</span></code>:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">container_ice_oil.inc</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">container_ice_methane.inc</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bulk_ice_methanol.inc</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bulk_ice_ammonia.inc</span></code></p></li>
+</ul>
+</li>
+<li><p>From the folder <code class="docutils literal notranslate"><span class="pre">tutorial_2</span></code>:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">define.inc</span></code> (T2DEF)</p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>Copy the relevant section from T2DEF into the corresponding empty file. All nodes, Vessel, Powersystem and converters should be copied into the corresponding file. E.g. all nodes under Bi) in your T2DEF file should be copied and pasted into the file “container_ice_oil”</p></li>
+</ol>
+</section>
+<section id="define-file-general-specifications-for-vessels">
+<h3>DEFINE File: General Specifications for Vessels<a class="headerlink" href="#define-file-general-specifications-for-vessels" title="Link to this heading">#</a></h3>
+<ol class="arabic simple">
+<li><p>Create the listed files in your Tutorial 3 <code class="docutils literal notranslate"><span class="pre">0_includes_global</span></code> folder.</p></li>
+<li><p>Open these files:</p>
+<ul class="simple">
+<li><p>From folder <code class="docutils literal notranslate"><span class="pre">tutorial_3/0_includes_global</span></code>:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">route.inc</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tanks.inc</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">port.inc</span></code></p></li>
+</ul>
+</li>
+<li><p>From the folder <code class="docutils literal notranslate"><span class="pre">tutorial_2</span></code>:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">define.inc</span></code> (T2DEF)</p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>Copy the relevant section from T2DEF into the corresponding empty file.</p>
+<ul class="simple">
+<li><p>For the <code class="docutils literal notranslate"><span class="pre">route.inc</span></code> file, copy and paste the node <code class="docutils literal notranslate"><span class="pre">Route</span> <span class="pre">&quot;route&quot;</span></code>. For port copy node <code class="docutils literal notranslate"><span class="pre">&quot;port&quot;</span></code> and pace in file <code class="docutils literal notranslate"><span class="pre">&quot;port&quot;</span></code> in <code class="docutils literal notranslate"><span class="pre">0_include_global</span></code>.</p></li>
+<li><p>For the file <code class="docutils literal notranslate"><span class="pre">tanks.inc</span></code> include all tank nodes: <code class="docutils literal notranslate"><span class="pre">Tank(&quot;main_oil&quot;)</span></code>, <code class="docutils literal notranslate"><span class="pre">Tank(&quot;pilot_oil&quot;)</span></code>, <code class="docutils literal notranslate"><span class="pre">Tank(&quot;main_methane&quot;)</span></code>, <code class="docutils literal notranslate"><span class="pre">Tank(&quot;main_methanol&quot;)</span></code>, and <code class="docutils literal notranslate"><span class="pre">Tank(&quot;main_ammonia&quot;)</span></code>.</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="define-file-definition-of-all-fuels">
+<h3>DEFINE File: Definition of all Fuels<a class="headerlink" href="#define-file-definition-of-all-fuels" title="Link to this heading">#</a></h3>
+<ol class="arabic simple">
+<li><p>Create the listed files in your Tutorial 3 <code class="docutils literal notranslate"><span class="pre">0_includes_global</span></code> folder.</p></li>
+<li><p>Open these files:</p>
+<ul class="simple">
+<li><p>From folder ‘tutorial_3/0_includes_global’:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">Fuel.inc</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Process.inc</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Feedstock.inc</span></code></p></li>
+</ul>
+</li>
+<li><p>From the folder <code class="docutils literal notranslate"><span class="pre">tutorial_2</span></code>:</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">define.inc</span></code> (T2DEF)</p></li>
+</ul>
+</li>
+<li><p>For each of the 3 mentioned files, perform the following action points, resulting in files that contain each of the depicted nodes of code. Remember to save before running any code or closing any files.</p></li>
+<li><p>Open your Tutorial 2 <code class="docutils literal notranslate"><span class="pre">define.inc</span></code> file and copy the depicted nodes into their respective .inc file:</p></li>
+</ol>
+<section id="fuel-inc">
+<h4><code class="docutils literal notranslate"><span class="pre">fuel.inc</span></code><a class="headerlink" href="#fuel-inc" title="Link to this heading">#</a></h4>
+<ol class="arabic simple">
+<li><p>Copy the relevant section from T2DEF into the empty file:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Fuel</span> <span class="pre">&quot;heavy_fuel_oil&quot;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Fuel</span> <span class="pre">&quot;methane_electro&quot;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Fuel</span> <span class="pre">&quot;methanol_bio&quot;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Fuel</span> <span class="pre">&quot;ammonia_blue&quot;</span></code></p></li>
+</ul>
+</li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Fuel</span> <span class="s2">&quot;heavy_fuel_oil&quot;</span> <span class="p">{</span>
+	<span class="n">FuelType</span> <span class="o">=</span> <span class="n">OIL</span>
+	
+	<span class="n">LowerHeatingValue</span> <span class="o">=</span> <span class="mf">41.2</span>
+	<span class="n">MassDensity</span> <span class="o">=</span> <span class="mf">0.9</span>
+	
+	<span class="n">set_ttw</span><span class="p">(</span><span class="s2">&quot;carbon_dioxide&quot;</span><span class="p">,</span> <span class="mf">3.114</span><span class="p">)</span>
+	<span class="n">set_ttw</span><span class="p">(</span><span class="s2">&quot;methane&quot;</span><span class="p">,</span> <span class="mf">0.00005</span><span class="p">)</span>
+	<span class="n">set_ttw</span><span class="p">(</span><span class="s2">&quot;nitrous_oxide&quot;</span><span class="p">,</span> <span class="mf">0.00018</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="n">Fuel</span> <span class="s2">&quot;methane_electro&quot;</span> <span class="p">{</span> 
+	<span class="n">FuelType</span> <span class="o">=</span> <span class="n">METHANE</span>
+	
+	<span class="n">LowerHeatingValue</span> <span class="o">=</span> <span class="mf">50.0</span>  
+	<span class="n">MassDensity</span> <span class="o">=</span> <span class="mf">0.43</span>
+	
+	<span class="n">set_ttw</span><span class="p">(</span><span class="s2">&quot;carbon_dioxide&quot;</span><span class="p">,</span> <span class="mf">2.75</span><span class="p">)</span>
+<span class="p">}</span>
+
+
+<span class="n">Fuel</span> <span class="s2">&quot;methanol_bio&quot;</span> <span class="p">{</span>
+	<span class="n">FuelType</span> <span class="o">=</span> <span class="n">METHANOL</span>
+	
+	<span class="n">LowerHeatingValue</span> <span class="o">=</span> <span class="mf">19.9</span>
+	<span class="n">MassDensity</span> <span class="o">=</span> <span class="mf">0.791</span>
+	
+	<span class="n">set_ttw</span><span class="p">(</span><span class="s2">&quot;carbon_dioxide&quot;</span><span class="p">,</span> <span class="mf">1.38</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="n">Fuel</span> <span class="s2">&quot;ammonia_blue&quot;</span> <span class="p">{</span>
+	<span class="n">FuelType</span> <span class="o">=</span> <span class="n">AMMONIA</span>
+	
+	<span class="n">LowerHeatingValue</span> <span class="o">=</span> <span class="mf">18.8</span>
+	<span class="n">MassDensity</span> <span class="o">=</span> <span class="mf">0.623</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="emissions-inc">
+<h4>‘emissions.inc’<a class="headerlink" href="#emissions-inc" title="Link to this heading">#</a></h4>
+<ol class="arabic simple">
+<li><p>Copy the relevant section from T2DEF into the empty file.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Emission</span> <span class="pre">&quot;carbon_dioxide&quot;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Emission</span> <span class="pre">&quot;methane&quot;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Emission</span> <span class="pre">&quot;nitrous_oxide&quot;</span></code></p></li>
+</ul>
+</li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Emission</span> <span class="s2">&quot;carbon_dioxide&quot;</span> <span class="p">{</span>
+	<span class="n">GlobalWarmingPotential</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="p">}</span>
+
+<span class="n">Emission</span> <span class="s2">&quot;methane&quot;</span> <span class="p">{</span>
+	<span class="n">GlobalWarmingPotential</span> <span class="o">=</span> <span class="mi">25</span>
+<span class="p">}</span>
+
+<span class="n">Emission</span> <span class="s2">&quot;nitrous_oxide&quot;</span> <span class="p">{</span>
+	<span class="n">GlobalWarmingPotential</span> <span class="o">=</span> <span class="mi">273</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="process-inc">
+<h4><code class="docutils literal notranslate"><span class="pre">process.inc</span></code><a class="headerlink" href="#process-inc" title="Link to this heading">#</a></h4>
+<ol class="arabic simple">
+<li><p>Copy the relevant section from T2DEF into the empty file.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Process</span> <span class="pre">&quot;methane_liquefaction_electro&quot;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Process</span> <span class="pre">&quot;methane_synthesis_electro&quot;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Process</span> <span class="pre">&quot;methanol_synthesis_bio_gasification&quot;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Process</span> <span class="pre">&quot;haber_bosch_ccs_integrated_blue&quot;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Process</span> <span class="pre">&quot;nitrogen_air_seperation&quot;</span></code></p></li>
+</ul>
+</li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Process</span> <span class="s2">&quot;methane_liquefaction_electro&quot;</span> <span class="p">{</span>  
+   <span class="n">Feeds</span> <span class="o">=</span> <span class="p">[</span><span class="n">Process</span><span class="p">(</span><span class="s2">&quot;methane_synthesis_electro&quot;</span><span class="p">)]</span>
+   <span class="n">Conversions</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="p">}</span>
+
+<span class="n">Process</span> <span class="s2">&quot;methane_synthesis_electro&quot;</span> <span class="p">{</span>  
+   <span class="n">Feeds</span> <span class="o">=</span> <span class="p">[</span><span class="n">Feedstock</span><span class="p">(</span><span class="s2">&quot;demineralized_water&quot;</span><span class="p">),</span> <span class="n">Feedstock</span><span class="p">(</span><span class="s2">&quot;carbon_dioxide_biogenic&quot;</span><span class="p">)]</span>
+   <span class="n">Conversions</span> <span class="o">=</span> <span class="p">[</span><span class="mf">4.5</span><span class="p">,</span> <span class="mf">2.75</span><span class="p">]</span>  
+<span class="p">}</span>
+
+<span class="n">Process</span> <span class="s2">&quot;methanol_synthesis_bio_gasification&quot;</span> <span class="p">{</span>
+   <span class="n">Feeds</span> <span class="o">=</span> <span class="p">[</span><span class="n">Feedstock</span><span class="p">(</span><span class="s2">&quot;organic_wet_waste&quot;</span><span class="p">),</span> <span class="n">Feedstock</span><span class="p">(</span><span class="s2">&quot;dry_wood_biomass&quot;</span><span class="p">)]</span>
+   <span class="n">Conversions</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.21</span><span class="p">,</span> <span class="mf">1.21</span><span class="p">]</span>
+<span class="p">}</span>
+
+<span class="n">Process</span> <span class="s2">&quot;haber_bosch_ccs_integrated_blue&quot;</span> <span class="p">{</span>	
+   <span class="n">Feeds</span> <span class="o">=</span> <span class="p">[</span><span class="n">Process</span><span class="p">(</span><span class="s2">&quot;nitrogen_air_seperation&quot;</span><span class="p">),</span> <span class="n">Feedstock</span><span class="p">(</span><span class="s2">&quot;natural_gas&quot;</span><span class="p">)]</span>	
+   <span class="n">Conversions</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.64</span><span class="p">,</span> <span class="mf">0.822</span><span class="p">]</span>						
+<span class="p">}</span>
+
+<span class="n">Process</span> <span class="s2">&quot;nitrogen_air_seperation&quot;</span> <span class="p">{</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="feedstock-inc">
+<h4><code class="docutils literal notranslate"><span class="pre">feedstock.inc</span></code><a class="headerlink" href="#feedstock-inc" title="Link to this heading">#</a></h4>
+<ol class="arabic simple">
+<li><p>Copy the relevant section from T2DEF into the empty file.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Feedstock</span> <span class="pre">&quot;demineralized_water&quot;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Feedstock</span> <span class="pre">&quot;carbon_dioxide_biogenic&quot;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Feedstock</span> <span class="pre">&quot;organic_wet_waste&quot;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Feedstock</span> <span class="pre">&quot;dry_wood_biomass&quot;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Feedstock</span> <span class="pre">&quot;natural_gas&quot;</span></code></p></li>
+</ul>
+</li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Feedstock</span> <span class="s2">&quot;demineralized_water&quot;</span> <span class="p">{</span>	
+<span class="p">}</span>
+
+<span class="n">Feedstock</span> <span class="s2">&quot;carbon_dioxide_biogenic&quot;</span> <span class="p">{</span>
+<span class="p">}</span>
+
+<span class="n">Feedstock</span> <span class="s2">&quot;organic_wet_waste&quot;</span> <span class="p">{</span>
+<span class="p">}</span>
+
+<span class="n">Feedstock</span> <span class="s2">&quot;dry_wood_biomass&quot;</span> <span class="p">{</span>
+<span class="p">}</span>
+
+<span class="n">Feedstock</span> <span class="s2">&quot;natural_gas&quot;</span> <span class="p">{</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="define-file-definition-of-plant-nodes-and-region">
+<h3>DEFINE File: Definition of <code class="docutils literal notranslate"><span class="pre">Plant</span></code> Nodes and <code class="docutils literal notranslate"><span class="pre">Region</span></code><a class="headerlink" href="#define-file-definition-of-plant-nodes-and-region" title="Link to this heading">#</a></h3>
+<ol class="arabic simple">
+<li><p>Create the listed files in your Tutorial 3 <code class="docutils literal notranslate"><span class="pre">0_includes_global</span></code> folder.</p></li>
+<li><p>Open these files:</p>
+<ul class="simple">
+<li><p>From folder <code class="docutils literal notranslate"><span class="pre">tutorial_3/0_includes_global</span></code>:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">plant.inc</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">source.inc</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">region.inc</span></code></p></li>
+</ul>
+</li>
+<li><p>From the folder <code class="docutils literal notranslate"><span class="pre">tutorial_2</span></code>:</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">define.inc</span></code> (T2DEF)</p></li>
+</ul>
+</li>
+<li><p>Copy the relevant section from T2DEF into the corresponding empty file.
+Follow the principle of Fuels, copy the Plant nodes for every fuel and place them into the file plant.inc in <code class="docutils literal notranslate"><span class="pre">0_includes_global</span></code>. Copy the node <code class="docutils literal notranslate"><span class="pre">“region”</span></code> into the <code class="docutils literal notranslate"><span class="pre">region.inc</span></code> file. Copy the nodes Source <code class="docutils literal notranslate"><span class="pre">&quot;renewable&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;grid&quot;</span></code> into the file <code class="docutils literal notranslate"><span class="pre">source.inc</span></code>.</p></li>
+</ol>
+</section>
+<section id="define-file-definition-of-producer-and-producer-uptake">
+<h3>DEFINE File: Definition of <code class="docutils literal notranslate"><span class="pre">Producer</span></code> and <code class="docutils literal notranslate"><span class="pre">producer_uptake</span></code><a class="headerlink" href="#define-file-definition-of-producer-and-producer-uptake" title="Link to this heading">#</a></h3>
+<ol class="arabic simple">
+<li><p>Create the listed files in your Tutorial 3 <code class="docutils literal notranslate"><span class="pre">0_includes_global</span></code> folder.</p></li>
+<li><p>For producer, copy the node Producer <code class="docutils literal notranslate"><span class="pre">&quot;engineering_procurement_construction&quot;</span></code> and past into file <code class="docutils literal notranslate"><span class="pre">producer.inc</span></code> in <code class="docutils literal notranslate"><span class="pre">0_includes_global</span></code>
+This assigns the attribute <code class="docutils literal notranslate"><span class="pre">&quot;engineering_procurement_construction&quot;</span></code><br />
+And the decision sensitivities to all fuel production plants.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Producer</span> <span class="s2">&quot;engineering_procurement_construction&quot;</span> <span class="p">{</span>
+    <span class="n">Plants</span> <span class="o">=</span> <span class="p">[</span><span class="n">Plant</span><span class="p">(</span><span class="s2">&quot;plant_methane_electro&quot;</span><span class="p">),</span>
+              <span class="n">Plant</span><span class="p">(</span><span class="s2">&quot;plant_methanol_bio_gasification&quot;</span><span class="p">),</span>
+              <span class="n">Plant</span><span class="p">(</span><span class="s2">&quot;plant_ammonia_blue&quot;</span><span class="p">)]</span>
+    <span class="n">MaximumDevelopment</span> <span class="o">=</span> <span class="mi">10</span>
+    <span class="n">FuelDemandSensitivity</span> <span class="o">=</span> <span class="mf">1.5</span>
+    <span class="n">FuelCostSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">FuelDemandSensitivity</span> <span class="pre">=</span> <span class="pre">1.5</span></code> favours the fuel pathways with the largest expected demand (a 10% higher demand gives 1.5x the odds), while <code class="docutils literal notranslate"><span class="pre">FuelCostSensitivity</span> <span class="pre">=</span> <span class="pre">0.5</span></code> favours the cheaper plants within a pathway (a 10% higher levelized cost of fuel halves the odds).</p>
+<ol class="arabic simple" start="3">
+<li><p>The decision sensitivities are now set directly on the <code class="docutils literal notranslate"><span class="pre">Producer</span></code>, so the <code class="docutils literal notranslate"><span class="pre">producer_uptake.inc</span></code> file is left empty — there are no separate uptake nodes to define.</p></li>
+</ol>
+</section>
+<section id="define-file-definition-of-plot">
+<h3>DEFINE File: Definition of <code class="docutils literal notranslate"><span class="pre">Plot</span></code><a class="headerlink" href="#define-file-definition-of-plot" title="Link to this heading">#</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">Plot</span></code> node defines which output plots Navigate produces and where they are saved. Navigate only generates plots when at least one <code class="docutils literal notranslate"><span class="pre">Plot</span></code> node is defined.</p>
+<ol class="arabic simple">
+<li><p>Open the file <code class="docutils literal notranslate"><span class="pre">plot.inc</span></code> in your <code class="docutils literal notranslate"><span class="pre">0_includes_global</span></code> folder.</p></li>
+<li><p>Define a node <code class="docutils literal notranslate"><span class="pre">&quot;plots&quot;</span></code> with the node type <code class="docutils literal notranslate"><span class="pre">Plot</span></code>.</p></li>
+<li><p>Set the <code class="docutils literal notranslate"><span class="pre">Directory</span></code> attribute to <code class="docutils literal notranslate"><span class="pre">&quot;./plots/&quot;</span></code>. This is the <code class="docutils literal notranslate"><span class="pre">plots</span></code> subfolder you created in each scenario folder; the path is relative to the <code class="docutils literal notranslate"><span class="pre">.nav</span></code> file being run. Navigate creates the folder if it does not already exist.</p></li>
+<li><p>Use the <code class="docutils literal notranslate"><span class="pre">add_plot(...)</span></code> command once per plot you want produced.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Plot</span> <span class="s2">&quot;plots&quot;</span> <span class="p">{</span>
+    <span class="n">Directory</span> <span class="o">=</span> <span class="s2">&quot;./plots/&quot;</span>
+
+    <span class="n">add_plot</span><span class="p">(</span><span class="s2">&quot;global_emission_absolute&quot;</span><span class="p">)</span>
+    <span class="n">add_plot</span><span class="p">(</span><span class="s2">&quot;global_fuel_consumed&quot;</span><span class="p">)</span>
+    <span class="n">add_plot</span><span class="p">(</span><span class="s2">&quot;plant_production_cost&quot;</span><span class="p">)</span>
+    <span class="n">add_plot</span><span class="p">(</span><span class="s2">&quot;port_bunker_price&quot;</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Because the same plots are produced for every scenario, <code class="docutils literal notranslate"><span class="pre">plot.inc</span></code> lives in <code class="docutils literal notranslate"><span class="pre">0_includes_global</span></code> and is included by each scenario’s <code class="docutils literal notranslate"><span class="pre">.nav</span></code> file (see the next section).</p>
+</section>
+</section>
+<section id="create-nav-file-for-baseline-scenario">
+<h2>Create <code class="docutils literal notranslate"><span class="pre">.nav</span></code> file for Baseline Scenario<a class="headerlink" href="#create-nav-file-for-baseline-scenario" title="Link to this heading">#</a></h2>
+<section id="id1">
+<h3>Recap Tutorial 2<a class="headerlink" href="#id1" title="Link to this heading">#</a></h3>
+<p>Let’s recap what the finalised <code class="docutils literal notranslate"><span class="pre">tutorial_2.nav</span></code> file looked like in tutorial 2. The DEFINE section includes only one file, the <code class="docutils literal notranslate"><span class="pre">define.inc</span></code> file.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># This is the .nav file for Tutorial 2. It is the same as Tutorial 1.</span>
+<span class="c1"># You should just make sure that your define and events files are correctly named</span>
+<span class="c1"># and are located in the tutorial_2/includes folder.</span>
+
+<span class="c1"># Definition of the DEFINE section</span>
+<span class="n">DEFINE</span> <span class="p">{</span>
+    <span class="n">Include</span> <span class="s2">&quot;./includes/define.inc&quot;</span>
+<span class="p">}</span>
+
+<span class="c1"># Definition of the EVENTS section</span>
+<span class="n">EVENTS</span> <span class="p">{</span>
+    <span class="n">Include</span> <span class="s2">&quot;./includes/events.inc&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The EVENTS section includes only one file, the events.inc file.</p>
+</section>
+<section id="compare-and-create-a-new-baseline-nav-file">
+<h3>Compare and Create a new <code class="docutils literal notranslate"><span class="pre">baseline.nav</span></code> file<a class="headerlink" href="#compare-and-create-a-new-baseline-nav-file" title="Link to this heading">#</a></h3>
+<p>For this tutorial 3, you have split the DEFINE file into smaller components. The EVENTS file contains the same but has been renamed to a more informative name describing what it contains.</p>
+<p>In order to run the baseline scenario in the model, you also need to modify the <code class="docutils literal notranslate"><span class="pre">.nav</span></code> file with the “instructions” on what files to include in the simulation.</p>
+<p>As we spread out the assumptions across many different files, all of them need to be included in tutorial 3’s <code class="docutils literal notranslate"><span class="pre">.nav</span></code> file.</p>
+<ol class="arabic simple">
+<li><p>Open the folder <code class="docutils literal notranslate"><span class="pre">\tutorial_3\nav_files</span></code>.</p></li>
+<li><p>Copy the empty file <code class="docutils literal notranslate"><span class="pre">baseline.nav</span></code> and paste it into your personal folder <code class="docutils literal notranslate"><span class="pre">\tutorial_3\tutorial_3_scenarios\baseline</span></code>, so you can edit it.</p></li>
+<li><p><strong>DEFINE section:</strong> Write prompts to include all the files that you just created using the code on the right.
+For better overview, group them into categories like you can see on the right side, and annotate them with comments.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">DEFINE</span> <span class="p">{</span>
+
+    <span class="c1"># model definition</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/model_definition.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/bunker_logistics.inc&quot;</span>
+
+    <span class="c1"># fleets</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/fleet_container.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/fleet_bulk.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/fleet_uptake.inc&quot;</span>
+
+    <span class="c1"># vessels</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/container_ice_oil.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/container_ice_methane.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/bulk_ice_methanol.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/bulk_ice_ammonia.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/tanks.inc&quot;</span>
+
+    <span class="c1"># route</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/route.inc&quot;</span>
+
+    <span class="c1"># port</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/port.inc&quot;</span>
+
+    <span class="c1"># fuels</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/plant.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/fuel.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/process.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/feedstock.inc&quot;</span>
+
+    <span class="c1"># producer</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/producer.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/producer_uptake.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/source.inc&quot;</span>
+
+    <span class="c1"># costs and emissions of fuels</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/region.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/emissions.inc&quot;</span>
+
+    <span class="c1"># plots</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/plot.inc&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="4">
+<li><p><strong>EVENTS section:</strong> Include the <code class="docutils literal notranslate"><span class="pre">.inc</span></code> file that was prepared for you.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">EVENTS</span> <span class="p">{</span>
+    <span class="c1"># time steps</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/time_steps_yearly.inc&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="run-the-baseline-scenario">
+<h2>Run the Baseline Scenario<a class="headerlink" href="#run-the-baseline-scenario" title="Link to this heading">#</a></h2>
+<p>Open the terminal and change directory to where the tutorial simulation files are. Once positioned in the folder use the following command to run Navigate:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example cd workflow (linux)</span>
+<span class="nb">cd</span><span class="w"> </span>tutorial/tutorial_3/tutorial_3_scenarios/baseline/
+
+<span class="c1"># Run Navigate</span>
+navigate<span class="w"> </span>baseline.nav
+</pre></div>
+</div>
+</section>
+<section id="create-sensitivities-hfo-price">
+<h2>Create Sensitivities: HFO Price<a class="headerlink" href="#create-sensitivities-hfo-price" title="Link to this heading">#</a></h2>
+<p>Next, you are going to run a sensitivity analysis on the price of HFO. This means that you are going to create several different scenarios which <strong>differ only in the price of LSFO while other assumptions stay constant</strong> across all scenarios.</p>
+<p>Comparing e.g., the projected fuel mix over time, can give you insights about the impact that the price of HFO has on the shipping industry and on the transition. For example, if all scenarios lead to very similar projected fuel mixes, we might conclude that the price of HFO has a very small influence on the overall transition, and that other factors, like bio-methane or vessel availability might be the driving factors in the transition.</p>
+<p>However, if the scenarios lead to very different fuel mix projections, this is an indicator that the HFO price is very important in influencing the transition. Implications of this include that it is very important to be confident in the values we assume to be the ‘true’ HFO prices today (and in the future). This is because the results of our simulations might be skewed/wrong, if our assumed HFO prices are inaccurate, and might ultimately lead us to drawing the wrong conclusions.</p>
+<p>You are going to create two additional scenarios with different HFO costs – a low (ca. 100 USD/ton) and a medium (ca. 170 USD/ton). In the ‘scenario 100’, HFO will be the cheapest fuel available, in the ‘scenario 170’ LSFO price will be cheaper than some fuels but more expensive than others. In the baseline scenario, HFO is the most expensive fuel.</p>
+<section id="create-an-inc-file-for-scenario-100-lowest-cost">
+<h3>Create an <code class="docutils literal notranslate"><span class="pre">.inc</span></code> file for Scenario 100: Lowest Cost<a class="headerlink" href="#create-an-inc-file-for-scenario-100-lowest-cost" title="Link to this heading">#</a></h3>
+<p>You will create an <code class="docutils literal notranslate"><span class="pre">.inc</span></code>-file to define the HFO price for Scenario 100, and you will create a <code class="docutils literal notranslate"><span class="pre">.nav</span></code> file for the scenario.
+The structure will be the exact same as in the input file you already created for the baseline scenario, <code class="docutils literal notranslate"><span class="pre">cost_emissions_lsfo.inc</span></code>.</p>
+<ol class="arabic simple">
+<li><p>Open the folder <code class="docutils literal notranslate"><span class="pre">\tutorial_3\scenario_files</span></code>.</p></li>
+<li><p>Copy the file <code class="docutils literal notranslate"><span class="pre">scenario_100.inc</span></code> and paste it into your personal folder: <code class="docutils literal notranslate"><span class="pre">\tutorial_3\tutorial_3_scenarios\0_includes_local</span></code>.</p></li>
+<li><p>Assign a price for heavy fuel oil of 100 USD/ton to the port node <code class="docutils literal notranslate"><span class="pre">&quot;port&quot;</span></code>.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Port</span> <span class="s2">&quot;port&quot;</span> <span class="p">{</span>	
+    <span class="n">set_bunker_price_overwrite</span><span class="p">(</span><span class="s2">&quot;heavy_fuel_oil&quot;</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span> 
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="create-a-nav-file-for-scenario-100-lowest-cost">
+<h3>Create a <code class="docutils literal notranslate"><span class="pre">.nav</span></code> file for Scenario 100: Lowest Cost<a class="headerlink" href="#create-a-nav-file-for-scenario-100-lowest-cost" title="Link to this heading">#</a></h3>
+<ol class="arabic simple">
+<li><p>Open the folder <code class="docutils literal notranslate"><span class="pre">\tutorial_3\nav_files</span></code></p></li>
+<li><p>Copy the empty file <code class="docutils literal notranslate"><span class="pre">scenario_100.nav</span></code> and paste it into your personal folder <code class="docutils literal notranslate"><span class="pre">\tutorials\tutorial_3\tutorial_3_scenarios\scenario_100</span></code>, so you can edit it.</p></li>
+<li><p>Copy the entire content of the <code class="docutils literal notranslate"><span class="pre">baseline.nav</span></code> file, and paste it into the file <code class="docutils literal notranslate"><span class="pre">scenario_100.nav</span></code>.</p></li>
+<li><p>Right before the end of the definition of DEFINE, add a line that includes the new input file you just created, <code class="docutils literal notranslate"><span class="pre">scenario_100.inc</span></code>.
+The code is marked with a red box in the example.</p></li>
+<li><p>Add a comment explaining the new line for your own overview.
+You might notice that you had already defined the cost for HFO in the file <code class="docutils literal notranslate"><span class="pre">port.inc</span></code> which is still included in the <code class="docutils literal notranslate"><span class="pre">.nav</span></code> file here.
+Any new input files added below a previously included file will overwrite existing values, e.g. in this case related to the cost of HFO.
+Hence, when the model is run now, the vales for cost and emissions related to HFO will
+be those defined in <code class="docutils literal notranslate"><span class="pre">scenario_100.inc</span></code>.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">DEFINE</span> <span class="p">{</span>
+
+    <span class="c1"># general nodes</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/model_definition.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/bunker_logistics.inc&quot;</span>
+
+    <span class="c1"># fleets</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/fleet_container.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/fleet_bulk.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/fleet_uptake.inc&quot;</span>
+
+    <span class="c1"># vessels</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/container_ice_oil.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/container_ice_methane.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/bulk_ice_methanol.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/bulk_ice_ammonia.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/tanks.inc&quot;</span>
+
+    <span class="c1"># route</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/route.inc&quot;</span>
+
+    <span class="c1"># port</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/port.inc&quot;</span>
+
+    <span class="c1"># fuels</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/plant.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/fuel.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/process.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/feedstock.inc&quot;</span>
+
+    <span class="c1"># producer</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/producer.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/producer_uptake.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/source.inc&quot;</span>
+
+    <span class="c1"># costs and emissions of fuels</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/region.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/emissions.inc&quot;</span>
+
+    <span class="c1"># plots</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/plot.inc&quot;</span>
+
+    <span class="c1"># testing sensitivity to lower HFO cost</span>
+    <span class="n">Include</span> <span class="s2">&quot;../0_includes_local/scenario_100.inc&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="6">
+<li><p>The definition of EVENTS can stay the same. Save your edits.</p></li>
+</ol>
+<section id="run-scenario-100-in-navigate">
+<h4>Run Scenario 100 in Navigate<a class="headerlink" href="#run-scenario-100-in-navigate" title="Link to this heading">#</a></h4>
+<p>Open the terminal and change directory to where the tutorial simulation files are. Once positioned in the directory, use the following command to run Navigate:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>navigate<span class="w"> </span>.<span class="se">\s</span>cenario_100.nav
+</pre></div>
+</div>
+<p>This will run the Navigate simulation using the instructions in the <code class="docutils literal notranslate"><span class="pre">tutorial_file_name.nav</span></code> file.</p>
+<p>Did you get an error message?</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="ne">FileNotFoundError</span><span class="p">:</span> <span class="n">Error</span> <span class="ow">in</span> <span class="n">DEFINE</span> <span class="n">file</span><span class="p">,</span> <span class="n">line</span> <span class="n">XX</span><span class="p">:</span> <span class="n">Include</span> <span class="n">file</span> <span class="s1">&#39;../0_includes_local/scenario_100.inc&#39;</span> <span class="ow">not</span> <span class="n">found</span><span class="o">.</span>
+</pre></div>
+</div>
+</section>
+<section id="moving-on">
+<h4>Moving on<a class="headerlink" href="#moving-on" title="Link to this heading">#</a></h4>
+<p>The files baseline.nav and scenario_100.nav are almost identical, because all assumptions except the assumption about the HFO price are the same.
+Hence, the general structure can stay the same, and the same files from 0_includes_global need to be included.</p>
+<p>The reason for why Navigate is not running is because of the difference in folder levels that are between the respective .nav files and the folders containing the relevant .inc input files.
+From the location of <code class="docutils literal notranslate"><span class="pre">baseline.nav</span></code>, it is 2 levels ‘up’ to get to the folder <code class="docutils literal notranslate"><span class="pre">0_includes_global</span></code> which includes the relevant assumption files. That is why there is a ‘double dash’ (../../) in most of the <code class="docutils literal notranslate"><span class="pre">Include</span></code> prompts.</p>
+<p>However, from the location of <code class="docutils literal notranslate"><span class="pre">scenario_100.nav</span></code>, it is 1 level ‘up’ to the folder 0_includes_local, which includes the relevant input file <code class="docutils literal notranslate"><span class="pre">scenario_100.inc</span></code>. This needs to be reflected in the code by single ‘dash’, i.e. you need to remove one <code class="docutils literal notranslate"><span class="pre">../</span></code> in the description of the file location.</p>
+</section>
+<section id="referencing-local-assumptions-in-scenario-100-nav">
+<h4>Referencing local assumptions in <code class="docutils literal notranslate"><span class="pre">Scenario_100.nav</span></code><a class="headerlink" href="#referencing-local-assumptions-in-scenario-100-nav" title="Link to this heading">#</a></h4>
+<ol class="arabic simple">
+<li><p>Correct the file so it can find the input files by removing one dash “../” in front of the file location of <code class="docutils literal notranslate"><span class="pre">scenario_100.inc</span></code>.</p>
+<ul class="simple">
+<li><p>I.e., change <code class="docutils literal notranslate"><span class="pre">Include</span> <span class="pre">&quot;../../0_includes_global/*.inc&quot;</span></code></p></li>
+<li><p>to <code class="docutils literal notranslate"><span class="pre">Include</span> <span class="pre">&quot;../0_includes_local/*.inc&quot;</span></code></p></li>
+</ul>
+</li>
+<li><p>Save your edits and run the scenario again.</p></li>
+</ol>
+</section>
+</section>
+<section id="create-a-nav-file-for-scenario-170-medium-cost">
+<h3>Create a <code class="docutils literal notranslate"><span class="pre">.nav</span></code> file for Scenario 170: Medium Cost<a class="headerlink" href="#create-a-nav-file-for-scenario-170-medium-cost" title="Link to this heading">#</a></h3>
+<ol class="arabic simple">
+<li><p>Open the folder <code class="docutils literal notranslate"><span class="pre">tutorial_3\scenario_files</span></code></p></li>
+<li><p>Copy the empty file <code class="docutils literal notranslate"><span class="pre">scenario_170.inc</span></code> and paste it into your personal folder <code class="docutils literal notranslate"><span class="pre">\tutorial_3_scenarios\0_includes_local</span></code>, so you can edit it.</p></li>
+<li><p>Assign a price for heavy fuel oil of 170 USD/ton to the port node <code class="docutils literal notranslate"><span class="pre">&quot;port&quot;</span></code>.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Port</span> <span class="s2">&quot;port&quot;</span> <span class="p">{</span>
+    <span class="n">set_bunker_price_overwrite</span><span class="p">(</span><span class="s2">&quot;heavy_fuel_oil&quot;</span><span class="p">,</span> <span class="mi">170</span><span class="p">)</span> 
+<span class="p">}</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="4">
+<li><p>Open the folder <code class="docutils literal notranslate"><span class="pre">tutorial_3\nav_files</span></code></p></li>
+<li><p>Copy the empty file <code class="docutils literal notranslate"><span class="pre">scenario_170.nav</span></code> and paste it into your personal folder <code class="docutils literal notranslate"><span class="pre">\tutorial_3_scenarios\scenario_170</span></code>, so you can edit it.</p></li>
+<li><p>Right before the end of the definition of DEFINE, edit the last line and change it from saying <code class="docutils literal notranslate"><span class="pre">&quot;scenario_100.inc&quot;</span></code> to <code class="docutils literal notranslate"><span class="pre">&quot;scenario_170.inc&quot;</span></code>.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">DEFINE</span> <span class="p">{</span>
+
+    <span class="c1"># general nodes</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/model_definition.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/bunker_logistics.inc&quot;</span>
+
+    <span class="c1"># fleets</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/fleet_container.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/fleet_bulk.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/fleet_uptake.inc&quot;</span>
+
+    <span class="c1"># vessels</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/container_ice_oil.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/container_ice_methane.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/bulk_ice_methanol.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/bulk_ice_ammonia.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/tanks.inc&quot;</span>
+
+    <span class="c1"># route</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/route.inc&quot;</span>
+
+    <span class="c1"># port</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/port.inc&quot;</span>
+
+    <span class="c1"># fuels</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/plant.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/fuel.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/process.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/feedstock.inc&quot;</span>
+
+    <span class="c1"># producer</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/producer.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/producer_uptake.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/source.inc&quot;</span>
+
+    <span class="c1"># costs and emissions of fuels</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/region.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/emissions.inc&quot;</span>
+
+    <span class="c1"># plots</span>
+    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/plot.inc&quot;</span>
+
+    <span class="c1"># testing sensitivity to lower HFO cost</span>
+    <span class="n">Include</span> <span class="s2">&quot;../0_includes_local/scenario_170.inc&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="7">
+<li><p>Save your edits, cd into the folder <code class="docutils literal notranslate"><span class="pre">scenario_170</span></code> and run:</p></li>
+</ol>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>navigate<span class="w"> </span>.<span class="se">\s</span>cenario_170.nav
+</pre></div>
+</div>
+</section>
+</section>
+<section id="run-the-scenarios-and-compare-them-with-baseline">
+<h2>Run the scenarios and compare them with baseline<a class="headerlink" href="#run-the-scenarios-and-compare-them-with-baseline" title="Link to this heading">#</a></h2>
+<p>Open the plot folders for the baseline, scenario 100 and scenario 170 next to each other. Review some of the plots and compare them across scenarios.</p>
+<section id="making-a-report-for-further-analysis-in-excel">
+<h3>Making a report for further analysis in Excel<a class="headerlink" href="#making-a-report-for-further-analysis-in-excel" title="Link to this heading">#</a></h3>
+<p>If you want to extract results from Navigate into excel to create your own graph or make additional analysis you can have Navigate extract a report, including all the parameters you need.</p>
+<ol class="arabic simple">
+<li><p>Open the <code class="docutils literal notranslate"><span class="pre">report.inc</span></code> from your 0_includes_global folder.</p></li>
+<li><p>Create a <code class="docutils literal notranslate"><span class="pre">Report</span></code> node named <code class="docutils literal notranslate"><span class="pre">report</span></code>, and set its <code class="docutils literal notranslate"><span class="pre">Directory</span></code> attribute to <code class="docutils literal notranslate"><span class="pre">&quot;./plots/&quot;</span></code> so the Excel report is saved in the same subfolder as the plots.</p></li>
+<li><p>Add the results from the simulation that you would like exported into an excel sheet, from where it can be used for analysis in other programs than Navigate.</p>
+<ul class="simple">
+<li><p><strong>Port:</strong> First, we would like to extract bunker price and WTT intensity.</p></li>
+<li><p><strong>Fleet:</strong> The fleet properties extracted is the emissions and total energy consumption from the fleets.</p></li>
+<li><p><strong>Global:</strong> Here properties of emissions, energy consumption, and installed engine power is extracted at a global level (so across fleets).</p></li>
+</ul>
+</li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Report</span> <span class="s2">&quot;report&quot;</span> <span class="p">{</span>	
+
+	<span class="c1"># export the report to the same &quot;plots&quot; subfolder as the plots.</span>
+	<span class="n">Directory</span> <span class="o">=</span> <span class="s2">&quot;./plots/&quot;</span>
+
+	<span class="c1"># port</span>
+	<span class="n">add_port_property</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="p">,</span> <span class="n">BunkerIntensityPrice</span><span class="p">)</span>    	        <span class="c1"># USD/GJ</span>
+	<span class="n">add_port_property</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="p">,</span> <span class="n">BunkerIntensityTotalEquivalentWTT</span><span class="p">)</span>	<span class="c1"># kg/GJ</span>
+		
+	<span class="c1"># fleet</span>
+	<span class="n">add_fleet_property</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="p">,</span> <span class="n">TotalEquivalentWTT</span><span class="p">)</span>		<span class="c1"># ton/year</span>
+	<span class="n">add_fleet_property</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="p">,</span> <span class="n">TotalEquivalentTTW</span><span class="p">)</span>		<span class="c1"># ton/year</span>
+	<span class="n">add_fleet_property</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="p">,</span> <span class="n">TotalEquivalentWTW</span><span class="p">)</span>		<span class="c1"># ton/year</span>
+	<span class="n">add_fleet_property</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="p">,</span> <span class="n">TotalConsumedEnergy</span><span class="p">)</span>    <span class="c1"># GJ/year</span>
+
+	<span class="c1"># global</span>
+	<span class="n">add_property</span><span class="p">(</span><span class="n">TotalEquivalentWTT</span><span class="p">)</span>				<span class="c1"># ton/year</span>
+	<span class="n">add_property</span><span class="p">(</span><span class="n">TotalEquivalentTTW</span><span class="p">)</span>				<span class="c1"># ton/year</span>
+	<span class="n">add_property</span><span class="p">(</span><span class="n">TotalEquivalentWTW</span><span class="p">)</span>				<span class="c1"># ton/year</span>
+        <span class="n">add_property</span><span class="p">(</span><span class="n">WTW</span><span class="p">)</span>					    	<span class="c1"># ton/year</span>
+	<span class="n">add_property</span><span class="p">(</span><span class="n">TotalConsumedEnergy</span><span class="p">)</span>				<span class="c1"># GJ/year</span>
+	<span class="n">add_property</span><span class="p">(</span><span class="n">ConsumedEnergy</span><span class="p">)</span>					<span class="c1"># GJ/year</span>
+	<span class="n">add_property</span><span class="p">(</span><span class="n">InstalledPower</span><span class="p">)</span>					<span class="c1"># MW	</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="4">
+<li><p>In each scenario <code class="docutils literal notranslate"><span class="pre">.nav</span></code> file (<code class="docutils literal notranslate"><span class="pre">baseline.nav</span></code>, <code class="docutils literal notranslate"><span class="pre">scenario_100.nav</span></code> and <code class="docutils literal notranslate"><span class="pre">scenario_170.nav</span></code>), inside the <code class="docutils literal notranslate"><span class="pre">DEFINE</span></code> block add the line <code class="docutils literal notranslate"><span class="pre">Include</span> <span class="pre">&quot;../../0_includes_global/report.inc&quot;</span></code>, placing it just before the <code class="docutils literal notranslate"><span class="pre">plot.inc</span></code> include. If you only add it to <code class="docutils literal notranslate"><span class="pre">baseline.nav</span></code>, the other two scenarios will run but produce no Excel report.</p></li>
+<li><p>Run the Baseline scenario in Navigate</p></li>
+</ol>
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="tutorial_2.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Tutorial 2</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../reference_manual/index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Reference Manual</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#proposed-structure-of-a-simulation-environment">Proposed structure of a simulation environment</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#build-your-folder-structure">Build your folder structure</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#split-define-content-into-individual-inc-files">Split DEFINE content into individual <code class="docutils literal notranslate"><span class="pre">.inc</span></code> files.</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#recap-tutorial-2">Recap Tutorial 2</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#new-structure">New Structure</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#nav-files"><code class="docutils literal notranslate"><span class="pre">.nav</span></code> files:</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#inc-files-0-includes-global"><code class="docutils literal notranslate"><span class="pre">.inc</span></code> files (0_includes_global):</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#define-file-general-nodes">DEFINE File: General Nodes</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#define-file-definition-of-the-fleets">DEFINE File: Definition of the Fleets</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fleet-bulk-inc"><code class="docutils literal notranslate"><span class="pre">fleet_bulk.inc</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fleet-container-inc"><code class="docutils literal notranslate"><span class="pre">fleet_container.inc</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fleet-uptake-inc"><code class="docutils literal notranslate"><span class="pre">fleet_uptake.inc</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#define-file-definition-of-the-vessels">DEFINE File: Definition of the Vessels</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#define-file-general-specifications-for-vessels">DEFINE File: General Specifications for Vessels</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#define-file-definition-of-all-fuels">DEFINE File: Definition of all Fuels</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fuel-inc"><code class="docutils literal notranslate"><span class="pre">fuel.inc</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#emissions-inc">‘emissions.inc’</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#process-inc"><code class="docutils literal notranslate"><span class="pre">process.inc</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#feedstock-inc"><code class="docutils literal notranslate"><span class="pre">feedstock.inc</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#define-file-definition-of-plant-nodes-and-region">DEFINE File: Definition of <code class="docutils literal notranslate"><span class="pre">Plant</span></code> Nodes and <code class="docutils literal notranslate"><span class="pre">Region</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#define-file-definition-of-producer-and-producer-uptake">DEFINE File: Definition of <code class="docutils literal notranslate"><span class="pre">Producer</span></code> and <code class="docutils literal notranslate"><span class="pre">producer_uptake</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#define-file-definition-of-plot">DEFINE File: Definition of <code class="docutils literal notranslate"><span class="pre">Plot</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#create-nav-file-for-baseline-scenario">Create <code class="docutils literal notranslate"><span class="pre">.nav</span></code> file for Baseline Scenario</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">Recap Tutorial 2</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#compare-and-create-a-new-baseline-nav-file">Compare and Create a new <code class="docutils literal notranslate"><span class="pre">baseline.nav</span></code> file</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#run-the-baseline-scenario">Run the Baseline Scenario</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#create-sensitivities-hfo-price">Create Sensitivities: HFO Price</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#create-an-inc-file-for-scenario-100-lowest-cost">Create an <code class="docutils literal notranslate"><span class="pre">.inc</span></code> file for Scenario 100: Lowest Cost</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#create-a-nav-file-for-scenario-100-lowest-cost">Create a <code class="docutils literal notranslate"><span class="pre">.nav</span></code> file for Scenario 100: Lowest Cost</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#run-scenario-100-in-navigate">Run Scenario 100 in Navigate</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#moving-on">Moving on</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#referencing-local-assumptions-in-scenario-100-nav">Referencing local assumptions in <code class="docutils literal notranslate"><span class="pre">Scenario_100.nav</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#create-a-nav-file-for-scenario-170-medium-cost">Create a <code class="docutils literal notranslate"><span class="pre">.nav</span></code> file for Scenario 170: Medium Cost</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#run-the-scenarios-and-compare-them-with-baseline">Run the scenarios and compare them with baseline</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#making-a-report-for-further-analysis-in-excel">Making a report for further analysis in Excel</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/tutorials/tutorial_3.md.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026, Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.20.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>
