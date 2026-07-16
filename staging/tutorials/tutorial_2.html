@@ -1,0 +1,1415 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Tutorial 2 &#8212; Navigate</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+
+    <script src="../_static/documentation_options.js?v=8313637b"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=fd10adb8"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'tutorials/tutorial_2';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://zerocarbonshipping.github.io/navigate-zcs/_static/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'dev';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            true;
+        </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Tutorial 3" href="tutorial_3.html" />
+    <link rel="prev" title="Tutorial 1" href="tutorial_1.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="1.0.0" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class=" navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Navigate</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class=" navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../reference_manual/index.html">
+    Reference Manual
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/zerocarbonshipping/navigate-zcs" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../reference_manual/index.html">
+    Reference Manual
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/zerocarbonshipping/navigate-zcs" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Setting up Navigate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_1.html">Tutorial 1</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Tutorial 2</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_3.html">Tutorial 3</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Tutorials</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Tutorial 2</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <!--
+SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+SPDX-License-Identifier: CC-BY-4.0
+-->
+<section class="tex2jax_ignore mathjax_ignore" id="tutorial-2">
+<h1>Tutorial 2<a class="headerlink" href="#tutorial-2" title="Link to this heading">#</a></h1>
+<p><strong>Why are you doing this tutorial?</strong></p>
+<p>In Tutorial 1, you learned about the foundations of how to run a model with the most necessary parameters in Navigate. However, the basic scenario of only one vessel and only one fuel is not very useful for predicting the future of shipping and simplifies what Navigate can do. In this tutorial, you will simulate a slightly more complex scenario, with two different vessel segments, four different fuels, manipulations of trade growth, etc. At the end of this tutorial, you will have learned how to set up a more complex environment with more variables. You will also be able to interpret more complex projections and put them in context.</p>
+<p><strong>Setting the scene:</strong></p>
+<p>In this scenario, we look at a case where we have 2 fleets. One fleet consists of 2 container ships, and the other fleet consists of 2 bulk carriers. One of the container ships is a mono-fuel fuel oil vessel, the other one is a dual-fuel methane. One of the bulk carriers is a dual-fuel methanol, the other one a dual-fuel ammonia.
+Note: The specifications of alternative fuel vessels, for example, the power capacity, are not edited/changed from tutorial 1 to tutorial 2, to keep this tutorial simple. But note that these specifications do not reflect Navigate’s default specifications in any way. Therefore, the results you get are not very realistic and will differ significantly from a simulation done in Navigate with Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping’s assumptions. You can find the defaults used for different attributes in Navigate under <code class="docutils literal notranslate"><span class="pre">Navigate/navigate/defaults/installation/*</span></code>.</p>
+<p><strong>How does it work?</strong></p>
+<p>In the folder <code class="docutils literal notranslate"><span class="pre">tutorial_2</span></code>, we have prepared a <code class="docutils literal notranslate"><span class="pre">define.inc</span></code>, an <code class="docutils literal notranslate"><span class="pre">events.inc</span></code> and a <code class="docutils literal notranslate"><span class="pre">tutorial_2.nav</span></code> file for you. The files will include prompts that tell you what to do, just like in Tutorial 1. All of the files for Tutorial 2 build on what you have already created in Tutorial 1. This means, that all nodes from the files from Tutorial 1 are already included in the files you will be working with for Tutorial 2. Edits made to accommodate the new vessel and fuel assumptions in this tutorial are specified in this guide.
+In the last section, you will produce plots and manipulate some variables. You will explore the projections on the global emissions, global fuel cost etc., for the two different fleets, taking into account emissions that are associated with the sourcing and production of the fuels, as well as the emissions from burning the fuel. We will also explore the effect of trade growth over time.</p>
+<section id="modifying-the-define-inc-file">
+<h2>Modifying the <code class="docutils literal notranslate"><span class="pre">define.inc</span></code> file<a class="headerlink" href="#modifying-the-define-inc-file" title="Link to this heading">#</a></h2>
+<p>Open the <code class="docutils literal notranslate"><span class="pre">includes</span></code> folder in the <code class="docutils literal notranslate"><span class="pre">tutorial_2</span></code>-folder and open the <code class="docutils literal notranslate"><span class="pre">define.inc</span></code> file.
+Leave Model Definition and the Start of the timeline as they are from tutorial 1.</p>
+<section id="setting-up-the-fleets">
+<h3>Setting up the Fleets<a class="headerlink" href="#setting-up-the-fleets" title="Link to this heading">#</a></h3>
+<section id="container-fleet">
+<h4>Container Fleet<a class="headerlink" href="#container-fleet" title="Link to this heading">#</a></h4>
+<p>You will adopt the definition of the one fleet that we created in tutorial 1 and make some edits.</p>
+<ol class="arabic simple">
+<li><p>Change the name of the <code class="docutils literal notranslate"><span class="pre">Fleet</span></code> node from <code class="docutils literal notranslate"><span class="pre">&quot;fleet&quot;</span></code> to <code class="docutils literal notranslate"><span class="pre">&quot;container_fleet&quot;</span></code>.</p></li>
+<li><p>Rename <code class="docutils literal notranslate"><span class="pre">Vessel(&quot;vessel_ice_oil&quot;)</span></code> to <code class="docutils literal notranslate"><span class="pre">Vessel(&quot;container_ice_oil&quot;)</span></code>.
+Add the <code class="docutils literal notranslate"><span class="pre">Vessel(&quot;container_ice_methane&quot;)</span></code> to the list assigned to the attribute Vessels.</p></li>
+<li><p>Set the <code class="docutils literal notranslate"><span class="pre">TradeGrowth</span></code> in the container fleet to 5% increase annually.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Fleet</span> <span class="s2">&quot;container_fleet&quot;</span> <span class="p">{</span>	
+   <span class="n">Vessels</span> <span class="o">=</span> <span class="p">[</span><span class="n">Vessel</span><span class="p">(</span><span class="s2">&quot;container_ice_oil&quot;</span><span class="p">),</span> <span class="n">Vessel</span><span class="p">(</span><span class="s2">&quot;container_ice_methane&quot;</span><span class="p">)]</span> 
+   <span class="n">InterFuelSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
+   <span class="n">IntraFuelSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
+   <span class="n">InitialVessels</span> <span class="o">=</span> <span class="mi">100</span> 
+   <span class="n">TradeGrowth</span> <span class="o">=</span> <span class="mf">0.05</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="4">
+<li><p>Copy the entire node <code class="docutils literal notranslate"><span class="pre">&quot;container_fleet&quot;</span></code> and paste it into section <em>Bulk Fleet</em>).</p></li>
+</ol>
+</section>
+<section id="bulk-fleet">
+<h4>Bulk Fleet<a class="headerlink" href="#bulk-fleet" title="Link to this heading">#</a></h4>
+<p>You will adopt the definition of the one fleet that we created in tutorial 1 and make some edits.</p>
+<ol class="arabic simple">
+<li><p>Change the name of the fleet node from <code class="docutils literal notranslate"><span class="pre">&quot;container_fleet&quot;</span></code> to <code class="docutils literal notranslate"><span class="pre">&quot;bulk_fleet&quot;</span></code>.</p></li>
+<li><p>Change the assigned value to Vessels to a list including <code class="docutils literal notranslate"><span class="pre">[Vessel(&quot;bulk_ice_methanol&quot;),</span> <span class="pre">Vessel(&quot;bulk_ice_ammonia&quot;)]</span></code>.</p></li>
+<li><p>We assume that the number of initial vessels in the container and the bulk fleet are identical, just like the trade growth.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Fleet</span> <span class="s2">&quot;bulk_fleet&quot;</span> <span class="p">{</span>	
+   <span class="n">Vessels</span> <span class="o">=</span> <span class="p">[</span><span class="n">Vessel</span><span class="p">(</span><span class="s2">&quot;bulk_ice_methanol&quot;</span><span class="p">),</span> <span class="n">Vessel</span><span class="p">(</span><span class="s2">&quot;bulk_ice_ammonia&quot;</span><span class="p">)]</span> 
+   <span class="n">InterFuelSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
+   <span class="n">IntraFuelSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
+   <span class="n">InitialVessels</span> <span class="o">=</span> <span class="mi">100</span>
+   <span class="n">TradeGrowth</span> <span class="o">=</span> <span class="mf">0.05</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="4">
+<li><p>As in tutorial 1, the decision sensitivities are set directly on each fleet through the <code class="docutils literal notranslate"><span class="pre">InterFuelSensitivity</span></code> and <code class="docutils literal notranslate"><span class="pre">IntraFuelSensitivity</span></code> attributes above (a value of <code class="docutils literal notranslate"><span class="pre">0.5</span></code> means a 10% higher LCOT halves the odds) — there is no separate node to define.</p></li>
+</ol>
+</section>
+</section>
+<section id="definition-of-all-four-vessels">
+<h3>Definition of all four Vessels<a class="headerlink" href="#definition-of-all-four-vessels" title="Link to this heading">#</a></h3>
+<section id="fuel-oil-vessel">
+<h4>Fuel Oil Vessel<a class="headerlink" href="#fuel-oil-vessel" title="Link to this heading">#</a></h4>
+<p>The fuel oil vessel <code class="docutils literal notranslate"><span class="pre">&quot;vessel_ice_oil&quot;</span></code> you defined in Tutorial 1 corresponds to the fuel oil vessel <code class="docutils literal notranslate"><span class="pre">&quot;container_ice_oil&quot;</span></code> in this Tutorial 2. Hence, we only need to make a few edits to the instructions. The edits are necessary because you will add new fuels to the simulation, so you need to be more specific about what type of tank, engine etc., it is.</p>
+<ol class="arabic simple">
+<li><p>Change the name of the node from <code class="docutils literal notranslate"><span class="pre">&quot;vessel_ice_oil&quot;</span></code> to <code class="docutils literal notranslate"><span class="pre">&quot;container_ice_oil&quot;</span></code>.
+This tutorial has two different types of vessels, so they are named accordingly, in order to differentiate them.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Vessel</span> <span class="s2">&quot;container_ice_oil&quot;</span> <span class="p">{</span>
+   <span class="n">PowerSystem</span> <span class="o">=</span> <span class="n">PowerSystem</span><span class="p">(</span><span class="s2">&quot;ice_oil&quot;</span><span class="p">)</span>
+   <span class="n">Route</span> <span class="o">=</span> <span class="n">Route</span><span class="p">(</span><span class="s2">&quot;route&quot;</span><span class="p">)</span>		
+   <span class="n">NominalCapacity</span> <span class="o">=</span> <span class="mi">8000</span>
+   <span class="n">Tanks</span> <span class="o">=</span> <span class="p">[</span><span class="n">Tank</span><span class="p">(</span><span class="s2">&quot;main_oil&quot;</span><span class="p">)]</span>						
+   <span class="n">PropulsionLoad</span> <span class="o">=</span> <span class="mi">10</span>				
+<span class="p">}</span>
+</pre></div>
+</div>
+<ol class="arabic" start="2">
+<li><p>Copy the section above — but only the four nodes Vessel <code class="docutils literal notranslate"><span class="pre">&quot;container_ice_oil&quot;</span></code>, PowerSystem <code class="docutils literal notranslate"><span class="pre">&quot;ice_oil&quot;</span></code>, Converter <code class="docutils literal notranslate"><span class="pre">&quot;propulsion_ice_oil&quot;</span></code>, and Converter <code class="docutils literal notranslate"><span class="pre">&quot;electrical_ice_oil&quot;</span></code> — and paste it three times into Bii), Biii) and Biv).</p>
+<p>Do <strong>not</strong> copy <code class="docutils literal notranslate"><span class="pre">Converter</span> <span class="pre">&quot;heat_boiler_oil&quot;</span></code>. There is a single shared heat boiler that every vessel reuses through <code class="docutils literal notranslate"><span class="pre">Heat</span> <span class="pre">=</span> <span class="pre">Converter(&quot;heat_boiler_oil&quot;)</span></code>, so it is defined once in Bi) only. Copying it as well would create duplicate node definitions and the model would fail to parse.</p>
+</li>
+</ol>
+</section>
+<section id="methane-vessel">
+<h4>Methane Vessel<a class="headerlink" href="#methane-vessel" title="Link to this heading">#</a></h4>
+<p>You just copied all the nodes from the fuel oil vessel’s definition into this section. In the following steps, you will edit the instructions, so it becomes the definition of a second vessel, namely a methane vessel.</p>
+<ol class="arabic simple">
+<li><p>Define Vessel <code class="docutils literal notranslate"><span class="pre">&quot;container_ice_methane&quot;</span></code>:</p>
+<ol class="arabic simple">
+<li><p>Change the name of the copied node from
+<code class="docutils literal notranslate"><span class="pre">&quot;container_ice_oil&quot;</span></code> to <code class="docutils literal notranslate"><span class="pre">&quot;container_ice_methane&quot;</span></code>.</p></li>
+<li><p>Change the assigned value for <code class="docutils literal notranslate"><span class="pre">PowerSystem</span></code> to <code class="docutils literal notranslate"><span class="pre">PowerSystem(&quot;ice_methane&quot;)</span></code>.</p></li>
+<li><p>Change the assigned value for <code class="docutils literal notranslate"><span class="pre">Tanks</span></code> to <code class="docutils literal notranslate"><span class="pre">[Tank(&quot;main_methane&quot;),</span> <span class="pre">Tank(&quot;pilot_oil&quot;)]</span></code>.
+Next to the main tank for methane, you also need to include the pilot tank for fuel oil here, as a methane vessel requires fuel oil too. You will define both tanks later on).</p></li>
+</ol>
+</li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Vessel</span> <span class="s2">&quot;container_ice_methane&quot;</span> <span class="p">{</span>
+   <span class="n">PowerSystem</span> <span class="o">=</span> <span class="n">PowerSystem</span><span class="p">(</span><span class="s2">&quot;ice_methane&quot;</span><span class="p">)</span>
+   <span class="n">Route</span> <span class="o">=</span> <span class="n">Route</span><span class="p">(</span><span class="s2">&quot;route&quot;</span><span class="p">)</span>		
+   <span class="n">NominalCapacity</span> <span class="o">=</span> <span class="mi">8000</span>
+   <span class="n">Tanks</span> <span class="o">=</span> <span class="p">[</span><span class="n">Tank</span><span class="p">(</span><span class="s2">&quot;main_methane&quot;</span><span class="p">),</span> <span class="n">Tank</span><span class="p">(</span><span class="s2">&quot;pilot_oil&quot;</span><span class="p">)]</span>	
+   <span class="n">PropulsionLoad</span> <span class="o">=</span> <span class="mi">10</span>				
+<span class="p">}</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li><p>Define PowerSystem <code class="docutils literal notranslate"><span class="pre">&quot;ice_methane&quot;</span></code>:</p>
+<ol class="arabic simple">
+<li><p>Change the name of the node to <code class="docutils literal notranslate"><span class="pre">&quot;ice_methane&quot;</span></code>.</p></li>
+<li><p>Change the assigned value for Propulsion to <code class="docutils literal notranslate"><span class="pre">Converter(&quot;propulsion_ice_methane&quot;)</span></code>.</p></li>
+<li><p>Change the assigned value for Electrical to <code class="docutils literal notranslate"><span class="pre">Converter(&quot;electrical_ice_methane&quot;)</span></code>.</p></li>
+</ol>
+</li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">PowerSystem</span> <span class="s2">&quot;ice_methane&quot;</span> <span class="p">{</span>
+   <span class="n">Propulsion</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">&quot;propulsion_ice_methane&quot;</span><span class="p">)</span>
+   <span class="n">Electrical</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">&quot;electrical_ice_methane&quot;</span><span class="p">)</span>
+   <span class="n">Heat</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">&quot;heat_boiler_oil&quot;</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="3">
+<li><p>Define Converter <code class="docutils literal notranslate"><span class="pre">&quot;propulsion_ice_methane&quot;</span></code>:</p>
+<ol class="arabic simple">
+<li><p>Change the name of the node to Converter <code class="docutils literal notranslate"><span class="pre">&quot;propulsion_ice_methane&quot;</span></code>. The propulsion engine is the main engine for an internal combustion engine (ice).</p></li>
+<li><p>Change the assigned value for <code class="docutils literal notranslate"><span class="pre">MainFuelTypes</span></code> to <code class="docutils literal notranslate"><span class="pre">METHANE</span></code>. <code class="docutils literal notranslate"><span class="pre">MainFuelTypes</span></code> describe the main fuel types that a specific engine can run on.</p></li>
+<li><p>Set the <code class="docutils literal notranslate"><span class="pre">PilotFuelTypes</span></code> to be <code class="docutils literal notranslate"><span class="pre">OIL</span></code>, and the <code class="docutils literal notranslate"><span class="pre">MinimumPilotFuel</span></code> to 5%.</p></li>
+<li><p>Set the slip TTW emissions for methane to 0.01. The unit describes the emissions associated with the tons of slipped fuel per tons of fuel, i.e., a percentage. In this case, 1% of the fuel methane in the converter is not combusted but “slips”, due to imperfect combustion processes. So the emissions from one ton of methane fuel escape into the atmosphere because a fraction of the methane is not combusted.</p></li>
+</ol>
+</li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Converter</span> <span class="s2">&quot;propulsion_ice_methane&quot;</span> <span class="p">{</span> 
+   <span class="n">PowerCapacity</span> <span class="o">=</span> <span class="mi">50</span>  
+   <span class="n">MainFuelTypes</span> <span class="o">=</span> <span class="n">METHANE</span>
+   <span class="n">PilotFuelTypes</span> <span class="o">=</span> <span class="n">OIL</span>
+   <span class="n">MinimumPilotFuel</span> <span class="o">=</span> <span class="mf">0.05</span>
+   <span class="n">Efficiency</span> <span class="o">=</span> <span class="mf">0.51</span>
+   <span class="n">set_slip_fraction</span><span class="p">(</span><span class="n">METHANE</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="4">
+<li><p>Define Converter <code class="docutils literal notranslate"><span class="pre">&quot;electrical_ice_methane&quot;</span></code>:</p>
+<ol class="arabic simple">
+<li><p>Change the name of the node to <code class="docutils literal notranslate"><span class="pre">&quot;electrical_ice_methane&quot;</span></code>. The electrical engine is the auxiliary engine for an internal combustion engine (ice).</p></li>
+<li><p>Change the assigned value for <code class="docutils literal notranslate"><span class="pre">MainFuelTypes</span></code> to <code class="docutils literal notranslate"><span class="pre">METHANE</span></code>.</p></li>
+<li><p>Add the <code class="docutils literal notranslate"><span class="pre">PilotFuelTypes</span></code> to be <code class="docutils literal notranslate"><span class="pre">OIL</span></code>, and set the <code class="docutils literal notranslate"><span class="pre">MinimumPilotFuel</span></code> to 5%.</p></li>
+<li><p>Set the slip TTW emissions for methane to 0.01.</p></li>
+</ol>
+</li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Converter</span> <span class="s2">&quot;electrical_ice_methane&quot;</span> <span class="p">{</span> 
+   <span class="n">PowerCapacity</span> <span class="o">=</span> <span class="mi">10</span> 
+   <span class="n">MainFuelTypes</span> <span class="o">=</span> <span class="n">METHANE</span>
+   <span class="n">PilotFuelTypes</span> <span class="o">=</span> <span class="n">OIL</span>
+   <span class="n">MinimumPilotFuel</span> <span class="o">=</span> <span class="mf">0.05</span>
+   <span class="n">Efficiency</span> <span class="o">=</span> <span class="mf">0.5</span>
+   <span class="n">set_slip_fraction</span><span class="p">(</span><span class="n">METHANE</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="methanol-vessel">
+<h4>Methanol Vessel<a class="headerlink" href="#methanol-vessel" title="Link to this heading">#</a></h4>
+<p>You previously copied all the nodes from the fuel oil vessel’s definition into this section.
+You now edit it by essentially repeating the same steps from the section above, i.e. from the definition of the methane vessel.</p>
+<ol class="arabic simple">
+<li><p>Define <code class="docutils literal notranslate"><span class="pre">Vessel</span></code> <code class="docutils literal notranslate"><span class="pre">&quot;bulk_ice_methanol&quot;</span></code>:</p>
+<ol class="arabic simple">
+<li><p>Change the name from <code class="docutils literal notranslate"><span class="pre">&quot;container_ice_oil&quot;</span></code> to <code class="docutils literal notranslate"><span class="pre">&quot;bulk_ice_methanol&quot;</span></code>.</p></li>
+<li><p>Change the assigned value for <code class="docutils literal notranslate"><span class="pre">PowerSystem</span></code> to <code class="docutils literal notranslate"><span class="pre">PowerSystem(&quot;ice_methanol&quot;)</span></code>.</p></li>
+<li><p>Change the assigned value for Tanks to <code class="docutils literal notranslate"><span class="pre">[Tank(&quot;main_methanol&quot;),</span> <span class="pre">Tank(&quot;pilot_oil&quot;)]</span></code>.
+Next to the main tank for methanol, you also need to include the pilot tank for fuel oil here, as a methanol vessel requires fuel oil to operate.</p></li>
+</ol>
+</li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Vessel</span> <span class="s2">&quot;bulk_ice_methanol&quot;</span> <span class="p">{</span>
+   <span class="n">PowerSystem</span> <span class="o">=</span> <span class="n">PowerSystem</span><span class="p">(</span><span class="s2">&quot;ice_methanol&quot;</span><span class="p">)</span>
+   <span class="n">Route</span> <span class="o">=</span> <span class="n">Route</span><span class="p">(</span><span class="s2">&quot;route&quot;</span><span class="p">)</span>		
+   <span class="n">NominalCapacity</span> <span class="o">=</span> <span class="mi">8000</span>
+   <span class="n">Tanks</span> <span class="o">=</span> <span class="p">[</span><span class="n">Tank</span><span class="p">(</span><span class="s2">&quot;main_methanol&quot;</span><span class="p">),</span> <span class="n">Tank</span><span class="p">(</span><span class="s2">&quot;pilot_oil&quot;</span><span class="p">)]</span>	
+   <span class="n">PropulsionLoad</span> <span class="o">=</span> <span class="mi">10</span>				
+<span class="p">}</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li><p>Define <code class="docutils literal notranslate"><span class="pre">PowerSystem</span></code> <code class="docutils literal notranslate"><span class="pre">&quot;ice_methanol_bulk&quot;</span></code>:</p>
+<ol class="arabic simple">
+<li><p>Change the name of the node to <code class="docutils literal notranslate"><span class="pre">PowerSystem</span></code> <code class="docutils literal notranslate"><span class="pre">&quot;ice_methanol&quot;</span></code>.</p></li>
+<li><p>Change the assigned value for Propulsion to <code class="docutils literal notranslate"><span class="pre">Converter(&quot;propulsion_ice_methanol&quot;)</span></code>.</p></li>
+<li><p>Change the assigned value for Electrical to <code class="docutils literal notranslate"><span class="pre">Converter(&quot;electrical_ice_methanol&quot;)</span></code>.</p></li>
+</ol>
+</li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">PowerSystem</span> <span class="s2">&quot;ice_methanol&quot;</span> <span class="p">{</span>
+   <span class="n">Propulsion</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">&quot;propulsion_ice_methanol&quot;</span><span class="p">)</span>
+   <span class="n">Electrical</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">&quot;electrical_ice_methanol&quot;</span><span class="p">)</span>
+   <span class="n">Heat</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">&quot;heat_boiler_oil&quot;</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="3">
+<li><p>Define the <code class="docutils literal notranslate"><span class="pre">Converter</span></code> <code class="docutils literal notranslate"><span class="pre">&quot;propulsion_ice_methanol&quot;</span></code>:</p>
+<ol class="arabic simple">
+<li><p>Change the name of the node to <code class="docutils literal notranslate"><span class="pre">&quot;propulsion_ice_methanol&quot;</span></code>.</p></li>
+<li><p>Change the assigned value for <code class="docutils literal notranslate"><span class="pre">MainFuelTypes</span></code> to <code class="docutils literal notranslate"><span class="pre">METHANOL</span></code>.</p></li>
+<li><p>Set the <code class="docutils literal notranslate"><span class="pre">PilotFuelTypes</span></code> to be <code class="docutils literal notranslate"><span class="pre">OIL</span></code>, and the <code class="docutils literal notranslate"><span class="pre">MinimumPilotFuel</span></code> to 5%. This describes what fuel type is acting as a pilot fuel, and how much is needed.</p></li>
+</ol>
+</li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Converter</span> <span class="s2">&quot;propulsion_ice_methanol&quot;</span> <span class="p">{</span>
+   <span class="n">PowerCapacity</span> <span class="o">=</span> <span class="mi">50</span>
+   <span class="n">MainFuelTypes</span> <span class="o">=</span> <span class="n">METHANOL</span>
+   <span class="n">PilotFuelTypes</span> <span class="o">=</span> <span class="n">OIL</span>
+   <span class="n">MinimumPilotFuel</span> <span class="o">=</span> <span class="mf">0.05</span>
+   <span class="n">Efficiency</span> <span class="o">=</span> <span class="mf">0.51</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="4">
+<li><p>Define <code class="docutils literal notranslate"><span class="pre">Converter</span></code> <code class="docutils literal notranslate"><span class="pre">&quot;electrical_ice_methanol&quot;</span></code>:</p>
+<ol class="arabic simple">
+<li><p>Change the name of the node to <code class="docutils literal notranslate"><span class="pre">Converter</span></code> <code class="docutils literal notranslate"><span class="pre">&quot;electrical_ice_methanol&quot;</span></code>.</p></li>
+<li><p>Change the assigned value for <code class="docutils literal notranslate"><span class="pre">MainFuelTypes</span></code> to <code class="docutils literal notranslate"><span class="pre">METHANOL</span></code>.</p></li>
+<li><p>Set the <code class="docutils literal notranslate"><span class="pre">PilotFuelTypes</span></code> to be <code class="docutils literal notranslate"><span class="pre">OIL</span></code>, and the <code class="docutils literal notranslate"><span class="pre">MinimumPilotFuel</span></code> of 5%.</p></li>
+</ol>
+</li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Converter</span> <span class="s2">&quot;electrical_ice_methanol&quot;</span> <span class="p">{</span> 
+   <span class="n">PowerCapacity</span> <span class="o">=</span> <span class="mi">10</span> 
+   <span class="n">MainFuelTypes</span> <span class="o">=</span> <span class="n">METHANOL</span>
+   <span class="n">PilotFuelTypes</span> <span class="o">=</span> <span class="n">OIL</span>
+   <span class="n">MinimumPilotFuel</span> <span class="o">=</span> <span class="mf">0.05</span>
+   <span class="n">Efficiency</span> <span class="o">=</span> <span class="mf">0.5</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="ammonia-vessel">
+<h4>Ammonia Vessel<a class="headerlink" href="#ammonia-vessel" title="Link to this heading">#</a></h4>
+<p>You previously copied all the nodes from the fuel oil vessel’s definition into this section.
+You now edit it by essentially repeating the same steps from the previous section), i.e. from the definition of the methanol vessel.</p>
+<ol class="arabic simple">
+<li><p>Define <code class="docutils literal notranslate"><span class="pre">Vessel</span></code> <code class="docutils literal notranslate"><span class="pre">&quot;bulk_ice_ammonia&quot;</span></code>:</p>
+<ol class="arabic simple">
+<li><p>Change the name from <code class="docutils literal notranslate"><span class="pre">&quot;container_ice_oil&quot;</span></code> to <code class="docutils literal notranslate"><span class="pre">&quot;bulk_ice_ammonia&quot;</span></code>.</p></li>
+<li><p>Change the assigned value for <code class="docutils literal notranslate"><span class="pre">PowerSystem</span></code> to <code class="docutils literal notranslate"><span class="pre">PowerSystem(&quot;ice_ammonia&quot;)</span></code>.</p></li>
+<li><p>Change the assigned value for Tanks to <code class="docutils literal notranslate"><span class="pre">[Tank(&quot;main_ammonia&quot;),</span> <span class="pre">Tank(&quot;pilot_oil&quot;)]</span></code>.
+Next to the main tank for ammonia, you also need to include the pilot tank for fuel oil here, as an ammonia vessel requires fuel oil to operate.
+You will define both tanks later.</p></li>
+</ol>
+</li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Vessel</span> <span class="s2">&quot;bulk_ice_ammonia&quot;</span> <span class="p">{</span>
+   <span class="n">PowerSystem</span> <span class="o">=</span> <span class="n">PowerSystem</span><span class="p">(</span><span class="s2">&quot;ice_ammonia&quot;</span><span class="p">)</span>
+   <span class="n">Route</span> <span class="o">=</span> <span class="n">Route</span><span class="p">(</span><span class="s2">&quot;route&quot;</span><span class="p">)</span>		
+   <span class="n">NominalCapacity</span> <span class="o">=</span> <span class="mi">8000</span>
+   <span class="n">Tanks</span> <span class="o">=</span> <span class="p">[</span><span class="n">Tank</span><span class="p">(</span><span class="s2">&quot;main_ammonia&quot;</span><span class="p">),</span> <span class="n">Tank</span><span class="p">(</span><span class="s2">&quot;pilot_oil&quot;</span><span class="p">)]</span>	
+   <span class="n">PropulsionLoad</span> <span class="o">=</span> <span class="mi">10</span>				
+<span class="p">}</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li><p>Define <code class="docutils literal notranslate"><span class="pre">PowerSystem</span></code> <code class="docutils literal notranslate"><span class="pre">&quot;ice_ammonia_bulk&quot;</span></code>:</p>
+<ol class="arabic simple">
+<li><p>Change the name of the node to PowerSystem <code class="docutils literal notranslate"><span class="pre">&quot;ice_ammonia&quot;</span></code>.</p></li>
+<li><p>Change the assigned value for Propulsion to <code class="docutils literal notranslate"><span class="pre">Converter(&quot;propulsion_ice_ammonia&quot;)</span></code>.</p></li>
+<li><p>Change the assigned value for Electrical to <code class="docutils literal notranslate"><span class="pre">Converter(&quot;electrical_ice_ammonia&quot;)</span></code>.</p></li>
+</ol>
+</li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">PowerSystem</span> <span class="s2">&quot;ice_ammonia&quot;</span> <span class="p">{</span>
+   <span class="n">Propulsion</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">&quot;propulsion_ice_ammonia&quot;</span><span class="p">)</span>
+   <span class="n">Electrical</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">&quot;electrical_ice_ammonia&quot;</span><span class="p">)</span>
+   <span class="n">Heat</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">&quot;heat_boiler_oil&quot;</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="3">
+<li><p>Define Converter <code class="docutils literal notranslate"><span class="pre">&quot;propulsion_ice_ammonia&quot;</span></code>:</p>
+<ol class="arabic simple">
+<li><p>Change the name of the node to Converter <code class="docutils literal notranslate"><span class="pre">&quot;propulsion_ice_ammonia&quot;</span></code>.</p></li>
+<li><p>Change the assigned value for <code class="docutils literal notranslate"><span class="pre">MainFuelTypes</span></code> to <code class="docutils literal notranslate"><span class="pre">AMMONIA</span></code>.</p></li>
+<li><p>Set the <code class="docutils literal notranslate"><span class="pre">PilotFuelTypes</span></code> to be <code class="docutils literal notranslate"><span class="pre">OIL</span></code>, and the <code class="docutils literal notranslate"><span class="pre">MinimumPilotFuel</span></code> to 5%.</p></li>
+</ol>
+</li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Converter</span> <span class="s2">&quot;propulsion_ice_ammonia&quot;</span> <span class="p">{</span>
+   <span class="n">PowerCapacity</span> <span class="o">=</span> <span class="mi">50</span>
+   <span class="n">MainFuelTypes</span> <span class="o">=</span> <span class="n">AMMONIA</span>
+   <span class="n">PilotFuelTypes</span> <span class="o">=</span> <span class="n">OIL</span>
+   <span class="n">MinimumPilotFuel</span> <span class="o">=</span> <span class="mf">0.05</span>
+   <span class="n">Efficiency</span> <span class="o">=</span> <span class="mf">0.51</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="4">
+<li><p>Define Converter <code class="docutils literal notranslate"><span class="pre">&quot;electrical_ice_ammonia&quot;</span></code>:</p>
+<ol class="arabic simple">
+<li><p>Change the name of the node to Converter <code class="docutils literal notranslate"><span class="pre">&quot;electrical_ice_ammonia&quot;</span></code>.</p></li>
+<li><p>Change the assigned value for <code class="docutils literal notranslate"><span class="pre">MainFuelTypes</span></code> to <code class="docutils literal notranslate"><span class="pre">AMMONIA</span></code>.</p></li>
+<li><p>Set the <code class="docutils literal notranslate"><span class="pre">PilotFuelTypes</span></code> to <code class="docutils literal notranslate"><span class="pre">OIL</span></code>, and the <code class="docutils literal notranslate"><span class="pre">MinimumPilotFuel</span></code> to 5%.</p></li>
+</ol>
+</li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Converter</span> <span class="s2">&quot;electrical_ice_ammonia&quot;</span> <span class="p">{</span>
+   <span class="n">PowerCapacity</span> <span class="o">=</span> <span class="mi">10</span>
+   <span class="n">MainFuelTypes</span> <span class="o">=</span> <span class="n">AMMONIA</span>
+   <span class="n">PilotFuelTypes</span> <span class="o">=</span> <span class="n">OIL</span>
+   <span class="n">MinimumPilotFuel</span> <span class="o">=</span> <span class="mf">0.05</span>
+   <span class="n">Efficiency</span> <span class="o">=</span> <span class="mf">0.5</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="general-specifications-for-vessels">
+<h3>General Specifications for Vessels<a class="headerlink" href="#general-specifications-for-vessels" title="Link to this heading">#</a></h3>
+<p>You will set:</p>
+<ul class="simple">
+<li><p>Definitions of nodes related to all vessels</p></li>
+<li><p>The node related to the vessel route is the same as in tutorial 1.</p></li>
+<li><p>The vessel tank node has also been moved to the beginning of the file but needs to be edited.</p></li>
+</ul>
+<ol class="arabic simple">
+<li><p>Copy the node <code class="docutils literal notranslate"><span class="pre">&quot;main_oil&quot;</span></code> and paste one copy into sections Ci), Cii), Ciii), Civ), respectively.</p></li>
+</ol>
+<section id="pilot-tank">
+<h4>Pilot Tank<a class="headerlink" href="#pilot-tank" title="Link to this heading">#</a></h4>
+<ol class="arabic simple" start="2">
+<li><p>For the first pasted node <code class="docutils literal notranslate"><span class="pre">&quot;main_oil&quot;</span></code> in section Ci), change the name of the node from <code class="docutils literal notranslate"><span class="pre">&quot;main_oil&quot;</span></code> to <code class="docutils literal notranslate"><span class="pre">&quot;pilot_oil&quot;</span></code>.</p></li>
+<li><p>Change the Size to 2000.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Tank</span> <span class="s2">&quot;pilot_oil&quot;</span> <span class="p">{</span>
+   <span class="n">FuelTypes</span> <span class="o">=</span> <span class="n">OIL</span>
+   <span class="n">Size</span> <span class="o">=</span> <span class="mi">2000</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="methane-tank">
+<h4>Methane Tank<a class="headerlink" href="#methane-tank" title="Link to this heading">#</a></h4>
+<p>The methane vessel will have a pilot fuel tank for fuel oil, and a main tank for green methane.</p>
+<ol class="arabic simple" start="4">
+<li><p>Define the main tank with the instructions block below. Note that it has a different fuel type.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Tank</span> <span class="s2">&quot;main_methane&quot;</span> <span class="p">{</span>
+   <span class="n">FuelTypes</span> <span class="o">=</span> <span class="n">METHANE</span>
+   <span class="n">Size</span> <span class="o">=</span> <span class="mi">9000</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="methanol-tank">
+<h4>Methanol Tank<a class="headerlink" href="#methanol-tank" title="Link to this heading">#</a></h4>
+<p>The methanol vessel will have a pilot fuel tank for fuel oil, and a main tank for methanol.</p>
+<ol class="arabic simple" start="5">
+<li><p>Define the main tank with the instructions block below.
+Note that it has a different fuel type.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Tank</span> <span class="s2">&quot;main_methanol&quot;</span> <span class="p">{</span>
+   <span class="n">FuelTypes</span> <span class="o">=</span> <span class="n">METHANOL</span>
+   <span class="n">Size</span> <span class="o">=</span> <span class="mi">9000</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="ammonia-tank">
+<h4>Ammonia Tank<a class="headerlink" href="#ammonia-tank" title="Link to this heading">#</a></h4>
+<p>The ammonia vessel will have a pilot fuel tank for fuel oil, and a main tank for ammonia.</p>
+<ol class="arabic simple" start="6">
+<li><p>Define the main tank with the instructions block on the right.
+Note that it has a different fuel type.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Tank</span> <span class="s2">&quot;main_ammonia&quot;</span> <span class="p">{</span>
+	<span class="n">FuelTypes</span> <span class="o">=</span> <span class="n">AMMONIA</span>
+	<span class="n">Size</span> <span class="o">=</span> <span class="mi">9000</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="definition-of-the-port-and-the-region">
+<h3>Definition of the Port and the Region<a class="headerlink" href="#definition-of-the-port-and-the-region" title="Link to this heading">#</a></h3>
+<p>You take over the definition of the port from the tutorial 1 but will edit it.</p>
+<p>The price and emissions of fuels can be modelled in two ways. The first is as in tutorial 1 where the price and WTT emissions are assigned on a specific port. The second is a bottom-up approach defining the feedstock to fuel process flow, plants, producers building plants, and assigning the cost of feedstock and individual process components on a regional level using the Region node.</p>
+<p>In this tutorial you will continue to define heavy fuel oil on the port level but the other fuels will be modelled bottom-up.</p>
+<section id="port">
+<h4>Port<a class="headerlink" href="#port" title="Link to this heading">#</a></h4>
+<p>The <code class="docutils literal notranslate"><span class="pre">Port</span></code> <code class="docutils literal notranslate"><span class="pre">&quot;port&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">BunkerLogistics</span></code> nodes are carried over from tutorial 1. Update the heavy fuel oil bunker price from 250 to 120; the WTT emission factor and <code class="docutils literal notranslate"><span class="pre">BunkerLogistics</span></code> stay the same.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Port</span> <span class="s2">&quot;port&quot;</span> <span class="p">{</span>
+   <span class="n">set_bunker_price_overwrite</span><span class="p">(</span><span class="s2">&quot;heavy_fuel_oil&quot;</span><span class="p">,</span> <span class="mi">120</span><span class="p">)</span>
+   <span class="n">set_bunker_wtt_overwrite</span><span class="p">(</span><span class="s2">&quot;heavy_fuel_oil&quot;</span><span class="p">,</span> <span class="s2">&quot;carbon_dioxide&quot;</span><span class="p">,</span> <span class="mf">0.62</span><span class="p">)</span>			
+<span class="p">}</span>
+
+<span class="n">BunkerLogistics</span> <span class="p">{</span>
+   <span class="n">LiquidMarketFuels</span> <span class="o">=</span> <span class="p">[</span><span class="n">Fuel</span><span class="p">(</span><span class="s2">&quot;heavy_fuel_oil&quot;</span><span class="p">)]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="region">
+<h4>Region<a class="headerlink" href="#region" title="Link to this heading">#</a></h4>
+<p>In this example the two fleets solely operate within the same single region. The emissions associated with producing the fuels and the cost of these fuels are dependent on the region where the fleets are fueled.</p>
+<ol class="arabic simple">
+<li><p>Define the region node on which the feedstock and process costs and emissions will be defined.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Region</span> <span class="s2">&quot;region&quot;</span> <span class="p">{</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<section id="electro-methane">
+<h5>Electro-Methane<a class="headerlink" href="#electro-methane" title="Link to this heading">#</a></h5>
+<p><em>Costs and emissions associated with producing, electro-methane from point source will be defined.</em></p>
+<p>Producing electro methane with carbon dioxide from point source requires a two-step procedure.
+First is methane synthesis from a point source, such as a biogas facility. The process has an associated CapEx and OpEx cost, along with an energy demand.
+The feedstock required by this process is biogenic carbon dioxide. The biogenic carbon is sourced from waste such as manure, agricultural waste, food waste. So, it is carbon that would be emitted ‘naturally’, but instead it can be captured and processed to become an alternative fuel.
+This causes a negative WTT emission of carbon dioxide as the gas is captured for methane production instead of released.
+When the fuel is combusted, the captured and processed carbon is eventually emitted. Because the carbon would have been emitted anyway if it had not been captured and not made it into an alternative fuel, the well-to-tank emission factor for the feedstock is -1 (i.e., -100%), in order to balance the TTW emissions in Navigate, so the final net emissions are zero.</p>
+<p>To the CO2, compressed hydrogen is added, which is produced using electricity, with a feedstock of demineralized water. In this tutorial it is assumed that no emissions are associated with this feedstock.
+The synthesized methane is an intermediate fuel that is not a bunker fuel, i.e., cannot be used for the propulsion of a ship.
+That is why you do not specify a feedstock cost, but the OPEX costs related to the process <code class="docutils literal notranslate"><span class="pre">&quot;methane_liquefaction_electro&quot;</span></code>.</p>
+<p>The Liquefaction process also have an associated CapEx and energy demand.
+The process of liquefying the methane into a bunkering fuel result in carbon dioxide emissions.</p>
+<ol class="arabic simple">
+<li><p>Within the curly brackets of <code class="docutils literal notranslate"><span class="pre">Region</span></code> <code class="docutils literal notranslate"><span class="pre">&quot;region&quot;</span></code> set the cost and well-to-tank emissions associated with the production of electro-methane.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>   <span class="n">set_process_capex</span><span class="p">(</span><span class="s2">&quot;methane_synthesis_electro&quot;</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+   <span class="n">set_process_energy</span><span class="p">(</span><span class="s2">&quot;methane_synthesis_electro&quot;</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">)</span>
+   <span class="n">set_feedstock_wtt</span><span class="p">(</span><span class="s2">&quot;carbon_dioxide_biogenic&quot;</span><span class="p">,</span> <span class="s2">&quot;carbon_dioxide&quot;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+   
+   <span class="n">set_process_capex</span><span class="p">(</span><span class="s2">&quot;methane_liquefaction_electro&quot;</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+   <span class="n">set_process_opex</span><span class="p">(</span><span class="s2">&quot;methane_liquefaction_electro&quot;</span><span class="p">,</span> <span class="mi">88</span><span class="p">)</span>
+   <span class="n">set_process_energy</span><span class="p">(</span><span class="s2">&quot;methane_liquefaction_electro&quot;</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">)</span>
+   <span class="n">set_process_wtt</span><span class="p">(</span><span class="s2">&quot;methane_liquefaction_electro&quot;</span><span class="p">,</span> <span class="s2">&quot;carbon_dioxide&quot;</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="bio-methanol">
+<h5>Bio-Methanol<a class="headerlink" href="#bio-methanol" title="Link to this heading">#</a></h5>
+<p>Bio-methanol is made by synthesizing methane emissions from biogenic carbon.
+Here you add the CapEx, OpEx and energy demand of the methanol synthesis.
+Bio-methanol has biogenic feedstock as carbon, and from a WTT scope, the use of biogenic carbon dioxide in methanol production results in unavoided emissions of carbon dioxide.
+Negative emissions per se don’t exist, but in Navigate, we use this negative factor as a means to balance out the positive TTW emissions of bio-methanol. Hence, the overall WTW emissions from bio-methanol will be 0 in the model, because the feedstock (i.e. the ‘ingredient’) for bio-methanol would have led to emissions anyway if it would not have been transformed into fuel.</p>
+<ol class="arabic simple" start="2">
+<li><p>Within the curly brackets of <code class="docutils literal notranslate"><span class="pre">Region</span></code> <code class="docutils literal notranslate"><span class="pre">&quot;region&quot;</span></code> set the cost and well-to-tank emissions associated with the production of bio-methanol.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>   <span class="n">set_process_capex</span><span class="p">(</span><span class="s2">&quot;methanol_synthesis_bio_gasification&quot;</span><span class="p">,</span> <span class="mi">180</span><span class="p">)</span>
+   <span class="n">set_process_opex</span><span class="p">(</span><span class="s2">&quot;methanol_synthesis_bio_gasification&quot;</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+   <span class="n">set_process_energy</span><span class="p">(</span><span class="s2">&quot;methanol_synthesis_bio_gasification&quot;</span><span class="p">,</span> <span class="mf">0.52</span><span class="p">)</span>
+   
+   <span class="n">set_process_wtt</span><span class="p">(</span><span class="s2">&quot;methanol_synthesis_bio_gasification&quot;</span><span class="p">,</span> <span class="s2">&quot;carbon_dioxide&quot;</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.35</span><span class="p">)</span>
+   <span class="n">set_process_wtt</span><span class="p">(</span><span class="s2">&quot;methanol_synthesis_bio_gasification&quot;</span><span class="p">,</span> <span class="s2">&quot;methane&quot;</span><span class="p">,</span> <span class="mf">0.00005</span><span class="p">)</span>
+   <span class="n">set_process_wtt</span><span class="p">(</span><span class="s2">&quot;methanol_synthesis_bio_gasification&quot;</span><span class="p">,</span> <span class="s2">&quot;nitrous_oxide&quot;</span><span class="p">,</span> <span class="mf">0.00018</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="blue-ammonia">
+<h5>Blue Ammonia<a class="headerlink" href="#blue-ammonia" title="Link to this heading">#</a></h5>
+<p>For blue ammonia, the CapEx and OpEx of the ammonia plant and the carbon capture and storage (CCS) have been combined and are represented in the integrated Harber Bosch process.
+The same for energy demand.</p>
+<ol class="arabic simple" start="3">
+<li><p>Set the well-to-tank <code class="docutils literal notranslate"><span class="pre">&quot;carbon_dioxide&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;methane&quot;</span></code> emissions associated with the feedstock <code class="docutils literal notranslate"><span class="pre">&quot;natural_gas&quot;</span></code>, for both CO2 and methane.</p></li>
+<li><p>Set the well-to-tank <code class="docutils literal notranslate"><span class="pre">&quot;carbon_dioxide&quot;</span></code> emissions associated with the process <code class="docutils literal notranslate"><span class="pre">&quot;haber_bosch_ccs_integrated_blue&quot;</span></code>.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>   <span class="n">set_process_capex</span><span class="p">(</span><span class="s2">&quot;haber_bosch_ccs_integrated_blue&quot;</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+   <span class="n">set_process_opex</span><span class="p">(</span><span class="s2">&quot;haber_bosch_ccs_integrated_blue&quot;</span><span class="p">,</span> <span class="mi">50</span><span class="p">)</span> 
+   <span class="n">set_process_energy</span><span class="p">(</span><span class="s2">&quot;haber_bosch_ccs_integrated_blue&quot;</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">)</span>
+   
+   <span class="n">set_feedstock_wtt</span><span class="p">(</span><span class="s2">&quot;natural_gas&quot;</span><span class="p">,</span> <span class="s2">&quot;carbon_dioxide&quot;</span><span class="p">,</span> <span class="mf">0.11</span><span class="p">)</span>
+   <span class="n">set_feedstock_wtt</span><span class="p">(</span><span class="s2">&quot;natural_gas&quot;</span><span class="p">,</span> <span class="s2">&quot;methane&quot;</span><span class="p">,</span> <span class="mf">0.0073</span><span class="p">)</span>
+   
+   <span class="n">set_process_wtt</span><span class="p">(</span><span class="s2">&quot;haber_bosch_ccs_integrated_blue&quot;</span><span class="p">,</span> <span class="s2">&quot;carbon_dioxide&quot;</span><span class="p">,</span> <span class="mf">0.180</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+<section id="definition-of-fuels">
+<h3>Definition of Fuels<a class="headerlink" href="#definition-of-fuels" title="Link to this heading">#</a></h3>
+<p>You can leave the definition of heavy fuel oil as it is from tutorial 1. For alternative fuels, a definition of a <code class="docutils literal notranslate"><span class="pre">&quot;plant&quot;</span></code> is needed.</p>
+<section id="electro-methane-plant">
+<h4>Electro Methane Plant<a class="headerlink" href="#electro-methane-plant" title="Link to this heading">#</a></h4>
+<p>The <code class="docutils literal notranslate"><span class="pre">&quot;plant&quot;</span></code> node represents a fuel production plant that produces fuel. It is assumed that the entire production process occurs within the plant.</p>
+<ol class="arabic simple">
+<li><p>Define Plant <code class="docutils literal notranslate"><span class="pre">&quot;plant_methane_electro&quot;</span></code>. The node Plant <code class="docutils literal notranslate"><span class="pre">&quot;plant_methane_electro&quot;</span></code>
+Contains the inputs and outputs of e-methane production from point source carbon capture.</p></li>
+<li><p>Set Fuel type to <code class="docutils literal notranslate"><span class="pre">Fuel(&quot;methane_electro&quot;)</span></code>
+This fuel type is e-methane with biogenic carbon from a points source.</p></li>
+<li><p>Set the value assigned to <code class="docutils literal notranslate"><span class="pre">Process</span></code> to <code class="docutils literal notranslate"><span class="pre">Process(&quot;methane_liquefaction_electro&quot;)</span></code>.
+This is the final process in the process tree which produces the bunker fuel liquefied e-methane.</p></li>
+<li><p>Set the value assigned to <code class="docutils literal notranslate"><span class="pre">Region</span></code> to <code class="docutils literal notranslate"><span class="pre">Region(&quot;region&quot;)</span></code>.
+This determines the region where the plant is located, which has an effect on the cost and WTT emissions of the fuel.</p></li>
+<li><p>Set the energy source to <code class="docutils literal notranslate"><span class="pre">&quot;renewable&quot;</span></code>.
+e-fuels need to be sourced from renewable energy sources.</p></li>
+<li><p>Set plant capacity to 1000.</p></li>
+<li><p>Set plant construction lead time to 4 years.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Plant</span> <span class="s2">&quot;plant_methane_electro&quot;</span> <span class="p">{</span>
+   <span class="n">Fuel</span> <span class="o">=</span> <span class="n">Fuel</span><span class="p">(</span><span class="s2">&quot;methane_electro&quot;</span><span class="p">)</span>   
+   <span class="n">Process</span> <span class="o">=</span> <span class="n">Process</span><span class="p">(</span><span class="s2">&quot;methane_liquefaction_electro&quot;</span><span class="p">)</span>  
+   <span class="n">Region</span> <span class="o">=</span> <span class="n">Region</span><span class="p">(</span><span class="s2">&quot;region&quot;</span><span class="p">)</span>   
+   <span class="n">Source</span> <span class="o">=</span> <span class="n">Source</span><span class="p">(</span><span class="s2">&quot;renewable&quot;</span><span class="p">)</span>  
+   <span class="n">Capacity</span> <span class="o">=</span> <span class="mi">1000</span>
+   <span class="n">LeadTime</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="8">
+<li><p>Define the Fuel node <code class="docutils literal notranslate"><span class="pre">&quot;methane_electro&quot;</span></code>. This is the e-methane fuel the plant produces; the <code class="docutils literal notranslate"><span class="pre">Plant</span></code> above references it through <code class="docutils literal notranslate"><span class="pre">Fuel(&quot;methane_electro&quot;)</span></code>, so it must exist.</p>
+<ol class="arabic simple">
+<li><p>Add a node of the type Fuel and name it <code class="docutils literal notranslate"><span class="pre">&quot;methane_electro&quot;</span></code>.</p></li>
+<li><p>Set <code class="docutils literal notranslate"><span class="pre">FuelType</span></code> to <code class="docutils literal notranslate"><span class="pre">METHANE</span></code>.</p></li>
+<li><p>Set <code class="docutils literal notranslate"><span class="pre">LowerHeatingValue</span></code> to 50 and <code class="docutils literal notranslate"><span class="pre">MassDensity</span></code> to 0.43.</p></li>
+<li><p>Set the TTW emission factor for <code class="docutils literal notranslate"><span class="pre">&quot;carbon_dioxide&quot;</span></code> to 2.75.</p></li>
+</ol>
+</li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Fuel</span> <span class="s2">&quot;methane_electro&quot;</span> <span class="p">{</span>
+   <span class="n">FuelType</span> <span class="o">=</span> <span class="n">METHANE</span>
+   <span class="n">LowerHeatingValue</span> <span class="o">=</span> <span class="mi">50</span>
+   <span class="n">MassDensity</span> <span class="o">=</span> <span class="mf">0.43</span>
+   <span class="n">set_ttw</span><span class="p">(</span><span class="s2">&quot;carbon_dioxide&quot;</span><span class="p">,</span> <span class="mf">2.75</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="9">
+<li><p>Define the process node <code class="docutils literal notranslate"><span class="pre">&quot;methane_liquefaction_electro&quot;</span></code>.</p></li>
+</ol>
+<p>It has one assigned feedstock which need to be defined later.
+Set the conversion factors for the feedstocks. A conversion factor describes the tons of ‘feedstock’ required to produce one ton of fuel.
+Notice that the feedstock to the liquefaction process is the output of another process.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Process</span> <span class="s2">&quot;methane_liquefaction_electro&quot;</span> <span class="p">{</span>
+   <span class="n">Feeds</span> <span class="o">=</span> <span class="p">[</span><span class="n">Process</span><span class="p">(</span><span class="s2">&quot;methane_synthesis_electro&quot;</span><span class="p">)]</span>
+   <span class="n">Conversions</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="10">
+<li><p>Define process <code class="docutils literal notranslate"><span class="pre">&quot;methane_synthesis_electro&quot;</span></code>:</p></li>
+<li><p>Add a node of the type Process and name it <code class="docutils literal notranslate"><span class="pre">&quot;methane_synthesis_electro&quot;</span></code>.</p></li>
+<li><p>Add two types of feedstocks to this process, and name them: <code class="docutils literal notranslate"><span class="pre">&quot;demineralized_water&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;carbon_dioxide_biogenic&quot;</span></code>.
+The demineralized water is used to produce e-hydrogen, and the rest of the molecule comes from point source carbon capture of biogenic carbon.</p></li>
+<li><p>Set the conversion rates. This means that the process sources 0,5 tons of hydrogen (requiring 4.5 tons of demineralized water) and 2,75 tons of CO2 per ton of fuel.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Process</span> <span class="s2">&quot;methane_synthesis_electro&quot;</span> <span class="p">{</span>
+   <span class="n">Feeds</span> <span class="o">=</span> <span class="p">[</span><span class="n">Feedstock</span><span class="p">(</span><span class="s2">&quot;demineralized_water&quot;</span><span class="p">),</span> <span class="n">Feedstock</span><span class="p">(</span><span class="s2">&quot;carbon_dioxide_biogenic&quot;</span><span class="p">)]</span>
+   <span class="n">Conversions</span> <span class="o">=</span> <span class="p">[</span><span class="mf">4.5</span><span class="p">,</span> <span class="mf">2.75</span><span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="11">
+<li><p>Define feedstock <code class="docutils literal notranslate"><span class="pre">&quot;demineralized_water&quot;</span></code> and define feedstock <code class="docutils literal notranslate"><span class="pre">&quot;carbon_dioxide_biogenic&quot;</span></code>:</p>
+<ol class="arabic simple">
+<li><p>Add a node of the type feedstock and name it <code class="docutils literal notranslate"><span class="pre">&quot;demineralized_water&quot;</span></code>.</p></li>
+<li><p>Add a node of the type feedstock and name it <code class="docutils literal notranslate"><span class="pre">&quot;carbon_dioxide_biogenic&quot;</span></code>.</p></li>
+</ol>
+</li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Feedstock</span> <span class="s2">&quot;demineralized_water&quot;</span> <span class="p">{</span>
+<span class="p">}</span>
+<span class="n">Feedstock</span> <span class="s2">&quot;carbon_dioxide_biogenic&quot;</span> <span class="p">{</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="bio-methanol-plant">
+<h4>Bio-Methanol Plant<a class="headerlink" href="#bio-methanol-plant" title="Link to this heading">#</a></h4>
+<ol class="arabic simple">
+<li><p>Copy  with the nodes Plant <code class="docutils literal notranslate"><span class="pre">&quot;plant_methane_electro&quot;</span></code>, Fuel <code class="docutils literal notranslate"><span class="pre">&quot;methane_electro&quot;</span></code>.,Process <code class="docutils literal notranslate"><span class="pre">&quot;methane_synthesis_electro&quot;</span></code>. Paste into Eiii) and Eiiii).</p></li>
+<li><p>Define Plant <code class="docutils literal notranslate"><span class="pre">&quot;plant_methanol_bio_gasification&quot;</span></code>:</p>
+<ol class="arabic simple">
+<li><p>Change the plant name to <code class="docutils literal notranslate"><span class="pre">&quot;plant_methanol_bio_gasification&quot;</span></code>.</p></li>
+<li><p>Change the fuel to <code class="docutils literal notranslate"><span class="pre">&quot;methanol_bio&quot;</span></code>.</p></li>
+<li><p>Change the process to <code class="docutils literal notranslate"><span class="pre">&quot;methanol_synthesis_bio_gasification&quot;</span></code>.</p></li>
+<li><p>Change the electricity source to <code class="docutils literal notranslate"><span class="pre">&quot;grid&quot;</span></code>.
+The electricity used to power the plant is from the region’s electricity grid.</p></li>
+<li><p>The Region, Capacity, and LeadTime of the plant is the same as for methane, for the sake of simplicity.</p></li>
+</ol>
+</li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Plant</span> <span class="s2">&quot;plant_methanol_bio_gasification&quot;</span> <span class="p">{</span>     
+   <span class="n">Fuel</span> <span class="o">=</span> <span class="n">Fuel</span><span class="p">(</span><span class="s2">&quot;methanol_bio&quot;</span><span class="p">)</span>   
+   <span class="n">Process</span> <span class="o">=</span> <span class="n">Process</span><span class="p">(</span><span class="s2">&quot;methanol_synthesis_bio_gasification&quot;</span><span class="p">)</span>  
+   <span class="n">Region</span> <span class="o">=</span> <span class="n">Region</span><span class="p">(</span><span class="s2">&quot;region&quot;</span><span class="p">)</span>  
+   <span class="n">Source</span> <span class="o">=</span> <span class="n">Source</span><span class="p">(</span><span class="s2">&quot;grid&quot;</span><span class="p">)</span>  
+   <span class="n">Capacity</span> <span class="o">=</span> <span class="mi">1000</span>
+   <span class="n">LeadTime</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="3">
+<li><p>Define <code class="docutils literal notranslate"><span class="pre">&quot;methanol_bio&quot;</span></code>:</p>
+<ol class="arabic simple">
+<li><p>Change the name of the node to “methanol_bio”.</p></li>
+<li><p>Change the value assigned to FuelType to METHANOL.</p></li>
+<li><p>Change the value assigned to LowerHeatingValue to 19.9.</p></li>
+<li><p>Change the value assigned to MassDensity to 0.791.</p></li>
+<li><p>Change the TTW emission factor for “carbon_dioxide” to 1.38 tons of emissions/liter of fuel.</p></li>
+<li><p>Delete the lines that add the TTW emission factors for methane and nitrous oxide, because we do not consider methane or nitrous oxide emissions from bio-methanol, or it is not applicable.</p></li>
+</ol>
+</li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Fuel</span> <span class="s2">&quot;methanol_bio&quot;</span> <span class="p">{</span>
+   <span class="n">FuelType</span> <span class="o">=</span> <span class="n">METHANOL</span>
+   <span class="n">LowerHeatingValue</span> <span class="o">=</span> <span class="mf">19.9</span> 
+   <span class="n">MassDensity</span> <span class="o">=</span> <span class="mf">0.791</span>
+   <span class="n">set_ttw</span><span class="p">(</span><span class="s2">&quot;carbon_dioxide&quot;</span><span class="p">,</span> <span class="mf">1.38</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="4">
+<li><p>Define <code class="docutils literal notranslate"><span class="pre">&quot;methanol_synthesis_bio_gasification&quot;</span></code>:</p>
+<ol class="arabic simple">
+<li><p>Change the name of the process node to <code class="docutils literal notranslate"><span class="pre">&quot;methanol_synthesis_bio_gasification&quot;</span></code>.</p></li>
+<li><p>Change the value assigned to Feedstocks to <code class="docutils literal notranslate"><span class="pre">[Feedstock(&quot;organic_wet_waste&quot;),</span> <span class="pre">Feedstock(&quot;dry_wood_biomass&quot;)]</span></code>. You need to include two feedstocks in the list, as bio-methanol requires both for the production.</p></li>
+<li><p>Change the value assigned to Conversions to <code class="docutils literal notranslate"><span class="pre">[1.21,</span> <span class="pre">1.21]</span></code>.</p></li>
+</ol>
+</li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Process</span> <span class="s2">&quot;methanol_synthesis_bio_gasification&quot;</span> <span class="p">{</span>
+   <span class="n">Feeds</span> <span class="o">=</span> <span class="p">[</span><span class="n">Feedstock</span><span class="p">(</span><span class="s2">&quot;organic_wet_waste&quot;</span><span class="p">),</span> <span class="n">Feedstock</span><span class="p">(</span><span class="s2">&quot;dry_wood_biomass&quot;</span><span class="p">)]</span>
+   <span class="n">Conversions</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.21</span><span class="p">,</span> <span class="mf">1.21</span><span class="p">]</span>		
+<span class="p">}</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="5">
+<li><p>Define <code class="docutils literal notranslate"><span class="pre">&quot;organic_wet_waste&quot;</span></code> and define <code class="docutils literal notranslate"><span class="pre">&quot;dry_wood_biomass&quot;</span></code>:</p>
+<ol class="arabic simple">
+<li><p>Add a node of type feedstock and name it “organic_wet_waste”.</p></li>
+<li><p>Add a node of the type feedstock and name it “dry_wood_biomass”.</p></li>
+</ol>
+</li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Feedstock</span> <span class="s2">&quot;organic_wet_waste&quot;</span> <span class="p">{</span>
+<span class="p">}</span>
+
+<span class="n">Feedstock</span> <span class="s2">&quot;dry_wood_biomass&quot;</span> <span class="p">{</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="blue-ammonia-plant">
+<h4>Blue Ammonia Plant<a class="headerlink" href="#blue-ammonia-plant" title="Link to this heading">#</a></h4>
+<ol class="arabic simple">
+<li><p>Define <code class="docutils literal notranslate"><span class="pre">&quot;plant_ammonia_blue&quot;</span></code>:</p>
+<ol class="arabic simple">
+<li><p>Change the plant name to <code class="docutils literal notranslate"><span class="pre">&quot;plant_ammonia_blue&quot;</span></code>.</p></li>
+<li><p>Change the fuel to <code class="docutils literal notranslate"><span class="pre">&quot;ammonia_blue&quot;</span></code>.</p></li>
+<li><p>Change the process to <code class="docutils literal notranslate"><span class="pre">&quot;haber_bosch_ccs_integrated_blue&quot;</span></code>.</p></li>
+<li><p>Change the electricity source to <code class="docutils literal notranslate"><span class="pre">&quot;grid&quot;</span></code>. The electricity used to power the plant and the Haber Bosch process is from the region’s electricity grid.</p></li>
+<li><p>The Region, Capacity, and LeadTime of the plant is the same as for methane, for the sake of simplicity.</p></li>
+</ol>
+</li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Plant</span> <span class="s2">&quot;plant_ammonia_blue&quot;</span> <span class="p">{</span>
+   <span class="n">Fuel</span> <span class="o">=</span> <span class="n">Fuel</span><span class="p">(</span><span class="s2">&quot;ammonia_blue&quot;</span><span class="p">)</span>   
+   <span class="n">Process</span> <span class="o">=</span> <span class="n">Process</span><span class="p">(</span><span class="s2">&quot;haber_bosch_ccs_integrated_blue&quot;</span><span class="p">)</span>  
+   <span class="n">Region</span> <span class="o">=</span> <span class="n">Region</span><span class="p">(</span><span class="s2">&quot;region&quot;</span><span class="p">)</span>  
+   <span class="n">Source</span> <span class="o">=</span> <span class="n">Source</span><span class="p">(</span><span class="s2">&quot;grid&quot;</span><span class="p">)</span>  
+   <span class="n">Capacity</span> <span class="o">=</span> <span class="mi">1000</span>
+   <span class="n">LeadTime</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li><p>Define <code class="docutils literal notranslate"><span class="pre">&quot;ammonia_blue&quot;</span></code>:</p>
+<ol class="arabic simple">
+<li><p>Change the name of the node to <code class="docutils literal notranslate"><span class="pre">&quot;ammonia_blue&quot;</span></code>.</p></li>
+<li><p>Change the value assigned to <code class="docutils literal notranslate"><span class="pre">FuelType</span></code> to <code class="docutils literal notranslate"><span class="pre">AMMONIA</span></code>.</p></li>
+<li><p>Change the value assigned to <code class="docutils literal notranslate"><span class="pre">LowerHeatingValue</span></code> to 18.8.</p></li>
+<li><p>Change the value assigned to <code class="docutils literal notranslate"><span class="pre">MassDensity</span></code> to 0.623.</p></li>
+<li><p>Delete all lines that add emission factors. This is because combustion of ammonia does not produce CO2 emissions as no carbon is contained in the fuel.</p></li>
+</ol>
+</li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Fuel</span> <span class="s2">&quot;ammonia_blue&quot;</span> <span class="p">{</span>
+   <span class="n">FuelType</span> <span class="o">=</span> <span class="n">AMMONIA</span>
+   <span class="n">LowerHeatingValue</span> <span class="o">=</span> <span class="mf">18.8</span> 
+   <span class="n">MassDensity</span> <span class="o">=</span> <span class="mf">0.623</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="3">
+<li><p>Define <code class="docutils literal notranslate"><span class="pre">&quot;haber_bosch_ccs_integrated_blue&quot;</span></code>:</p>
+<ol class="arabic simple">
+<li><p>Change the name of the process node to <code class="docutils literal notranslate"><span class="pre">&quot;haber_bosch_ccs_integrated_blue&quot;</span></code>.
+The harber-bosch process produces ammonia, and here it is integrated with CCS, resulting in abated fossil emissions from the natural gas used as feedstock.</p></li>
+<li><p>Change the value assigned to Feedstocks to <code class="docutils literal notranslate"><span class="pre">[Process(&quot;nitrogen_air_seperation&quot;),</span> <span class="pre">Feedstock(&quot;natural_gas&quot;)]</span></code>.
+You need to include two feedstocks in the list, as blue ammonia requires both for the production.
+These are nitrogen from air separation, which is the output of a process, and the feedstock of Natural gas.</p></li>
+<li><p>Change the value assigned to Conversions to <code class="docutils literal notranslate"><span class="pre">[0.64,</span> <span class="pre">0.822]</span></code>.</p></li>
+<li><p>Change the name of the feedstock node to <code class="docutils literal notranslate"><span class="pre">&quot;natural_gas&quot;</span></code>.</p></li>
+</ol>
+</li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Process</span> <span class="s2">&quot;haber_bosch_ccs_integrated_blue&quot;</span> <span class="p">{</span>
+   <span class="n">Feeds</span> <span class="o">=</span> <span class="p">[</span><span class="n">Process</span><span class="p">(</span><span class="s2">&quot;nitrogen_air_seperation&quot;</span><span class="p">),</span> <span class="n">Feedstock</span><span class="p">(</span><span class="s2">&quot;natural_gas&quot;</span><span class="p">)]</span>
+   <span class="n">Conversions</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.64</span><span class="p">,</span> <span class="mf">0.822</span><span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="4">
+<li><p>Define <code class="docutils literal notranslate"><span class="pre">&quot;natural_gas&quot;</span></code> and define <code class="docutils literal notranslate"><span class="pre">&quot;nitrogen&quot;</span></code></p>
+<ol class="arabic simple">
+<li><p>Define the feedstock node <code class="docutils literal notranslate"><span class="pre">&quot;natural_gas&quot;</span></code>.
+In reality, nitrogen is an intermediate fuel and would be defined as a <code class="docutils literal notranslate"><span class="pre">Fuel</span></code> in Navigate. For simplicity in this tutorial though, we have defined it as a <code class="docutils literal notranslate"><span class="pre">Feedstock</span></code>.</p></li>
+<li><p>Define the Process node <code class="docutils literal notranslate"><span class="pre">&quot;nitrogen_air_seperation&quot;</span></code>.
+For the sake of simplicity, this node is empty, but in Navigate you will be able to find that a range of processes contribute to the production of blue ammonia. From the process of nitrogen air separation nitrogen is captured, along with other air particle. If this process is combined with CCS the fossil emissions from the natural gas the blue ammonia are abated.</p></li>
+</ol>
+</li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Feedstock</span> <span class="s2">&quot;natural_gas&quot;</span> <span class="p">{</span>	
+<span class="p">}</span>
+
+<span class="n">Process</span> <span class="s2">&quot;nitrogen_air_seperation&quot;</span> <span class="p">{</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="definition-of-an-electricity-source">
+<h4>Definition of an Electricity Source<a class="headerlink" href="#definition-of-an-electricity-source" title="Link to this heading">#</a></h4>
+<p>The production plants have the attribute ‘Source’, which represent the source of electricity used in the process. This node must be created to integrate as an attribute within the fuel production node.</p>
+<ol class="arabic simple">
+<li><p>Define the node Source <code class="docutils literal notranslate"><span class="pre">&quot;renewable&quot;</span></code>. Give it the value of <code class="docutils literal notranslate"><span class="pre">Dependency</span> <span class="pre">=</span> <span class="pre">CONNECTED</span></code>.</p></li>
+<li><p>Define the node Source <code class="docutils literal notranslate"><span class="pre">&quot;grid&quot;</span></code>. Give it the value of <code class="docutils literal notranslate"><span class="pre">Dependency</span> <span class="pre">=</span> <span class="pre">CONNECTED</span></code>.</p></li>
+</ol>
+</section>
+</section>
+<section id="definition-of-a-producer-node">
+<h3>Definition of a Producer Node<a class="headerlink" href="#definition-of-a-producer-node" title="Link to this heading">#</a></h3>
+<p>The producer node is similar to the fleet node but for plants instead of vessels. It is used to model which fuel plants are built and thus which types and how much fuel is available to be used by the vessels.</p>
+<ol class="arabic simple">
+<li><p>Define the node Producer <code class="docutils literal notranslate"><span class="pre">&quot;engineering_procurement_construction_global&quot;</span></code></p></li>
+<li><p>Define the 3 plants that the producer may choose between when deciding what fuel supply to scale up.</p></li>
+<li><p>Set the <code class="docutils literal notranslate"><span class="pre">MaximumDevelopment</span></code> to 10, which is the constraint on how many plants can be built per year.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Producer</span> <span class="s2">&quot;engineering_procurement_construction_global&quot;</span> <span class="p">{</span>
+   <span class="n">Plants</span> <span class="o">=</span> <span class="p">[</span><span class="n">Plant</span><span class="p">(</span><span class="s2">&quot;plant_methane_electro&quot;</span><span class="p">),</span>
+             <span class="n">Plant</span><span class="p">(</span><span class="s2">&quot;plant_methanol_bio_gasification&quot;</span><span class="p">),</span>
+             <span class="n">Plant</span><span class="p">(</span><span class="s2">&quot;plant_ammonia_blue&quot;</span><span class="p">)]</span>
+   <span class="n">MaximumDevelopment</span> <span class="o">=</span> <span class="mi">10</span>
+   <span class="n">FuelDemandSensitivity</span> <span class="o">=</span> <span class="mf">1.5</span>
+   <span class="n">FuelCostSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="4">
+<li><p><code class="docutils literal notranslate"><span class="pre">FuelDemandSensitivity</span></code> controls how strongly the choice <em>between fuel pathways</em> responds to expected demand: a value of <code class="docutils literal notranslate"><span class="pre">1.5</span></code> means a pathway whose expected demand is 10% higher receives 1.5x the odds (higher demand is better, so use a value above <code class="docutils literal notranslate"><span class="pre">1</span></code>). This lets the EPC scale up the fuel with the largest gap between demand and production capacity.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FuelCostSensitivity</span></code> controls the choice <em>between plants producing the same fuel</em> by their levelized cost of fuel (LCoF): a value of <code class="docutils literal notranslate"><span class="pre">0.5</span></code> means a plant whose LCoF is 10% higher receives half the odds (lower cost is better, so use a value below <code class="docutils literal notranslate"><span class="pre">1</span></code>).</p></li>
+</ol>
+</section>
+<section id="definition-of-a-plot-node">
+<h3>Definition of a <code class="docutils literal notranslate"><span class="pre">Plot</span></code> Node<a class="headerlink" href="#definition-of-a-plot-node" title="Link to this heading">#</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">Plot</span></code> node defines which output plots Navigate produces and where they are saved. Navigate only generates plots when at least one <code class="docutils literal notranslate"><span class="pre">Plot</span></code> node is defined.</p>
+<ol class="arabic simple">
+<li><p>Define a node <code class="docutils literal notranslate"><span class="pre">&quot;plots&quot;</span></code> with the node type <code class="docutils literal notranslate"><span class="pre">Plot</span></code>.</p></li>
+<li><p>Set the <code class="docutils literal notranslate"><span class="pre">Directory</span></code> attribute to <code class="docutils literal notranslate"><span class="pre">&quot;./plots/&quot;</span></code>. This is the subfolder, relative to the <code class="docutils literal notranslate"><span class="pre">.nav</span></code> file, where the plots are saved. Navigate creates the folder if it does not already exist.</p></li>
+<li><p>Use the <code class="docutils literal notranslate"><span class="pre">add_plot(...)</span></code> command once per plot you want produced. In this tutorial we now also have fuel production, so in addition to the absolute emissions, the global fuel mix, and the bunker price at the port, we also produce the plant production cost.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Plot</span> <span class="s2">&quot;plots&quot;</span> <span class="p">{</span>
+    <span class="n">Directory</span> <span class="o">=</span> <span class="s2">&quot;./plots/&quot;</span>
+
+    <span class="n">add_plot</span><span class="p">(</span><span class="s2">&quot;global_emission_absolute&quot;</span><span class="p">)</span>
+    <span class="n">add_plot</span><span class="p">(</span><span class="s2">&quot;global_fuel_consumed&quot;</span><span class="p">)</span>
+    <span class="n">add_plot</span><span class="p">(</span><span class="s2">&quot;plant_production_cost&quot;</span><span class="p">)</span>
+    <span class="n">add_plot</span><span class="p">(</span><span class="s2">&quot;port_bunker_price&quot;</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="the-events-input-file">
+<h2>The <code class="docutils literal notranslate"><span class="pre">EVENTS</span></code> input file<a class="headerlink" href="#the-events-input-file" title="Link to this heading">#</a></h2>
+<ol class="arabic simple">
+<li><p>Open the ‘includes’ folder in the <code class="docutils literal notranslate"><span class="pre">tutorial_2</span></code>-folder and open the ‘events.inc’ file.</p></li>
+<li><p>Define <code class="docutils literal notranslate"><span class="pre">Start</span></code>. You will define the <code class="docutils literal notranslate"><span class="pre">End</span></code> later.</p></li>
+<li><p>Because we want Navigate to run simulations until 2050, you need to define intermediate time steps until 2050. In Navigate we have decided on annual time steps, but one could also decide on 5-year time steps, for example. <strong>Define annual time steps with a reference Date.</strong></p></li>
+<li><p>Mark the end of the timeline with <code class="docutils literal notranslate"><span class="pre">End</span></code>.</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Start</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2025&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2026&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2027&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2028&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2029&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2030&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2031&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2032&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2033&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2034&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2035&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2036&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2037&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2038&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2039&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2040&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2041&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2042&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2043&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2044&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2045&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2046&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2047&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2048&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2049&quot;</span>
+<span class="n">Date</span> <span class="s2">&quot;01-01-2050&quot;</span>
+<span class="n">End</span>
+</pre></div>
+</div>
+</section>
+<section id="running-analyses-and-interpreting-results">
+<h2>Running analyses and interpreting results<a class="headerlink" href="#running-analyses-and-interpreting-results" title="Link to this heading">#</a></h2>
+<ol class="arabic simple">
+<li><p>Use the terminal to navigate to the <code class="docutils literal notranslate"><span class="pre">tutorial_2</span></code> folder. Recall <code class="docutils literal notranslate"><span class="pre">cd</span> <span class="pre">path/to/folder</span></code> and <code class="docutils literal notranslate"><span class="pre">cd</span> <span class="pre">..</span></code></p></li>
+<li><p>Run the command <code class="docutils literal notranslate"><span class="pre">navigate</span> <span class="pre">tutorial_2.nav</span></code></p></li>
+<li><p>Look through the plots folder and interpret the results.</p></li>
+</ol>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="tutorial_1.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Tutorial 1</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="tutorial_3.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Tutorial 3</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#modifying-the-define-inc-file">Modifying the <code class="docutils literal notranslate"><span class="pre">define.inc</span></code> file</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#setting-up-the-fleets">Setting up the Fleets</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#container-fleet">Container Fleet</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#bulk-fleet">Bulk Fleet</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#definition-of-all-four-vessels">Definition of all four Vessels</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fuel-oil-vessel">Fuel Oil Vessel</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#methane-vessel">Methane Vessel</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#methanol-vessel">Methanol Vessel</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#ammonia-vessel">Ammonia Vessel</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#general-specifications-for-vessels">General Specifications for Vessels</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#pilot-tank">Pilot Tank</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#methane-tank">Methane Tank</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#methanol-tank">Methanol Tank</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#ammonia-tank">Ammonia Tank</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#definition-of-the-port-and-the-region">Definition of the Port and the Region</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#port">Port</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#region">Region</a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#electro-methane">Electro-Methane</a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#bio-methanol">Bio-Methanol</a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#blue-ammonia">Blue Ammonia</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#definition-of-fuels">Definition of Fuels</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#electro-methane-plant">Electro Methane Plant</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#bio-methanol-plant">Bio-Methanol Plant</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#blue-ammonia-plant">Blue Ammonia Plant</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#definition-of-an-electricity-source">Definition of an Electricity Source</a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#definition-of-a-producer-node">Definition of a Producer Node</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#definition-of-a-plot-node">Definition of a <code class="docutils literal notranslate"><span class="pre">Plot</span></code> Node</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-events-input-file">The <code class="docutils literal notranslate"><span class="pre">EVENTS</span></code> input file</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#running-analyses-and-interpreting-results">Running analyses and interpreting results</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/tutorials/tutorial_2.md.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026, Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.20.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

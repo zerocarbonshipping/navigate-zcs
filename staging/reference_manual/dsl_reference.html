@@ -1,0 +1,867 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>DSL reference &#8212; Navigate</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+
+    <script src="../_static/documentation_options.js?v=8313637b"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=fd10adb8"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'reference_manual/dsl_reference';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://zerocarbonshipping.github.io/navigate-zcs/_static/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'dev';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            true;
+        </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="ModelDefinition" href="model_definition.html" />
+    <link rel="prev" title="Introduction" href="overview.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="1.0.0" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class=" navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Navigate</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class=" navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../tutorials/index.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Reference Manual
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/zerocarbonshipping/navigate-zcs" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../tutorials/index.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Reference Manual
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/zerocarbonshipping/navigate-zcs" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">General</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Introduction</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">DSL reference</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">General nodes</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="model_definition.html">ModelDefinition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bunker_logistics.html">BunkerLogistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bunker_options.html">BunkerOptions</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Nodes</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="converter.html">Converter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="curve.html">Curve</a></li>
+<li class="toctree-l1"><a class="reference internal" href="emission.html">Emission</a></li>
+<li class="toctree-l1"><a class="reference internal" href="feedstock.html">Feedstock</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fleet.html">Fleet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="forecast.html">Forecast</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fuel.html">Fuel</a></li>
+<li class="toctree-l1"><a class="reference internal" href="levy.html">Levy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plant.html">Plant</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plot.html">Plot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="port.html">Port</a></li>
+<li class="toctree-l1"><a class="reference internal" href="power_system.html">PowerSystem</a></li>
+<li class="toctree-l1"><a class="reference internal" href="process.html">Process</a></li>
+<li class="toctree-l1"><a class="reference internal" href="producer.html">Producer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="region.html">Region</a></li>
+<li class="toctree-l1"><a class="reference internal" href="regulation.html">Regulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="report.html">Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="route.html">Route</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source.html">Source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="surface.html">Surface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tank.html">Tank</a></li>
+<li class="toctree-l1"><a class="reference internal" href="technology.html">Technology</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timetable.html">Timetable</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transport.html">Transport</a></li>
+<li class="toctree-l1"><a class="reference internal" href="variable.html">Variable</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vessel.html">Vessel</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Appendix</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="appendix_ids.html">Appendix - ID Overview</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Reference Manual</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">DSL reference</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <!--
+SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+SPDX-License-Identifier: CC-BY-4.0
+-->
+<section class="tex2jax_ignore mathjax_ignore" id="dsl-reference">
+<h1>DSL reference<a class="headerlink" href="#dsl-reference" title="Link to this heading">#</a></h1>
+<section id="defining-a-node">
+<h2>Defining a node<a class="headerlink" href="#defining-a-node" title="Link to this heading">#</a></h2>
+<p>To define a node, use the following syntax:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">NodeType</span> <span class="s2">&quot;node_name&quot;</span> <span class="p">{</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>When specified in <code class="docutils literal notranslate"><span class="pre">.inc</span></code> files, a node is referred to by its name: <code class="docutils literal notranslate"><span class="pre">NodeType</span> <span class="pre">&quot;node_name&quot;</span></code>.</p>
+<p>To reference a node in other nodes, use the following syntax:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">NodeType</span><span class="p">(</span><span class="s2">&quot;node_name&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>An example of a node’s general structure is included below:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">NodeType</span> <span class="s2">&quot;node_name&quot;</span> <span class="p">{</span>
+    <span class="n">Attribute</span> <span class="o">=</span> <span class="n">ValueA</span>
+    <span class="n">set_command</span><span class="p">(</span><span class="s2">&quot;key&quot;</span><span class="p">,</span> <span class="n">ValueB</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The first time the node syntax is encountered in an <code class="docutils literal notranslate"><span class="pre">.inc</span></code> file is when it is defined. It is possible to access the node again using the same syntax to change the attributes of the node. This can be done both during the <code class="docutils literal notranslate"><span class="pre">DEFINE</span></code> section and the <code class="docutils literal notranslate"><span class="pre">EVENTS</span></code> section. However, certain attributes do not allow change during the <code class="docutils literal notranslate"><span class="pre">EVENTS</span></code> section and will throw an error if attempted. Notice that redefinition of attributes occurs in the order they are read. Meaning if an attribute is redefined further down in an <code class="docutils literal notranslate"><span class="pre">.inc</span></code> file or in a later <code class="docutils literal notranslate"><span class="pre">.inc</span></code> file it is the last read instance that will be the final value.</p>
+</section>
+<section id="defining-a-general-node">
+<h2>Defining a general node<a class="headerlink" href="#defining-a-general-node" title="Link to this heading">#</a></h2>
+<p>A general node differs from a node in that there is only one instance of a general node and in that it cannot be referenced in other nodes. Currently, there are only few general nodes used in Navigate. For example, the <code class="docutils literal notranslate"><span class="pre">ModelDefinition</span></code> is a general node that only occurs once.</p>
+<p>To define a general node, use the following syntax:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">NodeType</span> <span class="p">{</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>An example of a general node’s structure is included below:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">NodeType</span> <span class="p">{</span>
+    <span class="n">Attribute</span> <span class="o">=</span> <span class="n">ValueA</span>
+    <span class="n">set_command</span><span class="p">(</span><span class="s2">&quot;key&quot;</span><span class="p">,</span> <span class="n">ValueB</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>General nodes can only be defined in the <code class="docutils literal notranslate"><span class="pre">DEFINE</span></code> section.</p>
+</section>
+<section id="assigning-attributes">
+<h2>Assigning attributes<a class="headerlink" href="#assigning-attributes" title="Link to this heading">#</a></h2>
+<p>Attributes are assigned on nodes and general nodes. An assignment to an attribute has the following syntax:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Attribute</span> <span class="o">=</span> <span class="n">x</span>
+</pre></div>
+</div>
+<p>Where <code class="docutils literal notranslate"><span class="pre">x</span></code> depends on the specific attribute. Attributes are written in upper camel case, e.g., <code class="docutils literal notranslate"><span class="pre">MinimumOfftakeDuration</span></code> and <code class="docutils literal notranslate"><span class="pre">CAPEX</span></code>. The syntax of the value assigned to the attribute depends on the specific attribute but the different options are listed below.</p>
+<p><strong>Float:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Attribute</span> <span class="o">=</span> <span class="mf">3.2</span>
+</pre></div>
+</div>
+<p><strong>Node reference:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Attribute</span> <span class="o">=</span> <span class="n">NodeType</span><span class="p">(</span><span class="s2">&quot;node_name&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>ID:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Attribute</span> <span class="o">=</span> <span class="n">SPECIFIC_ID</span>
+</pre></div>
+</div>
+<p>Notice that IDs are capitalized and potentially separated by underscores.</p>
+<p><strong>Boolean:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Attribute</span> <span class="o">=</span> <span class="n">TRUE</span>
+</pre></div>
+</div>
+<p><strong>List:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Attribute</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">NodeType</span><span class="p">(</span><span class="s2">&quot;node_name&quot;</span><span class="p">)]</span>
+</pre></div>
+</div>
+<p>A list can be defined over several lines:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Attribute</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="mi">0</span><span class="p">,</span>
+    <span class="mi">1</span><span class="p">,</span>
+    <span class="n">NodeType</span><span class="p">(</span><span class="s2">&quot;node_name&quot;</span><span class="p">),</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>For list attributes that accept a single element, the brackets may be omitted:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Attribute</span> <span class="o">=</span> <span class="n">NodeType</span><span class="p">(</span><span class="s2">&quot;node_name&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>is equivalent to:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Attribute</span> <span class="o">=</span> <span class="p">[</span><span class="n">NodeType</span><span class="p">(</span><span class="s2">&quot;node_name&quot;</span><span class="p">)]</span>
+</pre></div>
+</div>
+<p>Multi-element assignments still require brackets.</p>
+</section>
+<section id="assigning-commands">
+<h2>Assigning commands<a class="headerlink" href="#assigning-commands" title="Link to this heading">#</a></h2>
+<p>Commands are used when an attribute may hold different values based on other nodes. An example is that a fuel may have a tank-to-wake (TTW) emission per emission included in the simulation files. Commands may either take one or two keys and a value. The syntax is:</p>
+<p><strong>Single key command:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">set_single_command</span><span class="p">(</span><span class="s2">&quot;node_name&quot;</span><span class="p">,</span> <span class="mf">3.2</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Double key command:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">set_double_command</span><span class="p">(</span><span class="s2">&quot;node_name&quot;</span><span class="p">,</span> <span class="n">SPECIFIC_ID</span><span class="p">,</span> <span class="mf">3.2</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The assignment options via commands are limited to floats, node references, and boolean values.</p>
+</section>
+<section id="assigning-tables">
+<h2>Assigning tables<a class="headerlink" href="#assigning-tables" title="Link to this heading">#</a></h2>
+<p>A specific category of nodes allows assignment of tables to the node. The list of nodes includes:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Curve</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Forecast</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Surface</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Timetable</span></code></p></li>
+</ul>
+<p>Dependent on the node, the table is defined in different ways:</p>
+<section id="curve">
+<h3>Curve<a class="headerlink" href="#curve" title="Link to this heading">#</a></h3>
+<p>The syntax for defining a table on a curve is as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Curve</span> <span class="s2">&quot;node_name&quot;</span> <span class="p">{</span>
+    <span class="n">Table</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="c1"># x y</span>
+        <span class="mf">0.0</span> <span class="mf">1.0</span>
+        <span class="mf">0.5</span> <span class="mf">2.0</span>
+        <span class="mf">1.0</span> <span class="mf">4.0</span>
+    <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="forecast">
+<h3>Forecast<a class="headerlink" href="#forecast" title="Link to this heading">#</a></h3>
+<p>The syntax for defining a table on a forecast is as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Forecast</span> <span class="s2">&quot;node_name&quot;</span> <span class="p">{</span>
+    <span class="n">Table</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="c1"># x y</span>
+        <span class="s2">&quot;01-01-2024&quot;</span> <span class="mf">1.0</span>
+        <span class="s2">&quot;01-01-2030&quot;</span> <span class="mf">2.0</span>
+        <span class="s2">&quot;01-01-2050&quot;</span> <span class="mf">4.0</span>
+    <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The x-axis of a forecast may also be defined by floats, which should be interpreted as “days since start of simulation.” For example, if the simulation start date is <code class="docutils literal notranslate"><span class="pre">01-01-2024</span></code>, then the date <code class="docutils literal notranslate"><span class="pre">01-01-2025</span></code> would be <code class="docutils literal notranslate"><span class="pre">366</span></code> (leap years are accounted for). In this case, it follows the syntax of a curve but with the node type being forecast.</p>
+</section>
+<section id="surface">
+<h3>Surface<a class="headerlink" href="#surface" title="Link to this heading">#</a></h3>
+<p>A surface is a two-dimensional curve and has the syntax:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Surface</span> <span class="s2">&quot;node_name&quot;</span> <span class="p">{</span>
+    <span class="n">Table</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="c1"># x-axis (top line)</span>
+        <span class="c1"># y-axis (first in rows)</span>
+        <span class="mi">0</span> <span class="mi">1</span> <span class="mi">2</span>
+        <span class="mi">0</span> <span class="mi">0</span> <span class="mi">1</span> <span class="mi">2</span>
+        <span class="mi">10</span> <span class="mi">3</span> <span class="mi">4</span> <span class="mi">12</span>
+        <span class="mi">20</span> <span class="mi">20</span> <span class="mi">21</span> <span class="mi">22</span>
+    <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Here, the first line is the x-axis and is defined by <code class="docutils literal notranslate"><span class="pre">nx</span></code> entries corresponding to the number of points along the x-axis. Every subsequent row is defined by <code class="docutils literal notranslate"><span class="pre">nx+1</span></code> entries, with the first value being the y-axis value and all subsequent values corresponding to the interior values for that y-value and all x-values. The number of points along the y-axis, <code class="docutils literal notranslate"><span class="pre">ny</span></code>, is given by the number of lines in the table (excluding the first).</p>
+</section>
+<section id="timetable">
+<h3>Timetable<a class="headerlink" href="#timetable" title="Link to this heading">#</a></h3>
+<p>A timetable is a two-dimensional mixture of a curve and a forecast and has the syntax:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Timetable</span> <span class="s2">&quot;node_name&quot;</span> <span class="p">{</span>
+    <span class="n">Table</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="c1"># x-axis (top line)</span>
+        <span class="c1"># y-axis (first in rows)</span>
+        <span class="mi">0</span> <span class="mi">1</span> <span class="mi">2</span>
+        <span class="s2">&quot;01-01-2024&quot;</span> <span class="mi">0</span> <span class="mi">1</span> <span class="mi">2</span>
+        <span class="s2">&quot;01-01-2030&quot;</span> <span class="mi">3</span> <span class="mi">4</span> <span class="mi">12</span>
+        <span class="s2">&quot;01-01-2050&quot;</span> <span class="mi">20</span> <span class="mi">21</span> <span class="mi">22</span>
+    <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Similar to the forecast, a timetable may be defined by floats in the y-axis, which are interpreted as “days since start of simulation.”</p>
+</section>
+</section>
+<section id="expressions">
+<h2>Expressions<a class="headerlink" href="#expressions" title="Link to this heading">#</a></h2>
+<p>An expression is a syntax that allows the use of arithmetic when assigning values to attributes and commands. The syntax is:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Attribute</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span> <span class="o">-</span> <span class="n">c</span> <span class="o">/</span> <span class="n">d</span><span class="o">&gt;</span>
+<span class="n">set_command</span><span class="p">(</span><span class="s2">&quot;key&quot;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span> <span class="o">-</span> <span class="n">c</span> <span class="o">/</span> <span class="n">d</span><span class="o">&gt;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>An example could be separating values to better comment and explain an assumption in the simulation file:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Attribute</span> <span class="o">=</span> <span class="o">&lt;</span><span class="mf">0.05</span> <span class="o">*</span> <span class="mf">1e6</span><span class="o">&gt;</span>
+<span class="n">set_command</span><span class="p">(</span><span class="s2">&quot;key&quot;</span><span class="p">,</span> <span class="o">&lt;</span><span class="mf">0.05</span> <span class="o">*</span> <span class="mf">1e6</span><span class="o">&gt;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>It is also possible to include Curves, Forecasts, Surfaces, Timetables, and Values in an expression. However, the node used must align the data type allowed by the attribute:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Attribute</span> <span class="o">=</span> <span class="o">&lt;</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">Forecast</span><span class="p">(</span><span class="s2">&quot;name_1&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="n">Forecast</span><span class="p">(</span><span class="s2">&quot;name_2&quot;</span><span class="p">)</span><span class="o">&gt;</span>
+<span class="n">set_command</span><span class="p">(</span><span class="s2">&quot;key&quot;</span><span class="p">,</span> <span class="o">&lt;</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">Forecast</span><span class="p">(</span><span class="s2">&quot;name_1&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="n">Forecast</span><span class="p">(</span><span class="s2">&quot;name_2&quot;</span><span class="p">)</span><span class="o">&gt;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Expressions are restricted arithmetic, not general Python. The only accepted syntax is: numeric literals (including scientific notation such as <code class="docutils literal notranslate"><span class="pre">1e6</span></code>), the operators <code class="docutils literal notranslate"><span class="pre">+</span></code>, <code class="docutils literal notranslate"><span class="pre">-</span></code>, <code class="docutils literal notranslate"><span class="pre">*</span></code>, <code class="docutils literal notranslate"><span class="pre">/</span></code>, and <code class="docutils literal notranslate"><span class="pre">**</span></code>, unary minus, parentheses for grouping, and node references of the form <code class="docutils literal notranslate"><span class="pre">Type(&quot;name&quot;)</span></code> with a single string argument. Anything else — names, comparisons, other function calls, and so on — is rejected with an error when the deck is loaded. In particular, expressions cannot execute code or access the file system.</p>
+</section>
+<section id="default-nodes">
+<h2>Default nodes<a class="headerlink" href="#default-nodes" title="Link to this heading">#</a></h2>
+<p>Navigate comes with a substantial library of default nodes which may be included in the simulation model.</p>
+<p>If a node is assigned to another node’s attribute, then the assigned node must be defined somewhere else in the simulation files. If the assigned node is not assigned elsewhere, Navigate will search for the node in the default library. The default library is split into two branches, a “user” branch and an “installation” branch. The user branch allows others to define their own default nodes without mixing them with the default nodes provided by the Navigate installation which are found in the installation branch. Navigate will first search in the user branch for defaults before going to the installation branch and ultimately throw an error if no match is found.</p>
+<p>The default node folder can be found in:</p>
+<p><code class="docutils literal notranslate"><span class="pre">&lt;your_installation_path&gt;/Navigate/navigate/defaults/</span></code></p>
+<p>Technically speaking default node files can contain more than one node, however, it is best practice to separate into individual files.</p>
+</section>
+<section id="default-modules">
+<h2>Default modules<a class="headerlink" href="#default-modules" title="Link to this heading">#</a></h2>
+<p>Similar to default nodes, it is possible to define default modules. A module is the same as a normal <code class="docutils literal notranslate"><span class="pre">.inc</span></code> file included in the <code class="docutils literal notranslate"><span class="pre">.nav</span></code> file but is a convenient way of storing these if it is an <code class="docutils literal notranslate"><span class="pre">.inc</span></code> file that is used often across multiple simulation decks.</p>
+<p>Like the default nodes, the default modules have a user and an installation branch.</p>
+<p>The default module folder can be found in:</p>
+<p><code class="docutils literal notranslate"><span class="pre">&lt;your_installation_path&gt;/Navigate/navigate/modules/</span></code></p>
+</section>
+<section id="importing-a-node">
+<h2>Importing a node<a class="headerlink" href="#importing-a-node" title="Link to this heading">#</a></h2>
+<p>It is possible to import nodes directly from the default folders using the syntax:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Import</span> <span class="n">NodeType</span> <span class="s2">&quot;node_name&quot;</span>
+</pre></div>
+</div>
+<p>This defines the node. Subsequent to this it is possible reassign a subset of attributes on the node as described in “Defining a node”.</p>
+</section>
+<section id="copying-a-node">
+<h2>Copying a node<a class="headerlink" href="#copying-a-node" title="Link to this heading">#</a></h2>
+<p>It is possible to copy a node either from a node already defined in the simulation files or directly from the default folders using the syntax:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Copy</span> <span class="n">NodeType</span> <span class="s2">&quot;node_copy_from&quot;</span> <span class="s2">&quot;node_copy_to&quot;</span>
+</pre></div>
+</div>
+<p>After copying any reassignment of attributes done to <code class="docutils literal notranslate"><span class="pre">&quot;node_copy_from&quot;</span></code> will not be reflected in <code class="docutils literal notranslate"><span class="pre">&quot;node_copy_to&quot;</span></code> as they are now two separate nodes.</p>
+<p>If the node being copied from does not already exist in the simulation then it is removed after the import and only the node of the name “node_copy_to” remains.
+This can be used to import nodes with a different name than default name.</p>
+</section>
+<section id="wildcards">
+<h2>Wildcards<a class="headerlink" href="#wildcards" title="Link to this heading">#</a></h2>
+<p>Navigate accepts glob-style wildcards in node names and identifiers, letting a single pattern stand in for many concrete values. Two wildcard characters are supported:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">*</span></code> matches zero or more characters.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">?</span></code> matches exactly one character.</p></li>
+</ul>
+<p>A pattern may be the bare wildcard <code class="docutils literal notranslate"><span class="pre">&quot;*&quot;</span></code> (matches every value) or a partial pattern that combines wildcards with literal characters, e.g. <code class="docutils literal notranslate"><span class="pre">&quot;bio_*&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;port_?&quot;</span></code>, or <code class="docutils literal notranslate"><span class="pre">&quot;*_2030&quot;</span></code>. Wildcards are written inside the quoted node name; for enum identifiers in commands they are written inline without quotes (e.g. <code class="docutils literal notranslate"><span class="pre">M*</span></code>).</p>
+<p>Wildcards are resolved at the point of use against the set of registered nodes, the relevant enum members, the existing keys of a target dictionary, or the file names in the default-node folders — depending on the construct. The expanded pattern must match at least one value; otherwise an error is raised.</p>
+<p>The following constructs accept wildcards:</p>
+<ul class="simple">
+<li><p><strong>List attribute assignments.</strong> A wildcard node reference inside a list expands to every registered node of that type whose name matches the pattern. For example, <code class="docutils literal notranslate"><span class="pre">Ports</span> <span class="pre">=</span> <span class="pre">[Port(&quot;*&quot;)]</span></code> on a Route assigns every Port in the simulation, and <code class="docutils literal notranslate"><span class="pre">Fuels</span> <span class="pre">=</span> <span class="pre">[Fuel(&quot;bio_*&quot;)]</span></code> on a Regulation assigns every Fuel whose name begins with <code class="docutils literal notranslate"><span class="pre">bio_</span></code>.</p></li>
+<li><p><strong>Commands with string arguments.</strong> Wildcards in a command’s string key(s) expand against the existing entries of the dictionary the command writes to. For example, <code class="docutils literal notranslate"><span class="pre">set_initial_technology_share(&quot;*&quot;,</span> <span class="pre">&quot;hull_painting&quot;,</span> <span class="pre">Curve(&quot;...&quot;))</span></code> applies the assignment to every existing vessel key, and <code class="docutils literal notranslate"><span class="pre">set_fuel_conversion_cost(&quot;*ice_oil*&quot;,</span> <span class="pre">&quot;*ice_methanol*&quot;,</span> <span class="pre">13.4e6)</span></code> matches every from/to vessel pair whose names contain the substrings.</p></li>
+<li><p><strong>Commands with enum arguments.</strong> Wildcards in an enum-typed argument (written inline, without quotes) expand against the enum’s member names. For example, <code class="docutils literal notranslate"><span class="pre">set_slip_fraction(M*,</span> <span class="pre">0.03)</span></code> applies the assignment to both the <code class="docutils literal notranslate"><span class="pre">METHANE</span></code> and <code class="docutils literal notranslate"><span class="pre">METHANOL</span></code> members of <code class="docutils literal notranslate"><span class="pre">FuelTypeID</span></code>.</p></li>
+<li><p><strong>Import statements.</strong> Wildcards in an <code class="docutils literal notranslate"><span class="pre">Import</span></code> directive match the file names of <code class="docutils literal notranslate"><span class="pre">.inc</span></code> files in the user and installation default folders. For example, <code class="docutils literal notranslate"><span class="pre">Import</span> <span class="pre">Converter</span> <span class="pre">&quot;electrical_ice_methane_*&quot;</span></code> imports every default Converter whose file name begins with <code class="docutils literal notranslate"><span class="pre">electrical_ice_methane_</span></code>.</p></li>
+</ul>
+</section>
+<section id="reading-the-node-description">
+<h2>Reading the node description<a class="headerlink" href="#reading-the-node-description" title="Link to this heading">#</a></h2>
+<p>Each node type in Navigate is listed and explained in the node index, including the attributes that a user
+can set for the nodes.</p>
+<p>Every section contains a short explanation of the node type, how it can be defined in the input files as well
+as an example of a defined node.</p>
+<p>For each attribute, a number of relevant characteristics are listed:</p>
+<ul class="simple">
+<li><p>Data type</p></li>
+<li><p>Unit</p></li>
+<li><p>Legal values</p></li>
+<li><p>Example values</p></li>
+<li><p>Minimum value</p></li>
+<li><p>Maximum value</p></li>
+<li><p>Default</p></li>
+</ul>
+<p>Some attributes must be defined by the user because they are mandatory for the node and no default is assigned.</p>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="overview.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Introduction</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="model_definition.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">ModelDefinition</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#defining-a-node">Defining a node</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#defining-a-general-node">Defining a general node</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#assigning-attributes">Assigning attributes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#assigning-commands">Assigning commands</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#assigning-tables">Assigning tables</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#curve">Curve</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#forecast">Forecast</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#surface">Surface</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#timetable">Timetable</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#expressions">Expressions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#default-nodes">Default nodes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#default-modules">Default modules</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#importing-a-node">Importing a node</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#copying-a-node">Copying a node</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#wildcards">Wildcards</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reading-the-node-description">Reading the node description</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/reference_manual/dsl_reference.md.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026, Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.20.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>
