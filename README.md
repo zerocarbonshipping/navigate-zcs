@@ -15,6 +15,11 @@ Model outputs depend on the assumptions selected by the user and should not be i
 
 Users are responsible for selecting and adapting assumptions appropriate to their own circumstances and for exercising their own independent judgement when interpreting or relying on any model outputs.
 
+## Tutorials and Example Simulations
+
+Complete installation guide, step-by-step tutorials and a full reference manual are available in the [documentation](https://zerocarbonshipping.github.io/navigate-zcs/). The tutorial project files live in the `tutorials/` folder.
+Some simple example simulations can be found under `simulations/examples`
+
 ## Installation
 
 Navigate is built on Python version 3.12. You can download Navigate by cloning it to your local machine or by downloading one of the releases.
@@ -75,12 +80,7 @@ The following options are available when running Navigate. See them in the comma
 | `-l LEVEL`, `--log-level LEVEL` | Set the log level for the `.log` file. With `DEBUG`, a failed run also prints the full traceback to the console.                                                                                                                                                  |
 | `-r PATH`, `--replot PATH`      | Regenerate plots from previously exported plot data. Provide path to directory containing `plot_data.pkl` or to the file directly. Skips simulation. Optionally pass a `.inc` file with `Plot` node(s) as the trailing argument to use those instead of the plot nodes stored in the plot data.  |
 | `--solver {auto,gurobi,highs}`  | Solver backend. `auto` tries Gurobi then falls back to HiGHS. Default: `auto`.                                                                                                                                                                                    |
-| `-p`, `--profile`               | Profile the computational performance of the simulation. Note that this suppresses all output that is not directly related to the simulation.                                                                                                                     |
-
-## Tutorials and Example Simulations
-
-Step-by-step tutorials and a full reference manual are available in the [documentation](https://zerocarbonshipping.github.io/navigate-zcs/). The tutorial project files live in the `tutorials/` folder.
-Some simple example simulations can be found under `simulations/examples`
+| `-p`, `--profile`               | Profile the computational performance of the simulation. Note that this suppresses all output that is not directly related to the simulation.                                                                                      
 
 ## License
 
