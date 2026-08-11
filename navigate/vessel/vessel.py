@@ -10,11 +10,10 @@ import numpy as np
 
 import navigate.core.id_ as id_
 from navigate.core import Node, Scalar, as_list, as_scalar, assign_id, assign_list, assign_value
-from navigate.core.enum_ import EnergyDemandTypeID, FuelTypeID, RouteTypeID
+from navigate.core.enum_ import FuelTypeID
 from navigate.core.expectations import VesselExpectation
 from navigate.core.profiles import VesselProfile
 from navigate.exceptions import no_value_assigned_error
-from navigate.fuel import get_fuels_per_fuel_type
 from navigate.util import to_numpy, unique_list
 from navigate.vessel.tank import Tank
 
@@ -565,62 +564,3 @@ class Vessel(Node):
 
     def is_assigned_to_fleet(self):
         return self.fleet_assignment is not None
-
-
-def determine_usable_fuels(vessels, fuels):
-    """
-    Maintain the list of usable fuels assigned to each vessel.
-
-    Parameters
-    ----------
-    vessels : dict[str, Vessel]
-        All vessels in the simulation.
-    fuels : dict[str, Fuel]
-        All fuels in the simulation.
-    """
-
-    fuel_by_fuel_type = get_fuels_per_fuel_type(fuels)
-
-    for vessel in vessels.values():
-
-        vessel.determine_fuel_type()
-        vessel.determine_usable_fuel_types()
-        vessel.determine_usable_fuels(fuel_by_fuel_type)
-
-
-def convert_to_regional_steps(vessel: Vessel,
-                              energy_sea: dict[EnergyDemandTypeID, list[float | np.ndarray] | np.ndarray],
-                              ) -> dict[EnergyDemandTypeID, list[float | np.ndarray]]:
-    """
-    Converts energy demand values for sea and port operations into regionally distributed steps.
-    This function adjusts the energy demand data based on the route type of the vessel and
-    the voyage distribution. If the route type is not a regional trip, the function simply
-    returns the input data as is. Otherwise, it redistributes the energy values into regional
-    steps based on voyage distribution fractions.
-
-
-    Returns
-    -------
-    Two dictionaries, one for regionally distributed energy demand while at sea and the
-    other for port operations. If the route type is not a regional trip, the output
-    dictionaries will be identical to the input.
-
-    """
-
-    route = vessel.route
-    route_type = route.route_type
-    n_leg = route.get_number_of_regional_legs()
-    out_sea = {demand_type: [0. for _ in range(n_leg)] for demand_type in energy_sea.keys()}
-
-    if route_type != RouteTypeID.REGIONAL_TRIP:
-        return energy_sea
-
-    sailing_fractions = route.get_voyage_distribution(to_array=True)
-
-    for energy_id, energy in energy_sea.items():
-        total_energy = sum(energy)
-
-        for leg in range(n_leg):
-            out_sea[energy_id][leg] = total_energy * sailing_fractions[leg]
-
-    return out_sea

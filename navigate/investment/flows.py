@@ -1,18 +1,22 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 from math import floor
-from typing import Callable
+from typing import TYPE_CHECKING, Callable
 
 import numpy as np
 
 from navigate.core.misc import EMPTY_FLOAT, ROUND_OFF, YEAR
 from navigate.core.unit import YEAR_TO_DAYS
-from navigate.fuel.region import Region
-from navigate.vessel.converter import Converter
-from navigate.vessel.power_system import PowerSystem
-from navigate.vessel.tank import Tank
-from navigate.vessel.technology import Technology
+
+if TYPE_CHECKING:
+    from navigate.fuel.region import Region
+    from navigate.vessel.converter import Converter
+    from navigate.vessel.power_system import PowerSystem
+    from navigate.vessel.tank import Tank
+    from navigate.vessel.technology import Technology
 
 
 class Component:

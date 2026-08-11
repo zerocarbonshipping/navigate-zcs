@@ -6,7 +6,7 @@ from navigate.vessel.converter import Converter
 from navigate.vessel.power_system import PowerSystem
 from navigate.vessel.tank import Tank
 from navigate.vessel.technology import Technology
-from navigate.vessel.vessel import Vessel, convert_to_regional_steps, determine_usable_fuels
+from navigate.vessel.vessel import Vessel
 
 __all__ = [
     "Converter",
@@ -15,6 +15,4 @@ __all__ = [
     "Tank",
     "Technology",
     "Vessel",
-    "convert_to_regional_steps",
-    "determine_usable_fuels",
 ]
