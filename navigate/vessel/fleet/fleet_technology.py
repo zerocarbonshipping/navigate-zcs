@@ -13,8 +13,9 @@ from navigate.core.enum_ import EnergyDemandTypeID, EnergyDemandTypePortID, Util
 from navigate.core.misc import TOLERANCE, YEAR
 from navigate.investment.decision import calculate_asset_shares
 from navigate.investment.flows import timeline_to_yearly
+from navigate.route.operation import convert_to_regional_steps
 from navigate.util import divide_nonzero
-from navigate.vessel import Technology, Vessel, convert_to_regional_steps
+from navigate.vessel import Technology, Vessel
 from navigate.vessel.fleet.fleet_utils import get_remaining_lifetime, is_retrofit_cycle
 from navigate.vessel.heuristic import calculate_marginal_technology_saving
 from navigate.vessel.package import Package, npv_for_newbuilds, npv_for_retrofit_steps, preprocess_packages

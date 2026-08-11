@@ -13,7 +13,11 @@ from navigate.bunker import BunkerAlgorithm
 from navigate.core.enum_ import BunkerScopeID, EnergyDemandTypeID, EnergyDemandTypePortID
 from navigate.core.misc import YEAR
 from navigate.core.profiles import ManagerProfile
-from navigate.fuel import calculate_plant_logistics_expectations, calculate_plant_production_expectations
+from navigate.fuel import (
+    calculate_plant_logistics_expectations,
+    calculate_plant_production_expectations,
+    get_fuels_per_fuel_type,
+)
 from navigate.fuel.producer.producer_profile import calculate_profile as calculate_producer_profile
 from navigate.fuel.producer.producer_utils import calculate_development_potential
 from navigate.fuel.supply_demand import (
@@ -34,10 +38,9 @@ from navigate.parser import Parser
 from navigate.policy import calculate_fair_share_threshold, calculate_policy_emission_coefficients
 from navigate.policy.offsetting import calculate_offsetting
 from navigate.route.import_export import calculate_fuel_import_to_ports
-from navigate.route.operation import update_operational_profile
+from navigate.route.operation import convert_to_regional_steps, update_operational_profile
 from navigate.route.speed import perform_speed_management
 from navigate.util import dates_to_days, timedelta_to_days
-from navigate.vessel import convert_to_regional_steps, determine_usable_fuels
 from navigate.vessel.charter import calculate_cargo_charter_properties, calculate_vessel_charter_properties
 from navigate.vessel.fair_share_fuel import calculate_fair_share_fuel_supply
 from navigate.vessel.fleet import fleet_evolution
@@ -850,7 +853,13 @@ class SimulationManager:
         # determine the possible fuels
         # usable by each vessel and store
         # them on the vessel as a convenience
-        determine_usable_fuels(self.nodes.vessels, self.nodes.fuels)
+        fuel_by_fuel_type = get_fuels_per_fuel_type(self.nodes.fuels)
+
+        for vessel in self.nodes.vessels.values():
+
+            vessel.determine_fuel_type()
+            vessel.determine_usable_fuel_types()
+            vessel.determine_usable_fuels(fuel_by_fuel_type)
 
         for fleet in self.nodes.fleets.values():
             fleet.initialize_existing_fleet(self._timeline)

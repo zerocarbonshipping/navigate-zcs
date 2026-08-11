@@ -25,7 +25,7 @@ from navigate.core.misc import YEAR
 from navigate.core.unit import DAY_TO_HOURS, HOUR_TO_DAYS, MWD_TO_GJ
 from navigate.route.route import Route
 from navigate.util import divide_nonzero, to_numpy
-from navigate.vessel import Vessel, convert_to_regional_steps
+from navigate.vessel import Vessel
 from navigate.vessel.power import calculate_technical_speed_limits
 
 
@@ -170,6 +170,44 @@ def transfer_operational_profile(vessel: Vessel,
     reference_speeds = to_numpy(vessel.route.speeds)
     reference_speed = np.average(reference_speeds, weights=operations.distribution)
     vessel.profile.set_reference_speed(idx, reference_speed)
+
+
+def convert_to_regional_steps(vessel: Vessel,
+                              energy_sea: dict[EnergyDemandTypeID, list[float | np.ndarray] | np.ndarray],
+                              ) -> dict[EnergyDemandTypeID, list[float | np.ndarray]]:
+    """
+    Redistribute energy demand at sea into regional steps based on the voyage distribution.
+
+    Parameters
+    ----------
+    vessel
+        Vessel whose route defines the regional legs and voyage distribution.
+    energy_sea
+        Energy demand at sea per energy demand type, one value per leg.
+
+    Returns
+    -------
+    Energy demand at sea redistributed across regional legs; the input unchanged if the
+    route is not a regional trip.
+    """
+
+    route = vessel.route
+    route_type = route.route_type
+    n_leg = route.get_number_of_regional_legs()
+    out_sea = {demand_type: [0. for _ in range(n_leg)] for demand_type in energy_sea.keys()}
+
+    if route_type != RouteTypeID.REGIONAL_TRIP:
+        return energy_sea
+
+    sailing_fractions = route.get_voyage_distribution(to_array=True)
+
+    for energy_id, energy in energy_sea.items():
+        total_energy = sum(energy)
+
+        for leg in range(n_leg):
+            out_sea[energy_id][leg] = total_energy * sailing_fractions[leg]
+
+    return out_sea
 
 
 def _calculate_trip(operations: Operations, vessel: Vessel) -> None:
