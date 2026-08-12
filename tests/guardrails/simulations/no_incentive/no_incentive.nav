@@ -1,0 +1,37 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: Apache-2.0
+
+# ------------------------------------------------------------------------------
+# GUARDRAIL DECK: NO INCENTIVE
+#
+# One fleet with all four fuel variants (oil, methane, methanol, ammonia) and
+# ample fuel supply, but no Regulation or Levy node — no GHG pricing mechanism
+# of any kind. Isolates the newbuild discrete choice model: absent incentives,
+# vessel choice is driven purely by cost differentials.
+#
+# The expected behavior and its rationale are documented in BEHAVIOR.md next to
+# this deck; the executable assertions live in tests/guardrails/test_no_incentive.py.
+# ------------------------------------------------------------------------------
+
+DEFINE {
+	Load DefaultModelDefinition
+
+	# default ports (port_global, port_europe) with bunker price overwrites
+	# for the market fuels (oil, LNG)
+	Load DefaultPort
+
+	Include "../0_includes/options.inc"
+	Include "includes/fleet.inc"
+	Include "includes/ports.inc"
+	Include "includes/fuel_supply.inc"
+
+	# domain-calibrated decision sensitivities (fleet and producer) — part of
+	# the mechanism this deck isolates; loaded after the nodes it configures
+	Load DefaultCalibration
+
+	Load DefaultEmission
+}
+
+EVENTS {
+	Load DefaultTimeStepYearly
+}
