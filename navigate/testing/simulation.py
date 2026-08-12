@@ -14,7 +14,16 @@ from pathlib import Path
 import numpy as np
 
 from navigate.__main__ import ASSUMPTIONS_ENV_VAR
+from navigate.core.misc import YEAR
+from navigate.fuel.producer.producer import Producer
 from navigate.manager import SimulationManager
+
+# Tolerance for comparing per-step producer development against the nominal
+# per-year MaximumDevelopment in decks with yearly time steps: leap years
+# deviate by up to 366/365.25 - 1 (about 0.21%). Property tests in decks
+# with non-yearly steps need a rate-normalized comparison instead (as
+# check_invariants does).
+EPS_DEVELOPMENT_REL = 2.5e-3
 
 
 def default_assumptions_dir() -> Path:
@@ -82,6 +91,35 @@ def run_simulation(sim_dir: Path, data_dir: Path | None = None) -> SimulationMan
     return manager
 
 
+def assertable_end(manager: SimulationManager, producer: Producer) -> int:
+    """
+    Last time-step index (exclusive) at which producer development is
+    assertable: in the final LeadTime years the foresight window runs past
+    the simulation end and the producer under-builds by construction.
+
+    Parameters
+    ----------
+    manager
+        Manager of a completed run.
+    producer
+        Producer whose first plant's LeadTime defines the excluded tail.
+
+    Returns
+    -------
+    Exclusive end index, guaranteed within (0, len(timeline)].
+    """
+
+    timeline = manager.get_timeline()
+    lead_time = int(round(producer.assets[0].lead_time.get(timeline[0])))
+    end = len(timeline) - lead_time
+    # guard against vacuously-true assertions on empty (or, with negative
+    # indices, silently wrong) windows when a horizon shrinks or a default
+    # lead time grows
+    assert 0 < end <= len(timeline), \
+        f"Assertable window is empty: {len(timeline)} steps, lead time {lead_time}"
+    return end
+
+
 def check_invariants(manager: SimulationManager) -> None:
     """
     Verifies universal invariants that must hold for every completed
@@ -106,3 +144,22 @@ def check_invariants(manager: SimulationManager) -> None:
     assert len(fleets) > 0, "No fleets defined"
     total_vessels = sum(len(f.get_vessels()) for f in fleets.values())
     assert total_vessels > 0, "No vessels in any fleet"
+
+    for fuel_name, energy in manager.profile.get_consumed_energy().items():
+        assert not np.any(np.isnan(energy)), f"NaN consumed energy for '{fuel_name}'"
+        assert not np.any(np.isinf(energy)), f"Infinite consumed energy for '{fuel_name}'"
+        assert np.all(energy >= -1e-9), f"Negative consumed energy for '{fuel_name}'"
+
+    # development is recorded per time step while MaximumDevelopment is a
+    # nominal per-year rate, so the cap must be scaled by each step's actual
+    # length (no development is recorded at the first step)
+    step_years = np.ones(len(timeline))
+    step_years[1:] = np.diff(timeline) / YEAR
+
+    for producer_name, producer in manager.nodes.producers.items():
+        development = producer.profile.get_development()
+        maximum = producer.profile.get_maximum_development()
+        assert not np.any(np.isnan(development)), f"NaN development for '{producer_name}'"
+        assert np.all(development >= -1e-9), f"Negative development for '{producer_name}'"
+        assert np.all(development <= maximum * step_years * (1. + 1e-6) + 1e-9), \
+            f"Development exceeds MaximumDevelopment for '{producer_name}'"
