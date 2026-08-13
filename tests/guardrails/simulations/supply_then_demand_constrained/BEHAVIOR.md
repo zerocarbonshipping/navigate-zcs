@@ -37,13 +37,28 @@ a roughly constant absolute energy headroom — which is why it is normalized
 by total fleet fuel demand rather than by alternative-fuel demand, whose
 small early values would inflate the ratio.
 
-The surplus band is 2–12% of total fleet fuel demand — proposed 2026-08-12
-from the ~4%/year replenishment reasoning, not yet signed off by the domain
-owner. Known to fail against current model behavior (2026-08-13): the tuning
-run shows the producer plans deliverable output ≈ consumption with only a
-~0–1% margin, so the floor fails — an open finding for the model, not a
-threshold to tune away (recorded in
-`ai-dev/notes/navigate-behavior-guardrails.md`).
+Supply ≥ demand is not observable by comparing supply against consumption:
+the bunker LP enforces consumption ≤ available supply as a hard mass-balance
+constraint, so during a squeeze the two are simply equal. The shortfall
+instead surfaces on the regulation, which covers missing compliance by
+buying remedial units — priced in this deck far above the e-ammonia
+abatement cost, so they are never bought voluntarily. Zero remedial units is
+therefore the proxy for supply ≥ regulation-imposed demand, and the
+post-catch-up property is: the regulation records no remedial units (domain
+owner, 2026-08-13). For the same reason the measured surplus
+(deliverable − consumption) equals the intended buffer only while demand is
+met; during a squeeze it collapses to ~0 regardless of what the producer
+plans.
+
+The surplus band is 2–12% of total fleet fuel demand — proposed 2026-08-12 from
+the ~4%/year replenishment reasoning, not yet signed off by the domain
+owner. Both properties are known to fail against current model behavior
+(2026-08-13): the producer plans deliverable output ≈ consumption with only
+a ~0–1% margin, and remedial units stay positive at most post-catch-up steps
+— an open finding for the model, not thresholds to tune away (recorded in
+`ai-dev/notes/navigate-behavior-guardrails.md`; the related
+slack-plus-remedial anomaly is ticketed in
+`ai-dev/notes/navigate-remedial-despite-slack-supply.md`).
 
 ## Known limitations
 
@@ -61,6 +76,5 @@ growth rate — a single continuous hand-off from constraint-driven to
 demand-driven buildout, with no alternating over/under-build pattern.
 Observed in the tuning run (2026-08-12): the post-catch-up build rate
 oscillates noticeably (roughly 0.7–7.6 plants/year around a ~5/year trend)
-even though delivered supply never drops below demand — a candidate for
-formalizing into a tier-2 smoothness assertion once the intended tolerance
-is decided.
+— a candidate for formalizing into a tier-2 smoothness assertion once the
+intended tolerance is decided.

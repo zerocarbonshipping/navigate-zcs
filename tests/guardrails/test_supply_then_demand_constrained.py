@@ -31,6 +31,12 @@ CATCHUP_STEP = 11
 # step only initializes expectations).
 PRE_CATCHUP = slice(1, CATCHUP_STEP)
 
+# Noise floor for asserting "no remedial units", relative to the remedial
+# magnitude of the genuinely supply-constrained pre-catch-up phase: 1e-6 of
+# that scale is far below any economically meaningful purchase while
+# comfortably above LP float dust.
+EPS_REMEDIAL_REL = 1e-6
+
 # Band on the deliverable-supply surplus (capacity x uptime, minus
 # consumption), normalized by total fleet fuel demand — see BEHAVIOR.md for
 # the domain reasoning and the band's sign-off status.
@@ -85,10 +91,20 @@ class TestSupplyThenDemandConstrained:
         assert np.all(development[post_window]
                       < maximum[post_window] * (1. - EPS_DEVELOPMENT_REL))
 
-    def test_no_supply_squeeze(self, manager, deliverable, post_window):
-        consumption = manager.profile.get_consumed_energy(FUEL)
+    def test_demand_met_after_catchup(self, manager, post_window):
+        """Supply >= demand is not observable from consumption (the bunker LP
+        caps consumption at available supply): a squeeze shows up as the
+        regulation buying remedial units instead — see BEHAVIOR.md. After
+        catch-up demand must be met, i.e. no remedial units."""
+        regulation = manager.nodes.regulations["intensity_regulation"]
+        remedial = regulation.profile.get_remedial_units()
 
-        assert np.all(deliverable[post_window] >= consumption[post_window] * (1. - 1e-6))
+        # deck validity: before catch-up the scenario is supply-constrained,
+        # so remedial units are strictly positive
+        pre_catchup = remedial[PRE_CATCHUP]
+        assert np.all(pre_catchup > 0.)
+
+        assert np.all(remedial[post_window] <= EPS_REMEDIAL_REL * pre_catchup.max())
 
     def test_surplus_band(self, manager, deliverable, post_window):
         consumption = manager.profile.get_consumed_energy(FUEL)
