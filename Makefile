@@ -47,8 +47,10 @@ test-unit:  ## Unit + contract tests
 test-attribute:  ## Attribute coverage tests
 	$(RUN) pytest tests/attribute/ -s -v --tb=short
 
+# --maxfail=0 overrides the -x in pyproject addopts: guardrail failures are
+# domain findings, and one must not mask the assertions behind it.
 test-guardrails:  ## Behavior guardrail tests
-	$(RUN) pytest tests/guardrails/ -v --tb=short
+	$(RUN) pytest tests/guardrails/ -v --tb=short --maxfail=0
 
 test-all:  ## Full test suite (all pytest suites + tutorials + examples)
 	$(MAKE) test-unit
