@@ -1,0 +1,43 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: Apache-2.0
+
+# ------------------------------------------------------------------------------
+# GUARDRAIL DECK: CONTINUOUSLY SUPPLY-CONSTRAINED
+#
+# A GHG-intensity regulation imposes alternative-fuel (e-ammonia) demand on a
+# single oil/ammonia fleet, while the Producer's MaximumDevelopment is set so
+# low that supply can never catch up with that demand. Isolates the demand
+# signal propagating from the bunker algorithm to producer plant development:
+# the Producer must sit at its development constraint throughout.
+#
+# The expected behavior and its rationale are documented in BEHAVIOR.md next to
+# this deck; the executable assertions live in
+# tests/guardrails/test_supply_constrained.py.
+# ------------------------------------------------------------------------------
+
+DEFINE {
+	Load DefaultModelDefinition
+
+	# shared with supply_then_demand_constrained, which differs from this
+	# deck by exactly one override (see its includes/)
+	Include "../0_includes/options.inc"
+	Include "../0_includes/fleet_oil_ammonia.inc"
+	Include "../0_includes/ports_oil_ammonia.inc"
+	Include "../0_includes/fuel_supply_ammonia.inc"
+	Include "../0_includes/regulation_intensity.inc"
+
+	Load DefaultEmission
+
+	# domain-calibrated decision sensitivities (fleet and producer);
+	# loaded after the nodes it configures
+	Load DefaultCalibration
+
+	# plots for manual deck inspection (run the deck without -s);
+	# tests suppress plot generation to stay fast
+	Load DefaultPlot
+	Load DebugPlot
+}
+
+EVENTS {
+	Load DefaultTimeStepYearly
+}

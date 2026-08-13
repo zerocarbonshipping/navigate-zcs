@@ -11,7 +11,7 @@ else
   RUN := .venv/bin
 endif
 
-.PHONY: lint test-unit test-attribute test-all test-tutorials test-examples help setup conda-setup pip-setup docs docs-clean
+.PHONY: lint test-unit test-attribute test-guardrails test-all test-tutorials test-examples help setup conda-setup pip-setup docs docs-clean
 
 help:  ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
@@ -47,9 +47,15 @@ test-unit:  ## Unit + contract tests
 test-attribute:  ## Attribute coverage tests
 	$(RUN) pytest tests/attribute/ -s -v --tb=short
 
+# --maxfail=0 overrides the -x in pyproject addopts: guardrail failures are
+# domain findings, and one must not mask the assertions behind it.
+test-guardrails:  ## Behavior guardrail tests
+	$(RUN) pytest tests/guardrails/ -v --tb=short --maxfail=0
+
 test-all:  ## Full test suite (all pytest suites + tutorials + examples)
 	$(MAKE) test-unit
 	$(MAKE) test-attribute
+	$(MAKE) test-guardrails
 	$(MAKE) test-tutorials
 	$(MAKE) test-examples
 

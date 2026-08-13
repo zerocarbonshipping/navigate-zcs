@@ -1,0 +1,47 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: Apache-2.0
+
+# ------------------------------------------------------------------------------
+# GUARDRAIL DECK: SUPPLY-CONSTRAINED, THEN DEMAND-CONSTRAINED
+#
+# Identical to the supply_constrained deck except for one constant: the
+# Producer's MaximumDevelopment is raised so that supply catches up with the
+# regulation-imposed e-ammonia demand roughly halfway through the simulation.
+# Isolates the supply ramp-up behaving continuously relative to the demand
+# signal: once supply catches up, the Producer must leave its development
+# constraint and settle into tracking demand with a slight surplus, rather
+# than oscillating between over- and under-supply.
+#
+# The expected behavior and its rationale are documented in BEHAVIOR.md next to
+# this deck; the executable assertions live in
+# tests/guardrails/test_supply_then_demand_constrained.py.
+# ------------------------------------------------------------------------------
+
+DEFINE {
+	Load DefaultModelDefinition
+
+	# the supply_constrained deck, verbatim...
+	Include "../0_includes/options.inc"
+	Include "../0_includes/fleet_oil_ammonia.inc"
+	Include "../0_includes/ports_oil_ammonia.inc"
+	Include "../0_includes/fuel_supply_ammonia.inc"
+	Include "../0_includes/regulation_intensity.inc"
+
+	# ...plus the one constant that changes the scenario
+	Include "includes/maximum_development.inc"
+
+	Load DefaultEmission
+
+	# domain-calibrated decision sensitivities (fleet and producer);
+	# loaded after the nodes it configures
+	Load DefaultCalibration
+
+	# plots for manual deck inspection (run the deck without -s);
+	# tests suppress plot generation to stay fast
+	Load DefaultPlot
+	Load DebugPlot
+}
+
+EVENTS {
+	Load DefaultTimeStepYearly
+}

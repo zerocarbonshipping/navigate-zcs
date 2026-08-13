@@ -36,11 +36,11 @@ def _make_vessel_profile(timeline, fuels, emissions):
     return p
 
 
-def _make_fleet_profile(timeline, fuels, emissions, vessel_names):
+def _make_fleet_profile(timeline, fuels, emissions, vessel_names, technology_names=()):
     p = FleetProfile()
     p.initialize(timeline=timeline, vessel_names=vessel_names,
-                 technology_names=[], fuels=fuels, emissions=emissions,
-                 emissions_lifetime=100.)
+                 technology_names=list(technology_names), fuels=fuels,
+                 emissions=emissions, emissions_lifetime=100.)
     return p
 
 
@@ -131,3 +131,40 @@ class TestFleetAggregationConsistency:
         wtw = fleet.get_total_equivalent_WTW()
         assert wtw[0] == pytest.approx(10.0)
         assert wtw[1] == pytest.approx(0.0)
+
+
+class TestFleetTechnologyUptake:
+    """get_fleet_technology_uptake == existing-vessel-weighted average."""
+
+    @pytest.fixture
+    def fleet(self, timeline, fuels, emissions):
+        p = _make_fleet_profile(timeline, fuels, emissions,
+                                vessel_names=["v1", "v2"], technology_names=["tech"])
+        p._technology_uptake[("v1", "tech")][:] = [0.8, 0.5]
+        p._technology_uptake[("v2", "tech")][:] = [0.4, 0.1]
+        p._existing_vessels["v1"][:] = [3.0, 0.0]
+        p._existing_vessels["v2"][:] = [1.0, 0.0]
+        return p
+
+    def test_weighted_average(self, fleet):
+        # closed-form: (0.8*3 + 0.4*1) / (3 + 1) = 0.7
+        assert fleet.get_fleet_technology_uptake("tech")[0] == pytest.approx(0.7)
+
+    def test_empty_fleet_step_is_zero(self, fleet):
+        assert fleet.get_fleet_technology_uptake("tech")[1] == 0.0
+
+    def test_dict_form_and_idx(self, fleet):
+        uptake = fleet.get_fleet_technology_uptake()
+        assert list(uptake) == ["tech"]
+        np.testing.assert_allclose(uptake["tech"], [0.7, 0.0])
+        assert fleet.get_fleet_technology_uptake("tech", 0) == pytest.approx(0.7)
+
+    def test_no_technologies(self, timeline, fuels, emissions):
+        fleet = _make_fleet_profile(timeline, fuels, emissions, vessel_names=["v"])
+        assert fleet.get_fleet_technology_uptake() == {}
+
+    def test_no_vessels_is_timeline_shaped_zero(self, timeline, fuels, emissions):
+        fleet = _make_fleet_profile(timeline, fuels, emissions, vessel_names=[],
+                                    technology_names=["tech"])
+        np.testing.assert_array_equal(fleet.get_fleet_technology_uptake("tech"),
+                                      np.zeros_like(timeline))

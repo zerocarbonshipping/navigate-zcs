@@ -60,7 +60,8 @@ New code needs appropriate test coverage:
   (`tests/attribute`).
 - New non-trivial calculations need a unit test (`tests/unit`).
 - Changes that alter simulation results should explain the difference in the
-  pull request description.
+  pull request description and must keep the behavior guardrails passing
+  (`tests/guardrails` — see its `README.md` before touching thresholds).
 
 ## Questions
 

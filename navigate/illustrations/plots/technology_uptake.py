@@ -49,15 +49,9 @@ def plot_technology_uptake(manager, directory):
         for name in technology_names:
 
             # NOTE: underlying storage is still a tuple-dict; keep extraction logic
-            shares = extract_from_tuple_dict(uptakes, key2=name) if uptakes else {}
             shares_nb = extract_from_tuple_dict(uptakes_nb, key2=name) if uptakes_nb else {}
             shares_rf = extract_from_tuple_dict(uptakes_rf, key2=name) if uptakes_rf else {}
 
-            values = [
-                shares[vessel.get_name()]
-                for vessel in fleet.get_vessels()
-                if vessel.get_name() in shares
-            ]
             values_nb = [
                 shares_nb[vessel.get_name()]
                 for vessel in fleet.get_vessels()
@@ -69,10 +63,12 @@ def plot_technology_uptake(manager, directory):
                 if vessel.get_name() in shares_rf
             ]
 
+            # the uptake tuple-dicts are dense over the same vessel set, so
+            # filtering weights on shares_rf pairs them with values_rf
             weights = [
                 multipliers[vessel.get_name()]
                 for vessel in fleet.get_vessels()
-                if vessel.get_name() in shares
+                if vessel.get_name() in shares_rf
             ]
             weights_nb = [
                 profile.get_newbuilds(vessel.get_name())
@@ -81,14 +77,7 @@ def plot_technology_uptake(manager, directory):
             ]
 
             # Fleet-wide weighted uptake (existing fleet)
-            if values and weights:
-                uptake[name] = [
-                    np.average([v[i] for v in values], weights=[w[i] for w in weights])
-                    if np.sum([w[i] for w in weights]) > 0.0 else 0.0
-                    for i in range(dateline.size)
-                ]
-            else:
-                uptake[name] = [0.0 for _ in range(dateline.size)]
+            uptake[name] = profile.get_fleet_technology_uptake(name)
 
             # Newbuild uptake (weighted if weights exist; otherwise simple average)
             if values_nb:
