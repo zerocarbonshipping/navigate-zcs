@@ -62,7 +62,13 @@ pytest tests/guardrails/test_<deck_name>.py -v    # one deck
 
 Tests use `navigate.testing.simulation.run_simulation` (in-process
 `SimulationManager`, no CLI) and call `check_invariants` before the
-deck-specific assertions.
+deck-specific assertions, with plot generation suppressed. To inspect a
+deck's behavior visually, run it manually without `-s` — every deck loads
+`DefaultPlot` and `DebugPlot`:
+
+```
+navigate tests/guardrails/simulations/<deck_name>/<deck_name>.nav -d ./assumptions
+```
 
 ## The rules that keep guardrails honest
 

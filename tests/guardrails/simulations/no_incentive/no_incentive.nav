@@ -34,6 +34,11 @@ DEFINE {
 	Load DefaultCalibration
 
 	Load DefaultEmission
+
+	# plots for manual deck inspection (run the deck without -s);
+	# tests suppress plot generation to stay fast
+	Load DefaultPlot
+	Load DebugPlot
 }
 
 EVENTS {

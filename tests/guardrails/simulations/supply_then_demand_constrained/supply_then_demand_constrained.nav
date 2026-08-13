@@ -35,6 +35,11 @@ DEFINE {
 	# domain-calibrated decision sensitivities (fleet and producer);
 	# loaded after the nodes it configures
 	Load DefaultCalibration
+
+	# plots for manual deck inspection (run the deck without -s);
+	# tests suppress plot generation to stay fast
+	Load DefaultPlot
+	Load DebugPlot
 }
 
 EVENTS {
