@@ -22,16 +22,19 @@ SIMULATIONS_DIR = Path(__file__).resolve().parent / "simulations"
 FUEL = "ammonia_electro"
 
 # First step at which development leaves the constraint. A fixed index from
-# the deck tuning run (2026-08, MaximumDevelopment = 3), not auto-detected:
+# the deck tuning run (2026-08, MaximumDevelopment = 8), not auto-detected:
 # crossing detection on LP output would need its own tolerance and could
 # silently drift with unrelated model changes.
-CATCHUP_STEP = 12
+CATCHUP_STEP = 11
 
-# Band on the supply surplus, normalized by TOTAL fleet fuel demand so the
-# early small alternative-fuel volumes cannot inflate the ratio: the surplus
-# is meant to be a roughly constant absolute energy headroom (about one
-# time-step's worth of demand creation, ~4%/year fleet replenishment), not a
-# fraction of alternative-fuel demand. Pending domain-owner sign-off — see
+# Band on the deliverable-supply surplus (capacity x uptime, minus
+# consumption), normalized by TOTAL fleet fuel demand so the early small
+# alternative-fuel volumes cannot inflate the ratio. The surplus exists to
+# absorb demand jumps within one time step (newbuilds and fuel conversions,
+# ~4%/year fleet replenishment) without triggering short-term shortages and
+# regulatory non-compliance, so it is measured on what plants can actually
+# deliver — deliberately independent of the nameplate-vs-uptime distinction.
+# The band values are proposed, not yet domain-owner signed off — see
 # BEHAVIOR.md, Threshold ownership.
 MIN_SURPLUS = 0.02
 MAX_SURPLUS = 0.12
@@ -58,6 +61,12 @@ def post_window(manager, producer):
     return slice(CATCHUP_STEP, end)
 
 
+@pytest.fixture(scope="module")
+def deliverable(producer):
+    """Deliverable e-ammonia supply: capacity x uptime per plant increment."""
+    return producer.profile.get_production_energy(FUEL)
+
+
 @pytest.mark.slow
 class TestSupplyThenDemandConstrained:
 
@@ -79,14 +88,12 @@ class TestSupplyThenDemandConstrained:
         assert np.all(development[post_window]
                       < maximum[post_window] * (1. - EPS_DEVELOPMENT_REL))
 
-    def test_no_supply_squeeze(self, manager, producer, post_window):
-        production = producer.profile.get_production_energy(FUEL)
+    def test_no_supply_squeeze(self, manager, deliverable, post_window):
         consumption = manager.profile.get_consumed_energy(FUEL)
 
-        assert np.all(production[post_window] >= consumption[post_window] * (1. - 1e-6))
+        assert np.all(deliverable[post_window] >= consumption[post_window] * (1. - 1e-6))
 
-    def test_surplus_band(self, manager, producer, post_window):
-        capacity = producer.profile.get_capacity_energy(FUEL)
+    def test_surplus_band(self, manager, deliverable, post_window):
         consumption = manager.profile.get_consumed_energy(FUEL)
         total = manager.profile.get_total_consumed_energy()
 
@@ -94,6 +101,6 @@ class TestSupplyThenDemandConstrained:
         # from zero while development leaves the constraint
         post = slice(post_window.start + 1, post_window.stop)
 
-        surplus = (capacity[post] - consumption[post]) / total[post]
+        surplus = (deliverable[post] - consumption[post]) / total[post]
         assert np.all(surplus >= MIN_SURPLUS)
         assert np.all(surplus <= MAX_SURPLUS)

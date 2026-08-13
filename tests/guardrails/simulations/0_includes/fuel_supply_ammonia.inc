@@ -1,11 +1,15 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-# E-ammonia supply chain, shared by the two supply decks. MaximumDevelopment
-# is a deck-sizing input (tuned): the value below keeps supply permanently
-# behind the regulation-imposed demand (supply_constrained);
-# supply_then_demand_constrained overrides it in its own includes/ so supply
-# catches up mid-simulation.
+# E-ammonia supply chain with every economic and sizing input pinned to an
+# explicit constant (rounded from the 2026-08 installation defaults), so
+# upstream assumption changes cannot silently re-size the scenario. WTT
+# emissions are hard-coded at the ports, not built bottom-up.
+#
+# MaximumDevelopment is a deck-sizing input (tuned): the value below keeps
+# supply permanently behind the regulation-imposed demand
+# (supply_constrained); supply_then_demand_constrained overrides it in its
+# own includes/ so supply catches up mid-simulation.
 
 Import Fuel "fossil_fuel_oil"
 
@@ -16,6 +20,12 @@ Import Plant "plant_ammonia_electro_alkaline"
 Plant "plant_ammonia_electro_alkaline" {
 	Region = Region("europe")
 	Source = Source("renewable")
+
+	# pinned sizing
+	Capacity = 1000      # ton/day
+	LeadTime = 5         # years
+	Lifetime = 30        # years
+	Uptime = 0.9
 }
 
 Import Process "electrolysis_stack_alkaline"
@@ -30,44 +40,33 @@ Producer "epc_europe" {
 
 	MaximumDevelopment = 1
 
-	# no artificial utilization ramp at simulation start: the deck asserts
-	# that development is pinned to the constraint from the first step
+	# no artificial utilization ramp at simulation start: the decks assert
+	# development behavior from the first step
 	JumpStartFraction = 1.0
 
 	set_export_distribution("port_global", 1.)
 }
 
-# --------------------------- REGION AND SOURCES ------------------------------
 Import Source "renewable"
-Import Transport "truck"
 
+# pinned production economics (USD/ton unless noted)
 Region "europe" {
-	# energy source cost
-	set_source_opex("renewable", Forecast("electricity_cost_europe_mid"))
+	set_source_opex("renewable", 70)                # USD/MWh
+	set_feedstock_cost("demineralized_water", 2)
 
-	# feedstock cost
-	set_feedstock_cost("demineralized_water", Forecast("demineralized_water_cost"))
+	set_process_capex("electrolysis_stack_alkaline", 4000)
+	set_process_opex("electrolysis_stack_alkaline", 160)
+	set_process_energy("electrolysis_stack_alkaline", 51)    # MWh/ton
+	set_process_lifetime("electrolysis_stack_alkaline", 10)  # years
+	set_process_replacement("electrolysis_stack_alkaline", 0.2)
 
-	# e-hydrogen (alkaline)
-	set_process_capex("electrolysis_stack_alkaline", Timetable("electrolysis_stack_alkaline_capex"))
-	set_process_opex("electrolysis_stack_alkaline", Timetable("electrolysis_stack_alkaline_opex"))
-	set_process_energy("electrolysis_stack_alkaline", Forecast("electrolysis_stack_alkaline_energy"))
-	set_process_lifetime("electrolysis_stack_alkaline", Forecast("electrolysis_stack_alkaline_lifetime"))
-	set_process_replacement("electrolysis_stack_alkaline", Forecast("electrolysis_stack_alkaline_replacement"))
+	set_process_capex("hydrogen_electro_alkaline", 3600)
+	set_process_opex("hydrogen_electro_alkaline", 145)
+	set_process_energy("hydrogen_electro_alkaline", 4.0)     # MWh/ton
+	set_process_lifetime("hydrogen_electro_alkaline", 20)    # years
+	set_process_replacement("hydrogen_electro_alkaline", 0.2)
 
-	set_process_capex("hydrogen_electro_alkaline", Timetable("hydrogen_electro_alkaline_capex"))
-	set_process_opex("hydrogen_electro_alkaline", Timetable("hydrogen_electro_alkaline_opex"))
-	set_process_energy("hydrogen_electro_alkaline", Forecast("hydrogen_electro_alkaline_energy"))
-	set_process_lifetime("hydrogen_electro_alkaline", Forecast("hydrogen_electro_alkaline_lifetime"))
-	set_process_replacement("hydrogen_electro_alkaline", Forecast("hydrogen_electro_alkaline_replacement"))
-
-	# e-ammonia
-	set_process_capex("ammonia_synthesis_electro_*", Timetable("ammonia_synthesis_capex"))
-	set_process_opex("ammonia_synthesis_electro_*", Timetable("ammonia_synthesis_opex"))
-	set_process_energy("ammonia_synthesis_electro_*", Forecast("ammonia_synthesis_energy"))
-}
-
-Region "*" {
-	set_transport_cost("truck", 0.0)
-	set_transport_wtt("truck", "carbon_dioxide", Forecast("truck_emissions"))
+	set_process_capex("ammonia_synthesis_electro_*", 900)
+	set_process_opex("ammonia_synthesis_electro_*", 40)
+	set_process_energy("ammonia_synthesis_electro_*", 0.44)  # MWh/ton
 }

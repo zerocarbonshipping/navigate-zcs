@@ -78,6 +78,13 @@ deck-specific assertions.
   a deck, tune deck inputs (constraints, capacities, regulation levels) until
   the scenario has the intended shape — never loosen an ε or window because
   a badly-sized deck fails.
+- **Pin scenario inputs as explicit constants.** Fuel prices, WTT emissions,
+  production economics, and plant sizing are hard-coded in the deck (port
+  price/WTT overwrites, literal setter values), not imported from assumption
+  defaults: a guardrail is a controlled experiment, and upstream assumption
+  drift must not silently re-size it. Import defaults only where the
+  calibrated values are themselves part of the tested mechanism (e.g. vessel
+  CAPEX/OPEX in `no_incentive`).
 - **An honest failure is signal.** If a correctly-specified deck fails
   against current model behavior, report it — that is the suite doing its
   job, not a blocker to absorb.

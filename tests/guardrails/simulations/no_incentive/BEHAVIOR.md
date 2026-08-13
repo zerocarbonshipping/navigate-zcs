@@ -46,8 +46,10 @@ In order:
 
 1. Dual-fuel vessel CAPEX/OPEX assumptions too low, flattening the vessel
    cost differences the choice is supposed to respond to (check the
-   `container_15000_teu_*` CAPEX/OPEX forecasts and supply-system CAPEX in
-   `assumptions/defaults/installation/`).
+   `container_15000_teu_*` CAPEX/OPEX forecasts and the vessels' fuel
+   supply-system (PowerSystem) CAPEX in `assumptions/defaults/installation/`
+   — the vessel side deliberately stays on these defaults; fuel-side
+   economics are pinned in the deck, see Known limitations).
 2. Sensitivity parameters of the discrete choice model too insensitive,
    producing a too-uniform allocation across near-equal-cost options (check
    `InterFuelSensitivity`/`IntraFuelSensitivity` in
@@ -64,6 +66,12 @@ In order:
 
 - One fleet segment (15,000 TEU containers) stands in for the whole market;
   the claim is about the choice mechanism, not about segment coverage.
+- All fuel-side economics (bunker prices, WTT emissions, production process
+  costs, plant sizing) are pinned as explicit constants in the deck, so
+  upstream assumption changes cannot silently move the cost differentials.
+  Vessel CAPEX/OPEX deliberately stays on the calibrated installation
+  defaults — those differentials are part of what this deck tests
+  (diagnostic 1).
 - The deck pins `Solver = HIGHS` so results do not depend on a Gurobi
   license.
 

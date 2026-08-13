@@ -30,7 +30,7 @@ distorted somewhere between the bunker algorithm and producer planning.
 
 | Assertion (test_supply_constrained.py) | Property it checks | ε and why |
 |---|---|---|
-| `test_development_pinned_to_constraint` | development == MaximumDevelopment for every step in `[1, n − LeadTime)` | `EPS_DEV_REL = 0.0025`: development is recorded per calendar year against a nominal per-year constraint, so leap years deviate by up to 366/365.25 − 1 ≈ 0.21% |
+| `test_development_pinned_to_constraint` | development == MaximumDevelopment for every step in `[1, n − LeadTime)` | `EPS_DEVELOPMENT_REL = 0.0025`: development is recorded per calendar year against a nominal per-year constraint, so leap years deviate by up to 366/365.25 − 1 ≈ 0.21% |
 | `test_demand_remains_unmet` | deck validity: remedial units stay positive, i.e. the scenario stays supply-constrained | none needed (strict positivity) |
 
 ## Diagnostics if this fails
@@ -70,11 +70,13 @@ In order:
 
 The property (development pinned to the constraint while demand is unmet)
 and the tail-exclusion framing are the domain owner's specification, 2026-08
-(recorded in `ai-dev/notes/navigate-behavior-guardrails.md`). `EPS_DEV_REL`
-derives from calendar-year accounting, not from a domain decision. Deck
-sizing inputs (`MaximumDevelopment = 1`, remedial cost 1000 USD/t, threshold
-trajectory, 30% initial ammonia share) were tuned 2026-08 to keep the
-scenario permanently supply-constrained; they carry no domain meaning.
+(recorded in `ai-dev/notes/navigate-behavior-guardrails.md`).
+`EPS_DEVELOPMENT_REL` derives from calendar-year accounting, not from a
+domain decision. Deck sizing inputs (`MaximumDevelopment = 1`, remedial cost
+1000 USD/t, threshold trajectory, 30% initial ammonia share, and the pinned
+fuel prices/WTT/production economics in `../0_includes/`) were tuned 2026-08
+to keep the scenario permanently supply-constrained; they carry no domain
+meaning.
 
 ## Qualitative expectations (tier 3, prose only)
 

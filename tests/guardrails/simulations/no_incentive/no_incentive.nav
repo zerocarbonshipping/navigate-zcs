@@ -16,14 +16,18 @@
 DEFINE {
 	Load DefaultModelDefinition
 
-	# default ports (port_global, port_europe) with bunker price overwrites
-	# for the market fuels (oil, LNG)
-	Load DefaultPort
-
 	Include "../0_includes/options.inc"
 	Include "includes/fleet.inc"
+
+	# shared oil+ammonia ports and pinned overwrites, then this deck's
+	# additional fuels (LNG, methanol) layered on top
+	Include "../0_includes/ports_oil_ammonia.inc"
 	Include "includes/ports.inc"
-	Include "includes/fuel_supply.inc"
+
+	# pinned e-ammonia chain shared with the supply decks; methanol_supply.inc
+	# overrides its producer to ample supply
+	Include "../0_includes/fuel_supply_ammonia.inc"
+	Include "includes/methanol_supply.inc"
 
 	# domain-calibrated decision sensitivities (fleet and producer) — part of
 	# the mechanism this deck isolates; loaded after the nodes it configures

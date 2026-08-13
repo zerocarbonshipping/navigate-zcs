@@ -1,19 +1,25 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-# The default ports (port_global, port_europe) are loaded by the .nav via
-# Load DefaultPort, which also overwrites bunker prices for oil and LNG.
+# Layered on top of ../0_includes/ports_oil_ammonia.inc (included first by
+# the .nav): adds the LNG and methanol fuels this deck also offers, and
+# widens the liquid market fuels to include LNG. Prices and WTT are pinned
+# constants (rounded from the 2026-08 installation defaults); without a
+# Regulation or Levy the WTT values carry no cost, but they keep the deck's
+# emission accounting honest.
 Port "*" {
-	set_bunkering_allowed("fossil_fuel_oil", TRUE)
 	set_bunkering_allowed("liquefied_natural_gas", TRUE)
 	set_bunkering_allowed("methanol_bio", TRUE)
-	set_bunkering_allowed("ammonia_electro", TRUE)
+
+	set_bunker_price_overwrite("liquefied_natural_gas", 436)                  # USD/ton
+	set_bunker_wtt_overwrite("liquefied_natural_gas", "carbon_dioxide", 0.7)  # ton/ton fuel
+	set_bunker_wtt_overwrite("liquefied_natural_gas", "methane", 0.0073)
+
+	# bio-methanol: biogenic carbon uptake credited upstream
+	set_bunker_wtt_overwrite("methanol_bio", "carbon_dioxide", -1.38)
 }
 
 BunkerLogistics {
 	# oil and LNG are liquid market fuels: available without a Producer
 	LiquidMarketFuels = [Fuel("fossil_fuel_oil"), Fuel("liquefied_natural_gas")]
-
-	set_distance("*", "*", 1000)
-	set_transport_cost("*", 0.1)
 }

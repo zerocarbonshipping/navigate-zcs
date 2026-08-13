@@ -6,5 +6,5 @@
 # simulation (deck-sizing input, tuned; CATCHUP_STEP in the test module was
 # derived from this value's tuning run).
 Producer "epc_europe" {
-	MaximumDevelopment = 3
+	MaximumDevelopment = 8
 }
