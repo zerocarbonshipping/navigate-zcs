@@ -33,6 +33,10 @@ DEFINE {
 	# the mechanism this deck isolates; loaded after the nodes it configures
 	Load DefaultCalibration
 
+	# pinned after DefaultCalibration so the calibration module cannot
+	# silently overwrite it (see the include's comment)
+	Include "includes/technology_cost_of_capital.inc"
+
 	Load DefaultEmission
 
 	# plots for manual deck inspection (run the deck without -s);

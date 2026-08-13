@@ -4,7 +4,9 @@
 """Guardrail: no-incentive scenario.
 
 Without any GHG pricing mechanism, the newbuild choice model must allocate
-nearly the whole fleet to oil and methane vessels. The intent prose and the
+nearly the whole fleet to oil and methane vessels, and the efficiency levers
+(technology uptake, operational speed, the resulting energy savings) must
+stay approximately at their initial values. The intent prose and the
 diagnostic list for failures live in simulations/no_incentive/BEHAVIOR.md.
 """
 from pathlib import Path
@@ -12,7 +14,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from navigate.core.enum_ import FuelTypeID
+from navigate.core.enum_ import EnergyDemandTypeID, FuelTypeID
 from navigate.testing.simulation import check_invariants, run_simulation
 
 SIMULATIONS_DIR = Path(__file__).resolve().parent / "simulations"
@@ -30,6 +32,16 @@ MAX_METHANOL_SHARE = 0.03
 MAX_AMMONIA_SHARE = 0.01
 MIN_OIL_METHANE_SHARE = 1. - MAX_METHANOL_SHARE - MAX_AMMONIA_SHARE
 
+# Domain-owner drift tolerances (see BEHAVIOR.md, Threshold ownership) for the
+# efficiency levers, each measured against the series' initial value: the
+# saving and uptake bands are absolute (percentage points, expressed as
+# fractions) because operational saving starts at exactly 0, where a relative
+# band is undefined; the speed band is relative because speed has a physical
+# unit and no natural absolute scale.
+MAX_SAVING_DRIFT = 0.05
+MAX_UPTAKE_DRIFT = 0.10
+MAX_SPEED_DRIFT_REL = 0.10
+
 
 @pytest.fixture(scope="module")
 def manager():
@@ -37,9 +49,13 @@ def manager():
 
 
 @pytest.fixture(scope="module")
-def market_shares(manager):
+def fleet(manager):
+    return manager.nodes.fleets["container_15000_teu"]
+
+
+@pytest.fixture(scope="module")
+def market_shares(fleet):
     """Fleet-wide market share per fuel type at the final time step."""
-    fleet = manager.nodes.fleets["container_15000_teu"]
     fuel_types = {vessel.name: FuelTypeID(vessel.fuel_type) for vessel in fleet.get_vessels()}
     existing = fleet.profile.get_existing_vessels()
 
@@ -48,6 +64,32 @@ def market_shares(manager):
     for name, counts in existing.items():
         shares[fuel_types[name]] += counts[-1] / total
     return shares
+
+
+@pytest.fixture(scope="module")
+def technology_uptake(fleet):
+    """Fleet-wide uptake series per technology: per-vessel uptake shares
+    weighted by existing vessel counts (the 'Fleet' line of the
+    technology_uptake plot)."""
+    multipliers = fleet.profile.get_existing_vessels()
+
+    assert fleet.technologies, "Deck validity: the fleet must carry technologies"
+
+    series = {}
+    for technology in fleet.technologies:
+        name = technology.get_name()
+        shares = fleet.profile.get_technology_uptake(technology_name=name)
+
+        assert shares, f"No uptake recorded for technology '{name}'"
+        values = np.array([shares[vessel_name] for vessel_name in shares])
+        weights = np.array([multipliers[vessel_name] for vessel_name in shares])
+
+        # deck validity, stricter than the plot's fall-back to 0: a step with
+        # no existing vessels would make the stability claim vacuous
+        weight_sums = weights.sum(axis=0)
+        assert np.all(weight_sums > 0.)
+        series[name] = (values * weights).sum(axis=0) / weight_sums
+    return series
 
 
 @pytest.mark.slow
@@ -75,3 +117,40 @@ class TestNoIncentive:
     def test_oil_and_methane_dominate(self, market_shares):
         dominant = market_shares[FuelTypeID.OIL] + market_shares[FuelTypeID.METHANE]
         assert dominant >= MIN_OIL_METHANE_SHARE - EPS_SHARE
+
+    def test_global_savings_stable(self, manager):
+        """The series of the global_energy_saving plot must all stay at their
+        initial values: with no incentive, nothing should drive additional
+        energy-saving effort."""
+        profile = manager.profile
+        savings = {
+            "propulsion": profile.get_saving(EnergyDemandTypeID.PROPULSION),
+            "electrical": profile.get_saving(EnergyDemandTypeID.ELECTRICAL),
+            "heat": profile.get_saving(EnergyDemandTypeID.HEAT),
+            "technology": profile.get_technology_energy_saving(),
+            "operational": profile.get_operational_energy_saving(),
+            "total": profile.get_energy_saving(),
+        }
+
+        for name, saving in savings.items():
+            drift = np.abs(saving - saving[0]).max()
+            assert drift <= MAX_SAVING_DRIFT, \
+                f"Global {name} energy saving drifts {drift:.3f} from its initial value {saving[0]:.3f}"
+
+    def test_technology_uptake_stable(self, technology_uptake):
+        """Fleet-wide uptake of each efficiency technology must stay at its
+        initial value: with no incentive, no additional adoption."""
+        for name, uptake in technology_uptake.items():
+            drift = np.abs(uptake - uptake[0]).max()
+            assert drift <= MAX_UPTAKE_DRIFT, \
+                f"Uptake of '{name}' drifts {drift:.3f} from its initial value {uptake[0]:.3f}"
+
+    def test_speed_stable(self, fleet):
+        """Fleet average speed must stay at its initial value: with no
+        incentive, no persistent speed-up or slow-down. The first step holds
+        no realized speed (NaN), so the baseline is the first computed step."""
+        speed = fleet.profile.get_actual_speed()
+
+        baseline = speed[1]
+        assert np.isfinite(baseline)
+        assert np.all(np.abs(speed[1:] - baseline) <= MAX_SPEED_DRIFT_REL * baseline)
