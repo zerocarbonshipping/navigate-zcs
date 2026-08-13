@@ -41,7 +41,7 @@ tests/guardrails/
 └── simulations/
     ├── 0_includes/*.inc              # includes shared between decks
     └── <deck_name>/
-        ├── <deck_name>.nav           # pins BunkerOptions { Solver = HIGHS }
+        ├── <deck_name>.nav           # deck entry point (pins the solver)
         ├── BEHAVIOR.md               # the intent prose (contract)
         └── includes/*.inc            # deck-specific includes
 ```
@@ -91,11 +91,20 @@ navigate tests/guardrails/simulations/<deck_name>/<deck_name>.nav -d ./assumptio
   drift must not silently re-size it. Import defaults only where the
   calibrated values are themselves part of the tested mechanism (e.g. vessel
   CAPEX/OPEX in `no_incentive`).
+- **Pin the solver.** Every deck sets `BunkerOptions { Solver = HIGHS }`:
+  LPs with non-unique optima return solver-dependent solutions, so a fixed
+  solver is a prerequisite for asserting on LP output at all (it also keeps
+  the suite independent of a Gurobi license).
 - **An honest failure is signal.** If a correctly-specified deck fails
   against current model behavior, report it — that is the suite doing its
   job, not a blocker to absorb.
 
 ## BEHAVIOR.md template
+
+BEHAVIOR.md is the domain contract, not documentation of the test: it states
+each expected property exactly once, and says nothing derivable from the test
+module (which assertions exist, what they measure, tolerances). ε values and
+their rationale live as comments on the constants in the test module.
 
 ```markdown
 # BEHAVIOR: <deck_name>
@@ -105,24 +114,14 @@ One or two sentences: which model mechanism this deck exercises in isolation,
 and what the deck does to isolate it.
 
 ## Why this behavior is right
-Domain-reasoning justification for the expected outcome. Cite the source of
-the numbers; state explicitly that they were not read off model output.
-
-## Assertions ↔ prose mapping
-| Assertion (test module) | Property it checks | ε and why |
-
-## Diagnostics if this fails
-Ordered list of what to check, each naming concrete nodes/attributes/modules.
-The last entry is always: renegotiate the property with the domain owner —
-never edit the assertion.
+Domain-reasoning justification for the expected outcome, stating each
+expected property once — its numbers appear here and nowhere else in the
+file — with owner and date attached.
 
 ## Known limitations
 What the deck deliberately does not test or excludes (e.g. an assertion
 window that excludes a known-degenerate tail), so exclusions are not read as
 endorsements.
-
-## Threshold ownership / provenance
-Who set each numeric threshold, when, and whether it has been revisited.
 
 ## Qualitative expectations (tier 3, prose only)
 Trajectory-shape expectations not yet formalizable as assertions.

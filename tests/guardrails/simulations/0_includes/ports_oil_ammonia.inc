@@ -3,7 +3,7 @@
 
 # Guardrail decks pin all fuel-side prices and emissions as explicit
 # constants so upstream assumption changes cannot silently re-size the
-# scenario. Values are rounded from the 2026-08 installation defaults.
+# scenario. Values are rounded from the 2026-08-13 installation defaults.
 Import Port "port_global"
 Import Port "port_europe"
 

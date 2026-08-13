@@ -15,7 +15,10 @@ alternative-fuel demand on a single oil/ammonia fleet; the Producer's
 `MaximumDevelopment = 1` plant/year is sized so low that supply can never
 catch up with that demand. The fleet starts with a 30% ammonia-capable share
 so the demand exists at scale from the first step — the deck tests demand
-propagation, not fleet turnover speed.
+propagation, not fleet turnover speed. The sizing inputs (development limit,
+remedial cost, threshold trajectory, initial ammonia share, the pinned
+economics in `../0_includes/`) were tuned 2026-08-12 to keep the scenario
+permanently supply-constrained; they carry no domain meaning.
 
 ## Why this behavior is right
 
@@ -26,31 +29,9 @@ build less than its constraint: plant development must sit at
 the constraint while unmet demand exists means the demand signal is lost or
 distorted somewhere between the bunker algorithm and producer planning.
 
-## Assertions ↔ prose mapping
-
-| Assertion (test_supply_constrained.py) | Property it checks | ε and why |
-|---|---|---|
-| `test_development_pinned_to_constraint` | development == MaximumDevelopment for every step in `[1, n − LeadTime)` | `EPS_DEVELOPMENT_REL = 0.0025`: development is recorded per calendar year against a nominal per-year constraint, so leap years deviate by up to 366/365.25 − 1 ≈ 0.21% |
-| `test_demand_remains_unmet` | deck validity: remedial units stay positive, i.e. the scenario stays supply-constrained | none needed (strict positivity) |
-
-## Diagnostics if this fails
-
-In order:
-
-1. The demand signal from the bunker algorithm no longer reaches producer
-   planning (check the expected-demand path in
-   `navigate/fuel/producer/producer_evolution.py::calculate_evolution_expectation`
-   and the bunker demand expectations feeding it).
-2. The development constraint is applied somewhere it should not be, or a
-   utilization/ramp mechanism suppresses development despite unmet demand
-   (check `calculate_constrained_uptakes` in
-   `navigate/fuel/producer/producer_planning.py`, `MaximumRampUp`,
-   `JumpStartFraction`).
-3. The deck stopped being supply-constrained — e.g. plant `Capacity` grew or
-   fleet demand shrank so supply catches up (then `test_demand_remains_unmet`
-   fails too; re-size the deck inputs, not the property).
-4. The property needs renegotiating with the domain owner — never edit the
-   assertions or thresholds to make a change pass.
+The property and the tail-exclusion framing (Known limitations) are the
+domain owner's specification, 2026-08-12 (recorded in
+`ai-dev/notes/navigate-behavior-guardrails.md`).
 
 ## Known limitations
 
@@ -63,20 +44,6 @@ In order:
   be read as an endorsement of it.
 - The first time step is excluded: it initializes the expectation process
   and takes no development decision.
-- The deck pins `Solver = HIGHS` so results do not depend on a Gurobi
-  license.
-
-## Threshold ownership / provenance
-
-The property (development pinned to the constraint while demand is unmet)
-and the tail-exclusion framing are the domain owner's specification, 2026-08
-(recorded in `ai-dev/notes/navigate-behavior-guardrails.md`).
-`EPS_DEVELOPMENT_REL` derives from calendar-year accounting, not from a
-domain decision. Deck sizing inputs (`MaximumDevelopment = 1`, remedial cost
-1000 USD/t, threshold trajectory, 30% initial ammonia share, and the pinned
-fuel prices/WTT/production economics in `../0_includes/`) were tuned 2026-08
-to keep the scenario permanently supply-constrained; they carry no domain
-meaning.
 
 ## Qualitative expectations (tier 3, prose only)
 

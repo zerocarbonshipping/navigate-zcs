@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # E-ammonia supply chain with every economic and sizing input pinned to an
-# explicit constant (rounded from the 2026-08 installation defaults), so
+# explicit constant (rounded from the 2026-08-13 installation defaults), so
 # upstream assumption changes cannot silently re-size the scenario. WTT
 # emissions are hard-coded at the ports, not built bottom-up.
 #

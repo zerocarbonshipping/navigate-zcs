@@ -4,7 +4,7 @@
 # Layered on top of ../0_includes/ports_oil_ammonia.inc (included first by
 # the .nav): adds the LNG and methanol fuels this deck also offers, and
 # widens the liquid market fuels to include LNG. Prices and WTT are pinned
-# constants (rounded from the 2026-08 installation defaults); without a
+# constants (rounded from the 2026-08-13 installation defaults); without a
 # Regulation or Levy the WTT values carry no cost, but they keep the deck's
 # emission accounting honest.
 Port "*" {

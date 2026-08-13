@@ -6,8 +6,8 @@
 Without any GHG pricing mechanism, the newbuild choice model must allocate
 nearly the whole fleet to oil and methane vessels, and the efficiency levers
 (technology uptake, operational speed, the resulting energy savings) must
-stay approximately at their initial values. The intent prose and the
-diagnostic list for failures live in simulations/no_incentive/BEHAVIOR.md.
+stay approximately at their initial values. The domain contract lives in
+simulations/no_incentive/BEHAVIOR.md.
 """
 from pathlib import Path
 
@@ -25,19 +25,14 @@ SIMULATIONS_DIR = Path(__file__).resolve().parent / "simulations"
 # a share that is off by a factor of two.
 EPS_SHARE = 0.005
 
-# Domain-owner thresholds (see BEHAVIOR.md, Threshold ownership): absent any
-# incentive, methanol stays a marginal choice (~2-3% at most) and ammonia an
-# even smaller one (~1%).
+# Domain-owner share ceilings — see BEHAVIOR.md.
 MAX_METHANOL_SHARE = 0.03
 MAX_AMMONIA_SHARE = 0.01
 MIN_OIL_METHANE_SHARE = 1. - MAX_METHANOL_SHARE - MAX_AMMONIA_SHARE
 
-# Domain-owner drift tolerances (see BEHAVIOR.md, Threshold ownership) for the
-# efficiency levers, each measured against the series' initial value: the
-# saving and uptake bands are absolute (percentage points, expressed as
-# fractions) because operational saving starts at exactly 0, where a relative
-# band is undefined; the speed band is relative because speed has a physical
-# unit and no natural absolute scale.
+# Domain-owner drift bands for the efficiency levers, each measured against
+# the series' initial value; the saving and uptake bands are absolute
+# fractions, the speed band relative — see BEHAVIOR.md.
 MAX_SAVING_DRIFT = 0.05
 MAX_UPTAKE_DRIFT = 0.10
 MAX_SPEED_DRIFT_REL = 0.10

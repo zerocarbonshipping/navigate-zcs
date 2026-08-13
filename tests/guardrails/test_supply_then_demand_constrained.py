@@ -7,7 +7,7 @@ Like supply_constrained, but the Producer's development limit is raised so
 supply catches up with demand roughly halfway through the simulation. After
 catch-up the Producer must leave its constraint and track demand with a
 slight surplus — continuously, not as an over/under-supply oscillation. The
-intent prose and the diagnostic list for failures live in
+domain contract lives in
 simulations/supply_then_demand_constrained/BEHAVIOR.md.
 """
 from pathlib import Path
@@ -22,20 +22,18 @@ SIMULATIONS_DIR = Path(__file__).resolve().parent / "simulations"
 FUEL = "ammonia_electro"
 
 # First step at which development leaves the constraint. A fixed index from
-# the deck tuning run (2026-08, MaximumDevelopment = 8), not auto-detected:
+# the deck tuning run (2026-08-12, MaximumDevelopment = 8), not auto-detected:
 # crossing detection on LP output would need its own tolerance and could
 # silently drift with unrelated model changes.
 CATCHUP_STEP = 11
 
+# Supply-constrained steps: development decisions start at step 1 (the first
+# step only initializes expectations).
+PRE_CATCHUP = slice(1, CATCHUP_STEP)
+
 # Band on the deliverable-supply surplus (capacity x uptime, minus
-# consumption), normalized by TOTAL fleet fuel demand so the early small
-# alternative-fuel volumes cannot inflate the ratio. The surplus exists to
-# absorb demand jumps within one time step (newbuilds and fuel conversions,
-# ~4%/year fleet replenishment) without triggering short-term shortages and
-# regulatory non-compliance, so it is measured on what plants can actually
-# deliver — deliberately independent of the nameplate-vs-uptime distinction.
-# The band values are proposed, not yet domain-owner signed off — see
-# BEHAVIOR.md, Threshold ownership.
+# consumption), normalized by total fleet fuel demand — see BEHAVIOR.md for
+# the domain reasoning and the band's sign-off status.
 MIN_SURPLUS = 0.02
 MAX_SURPLUS = 0.12
 
@@ -77,9 +75,8 @@ class TestSupplyThenDemandConstrained:
         development = producer.profile.get_development()
         maximum = producer.profile.get_maximum_development()
 
-        pinned = slice(1, CATCHUP_STEP)
-        assert np.all(np.abs(development[pinned] - maximum[pinned])
-                      <= EPS_DEVELOPMENT_REL * maximum[pinned])
+        assert np.all(np.abs(development[PRE_CATCHUP] - maximum[PRE_CATCHUP])
+                      <= EPS_DEVELOPMENT_REL * maximum[PRE_CATCHUP])
 
     def test_leaves_constraint_after_catchup(self, producer, post_window):
         development = producer.profile.get_development()

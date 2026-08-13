@@ -13,11 +13,11 @@ identical to `supply_constrained` by construction — both include the same
 `includes/maximum_development.inc` overrides `MaximumDevelopment` to 8
 (instead of 1), sized so supply catches up with the regulation-imposed
 e-ammonia demand roughly halfway through the simulation (step 11 of 24 in
-the tuning run). Before catch-up the Producer must sit at
-its development constraint; after catch-up it must leave the constraint and
-reduce capacity growth to track demand with a slight surplus, settling into
-equilibrium rather than oscillating between over- and under-supply per time
-step.
+the tuning run, 2026-08-12; the sizing carries no domain meaning). Before
+catch-up the Producer must sit at its development constraint; after catch-up
+it must leave the constraint and reduce capacity growth to track demand with
+a slight surplus, settling into equilibrium rather than oscillating between
+over- and under-supply per time step.
 
 ## Why this behavior is right
 
@@ -31,43 +31,19 @@ at roughly 4%/year) can be absorbed without accidental short-term
 demand-exceeds-supply episodes, which trigger issues such as regulatory
 non-compliance. It is therefore measured on *deliverable* supply
 (capacity × uptime) — a nameplate margin that merely reflects the uptime
-factor provides no such buffer. The surplus is intended as a roughly
-constant absolute energy headroom — which is why the assertion normalizes
-it by total fleet fuel demand rather than by alternative-fuel demand, whose
+factor provides no such buffer (measurement settled by the domain owner,
+2026-08-13: deliverable, explicitly not nameplate). The surplus is intended as
+a roughly constant absolute energy headroom — which is why it is normalized
+by total fleet fuel demand rather than by alternative-fuel demand, whose
 small early values would inflate the ratio.
 
-## Assertions ↔ prose mapping
-
-| Assertion (test_supply_then_demand_constrained.py) | Property it checks | ε and why |
-|---|---|---|
-| `test_supply_limited_before_catchup` | development == MaximumDevelopment for steps `[1, CATCHUP_STEP)` | `EPS_DEVELOPMENT_REL = 0.0025`, leap-year accounting (see supply_constrained) |
-| `test_leaves_constraint_after_catchup` | development strictly below the constraint for `[CATCHUP_STEP, n − LeadTime)` | same ε, used as a strict margin |
-| `test_no_supply_squeeze` | production ≥ consumption every post-catch-up step | 1e-6 relative, float noise |
-| `test_surplus_band` | (capacity × uptime − consumption) / total fleet fuel demand within `[0.02, 0.12]` for `(CATCHUP_STEP, n − LeadTime)` | band pending domain-owner sign-off, see below |
-
-`CATCHUP_STEP = 11` is a fixed configured index from the tuning run
-(2026-08), not auto-detected: crossing detection on LP output would need its
-own tolerance and could silently drift as unrelated model changes shift the
-crossover by a step.
-
-## Diagnostics if this fails
-
-In order:
-
-1. Ramp-down discontinuity: development oscillates (pinned/zero/pinned) after
-   catch-up instead of tracking demand — check the demand-gap projection in
-   `navigate/fuel/producer/producer_evolution.py` (the gap is evaluated at
-   `t + LeadTime`) and `calculate_constrained_uptakes` in
-   `producer_planning.py`.
-2. The crossover moved because deck inputs' meaning changed (plant
-   `Capacity`, `Uptime`, regulation trajectory): re-derive `CATCHUP_STEP`
-   with a tuning run and update the constant with a provenance comment —
-   this is deck re-sizing, not threshold softening.
-3. Surplus out of band: the producer over- or under-provisions capacity
-   relative to demand — check the capacity-vs-demand equilibrium logic in
-   producer planning before touching the band.
-4. The property (band, measurement) needs renegotiating with the domain
-   owner — never edit the assertions or thresholds to make a change pass.
+The surplus band is 2–12% of total fleet fuel demand — proposed 2026-08-12
+from the ~4%/year replenishment reasoning, not yet signed off by the domain
+owner. Known to fail against current model behavior (2026-08-13): the tuning
+run shows the producer plans deliverable output ≈ consumption with only a
+~0–1% margin, so the floor fails — an open finding for the model, not a
+threshold to tune away (recorded in
+`ai-dev/notes/navigate-behavior-guardrails.md`).
 
 ## Known limitations
 
@@ -77,31 +53,13 @@ In order:
 - The first step is excluded (expectation initialization), and the catch-up
   step itself is excluded from the surplus band (the surplus builds up from
   zero during the transition).
-- The deck pins `Solver = HIGHS`.
-
-## Threshold ownership / provenance
-
-**Measurement settled by the domain owner (2026-08): deliverable supply
-(capacity × uptime), explicitly not nameplate.** The buffer exists to absorb
-short-term demand jumps; a margin that merely reflects the uptime factor
-provides none. **Known to fail against current model behavior**: the tuning
-run shows the producer plans deliverable output ≈ consumption with only a
-~0–1% margin (nameplate ≈ demand / uptime), so the ≥2% floor fails — the
-producer planning does not hold the intended buffer. This is an open finding
-for the model, not a threshold to tune away. Band `[0.02, 0.12]` of total
-fleet fuel demand: proposed 2026-08 from the ~4%/year replenishment
-reasoning; values not yet signed off.
-
-Deck sizing inputs (`MaximumDevelopment = 8`, `CATCHUP_STEP = 11`, the
-pinned economics in `../0_includes/`, and the regulation/fleet inputs shared
-with `supply_constrained`) were tuned 2026-08 and carry no domain meaning.
 
 ## Qualitative expectations (tier 3, prose only)
 
 Development after catch-up should decline smoothly toward the fleet's demand
 growth rate — a single continuous hand-off from constraint-driven to
 demand-driven buildout, with no alternating over/under-build pattern.
-Observed in the tuning run (2026-08): the post-catch-up build rate
+Observed in the tuning run (2026-08-12): the post-catch-up build rate
 oscillates noticeably (roughly 0.7–7.6 plants/year around a ~5/year trend)
 even though delivered supply never drops below demand — a candidate for
 formalizing into a tier-2 smoothness assertion once the intended tolerance

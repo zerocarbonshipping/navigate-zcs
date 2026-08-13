@@ -5,8 +5,8 @@
 
 A GHG-intensity regulation imposes alternative-fuel demand that the Producer
 can never satisfy, so plant development must sit at MaximumDevelopment for
-the whole assertable window. The intent prose and the diagnostic list for
-failures live in simulations/supply_constrained/BEHAVIOR.md.
+the whole assertable window. The domain contract lives in
+simulations/supply_constrained/BEHAVIOR.md.
 """
 from pathlib import Path
 
