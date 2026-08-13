@@ -56,8 +56,9 @@ they were explicitly not derived by running the model and reading off values.
 
 Shares are measured on `fleet.profile.get_existing_vessels()` at the final
 time step (the domain claim is about long-run dominance, not any transient).
-Uptake is measured per technology as the existing-vessel-weighted average of
-per-vessel uptake shares — the "Fleet" line of the technology_uptake plot;
+Uptake is measured per technology with
+`fleet.profile.get_fleet_technology_uptake()` — the existing-vessel-weighted
+average that draws the "Fleet" line of the technology_uptake plot;
 the saving series are those of the global_energy_saving plot; speed is
 `fleet.profile.get_actual_speed()`, whose first step is NaN (no realized
 speed yet), so the speed baseline is the first computed step.

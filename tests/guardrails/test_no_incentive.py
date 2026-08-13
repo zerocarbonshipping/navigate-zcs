@@ -68,28 +68,20 @@ def market_shares(fleet):
 
 @pytest.fixture(scope="module")
 def technology_uptake(fleet):
-    """Fleet-wide uptake series per technology: per-vessel uptake shares
-    weighted by existing vessel counts (the 'Fleet' line of the
+    """Fleet-wide uptake series per technology (the 'Fleet' line of the
     technology_uptake plot)."""
-    multipliers = fleet.profile.get_existing_vessels()
-
     assert fleet.technologies, "Deck validity: the fleet must carry technologies"
 
-    series = {}
-    for technology in fleet.technologies:
-        name = technology.get_name()
-        shares = fleet.profile.get_technology_uptake(technology_name=name)
+    # deck validity, stricter than the getter's fall-back to 0: a step with
+    # no existing vessels would make the stability claim vacuous
+    existing = fleet.profile.get_existing_vessels()
+    assert np.all(np.sum(list(existing.values()), axis=0) > 0.)
 
-        assert shares, f"No uptake recorded for technology '{name}'"
-        values = np.array([shares[vessel_name] for vessel_name in shares])
-        weights = np.array([multipliers[vessel_name] for vessel_name in shares])
-
-        # deck validity, stricter than the plot's fall-back to 0: a step with
-        # no existing vessels would make the stability claim vacuous
-        weight_sums = weights.sum(axis=0)
-        assert np.all(weight_sums > 0.)
-        series[name] = (values * weights).sum(axis=0) / weight_sums
-    return series
+    uptake = fleet.profile.get_fleet_technology_uptake()
+    # every configured technology must be measured — a technology silently
+    # missing from the profile must not pass by omission
+    assert set(uptake) == {technology.get_name() for technology in fleet.technologies}
+    return uptake
 
 
 @pytest.mark.slow

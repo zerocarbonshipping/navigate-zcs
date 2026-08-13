@@ -14,7 +14,7 @@ from navigate.core.profiles._vessel_aggregate_profile import _VesselAggregatePro
 if TYPE_CHECKING:
     from navigate.fuel import Emission, Fuel
 
-from navigate.util import extract_from_dict, extract_from_tuple_dict
+from navigate.util import divide_nonzero, extract_from_dict, extract_from_tuple_dict
 
 
 class FleetProfile(_VesselAggregateProfile):
@@ -297,6 +297,34 @@ class FleetProfile(_VesselAggregateProfile):
             technology_name: str | None = None,
             idx: int | slice = np.s_[:]) -> np.ndarray | dict[tuple[str, str], np.ndarray]:
         return extract_from_tuple_dict(self._technology_uptake, vessel_name, technology_name, idx)
+
+    def get_fleet_technology_uptake(
+            self, technology_name: str | None = None,
+            idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
+        """
+        Fleet-wide technology uptake: per-vessel uptake shares averaged with
+        the existing vessel counts as weights (0 where the fleet is empty).
+
+        Parameters
+        ----------
+        technology_name
+            Technology to extract; all technologies as a dict when None.
+        idx
+            Time-step index or slice.
+        """
+        if technology_name is None:
+            technology_names = dict.fromkeys(name for _, name in self._technology_uptake)
+            return {name: self.get_fleet_technology_uptake(name, idx) for name in technology_names}
+
+        shares = extract_from_tuple_dict(self._technology_uptake, key2=technology_name, idx=idx)
+        if not shares:
+            # no vessels carry the technology: zero uptake, timeline-shaped
+            return np.zeros_like(self._trade[idx])
+
+        values = np.array([shares[vessel_name] for vessel_name in shares])
+        weights = np.array([self._existing_vessels[vessel_name][idx] for vessel_name in shares])
+
+        return divide_nonzero((values * weights).sum(axis=0), weights.sum(axis=0))
 
     def get_newbuild_technology_uptake(
             self, vessel_name: str | None = None,

@@ -19,6 +19,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `supply_constrained`, `supply_then_demand_constrained`.
 - `navigate.testing.simulation`: shared in-process simulation runner and
   universal result invariants, used by the attribute and guardrail suites.
+- `FleetProfile.get_fleet_technology_uptake`: fleet-wide technology uptake
+  (existing-vessel-weighted), shared by the technology_uptake plot and the
+  guardrail tests.
 
 ## [1.0.0] - 2026-07-16
 
