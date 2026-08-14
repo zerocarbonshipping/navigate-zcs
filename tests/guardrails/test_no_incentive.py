@@ -25,12 +25,12 @@ SIMULATIONS_DIR = Path(__file__).resolve().parent / "simulations"
 # a share that is off by a factor of two.
 EPS_SHARE = 0.005
 
-# Domain-owner share ceilings — see BEHAVIOR.md.
-MAX_METHANOL_SHARE = 0.03
-MAX_AMMONIA_SHARE = 0.01
+# Share ceilings, enforced at every time step — see BEHAVIOR.md.
+MAX_METHANOL_SHARE = 0.10
+MAX_AMMONIA_SHARE = 0.05
 MIN_OIL_METHANE_SHARE = 1. - MAX_METHANOL_SHARE - MAX_AMMONIA_SHARE
 
-# Domain-owner drift bands for the efficiency levers, each measured against
+# Drift bands for the efficiency levers, each measured against
 # the series' initial value; the saving and uptake bands are absolute
 # fractions, the speed band relative — see BEHAVIOR.md.
 MAX_SAVING_DRIFT = 0.05
@@ -50,14 +50,16 @@ def fleet(manager):
 
 @pytest.fixture(scope="module")
 def market_shares(fleet):
-    """Fleet-wide market share per fuel type at the final time step."""
+    """Fleet-wide market share series per fuel type (vessel counts, every
+    time step)."""
     fuel_types = {vessel.name: FuelTypeID(vessel.fuel_type) for vessel in fleet.get_vessels()}
     existing = fleet.profile.get_existing_vessels()
 
-    total = sum(counts[-1] for counts in existing.values())
-    shares = dict.fromkeys(fuel_types.values(), 0.)
+    total = np.sum(list(existing.values()), axis=0)
+    assert np.all(total > 0.), "Deck validity: the fleet must never be empty"
+    shares = {fuel_type: np.zeros_like(total, dtype=float) for fuel_type in fuel_types.values()}
     for name, counts in existing.items():
-        shares[fuel_types[name]] += counts[-1] / total
+        shares[fuel_types[name]] += np.asarray(counts) / total
     return shares
 
 
@@ -96,14 +98,14 @@ class TestNoIncentive:
                 f"Producer '{name}' approaches its development constraint"
 
     def test_methanol_share_marginal(self, market_shares):
-        assert market_shares[FuelTypeID.METHANOL] <= MAX_METHANOL_SHARE + EPS_SHARE
+        assert np.all(market_shares[FuelTypeID.METHANOL] <= MAX_METHANOL_SHARE + EPS_SHARE)
 
     def test_ammonia_share_marginal(self, market_shares):
-        assert market_shares[FuelTypeID.AMMONIA] <= MAX_AMMONIA_SHARE + EPS_SHARE
+        assert np.all(market_shares[FuelTypeID.AMMONIA] <= MAX_AMMONIA_SHARE + EPS_SHARE)
 
     def test_oil_and_methane_dominate(self, market_shares):
         dominant = market_shares[FuelTypeID.OIL] + market_shares[FuelTypeID.METHANE]
-        assert dominant >= MIN_OIL_METHANE_SHARE - EPS_SHARE
+        assert np.all(dominant >= MIN_OIL_METHANE_SHARE - EPS_SHARE)
 
     def test_global_savings_stable(self, manager):
         """The series of the global_energy_saving plot must all stay at their

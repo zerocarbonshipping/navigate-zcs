@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: CC-BY-4.0
 
 Port "*" {
-	set_bunkering_inertia("*", 0.7)
+	set_bunkering_inertia("*", 0.0)
 }
 
 # Fleet decision-process calibration.
@@ -12,7 +12,7 @@ Port "*" {
 # NPV-based choices (higher-is-better) a value above 1 rewards an NPV advantage equal to 5% of the
 # summed ship CAPEX. A value of 1 means no preference.
 Fleet "*" {
-	Inertia = 0.6
+	Inertia = 0.0
 	InterFuelSensitivity = 0.75         # a 10% higher cost gives 25% lower odds of a fuel type
 	IntraFuelSensitivity = 0.75         # a 10% higher cost gives 25% lower odds of a technology variant
 	FuelConversionSensitivity = 2       # an NPV advantage of 5% of ship CAPEX doubles the odds
@@ -24,7 +24,7 @@ Fleet "*" {
 # FuelDemandSensitivity is higher-is-better (odds for a 10% higher expected demand); FuelCostSensitivity
 # is lower-is-better (odds for a 10% higher levelized cost of fuel). A value of 1 means no preference.
 Producer "*" {
-	Inertia = 0.6
+	Inertia = 0.0
 	FuelDemandSensitivity = 1.25        # a 10% higher expected demand gives 1.25x the odds of a pathway
 	FuelCostSensitivity = 0.75          # a 10% higher LCoF gives 25% lower odds of a plant
 }

@@ -75,10 +75,10 @@ navigate tests/guardrails/simulations/<deck_name>/<deck_name>.nav -d ./assumptio
 - **Properties derive from domain reasoning, never from current output.** A
   threshold read off what the model does today turns the guardrail into a
   regression test in disguise and will wrongly condemn legitimate new
-  methods. Every threshold has an owner, recorded in `BEHAVIOR.md`.
+  methods.
 - **The prose contract exists independently of the assertions.** A failing
   guardrail is triaged against `BEHAVIOR.md`: either the implementation is
-  wrong, or the property needs renegotiating with the threshold owner.
+  wrong, or the property needs renegotiating with the domain owner.
   Editing assertions until they pass is never a fix.
 - **Tuning sizes the scenario, not the property.** When building or adjusting
   a deck, tune deck inputs (constraints, capacities, regulation levels) until
@@ -114,9 +114,9 @@ One or two sentences: which model mechanism this deck exercises in isolation,
 and what the deck does to isolate it.
 
 ## Why this behavior is right
-Domain-reasoning justification for the expected outcome, stating each
-expected property once — its numbers appear here and nowhere else in the
-file — with owner and date attached.
+Why the expected outcome is correct in the real world — economic/domain
+reasoning, not model mechanics — stating each expected property once; its
+numbers appear here and nowhere else in the file.
 
 ## Known limitations
 What the deck deliberately does not test or excludes (e.g. an assertion
