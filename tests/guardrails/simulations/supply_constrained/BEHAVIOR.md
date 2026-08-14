@@ -30,8 +30,7 @@ the constraint while unmet demand exists means the demand signal is lost or
 distorted somewhere between the bunker algorithm and producer planning.
 
 The property and the tail-exclusion framing (Known limitations) are the
-domain owner's specification, 2026-08-12 (recorded in
-`ai-dev/notes/navigate-behavior-guardrails.md`).
+domain owner's specification, 2026-08-12.
 
 ## Known limitations
 
