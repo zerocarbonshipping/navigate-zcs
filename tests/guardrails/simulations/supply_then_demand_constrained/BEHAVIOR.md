@@ -55,10 +55,10 @@ the ~4%/year replenishment reasoning, not yet signed off by the domain
 owner. Both properties are known to fail against current model behavior
 (2026-08-13): the producer plans deliverable output ≈ consumption with only
 a ~0–1% margin, and remedial units stay positive at most post-catch-up steps
-— an open finding for the model, not thresholds to tune away (recorded in
-`ai-dev/notes/navigate-behavior-guardrails.md`; the related
-slack-plus-remedial anomaly is ticketed in
-`ai-dev/notes/navigate-remedial-despite-slack-supply.md`).
+— an open finding for the model, not thresholds to tune away. A related
+anomaly, tracked separately: remedial units are bought at steps where
+deliverable supply still has slack, although consuming the idle supply
+would be strictly cheaper.
 
 ## Known limitations
 

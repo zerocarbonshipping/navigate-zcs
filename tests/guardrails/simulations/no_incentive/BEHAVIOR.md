@@ -45,8 +45,8 @@ no natural absolute scale, hence relative.
 
 All numbers are the domain owner's specification from economic reasoning —
 explicitly not derived by running the model and reading off values. Shares:
-2026-08-12; drift bands and their pp interpretation: 2026-08-13; recorded in
-`ai-dev/notes/navigate-behavior-guardrails.md`, not revisited since.
+2026-08-12; drift bands and their pp interpretation: 2026-08-13; not
+revisited since.
 
 ## Known limitations
 
