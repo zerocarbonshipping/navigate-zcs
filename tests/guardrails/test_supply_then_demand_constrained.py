@@ -22,7 +22,7 @@ SIMULATIONS_DIR = Path(__file__).resolve().parent / "simulations"
 FUEL = "ammonia_electro"
 
 # First step at which development leaves the constraint. A fixed index from
-# the deck tuning run (2026-08-12, MaximumDevelopment = 8), not auto-detected:
+# the deck tuning run (MaximumDevelopment = 8), not auto-detected:
 # crossing detection on LP output would need its own tolerance and could
 # silently drift with unrelated model changes.
 CATCHUP_STEP = 11

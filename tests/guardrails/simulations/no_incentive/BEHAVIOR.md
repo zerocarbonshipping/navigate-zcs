@@ -24,29 +24,34 @@ constraints) so supply can never be the reason a fuel gets a small share.
 
 ## Why this behavior is right
 
-Absent any GHG pricing mechanism, oil and LNG are the cheapest fuels, so the
-model must primarily build oil and methane vessels. A methanol dual-fuel
-vessel is not much more expensive than an oil vessel, but in this scenario it
-would operate fully on oil — and the model has no future GHG pricing in its
-expectation — so there is no incentive to pay the premium: methanol stays a
-marginal choice, at most ~2–3% of the fleet, and ammonia (a significantly
-more expensive vessel that would likewise run on oil here) at most ~1% —
-both as vessel-count market shares at the final step, since the claim is
-about long-run dominance, not any transient.
+Absent any GHG pricing mechanism — current or in the model's expectation —
+the following is expected, as vessel-count market shares at every time step
+(a short-term over-uptake would already threaten model stability):
 
-The same reasoning applies to the efficiency levers: with no GHG pricing,
-nothing new incentivizes energy-saving effort over the horizon, so each
-global energy-saving series must stay within ±5 percentage points of its
-initial value, fleet-wide uptake of each technology within ±10 pp, and
-operational speed within ±10% relative — every step. The saving and uptake
-bands are percentage points (absolute) because operational saving starts at
-exactly 0, where a relative band is undefined; speed has a physical unit and
-no natural absolute scale, hence relative.
+- Oil and LNG are the cheapest fuels, so every vessel operates on them and
+  oil and methane vessels dominate the fleet.
+- A methanol dual-fuel vessel costs only marginally more than an oil vessel,
+  but here it would operate fully on oil, so nothing repays the premium:
+  at most 10% of the fleet.
+- An ammonia vessel costs significantly more and would likewise run on oil:
+  at most 5% of the fleet.
 
-All numbers are the domain owner's specification from economic reasoning —
-explicitly not derived by running the model and reading off values. Shares:
-2026-08-12; drift bands and their pp interpretation: 2026-08-13; not
-revisited since.
+The same reasoning bounds the efficiency levers — nothing new incentivizes
+energy-saving effort over the horizon, so at every step:
+
+- each global energy-saving series stays within ±5 percentage points of its
+  initial value;
+- fleet-wide uptake of each technology stays within ±10 pp of its initial
+  value;
+- operational speed stays within ±10% (relative) of its initial value.
+
+The saving and uptake bands are percentage points (absolute) because
+operational saving starts at exactly 0, where a relative band is undefined;
+speed has a physical unit and no natural absolute scale, hence relative.
+
+The share ceilings and the saving and uptake drift bands are known to fail
+against current model behavior (2026-08-14) — open findings for the model,
+not thresholds to tune away.
 
 ## Known limitations
 
@@ -60,8 +65,7 @@ revisited since.
 - Technology cost/saving data stays on the calibrated installation defaults
   (like vessel CAPEX/OPEX, it is part of the tested mechanism); only the
   technology-investment discount rate is pinned in the deck
-  (`TechnologyCostOfCapital = 0.08`, the reference manual's example value;
-  domain-owner decision 2026-08-13),
+  (`TechnologyCostOfCapital = 0.08`, the reference manual's example value),
   because the installation defaults leave it unset and the model's fallback
   to vessel cost of capital warns that it inflates uptake.
 
