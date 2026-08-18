@@ -1081,6 +1081,19 @@ class Fleet(AssetManager):
     def _define_initial_technology(self):
         define_initial_technology(self)
 
+    def _transfer_multipliers_to_profile(self, idx: int) -> None:
+        """
+        Transfer the current multiplier state to the profile for output.
+
+        Parameters
+        ----------
+        idx
+            Current time-step index.
+        """
+
+        for v, vessel in enumerate(self.assets):
+            self.profile.set_existing_vessels(idx, vessel.get_name(), self.get_multiplier(v))
+
     def calculate_cargo_miles(self, idx: int) -> float:
         multipliers = [self.get_multiplier(v) for v in range(len(self.assets))]
         cargo_miles = extract_cargo_miles(self.assets, idx)

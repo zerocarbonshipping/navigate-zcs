@@ -184,14 +184,4 @@ def _calculate_total_vessel_fuel_expenses(vessel, idx, timeline):
 
     profile.set_cost_is_calculated(idx, True)
 
-    # calculate the average yearly OPEX for fuel, levies, and regulations
-    fuel_avg = np.sum(fuel) / lifetime
-    levy_avg = np.sum(levy) / lifetime
-    regulation_avg = np.sum(regulation) / lifetime
-
-    # assign to profile
-    profile.set_fuel_OPEX(idx, fuel_avg)
-    profile.set_levy_OPEX(idx, levy_avg)
-    profile.set_regulation_OPEX(idx, regulation_avg)
-
     return fuel + levy + regulation, year_flow, overlap

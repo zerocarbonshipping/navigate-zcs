@@ -219,25 +219,6 @@ class AssetManager(Node):
 
         self._age_increments(self.increments, time_step / YEAR)
 
-    def _transfer_multipliers_to_profile(self, idx: int) -> None:
-        """
-        Transfer the current multiplier state to the profile for output.
-
-        Parameters
-        ----------
-        idx
-            Current time-step index.
-        """
-
-        for a, asset in enumerate(self.assets):
-            increments = self.increments[a]
-            asset_name = asset.get_name()
-            multiplier = sum(inc.multiplier for inc in increments)
-            self.profile.set_existing_assets(idx, asset_name, multiplier)
-            if multiplier > 0.:
-                avg_age = sum(inc.multiplier * (inc.age + inc.dt / 2.) for inc in increments) / multiplier
-                self.profile.set_average_age(idx, asset_name, avg_age)
-
     def get_multiplier(self, index: int) -> float:
         return sum(inc.multiplier for inc in self.increments[index])
 

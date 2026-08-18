@@ -38,7 +38,7 @@ from navigate.util import (
 )
 
 if TYPE_CHECKING:
-    from navigate.fuel import Feedstock, Fuel, Process, Region, Source
+    from navigate.fuel import Feedstock, Fuel, Process
     from navigate.route import Port
 
 logger = logging.getLogger(__name__)
@@ -431,13 +431,10 @@ class Producer(AssetManager):
         self.expectation.initialize(length, plant_names, feedstocks, fuels, ports, processes)
 
     def initialize_profile(self, timeline: np.ndarray, feedstocks: dict[str, Feedstock],
-                           fuels: dict[str, Fuel], processes: dict[str, Process],
-                           regions: dict[str, Region], sources: dict[str, Source]) -> None:
-
-        plant_names = [plant.get_name() for plant in self.assets]
+                           fuels: dict[str, Fuel], processes: dict[str, Process]) -> None:
 
         self.profile = ProducerProfile()
-        self.profile.initialize(timeline, plant_names, feedstocks, fuels, processes, regions, sources)
+        self.profile.initialize(timeline, feedstocks, fuels, processes)
 
     def calculate_expectation(self, timeline, idx):
 
@@ -493,9 +490,6 @@ class Producer(AssetManager):
         # calculate the initial producer evolution expectation
         calculate_feed_availability(self, timeline, idx)
         calculate_evolution_expectation(self, timeline, idx)
-
-        # transfer initial values to profile
-        self._transfer_multipliers_to_profile(idx)
 
         # store all possible production fuels for convenience
         for plant in self.assets:
@@ -666,9 +660,6 @@ class Producer(AssetManager):
         # the next supply/demand gap
         calculate_evolution_expectation(self, timeline, idx)
 
-        # transfer multiplier results to profile
-        self._transfer_multipliers_to_profile(idx)
-
     def update_increment_ages(self, time_step):
         """
         Update the ages of the increments with the progressed time since last time-step.
@@ -683,18 +674,6 @@ class Producer(AssetManager):
         dt = time_step / YEAR
         self._age_increments(self.increments, dt)
         self._age_increments(self.pipeline, dt)
-
-    def _transfer_multipliers_to_profile(self, idx):
-
-        # transfer active increments via superclass
-        super()._transfer_multipliers_to_profile(idx)
-
-        # transfer pipeline (Producer-specific)
-        for p in range(len(self.assets)):
-
-            plant_name = self.assets[p].get_name()
-            multiplier = sum(inc.multiplier for inc in self.pipeline[p])
-            self.profile.set_pipeline(idx, plant_name, multiplier)
 
     def get_plants(self):
         return self.assets

@@ -324,15 +324,9 @@ class _FuelConsumerProfile(_FuelBaseProfile):
                            idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
         return extract_from_dict(self._raw_energy_sea, energy_id, idx)
 
-    def get_total_raw_energy_sea(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._get_total_method(self.get_raw_energy_sea, idx)
-
     def get_raw_energy_port(self, energy_id: EnergyDemandTypeID | None = None,
                             idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
         return extract_from_dict(self._raw_energy_port, energy_id, idx)
-
-    def get_total_raw_energy_port(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._get_total_method(self.get_raw_energy_port, idx)
 
     def get_raw_energy(self, energy_id: EnergyDemandTypeID | None = None, idx: int | slice = np.s_[:]) -> np.ndarray:
         sea_energies = self.get_raw_energy_sea(energy_id, idx)
@@ -346,15 +340,9 @@ class _FuelConsumerProfile(_FuelBaseProfile):
                                    idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
         return extract_from_dict(self._operational_energy_sea, energy_id, idx)
 
-    def get_total_operational_energy_sea(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._get_total_method(self.get_operational_energy_sea, idx)
-
     def get_operational_energy_port(self, energy_id: EnergyDemandTypeID | None = None,
                                     idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
         return extract_from_dict(self._operational_energy_port, energy_id, idx)
-
-    def get_total_operational_energy_port(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._get_total_method(self.get_operational_energy_port, idx)
 
     def get_operational_energy(self, energy_id: EnergyDemandTypeID | None = None, idx: int | slice = np.s_[:]) -> np.ndarray:
         sea_energies = self.get_operational_energy_sea(energy_id, idx)
@@ -367,9 +355,6 @@ class _FuelConsumerProfile(_FuelBaseProfile):
     def get_energy_sea(self, energy_id: EnergyDemandTypeID | None = None,
                        idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
         return extract_from_dict(self._energy_sea, energy_id, idx)
-
-    def get_total_energy_sea(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._get_total_method(self.get_energy_sea, idx)
 
     def get_energy_port(self, energy_id: EnergyDemandTypeID | None = None,
                         idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
@@ -395,70 +380,19 @@ class _FuelConsumerProfile(_FuelBaseProfile):
                                        self._raw_energy_sea[demand_type][idx] + self._raw_energy_port[demand_type][idx],
                                        default=1.)
 
-    def get_consumed_mass(self, fuel_name: str | None = None,
-                          idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
-        return extract_from_dict(self._consumed_mass, fuel_name, idx)
-
     def get_consumed_energy(self, fuel_name: str | None = None,
                             idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
         return self._fuel_mass_to_energy(self._consumed_mass, fuel_name, idx)
 
-    def get_consumed_volume(self, fuel_name: str | None = None,
-                            idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
-        return self._fuel_mass_to_volume(self._consumed_mass, fuel_name, idx)
-
-    def get_fuel_type_mass(self, idx: int | slice = np.s_[:]) -> dict[str, np.ndarray]:
-        return self._fuel_type_mass_to_mass(self._consumed_mass, idx)
-
     def get_fuel_type_energy(self, idx: int | slice = np.s_[:]) -> dict[str, np.ndarray]:
         return self._fuel_type_mass_to_energy(self._consumed_mass, idx)
-
-    def get_total_consumed_mass(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._get_total_method(self.get_consumed_mass, idx)
 
     def get_total_consumed_energy(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         return self._get_total_method(self.get_consumed_energy, idx)
 
-    def get_total_consumed_volume(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._get_total_method(self.get_consumed_volume, idx)
-
-    def get_cumulative_consumed_mass(self) -> dict[str, np.ndarray]:
-        return self._to_cumulative_dict(self._consumed_mass)
-
-    def get_cumulative_consumed_energy(self) -> dict[str, np.ndarray]:
-        return self._to_cumulative_dict(self.get_consumed_energy())
-
-    def get_cumulative_consumed_volume(self) -> dict[str, np.ndarray]:
-        return self._to_cumulative_dict(self.get_consumed_volume())
-
-    def get_cumulative_fuel_type_mass(self) -> dict[str, np.ndarray]:
-        return self._to_cumulative_dict(self.get_fuel_type_mass())
-
-    def get_cumulative_fuel_type_energy(self) -> dict[str, np.ndarray]:
-        return self._to_cumulative_dict(self.get_fuel_type_energy())
-
-    def get_cumulative_fuel_type_volume(self) -> dict[str, np.ndarray]:
-        return self._to_cumulative_dict(self.get_fuel_type_volume())
-
-    def get_converter_mass(self, fuel_type: FuelTypeID | None = None,
-                           idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
-        return self._extract_nested_dict(self._converter_mass, fuel_type, idx)
-
     def get_converter_energy(self, fuel_type: FuelTypeID | None = None,
                              idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
         return self._extract_multiply_nested_dict(self._converter_mass, self._lower_heating_value, fuel_type, idx)
-
-    def get_converter_volume(self, fuel_type: FuelTypeID | None = None,
-                             idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
-        return self._extract_multiply_nested_dict(self._converter_mass, self._mass_density, fuel_type, idx)
-
-    def get_converter_fuel_type_mass(self, fuel_type: FuelTypeID | None = None,
-                                     idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
-        return self._extract_method_dict(self._fuel_type_mass_to_mass, self._converter_mass, fuel_type, idx)
-
-    def get_converter_fuel_type_energy(self, fuel_type: FuelTypeID | None = None,
-                                       idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
-        return self._extract_method_dict(self._fuel_type_mass_to_energy, self._converter_mass, fuel_type, idx)
 
     def get_pilot_fuel_share(self, fuel_type: FuelTypeID | None = None,
                              idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:

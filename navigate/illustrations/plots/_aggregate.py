@@ -129,22 +129,6 @@ def merge_fleet_changes(dateline, fleet, scrap=True):
     )
 
 
-def merge_producer_changes(dateline, producer, decommission=True):
-
-    if decommission:
-        value_fn = lambda profile, plant: -profile.get_decommissions(plant.get_name())
-    else:
-        value_fn = lambda profile, plant: profile.get_newbuilds(plant.get_name())
-
-    return _merge_by_fuel_type(
-        dateline, producer, {},  # no producer label table; title falls back to the raw producer name
-        items_fn=lambda p: p.get_plants(),
-        value_fn=value_fn,
-        fuel_type_fn=lambda plant: plant.fuel.fuel_type,
-        threshold=1.,
-    )
-
-
 def group_series_by_fuel_type(series, fuel_type_of, color_of):
     """Group a {name: array} dict into per-fuel-type subplot lists.
 

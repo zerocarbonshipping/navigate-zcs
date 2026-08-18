@@ -136,9 +136,6 @@ def perform_pipeline_planning(producer: Producer, timeline, time_step, idx):
 
         pinc.insert(i, Increment(increments[p], new_age, dt, decided=0.))
 
-        # assign to profile
-        producer.profile.set_pipeline_additions(idx, plant.get_name(), increments[p])
-
     # assign total development to profile
     total_increments = np.sum(increments)
     producer.profile.set_development(idx, total_increments)

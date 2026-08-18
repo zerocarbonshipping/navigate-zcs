@@ -28,7 +28,6 @@ def aggregate_speed_profile(assets: list[Vessel],
         Current time-step index.
     """
 
-    time_at_sea = 0.
     reference_speed = 0.
     minimum_speed = 0.
     maximum_speed = 0.
@@ -44,7 +43,6 @@ def aggregate_speed_profile(assets: list[Vessel],
         vessel_profile = vessel.profile
         multiplier = get_multiplier(v)
 
-        at_sea = vessel_profile.get_time_at_sea(idx)
         reference = vessel_profile.get_reference_speed(idx)
         minimum = vessel_profile.get_minimum_speed(idx)
         maximum = vessel_profile.get_maximum_speed(idx)
@@ -57,7 +55,6 @@ def aggregate_speed_profile(assets: list[Vessel],
 
         if not (np.isnan(minimum) or np.isnan(maximum) or np.isnan(actual)):
 
-            time_at_sea += multiplier * at_sea
             minimum_speed += multiplier * minimum
             maximum_speed += multiplier * maximum
             actual_speed += multiplier * actual
@@ -71,7 +68,6 @@ def aggregate_speed_profile(assets: list[Vessel],
     profile.set_reference_speed(idx, reference_speed / reference_multiplier)
 
     if other_multiplier > 0.:
-        profile.set_time_at_sea(idx, time_at_sea / other_multiplier)
         profile.set_minimum_speed(idx, minimum_speed / other_multiplier)
         profile.set_maximum_speed(idx, maximum_speed / other_multiplier)
         profile.set_actual_speed(idx, actual_speed / other_multiplier)

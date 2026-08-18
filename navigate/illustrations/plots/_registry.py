@@ -62,7 +62,6 @@ from navigate.illustrations.plots.plant_production_cost import plot_plant_produc
 from navigate.illustrations.plots.plant_production_emissions import plot_plant_production_emissions
 from navigate.illustrations.plots.port_bunker_price import plot_port_bunker_price
 from navigate.illustrations.plots.port_bunker_supply import plot_port_bunker_supply
-from navigate.illustrations.plots.producer_changes import plot_producer_changes
 from navigate.illustrations.plots.producer_development import (
     plot_producer_development,
     plot_producer_development_cumulative,
@@ -125,7 +124,6 @@ PLOTS = [
     plot_fleet_fuel_conversion_sources_normalized,
     plot_producer_development,
     plot_producer_development_cumulative,
-    plot_producer_changes,
     plot_producer_feed_consumption,
     plot_producer_fair_share,
     plot_plant_production_cost,

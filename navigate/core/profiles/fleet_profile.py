@@ -24,7 +24,6 @@ class FleetProfile(_VesselAggregateProfile):
         self._trade: np.ndarray = EMPTY_FLOAT
 
         self._existing_vessels: dict[str, np.ndarray] = {}
-        self._average_ages: dict[str, np.ndarray] = {}
         self._primary_scrap: dict[str, np.ndarray] = {}
         self._secondary_scrap: dict[str, np.ndarray] = {}
         self._orderbook_newbuilds: dict[str, np.ndarray] = {}
@@ -43,12 +42,7 @@ class FleetProfile(_VesselAggregateProfile):
 
         self._fuel_type_supply: dict[FuelTypeID, np.ndarray] = {}
 
-        # values across vessel types
-        self._youngest_scrap_age: np.ndarray = EMPTY_FLOAT
-        self._average_scrap_age: np.ndarray = EMPTY_FLOAT
-
         # speed
-        self._time_at_sea: np.ndarray = EMPTY_NAN       # average time spent at sea, fraction
         self._reference_speed: np.ndarray = EMPTY_NAN   # average reference speed, knots
         self._minimum_speed: np.ndarray = EMPTY_NAN     # average minimum possible speed, knots
         self._maximum_speed: np.ndarray = EMPTY_NAN     # average maximum possible speed, knots
@@ -90,7 +84,6 @@ class FleetProfile(_VesselAggregateProfile):
         for vessel_name in vessel_names:
 
             self._existing_vessels[vessel_name] = self._default_array()
-            self._average_ages[vessel_name] = self._default_array()
             self._primary_scrap[vessel_name] = self._default_array()
             self._secondary_scrap[vessel_name] = self._default_array()
             self._orderbook_newbuilds[vessel_name] = self._default_array()
@@ -112,10 +105,6 @@ class FleetProfile(_VesselAggregateProfile):
 
         self._fuel_type_supply = self._default_dict(FuelTypeID)
 
-        self._youngest_scrap_age = self._default_array()
-        self._average_scrap_age = self._default_array()
-
-        self._time_at_sea = self._default_array(default=np.nan)
         self._reference_speed = self._default_array(default=np.nan)
         self._minimum_speed = self._default_array(default=np.nan)
         self._maximum_speed = self._default_array(default=np.nan)
@@ -129,19 +118,8 @@ class FleetProfile(_VesselAggregateProfile):
     def set_trade(self, idx: int, trade: float) -> None:
         self._trade[idx] = trade
 
-    def set_youngest_scrap_age(self, idx: int, scrap_age: float) -> None:
-        self._youngest_scrap_age[idx] = scrap_age
-
-    def set_average_scrap_age(self, idx: int, scrap_rate: float) -> None:
-        self._average_scrap_age[idx] = scrap_rate
-
     def set_existing_vessels(self, idx: int, vessel_name: str, existing_vessels: float) -> None:
         self._existing_vessels[vessel_name][idx] = existing_vessels
-
-    set_existing_assets = set_existing_vessels
-
-    def set_average_age(self, idx: int, vessel_name: str, average_age: float) -> None:
-        self._average_ages[vessel_name][idx] = average_age
 
     def set_primary_scrap(self, vessel_name: str, idx: int, primary_scrap: float) -> None:
         self._primary_scrap[vessel_name][idx] = primary_scrap
@@ -192,9 +170,6 @@ class FleetProfile(_VesselAggregateProfile):
     def add_fuel_type_supply(self, fuel_type: FuelTypeID, supply: float, idx: int | slice = np.s_[:]) -> None:
         self._fuel_type_supply[fuel_type][idx] += supply
 
-    def set_time_at_sea(self, idx: int, time_at_sea: float) -> None:
-        self._time_at_sea[idx] = time_at_sea
-
     def set_reference_speed(self, idx: int, reference_speed: float) -> None:
         self._reference_speed[idx] = reference_speed
 
@@ -226,12 +201,6 @@ class FleetProfile(_VesselAggregateProfile):
             self, vessel_name: str | None = None,
             idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
         return extract_from_dict(self._existing_vessels, vessel_name, idx)
-
-    def get_average_ages(self, vessel_name: str | None = None) -> np.ndarray | dict[str, np.ndarray]:
-        if vessel_name is not None:
-            return self._average_ages[vessel_name]
-        else:
-            return np.average.reduce(self._average_ages.values(), weights=self._existing_vessels.values())
 
     def get_primary_scrap(
             self, vessel_name: str | None = None,
@@ -351,19 +320,10 @@ class FleetProfile(_VesselAggregateProfile):
     def get_newbuild_existing_total(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         return self._newbuild_existing_total[idx]
 
-    def get_youngest_scrap_age(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._youngest_scrap_age[idx]
-
-    def get_average_scrap_age(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._average_scrap_age[idx]
-
     def get_fuel_type_supply(
             self, fuel_type: FuelTypeID | None = None,
             idx: int | slice = np.s_[:]) -> np.ndarray | dict[FuelTypeID, np.ndarray]:
         return extract_from_dict(self._fuel_type_supply, fuel_type, idx)
-
-    def get_time_at_sea(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._time_at_sea[idx]
 
     def get_reference_speed(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         return self._reference_speed[idx]

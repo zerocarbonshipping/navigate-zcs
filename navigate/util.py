@@ -177,39 +177,6 @@ def add_dicts(dict1, *dicts, in_place=False):
     return out
 
 
-def subtract_dicts(dict1, *dicts, in_place=False):
-    """
-    Merge dicts together, subtracting the values of *dicts from dict1.
-
-    Parameters
-    ----------
-    dict1 : dict
-        Primary dict.
-    dicts : dict
-        A number of dicts with similar or unique keys.
-    in_place : bool
-        If true all other dicts are summed into 'dict1'.
-
-    Returns
-    -------
-    dict
-        A single merged dict with the sum of overlapping keys.
-    """
-
-    if in_place:
-        out = dict1
-    else:
-        out = copy.deepcopy(dict1)
-
-    for d in dicts:
-        for key, value in d.items():
-
-            out.setdefault(key, 0.)
-            out[key] -= value
-
-    return out
-
-
 def multiply_dicts(dict1, *dicts, in_place=False):
     """
     Merge dicts together, multiplying the values if keys are duplicate across multiple dicts.

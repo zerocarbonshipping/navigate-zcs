@@ -74,10 +74,6 @@ class _FuelInfrastructureProfile(_FuelBaseProfile):
                           idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
         return self._fuel_mass_to_energy(self._bunker_mass, fuel_name, idx)
 
-    def get_bunker_volume(self, fuel_name: str | None = None,
-                          idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
-        return self._fuel_mass_to_volume(self._bunker_mass, fuel_name, idx)
-
     def get_bunker_supply_mass(self, fuel_name: str | None = None,
                                idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
         return extract_from_dict(self._bunker_supply_mass, fuel_name, idx)
@@ -86,10 +82,6 @@ class _FuelInfrastructureProfile(_FuelBaseProfile):
                                  idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
         return self._fuel_mass_to_energy(self._bunker_supply_mass, fuel_name, idx)
 
-    def get_bunker_supply_volume(self, fuel_name: str | None = None,
-                                 idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
-        return self._fuel_mass_to_volume(self._bunker_supply_mass, fuel_name, idx)
-
     def get_bunkering_limit_mass(self, fuel_name: str | None = None,
                                  idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
         return extract_from_dict(self._bunkering_limit_mass, fuel_name, idx)
@@ -97,7 +89,3 @@ class _FuelInfrastructureProfile(_FuelBaseProfile):
     def get_bunkering_limit_energy(self, fuel_name: str | None = None,
                                    idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
         return self._fuel_mass_to_energy(self._bunkering_limit_mass, fuel_name, idx)
-
-    def get_bunkering_limit_volume(self, fuel_name: str | None = None,
-                                   idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
-        return self._fuel_mass_to_volume(self._bunkering_limit_mass, fuel_name, idx)

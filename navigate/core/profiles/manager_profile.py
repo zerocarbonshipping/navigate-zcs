@@ -16,7 +16,6 @@ if TYPE_CHECKING:
     from navigate.fuel import Emission, Fuel
     from navigate.fuel.feedstock import Feedstock
     from navigate.fuel.process import Process
-    from navigate.fuel.source import Source
 
 
 class ManagerProfile(_VesselAggregateProfile, _PlantAggregateProfile, _InfrastructureAggregateProfile):
@@ -47,14 +46,14 @@ class ManagerProfile(_VesselAggregateProfile, _PlantAggregateProfile, _Infrastru
 
     def initialize(self, timeline: np.ndarray, emissions: dict[str, Emission],
                    feedstocks: dict[str, Feedstock], fuels: dict[str, Fuel],
-                   processes: dict[str, Process], sources: dict[str, Source],
+                   processes: dict[str, Process],
                    emissions_lifetime: float,
                    regulation_names: list[str] = (), levy_names: list[str] = ()) -> None:
 
         self._initialize_base(timeline)
         self._initialize_fuel_base(fuels)
         self._initialize_fuel_consumer(fuels, emissions, emissions_lifetime, regulation_names, levy_names)
-        self._initialize_fuel_producer(feedstocks, fuels, processes, sources)
+        self._initialize_fuel_producer(feedstocks, fuels, processes)
         self._initialize_fuel_infrastructure(fuels)
         self._initialize_vessel_aggregate(fuels)
         self._initialize_plant_aggregate(fuels)

@@ -67,19 +67,10 @@ def perform_decommissioning(producer: Producer, idx: int) -> None:
     for a, asset in enumerate(producer.assets):
 
         incs = producer.increments[a]
-        decommissioned = 0.
         lifetime = asset.lifetime.get()
 
         # remove all increments past their lifetime
-        surviving = []
-
-        for inc in incs:
-            if inc.age >= lifetime:
-                decommissioned += inc.multiplier
-            else:
-                surviving.append(inc)
-
-        producer.increments[a] = surviving
+        producer.increments[a] = [inc for inc in incs if inc.age < lifetime]
 
         # partially decommission increments whose dt spans the lifetime boundary
         for inc in producer.increments[a]:
@@ -88,12 +79,9 @@ def perform_decommissioning(producer: Producer, idx: int) -> None:
 
                 alpha = (lifetime - inc.age) / inc.dt
                 decommissioning = inc.multiplier * (1. - alpha)
-                decommissioned += decommissioning
 
                 inc.multiplier -= decommissioning
                 inc.dt = lifetime - inc.age
-
-        producer.profile.set_decommission(idx, asset.get_name(), decommissioned)
 
 
 def calculate_evolution_expectation(producer: Producer, timeline, idx):
@@ -371,11 +359,10 @@ def perform_pipeline_delivery(producer: Producer, idx: int) -> None:
         Current time-step index.
     """
 
-    for p, plant in enumerate(producer.assets):
+    for p in range(len(producer.assets)):
 
         pinc = producer.pipeline[p]
         incs = producer.increments[p]
-        delivered_increments = 0.
         last_idx = None
 
         for i in range(len(pinc)):
@@ -390,7 +377,6 @@ def perform_pipeline_delivery(producer: Producer, idx: int) -> None:
                 incs.append(Increment(increment, pinc_i.age, pinc_i.dt,
                                       decided=pinc_i.decided))
 
-                delivered_increments += increment
                 last_idx = i
 
             else:
@@ -420,14 +406,9 @@ def perform_pipeline_delivery(producer: Producer, idx: int) -> None:
                     pinc_i.multiplier = remaining
                     pinc_i.dt = -pinc_i.age
 
-                    delivered_increments += delivered
-
         # remove the delivered increments from the pipeline
         if last_idx is not None:
             producer.pipeline[p] = pinc[(last_idx + 1):]
-
-        # add newly built plants to profile
-        producer.profile.set_newbuild(idx, plant.get_name(), delivered_increments)
 
 
 def calculate_feed_availability(producer: Producer, timeline, idx) -> None:

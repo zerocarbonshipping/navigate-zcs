@@ -64,7 +64,7 @@ def perform_secondary_scrapping(fleet: Fleet, trade_gap: float, idx: int):
         Scrapped capacity.
     """
 
-    scrapped_capacity, youngest_age, average_age = perform_fixed_trade_scrapping(fleet, trade_gap, idx)
+    scrapped_capacity, youngest_age = perform_fixed_trade_scrapping(fleet, trade_gap, idx)
 
     trade = fleet.trade[idx]
     if trade > 0 and abs(trade_gap / trade) > 1e-3:
@@ -72,10 +72,6 @@ def perform_secondary_scrapping(fleet: Fleet, trade_gap: float, idx: int):
                     f"{round(trade_gap)} cargo-miles. "
                     f"The youngest age of scrapping was "
                     f"{f'{round(youngest_age)} years' if youngest_age is not None else 'undefined'}.")
-
-    # transfer to profile (overwrite primary scrapping that was set previously)
-    fleet.profile.set_youngest_scrap_age(idx, youngest_age)
-    fleet.profile.set_average_scrap_age(idx, average_age)
 
     return scrapped_capacity
 
@@ -93,8 +89,6 @@ def perform_age_based_scrapping(fleet: Fleet, idx: int):
         Current time-step index.
     """
 
-    youngest_age = np.inf
-
     for v, (vessel, incs) in enumerate(zip(fleet.assets, fleet.increments)):
 
         scrapped_vessels = 0.
@@ -106,7 +100,6 @@ def perform_age_based_scrapping(fleet: Fleet, idx: int):
         scrap_count = 0
         for inc in incs:
             if inc.age >= lifetime:
-                youngest_age = min(youngest_age, inc.age)
                 scrapped_vessels += inc.multiplier
                 scrap_count += 1
             else:
@@ -145,18 +138,8 @@ def perform_age_based_scrapping(fleet: Fleet, idx: int):
 
                 incs[0].multiplier -= scrapping
 
-                # define youngest age
-                youngest_age = min(youngest_age, lifetime)
-
         # transfer to profile
         fleet.profile.set_primary_scrap(vessel.get_name(), idx, scrapped_vessels)
-
-    # by definition the average age is equal to the
-    # youngest age as it is assumed the vessels are
-    # scrapped uniformly over the period as they
-    # reach their lifetime
-    fleet.profile.set_youngest_scrap_age(idx, youngest_age)
-    fleet.profile.set_average_scrap_age(idx, youngest_age)
 
 
 def perform_fixed_rate_scrapping(fleet: Fleet, time_step: float, idx: int):
@@ -180,7 +163,7 @@ def perform_fixed_rate_scrapping(fleet: Fleet, time_step: float, idx: int):
     target_scrap = scrap_rate * fleet.calculate_cargo_miles(idx)
 
     # scrap vessels matching the targeted trade
-    _, youngest_age, average_age = perform_fixed_trade_scrapping(fleet, -target_scrap, idx)
+    perform_fixed_trade_scrapping(fleet, -target_scrap, idx)
 
     # ensure that all remaining increments have
     # an age lower than their technical lifetime
@@ -201,10 +184,6 @@ def perform_fixed_rate_scrapping(fleet: Fleet, time_step: float, idx: int):
                              " years) than the allowed lifetime ({} years)."
                              .format(fleet, vessel, oldest_age, lifetime))
 
-    # transfer results to profile
-    fleet.profile.set_youngest_scrap_age(idx, youngest_age)
-    fleet.profile.set_average_scrap_age(idx, average_age)
-
 
 def perform_fixed_trade_scrapping(fleet: Fleet, trade_gap: float, idx: int):
     """
@@ -222,7 +201,7 @@ def perform_fixed_trade_scrapping(fleet: Fleet, trade_gap: float, idx: int):
 
     Returns
     -------
-    Scrapped capacity and youngest age and average age of all scrapped vessels.
+    Scrapped capacity and youngest age of all scrapped vessels.
     """
 
     # create two lists, one with all increment
@@ -258,8 +237,6 @@ def perform_fixed_trade_scrapping(fleet: Fleet, trade_gap: float, idx: int):
     initial_trade = trade_gap
 
     youngest_age = None
-    average_age = 0.
-    total_scrap = 0.
 
     youngest_index = [0 for _ in range(len(fleet.assets))]
 
@@ -299,8 +276,6 @@ def perform_fixed_trade_scrapping(fleet: Fleet, trade_gap: float, idx: int):
                 # if several time-steps are taken that are
                 # shorter than the increments time-step length
                 youngest_age = age + dt * (1. - scrap_fraction)
-                average_age += to_scrap * (age + dt * (1. - scrap_fraction / 2.))
-                total_scrap += to_scrap
 
                 # transfer to profile
                 fleet.profile.add_secondary_scrap(fleet.assets[v].get_name(), idx, to_scrap)
@@ -320,15 +295,8 @@ def perform_fixed_trade_scrapping(fleet: Fleet, trade_gap: float, idx: int):
             for v, ii in group:
                 # extract necessary parameters
                 increment = fleet.increments[v][ii].multiplier
-                age = fleet.increments[v][ii].age
-                dt = fleet.increments[v][ii].dt
 
                 youngest_index[v] = ii + 1
-
-                # calculate average age of scrapped vessels
-                # assuming the age distribution was uniform
-                average_age += increment * (age + dt / 2.)
-                total_scrap += increment
 
                 # transfer to profile
                 fleet.profile.add_secondary_scrap(fleet.assets[v].get_name(), idx, increment)
@@ -343,10 +311,7 @@ def perform_fixed_trade_scrapping(fleet: Fleet, trade_gap: float, idx: int):
             if fleet.increments[v]:
                 fleet.increments[v][0].baseline = fleet.increments[v][0].multiplier
 
-    # calculate the weighted average, average age
-    average_age = divide_nonzero(average_age, total_scrap)
-
-    return initial_trade - trade_gap, youngest_age, average_age
+    return initial_trade - trade_gap, youngest_age
 
 
 def calculate_orderbook_newbuilds(fleet: Fleet, trade_gap: float, cap_count: np.ndarray, idx: int):

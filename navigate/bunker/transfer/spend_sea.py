@@ -34,7 +34,6 @@ def transfer_spend_sea(alg: BunkerAlgorithm) -> None:
 
         # transfer spend energy (effective LHV accounts for slip)
         spend_energy = spend_sea.X * alg.effective_lhv[(v, c, f)]
-        vessel.profile.add_spend_energy_sea(alg.idx, spend_energy)
         vessel.expectation.add_spend_energy(c, spend_energy)
 
         # transfer emissions

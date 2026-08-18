@@ -35,7 +35,6 @@ def transfer_spend_port(alg: BunkerAlgorithm) -> None:
         # transfer spend energy (effective LHV accounts for slip)
         spend_energy = spend_port.X * alg.effective_lhv[(v, c, f)]
         vessel.expectation.add_spend_energy(c, spend_energy)
-        vessel.profile.add_spend_energy_port(alg.idx, spend_energy)
 
         # transfer tank-to-wake emissions
         for e in alg.emissions:

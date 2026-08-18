@@ -52,10 +52,8 @@ def calculate_profile(producer: Producer, timeline, idx):
 
         origins = get_increments_origin_index(years, today, decided)
         production_unit = expectation.get_production(origins)
-        capacity = np.sum(expectation.get_capacity(origins) * multipliers)
         production = np.sum(production_unit * multipliers)
 
-        producer.profile.add_capacity_mass(idx, fuel_name, capacity)
         producer.profile.add_production_mass(idx, fuel_name, production)
 
         conversions = expectation.get_feed_mass(idx=origins)
@@ -84,25 +82,5 @@ def calculate_profile(producer: Producer, timeline, idx):
             tied_capital = np.interp(inc.age * YEAR, time_flow, tied_capital_flow)
 
             producer.profile.add_plant_tied_capital(tied_capital * inc.multiplier, idx)
-
-    # transfer pipeline production to profile
-    for p, plant in enumerate(producer.assets):
-
-        pinc = producer.pipeline[p]
-        if not len(pinc):
-            continue
-
-        fuel_name = plant.fuel.get_name()
-        expectation = plant.expectation
-
-        decided = np.array([inc.decided for inc in pinc])
-        multipliers = np.array([inc.multiplier for inc in pinc])
-
-        origins = get_increments_origin_index(years, today, decided)
-        capacity = np.sum(expectation.get_capacity(origins) * multipliers)
-        production = np.sum(expectation.get_production(origins) * multipliers)
-
-        producer.profile.add_pipeline_capacity_mass(idx, fuel_name, capacity)
-        producer.profile.add_pipeline_production_mass(idx, fuel_name, production)
 
     producer.profile.set_maximum_development(idx, producer.maximum_development.get())
