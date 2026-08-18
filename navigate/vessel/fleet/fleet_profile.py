@@ -218,7 +218,7 @@ def calculate_profile(fleet: Fleet, fuels: dict[str, Fuel], timeline: np.ndarray
     for v, vessel in enumerate(fleet.assets):
 
         profile = vessel.profile
-        cargo_miles = profile.get_cargo_miles(idx)
+        cargo_miles = vessel.expectation.get_cargo_miles(idx)
         multiplier = fleet.get_multiplier(v)
 
         weight += multiplier

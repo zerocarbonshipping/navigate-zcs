@@ -57,7 +57,7 @@ def post_process_investment_metric(fleets, timeline):
 
                 # NPV of cargo delivery over the same operating-year grid as the
                 # cost (zero during lead time), not over the full simulation timeline
-                cargo = np.interp(year_flow, timeline, profile.get_cargo_miles()) * overlap
+                cargo = np.interp(year_flow, timeline, vessel.expectation.get_cargo_miles()) * overlap
                 cargo_npv = calculate_net_present_value(cargo, discount)
 
                 # calculate the achieved charter and freight rate
@@ -101,7 +101,7 @@ def _aggregate_fleet_freight_rate(fleet, timeline):
                 continue
 
             cost_weighted += multiplier * vessel.profile.get_cargo_charter_rate(idx)
-            cargo_weighted += multiplier * vessel.profile.get_cargo_miles(idx)
+            cargo_weighted += multiplier * vessel.expectation.get_cargo_miles(idx)
 
         if cargo_weighted > 0.:
             fleet.profile.set_instantaneous_freight_rate(idx, cost_weighted / cargo_weighted)
