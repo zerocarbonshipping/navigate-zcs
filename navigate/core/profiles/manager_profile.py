@@ -55,8 +55,8 @@ class ManagerProfile(_VesselAggregateProfile, _PlantAggregateProfile, _Infrastru
         self._initialize_fuel_consumer(fuels, emissions, emissions_lifetime, regulation_names, levy_names)
         self._initialize_fuel_producer(feedstocks, fuels, processes)
         self._initialize_fuel_infrastructure(fuels)
-        self._initialize_vessel_aggregate(fuels)
-        self._initialize_plant_aggregate(fuels)
+        self._initialize_vessel_aggregate()
+        self._initialize_plant_aggregate()
         self._initialize_infrastructure_aggregate()
 
         # computational time

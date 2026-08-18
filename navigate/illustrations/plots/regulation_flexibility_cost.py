@@ -1,11 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-import numpy as np
-
 from navigate.core.enum_ import RegulationSchemeID
 from navigate.illustrations.plots._colors import (
-    CENTER_COLORS_BLUE,
     CENTER_COLORS_GREEN,
     CENTER_COLORS_RED,
 )
@@ -29,17 +26,8 @@ def plot_regulation_flexibility_cost(manager, directory):
         profile = regulation.profile
         remedial_cost = profile.get_remedial_cost()
         flexible_cost = profile.get_flexibility_cost()
-        beliefs = profile.get_flexibility_cost_belief()
 
         fig, ax = single_panel()
-
-        n = len(beliefs)
-        alphas = np.linspace(0.2, 0.8, n)
-
-        # belief paths are NaN before their issuance time-step, so plot as-is
-        for i, path in enumerate(beliefs):
-            label = 'Expected' if i == n - 1 else None
-            ax.plot(dateline, path, label=label, color=CENTER_COLORS_BLUE[3], lw=1, alpha=alphas[i])
 
         ax.plot(dateline, remedial_cost, label='Remedial', color=CENTER_COLORS_RED[3], lw=2.)
         ax.plot(dateline, flexible_cost, label='Flexible', color=CENTER_COLORS_GREEN[3], lw=2.)

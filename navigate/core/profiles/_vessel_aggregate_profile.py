@@ -3,17 +3,12 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 import numpy as np
 
 from navigate.core.enum_ import FuelTypeID
 from navigate.core.misc import EMPTY_FLOAT
 from navigate.core.profiles._fuel_consumer_profile import _FuelConsumerProfile
 from navigate.util import divide_nonzero, extract_from_dict, extract_from_tuple_dict
-
-if TYPE_CHECKING:
-    from navigate.fuel import Fuel
 
 
 class _VesselAggregateProfile(_FuelConsumerProfile):
@@ -47,9 +42,8 @@ class _VesselAggregateProfile(_FuelConsumerProfile):
 
         # fuel
         self._fuel_type_demand: dict[FuelTypeID, np.ndarray] = {}
-        self._demand_expectation: dict[str, list[np.ndarray]] = {}  # results of expected bunkering per fuel
 
-    def _initialize_vessel_aggregate(self, fuels: dict[str, Fuel]) -> None:
+    def _initialize_vessel_aggregate(self) -> None:
 
         self._average_raw_energy = self._default_array()
         self._average_operational_energy = self._default_array()
@@ -72,7 +66,6 @@ class _VesselAggregateProfile(_FuelConsumerProfile):
         self._weighted_age_denominator = self._default_dict(FuelTypeID)
 
         self._fuel_type_demand = self._default_dict(FuelTypeID)
-        self._demand_expectation = {f: self._default_list(self.get_length(), default=0.) for f in fuels}
 
     def add_vessel_aggregate_profile(self, profile: _VesselAggregateProfile, idx: int | slice = np.s_[:]) -> None:
         """
@@ -118,10 +111,6 @@ class _VesselAggregateProfile(_FuelConsumerProfile):
         for key in self._fuel_type_demand:
             self._fuel_type_demand[key][idx] += profile._fuel_type_demand[key][idx]
 
-        for key in self._demand_expectation:
-            for i, value in enumerate(profile._demand_expectation[key]):
-                self._demand_expectation[key][i] += value
-
     def add_installed_power(self, fuel_type: FuelTypeID, power: float, idx: int | slice = np.s_[:]) -> None:
         self._installed_power[fuel_type][idx] += power
 
@@ -166,9 +155,6 @@ class _VesselAggregateProfile(_FuelConsumerProfile):
 
     def set_average_energy(self, idx: int, demand: float) -> None:
         self._average_energy[idx] = demand
-
-    def set_demand_expectation(self, fuel_name: str, idx1: int, idx2: int, demand_expectation: np.ndarray) -> None:
-        self._demand_expectation[fuel_name][idx1][idx2] = demand_expectation
 
     def get_average_raw_energy(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         return self._average_raw_energy[idx]
@@ -282,6 +268,3 @@ class _VesselAggregateProfile(_FuelConsumerProfile):
             self, fuel_type: FuelTypeID | None = None,
             idx: int | slice = np.s_[:]) -> np.ndarray | dict[FuelTypeID, np.ndarray]:
         return extract_from_dict(self._fuel_type_demand, fuel_type, idx)
-
-    def get_demand_expectation(self) -> dict[str, list[np.ndarray]]:
-        return self._demand_expectation

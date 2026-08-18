@@ -46,7 +46,7 @@ class ProducerProfile(_PlantAggregateProfile):
         self._initialize_base(timeline)
         self._initialize_fuel_base(fuels)
         self._initialize_fuel_producer(feedstocks, fuels, processes)
-        self._initialize_plant_aggregate(fuels)
+        self._initialize_plant_aggregate()
 
         self._maximum_development = self._default_array(default=np.nan)
         self._development = self._default_array()

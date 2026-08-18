@@ -51,7 +51,6 @@ def perform_fuel_conversions(fleet: Fleet, idx: int, timeline: np.ndarray, time_
 
     # must be pre-newbuild: newbuilds are inserted later in the same timestep.
     existing_total = sum(fleet.get_multipliers())
-    fleet.profile.set_fuel_conversion_existing_total(idx, existing_total)
 
     proposals = propose_fuel_conversions(fleet, idx, time_step)
     if not proposals:

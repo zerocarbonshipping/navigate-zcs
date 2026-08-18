@@ -319,7 +319,7 @@ def calculate_evolution_expectation(producer: Producer, timeline, idx):
         producer.expectation.set_pipeline_production(idx, plant.get_name(), pipeline[p, :])
         producer.expectation.set_newbuild_production(idx, plant.get_name(), newbuild[p, :])
 
-    supply = existing + pipeline + newbuild
+    supply = existing[:, 0] + pipeline[:, 0] + newbuild[:, 0]
 
     # transfer expected production cost and emissions
     for p, plant in enumerate(producer.assets):
@@ -332,15 +332,12 @@ def calculate_evolution_expectation(producer: Producer, timeline, idx):
     # transfer expectation to profile
     for p, plant in enumerate(producer.assets):
 
-        if supply[p, 0] > TOLERANCE:
+        if supply[p] > TOLERANCE:
 
             plant.profile.set_instantaneous_cost(idx, cost_avg[p, 0])
 
             for e in plant.expectation.get_emissions():
                 plant.profile.set_instantaneous_WTT(idx, e, WTT_avg[e][p, 0])
-
-        fuel_name = plant.fuel.get_name()
-        producer.profile.add_supply_expectation(fuel_name, idx, supply[p, :])
 
 
 def perform_pipeline_delivery(producer: Producer, idx: int) -> None:

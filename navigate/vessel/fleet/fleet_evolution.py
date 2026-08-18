@@ -898,7 +898,6 @@ def perform_fleet_evolution(fleet: Fleet, timeline: np.ndarray, time_step: float
     # Cap denominator is the pre-newbuild fleet count (proxy for yard capacity); time_step/YEAR scales
     # the per-year limit to a per-step budget.
     multipliers_total = float(sum(fleet.get_multipliers()))
-    fleet.profile.set_newbuild_existing_total(idx, multipliers_total)
     limit_share = np.array([fleet.newbuild_limit[v.get_name()].get() for v in fleet.assets])
     cap_count = limit_share * multipliers_total * (time_step / YEAR)
 

@@ -23,9 +23,6 @@ class RegulationProfile(_PolicyProfile):
         self._remedial_cost: np.ndarray = EMPTY_NAN         # USD/ton, cost of a remedial compliance unit
         self._flexibility_cost: np.ndarray = EMPTY_NAN      # USD/ton, cost of flexible/surplus compliance unit
 
-        # expectation paths
-        self._flexibility_cost_belief: list[np.ndarray] = []       # smoothed flexibility cost belief per time-step
-
         # thresholds
         self._vessel_threshold: dict[str, np.ndarray] = {}         # individual vessel threshold in measure unit
         self._shared_threshold: np.ndarray = EMPTY_NAN    # shared threshold in measure unit
@@ -63,7 +60,6 @@ class RegulationProfile(_PolicyProfile):
         self._initialize_policy_profile()
 
         self._flexibility_cost = self._default_array(default=np.nan)
-        self._flexibility_cost_belief = self._default_list(self.get_length(), default=np.nan)
         self._remedial_cost = self._default_array(default=np.nan)
 
         self._vessel_threshold = self._default_dict(vessels, default=np.nan)
@@ -95,9 +91,6 @@ class RegulationProfile(_PolicyProfile):
 
     def set_flexibility_cost(self, idx: int, cost: float) -> None:
         self._flexibility_cost[idx] = cost
-
-    def set_flexibility_cost_belief(self, idx: int, belief: np.ndarray) -> None:
-        self._flexibility_cost_belief[idx][idx:] = belief
 
     def set_vessel_threshold(self, idx: int, vessel_name: str, vessel_threshold: float) -> None:
         self._vessel_threshold[vessel_name][idx] = vessel_threshold
@@ -160,9 +153,6 @@ class RegulationProfile(_PolicyProfile):
 
     def get_flexibility_cost(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         return self._flexibility_cost[idx]
-
-    def get_flexibility_cost_belief(self) -> list[np.ndarray]:
-        return self._flexibility_cost_belief
 
     def get_vessel_threshold(
             self, vessel_name: str | None = None,
