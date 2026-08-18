@@ -13,8 +13,13 @@ from navigate.core.enum_ import EnergyDemandTypeID
 from navigate.core.id_ import FLEET, VESSEL
 from navigate.core.misc import YEAR
 from navigate.vessel.fleet import Fleet
+from navigate.vessel.fleet import fleet_evolution
 from navigate.vessel.fleet.fleet_conversion import reconcile_fuel_conversion_caps
-from navigate.vessel.fleet.fleet_evolution import calculate_modelled_uptake
+from navigate.vessel.fleet.fleet_evolution import (
+    calculate_modelled_newbuilds,
+    calculate_modelled_uptake,
+    calculate_orderbook_newbuilds,
+)
 from navigate.vessel.fleet.fleet_technology import (
     reconcile_newbuild_technology_caps,
     reconcile_retrofit_technology_caps,
@@ -586,3 +591,139 @@ class TestModelledUptakesCapProjection:
         assert uptake[2] <= 0.2 + 1e-9
         np.testing.assert_almost_equal(uptake[0] + uptake[1], 0.6)
         np.testing.assert_almost_equal(uptake[2], 0.2)
+
+
+# ---------------------------------------------------------------------------
+# Newbuild-limit enforcement
+# ---------------------------------------------------------------------------
+
+def _make_fleet_for_newbuilds(cargo_miles: list[float],
+                              orderbooks: list[float] | None = None,
+                              current_uptake: list[float] | None = None) -> Fleet:
+    """
+    Build a Fleet stub for `calculate_orderbook_newbuilds` / `calculate_modelled_newbuilds`.
+    All vessels share one fuel type with uniform DCM sensitivities, so the modelled uptake
+    is driven purely by `cap_share`. Orderbooks are plain floats (cumulative vessel counts).
+    """
+    n = len(cargo_miles)
+    fleet, vessels = _make_fleet_for_modelled_uptakes(["x"] * n, [1.] * n)
+    fleet.assets = vessels
+
+    for v, cm in zip(vessels, cargo_miles):
+        v.expectation.get_cargo_miles.return_value = cm
+
+    names = [v.get_name() for v in vessels]
+    fleet.allow_vessel = dict.fromkeys(names, True)
+    fleet.newbuild_available = dict.fromkeys(names, True)
+    fleet.orderbooks = list(orderbooks) if orderbooks is not None else []
+    fleet.orders_delivered = np.zeros(n)
+    fleet.orders_postponed = np.zeros(n)
+    fleet.current_uptake = np.array(current_uptake if current_uptake is not None else np.zeros(n))
+    fleet.profile = MagicMock()
+
+    return fleet
+
+
+def _spy_on_modelled_uptake(monkeypatch) -> dict:
+    """Replace `calculate_modelled_uptake` with a zero-uptake spy recording the cap_share it receives."""
+    captured = {}
+
+    def fake_uptake(fleet, vessels, idx, cap_share=None):
+        captured["cap_share"] = cap_share
+        return np.zeros(len(vessels))
+
+    monkeypatch.setattr(fleet_evolution, "calculate_modelled_uptake", fake_uptake)
+
+    return captured
+
+
+class TestOrderbookNewbuildLimit:
+    """Test the per-vessel newbuild-count cap inside `calculate_orderbook_newbuilds`."""
+
+    def test_unconstrained_cap_no_op(self):
+        # trade gap (10 cm) exceeds the ordered trade (5 cm) and the cap is slack: full delivery
+        fleet = _make_fleet_for_newbuilds(cargo_miles=[1.], orderbooks=[5.])
+        delivery, capacity, cap_remaining = calculate_orderbook_newbuilds(
+            fleet, trade_gap=10., cap_count=np.array([100.]), idx=0)
+        np.testing.assert_almost_equal(delivery, [5.])
+        np.testing.assert_almost_equal(capacity, 5.)
+        np.testing.assert_almost_equal(cap_remaining, [95.])
+        np.testing.assert_almost_equal(fleet.orders_postponed, [0.])
+
+    def test_cap_binds_excess_postponed(self):
+        # 5 vessels ordered but the cap allows 2: 2 delivered, 3 postponed, budget exhausted
+        fleet = _make_fleet_for_newbuilds(cargo_miles=[1.], orderbooks=[5.])
+        delivery, capacity, cap_remaining = calculate_orderbook_newbuilds(
+            fleet, trade_gap=10., cap_count=np.array([2.]), idx=0)
+        np.testing.assert_almost_equal(delivery, [2.])
+        np.testing.assert_almost_equal(capacity, 2.)
+        np.testing.assert_almost_equal(cap_remaining, [0.])
+        np.testing.assert_almost_equal(fleet.orders_delivered, [2.])
+        np.testing.assert_almost_equal(fleet.orders_postponed, [3.])
+
+    def test_postponed_redelivery_respects_cap(self):
+        # orders postponed by the cap in one step are still subject to the next step's cap
+        fleet = _make_fleet_for_newbuilds(cargo_miles=[1.], orderbooks=[5.])
+        calculate_orderbook_newbuilds(fleet, trade_gap=10., cap_count=np.array([2.]), idx=0)
+        delivery, _, cap_remaining = calculate_orderbook_newbuilds(
+            fleet, trade_gap=10., cap_count=np.array([1.]), idx=1)
+        np.testing.assert_almost_equal(delivery, [1.])
+        np.testing.assert_almost_equal(cap_remaining, [0.])
+        np.testing.assert_almost_equal(fleet.orders_delivered, [3.])
+        np.testing.assert_almost_equal(fleet.orders_postponed, [2.])
+
+    def test_cap_independent_per_vessel(self):
+        # the cap is a per-vessel budget: v0 is capped, v1 is not
+        fleet = _make_fleet_for_newbuilds(cargo_miles=[1., 1.], orderbooks=[4., 3.])
+        delivery, _, cap_remaining = calculate_orderbook_newbuilds(
+            fleet, trade_gap=100., cap_count=np.array([1., 100.]), idx=0)
+        np.testing.assert_almost_equal(delivery, [1., 3.])
+        np.testing.assert_almost_equal(cap_remaining, [0., 97.])
+        np.testing.assert_almost_equal(fleet.orders_postponed, [3., 0.])
+
+
+class TestModelledNewbuildLimit:
+    """Test the per-vessel newbuild-count cap inside `calculate_modelled_newbuilds`."""
+
+    def test_inertia_clipped_to_cap(self):
+        # inertia alone demands 10 vessels (uptake 1 * trade_gap 10 / cm 1) but the cap allows 4;
+        # the remaining budget is zero, so the modelled DCM receives cap_share 0 and adds nothing
+        fleet = _make_fleet_for_newbuilds(cargo_miles=[1.], current_uptake=[1.])
+        increments, capacity = calculate_modelled_newbuilds(
+            fleet, trade_gap=10., cap_count=np.array([4.]), idx=0)
+        np.testing.assert_almost_equal(increments, [4.])
+        np.testing.assert_almost_equal(capacity, 4.)
+
+    def test_cap_share_derivation(self, monkeypatch):
+        # cap_share[v] = min(remaining cap * cargo_miles / trade_gap, 1) after the inertia clip:
+        # v0's budget (3) is consumed by inertia (5 down to 3), v1's budget (4) exceeds the
+        # residual trade gap (7 cm / 2 cm-per-vessel), so its share clamps to 1
+        captured = _spy_on_modelled_uptake(monkeypatch)
+
+        fleet = _make_fleet_for_newbuilds(cargo_miles=[1., 2.], current_uptake=[0.5, 0.])
+        calculate_modelled_newbuilds(fleet, trade_gap=10., cap_count=np.array([3., 4.]), idx=0)
+        np.testing.assert_almost_equal(captured["cap_share"], [0., 1.])
+
+    def test_cap_share_ones_when_trade_gap_filled(self, monkeypatch):
+        # inertia fills the whole trade gap, so the count cap is moot and cap_share defaults to 1
+        captured = _spy_on_modelled_uptake(monkeypatch)
+
+        fleet = _make_fleet_for_newbuilds(cargo_miles=[1.], current_uptake=[1.])
+        calculate_modelled_newbuilds(fleet, trade_gap=5., cap_count=np.array([10.]), idx=0)
+        np.testing.assert_almost_equal(captured["cap_share"], [1.])
+
+    def test_budget_threading_across_stages(self):
+        # mirrors perform_fleet_evolution: the orderbook consumes part of the shared budget and
+        # its returned remainder caps the inertia + modelled stage, keeping totals within budget
+        fleet = _make_fleet_for_newbuilds(cargo_miles=[1.], orderbooks=[4.], current_uptake=[1.])
+        cap_count = np.array([5.])
+
+        delivery, capacity, cap_remaining = calculate_orderbook_newbuilds(
+            fleet, trade_gap=10., cap_count=cap_count, idx=0)
+        trade_gap = 10. - capacity
+
+        increments, _ = calculate_modelled_newbuilds(fleet, trade_gap, cap_remaining, idx=0)
+
+        np.testing.assert_almost_equal(delivery, [4.])
+        np.testing.assert_almost_equal(increments, [1.])
+        assert np.all(delivery + increments <= cap_count + 1e-9)
