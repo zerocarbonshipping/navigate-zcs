@@ -11,6 +11,22 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Removed
+- Unused profile output (getters, their writers, and stored state) across all
+  profile classes: volume-denominated output, FuelType mass aggregation,
+  fuel-quantity cumulatives, non-GWP-equivalent emission variants,
+  plant TTW/WTW and capacity/production/feed output, producer
+  capacity/pipeline/source output and per-plant change tracking, vessel
+  OPEX/activity output, policy emission factors, port bunker WTW, fleet
+  scrap-age statistics, and the levy level. The corresponding report
+  properties are removed from the Report DSL surface (see
+  `docs/reference_manual/report.md`).
+- The `producer_changes` plot.
+
+### Changed
+- The investment post-processing and fleet aggregation read vessel
+  cargo-miles from the expectation instead of the profile (value-identical).
+
 ### Added
 - Behavior guardrail test suite (`tests/guardrails/`): committed decks that
   each isolate one desired model behavior, enforced by property assertions

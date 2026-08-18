@@ -25,7 +25,6 @@ Report "report" {
 	add_property(TotalEquivalentWTT)				# ton/year
 	add_property(TotalEquivalentTTW)				# ton/year
 	add_property(TotalEquivalentWTW)				# ton/year
-	add_property(WTW)								# ton/year
 	add_property(TotalConsumedEnergy)				# GJ/year
 	add_property(ConsumedEnergy)					# GJ/year
 	add_property(InstalledPower)					# MW

@@ -91,7 +91,6 @@ The labels below are the values accepted by the `add_plot` command on a `Plot` n
 | fleet_fuel_conversion_sources_normalized        | Fleet                      |
 | producer_development                            | Producer                   |
 | producer_development_cumulative                 | Producer                   |
-| producer_changes                                | Producer                   |
 | producer_feed_consumption                       | Producer                   |
 | producer_fair_share                             | Producer                   |
 | plant_production_cost                           | Plant                      |

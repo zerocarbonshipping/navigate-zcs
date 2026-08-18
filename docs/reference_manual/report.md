@@ -139,62 +139,33 @@ The properties are applicable for the following commands:
 | DemandSea                             | GJ/year                     | The energy demand at sea.                                                                    |
 | DemandPort                            | GJ/year                     | The energy demand in port.                                                                   |
 | Demand                                | GJ/year                     | The energy demand.                                                                           |
-| ConsumedMass                          | Ton/year                    | Fuel consumed in mass for all fuels.                                                         |
 | ConsumedEnergy                        | GJ/year                     | Fuel consumed in energy for all fuels.                                                       |
-| ConsumedVolume                        | m<sup>3</sup>/year          | Fuel consumed in volume for all fuels.                                                       |
-| FuelTypeMass                          | Ton/year                    | Fuel consumed in mass, aggregated by fuel type.                                              |
 | FuelTypeEnergy                        | GJ/year                     | Fuel consumed in energy, aggregated by fuel type.                                            |
-| FuelTypeVolume                        | m<sup>3</sup>/year          | Fuel consumed in volume, aggregated by fuel type.                                            |
-| TotalConsumedMass                     | Ton/year                    | Total fuel consumed in mass across all fuels.                                                |
 | TotalConsumedEnergy                   | GJ/year                     | Total fuel consumed in energy across all fuels.                                              |
-| TotalFuelVolume                       | m<sup>3</sup>/year          | Total fuel consumed in volume across all fuels.                                              |
-| CumulativeFuelMass                    | Ton/year                    | Cumulative fuel consumed over time in mass for all fuels.                                    |
-| CumulativeFuelEnergy                  | GJ/year                     | Cumulative fuel consumed over time in energy for all fuels.                                  |
-| CumulativeFuelVolume                  | m<sup>3</sup>/year          | Cumulative fuel consumed over time in volume for all fuels.                                  |
-| CumulativeFuelTypeMass                | Ton/year                    | Cumulative fuel consumed over time in mass, aggregated by fuel type.                         |
-| CumulativeFuelTypeEnergy              | GJ/year                     | Cumulative fuel consumed over time in energy, aggregated by fuel type.                       |
-| CumulativeFuelTypeVolume              | m<sup>3</sup>/year          | Cumulative fuel consumed over time in volume, aggregated by fuel type.                       |
-| ConverterMass                         | Ton/year                    | Fuel consumed in mass in vessels of a fuel type across fuels per fuel type.                  |
 | ConverterFuelEnergy                   | GJ/year                     | Fuel consumed in energy in vessels of a fuel type across fuels per fuel type.                |
-| ConverterFuelVolume                   | m<sup>3</sup>/year          | Fuel consumed in volume in vessels of a fuel type across fuels per fuel type.                |
-| ConverterFuelTypeMass                 | Ton/year                    | Fuel consumed in mass in vessels of a fuel type aggregated by fuel type.                     |
-| ConverterFuelTypeEnergy               | GJ/year                     | Fuel consumed in energy in vessels of a fuel type aggregated by fuel type.                   |
-| ConverterFuelTypeVolume               | m<sup>3</sup>/year          | Fuel consumed in volume in vessels of a fuel type aggregated by fuel type.                   |
 | PilotFuelShare                        | Ton/ton                     | The fraction of total fuel spent which is pilot fuel for each vessel fuel type.              |
-| WTT                                   | Ton/year                    | Emitted well-to-tank emissions per fuel and emission                                         |
 | EquivalentWTT                         | Ton CO<sub>2</sub>-eq./year | Emitted well-to-tank emissions per fuel and emission.                                        |
 | TotalEquivalentWTT                    | Ton CO<sub>2</sub>-eq./year | Total emitted well-to-tank emissions.                                                        |
-| TTW                                   | Ton/year                    | Emitted tank-to-wake emissions per fuel and emission.                                        |
 | EquivalentTTW                         | Ton CO<sub>2</sub>-eq./year | Emitted Tank-to-wake emissions per fuel and emission.                                        |
 | TotalEquivalentTTW                    | Ton CO<sub>2</sub>-eq./year | Total emitted tank-to-wake emissions.                                                        |
-| WTW                                   | Ton/year                    | Emitted well-to-wake emissions per fuel and emission.                                        |
 | EquivalentWTW                         | Ton CO<sub>2</sub>-eq./year | Emitted well-to-wake emissions per fuel and emission.                                        |
 | TotalEquivalentWTW                    | Ton CO<sub>2</sub>-eq./year | Total emitted well-to-wake emissions.                                                        |
-| CumulativeWTT                         | Ton                         | Cumulative emitted well-to-tank emissions per fuel and emission.                             |
 | CumulativeEquivalentWTT               | Ton CO<sub>2</sub>-eq.      | Cumulative emitted well-to-tank emissions per fuel and emission.                             |
 | CumulativeTotalEquivalentWTT          | Ton CO<sub>2</sub>-eq.      | Cumulative total emitted well-to-tank emissions.                                             |
-| CumulativeTTW                         | Ton                         | Cumulative emitted tank-to-wake emissions per fuel and emission.                             |
 | CumulativeEquivalentTTW               | Ton CO<sub>2</sub>-eq.      | Cumulative emitted tank-to-wake emissions per fuel and emission.                             |
 | CumulativeTotalEquivalentTTW          | Ton CO<sub>2</sub>-eq.      | Cumulative total emitted tank-to-wake emissions.                                             |
-| CumulativeWTW                         | Ton                         | Cumulative emitted well-to-wake emissions per fuel and emission.                             |
 | CumulativeEquivalentWTW               | Ton CO<sub>2</sub>-eq.      | Cumulative emitted well-to-wake emissions per fuel and emission.                             |
 | CumulativeTotalEquivalentWTW          | Ton CO<sub>2</sub>-eq.      | Cumulative total emitted well-to-wake emissions.                                             |
-| IntensityWTT                          | Kg/GJ                       | Emitted well-to-tank emissions per energy per fuel and emission.                             |
 | IntensityEquivalentWTT                | Kg CO<sub>2</sub>-eq./GJ    | Emitted well-to-tank emissions per energy per fuel and emission.                             |
 | IntensityTotalEquivalentWTT           | Kg CO<sub>2</sub>-eq./GJ    | Total emitted well-to-tank emissions per energy.                                             |
-| IntensityTTW                          | Kg/GJ                       | Emitted tank-to-wake emissions per energy per fuel and emission.                             |
 | IntensityEquivalentTTW                | Kg CO<sub>2</sub>-eq./GJ    | Emitted tank-to-wake emissions per energy per fuel and emission.                             |
 | IntensityTotalEquivalentTTW           | Kg CO<sub>2</sub>-eq./GJ    | Total emitted tank-to-wake emissions per energy.                                             |
-| IntensityWTW                          | Kg/GJ                       | Emitted well-to-wake emissions per energy per fuel and emission.                             |
 | IntensityEquivalentWTW                | Kg CO<sub>2</sub>-eq./GJ    | Emitted well-to-wake emissions per energy per fuel and emission.                             |
 | IntensityTotalEquivalentWTW           | Kg CO<sub>2</sub>-eq./GJ    | Total emitted well-to-wake emissions per energy.                                             |
-| CumulativeIntensityWTT                | Kg/GJ                       | Cumulative emitted well-to-tank emissions per energy per fuel and emission.                  |
 | CumulativeIntensityEquivalentWTT      | Kg CO<sub>2</sub>-eq./GJ    | Cumulative emitted well-to-tank emissions per energy per fuel and emission.                  |
 | CumulativeIntensityTotalEquivalentWTT | Kg CO<sub>2</sub>-eq./GJ    | Cumulative total emitted well-to-tank emissions per energy.                                  |
-| CumulativeIntensityTTW                | Kg/GJ                       | Cumulative emitted tank-to-wake emissions per energy per fuel and emission.                  |
 | CumulativeIntensityEquivalentTTW      | Kg CO<sub>2</sub>-eq./GJ    | Cumulative emitted tank-to-wake emissions per energy per fuel and emission.                  |
 | CumulativeIntensityTotalEquivalentTTW | Kg CO<sub>2</sub>-eq./GJ    | Cumulative total emitted tank-to-wake emissions per energy.                                  |
-| CumulativeIntensityWTW                | Kg/GJ                       | Cumulative emitted well-to-wake emissions per energy per fuel and emission.                  |
 | CumulativeIntensityEquivalentWTW      | Kg CO<sub>2</sub>-eq./GJ    | Cumulative emitted well-to-wake emissions per energy per fuel and emission.                  |
 | CumulativeIntensityTotalEquivalentWTW | Kg CO<sub>2</sub>-eq./GJ    | Cumulative total emitted well-to-wake emissions per energy.                                  |
 |  FuelExpenses                         | USD/year                    | Fuel expenses per fuel.                                                                      |
@@ -228,44 +199,9 @@ The properties are applicable for the following commands:
 
 | **Property name**            | **Unit** | **Description**                                                              |
 |------------------------------|  |------------------------------------------------------------------------------|
-| CapacityMass                 | Ton/year | Fuel production capacity in mass for all fuels.                              |
-| CapacityEnergy               | GJ/year | Fuel production capacity in energy for all fuels.                            |
-| CapacityVolume               | m<sup>3</sup>/year | Fuel production capacity in volume for all fuels.                            |
-| CapacityTypeMass             | Ton/year | Fuel production capacity in mass, aggregated by fuel type.                   |
-| CapacityTypeEnergy           | GJ/year | Fuel production capacity in energy, aggregated by fuel type.                 |
-| CapacityTypeVolume           | m<sup>3</sup>/year | Fuel production capacity in volume, aggregated by fuel type.                 |
-| CapacityPathMass             | Ton/year | Fuel production capacity in mass, aggregated by fuel path.                   |
-| CapacityPathEnergy           | GJ/year | Fuel production capacity in energy, aggregated by fuel path.                 |
-| CapacityPathVolume           | m<sup>3</sup>/year | Fuel production capacity in volume, aggregated by fuel path.                 |
-| ProductionMass               | Ton/year | Fuel production in mass for all fuels.                                       |
 | ProductionEnergy             | GJ/year | Fuel production in energy for all fuels.                                     |
-| ProductionVolume             | m<sup>3</sup>/year | Fuel production in volume for all fuels.                                     |
-| ProductionTypeMass           | Ton/year | Fuel production in mass, aggregated by fuel type.                            |
 | ProductionTypeEnergy         | GJ/year | Fuel production in energy, aggregated by fuel type.                          |
-| ProductionTypeVolume         | m<sup>3</sup>/year | Fuel production in volume, aggregated by fuel type.                          |
-| ProductionPathMass           | Ton/year | Fuel production in mass, aggregated by fuel path.                            |
-| ProductionPathEnergy         | GJ/year | Fuel production in energy, aggregated by fuel path.                          |
-| ProductionPathVolume         | m<sup>3</sup>/year | Fuel production in volume, aggregated by fuel path.                          |
-| PipelineCapacityMass         | Ton/year | Fuel production capacity in mass in the pipeline for all fuels.              |
-| PipelineCapacityEnergy       | GJ/year | Fuel production capacity in energy in the pipeline for all fuels.             |
-| PipelineCapacityVolume       | m<sup>3</sup>/year | Fuel production capacity in volume in the pipeline for all fuels.            |
-| PipelineCapacityTypeMass     | Ton/year | Fuel production capacity in mass in the pipeline, aggregated by fuel type.   |
-| PipelineCapacityTypeEnergy   | GJ/year | Fuel production capacity in energy in the pipeline, aggregated by fuel type. |
-| PipelineCapacityTypeVolume   | m<sup>3</sup>/year | Fuel production capacity in volume in the pipeline, aggregated by fuel type. |
-| PipelineCapacityPathMass     | Ton/year | Fuel production capacity in mass in the pipeline, aggregated by fuel path.   |
-| PipelineCapacityPathEnergy   | GJ/year | Fuel production capacity in energy in the pipeline, aggregated by fuel path. |
-| PipelineCapacityPathVolume   | m<sup>3</sup>/year | Fuel production capacity in volume in the pipeline, aggregated by fuel path. |
-| PipelineProductionMass       | Ton/year | Fuel production in mass in the pipeline for all fuels.                       |
-| PipelineProductionEnergy     | GJ/year | Fuel production in energy in the pipeline for all fuels.                     |
-| PipelineProductionVolume     | m<sup>3</sup>/year | Fuel production in volume in the pipeline for all fuels.                     |
-| PipelineProductionTypeMass   | Ton/year | Fuel production in mass in the pipeline, aggregated by fuel type.            |
-| PipelineProductionTypeEnergy | GJ/year | Fuel production in energy in the pipeline, aggregated by fuel type.          |
-| PipelineProductionTypeVolume | m<sup>3</sup>/year | Fuel production in volume in the pipeline, aggregated by fuel type.          |
-| PipelineProductionPathMass   | Ton/year | Fuel production in mass in the pipeline, aggregated by fuel path.            |
-| PipelineProductionPathEnergy | GJ/year | Fuel production in energy in the pipeline, aggregated by fuel path.          |
-| PipelineProductionPathVolume | m<sup>3</sup>/year | Fuel production in volume in the pipeline, aggregated by fuel path.          |
-| SourceEnergy                 | MWh/year | Energy used for production per source.                                       |
-| FeedstockMass                | Ton/year | Feedstock used in production per feedstock                                   |
+| FeedMass                     | Ton/year | Feed used in production per feedstock and process.                           |
 | FeedConstraint               | Ton/year | Feed availability constraint per feedstock and process.                      |
 | PlantTiedCapital             | USD | Capital tied up in plants (following a linear depreciation schedule).                      |
 
@@ -278,13 +214,10 @@ The properties are applicable for the following commands:
 |----------------------|--------------------|------------------------------------------------------------|
 | BunkerMass           | Ton/year           | Fuel bunkered in mass for all fuels.                       |
 | BunkerEnergy         | GJ/year            | Fuel bunkered in energy for all fuels.                     |
-| BunkerVolume         | m<sup>3</sup>/year | Fuel bunkered in volume for all fuels.                     |
 | BunkerSupplyMass     | Ton/year           | Fuel available for bunkering in mass for all fuels.        |
 | BunkerSupplyEnergy   | GJ/year            | Fuel available for bunkering in energy for all fuels.      |
-| BunkerSupplyVolume   | m<sup>3</sup>/year | Fuel available for bunkering in volume for all fuels.      |
 | BunkeringLimitMass   | Ton/year           | Infrastructure limit on bunkering in mass for all fuels.   |
 | BunkeringLimitEnergy | GJ/year            | Infrastructure limit on bunkering in energy for all fuels. |
-| BunkeringLimitVolume | m<sup>3</sup>/year | Infrastructure limit on bunkering in volume for all fuels. |
 
 The properties are applicable for the following commands:
 
@@ -347,7 +280,6 @@ The properties are applicable for the following commands:
 |------------------------------------|-------------------|-------------------------------------------------------------------------------------------------|
 | Trade                              | Cargo-miles/year  | Trade satisfied.                                                                                |
 | ExistingVessels                    | # of vessels      | Number of existing vessels per vessel.                                                          |
-| AverageAge                         | Year              | Average age of vessels per vessel.                                                              |
 | PrimaryScrap                       | # of vessels/year | Number of vessels scrapped due to age per vessel.                                               |
 | SecondaryScrap                     | # of vessels/year | Number of vessels scrapped due to trade reduction per vessel.                                   |
 | OrderbookNewbuilds                 | # of vessels/year | Number of newbuild vessels based on the orderbook per vessel.                                   |
@@ -359,8 +291,6 @@ The properties are applicable for the following commands:
 | TechnologyUptake                   | Fraction of fleet | Fraction of vessels with the technology installed per vessel and technology.                    |
 | NewbuildTechnologyUptake           | Fraction of fleet | Fraction of newbuild vessels with the technology installed per vessel and technology.           |
 | RetrofitTechnologyUptake           | Fraction of fleet | Fraction of vessels retrofitted with the technology per vessel and technology.                  |
-| YoungestScrapAge                   | Year              | The youngest scrap age across all vessels.                                                      |
-| AverageScrapAge                    | Year              | The average scrap age across all vessels.                                                       |
 | ReferenceSpeed                     | Knots             | The average reference (speed defined in Route) speed across all vessels.                        |
 | MinimumSpeed                       | Knots             | The average minimum speed attainable across all vessels.                                        |
 | MaximumSpeed                       | Knots             | The average maximum speed attainable across all vessels.                                        |
@@ -373,14 +303,6 @@ The properties are applicable for the following commands:
 
 | **Property name**               | **Unit**         | **Description**                                                                  |
 |---------------------------------|------------------|----------------------------------------------------------------------------------|
-| ExistingPlants                  | # of plants      | Number of existing plants per plant.                                             |
-| AverageAge                      | Year             | Average age of plants per plant.                                                 |
-| Decommissions                   | # of plants/year | Number of plants decommissioned per plant.                                       |
-| Newbuilds                       | # of plants/year | Number of newbuild plants per plant.                                             |
-| TotalDecommissions              | # of plants/year | Total number of decommissions across all plants.                                 |
-| TotalNewbuilds                  | # of plants/year | Total number of newbuilds across all plants.                                     |
-| Pipeline                        | # of plants/year | Number of plants in the pipeline per plant.                                      |
-| PipelineAdditions               | # of plants/year | Number plants added to the pipeline per plant.                                   |
 | DevelopmentConstraint           | # of plants/year | Number of plants that can be added to the pipeline across all plants.            |
 | Development                     | # of plants/year | Number of plants added to the pipeline across all plants.                        |
 | CumulativeDevelopmentConstraint | # of plants      | Cumulative number of plants that can be added to the pipeline across all plants. |
@@ -394,27 +316,13 @@ The properties are applicable for the following commands:
 | **Property name**       | **Unit**                  | **Description**                                                           |
 |-------------------------|---------------------------|---------------------------------------------------------------------------|
 | Lifetime                | Year                      | Lifetime of the vessel.                                                   |
-| Voyages                 | #/year                    | Number of voyages.                                                        |
-| TimeSea                 | Days/year                 | Time at sea.                                                              |
-| TimePort                | Days/year                 | Time in port.                                                             |
-| VoyageDuration          | Days/voyage               | Duration of the voyage.                                                   |
 | ReferenceSpeed          | Knots                     | Average reference speed (speed defined in Route) of the vessel.           |
 | MinimumSpeed            | Knots                     | Average minimum speed attainable.                                         |
 | MaximumSpeed            | Knots                     | Average maximum speed attainable.                                         |
 | ActualSpeed             | Knots                     | Average actual speed.                                                     |
-| Miles                   | Nautical miles/year       | Miles sailed.                                                             |
-| CargoMiles              | Cargo-nautical miles/year | Cargo-miles delivered, accounting for loss of cargo-space.                |
 | OperationalEnergySaving | GJ/GJ                     | Relative reduction of all energy demand due to operational changes.       |
 | TechnologyEnergySaving  | GJ/GJ                     | Relative reduction of all energy demand from added technologies.          |
 | EnergySaving            | GJ/GJ                     | Relative reduction of all energy from operational and technology changes. |
-| PowerEfficiency         | GJ/GJ                     | Overall thermal efficiency of the power system of the vessel.             |
-| SpendEnergySea          | GJ/year                   | Energy spend accounting for thermal efficiency losses at sea.             |
-| SpendEnergyPort         | GJ/year                   | Energy spend accounting for thermal efficiency losses in port.            |
-| SpendEnergy             | GJ/year                   | Total energy spend accounting for thermal efficiency losses               |
-| FuelOPEX                | USD/year                  | Average yearly OPEX for fuel consumption.                                 |
-| LevyOPEX                | USD/year                  | Average yearly OPEX for carbon levies.                                    |
-| RegulationOPEX          | USD/year                  | Average yearly OPEX for regulations.                                      |
-| FuelRelatedOPEX         | USD/year                  | Average yearly OPEX for fuel consumption, carbon levies, and regulations. |
 | AssetCharterRate        | USD/year                  | Asset charter rate (owner to operator), does not include fuel expenses.   |
 | CargoCharterRate        | USD/year                  | Cargo charter rate (operator to cargo owner), includes fuel expenses.     |
 | InvestmentFreightRate   | USD/cargo-nautical mile   | Long-run freight rate at the time of investment.                          |
@@ -427,41 +335,16 @@ The properties are applicable for the following commands:
 
 | **Property name**                        | **Unit**                    | **Description**                                                                 |
 |------------------------------------------|-----------------------------|---------------------------------------------------------------------------------|
-| Capacity                                 | Ton/year                    | Production capacity.                                                            |
-| Production                               | Ton/year                    | Production.                                                                     |
-| FeedMass                                 | Ton/ton                     | Ton of feed used per ton of fuel produced.                                      |
 | InvestmentCost                           | USD/ton                     | Levelized production cost at time of investment.                                |
 | InstantaneousCost                        | USD/ton                     | Supply-weighted average cost over all plants.                                   |
-| TTW                                      | Ton/ton                     | Tank-to-wake emissions per ton of fuel per emission.                            |
-| EquivalentTTW                            | Ton CO<sub>2</sub>-eq./ton  | Tank-to-wake emissions per ton of fuel per emission.                            |
-| TotalEquivalentTTW                       | Ton CO<sub>2</sub>-eq./ton  | Total tank-to-wake emissions per ton of fuel.                                   |
-| IntensityTTW                             | Ton/GJ                      | Tank-to-wake emissions per energy in fuel per emission.                         |
-| IntensityEquivalentTTW                   | Ton CO<sub>2</sub>-eq./GJ   | Tank-to-wake emissions per energy in fuel per emission.                         |
-| IntensityTotalEquivalentTTW              | Ton CO<sub>2</sub>-eq./GJ   | Total tank-to-wake emissions per energy in fuel.                                |
-| InvestmentWTT                            | Ton/ton                     | Well-to-tank emissions at time of investment per ton of fuel per emission.      |
 | EquivalentInvestmentWTT                  | Ton CO<sub>2</sub>-eq./ton  | Well-to-tank emissions at time of investment per ton of fuel per emission.      |
 | TotalEquivalentInvestmentWTT             | Ton CO<sub>2</sub>-eq./ton  | Total well-to-tank emissions at time of investment per ton of fuel.             |
-| IntensityInvestmentWTT                   | Ton/GJ                      | Well-to-tank emissions at time of investment per energy in fuel per emission.   |
 | IntensityEquivalentInvestmentWTT         | Ton CO<sub>2</sub>-eq./GJ   | Well-to-tank emissions at time of investment per energy in fuel per emission.   |
 | IntensityTotalEquivalentInvestmentWTT    | Ton CO<sub>2</sub>-eq./GJ   | Total well-to-tank emissions at time of investment per energy in fuel.          |
-| InstantaneousWTT                         | Ton/ton                     | Well-to-tank emissions per ton of fuel per emission.                            |
 | EquivalentInstantaneousWTT               | Ton CO<sub>2</sub>-eq./ton  | Supply-weighted average well-to-tank emissions per ton of fuel per emission.    |
 | TotalEquivalentInstantaneousWTT          | Ton CO<sub>2</sub>-eq./ton  | Supply-weighted average total well-to-tank emissions per ton of fuel.           |
-| IntensityInstantaneousWTT                | Ton/GJ                      | Supply-weighted average well-to-tank emissions per energy in fuel per emission. |
 | IntensityEquivalentInstantaneousWTT      | Ton CO<sub>2</sub>-eq./GJ   | Supply-weighted average well-to-tank emissions per energy in fuel per emission. |
 | IntensityTotalEquivalentInstantaneousWTT | Ton CO<sub>2</sub>-eq./GJ   | Supply-weighted average total well-to-tank emissions per energy in fuel.        |
-| InvestmentWTW                            | Ton/ton                     | Well-to-wake emissions at time of investment per ton of fuel per emission. |
-| EquivalentInvestmentWTW                  | Ton CO<sub>2</sub>-eq./ton  | Well-to-wake emissions at time of investment per ton of fuel per emission. |
-| TotalEquivalentInvestmentWTW             | Ton CO<sub>2</sub>-eq./ton  | Total well-to-wake emissions at time of investment per ton of fuel. |
-| IntensityInvestmentWTW                   | Ton/GJ                      | Well-to-wake emissions at time of investment per energy in fuel per emission. |
-| IntensityEquivalentInvestmentWTW         | Ton CO<sub>2</sub>-eq./GJ   | Well-to-wake emissions at time of investment per energy in fuel per emission. |
-| IntensityTotalEquivalentInvestmentWTW    | Ton CO<sub>2</sub>-eq./GJ   | Total well-to-wake emissions at time of investment per energy in fuel. |
-| InstantaneousWTW                         | Ton/ton                     | Well-to-wake emissions per ton of fuel per emission. |
-| EquivalentInstantaneousWTW               | Ton CO<sub>2</sub>-eq./ton  | Supply-weighted average well-to-wake emissions per ton of fuel per emission. |
-| TotalEquivalentInstantaneousWTW          | Ton CO<sub>2</sub>-eq./ton  | Supply-weighted average total well-to-wake emissions per ton of fuel. |
-| IntensityInstantaneousWTW                | Ton/GJ                      | Supply-weighted average well-to-wake emissions per energy in fuel per emission. |
-| IntensityEquivalentInstantaneousWTW      | Ton CO<sub>2</sub>-eq./GJ   | Supply-weighted average well-to-wake emissions per energy in fuel per emission. |
-| IntensityTotalEquivalentInstantaneousWTW | Ton CO<sub>2</sub>-eq./GJ   | Supply-weighted average total well-to-wake emissions per energy in fuel. |
 
 The properties are applicable for the following commands:
 
@@ -498,24 +381,6 @@ The properties are applicable for the following commands:
 | SurplusRevenue      | USD/ton  | Revenue from selling surplus compliance units.         |
 | FlexibilityExpenses | USD/ton  | Expenses from purchasing flexibility compliance units. |
 | RemedialExpenses    | USD/ton  | Expenses from purchasing remedial compliance units.    |
-| EmissionFactorWTT                         | Ton/ton                    | Well-to-tank emission factor per fuel and emission.                                              |
-| EmissionFactorTTW                         | Ton/ton                    | Tank-to-wake emission factor per fuel and emission.                                              |
-| EmissionFactorWTW                         | Ton/ton                    | Well-to-wake emission factor per fuel and emission.                                              |
-| IntensityEmissionFactorWTT                | Ton/GJ                     | Well-to-tank emission factor per energy in fuel per fuel and emission.                           |
-| IntensityEmissionFactorTTW                | Ton/GJ                     | Tank-to-wake emission factor per energy in fuel per fuel and emission.                           |
-| IntensityEmissionFactorWTW                | Ton/GJ                     | Well-to-wake emission factor per energy in fuel per fuel and emission.                           |
-| EquivalentEmissionFactorWTT               | Ton CO<sub>2</sub>-eq./ton | Well-to-tank equivalent emission factor per fuel and emission.                                   |
-| TotalEquivalentEmissionFactorWTT          | Ton CO<sub>2</sub>-eq./ton | Total well-to-tank equivalent emission factor per fuel.                                          |
-| EquivalentEmissionFactorTTW               | Ton CO<sub>2</sub>-eq./ton | Tank-to-wake equivalent emission factor per fuel and emission.                                   |
-| TotalEquivalentEmissionFactorTTW          | Ton CO<sub>2</sub>-eq./ton | Total tank-to-wake equivalent emission factor per fuel.                                          |
-| EquivalentEmissionFactorWTW               | Ton CO<sub>2</sub>-eq./ton | Well-to-wake equivalent emission factor per fuel and emission.                                   |
-| TotalEquivalentEmissionFactorWTW          | Ton CO<sub>2</sub>-eq./ton | Total well-to-wake equivalent emission factor per fuel.                                          |
-| IntensityEquivalentEmissionFactorWTT      | Ton CO<sub>2</sub>-eq./GJ  | Well-to-tank equivalent emission factor per energy in fuel per fuel and emission.                 |
-| IntensityEquivalentEmissionFactorTTW      | Ton CO<sub>2</sub>-eq./GJ  | Tank-to-wake equivalent emission factor per energy in fuel per fuel and emission.                 |
-| IntensityEquivalentEmissionFactorWTW      | Ton CO<sub>2</sub>-eq./GJ  | Well-to-wake equivalent emission factor per energy in fuel per fuel and emission.                 |
-| IntensityTotalEquivalentEmissionFactorWTT | Ton CO<sub>2</sub>-eq./GJ  | Total well-to-tank equivalent emission factor per energy in fuel.                                |
-| IntensityTotalEquivalentEmissionFactorTTW | Ton CO<sub>2</sub>-eq./GJ  | Total tank-to-wake equivalent emission factor per energy in fuel.                                |
-| IntensityTotalEquivalentEmissionFactorWTW | Ton CO<sub>2</sub>-eq./GJ  | Total well-to-wake equivalent emission factor per energy in fuel.                                |
 
 \*Depends on the ‘Measure’ of the regulation (ABSOLUTE=ton, INTENSITY=Ton/GJ, TRANSPORT\_NOMINAL=USD/cargo-nautical mile, TRANSPORT=USD/cargo-nautical mile)
 
@@ -526,22 +391,3 @@ The properties are applicable for the following commands:
 | **Property name** | **Unit**  | **Description**                                                        |
 |-------------------|-----------|------------------------------------------------------------------------|
 | Collected         | USD/year  | Revenue collected or paid out via penalties or subsidies respectively. |
-| Level             | USD/ton   | Level of penalty or subsidy.                                           |
-| EmissionFactorWTT                         | Ton/ton                    | Well-to-tank emission factor per fuel and emission.                                              |
-| EmissionFactorTTW                         | Ton/ton                    | Tank-to-wake emission factor per fuel and emission.                                              |
-| EmissionFactorWTW                         | Ton/ton                    | Well-to-wake emission factor per fuel and emission.                                              |
-| IntensityEmissionFactorWTT                | Ton/GJ                     | Well-to-tank emission factor per energy in fuel per fuel and emission.                           |
-| IntensityEmissionFactorTTW                | Ton/GJ                     | Tank-to-wake emission factor per energy in fuel per fuel and emission.                           |
-| IntensityEmissionFactorWTW                | Ton/GJ                     | Well-to-wake emission factor per energy in fuel per fuel and emission.                           |
-| EquivalentEmissionFactorWTT               | Ton CO<sub>2</sub>-eq./ton | Well-to-tank equivalent emission factor per fuel and emission.                                   |
-| TotalEquivalentEmissionFactorWTT          | Ton CO<sub>2</sub>-eq./ton | Total well-to-tank equivalent emission factor per fuel.                                          |
-| EquivalentEmissionFactorTTW               | Ton CO<sub>2</sub>-eq./ton | Tank-to-wake equivalent emission factor per fuel and emission.                                   |
-| TotalEquivalentEmissionFactorTTW          | Ton CO<sub>2</sub>-eq./ton | Total tank-to-wake equivalent emission factor per fuel.                                          |
-| EquivalentEmissionFactorWTW               | Ton CO<sub>2</sub>-eq./ton | Well-to-wake equivalent emission factor per fuel and emission.                                   |
-| TotalEquivalentEmissionFactorWTW          | Ton CO<sub>2</sub>-eq./ton | Total well-to-wake equivalent emission factor per fuel.                                          |
-| IntensityEquivalentEmissionFactorWTT      | Ton CO<sub>2</sub>-eq./GJ  | Well-to-tank equivalent emission factor per energy in fuel per fuel and emission.                 |
-| IntensityEquivalentEmissionFactorTTW      | Ton CO<sub>2</sub>-eq./GJ  | Tank-to-wake equivalent emission factor per energy in fuel per fuel and emission.                 |
-| IntensityEquivalentEmissionFactorWTW      | Ton CO<sub>2</sub>-eq./GJ  | Well-to-wake equivalent emission factor per energy in fuel per fuel and emission.                 |
-| IntensityTotalEquivalentEmissionFactorWTT | Ton CO<sub>2</sub>-eq./GJ  | Total well-to-tank equivalent emission factor per energy in fuel.                                |
-| IntensityTotalEquivalentEmissionFactorTTW | Ton CO<sub>2</sub>-eq./GJ  | Total tank-to-wake equivalent emission factor per energy in fuel.                                |
-| IntensityTotalEquivalentEmissionFactorWTW | Ton CO<sub>2</sub>-eq./GJ  | Total well-to-wake equivalent emission factor per energy in fuel.                                |

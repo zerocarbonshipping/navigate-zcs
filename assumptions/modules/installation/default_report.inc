@@ -13,12 +13,10 @@ Report "report_default" {
 	add_fleet_property("*", FuelConversions)
 
 	# # regulations
-	# add_regulation_property("*", Collected)
 	# add_regulation_property("*", SharedThreshold)
 
 	# # levies
 	# add_levy_property("*", Collected)
-	# add_levy_property("*", Level)
 
 	# manager
 	add_property(TotalEquivalentWTT)
