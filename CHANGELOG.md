@@ -22,6 +22,15 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   properties are removed from the Report DSL surface (see
   `docs/reference_manual/report.md`).
 - The `producer_changes` plot.
+- The debug plots `fuel_supply_demand_expectation`, `fleet_newbuild_sources`,
+  `fleet_fuel_conversion_sources`(`_normalized`), and
+  `technology_install_sources`(`_normalized`), together with the profile
+  output only they consumed — including the never-populated fleet limit
+  series, the demand/supply expectation records, and the
+  `InertiaNewbuilds`/`ModelledNewbuilds` report properties. The limit
+  behavior they were meant to visualize is asserted by unit tests instead.
+- The expectation-belief fan from the `regulation_flexibility_cost` plot and
+  the flexibility-cost belief series on the regulation profile.
 
 ### Changed
 - The investment post-processing and fleet aggregation read vessel

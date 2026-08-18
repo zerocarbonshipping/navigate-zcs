@@ -69,7 +69,6 @@ The labels below are the values accepted by the `add_plot` command on a `Plot` n
 | engine_age                                      | Engine                     |
 | engine_pilot_fuel_share                         | Engine                     |
 | fuel_supply_demand                              | Fuel                       |
-| fuel_supply_demand_expectation                  | Fuel                       |
 | fuel_type_supply_demand                         | Fuel                       |
 | fleet_emission_absolute                         | Fleet                      |
 | fleet_emission_intensity                        | Fleet                      |
@@ -86,9 +85,6 @@ The labels below are the values accepted by the `add_plot` command on a `Plot` n
 | fleet_investment_metric                         | Fleet                      |
 | fleet_investment_signal_technology_per_vessel   | Fleet                      |
 | fleet_investment_signal_speed_per_vessel        | Fleet                      |
-| fleet_newbuild_sources                          | Fleet                      |
-| fleet_fuel_conversion_sources                   | Fleet                      |
-| fleet_fuel_conversion_sources_normalized        | Fleet                      |
 | producer_development                            | Producer                   |
 | producer_development_cumulative                 | Producer                   |
 | producer_feed_consumption                       | Producer                   |
@@ -98,8 +94,6 @@ The labels below are the values accepted by the `add_plot` command on a `Plot` n
 | port_bunker_price                               | Port                       |
 | port_bunker_supply                              | Port                       |
 | technology_uptake                               | Technology                 |
-| technology_install_sources                      | Technology                 |
-| technology_install_sources_normalized           | Technology                 |
 | regulation_compliance                           | Regulation                 |
 | regulation_flexibility                          | Regulation                 |
 | regulation_unit_trading                         | Regulation                 |
