@@ -12,6 +12,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ### Removed
+- The cumulative-intensity emission output of fuel-consumer profiles: the
+  `CumulativeIntensityEquivalent{WTT,TTW,WTW}` and
+  `CumulativeIntensityTotalEquivalent{WTT,TTW,WTW}` report properties and
+  their profile getters. No committed deck or plot consumed them.
 - **Breaking**: the `SharedThreshold` attribute of `Regulation`.
   `set_vessel_threshold` is the only threshold source; migrate with
   `set_vessel_threshold("*", <value>)`, which assigns the same threshold to
