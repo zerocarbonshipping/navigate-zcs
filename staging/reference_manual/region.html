@@ -473,27 +473,27 @@ SPDX-License-Identifier: CC-BY-4.0
 <p>A <code class="docutils literal notranslate"><span class="pre">Region</span></code> node defines a region of the world for fuel production and the cost, emissions, etc., associated
 with production in that region. Examples of regions are Africa and the Middle East.</p>
 <p>Example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Region</span> <span class="s2">&quot;africa&quot;</span> <span class="p">{</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Region</span> <span class="s2">"africa"</span> <span class="p">{</span>
     <span class="c1"># set process</span>
-    <span class="n">set_process_capex</span><span class="p">(</span><span class="s2">&quot;methane_synthesis_electro&quot;</span><span class="p">,</span> <span class="mi">500</span><span class="p">)</span>
-    <span class="n">set_process_opex</span><span class="p">(</span><span class="s2">&quot;methane_synthesis_electro&quot;</span><span class="p">,</span> <span class="mi">50</span><span class="p">)</span>
-    <span class="n">set_process_energy</span><span class="p">(</span><span class="s2">&quot;methane_synthesis_electro&quot;</span><span class="p">,</span> <span class="mf">3.7</span><span class="p">)</span>
-    <span class="n">set_process_wtt</span><span class="p">(</span><span class="s2">&quot;carbon_dioxide_biogenic&quot;</span><span class="p">,</span> <span class="s2">&quot;carbon_dioxide&quot;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">set_process_capex</span><span class="p">(</span><span class="s2">"methane_synthesis_electro"</span><span class="p">,</span> <span class="mi">500</span><span class="p">)</span>
+    <span class="n">set_process_opex</span><span class="p">(</span><span class="s2">"methane_synthesis_electro"</span><span class="p">,</span> <span class="mi">50</span><span class="p">)</span>
+    <span class="n">set_process_energy</span><span class="p">(</span><span class="s2">"methane_synthesis_electro"</span><span class="p">,</span> <span class="mf">3.7</span><span class="p">)</span>
+    <span class="n">set_process_wtt</span><span class="p">(</span><span class="s2">"carbon_dioxide_biogenic"</span><span class="p">,</span> <span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
     
     <span class="c1"># source</span>
-    <span class="n">set_source_capex</span><span class="p">(</span><span class="s2">&quot;renewable&quot;</span><span class="p">,</span> <span class="mi">50</span><span class="p">)</span>
-    <span class="n">set_source_opex</span><span class="p">(</span><span class="s2">&quot;renewable&quot;</span><span class="p">,</span> <span class="mi">50</span><span class="p">)</span>
+    <span class="n">set_source_capex</span><span class="p">(</span><span class="s2">"renewable"</span><span class="p">,</span> <span class="mi">50</span><span class="p">)</span>
+    <span class="n">set_source_opex</span><span class="p">(</span><span class="s2">"renewable"</span><span class="p">,</span> <span class="mi">50</span><span class="p">)</span>
     
     <span class="c1"># set WTT process emissions below:</span>
-    <span class="n">set_source_wtt</span><span class="p">(</span><span class="s2">&quot;renewable&quot;</span><span class="p">,</span> <span class="s2">&quot;carbon_dioxide&quot;</span><span class="p">,</span> <span class="mf">0.005</span><span class="p">)</span>
+    <span class="n">set_source_wtt</span><span class="p">(</span><span class="s2">"renewable"</span><span class="p">,</span> <span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="mf">0.005</span><span class="p">)</span>
     
     <span class="c1"># feedstock</span>
-    <span class="n">set_feedstock_cost</span><span class="p">(</span><span class="s2">&quot;organic_wet_waste&quot;</span><span class="p">,</span> <span class="mi">150</span><span class="p">)</span>
-    <span class="n">set_feedstock_wtt</span><span class="p">(</span><span class="s2">&quot;organic_wet_waste&quot;</span><span class="p">,</span> <span class="s2">&quot;carbon_dioxide&quot;</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span>
+    <span class="n">set_feedstock_cost</span><span class="p">(</span><span class="s2">"organic_wet_waste"</span><span class="p">,</span> <span class="mi">150</span><span class="p">)</span>
+    <span class="n">set_feedstock_wtt</span><span class="p">(</span><span class="s2">"organic_wet_waste"</span><span class="p">,</span> <span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span>
     
     <span class="c1"># transport</span>
-    <span class="n">set_transport_cost</span><span class="p">(</span><span class="s2">&quot;truck&quot;</span><span class="p">,</span> <span class="mi">45</span><span class="p">)</span>
-    <span class="n">set_transport_wtt</span><span class="p">(</span><span class="s2">&quot;truck&quot;</span><span class="p">,</span> <span class="s2">&quot;carbon_dioxide&quot;</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span>
+    <span class="n">set_transport_cost</span><span class="p">(</span><span class="s2">"truck"</span><span class="p">,</span> <span class="mi">45</span><span class="p">)</span>
+    <span class="n">set_transport_wtt</span><span class="p">(</span><span class="s2">"truck"</span><span class="p">,</span> <span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span>
 <span class="p">}</span>
 </pre></div>
 </div>

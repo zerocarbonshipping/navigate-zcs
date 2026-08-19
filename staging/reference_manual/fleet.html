@@ -473,11 +473,11 @@ SPDX-License-Identifier: CC-BY-4.0
 <p>A <code class="docutils literal notranslate"><span class="pre">Fleet</span></code> node defines a segment of vessels and is used to control the decisions made by actors of that segment.
 Examples of fleets are handymax bulk carriers and LR1 tankers.</p>
 <p>Example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Fleet</span> <span class="s2">&quot;tug&quot;</span> <span class="p">{</span>
-    <span class="n">Vessels</span> <span class="o">=</span> <span class="p">[</span><span class="n">Vessel</span><span class="p">(</span><span class="s2">&quot;tug_ice_oil&quot;</span><span class="p">),</span>
-               <span class="n">Vessel</span><span class="p">(</span><span class="s2">&quot;tug_ice_ammonia&quot;</span><span class="p">),</span>
-               <span class="n">Vessel</span><span class="p">(</span><span class="s2">&quot;tug_ice_methane&quot;</span><span class="p">),</span>
-               <span class="n">Vessel</span><span class="p">(</span><span class="s2">&quot;tug_ice_methanol&quot;</span><span class="p">)]</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Fleet</span> <span class="s2">"tug"</span> <span class="p">{</span>
+    <span class="n">Vessels</span> <span class="o">=</span> <span class="p">[</span><span class="n">Vessel</span><span class="p">(</span><span class="s2">"tug_ice_oil"</span><span class="p">),</span>
+               <span class="n">Vessel</span><span class="p">(</span><span class="s2">"tug_ice_ammonia"</span><span class="p">),</span>
+               <span class="n">Vessel</span><span class="p">(</span><span class="s2">"tug_ice_methane"</span><span class="p">),</span>
+               <span class="n">Vessel</span><span class="p">(</span><span class="s2">"tug_ice_methanol"</span><span class="p">)]</span>
 
     <span class="n">InitialVessels</span> <span class="o">=</span> <span class="mi">8464</span>
 
@@ -486,12 +486,12 @@ Examples of fleets are handymax bulk carriers and LR1 tankers.</p>
                     <span class="mf">0.002</span><span class="p">,</span>
                     <span class="mf">0.000</span><span class="p">]</span>
 
-    <span class="n">Orderbooks</span> <span class="o">=</span> <span class="p">[</span><span class="n">Forecast</span><span class="p">(</span><span class="s2">&quot;tug_orderbook_oil&quot;</span><span class="p">),</span>
-                  <span class="n">Forecast</span><span class="p">(</span><span class="s2">&quot;tug_orderbook_ammonia&quot;</span><span class="p">),</span>
-                  <span class="n">Forecast</span><span class="p">(</span><span class="s2">&quot;tug_orderbook_methane&quot;</span><span class="p">),</span>
-                  <span class="n">Forecast</span><span class="p">(</span><span class="s2">&quot;tug_orderbook_methanol&quot;</span><span class="p">)]</span>
+    <span class="n">Orderbooks</span> <span class="o">=</span> <span class="p">[</span><span class="n">Forecast</span><span class="p">(</span><span class="s2">"tug_orderbook_oil"</span><span class="p">),</span>
+                  <span class="n">Forecast</span><span class="p">(</span><span class="s2">"tug_orderbook_ammonia"</span><span class="p">),</span>
+                  <span class="n">Forecast</span><span class="p">(</span><span class="s2">"tug_orderbook_methane"</span><span class="p">),</span>
+                  <span class="n">Forecast</span><span class="p">(</span><span class="s2">"tug_orderbook_methanol"</span><span class="p">)]</span>
 
-    <span class="n">TradeGrowth</span> <span class="o">=</span> <span class="n">Forecast</span><span class="p">(</span><span class="s2">&quot;tug_trade_growth&quot;</span><span class="p">)</span>
+    <span class="n">TradeGrowth</span> <span class="o">=</span> <span class="n">Forecast</span><span class="p">(</span><span class="s2">"tug_trade_growth"</span><span class="p">)</span>
 <span class="p">}</span>
 </pre></div>
 </div>

@@ -473,23 +473,23 @@ SPDX-License-Identifier: CC-BY-4.0
 <p>A <code class="docutils literal notranslate"><span class="pre">Vessel</span></code> node defines a representative vessel which makes up part of the fleet. Examples of vessels
 are a mono-fuel capesize bulk carrier and a dual-fuel methanol handy-max tanker.</p>
 <p>Example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Vessel</span> <span class="s2">&quot;bulk_carrier_capesize_oil&quot;</span> <span class="p">{</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Vessel</span> <span class="s2">"bulk_carrier_capesize_oil"</span> <span class="p">{</span>
 
-	<span class="n">PropulsionLoad</span> <span class="o">=</span> <span class="n">Surface</span><span class="p">(</span><span class="s2">&quot;speed_draft_power_surface&quot;</span><span class="p">)</span>
+	<span class="n">PropulsionLoad</span> <span class="o">=</span> <span class="n">Surface</span><span class="p">(</span><span class="s2">"speed_draft_power_surface"</span><span class="p">)</span>
 	<span class="n">ElectricalLoadAtSea</span> <span class="o">=</span> <span class="mf">0.7</span>
 	<span class="n">ElectricalLoadInPort</span> <span class="o">=</span> <span class="mf">0.7</span>
 	<span class="n">HeatLoadAtSea</span> <span class="o">=</span> <span class="mf">0.</span>
 	<span class="n">HeatLoadInPort</span> <span class="o">=</span> <span class="mf">0.9</span>
 
-	<span class="n">PowerSystem</span> <span class="o">=</span> <span class="n">PowerSystem</span><span class="p">(</span><span class="s2">&quot;conventional_power_system&quot;</span><span class="p">)</span>
-	<span class="n">Tanks</span> <span class="o">=</span> <span class="p">[</span><span class="n">Tank</span><span class="p">(</span><span class="s2">&quot;fuel_oil&quot;</span><span class="p">)]</span>
+	<span class="n">PowerSystem</span> <span class="o">=</span> <span class="n">PowerSystem</span><span class="p">(</span><span class="s2">"conventional_power_system"</span><span class="p">)</span>
+	<span class="n">Tanks</span> <span class="o">=</span> <span class="p">[</span><span class="n">Tank</span><span class="p">(</span><span class="s2">"fuel_oil"</span><span class="p">)]</span>
 	
-	<span class="n">Route</span> <span class="o">=</span> <span class="n">Route</span><span class="p">(</span><span class="s2">&quot;rotterdam_singapore&quot;</span><span class="p">)</span>
+	<span class="n">Route</span> <span class="o">=</span> <span class="n">Route</span><span class="p">(</span><span class="s2">"rotterdam_singapore"</span><span class="p">)</span>
 	
 	<span class="n">NominalCapacity</span> <span class="o">=</span> <span class="mi">200000</span>
 	
 	<span class="n">Lifetime</span> <span class="o">=</span> <span class="mi">25</span>
-	<span class="n">CostOfCapital</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="s2">&quot;cost_of_capital_vessel&quot;</span><span class="p">)</span>
+	<span class="n">CostOfCapital</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="s2">"cost_of_capital_vessel"</span><span class="p">)</span>
 	<span class="n">CAPEX</span> <span class="o">=</span> <span class="mf">50e6</span>
 	<span class="n">OPEX</span> <span class="o">=</span> <span class="mf">2.4e6</span>
 <span class="p">}</span>

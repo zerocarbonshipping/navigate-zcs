@@ -473,14 +473,14 @@ SPDX-License-Identifier: CC-BY-4.0
 <p>A <code class="docutils literal notranslate"><span class="pre">Levy</span></code> node defines a regulatory measure that works on a per ton of emissions basis. Examples of levies are
 CO<sub>2</sub>-taxes and subsidy schemes.</p>
 <p>Example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Levy</span> <span class="s2">&quot;regional_carbon_tax&quot;</span> <span class="p">{</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Levy</span> <span class="s2">"regional_carbon_tax"</span> <span class="p">{</span>
     <span class="n">Scheme</span> <span class="o">=</span> <span class="n">PENALTY</span>
     <span class="n">Scope</span> <span class="o">=</span> <span class="n">WTW</span>
-    <span class="n">Fuels</span> <span class="o">=</span> <span class="n">Fuel</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="p">)</span>
-    <span class="n">Emissions</span> <span class="o">=</span> <span class="n">Emission</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="p">)</span>
+    <span class="n">Fuels</span> <span class="o">=</span> <span class="n">Fuel</span><span class="p">(</span><span class="s2">"*"</span><span class="p">)</span>
+    <span class="n">Emissions</span> <span class="o">=</span> <span class="n">Emission</span><span class="p">(</span><span class="s2">"*"</span><span class="p">)</span>
     <span class="n">EmissionsLifetime</span> <span class="o">=</span> <span class="mi">100</span>
     
-    <span class="n">Jurisdiction</span> <span class="o">=</span> <span class="p">[</span><span class="n">Port</span><span class="p">(</span><span class="s2">&quot;europe&quot;</span><span class="p">)]</span>
+    <span class="n">Jurisdiction</span> <span class="o">=</span> <span class="p">[</span><span class="n">Port</span><span class="p">(</span><span class="s2">"europe"</span><span class="p">)]</span>
     
     <span class="n">Level</span> <span class="o">=</span> <span class="mi">200</span>
 <span class="p">}</span>

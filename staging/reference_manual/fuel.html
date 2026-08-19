@@ -473,13 +473,13 @@ SPDX-License-Identifier: CC-BY-4.0
 <p>A <code class="docutils literal notranslate"><span class="pre">Fuel</span></code> node defines a fuel which can be used as a bunker fuel onboard a vessel. Examples of fuels are
 liquefied natural gas and e-ammonia.</p>
 <p>Example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Fuel</span> <span class="s2">&quot;liquefied_natural_gas&quot;</span> <span class="p">{</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Fuel</span> <span class="s2">"liquefied_natural_gas"</span> <span class="p">{</span>
 	<span class="n">FuelType</span> <span class="o">=</span> <span class="n">METHANE</span>
 	
-	<span class="n">LowerHeatingValue</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="s2">&quot;lower_heating_value_natural_gas&quot;</span><span class="p">)</span>
-	<span class="n">MassDensity</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="s2">&quot;mass_density_liquefied_natural_gas&quot;</span><span class="p">)</span>
+	<span class="n">LowerHeatingValue</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="s2">"lower_heating_value_natural_gas"</span><span class="p">)</span>
+	<span class="n">MassDensity</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="s2">"mass_density_liquefied_natural_gas"</span><span class="p">)</span>
 	
-	<span class="n">set_ttw</span><span class="p">(</span><span class="s2">&quot;carbon_dioxide&quot;</span><span class="p">,</span> <span class="n">Variable</span><span class="p">(</span><span class="s2">&quot;carbon_dioxide_per_natural_gas&quot;</span><span class="p">))</span>
+	<span class="n">set_ttw</span><span class="p">(</span><span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="n">Variable</span><span class="p">(</span><span class="s2">"carbon_dioxide_per_natural_gas"</span><span class="p">))</span>
 <span class="p">}</span>
 </pre></div>
 </div>

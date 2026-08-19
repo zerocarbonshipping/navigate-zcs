@@ -473,10 +473,10 @@ SPDX-License-Identifier: CC-BY-4.0
 <p>A <code class="docutils literal notranslate"><span class="pre">Report</span></code> node defines a method of extracting results from the simulation. It allows for extraction
 of results both on a node basis and on a global basis.</p>
 <p>Example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Report</span> <span class="s2">&quot;report_name&quot;</span> <span class="p">{</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Report</span> <span class="s2">"report_name"</span> <span class="p">{</span>
     <span class="n">add_property</span><span class="p">(</span><span class="n">ConsumedEnergy</span><span class="p">)</span>
-    <span class="n">add_port_property</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="p">,</span> <span class="n">BunkerPrice</span><span class="p">)</span>
-    <span class="n">add_vessel_property</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="p">,</span> <span class="n">CAPEX</span><span class="p">)</span>
+    <span class="n">add_port_property</span><span class="p">(</span><span class="s2">"*"</span><span class="p">,</span> <span class="n">BunkerPrice</span><span class="p">)</span>
+    <span class="n">add_vessel_property</span><span class="p">(</span><span class="s2">"*"</span><span class="p">,</span> <span class="n">CAPEX</span><span class="p">)</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -677,109 +677,37 @@ of results both on a node basis and on a global basis.</p>
 <td><p>GJ/year</p></td>
 <td><p>The energy demand.</p></td>
 </tr>
-<tr class="row-even"><td><p>ConsumedMass</p></td>
-<td><p>Ton/year</p></td>
-<td><p>Fuel consumed in mass for all fuels.</p></td>
-</tr>
-<tr class="row-odd"><td><p>ConsumedEnergy</p></td>
+<tr class="row-even"><td><p>ConsumedEnergy</p></td>
 <td><p>GJ/year</p></td>
 <td><p>Fuel consumed in energy for all fuels.</p></td>
 </tr>
-<tr class="row-even"><td><p>ConsumedVolume</p></td>
-<td><p>m<sup>3</sup>/year</p></td>
-<td><p>Fuel consumed in volume for all fuels.</p></td>
-</tr>
-<tr class="row-odd"><td><p>FuelTypeMass</p></td>
-<td><p>Ton/year</p></td>
-<td><p>Fuel consumed in mass, aggregated by fuel type.</p></td>
-</tr>
-<tr class="row-even"><td><p>FuelTypeEnergy</p></td>
+<tr class="row-odd"><td><p>FuelTypeEnergy</p></td>
 <td><p>GJ/year</p></td>
 <td><p>Fuel consumed in energy, aggregated by fuel type.</p></td>
 </tr>
-<tr class="row-odd"><td><p>FuelTypeVolume</p></td>
-<td><p>m<sup>3</sup>/year</p></td>
-<td><p>Fuel consumed in volume, aggregated by fuel type.</p></td>
-</tr>
-<tr class="row-even"><td><p>TotalConsumedMass</p></td>
-<td><p>Ton/year</p></td>
-<td><p>Total fuel consumed in mass across all fuels.</p></td>
-</tr>
-<tr class="row-odd"><td><p>TotalConsumedEnergy</p></td>
+<tr class="row-even"><td><p>TotalConsumedEnergy</p></td>
 <td><p>GJ/year</p></td>
-<td><p>Total fuel consumed in energy across all fuels.</p></td>
+<td><p>Total consumed energy across all fuels plus shore power.</p></td>
 </tr>
-<tr class="row-even"><td><p>TotalFuelVolume</p></td>
-<td><p>m<sup>3</sup>/year</p></td>
-<td><p>Total fuel consumed in volume across all fuels.</p></td>
-</tr>
-<tr class="row-odd"><td><p>CumulativeFuelMass</p></td>
-<td><p>Ton/year</p></td>
-<td><p>Cumulative fuel consumed over time in mass for all fuels.</p></td>
-</tr>
-<tr class="row-even"><td><p>CumulativeFuelEnergy</p></td>
+<tr class="row-odd"><td><p>ShorePowerEnergy</p></td>
 <td><p>GJ/year</p></td>
-<td><p>Cumulative fuel consumed over time in energy for all fuels.</p></td>
-</tr>
-<tr class="row-odd"><td><p>CumulativeFuelVolume</p></td>
-<td><p>m<sup>3</sup>/year</p></td>
-<td><p>Cumulative fuel consumed over time in volume for all fuels.</p></td>
-</tr>
-<tr class="row-even"><td><p>CumulativeFuelTypeMass</p></td>
-<td><p>Ton/year</p></td>
-<td><p>Cumulative fuel consumed over time in mass, aggregated by fuel type.</p></td>
-</tr>
-<tr class="row-odd"><td><p>CumulativeFuelTypeEnergy</p></td>
-<td><p>GJ/year</p></td>
-<td><p>Cumulative fuel consumed over time in energy, aggregated by fuel type.</p></td>
-</tr>
-<tr class="row-even"><td><p>CumulativeFuelTypeVolume</p></td>
-<td><p>m<sup>3</sup>/year</p></td>
-<td><p>Cumulative fuel consumed over time in volume, aggregated by fuel type.</p></td>
-</tr>
-<tr class="row-odd"><td><p>ConverterMass</p></td>
-<td><p>Ton/year</p></td>
-<td><p>Fuel consumed in mass in vessels of a fuel type across fuels per fuel type.</p></td>
+<td><p>Shore power energy supplied.</p></td>
 </tr>
 <tr class="row-even"><td><p>ConverterFuelEnergy</p></td>
 <td><p>GJ/year</p></td>
 <td><p>Fuel consumed in energy in vessels of a fuel type across fuels per fuel type.</p></td>
 </tr>
-<tr class="row-odd"><td><p>ConverterFuelVolume</p></td>
-<td><p>m<sup>3</sup>/year</p></td>
-<td><p>Fuel consumed in volume in vessels of a fuel type across fuels per fuel type.</p></td>
-</tr>
-<tr class="row-even"><td><p>ConverterFuelTypeMass</p></td>
-<td><p>Ton/year</p></td>
-<td><p>Fuel consumed in mass in vessels of a fuel type aggregated by fuel type.</p></td>
-</tr>
-<tr class="row-odd"><td><p>ConverterFuelTypeEnergy</p></td>
-<td><p>GJ/year</p></td>
-<td><p>Fuel consumed in energy in vessels of a fuel type aggregated by fuel type.</p></td>
-</tr>
-<tr class="row-even"><td><p>ConverterFuelTypeVolume</p></td>
-<td><p>m<sup>3</sup>/year</p></td>
-<td><p>Fuel consumed in volume in vessels of a fuel type aggregated by fuel type.</p></td>
-</tr>
 <tr class="row-odd"><td><p>PilotFuelShare</p></td>
 <td><p>Ton/ton</p></td>
 <td><p>The fraction of total fuel spent which is pilot fuel for each vessel fuel type.</p></td>
 </tr>
-<tr class="row-even"><td><p>WTT</p></td>
-<td><p>Ton/year</p></td>
-<td><p>Emitted well-to-tank emissions per fuel and emission</p></td>
-</tr>
-<tr class="row-odd"><td><p>EquivalentWTT</p></td>
+<tr class="row-even"><td><p>EquivalentWTT</p></td>
 <td><p>Ton CO<sub>2</sub>-eq./year</p></td>
 <td><p>Emitted well-to-tank emissions per fuel and emission.</p></td>
 </tr>
-<tr class="row-even"><td><p>TotalEquivalentWTT</p></td>
+<tr class="row-odd"><td><p>TotalEquivalentWTT</p></td>
 <td><p>Ton CO<sub>2</sub>-eq./year</p></td>
 <td><p>Total emitted well-to-tank emissions.</p></td>
-</tr>
-<tr class="row-odd"><td><p>TTW</p></td>
-<td><p>Ton/year</p></td>
-<td><p>Emitted tank-to-wake emissions per fuel and emission.</p></td>
 </tr>
 <tr class="row-even"><td><p>EquivalentTTW</p></td>
 <td><p>Ton CO<sub>2</sub>-eq./year</p></td>
@@ -789,33 +717,25 @@ of results both on a node basis and on a global basis.</p>
 <td><p>Ton CO<sub>2</sub>-eq./year</p></td>
 <td><p>Total emitted tank-to-wake emissions.</p></td>
 </tr>
-<tr class="row-even"><td><p>WTW</p></td>
+<tr class="row-even"><td><p>EquivalentWTW</p></td>
+<td><p>Ton CO<sub>2</sub>-eq./year</p></td>
+<td><p>Emitted well-to-wake emissions per fuel and emission.</p></td>
+</tr>
+<tr class="row-odd"><td><p>TotalEquivalentWTW</p></td>
+<td><p>Ton CO<sub>2</sub>-eq./year</p></td>
+<td><p>Total emitted well-to-wake emissions across all fuels plus shore power.</p></td>
+</tr>
+<tr class="row-even"><td><p>ShorePowerEmission</p></td>
 <td><p>Ton/year</p></td>
-<td><p>Emitted well-to-wake emissions per fuel and emission.</p></td>
+<td><p>Shore power emission per emission (well-to-wake lump, no WTT/TTW split).</p></td>
 </tr>
-<tr class="row-odd"><td><p>EquivalentWTW</p></td>
-<td><p>Ton CO<sub>2</sub>-eq./year</p></td>
-<td><p>Emitted well-to-wake emissions per fuel and emission.</p></td>
-</tr>
-<tr class="row-even"><td><p>TotalEquivalentWTW</p></td>
-<td><p>Ton CO<sub>2</sub>-eq./year</p></td>
-<td><p>Total emitted well-to-wake emissions.</p></td>
-</tr>
-<tr class="row-odd"><td><p>CumulativeWTT</p></td>
-<td><p>Ton</p></td>
-<td><p>Cumulative emitted well-to-tank emissions per fuel and emission.</p></td>
-</tr>
-<tr class="row-even"><td><p>CumulativeEquivalentWTT</p></td>
+<tr class="row-odd"><td><p>CumulativeEquivalentWTT</p></td>
 <td><p>Ton CO<sub>2</sub>-eq.</p></td>
 <td><p>Cumulative emitted well-to-tank emissions per fuel and emission.</p></td>
 </tr>
-<tr class="row-odd"><td><p>CumulativeTotalEquivalentWTT</p></td>
+<tr class="row-even"><td><p>CumulativeTotalEquivalentWTT</p></td>
 <td><p>Ton CO<sub>2</sub>-eq.</p></td>
 <td><p>Cumulative total emitted well-to-tank emissions.</p></td>
-</tr>
-<tr class="row-even"><td><p>CumulativeTTW</p></td>
-<td><p>Ton</p></td>
-<td><p>Cumulative emitted tank-to-wake emissions per fuel and emission.</p></td>
 </tr>
 <tr class="row-odd"><td><p>CumulativeEquivalentTTW</p></td>
 <td><p>Ton CO<sub>2</sub>-eq.</p></td>
@@ -825,21 +745,13 @@ of results both on a node basis and on a global basis.</p>
 <td><p>Ton CO<sub>2</sub>-eq.</p></td>
 <td><p>Cumulative total emitted tank-to-wake emissions.</p></td>
 </tr>
-<tr class="row-odd"><td><p>CumulativeWTW</p></td>
-<td><p>Ton</p></td>
-<td><p>Cumulative emitted well-to-wake emissions per fuel and emission.</p></td>
-</tr>
-<tr class="row-even"><td><p>CumulativeEquivalentWTW</p></td>
+<tr class="row-odd"><td><p>CumulativeEquivalentWTW</p></td>
 <td><p>Ton CO<sub>2</sub>-eq.</p></td>
 <td><p>Cumulative emitted well-to-wake emissions per fuel and emission.</p></td>
 </tr>
-<tr class="row-odd"><td><p>CumulativeTotalEquivalentWTW</p></td>
+<tr class="row-even"><td><p>CumulativeTotalEquivalentWTW</p></td>
 <td><p>Ton CO<sub>2</sub>-eq.</p></td>
-<td><p>Cumulative total emitted well-to-wake emissions.</p></td>
-</tr>
-<tr class="row-even"><td><p>IntensityWTT</p></td>
-<td><p>Kg/GJ</p></td>
-<td><p>Emitted well-to-tank emissions per energy per fuel and emission.</p></td>
+<td><p>Cumulative total emitted well-to-wake emissions, including shore power.</p></td>
 </tr>
 <tr class="row-odd"><td><p>IntensityEquivalentWTT</p></td>
 <td><p>Kg CO<sub>2</sub>-eq./GJ</p></td>
@@ -847,23 +759,15 @@ of results both on a node basis and on a global basis.</p>
 </tr>
 <tr class="row-even"><td><p>IntensityTotalEquivalentWTT</p></td>
 <td><p>Kg CO<sub>2</sub>-eq./GJ</p></td>
-<td><p>Total emitted well-to-tank emissions per energy.</p></td>
+<td><p>Total emitted well-to-tank emissions per total consumed energy (including shore power).</p></td>
 </tr>
-<tr class="row-odd"><td><p>IntensityTTW</p></td>
-<td><p>Kg/GJ</p></td>
-<td><p>Emitted tank-to-wake emissions per energy per fuel and emission.</p></td>
-</tr>
-<tr class="row-even"><td><p>IntensityEquivalentTTW</p></td>
+<tr class="row-odd"><td><p>IntensityEquivalentTTW</p></td>
 <td><p>Kg CO<sub>2</sub>-eq./GJ</p></td>
 <td><p>Emitted tank-to-wake emissions per energy per fuel and emission.</p></td>
 </tr>
-<tr class="row-odd"><td><p>IntensityTotalEquivalentTTW</p></td>
+<tr class="row-even"><td><p>IntensityTotalEquivalentTTW</p></td>
 <td><p>Kg CO<sub>2</sub>-eq./GJ</p></td>
-<td><p>Total emitted tank-to-wake emissions per energy.</p></td>
-</tr>
-<tr class="row-even"><td><p>IntensityWTW</p></td>
-<td><p>Kg/GJ</p></td>
-<td><p>Emitted well-to-wake emissions per energy per fuel and emission.</p></td>
+<td><p>Total emitted tank-to-wake emissions per total consumed energy (including shore power).</p></td>
 </tr>
 <tr class="row-odd"><td><p>IntensityEquivalentWTW</p></td>
 <td><p>Kg CO<sub>2</sub>-eq./GJ</p></td>
@@ -871,23 +775,15 @@ of results both on a node basis and on a global basis.</p>
 </tr>
 <tr class="row-even"><td><p>IntensityTotalEquivalentWTW</p></td>
 <td><p>Kg CO<sub>2</sub>-eq./GJ</p></td>
-<td><p>Total emitted well-to-wake emissions per energy.</p></td>
+<td><p>Total emitted well-to-wake emissions per energy, including shore power.</p></td>
 </tr>
-<tr class="row-odd"><td><p>CumulativeIntensityWTT</p></td>
-<td><p>Kg/GJ</p></td>
-<td><p>Cumulative emitted well-to-tank emissions per energy per fuel and emission.</p></td>
-</tr>
-<tr class="row-even"><td><p>CumulativeIntensityEquivalentWTT</p></td>
+<tr class="row-odd"><td><p>CumulativeIntensityEquivalentWTT</p></td>
 <td><p>Kg CO<sub>2</sub>-eq./GJ</p></td>
 <td><p>Cumulative emitted well-to-tank emissions per energy per fuel and emission.</p></td>
 </tr>
-<tr class="row-odd"><td><p>CumulativeIntensityTotalEquivalentWTT</p></td>
+<tr class="row-even"><td><p>CumulativeIntensityTotalEquivalentWTT</p></td>
 <td><p>Kg CO<sub>2</sub>-eq./GJ</p></td>
-<td><p>Cumulative total emitted well-to-tank emissions per energy.</p></td>
-</tr>
-<tr class="row-even"><td><p>CumulativeIntensityTTW</p></td>
-<td><p>Kg/GJ</p></td>
-<td><p>Cumulative emitted tank-to-wake emissions per energy per fuel and emission.</p></td>
+<td><p>Cumulative total emitted well-to-tank emissions per total consumed energy (including shore power).</p></td>
 </tr>
 <tr class="row-odd"><td><p>CumulativeIntensityEquivalentTTW</p></td>
 <td><p>Kg CO<sub>2</sub>-eq./GJ</p></td>
@@ -895,27 +791,19 @@ of results both on a node basis and on a global basis.</p>
 </tr>
 <tr class="row-even"><td><p>CumulativeIntensityTotalEquivalentTTW</p></td>
 <td><p>Kg CO<sub>2</sub>-eq./GJ</p></td>
-<td><p>Cumulative total emitted tank-to-wake emissions per energy.</p></td>
+<td><p>Cumulative total emitted tank-to-wake emissions per total consumed energy (including shore power).</p></td>
 </tr>
-<tr class="row-odd"><td><p>CumulativeIntensityWTW</p></td>
-<td><p>Kg/GJ</p></td>
-<td><p>Cumulative emitted well-to-wake emissions per energy per fuel and emission.</p></td>
-</tr>
-<tr class="row-even"><td><p>CumulativeIntensityEquivalentWTW</p></td>
+<tr class="row-odd"><td><p>CumulativeIntensityEquivalentWTW</p></td>
 <td><p>Kg CO<sub>2</sub>-eq./GJ</p></td>
 <td><p>Cumulative emitted well-to-wake emissions per energy per fuel and emission.</p></td>
 </tr>
-<tr class="row-odd"><td><p>CumulativeIntensityTotalEquivalentWTW</p></td>
+<tr class="row-even"><td><p>CumulativeIntensityTotalEquivalentWTW</p></td>
 <td><p>Kg CO<sub>2</sub>-eq./GJ</p></td>
-<td><p>Cumulative total emitted well-to-wake emissions per energy.</p></td>
+<td><p>Cumulative total emitted well-to-wake emissions per energy, including shore power.</p></td>
 </tr>
-<tr class="row-even"><td><p>FuelExpenses</p></td>
+<tr class="row-odd"><td><p>FuelExpenses</p></td>
 <td><p>USD/year</p></td>
 <td><p>Fuel expenses per fuel.</p></td>
-</tr>
-<tr class="row-odd"><td><p>EmissionExpenses</p></td>
-<td><p>USD/year</p></td>
-<td><p>Emission expenses from permanent storage per fuel.</p></td>
 </tr>
 <tr class="row-even"><td><p>LevyExpenses</p></td>
 <td><p>USD/year</p></td>
@@ -943,11 +831,11 @@ of results both on a node basis and on a global basis.</p>
 </tr>
 <tr class="row-even"><td><p>TotalFuelExpenses</p></td>
 <td><p>USD/year</p></td>
-<td><p>Total fuel expenses across all fuels.</p></td>
+<td><p>Total fuel expenses across all fuels plus shore power.</p></td>
 </tr>
-<tr class="row-odd"><td><p>TotalEmissionExpenses</p></td>
+<tr class="row-odd"><td><p>ShorePowerExpenses</p></td>
 <td><p>USD/year</p></td>
-<td><p>Total emission expenses across all fuels.</p></td>
+<td><p>Shore power purchase cost.</p></td>
 </tr>
 <tr class="row-even"><td><p>TotalLevyExpenses</p></td>
 <td><p>USD/year</p></td>
@@ -955,51 +843,47 @@ of results both on a node basis and on a global basis.</p>
 </tr>
 <tr class="row-odd"><td><p>TotalFuelRelatedExpenses</p></td>
 <td><p>USD/year</p></td>
-<td><p>Total fuel related expenses (fuel and levy) across all fuels.</p></td>
+<td><p>Total fuel related expenses (fuel expenses including shore power, plus levy expenses).</p></td>
 </tr>
 <tr class="row-even"><td><p>CumulativeFuelExpenses</p></td>
 <td><p>USD</p></td>
 <td><p>Cumulative fuel expenses per fuel.</p></td>
 </tr>
-<tr class="row-odd"><td><p>CumulativeEmissionExpenses</p></td>
-<td><p>USD</p></td>
-<td><p>Cumulative emission expenses per fuel.</p></td>
-</tr>
-<tr class="row-even"><td><p>CumulativeLevyExpenses</p></td>
+<tr class="row-odd"><td><p>CumulativeLevyExpenses</p></td>
 <td><p>USD</p></td>
 <td><p>Cumulative levy expenses per fuel.</p></td>
 </tr>
-<tr class="row-odd"><td><p>CumulativeFuelRelatedExpenses</p></td>
+<tr class="row-even"><td><p>CumulativeFuelRelatedExpenses</p></td>
 <td><p>USD</p></td>
 <td><p>Cumulative fuel related expenses (fuel and levy) per fuel</p></td>
 </tr>
-<tr class="row-even"><td><p>CumulativeRemedialExpenses</p></td>
+<tr class="row-odd"><td><p>CumulativeRemedialExpenses</p></td>
 <td><p>USD</p></td>
 <td><p>Cumulative remedial expenses due to non-compliance with regulations.</p></td>
 </tr>
-<tr class="row-odd"><td><p>CumulativeFlexibilityExpenses</p></td>
+<tr class="row-even"><td><p>CumulativeFlexibilityExpenses</p></td>
 <td><p>USD</p></td>
 <td><p>Cumulative flexibility expenses due to non-compliance with regulations.</p></td>
 </tr>
-<tr class="row-even"><td><p>CumulativeSurplusRevenue</p></td>
+<tr class="row-odd"><td><p>CumulativeSurplusRevenue</p></td>
 <td><p>USD</p></td>
 <td><p>Cumulative surplus revenue due to over-compliance with regulations.</p></td>
 </tr>
-<tr class="row-odd"><td><p>CumulativeRegulationExpenses</p></td>
+<tr class="row-even"><td><p>CumulativeRegulationExpenses</p></td>
 <td><p>USD</p></td>
 <td><p>Cumulative remedial and flexibility expenses subtracted by surplus revenue from regulations.</p></td>
 </tr>
-<tr class="row-even"><td><p>CumulativeTotalFuelExpenses</p></td>
+<tr class="row-odd"><td><p>CumulativeTotalFuelExpenses</p></td>
 <td><p>USD</p></td>
-<td><p>Cumulative fuel expenses across all fuels.</p></td>
+<td><p>Cumulative fuel expenses across all fuels plus shore power.</p></td>
 </tr>
-<tr class="row-odd"><td><p>CumulativeTotalLevyExpenses</p></td>
+<tr class="row-even"><td><p>CumulativeTotalLevyExpenses</p></td>
 <td><p>USD</p></td>
 <td><p>Cumulative levy expenses across all fuels.</p></td>
 </tr>
-<tr class="row-even"><td><p>CumulativeTotalFuelRelatedExpenses</p></td>
+<tr class="row-odd"><td><p>CumulativeTotalFuelRelatedExpenses</p></td>
 <td><p>USD</p></td>
-<td><p>Cumulative fuel related expenses (fuel and levy) across all fuels.</p></td>
+<td><p>Cumulative fuel related expenses (fuel and levy) across all fuels plus shore power.</p></td>
 </tr>
 </tbody>
 </table>
@@ -1011,44 +895,9 @@ of results both on a node basis and on a global basis.</p>
 </ul>
 <p>| <strong>Property name</strong>            | <strong>Unit</strong> | <strong>Description</strong>                                                              |
 |——————————|  |——————————————————————————|
-| CapacityMass                 | Ton/year | Fuel production capacity in mass for all fuels.                              |
-| CapacityEnergy               | GJ/year | Fuel production capacity in energy for all fuels.                            |
-| CapacityVolume               | m<sup>3</sup>/year | Fuel production capacity in volume for all fuels.                            |
-| CapacityTypeMass             | Ton/year | Fuel production capacity in mass, aggregated by fuel type.                   |
-| CapacityTypeEnergy           | GJ/year | Fuel production capacity in energy, aggregated by fuel type.                 |
-| CapacityTypeVolume           | m<sup>3</sup>/year | Fuel production capacity in volume, aggregated by fuel type.                 |
-| CapacityPathMass             | Ton/year | Fuel production capacity in mass, aggregated by fuel path.                   |
-| CapacityPathEnergy           | GJ/year | Fuel production capacity in energy, aggregated by fuel path.                 |
-| CapacityPathVolume           | m<sup>3</sup>/year | Fuel production capacity in volume, aggregated by fuel path.                 |
-| ProductionMass               | Ton/year | Fuel production in mass for all fuels.                                       |
 | ProductionEnergy             | GJ/year | Fuel production in energy for all fuels.                                     |
-| ProductionVolume             | m<sup>3</sup>/year | Fuel production in volume for all fuels.                                     |
-| ProductionTypeMass           | Ton/year | Fuel production in mass, aggregated by fuel type.                            |
 | ProductionTypeEnergy         | GJ/year | Fuel production in energy, aggregated by fuel type.                          |
-| ProductionTypeVolume         | m<sup>3</sup>/year | Fuel production in volume, aggregated by fuel type.                          |
-| ProductionPathMass           | Ton/year | Fuel production in mass, aggregated by fuel path.                            |
-| ProductionPathEnergy         | GJ/year | Fuel production in energy, aggregated by fuel path.                          |
-| ProductionPathVolume         | m<sup>3</sup>/year | Fuel production in volume, aggregated by fuel path.                          |
-| PipelineCapacityMass         | Ton/year | Fuel production capacity in mass in the pipeline for all fuels.              |
-| PipelineCapacityEnergy       | GJ/year | Fuel production capacity in energy in the pipeline for all fuels.             |
-| PipelineCapacityVolume       | m<sup>3</sup>/year | Fuel production capacity in volume in the pipeline for all fuels.            |
-| PipelineCapacityTypeMass     | Ton/year | Fuel production capacity in mass in the pipeline, aggregated by fuel type.   |
-| PipelineCapacityTypeEnergy   | GJ/year | Fuel production capacity in energy in the pipeline, aggregated by fuel type. |
-| PipelineCapacityTypeVolume   | m<sup>3</sup>/year | Fuel production capacity in volume in the pipeline, aggregated by fuel type. |
-| PipelineCapacityPathMass     | Ton/year | Fuel production capacity in mass in the pipeline, aggregated by fuel path.   |
-| PipelineCapacityPathEnergy   | GJ/year | Fuel production capacity in energy in the pipeline, aggregated by fuel path. |
-| PipelineCapacityPathVolume   | m<sup>3</sup>/year | Fuel production capacity in volume in the pipeline, aggregated by fuel path. |
-| PipelineProductionMass       | Ton/year | Fuel production in mass in the pipeline for all fuels.                       |
-| PipelineProductionEnergy     | GJ/year | Fuel production in energy in the pipeline for all fuels.                     |
-| PipelineProductionVolume     | m<sup>3</sup>/year | Fuel production in volume in the pipeline for all fuels.                     |
-| PipelineProductionTypeMass   | Ton/year | Fuel production in mass in the pipeline, aggregated by fuel type.            |
-| PipelineProductionTypeEnergy | GJ/year | Fuel production in energy in the pipeline, aggregated by fuel type.          |
-| PipelineProductionTypeVolume | m<sup>3</sup>/year | Fuel production in volume in the pipeline, aggregated by fuel type.          |
-| PipelineProductionPathMass   | Ton/year | Fuel production in mass in the pipeline, aggregated by fuel path.            |
-| PipelineProductionPathEnergy | GJ/year | Fuel production in energy in the pipeline, aggregated by fuel path.          |
-| PipelineProductionPathVolume | m<sup>3</sup>/year | Fuel production in volume in the pipeline, aggregated by fuel path.          |
-| SourceEnergy                 | MWh/year | Energy used for production per source.                                       |
-| FeedstockMass                | Ton/year | Feedstock used in production per feedstock                                   |
+| FeedMass                     | Ton/year | Feed used in production per feedstock and process.                           |
 | FeedConstraint               | Ton/year | Feed availability constraint per feedstock and process.                      |
 | PlantTiedCapital             | USD | Capital tied up in plants (following a linear depreciation schedule).                      |</p>
 <p>The properties are applicable for the following commands:</p>
@@ -1072,21 +921,13 @@ of results both on a node basis and on a global basis.</p>
 <td><p>GJ/year</p></td>
 <td><p>Fuel bunkered in energy for all fuels.</p></td>
 </tr>
-<tr class="row-even"><td><p>BunkerVolume</p></td>
-<td><p>m<sup>3</sup>/year</p></td>
-<td><p>Fuel bunkered in volume for all fuels.</p></td>
-</tr>
-<tr class="row-odd"><td><p>BunkerSupplyMass</p></td>
+<tr class="row-even"><td><p>BunkerSupplyMass</p></td>
 <td><p>Ton/year</p></td>
 <td><p>Fuel available for bunkering in mass for all fuels.</p></td>
 </tr>
-<tr class="row-even"><td><p>BunkerSupplyEnergy</p></td>
+<tr class="row-odd"><td><p>BunkerSupplyEnergy</p></td>
 <td><p>GJ/year</p></td>
 <td><p>Fuel available for bunkering in energy for all fuels.</p></td>
-</tr>
-<tr class="row-odd"><td><p>BunkerSupplyVolume</p></td>
-<td><p>m<sup>3</sup>/year</p></td>
-<td><p>Fuel available for bunkering in volume for all fuels.</p></td>
 </tr>
 <tr class="row-even"><td><p>BunkeringLimitMass</p></td>
 <td><p>Ton/year</p></td>
@@ -1095,10 +936,6 @@ of results both on a node basis and on a global basis.</p>
 <tr class="row-odd"><td><p>BunkeringLimitEnergy</p></td>
 <td><p>GJ/year</p></td>
 <td><p>Infrastructure limit on bunkering in energy for all fuels.</p></td>
-</tr>
-<tr class="row-even"><td><p>BunkeringLimitVolume</p></td>
-<td><p>m<sup>3</sup>/year</p></td>
-<td><p>Infrastructure limit on bunkering in volume for all fuels.</p></td>
 </tr>
 </tbody>
 </table>
@@ -1306,30 +1143,6 @@ of results both on a node basis and on a global basis.</p>
 <td><p># of vessels</p></td>
 <td><p>Number of existing vessels per vessel.</p></td>
 </tr>
-<tr class="row-even"><td><p>AverageAge</p></td>
-<td><p>Year</p></td>
-<td><p>Average age of vessels per vessel.</p></td>
-</tr>
-<tr class="row-odd"><td><p>PrimaryScrap</p></td>
-<td><p># of vessels/year</p></td>
-<td><p>Number of vessels scrapped due to age per vessel.</p></td>
-</tr>
-<tr class="row-even"><td><p>SecondaryScrap</p></td>
-<td><p># of vessels/year</p></td>
-<td><p>Number of vessels scrapped due to trade reduction per vessel.</p></td>
-</tr>
-<tr class="row-odd"><td><p>OrderbookNewbuilds</p></td>
-<td><p># of vessels/year</p></td>
-<td><p>Number of newbuild vessels based on the orderbook per vessel.</p></td>
-</tr>
-<tr class="row-even"><td><p>InertiaNewbuilds</p></td>
-<td><p># of vessels/year</p></td>
-<td><p>Number of newbuild vessels based on fleet inertia per vessel.</p></td>
-</tr>
-<tr class="row-odd"><td><p>ModelledNewbuilds</p></td>
-<td><p># of vessels/year</p></td>
-<td><p>Number of newbuild vessels based on the modelling per vessel.</p></td>
-</tr>
 <tr class="row-even"><td><p>Scrap</p></td>
 <td><p># of vessels/year</p></td>
 <td><p>Number of vessels scrapped (primary and secondary) per vessel.</p></td>
@@ -1353,14 +1166,6 @@ of results both on a node basis and on a global basis.</p>
 <tr class="row-odd"><td><p>RetrofitTechnologyUptake</p></td>
 <td><p>Fraction of fleet</p></td>
 <td><p>Fraction of vessels retrofitted with the technology per vessel and technology.</p></td>
-</tr>
-<tr class="row-even"><td><p>YoungestScrapAge</p></td>
-<td><p>Year</p></td>
-<td><p>The youngest scrap age across all vessels.</p></td>
-</tr>
-<tr class="row-odd"><td><p>AverageScrapAge</p></td>
-<td><p>Year</p></td>
-<td><p>The average scrap age across all vessels.</p></td>
 </tr>
 <tr class="row-even"><td><p>ReferenceSpeed</p></td>
 <td><p>Knots</p></td>
@@ -1393,38 +1198,6 @@ of results both on a node basis and on a global basis.</p>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>ExistingPlants</p></td>
-<td><p># of plants</p></td>
-<td><p>Number of existing plants per plant.</p></td>
-</tr>
-<tr class="row-odd"><td><p>AverageAge</p></td>
-<td><p>Year</p></td>
-<td><p>Average age of plants per plant.</p></td>
-</tr>
-<tr class="row-even"><td><p>Decommissions</p></td>
-<td><p># of plants/year</p></td>
-<td><p>Number of plants decommissioned per plant.</p></td>
-</tr>
-<tr class="row-odd"><td><p>Newbuilds</p></td>
-<td><p># of plants/year</p></td>
-<td><p>Number of newbuild plants per plant.</p></td>
-</tr>
-<tr class="row-even"><td><p>TotalDecommissions</p></td>
-<td><p># of plants/year</p></td>
-<td><p>Total number of decommissions across all plants.</p></td>
-</tr>
-<tr class="row-odd"><td><p>TotalNewbuilds</p></td>
-<td><p># of plants/year</p></td>
-<td><p>Total number of newbuilds across all plants.</p></td>
-</tr>
-<tr class="row-even"><td><p>Pipeline</p></td>
-<td><p># of plants/year</p></td>
-<td><p>Number of plants in the pipeline per plant.</p></td>
-</tr>
-<tr class="row-odd"><td><p>PipelineAdditions</p></td>
-<td><p># of plants/year</p></td>
-<td><p>Number plants added to the pipeline per plant.</p></td>
-</tr>
 <tr class="row-even"><td><p>DevelopmentConstraint</p></td>
 <td><p># of plants/year</p></td>
 <td><p>Number of plants that can be added to the pipeline across all plants.</p></td>
@@ -1464,22 +1237,6 @@ of results both on a node basis and on a global basis.</p>
 <td><p>Year</p></td>
 <td><p>Lifetime of the vessel.</p></td>
 </tr>
-<tr class="row-odd"><td><p>Voyages</p></td>
-<td><p>#/year</p></td>
-<td><p>Number of voyages.</p></td>
-</tr>
-<tr class="row-even"><td><p>TimeSea</p></td>
-<td><p>Days/year</p></td>
-<td><p>Time at sea.</p></td>
-</tr>
-<tr class="row-odd"><td><p>TimePort</p></td>
-<td><p>Days/year</p></td>
-<td><p>Time in port.</p></td>
-</tr>
-<tr class="row-even"><td><p>VoyageDuration</p></td>
-<td><p>Days/voyage</p></td>
-<td><p>Duration of the voyage.</p></td>
-</tr>
 <tr class="row-odd"><td><p>ReferenceSpeed</p></td>
 <td><p>Knots</p></td>
 <td><p>Average reference speed (speed defined in Route) of the vessel.</p></td>
@@ -1496,14 +1253,6 @@ of results both on a node basis and on a global basis.</p>
 <td><p>Knots</p></td>
 <td><p>Average actual speed.</p></td>
 </tr>
-<tr class="row-odd"><td><p>Miles</p></td>
-<td><p>Nautical miles/year</p></td>
-<td><p>Miles sailed.</p></td>
-</tr>
-<tr class="row-even"><td><p>CargoMiles</p></td>
-<td><p>Cargo-nautical miles/year</p></td>
-<td><p>Cargo-miles delivered, accounting for loss of cargo-space.</p></td>
-</tr>
 <tr class="row-odd"><td><p>OperationalEnergySaving</p></td>
 <td><p>GJ/GJ</p></td>
 <td><p>Relative reduction of all energy demand due to operational changes.</p></td>
@@ -1515,38 +1264,6 @@ of results both on a node basis and on a global basis.</p>
 <tr class="row-odd"><td><p>EnergySaving</p></td>
 <td><p>GJ/GJ</p></td>
 <td><p>Relative reduction of all energy from operational and technology changes.</p></td>
-</tr>
-<tr class="row-even"><td><p>PowerEfficiency</p></td>
-<td><p>GJ/GJ</p></td>
-<td><p>Overall thermal efficiency of the power system of the vessel.</p></td>
-</tr>
-<tr class="row-odd"><td><p>SpendEnergySea</p></td>
-<td><p>GJ/year</p></td>
-<td><p>Energy spend accounting for thermal efficiency losses at sea.</p></td>
-</tr>
-<tr class="row-even"><td><p>SpendEnergyPort</p></td>
-<td><p>GJ/year</p></td>
-<td><p>Energy spend accounting for thermal efficiency losses in port.</p></td>
-</tr>
-<tr class="row-odd"><td><p>SpendEnergy</p></td>
-<td><p>GJ/year</p></td>
-<td><p>Total energy spend accounting for thermal efficiency losses</p></td>
-</tr>
-<tr class="row-even"><td><p>FuelOPEX</p></td>
-<td><p>USD/year</p></td>
-<td><p>Average yearly OPEX for fuel consumption.</p></td>
-</tr>
-<tr class="row-odd"><td><p>LevyOPEX</p></td>
-<td><p>USD/year</p></td>
-<td><p>Average yearly OPEX for carbon levies.</p></td>
-</tr>
-<tr class="row-even"><td><p>RegulationOPEX</p></td>
-<td><p>USD/year</p></td>
-<td><p>Average yearly OPEX for regulations.</p></td>
-</tr>
-<tr class="row-odd"><td><p>FuelRelatedOPEX</p></td>
-<td><p>USD/year</p></td>
-<td><p>Average yearly OPEX for fuel consumption, carbon levies, and regulations.</p></td>
 </tr>
 <tr class="row-even"><td><p>AssetCharterRate</p></td>
 <td><p>USD/year</p></td>
@@ -1579,53 +1296,13 @@ of results both on a node basis and on a global basis.</p>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>Capacity</p></td>
-<td><p>Ton/year</p></td>
-<td><p>Production capacity.</p></td>
-</tr>
-<tr class="row-odd"><td><p>Production</p></td>
-<td><p>Ton/year</p></td>
-<td><p>Production.</p></td>
-</tr>
-<tr class="row-even"><td><p>FeedMass</p></td>
-<td><p>Ton/ton</p></td>
-<td><p>Ton of feed used per ton of fuel produced.</p></td>
-</tr>
-<tr class="row-odd"><td><p>InvestmentCost</p></td>
+<tr class="row-even"><td><p>InvestmentCost</p></td>
 <td><p>USD/ton</p></td>
 <td><p>Levelized production cost at time of investment.</p></td>
 </tr>
-<tr class="row-even"><td><p>InstantaneousCost</p></td>
+<tr class="row-odd"><td><p>InstantaneousCost</p></td>
 <td><p>USD/ton</p></td>
 <td><p>Supply-weighted average cost over all plants.</p></td>
-</tr>
-<tr class="row-odd"><td><p>TTW</p></td>
-<td><p>Ton/ton</p></td>
-<td><p>Tank-to-wake emissions per ton of fuel per emission.</p></td>
-</tr>
-<tr class="row-even"><td><p>EquivalentTTW</p></td>
-<td><p>Ton CO<sub>2</sub>-eq./ton</p></td>
-<td><p>Tank-to-wake emissions per ton of fuel per emission.</p></td>
-</tr>
-<tr class="row-odd"><td><p>TotalEquivalentTTW</p></td>
-<td><p>Ton CO<sub>2</sub>-eq./ton</p></td>
-<td><p>Total tank-to-wake emissions per ton of fuel.</p></td>
-</tr>
-<tr class="row-even"><td><p>IntensityTTW</p></td>
-<td><p>Ton/GJ</p></td>
-<td><p>Tank-to-wake emissions per energy in fuel per emission.</p></td>
-</tr>
-<tr class="row-odd"><td><p>IntensityEquivalentTTW</p></td>
-<td><p>Ton CO<sub>2</sub>-eq./GJ</p></td>
-<td><p>Tank-to-wake emissions per energy in fuel per emission.</p></td>
-</tr>
-<tr class="row-even"><td><p>IntensityTotalEquivalentTTW</p></td>
-<td><p>Ton CO<sub>2</sub>-eq./GJ</p></td>
-<td><p>Total tank-to-wake emissions per energy in fuel.</p></td>
-</tr>
-<tr class="row-odd"><td><p>InvestmentWTT</p></td>
-<td><p>Ton/ton</p></td>
-<td><p>Well-to-tank emissions at time of investment per ton of fuel per emission.</p></td>
 </tr>
 <tr class="row-even"><td><p>EquivalentInvestmentWTT</p></td>
 <td><p>Ton CO<sub>2</sub>-eq./ton</p></td>
@@ -1635,21 +1312,13 @@ of results both on a node basis and on a global basis.</p>
 <td><p>Ton CO<sub>2</sub>-eq./ton</p></td>
 <td><p>Total well-to-tank emissions at time of investment per ton of fuel.</p></td>
 </tr>
-<tr class="row-even"><td><p>IntensityInvestmentWTT</p></td>
-<td><p>Ton/GJ</p></td>
-<td><p>Well-to-tank emissions at time of investment per energy in fuel per emission.</p></td>
-</tr>
-<tr class="row-odd"><td><p>IntensityEquivalentInvestmentWTT</p></td>
+<tr class="row-even"><td><p>IntensityEquivalentInvestmentWTT</p></td>
 <td><p>Ton CO<sub>2</sub>-eq./GJ</p></td>
 <td><p>Well-to-tank emissions at time of investment per energy in fuel per emission.</p></td>
 </tr>
-<tr class="row-even"><td><p>IntensityTotalEquivalentInvestmentWTT</p></td>
+<tr class="row-odd"><td><p>IntensityTotalEquivalentInvestmentWTT</p></td>
 <td><p>Ton CO<sub>2</sub>-eq./GJ</p></td>
 <td><p>Total well-to-tank emissions at time of investment per energy in fuel.</p></td>
-</tr>
-<tr class="row-odd"><td><p>InstantaneousWTT</p></td>
-<td><p>Ton/ton</p></td>
-<td><p>Well-to-tank emissions per ton of fuel per emission.</p></td>
 </tr>
 <tr class="row-even"><td><p>EquivalentInstantaneousWTT</p></td>
 <td><p>Ton CO<sub>2</sub>-eq./ton</p></td>
@@ -1659,65 +1328,13 @@ of results both on a node basis and on a global basis.</p>
 <td><p>Ton CO<sub>2</sub>-eq./ton</p></td>
 <td><p>Supply-weighted average total well-to-tank emissions per ton of fuel.</p></td>
 </tr>
-<tr class="row-even"><td><p>IntensityInstantaneousWTT</p></td>
-<td><p>Ton/GJ</p></td>
-<td><p>Supply-weighted average well-to-tank emissions per energy in fuel per emission.</p></td>
-</tr>
-<tr class="row-odd"><td><p>IntensityEquivalentInstantaneousWTT</p></td>
+<tr class="row-even"><td><p>IntensityEquivalentInstantaneousWTT</p></td>
 <td><p>Ton CO<sub>2</sub>-eq./GJ</p></td>
 <td><p>Supply-weighted average well-to-tank emissions per energy in fuel per emission.</p></td>
 </tr>
-<tr class="row-even"><td><p>IntensityTotalEquivalentInstantaneousWTT</p></td>
+<tr class="row-odd"><td><p>IntensityTotalEquivalentInstantaneousWTT</p></td>
 <td><p>Ton CO<sub>2</sub>-eq./GJ</p></td>
 <td><p>Supply-weighted average total well-to-tank emissions per energy in fuel.</p></td>
-</tr>
-<tr class="row-odd"><td><p>InvestmentWTW</p></td>
-<td><p>Ton/ton</p></td>
-<td><p>Well-to-wake emissions at time of investment per ton of fuel per emission.</p></td>
-</tr>
-<tr class="row-even"><td><p>EquivalentInvestmentWTW</p></td>
-<td><p>Ton CO<sub>2</sub>-eq./ton</p></td>
-<td><p>Well-to-wake emissions at time of investment per ton of fuel per emission.</p></td>
-</tr>
-<tr class="row-odd"><td><p>TotalEquivalentInvestmentWTW</p></td>
-<td><p>Ton CO<sub>2</sub>-eq./ton</p></td>
-<td><p>Total well-to-wake emissions at time of investment per ton of fuel.</p></td>
-</tr>
-<tr class="row-even"><td><p>IntensityInvestmentWTW</p></td>
-<td><p>Ton/GJ</p></td>
-<td><p>Well-to-wake emissions at time of investment per energy in fuel per emission.</p></td>
-</tr>
-<tr class="row-odd"><td><p>IntensityEquivalentInvestmentWTW</p></td>
-<td><p>Ton CO<sub>2</sub>-eq./GJ</p></td>
-<td><p>Well-to-wake emissions at time of investment per energy in fuel per emission.</p></td>
-</tr>
-<tr class="row-even"><td><p>IntensityTotalEquivalentInvestmentWTW</p></td>
-<td><p>Ton CO<sub>2</sub>-eq./GJ</p></td>
-<td><p>Total well-to-wake emissions at time of investment per energy in fuel.</p></td>
-</tr>
-<tr class="row-odd"><td><p>InstantaneousWTW</p></td>
-<td><p>Ton/ton</p></td>
-<td><p>Well-to-wake emissions per ton of fuel per emission.</p></td>
-</tr>
-<tr class="row-even"><td><p>EquivalentInstantaneousWTW</p></td>
-<td><p>Ton CO<sub>2</sub>-eq./ton</p></td>
-<td><p>Supply-weighted average well-to-wake emissions per ton of fuel per emission.</p></td>
-</tr>
-<tr class="row-odd"><td><p>TotalEquivalentInstantaneousWTW</p></td>
-<td><p>Ton CO<sub>2</sub>-eq./ton</p></td>
-<td><p>Supply-weighted average total well-to-wake emissions per ton of fuel.</p></td>
-</tr>
-<tr class="row-even"><td><p>IntensityInstantaneousWTW</p></td>
-<td><p>Ton/GJ</p></td>
-<td><p>Supply-weighted average well-to-wake emissions per energy in fuel per emission.</p></td>
-</tr>
-<tr class="row-odd"><td><p>IntensityEquivalentInstantaneousWTW</p></td>
-<td><p>Ton CO<sub>2</sub>-eq./GJ</p></td>
-<td><p>Supply-weighted average well-to-wake emissions per energy in fuel per emission.</p></td>
-</tr>
-<tr class="row-even"><td><p>IntensityTotalEquivalentInstantaneousWTW</p></td>
-<td><p>Ton CO<sub>2</sub>-eq./GJ</p></td>
-<td><p>Supply-weighted average total well-to-wake emissions per energy in fuel.</p></td>
 </tr>
 </tbody>
 </table>
@@ -1837,78 +1454,6 @@ of results both on a node basis and on a global basis.</p>
 <td><p>USD/ton</p></td>
 <td><p>Expenses from purchasing remedial compliance units.</p></td>
 </tr>
-<tr class="row-even"><td><p>EmissionFactorWTT</p></td>
-<td><p>Ton/ton</p></td>
-<td><p>Well-to-tank emission factor per fuel and emission.</p></td>
-</tr>
-<tr class="row-odd"><td><p>EmissionFactorTTW</p></td>
-<td><p>Ton/ton</p></td>
-<td><p>Tank-to-wake emission factor per fuel and emission.</p></td>
-</tr>
-<tr class="row-even"><td><p>EmissionFactorWTW</p></td>
-<td><p>Ton/ton</p></td>
-<td><p>Well-to-wake emission factor per fuel and emission.</p></td>
-</tr>
-<tr class="row-odd"><td><p>IntensityEmissionFactorWTT</p></td>
-<td><p>Ton/GJ</p></td>
-<td><p>Well-to-tank emission factor per energy in fuel per fuel and emission.</p></td>
-</tr>
-<tr class="row-even"><td><p>IntensityEmissionFactorTTW</p></td>
-<td><p>Ton/GJ</p></td>
-<td><p>Tank-to-wake emission factor per energy in fuel per fuel and emission.</p></td>
-</tr>
-<tr class="row-odd"><td><p>IntensityEmissionFactorWTW</p></td>
-<td><p>Ton/GJ</p></td>
-<td><p>Well-to-wake emission factor per energy in fuel per fuel and emission.</p></td>
-</tr>
-<tr class="row-even"><td><p>EquivalentEmissionFactorWTT</p></td>
-<td><p>Ton CO<sub>2</sub>-eq./ton</p></td>
-<td><p>Well-to-tank equivalent emission factor per fuel and emission.</p></td>
-</tr>
-<tr class="row-odd"><td><p>TotalEquivalentEmissionFactorWTT</p></td>
-<td><p>Ton CO<sub>2</sub>-eq./ton</p></td>
-<td><p>Total well-to-tank equivalent emission factor per fuel.</p></td>
-</tr>
-<tr class="row-even"><td><p>EquivalentEmissionFactorTTW</p></td>
-<td><p>Ton CO<sub>2</sub>-eq./ton</p></td>
-<td><p>Tank-to-wake equivalent emission factor per fuel and emission.</p></td>
-</tr>
-<tr class="row-odd"><td><p>TotalEquivalentEmissionFactorTTW</p></td>
-<td><p>Ton CO<sub>2</sub>-eq./ton</p></td>
-<td><p>Total tank-to-wake equivalent emission factor per fuel.</p></td>
-</tr>
-<tr class="row-even"><td><p>EquivalentEmissionFactorWTW</p></td>
-<td><p>Ton CO<sub>2</sub>-eq./ton</p></td>
-<td><p>Well-to-wake equivalent emission factor per fuel and emission.</p></td>
-</tr>
-<tr class="row-odd"><td><p>TotalEquivalentEmissionFactorWTW</p></td>
-<td><p>Ton CO<sub>2</sub>-eq./ton</p></td>
-<td><p>Total well-to-wake equivalent emission factor per fuel.</p></td>
-</tr>
-<tr class="row-even"><td><p>IntensityEquivalentEmissionFactorWTT</p></td>
-<td><p>Ton CO<sub>2</sub>-eq./GJ</p></td>
-<td><p>Well-to-tank equivalent emission factor per energy in fuel per fuel and emission.</p></td>
-</tr>
-<tr class="row-odd"><td><p>IntensityEquivalentEmissionFactorTTW</p></td>
-<td><p>Ton CO<sub>2</sub>-eq./GJ</p></td>
-<td><p>Tank-to-wake equivalent emission factor per energy in fuel per fuel and emission.</p></td>
-</tr>
-<tr class="row-even"><td><p>IntensityEquivalentEmissionFactorWTW</p></td>
-<td><p>Ton CO<sub>2</sub>-eq./GJ</p></td>
-<td><p>Well-to-wake equivalent emission factor per energy in fuel per fuel and emission.</p></td>
-</tr>
-<tr class="row-odd"><td><p>IntensityTotalEquivalentEmissionFactorWTT</p></td>
-<td><p>Ton CO<sub>2</sub>-eq./GJ</p></td>
-<td><p>Total well-to-tank equivalent emission factor per energy in fuel.</p></td>
-</tr>
-<tr class="row-even"><td><p>IntensityTotalEquivalentEmissionFactorTTW</p></td>
-<td><p>Ton CO<sub>2</sub>-eq./GJ</p></td>
-<td><p>Total tank-to-wake equivalent emission factor per energy in fuel.</p></td>
-</tr>
-<tr class="row-odd"><td><p>IntensityTotalEquivalentEmissionFactorWTW</p></td>
-<td><p>Ton CO<sub>2</sub>-eq./GJ</p></td>
-<td><p>Total well-to-wake equivalent emission factor per energy in fuel.</p></td>
-</tr>
 </tbody>
 </table>
 </div>
@@ -1928,82 +1473,6 @@ of results both on a node basis and on a global basis.</p>
 <tr class="row-even"><td><p>Collected</p></td>
 <td><p>USD/year</p></td>
 <td><p>Revenue collected or paid out via penalties or subsidies respectively.</p></td>
-</tr>
-<tr class="row-odd"><td><p>Level</p></td>
-<td><p>USD/ton</p></td>
-<td><p>Level of penalty or subsidy.</p></td>
-</tr>
-<tr class="row-even"><td><p>EmissionFactorWTT</p></td>
-<td><p>Ton/ton</p></td>
-<td><p>Well-to-tank emission factor per fuel and emission.</p></td>
-</tr>
-<tr class="row-odd"><td><p>EmissionFactorTTW</p></td>
-<td><p>Ton/ton</p></td>
-<td><p>Tank-to-wake emission factor per fuel and emission.</p></td>
-</tr>
-<tr class="row-even"><td><p>EmissionFactorWTW</p></td>
-<td><p>Ton/ton</p></td>
-<td><p>Well-to-wake emission factor per fuel and emission.</p></td>
-</tr>
-<tr class="row-odd"><td><p>IntensityEmissionFactorWTT</p></td>
-<td><p>Ton/GJ</p></td>
-<td><p>Well-to-tank emission factor per energy in fuel per fuel and emission.</p></td>
-</tr>
-<tr class="row-even"><td><p>IntensityEmissionFactorTTW</p></td>
-<td><p>Ton/GJ</p></td>
-<td><p>Tank-to-wake emission factor per energy in fuel per fuel and emission.</p></td>
-</tr>
-<tr class="row-odd"><td><p>IntensityEmissionFactorWTW</p></td>
-<td><p>Ton/GJ</p></td>
-<td><p>Well-to-wake emission factor per energy in fuel per fuel and emission.</p></td>
-</tr>
-<tr class="row-even"><td><p>EquivalentEmissionFactorWTT</p></td>
-<td><p>Ton CO<sub>2</sub>-eq./ton</p></td>
-<td><p>Well-to-tank equivalent emission factor per fuel and emission.</p></td>
-</tr>
-<tr class="row-odd"><td><p>TotalEquivalentEmissionFactorWTT</p></td>
-<td><p>Ton CO<sub>2</sub>-eq./ton</p></td>
-<td><p>Total well-to-tank equivalent emission factor per fuel.</p></td>
-</tr>
-<tr class="row-even"><td><p>EquivalentEmissionFactorTTW</p></td>
-<td><p>Ton CO<sub>2</sub>-eq./ton</p></td>
-<td><p>Tank-to-wake equivalent emission factor per fuel and emission.</p></td>
-</tr>
-<tr class="row-odd"><td><p>TotalEquivalentEmissionFactorTTW</p></td>
-<td><p>Ton CO<sub>2</sub>-eq./ton</p></td>
-<td><p>Total tank-to-wake equivalent emission factor per fuel.</p></td>
-</tr>
-<tr class="row-even"><td><p>EquivalentEmissionFactorWTW</p></td>
-<td><p>Ton CO<sub>2</sub>-eq./ton</p></td>
-<td><p>Well-to-wake equivalent emission factor per fuel and emission.</p></td>
-</tr>
-<tr class="row-odd"><td><p>TotalEquivalentEmissionFactorWTW</p></td>
-<td><p>Ton CO<sub>2</sub>-eq./ton</p></td>
-<td><p>Total well-to-wake equivalent emission factor per fuel.</p></td>
-</tr>
-<tr class="row-even"><td><p>IntensityEquivalentEmissionFactorWTT</p></td>
-<td><p>Ton CO<sub>2</sub>-eq./GJ</p></td>
-<td><p>Well-to-tank equivalent emission factor per energy in fuel per fuel and emission.</p></td>
-</tr>
-<tr class="row-odd"><td><p>IntensityEquivalentEmissionFactorTTW</p></td>
-<td><p>Ton CO<sub>2</sub>-eq./GJ</p></td>
-<td><p>Tank-to-wake equivalent emission factor per energy in fuel per fuel and emission.</p></td>
-</tr>
-<tr class="row-even"><td><p>IntensityEquivalentEmissionFactorWTW</p></td>
-<td><p>Ton CO<sub>2</sub>-eq./GJ</p></td>
-<td><p>Well-to-wake equivalent emission factor per energy in fuel per fuel and emission.</p></td>
-</tr>
-<tr class="row-odd"><td><p>IntensityTotalEquivalentEmissionFactorWTT</p></td>
-<td><p>Ton CO<sub>2</sub>-eq./GJ</p></td>
-<td><p>Total well-to-tank equivalent emission factor per energy in fuel.</p></td>
-</tr>
-<tr class="row-even"><td><p>IntensityTotalEquivalentEmissionFactorTTW</p></td>
-<td><p>Ton CO<sub>2</sub>-eq./GJ</p></td>
-<td><p>Total tank-to-wake equivalent emission factor per energy in fuel.</p></td>
-</tr>
-<tr class="row-odd"><td><p>IntensityTotalEquivalentEmissionFactorWTW</p></td>
-<td><p>Ton CO<sub>2</sub>-eq./GJ</p></td>
-<td><p>Total well-to-wake equivalent emission factor per energy in fuel.</p></td>
 </tr>
 </tbody>
 </table>

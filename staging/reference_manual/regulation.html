@@ -474,17 +474,17 @@ SPDX-License-Identifier: CC-BY-4.0
 regulations are goal-base fuel standards (such as the IMO Net-Zero Framework and FuelEU Maritime) and
 transport based regulation such as the IMO CII regulation.</p>
 <p>Example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Regulation</span> <span class="s2">&quot;cii&quot;</span> <span class="p">{</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Regulation</span> <span class="s2">"cii"</span> <span class="p">{</span>
 	<span class="n">Measure</span> <span class="o">=</span> <span class="n">TRANSPORT_NOMINAL</span>
 	<span class="n">Scheme</span> <span class="o">=</span> <span class="n">INDIVIDUAL</span>
 
 	<span class="n">Scope</span> <span class="o">=</span> <span class="n">TTW</span>
 	<span class="n">IncludeSlip</span> <span class="o">=</span> <span class="n">FALSE</span>
 
-	<span class="n">Emissions</span> <span class="o">=</span> <span class="n">Emission</span><span class="p">(</span><span class="s2">&quot;carbon_dioxide&quot;</span><span class="p">)</span>
-	<span class="n">Fuels</span> <span class="o">=</span> <span class="n">Fuel</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="p">)</span>
+	<span class="n">Emissions</span> <span class="o">=</span> <span class="n">Emission</span><span class="p">(</span><span class="s2">"carbon_dioxide"</span><span class="p">)</span>
+	<span class="n">Fuels</span> <span class="o">=</span> <span class="n">Fuel</span><span class="p">(</span><span class="s2">"*"</span><span class="p">)</span>
 	
-	<span class="n">Jurisdiction</span> <span class="o">=</span> <span class="p">[</span><span class="n">Port</span><span class="p">(</span><span class="s2">&quot;africa&quot;</span><span class="p">),</span> <span class="n">Port</span><span class="p">(</span><span class="s2">&quot;americas&quot;</span><span class="p">),</span> <span class="n">Port</span><span class="p">(</span><span class="s2">&quot;asia&quot;</span><span class="p">),</span> <span class="n">Port</span><span class="p">(</span><span class="s2">&quot;europe&quot;</span><span class="p">),</span> <span class="n">Port</span><span class="p">(</span><span class="s2">&quot;middle_east&quot;</span><span class="p">)]</span>
+	<span class="n">Jurisdiction</span> <span class="o">=</span> <span class="p">[</span><span class="n">Port</span><span class="p">(</span><span class="s2">"africa"</span><span class="p">),</span> <span class="n">Port</span><span class="p">(</span><span class="s2">"americas"</span><span class="p">),</span> <span class="n">Port</span><span class="p">(</span><span class="s2">"asia"</span><span class="p">),</span> <span class="n">Port</span><span class="p">(</span><span class="s2">"europe"</span><span class="p">),</span> <span class="n">Port</span><span class="p">(</span><span class="s2">"middle_east"</span><span class="p">)]</span>
 	
 	<span class="n">RemedialCost</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="p">}</span>

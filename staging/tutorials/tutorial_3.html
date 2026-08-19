@@ -597,8 +597,8 @@ Open your <code class="docutils literal notranslate"><span class="pre">tutorial_
 <li><p>Copy the relevant section from T2DEF into the empty file.</p></li>
 <li><p>Remove the attribute definitions <code class="docutils literal notranslate"><span class="pre">InterFuelSensitivity</span></code> and <code class="docutils literal notranslate"><span class="pre">IntraFuelSensitivity</span></code> from the node definition (they will be set for all fleets at once in <code class="docutils literal notranslate"><span class="pre">fleet_uptake.inc</span></code>).</p></li>
 </ol>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Fleet</span> <span class="s2">&quot;bulk_fleet&quot;</span> <span class="p">{</span>	
-   <span class="n">Vessels</span> <span class="o">=</span> <span class="p">[</span><span class="n">Vessel</span><span class="p">(</span><span class="s2">&quot;bulk_ice_methanol&quot;</span><span class="p">),</span> <span class="n">Vessel</span><span class="p">(</span><span class="s2">&quot;bulk_ice_ammonia&quot;</span><span class="p">)]</span> 	
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Fleet</span> <span class="s2">"bulk_fleet"</span> <span class="p">{</span>	
+   <span class="n">Vessels</span> <span class="o">=</span> <span class="p">[</span><span class="n">Vessel</span><span class="p">(</span><span class="s2">"bulk_ice_methanol"</span><span class="p">),</span> <span class="n">Vessel</span><span class="p">(</span><span class="s2">"bulk_ice_ammonia"</span><span class="p">)]</span> 	
    <span class="n">InitialVessels</span> <span class="o">=</span> <span class="mi">100</span>
    <span class="n">TradeGrowth</span> <span class="o">=</span> <span class="mf">0.05</span>
 <span class="p">}</span>
@@ -611,8 +611,8 @@ Open your <code class="docutils literal notranslate"><span class="pre">tutorial_
 <li><p>Copy the relevant section from T2DEF into the empty file.</p></li>
 <li><p>Remove the attribute definitions <code class="docutils literal notranslate"><span class="pre">InterFuelSensitivity</span></code> and <code class="docutils literal notranslate"><span class="pre">IntraFuelSensitivity</span></code> from the node definition (they will be set for all fleets at once in <code class="docutils literal notranslate"><span class="pre">fleet_uptake.inc</span></code>).</p></li>
 </ol>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Fleet</span> <span class="s2">&quot;container_fleet&quot;</span> <span class="p">{</span>	
-   <span class="n">Vessels</span> <span class="o">=</span> <span class="p">[</span><span class="n">Vessel</span><span class="p">(</span><span class="s2">&quot;container_ice_oil&quot;</span><span class="p">),</span> <span class="n">Vessel</span><span class="p">(</span><span class="s2">&quot;container_ice_methane&quot;</span><span class="p">)]</span> 	
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Fleet</span> <span class="s2">"container_fleet"</span> <span class="p">{</span>	
+   <span class="n">Vessels</span> <span class="o">=</span> <span class="p">[</span><span class="n">Vessel</span><span class="p">(</span><span class="s2">"container_ice_oil"</span><span class="p">),</span> <span class="n">Vessel</span><span class="p">(</span><span class="s2">"container_ice_methane"</span><span class="p">)]</span> 	
    <span class="n">InitialVessels</span> <span class="o">=</span> <span class="mi">100</span>
    <span class="n">TradeGrowth</span> <span class="o">=</span> <span class="mf">0.05</span>
 <span class="p">}</span>
@@ -626,7 +626,7 @@ Open your <code class="docutils literal notranslate"><span class="pre">tutorial_
 <li><p>The star <code class="docutils literal notranslate"><span class="pre">*</span></code> is a ‘wildcard’. So, when we define the node <code class="docutils literal notranslate"><span class="pre">Fleet</span> <span class="pre">&quot;*&quot;</span></code> the listed attributes under it will apply to any node that has the node-type <code class="docutils literal notranslate"><span class="pre">Fleet</span></code>.</p></li>
 <li><p>A value of <code class="docutils literal notranslate"><span class="pre">0.5</span></code> is an odds ratio: a fuel or technology whose levelized cost of transport (LCOT) is 10% higher receives half the odds of an otherwise identical option (lower cost is better, so use a value below <code class="docutils literal notranslate"><span class="pre">1</span></code>).</p></li>
 </ol>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Fleet</span> <span class="s2">&quot;*&quot;</span> <span class="p">{</span>	
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Fleet</span> <span class="s2">"*"</span> <span class="p">{</span>	
    <span class="n">InterFuelSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
    <span class="n">IntraFuelSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
 <span class="p">}</span>
@@ -718,37 +718,37 @@ Open your <code class="docutils literal notranslate"><span class="pre">tutorial_
 </ul>
 </li>
 </ol>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Fuel</span> <span class="s2">&quot;heavy_fuel_oil&quot;</span> <span class="p">{</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Fuel</span> <span class="s2">"heavy_fuel_oil"</span> <span class="p">{</span>
 	<span class="n">FuelType</span> <span class="o">=</span> <span class="n">OIL</span>
 	
 	<span class="n">LowerHeatingValue</span> <span class="o">=</span> <span class="mf">41.2</span>
 	<span class="n">MassDensity</span> <span class="o">=</span> <span class="mf">0.9</span>
 	
-	<span class="n">set_ttw</span><span class="p">(</span><span class="s2">&quot;carbon_dioxide&quot;</span><span class="p">,</span> <span class="mf">3.114</span><span class="p">)</span>
-	<span class="n">set_ttw</span><span class="p">(</span><span class="s2">&quot;methane&quot;</span><span class="p">,</span> <span class="mf">0.00005</span><span class="p">)</span>
-	<span class="n">set_ttw</span><span class="p">(</span><span class="s2">&quot;nitrous_oxide&quot;</span><span class="p">,</span> <span class="mf">0.00018</span><span class="p">)</span>
+	<span class="n">set_ttw</span><span class="p">(</span><span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="mf">3.114</span><span class="p">)</span>
+	<span class="n">set_ttw</span><span class="p">(</span><span class="s2">"methane"</span><span class="p">,</span> <span class="mf">0.00005</span><span class="p">)</span>
+	<span class="n">set_ttw</span><span class="p">(</span><span class="s2">"nitrous_oxide"</span><span class="p">,</span> <span class="mf">0.00018</span><span class="p">)</span>
 <span class="p">}</span>
 
-<span class="n">Fuel</span> <span class="s2">&quot;methane_electro&quot;</span> <span class="p">{</span> 
+<span class="n">Fuel</span> <span class="s2">"methane_electro"</span> <span class="p">{</span> 
 	<span class="n">FuelType</span> <span class="o">=</span> <span class="n">METHANE</span>
 	
 	<span class="n">LowerHeatingValue</span> <span class="o">=</span> <span class="mf">50.0</span>  
 	<span class="n">MassDensity</span> <span class="o">=</span> <span class="mf">0.43</span>
 	
-	<span class="n">set_ttw</span><span class="p">(</span><span class="s2">&quot;carbon_dioxide&quot;</span><span class="p">,</span> <span class="mf">2.75</span><span class="p">)</span>
+	<span class="n">set_ttw</span><span class="p">(</span><span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="mf">2.75</span><span class="p">)</span>
 <span class="p">}</span>
 
 
-<span class="n">Fuel</span> <span class="s2">&quot;methanol_bio&quot;</span> <span class="p">{</span>
+<span class="n">Fuel</span> <span class="s2">"methanol_bio"</span> <span class="p">{</span>
 	<span class="n">FuelType</span> <span class="o">=</span> <span class="n">METHANOL</span>
 	
 	<span class="n">LowerHeatingValue</span> <span class="o">=</span> <span class="mf">19.9</span>
 	<span class="n">MassDensity</span> <span class="o">=</span> <span class="mf">0.791</span>
 	
-	<span class="n">set_ttw</span><span class="p">(</span><span class="s2">&quot;carbon_dioxide&quot;</span><span class="p">,</span> <span class="mf">1.38</span><span class="p">)</span>
+	<span class="n">set_ttw</span><span class="p">(</span><span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="mf">1.38</span><span class="p">)</span>
 <span class="p">}</span>
 
-<span class="n">Fuel</span> <span class="s2">&quot;ammonia_blue&quot;</span> <span class="p">{</span>
+<span class="n">Fuel</span> <span class="s2">"ammonia_blue"</span> <span class="p">{</span>
 	<span class="n">FuelType</span> <span class="o">=</span> <span class="n">AMMONIA</span>
 	
 	<span class="n">LowerHeatingValue</span> <span class="o">=</span> <span class="mf">18.8</span>
@@ -768,15 +768,15 @@ Open your <code class="docutils literal notranslate"><span class="pre">tutorial_
 </ul>
 </li>
 </ol>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Emission</span> <span class="s2">&quot;carbon_dioxide&quot;</span> <span class="p">{</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Emission</span> <span class="s2">"carbon_dioxide"</span> <span class="p">{</span>
 	<span class="n">GlobalWarmingPotential</span> <span class="o">=</span> <span class="mi">1</span>
 <span class="p">}</span>
 
-<span class="n">Emission</span> <span class="s2">&quot;methane&quot;</span> <span class="p">{</span>
+<span class="n">Emission</span> <span class="s2">"methane"</span> <span class="p">{</span>
 	<span class="n">GlobalWarmingPotential</span> <span class="o">=</span> <span class="mi">25</span>
 <span class="p">}</span>
 
-<span class="n">Emission</span> <span class="s2">&quot;nitrous_oxide&quot;</span> <span class="p">{</span>
+<span class="n">Emission</span> <span class="s2">"nitrous_oxide"</span> <span class="p">{</span>
 	<span class="n">GlobalWarmingPotential</span> <span class="o">=</span> <span class="mi">273</span>
 <span class="p">}</span>
 </pre></div>
@@ -795,27 +795,27 @@ Open your <code class="docutils literal notranslate"><span class="pre">tutorial_
 </ul>
 </li>
 </ol>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Process</span> <span class="s2">&quot;methane_liquefaction_electro&quot;</span> <span class="p">{</span>  
-   <span class="n">Feeds</span> <span class="o">=</span> <span class="p">[</span><span class="n">Process</span><span class="p">(</span><span class="s2">&quot;methane_synthesis_electro&quot;</span><span class="p">)]</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Process</span> <span class="s2">"methane_liquefaction_electro"</span> <span class="p">{</span>  
+   <span class="n">Feeds</span> <span class="o">=</span> <span class="p">[</span><span class="n">Process</span><span class="p">(</span><span class="s2">"methane_synthesis_electro"</span><span class="p">)]</span>
    <span class="n">Conversions</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
 <span class="p">}</span>
 
-<span class="n">Process</span> <span class="s2">&quot;methane_synthesis_electro&quot;</span> <span class="p">{</span>  
-   <span class="n">Feeds</span> <span class="o">=</span> <span class="p">[</span><span class="n">Feedstock</span><span class="p">(</span><span class="s2">&quot;demineralized_water&quot;</span><span class="p">),</span> <span class="n">Feedstock</span><span class="p">(</span><span class="s2">&quot;carbon_dioxide_biogenic&quot;</span><span class="p">)]</span>
+<span class="n">Process</span> <span class="s2">"methane_synthesis_electro"</span> <span class="p">{</span>  
+   <span class="n">Feeds</span> <span class="o">=</span> <span class="p">[</span><span class="n">Feedstock</span><span class="p">(</span><span class="s2">"demineralized_water"</span><span class="p">),</span> <span class="n">Feedstock</span><span class="p">(</span><span class="s2">"carbon_dioxide_biogenic"</span><span class="p">)]</span>
    <span class="n">Conversions</span> <span class="o">=</span> <span class="p">[</span><span class="mf">4.5</span><span class="p">,</span> <span class="mf">2.75</span><span class="p">]</span>  
 <span class="p">}</span>
 
-<span class="n">Process</span> <span class="s2">&quot;methanol_synthesis_bio_gasification&quot;</span> <span class="p">{</span>
-   <span class="n">Feeds</span> <span class="o">=</span> <span class="p">[</span><span class="n">Feedstock</span><span class="p">(</span><span class="s2">&quot;organic_wet_waste&quot;</span><span class="p">),</span> <span class="n">Feedstock</span><span class="p">(</span><span class="s2">&quot;dry_wood_biomass&quot;</span><span class="p">)]</span>
+<span class="n">Process</span> <span class="s2">"methanol_synthesis_bio_gasification"</span> <span class="p">{</span>
+   <span class="n">Feeds</span> <span class="o">=</span> <span class="p">[</span><span class="n">Feedstock</span><span class="p">(</span><span class="s2">"organic_wet_waste"</span><span class="p">),</span> <span class="n">Feedstock</span><span class="p">(</span><span class="s2">"dry_wood_biomass"</span><span class="p">)]</span>
    <span class="n">Conversions</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.21</span><span class="p">,</span> <span class="mf">1.21</span><span class="p">]</span>
 <span class="p">}</span>
 
-<span class="n">Process</span> <span class="s2">&quot;haber_bosch_ccs_integrated_blue&quot;</span> <span class="p">{</span>	
-   <span class="n">Feeds</span> <span class="o">=</span> <span class="p">[</span><span class="n">Process</span><span class="p">(</span><span class="s2">&quot;nitrogen_air_seperation&quot;</span><span class="p">),</span> <span class="n">Feedstock</span><span class="p">(</span><span class="s2">&quot;natural_gas&quot;</span><span class="p">)]</span>	
+<span class="n">Process</span> <span class="s2">"haber_bosch_ccs_integrated_blue"</span> <span class="p">{</span>	
+   <span class="n">Feeds</span> <span class="o">=</span> <span class="p">[</span><span class="n">Process</span><span class="p">(</span><span class="s2">"nitrogen_air_seperation"</span><span class="p">),</span> <span class="n">Feedstock</span><span class="p">(</span><span class="s2">"natural_gas"</span><span class="p">)]</span>	
    <span class="n">Conversions</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.64</span><span class="p">,</span> <span class="mf">0.822</span><span class="p">]</span>						
 <span class="p">}</span>
 
-<span class="n">Process</span> <span class="s2">&quot;nitrogen_air_seperation&quot;</span> <span class="p">{</span>
+<span class="n">Process</span> <span class="s2">"nitrogen_air_seperation"</span> <span class="p">{</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -833,19 +833,19 @@ Open your <code class="docutils literal notranslate"><span class="pre">tutorial_
 </ul>
 </li>
 </ol>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Feedstock</span> <span class="s2">&quot;demineralized_water&quot;</span> <span class="p">{</span>	
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Feedstock</span> <span class="s2">"demineralized_water"</span> <span class="p">{</span>	
 <span class="p">}</span>
 
-<span class="n">Feedstock</span> <span class="s2">&quot;carbon_dioxide_biogenic&quot;</span> <span class="p">{</span>
+<span class="n">Feedstock</span> <span class="s2">"carbon_dioxide_biogenic"</span> <span class="p">{</span>
 <span class="p">}</span>
 
-<span class="n">Feedstock</span> <span class="s2">&quot;organic_wet_waste&quot;</span> <span class="p">{</span>
+<span class="n">Feedstock</span> <span class="s2">"organic_wet_waste"</span> <span class="p">{</span>
 <span class="p">}</span>
 
-<span class="n">Feedstock</span> <span class="s2">&quot;dry_wood_biomass&quot;</span> <span class="p">{</span>
+<span class="n">Feedstock</span> <span class="s2">"dry_wood_biomass"</span> <span class="p">{</span>
 <span class="p">}</span>
 
-<span class="n">Feedstock</span> <span class="s2">&quot;natural_gas&quot;</span> <span class="p">{</span>
+<span class="n">Feedstock</span> <span class="s2">"natural_gas"</span> <span class="p">{</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -880,10 +880,10 @@ Follow the principle of Fuels, copy the Plant nodes for every fuel and place the
 This assigns the attribute <code class="docutils literal notranslate"><span class="pre">&quot;engineering_procurement_construction&quot;</span></code><br />
 And the decision sensitivities to all fuel production plants.</p></li>
 </ol>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Producer</span> <span class="s2">&quot;engineering_procurement_construction&quot;</span> <span class="p">{</span>
-    <span class="n">Plants</span> <span class="o">=</span> <span class="p">[</span><span class="n">Plant</span><span class="p">(</span><span class="s2">&quot;plant_methane_electro&quot;</span><span class="p">),</span>
-              <span class="n">Plant</span><span class="p">(</span><span class="s2">&quot;plant_methanol_bio_gasification&quot;</span><span class="p">),</span>
-              <span class="n">Plant</span><span class="p">(</span><span class="s2">&quot;plant_ammonia_blue&quot;</span><span class="p">)]</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Producer</span> <span class="s2">"engineering_procurement_construction"</span> <span class="p">{</span>
+    <span class="n">Plants</span> <span class="o">=</span> <span class="p">[</span><span class="n">Plant</span><span class="p">(</span><span class="s2">"plant_methane_electro"</span><span class="p">),</span>
+              <span class="n">Plant</span><span class="p">(</span><span class="s2">"plant_methanol_bio_gasification"</span><span class="p">),</span>
+              <span class="n">Plant</span><span class="p">(</span><span class="s2">"plant_ammonia_blue"</span><span class="p">)]</span>
     <span class="n">MaximumDevelopment</span> <span class="o">=</span> <span class="mi">10</span>
     <span class="n">FuelDemandSensitivity</span> <span class="o">=</span> <span class="mf">1.5</span>
     <span class="n">FuelCostSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
@@ -904,13 +904,13 @@ And the decision sensitivities to all fuel production plants.</p></li>
 <li><p>Set the <code class="docutils literal notranslate"><span class="pre">Directory</span></code> attribute to <code class="docutils literal notranslate"><span class="pre">&quot;./plots/&quot;</span></code>. This is the <code class="docutils literal notranslate"><span class="pre">plots</span></code> subfolder you created in each scenario folder; the path is relative to the <code class="docutils literal notranslate"><span class="pre">.nav</span></code> file being run. Navigate creates the folder if it does not already exist.</p></li>
 <li><p>Use the <code class="docutils literal notranslate"><span class="pre">add_plot(...)</span></code> command once per plot you want produced.</p></li>
 </ol>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Plot</span> <span class="s2">&quot;plots&quot;</span> <span class="p">{</span>
-    <span class="n">Directory</span> <span class="o">=</span> <span class="s2">&quot;./plots/&quot;</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Plot</span> <span class="s2">"plots"</span> <span class="p">{</span>
+    <span class="n">Directory</span> <span class="o">=</span> <span class="s2">"./plots/"</span>
 
-    <span class="n">add_plot</span><span class="p">(</span><span class="s2">&quot;global_emission_absolute&quot;</span><span class="p">)</span>
-    <span class="n">add_plot</span><span class="p">(</span><span class="s2">&quot;global_fuel_consumed&quot;</span><span class="p">)</span>
-    <span class="n">add_plot</span><span class="p">(</span><span class="s2">&quot;plant_production_cost&quot;</span><span class="p">)</span>
-    <span class="n">add_plot</span><span class="p">(</span><span class="s2">&quot;port_bunker_price&quot;</span><span class="p">)</span>
+    <span class="n">add_plot</span><span class="p">(</span><span class="s2">"global_emission_absolute"</span><span class="p">)</span>
+    <span class="n">add_plot</span><span class="p">(</span><span class="s2">"global_fuel_consumed"</span><span class="p">)</span>
+    <span class="n">add_plot</span><span class="p">(</span><span class="s2">"plant_production_cost"</span><span class="p">)</span>
+    <span class="n">add_plot</span><span class="p">(</span><span class="s2">"port_bunker_price"</span><span class="p">)</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -928,12 +928,12 @@ And the decision sensitivities to all fuel production plants.</p></li>
 
 <span class="c1"># Definition of the DEFINE section</span>
 <span class="n">DEFINE</span> <span class="p">{</span>
-    <span class="n">Include</span> <span class="s2">&quot;./includes/define.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">"./includes/define.inc"</span>
 <span class="p">}</span>
 
 <span class="c1"># Definition of the EVENTS section</span>
 <span class="n">EVENTS</span> <span class="p">{</span>
-    <span class="n">Include</span> <span class="s2">&quot;./includes/events.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">"./includes/events.inc"</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -953,44 +953,44 @@ For better overview, group them into categories like you can see on the right si
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">DEFINE</span> <span class="p">{</span>
 
     <span class="c1"># model definition</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/model_definition.inc&quot;</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/bunker_logistics.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/model_definition.inc"</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/bunker_logistics.inc"</span>
 
     <span class="c1"># fleets</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/fleet_container.inc&quot;</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/fleet_bulk.inc&quot;</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/fleet_uptake.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/fleet_container.inc"</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/fleet_bulk.inc"</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/fleet_uptake.inc"</span>
 
     <span class="c1"># vessels</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/container_ice_oil.inc&quot;</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/container_ice_methane.inc&quot;</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/bulk_ice_methanol.inc&quot;</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/bulk_ice_ammonia.inc&quot;</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/tanks.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/container_ice_oil.inc"</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/container_ice_methane.inc"</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/bulk_ice_methanol.inc"</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/bulk_ice_ammonia.inc"</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/tanks.inc"</span>
 
     <span class="c1"># route</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/route.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/route.inc"</span>
 
     <span class="c1"># port</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/port.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/port.inc"</span>
 
     <span class="c1"># fuels</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/plant.inc&quot;</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/fuel.inc&quot;</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/process.inc&quot;</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/feedstock.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/plant.inc"</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/fuel.inc"</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/process.inc"</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/feedstock.inc"</span>
 
     <span class="c1"># producer</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/producer.inc&quot;</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/producer_uptake.inc&quot;</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/source.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/producer.inc"</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/producer_uptake.inc"</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/source.inc"</span>
 
     <span class="c1"># costs and emissions of fuels</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/region.inc&quot;</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/emissions.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/region.inc"</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/emissions.inc"</span>
 
     <span class="c1"># plots</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/plot.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/plot.inc"</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -999,7 +999,7 @@ For better overview, group them into categories like you can see on the right si
 </ol>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">EVENTS</span> <span class="p">{</span>
     <span class="c1"># time steps</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/time_steps_yearly.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/time_steps_yearly.inc"</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -1031,8 +1031,8 @@ The structure will be the exact same as in the input file you already created fo
 <li><p>Copy the file <code class="docutils literal notranslate"><span class="pre">scenario_100.inc</span></code> and paste it into your personal folder: <code class="docutils literal notranslate"><span class="pre">\tutorial_3\tutorial_3_scenarios\0_includes_local</span></code>.</p></li>
 <li><p>Assign a price for heavy fuel oil of 100 USD/ton to the port node <code class="docutils literal notranslate"><span class="pre">&quot;port&quot;</span></code>.</p></li>
 </ol>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Port</span> <span class="s2">&quot;port&quot;</span> <span class="p">{</span>	
-    <span class="n">set_bunker_price_overwrite</span><span class="p">(</span><span class="s2">&quot;heavy_fuel_oil&quot;</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span> 
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Port</span> <span class="s2">"port"</span> <span class="p">{</span>	
+    <span class="n">set_bunker_price_overwrite</span><span class="p">(</span><span class="s2">"heavy_fuel_oil"</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span> 
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -1054,47 +1054,47 @@ be those defined in <code class="docutils literal notranslate"><span class="pre"
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">DEFINE</span> <span class="p">{</span>
 
     <span class="c1"># general nodes</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/model_definition.inc&quot;</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/bunker_logistics.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/model_definition.inc"</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/bunker_logistics.inc"</span>
 
     <span class="c1"># fleets</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/fleet_container.inc&quot;</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/fleet_bulk.inc&quot;</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/fleet_uptake.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/fleet_container.inc"</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/fleet_bulk.inc"</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/fleet_uptake.inc"</span>
 
     <span class="c1"># vessels</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/container_ice_oil.inc&quot;</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/container_ice_methane.inc&quot;</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/bulk_ice_methanol.inc&quot;</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/bulk_ice_ammonia.inc&quot;</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/tanks.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/container_ice_oil.inc"</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/container_ice_methane.inc"</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/bulk_ice_methanol.inc"</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/bulk_ice_ammonia.inc"</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/tanks.inc"</span>
 
     <span class="c1"># route</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/route.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/route.inc"</span>
 
     <span class="c1"># port</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/port.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/port.inc"</span>
 
     <span class="c1"># fuels</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/plant.inc&quot;</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/fuel.inc&quot;</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/process.inc&quot;</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/feedstock.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/plant.inc"</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/fuel.inc"</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/process.inc"</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/feedstock.inc"</span>
 
     <span class="c1"># producer</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/producer.inc&quot;</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/producer_uptake.inc&quot;</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/source.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/producer.inc"</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/producer_uptake.inc"</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/source.inc"</span>
 
     <span class="c1"># costs and emissions of fuels</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/region.inc&quot;</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/emissions.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/region.inc"</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/emissions.inc"</span>
 
     <span class="c1"># plots</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/plot.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/plot.inc"</span>
 
     <span class="c1"># testing sensitivity to lower HFO cost</span>
-    <span class="n">Include</span> <span class="s2">&quot;../0_includes_local/scenario_100.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">"../0_includes_local/scenario_100.inc"</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -1109,7 +1109,7 @@ be those defined in <code class="docutils literal notranslate"><span class="pre"
 </div>
 <p>This will run the Navigate simulation using the instructions in the <code class="docutils literal notranslate"><span class="pre">tutorial_file_name.nav</span></code> file.</p>
 <p>Did you get an error message?</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="ne">FileNotFoundError</span><span class="p">:</span> <span class="n">Error</span> <span class="ow">in</span> <span class="n">DEFINE</span> <span class="n">file</span><span class="p">,</span> <span class="n">line</span> <span class="n">XX</span><span class="p">:</span> <span class="n">Include</span> <span class="n">file</span> <span class="s1">&#39;../0_includes_local/scenario_100.inc&#39;</span> <span class="ow">not</span> <span class="n">found</span><span class="o">.</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="ne">FileNotFoundError</span><span class="p">:</span> <span class="n">Error</span> <span class="ow">in</span> <span class="n">DEFINE</span> <span class="n">file</span><span class="p">,</span> <span class="n">line</span> <span class="n">XX</span><span class="p">:</span> <span class="n">Include</span> <span class="n">file</span> <span class="s1">'../0_includes_local/scenario_100.inc'</span> <span class="ow">not</span> <span class="n">found</span><span class="o">.</span>
 </pre></div>
 </div>
 </section>
@@ -1141,8 +1141,8 @@ From the location of <code class="docutils literal notranslate"><span class="pre
 <li><p>Copy the empty file <code class="docutils literal notranslate"><span class="pre">scenario_170.inc</span></code> and paste it into your personal folder <code class="docutils literal notranslate"><span class="pre">\tutorial_3_scenarios\0_includes_local</span></code>, so you can edit it.</p></li>
 <li><p>Assign a price for heavy fuel oil of 170 USD/ton to the port node <code class="docutils literal notranslate"><span class="pre">&quot;port&quot;</span></code>.</p></li>
 </ol>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Port</span> <span class="s2">&quot;port&quot;</span> <span class="p">{</span>
-    <span class="n">set_bunker_price_overwrite</span><span class="p">(</span><span class="s2">&quot;heavy_fuel_oil&quot;</span><span class="p">,</span> <span class="mi">170</span><span class="p">)</span> 
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Port</span> <span class="s2">"port"</span> <span class="p">{</span>
+    <span class="n">set_bunker_price_overwrite</span><span class="p">(</span><span class="s2">"heavy_fuel_oil"</span><span class="p">,</span> <span class="mi">170</span><span class="p">)</span> 
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -1154,47 +1154,47 @@ From the location of <code class="docutils literal notranslate"><span class="pre
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">DEFINE</span> <span class="p">{</span>
 
     <span class="c1"># general nodes</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/model_definition.inc&quot;</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/bunker_logistics.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/model_definition.inc"</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/bunker_logistics.inc"</span>
 
     <span class="c1"># fleets</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/fleet_container.inc&quot;</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/fleet_bulk.inc&quot;</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/fleet_uptake.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/fleet_container.inc"</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/fleet_bulk.inc"</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/fleet_uptake.inc"</span>
 
     <span class="c1"># vessels</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/container_ice_oil.inc&quot;</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/container_ice_methane.inc&quot;</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/bulk_ice_methanol.inc&quot;</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/bulk_ice_ammonia.inc&quot;</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/tanks.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/container_ice_oil.inc"</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/container_ice_methane.inc"</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/bulk_ice_methanol.inc"</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/bulk_ice_ammonia.inc"</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/tanks.inc"</span>
 
     <span class="c1"># route</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/route.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/route.inc"</span>
 
     <span class="c1"># port</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/port.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/port.inc"</span>
 
     <span class="c1"># fuels</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/plant.inc&quot;</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/fuel.inc&quot;</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/process.inc&quot;</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/feedstock.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/plant.inc"</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/fuel.inc"</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/process.inc"</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/feedstock.inc"</span>
 
     <span class="c1"># producer</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/producer.inc&quot;</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/producer_uptake.inc&quot;</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/source.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/producer.inc"</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/producer_uptake.inc"</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/source.inc"</span>
 
     <span class="c1"># costs and emissions of fuels</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/region.inc&quot;</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/emissions.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/region.inc"</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/emissions.inc"</span>
 
     <span class="c1"># plots</span>
-    <span class="n">Include</span> <span class="s2">&quot;../../0_includes_global/plot.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">"../../0_includes_global/plot.inc"</span>
 
     <span class="c1"># testing sensitivity to lower HFO cost</span>
-    <span class="n">Include</span> <span class="s2">&quot;../0_includes_local/scenario_170.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">"../0_includes_local/scenario_170.inc"</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -1223,26 +1223,25 @@ From the location of <code class="docutils literal notranslate"><span class="pre
 </ul>
 </li>
 </ol>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Report</span> <span class="s2">&quot;report&quot;</span> <span class="p">{</span>	
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Report</span> <span class="s2">"report"</span> <span class="p">{</span>	
 
-	<span class="c1"># export the report to the same &quot;plots&quot; subfolder as the plots.</span>
-	<span class="n">Directory</span> <span class="o">=</span> <span class="s2">&quot;./plots/&quot;</span>
+	<span class="c1"># export the report to the same "plots" subfolder as the plots.</span>
+	<span class="n">Directory</span> <span class="o">=</span> <span class="s2">"./plots/"</span>
 
 	<span class="c1"># port</span>
-	<span class="n">add_port_property</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="p">,</span> <span class="n">BunkerIntensityPrice</span><span class="p">)</span>    	        <span class="c1"># USD/GJ</span>
-	<span class="n">add_port_property</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="p">,</span> <span class="n">BunkerIntensityTotalEquivalentWTT</span><span class="p">)</span>	<span class="c1"># kg/GJ</span>
+	<span class="n">add_port_property</span><span class="p">(</span><span class="s2">"*"</span><span class="p">,</span> <span class="n">BunkerIntensityPrice</span><span class="p">)</span>    	        <span class="c1"># USD/GJ</span>
+	<span class="n">add_port_property</span><span class="p">(</span><span class="s2">"*"</span><span class="p">,</span> <span class="n">BunkerIntensityTotalEquivalentWTT</span><span class="p">)</span>	<span class="c1"># kg/GJ</span>
 		
 	<span class="c1"># fleet</span>
-	<span class="n">add_fleet_property</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="p">,</span> <span class="n">TotalEquivalentWTT</span><span class="p">)</span>		<span class="c1"># ton/year</span>
-	<span class="n">add_fleet_property</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="p">,</span> <span class="n">TotalEquivalentTTW</span><span class="p">)</span>		<span class="c1"># ton/year</span>
-	<span class="n">add_fleet_property</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="p">,</span> <span class="n">TotalEquivalentWTW</span><span class="p">)</span>		<span class="c1"># ton/year</span>
-	<span class="n">add_fleet_property</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="p">,</span> <span class="n">TotalConsumedEnergy</span><span class="p">)</span>    <span class="c1"># GJ/year</span>
+	<span class="n">add_fleet_property</span><span class="p">(</span><span class="s2">"*"</span><span class="p">,</span> <span class="n">TotalEquivalentWTT</span><span class="p">)</span>		<span class="c1"># ton/year</span>
+	<span class="n">add_fleet_property</span><span class="p">(</span><span class="s2">"*"</span><span class="p">,</span> <span class="n">TotalEquivalentTTW</span><span class="p">)</span>		<span class="c1"># ton/year</span>
+	<span class="n">add_fleet_property</span><span class="p">(</span><span class="s2">"*"</span><span class="p">,</span> <span class="n">TotalEquivalentWTW</span><span class="p">)</span>		<span class="c1"># ton/year</span>
+	<span class="n">add_fleet_property</span><span class="p">(</span><span class="s2">"*"</span><span class="p">,</span> <span class="n">TotalConsumedEnergy</span><span class="p">)</span>    <span class="c1"># GJ/year</span>
 
 	<span class="c1"># global</span>
 	<span class="n">add_property</span><span class="p">(</span><span class="n">TotalEquivalentWTT</span><span class="p">)</span>				<span class="c1"># ton/year</span>
 	<span class="n">add_property</span><span class="p">(</span><span class="n">TotalEquivalentTTW</span><span class="p">)</span>				<span class="c1"># ton/year</span>
 	<span class="n">add_property</span><span class="p">(</span><span class="n">TotalEquivalentWTW</span><span class="p">)</span>				<span class="c1"># ton/year</span>
-        <span class="n">add_property</span><span class="p">(</span><span class="n">WTW</span><span class="p">)</span>					    	<span class="c1"># ton/year</span>
 	<span class="n">add_property</span><span class="p">(</span><span class="n">TotalConsumedEnergy</span><span class="p">)</span>				<span class="c1"># GJ/year</span>
 	<span class="n">add_property</span><span class="p">(</span><span class="n">ConsumedEnergy</span><span class="p">)</span>					<span class="c1"># GJ/year</span>
 	<span class="n">add_property</span><span class="p">(</span><span class="n">InstalledPower</span><span class="p">)</span>					<span class="c1"># MW	</span>

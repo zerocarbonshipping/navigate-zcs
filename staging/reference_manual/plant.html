@@ -473,13 +473,13 @@ SPDX-License-Identifier: CC-BY-4.0
 <p>A <code class="docutils literal notranslate"><span class="pre">Plant</span></code> node defines a fuel production plant which are part of the modeling of the available fuel supply.
 Examples of plants are e-methanol plants and blue ammonia plants.</p>
 <p>Example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Plant</span> <span class="s2">&quot;plant_methanol_electro&quot;</span> <span class="p">{</span>
-    <span class="n">Fuel</span> <span class="o">=</span> <span class="n">Fuel</span><span class="p">(</span><span class="s2">&quot;methanol_electro&quot;</span><span class="p">)</span>
-    <span class="n">Process</span> <span class="o">=</span> <span class="n">Process</span><span class="p">(</span><span class="s2">&quot;methanol_synthesis_electro&quot;</span><span class="p">)</span>
-    <span class="n">Region</span> <span class="o">=</span> <span class="n">Region</span><span class="p">(</span><span class="s2">&quot;europe&quot;</span><span class="p">)</span>
-    <span class="n">Source</span> <span class="o">=</span> <span class="n">Source</span><span class="p">(</span><span class="s2">&quot;grid&quot;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Plant</span> <span class="s2">"plant_methanol_electro"</span> <span class="p">{</span>
+    <span class="n">Fuel</span> <span class="o">=</span> <span class="n">Fuel</span><span class="p">(</span><span class="s2">"methanol_electro"</span><span class="p">)</span>
+    <span class="n">Process</span> <span class="o">=</span> <span class="n">Process</span><span class="p">(</span><span class="s2">"methanol_synthesis_electro"</span><span class="p">)</span>
+    <span class="n">Region</span> <span class="o">=</span> <span class="n">Region</span><span class="p">(</span><span class="s2">"europe"</span><span class="p">)</span>
+    <span class="n">Source</span> <span class="o">=</span> <span class="n">Source</span><span class="p">(</span><span class="s2">"grid"</span><span class="p">)</span>
     
-    <span class="n">Capacity</span> <span class="o">=</span> <span class="n">Forecast</span><span class="p">(</span><span class="s2">&quot;methanol_electro_plant_capacity&quot;</span><span class="p">)</span>
+    <span class="n">Capacity</span> <span class="o">=</span> <span class="n">Forecast</span><span class="p">(</span><span class="s2">"methanol_electro_plant_capacity"</span><span class="p">)</span>
     
     <span class="n">LeadTime</span> <span class="o">=</span> <span class="mi">3</span>
     <span class="n">Lifetime</span> <span class="o">=</span> <span class="mi">20</span>

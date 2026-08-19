@@ -474,12 +474,12 @@ SPDX-License-Identifier: CC-BY-4.0
 saved. Plots are only produced when at least one <code class="docutils literal notranslate"><span class="pre">Plot</span></code> node is defined (and plotting is not
 suppressed with the <code class="docutils literal notranslate"><span class="pre">-s</span></code> flag).</p>
 <p>Example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Plot</span> <span class="s2">&quot;plots&quot;</span> <span class="p">{</span>
-    <span class="n">Directory</span> <span class="o">=</span> <span class="s2">&quot;./plots/&quot;</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Plot</span> <span class="s2">"plots"</span> <span class="p">{</span>
+    <span class="n">Directory</span> <span class="o">=</span> <span class="s2">"./plots/"</span>
 
-    <span class="n">add_plot</span><span class="p">(</span><span class="s2">&quot;global_emission_absolute&quot;</span><span class="p">)</span>
-    <span class="n">add_plot</span><span class="p">(</span><span class="s2">&quot;global_fuel_consumed&quot;</span><span class="p">)</span>
-    <span class="n">add_plot</span><span class="p">(</span><span class="s2">&quot;port_bunker_price&quot;</span><span class="p">)</span>
+    <span class="n">add_plot</span><span class="p">(</span><span class="s2">"global_emission_absolute"</span><span class="p">)</span>
+    <span class="n">add_plot</span><span class="p">(</span><span class="s2">"global_fuel_consumed"</span><span class="p">)</span>
+    <span class="n">add_plot</span><span class="p">(</span><span class="s2">"port_bunker_price"</span><span class="p">)</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -578,31 +578,25 @@ The folder is created automatically if it does not already exist.</p>
 <tr class="row-odd"><td><p>fuel_supply_demand</p></td>
 <td><p>Fuel</p></td>
 </tr>
-<tr class="row-even"><td><p>fuel_supply_demand_expectation</p></td>
+<tr class="row-even"><td><p>fuel_type_supply_demand</p></td>
 <td><p>Fuel</p></td>
 </tr>
-<tr class="row-odd"><td><p>fuel_type_supply_demand</p></td>
-<td><p>Fuel</p></td>
-</tr>
-<tr class="row-even"><td><p>fleet_emission_absolute</p></td>
+<tr class="row-odd"><td><p>fleet_emission_absolute</p></td>
 <td><p>Fleet</p></td>
 </tr>
-<tr class="row-odd"><td><p>fleet_emission_intensity</p></td>
+<tr class="row-even"><td><p>fleet_emission_intensity</p></td>
 <td><p>Fleet</p></td>
 </tr>
-<tr class="row-even"><td><p>fleet_fuel_consumed</p></td>
+<tr class="row-odd"><td><p>fleet_fuel_consumed</p></td>
 <td><p>Fleet</p></td>
 </tr>
-<tr class="row-odd"><td><p>fleet_shore_power_share</p></td>
+<tr class="row-even"><td><p>fleet_shore_power_share</p></td>
 <td><p>Fleet</p></td>
 </tr>
-<tr class="row-even"><td><p>fleet_conversions_cumulative</p></td>
+<tr class="row-odd"><td><p>fleet_conversions_cumulative</p></td>
 <td><p>Fleet</p></td>
 </tr>
-<tr class="row-odd"><td><p>fleet_evolution</p></td>
-<td><p>Fleet</p></td>
-</tr>
-<tr class="row-even"><td><p>fleet_orderbook</p></td>
+<tr class="row-even"><td><p>fleet_evolution</p></td>
 <td><p>Fleet</p></td>
 </tr>
 <tr class="row-odd"><td><p>fleet_changes</p></td>
@@ -629,22 +623,10 @@ The folder is created automatically if it does not already exist.</p>
 <tr class="row-even"><td><p>fleet_investment_signal_speed_per_vessel</p></td>
 <td><p>Fleet</p></td>
 </tr>
-<tr class="row-odd"><td><p>fleet_newbuild_sources</p></td>
-<td><p>Fleet</p></td>
-</tr>
-<tr class="row-even"><td><p>fleet_fuel_conversion_sources</p></td>
-<td><p>Fleet</p></td>
-</tr>
-<tr class="row-odd"><td><p>fleet_fuel_conversion_sources_normalized</p></td>
-<td><p>Fleet</p></td>
-</tr>
-<tr class="row-even"><td><p>producer_development</p></td>
+<tr class="row-odd"><td><p>producer_development</p></td>
 <td><p>Producer</p></td>
 </tr>
-<tr class="row-odd"><td><p>producer_development_cumulative</p></td>
-<td><p>Producer</p></td>
-</tr>
-<tr class="row-even"><td><p>producer_changes</p></td>
+<tr class="row-even"><td><p>producer_development_cumulative</p></td>
 <td><p>Producer</p></td>
 </tr>
 <tr class="row-odd"><td><p>producer_feed_consumption</p></td>
@@ -666,12 +648,6 @@ The folder is created automatically if it does not already exist.</p>
 <td><p>Port</p></td>
 </tr>
 <tr class="row-odd"><td><p>technology_uptake</p></td>
-<td><p>Technology</p></td>
-</tr>
-<tr class="row-even"><td><p>technology_install_sources</p></td>
-<td><p>Technology</p></td>
-</tr>
-<tr class="row-odd"><td><p>technology_install_sources_normalized</p></td>
 <td><p>Technology</p></td>
 </tr>
 <tr class="row-even"><td><p>regulation_compliance</p></td>
