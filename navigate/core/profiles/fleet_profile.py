@@ -24,11 +24,8 @@ class FleetProfile(_VesselAggregateProfile):
         self._trade: np.ndarray = EMPTY_FLOAT
 
         self._existing_vessels: dict[str, np.ndarray] = {}
-        self._primary_scrap: dict[str, np.ndarray] = {}
-        self._secondary_scrap: dict[str, np.ndarray] = {}
-        self._orderbook_newbuilds: dict[str, np.ndarray] = {}
-        self._inertia_newbuilds: dict[str, np.ndarray] = {}
-        self._modelled_newbuilds: dict[str, np.ndarray] = {}
+        self._scrap: dict[str, np.ndarray] = {}
+        self._newbuilds: dict[str, np.ndarray] = {}
         self._fuel_conversions: dict[tuple[str, str], np.ndarray] = {}
         self._technology_uptake: dict[tuple[str, str], np.ndarray] = {}
         self._newbuild_technology_uptake: dict[tuple[str, str], np.ndarray] = {}
@@ -78,11 +75,8 @@ class FleetProfile(_VesselAggregateProfile):
         for vessel_name in vessel_names:
 
             self._existing_vessels[vessel_name] = self._default_array()
-            self._primary_scrap[vessel_name] = self._default_array()
-            self._secondary_scrap[vessel_name] = self._default_array()
-            self._orderbook_newbuilds[vessel_name] = self._default_array()
-            self._inertia_newbuilds[vessel_name] = self._default_array()
-            self._modelled_newbuilds[vessel_name] = self._default_array()
+            self._scrap[vessel_name] = self._default_array()
+            self._newbuilds[vessel_name] = self._default_array()
 
         self._fuel_conversions = self._default_tuple_dict(vessel_names, vessel_names)
 
@@ -108,20 +102,11 @@ class FleetProfile(_VesselAggregateProfile):
     def set_existing_vessels(self, idx: int, vessel_name: str, existing_vessels: float) -> None:
         self._existing_vessels[vessel_name][idx] = existing_vessels
 
-    def set_primary_scrap(self, vessel_name: str, idx: int, primary_scrap: float) -> None:
-        self._primary_scrap[vessel_name][idx] = primary_scrap
+    def add_scrap(self, vessel_name: str, idx: int, scrap: float) -> None:
+        self._scrap[vessel_name][idx] += scrap
 
-    def add_secondary_scrap(self, vessel_name: str, idx: int, secondary_scrap: float) -> None:
-        self._secondary_scrap[vessel_name][idx] += secondary_scrap
-
-    def set_orderbook_newbuilds(self, vessel_name: str, idx: int, orderbook_newbuilds: float) -> None:
-        self._orderbook_newbuilds[vessel_name][idx] = orderbook_newbuilds
-
-    def set_inertia_newbuilds(self, vessel_name: str, idx: int, inertia_newbuilds: float) -> None:
-        self._inertia_newbuilds[vessel_name][idx] = inertia_newbuilds
-
-    def set_modelled_newbuilds(self, vessel_name: str, idx: int, modelled_newbuilds: float) -> None:
-        self._modelled_newbuilds[vessel_name][idx] = modelled_newbuilds
+    def add_newbuilds(self, vessel_name: str, idx: int, newbuilds: float) -> None:
+        self._newbuilds[vessel_name][idx] += newbuilds
 
     def add_fuel_conversions(self, vessel_name_from: str, vessel_name_to: str, idx: int, conversions: float) -> None:
         self._fuel_conversions[(vessel_name_from, vessel_name_to)][idx] += conversions
@@ -170,19 +155,15 @@ class FleetProfile(_VesselAggregateProfile):
             idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
         return extract_from_dict(self._existing_vessels, vessel_name, idx)
 
-    def get_scrap(self, vessel_name: str | None = None, idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
-        if vessel_name is not None:
-            return self._primary_scrap[vessel_name][idx] + self._secondary_scrap[vessel_name][idx]
-        else:
-            return {vessel_name: self.get_scrap(vessel_name, idx) for vessel_name in self._primary_scrap}
+    def get_scrap(
+            self, vessel_name: str | None = None,
+            idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
+        return extract_from_dict(self._scrap, vessel_name, idx)
 
-    def get_newbuilds(self, vessel_name: str | None = None, idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
-        if vessel_name is not None:
-            return (self._orderbook_newbuilds[vessel_name][idx]
-                    + self._inertia_newbuilds[vessel_name][idx]
-                    + self._modelled_newbuilds[vessel_name][idx])
-        else:
-            return {vessel_name: self.get_newbuilds(vessel_name, idx) for vessel_name in self._orderbook_newbuilds}
+    def get_newbuilds(
+            self, vessel_name: str | None = None,
+            idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
+        return extract_from_dict(self._newbuilds, vessel_name, idx)
 
     def get_fuel_conversions(
             self, vessel_name_to: str | None = None,

@@ -139,7 +139,7 @@ def perform_age_based_scrapping(fleet: Fleet, idx: int):
                 incs[0].multiplier -= scrapping
 
         # transfer to profile
-        fleet.profile.set_primary_scrap(vessel.get_name(), idx, scrapped_vessels)
+        fleet.profile.add_scrap(vessel.get_name(), idx, scrapped_vessels)
 
 
 def perform_fixed_rate_scrapping(fleet: Fleet, time_step: float, idx: int):
@@ -278,7 +278,7 @@ def perform_fixed_trade_scrapping(fleet: Fleet, trade_gap: float, idx: int):
                 youngest_age = age + dt * (1. - scrap_fraction)
 
                 # transfer to profile
-                fleet.profile.add_secondary_scrap(fleet.assets[v].get_name(), idx, to_scrap)
+                fleet.profile.add_scrap(fleet.assets[v].get_name(), idx, to_scrap)
 
             # the trade-gap is per definition zero
             trade_gap = 0.
@@ -299,7 +299,7 @@ def perform_fixed_trade_scrapping(fleet: Fleet, trade_gap: float, idx: int):
                 youngest_index[v] = ii + 1
 
                 # transfer to profile
-                fleet.profile.add_secondary_scrap(fleet.assets[v].get_name(), idx, increment)
+                fleet.profile.add_scrap(fleet.assets[v].get_name(), idx, increment)
 
     # secondary scrapping for anything older than the youngest age
     for v, i in enumerate(youngest_index):
@@ -414,7 +414,7 @@ def calculate_orderbook_newbuilds(fleet: Fleet, trade_gap: float, cap_count: np.
 
     # transfer to profile
     for v, vessel in enumerate(fleet.assets):
-        fleet.profile.set_orderbook_newbuilds(vessel.get_name(), idx, delivery[v])
+        fleet.profile.add_newbuilds(vessel.get_name(), idx, delivery[v])
 
     cap_count_remaining = np.maximum(cap_count - delivery, 0.)
 
@@ -520,20 +520,13 @@ def calculate_modelled_newbuilds(fleet: Fleet, trade_gap: float, cap_count: np.n
     modelled_increments = calculate_increments(modelled_uptakes, cargo_miles, trade_gap)
 
     # expand back to full size of the vessel type list
-    inertia_padded = np.zeros((len(fleet.assets)))
-    model_padded = np.zeros((len(fleet.assets)))
+    increments = np.zeros((len(fleet.assets)))
 
     for i, v in enumerate(index):
-        inertia_padded[v] = inertia_increments[i]
-        model_padded[v] = modelled_increments[i]
+        increments[v] = inertia_increments[i] + modelled_increments[i]
 
         # transfer to the profile
-        vessel_name = fleet.assets[v].get_name()
-        fleet.profile.set_inertia_newbuilds(vessel_name, idx, inertia_increments[i])
-        fleet.profile.set_modelled_newbuilds(vessel_name, idx, modelled_increments[i])
-
-    # add the inertia and modelled increments together
-    increments = np.add(inertia_padded, model_padded)
+        fleet.profile.add_newbuilds(fleet.assets[v].get_name(), idx, increments[v])
 
     return increments, np.dot(np.add(inertia_increments, modelled_increments), cargo_miles)
 

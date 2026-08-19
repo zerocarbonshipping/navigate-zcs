@@ -168,3 +168,19 @@ class TestFleetTechnologyUptake:
                                     technology_names=["tech"])
         np.testing.assert_array_equal(fleet.get_fleet_technology_uptake("tech"),
                                       np.zeros_like(timeline))
+
+
+class TestScrapNewbuildAccumulation:
+
+    def test_writers_accumulate_per_vessel(self, timeline, fuels, emissions):
+        fleet = _make_fleet_profile(timeline, fuels, emissions, vessel_names=["a", "b"])
+
+        fleet.add_scrap("a", 0, 1.5)
+        fleet.add_scrap("a", 0, 0.5)
+        fleet.add_newbuilds("a", 1, 2.0)
+        fleet.add_newbuilds("a", 1, 3.0)
+
+        assert fleet.get_scrap("a", 0) == pytest.approx(2.0)
+        assert fleet.get_newbuilds("a", 1) == pytest.approx(5.0)
+        np.testing.assert_array_equal(fleet.get_scrap("b"), np.zeros_like(timeline))
+        np.testing.assert_array_equal(fleet.get_newbuilds("b"), np.zeros_like(timeline))

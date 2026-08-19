@@ -38,6 +38,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 ### Changed
 - The investment post-processing and fleet aggregation read vessel
   cargo-miles from the expectation instead of the profile (value-identical).
+- The fleet profile stores scrap and newbuilds as single per-vessel
+  aggregates instead of per-source arrays (value-identical; the evolution
+  code still computes the sources separately).
 
 ### Added
 - Behavior guardrail test suite (`tests/guardrails/`): committed decks that
