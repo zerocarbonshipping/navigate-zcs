@@ -7,7 +7,7 @@
 #   Regulation: Active, Scheme, Jurisdiction, Emissions, Fuels, Scope,
 #               EmissionsLifetime, IncludeSlip, Measure,
 #               IntraFraction, InterFraction, ExtraFraction, RemedialCost,
-#               SharedThreshold, AllowThresholdAdjustment
+#               AllowThresholdAdjustment
 #   Levy:       Active, Scheme, Jurisdiction, Emissions, Fuels, Scope,
 #               EmissionsLifetime, IncludeSlip, Level,
 #               LowerThreshold, UpperThreshold
@@ -18,7 +18,7 @@
 #   Levy:       set_include_vessel, set_global_warming_potential, set_fuel_wtt,
 #               set_fuel_ttw
 
-# ABSOLUTE + INDIVIDUAL — covers SharedThreshold, AllowThresholdAdjustment
+# ABSOLUTE + INDIVIDUAL — covers AllowThresholdAdjustment, per-vessel thresholds
 Regulation "reg_absolute" {
 	Measure = ABSOLUTE
 	Scheme = INDIVIDUAL
@@ -29,7 +29,6 @@ Regulation "reg_absolute" {
 	EmissionsLifetime = 20
 	Active = TRUE
 	IncludeSlip = TRUE
-	SharedThreshold = 1000000
 	IntraFraction = 1.0
 	InterFraction = 0.5
 	ExtraFraction = 0.0
@@ -42,9 +41,11 @@ Regulation "reg_absolute" {
 	set_fuel_ttw("hfo", "carbon_dioxide", 3.114)
 	set_vessel_threshold("vessel_oil", 5000)
 	set_vessel_threshold("vessel_methane", 5000)
+	set_vessel_threshold("vessel_methanol", 5000)
+	set_vessel_threshold("vessel_ammonia", 5000)
 }
 
-# INTENSITY + FLEXIBLE — covers SPECIFIC targets, Emissions/Fuels lists
+# INTENSITY + FLEXIBLE — covers wildcard thresholds, Emissions/Fuels lists
 Regulation "reg_intensity" {
 	Measure = INTENSITY
 	Scheme = FLEXIBLE
@@ -54,11 +55,12 @@ Regulation "reg_intensity" {
 	Jurisdiction = Port("port_a")
 	Active = TRUE
 	IncludeSlip = FALSE
-	SharedThreshold = Forecast("fc_regulation_threshold")
 	RemedialCost = Forecast("fc_remedial_cost")
 	set_include_vessel("*", TRUE)
+	set_vessel_threshold("*", Forecast("fc_regulation_threshold"))
+	# specific assignment after the wildcard overrides it (declaration order),
+	# exercising non-uniform thresholds under a FLEXIBLE scheme
 	set_vessel_threshold("vessel_methanol", 60)
-	set_vessel_threshold("vessel_ammonia", 60)
 }
 
 # TRANSPORT_NOMINAL + INDIVIDUAL — covers set_vessel_capacity

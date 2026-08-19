@@ -15,7 +15,7 @@ Regulation "gfs" {
 	
 	RemedialCost = Forecast("gfs_remedial_unit")
 	
-	SharedThreshold = Forecast("gfs_target_reduction")
+	set_vessel_threshold("*", Forecast("gfs_target_reduction"))
 	
 	set_include_vessel("*", TRUE)
 }

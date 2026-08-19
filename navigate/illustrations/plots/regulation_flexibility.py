@@ -29,9 +29,6 @@ def plot_regulation_flexibility(manager, directory):
         if not regulation.scheme == RegulationSchemeID.FLEXIBLE:
             continue
 
-        if regulation.shared_threshold is None:
-            continue
-
         shared_threshold = regulation.profile.get_shared_threshold()
         shared_compliance = regulation.profile.get_shared_compliance()
         vessel_compliance = regulation.profile.get_vessel_compliance()

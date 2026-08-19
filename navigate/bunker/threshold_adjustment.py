@@ -91,15 +91,12 @@ def adjust_regulation_thresholds(alg: BunkerAlgorithm) -> bool:
             continue
 
         if remedial_factor.X <= 0.:
-            # compliant — store original shared threshold as adjusted.
-            # For FLEXIBLE, all vessels share the same threshold value.
-            original_threshold = get_regulation_vessel_threshold(alg, regulation,
-                                                                 next(iter(alg.vessels)))
-            alg.adjusted_shared_thresholds[r] = original_threshold
-            for v in alg.vessels:
-                if regulation.vessel_is_policed(v):
-                    alg.adjusted_vessel_thresholds[(r, v)] = get_regulation_vessel_threshold(
-                        alg, regulation, v)
+            # compliant — nothing was adjusted: store the original per-vessel
+            # thresholds and no fleet-level value, so downstream consumers fall
+            # back to the per-vessel targets the initial build solved against
+            alg.adjusted_vessel_thresholds.update(
+                {(r, v): get_regulation_vessel_threshold(alg, regulation, v)
+                 for v in alg.vessels if regulation.vessel_is_policed(v)})
             continue
 
         measure = regulation.measure
@@ -261,12 +258,13 @@ def _rebuild_regulation_constraints_for_adjustment(alg: BunkerAlgorithm, adjusta
         if regulation.measure != RegulationMeasureID.INTENSITY:
             continue
 
-        # FLEXIBLE schemes calibrate to the fleet-aggregate intensity so the re-solved
-        # constraint dual carries cross-vessel cost differentiation (dirty vessels are
-        # net payers, clean vessels net receivers). INDIVIDUAL schemes are calibrated
-        # to each vessel's own threshold.
-        flexible = regulation.scheme == RegulationSchemeID.FLEXIBLE
-        shared_threshold = alg.adjusted_shared_thresholds.get(r) if flexible else None
+        # Adjusted FLEXIBLE schemes calibrate to the fleet-aggregate intensity so the
+        # re-solved constraint dual carries cross-vessel cost differentiation (dirty
+        # vessels are net payers, clean vessels net receivers). INDIVIDUAL schemes and
+        # compliant FLEXIBLE schemes (no fleet-level adjusted value stored) are
+        # calibrated to each vessel's own threshold.
+        shared_threshold = (alg.adjusted_shared_thresholds.get(r)
+                            if regulation.scheme == RegulationSchemeID.FLEXIBLE else None)
 
         for v in alg.vessels:
             key = (r, v)
@@ -274,7 +272,8 @@ def _rebuild_regulation_constraints_for_adjustment(alg: BunkerAlgorithm, adjusta
             if key not in alg.adjusted_vessel_thresholds:
                 continue
 
-            adjusted_threshold = shared_threshold if flexible else alg.adjusted_vessel_thresholds[key]
+            adjusted_threshold = shared_threshold if shared_threshold is not None \
+                else alg.adjusted_vessel_thresholds[key]
 
             # update the regulation spend coefficients with the adjusted threshold
             for c in alg.converters[v]:

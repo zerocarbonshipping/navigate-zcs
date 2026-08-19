@@ -6,31 +6,6 @@ import numpy as np
 from navigate.core.enum_ import RouteTypeID
 
 
-def calculate_operational_demand_in_policy_jurisdiction(regulation, vessel, times, idx):
-    """
-
-    Parameters
-    ----------
-    regulation
-    vessel
-    times : float | np.ndarray
-    idx : int | np.s_
-        Time-step index or slice of indexes.
-
-    Returns
-    -------
-
-    """
-
-    expectation = vessel.expectation
-
-    operational_energy_sea = expectation.get_operational_energy_per_leg(idx)
-    operational_energy_port = expectation.get_operational_energy_per_port(idx)
-
-    return _calculate_attribute_in_policy_jurisdiction(
-        regulation, vessel, times, operational_energy_sea, operational_energy_port)
-
-
 def calculate_cargo_miles_in_policy_jurisdiction(regulation, vessel, time, idx):
 
     expectation = vessel.expectation
@@ -47,7 +22,7 @@ def calculate_nominal_cargo_miles_in_policy_jurisdiction(regulation, vessel, tim
     return _calculate_attribute_in_policy_jurisdiction(regulation, vessel, time, nominal_cargo_miles)
 
 
-def _calculate_attribute_in_policy_jurisdiction(regulation, vessel, times, attribute_sea, attribute_port=None):
+def _calculate_attribute_in_policy_jurisdiction(regulation, vessel, times, attribute_sea):
     """
 
     Parameters
@@ -60,8 +35,6 @@ def _calculate_attribute_in_policy_jurisdiction(regulation, vessel, times, attri
         Time since start of simulation.
     attr_sea : np.ndarray
         Attribute per leg at sea.
-    attribute_port : np.ndarray
-        Attribute per port.
 
     Returns
     -------
@@ -96,12 +69,6 @@ def _calculate_attribute_in_policy_jurisdiction(regulation, vessel, times, attri
         attribute_sea = [attribute_sea * fraction for fraction in voyage_distribution.values()]
 
     attribute = 0.
-
-    # sum attribute in port
-    if attribute_port is not None:
-        for port, attr in zip(ports, attribute_port):
-            if port in jurisdiction:
-                attribute += intra * attr
 
     # sum attribute at sea
     for leg, (pi, pe) in enumerate(leg_idx):

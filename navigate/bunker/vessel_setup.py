@@ -208,6 +208,13 @@ def calculate_regulation_coefficients(alg: BunkerAlgorithm, vessel: Vessel) -> N
     is_expected = alg.scope == BunkerScopeID.EXPECTED
     idx = alg.idx
 
+    # evaluate the vessel thresholds once per build; non-policed vessels carry
+    # a threshold of zero (their emission terms never enter a constraint)
+    thresholds = {(r, v): (regulation.get_vessel_threshold(v).get(alg.time)
+                           if regulation.vessel_is_policed(v) else 0.)
+                  for r, regulation in active_regulations.items()}
+    alg.regulation_vessel_threshold.update(thresholds)
+
     factors = {(v, c, f, r): (regulation.expectation.get_expected_coefficient((v, c, f), idx)
                               if is_expected else
                               regulation.expectation.get_existing_coefficient((v, c, f), idx))
@@ -215,13 +222,9 @@ def calculate_regulation_coefficients(alg: BunkerAlgorithm, vessel: Vessel) -> N
                for f in alg.converter_fuels[v][c]
                for r, regulation in active_regulations.items()}
 
-    # import here to avoid circular dependency — regulation_helpers also needs alg
-    from navigate.bunker.constraints.regulation_helpers import get_regulation_vessel_threshold
-
     coefficients = {(v, c, f, r):
                     factor
-                    - (get_regulation_vessel_threshold(alg, active_regulations[r], v) / TON_TO_KG
-                       * effective_lhv[(v, c, f)]
+                    - (thresholds[(r, v)] / TON_TO_KG * effective_lhv[(v, c, f)]
                        if active_regulations[r].measure == RegulationMeasureID.INTENSITY
                        else 0.)
                     for (v, c, f, r), factor in factors.items()}
@@ -252,7 +255,7 @@ def calculate_regulation_coefficients(alg: BunkerAlgorithm, vessel: Vessel) -> N
 
             # shore power is already in GJ, so effective_lhv equivalent is 1.0
             sp_coeff = sp_ef - (
-                get_regulation_vessel_threshold(alg, regulation, v) / TON_TO_KG * 1.0
+                thresholds[(r, v)] / TON_TO_KG * 1.0
                 if regulation.measure == RegulationMeasureID.INTENSITY
                 else 0.)
 

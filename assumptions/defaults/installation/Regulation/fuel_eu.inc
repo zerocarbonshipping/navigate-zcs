@@ -19,7 +19,7 @@ Regulation "fuel_eu" {
 	Jurisdiction = [Port("port_europe")]
 	
 	RemedialCost = Variable("fuel_eu_remedial_cost")
-	SharedThreshold = Forecast("fuel_eu_target_reduction")
+	set_vessel_threshold("*", Forecast("fuel_eu_target_reduction"))
 	
 	# FuelEU applies to both domestic and international vessels that enter or operate in the EU
 	set_include_vessel("*", TRUE)

@@ -23,13 +23,6 @@ class RegulationExpectation(_PolicyExpectation):
         self._vessel_net_flexibility_units: dict[str, np.ndarray] = {}
         self._remedial_cost: np.ndarray = EMPTY_FLOAT
 
-        self._vessel_fair_share_existing: dict[str, float] = {}
-        self._vessel_fair_share_expected: dict[str, np.ndarray] = {}
-
-        self._shared_threshold: np.ndarray = EMPTY_FLOAT
-        self._vessel_threshold_existing: dict[str, float] = {}
-        self._vessel_threshold_expected: dict[str, np.ndarray] = {}
-
         self._vessel_capacity: dict[str, np.ndarray] = {}
 
     def initialize(self, length: int, emission_names: Iterable[str], vessels: dict[str, Vessel]) -> None:
@@ -40,13 +33,6 @@ class RegulationExpectation(_PolicyExpectation):
         self._belief_flexibility_cost = self._default_array()
         self._vessel_net_flexibility_units = self._default_dict_array(vessels)
         self._remedial_cost = self._default_array()
-
-        self._vessel_fair_share_existing = self._default_dict_float(vessels)
-        self._vessel_fair_share_expected = self._default_dict_array(vessels)
-
-        self._shared_threshold = self._default_array()
-        self._vessel_threshold_existing = self._default_dict_float(vessels)
-        self._vessel_threshold_expected = self._default_dict_array(vessels)
 
         self._vessel_capacity = self._default_dict_array(vessels)
 
@@ -65,21 +51,6 @@ class RegulationExpectation(_PolicyExpectation):
     def set_remedial_cost(self, idx: int, cost: np.ndarray) -> None:
         self._remedial_cost[idx:] = cost
 
-    def set_vessel_fair_share_existing(self, vessel_name: str, fair_share: float) -> None:
-        self._vessel_fair_share_existing[vessel_name] = fair_share
-
-    def set_vessel_fair_share_expected(self, idx: int, vessel_name: str, fair_share: np.ndarray) -> None:
-        self._vessel_fair_share_expected[vessel_name][idx:] = fair_share
-
-    def set_shared_threshold(self, idx: int, threshold: np.ndarray) -> None:
-        self._shared_threshold[idx:] = threshold
-
-    def set_vessel_threshold_existing(self, vessel_name: str, threshold: float) -> None:
-        self._vessel_threshold_existing[vessel_name] = threshold
-
-    def set_vessel_threshold_expected(self, idx: int, vessel_name: str, threshold: np.ndarray) -> None:
-        self._vessel_threshold_expected[vessel_name][idx:] = threshold
-
     def set_vessel_capacity(self, idx: int, vessel_name: str, capacity: np.ndarray) -> None:
         self._vessel_capacity[vessel_name][idx:] = capacity
 
@@ -94,21 +65,6 @@ class RegulationExpectation(_PolicyExpectation):
 
     def get_remedial_cost(self, idx: int) -> np.ndarray:
         return self._remedial_cost[idx]
-
-    def get_vessel_fair_share_existing(self, vessel_name: str) -> float:
-        return self._vessel_fair_share_existing[vessel_name]
-
-    def get_vessel_fair_share_expected(self, vessel_name: str, idx: int) -> np.ndarray:
-        return self._vessel_fair_share_expected[vessel_name][idx]
-
-    def get_shared_threshold(self, idx: int) -> np.ndarray:
-        return self._shared_threshold[idx]
-
-    def get_vessel_threshold_existing(self, vessel_name: str) -> float:
-        return self._vessel_threshold_existing[vessel_name]
-
-    def get_vessel_threshold_expected(self, vessel_name: str, idx: int) -> np.ndarray:
-        return self._vessel_threshold_expected[vessel_name][idx]
 
     def get_vessel_capacity(self, vessel_name: str, idx: int) -> np.ndarray:
         return self._vessel_capacity[vessel_name][idx]

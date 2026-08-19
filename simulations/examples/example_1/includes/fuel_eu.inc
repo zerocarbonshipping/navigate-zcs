@@ -30,7 +30,7 @@ Regulation "fuel_eu" {
 	Jurisdiction = [Port("rotterdam"), Port("hamburg"), Port("aalborg")]
 	
 	RemedialCost = Variable("fuel_eu_remedial_cost")
-	SharedThreshold = Forecast("fuel_eu_target_reduction")
+	set_vessel_threshold("*", Forecast("fuel_eu_target_reduction"))
 	
 	# FuelEU applies to both the feeders operating in EU and the mainline entering the EU.
 	set_include_vessel("*", TRUE)

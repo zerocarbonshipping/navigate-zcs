@@ -136,7 +136,6 @@ _REGULATION_ATTRIBUTES = {**_POLICY_ATTRIBUTES,
                           'ExtraFraction':              SECTION_BOTH,
                           'RemedialCost':               SECTION_BOTH,
                           'FlexibilityHorizon':         SECTION_BOTH,
-                          'SharedThreshold':            SECTION_BOTH,
                           'AllowThresholdAdjustment':   SECTION_BOTH}
 
 _REPORT_ATTRIBUTES = {'Directory': SECTION_DEFINE,
