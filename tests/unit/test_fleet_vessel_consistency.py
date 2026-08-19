@@ -194,7 +194,6 @@ class TestShorePowerAccounting:
         p.add_fuel_expenses("lsfo", 100.0, 0)
         p.add_WTT("lsfo", "co2", 2.0, 0)
         p.add_TTW("lsfo", "co2", 3.0, 0)
-        p.add_offset(1.0, 0)
         if shore:
             p.add_shore_power_energy(0, 50.0)
             p.add_shore_power_expenses(0, 25.0)
@@ -225,7 +224,6 @@ class TestShorePowerAccounting:
         assert vessel.get_total_equivalent_WTW(0) == pytest.approx(9.0)
         assert vessel.get_total_equivalent_WTT(0) == pytest.approx(2.0)
         assert vessel.get_total_equivalent_TTW(0) == pytest.approx(3.0)
-        assert vessel.get_total_equivalent_WTW_offset(0) == pytest.approx(8.0)
 
     def test_cumulative_and_intensity_variants_track_widened_total(self, vessel):
         np.testing.assert_allclose(vessel.get_cumulative_total_equivalent_WTW(),

@@ -44,9 +44,6 @@ class Policy(Node):
         self.fuel_WTT = {}     # dict[(fuel_name, emission_name): float], policy specified WTT emissions factor
         self.fuel_TTW = {}     # dict[(fuel_name, emission_name): float], policy specified TTW emissions factor
 
-        # offsetting
-        self.allow_offsetting = False     # bool, whether offsetting is allowed under this policy
-
         # internal attributes
         self.in_jurisdiction_vessel = {}  # dict[vessel_name: bool], whether a vessel is outside the jurisdiction
 
@@ -173,27 +170,6 @@ class Policy(Node):
         """
 
         self.emissions_lifetime = assign_value(as_scalar(emissions_lifetime), type_=VARIABLE, lower=0.)
-
-    def set_allow_offsetting(self, allow_offsetting):
-        """
-        Set whether emissions offsetting is allowed under this policy.
-
-        When allowed (and offsetting is enabled on ModelDefinition), actors can purchase emission offsets
-        at the global OffsettingCost instead of paying the policy's compliance cost if the offsetting cost
-        is lower.
-
-        Examples
-        --------
-        - TRUE
-        - FALSE
-
-        Parameters
-        ----------
-        allow_offsetting : str
-            Boolean flag.
-        """
-
-        self.allow_offsetting = assign_id(allow_offsetting, BOOL_ID)
 
     # external commands called in the input deck -----------------------------------------------------------------------
     def set_include_vessel(self, vessel_name, include_vessel):

@@ -50,7 +50,4 @@ Plot "plots_analysis" {
 	add_plot("port_bunker_price")
 	add_plot("port_bunker_supply")
 	add_plot("producer_development_cumulative")
-	add_plot("regulation_offsetting_units")
-	add_plot("regulation_offsetting_expenses")
-	add_plot("regulation_offsetting_cost")
 }

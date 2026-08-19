@@ -59,7 +59,6 @@ class _FuelConsumerProfile(_FuelBaseProfile):
         # emissions
         self._WTT: dict[tuple[str, str], np.ndarray] = {}  # WTT emissions, tons/year
         self._TTW: dict[tuple[str, str], np.ndarray] = {}  # TTW emissions, tons/year
-        self._offset: np.ndarray = EMPTY_FLOAT  # offset emissions (total equivalent), tons CO2-eq/year
 
         # expenses
         self._fuel_expenses: dict[str, np.ndarray] = {}            # expenses from purchasing fuel, USD/year
@@ -111,7 +110,6 @@ class _FuelConsumerProfile(_FuelBaseProfile):
 
         self._WTT = self._default_tuple_dict(fuels, emissions)
         self._TTW = self._default_tuple_dict(fuels, emissions)
-        self._offset = self._default_array()
 
         self._fuel_expenses = self._default_dict(fuels)
         self._levy_expenses = self._default_dict(fuels)
@@ -169,8 +167,6 @@ class _FuelConsumerProfile(_FuelBaseProfile):
 
         for key in self._TTW:
             self._TTW[key][idx] += profile._TTW[key][idx] * multiplier
-
-        self._offset[idx] += profile._offset[idx] * multiplier
 
         for key in self._fuel_expenses:
             self._fuel_expenses[key][idx] += profile._fuel_expenses[key][idx] * multiplier
@@ -295,12 +291,6 @@ class _FuelConsumerProfile(_FuelBaseProfile):
 
     def add_TTW(self, fuel_name: str, emission_name: str, TTW: float, idx: int | slice = np.s_[:]) -> None:
         self._TTW[(fuel_name, emission_name)][idx] += TTW
-
-    def add_offset(self, offset: float, idx: int | slice = np.s_[:]) -> None:
-        self._offset[idx] += offset
-
-    def get_offset(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._offset[idx]
 
     def add_fuel_expenses(self, fuel_name: str, expenses: float, idx: int | slice = np.s_[:]) -> None:
         self._fuel_expenses[fuel_name][idx] += expenses
@@ -507,11 +497,3 @@ register_fuel_consumer_getters(_FuelConsumerProfile, 'TTW', data_attr='_TTW')
 # they enter the WTW total variants as an extra term rather than a container key
 register_fuel_consumer_getters(_FuelConsumerProfile, 'WTW', source_attrs=['_WTT', '_TTW'],
                                extra_total=_FuelConsumerProfile._get_shore_power_equivalent)
-
-
-def _get_total_equivalent_WTW_offset(self: _FuelConsumerProfile, idx: int | slice = np.s_[:]) -> np.ndarray:
-    """Total equivalent WTW emissions minus offset (scalar). Offset is in regulatory units."""
-    return self.get_total_equivalent_WTW(idx) - self._offset[idx]
-
-
-_FuelConsumerProfile.get_total_equivalent_WTW_offset = _get_total_equivalent_WTW_offset

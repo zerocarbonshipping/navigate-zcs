@@ -39,6 +39,15 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   and `CumulativeEmissionExpenses`, and the always-zero "Emission storage"
   layer of the `global_expenses` plot. The fuel-related expense totals lose
   only a zero addend.
+- Emission offsetting: the DSL attributes `EnableOffsetting` and
+  `OffsettingCost` (ModelDefinition), `AllowOffsetting` (Regulation and
+  Levy), and `OffsetThreshold` (Regulation), the offsetting step of the
+  simulation loop, the offset capping of expected compliance costs and of
+  threshold adjustment, the offset series on profiles, the
+  `regulation_offsetting_units`/`_expenses`/`_cost` plots, and the
+  offset lines and bands of the emission and compliance plots. Offsetting
+  is not relevant to the model; the emission output now shows residual
+  emissions.
 
 ### Changed
 - The investment post-processing and fleet aggregation read vessel

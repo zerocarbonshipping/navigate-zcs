@@ -137,17 +137,11 @@ class Levy(Policy):
         self.profile = LevyProfile()
         self.profile.initialize(timeline)
 
-    def calculate_expectation(self, emissions, emissions_lifetime, timeline, idx, offsetting_cost=None):
+    def calculate_expectation(self, emissions, emissions_lifetime, timeline, idx):
 
         if not self.active:
             return
 
-        level = self.level.get(timeline[idx:])
-
-        if self.allow_offsetting and offsetting_cost is not None and self.scheme in (LevySchemeID.PENALTY,
-                                                                                     LevySchemeID.BOTH):
-            level = np.minimum(level, offsetting_cost)
-
-        self.expectation.set_level(idx, level)
+        self.expectation.set_level(idx, self.level.get(timeline[idx:]))
 
         self._calculate_policy_expectations(self.expectation, emissions, emissions_lifetime)

@@ -8,14 +8,14 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.misc import EMPTY_FLOAT, EMPTY_NAN
-from navigate.core.profiles._policy_profile import _PolicyProfile
+from navigate.core.profiles._base_profile import _BaseProfile
 from navigate.util import extract_from_dict
 
 if TYPE_CHECKING:
     from navigate.vessel import Vessel
 
 
-class RegulationProfile(_PolicyProfile):
+class RegulationProfile(_BaseProfile):
     def __init__(self):
         super().__init__()
 
@@ -51,13 +51,9 @@ class RegulationProfile(_PolicyProfile):
         self._flexibility_expenses: np.ndarray = EMPTY_FLOAT  # total expenses from flexibility units, USD/year
         self._remedial_expenses: np.ndarray = EMPTY_FLOAT     # total expenses from remedial units, USD/year
 
-        # offset threshold cap per vessel (emission tons/year)
-        self._max_offset_rhs: dict[str, np.ndarray] = {}
-
     def initialize(self, timeline: np.ndarray, vessels: dict[str, Vessel]) -> None:
 
         self._initialize_base(timeline)
-        self._initialize_policy_profile()
 
         self._flexibility_cost = self._default_array(default=np.nan)
         self._remedial_cost = self._default_array(default=np.nan)
@@ -83,8 +79,6 @@ class RegulationProfile(_PolicyProfile):
         self._surplus_revenue = self._default_array()
         self._flexibility_expenses = self._default_array()
         self._remedial_expenses = self._default_array()
-
-        self._max_offset_rhs = self._default_dict(vessels, default=0.)
 
     def set_remedial_cost(self, idx: int, cost: float) -> None:
         self._remedial_cost[idx] = cost
@@ -206,9 +200,3 @@ class RegulationProfile(_PolicyProfile):
 
     def get_remedial_expenses(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         return self._remedial_expenses[idx]
-
-    def set_max_offset_rhs(self, idx: int, vessel_name: str, value: float) -> None:
-        self._max_offset_rhs[vessel_name][idx] = value
-
-    def get_max_offset_rhs(self, vessel_name: str, idx: int) -> float:
-        return self._max_offset_rhs[vessel_name][idx]

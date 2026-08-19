@@ -4,7 +4,7 @@
 # General nodes: ModelDefinition, BunkerLogistics, BunkerOptions
 #
 # Attributes covered:
-#   ModelDefinition: StartDate, EmissionsLifetime, EnableOffsetting, OffsettingCost
+#   ModelDefinition: StartDate, EmissionsLifetime
 #   BunkerLogistics: LiquidMarketFuels
 #   BunkerOptions:   Solver, SolverMethod, SolutionTolerance, Threads,
 #                    FairShareMaximumIterations, FairShareTolerance
@@ -15,8 +15,6 @@
 ModelDefinition {
 	StartDate = "01/01/2024"
 	EmissionsLifetime = 20
-	EnableOffsetting = TRUE
-	OffsettingCost = 200
 }
 
 BunkerLogistics {

@@ -150,10 +150,6 @@ class BunkerAlgorithm:
         self.adjusted_vessel_thresholds: dict[tuple, float] = {}  # (r, v) -> adjusted threshold
         self.adjusted_shared_thresholds: dict[str, float] = {}    # r -> adjusted shared threshold
 
-        # offsetting context (set by manager before build/solve)
-        self.offsetting_enabled: bool = False
-        self.offsetting_cost: float | None = None
-
         # emission factors
         self.emission_factor: dict[tuple, float] = {}
 
@@ -271,20 +267,6 @@ class BunkerAlgorithm:
         # initialize LP model attributes
         self._initialize_model()
 
-    def set_offsetting(self, enabled: bool, cost: float | None) -> None:
-        """
-        Set the offsetting context for the current time step.
-
-        Parameters
-        ----------
-        enabled
-            Whether offsetting is globally enabled.
-        cost
-            The global offsetting cost in USD/ton emission, or None if not enabled.
-        """
-        self.offsetting_enabled = enabled
-        self.offsetting_cost = cost
-
     def build(self, current_idx: int, idx: int, time: float, time_step: float) -> None:
         """
         Build the solver model for the specific time-step.
@@ -381,19 +363,6 @@ class BunkerAlgorithm:
         # run the fair-share solve loop
         iterations, converged = run_fair_share_solve(self)
 
-        # for offset-enabled regulations with threshold adjustment, capture the
-        # pre-adjustment shadow price. Before adjustment, SharedThreshold=0 guarantees
-        # remedial_factor > 0 and a shadow price = min(offset_cost, remedial_cost).
-        # After adjustment, the relaxed constraint becomes non-binding (shadow price ≈ 0).
-        pre_adjustment_cost = {}
-        if self.offsetting_enabled:
-            for r, constraint in self.regulation_threshold_flexibility.items():
-                reg = self.regulations.get(r)
-                if (reg is not None
-                        and reg.allow_offsetting
-                        and reg.allow_threshold_adjustment):
-                    pre_adjustment_cost[r] = -constraint.Pi
-
         # perform threshold adjustment for regulations that allow it
         needs_resolve = adjust_regulation_thresholds(self)
 
@@ -404,10 +373,6 @@ class BunkerAlgorithm:
 
         # evaluate the flexibility unit cost from the (possibly re-solved) shadow prices
         perform_flexibility_unit_cost_evaluation(self)
-
-        # restore pre-adjustment shadow prices for offset regulations
-        for r, cost in pre_adjustment_cost.items():
-            self.flexible_unit_cost[r] = cost
 
         if self.scope == BunkerScopeID.EXISTING:
             log_fair_share_convergence(logger, self.fair_share_convergence_statistics, iterations, converged)

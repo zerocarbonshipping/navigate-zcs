@@ -17,14 +17,11 @@ def plot_global_emission_absolute(manager, directory):
 
     profile = manager.profile
     WTW = profile.get_total_equivalent_WTW()
-    WTW_offset = profile.get_total_equivalent_WTW_offset()
 
     divisor, unit = get_best_unit_mass(WTW.max())
     WTW /= divisor
-    WTW_offset /= divisor
 
     ax.plot(dateline, WTW, label='WTW', color='k')
-    ax.plot(dateline, WTW_offset, label='WTW + offset', color='k', linestyle='--')
 
     ax.set_ylabel('WTW CO$_2$-eq. [{}]'.format(unit))
     legend = ax.legend(**LEGEND_OPTIONS)

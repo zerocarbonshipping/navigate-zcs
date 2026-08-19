@@ -11,7 +11,6 @@ from navigate.illustrations._illu_util import (
 )
 from navigate.illustrations.plots._colors import (
     CENTER_COLORS_GREEN,
-    CENTER_COLORS_GREY,
     CENTER_COLORS_RED,
 )
 from navigate.illustrations.plots._figure import (
@@ -23,7 +22,6 @@ from navigate.illustrations.plots._style import (
     LEGEND_OPTIONS,
 )
 from navigate.illustrations.plots._units import find_best_metric_prefix
-from navigate.util import divide_nonzero
 
 
 def plot_regulation_compliance(manager, directory):
@@ -149,31 +147,9 @@ def plot_regulation_compliance(manager, directory):
             colors = [CENTER_COLORS_GREEN[3]]
 
             if np.any(non_compliant > 0.):
-
-                has_offsetting = regulation.allow_offsetting
-                offsetting_units = profile.get_offsetting_units() if has_offsetting else None
-
-                if offsetting_units is not None and np.any(offsetting_units > 0.):
-                    total_nc_units = (offsetting_units
-                                      + profile.get_flexibility_units()
-                                      + profile.get_remedial_units())
-                    offset_fraction = divide_nonzero(offsetting_units, total_nc_units, default=0.)
-
-                    offset_band = non_compliant * offset_fraction
-                    remedial_band = non_compliant - offset_band
-
-                    values.append(offset_band)
-                    labels.append('Offset')
-                    colors.append(CENTER_COLORS_GREY[2])
-
-                    if np.any(remedial_band > 0.):
-                        values.append(remedial_band)
-                        labels.append('Non-compliant')
-                        colors.append(CENTER_COLORS_RED[3])
-                else:
-                    values.append(non_compliant)
-                    labels.append('Non-compliant')
-                    colors.append(CENTER_COLORS_RED[3])
+                values.append(non_compliant)
+                labels.append('Non-compliant')
+                colors.append(CENTER_COLORS_RED[3])
 
             patches = []
 

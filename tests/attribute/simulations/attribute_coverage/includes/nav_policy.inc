@@ -5,11 +5,11 @@
 #
 # Attributes covered:
 #   Regulation: Active, Scheme, Jurisdiction, Emissions, Fuels, Scope,
-#               EmissionsLifetime, IncludeSlip, AllowOffsetting, Measure,
+#               EmissionsLifetime, IncludeSlip, Measure,
 #               IntraFraction, InterFraction, ExtraFraction, RemedialCost,
 #               SharedThreshold, AllowThresholdAdjustment
 #   Levy:       Active, Scheme, Jurisdiction, Emissions, Fuels, Scope,
-#               EmissionsLifetime, IncludeSlip, AllowOffsetting, Level,
+#               EmissionsLifetime, IncludeSlip, Level,
 #               LowerThreshold, UpperThreshold
 #
 # Commands covered:
@@ -29,7 +29,6 @@ Regulation "reg_absolute" {
 	EmissionsLifetime = 20
 	Active = TRUE
 	IncludeSlip = TRUE
-	AllowOffsetting = TRUE
 	SharedThreshold = 1000000
 	IntraFraction = 1.0
 	InterFraction = 0.5
@@ -55,7 +54,6 @@ Regulation "reg_intensity" {
 	Jurisdiction = Port("port_a")
 	Active = TRUE
 	IncludeSlip = FALSE
-	AllowOffsetting = FALSE
 	SharedThreshold = Forecast("fc_regulation_threshold")
 	RemedialCost = Forecast("fc_remedial_cost")
 	set_include_vessel("*", TRUE)
@@ -94,7 +92,6 @@ Levy "levy_penalty" {
 	EmissionsLifetime = 20
 	Active = TRUE
 	IncludeSlip = TRUE
-	AllowOffsetting = FALSE
 	Level = 50
 	LowerThreshold = 0
 	UpperThreshold = 100

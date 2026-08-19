@@ -48,9 +48,6 @@ class Regulation(Policy):
         # threshold adjustment
         self.allow_threshold_adjustment = False  # bool, if True, bunker algorithm adjusts thresholds on non-compliance
 
-        # offset threshold
-        self.offset_threshold = None   # threshold to which offsets can cover down to, in measure unit
-
     # external attributes set through the input deck -------------------------------------------------------------------
     def set_scheme(self, scheme):
         """
@@ -279,36 +276,6 @@ class Regulation(Policy):
 
         self.allow_threshold_adjustment = assign_id(allow_threshold_adjustment, BOOL_ID)
 
-    def set_offset_threshold(self, offset_threshold):
-        """
-        Set the offset threshold in the regulation's measure unit.
-
-        This defines the emission level to which offsets can cover down to. Vessels can offset
-        non-compliance from their actual emissions down to this threshold. Below this level,
-        genuine emission reductions or remedial costs are required.
-
-        If not set, defaults to the SharedThreshold value, meaning all non-compliance above the
-        regulation threshold can be offset (current default behavior).
-
-        Examples
-        --------
-        - 10
-        - Forecast("offset_target")
-
-        Parameters
-        ----------
-        offset_threshold : float | NodeReference
-            Offset threshold in the regulation's measure unit.
-        """
-
-        self.offset_threshold = assign_value(as_scalar(offset_threshold), type_=(FORECAST, VARIABLE), lower=0.)
-
-    def get_effective_offset_threshold(self):
-        """Return the offset threshold, defaulting to the shared threshold if not explicitly set."""
-        if self.offset_threshold is not None:
-            return self.offset_threshold
-        return self.shared_threshold
-
     # internal methods -------------------------------------------------------------------------------------------------
     def initialize(self):
 
@@ -373,19 +340,14 @@ class Regulation(Policy):
         self.profile = RegulationProfile()
         self.profile.initialize(timeline, vessels)
 
-    def calculate_expectation(self, emissions, vessels, emissions_lifetime, timeline, idx, offsetting_cost=None):
+    def calculate_expectation(self, emissions, vessels, emissions_lifetime, timeline, idx):
 
         if not self.active:
             return
 
         times = timeline[idx:]
 
-        remedial_cost = self.remedial_cost.get(times)
-
-        if self.allow_offsetting and offsetting_cost is not None:
-            remedial_cost = np.minimum(remedial_cost, offsetting_cost)
-
-        self.expectation.set_remedial_cost(idx, remedial_cost)
+        self.expectation.set_remedial_cost(idx, self.remedial_cost.get(times))
 
         if self.shared_threshold is not None:
             self.expectation.set_shared_threshold(idx, self.shared_threshold.get(times))
