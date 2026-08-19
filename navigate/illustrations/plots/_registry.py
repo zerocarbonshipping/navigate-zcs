@@ -64,9 +64,6 @@ from navigate.illustrations.plots.producer_feed_consumption import plot_producer
 from navigate.illustrations.plots.regulation_compliance import plot_regulation_compliance
 from navigate.illustrations.plots.regulation_flexibility import plot_regulation_flexibility
 from navigate.illustrations.plots.regulation_flexibility_cost import plot_regulation_flexibility_cost
-from navigate.illustrations.plots.regulation_offsetting_cost import plot_regulation_offsetting_cost
-from navigate.illustrations.plots.regulation_offsetting_expenses import plot_regulation_offsetting_expenses
-from navigate.illustrations.plots.regulation_offsetting_units import plot_regulation_offsetting_units
 from navigate.illustrations.plots.regulation_unit_trading import plot_regulation_unit_trading
 from navigate.illustrations.plots.technology_uptake import plot_technology_uptake
 
@@ -119,9 +116,6 @@ PLOTS = [
     plot_regulation_flexibility,
     plot_regulation_unit_trading,
     plot_regulation_flexibility_cost,
-    plot_regulation_offsetting_units,
-    plot_regulation_offsetting_expenses,
-    plot_regulation_offsetting_cost,
     plot_computational_performance,
     plot_computational_performance_cumulative,
 ]

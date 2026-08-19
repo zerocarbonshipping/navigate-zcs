@@ -73,9 +73,7 @@ def adjust_regulation_thresholds(alg: BunkerAlgorithm) -> bool:
         energy = alg.regulation_energy_terms[(r, v)].getValue() if measure == RegulationMeasureID.INTENSITY else 0.
         m = alg.regulation_measure.get((r, v), 0.)
 
-        offset_threshold, original_threshold = _get_offset_threshold_params(alg, regulation, v)
-        adjusted_threshold = _compute_vessel_adjusted_threshold(
-            measure, emissions, energy, m, offset_threshold, original_threshold)
+        adjusted_threshold = _compute_vessel_adjusted_threshold(measure, emissions, energy, m)
         if measure == RegulationMeasureID.INTENSITY:
             has_intensity = True
 
@@ -132,17 +130,12 @@ def adjust_regulation_thresholds(alg: BunkerAlgorithm) -> bool:
                 m = 0.
 
             # store per-vessel adjusted threshold, reusing already-fetched values
-            offset_threshold, original_threshold = _get_offset_threshold_params(alg, regulation, v)
             alg.adjusted_vessel_thresholds[(r, v)] = _compute_vessel_adjusted_threshold(
-                measure, emissions, energy, m, offset_threshold, original_threshold)
+                measure, emissions, energy, m)
 
         # compute fleet-level adjusted shared threshold (with tolerance)
-        fleet_offset_threshold_attr = _get_effective_offset_threshold_attr(alg, regulation)
-        fleet_offset_threshold = fleet_offset_threshold_attr.get() if fleet_offset_threshold_attr is not None else None
-        fleet_original_threshold = get_regulation_vessel_threshold(alg, regulation, next(iter(alg.vessels)))
         alg.adjusted_shared_thresholds[r] = _compute_vessel_adjusted_threshold(
-            measure, total_emissions, total_energy, total_measure,
-            fleet_offset_threshold, fleet_original_threshold)
+            measure, total_emissions, total_energy, total_measure)
 
         needs_resolve = True
 
@@ -161,42 +154,8 @@ def adjust_regulation_thresholds(alg: BunkerAlgorithm) -> bool:
     return True
 
 
-def _get_effective_offset_threshold_attr(alg, regulation):
-    """Return the effective offset threshold attribute if offsetting applies, else None."""
-
-    if not alg.offsetting_enabled or alg.offsetting_cost is None:
-        return None
-
-    if not regulation.allow_offsetting:
-        return None
-
-    remedial_cost = regulation.remedial_cost.get()
-    if alg.offsetting_cost >= remedial_cost:
-        return None
-
-    return regulation.get_effective_offset_threshold()
-
-
-def _get_offset_threshold_params(alg, regulation, vessel_name):
-    """Return (offset_threshold_value, original_threshold_value) for a vessel.
-
-    Returns (None, 0.) if offsetting does not apply.
-    """
-
-    offset_threshold_attr = _get_effective_offset_threshold_attr(alg, regulation)
-    if offset_threshold_attr is None:
-        return None, 0.
-
-    return offset_threshold_attr.get(), get_regulation_vessel_threshold(alg, regulation, vessel_name)
-
-
-def _compute_vessel_adjusted_threshold(measure, emissions, energy, transport_measure,
-                                       offset_threshold=None, original_threshold=0.):
+def _compute_vessel_adjusted_threshold(measure, emissions, energy, transport_measure):
     """Compute the adjusted threshold for a vessel from its actual emissions.
-
-    When an offset threshold is provided, the adjusted threshold is capped at the offset
-    floor level instead of being set to the actual emissions.  This ensures that only the
-    non-offsettable portion of non-compliance triggers threshold relaxation.
 
     A small relative tolerance is added so that the constraint remains
     non-binding after fair-share redistribution in the re-solve.
@@ -209,12 +168,7 @@ def _compute_vessel_adjusted_threshold(measure, emissions, energy, transport_mea
     else:
         actual = divide_nonzero(emissions, transport_measure)
 
-    if offset_threshold is not None and actual > offset_threshold:
-        threshold = max(offset_threshold, original_threshold)
-    else:
-        threshold = actual
-
-    return threshold * (1. + _THRESHOLD_TOLERANCE)
+    return actual * (1. + _THRESHOLD_TOLERANCE)
 
 
 def _update_regulation_rhs_for_adjustment(alg: BunkerAlgorithm, adjustable_regulations: dict) -> None:

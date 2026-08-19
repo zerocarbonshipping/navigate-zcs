@@ -32,8 +32,7 @@ _POLICY_ATTRIBUTES = {'Active':                     SECTION_BOTH,
                       'Fuels':                      SECTION_DEFINE,
                       'Scope':                      SECTION_DEFINE,
                       'EmissionsLifetime':          SECTION_DEFINE,
-                      'IncludeSlip':                SECTION_BOTH,
-                      'AllowOffsetting':            SECTION_BOTH}
+                      'IncludeSlip':                SECTION_BOTH}
 
 # nodes ----------------------------------------------------------------------------------------------------------------
 _CONVERTER_ATTRIBUTES = {**_MACHINERY_ATTRIBUTES,
@@ -138,8 +137,7 @@ _REGULATION_ATTRIBUTES = {**_POLICY_ATTRIBUTES,
                           'RemedialCost':               SECTION_BOTH,
                           'FlexibilityHorizon':         SECTION_BOTH,
                           'SharedThreshold':            SECTION_BOTH,
-                          'AllowThresholdAdjustment':   SECTION_BOTH,
-                          'OffsetThreshold':            SECTION_BOTH}
+                          'AllowThresholdAdjustment':   SECTION_BOTH}
 
 _REPORT_ATTRIBUTES = {'Directory': SECTION_DEFINE,
                       'FileFormat': SECTION_DEFINE}
@@ -197,9 +195,7 @@ _VESSEL_ATTRIBUTES = {'PropulsionLoad':         SECTION_DEFINE,
 
 # general nodes --------------------------------------------------------------------------------------------------------
 _MODEL_DEFINITION_ATTRIBUTES = {'StartDate':         SECTION_DEFINE,
-                                'EmissionsLifetime': SECTION_DEFINE,
-                                'EnableOffsetting':  SECTION_DEFINE,
-                                'OffsettingCost':    SECTION_BOTH}
+                                'EmissionsLifetime': SECTION_DEFINE}
 
 _BUNKER_LOGISTICS_ATTRIBUTES = {'LiquidMarketFuels': SECTION_DEFINE}
 

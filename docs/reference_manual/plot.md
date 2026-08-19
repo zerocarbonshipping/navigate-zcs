@@ -97,8 +97,5 @@ The labels below are the values accepted by the `add_plot` command on a `Plot` n
 | regulation_flexibility                          | Regulation                 |
 | regulation_unit_trading                         | Regulation                 |
 | regulation_flexibility_cost                     | Regulation                 |
-| regulation_offsetting_units                     | Regulation                 |
-| regulation_offsetting_expenses                  | Regulation                 |
-| regulation_offsetting_cost                      | Regulation                 |
 | computational_performance                       | Computational performance  |
 | computational_performance_cumulative            | Computational performance  |

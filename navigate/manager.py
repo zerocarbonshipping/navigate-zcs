@@ -36,7 +36,6 @@ from navigate.output import export_assumptions, log_model_post_process, log_star
 from navigate.output.plot_data import PlotData
 from navigate.parser import Parser
 from navigate.policy import calculate_fair_share_threshold, calculate_policy_emission_coefficients
-from navigate.policy.offsetting import calculate_offsetting
 from navigate.route.import_export import calculate_fuel_import_to_ports
 from navigate.route.operation import convert_to_regional_steps, update_operational_profile
 from navigate.route.speed import perform_speed_management
@@ -354,10 +353,6 @@ class SimulationManager:
         # fuel availability constraints
         self._perform_existing_bunkering()
 
-        # calculate physical offsetting of emissions
-        # where offsetting is cheaper than compliance
-        self._calculate_offsetting()
-
         # transfer internal results and
         # calculate derived results based on
         # the results of the simulation
@@ -383,12 +378,9 @@ class SimulationManager:
         """
 
         emissions_lifetime = self.general_nodes.model_definition.get_emissions_lifetime()
-        offsetting_cost_attr = self.general_nodes.model_definition.get_offsetting_cost()
-        offsetting_cost = offsetting_cost_attr.get(self._timeline[self._idx:]) if offsetting_cost_attr is not None else None
 
         for levy in self.nodes.levies.values():
-            levy.calculate_expectation(self.nodes.emissions, emissions_lifetime, self._timeline, self._idx,
-                                       offsetting_cost=offsetting_cost)
+            levy.calculate_expectation(self.nodes.emissions, emissions_lifetime, self._timeline, self._idx)
 
         for port in self.nodes.ports.values():
             port.calculate_expectation(self._timeline, self._idx)
@@ -399,8 +391,7 @@ class SimulationManager:
         for regulation in self.nodes.regulations.values():
             regulation.calculate_expectation(self.nodes.emissions,
                                              self.nodes.vessels,
-                                             emissions_lifetime, self._timeline, self._idx,
-                                             offsetting_cost=offsetting_cost)
+                                             emissions_lifetime, self._timeline, self._idx)
 
         for vessel in self.nodes.vessels.values():
             vessel.calculate_expectation(self._idx)
@@ -561,11 +552,6 @@ class SimulationManager:
 
             time_step_i = self._timeline[i] - self._timeline[i - 1]
 
-            md = self.general_nodes.model_definition
-            enabled = md.get_enable_offsetting()
-            cost = md.get_offsetting_cost().get() if enabled else None
-            self._bunker_expected.set_offsetting(enabled, cost)
-
             self._bunker_expected.build(self._idx, i, self._timeline[i], time_step_i)
             self._bunker_expected.solve()
             self._bunker_expected.transfer()
@@ -633,11 +619,6 @@ class SimulationManager:
 
     def _perform_existing_bunkering(self):
 
-        md = self.general_nodes.model_definition
-        enabled = md.get_enable_offsetting()
-        cost = md.get_offsetting_cost().get() if enabled else None
-        self._bunker_existing.set_offsetting(enabled, cost)
-
         self._bunker_existing.build(self._idx, self._idx, self._time, self._time_step)
         self._bunker_existing.solve()
         self._bunker_existing.transfer()
@@ -646,11 +627,6 @@ class SimulationManager:
         self.profile.set_existing_build_time(self._idx, self._bunker_existing.get_build_time())
         self.profile.set_existing_solve_time(self._idx, self._bunker_existing.get_solve_time())
         self.profile.set_existing_transfer_time(self._idx, self._bunker_existing.get_transfer_time())
-
-    def _calculate_offsetting(self):
-        calculate_offsetting(self.nodes.regulations, self.nodes.levies,
-                             self.nodes.vessels, self.nodes.fleets,
-                             self.general_nodes.model_definition, self._idx)
 
     def _missing_technology_approximation(self):
         """

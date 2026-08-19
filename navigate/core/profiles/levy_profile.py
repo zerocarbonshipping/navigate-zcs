@@ -6,10 +6,10 @@ from __future__ import annotations
 import numpy as np
 
 from navigate.core.misc import EMPTY_FLOAT
-from navigate.core.profiles._policy_profile import _PolicyProfile
+from navigate.core.profiles._base_profile import _BaseProfile
 
 
-class LevyProfile(_PolicyProfile):
+class LevyProfile(_BaseProfile):
     def __init__(self):
         super().__init__()
 
@@ -17,7 +17,6 @@ class LevyProfile(_PolicyProfile):
 
     def initialize(self, timeline: np.ndarray) -> None:
         self._initialize_base(timeline)
-        self._initialize_policy_profile()
 
         self._collected = self._default_array()
 

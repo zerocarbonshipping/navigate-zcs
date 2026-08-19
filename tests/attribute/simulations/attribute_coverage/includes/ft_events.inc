@@ -145,7 +145,6 @@ Date "01-01-2032"
 Regulation "reg_absolute" {
 	Active = TRUE
 	IncludeSlip = FALSE
-	AllowOffsetting = FALSE
 	IntraFraction = 0.8
 	InterFraction = 0.4
 	ExtraFraction = 0.1
@@ -177,7 +176,6 @@ Levy "levy_penalty" {
 	LowerThreshold = 5
 	UpperThreshold = 90
 	IncludeSlip = FALSE
-	AllowOffsetting = TRUE
 	set_global_warming_potential("methane", 28)
 	set_fuel_wtt("lng", "carbon_dioxide", 0.55)
 	set_fuel_ttw("lng", "carbon_dioxide", 2.80)
@@ -187,9 +185,6 @@ Levy "levy_penalty" {
 Levy "levy_both" {
 	Level = 35
 }
-
-# ModelDefinition OffsettingCost is SECTION_BOTH but general nodes
-# cannot be modified in EVENTS.
 
 # --- 2033: Supply chain changes ----------------------------------------------
 
