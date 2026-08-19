@@ -87,18 +87,6 @@ class _BaseProfile:
     def _to_cumulative_fraction(self, numerator: np.ndarray, denominator: np.ndarray) -> np.ndarray:
         return divide_nonzero(self._to_cumulative(numerator), self._to_cumulative(denominator))
 
-    def _to_cumulative_fraction_dict(self, numerator: dict[str, np.ndarray],
-                                     denominator: dict[str, np.ndarray]) -> dict[str, np.ndarray]:
-        return {key: self._to_cumulative_fraction(n, d)
-                for (key, n), d in zip(numerator.items(), denominator.values())}
-
-    def _to_cumulative_fraction_any(self, numerator: np.ndarray | dict[str, np.ndarray],
-                                    denominator: np.ndarray | dict[str, np.ndarray]) -> np.ndarray | dict[str, np.ndarray]:
-        if isinstance(numerator, dict):
-            return self._to_cumulative_fraction(numerator, denominator)
-        else:
-            return self._to_cumulative_fraction_dict(numerator, denominator)
-
     @staticmethod
     def _extract_add_dicts(dict1: dict[str, np.ndarray], *dicts: dict[str, np.ndarray],
                            key: str | None = None,
