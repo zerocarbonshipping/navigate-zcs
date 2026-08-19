@@ -23,7 +23,7 @@ Regulation "net_zero_framework" {
 	 
 	RemedialCost = Forecast("net_zero_framework_remedial")
 	
-	SharedThreshold = Forecast("net_zero_framework_z_values")
+	set_vessel_threshold("*", Forecast("net_zero_framework_z_values"))
 	
 	set_include_vessel("*", TRUE)
 }

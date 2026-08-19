@@ -12,6 +12,17 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ### Removed
+- **Breaking**: the `SharedThreshold` attribute of `Regulation`.
+  `set_vessel_threshold` is the only threshold source; migrate with
+  `set_vessel_threshold("*", <value>)`, which assigns the same threshold to
+  every vessel. Every vessel included in a regulation now requires a
+  threshold, for all schemes and measures. Under `Scheme = FLEXIBLE` the
+  per-vessel thresholds pool into the fleet-level constraint, so a fleet-total
+  ABSOLUTE cap distributed by dynamic fair share is no longer expressible; the
+  fair-share threshold machinery is removed with it. The `SharedThreshold`
+  report property remains but is now the derived fleet-level effective target
+  of a FLEXIBLE regulation (identical to the input value for uniform,
+  wildcard-assigned thresholds).
 - Unused profile output (getters, their writers, and stored state) across all
   profile classes: volume-denominated output, FuelType mass aggregation,
   fuel-quantity cumulatives, non-GWP-equivalent emission variants,

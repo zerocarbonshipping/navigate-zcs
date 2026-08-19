@@ -134,7 +134,10 @@ def calculate_regulation_emission_term(alg: BunkerAlgorithm, vessel: Vessel, reg
 
 def get_regulation_vessel_threshold(alg: BunkerAlgorithm, regulation: Regulation, v: str) -> float:
     """
-    Get the regulation threshold for a vessel, scope-dependent.
+    Get the regulation threshold for a vessel at the current algorithm time.
+
+    The values are evaluated once per build in 'calculate_regulation_coefficients';
+    non-policed vessels carry a threshold of zero.
 
     Parameters
     ----------
@@ -151,11 +154,7 @@ def get_regulation_vessel_threshold(alg: BunkerAlgorithm, regulation: Regulation
         The threshold value.
     """
 
-    from navigate.core.enum_ import BunkerScopeID
-    if alg.scope == BunkerScopeID.EXISTING:
-        return regulation.expectation.get_vessel_threshold_existing(v)
-    else:
-        return regulation.expectation.get_vessel_threshold_expected(v, alg.idx)
+    return alg.regulation_vessel_threshold[(regulation.get_name(), v)]
 
 
 def get_regulation_vessel_rhs(alg: BunkerAlgorithm, regulation: Regulation, v: str) -> tuple[float, float]:

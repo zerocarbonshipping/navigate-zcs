@@ -41,9 +41,9 @@ def _make_regulation(name, measure, emissions, gwp=None):
     gwp = gwp or {}
     reg_exp = MagicMock()
     reg_exp.get_global_warming_potential = lambda e: gwp.get(e, 1.)
-    reg_exp.get_vessel_threshold_existing.return_value = 0.
-    reg_exp.get_vessel_threshold_expected.return_value = 0.
     reg.expectation = reg_exp
+
+    reg.get_vessel_threshold.return_value.get.return_value = 0.
 
     return reg
 
@@ -136,7 +136,7 @@ class TestShoreRegulationCoefficient:
             measure=RegulationMeasureID.INTENSITY,
             emissions=[_make_emission("co2")],
         )
-        regulation.expectation.get_vessel_threshold_existing.return_value = threshold
+        regulation.get_vessel_threshold.return_value.get.return_value = threshold
 
         algo.active_regulations = {r: regulation}
         algo.effective_lhv = {}

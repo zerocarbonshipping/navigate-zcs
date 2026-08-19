@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from navigate.bunker.bunker_algorithm import BunkerAlgorithm
 
-from navigate.core.enum_ import BunkerScopeID, RegulationMeasureID
+from navigate.core.enum_ import BunkerScopeID, RegulationMeasureID, RegulationSchemeID
 from navigate.util import divide_nonzero
 
 
@@ -57,20 +57,31 @@ def transfer_regulations_measure(alg: BunkerAlgorithm, properties: dict) -> None
                 regulation.profile.set_vessel_allowance(alg.idx, v, rhs_v)
                 regulation.profile.set_vessel_units(alg.idx, v, E_v)
 
-        if regulation.measure == RegulationMeasureID.ABSOLUTE:
-            shared_compliance = E
-        else:
-            # division by zero occurs if no vessels are policed
-            shared_compliance = divide_nonzero(E, m)
-
         if alg.scope == BunkerScopeID.EXISTING:
 
             # set allowed and achieved units
             regulation.profile.set_shared_allowance(alg.idx, rhs)
             regulation.profile.set_shared_units(alg.idx, E)
 
-            # shared compliance only makes sense for absolute emissions
-            # and energy intensity since transport based intensity is
-            # not guaranteed to have the same unit
+            # shared compliance and threshold only make sense for absolute
+            # emissions and energy intensity since transport based intensity
+            # is not guaranteed to have the same unit
             if regulation.measure in (RegulationMeasureID.ABSOLUTE, RegulationMeasureID.INTENSITY):
-                regulation.profile.set_shared_compliance(alg.idx, shared_compliance)
+                regulation.profile.set_shared_compliance(alg.idx, _normalize_by_measure(regulation.measure, E, m))
+
+                # the fleet-level effective target of a flexible regulation:
+                # the measure-weighted mean of the per-vessel thresholds
+                # (equal to the uniform value when thresholds are assigned
+                # via a wildcard)
+                if regulation.scheme == RegulationSchemeID.FLEXIBLE:
+                    regulation.profile.set_shared_threshold(alg.idx, _normalize_by_measure(regulation.measure, rhs, m))
+
+
+def _normalize_by_measure(measure: RegulationMeasureID, value: float, m: float) -> float:
+    """Normalize a fleet aggregate by the pooled measure; ABSOLUTE values pass through."""
+
+    if measure == RegulationMeasureID.ABSOLUTE:
+        return value
+
+    # division by zero occurs if no vessels are policed
+    return divide_nonzero(value, m)

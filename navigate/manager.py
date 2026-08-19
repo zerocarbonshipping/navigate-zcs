@@ -35,7 +35,7 @@ from navigate.investment.signal import (
 from navigate.output import export_assumptions, log_model_post_process, log_start_of_simulation
 from navigate.output.plot_data import PlotData
 from navigate.parser import Parser
-from navigate.policy import calculate_fair_share_threshold, calculate_policy_emission_coefficients
+from navigate.policy import calculate_policy_emission_coefficients
 from navigate.route.import_export import calculate_fuel_import_to_ports
 from navigate.route.operation import convert_to_regional_steps, update_operational_profile
 from navigate.route.speed import perform_speed_management
@@ -281,12 +281,6 @@ class SimulationManager:
             # supply for each individual vessel
             self._calculate_fair_share_fuel_supply(BunkerScopeID.EXPECTED)
 
-            # calculate the fair-share of regulation
-            # threshold per vessel, used in the
-            # expected fuel bunkering to divvy up
-            # penalties
-            self._calculate_regulation_fair_share_threshold(BunkerScopeID.EXPECTED)
-
             # calculate the policy emission coefficients
             self._calculate_policy_emission_coefficients(BunkerScopeID.EXPECTED)
 
@@ -339,11 +333,6 @@ class SimulationManager:
         # calculate the fair-share of the fuel
         # supply for each individual vessel
         self._calculate_fair_share_fuel_supply(BunkerScopeID.EXISTING)
-
-        # calculate the fair-share of regulation
-        # threshold per vessel, used in the
-        # existing bunkering to divvy up penalties
-        self._calculate_regulation_fair_share_threshold(BunkerScopeID.EXISTING)
 
         # calculate the policy emission coefficients
         self._calculate_policy_emission_coefficients(BunkerScopeID.EXISTING)
@@ -454,18 +443,6 @@ class SimulationManager:
                                                bunker_scope,
                                                self._timeline,
                                                self._idx)
-
-        self.profile.add_policy_time(self._idx, timeit.default_timer() - start_time)
-
-    def _calculate_regulation_fair_share_threshold(self, scope):
-        start_time = timeit.default_timer()
-
-        for regulation in self.nodes.regulations.values():
-
-            if not regulation.is_active():
-                continue
-
-            calculate_fair_share_threshold(regulation, self.nodes.fleets, self._timeline, self._idx, scope)
 
         self.profile.add_policy_time(self._idx, timeit.default_timer() - start_time)
 

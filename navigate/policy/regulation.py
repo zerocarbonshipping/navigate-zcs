@@ -40,7 +40,6 @@ class Regulation(Policy):
 
         # threshold
         self.vessel_threshold = {}     # dict[vessel_name: float], individual threshold per vessel
-        self.shared_threshold = None   # float, shared threshold for all vessels
 
         # capacity (measure specific)
         self.vessel_capacity = {}      # dict[vessel_name: float], capacity per vessel if impact is vessel
@@ -54,12 +53,12 @@ class Regulation(Policy):
         Set the scheme of the regulation.
 
         If 'INDIVIDUAL' then vessels cannot trade emission units with each other to comply.
-        If 'FLEXIBILITY' then vessels can trade emission units with each other to comply.
+        If 'FLEXIBLE' then vessels can trade emission units with each other to comply.
 
         Examples
         --------
         - INDIVIDUAL
-        - FLEXIBILITY
+        - FLEXIBLE
 
         Parameters
         ----------
@@ -184,32 +183,6 @@ class Regulation(Policy):
 
         self.flexibility_horizon = assign_value(as_scalar(flexibility_horizon), type_=(FORECAST, VARIABLE), lower=0.)
 
-    def set_shared_threshold(self, shared_threshold):
-        """
-        Set the shared threshold across all vessels of the regulation in the measure unit.
-
-        If 'ABSOLUTE' the threshold is on absolute emissions in tons/year.
-        If 'INTENSITY' the threshold is on emission intensity in g/MJ.
-
-        Notice that if the measure is 'ABSOLUTE' then the threshold is the total allowed emissions for all vessels, not
-        per individual vessel. If the measure is 'INTENSITY' then the threshold is the same for all vessels as it is
-        per energy consumed by the individual vessel.
-
-        Notice that this overwrites any individual vessel thresholds set via 'set_vessel_threshold'.
-
-        Examples
-        --------
-        - 1e6
-        - Forecast("name")
-
-        Parameters
-        ----------
-        shared_threshold : float | NodeReference
-            Threshold shared across all vessels under the regulation.
-        """
-
-        self.shared_threshold = assign_value(as_scalar(shared_threshold), type_=(FORECAST, VARIABLE), lower=0.)
-
     # external commands called in the input deck -----------------------------------------------------------------------
     def set_vessel_threshold(self, vessel_name, threshold):
         """
@@ -220,10 +193,14 @@ class Regulation(Policy):
         If 'TRANSPORT' the threshold is on carbon intensity index in gCO2-eq/actual cargo-miles.
         If 'TRANSPORT_NOMINAL' the threshold is on carbon intensity index in gCO2-eq/nominal cargo-miles.
 
+        Every vessel included in the regulation must have a threshold; use the wildcard "*" to assign the
+        same threshold to all vessels. If 'Scheme' is 'FLEXIBLE' the per-vessel thresholds pool into a
+        single fleet-level constraint.
+
         Examples
         --------
         - "name", 1e3
-        - "vessel_name", Forecast("forecast_name")
+        - "*", Forecast("forecast_name")
 
         Parameters
         ----------
@@ -304,23 +281,10 @@ class Regulation(Policy):
 
         for vessel_name, include_vessel in self.include_vessel.items():
 
-            if include_vessel:
+            if include_vessel and (self.vessel_threshold[vessel_name] is None):
 
-                if self.measure in (RegulationMeasureID.ABSOLUTE, RegulationMeasureID.INTENSITY):
-
-                    # ensure the regulated vessel has a threshold
-                    if (self.vessel_threshold[vessel_name] is None) and (self.shared_threshold is None):
-
-                        raise ValueError("{}: Vessel(\"{}\") is included in the regulation but neither a"
-                                         " vessel_threshold nor a SharedThreshold is set.".format(self, vessel_name))
-
-                elif self.measure in (RegulationMeasureID.TRANSPORT, RegulationMeasureID.TRANSPORT_NOMINAL):
-
-                    # ensure the regulated vessel has a threshold
-                    if self.vessel_threshold[vessel_name] is None:
-
-                        raise ValueError("{}: Vessel(\"{}\") is included in the regulation but"
-                                         " no vessel_threshold is defined.".format(self, vessel_name))
+                raise ValueError("{}: Vessel(\"{}\") is included in the regulation but"
+                                 " no vessel_threshold is defined.".format(self, vessel_name))
 
     def initialize_dependencies(self, vessels):
 
@@ -349,11 +313,6 @@ class Regulation(Policy):
 
         self.expectation.set_remedial_cost(idx, self.remedial_cost.get(times))
 
-        if self.shared_threshold is not None:
-            self.expectation.set_shared_threshold(idx, self.shared_threshold.get(times))
-
-        # notice that vessel specific thresholds are set in the '/policy/threshold.py' file
-
         if self.measure in (RegulationMeasureID.TRANSPORT, RegulationMeasureID.TRANSPORT_NOMINAL):
 
             for vessel_name, capacity in self.vessel_capacity.items():
@@ -374,8 +333,10 @@ class Regulation(Policy):
 
         self.profile.set_remedial_cost(idx, self.remedial_cost.get())
 
-        if self.shared_threshold is not None:
-            self.profile.set_shared_threshold(idx, self.shared_threshold.get())
+        for vessel_name, threshold in self.vessel_threshold.items():
+
+            if self.vessel_is_policed(vessel_name):
+                self.profile.set_vessel_threshold(idx, vessel_name, threshold.get())
 
     def get_vessel_threshold(self, vessel_name):
         return self.vessel_threshold[vessel_name]

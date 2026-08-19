@@ -149,7 +149,6 @@ Regulation "reg_absolute" {
 	InterFraction = 0.4
 	ExtraFraction = 0.1
 	RemedialCost = 150
-	SharedThreshold = 900000
 	AllowThresholdAdjustment = FALSE
 	set_vessel_threshold("vessel_oil", 4500)
 	set_vessel_threshold("vessel_methane", 4500)
@@ -160,9 +159,8 @@ Regulation "reg_absolute" {
 }
 
 Regulation "reg_intensity" {
-	SharedThreshold = 45
 	RemedialCost = 80
-	set_vessel_threshold("vessel_methanol", 55)
+	set_vessel_threshold("*", 45)
 }
 
 Regulation "reg_transport" {

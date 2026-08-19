@@ -21,7 +21,7 @@ Regulation "intensity_regulation" {
 
 	RemedialCost = Forecast("intensity_remedial_unit")
 
-	SharedThreshold = Forecast("intensity_target_reduction")
+	set_vessel_threshold("*", Forecast("intensity_target_reduction"))
 
 	set_include_vessel("*", TRUE)
 }

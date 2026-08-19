@@ -130,6 +130,7 @@ class BunkerAlgorithm:
 
         # policies
         self.cost_levy: dict[tuple, float] = {}
+        self.regulation_vessel_threshold: dict[tuple, float] = {}
         self.regulation_emission_factor: dict[tuple, float] = {}
         self.regulation_spend_coefficient: dict[tuple, float] = {}
         self.shore_power_regulation_ef: dict[tuple, float] = {}
@@ -477,6 +478,7 @@ class BunkerAlgorithm:
         """
 
         # reset policy coefficients
+        self.regulation_vessel_threshold = {}
         self.regulation_emission_factor = {}
         self.regulation_emission_coefficient = {}
         self.cost_levy = {}

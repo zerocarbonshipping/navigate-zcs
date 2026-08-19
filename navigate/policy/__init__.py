@@ -10,6 +10,3 @@ from navigate.policy.jurisdiction import (
 )
 from navigate.policy.levy import Levy
 from navigate.policy.regulation import Regulation
-
-# methods
-from navigate.policy.threshold import calculate_fair_share_threshold

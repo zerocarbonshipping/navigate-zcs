@@ -365,7 +365,7 @@ The properties are applicable for the following commands:
 | FlexibilityCost     | USD/ton  | Cost of flexibility compliance unit.                   |
 | RemedialCost        | USD/ton  | Cost of remedial compliance unit.                      |
 | VesselTreshold      | Unit\*   | Allowable emissions measure per vessel.                |
-| SharedThreshold     | Unit\*   | Total allowable emissions measure.                     |
+| SharedThreshold     | Unit\*   | Fleet-level effective target of a FLEXIBLE regulation. |
 | VesselCompliance    | Unit\*   | Achieved emissions measure per vessel.                 |
 | SharedCompliance    | Unit\*   | Total achieved emissions measure.                      |
 | IntendedUnits       | Ton      | Total intended units.                                  |

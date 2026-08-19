@@ -172,22 +172,6 @@ This attribute sets the level of the regulation being paid or received dependent
 * **Minimum value**: 0
 * **Default**: 0
 
-### SharedThreshold
-
-This attribute determines the global threshold of emissions, i.e., the cap set on global emissions. This can be used instead of defining individual vessel thresholds.
-
-* **Data type**: `Float`, `Forecast`, `Variable`
-* **Example values**:
-  + `90`
-  + `Forecast("name")`
-* **Unit**: Different units depending on the value of ‘Measure’
-  + ABSOLUTE: ton emissions
-  + INTENSITY: kg emissions / GJ
-  + TRANSPORT\_NOMINAL: g emissions / nominal cargo miles
-  + TRANSPORT: g emissions / actual cargo miles
-* **Minimum value**: 0
-* **Default**: None
-
 ## Commands
 
 ### set\_global\_warming\_potential
@@ -238,13 +222,13 @@ This command allows the user to set the TTW (Tank-to-Wake) emission factor for a
 
 ### set\_vessel\_threshold
 
-This command sets the threshold that a specific vessel must satisfy in the measure unit.
+This command sets the threshold that a specific vessel must satisfy in the measure unit. Every vessel included in the regulation must have a threshold; use the wildcard `"*"` to assign the same threshold to all vessels. If ‘Scheme’ is FLEXIBLE the per-vessel thresholds pool into a single fleet-level constraint.
 
 * **Primary key type**: String (Vessel name)
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
   + `"vessel_name", 90`
-  + `"vessel_name", Forecast("name")`
+  + `"*", Forecast("name")`
 * **Unit**: Different units depending on the value of ‘Measure’
   + ABSOLUTE: ton emissions
   + INTENSITY: kg emissions / GJ
