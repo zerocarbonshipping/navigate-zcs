@@ -57,7 +57,7 @@ def post_process_investment_metric(fleets, timeline):
 
                 # NPV of cargo delivery over the same operating-year grid as the
                 # cost (zero during lead time), not over the full simulation timeline
-                cargo = np.interp(year_flow, timeline, profile.get_cargo_miles()) * overlap
+                cargo = np.interp(year_flow, timeline, vessel.expectation.get_cargo_miles()) * overlap
                 cargo_npv = calculate_net_present_value(cargo, discount)
 
                 # calculate the achieved charter and freight rate
@@ -101,7 +101,7 @@ def _aggregate_fleet_freight_rate(fleet, timeline):
                 continue
 
             cost_weighted += multiplier * vessel.profile.get_cargo_charter_rate(idx)
-            cargo_weighted += multiplier * vessel.profile.get_cargo_miles(idx)
+            cargo_weighted += multiplier * vessel.expectation.get_cargo_miles(idx)
 
         if cargo_weighted > 0.:
             fleet.profile.set_instantaneous_freight_rate(idx, cost_weighted / cargo_weighted)
@@ -183,15 +183,5 @@ def _calculate_total_vessel_fuel_expenses(vessel, idx, timeline):
     regulation = np.interp(year_flow, timeline, profile.get_regulation_expenses()) * overlap
 
     profile.set_cost_is_calculated(idx, True)
-
-    # calculate the average yearly OPEX for fuel, levies, and regulations
-    fuel_avg = np.sum(fuel) / lifetime
-    levy_avg = np.sum(levy) / lifetime
-    regulation_avg = np.sum(regulation) / lifetime
-
-    # assign to profile
-    profile.set_fuel_OPEX(idx, fuel_avg)
-    profile.set_levy_OPEX(idx, levy_avg)
-    profile.set_regulation_OPEX(idx, regulation_avg)
 
     return fuel + levy + regulation, year_flow, overlap

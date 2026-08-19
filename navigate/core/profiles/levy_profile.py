@@ -3,43 +3,29 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Iterable
-
 import numpy as np
 
-from navigate.core.misc import EMPTY_FLOAT, EMPTY_NAN
+from navigate.core.misc import EMPTY_FLOAT
 from navigate.core.profiles._policy_profile import _PolicyProfile
-
-if TYPE_CHECKING:
-    from navigate.fuel import Emission, Fuel
 
 
 class LevyProfile(_PolicyProfile):
     def __init__(self):
         super().__init__()
 
-        self._level: np.ndarray = EMPTY_NAN
         self._collected: np.ndarray = EMPTY_FLOAT
 
-    def initialize(self, timeline: np.ndarray, fuels: Iterable[Fuel],
-                   emissions: Iterable[Emission], emissions_lifetime: float) -> None:
+    def initialize(self, timeline: np.ndarray) -> None:
         self._initialize_base(timeline)
-        self._initialize_policy_profile(fuels, emissions, emissions_lifetime)
+        self._initialize_policy_profile()
 
-        self._level = self._default_array(default=np.nan)
         self._collected = self._default_array()
-
-    def set_level(self, idx: int, level: float) -> None:
-        self._level[idx] = level
 
     def add_collected(self, idx: int, collected: float) -> None:
         self._collected[idx] += collected
 
     def set_collected(self, idx: int, collected: float) -> None:
         self._collected[idx] = collected
-
-    def get_level(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._level[idx]
 
     def get_collected(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         return self._collected[idx]

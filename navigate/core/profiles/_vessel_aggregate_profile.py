@@ -3,17 +3,12 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 import numpy as np
 
 from navigate.core.enum_ import FuelTypeID
 from navigate.core.misc import EMPTY_FLOAT
 from navigate.core.profiles._fuel_consumer_profile import _FuelConsumerProfile
 from navigate.util import divide_nonzero, extract_from_dict, extract_from_tuple_dict
-
-if TYPE_CHECKING:
-    from navigate.fuel import Fuel
 
 
 class _VesselAggregateProfile(_FuelConsumerProfile):
@@ -38,18 +33,14 @@ class _VesselAggregateProfile(_FuelConsumerProfile):
         self._fuel_conversion_expenses: np.ndarray = EMPTY_FLOAT
         self._vessel_tied_capital: np.ndarray = EMPTY_FLOAT
 
-        # shore power (aggregated from vessel profiles)
-        self._shore_power_energy: np.ndarray = EMPTY_FLOAT    # shore power energy, GJ/year
-
         # weighted average age (numerator and denominator for correct aggregation)
         self._weighted_age_numerator: dict[FuelTypeID, np.ndarray] = {}   # sum(age * power)
         self._weighted_age_denominator: dict[FuelTypeID, np.ndarray] = {}  # sum(power)
 
         # fuel
         self._fuel_type_demand: dict[FuelTypeID, np.ndarray] = {}
-        self._demand_expectation: dict[str, list[np.ndarray]] = {}  # results of expected bunkering per fuel
 
-    def _initialize_vessel_aggregate(self, fuels: dict[str, Fuel]) -> None:
+    def _initialize_vessel_aggregate(self) -> None:
 
         self._average_raw_energy = self._default_array()
         self._average_operational_energy = self._default_array()
@@ -66,13 +57,10 @@ class _VesselAggregateProfile(_FuelConsumerProfile):
         self._fuel_conversion_expenses = self._default_array()
         self._vessel_tied_capital = self._default_array()
 
-        self._shore_power_energy = self._default_array()
-
         self._weighted_age_numerator = self._default_dict(FuelTypeID)
         self._weighted_age_denominator = self._default_dict(FuelTypeID)
 
         self._fuel_type_demand = self._default_dict(FuelTypeID)
-        self._demand_expectation = {f: self._default_list(self.get_length(), default=0.) for f in fuels}
 
     def add_vessel_aggregate_profile(self, profile: _VesselAggregateProfile, idx: int | slice = np.s_[:]) -> None:
         """
@@ -107,8 +95,6 @@ class _VesselAggregateProfile(_FuelConsumerProfile):
         self._fuel_conversion_expenses[idx] += profile._fuel_conversion_expenses[idx]
         self._vessel_tied_capital[idx] += profile._vessel_tied_capital[idx]
 
-        self._shore_power_energy[idx] += profile._shore_power_energy[idx]
-
         for key in self._weighted_age_numerator:
             self._weighted_age_numerator[key][idx] += profile._weighted_age_numerator[key][idx]
 
@@ -117,10 +103,6 @@ class _VesselAggregateProfile(_FuelConsumerProfile):
 
         for key in self._fuel_type_demand:
             self._fuel_type_demand[key][idx] += profile._fuel_type_demand[key][idx]
-
-        for key in self._demand_expectation:
-            for i, value in enumerate(profile._demand_expectation[key]):
-                self._demand_expectation[key][i] += value
 
     def add_installed_power(self, fuel_type: FuelTypeID, power: float, idx: int | slice = np.s_[:]) -> None:
         self._installed_power[fuel_type][idx] += power
@@ -167,9 +149,6 @@ class _VesselAggregateProfile(_FuelConsumerProfile):
     def set_average_energy(self, idx: int, demand: float) -> None:
         self._average_energy[idx] = demand
 
-    def set_demand_expectation(self, fuel_name: str, idx1: int, idx2: int, demand_expectation: np.ndarray) -> None:
-        self._demand_expectation[fuel_name][idx1][idx2] = demand_expectation
-
     def get_average_raw_energy(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         return self._average_raw_energy[idx]
 
@@ -190,9 +169,6 @@ class _VesselAggregateProfile(_FuelConsumerProfile):
 
     def get_energy_saving(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         return 1. - divide_nonzero(self._average_energy[idx], self._average_raw_energy[0], default=1.)
-
-    def get_shore_power_energy(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._shore_power_energy[idx]
 
     def get_weighted_average_age(
             self, fuel_type: FuelTypeID | None = None,
@@ -282,6 +258,3 @@ class _VesselAggregateProfile(_FuelConsumerProfile):
             self, fuel_type: FuelTypeID | None = None,
             idx: int | slice = np.s_[:]) -> np.ndarray | dict[FuelTypeID, np.ndarray]:
         return extract_from_dict(self._fuel_type_demand, fuel_type, idx)
-
-    def get_demand_expectation(self) -> dict[str, list[np.ndarray]]:
-        return self._demand_expectation

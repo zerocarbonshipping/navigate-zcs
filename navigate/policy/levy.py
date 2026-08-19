@@ -132,10 +132,10 @@ class Levy(Policy):
         self.expectation = LevyExpectation()
         self.expectation.initialize(length, [e.get_name() for e in self.emissions])
 
-    def initialize_profile(self, timeline: np.ndarray, emissions_lifetime: float) -> None:
+    def initialize_profile(self, timeline: np.ndarray) -> None:
 
         self.profile = LevyProfile()
-        self.profile.initialize(timeline, self.fuels, self.emissions, emissions_lifetime)
+        self.profile.initialize(timeline)
 
     def calculate_expectation(self, emissions, emissions_lifetime, timeline, idx, offsetting_cost=None):
 
@@ -151,12 +151,3 @@ class Levy(Policy):
         self.expectation.set_level(idx, level)
 
         self._calculate_policy_expectations(self.expectation, emissions, emissions_lifetime)
-
-    def calculate_profile(self, timeline, idx):
-
-        if not self.active:
-            return
-
-        self.profile.set_level(idx, self.level.get())
-
-        self._calculate_policy_profile(idx, timeline)

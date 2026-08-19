@@ -51,10 +51,6 @@ class _BaseProfile:
 
             return np.full(self.get_shape(idx), default, dtype=dtype)
 
-    def _default_list(self, n: int, default: float | bool | None = None,
-                      idx: int | slice = np.s_[:]) -> list[np.ndarray]:
-        return [self._default_array(default, idx) for _ in range(n)]
-
     def _default_dict(self, keys: Iterable[str], default: float | bool | None = None,
                       idx: int | slice = np.s_[:]) -> dict[str, np.ndarray]:
         return {key: self._default_array(default, idx) for key in keys}
@@ -66,10 +62,6 @@ class _BaseProfile:
 
     def _reset_array(self, array: np.ndarray, idx: int, default: float | None = None) -> None:
         array[idx:] = self._default_array(default, np.s_[idx:])
-
-    def _reset_list(self, list_: list[np.ndarray], idx: int, default: float | None = None) -> None:
-        for array in list_:
-            array[idx:] = self._default_array(default, np.s_[idx:])
 
     def _reset_dict(self, dict_: dict[str, np.ndarray], idx: int,
                     default: float | None = None) -> None:

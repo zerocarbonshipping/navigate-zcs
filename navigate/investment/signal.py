@@ -90,8 +90,6 @@ def update_regulation_flexibility_beliefs(regulations: dict, vessels: dict, time
 
         _update_belief_path(raw_cost, belief, alpha, idx)
 
-        regulation.profile.set_flexibility_cost_belief(idx, belief[idx:])
-
         for vessel_name, vessel in vessels.items():
 
             if not regulation.vessel_is_policed(vessel_name):

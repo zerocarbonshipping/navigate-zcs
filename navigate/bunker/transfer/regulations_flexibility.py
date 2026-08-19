@@ -125,18 +125,11 @@ def transfer_regulations_flexibility(alg: BunkerAlgorithm, properties: dict) -> 
 
         else:
             regulation.expectation.set_flexibility_cost(alg.idx, flexibility_cost)
-            regulation.profile.set_flexibility_cost_expectation(alg.current_idx, alg.idx, flexibility_cost)
 
         # transfer adjusted shared threshold if threshold adjustment is enabled
-        if regulation.allow_threshold_adjustment and r in alg.adjusted_shared_thresholds:
-
-            adjusted_shared = alg.adjusted_shared_thresholds[r]
-
-            if alg.scope == BunkerScopeID.EXISTING:
-                regulation.profile.set_adjusted_shared_threshold(alg.idx, adjusted_shared)
-            else:
-                regulation.profile.set_adjusted_shared_threshold_expectation(
-                    alg.current_idx, alg.idx, adjusted_shared)
+        if (alg.scope == BunkerScopeID.EXISTING and regulation.allow_threshold_adjustment
+                and r in alg.adjusted_shared_thresholds):
+            regulation.profile.set_adjusted_shared_threshold(alg.idx, alg.adjusted_shared_thresholds[r])
 
         # transfer to vessels
         for v, vessel in alg.vessels.items():
@@ -173,15 +166,9 @@ def transfer_regulations_flexibility(alg: BunkerAlgorithm, properties: dict) -> 
                 regulation.expectation.set_vessel_net_flexibility_units(alg.idx, v, net_units)
 
             # transfer adjusted thresholds if threshold adjustment is enabled
-            if regulation.allow_threshold_adjustment and (r, v) in alg.adjusted_vessel_thresholds:
-
-                adjusted_threshold = alg.adjusted_vessel_thresholds[(r, v)]
-
-                if alg.scope == BunkerScopeID.EXISTING:
-                    regulation.profile.set_adjusted_vessel_threshold(alg.idx, v, adjusted_threshold)
-                else:
-                    regulation.profile.set_adjusted_vessel_threshold_expectation(
-                        alg.current_idx, alg.idx, v, adjusted_threshold)
+            if (alg.scope == BunkerScopeID.EXISTING and regulation.allow_threshold_adjustment
+                    and (r, v) in alg.adjusted_vessel_thresholds):
+                regulation.profile.set_adjusted_vessel_threshold(alg.idx, v, alg.adjusted_vessel_thresholds[(r, v)])
 
 
 def _transfer_max_offset_rhs(alg: BunkerAlgorithm, regulation, r: str, v: str) -> None:

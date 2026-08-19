@@ -368,11 +368,10 @@ class Regulation(Policy):
         self.expectation = RegulationExpectation()
         self.expectation.initialize(length, [e.get_name() for e in self.emissions], vessels)
 
-    def initialize_profile(self, timeline: np.ndarray, vessels: dict[str, Vessel],
-                           emissions_lifetime: float) -> None:
+    def initialize_profile(self, timeline: np.ndarray, vessels: dict[str, Vessel]) -> None:
 
         self.profile = RegulationProfile()
-        self.profile.initialize(timeline, vessels, self.fuels, self.emissions, emissions_lifetime)
+        self.profile.initialize(timeline, vessels)
 
     def calculate_expectation(self, emissions, vessels, emissions_lifetime, timeline, idx, offsetting_cost=None):
 
@@ -406,7 +405,7 @@ class Regulation(Policy):
 
         self._calculate_policy_expectations(self.expectation, emissions, emissions_lifetime)
 
-    def calculate_profile(self, timeline, idx):
+    def calculate_profile(self, idx):
 
         if not self.active:
             return
@@ -415,8 +414,6 @@ class Regulation(Policy):
 
         if self.shared_threshold is not None:
             self.profile.set_shared_threshold(idx, self.shared_threshold.get())
-
-        self._calculate_policy_profile(idx, timeline)
 
     def get_vessel_threshold(self, vessel_name):
         return self.vessel_threshold[vessel_name]

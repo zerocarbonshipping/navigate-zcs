@@ -117,11 +117,6 @@ def calculate_plant_production_expectations(plant: Plant,
     for e in emissions:
         plant.profile.set_investment_WTT(idx, e, plant.expectation.get_production_WTT(e, idx))
 
-    # transfer the input mass that is used at the
-    # time of investment for the plant
-    for feed_name, feed_mass in plant.expectation.get_feed_mass(idx=idx).items():
-        plant.profile.set_feed_mass(idx, feed_name, feed_mass)
-
 
 def _calculate_unit_properties(component: Component, plant: Plant, idx: int) -> None:
     """
@@ -210,9 +205,6 @@ def _calculate_plant_production(plant: Plant, timeline: np.ndarray, idx: int) ->
     plant.expectation.set_size(idx, size)
     plant.expectation.set_capacity(idx, capacity)
     plant.expectation.set_production(idx, production)
-
-    plant.profile.set_capacity(idx, capacity[0])
-    plant.profile.set_production(idx, production[0])
 
 
 def _calculate_recursive_process(component: Component,

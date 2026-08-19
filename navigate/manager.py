@@ -811,7 +811,6 @@ class SimulationManager:
                                 self.nodes.feedstocks,
                                 self.nodes.fuels,
                                 self.nodes.processes,
-                                self.nodes.sources,
                                 emissions_lifetime,
                                 regulation_names,
                                 levy_names)
@@ -821,14 +820,10 @@ class SimulationManager:
                                      regulation_names, levy_names)
 
         for levy in self.nodes.levies.values():
-            levy.initialize_profile(timeline, emissions_lifetime)
+            levy.initialize_profile(timeline)
 
         for plant in self.nodes.plants.values():
-            plant.initialize_profile(timeline,
-                                     self.nodes.emissions,
-                                     self.nodes.feedstocks,
-                                     self.nodes.processes,
-                                     emissions_lifetime)
+            plant.initialize_profile(timeline, self.nodes.emissions, emissions_lifetime)
 
         for port in self.nodes.ports.values():
             port.initialize_profile(timeline, self.nodes.emissions, self.nodes.fuels, emissions_lifetime)
@@ -837,12 +832,10 @@ class SimulationManager:
             producer.initialize_profile(timeline,
                                         self.nodes.feedstocks,
                                         self.nodes.fuels,
-                                        self.nodes.processes,
-                                        self.nodes.regions,
-                                        self.nodes.sources)
+                                        self.nodes.processes)
 
         for regulation in self.nodes.regulations.values():
-            regulation.initialize_profile(timeline, self.nodes.vessels, emissions_lifetime)
+            regulation.initialize_profile(timeline, self.nodes.vessels)
 
         for vessel in self.nodes.vessels.values():
             vessel.initialize_profile(timeline, self.nodes.emissions, self.nodes.fuels, emissions_lifetime,
@@ -894,9 +887,6 @@ class SimulationManager:
         for fleet in self.nodes.fleets.values():
             fleet_profile_mod.calculate_profile(fleet, self.nodes.fuels, self._timeline, self._idx)
 
-        for levy in self.nodes.levies.values():
-            levy.calculate_profile(self._timeline, self._idx)
-
         for port in self.nodes.ports.values():
             port.calculate_profile(self._idx)
 
@@ -904,7 +894,7 @@ class SimulationManager:
             calculate_producer_profile(producer, self._timeline, self._idx)
 
         for regulation in self.nodes.regulations.values():
-            regulation.calculate_profile(self._timeline, self._idx)
+            regulation.calculate_profile(self._idx)
 
         for vessel in self.nodes.vessels.values():
             vessel.calculate_profile(self._idx)

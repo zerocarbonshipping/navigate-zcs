@@ -44,7 +44,6 @@ def calculate_profile(fleet: Fleet, fuels: dict[str, Fuel], timeline: np.ndarray
     for v, vessel in enumerate(fleet.assets):
         multiplier = fleet.get_multiplier(v)
         fleet.profile.add_fuel_consumer_profile(vessel.profile, multiplier, idx)
-        fleet.profile._shore_power_energy[idx] += vessel.profile.get_shore_power_energy(idx) * multiplier
 
     # transfer running vessel expenses
     years = timeline / YEAR
@@ -218,7 +217,7 @@ def calculate_profile(fleet: Fleet, fuels: dict[str, Fuel], timeline: np.ndarray
     for v, vessel in enumerate(fleet.assets):
 
         profile = vessel.profile
-        cargo_miles = profile.get_cargo_miles(idx)
+        cargo_miles = vessel.expectation.get_cargo_miles(idx)
         multiplier = fleet.get_multiplier(v)
 
         weight += multiplier

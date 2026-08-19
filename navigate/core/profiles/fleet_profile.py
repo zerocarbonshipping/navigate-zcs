@@ -24,31 +24,16 @@ class FleetProfile(_VesselAggregateProfile):
         self._trade: np.ndarray = EMPTY_FLOAT
 
         self._existing_vessels: dict[str, np.ndarray] = {}
-        self._average_ages: dict[str, np.ndarray] = {}
-        self._primary_scrap: dict[str, np.ndarray] = {}
-        self._secondary_scrap: dict[str, np.ndarray] = {}
-        self._orderbook_newbuilds: dict[str, np.ndarray] = {}
-        self._inertia_newbuilds: dict[str, np.ndarray] = {}
-        self._modelled_newbuilds: dict[str, np.ndarray] = {}
-        self._newbuild_limit: dict[str, np.ndarray] = {}
-        self._fuel_conversion_existing_total: np.ndarray = EMPTY_FLOAT
+        self._scrap: dict[str, np.ndarray] = {}
+        self._newbuilds: dict[str, np.ndarray] = {}
         self._fuel_conversions: dict[tuple[str, str], np.ndarray] = {}
-        self._fuel_conversion_limit: dict[tuple[str, str], np.ndarray] = {}
         self._technology_uptake: dict[tuple[str, str], np.ndarray] = {}
         self._newbuild_technology_uptake: dict[tuple[str, str], np.ndarray] = {}
         self._retrofit_technology_uptake: dict[tuple[str, str], np.ndarray] = {}
-        self._newbuild_technology_limit: dict[str, np.ndarray] = {}
-        self._retrofit_technology_limit: dict[str, np.ndarray] = {}
-        self._newbuild_existing_total: np.ndarray = EMPTY_FLOAT
 
         self._fuel_type_supply: dict[FuelTypeID, np.ndarray] = {}
 
-        # values across vessel types
-        self._youngest_scrap_age: np.ndarray = EMPTY_FLOAT
-        self._average_scrap_age: np.ndarray = EMPTY_FLOAT
-
         # speed
-        self._time_at_sea: np.ndarray = EMPTY_NAN       # average time spent at sea, fraction
         self._reference_speed: np.ndarray = EMPTY_NAN   # average reference speed, knots
         self._minimum_speed: np.ndarray = EMPTY_NAN     # average minimum possible speed, knots
         self._maximum_speed: np.ndarray = EMPTY_NAN     # average maximum possible speed, knots
@@ -83,39 +68,24 @@ class FleetProfile(_VesselAggregateProfile):
         self._initialize_base(timeline)
         self._initialize_fuel_base(fuels)
         self._initialize_fuel_consumer(fuels, emissions, emissions_lifetime, regulation_names, levy_names)
-        self._initialize_vessel_aggregate(fuels)
+        self._initialize_vessel_aggregate()
 
         self._trade = self._default_array()
 
         for vessel_name in vessel_names:
 
             self._existing_vessels[vessel_name] = self._default_array()
-            self._average_ages[vessel_name] = self._default_array()
-            self._primary_scrap[vessel_name] = self._default_array()
-            self._secondary_scrap[vessel_name] = self._default_array()
-            self._orderbook_newbuilds[vessel_name] = self._default_array()
-            self._inertia_newbuilds[vessel_name] = self._default_array()
-            self._modelled_newbuilds[vessel_name] = self._default_array()
-
-        self._newbuild_limit = self._default_dict(vessel_names)
-        self._fuel_conversion_existing_total = self._default_array()
+            self._scrap[vessel_name] = self._default_array()
+            self._newbuilds[vessel_name] = self._default_array()
 
         self._fuel_conversions = self._default_tuple_dict(vessel_names, vessel_names)
-        self._fuel_conversion_limit = self._default_tuple_dict(vessel_names, vessel_names)
 
         self._technology_uptake = self._default_tuple_dict(vessel_names, technology_names)
         self._newbuild_technology_uptake = self._default_tuple_dict(vessel_names, technology_names)
         self._retrofit_technology_uptake = self._default_tuple_dict(vessel_names, technology_names)
-        self._newbuild_technology_limit = self._default_dict(technology_names)
-        self._retrofit_technology_limit = self._default_dict(technology_names)
-        self._newbuild_existing_total = self._default_array()
 
         self._fuel_type_supply = self._default_dict(FuelTypeID)
 
-        self._youngest_scrap_age = self._default_array()
-        self._average_scrap_age = self._default_array()
-
-        self._time_at_sea = self._default_array(default=np.nan)
         self._reference_speed = self._default_array(default=np.nan)
         self._minimum_speed = self._default_array(default=np.nan)
         self._maximum_speed = self._default_array(default=np.nan)
@@ -129,47 +99,17 @@ class FleetProfile(_VesselAggregateProfile):
     def set_trade(self, idx: int, trade: float) -> None:
         self._trade[idx] = trade
 
-    def set_youngest_scrap_age(self, idx: int, scrap_age: float) -> None:
-        self._youngest_scrap_age[idx] = scrap_age
-
-    def set_average_scrap_age(self, idx: int, scrap_rate: float) -> None:
-        self._average_scrap_age[idx] = scrap_rate
-
     def set_existing_vessels(self, idx: int, vessel_name: str, existing_vessels: float) -> None:
         self._existing_vessels[vessel_name][idx] = existing_vessels
 
-    set_existing_assets = set_existing_vessels
+    def add_scrap(self, vessel_name: str, idx: int, scrap: float) -> None:
+        self._scrap[vessel_name][idx] += scrap
 
-    def set_average_age(self, idx: int, vessel_name: str, average_age: float) -> None:
-        self._average_ages[vessel_name][idx] = average_age
-
-    def set_primary_scrap(self, vessel_name: str, idx: int, primary_scrap: float) -> None:
-        self._primary_scrap[vessel_name][idx] = primary_scrap
-
-    def add_secondary_scrap(self, vessel_name: str, idx: int, secondary_scrap: float) -> None:
-        self._secondary_scrap[vessel_name][idx] += secondary_scrap
-
-    def set_orderbook_newbuilds(self, vessel_name: str, idx: int, orderbook_newbuilds: float) -> None:
-        self._orderbook_newbuilds[vessel_name][idx] = orderbook_newbuilds
-
-    def set_inertia_newbuilds(self, vessel_name: str, idx: int, inertia_newbuilds: float) -> None:
-        self._inertia_newbuilds[vessel_name][idx] = inertia_newbuilds
-
-    def set_modelled_newbuilds(self, vessel_name: str, idx: int, modelled_newbuilds: float) -> None:
-        self._modelled_newbuilds[vessel_name][idx] = modelled_newbuilds
-
-    def set_newbuild_limit(self, vessel_name: str, idx: int, newbuild_limit: float) -> None:
-        self._newbuild_limit[vessel_name][idx] = newbuild_limit
-
-    def set_fuel_conversion_existing_total(self, idx: int, existing_total: float) -> None:
-        self._fuel_conversion_existing_total[idx] = existing_total
+    def add_newbuilds(self, vessel_name: str, idx: int, newbuilds: float) -> None:
+        self._newbuilds[vessel_name][idx] += newbuilds
 
     def add_fuel_conversions(self, vessel_name_from: str, vessel_name_to: str, idx: int, conversions: float) -> None:
         self._fuel_conversions[(vessel_name_from, vessel_name_to)][idx] += conversions
-
-    def set_fuel_conversion_limit(self, vessel_name_from: str, vessel_name_to: str, idx: int,
-                                  fuel_conversion_limit: float) -> None:
-        self._fuel_conversion_limit[(vessel_name_from, vessel_name_to)][idx] = fuel_conversion_limit
 
     def set_technology_uptake(self, vessel_name: str, technology_name: str, idx: int, uptake: float) -> None:
         self._technology_uptake[(vessel_name, technology_name)][idx] = uptake
@@ -180,20 +120,8 @@ class FleetProfile(_VesselAggregateProfile):
     def set_retrofit_technology_uptake(self, vessel_name: str, technology_name: str, idx: int, uptake: float) -> None:
         self._retrofit_technology_uptake[(vessel_name, technology_name)][idx] = uptake
 
-    def set_newbuild_technology_limit(self, technology_name: str, idx: int, limit: float) -> None:
-        self._newbuild_technology_limit[technology_name][idx] = limit
-
-    def set_retrofit_technology_limit(self, technology_name: str, idx: int, limit: float) -> None:
-        self._retrofit_technology_limit[technology_name][idx] = limit
-
-    def set_newbuild_existing_total(self, idx: int, existing_total: float) -> None:
-        self._newbuild_existing_total[idx] = existing_total
-
     def add_fuel_type_supply(self, fuel_type: FuelTypeID, supply: float, idx: int | slice = np.s_[:]) -> None:
         self._fuel_type_supply[fuel_type][idx] += supply
-
-    def set_time_at_sea(self, idx: int, time_at_sea: float) -> None:
-        self._time_at_sea[idx] = time_at_sea
 
     def set_reference_speed(self, idx: int, reference_speed: float) -> None:
         self._reference_speed[idx] = reference_speed
@@ -227,70 +155,21 @@ class FleetProfile(_VesselAggregateProfile):
             idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
         return extract_from_dict(self._existing_vessels, vessel_name, idx)
 
-    def get_average_ages(self, vessel_name: str | None = None) -> np.ndarray | dict[str, np.ndarray]:
-        if vessel_name is not None:
-            return self._average_ages[vessel_name]
-        else:
-            return np.average.reduce(self._average_ages.values(), weights=self._existing_vessels.values())
-
-    def get_primary_scrap(
+    def get_scrap(
             self, vessel_name: str | None = None,
             idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
-        return extract_from_dict(self._primary_scrap, vessel_name, idx)
+        return extract_from_dict(self._scrap, vessel_name, idx)
 
-    def get_secondary_scrap(
+    def get_newbuilds(
             self, vessel_name: str | None = None,
             idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
-        return extract_from_dict(self._secondary_scrap, vessel_name, idx)
-
-    def get_orderbook_newbuilds(
-            self, vessel_name: str | None = None,
-            idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
-        return extract_from_dict(self._orderbook_newbuilds, vessel_name, idx)
-
-    def get_inertia_newbuilds(
-            self, vessel_name: str | None = None,
-            idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
-        return extract_from_dict(self._inertia_newbuilds, vessel_name, idx)
-
-    def get_modelled_newbuilds(
-            self, vessel_name: str | None = None,
-            idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
-        return extract_from_dict(self._modelled_newbuilds, vessel_name, idx)
-
-    def get_newbuild_limit(
-            self, vessel_name: str | None = None,
-            idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
-        return extract_from_dict(self._newbuild_limit, vessel_name, idx)
-
-    def get_fuel_conversion_existing_total(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._fuel_conversion_existing_total[idx]
-
-    def get_scrap(self, vessel_name: str | None = None, idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
-        if vessel_name is not None:
-            return self._primary_scrap[vessel_name][idx] + self._secondary_scrap[vessel_name][idx]
-        else:
-            return {vessel_name: self.get_scrap(vessel_name, idx) for vessel_name in self._primary_scrap}
-
-    def get_newbuilds(self, vessel_name: str | None = None, idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
-        if vessel_name is not None:
-            return (self._orderbook_newbuilds[vessel_name][idx]
-                    + self._inertia_newbuilds[vessel_name][idx]
-                    + self._modelled_newbuilds[vessel_name][idx])
-        else:
-            return {vessel_name: self.get_newbuilds(vessel_name, idx) for vessel_name in self._orderbook_newbuilds}
+        return extract_from_dict(self._newbuilds, vessel_name, idx)
 
     def get_fuel_conversions(
             self, vessel_name_to: str | None = None,
             vessel_name_from: str | None = None,
             idx: int | slice = np.s_[:]) -> np.ndarray | dict[tuple[str, str], np.ndarray]:
         return extract_from_tuple_dict(self._fuel_conversions, vessel_name_to, vessel_name_from, idx)
-
-    def get_fuel_conversion_limit(
-            self, vessel_name_to: str | None = None,
-            vessel_name_from: str | None = None,
-            idx: int | slice = np.s_[:]) -> np.ndarray | dict[tuple[str, str], np.ndarray]:
-        return extract_from_tuple_dict(self._fuel_conversion_limit, vessel_name_to, vessel_name_from, idx)
 
     def get_technology_uptake(
             self, vessel_name: str | None = None,
@@ -338,32 +217,10 @@ class FleetProfile(_VesselAggregateProfile):
             idx: int | slice = np.s_[:]) -> np.ndarray | dict[tuple[str, str], np.ndarray]:
         return extract_from_tuple_dict(self._retrofit_technology_uptake, vessel_name, technology_name, idx)
 
-    def get_newbuild_technology_limit(
-            self, technology_name: str | None = None,
-            idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
-        return extract_from_dict(self._newbuild_technology_limit, technology_name, idx)
-
-    def get_retrofit_technology_limit(
-            self, technology_name: str | None = None,
-            idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
-        return extract_from_dict(self._retrofit_technology_limit, technology_name, idx)
-
-    def get_newbuild_existing_total(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._newbuild_existing_total[idx]
-
-    def get_youngest_scrap_age(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._youngest_scrap_age[idx]
-
-    def get_average_scrap_age(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._average_scrap_age[idx]
-
     def get_fuel_type_supply(
             self, fuel_type: FuelTypeID | None = None,
             idx: int | slice = np.s_[:]) -> np.ndarray | dict[FuelTypeID, np.ndarray]:
         return extract_from_dict(self._fuel_type_supply, fuel_type, idx)
-
-    def get_time_at_sea(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._time_at_sea[idx]
 
     def get_reference_speed(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         return self._reference_speed[idx]

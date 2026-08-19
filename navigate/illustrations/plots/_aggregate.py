@@ -86,7 +86,7 @@ def _merge_by_fuel_type(dateline, entity, label_dict, items_fn, value_fn, fuel_t
                         threshold, normalize=True):
     """Accumulate per-item series into a fuel-type-keyed stack.
 
-    Shared by merge_fleet_evolution, merge_fleet_changes and merge_producer_changes.
+    Shared by merge_fleet_evolution and merge_fleet_changes.
     Flows (newbuilds / scrap / decommissions) are normalized to a per-year rate; stocks
     (existing vessels) pass normalize=False. Negligible fuel types are dropped and the
     result is the (values, labels, colours, title) tuple the plot modules stack.
@@ -95,15 +95,15 @@ def _merge_by_fuel_type(dateline, entity, label_dict, items_fn, value_fn, fuel_t
     profile = entity.profile
     values = _make_fuel_type_zeros(dateline)
 
+    for item in items_fn(entity):
+        values[fuel_type_fn(item)] += value_fn(profile, item)
+
+    # normalize the owned accumulators: value_fn results may be views of
+    # profile storage and must not be mutated
     if normalize:
         time_steps = np.diff(dates_to_days(dateline)) / YEAR
-
-    for item in items_fn(entity):
-
-        value = value_fn(profile, item)
-        if normalize:
+        for value in values.values():
             value[1:] /= time_steps
-        values[fuel_type_fn(item)] += value
 
     remove_below_threshold(values, threshold)
 
@@ -126,22 +126,6 @@ def merge_fleet_changes(dateline, fleet, scrap=True):
         value_fn=value_fn,
         fuel_type_fn=lambda vessel: vessel.fuel_type,
         threshold=TOLERANCE,
-    )
-
-
-def merge_producer_changes(dateline, producer, decommission=True):
-
-    if decommission:
-        value_fn = lambda profile, plant: -profile.get_decommissions(plant.get_name())
-    else:
-        value_fn = lambda profile, plant: profile.get_newbuilds(plant.get_name())
-
-    return _merge_by_fuel_type(
-        dateline, producer, {},  # no producer label table; title falls back to the raw producer name
-        items_fn=lambda p: p.get_plants(),
-        value_fn=value_fn,
-        fuel_type_fn=lambda plant: plant.fuel.fuel_type,
-        threshold=1.,
     )
 
 

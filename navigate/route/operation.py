@@ -157,12 +157,6 @@ def transfer_operational_profile(vessel: Vessel,
     total_energy_port = {energy_id: np.sum(energy) for energy_id, energy in operations.energy_port.items()}
 
     # transfer results to vessel profile
-    vessel.profile.set_time_at_sea(idx, operations.time_at_sea)
-    vessel.profile.set_voyages(idx, operations.voyages)
-    vessel.profile.set_miles(idx, operations.miles)
-    vessel.profile.set_cargo_miles(idx, operations.cargo_miles)
-    vessel.profile.set_time_sea(idx, np.sum(operations.times_sea))
-    vessel.profile.set_time_port(idx, np.sum(operations.times_port))
     vessel.profile.set_raw_energy_sea(idx, total_energy_sea)
     vessel.profile.set_raw_energy_port(idx, total_energy_port)
 

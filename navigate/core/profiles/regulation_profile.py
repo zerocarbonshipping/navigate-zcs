@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Iterable
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -12,7 +12,6 @@ from navigate.core.profiles._policy_profile import _PolicyProfile
 from navigate.util import extract_from_dict
 
 if TYPE_CHECKING:
-    from navigate.fuel import Emission, Fuel
     from navigate.vessel import Vessel
 
 
@@ -24,19 +23,13 @@ class RegulationProfile(_PolicyProfile):
         self._remedial_cost: np.ndarray = EMPTY_NAN         # USD/ton, cost of a remedial compliance unit
         self._flexibility_cost: np.ndarray = EMPTY_NAN      # USD/ton, cost of flexible/surplus compliance unit
 
-        # expectation paths
-        self._flexibility_cost_expectation: list[np.ndarray] = []  # expected flexibility cost per time-step
-        self._flexibility_cost_belief: list[np.ndarray] = []       # smoothed flexibility cost belief per time-step
-
         # thresholds
         self._vessel_threshold: dict[str, np.ndarray] = {}         # individual vessel threshold in measure unit
         self._shared_threshold: np.ndarray = EMPTY_NAN    # shared threshold in measure unit
 
         # adjusted thresholds (from threshold adjustment when non-compliant)
         self._adjusted_vessel_threshold: dict[str, np.ndarray] = {}              # vessel adjusted threshold
-        self._adjusted_vessel_threshold_expectation: dict[str, list[np.ndarray]] = {}
         self._adjusted_shared_threshold: np.ndarray = EMPTY_NAN         # shared adjusted threshold
-        self._adjusted_shared_threshold_expectation: list[np.ndarray] = []
 
         # allowances
         self._vessel_allowance: dict[str, np.ndarray] = {}         # ton/year, individual vessel allowance
@@ -61,26 +54,19 @@ class RegulationProfile(_PolicyProfile):
         # offset threshold cap per vessel (emission tons/year)
         self._max_offset_rhs: dict[str, np.ndarray] = {}
 
-    def initialize(self, timeline: np.ndarray, vessels: dict[str, Vessel],
-                   fuels: Iterable[Fuel], emissions: Iterable[Emission],
-                   emissions_lifetime: float) -> None:
+    def initialize(self, timeline: np.ndarray, vessels: dict[str, Vessel]) -> None:
 
         self._initialize_base(timeline)
-        self._initialize_policy_profile(fuels, emissions, emissions_lifetime)
+        self._initialize_policy_profile()
 
         self._flexibility_cost = self._default_array(default=np.nan)
-        self._flexibility_cost_expectation = self._default_list(self.get_length(), default=np.nan)
-        self._flexibility_cost_belief = self._default_list(self.get_length(), default=np.nan)
         self._remedial_cost = self._default_array(default=np.nan)
 
         self._vessel_threshold = self._default_dict(vessels, default=np.nan)
         self._shared_threshold = self._default_array(default=np.nan)
 
         self._adjusted_vessel_threshold = self._default_dict(vessels, default=np.nan)
-        self._adjusted_vessel_threshold_expectation = {
-            v: self._default_list(self.get_length(), default=np.nan) for v in vessels}
         self._adjusted_shared_threshold = self._default_array(default=np.nan)
-        self._adjusted_shared_threshold_expectation = self._default_list(self.get_length(), default=np.nan)
 
         self._vessel_allowance = self._default_dict(vessels, default=np.nan)
         self._shared_allowance = self._default_array(default=np.nan)
@@ -106,12 +92,6 @@ class RegulationProfile(_PolicyProfile):
     def set_flexibility_cost(self, idx: int, cost: float) -> None:
         self._flexibility_cost[idx] = cost
 
-    def set_flexibility_cost_expectation(self, idx1: int, idx2: int, cost: float) -> None:
-        self._flexibility_cost_expectation[idx1][idx2] = cost
-
-    def set_flexibility_cost_belief(self, idx: int, belief: np.ndarray) -> None:
-        self._flexibility_cost_belief[idx][idx:] = belief
-
     def set_vessel_threshold(self, idx: int, vessel_name: str, vessel_threshold: float) -> None:
         self._vessel_threshold[vessel_name][idx] = vessel_threshold
 
@@ -121,32 +101,16 @@ class RegulationProfile(_PolicyProfile):
     def set_adjusted_vessel_threshold(self, idx: int, vessel_name: str, threshold: float) -> None:
         self._adjusted_vessel_threshold[vessel_name][idx] = threshold
 
-    def set_adjusted_vessel_threshold_expectation(self, idx1: int, idx2: int, vessel_name: str, threshold: float) -> None:
-        self._adjusted_vessel_threshold_expectation[vessel_name][idx1][idx2] = threshold
-
     def get_adjusted_vessel_threshold(
             self, vessel_name: str | None = None,
             idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
         return extract_from_dict(self._adjusted_vessel_threshold, vessel_name, idx)
 
-    def get_adjusted_vessel_threshold_expectation(
-            self, vessel_name: str | None = None
-    ) -> list[np.ndarray] | dict[str, list[np.ndarray]]:
-        if vessel_name is not None:
-            return self._adjusted_vessel_threshold_expectation[vessel_name]
-        return self._adjusted_vessel_threshold_expectation
-
     def set_adjusted_shared_threshold(self, idx: int, threshold: float) -> None:
         self._adjusted_shared_threshold[idx] = threshold
 
-    def set_adjusted_shared_threshold_expectation(self, idx1: int, idx2: int, threshold: float) -> None:
-        self._adjusted_shared_threshold_expectation[idx1][idx2] = threshold
-
     def get_adjusted_shared_threshold(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         return self._adjusted_shared_threshold[idx]
-
-    def get_adjusted_shared_threshold_expectation(self) -> list[np.ndarray]:
-        return self._adjusted_shared_threshold_expectation
 
     def set_vessel_allowance(self, idx: int, vessel_name: str, vessel_allowance: float) -> None:
         self._vessel_allowance[vessel_name][idx] = vessel_allowance
@@ -189,12 +153,6 @@ class RegulationProfile(_PolicyProfile):
 
     def get_flexibility_cost(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         return self._flexibility_cost[idx]
-
-    def get_flexibility_cost_expectation(self) -> list[np.ndarray]:
-        return self._flexibility_cost_expectation
-
-    def get_flexibility_cost_belief(self) -> list[np.ndarray]:
-        return self._flexibility_cost_belief
 
     def get_vessel_threshold(
             self, vessel_name: str | None = None,

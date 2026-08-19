@@ -22,6 +22,8 @@ from navigate.util import (
     extract_from_dict,
     is_single_dict,
     is_tuple_dict,
+    multiply_dicts,
+    sum_dict_results,
 )
 
 
@@ -61,13 +63,17 @@ class _FuelConsumerProfile(_FuelBaseProfile):
 
         # expenses
         self._fuel_expenses: dict[str, np.ndarray] = {}            # expenses from purchasing fuel, USD/year
-        self._emission_expenses: dict[str, np.ndarray] = {}        # expenses from emissions storage, USD/year
         self._levy_expenses: dict[str, np.ndarray] = {}            # expenses from fuel levies, USD/year
         self._remedial_expenses: np.ndarray = EMPTY_FLOAT      # USD/year
         self._remedial_units: dict[str, np.ndarray] = {}           # per-policy remedial units, policy units/year
         self._levy_units: dict[str, np.ndarray] = {}               # per-policy levy emission units, policy units/year
         self._flexibility_expenses: np.ndarray = EMPTY_FLOAT   # USD/year
         self._surplus_revenue: np.ndarray = EMPTY_FLOAT        # USD/year
+
+        # shore power (WTW-lumped emission, no fuel attribution)
+        self._shore_power_energy: np.ndarray = EMPTY_FLOAT      # GJ/year
+        self._shore_power_expenses: np.ndarray = EMPTY_FLOAT    # USD/year
+        self._shore_power_emission: dict[str, np.ndarray] = {}  # ton/year
 
     def _initialize_fuel_consumer(self, fuels: dict[str, Fuel], emissions: dict[str, Emission], emissions_lifetime: float,
                                   regulation_names: list[str] = (), levy_names: list[str] = ()) -> None:
@@ -108,13 +114,16 @@ class _FuelConsumerProfile(_FuelBaseProfile):
         self._offset = self._default_array()
 
         self._fuel_expenses = self._default_dict(fuels)
-        self._emission_expenses = self._default_dict(fuels)
         self._levy_expenses = self._default_dict(fuels)
         self._remedial_expenses = self._default_array()
         self._remedial_units = self._default_dict(regulation_names)
         self._levy_units = self._default_dict(levy_names)
         self._flexibility_expenses = self._default_array()
         self._surplus_revenue = self._default_array()
+
+        self._shore_power_energy = self._default_array()
+        self._shore_power_expenses = self._default_array()
+        self._shore_power_emission = self._default_dict(emissions)
 
     def add_fuel_consumer_profile(self, profile: _FuelConsumerProfile,
                                   multiplier: float = 1., idx: int | slice = np.s_[:]) -> None:
@@ -166,15 +175,18 @@ class _FuelConsumerProfile(_FuelBaseProfile):
         for key in self._fuel_expenses:
             self._fuel_expenses[key][idx] += profile._fuel_expenses[key][idx] * multiplier
 
-        for key in self._emission_expenses:
-            self._emission_expenses[key][idx] += profile._emission_expenses[key][idx] * multiplier
-
         for key in self._levy_expenses:
             self._levy_expenses[key][idx] += profile._levy_expenses[key][idx] * multiplier
 
         self._remedial_expenses[idx] += profile._remedial_expenses[idx] * multiplier
         self._flexibility_expenses[idx] += profile._flexibility_expenses[idx] * multiplier
         self._surplus_revenue[idx] += profile._surplus_revenue[idx] * multiplier
+
+        self._shore_power_energy[idx] += profile._shore_power_energy[idx] * multiplier
+        self._shore_power_expenses[idx] += profile._shore_power_expenses[idx] * multiplier
+
+        for key in self._shore_power_emission:
+            self._shore_power_emission[key][idx] += profile._shore_power_emission[key][idx] * multiplier
 
     def _to_intensity(self, method: Callable, fuel_name: str | None = None,
                       emission_name: str | None = None, idx: int | slice = np.s_[:],
@@ -293,9 +305,6 @@ class _FuelConsumerProfile(_FuelBaseProfile):
     def add_fuel_expenses(self, fuel_name: str, expenses: float, idx: int | slice = np.s_[:]) -> None:
         self._fuel_expenses[fuel_name][idx] += expenses
 
-    def add_emission_expenses(self, fuel_name: str, expenses: float, idx: int | slice = np.s_[:]) -> None:
-        self._emission_expenses[fuel_name][idx] += expenses
-
     def add_levy_expenses(self, fuel_name: str, expenses: float, idx: int | slice = np.s_[:]) -> None:
         self._levy_expenses[fuel_name][idx] += expenses
 
@@ -320,19 +329,22 @@ class _FuelConsumerProfile(_FuelBaseProfile):
     def add_surplus_revenue(self, idx: int | slice, revenue: float) -> None:
         self._surplus_revenue[idx] += revenue
 
+    def add_shore_power_energy(self, idx: int | slice, energy: float) -> None:
+        self._shore_power_energy[idx] += energy
+
+    def add_shore_power_expenses(self, idx: int | slice, expenses: float) -> None:
+        self._shore_power_expenses[idx] += expenses
+
+    def add_shore_power_emission(self, emission_name: str, idx: int | slice, emission: float) -> None:
+        self._shore_power_emission[emission_name][idx] += emission
+
     def get_raw_energy_sea(self, energy_id: EnergyDemandTypeID | None = None,
                            idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
         return extract_from_dict(self._raw_energy_sea, energy_id, idx)
 
-    def get_total_raw_energy_sea(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._get_total_method(self.get_raw_energy_sea, idx)
-
     def get_raw_energy_port(self, energy_id: EnergyDemandTypeID | None = None,
                             idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
         return extract_from_dict(self._raw_energy_port, energy_id, idx)
-
-    def get_total_raw_energy_port(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._get_total_method(self.get_raw_energy_port, idx)
 
     def get_raw_energy(self, energy_id: EnergyDemandTypeID | None = None, idx: int | slice = np.s_[:]) -> np.ndarray:
         sea_energies = self.get_raw_energy_sea(energy_id, idx)
@@ -346,15 +358,9 @@ class _FuelConsumerProfile(_FuelBaseProfile):
                                    idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
         return extract_from_dict(self._operational_energy_sea, energy_id, idx)
 
-    def get_total_operational_energy_sea(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._get_total_method(self.get_operational_energy_sea, idx)
-
     def get_operational_energy_port(self, energy_id: EnergyDemandTypeID | None = None,
                                     idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
         return extract_from_dict(self._operational_energy_port, energy_id, idx)
-
-    def get_total_operational_energy_port(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._get_total_method(self.get_operational_energy_port, idx)
 
     def get_operational_energy(self, energy_id: EnergyDemandTypeID | None = None, idx: int | slice = np.s_[:]) -> np.ndarray:
         sea_energies = self.get_operational_energy_sea(energy_id, idx)
@@ -367,9 +373,6 @@ class _FuelConsumerProfile(_FuelBaseProfile):
     def get_energy_sea(self, energy_id: EnergyDemandTypeID | None = None,
                        idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
         return extract_from_dict(self._energy_sea, energy_id, idx)
-
-    def get_total_energy_sea(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._get_total_method(self.get_energy_sea, idx)
 
     def get_energy_port(self, energy_id: EnergyDemandTypeID | None = None,
                         idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
@@ -395,70 +398,19 @@ class _FuelConsumerProfile(_FuelBaseProfile):
                                        self._raw_energy_sea[demand_type][idx] + self._raw_energy_port[demand_type][idx],
                                        default=1.)
 
-    def get_consumed_mass(self, fuel_name: str | None = None,
-                          idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
-        return extract_from_dict(self._consumed_mass, fuel_name, idx)
-
     def get_consumed_energy(self, fuel_name: str | None = None,
                             idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
         return self._fuel_mass_to_energy(self._consumed_mass, fuel_name, idx)
 
-    def get_consumed_volume(self, fuel_name: str | None = None,
-                            idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
-        return self._fuel_mass_to_volume(self._consumed_mass, fuel_name, idx)
-
-    def get_fuel_type_mass(self, idx: int | slice = np.s_[:]) -> dict[str, np.ndarray]:
-        return self._fuel_type_mass_to_mass(self._consumed_mass, idx)
-
     def get_fuel_type_energy(self, idx: int | slice = np.s_[:]) -> dict[str, np.ndarray]:
         return self._fuel_type_mass_to_energy(self._consumed_mass, idx)
 
-    def get_total_consumed_mass(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._get_total_method(self.get_consumed_mass, idx)
-
     def get_total_consumed_energy(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._get_total_method(self.get_consumed_energy, idx)
-
-    def get_total_consumed_volume(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._get_total_method(self.get_consumed_volume, idx)
-
-    def get_cumulative_consumed_mass(self) -> dict[str, np.ndarray]:
-        return self._to_cumulative_dict(self._consumed_mass)
-
-    def get_cumulative_consumed_energy(self) -> dict[str, np.ndarray]:
-        return self._to_cumulative_dict(self.get_consumed_energy())
-
-    def get_cumulative_consumed_volume(self) -> dict[str, np.ndarray]:
-        return self._to_cumulative_dict(self.get_consumed_volume())
-
-    def get_cumulative_fuel_type_mass(self) -> dict[str, np.ndarray]:
-        return self._to_cumulative_dict(self.get_fuel_type_mass())
-
-    def get_cumulative_fuel_type_energy(self) -> dict[str, np.ndarray]:
-        return self._to_cumulative_dict(self.get_fuel_type_energy())
-
-    def get_cumulative_fuel_type_volume(self) -> dict[str, np.ndarray]:
-        return self._to_cumulative_dict(self.get_fuel_type_volume())
-
-    def get_converter_mass(self, fuel_type: FuelTypeID | None = None,
-                           idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
-        return self._extract_nested_dict(self._converter_mass, fuel_type, idx)
+        return self._get_total_method(self.get_consumed_energy, idx) + self._shore_power_energy[idx]
 
     def get_converter_energy(self, fuel_type: FuelTypeID | None = None,
                              idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
         return self._extract_multiply_nested_dict(self._converter_mass, self._lower_heating_value, fuel_type, idx)
-
-    def get_converter_volume(self, fuel_type: FuelTypeID | None = None,
-                             idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
-        return self._extract_multiply_nested_dict(self._converter_mass, self._mass_density, fuel_type, idx)
-
-    def get_converter_fuel_type_mass(self, fuel_type: FuelTypeID | None = None,
-                                     idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
-        return self._extract_method_dict(self._fuel_type_mass_to_mass, self._converter_mass, fuel_type, idx)
-
-    def get_converter_fuel_type_energy(self, fuel_type: FuelTypeID | None = None,
-                                       idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
-        return self._extract_method_dict(self._fuel_type_mass_to_energy, self._converter_mass, fuel_type, idx)
 
     def get_pilot_fuel_share(self, fuel_type: FuelTypeID | None = None,
                              idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
@@ -467,15 +419,23 @@ class _FuelConsumerProfile(_FuelBaseProfile):
         else:
             return {fuel_type: self.get_pilot_fuel_share(fuel_type, idx) for fuel_type in FuelTypeID}
 
-    # WTT/TTW/WTW emission getters generated by factory — see _container_util.py.
+    def get_shore_power_energy(self, idx: int | slice = np.s_[:]) -> np.ndarray:
+        return self._shore_power_energy[idx]
+
+    def get_shore_power_expenses(self, idx: int | slice = np.s_[:]) -> np.ndarray:
+        return self._shore_power_expenses[idx]
+
+    def get_shore_power_emission(
+            self, emission_name: str | None = None,
+            idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
+        return extract_from_dict(self._shore_power_emission, emission_name, idx)
+
+    def _get_shore_power_equivalent(self, idx: int | slice = np.s_[:]) -> np.ndarray | float:
+        return sum_dict_results(multiply_dicts(self._shore_power_emission, self._GWP), idx=idx)
 
     def get_fuel_expenses(self, fuel_name: str | None = None,
                           idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
         return extract_from_dict(self._fuel_expenses, fuel_name, idx)
-
-    def get_emission_expenses(self, fuel_name: str | None = None,
-                              idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
-        return extract_from_dict(self._emission_expenses, fuel_name, idx)
 
     def get_levy_expenses(self, fuel_name: str | None = None,
                           idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
@@ -483,7 +443,7 @@ class _FuelConsumerProfile(_FuelBaseProfile):
 
     def get_fuel_related_expenses(self, fuel_name: str | None = None,
                                   idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
-        return self._extract_add_dicts(self._fuel_expenses, self._emission_expenses, self._levy_expenses,
+        return self._extract_add_dicts(self._fuel_expenses, self._levy_expenses,
                                        key=fuel_name, idx=idx)
 
     def get_remedial_expenses(self, idx: int | slice = np.s_[:]) -> np.ndarray:
@@ -499,31 +459,23 @@ class _FuelConsumerProfile(_FuelBaseProfile):
         return self._remedial_expenses[idx] + self._flexibility_expenses[idx] - self._surplus_revenue[idx]
 
     def get_total_fuel_expenses(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._get_total_method(self.get_fuel_expenses, idx)
-
-    def get_total_emission_expenses(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._get_total_method(self.get_emission_expenses, idx)
+        return self._get_total_method(self.get_fuel_expenses, idx) + self._shore_power_expenses[idx]
 
     def get_total_levy_expenses(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         return self._get_total_method(self.get_levy_expenses, idx)
 
     def get_total_fuel_related_expenses(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         return (self.get_total_fuel_expenses(idx)
-                + self.get_total_emission_expenses(idx)
                 + self.get_total_levy_expenses(idx))
 
     def get_cumulative_fuel_expenses(self) -> dict[str, np.ndarray]:
         return self._to_cumulative_dict(self._fuel_expenses)
-
-    def get_cumulative_emission_expenses(self) -> dict[str, np.ndarray]:
-        return self._to_cumulative_dict(self._emission_expenses)
 
     def get_cumulative_levy_expenses(self) -> dict[str, np.ndarray]:
         return self._to_cumulative_dict(self._levy_expenses)
 
     def get_cumulative_fuel_related_expenses(self) -> dict[str, np.ndarray]:
         return self._to_cumulative_dict(add_dicts(self._fuel_expenses,
-                                                  self._emission_expenses,
                                                   self._levy_expenses))
 
     def get_cumulative_remedial_expenses(self) -> np.ndarray:
@@ -551,7 +503,10 @@ class _FuelConsumerProfile(_FuelBaseProfile):
 # _FuelConsumerProfile emission getter registrations (replaces ~134 lines of hand-written methods)
 register_fuel_consumer_getters(_FuelConsumerProfile, 'WTT', data_attr='_WTT')
 register_fuel_consumer_getters(_FuelConsumerProfile, 'TTW', data_attr='_TTW')
-register_fuel_consumer_getters(_FuelConsumerProfile, 'WTW', source_attrs=['_WTT', '_TTW'])
+# shore power emissions are a WTW lump with no (fuel, emission) attribution, so
+# they enter the WTW total variants as an extra term rather than a container key
+register_fuel_consumer_getters(_FuelConsumerProfile, 'WTW', source_attrs=['_WTT', '_TTW'],
+                               extra_total=_FuelConsumerProfile._get_shore_power_equivalent)
 
 
 def _get_total_equivalent_WTW_offset(self: _FuelConsumerProfile, idx: int | slice = np.s_[:]) -> np.ndarray:

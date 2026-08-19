@@ -23,23 +23,16 @@ from navigate.illustrations.plots.fleet_emission_intensity import plot_fleet_emi
 from navigate.illustrations.plots.fleet_energy_saving import plot_fleet_energy_saving
 from navigate.illustrations.plots.fleet_evolution import plot_fleet_evolution
 from navigate.illustrations.plots.fleet_fuel_consumed import plot_fleet_fuel_consumed
-from navigate.illustrations.plots.fleet_fuel_conversion_sources import (
-    plot_fleet_fuel_conversion_sources,
-    plot_fleet_fuel_conversion_sources_normalized,
-)
 from navigate.illustrations.plots.fleet_investment_metric import plot_fleet_investment_metric
 from navigate.illustrations.plots.fleet_investment_signal_per_vessel import (
     plot_fleet_investment_signal_speed_per_vessel,
     plot_fleet_investment_signal_technology_per_vessel,
 )
-from navigate.illustrations.plots.fleet_newbuild_sources import plot_fleet_newbuild_sources
-from navigate.illustrations.plots.fleet_orderbook import plot_fleet_orderbook
 from navigate.illustrations.plots.fleet_shore_power_share import plot_fleet_shore_power_share
 from navigate.illustrations.plots.fleet_speed import plot_fleet_speed
 from navigate.illustrations.plots.fleet_speed_per_vessel import plot_fleet_speed_per_vessel
 from navigate.illustrations.plots.fleet_trade import plot_fleet_trade
 from navigate.illustrations.plots.fuel_supply_demand import plot_fuel_supply_demand
-from navigate.illustrations.plots.fuel_supply_demand_expectation import plot_fuel_supply_demand_expectation
 from navigate.illustrations.plots.fuel_type_supply_demand import plot_fuel_type_supply_demand
 from navigate.illustrations.plots.global_emission_absolute import plot_global_emission_absolute
 from navigate.illustrations.plots.global_emission_intensity import plot_global_emission_intensity
@@ -62,7 +55,6 @@ from navigate.illustrations.plots.plant_production_cost import plot_plant_produc
 from navigate.illustrations.plots.plant_production_emissions import plot_plant_production_emissions
 from navigate.illustrations.plots.port_bunker_price import plot_port_bunker_price
 from navigate.illustrations.plots.port_bunker_supply import plot_port_bunker_supply
-from navigate.illustrations.plots.producer_changes import plot_producer_changes
 from navigate.illustrations.plots.producer_development import (
     plot_producer_development,
     plot_producer_development_cumulative,
@@ -76,10 +68,6 @@ from navigate.illustrations.plots.regulation_offsetting_cost import plot_regulat
 from navigate.illustrations.plots.regulation_offsetting_expenses import plot_regulation_offsetting_expenses
 from navigate.illustrations.plots.regulation_offsetting_units import plot_regulation_offsetting_units
 from navigate.illustrations.plots.regulation_unit_trading import plot_regulation_unit_trading
-from navigate.illustrations.plots.technology_install_sources import (
-    plot_technology_install_sources,
-    plot_technology_install_sources_normalized,
-)
 from navigate.illustrations.plots.technology_uptake import plot_technology_uptake
 
 PLOTS = [
@@ -103,7 +91,6 @@ PLOTS = [
     plot_engine_age,
     plot_engine_pilot_fuel_share,
     plot_fuel_supply_demand,
-    plot_fuel_supply_demand_expectation,
     plot_fuel_type_supply_demand,
     plot_fleet_emission_absolute,
     plot_fleet_emission_intensity,
@@ -111,7 +98,6 @@ PLOTS = [
     plot_fleet_shore_power_share,
     plot_fleet_conversions_cumulative,
     plot_fleet_evolution,
-    plot_fleet_orderbook,
     plot_fleet_changes,
     plot_fleet_energy_saving,
     plot_fleet_speed,
@@ -120,12 +106,8 @@ PLOTS = [
     plot_fleet_investment_signal_speed_per_vessel,
     plot_fleet_trade,
     plot_fleet_investment_metric,
-    plot_fleet_newbuild_sources,
-    plot_fleet_fuel_conversion_sources,
-    plot_fleet_fuel_conversion_sources_normalized,
     plot_producer_development,
     plot_producer_development_cumulative,
-    plot_producer_changes,
     plot_producer_feed_consumption,
     plot_producer_fair_share,
     plot_plant_production_cost,
@@ -133,8 +115,6 @@ PLOTS = [
     plot_port_bunker_price,
     plot_port_bunker_supply,
     plot_technology_uptake,
-    plot_technology_install_sources,
-    plot_technology_install_sources_normalized,
     plot_regulation_compliance,
     plot_regulation_flexibility,
     plot_regulation_unit_trading,

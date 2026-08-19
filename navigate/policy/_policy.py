@@ -333,18 +333,6 @@ class Policy(Node):
             in_jurisdiction = not set(vessel.route.ports).isdisjoint(set(self.jurisdiction))
             self.in_jurisdiction_vessel[vessel_name] = in_jurisdiction
 
-    def _calculate_policy_profile(self, idx, timeline):
-
-        for key, WTT in self.fuel_WTT.items():
-
-            if WTT is not None:
-                self.profile.set_emission_factor_WTT(idx, key, WTT.get(timeline[idx]))
-
-        for key, TTW in self.fuel_TTW.items():
-
-            if TTW is not None:
-                self.profile.set_emission_factor_TTW(idx, key, TTW.get(timeline[idx]))
-
     def _calculate_policy_expectations(self, expectation, emissions, emissions_lifetime):
 
         if self.emissions_lifetime is not None:

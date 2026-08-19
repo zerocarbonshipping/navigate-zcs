@@ -57,15 +57,9 @@ def transfer_regulations_individual(alg: BunkerAlgorithm) -> None:
             vessel.expectation.add_policy_expenses(alg.idx, vessel_remediation)
 
         # transfer adjusted thresholds if threshold adjustment is enabled
-        if regulation.allow_threshold_adjustment and (r, v) in alg.adjusted_vessel_thresholds:
-
-            adjusted_threshold = alg.adjusted_vessel_thresholds[(r, v)]
-
-            if alg.scope == BunkerScopeID.EXISTING:
-                regulation.profile.set_adjusted_vessel_threshold(alg.idx, v, adjusted_threshold)
-            else:
-                regulation.profile.set_adjusted_vessel_threshold_expectation(
-                    alg.current_idx, alg.idx, v, adjusted_threshold)
+        if (alg.scope == BunkerScopeID.EXISTING and regulation.allow_threshold_adjustment
+                and (r, v) in alg.adjusted_vessel_thresholds):
+            regulation.profile.set_adjusted_vessel_threshold(alg.idx, v, alg.adjusted_vessel_thresholds[(r, v)])
 
 
 def _transfer_max_offset_rhs(alg: BunkerAlgorithm, regulation, r: str, v: str) -> None:

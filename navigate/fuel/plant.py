@@ -316,11 +316,10 @@ class Plant(Node):
         self.expectation.initialize(length, emissions, feedstocks, ports, processes)
 
     def initialize_profile(self, timeline: np.ndarray, emissions: dict[str, Emission],
-                           feedstocks: dict[str, Feedstock], processes: dict[str, Process],
                            emissions_lifetime: float) -> None:
 
         self.profile = PlantProfile()
-        self.profile.initialize(timeline, self.fuel, emissions, feedstocks, processes, emissions_lifetime)
+        self.profile.initialize(timeline, self.fuel, emissions, emissions_lifetime)
 
     def set_producer_assignment(self, producer_name):
         if self.producer_assignment is not None:

@@ -112,4 +112,3 @@ def transfer_bunker(alg: BunkerAlgorithm) -> None:
         for fleet_name, fleet in alg.fleets.items():
             for f, demand in fleet_demand[fleet_name].items():
                 fleet.expectation.set_fuel_demand(alg.idx, f, demand)
-                fleet.profile.set_demand_expectation(f, alg.current_idx, alg.idx, demand)
