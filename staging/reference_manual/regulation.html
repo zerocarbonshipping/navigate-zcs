@@ -670,29 +670,6 @@ jurisdiction (inter) should be counted in the calculation.</p>
 <li><p><strong>Default</strong>: 0</p></li>
 </ul>
 </section>
-<section id="sharedthreshold">
-<h3>SharedThreshold<a class="headerlink" href="#sharedthreshold" title="Link to this heading">#</a></h3>
-<p>This attribute determines the global threshold of emissions, i.e., the cap set on global emissions. This can be used instead of defining individual vessel thresholds.</p>
-<ul class="simple">
-<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
-<li><p><strong>Example values</strong>:</p>
-<ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">90</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Forecast(&quot;name&quot;)</span></code></p></li>
-</ul>
-</li>
-<li><p><strong>Unit</strong>: Different units depending on the value of ‘Measure’</p>
-<ul>
-<li><p>ABSOLUTE: ton emissions</p></li>
-<li><p>INTENSITY: kg emissions / GJ</p></li>
-<li><p>TRANSPORT_NOMINAL: g emissions / nominal cargo miles</p></li>
-<li><p>TRANSPORT: g emissions / actual cargo miles</p></li>
-</ul>
-</li>
-<li><p><strong>Minimum value</strong>: 0</p></li>
-<li><p><strong>Default</strong>: None</p></li>
-</ul>
-</section>
 </section>
 <section id="commands">
 <h2>Commands<a class="headerlink" href="#commands" title="Link to this heading">#</a></h2>
@@ -757,14 +734,14 @@ jurisdiction (inter) should be counted in the calculation.</p>
 </section>
 <section id="set-vessel-threshold">
 <h3>set_vessel_threshold<a class="headerlink" href="#set-vessel-threshold" title="Link to this heading">#</a></h3>
-<p>This command sets the threshold that a specific vessel must satisfy in the measure unit.</p>
+<p>This command sets the threshold that a specific vessel must satisfy in the measure unit. Every vessel included in the regulation must have a threshold; use the wildcard <code class="docutils literal notranslate"><span class="pre">&quot;*&quot;</span></code> to assign the same threshold to all vessels. If ‘Scheme’ is FLEXIBLE the per-vessel thresholds pool into a single fleet-level constraint.</p>
 <ul class="simple">
 <li><p><strong>Primary key type</strong>: String (Vessel name)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">&quot;vessel_name&quot;,</span> <span class="pre">90</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">&quot;vessel_name&quot;,</span> <span class="pre">Forecast(&quot;name&quot;)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;*&quot;,</span> <span class="pre">Forecast(&quot;name&quot;)</span></code></p></li>
 </ul>
 </li>
 <li><p><strong>Unit</strong>: Different units depending on the value of ‘Measure’</p>
@@ -860,7 +837,6 @@ jurisdiction (inter) should be counted in the calculation.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#interfraction">InterFraction</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#extrafraction">ExtraFraction</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#remedialcost">RemedialCost</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#sharedthreshold">SharedThreshold</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#commands">Commands</a><ul class="pst-show_toc_level nav section-nav flex-column">
