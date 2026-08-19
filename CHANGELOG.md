@@ -38,11 +38,23 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 ### Changed
 - The investment post-processing and fleet aggregation read vessel
   cargo-miles from the expectation instead of the profile (value-identical).
+- Shore power is now part of the fuel-consumer accounting: its energy is
+  included in `TotalConsumedEnergy`, its cost in `TotalFuelExpenses` (and
+  transitively the fuel-related expense totals, the expense plots, and the
+  investment post-processing cash flows), and its emissions in the
+  `TotalEquivalentWTW` family. The three shore power series propagate from
+  vessel to fleet to global level, so the WTW emission plots and the new
+  fleet/global-level report properties include shore power. The WTT/TTW
+  intensity totals keep fuel-only numerators over the shore-inclusive energy
+  denominator, since shore power has no well-to-tank or tank-to-wake
+  component.
 - The fleet profile stores scrap and newbuilds as single per-vessel
   aggregates instead of per-source arrays (value-identical; the evolution
   code still computes the sources separately).
 
 ### Added
+- Report properties `ShorePowerEnergy`, `ShorePowerExpenses`, and
+  `ShorePowerEmission`, available at vessel, fleet, and global level.
 - Behavior guardrail test suite (`tests/guardrails/`): committed decks that
   each isolate one desired model behavior, enforced by property assertions
   paired with intent prose (`BEHAVIOR.md` per deck); run via

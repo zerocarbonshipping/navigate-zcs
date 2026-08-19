@@ -141,7 +141,8 @@ The properties are applicable for the following commands:
 | Demand                                | GJ/year                     | The energy demand.                                                                           |
 | ConsumedEnergy                        | GJ/year                     | Fuel consumed in energy for all fuels.                                                       |
 | FuelTypeEnergy                        | GJ/year                     | Fuel consumed in energy, aggregated by fuel type.                                            |
-| TotalConsumedEnergy                   | GJ/year                     | Total fuel consumed in energy across all fuels.                                              |
+| TotalConsumedEnergy                   | GJ/year                     | Total consumed energy across all fuels plus shore power.                                     |
+| ShorePowerEnergy                      | GJ/year                     | Shore power energy supplied.                                                                 |
 | ConverterFuelEnergy                   | GJ/year                     | Fuel consumed in energy in vessels of a fuel type across fuels per fuel type.                |
 | PilotFuelShare                        | Ton/ton                     | The fraction of total fuel spent which is pilot fuel for each vessel fuel type.              |
 | EquivalentWTT                         | Ton CO<sub>2</sub>-eq./year | Emitted well-to-tank emissions per fuel and emission.                                        |
@@ -149,25 +150,26 @@ The properties are applicable for the following commands:
 | EquivalentTTW                         | Ton CO<sub>2</sub>-eq./year | Emitted Tank-to-wake emissions per fuel and emission.                                        |
 | TotalEquivalentTTW                    | Ton CO<sub>2</sub>-eq./year | Total emitted tank-to-wake emissions.                                                        |
 | EquivalentWTW                         | Ton CO<sub>2</sub>-eq./year | Emitted well-to-wake emissions per fuel and emission.                                        |
-| TotalEquivalentWTW                    | Ton CO<sub>2</sub>-eq./year | Total emitted well-to-wake emissions.                                                        |
+| TotalEquivalentWTW                    | Ton CO<sub>2</sub>-eq./year | Total emitted well-to-wake emissions across all fuels plus shore power.                      |
+| ShorePowerEmission                    | Ton/year                    | Shore power emission per emission (well-to-wake lump, no WTT/TTW split).                     |
 | CumulativeEquivalentWTT               | Ton CO<sub>2</sub>-eq.      | Cumulative emitted well-to-tank emissions per fuel and emission.                             |
 | CumulativeTotalEquivalentWTT          | Ton CO<sub>2</sub>-eq.      | Cumulative total emitted well-to-tank emissions.                                             |
 | CumulativeEquivalentTTW               | Ton CO<sub>2</sub>-eq.      | Cumulative emitted tank-to-wake emissions per fuel and emission.                             |
 | CumulativeTotalEquivalentTTW          | Ton CO<sub>2</sub>-eq.      | Cumulative total emitted tank-to-wake emissions.                                             |
 | CumulativeEquivalentWTW               | Ton CO<sub>2</sub>-eq.      | Cumulative emitted well-to-wake emissions per fuel and emission.                             |
-| CumulativeTotalEquivalentWTW          | Ton CO<sub>2</sub>-eq.      | Cumulative total emitted well-to-wake emissions.                                             |
+| CumulativeTotalEquivalentWTW          | Ton CO<sub>2</sub>-eq.      | Cumulative total emitted well-to-wake emissions, including shore power.                      |
 | IntensityEquivalentWTT                | Kg CO<sub>2</sub>-eq./GJ    | Emitted well-to-tank emissions per energy per fuel and emission.                             |
-| IntensityTotalEquivalentWTT           | Kg CO<sub>2</sub>-eq./GJ    | Total emitted well-to-tank emissions per energy.                                             |
+| IntensityTotalEquivalentWTT           | Kg CO<sub>2</sub>-eq./GJ    | Total emitted well-to-tank emissions per total consumed energy (including shore power).      |
 | IntensityEquivalentTTW                | Kg CO<sub>2</sub>-eq./GJ    | Emitted tank-to-wake emissions per energy per fuel and emission.                             |
-| IntensityTotalEquivalentTTW           | Kg CO<sub>2</sub>-eq./GJ    | Total emitted tank-to-wake emissions per energy.                                             |
+| IntensityTotalEquivalentTTW           | Kg CO<sub>2</sub>-eq./GJ    | Total emitted tank-to-wake emissions per total consumed energy (including shore power).      |
 | IntensityEquivalentWTW                | Kg CO<sub>2</sub>-eq./GJ    | Emitted well-to-wake emissions per energy per fuel and emission.                             |
-| IntensityTotalEquivalentWTW           | Kg CO<sub>2</sub>-eq./GJ    | Total emitted well-to-wake emissions per energy.                                             |
+| IntensityTotalEquivalentWTW           | Kg CO<sub>2</sub>-eq./GJ    | Total emitted well-to-wake emissions per energy, including shore power.                      |
 | CumulativeIntensityEquivalentWTT      | Kg CO<sub>2</sub>-eq./GJ    | Cumulative emitted well-to-tank emissions per energy per fuel and emission.                  |
-| CumulativeIntensityTotalEquivalentWTT | Kg CO<sub>2</sub>-eq./GJ    | Cumulative total emitted well-to-tank emissions per energy.                                  |
+| CumulativeIntensityTotalEquivalentWTT | Kg CO<sub>2</sub>-eq./GJ    | Cumulative total emitted well-to-tank emissions per total consumed energy (including shore power). |
 | CumulativeIntensityEquivalentTTW      | Kg CO<sub>2</sub>-eq./GJ    | Cumulative emitted tank-to-wake emissions per energy per fuel and emission.                  |
-| CumulativeIntensityTotalEquivalentTTW | Kg CO<sub>2</sub>-eq./GJ    | Cumulative total emitted tank-to-wake emissions per energy.                                  |
+| CumulativeIntensityTotalEquivalentTTW | Kg CO<sub>2</sub>-eq./GJ    | Cumulative total emitted tank-to-wake emissions per total consumed energy (including shore power). |
 | CumulativeIntensityEquivalentWTW      | Kg CO<sub>2</sub>-eq./GJ    | Cumulative emitted well-to-wake emissions per energy per fuel and emission.                  |
-| CumulativeIntensityTotalEquivalentWTW | Kg CO<sub>2</sub>-eq./GJ    | Cumulative total emitted well-to-wake emissions per energy.                                  |
+| CumulativeIntensityTotalEquivalentWTW | Kg CO<sub>2</sub>-eq./GJ    | Cumulative total emitted well-to-wake emissions per energy, including shore power.           |
 |  FuelExpenses                         | USD/year                    | Fuel expenses per fuel.                                                                      |
 | EmissionExpenses                      | USD/year                    | Emission expenses from permanent storage per fuel.                                           |
 | LevyExpenses                          | USD/year                    | Levy expenses per fuel.                                                                      |
@@ -176,10 +178,11 @@ The properties are applicable for the following commands:
 | FlexibilityExpenses                   | USD/year                    | Flexibility expenses due to non-compliance with regulations.                                 |
 | SurplusRevenue                        | USD/year                    | Surplus revenue due to over-compliance with regulations.                                     |
 | RegulationExpenses                    | USD/year                    | Remedial and flexibility expenses subtracted by surplus revenue from regulations.            |
-| TotalFuelExpenses                     | USD/year                    | Total fuel expenses across all fuels.                                                        |
+| TotalFuelExpenses                     | USD/year                    | Total fuel expenses across all fuels plus shore power.                                       |
+| ShorePowerExpenses                    | USD/year                    | Shore power purchase cost.                                                                   |
 | TotalEmissionExpenses                 | USD/year                    | Total emission expenses across all fuels.                                                    |
 | TotalLevyExpenses                     | USD/year                    | Total levy expenses across all fuels.                                                        |
-| TotalFuelRelatedExpenses              | USD/year                    | Total fuel related expenses (fuel and levy) across all fuels.                                |
+| TotalFuelRelatedExpenses              | USD/year                    | Total fuel related expenses (fuel expenses including shore power, plus emission and levy expenses). |
 | CumulativeFuelExpenses                | USD                         | Cumulative fuel expenses per fuel.                                                           |
 | CumulativeEmissionExpenses            | USD                         | Cumulative emission expenses per fuel.                                                       |
 | CumulativeLevyExpenses                | USD                         | Cumulative levy expenses per fuel.                                                           |
@@ -188,9 +191,9 @@ The properties are applicable for the following commands:
 | CumulativeFlexibilityExpenses         | USD                         | Cumulative flexibility expenses due to non-compliance with regulations.                      |
 | CumulativeSurplusRevenue              | USD                         | Cumulative surplus revenue due to over-compliance with regulations.                          |
 | CumulativeRegulationExpenses          | USD                         | Cumulative remedial and flexibility expenses subtracted by surplus revenue from regulations. |
-| CumulativeTotalFuelExpenses           | USD                         | Cumulative fuel expenses across all fuels.                                                   |
+| CumulativeTotalFuelExpenses           | USD                         | Cumulative fuel expenses across all fuels plus shore power.                                  |
 | CumulativeTotalLevyExpenses           | USD                         | Cumulative levy expenses across all fuels.                                                   |
-| CumulativeTotalFuelRelatedExpenses    | USD                         | Cumulative fuel related expenses (fuel and levy) across all fuels.                           |
+| CumulativeTotalFuelRelatedExpenses    | USD                         | Cumulative fuel related expenses (fuel and levy) across all fuels plus shore power.          |
 
 The properties are applicable for the following commands:
 

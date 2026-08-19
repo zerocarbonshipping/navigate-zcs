@@ -107,7 +107,8 @@ def register_single_dict_getters(cls: type, source_name: str, gwp_attr: str,
 
 def register_fuel_consumer_getters(cls: type, source_name: str,
                                    data_attr: str | None = None,
-                                   source_attrs: list[str] | None = None) -> None:
+                                   source_attrs: list[str] | None = None,
+                                   extra_total: Callable | None = None) -> None:
     """
     Generate the 8-method GWP-equivalent emission getter suite for FuelConsumerProfile.
 
@@ -125,6 +126,10 @@ def register_fuel_consumer_getters(cls: type, source_name: str,
         Name of instance attribute holding emission tuple-dict.
     source_attrs : list[str], optional
         Attribute names to add together for combined sources.
+    extra_total : Callable, optional
+        ``(self, idx) -> equivalent`` term added to every total variant, for
+        emissions with no (fuel, emission) attribution (e.g. shore power).
+        The per-key getters are unaffected.
     """
     _data = _make_data_fn(data_attr, source_attrs)
 
@@ -138,13 +143,16 @@ def register_fuel_consumer_getters(cls: type, source_name: str,
         return {key: get_equivalent(self, *key, idx) for key in self._get_fuel_emissions()}
 
     def get_total_equivalent(self, idx=np.s_[:]):
-        return self._get_total_method(get_equivalent.__get__(self), idx)
+        total = self._get_total_method(get_equivalent.__get__(self), idx)
+        if extra_total is not None:
+            total = total + extra_total(self, idx)
+        return total
 
     def get_cumulative_equivalent(self, fuel_name=None, emission_name=None):
         return self._to_cumulative_any(get_equivalent(self, fuel_name, emission_name))
 
     def get_cumulative_total_equivalent(self):
-        return self._to_cumulative(self._get_total_method(get_equivalent.__get__(self)))
+        return self._to_cumulative(get_total_equivalent(self))
 
     def get_intensity_equivalent(self, fuel_name=None, emission_name=None, idx=np.s_[:]):
         return self._to_intensity(get_equivalent.__get__(self), fuel_name, emission_name, idx)
