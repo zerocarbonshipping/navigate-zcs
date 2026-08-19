@@ -34,6 +34,11 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - The `fleet_orderbook` plot and the per-source fleet report properties
   `PrimaryScrap`, `SecondaryScrap`, and `OrderbookNewbuilds`; the aggregate
   `Scrap` and `Newbuilds` properties remain.
+- The never-populated emission-storage expenses: the fuel-consumer profile
+  member, the report properties `EmissionExpenses`, `TotalEmissionExpenses`,
+  and `CumulativeEmissionExpenses`, and the always-zero "Emission storage"
+  layer of the `global_expenses` plot. The fuel-related expense totals lose
+  only a zero addend.
 
 ### Changed
 - The investment post-processing and fleet aggregation read vessel

@@ -171,7 +171,6 @@ The properties are applicable for the following commands:
 | CumulativeIntensityEquivalentWTW      | Kg CO<sub>2</sub>-eq./GJ    | Cumulative emitted well-to-wake emissions per energy per fuel and emission.                  |
 | CumulativeIntensityTotalEquivalentWTW | Kg CO<sub>2</sub>-eq./GJ    | Cumulative total emitted well-to-wake emissions per energy, including shore power.           |
 |  FuelExpenses                         | USD/year                    | Fuel expenses per fuel.                                                                      |
-| EmissionExpenses                      | USD/year                    | Emission expenses from permanent storage per fuel.                                           |
 | LevyExpenses                          | USD/year                    | Levy expenses per fuel.                                                                      |
 | FuelRelatedExpenses                   | USD/year                    | Fuel related expenses (fuel and levy) per fuel.                                              |
 | RemedialExpenses                      | USD/year                    | Remedial expenses due to non-compliance with regulations.                                    |
@@ -180,11 +179,9 @@ The properties are applicable for the following commands:
 | RegulationExpenses                    | USD/year                    | Remedial and flexibility expenses subtracted by surplus revenue from regulations.            |
 | TotalFuelExpenses                     | USD/year                    | Total fuel expenses across all fuels plus shore power.                                       |
 | ShorePowerExpenses                    | USD/year                    | Shore power purchase cost.                                                                   |
-| TotalEmissionExpenses                 | USD/year                    | Total emission expenses across all fuels.                                                    |
 | TotalLevyExpenses                     | USD/year                    | Total levy expenses across all fuels.                                                        |
-| TotalFuelRelatedExpenses              | USD/year                    | Total fuel related expenses (fuel expenses including shore power, plus emission and levy expenses). |
+| TotalFuelRelatedExpenses              | USD/year                    | Total fuel related expenses (fuel expenses including shore power, plus levy expenses).       |
 | CumulativeFuelExpenses                | USD                         | Cumulative fuel expenses per fuel.                                                           |
-| CumulativeEmissionExpenses            | USD                         | Cumulative emission expenses per fuel.                                                       |
 | CumulativeLevyExpenses                | USD                         | Cumulative levy expenses per fuel.                                                           |
 | CumulativeFuelRelatedExpenses         | USD                         | Cumulative fuel related expenses (fuel and levy) per fuel                                    |
 | CumulativeRemedialExpenses            | USD                         | Cumulative remedial expenses due to non-compliance with regulations.                         |

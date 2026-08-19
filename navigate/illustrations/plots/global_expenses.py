@@ -31,7 +31,6 @@ def _plot_global_expenses(manager, directory, cumulative=False):
     technology_newbuild_expenses = profile.get_technology_newbuild_expenses()
     technology_retrofit_expenses = profile.get_technology_retrofit_expenses()
     fuel_expenses = profile.get_total_fuel_expenses()
-    emission_expenses = profile.get_total_emission_expenses()
     policy_expenses = profile.get_total_levy_expenses() + profile.get_regulation_expenses()
 
     values = [vessel_expenses,
@@ -39,7 +38,6 @@ def _plot_global_expenses(manager, directory, cumulative=False):
               technology_newbuild_expenses,
               technology_retrofit_expenses,
               fuel_expenses,
-              emission_expenses,
               policy_expenses]
 
     if cumulative:
@@ -52,14 +50,12 @@ def _plot_global_expenses(manager, directory, cumulative=False):
               'Technology (newbuild)',
               'Technology (retrofit)',
               'Fuel',
-              'Emission storage',
               'Policy']
     colors = [CENTER_COLORS_BLUE[3],
               CENTER_COLORS_BLUE[2],
               CENTER_COLORS_RED[3],
               CENTER_COLORS_RED[1],
               CENTER_COLORS_GREEN[3],
-              CENTER_COLORS_GREEN[2],
               CENTER_COLORS_YELLOW[3]]
 
     stack = plot_stack_with_lines(ax, dateline, values, labels, colors)

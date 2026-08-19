@@ -63,7 +63,6 @@ class _FuelConsumerProfile(_FuelBaseProfile):
 
         # expenses
         self._fuel_expenses: dict[str, np.ndarray] = {}            # expenses from purchasing fuel, USD/year
-        self._emission_expenses: dict[str, np.ndarray] = {}        # expenses from emissions storage, USD/year
         self._levy_expenses: dict[str, np.ndarray] = {}            # expenses from fuel levies, USD/year
         self._remedial_expenses: np.ndarray = EMPTY_FLOAT      # USD/year
         self._remedial_units: dict[str, np.ndarray] = {}           # per-policy remedial units, policy units/year
@@ -115,7 +114,6 @@ class _FuelConsumerProfile(_FuelBaseProfile):
         self._offset = self._default_array()
 
         self._fuel_expenses = self._default_dict(fuels)
-        self._emission_expenses = self._default_dict(fuels)
         self._levy_expenses = self._default_dict(fuels)
         self._remedial_expenses = self._default_array()
         self._remedial_units = self._default_dict(regulation_names)
@@ -176,9 +174,6 @@ class _FuelConsumerProfile(_FuelBaseProfile):
 
         for key in self._fuel_expenses:
             self._fuel_expenses[key][idx] += profile._fuel_expenses[key][idx] * multiplier
-
-        for key in self._emission_expenses:
-            self._emission_expenses[key][idx] += profile._emission_expenses[key][idx] * multiplier
 
         for key in self._levy_expenses:
             self._levy_expenses[key][idx] += profile._levy_expenses[key][idx] * multiplier
@@ -309,9 +304,6 @@ class _FuelConsumerProfile(_FuelBaseProfile):
 
     def add_fuel_expenses(self, fuel_name: str, expenses: float, idx: int | slice = np.s_[:]) -> None:
         self._fuel_expenses[fuel_name][idx] += expenses
-
-    def add_emission_expenses(self, fuel_name: str, expenses: float, idx: int | slice = np.s_[:]) -> None:
-        self._emission_expenses[fuel_name][idx] += expenses
 
     def add_levy_expenses(self, fuel_name: str, expenses: float, idx: int | slice = np.s_[:]) -> None:
         self._levy_expenses[fuel_name][idx] += expenses
@@ -445,17 +437,13 @@ class _FuelConsumerProfile(_FuelBaseProfile):
                           idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
         return extract_from_dict(self._fuel_expenses, fuel_name, idx)
 
-    def get_emission_expenses(self, fuel_name: str | None = None,
-                              idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
-        return extract_from_dict(self._emission_expenses, fuel_name, idx)
-
     def get_levy_expenses(self, fuel_name: str | None = None,
                           idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
         return extract_from_dict(self._levy_expenses, fuel_name, idx)
 
     def get_fuel_related_expenses(self, fuel_name: str | None = None,
                                   idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
-        return self._extract_add_dicts(self._fuel_expenses, self._emission_expenses, self._levy_expenses,
+        return self._extract_add_dicts(self._fuel_expenses, self._levy_expenses,
                                        key=fuel_name, idx=idx)
 
     def get_remedial_expenses(self, idx: int | slice = np.s_[:]) -> np.ndarray:
@@ -473,29 +461,21 @@ class _FuelConsumerProfile(_FuelBaseProfile):
     def get_total_fuel_expenses(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         return self._get_total_method(self.get_fuel_expenses, idx) + self._shore_power_expenses[idx]
 
-    def get_total_emission_expenses(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._get_total_method(self.get_emission_expenses, idx)
-
     def get_total_levy_expenses(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         return self._get_total_method(self.get_levy_expenses, idx)
 
     def get_total_fuel_related_expenses(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         return (self.get_total_fuel_expenses(idx)
-                + self.get_total_emission_expenses(idx)
                 + self.get_total_levy_expenses(idx))
 
     def get_cumulative_fuel_expenses(self) -> dict[str, np.ndarray]:
         return self._to_cumulative_dict(self._fuel_expenses)
-
-    def get_cumulative_emission_expenses(self) -> dict[str, np.ndarray]:
-        return self._to_cumulative_dict(self._emission_expenses)
 
     def get_cumulative_levy_expenses(self) -> dict[str, np.ndarray]:
         return self._to_cumulative_dict(self._levy_expenses)
 
     def get_cumulative_fuel_related_expenses(self) -> dict[str, np.ndarray]:
         return self._to_cumulative_dict(add_dicts(self._fuel_expenses,
-                                                  self._emission_expenses,
                                                   self._levy_expenses))
 
     def get_cumulative_remedial_expenses(self) -> np.ndarray:
