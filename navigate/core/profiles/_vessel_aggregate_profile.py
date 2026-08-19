@@ -33,9 +33,6 @@ class _VesselAggregateProfile(_FuelConsumerProfile):
         self._fuel_conversion_expenses: np.ndarray = EMPTY_FLOAT
         self._vessel_tied_capital: np.ndarray = EMPTY_FLOAT
 
-        # shore power (aggregated from vessel profiles)
-        self._shore_power_energy: np.ndarray = EMPTY_FLOAT    # shore power energy, GJ/year
-
         # weighted average age (numerator and denominator for correct aggregation)
         self._weighted_age_numerator: dict[FuelTypeID, np.ndarray] = {}   # sum(age * power)
         self._weighted_age_denominator: dict[FuelTypeID, np.ndarray] = {}  # sum(power)
@@ -59,8 +56,6 @@ class _VesselAggregateProfile(_FuelConsumerProfile):
         self._technology_retrofit_expenses = self._default_array()
         self._fuel_conversion_expenses = self._default_array()
         self._vessel_tied_capital = self._default_array()
-
-        self._shore_power_energy = self._default_array()
 
         self._weighted_age_numerator = self._default_dict(FuelTypeID)
         self._weighted_age_denominator = self._default_dict(FuelTypeID)
@@ -99,8 +94,6 @@ class _VesselAggregateProfile(_FuelConsumerProfile):
         self._technology_retrofit_expenses[idx] += profile._technology_retrofit_expenses[idx]
         self._fuel_conversion_expenses[idx] += profile._fuel_conversion_expenses[idx]
         self._vessel_tied_capital[idx] += profile._vessel_tied_capital[idx]
-
-        self._shore_power_energy[idx] += profile._shore_power_energy[idx]
 
         for key in self._weighted_age_numerator:
             self._weighted_age_numerator[key][idx] += profile._weighted_age_numerator[key][idx]
@@ -176,9 +169,6 @@ class _VesselAggregateProfile(_FuelConsumerProfile):
 
     def get_energy_saving(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         return 1. - divide_nonzero(self._average_energy[idx], self._average_raw_energy[0], default=1.)
-
-    def get_shore_power_energy(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._shore_power_energy[idx]
 
     def get_weighted_average_age(
             self, fuel_type: FuelTypeID | None = None,

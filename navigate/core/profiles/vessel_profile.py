@@ -10,7 +10,7 @@ import numpy as np
 from navigate.core.enum_ import EnergyDemandTypeID, EnergyDemandTypePortID
 from navigate.core.misc import EMPTY_BOOL, EMPTY_FLOAT, EMPTY_NAN
 from navigate.core.profiles._fuel_consumer_profile import _FuelConsumerProfile
-from navigate.util import divide_nonzero, extract_from_dict
+from navigate.util import divide_nonzero
 
 if TYPE_CHECKING:
     from navigate.fuel import Emission, Fuel
@@ -35,11 +35,6 @@ class VesselProfile(_FuelConsumerProfile):
         # investment signals (energy-weighted average of the smoothed energy-conservation duals, USD/GJ)
         self._investment_signal_technology: np.ndarray = EMPTY_NAN  # technology-horizon belief
         self._investment_signal_speed: np.ndarray = EMPTY_NAN       # speed-horizon belief
-
-        # shore power
-        self._shore_power_energy: np.ndarray = EMPTY_FLOAT    # shore power energy, GJ/year
-        self._shore_power_expenses: np.ndarray = EMPTY_FLOAT  # shore power cost, USD/year
-        self._shore_power_emission: dict[str, np.ndarray] = {}  # shore power emission, ton/year
 
         # technology costs
         self._technology_cost: np.ndarray = EMPTY_FLOAT       # USD/year, average yearly purchase cost
@@ -94,11 +89,6 @@ class VesselProfile(_FuelConsumerProfile):
         # investment signals
         self._investment_signal_technology = self._default_array(default=np.nan)
         self._investment_signal_speed = self._default_array(default=np.nan)
-
-        # shore power
-        self._shore_power_energy = self._default_array()
-        self._shore_power_expenses = self._default_array()
-        self._shore_power_emission = self._default_dict(emissions)
 
         self._technology_cost = self._default_array()
 
@@ -168,15 +158,6 @@ class VesselProfile(_FuelConsumerProfile):
         for energy_id in EnergyDemandTypePortID:
             self._energy_port[energy_id][idx] = energy[energy_id]
 
-    def add_shore_power_energy(self, idx: int, energy: float) -> None:
-        self._shore_power_energy[idx] += energy
-
-    def add_shore_power_expenses(self, idx: int, expenses: float) -> None:
-        self._shore_power_expenses[idx] += expenses
-
-    def add_shore_power_emission(self, emission_name: str, idx: int, emission: float) -> None:
-        self._shore_power_emission[emission_name][idx] += emission
-
     def set_technology_cost(self, idx: int, cost: float) -> None:
         self._technology_cost[idx] = cost
 
@@ -242,17 +223,6 @@ class VesselProfile(_FuelConsumerProfile):
 
     def get_energy_saving(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         return 1. - divide_nonzero(self.get_energy(idx=idx), self.get_raw_energy(idx=0), default=1.)
-
-    def get_shore_power_energy(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._shore_power_energy[idx]
-
-    def get_shore_power_expenses(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._shore_power_expenses[idx]
-
-    def get_shore_power_emission(
-            self, emission_name: str | None = None,
-            idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
-        return extract_from_dict(self._shore_power_emission, emission_name, idx)
 
     def is_active(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         return self._in_fleet[idx]
