@@ -28,7 +28,6 @@ from navigate.illustrations.plots.fleet_investment_signal_per_vessel import (
     plot_fleet_investment_signal_speed_per_vessel,
     plot_fleet_investment_signal_technology_per_vessel,
 )
-from navigate.illustrations.plots.fleet_orderbook import plot_fleet_orderbook
 from navigate.illustrations.plots.fleet_shore_power_share import plot_fleet_shore_power_share
 from navigate.illustrations.plots.fleet_speed import plot_fleet_speed
 from navigate.illustrations.plots.fleet_speed_per_vessel import plot_fleet_speed_per_vessel
@@ -99,7 +98,6 @@ PLOTS = [
     plot_fleet_shore_power_share,
     plot_fleet_conversions_cumulative,
     plot_fleet_evolution,
-    plot_fleet_orderbook,
     plot_fleet_changes,
     plot_fleet_energy_saving,
     plot_fleet_speed,

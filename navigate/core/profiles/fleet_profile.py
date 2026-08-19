@@ -170,21 +170,6 @@ class FleetProfile(_VesselAggregateProfile):
             idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
         return extract_from_dict(self._existing_vessels, vessel_name, idx)
 
-    def get_primary_scrap(
-            self, vessel_name: str | None = None,
-            idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
-        return extract_from_dict(self._primary_scrap, vessel_name, idx)
-
-    def get_secondary_scrap(
-            self, vessel_name: str | None = None,
-            idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
-        return extract_from_dict(self._secondary_scrap, vessel_name, idx)
-
-    def get_orderbook_newbuilds(
-            self, vessel_name: str | None = None,
-            idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
-        return extract_from_dict(self._orderbook_newbuilds, vessel_name, idx)
-
     def get_scrap(self, vessel_name: str | None = None, idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
         if vessel_name is not None:
             return self._primary_scrap[vessel_name][idx] + self._secondary_scrap[vessel_name][idx]

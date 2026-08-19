@@ -280,9 +280,6 @@ The properties are applicable for the following commands:
 |------------------------------------|-------------------|-------------------------------------------------------------------------------------------------|
 | Trade                              | Cargo-miles/year  | Trade satisfied.                                                                                |
 | ExistingVessels                    | # of vessels      | Number of existing vessels per vessel.                                                          |
-| PrimaryScrap                       | # of vessels/year | Number of vessels scrapped due to age per vessel.                                               |
-| SecondaryScrap                     | # of vessels/year | Number of vessels scrapped due to trade reduction per vessel.                                   |
-| OrderbookNewbuilds                 | # of vessels/year | Number of newbuild vessels based on the orderbook per vessel.                                   |
 | Scrap                              | # of vessels/year | Number of vessels scrapped (primary and secondary) per vessel.                                  |
 | Newbuilds                          | # of vessels/year | Number of newbuild vessels per vessel.                                                          |
 | FuelConversions                    | # of vessels/year | Number of vessels fuel converted per vessel to vessel.                                          |

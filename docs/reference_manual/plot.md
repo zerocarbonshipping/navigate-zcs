@@ -76,7 +76,6 @@ The labels below are the values accepted by the `add_plot` command on a `Plot` n
 | fleet_shore_power_share                         | Fleet                      |
 | fleet_conversions_cumulative                    | Fleet                      |
 | fleet_evolution                                 | Fleet                      |
-| fleet_orderbook                                 | Fleet                      |
 | fleet_changes                                   | Fleet                      |
 | fleet_energy_saving                             | Fleet                      |
 | fleet_trade                                     | Fleet                      |

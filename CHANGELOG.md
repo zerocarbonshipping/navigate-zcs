@@ -31,6 +31,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   behavior they were meant to visualize is asserted by unit tests instead.
 - The expectation-belief fan from the `regulation_flexibility_cost` plot and
   the flexibility-cost belief series on the regulation profile.
+- The `fleet_orderbook` plot and the per-source fleet report properties
+  `PrimaryScrap`, `SecondaryScrap`, and `OrderbookNewbuilds`; the aggregate
+  `Scrap` and `Newbuilds` properties remain.
 
 ### Changed
 - The investment post-processing and fleet aggregation read vessel
