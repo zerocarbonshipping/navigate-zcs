@@ -12,7 +12,6 @@ from navigate.core.misc import EMPTY_FLOAT
 from navigate.util import (
     add_dicts,
     divide_dicts,
-    divide_nonzero,
     multiply_dicts,
     slice_dict,
 )
@@ -83,9 +82,6 @@ class _BaseProfile:
             return self._to_cumulative_dict(value)
         else:
             return self._to_cumulative(value)
-
-    def _to_cumulative_fraction(self, numerator: np.ndarray, denominator: np.ndarray) -> np.ndarray:
-        return divide_nonzero(self._to_cumulative(numerator), self._to_cumulative(denominator))
 
     @staticmethod
     def _extract_add_dicts(dict1: dict[str, np.ndarray], *dicts: dict[str, np.ndarray],

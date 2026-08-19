@@ -164,12 +164,6 @@ The properties are applicable for the following commands:
 | IntensityTotalEquivalentTTW           | Kg CO<sub>2</sub>-eq./GJ    | Total emitted tank-to-wake emissions per total consumed energy (including shore power).      |
 | IntensityEquivalentWTW                | Kg CO<sub>2</sub>-eq./GJ    | Emitted well-to-wake emissions per energy per fuel and emission.                             |
 | IntensityTotalEquivalentWTW           | Kg CO<sub>2</sub>-eq./GJ    | Total emitted well-to-wake emissions per energy, including shore power.                      |
-| CumulativeIntensityEquivalentWTT      | Kg CO<sub>2</sub>-eq./GJ    | Cumulative emitted well-to-tank emissions per energy per fuel and emission.                  |
-| CumulativeIntensityTotalEquivalentWTT | Kg CO<sub>2</sub>-eq./GJ    | Cumulative total emitted well-to-tank emissions per total consumed energy (including shore power). |
-| CumulativeIntensityEquivalentTTW      | Kg CO<sub>2</sub>-eq./GJ    | Cumulative emitted tank-to-wake emissions per energy per fuel and emission.                  |
-| CumulativeIntensityTotalEquivalentTTW | Kg CO<sub>2</sub>-eq./GJ    | Cumulative total emitted tank-to-wake emissions per total consumed energy (including shore power). |
-| CumulativeIntensityEquivalentWTW      | Kg CO<sub>2</sub>-eq./GJ    | Cumulative emitted well-to-wake emissions per energy per fuel and emission.                  |
-| CumulativeIntensityTotalEquivalentWTW | Kg CO<sub>2</sub>-eq./GJ    | Cumulative total emitted well-to-wake emissions per energy, including shore power.           |
 |  FuelExpenses                         | USD/year                    | Fuel expenses per fuel.                                                                      |
 | LevyExpenses                          | USD/year                    | Levy expenses per fuel.                                                                      |
 | FuelRelatedExpenses                   | USD/year                    | Fuel related expenses (fuel and levy) per fuel.                                              |

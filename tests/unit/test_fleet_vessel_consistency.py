@@ -237,10 +237,6 @@ class TestShorePowerAccounting:
         # WTT/TTW numerators stay fuel-only over the shore-inclusive denominator
         assert vessel.get_intensity_total_equivalent_WTT()[0] == pytest.approx(2.0e6 / 462.0e3)
         assert vessel.get_intensity_total_equivalent_TTW()[0] == pytest.approx(3.0e6 / 462.0e3)
-        np.testing.assert_allclose(
-            vessel.get_cumulative_intensity_total_equivalent_WTW(),
-            vessel._convert_to_intensity(vessel.get_total_equivalent_WTW(),
-                                         vessel.get_total_consumed_energy(), cumulative=True))
 
     def test_propagates_via_fuel_consumer_merge(self, timeline, fuels, emissions, vessel):
         fleet = _make_fleet_profile(timeline, fuels, emissions, vessel_names=["v"])
