@@ -6,9 +6,10 @@ from unittest.mock import MagicMock
 import numpy as np
 import pytest
 
-from navigate.core.enum_ import FuelTypeID
+from navigate.core.enum_ import EnergyDemandTypeID, FuelTypeID
 from navigate.core.profiles.fleet_profile import FleetProfile
 from navigate.core.profiles.vessel_profile import VesselProfile
+from navigate.vessel.fleet.fleet_profile import transfer_transport_work
 
 
 # ---------------------------------------------------------------------------
@@ -263,3 +264,109 @@ class TestShorePowerAccounting:
         assert manager.get_shore_power_energy(0) == pytest.approx(50.0)
         assert manager.get_shore_power_expenses(0) == pytest.approx(25.0)
         assert manager.get_shore_power_emission("co2", 0) == pytest.approx(4.0)
+
+
+class _FleetStub:
+    """Minimal stand-in for Fleet as seen by transfer_transport_work."""
+
+    def __init__(self, profile, cargo_miles_by_idx):
+        self.profile = profile
+        self.cargo_miles_by_idx = cargo_miles_by_idx
+
+    def calculate_cargo_miles(self, idx):
+        return self.cargo_miles_by_idx[idx]
+
+
+class TestEnergyIntensitySaving:
+    """Savings equal actual energy vs the year-0-intensity counterfactual."""
+
+    def test_fleet_saving_is_transport_work_weighted(self, timeline, fuels, emissions):
+        # Two vessel types with fixed trade of 1100 cargo-miles. Type A slows
+        # 10 % (cubic law: energy 100 -> 72.9, cargo-miles 100 -> 90) and the
+        # fleet grows to compensate (10 -> 1000/90 ships). Transport work is
+        # unchanged while energy drops 1200 -> 1010: the achieved saving is
+        # 1 - 1010/1200, not the 0.084 a count-weighted average of the
+        # per-vessel intensities would report.
+        v_a = _make_vessel_profile(timeline, fuels, emissions)
+        v_a._raw_energy_sea[EnergyDemandTypeID.PROPULSION][:] = [100.0, 72.9]
+
+        v_b = _make_vessel_profile(timeline, fuels, emissions)
+        v_b._raw_energy_sea[EnergyDemandTypeID.PROPULSION][:] = [20.0, 20.0]
+
+        fleet = _make_fleet_profile(timeline, fuels, emissions, vessel_names=["a", "b"])
+        stub = _FleetStub(fleet, cargo_miles_by_idx=[10.0 * 100.0 + 10.0 * 10.0,
+                                                     (1000.0 / 90.0) * 90.0 + 10.0 * 10.0])
+
+        fleet.add_fuel_consumer_profile(v_a, 10.0, 0)
+        fleet.add_fuel_consumer_profile(v_b, 10.0, 0)
+        transfer_transport_work(stub, 0)
+
+        fleet.add_fuel_consumer_profile(v_a, 1000.0 / 90.0, 1)
+        fleet.add_fuel_consumer_profile(v_b, 10.0, 1)
+        transfer_transport_work(stub, 1)
+
+        np.testing.assert_allclose(fleet.get_cargo_miles(), [1100.0, 1100.0])
+        np.testing.assert_allclose(fleet.get_baseline_energy(), [1200.0, 1200.0])
+
+        saving = fleet.get_speed_energy_intensity_saving()
+        assert saving[0] == pytest.approx(0.0)
+        assert saving[1] == pytest.approx(1.0 - 1010.0 / 1200.0)
+        assert abs(saving[1] - 0.084) > 0.05
+
+    def test_manager_merge_sums_baseline_energy(self, timeline, fuels, emissions):
+        # fleet 1: constant trade; operational then technology savings
+        f1 = _make_fleet_profile(timeline, fuels, emissions, vessel_names=["v"])
+        f1._raw_energy_sea[EnergyDemandTypeID.PROPULSION][:] = [1000.0, 1000.0]
+        f1._operational_energy_sea[EnergyDemandTypeID.PROPULSION][:] = [1000.0, 900.0]
+        f1._energy_sea[EnergyDemandTypeID.PROPULSION][:] = [1000.0, 810.0]
+        f1.set_baseline_energy(0, 1000.0)
+        f1.set_baseline_energy(1, 1000.0)
+
+        # fleet 2: trade doubles at a 20 % better raw intensity, no further savings
+        f2 = _make_fleet_profile(timeline, fuels, emissions, vessel_names=["v"])
+        f2._raw_energy_sea[EnergyDemandTypeID.PROPULSION][:] = [1000.0, 1600.0]
+        f2._operational_energy_sea[EnergyDemandTypeID.PROPULSION][:] = [1000.0, 1600.0]
+        f2._energy_sea[EnergyDemandTypeID.PROPULSION][:] = [1000.0, 1600.0]
+        f2.set_baseline_energy(0, 1000.0)
+        f2.set_baseline_energy(1, 2000.0)
+
+        manager = _make_fleet_profile(timeline, fuels, emissions, vessel_names=["v"])
+        for f in (f1, f2):
+            manager.add_fuel_consumer_profile(f)
+            manager.add_vessel_aggregate_profile(f)
+
+        np.testing.assert_allclose(manager.get_baseline_energy(), [2000.0, 3000.0])
+        assert manager.get_speed_energy_intensity_saving(1) == pytest.approx(1.0 - 2600.0 / 3000.0)
+        assert manager.get_operational_energy_intensity_saving(1) == pytest.approx(1.0 - 2500.0 / 3000.0)
+        assert manager.get_technology_energy_intensity_saving(1) == pytest.approx(1.0 - 2410.0 / 2500.0)
+        assert manager.get_energy_intensity_saving(1) == pytest.approx(1.0 - 2410.0 / 3000.0)
+
+    def test_fleet_empty_at_start_has_no_baseline(self, timeline, fuels, emissions):
+        # no year-0 intensity exists: baseline stays 0 and savings read 0,
+        # even after the fleet phases in vessels later
+        v = _make_vessel_profile(timeline, fuels, emissions)
+        v._raw_energy_sea[EnergyDemandTypeID.PROPULSION][:] = [0.0, 500.0]
+
+        fleet = _make_fleet_profile(timeline, fuels, emissions, vessel_names=["v"])
+        stub = _FleetStub(fleet, cargo_miles_by_idx=[0.0, 400.0])
+
+        transfer_transport_work(stub, 0)
+        fleet.add_fuel_consumer_profile(v, 4.0, 1)
+        transfer_transport_work(stub, 1)
+
+        np.testing.assert_allclose(fleet.get_baseline_energy(), [0.0, 0.0])
+        np.testing.assert_allclose(fleet.get_speed_energy_intensity_saving(), [0.0, 0.0])
+        np.testing.assert_allclose(fleet.get_energy_intensity_saving(), [0.0, 0.0])
+
+    def test_vessel_intensity_accounts_for_lost_transport_work(self, timeline, fuels, emissions):
+        # 10 % slower: energy falls cubically, cargo-miles linearly
+        v = _make_vessel_profile(timeline, fuels, emissions)
+        v._raw_energy_sea[EnergyDemandTypeID.PROPULSION][:] = [100.0, 72.9]
+        v._operational_energy_sea[EnergyDemandTypeID.PROPULSION][:] = [95.0, 69.255]
+        v._energy_sea[EnergyDemandTypeID.PROPULSION][:] = [85.5, 62.3295]
+        v.set_cargo_miles(0, 100.0)
+        v.set_cargo_miles(1, 90.0)
+
+        assert v.get_speed_energy_intensity_saving(1) == pytest.approx(1.0 - 0.729 / 0.9)
+        assert v.get_speed_energy_saving(1) == pytest.approx(1.0 - 0.729)
+        assert v.get_technology_energy_intensity_saving(1) == pytest.approx(v.get_technology_energy_saving(1))

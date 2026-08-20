@@ -393,6 +393,19 @@ class _FuelConsumerProfile(_FuelBaseProfile):
                                        self._raw_energy_sea[demand_type][idx] + self._raw_energy_port[demand_type][idx],
                                        default=1.)
 
+    def get_speed_energy_intensity_saving(self, idx: int | slice = np.s_[:]) -> np.ndarray:
+        return 1. - divide_nonzero(self.get_raw_energy(idx=idx), self.get_baseline_energy(idx), default=1.)
+
+    def get_operational_energy_intensity_saving(self, idx: int | slice = np.s_[:]) -> np.ndarray:
+        return 1. - divide_nonzero(self.get_operational_energy(idx=idx), self.get_baseline_energy(idx), default=1.)
+
+    def get_technology_energy_intensity_saving(self, idx: int | slice = np.s_[:]) -> np.ndarray:
+        # cargo-miles cancel between energy and operational energy
+        return 1. - divide_nonzero(self.get_energy(idx=idx), self.get_operational_energy(idx=idx), default=1.)
+
+    def get_energy_intensity_saving(self, idx: int | slice = np.s_[:]) -> np.ndarray:
+        return 1. - divide_nonzero(self.get_energy(idx=idx), self.get_baseline_energy(idx), default=1.)
+
     def get_consumed_energy(self, fuel_name: str | None = None,
                             idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
         return self._fuel_mass_to_energy(self._consumed_mass, fuel_name, idx)

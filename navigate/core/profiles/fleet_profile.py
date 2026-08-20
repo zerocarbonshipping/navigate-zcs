@@ -22,6 +22,7 @@ class FleetProfile(_VesselAggregateProfile):
         super().__init__()
 
         self._trade: np.ndarray = EMPTY_FLOAT
+        self._cargo_miles: np.ndarray = EMPTY_FLOAT    # transport work performed, cargo-miles/year
 
         self._existing_vessels: dict[str, np.ndarray] = {}
         self._scrap: dict[str, np.ndarray] = {}
@@ -71,6 +72,7 @@ class FleetProfile(_VesselAggregateProfile):
         self._initialize_vessel_aggregate()
 
         self._trade = self._default_array()
+        self._cargo_miles = self._default_array()
 
         for vessel_name in vessel_names:
 
@@ -98,6 +100,9 @@ class FleetProfile(_VesselAggregateProfile):
 
     def set_trade(self, idx: int, trade: float) -> None:
         self._trade[idx] = trade
+
+    def set_cargo_miles(self, idx: int, cargo_miles: float) -> None:
+        self._cargo_miles[idx] = cargo_miles
 
     def set_existing_vessels(self, idx: int, vessel_name: str, existing_vessels: float) -> None:
         self._existing_vessels[vessel_name][idx] = existing_vessels
@@ -149,6 +154,9 @@ class FleetProfile(_VesselAggregateProfile):
 
     def get_trade(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         return self._trade[idx]
+
+    def get_cargo_miles(self, idx: int | slice = np.s_[:]) -> np.ndarray:
+        return self._cargo_miles[idx]
 
     def get_existing_vessels(
             self, vessel_name: str | None = None,

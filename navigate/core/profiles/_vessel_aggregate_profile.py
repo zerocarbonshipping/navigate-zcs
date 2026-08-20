@@ -15,10 +15,8 @@ class _VesselAggregateProfile(_FuelConsumerProfile):
     def __init__(self):
         super().__init__()
 
-        # fleet level energy
-        self._average_raw_energy: np.ndarray = EMPTY_FLOAT             # raw energy demand without trade-growth
-        self._average_operational_energy: np.ndarray = EMPTY_FLOAT     # without trade-growth
-        self._average_energy: np.ndarray = EMPTY_FLOAT                 # energy demand without trade-growth
+        # counterfactual raw energy: year-0 raw intensity times actual transport work
+        self._baseline_energy: np.ndarray = EMPTY_FLOAT
 
         # power
         self._installed_power: dict[FuelTypeID, np.ndarray] = {}
@@ -42,9 +40,7 @@ class _VesselAggregateProfile(_FuelConsumerProfile):
 
     def _initialize_vessel_aggregate(self) -> None:
 
-        self._average_raw_energy = self._default_array()
-        self._average_operational_energy = self._default_array()
-        self._average_energy = self._default_array()
+        self._baseline_energy = self._default_array()
 
         self._installed_power = self._default_dict(FuelTypeID)
         self._newbuild_power = self._default_dict(FuelTypeID)
@@ -73,9 +69,7 @@ class _VesselAggregateProfile(_FuelConsumerProfile):
             Current time-step index.
         """
 
-        self._average_raw_energy[idx] += profile._average_raw_energy[idx]
-        self._average_operational_energy[idx] += profile._average_operational_energy[idx]
-        self._average_energy[idx] += profile._average_energy[idx]
+        self._baseline_energy[idx] += profile._baseline_energy[idx]
 
         for key in self._installed_power:
             self._installed_power[key][idx] += profile._installed_power[key][idx]
@@ -140,35 +134,11 @@ class _VesselAggregateProfile(_FuelConsumerProfile):
     def add_fuel_type_demand(self, fuel_type: FuelTypeID, demand: float, idx: int | slice = np.s_[:]) -> None:
         self._fuel_type_demand[fuel_type][idx] += demand
 
-    def set_average_raw_energy(self, idx: int, demand: float) -> None:
-        self._average_raw_energy[idx] = demand
+    def set_baseline_energy(self, idx: int, energy: float) -> None:
+        self._baseline_energy[idx] = energy
 
-    def set_average_operational_energy(self, idx: int, demand: float) -> None:
-        self._average_operational_energy[idx] = demand
-
-    def set_average_energy(self, idx: int, demand: float) -> None:
-        self._average_energy[idx] = demand
-
-    def get_average_raw_energy(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._average_raw_energy[idx]
-
-    def get_average_operational_energy(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._average_operational_energy[idx]
-
-    def get_average_energy(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._average_energy[idx]
-
-    def get_speed_energy_saving(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return 1. - divide_nonzero(self._average_raw_energy[idx], self._average_raw_energy[0], default=1.)
-
-    def get_operational_energy_saving(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return 1. - divide_nonzero(self._average_operational_energy[idx], self._average_raw_energy[0], default=1.)
-
-    def get_technology_energy_saving(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return 1. - divide_nonzero(self._average_energy[idx], self._average_operational_energy[idx], default=1.)
-
-    def get_energy_saving(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return 1. - divide_nonzero(self._average_energy[idx], self._average_raw_energy[0], default=1.)
+    def get_baseline_energy(self, idx: int | slice = np.s_[:]) -> np.ndarray:
+        return self._baseline_energy[idx]
 
     def get_weighted_average_age(
             self, fuel_type: FuelTypeID | None = None,
