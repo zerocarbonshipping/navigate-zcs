@@ -747,9 +747,7 @@ class SimulationManager:
             regulation.initialize_expectation(length, self.nodes.vessels)
 
         for vessel in self.nodes.vessels.values():
-            vessel.initialize_expectation(length,
-                                          self.nodes.emissions,
-                                          self.nodes.fuels)
+            vessel.initialize_expectation(length, self.nodes.fuels)
 
     def _initialize_profiles(self):
 

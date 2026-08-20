@@ -633,7 +633,7 @@ def update_residual_energy_demand(fleet: Fleet, idx: int) -> None:
     """
 
     # Transfer fleet-level operational savings to each vessel expectation
-    fleet.transfer_operational_saving_to_vessels(idx)
+    fleet.transfer_operational_saving_to_vessels()
 
     for v, vessel in enumerate(fleet.assets):
         route = vessel.route

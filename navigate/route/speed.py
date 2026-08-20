@@ -59,7 +59,7 @@ def perform_speed_management(fleet: Fleet,
     alignment = fleet.speed_alignment
 
     # transfer fleet-level operational savings to vessel expectations
-    fleet.transfer_operational_saving_to_vessels(idx)
+    fleet.transfer_operational_saving_to_vessels()
 
     # phase 1: individual optimization
     results = [_optimize_vessel_speed(vessel, maximum_change, idx) for vessel in fleet.get_vessels()]

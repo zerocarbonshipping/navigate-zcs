@@ -18,7 +18,7 @@ from navigate.util import (
 )
 
 if TYPE_CHECKING:
-    from navigate.fuel import Emission, Fuel
+    from navigate.fuel import Fuel
     from navigate.route.route import Route
 
 
@@ -108,7 +108,7 @@ class VesselExpectation(_Expectation):
         self._freight_rate: np.ndarray = EMPTY_FLOAT                  # freight rate, USD/year
         self._tied_capital: list[np.ndarray | None] = []               # list[time_step: np.ndarray], USD
 
-    def initialize(self, length: int, route: Route, emissions: dict[str, Emission], fuels: dict[str, Fuel]) -> None:
+    def initialize(self, length: int, route: Route, fuels: dict[str, Fuel]) -> None:
         self._initialize_expectation(length)
 
         port_names = [port.get_name() for port in route.ports]

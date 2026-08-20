@@ -717,15 +717,15 @@ class Fleet(AssetManager):
         command_assignment_to_dict(id_, saving, self.operational_saving_port, type_=(FORECAST, VARIABLE),
                                    lower=0., upper=1.)
 
-    def get_operational_saving_sea(self, energy_type: EnergyDemandTypeID, idx) -> float:
+    def get_operational_saving_sea(self, energy_type: EnergyDemandTypeID) -> float:
         return self.operational_saving_sea[energy_type].get()
 
-    def get_operational_saving_port(self, energy_type: EnergyDemandTypeID, idx) -> float:
+    def get_operational_saving_port(self, energy_type: EnergyDemandTypeID) -> float:
         return self.operational_saving_port[energy_type].get()
 
-    def transfer_operational_saving_to_vessels(self, idx: int) -> None:
-        saving_sea = {d: self.get_operational_saving_sea(d, idx) for d in EnergyDemandTypeID}
-        saving_port = {d: self.get_operational_saving_port(d, idx) for d in EnergyDemandTypePortID}
+    def transfer_operational_saving_to_vessels(self) -> None:
+        saving_sea = {d: self.get_operational_saving_sea(d) for d in EnergyDemandTypeID}
+        saving_port = {d: self.get_operational_saving_port(d) for d in EnergyDemandTypePortID}
         for vessel in self.assets:
             vessel.expectation.set_operational_saving_fraction_sea(saving_sea)
             vessel.expectation.set_operational_saving_fraction_port(saving_port)

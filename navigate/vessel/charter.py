@@ -58,7 +58,7 @@ def calculate_vessel_charter_properties(vessel: Vessel,
 
     # based on the calculated cost-flow,
     # calculate the charter properties
-    _calculate_vessel_unit_properties(vessel, component, timeline, idx)
+    _calculate_vessel_unit_properties(vessel, component, idx)
 
 
 def calculate_cargo_charter_properties(vessel: Vessel,
@@ -102,7 +102,6 @@ def calculate_cargo_charter_properties(vessel: Vessel,
 
 def _calculate_vessel_unit_properties(vessel: Vessel,
                                       component: Component,
-                                      timeline: np.ndarray,
                                       idx: int) -> None:
     """
     Aggregates vessel asset cost flows into owner-facing charter metrics for a given time-step.
@@ -117,8 +116,6 @@ def _calculate_vessel_unit_properties(vessel: Vessel,
         Vessel for which asset charter metrics are being calculated.
     component
         The root component that holds cost flows accumulated during vessel cost aggregation.
-    timeline
-        Simulation timeline in days since the start of simulation.
     idx
         Current time-step index in the simulation timeline.
     """

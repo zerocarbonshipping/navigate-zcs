@@ -399,11 +399,10 @@ class Vessel(Node):
         if self.cost_of_capital is None:
             self.cost_of_capital = Scalar(0)
 
-    def initialize_expectation(self, length: int, emissions: dict[str, Emission],
-                               fuels: dict[str, Fuel]) -> None:
+    def initialize_expectation(self, length: int, fuels: dict[str, Fuel]) -> None:
 
         self.expectation = VesselExpectation()
-        self.expectation.initialize(length, self.route, emissions, fuels)
+        self.expectation.initialize(length, self.route, fuels)
 
     def initialize_profile(self, timeline: np.ndarray, emissions: dict[str, Emission],
                            fuels: dict[str, Fuel], emissions_lifetime: float,
