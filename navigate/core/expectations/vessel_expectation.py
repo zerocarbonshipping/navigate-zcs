@@ -18,7 +18,7 @@ from navigate.util import (
 )
 
 if TYPE_CHECKING:
-    from navigate.fuel import Emission, Fuel
+    from navigate.fuel import Fuel
     from navigate.route.route import Route
 
 
@@ -106,9 +106,10 @@ class VesselExpectation(_Expectation):
         self._capex_npv: np.ndarray = EMPTY_FLOAT                     # summed ship CAPEX NPV, USD
         self._asset_charter_rate: np.ndarray = EMPTY_FLOAT            # charter rate, USD/year
         self._freight_rate: np.ndarray = EMPTY_FLOAT                  # freight rate, USD/year
+        self._technology_charter_rate: np.ndarray = EMPTY_FLOAT       # fleet-average technology charge, USD/year
         self._tied_capital: list[np.ndarray | None] = []               # list[time_step: np.ndarray], USD
 
-    def initialize(self, length: int, route: Route, emissions: dict[str, Emission], fuels: dict[str, Fuel]) -> None:
+    def initialize(self, length: int, route: Route, fuels: dict[str, Fuel]) -> None:
         self._initialize_expectation(length)
 
         port_names = [port.get_name() for port in route.ports]
@@ -186,6 +187,7 @@ class VesselExpectation(_Expectation):
         self._capex_npv = self._default_array()
         self._asset_charter_rate = self._default_array()
         self._freight_rate = self._default_array()
+        self._technology_charter_rate = self._default_array()
         self._tied_capital = [None] * length
 
     def reset_expected_bunkering(self) -> None:
@@ -383,6 +385,9 @@ class VesselExpectation(_Expectation):
     def set_freight_rate(self, idx: int, freight_rate: float) -> None:
         self._freight_rate[idx] = freight_rate
 
+    def set_technology_charter_rate(self, idx: int, technology_charter_rate: float) -> None:
+        self._technology_charter_rate[idx] = technology_charter_rate
+
     def set_tied_capital(self, idx: int, tied_capital: np.ndarray) -> None:
         self._tied_capital[idx] = tied_capital
 
@@ -571,6 +576,9 @@ class VesselExpectation(_Expectation):
 
     def get_freight_rate(self, idx: int) -> float:
         return self._freight_rate[idx]
+
+    def get_technology_charter_rate(self, idx: int) -> float:
+        return self._technology_charter_rate[idx]
 
     def get_tied_capital(self, idx: int) -> np.ndarray | None:
         return self._tied_capital[idx]

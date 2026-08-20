@@ -248,6 +248,9 @@ class VesselProfile(_FuelConsumerProfile):
     def cost_is_calculated(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         return self._cost_is_calculated[idx]
 
+    def get_technology_cost(self, idx: int | slice = np.s_[:]) -> np.ndarray:
+        return self._technology_cost[idx]
+
     def get_asset_charter_rate(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         return self._asset_charter_rate[idx]
 

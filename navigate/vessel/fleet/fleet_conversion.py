@@ -360,8 +360,14 @@ def apply_fuel_conversions(fleet: Fleet, proposals: dict, idx: int, timeline: np
             else:
                 idx_to = 0
 
-            pkg = fleet.increments[v_from][increment_idx].package_uptake.copy()
-            fleet.increments[v_to].insert(idx_to, Increment(conversion, age, dt, package_uptake=pkg))
+            # the carried technology charter rate rides along unchanged; the amortization
+            # window and discount rate stay those of the source vessel type — the same
+            # simplification level as disregarding the maintenance cost difference above
+            increment_from = fleet.increments[v_from][increment_idx]
+            pkg = increment_from.package_uptake.copy()
+            fleet.increments[v_to].insert(
+                idx_to, Increment(conversion, age, dt, package_uptake=pkg,
+                                  technology_charter_rate=increment_from.technology_charter_rate))
 
             # update baseline on oldest increment
             if idx_to == 0:

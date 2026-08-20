@@ -38,18 +38,18 @@ def post_process_investment_metric(fleets, timeline):
                 # asset excluding fuel expenses
                 asset_charter_npv = vessel.expectation.get_asset_charter_npv(idx)
 
-                # reconstruct the achieved fuel cost-flow on the operating-year grid
-                # (zero during construction lead time); None when the vessel lacks
-                # bunkering data over the horizon
-                result = _calculate_total_vessel_fuel_expenses(vessel, idx, timeline)
+                # reconstruct the achieved operating cost-flow (fuel, levy, regulation,
+                # technology) on the operating-year grid (zero during construction lead
+                # time); None when the vessel lacks bunkering data over the horizon
+                result = _calculate_total_vessel_operating_expenses(vessel, idx, timeline)
                 if result is None:
                     continue
 
-                fuel_cost_flow, year_flow, overlap = result
+                operating_cost_flow, year_flow, overlap = result
 
-                # calculate the NPV of fuel related expenses and the total vessel NPV
-                fuel_npv = calculate_net_present_value(fuel_cost_flow, discount)
-                cost_npv = asset_charter_npv + fuel_npv
+                # calculate the NPV of operating expenses and the total vessel NPV
+                operating_npv = calculate_net_present_value(operating_cost_flow, discount)
+                cost_npv = asset_charter_npv + operating_npv
 
                 # levelize the cost over the operating years (lead time excluded),
                 # using the same grid as the fuel flow
@@ -138,9 +138,10 @@ def _operating_flows(idx, lead_time, lifetime, timeline):
     return year_flow, overlap
 
 
-def _calculate_total_vessel_fuel_expenses(vessel, idx, timeline):
+def _calculate_total_vessel_operating_expenses(vessel, idx, timeline):
     """
-    Assigns the fuel, levy, and regulation expenses for a vessel in the fleet at a given time of the simulation.
+    Assigns the fuel, levy, regulation, and technology expenses for a vessel in the fleet at a given time
+    of the simulation.
 
     Parameters
     ----------
@@ -154,7 +155,7 @@ def _calculate_total_vessel_fuel_expenses(vessel, idx, timeline):
     Returns
     -------
     tuple[np.ndarray, np.ndarray, np.ndarray] | None
-        The total fuel-related cost flow, the operating-year grid (days), and the per-year operating
+        The total operating cost flow, the operating-year grid (days), and the per-year operating
         fraction (shared with the caller); None when the vessel lacks bunkering data over the horizon.
     """
 
@@ -181,7 +182,8 @@ def _calculate_total_vessel_fuel_expenses(vessel, idx, timeline):
     fuel = np.interp(year_flow, timeline, profile.get_total_fuel_expenses()) * overlap
     levy = np.interp(year_flow, timeline, profile.get_total_levy_expenses()) * overlap
     regulation = np.interp(year_flow, timeline, profile.get_regulation_expenses()) * overlap
+    technology = np.interp(year_flow, timeline, profile.get_technology_cost()) * overlap
 
     profile.set_cost_is_calculated(idx, True)
 
-    return fuel + levy + regulation, year_flow, overlap
+    return fuel + levy + regulation + technology, year_flow, overlap

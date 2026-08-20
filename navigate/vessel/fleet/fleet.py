@@ -43,6 +43,7 @@ from navigate.vessel.fleet import fleet_evolution
 from navigate.vessel.fleet.fleet_technology import (
     build_technology_packages,
     define_initial_technology,
+    transfer_technology_charter_rate,
     transfer_technology_uptake,
     update_residual_energy_demand,
 )
@@ -717,15 +718,15 @@ class Fleet(AssetManager):
         command_assignment_to_dict(id_, saving, self.operational_saving_port, type_=(FORECAST, VARIABLE),
                                    lower=0., upper=1.)
 
-    def get_operational_saving_sea(self, energy_type: EnergyDemandTypeID, idx) -> float:
+    def get_operational_saving_sea(self, energy_type: EnergyDemandTypeID) -> float:
         return self.operational_saving_sea[energy_type].get()
 
-    def get_operational_saving_port(self, energy_type: EnergyDemandTypeID, idx) -> float:
+    def get_operational_saving_port(self, energy_type: EnergyDemandTypeID) -> float:
         return self.operational_saving_port[energy_type].get()
 
-    def transfer_operational_saving_to_vessels(self, idx: int) -> None:
-        saving_sea = {d: self.get_operational_saving_sea(d, idx) for d in EnergyDemandTypeID}
-        saving_port = {d: self.get_operational_saving_port(d, idx) for d in EnergyDemandTypePortID}
+    def transfer_operational_saving_to_vessels(self) -> None:
+        saving_sea = {d: self.get_operational_saving_sea(d) for d in EnergyDemandTypeID}
+        saving_port = {d: self.get_operational_saving_port(d) for d in EnergyDemandTypePortID}
         for vessel in self.assets:
             vessel.expectation.set_operational_saving_fraction_sea(saving_sea)
             vessel.expectation.set_operational_saving_fraction_port(saving_port)
@@ -988,8 +989,11 @@ class Fleet(AssetManager):
         idx = 0
         nv = len(self.assets)
 
-        # build the technology packages
+        # build the technology packages and their cost flows; the cost flows
+        # must exist before the initial technology uptake is seeded, since the
+        # seeding levelizes them into the carried technology charter rate
         self._build_technology_packages()
+        preprocess_packages(self.technology_packages, self.assets, timeline[idx])
 
         # existing fleet
         self._define_initial_split()
@@ -1014,7 +1018,6 @@ class Fleet(AssetManager):
         self.projected_multipliers = calculate_projected_multipliers(multipliers, self.trade)
 
         # calculate the initial effect from technology
-        preprocess_packages(self.technology_packages, self.assets, timeline[idx])
         update_residual_energy_demand(self, idx)
 
         # calculate the initial fleet evolution expectation
@@ -1024,6 +1027,7 @@ class Fleet(AssetManager):
         # initialize technology effect
         self._transfer_multipliers_to_profile(idx)
         transfer_technology_uptake(self, idx)
+        transfer_technology_charter_rate(self, idx)
 
         # set dynamic properties
         self.fuel_conversion_expenses = np.zeros_like(timeline)

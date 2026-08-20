@@ -13,6 +13,7 @@ from navigate.core import calculate_inertia
 from navigate.core.enum_ import UtilityID
 from navigate.core.misc import ROUND_OFF, TOLERANCE, YEAR
 from navigate.util import divide_nonzero, to_numpy
+from navigate.vessel.fleet.fleet_technology import calculate_package_charter_rates
 from navigate.vessel.fleet.fleet_utils import calculate_increments, extract_cargo_miles
 
 if TYPE_CHECKING:
@@ -654,12 +655,18 @@ def add_newbuilds(fleet: Fleet, increments: list[float], time_step: float):
 
         if increment > 0.:
 
+            # the technology bundle chosen at build is charged as a constant
+            # yearly rate levelized over the full vessel lifetime
+            package_rates = calculate_package_charter_rates(fleet.technology_packages, fleet.assets[v])
+            charter_rate = float(np.dot(fleet.newbuild_package_uptake[v], package_rates))
+
             # expand all increment related lists by one.
             # Per definition the new increments have an age of 0.
             was_empty = not fleet.increments[v]
             fleet.increments[v].append(
                 Increment(increment, 0., time_step / YEAR,
-                          package_uptake=fleet.newbuild_package_uptake[v].copy()))
+                          package_uptake=fleet.newbuild_package_uptake[v].copy(),
+                          technology_charter_rate=charter_rate))
 
             # set baseline if this is the first increment in the list
             if was_empty:
@@ -694,18 +701,22 @@ def clean_up_multipliers(fleet: Fleet):
 
             if matching:
 
-                # calculate the weighted average of technology package uptake
+                # calculate the weighted average of technology package
+                # uptake and carried technology charter rate
                 merge_indices = matching + [i]
                 package_uptake = np.zeros_like(fleet.newbuild_package_uptake[v])
+                charter_rate = 0.
 
                 for j in merge_indices:
                     package_uptake += incs[j].multiplier * incs[j].package_uptake
+                    charter_rate += incs[j].multiplier * incs[j].technology_charter_rate
 
                 # move all multipliers into one
                 incs[i].multiplier += sum(incs[j].multiplier for j in matching)
 
-                # set the weighted average of uptake
+                # set the weighted average of uptake and carried rate
                 incs[i].package_uptake = package_uptake / incs[i].multiplier
+                incs[i].technology_charter_rate = charter_rate / incs[i].multiplier
 
                 # by setting to 0, multipliers will be removed later
                 for j in matching:
@@ -873,6 +884,7 @@ def perform_fleet_evolution(fleet: Fleet, timeline: np.ndarray, time_step: float
     from navigate.vessel.fleet.fleet_conversion import perform_fuel_conversions
     from navigate.vessel.fleet.fleet_technology import (
         reconcile_newbuild_technology_caps,
+        transfer_technology_charter_rate,
         transfer_technology_uptake,
         update_residual_energy_demand,
     )
@@ -920,13 +932,19 @@ def perform_fleet_evolution(fleet: Fleet, timeline: np.ndarray, time_step: float
     # reconcile newbuild package shares against per-technology flow caps now that vessel-type
     # counts are known
     reconcile_newbuild_technology_caps(fleet, increments, time_step, multipliers_total)
-    transfer_technology_uptake(fleet, idx)
 
     # add the newbuilds to the list of increments
     add_newbuilds(fleet, increments, time_step)
 
     # update the residual energy demand now that the fleet composition is updated
     update_residual_energy_demand(fleet, idx)
+
+    # transfer the technology uptake and refresh the fleet-average carried
+    # technology charge after evolution, so both profile series consistently
+    # reflect this timestep's scrapping, conversions, and newbuilds (the
+    # pre-evolution charge transfer already served the cargo charter)
+    transfer_technology_uptake(fleet, idx)
+    transfer_technology_charter_rate(fleet, idx)
 
     # check that all the trade has been satisfied otherwise print a warning
     if trade > 0 and (trade_gap / trade) > 1e-3:

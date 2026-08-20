@@ -71,6 +71,10 @@ def calculate_profile(fleet: Fleet, fuels: dict[str, Fuel], timeline: np.ndarray
             fleet.profile.add_vessel_expenses(cost * inc.multiplier, idx)
             fleet.profile.add_vessel_tied_capital(tied_capital * inc.multiplier, idx)
 
+            # the carried technology charge is the levelized analogue of the
+            # asset charter rate for the cohort's installed technologies
+            fleet.profile.add_technology_expenses(inc.technology_charter_rate * inc.multiplier, idx)
+
     # transfer running technology retrofit and fuel conversion expenses
     fleet.profile.add_fuel_conversion_expenses(fleet.fuel_conversion_expenses[idx], idx)
 

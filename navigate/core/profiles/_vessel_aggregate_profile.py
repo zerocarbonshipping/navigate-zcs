@@ -26,8 +26,7 @@ class _VesselAggregateProfile(_FuelConsumerProfile):
 
         # expenses
         self._vessel_expenses: np.ndarray = EMPTY_FLOAT
-        self._technology_newbuild_expenses: np.ndarray = EMPTY_FLOAT
-        self._technology_retrofit_expenses: np.ndarray = EMPTY_FLOAT
+        self._technology_expenses: np.ndarray = EMPTY_FLOAT
         self._fuel_conversion_expenses: np.ndarray = EMPTY_FLOAT
         self._vessel_tied_capital: np.ndarray = EMPTY_FLOAT
 
@@ -48,8 +47,7 @@ class _VesselAggregateProfile(_FuelConsumerProfile):
         self._fuel_converted_power = self._default_tuple_dict(FuelTypeID, FuelTypeID)
 
         self._vessel_expenses = self._default_array()
-        self._technology_newbuild_expenses = self._default_array()
-        self._technology_retrofit_expenses = self._default_array()
+        self._technology_expenses = self._default_array()
         self._fuel_conversion_expenses = self._default_array()
         self._vessel_tied_capital = self._default_array()
 
@@ -84,8 +82,7 @@ class _VesselAggregateProfile(_FuelConsumerProfile):
             self._fuel_converted_power[key][idx] += profile._fuel_converted_power[key][idx]
 
         self._vessel_expenses[idx] += profile._vessel_expenses[idx]
-        self._technology_newbuild_expenses[idx] += profile._technology_newbuild_expenses[idx]
-        self._technology_retrofit_expenses[idx] += profile._technology_retrofit_expenses[idx]
+        self._technology_expenses[idx] += profile._technology_expenses[idx]
         self._fuel_conversion_expenses[idx] += profile._fuel_conversion_expenses[idx]
         self._vessel_tied_capital[idx] += profile._vessel_tied_capital[idx]
 
@@ -114,11 +111,8 @@ class _VesselAggregateProfile(_FuelConsumerProfile):
     def add_vessel_expenses(self, expenses: float, idx: int | slice = np.s_[:]) -> None:
         self._vessel_expenses[idx] += expenses
 
-    def add_technology_newbuild_expenses(self, expenses: float, idx: int | slice = np.s_[:]) -> None:
-        self._technology_newbuild_expenses[idx] += expenses
-
-    def add_technology_retrofit_expenses(self, expenses: float, idx: int | slice = np.s_[:]) -> None:
-        self._technology_retrofit_expenses[idx] += expenses
+    def add_technology_expenses(self, expenses: float, idx: int | slice = np.s_[:]) -> None:
+        self._technology_expenses[idx] += expenses
 
     def add_vessel_tied_capital(self, tied_capital: float, idx: int) -> None:
         self._vessel_tied_capital[idx] += tied_capital
@@ -183,19 +177,15 @@ class _VesselAggregateProfile(_FuelConsumerProfile):
     def get_vessel_expenses(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         return self._vessel_expenses[idx]
 
-    def get_technology_newbuild_expenses(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._technology_newbuild_expenses[idx]
-
-    def get_technology_retrofit_expenses(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._technology_retrofit_expenses[idx]
+    def get_technology_expenses(self, idx: int | slice = np.s_[:]) -> np.ndarray:
+        return self._technology_expenses[idx]
 
     def get_fuel_conversion_expenses(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         return self._fuel_conversion_expenses[idx]
 
     def get_vessel_related_expenses(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         return (self._vessel_expenses[idx]
-                + self._technology_newbuild_expenses[idx]
-                + self._technology_retrofit_expenses[idx]
+                + self._technology_expenses[idx]
                 + self._fuel_conversion_expenses[idx])
 
     def get_expenses(self, idx: int | slice = np.s_[:]) -> np.ndarray:
@@ -206,11 +196,8 @@ class _VesselAggregateProfile(_FuelConsumerProfile):
     def get_cumulative_vessel_expenses(self) -> np.ndarray:
         return self._to_cumulative(self._vessel_expenses)
 
-    def get_cumulative_technology_newbuild_expenses(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._to_cumulative_dict(self._technology_newbuild_expenses[idx])
-
-    def get_cumulative_technology_retrofit_expenses(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._to_cumulative_dict(self._technology_retrofit_expenses[idx])
+    def get_cumulative_technology_expenses(self) -> np.ndarray:
+        return self._to_cumulative(self._technology_expenses)
 
     def get_cumulative_fuel_conversion_expenses(self) -> np.ndarray:
         return self._to_cumulative(self._fuel_conversion_expenses)

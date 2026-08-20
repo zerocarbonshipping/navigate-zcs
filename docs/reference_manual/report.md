@@ -235,14 +235,12 @@ The properties are applicable for the following commands:
 | CumulativeScrappedPopwer              | MW       | Cumulative installed power scrapped per fuel type.                     |
 | CumulativeFuelConvertedPower          | MW       | Cumulative installed power fuel converted per fuel type to fuel type.  |
 | VesselExpenses                        | USD/year | Running expenses of acquisition of all vessels.                        |
-| TechnologyNewbuildExpenses            | USD/year | Running expenses of technologies for all newbuilds.                    |
-| TechnologyRetrofitExpenses            | USD/year | Running expenses of technologies for all retrofits.                    |
+| TechnologyExpenses                    | USD/year | Running levelized expenses of all installed technologies.              |
 | FuelConversionExpenses                | USD/year | Running expenses of all fuel conversions.                              |
 | VesselRelatedExpenses                 | USD/year | Running expenses of all vessels.                                       |
 | Expenses                              | USD/year | Running expenses including fuel of all vessels.                        |
 | CumulativeVesselExpenses              | USD      | Cumulative running expenses of acquisition of all vessels.             |
-| CumulativeTechnologyNewbuildExpenses  | USD      | Cumulative running expenses of technologies for all newbuilds.         |
-| CumulativeTechnologyRetrofitExpenses  | USD      | Cumulative running expenses of technologies for all retrofits.         |
+| CumulativeTechnologyExpenses          | USD      | Cumulative running levelized expenses of all installed technologies.   |
 | CumulativeFuelConversionExpenses      | USD      | Cumulative running expenses of fuel conversions for all newbuilds.     |
 | CumulativeVesselRelatedExpenses       | USD      | Cumulative running expenses of all vessels.                            |
 | CumulativeExpenses                    | USD      | Cumulative running expenses including fuel of all vessels.             |
@@ -317,10 +315,11 @@ The properties are applicable for the following commands:
 | OperationalEnergyIntensitySaving | GJ/GJ            | Relative reduction of energy per cargo-mile from speed and operational changes. |
 | TechnologyEnergyIntensitySaving | GJ/GJ             | Relative reduction of energy from added technologies.                     |
 | EnergyIntensitySaving   | GJ/GJ                     | Relative reduction of energy per cargo-mile from speed, operational, and technology changes. |
-| AssetCharterRate        | USD/year                  | Asset charter rate (owner to operator), does not include fuel expenses.   |
-| CargoCharterRate        | USD/year                  | Cargo charter rate (operator to cargo owner), includes fuel expenses.     |
-| InvestmentFreightRate   | USD/cargo-nautical mile   | Long-run freight rate at the time of investment.                          |
-| InvestmentFreightRate   | USD/cargo-nautical mile   | Long-run freight rate at the actual conditions of the vessel.             |
+| AssetCharterRate        | USD/year                  | Asset charter rate (owner to operator), does not include fuel or technology expenses. |
+| CargoCharterRate        | USD/year                  | Cargo charter rate (operator to cargo owner), includes fuel and technology expenses. |
+| TechnologyCost          | USD/year                  | Fleet-average levelized cost of installed technologies.                   |
+| InvestmentFreightRate   | USD/cargo-nautical mile   | Long-run freight rate at the time of investment, includes fuel and technology expenses. |
+| InstantaneousFreightRate | USD/cargo-nautical mile  | Long-run freight rate at the actual conditions of the vessel, includes fuel and technology expenses. |
 
 
 The properties are applicable for the following commands:
