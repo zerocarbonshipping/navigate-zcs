@@ -989,37 +989,29 @@ of results both on a node basis and on a global basis.</p>
 <td><p>USD/year</p></td>
 <td><p>Running expenses of acquisition of all vessels.</p></td>
 </tr>
-<tr class="row-odd"><td><p>TechnologyNewbuildExpenses</p></td>
+<tr class="row-odd"><td><p>TechnologyExpenses</p></td>
 <td><p>USD/year</p></td>
-<td><p>Running expenses of technologies for all newbuilds.</p></td>
+<td><p>Running levelized expenses of all installed technologies.</p></td>
 </tr>
-<tr class="row-even"><td><p>TechnologyRetrofitExpenses</p></td>
-<td><p>USD/year</p></td>
-<td><p>Running expenses of technologies for all retrofits.</p></td>
-</tr>
-<tr class="row-odd"><td><p>FuelConversionExpenses</p></td>
+<tr class="row-even"><td><p>FuelConversionExpenses</p></td>
 <td><p>USD/year</p></td>
 <td><p>Running expenses of all fuel conversions.</p></td>
 </tr>
-<tr class="row-even"><td><p>VesselRelatedExpenses</p></td>
+<tr class="row-odd"><td><p>VesselRelatedExpenses</p></td>
 <td><p>USD/year</p></td>
 <td><p>Running expenses of all vessels.</p></td>
 </tr>
-<tr class="row-odd"><td><p>Expenses</p></td>
+<tr class="row-even"><td><p>Expenses</p></td>
 <td><p>USD/year</p></td>
 <td><p>Running expenses including fuel of all vessels.</p></td>
 </tr>
-<tr class="row-even"><td><p>CumulativeVesselExpenses</p></td>
+<tr class="row-odd"><td><p>CumulativeVesselExpenses</p></td>
 <td><p>USD</p></td>
 <td><p>Cumulative running expenses of acquisition of all vessels.</p></td>
 </tr>
-<tr class="row-odd"><td><p>CumulativeTechnologyNewbuildExpenses</p></td>
+<tr class="row-even"><td><p>CumulativeTechnologyExpenses</p></td>
 <td><p>USD</p></td>
-<td><p>Cumulative running expenses of technologies for all newbuilds.</p></td>
-</tr>
-<tr class="row-even"><td><p>CumulativeTechnologyRetrofitExpenses</p></td>
-<td><p>USD</p></td>
-<td><p>Cumulative running expenses of technologies for all retrofits.</p></td>
+<td><p>Cumulative running levelized expenses of all installed technologies.</p></td>
 </tr>
 <tr class="row-odd"><td><p>CumulativeFuelConversionExpenses</p></td>
 <td><p>USD</p></td>
@@ -1263,19 +1255,23 @@ of results both on a node basis and on a global basis.</p>
 </tr>
 <tr class="row-even"><td><p>AssetCharterRate</p></td>
 <td><p>USD/year</p></td>
-<td><p>Asset charter rate (owner to operator), does not include fuel expenses.</p></td>
+<td><p>Asset charter rate (owner to operator), does not include fuel or technology expenses.</p></td>
 </tr>
 <tr class="row-odd"><td><p>CargoCharterRate</p></td>
 <td><p>USD/year</p></td>
-<td><p>Cargo charter rate (operator to cargo owner), includes fuel expenses.</p></td>
+<td><p>Cargo charter rate (operator to cargo owner), includes fuel and technology expenses.</p></td>
 </tr>
-<tr class="row-even"><td><p>InvestmentFreightRate</p></td>
-<td><p>USD/cargo-nautical mile</p></td>
-<td><p>Long-run freight rate at the time of investment.</p></td>
+<tr class="row-even"><td><p>TechnologyCost</p></td>
+<td><p>USD/year</p></td>
+<td><p>Fleet-average levelized cost of installed technologies.</p></td>
 </tr>
 <tr class="row-odd"><td><p>InvestmentFreightRate</p></td>
 <td><p>USD/cargo-nautical mile</p></td>
-<td><p>Long-run freight rate at the actual conditions of the vessel.</p></td>
+<td><p>Long-run freight rate at the time of investment, includes fuel and technology expenses.</p></td>
+</tr>
+<tr class="row-even"><td><p>InstantaneousFreightRate</p></td>
+<td><p>USD/cargo-nautical mile</p></td>
+<td><p>Long-run freight rate at the actual conditions of the vessel, includes fuel and technology expenses.</p></td>
 </tr>
 </tbody>
 </table>
