@@ -23,6 +23,8 @@ class VesselProfile(_FuelConsumerProfile):
         self._lifetime: np.ndarray = EMPTY_FLOAT   # year, lifetime of the vessel
         self._lead_time: np.ndarray = EMPTY_FLOAT  # year, lead time of the vessel
 
+        self._cargo_miles: np.ndarray = EMPTY_FLOAT   # transport work performed, cargo-miles/year
+
         # speeds
         self._reference_speed: np.ndarray = EMPTY_NAN       # reference speed, knots
         self._minimum_speed: np.ndarray = EMPTY_NAN         # minimum possible speed, knots
@@ -77,6 +79,8 @@ class VesselProfile(_FuelConsumerProfile):
         self._lifetime = self._default_array()
         self._lead_time = self._default_array()
 
+        self._cargo_miles = self._default_array()
+
         # speeds
         self._reference_speed = self._default_array(default=np.nan)
         self._minimum_speed = self._default_array(default=np.nan)
@@ -106,6 +110,9 @@ class VesselProfile(_FuelConsumerProfile):
 
     def set_lead_time(self, idx: int, lead_time: float) -> None:
         self._lead_time[idx] = lead_time
+
+    def set_cargo_miles(self, idx: int, cargo_miles: float) -> None:
+        self._cargo_miles[idx] = cargo_miles
 
     def set_reference_speed(self, idx: int, reference_speed: float) -> None:
         self._reference_speed[idx] = reference_speed
@@ -185,6 +192,9 @@ class VesselProfile(_FuelConsumerProfile):
     def get_lead_time(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         return self._lead_time[idx]
 
+    def get_cargo_miles(self, idx: int | slice = np.s_[:]) -> np.ndarray:
+        return self._cargo_miles[idx]
+
     def get_reference_speed(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         return self._reference_speed[idx]
 
@@ -219,10 +229,15 @@ class VesselProfile(_FuelConsumerProfile):
         return 1. - divide_nonzero(self.get_operational_energy(idx=idx), self.get_raw_energy(idx=0), default=1.)
 
     def get_technology_energy_saving(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return 1. - divide_nonzero(self.get_energy(idx=idx), self.get_operational_energy(idx=idx), default=1.)
+        return self.get_technology_energy_intensity_saving(idx)
 
     def get_energy_saving(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         return 1. - divide_nonzero(self.get_energy(idx=idx), self.get_raw_energy(idx=0), default=1.)
+
+    def get_baseline_energy(self, idx: int | slice = np.s_[:]) -> np.ndarray:
+        # counterfactual raw energy: year-0 raw intensity times actual transport work
+        growth = divide_nonzero(self._cargo_miles[idx], self._cargo_miles[0], default=1.)
+        return self.get_raw_energy(idx=0) * growth
 
     def is_active(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         return self._in_fleet[idx]

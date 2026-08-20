@@ -24,9 +24,9 @@ def plot_global_energy_saving(manager, directory):
     propulsion_saving = profile.get_saving(EnergyDemandTypeID.PROPULSION) * 100.
     electrical_saving = profile.get_saving(EnergyDemandTypeID.ELECTRICAL) * 100.
     heat_saving = profile.get_saving(EnergyDemandTypeID.HEAT) * 100.
-    technology_saving = profile.get_technology_energy_saving() * 100.
-    operational_saving = profile.get_operational_energy_saving() * 100.
-    total_saving = profile.get_energy_saving() * 100.
+    technology_saving = profile.get_technology_energy_intensity_saving() * 100.
+    operational_saving = profile.get_operational_energy_intensity_saving() * 100.
+    total_saving = profile.get_energy_intensity_saving() * 100.
 
     max_value = max(propulsion_saving.max(), electrical_saving.max(), heat_saving.max(),
                     technology_saving.max(), operational_saving.max(), total_saving.max())

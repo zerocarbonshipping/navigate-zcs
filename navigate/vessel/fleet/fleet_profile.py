@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.misc import TOLERANCE, YEAR
-from navigate.util import get_increment_origin_index
+from navigate.util import divide_nonzero, get_increment_origin_index
 from navigate.vessel.fleet.fleet_speed import aggregate_speed_profile
 
 if TYPE_CHECKING:
@@ -207,31 +207,30 @@ def calculate_profile(fleet: Fleet, fuels: dict[str, Fuel], timeline: np.ndarray
     # calculate the average speeds of the fleet across all vessel types
     aggregate_speed_profile(fleet.assets, fleet.get_multiplier, fleet.profile, idx)
 
-    # transfer the operational and total energy saving
-    weight = 0.
-    raw_energy_per_cargo_mile = 0.
-    operational_energy_per_cargo_mile = 0.
-    energy_per_cargo_miles = 0.
-    initial_trade = fleet.profile.get_trade(idx=0)
+    # transfer the transport work performed and the counterfactual baseline energy
+    transfer_transport_work(fleet, idx)
 
-    for v, vessel in enumerate(fleet.assets):
 
-        profile = vessel.profile
-        cargo_miles = vessel.expectation.get_cargo_miles(idx)
-        multiplier = fleet.get_multiplier(v)
+def transfer_transport_work(fleet: Fleet, idx: int) -> None:
+    """
+    Transfer the transport work performed and the counterfactual baseline
+    energy: what the year-0 raw energy intensity would require to perform
+    the transport work actually performed at this time step. A fleet with
+    no vessels at the first time step has no year-0 intensity to measure
+    against: its baseline stays 0 for the whole simulation, its intensity
+    savings read 0, and it contributes no baseline to aggregate savings.
 
-        weight += multiplier
-        raw_energy_per_cargo_mile += multiplier * profile.get_raw_energy(idx=idx) / cargo_miles
-        operational_energy_per_cargo_mile += multiplier * profile.get_operational_energy(idx=idx) / cargo_miles
-        energy_per_cargo_miles += multiplier * profile.get_energy(idx=idx) / cargo_miles
+    Parameters
+    ----------
+    fleet
+        Fleet instance.
+    idx
+        Current time-step index.
+    """
 
-    raw_energy_per_cargo_mile /= weight
-    operational_energy_per_cargo_mile /= weight
-    energy_per_cargo_miles /= weight
-    raw_energy = raw_energy_per_cargo_mile * initial_trade
-    operational_energy = operational_energy_per_cargo_mile * initial_trade
-    energy = energy_per_cargo_miles * initial_trade
+    cargo_miles = fleet.calculate_cargo_miles(idx)
+    fleet.profile.set_cargo_miles(idx, cargo_miles)
 
-    fleet.profile.set_average_raw_energy(idx, float(raw_energy))
-    fleet.profile.set_average_operational_energy(idx, float(operational_energy))
-    fleet.profile.set_average_energy(idx, float(energy))
+    growth = divide_nonzero(cargo_miles, fleet.profile.get_cargo_miles(idx=0), default=1.)
+    baseline = fleet.profile.get_raw_energy(idx=0) * growth
+    fleet.profile.set_baseline_energy(idx, baseline)

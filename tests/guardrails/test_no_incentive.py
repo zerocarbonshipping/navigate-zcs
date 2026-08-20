@@ -116,9 +116,9 @@ class TestNoIncentive:
             "propulsion": profile.get_saving(EnergyDemandTypeID.PROPULSION),
             "electrical": profile.get_saving(EnergyDemandTypeID.ELECTRICAL),
             "heat": profile.get_saving(EnergyDemandTypeID.HEAT),
-            "technology": profile.get_technology_energy_saving(),
-            "operational": profile.get_operational_energy_saving(),
-            "total": profile.get_energy_saving(),
+            "technology": profile.get_technology_energy_intensity_saving(),
+            "operational": profile.get_operational_energy_intensity_saving(),
+            "total": profile.get_energy_intensity_saving(),
         }
 
         for name, saving in savings.items():

@@ -32,9 +32,9 @@ def plot_fleet_energy_saving(manager, directory):
 
         fleet_profile = fleet.profile
 
-        saving_op = fleet_profile.get_operational_energy_saving() * 100.
-        saving_tech = fleet_profile.get_technology_energy_saving() * 100.
-        saving = fleet_profile.get_energy_saving() * 100.
+        saving_op = fleet_profile.get_operational_energy_intensity_saving() * 100.
+        saving_tech = fleet_profile.get_technology_energy_intensity_saving() * 100.
+        saving = fleet_profile.get_energy_intensity_saving() * 100.
 
         min_saving = min(min_saving, np.amin(saving_tech), np.amin(saving_op), np.amin(saving))
         max_saving = max(max_saving, np.amax(saving_tech), np.amax(saving_op), np.amax(saving))

@@ -65,6 +65,20 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   emissions.
 
 ### Changed
+- **Breaking**: the fleet- and global-level energy-saving metrics are
+  redefined as energy-intensity savings against a counterfactual baseline —
+  the energy the year-0 raw intensity (year-0 speed, no operational measures,
+  no technologies) would require to perform the transport work actually
+  performed. This replaces the vessel-count-weighted average of per-vessel
+  intensities scaled by initial trade, which under-weighted the vessel types
+  performing most of the transport work and froze cross-fleet weights at
+  year-0 trade. The `add_property`/`add_fleet_property` report properties
+  `OperationalEnergySaving`, `TechnologyEnergySaving`, and `EnergySaving`
+  become `OperationalEnergyIntensitySaving`, `TechnologyEnergyIntensitySaving`,
+  and `EnergyIntensitySaving` (the old names remain valid on
+  `add_vessel_property`, where they are absolute vessel-energy savings), and
+  `SpeedEnergyIntensitySaving` is newly exposed. The `fleet_energy_saving`
+  and `global_energy_saving` plots show the redefined metrics.
 - The investment post-processing and fleet aggregation read vessel
   cargo-miles from the expectation instead of the profile (value-identical).
 - Shore power is now part of the fuel-consumer accounting: its energy is
@@ -82,6 +96,14 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   code still computes the sources separately).
 
 ### Added
+- Vessel-level energy-intensity savings (`SpeedEnergyIntensitySaving`,
+  `OperationalEnergyIntensitySaving`, `TechnologyEnergyIntensitySaving`,
+  `EnergyIntensitySaving` on `add_vessel_property`): per-cargo-mile
+  counterparts of the absolute vessel-energy savings, accounting for the
+  transport work lost when a vessel slows down. The technology variant
+  equals its absolute counterpart, since cargo-miles cancel in that ratio.
+  Vessel and fleet profiles store the transport work performed
+  (cargo-miles) to support them.
 - Report properties `ShorePowerEnergy`, `ShorePowerExpenses`, and
   `ShorePowerEmission`, available at vessel, fleet, and global level.
 - Behavior guardrail test suite (`tests/guardrails/`): committed decks that

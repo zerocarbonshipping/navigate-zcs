@@ -223,9 +223,10 @@ The properties are applicable for the following commands:
 | PropulsionSaving                      | GJ/GJ    | Relative reduction of propulsion energy demand.                        |
 | ElectricalSaving                      | GJ/GJ    | Relative reduction of electrical energy demand.                        |
 | HeatSaving                            | GJ/GJ    | Relative reduction of heat energy demand.                              |
-| OperationalEnergySaving               | GJ/GJ    | Relative reduction of energy from operational measures.                |
-| TechnologyEnergySaving                | GJ/GJ    | Relative reduction of energy from added technologies.                  |
-| EnergySaving                          | GJ/GJ    | Relative reduction of all energy demand.                               |
+| SpeedEnergyIntensitySaving            | GJ/GJ    | Relative reduction of energy intensity from speed changes, against the year-0 raw intensity performing the actual transport work. |
+| OperationalEnergyIntensitySaving      | GJ/GJ    | Relative reduction of energy intensity from speed and operational measures, against the year-0 raw intensity performing the actual transport work. |
+| TechnologyEnergyIntensitySaving       | GJ/GJ    | Relative reduction of energy from added technologies.                  |
+| EnergyIntensitySaving                 | GJ/GJ    | Relative reduction of energy intensity from speed, operational measures, and technologies, against the year-0 raw intensity performing the actual transport work. |
 | InstalledPower                        | MW       | Installed power per fuel type.                                         |
 | NewbuildPower                         | MW/year  | Installed power for newbuilds per fuel type.                           |
 | ScrappedPower                         | MW/year  | Installed power scrapped per fuel type.                                |
@@ -312,6 +313,10 @@ The properties are applicable for the following commands:
 | OperationalEnergySaving | GJ/GJ                     | Relative reduction of all energy demand due to operational changes.       |
 | TechnologyEnergySaving  | GJ/GJ                     | Relative reduction of all energy demand from added technologies.          |
 | EnergySaving            | GJ/GJ                     | Relative reduction of all energy from operational and technology changes. |
+| SpeedEnergyIntensitySaving | GJ/GJ                  | Relative reduction of energy per cargo-mile from speed changes.           |
+| OperationalEnergyIntensitySaving | GJ/GJ            | Relative reduction of energy per cargo-mile from speed and operational changes. |
+| TechnologyEnergyIntensitySaving | GJ/GJ             | Relative reduction of energy from added technologies.                     |
+| EnergyIntensitySaving   | GJ/GJ                     | Relative reduction of energy per cargo-mile from speed, operational, and technology changes. |
 | AssetCharterRate        | USD/year                  | Asset charter rate (owner to operator), does not include fuel expenses.   |
 | CargoCharterRate        | USD/year                  | Cargo charter rate (operator to cargo owner), includes fuel expenses.     |
 | InvestmentFreightRate   | USD/cargo-nautical mile   | Long-run freight rate at the time of investment.                          |
