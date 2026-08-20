@@ -43,6 +43,7 @@ from navigate.vessel.fleet import fleet_evolution
 from navigate.vessel.fleet.fleet_technology import (
     build_technology_packages,
     define_initial_technology,
+    transfer_technology_charter_rate,
     transfer_technology_uptake,
     update_residual_energy_demand,
 )
@@ -988,8 +989,11 @@ class Fleet(AssetManager):
         idx = 0
         nv = len(self.assets)
 
-        # build the technology packages
+        # build the technology packages and their cost flows; the cost flows
+        # must exist before the initial technology uptake is seeded, since the
+        # seeding levelizes them into the carried technology charter rate
         self._build_technology_packages()
+        preprocess_packages(self.technology_packages, self.assets, timeline[idx])
 
         # existing fleet
         self._define_initial_split()
@@ -1014,7 +1018,6 @@ class Fleet(AssetManager):
         self.projected_multipliers = calculate_projected_multipliers(multipliers, self.trade)
 
         # calculate the initial effect from technology
-        preprocess_packages(self.technology_packages, self.assets, timeline[idx])
         update_residual_energy_demand(self, idx)
 
         # calculate the initial fleet evolution expectation
@@ -1024,6 +1027,7 @@ class Fleet(AssetManager):
         # initialize technology effect
         self._transfer_multipliers_to_profile(idx)
         transfer_technology_uptake(self, idx)
+        transfer_technology_charter_rate(self, idx)
 
         # set dynamic properties
         self.fuel_conversion_expenses = np.zeros_like(timeline)

@@ -65,6 +65,24 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   emissions.
 
 ### Changed
+- Technology CAPEX/OPEX now enters the vessel cost metrics. Every install
+  event (newbuild bundle, retrofit, seeded initial uptake) is levelized at
+  the vessel cost of capital over the window it serves — the full lifetime
+  for newbuilds and initial uptake, the remaining lifetime for retrofits —
+  and carried on the age cohort as a constant USD/year charge. The
+  fleet-average carried charge is added to the investment freight rate and
+  cargo charter rate (matching the fleet-average uptake the fuel expenses
+  reflect) and, as a realized yearly series, to the post-processed
+  instantaneous freight rate. The asset charter rate and CAPEX NPV remain
+  hull-and-machinery only. Adoption decisions are unchanged (still
+  discounted at `TechnologyCostOfCapital`). Newbuild vessel choice shifts
+  accordingly, since the freight rate is its decision metric. The
+  never-populated `TechnologyNewbuildExpenses`/`TechnologyRetrofitExpenses`
+  report properties (and their cumulatives) are replaced by a live
+  `TechnologyExpenses`/`CumulativeTechnologyExpenses` pair — the
+  multiplier-weighted carried charge, the levelized analogue of
+  `VesselExpenses` — which now also feeds `VesselRelatedExpenses`,
+  `Expenses`, and a single Technology band in the `global_expenses` plot.
 - **Breaking**: the fleet- and global-level energy-saving metrics are
   redefined as energy-intensity savings against a counterfactual baseline —
   the energy the year-0 raw intensity (year-0 speed, no operational measures,

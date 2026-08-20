@@ -256,12 +256,9 @@ class SimulationManager:
             self._initialize_existing_production()
             self.profile.add_overhead_time(self._idx, timeit.default_timer() - start_time_overhead)
 
-        # calculate the chartering costs
-        # of all vessels in the fleet.
-        # Calculated after initialization
-        # of existing fleet in order to
-        # account for technology costs
-        # TODO: Ensure technology cost is included once merging with EE rewrite
+        # calculate the chartering costs of all vessels in the fleet.
+        # Technology costs are excluded here: they enter the cargo charter
+        # metrics below as the fleet-average carried technology charge
         self._calculate_vessel_charter_properties()
 
         if self._idx > 0:

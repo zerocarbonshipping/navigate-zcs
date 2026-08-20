@@ -18,7 +18,14 @@ from navigate.util import divide_nonzero
 from navigate.vessel import Technology, Vessel
 from navigate.vessel.fleet.fleet_utils import get_remaining_lifetime, is_retrofit_cycle
 from navigate.vessel.heuristic import calculate_marginal_technology_saving
-from navigate.vessel.package import Package, npv_for_newbuilds, npv_for_retrofit_steps, preprocess_packages
+from navigate.vessel.package import (
+    Package,
+    annual_costs_for_retrofit_steps,
+    levelize_package_cost,
+    npv_for_newbuilds,
+    npv_for_retrofit_steps,
+    preprocess_packages,
+)
 from navigate.vessel.saving import calculate_residual_energy
 
 if TYPE_CHECKING:
@@ -55,6 +62,34 @@ def build_technology_packages(technologies: list[Technology]
     return packages, package_to_technology_map
 
 
+def calculate_package_charter_rates(packages: list[Package], vessel: Vessel) -> np.ndarray:
+    """
+    Levelized USD/year charge per package for an install at build, over the vessel lifetime.
+
+    Levelized at the vessel cost of capital so the charge is consistent with the
+    freight-rate NPVs it feeds; the adoption decision keeps its own discount rate.
+
+    Parameters
+    ----------
+    packages
+        All technology packages (from empty to full), with cost flows computed
+        by ``preprocess_packages``.
+    vessel
+        Vessel whose lifetime and cost of capital govern the levelization.
+
+    Returns
+    -------
+    np.ndarray
+        Constant yearly charge per package, USD/year.
+    """
+
+    lifetime = vessel.lifetime.get()
+    discount_rate = vessel.cost_of_capital.get()
+
+    return np.array([levelize_package_cost(pkg.cost_flow, lifetime, discount_rate)
+                     for pkg in packages])
+
+
 def define_initial_technology(fleet: Fleet) -> None:
     """
     Define and initialize the technology adoption structure and initial package uptakes.
@@ -89,6 +124,10 @@ def define_initial_technology(fleet: Fleet) -> None:
         truncation_count = 0
         truncated_tech_names: set[str] = set()
 
+        # seeded uptake is charged as if installed at build (consistent with the
+        # hull, which the instantaneous freight rate charges at full newbuild cost)
+        package_rates = calculate_package_charter_rates(fleet.technology_packages, vessel)
+
         for inc in fleet.increments[v]:
 
             # build per-technology shares for this increment's age
@@ -101,6 +140,7 @@ def define_initial_technology(fleet: Fleet) -> None:
             package_mix, truncated = shares_to_package_mix(
                 fleet.technologies, fleet.technology_packages, shares)
             inc.package_uptake[:] = package_mix
+            inc.technology_charter_rate = float(np.dot(package_mix, package_rates))
 
             if truncated:
                 truncation_count += 1
@@ -227,7 +267,7 @@ def perform_technology_installation(fleet: Fleet,
     # Pre-newbuild fleet count: denominator for both retrofit and newbuild-technology caps.
     multipliers_total = float(sum(fleet.get_multipliers()))
 
-    retrofit_proposals: list[tuple[int, int, int, np.ndarray, float]] = []
+    retrofit_proposals: list[tuple[int, int, int, np.ndarray, float, np.ndarray]] = []
     for v, vessel in enumerate(fleet.assets):
 
         discount_rate = get_technology_discount_rate(fleet.technology_cost_of_capital, vessel)
@@ -255,10 +295,14 @@ def perform_technology_installation(fleet: Fleet,
     # is also issued so the stored uptake reflects the reconciled shares.
     reconcile_retrofit_technology_caps(fleet, retrofit_proposals, time_step, multipliers_total)
 
-    for (vessel_idx, age_idx, package_idx, choices, _current) in retrofit_proposals:
-        apply_uptake_transition(fleet, vessel_idx, age_idx, package_idx, choices)
+    for (vessel_idx, age_idx, package_idx, choices, _current, annual_costs) in retrofit_proposals:
+        apply_uptake_transition(fleet, vessel_idx, age_idx, package_idx, choices, annual_costs)
 
     transfer_retrofit_uptake(fleet, retrofit_proposals, idx)
+
+    # transfer the fleet-average carried technology charge before the cargo
+    # charter reads it later in the same timestep
+    transfer_technology_charter_rate(fleet, idx)
 
 
 def get_technology_discount_rate(technology_cost_of_capital, vessel: Vessel) -> float:
@@ -290,7 +334,7 @@ def collect_retrofit_proposals(fleet: Fleet,
                                discount_rate: float,
                                capex_npv: float,
                                time_step: float,
-                               proposals: list[tuple[int, int, int, np.ndarray, float]],
+                               proposals: list[tuple[int, int, int, np.ndarray, float, np.ndarray]],
                                ) -> None:
     """
     Walk every (age-increment, package_idx) pair for `vessel` and append unconstrained MNL retrofit
@@ -315,9 +359,11 @@ def collect_retrofit_proposals(fleet: Fleet,
     time_step
         Current time-step size in dateline units.
     proposals
-        Output list. Each appended entry is `(vessel_idx, age_idx, package_idx, choices, current)`
-        where `choices` is the MNL share vector over retrofit steps and `current` is the eligible
-        share of vessels actually sitting at `package_idx`.
+        Output list. Each appended entry is
+        `(vessel_idx, age_idx, package_idx, choices, current, annual_costs)` where `choices` is the
+        MNL share vector over retrofit steps, `current` is the eligible share of vessels actually
+        sitting at `package_idx`, and `annual_costs` is the per-step levelized yearly charge that
+        recovers the retrofit cost over the remaining vessel lifetime.
     """
 
     n_packages = len(fleet.technology_packages)
@@ -325,6 +371,10 @@ def collect_retrofit_proposals(fleet: Fleet,
     retrofit_frequency = fleet.retrofit_frequency.get()
     technology_sensitivity = fleet.technology_sensitivity.get()
     dt_years = time_step / YEAR
+
+    # the carried charge is levelized at the vessel cost of capital for consistency with
+    # the freight-rate NPVs; the adoption decision keeps the technology discount rate
+    vessel_discount_rate = vessel.cost_of_capital.get()
 
     for package_idx in range(n_packages - 1, -1, -1):
         for i, inc in enumerate(fleet.increments[vessel_idx]):
@@ -348,11 +398,13 @@ def collect_retrofit_proposals(fleet: Fleet,
                                          fleet.technology_packages, remaining, discount_rate)
             choices, _ = calculate_asset_shares(npv, UtilityID.SIGNED_REFERENCE,
                                                 technology_sensitivity, reference=capex_npv)
-            proposals.append((vessel_idx, i, package_idx, choices, current))
+            annual_costs = annual_costs_for_retrofit_steps(package_idx, fleet.technology_packages,
+                                                           remaining, vessel_discount_rate)
+            proposals.append((vessel_idx, i, package_idx, choices, current, annual_costs))
 
 
 def reconcile_retrofit_technology_caps(fleet: Fleet,
-                                       proposals: list[tuple[int, int, int, np.ndarray, float]],
+                                       proposals: list[tuple[int, int, int, np.ndarray, float, np.ndarray]],
                                        time_step: float,
                                        multipliers_total: float) -> None:
     """
@@ -410,7 +462,7 @@ def reconcile_retrofit_technology_caps(fleet: Fleet,
         # Cache (proposal, tail_sum) so the binding-case scale pass doesn't re-sum.
         contributions = []
         aggregate = 0.
-        for (vessel_idx, age_idx, package_idx, choices, current) in proposals:
+        for (vessel_idx, age_idx, package_idx, choices, current, _annual_costs) in proposals:
             if package_idx > i:
                 continue
 
@@ -500,10 +552,15 @@ def apply_uptake_transition(fleet: Fleet,
                             v_idx: int,
                             age_idx: int,
                             pkg_idx: int,
-                            choices: np.ndarray
+                            choices: np.ndarray,
+                            annual_costs: np.ndarray
                             ) -> None:
     """
     Transition technology uptake from one package level to higher ones.
+
+    Each moved share also adds its levelized retrofit charge to the increment's carried
+    `technology_charter_rate`, so the retrofit cost is recovered as a constant yearly
+    charge over the remaining vessel lifetime it was levelized against.
 
     Parameters
     ----------
@@ -517,9 +574,12 @@ def apply_uptake_transition(fleet: Fleet,
         Current package index.
     choices
         Choice shares for transitioning to higher packages.
+    annual_costs
+        Levelized yearly charge per retrofit step, USD/year per vessel.
     """
 
-    uptake = fleet.increments[v_idx][age_idx].package_uptake
+    increment = fleet.increments[v_idx][age_idx]
+    uptake = increment.package_uptake
     current = uptake[pkg_idx]
     moved_total = np.sum(choices[1:])
 
@@ -527,10 +587,11 @@ def apply_uptake_transition(fleet: Fleet,
 
     for step in range(1, len(choices)):
         uptake[pkg_idx + step] += current * choices[step]
+        increment.technology_charter_rate += current * choices[step] * annual_costs[step]
 
 
 def transfer_retrofit_uptake(fleet: Fleet,
-                             proposals: list[tuple[int, int, int, np.ndarray, float]],
+                             proposals: list[tuple[int, int, int, np.ndarray, float, np.ndarray]],
                              idx: int) -> None:
     """
     Aggregate the per-(vessel, technology) retrofit count from the (already reconciled and
@@ -547,7 +608,7 @@ def transfer_retrofit_uptake(fleet: Fleet,
         The fleet whose retrofit uptake is being recorded.
     proposals
         Reconciled and applied retrofit proposal list; each tuple is
-        `(vessel_idx, age_idx, package_idx, choices, current)`.
+        `(vessel_idx, age_idx, package_idx, choices, current, annual_costs)`.
     idx
         Current time-step index, used for the profile write.
     """
@@ -560,7 +621,7 @@ def transfer_retrofit_uptake(fleet: Fleet,
         return
 
     retrofit_counts: dict[tuple[int, int], float] = {}
-    for (vessel_idx, age_idx, package_idx, choices, current) in proposals:
+    for (vessel_idx, age_idx, package_idx, choices, current, _annual_costs) in proposals:
         multiplier = float(fleet.increments[vessel_idx][age_idx].multiplier)
         weight = multiplier * current
         if weight <= 0.:
@@ -584,6 +645,37 @@ def transfer_retrofit_uptake(fleet: Fleet,
             share = divide_nonzero(count, multipliers_total)
             fleet.profile.set_retrofit_technology_uptake(vessel.get_name(), technology.get_name(),
                                                          idx, share)
+
+
+def transfer_technology_charter_rate(fleet: Fleet, idx: int) -> None:
+    """
+    Transfer the fleet-average carried technology charge to each vessel's expectation and profile.
+
+    The average is the multiplier-weighted mean of the per-increment carried charges, in USD/year
+    per vessel. It feeds the investment freight rate within the same timestep (the cargo charter
+    runs after technology installation) and accumulates on the profile as the realized series the
+    instantaneous freight rate is post-processed from.
+
+    Parameters
+    ----------
+    fleet
+        The fleet whose carried charges are aggregated.
+    idx
+        Current time-step index.
+    """
+
+    for v, vessel in enumerate(fleet.assets):
+
+        total = 0.
+        weight = 0.
+        for inc in fleet.increments[v]:
+            total += inc.multiplier * inc.technology_charter_rate
+            weight += inc.multiplier
+
+        average = divide_nonzero(total, weight)
+
+        vessel.expectation.set_technology_charter_rate(idx, average)
+        vessel.profile.set_technology_cost(idx, average)
 
 
 def transfer_technology_uptake(fleet: Fleet, idx: int) -> None:

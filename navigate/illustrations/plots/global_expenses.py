@@ -28,15 +28,13 @@ def _plot_global_expenses(manager, directory, cumulative=False):
     profile = manager.profile
     vessel_expenses = profile.get_vessel_expenses()
     conversion_expenses = profile.get_fuel_conversion_expenses()
-    technology_newbuild_expenses = profile.get_technology_newbuild_expenses()
-    technology_retrofit_expenses = profile.get_technology_retrofit_expenses()
+    technology_expenses = profile.get_technology_expenses()
     fuel_expenses = profile.get_total_fuel_expenses()
     policy_expenses = profile.get_total_levy_expenses() + profile.get_regulation_expenses()
 
     values = [vessel_expenses,
               conversion_expenses,
-              technology_newbuild_expenses,
-              technology_retrofit_expenses,
+              technology_expenses,
               fuel_expenses,
               policy_expenses]
 
@@ -47,14 +45,12 @@ def _plot_global_expenses(manager, directory, cumulative=False):
     values = [v / divisor for v in values]
     labels = ['Vessel',
               'Fuel conversion',
-              'Technology (newbuild)',
-              'Technology (retrofit)',
+              'Technology',
               'Fuel',
               'Policy']
     colors = [CENTER_COLORS_BLUE[3],
               CENTER_COLORS_BLUE[2],
               CENTER_COLORS_RED[3],
-              CENTER_COLORS_RED[1],
               CENTER_COLORS_GREEN[3],
               CENTER_COLORS_YELLOW[3]]
 
