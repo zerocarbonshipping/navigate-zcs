@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-from navigate.testing.simulation import check_invariants, run_simulation
+from helpers.simulation import check_invariants, run_simulation
 
 SIMULATIONS_DIR = Path(__file__).resolve().parent / "simulations"
 

@@ -38,8 +38,8 @@ pip-setup:  ## Create venv and install package with dev dependencies (no conda r
 	@.venv/bin/pip install -q -e ".[dev]"
 
 lint:  ## Run flake8 and isort checks
-	$(RUN) flake8 navigate
-	$(RUN) isort navigate --check-only --diff
+	$(RUN) flake8 navigate tests/helpers
+	$(RUN) isort navigate tests/helpers --check-only --diff
 
 test-unit:  ## Unit + contract tests
 	$(RUN) pytest tests/unit/ -v --tb=short

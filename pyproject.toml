@@ -65,6 +65,9 @@ navigate = "navigate.__main__:main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# only the test tree, never the repo root: root would shadow the installed
+# wheel with the source checkout in CI's wheel-validation job
+pythonpath = ["tests"]
 addopts = "-x --tb=short -q --import-mode=importlib"
 markers = [
     "slow: marks tests as slow (> 30s)",
@@ -74,3 +77,6 @@ markers = [
 [tool.isort]
 profile = "black"
 line_length = 120
+# helpers lives at tests/helpers, one level below the repo root, so isort's
+# first-party auto-detection cannot see it
+known_first_party = ["helpers"]

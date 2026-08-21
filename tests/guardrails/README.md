@@ -16,7 +16,7 @@ regression baseline fail by design, the guardrails are what distinguish
 ## Three tiers
 
 1. **Universal invariants** — hold in every simulation:
-   `navigate.testing.simulation.check_invariants`, applied by every suite
+   `helpers.simulation.check_invariants`, applied by every suite
    that runs full simulations (attribute coverage, guardrails). Candidates
    that cannot yet be honestly asserted (e.g. mass/energy balance, which is
    enforced as a hard LP constraint inside the bunker solve and cannot be
@@ -60,7 +60,7 @@ make test-guardrails                  # all decks
 pytest tests/guardrails/test_<deck_name>.py -v    # one deck
 ```
 
-Tests use `navigate.testing.simulation.run_simulation` (in-process
+Tests use `helpers.simulation.run_simulation` (in-process
 `SimulationManager`, no CLI) and call `check_invariants` before the
 deck-specific assertions, with plot generation suppressed. To inspect a
 deck's behavior visually, run it manually without `-s` — every deck loads
