@@ -8,7 +8,6 @@ import navigate.output.plot_data as plot_data_module
 from navigate.output import replot as replot_module
 from navigate.parser.parser import Parser
 
-
 PLOT_INC = '''
 Plot "custom" {
     Directory = "./plots_custom/"

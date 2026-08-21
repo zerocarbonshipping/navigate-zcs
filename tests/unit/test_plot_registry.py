@@ -16,7 +16,7 @@ import importlib
 import pkgutil
 
 import navigate.illustrations.plots as plots_pkg
-from navigate.illustrations.plots._registry import PLOTS, PLOT_LABELS, plot_label
+from navigate.illustrations.plots._registry import PLOT_LABELS, PLOTS, plot_label
 
 # Public plot functions that intentionally exist but are NOT rendered.
 # Mirrors the disabled catalogue documented in _registry.py (currently none).

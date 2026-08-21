@@ -17,7 +17,6 @@ from unittest.mock import MagicMock
 import numpy as np
 import pytest
 
-from navigate.calculator.curve import Curve
 from navigate.core import Scalar
 from navigate.core.enum_ import EnergyDemandTypeID
 from navigate.core.unit import MWD_TO_GJ

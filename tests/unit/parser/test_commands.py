@@ -7,7 +7,6 @@ import pytest
 from navigate.core.enum_ import SimulationSectionID
 from navigate.exceptions import CommandError
 from navigate.parser._commands import (
-    GENERAL_NODE_COMMAND_SECTIONS,
     NODE_COMMAND_SECTIONS,
     CommandReference,
     check_general_node_command_is_allowed,

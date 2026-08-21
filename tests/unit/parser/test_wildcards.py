@@ -14,6 +14,7 @@ from navigate.route import Port
 
 # ── CommandReference domain-aware wildcard expansion ─────────────────────────
 
+
 class TestCommandReferenceWildcard:
 
     def test_enum_domain_expands_wildcard(self):
