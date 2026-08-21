@@ -7,9 +7,11 @@ from math import ceil
 
 import numpy as np
 
-from navigate.calculator.curve import Curve
 from navigate.core import Scalar
 from navigate.core.enum_ import EnergyDemandTypeID
+from navigate.core.nodes.curve import Curve
+from navigate.core.nodes.technology import Technology
+from navigate.core.nodes.vessel import Vessel
 from navigate.investment.flows import (
     Component,
     add_capex_flow,
@@ -18,8 +20,6 @@ from navigate.investment.flows import (
     get_flow_residual,
 )
 from navigate.investment.metric import calculate_levelized_cost, calculate_net_present_value
-from navigate.vessel.technology import Technology
-from navigate.vessel.vessel import Vessel
 
 
 class Package:

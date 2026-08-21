@@ -13,7 +13,8 @@ from navigate.core.profiles._fuel_consumer_profile import _FuelConsumerProfile
 from navigate.util import divide_nonzero
 
 if TYPE_CHECKING:
-    from navigate.fuel import Emission, Fuel
+    from navigate.core.nodes.emission import Emission
+    from navigate.core.nodes.fuel import Fuel
 
 
 class VesselProfile(_FuelConsumerProfile):

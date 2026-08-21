@@ -11,7 +11,7 @@ from navigate.core.profiles._fuel_base_profile import _FuelBaseProfile
 from navigate.util import extract_from_dict
 
 if TYPE_CHECKING:
-    from navigate.fuel import Fuel
+    from navigate.core.nodes.fuel import Fuel
 
 
 class _FuelInfrastructureProfile(_FuelBaseProfile):

@@ -5,12 +5,12 @@
 import pytest
 
 from navigate.core.node_reference import WildcardNodeReference
+from navigate.core.nodes.fuel import Fuel
+from navigate.core.nodes.port import Port
 from navigate.exceptions import DeckFormatError
-from navigate.fuel import Fuel
 from navigate.parser._commands import CommandReference
 from navigate.parser._lark_parser import SourceLoc
 from navigate.parser.parser import Parser
-from navigate.route import Port
 
 # ── CommandReference domain-aware wildcard expansion ─────────────────────────
 

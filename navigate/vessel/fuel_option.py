@@ -13,11 +13,11 @@ import logging
 from typing import TYPE_CHECKING
 
 from navigate.core.enum_ import FuelTypeID
+from navigate.core.nodes.vessel import Vessel
 from navigate.util import unique_list
-from navigate.vessel.vessel import Vessel
 
 if TYPE_CHECKING:
-    from navigate.fuel import Fuel
+    from navigate.core.nodes.fuel import Fuel
 
 logger = logging.getLogger(__name__)
 

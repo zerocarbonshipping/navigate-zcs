@@ -9,13 +9,13 @@ from scipy.optimize import minimize_scalar
 
 from navigate.core.enum_ import SpeedAlignmentID
 from navigate.core.misc import YEAR
+from navigate.core.nodes.fleet import Fleet
+from navigate.core.nodes.vessel import Vessel
 from navigate.route.operation import calculate_operational_profile, transfer_operational_profile
 from navigate.util import to_numpy
-from navigate.vessel.fleet import Fleet
 from navigate.vessel.fleet.fleet_utils import net_energy_from_raw
 from navigate.vessel.heuristic import calculate_marginal_speed_saving, get_smoothed_energy_duals_speed
 from navigate.vessel.power import calculate_speed_bounds, calculate_technical_speed_limits, loads_are_convex
-from navigate.vessel.vessel import Vessel
 
 logger = logging.getLogger(__name__)
 

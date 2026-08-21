@@ -11,7 +11,8 @@ from navigate.core.expectations._expectation import _Expectation
 from navigate.core.misc import EMPTY_FLOAT
 
 if TYPE_CHECKING:
-    from navigate.fuel import Emission, Fuel
+    from navigate.core.nodes.emission import Emission
+    from navigate.core.nodes.fuel import Fuel
 
 
 class PortExpectation(_Expectation):

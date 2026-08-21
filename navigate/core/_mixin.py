@@ -5,7 +5,7 @@ import navigate.core.id_ as id_
 
 
 class CommandReferenceMixin:
-    """Mixin providing command reference storage and retrieval for Node and GeneralNode."""
+    """Mixin providing command reference storage and retrieval for Node and _GeneralNode."""
 
     def __init__(self):
         self._command_references = []

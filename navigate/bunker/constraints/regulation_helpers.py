@@ -7,13 +7,17 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from navigate.bunker.bunker_algorithm import BunkerAlgorithm
-    from navigate.policy import Regulation
-    from navigate.vessel import Vessel
+    from navigate.core.nodes.regulation import Regulation
+    from navigate.core.nodes.vessel import Vessel
 
 import navigate.bunker.solver as gp
 import navigate.core.enum_ as enum_
 from navigate.core.enum_ import RegulationMeasureID
 from navigate.core.unit import TON_TO_GRAM
+from navigate.policy import (
+    calculate_cargo_miles_in_policy_jurisdiction,
+    calculate_nominal_cargo_miles_in_policy_jurisdiction,
+)
 
 
 def calculate_regulation_emission_term(alg: BunkerAlgorithm, vessel: Vessel, regulation: Regulation) -> tuple:
@@ -178,12 +182,6 @@ def get_regulation_vessel_rhs(alg: BunkerAlgorithm, regulation: Regulation, v: s
 
     vessel = alg.vessels[v]
     threshold = get_regulation_vessel_threshold(alg, regulation, v)
-
-    # lazy import to avoid circular dependency (navigate.policy -> navigate.core.expectation -> navigate.fuel)
-    from navigate.policy import (
-        calculate_cargo_miles_in_policy_jurisdiction,
-        calculate_nominal_cargo_miles_in_policy_jurisdiction,
-    )
 
     measure = regulation.measure
 

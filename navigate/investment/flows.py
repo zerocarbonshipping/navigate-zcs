@@ -12,11 +12,11 @@ from navigate.core.misc import EMPTY_FLOAT, ROUND_OFF, YEAR
 from navigate.core.unit import YEAR_TO_DAYS
 
 if TYPE_CHECKING:
-    from navigate.fuel.region import Region
-    from navigate.vessel.converter import Converter
-    from navigate.vessel.power_system import PowerSystem
-    from navigate.vessel.tank import Tank
-    from navigate.vessel.technology import Technology
+    from navigate.core.nodes.converter import Converter
+    from navigate.core.nodes.power_system import PowerSystem
+    from navigate.core.nodes.region import Region
+    from navigate.core.nodes.tank import Tank
+    from navigate.core.nodes.technology import Technology
 
 
 class Component:

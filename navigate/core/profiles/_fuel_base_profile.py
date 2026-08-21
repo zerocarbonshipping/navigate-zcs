@@ -11,7 +11,7 @@ from navigate.core.enum_ import FuelTypeID
 from navigate.core.profiles._base_profile import _BaseProfile
 
 if TYPE_CHECKING:
-    from navigate.fuel import Fuel
+    from navigate.core.nodes.fuel import Fuel
 
 
 class _FuelBaseProfile(_BaseProfile):

@@ -16,9 +16,11 @@ from unittest.mock import MagicMock
 
 import numpy as np
 
-from navigate.asset import Increment
-from navigate.core import Node, Scalar
+from navigate.core import Scalar
+from navigate.core.increment import Increment
 from navigate.core.misc import YEAR
+from navigate.core.nodes.fleet import Fleet
+from navigate.core.nodes.node import Node
 from navigate.core.unit import YEAR_TO_DAYS
 from navigate.investment.flows import correct_flow_residual, get_age_flow
 from navigate.investment.metric import calculate_net_present_value
@@ -27,7 +29,6 @@ from navigate.vessel.charter import (
     _calculate_fuel_cost,
     _initialize_vessel_component,
 )
-from navigate.vessel.fleet import Fleet
 from navigate.vessel.fleet.fleet_conversion import apply_fuel_conversions
 from navigate.vessel.fleet.fleet_evolution import add_newbuilds, clean_up_multipliers
 from navigate.vessel.fleet.fleet_technology import (

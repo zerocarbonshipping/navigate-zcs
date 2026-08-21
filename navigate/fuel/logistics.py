@@ -3,11 +3,11 @@
 
 import numpy as np
 
-from navigate.bunker.bunker_logistics import BunkerLogistics
-from navigate.fuel.emission import Emission
-from navigate.fuel.plant import Plant
+from navigate.core.general_nodes.bunker_logistics import BunkerLogistics
+from navigate.core.nodes.emission import Emission
+from navigate.core.nodes.plant import Plant
+from navigate.core.nodes.port import Port
 from navigate.investment.metric import calculate_age_levelized_cost
-from navigate.route.port import Port
 
 
 def calculate_plant_logistics_expectations(plants: dict[str, Plant],

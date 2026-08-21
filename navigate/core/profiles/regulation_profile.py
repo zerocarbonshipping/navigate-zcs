@@ -12,7 +12,7 @@ from navigate.core.profiles._base_profile import _BaseProfile
 from navigate.util import extract_from_dict
 
 if TYPE_CHECKING:
-    from navigate.vessel import Vessel
+    from navigate.core.nodes.vessel import Vessel
 
 
 class RegulationProfile(_BaseProfile):

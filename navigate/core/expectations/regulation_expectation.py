@@ -11,7 +11,7 @@ from navigate.core.expectations._policy_expectation import _PolicyExpectation
 from navigate.core.misc import EMPTY_FLOAT
 
 if TYPE_CHECKING:
-    from navigate.vessel import Vessel
+    from navigate.core.nodes.vessel import Vessel
 
 
 class RegulationExpectation(_PolicyExpectation):

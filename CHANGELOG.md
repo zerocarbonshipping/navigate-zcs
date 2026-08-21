@@ -65,11 +65,18 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   emissions.
 
 ### Changed
-- Internal reorganization: calculation logic moved out of the node classes
-  into sibling modules (no DSL or result changes). Because pickled objects
-  reference their defining module, `plot_data.pkl` files saved by earlier
-  versions cannot be loaded with `--replot` by this version — replot old
-  results with the version that produced them.
+- Internal reorganization (no DSL or result changes): calculation logic
+  moved out of the node classes into sibling modules; all node classes
+  moved into `navigate/core/nodes/` and all general-node classes into
+  `navigate/core/general_nodes/`, with package-private bases
+  underscore-prefixed in module and class name (`_GeneralNode`, `_Machinery`,
+  `_Policy`, `_Calculator`, `_Table1D`, `_Table2D`, `_AssetManager`) and the
+  cross-package foundational types (`Node`, `Increment`, `TableData`)
+  public; the `navigate/asset/` and `navigate/calculator/` packages are
+  removed. Because pickled objects reference their defining
+  module, `plot_data.pkl` files saved by earlier versions cannot be loaded
+  with `--replot` by this version — replot old results with the version
+  that produced them.
 - Technology CAPEX/OPEX now enters the vessel cost metrics. Every install
   event (newbuild bundle, retrofit, seeded initial uptake) is levelized at
   the vessel cost of capital over the window it serves — the full lifetime

@@ -8,9 +8,9 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.asset import Increment
 from navigate.core import calculate_inertia
 from navigate.core.enum_ import UtilityID
+from navigate.core.increment import Increment
 from navigate.core.misc import YEAR
 from navigate.fuel.producer.producer_utils import (
     calculate_constrained_shares,
@@ -21,7 +21,7 @@ from navigate.investment.decision import calculate_two_axis_uptake
 from navigate.util import divide_nonzero
 
 if TYPE_CHECKING:
-    from navigate.fuel.producer.producer import Producer
+    from navigate.core.nodes.producer import Producer
 
 logger = logging.getLogger(__name__)
 

@@ -13,7 +13,8 @@ from navigate.core.misc import EMPTY_FLOAT
 from navigate.core.profiles._fuel_base_profile import _FuelBaseProfile
 
 if TYPE_CHECKING:
-    from navigate.fuel import Emission, Fuel
+    from navigate.core.nodes.emission import Emission
+    from navigate.core.nodes.fuel import Fuel
 
 from navigate.util import (
     add_dicts,

@@ -11,11 +11,13 @@ from numpy.typing import NDArray
 
 from navigate.core.enum_ import EnergyDemandTypeID, EnergyDemandTypePortID, UtilityID
 from navigate.core.misc import TOLERANCE, YEAR
+from navigate.core.nodes.node import Node
+from navigate.core.nodes.technology import Technology
+from navigate.core.nodes.vessel import Vessel
 from navigate.investment.decision import calculate_asset_shares
 from navigate.investment.flows import timeline_to_yearly
 from navigate.route.operation import convert_to_regional_steps
 from navigate.util import divide_nonzero
-from navigate.vessel import Technology, Vessel
 from navigate.vessel.fleet.fleet_utils import get_remaining_lifetime, is_retrofit_cycle
 from navigate.vessel.heuristic import calculate_marginal_technology_saving
 from navigate.vessel.package import (
@@ -29,7 +31,7 @@ from navigate.vessel.package import (
 from navigate.vessel.saving import calculate_residual_energy
 
 if TYPE_CHECKING:
-    from navigate.vessel.fleet import Fleet
+    from navigate.core.nodes.fleet import Fleet
 
 logger = logging.getLogger(__name__)
 
@@ -103,8 +105,6 @@ def define_initial_technology(fleet: Fleet) -> None:
     fleet
         The fleet to initialize technology for.
     """
-    from navigate.core import Node
-
     n_pkgs = len(fleet.technologies) + 1
     n_vessels = len(fleet.assets)
 

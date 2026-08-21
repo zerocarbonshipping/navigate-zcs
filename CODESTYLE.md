@@ -17,8 +17,8 @@ doubt, match the conventions of the file you are editing.
 
 ## Class variables
 
-- A member variable accessed publicly is stored without a `_` prefix; one used only internally on the class keeps the `_` prefix (e.g. `initial_age_distribution` on the `AssetManager` superclass node).
-- Any variable on a `Node` or `GeneralNode` exposed via the DSL needs a setter (e.g. `set_propulsion_load` on the `Vessel` node).
+- A member variable accessed publicly is stored without a `_` prefix; one used only internally on the class keeps the `_` prefix (e.g. `initial_age_distribution` on the `_AssetManager` superclass node).
+- Any variable on a `Node` or `_GeneralNode` subclass exposed via the DSL needs a setter (e.g. `set_propulsion_load` on the `Vessel` node).
 - We do not use getters internally — public variables are accessed directly as plain attributes (`vessel.propulsion_load`).
 - Member variables are always defined inside `__init__`, never on the class body itself.
 
@@ -152,8 +152,8 @@ d = {
 - Boolean names should read positively (`is_ready`, not `not_unready`).
 - DSL command names (node methods callable from `.nav`/`.inc` files) are pure lowercase snake_case; acronyms are lowercased (`set_fuel_wtt`, not `set_fuel_WTT`). ALL_CAPS is reserved for enum keyword values (`AMMONIA`, `WTT`, `FLAT`).
 - Methods should be prefixed with `_` if they are internal and only used within the same file, e.g., `_internal_method`.
-- Classes should be prefixed with `_` if they are internal and only used within the module where they are defined, e.g., `_InternalClass`.
-- Files should be prefixed with `_` if they are internal and only used within the module where they are defined, e.g., `_internal_file.py`.
+- Classes should be prefixed with `_` if they are internal and only used within the package where they are defined, e.g., `_InternalClass`.
+- Files should be prefixed with `_` if they are internal and only used within the package where they are defined, e.g., `_internal_file.py`.
 
 ## Comments
 

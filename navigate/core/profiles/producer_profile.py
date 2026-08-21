@@ -12,9 +12,9 @@ from navigate.core.profiles._plant_aggregate_profile import _PlantAggregateProfi
 from navigate.util import extract_from_dict
 
 if TYPE_CHECKING:
-    from navigate.fuel import Fuel
-    from navigate.fuel.feedstock import Feedstock
-    from navigate.fuel.process import Process
+    from navigate.core.nodes.feedstock import Feedstock
+    from navigate.core.nodes.fuel import Fuel
+    from navigate.core.nodes.process import Process
 
 
 class ProducerProfile(_PlantAggregateProfile):

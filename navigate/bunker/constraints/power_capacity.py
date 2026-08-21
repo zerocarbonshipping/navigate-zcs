@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from navigate.bunker.bunker_algorithm import BunkerAlgorithm
-    from navigate.vessel import Vessel
+    from navigate.core.nodes.vessel import Vessel
 
 from navigate.bunker.helpers import extract_times
 from navigate.core.unit import DAY_TO_HOURS, MWH_TO_GJ

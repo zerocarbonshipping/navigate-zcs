@@ -3,10 +3,12 @@
 
 import numpy as np
 
-from navigate.calculator import Curve, Surface, Variable
 from navigate.core import Scalar
+from navigate.core.nodes.curve import Curve
+from navigate.core.nodes.surface import Surface
+from navigate.core.nodes.variable import Variable
+from navigate.core.nodes.vessel import Vessel
 from navigate.util import to_numpy
-from navigate.vessel import Vessel
 
 
 def calculate_speed_bounds(speeds_min: np.ndarray,

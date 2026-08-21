@@ -12,7 +12,8 @@ from navigate.core.misc import EMPTY_FLOAT, EMPTY_NAN
 from navigate.core.profiles._vessel_aggregate_profile import _VesselAggregateProfile
 
 if TYPE_CHECKING:
-    from navigate.fuel import Emission, Fuel
+    from navigate.core.nodes.emission import Emission
+    from navigate.core.nodes.fuel import Fuel
 
 from navigate.util import divide_nonzero, extract_from_dict, extract_from_tuple_dict
 

@@ -298,10 +298,10 @@ def normalize_fractional(values, times):
 
     Parameters
     ----------
-    values : list[float | Calculator] | tuple[float | Calculator] | dict[float | Calculator]
-        Container with floats and/or Calculator nodes.
+    values : list | tuple | dict
+        Container with floats and/or calculator nodes.
     times : float | np.ndarray
-        Times to pass to potential Calculator nodes.
+        Times to pass to potential calculator nodes.
 
     Returns
     -------
