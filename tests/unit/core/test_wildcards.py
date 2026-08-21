@@ -12,6 +12,7 @@ from navigate.util import retrieve_keys
 
 # ── expand_id_wildcard ────────────────────────────────────────────────────────
 
+
 class TestExpandIdWildcard:
 
     def test_star_matches_all(self):

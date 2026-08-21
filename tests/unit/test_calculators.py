@@ -279,8 +279,8 @@ class TestTable1DPickle:
 T2D_X = np.array([0., 1., 2.])
 T2D_Y = np.array([0., 10., 20.])
 T2D_Z = np.array([[0., 10., 20.],
-                   [1., 11., 21.],
-                   [2., 12., 22.]])  # z[i,j] = x[i] + y[j]
+                  [1., 11., 21.],
+                  [2., 12., 22.]])  # z[i,j] = x[i] + y[j]
 
 
 def _make_table2d(x=T2D_X, y=T2D_Y, z=T2D_Z, extrapolate='LINEAR'):
@@ -336,29 +336,29 @@ class TestTable2DConvexity:
     def test_linear_surface_is_convex(self):
         """z = x + y is linear in x → convex."""
         t = _make_table2d()
-        assert t.is_convex() == True
+        assert t.is_convex()
 
     def test_convex_surface(self):
         """z = x^2 + y is convex in x."""
         x = np.array([0., 1., 2., 3.])
         y = np.array([0., 1.])
         z = np.array([[0., 1.],
-                       [1., 2.],
-                       [4., 5.],
-                       [9., 10.]])
+                      [1., 2.],
+                      [4., 5.],
+                      [9., 10.]])
         t = _make_table2d(x=x, y=y, z=z)
-        assert t.is_convex() == True
+        assert t.is_convex()
 
     def test_concave_surface(self):
         """z = sqrt(x) + y is concave in x."""
         x = np.array([1., 4., 9., 16.])
         y = np.array([0., 1.])
         z = np.array([[1., 2.],
-                       [2., 3.],
-                       [3., 4.],
-                       [4., 5.]])  # sqrt(x) + y
+                      [2., 3.],
+                      [3., 4.],
+                      [4., 5.]])  # sqrt(x) + y
         t = _make_table2d(x=x, y=y, z=z)
-        assert t.is_convex() == False
+        assert not t.is_convex()
 
 
 # ---------------------------------------------------------------------------

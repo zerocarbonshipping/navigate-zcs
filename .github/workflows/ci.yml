@@ -28,10 +28,10 @@ jobs:
         run: pip install flake8 flake8-bugbear pep8-naming isort
 
       - name: Run flake8
-        run: flake8 navigate tests/helpers
+        run: flake8 navigate tests
 
       - name: Run isort
-        run: isort navigate tests/helpers --check-only --diff
+        run: isort navigate tests --check-only --diff
 
 
   reuse:

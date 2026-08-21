@@ -5,7 +5,6 @@
 import pytest
 
 from navigate.core.enum_ import SimulationSectionID
-from navigate.core.misc import SECTION_BOTH, SECTION_DEFINE
 from navigate.exceptions import AttributeAssignmentError
 from navigate.parser._attributes import (
     GENERAL_NODE_ATTRIBUTE_SECTIONS,

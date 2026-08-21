@@ -11,10 +11,10 @@ from navigate.core.profiles.fleet_profile import FleetProfile
 from navigate.core.profiles.vessel_profile import VesselProfile
 from navigate.vessel.fleet.fleet_profile import transfer_transport_work
 
-
 # ---------------------------------------------------------------------------
 # Builders
 # ---------------------------------------------------------------------------
+
 
 def _fuel(lhv: float = 41.2, rho: float = 0.9, fuel_type: FuelTypeID = FuelTypeID.OIL):
     f = MagicMock()

@@ -12,8 +12,7 @@ from navigate.core import Scalar
 from navigate.core.enum_ import EnergyDemandTypeID
 from navigate.core.id_ import FLEET, VESSEL
 from navigate.core.misc import YEAR
-from navigate.vessel.fleet import Fleet
-from navigate.vessel.fleet import fleet_evolution
+from navigate.vessel.fleet import Fleet, fleet_evolution
 from navigate.vessel.fleet.fleet_conversion import reconcile_fuel_conversion_caps
 from navigate.vessel.fleet.fleet_evolution import (
     calculate_modelled_newbuilds,
@@ -36,6 +35,7 @@ from navigate.vessel.fleet.fleet_utils import (
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _make_vessel(name):
     """Create a mock Vessel with minimal interface."""

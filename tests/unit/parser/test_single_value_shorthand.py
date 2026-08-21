@@ -13,8 +13,8 @@ from navigate.core.node_reference import NodeReference, WildcardNodeReference
 from navigate.fuel import Fuel
 from navigate.parser.parser import Parser
 from navigate.policy._policy import Policy
-from navigate.route.route import Route
 from navigate.route import Port
+from navigate.route.route import Route
 from navigate.vessel.fleet.fleet import Fleet
 
 

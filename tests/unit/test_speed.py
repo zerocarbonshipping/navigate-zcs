@@ -14,13 +14,14 @@ import numpy as np
 import pytest
 from scipy.optimize import minimize_scalar
 
-from navigate.route.speed import SpeedResult, _mean_to_speeds, _update_mean_speed
+from navigate.route.speed import _mean_to_speeds, _update_mean_speed
 from navigate.vessel.heuristic import _calculate_dual_variable_saving
 from navigate.vessel.power import calculate_speed_bounds
 
 # ---------------------------------------------------------------------------
 # 1. Mean-to-speeds conversion
 # ---------------------------------------------------------------------------
+
 
 class TestMeanToSpeeds:
     """Verify: speeds = clip(mu + deltas, speed_min, speed_max)."""
