@@ -4,7 +4,7 @@
 # classes
 from navigate.fuel.emission import Emission
 from navigate.fuel.feedstock import Feedstock
-from navigate.fuel.fuel import Fuel, get_fuels_per_fuel_type
+from navigate.fuel.fuel import Fuel
 from navigate.fuel.logistics import calculate_plant_logistics_expectations
 from navigate.fuel.plant import Plant
 from navigate.fuel.process import Process

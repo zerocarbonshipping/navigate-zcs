@@ -4,7 +4,6 @@
 import numpy as np
 
 from navigate.core.enum_ import FuelTypeID
-from navigate.fuel import get_fuels_per_fuel_type
 from navigate.illustrations.plots._colors import generate_color_dict
 from navigate.illustrations.plots._figure import (
     format_axes,
@@ -20,6 +19,7 @@ from navigate.illustrations.plots._labels import (
 )
 from navigate.illustrations.plots._style import LEGEND_OPTIONS
 from navigate.illustrations.plots._units import get_best_unit_energy
+from navigate.vessel.fuel_option import get_fuels_per_fuel_type
 
 
 def plot_fuel_type_supply_demand(manager, directory):
