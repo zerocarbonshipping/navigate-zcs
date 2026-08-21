@@ -15,7 +15,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from navigate.testing.simulation import EPS_DEVELOPMENT_REL, assertable_end, check_invariants, run_simulation
+from helpers.simulation import EPS_DEVELOPMENT_REL, assertable_end, check_invariants, run_simulation
 
 SIMULATIONS_DIR = Path(__file__).resolve().parent / "simulations"
 

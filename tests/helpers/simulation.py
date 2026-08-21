@@ -29,7 +29,7 @@ EPS_DEVELOPMENT_REL = 2.5e-3
 def default_assumptions_dir() -> Path:
     """
     Resolves the assumptions directory like the CLI: environment variable
-    first, falling back to the repository checkout next to the package.
+    first, falling back to the repository checkout containing this test tree.
 
     Returns
     -------

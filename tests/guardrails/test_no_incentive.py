@@ -14,8 +14,8 @@ from pathlib import Path
 import numpy as np
 import pytest
 
+from helpers.simulation import check_invariants, run_simulation
 from navigate.core.enum_ import EnergyDemandTypeID, FuelTypeID
-from navigate.testing.simulation import check_invariants, run_simulation
 
 SIMULATIONS_DIR = Path(__file__).resolve().parent / "simulations"
 
