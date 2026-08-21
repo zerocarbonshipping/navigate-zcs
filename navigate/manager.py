@@ -16,7 +16,6 @@ from navigate.core.profiles import ManagerProfile
 from navigate.fuel import (
     calculate_plant_logistics_expectations,
     calculate_plant_production_expectations,
-    get_fuels_per_fuel_type,
 )
 from navigate.fuel.producer.producer_profile import calculate_profile as calculate_producer_profile
 from navigate.fuel.producer.producer_utils import calculate_development_potential
@@ -46,6 +45,12 @@ from navigate.vessel.fleet import fleet_evolution
 from navigate.vessel.fleet import fleet_profile as fleet_profile_mod
 from navigate.vessel.fleet.fleet_technology import perform_technology_installation
 from navigate.vessel.fleet.fleet_utils import net_energy_from_raw
+from navigate.vessel.fuel_option import (
+    determine_fuel_type,
+    determine_usable_fuel_types,
+    determine_usable_fuels,
+    get_fuels_per_fuel_type,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -798,9 +803,9 @@ class SimulationManager:
 
         for vessel in self.nodes.vessels.values():
 
-            vessel.determine_fuel_type()
-            vessel.determine_usable_fuel_types()
-            vessel.determine_usable_fuels(fuel_by_fuel_type)
+            determine_fuel_type(vessel)
+            determine_usable_fuel_types(vessel)
+            determine_usable_fuels(vessel, fuel_by_fuel_type)
 
         for fleet in self.nodes.fleets.values():
             fleet.initialize_existing_fleet(self._timeline)

@@ -2,5 +2,3 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from navigate.vessel.fleet.fleet import Fleet
-
-__all__ = ["Fleet"]

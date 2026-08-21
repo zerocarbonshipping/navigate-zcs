@@ -572,3 +572,136 @@ def calculate_feed_availability(producer: Producer, timeline, idx) -> None:
             gap = 0.
 
         producer.expectation.set_feed_gap(idx, feed_name, gap)
+
+
+def define_existing_pipeline(producer: Producer, timeline: np.ndarray) -> None:
+    """
+    Define the initial number of plants of each plant type in the production pipeline, and derive
+    the initial uptake and development-constraint utilization from it.
+
+    Parameters
+    ----------
+    producer
+        Producer to define the pipeline for.
+    timeline
+        Simulation timeline.
+    """
+
+    # pre-allocate internal pipeline to appropriate length
+    for _p in range(len(producer.assets)):
+        producer.pipeline.append([])
+
+    for p, (_name, pipeline) in enumerate(producer.existing_pipelines.items()):
+
+        if pipeline is None:
+            continue
+
+        # extract the planned capacity
+        # and the dates at which it will
+        # arrive from the pipeline
+        planned_delivery = pipeline.get_x()
+        planned_capacity = pipeline.get_y()
+
+        # interpolate with the timeline
+        # to ensure exact overlap with
+        # simulation dates
+        planned_capacity = np.interp(timeline, planned_delivery, planned_capacity)
+
+        # calculate the increments in which
+        # the planned capacity arrives
+        incremental_delivery = timeline / YEAR
+        incremental_capacity = np.insert(np.diff(planned_capacity), 0, planned_capacity[0])
+
+        # remove zero increments
+        non_zeros = incremental_capacity > 0.
+        incremental_delivery = incremental_delivery[non_zeros]
+        incremental_capacity = incremental_capacity[non_zeros]
+
+        # calculate the increment time-step sizes
+        # at which increments entered. It is assumed
+        # that the first multiplier increment was
+        # entered over a year
+        incremental_dt = np.insert(np.diff(incremental_delivery), 0, 1.)
+
+        # recalculate incremental capacity
+        # to number of plant increments
+        plant = producer.assets[p]
+        capacity = plant.capacity.get()
+        incremental_plants = incremental_capacity / capacity
+
+        # calculate the time since each project was FID'ed
+        lead_time = plant.lead_time.get()
+
+        # pipeline uses negative ages (not yet delivered)
+        producer.pipeline[p] = [
+            Increment(multiplier=m, age=-d, dt=t, decided=lead_time - d)
+            for m, d, t in zip(incremental_plants, incremental_delivery, incremental_dt)
+        ]
+
+        # assign to profile
+        producer.profile.set_development(0, np.sum(incremental_plants))
+
+    # define the current uptake by an inertia
+    # based average over the pipeline
+    n = len(producer.assets)
+    sum_weights = 0.
+    uptake = np.zeros((n,), dtype=np.float64)
+    inertia = producer.inertia.get()
+
+    for p in range(n):
+
+        pinc = producer.pipeline[p]
+        if not len(pinc):
+            continue
+
+        # TODO: this may need to be based on continuous compound growth?
+        lead_time = producer.assets[p].lead_time.get()
+        ages = np.array([inc.age for inc in pinc])
+        multipliers = np.array([inc.multiplier for inc in pinc])
+        weights = inertia ** (np.maximum(lead_time + ages, 0.))
+
+        uptake[p] = np.dot(multipliers, weights)
+        sum_weights += np.sum(weights)
+
+    producer.current_uptake = divide_nonzero(uptake, np.sum(uptake), default=1. / uptake.size)
+
+    # the latest value of the development constraint
+    # is used rather than an average over backwards
+    # extrapolation. This is done as it difficult to
+    # define the backwards period due to inconsistency
+    # between pipeline and lead time and the potentially
+    # varying lead time of different plants
+    maximum_development = producer.maximum_development.get()
+    average_development = divide_nonzero(np.sum(uptake), sum_weights)
+
+    producer.current_utilization = min(divide_nonzero(average_development, maximum_development), 1.)
+
+
+def calculate_export_expectation(producer: Producer, timeline: np.ndarray, idx: int) -> None:
+    """
+    Calculate the expected export distribution of the producer over the remaining timeline.
+
+    Parameters
+    ----------
+    producer
+        Producer to calculate the export distribution for.
+    timeline
+        Simulation timeline.
+    idx
+        Current time-step index.
+    """
+
+    times = timeline[idx:]
+
+    if not producer.export_distribution:
+        return
+
+    # calculate export distribution
+    exports = {port_name: export.get(times) for port_name, export in producer.export_distribution.items()}
+    norm = sum(exports.values())
+
+    # default to equal export distribution if nothing is defined
+    default = 1. / len(producer.export_distribution)
+
+    for port_name, export in exports.items():
+        producer.expectation.set_export_distribution(idx, port_name, divide_nonzero(export, norm, default=default))

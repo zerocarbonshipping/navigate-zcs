@@ -1,12 +1,20 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import numpy as np
 from numpy.typing import NDArray
 
+from navigate.core import calculate_compound_growth
 from navigate.core.enum_ import EnergyDemandTypeID
 from navigate.core.misc import ROUND_OFF
 from navigate.vessel import Vessel
+
+if TYPE_CHECKING:
+    from navigate.vessel.fleet.fleet import Fleet
 
 
 def extract_cargo_miles(vessels: list[Vessel], idx: int | slice) -> list[NDArray[np.float64]]:
@@ -95,3 +103,57 @@ def net_energy_from_raw(raw_energies: dict[EnergyDemandTypeID, list[float]],
         sav = savings[k]
         out[k] = [(1.0 - s) * e for e, s in zip(raw, sav)]
     return out
+
+
+def define_initial_split(fleet: Fleet) -> None:
+    """
+    Define the initial fraction of each vessel type in the fleet.
+
+    Parameters
+    ----------
+    fleet
+        Fleet to define the initial split for.
+    """
+
+    # if the initial split is not supplied
+    # by the user, then assume a uniform
+    # split on cargo-miles
+    if not fleet.initial_split:
+        nv = len(fleet.assets)
+        fleet.initial_split = [1. / nv for v in range(nv)]
+
+    # while the initial split of the entire
+    # existing fleet does not necessarily
+    # correspond to current trends in
+    # newbuilds, it is the best available proxy
+    # TODO: allow this to be user-defined
+    fleet.current_uptake = np.array(fleet.initial_split)
+
+
+def define_initial_trade(fleet: Fleet, timeline: np.ndarray) -> None:
+    """
+    Define the initial trade of the fleet and project it forward over the timeline by the
+    user-supplied growth rates.
+
+    Parameters
+    ----------
+    fleet
+        Fleet to define the trade for.
+    timeline
+        Simulation timeline.
+    """
+
+    idx = 0
+    cargo_miles = extract_cargo_miles(fleet.assets, idx)
+
+    multipliers = fleet.get_multipliers()
+    initial_trade = np.dot(multipliers, cargo_miles)
+    trade_growth = fleet.trade_growth.get(timeline)
+
+    # the initial trade is projected forward in
+    # time by calculating the compound growth
+    # from the user-supplied growth rates
+    fleet.trade = calculate_compound_growth(initial_trade, trade_growth, timeline)
+
+    # transfer to profile
+    fleet.profile.set_trade(idx, fleet.trade[idx])

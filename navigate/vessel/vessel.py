@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -14,13 +13,11 @@ from navigate.core.enum_ import FuelTypeID
 from navigate.core.expectations import VesselExpectation
 from navigate.core.profiles import VesselProfile
 from navigate.exceptions import no_value_assigned_error
-from navigate.util import to_numpy, unique_list
+from navigate.util import to_numpy
 from navigate.vessel.tank import Tank
 
 if TYPE_CHECKING:
     from navigate.fuel import Emission, Fuel
-
-logger = logging.getLogger(__name__)
 
 
 class Vessel(Node):
@@ -425,134 +422,6 @@ class Vessel(Node):
 
         self.profile.set_lifetime(idx, self.lifetime.get())
         self.profile.set_lead_time(idx, self.lead_time.get())
-
-    def determine_usable_fuel_types(self):
-
-        if self.usable_fuel_types:
-            return
-
-        tank_fuel_types = [fuel_type for tank in self.tanks for fuel_type in tank.get_fuel_types()]
-
-        power_system_fuel_types = [fuel_type for converter in self.power_system.get_converters()
-                                   for fuel_type in converter.get_fuel_types()]
-
-        # check the tanks allow for storage of fuels used in the converters
-        for converter in self.power_system.get_converters():
-
-            main_fuel_types = converter.main_fuel_types
-            pilot_fuel_types = converter.pilot_fuel_types
-
-            if converter.is_dual_fuel():
-
-                if converter.minimum_pilot_fuel.get() > 0.:
-
-                    if not any((fuel_type in tank_fuel_types for fuel_type in pilot_fuel_types)):
-                        raise ValueError("{}: Missing a tank which can store fuel of"
-                                         " type(s) {} required as pilot fuel for {}."
-                                         .format(self,
-                                                 ', '.join(FuelTypeID(f).name for f in pilot_fuel_types),
-                                                 converter))
-
-            else:
-                if not any((fuel_type in tank_fuel_types for fuel_type in main_fuel_types)):
-                    raise ValueError("{}: Missing a tank which can store fuel of type(s) {} for {}."
-                                     .format(self, ', '.join(FuelTypeID(f).name for f in main_fuel_types), converter))
-
-        self.usable_fuel_types = unique_list(tank_fuel_types + power_system_fuel_types)
-
-    def determine_usable_fuels(self, fuels_by_fuel_type):
-        """
-
-        Parameters
-        ----------
-        fuels_by_fuel_type : dict[FuelTypeID: list[Fuel]]
-            All fuels in the simulation grouped by fuel type.
-        """
-
-        for fuel_type in self.usable_fuel_types:
-
-            fuels = fuels_by_fuel_type[fuel_type]
-
-            for fuel in fuels:
-
-                self.usable_fuels.setdefault(fuel.get_name(), fuel)
-
-        # check that the vessel can bunker
-        if not self.usable_fuels:
-            raise ValueError("{}: No overlap between the fuel types of the PowerSystem, Tanks and Fuels.".format(self))
-
-    def determine_fuel_type(self):
-        """
-        The representative fuel type of a vessel is decided based on the sum of power capacity for the main fuel types
-        across all converters in the power system. If multiple fuel types have the same power capacity, the one
-        with the largest tank is chosen.
-
-        TODO: The tank size should optimally be weighted by the LHV, but it might vary within a given fuel type
-        """
-
-        if self.fuel_type is not None:
-            return
-
-        power_system = self.power_system
-        fuel_type_power = {}
-
-        for converter in power_system.get_converters():
-
-            main_fuel_types = converter.main_fuel_types
-            power_capacity = converter.power_capacity.get()
-
-            for fuel_type in main_fuel_types:
-
-                if fuel_type in fuel_type_power:
-
-                    fuel_type_power[fuel_type] += power_capacity
-
-                else:
-
-                    fuel_type_power[fuel_type] = power_capacity
-
-        # reverse the list
-        power_capacities = unique_list(fuel_type_power.values())
-        power_fuel_type = {}
-
-        for power in power_capacities:
-            power_fuel_type[power] = [key for key, value in fuel_type_power.items() if value == power]
-
-        # find the fuel types with the highest power
-        max_power = max(power_capacities)
-
-        if len(power_fuel_type[max_power]) > 1:
-
-            # if multiple fuel types with same power
-            # base the primary type on the tank size
-            tanks = self.tanks
-            fuel_type_size = {fuel_type: tank.size.get() for tank in tanks for fuel_type in tank.get_fuel_types()}
-
-            # reduce the list of possibly fuel types
-            usable_fuel_types = [fuel_type for fuel_type in power_fuel_type[max_power] if fuel_type in fuel_type_size]
-            fuel_type = usable_fuel_types[0]
-
-            for type_ in usable_fuel_types:
-
-                if type_ not in fuel_type_size:
-                    continue
-
-                # notice that if multiple tanks have the same size
-                # the first encountered fuel type is chosen
-                if fuel_type_size[type_] > fuel_type_size[fuel_type]:
-                    fuel_type = type_
-
-            logger.info("{}: Has a power system with multiple main fuel types "
-                        "({}) of equal power. {} was chosen as the primary."
-                        .format(self,
-                                ', '.join([FuelTypeID(f).name for f in power_fuel_type[max_power]]),
-                                FuelTypeID(fuel_type).name))
-
-        else:
-
-            fuel_type = power_fuel_type[max_power][0]
-
-        self.fuel_type = fuel_type
 
     def set_fleet_assignment(self, fleet_name):
         if self.fleet_assignment is not None:

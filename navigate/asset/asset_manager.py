@@ -1,14 +1,18 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""
+The AssetManager node is the base class of the Fleet and Producer nodes. It is never assigned or
+instantiated directly through the DSL.
+"""
+
 from __future__ import annotations
 
-import logging
-from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 import numpy as np
 
+from navigate.asset.increments import Increment
 from navigate.core import (
     Node,
     Scalar,
@@ -22,24 +26,6 @@ from navigate.core.misc import YEAR
 
 if TYPE_CHECKING:
     from navigate.core import NodeReference
-
-logger = logging.getLogger(__name__)
-
-
-@dataclass(slots=True)
-class Increment:
-    """
-    A single asset increment representing one cohort of assets
-    (vessels or plants) that entered service at the same time.
-    """
-
-    multiplier: float
-    age: float
-    dt: float
-    decided: float | None = None
-    package_uptake: np.ndarray | None = None  # Fleet: technology package uptake per increment
-    baseline: float | None = None  # Fleet: reference multiplier for partial age-based scrapping
-    technology_charter_rate: float = 0.  # Fleet: levelized technology cost carried by the cohort, USD/year per vessel
 
 
 class AssetManager(Node):

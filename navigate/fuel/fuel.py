@@ -122,29 +122,3 @@ class Fuel(Node):
 
     def get_TTW(self, emission_name):
         return self.TTW[emission_name]
-
-
-def get_fuels_per_fuel_type(fuels):
-    """
-    Creates a dict of all fuels available for bunkering for each fuel type.
-
-    Parameters
-    ----------
-    fuels : dict[str, Fuel]
-        Dictionary of class Fuel.
-
-    Returns
-    -------
-    dict[FuelTypeID: list[Fuel]]
-        Dictionary of bunker fuels linked to a given fuel type.
-    """
-
-    # construct dict of fuels per fuel types
-    fuel_per_fuel_type = {id_: [] for id_ in FuelTypeID}
-
-    for fuel in fuels.values():
-
-        fuel_type = fuel.fuel_type
-        fuel_per_fuel_type[fuel_type].append(fuel)
-
-    return fuel_per_fuel_type

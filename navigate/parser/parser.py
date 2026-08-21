@@ -52,7 +52,6 @@ from navigate.parser._lark_parser import (
     parse_include_content,
     string_to_date,
 )
-from navigate.route import route_active_ports
 from navigate.util import (
     attribute_to_setter,
     get_attributes,
@@ -949,11 +948,9 @@ class Parser:
         for port in self.nodes.ports.values():
             port.initialize_dependencies(self.nodes.emissions, self.nodes.fuels)
 
-        active_port_names = route_active_ports(self.nodes.routes)
-        active_ports = {p: port for p, port in self.nodes.ports.items() if p in active_port_names}
-
         for producer in self.nodes.producers.values():
-            producer.initialize_dependencies(self.nodes.feedstocks, active_ports, self.nodes.processes)
+            producer.initialize_dependencies(self.nodes.feedstocks, self.nodes.ports, self.nodes.processes,
+                                             self.nodes.routes)
 
         for region in self.nodes.regions.values():
             region.initialize_dependencies(self.nodes.emissions,

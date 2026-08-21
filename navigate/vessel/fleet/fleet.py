@@ -20,7 +20,6 @@ from navigate.core import (
     assign_id,
     assign_list,
     assign_value,
-    calculate_compound_growth,
     command_assignment_to_boolean_dict,
     command_assignment_to_dict,
     command_assignment_to_tuple_dict,
@@ -49,6 +48,8 @@ from navigate.vessel.fleet.fleet_technology import (
 )
 from navigate.vessel.fleet.fleet_utils import (
     calculate_projected_multipliers,
+    define_initial_split,
+    define_initial_trade,
     extract_cargo_miles,
 )
 from navigate.vessel.package import Package, preprocess_packages
@@ -996,11 +997,11 @@ class Fleet(AssetManager):
         preprocess_packages(self.technology_packages, self.assets, timeline[idx])
 
         # existing fleet
-        self._define_initial_split()
+        define_initial_split(self)
         self._define_initial_age()
         self._define_initial_multipliers()
         self._define_initial_technology()
-        self._define_initial_trade(timeline)
+        define_initial_trade(self, timeline)
 
         # order book
         self.orders_delivered = np.zeros((nv,))
@@ -1032,25 +1033,6 @@ class Fleet(AssetManager):
         # set dynamic properties
         self.fuel_conversion_expenses = np.zeros_like(timeline)
 
-    def _define_initial_split(self):
-        """
-        Define the initial fraction of each vessel type in the fleet.
-        """
-
-        # if the initial split is not supplied
-        # by the user, then assume a uniform
-        # split on cargo-miles
-        if not self.initial_split:
-            nv = len(self.assets)
-            self.initial_split = [1. / nv for v in range(nv)]
-
-        # while the initial split of the entire
-        # existing fleet does not necessarily
-        # correspond to current trends in
-        # newbuilds, it is the best available proxy
-        # TODO: allow this to be user-defined
-        self.current_uptake = np.array(self.initial_split)
-
     # -- AssetManager abstract interface -----------------------------------------------------------
 
     def _get_initial_multiplier(self, index: int) -> float:
@@ -1062,22 +1044,6 @@ class Fleet(AssetManager):
             if scrap_rate > 0.:
                 lifetime = min(lifetime, 1. / scrap_rate)
         return lifetime
-
-    def _define_initial_trade(self, timeline: np.ndarray):
-        idx = 0
-        cargo_miles = extract_cargo_miles(self.assets, idx)
-
-        multipliers = self.get_multipliers()
-        initial_trade = np.dot(multipliers, cargo_miles)
-        trade_growth = self.trade_growth.get(timeline)
-
-        # the initial trade is projected forward in
-        # time by calculating the compound growth
-        # from the user-supplied growth rates
-        self.trade = calculate_compound_growth(initial_trade, trade_growth, timeline)
-
-        # transfer to profile
-        self.profile.set_trade(idx, self.trade[idx])
 
     def _build_technology_packages(self):
         self.technology_packages, self.package_to_technology_map = build_technology_packages(self.technologies)
@@ -1098,7 +1064,7 @@ class Fleet(AssetManager):
         for v, vessel in enumerate(self.assets):
             self.profile.set_existing_vessels(idx, vessel.get_name(), self.get_multiplier(v))
 
-    def calculate_cargo_miles(self, idx: int) -> float:
+    def get_cargo_miles(self, idx: int) -> float:
         multipliers = [self.get_multiplier(v) for v in range(len(self.assets))]
         cargo_miles = extract_cargo_miles(self.assets, idx)
 
@@ -1119,8 +1085,3 @@ class Fleet(AssetManager):
 
     def get_fuel_conversion_cost_pairs(self) -> list[tuple[str, str]]:
         return [pair for pair, cost in self.fuel_conversion_cost.items() if cost is not None]
-
-    def vessel_is_allowed(self, vessel_name) -> bool:
-        return self.allow_vessel[vessel_name] and (self.newbuild_available[vessel_name]
-                                                   or (self.conversion_available[vessel_name]
-                                                       if self.can_fuel_convert() else False))

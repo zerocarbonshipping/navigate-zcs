@@ -273,7 +273,7 @@ class _FleetStub:
         self.profile = profile
         self.cargo_miles_by_idx = cargo_miles_by_idx
 
-    def calculate_cargo_miles(self, idx):
+    def get_cargo_miles(self, idx):
         return self.cargo_miles_by_idx[idx]
 
 

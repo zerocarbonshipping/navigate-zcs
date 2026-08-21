@@ -370,22 +370,3 @@ class Route(Node):
             return np.ones((self.get_number_of_ports(),))
         else:
             return to_numpy(self.port_calls)
-
-
-def route_active_ports(routes: dict[str, Route]) -> set[str]:
-    """
-    Names of ports that appear on at least one route.
-
-    Parameters
-    ----------
-    routes
-        All routes in the simulation, keyed by name.
-
-    Returns
-    -------
-    Set of port names referenced by any route. Empty when no routes are
-    defined. Assumes route-to-port wiring is static; if conditional route
-    activation is ever introduced this helper will need a timeline.
-    """
-
-    return {port.get_name() for route in routes.values() for port in route.ports}

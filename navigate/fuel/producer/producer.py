@@ -27,13 +27,14 @@ from navigate.core.profiles import ProducerProfile
 from navigate.exceptions import no_value_assigned_error
 from navigate.fuel.producer.producer_evolution import (
     calculate_evolution_expectation,
+    calculate_export_expectation,
     calculate_feed_availability,
+    define_existing_pipeline,
     perform_decommissioning,
     perform_pipeline_delivery,
 )
 from navigate.fuel.producer.producer_planning import perform_pipeline_planning
 from navigate.util import (
-    divide_nonzero,
     is_non_strictly_increasing,
 )
 
@@ -61,7 +62,7 @@ class Producer(AssetManager):
         self._initial_capacity = []     # list[float], initial capacity per plant type, tons/day
 
         # existing pipeline
-        self._existing_pipelines = {}   # dict[plant_name: Forecast]
+        self.existing_pipelines = {}   # dict[plant_name: Forecast]
 
         # constraints
         self.maximum_development = None    # float, number of plants which can be built per year
@@ -70,7 +71,7 @@ class Producer(AssetManager):
         self.maximum_ramp_up = None        # float, maximum change in utilization of development, fraction/year
 
         # export
-        self._export_distribution = {}  # dict[port_name: float], fraction of production being exported to which port
+        self.export_distribution = {}  # dict[port_name: float], fraction of production being exported to which port
 
         # boolean
         self.allow_plant = {}  # dict[bool], whether a plant is allowed to be built
@@ -262,7 +263,7 @@ class Producer(AssetManager):
 
         command_assignment_to_dict(plant_name,
                                    existing_pipeline,
-                                   self._existing_pipelines,
+                                   self.existing_pipelines,
                                    scalar=False,
                                    type_=FORECAST,
                                    lower=0.)
@@ -328,7 +329,7 @@ class Producer(AssetManager):
 
         command_assignment_to_dict(port_name,
                                    export_distribution,
-                                   self._export_distribution,
+                                   self.export_distribution,
                                    type_=(FORECAST, VARIABLE),
                                    lower=0.,
                                    upper=1.)
@@ -369,9 +370,9 @@ class Producer(AssetManager):
                              .format(self, len(self.assets), len(self._initial_age_distribution)))
 
         # check that pipelines satisfy various requirements
-        if self._existing_pipelines:
+        if self.existing_pipelines:
 
-            for pipeline in self._existing_pipelines.values():
+            for pipeline in self.existing_pipelines.values():
 
                 if pipeline is None:
                     continue
@@ -386,13 +387,13 @@ class Producer(AssetManager):
                                    " may therefore continue past the last date.".format(self, pipeline))
 
         # ensure consistent export distribution
-        for port_name, export in self._export_distribution.items():
+        for port_name, export in self.export_distribution.items():
 
             if export is None:
 
-                self._export_distribution[port_name] = Scalar(0.)
+                self.export_distribution[port_name] = Scalar(0.)
 
-    def initialize_dependencies(self, feedstocks, ports, processes):
+    def initialize_dependencies(self, feedstocks, ports, processes, routes):
         """
         Initialize dependent dictionaries to allow wildcarding during command calls.
 
@@ -401,25 +402,30 @@ class Producer(AssetManager):
         feedstocks : dict[str, Feedstock]
             All feedstocks in the simulation.
         ports : dict[str, Port]
-            Ports that appear on at least one route. Ports declared in the
-            deck but absent from every route are excluded — exporting
-            production to them would strand supply at destinations a vessel
-            never visits.
+            All ports in the simulation.
         processes : dict[str, Process]
             All processes in the simulation.
+        routes : dict[str, Route]
+            All routes in the simulation. Export defaults are seeded only for
+            ports that appear on at least one route — exporting production to
+            a port no vessel visits would strand supply there.
         """
 
         for feed_name in {**feedstocks, **processes}:
             self.feed_constraints.setdefault(feed_name, None)
 
+        active_port_names = {port.get_name() for route in routes.values() for port in route.ports}
+
         for port_name in ports:
-            self._export_distribution.setdefault(port_name, None)
+
+            if port_name in active_port_names:
+                self.export_distribution.setdefault(port_name, None)
 
         # default dependent dicts
         for plant in self.assets:
             name = plant.get_name()
             self.allow_plant.setdefault(name, True)
-            self._existing_pipelines.setdefault(name, None)
+            self.existing_pipelines.setdefault(name, None)
 
     def initialize_expectation(self, length: int, feedstocks: dict[str, Feedstock],
                                fuels: dict[str, Fuel], ports: dict[str, Port],
@@ -437,21 +443,7 @@ class Producer(AssetManager):
         self.profile.initialize(timeline, feedstocks, fuels, processes)
 
     def calculate_expectation(self, timeline, idx):
-
-        times = timeline[idx:]
-
-        if not self._export_distribution:
-            return
-
-        # calculate export distribution
-        exports = {port_name: export.get(times) for port_name, export in self._export_distribution.items()}
-        norm = sum(exports.values())
-
-        # default to equal export distribution if nothing is defined
-        default = 1. / len(self._export_distribution)
-
-        for port_name, export in exports.items():
-            self.expectation.set_export_distribution(idx, port_name, divide_nonzero(export, norm, default=default))
+        calculate_export_expectation(self, timeline, idx)
 
     def initialize_existing_producer(self, timeline):
         """
@@ -485,7 +477,7 @@ class Producer(AssetManager):
             self.increments[a] = [inc for inc in self.increments[a] if inc.multiplier > 0.]
 
         # existing pipeline
-        self._define_existing_pipeline(timeline)
+        define_existing_pipeline(self, timeline)
 
         # calculate the initial producer evolution expectation
         calculate_feed_availability(self, timeline, idx)
@@ -528,105 +520,6 @@ class Producer(AssetManager):
             "{}: Unable to initialize a capacity of tons/day from {} (plant {}) as the plant capacity is zero."
             .format(self, self._initial_capacity[index].get(), self.assets[index]))
         return 0.
-
-    def _define_existing_pipeline(self, timeline):
-        """
-        Define the initial number of plants of each plant type in the production pipeline.
-
-        Parameters
-        ----------
-        timeline : np.ndarray
-            Simulation timeline.
-        """
-
-        # pre-allocate internal pipeline to appropriate length
-        for _p in range(len(self.assets)):
-            self.pipeline.append([])
-
-        for p, (_name, pipeline) in enumerate(self._existing_pipelines.items()):
-
-            if pipeline is None:
-                continue
-
-            # extract the planned capacity
-            # and the dates at which it will
-            # arrive from the pipeline
-            planned_delivery = pipeline.get_x()
-            planned_capacity = pipeline.get_y()
-
-            # interpolate with the timeline
-            # to ensure exact overlap with
-            # simulation dates
-            planned_capacity = np.interp(timeline, planned_delivery, planned_capacity)
-
-            # calculate the increments in which
-            # the planned capacity arrives
-            incremental_delivery = timeline / YEAR
-            incremental_capacity = np.insert(np.diff(planned_capacity), 0, planned_capacity[0])
-
-            # remove zero increments
-            non_zeros = incremental_capacity > 0.
-            incremental_delivery = incremental_delivery[non_zeros]
-            incremental_capacity = incremental_capacity[non_zeros]
-
-            # calculate the increment time-step sizes
-            # at which increments entered. It is assumed
-            # that the first multiplier increment was
-            # entered over a year
-            incremental_dt = np.insert(np.diff(incremental_delivery), 0, 1.)
-
-            # recalculate incremental capacity
-            # to number of plant increments
-            plant = self.assets[p]
-            capacity = plant.capacity.get()
-            incremental_plants = incremental_capacity / capacity
-
-            # calculate the time since each project was FID'ed
-            lead_time = plant.lead_time.get()
-
-            # pipeline uses negative ages (not yet delivered)
-            self.pipeline[p] = [
-                Increment(multiplier=m, age=-d, dt=t, decided=lead_time - d)
-                for m, d, t in zip(incremental_plants, incremental_delivery, incremental_dt)
-            ]
-
-            # assign to profile
-            self.profile.set_development(0, np.sum(incremental_plants))
-
-        # define the current uptake by an inertia
-        # based average over the pipeline
-        n = len(self.assets)
-        sum_weights = 0.
-        uptake = np.zeros((n,), dtype=np.float64)
-        inertia = self.inertia.get()
-
-        for p in range(n):
-
-            pinc = self.pipeline[p]
-            if not len(pinc):
-                continue
-
-            # TODO: this may need to be based on continuous compound growth?
-            lead_time = self.assets[p].lead_time.get()
-            ages = np.array([inc.age for inc in pinc])
-            multipliers = np.array([inc.multiplier for inc in pinc])
-            weights = inertia ** (np.maximum(lead_time + ages, 0.))
-
-            uptake[p] = np.dot(multipliers, weights)
-            sum_weights += np.sum(weights)
-
-        self.current_uptake = divide_nonzero(uptake, np.sum(uptake), default=1. / uptake.size)
-
-        # the latest value of the development constraint
-        # is used rather than an average over backwards
-        # extrapolation. This is done as it difficult to
-        # define the backwards period due to inconsistency
-        # between pipeline and lead time and the potentially
-        # varying lead time of different plants
-        maximum_development = self.maximum_development.get()
-        average_development = divide_nonzero(np.sum(uptake), sum_weights)
-
-        self.current_utilization = min(divide_nonzero(average_development, maximum_development), 1.)
 
     def perform_progression(self, timeline, time_step, idx):
 

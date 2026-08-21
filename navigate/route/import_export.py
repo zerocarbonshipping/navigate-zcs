@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.route.route import route_active_ports
 from navigate.util import TOLERANCE, divide_nonzero
 
 if TYPE_CHECKING:
@@ -58,7 +57,7 @@ def calculate_fuel_import_to_ports(ports: dict[str, Port],
     liquid_fuels = {f: fuel for f, fuel in fuels.items() if fuel.belongs_to_liquid_market()}
     production_fuels = {f: fuel for f, fuel in fuels.items() if not fuel.belongs_to_liquid_market()}
 
-    active_port_names = route_active_ports(routes)
+    active_port_names = {port.get_name() for route in routes.values() for port in route.ports}
     active_ports = {p: port for p, port in ports.items() if p in active_port_names}
 
     _calculate_import_from_liquid_market(ports, liquid_fuels, emissions, idx)
