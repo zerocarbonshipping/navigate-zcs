@@ -3,4 +3,4 @@
 
 # classes
 from navigate.route.port import Port
-from navigate.route.route import Route, route_active_ports
+from navigate.route.route import Route
