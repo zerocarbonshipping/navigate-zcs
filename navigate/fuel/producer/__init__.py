@@ -2,5 +2,3 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from navigate.fuel.producer.producer import Producer
-
-__all__ = ["Producer"]
