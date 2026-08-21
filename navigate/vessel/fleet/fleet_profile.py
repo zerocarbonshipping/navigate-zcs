@@ -232,7 +232,7 @@ def transfer_transport_work(fleet: Fleet, idx: int) -> None:
         Current time-step index.
     """
 
-    cargo_miles = fleet.calculate_cargo_miles(idx)
+    cargo_miles = fleet.get_cargo_miles(idx)
     fleet.profile.set_cargo_miles(idx, cargo_miles)
 
     growth = divide_nonzero(cargo_miles, fleet.profile.get_cargo_miles(idx=0), default=1.)

@@ -161,7 +161,7 @@ def perform_fixed_rate_scrapping(fleet: Fleet, time_step: float, idx: int):
 
     # calculate the targeted scrap in trade
     scrap_rate = fleet.fixed_scrap_rate.get() * time_step / YEAR
-    target_scrap = scrap_rate * fleet.calculate_cargo_miles(idx)
+    target_scrap = scrap_rate * fleet.get_cargo_miles(idx)
 
     # scrap vessels matching the targeted trade
     perform_fixed_trade_scrapping(fleet, -target_scrap, idx)
@@ -897,7 +897,7 @@ def perform_fleet_evolution(fleet: Fleet, timeline: np.ndarray, time_step: float
 
     # calculate the existing trade-gap
     trade = fleet.trade[idx]
-    trade_gap = trade - fleet.calculate_cargo_miles(idx)
+    trade_gap = trade - fleet.get_cargo_miles(idx)
 
     # per-vessel newbuild count budget for this timestep, threaded across the three newbuild sources.
     # Cap denominator is the pre-newbuild fleet count (proxy for yard capacity); time_step/YEAR scales
