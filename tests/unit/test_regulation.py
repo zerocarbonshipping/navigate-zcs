@@ -6,7 +6,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from navigate.policy.regulation import Regulation
+from navigate.core.nodes.regulation import Regulation
 
 MEASURES = ('ABSOLUTE', 'INTENSITY', 'TRANSPORT', 'TRANSPORT_NOMINAL')
 SCHEMES = ('INDIVIDUAL', 'FLEXIBLE')

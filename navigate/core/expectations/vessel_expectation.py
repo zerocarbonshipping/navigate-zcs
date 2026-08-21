@@ -18,8 +18,8 @@ from navigate.util import (
 )
 
 if TYPE_CHECKING:
-    from navigate.fuel import Fuel
-    from navigate.route.route import Route
+    from navigate.core.nodes.fuel import Fuel
+    from navigate.core.nodes.route import Route
 
 
 class VesselExpectation(_Expectation):

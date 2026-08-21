@@ -12,7 +12,8 @@ from navigate.core.profiles._infrastructure_aggregate_profile import _Infrastruc
 from navigate.util import extract_from_dict, extract_from_tuple_dict
 
 if TYPE_CHECKING:
-    from navigate.fuel import Emission, Fuel
+    from navigate.core.nodes.emission import Emission
+    from navigate.core.nodes.fuel import Fuel
 
 
 class PortProfile(_InfrastructureAggregateProfile):

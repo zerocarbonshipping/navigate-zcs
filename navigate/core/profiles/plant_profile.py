@@ -12,7 +12,8 @@ from navigate.core.profiles._base_profile import _BaseProfile
 from navigate.util import divide_nonzero
 
 if TYPE_CHECKING:
-    from navigate.fuel import Emission, Fuel
+    from navigate.core.nodes.emission import Emission
+    from navigate.core.nodes.fuel import Fuel
 
 
 class PlantProfile(_BaseProfile):

@@ -12,7 +12,7 @@ from navigate.core.misc import EMPTY_FLOAT
 from navigate.util import slice_dict
 
 if TYPE_CHECKING:
-    from navigate.fuel import Fuel
+    from navigate.core.nodes.fuel import Fuel
 
 
 class FleetExpectation(_Expectation):

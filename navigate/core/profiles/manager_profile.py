@@ -13,9 +13,10 @@ from navigate.core.profiles._plant_aggregate_profile import _PlantAggregateProfi
 from navigate.core.profiles._vessel_aggregate_profile import _VesselAggregateProfile
 
 if TYPE_CHECKING:
-    from navigate.fuel import Emission, Fuel
-    from navigate.fuel.feedstock import Feedstock
-    from navigate.fuel.process import Process
+    from navigate.core.nodes.emission import Emission
+    from navigate.core.nodes.feedstock import Feedstock
+    from navigate.core.nodes.fuel import Fuel
+    from navigate.core.nodes.process import Process
 
 
 class ManagerProfile(_VesselAggregateProfile, _PlantAggregateProfile, _InfrastructureAggregateProfile):

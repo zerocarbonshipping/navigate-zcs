@@ -12,14 +12,13 @@ from navigate.core.unit import TON_PER_GJ_TO_GRAM_PR_MJ
 from navigate.util import TOLERANCE, divide_nonzero, list_intersection
 
 if TYPE_CHECKING:
-    from navigate.fuel.emission import Emission
-    from navigate.fuel.fuel import Fuel
-    from navigate.policy._policy import Policy
-    from navigate.policy.levy import Levy
-    from navigate.policy.regulation import Regulation
-    from navigate.route.port import Port
-    from navigate.vessel.converter import Converter
-    from navigate.vessel.vessel import Vessel
+    from navigate.core.nodes.converter import Converter
+    from navigate.core.nodes.emission import Emission
+    from navigate.core.nodes.fuel import Fuel
+    from navigate.core.nodes.levy import Levy
+    from navigate.core.nodes.port import Port
+    from navigate.core.nodes.regulation import Regulation
+    from navigate.core.nodes.vessel import Vessel
 
 
 def calculate_policy_emission_coefficients(regulations: dict[str, Regulation],
@@ -777,7 +776,7 @@ def _average_ttw_over_converters(vessel: Vessel,
     return ttw_consumption, ttw_slip
 
 
-def _calculate_emission_factor(policy: Policy,
+def _calculate_emission_factor(policy: Levy | Regulation,
                                key_wtt: tuple[str, ...],
                                key_ttw: tuple[str, ...],
                                bunker_scope: BunkerScopeID,
@@ -826,7 +825,7 @@ def _calculate_emission_factor(policy: Policy,
 
 
 def _apply_gwp(emission_factor: float | np.ndarray,
-               policy: Policy,
+               policy: Levy | Regulation,
                emission: Emission) -> float | np.ndarray:
     """
     Convert an emission factor to CO2-equivalent units by multiplying with the policy's GWP.
@@ -850,7 +849,7 @@ def _apply_gwp(emission_factor: float | np.ndarray,
     return emission_factor * gwp
 
 
-def _usable_target_fuels(policy: Policy, usable_fuels: dict[str, Fuel]) -> list[Fuel]:
+def _usable_target_fuels(policy: Levy | Regulation, usable_fuels: dict[str, Fuel]) -> list[Fuel]:
     """
     Filter the policy's targeted fuels down to those usable by a vessel's power system.
 

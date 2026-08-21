@@ -8,8 +8,8 @@ def as_scalar(value):
     """
     Wrap a value in a Scalar class if it is a float, otherwise return the NodeReference or Node as is.
 
-    The wrapping is necessary as Scalar provides a getter which takes two arguments, similar to all Calculators.
-    This is convenient when an attribute can be defined as either a float or a Calculator.
+    The wrapping is necessary as Scalar provides a getter which takes two arguments, similar to all calculator nodes.
+    This is convenient when an attribute can be defined as either a float or a calculator node.
 
     Parameters
     ----------

@@ -10,12 +10,12 @@ is wrapped into a list so the parser's wildcard-expansion pass picks it up.
 
 from navigate.core.id_ import PORT, TECHNOLOGY, VESSEL
 from navigate.core.node_reference import NodeReference, WildcardNodeReference
-from navigate.fuel import Fuel
+from navigate.core.nodes._policy import _Policy
+from navigate.core.nodes.fleet import Fleet
+from navigate.core.nodes.fuel import Fuel
+from navigate.core.nodes.port import Port
+from navigate.core.nodes.route import Route
 from navigate.parser.parser import Parser
-from navigate.policy._policy import Policy
-from navigate.route import Port
-from navigate.route.route import Route
-from navigate.vessel.fleet.fleet import Fleet
 
 
 class TestSingleValueShorthand:
@@ -32,8 +32,8 @@ class TestSingleValueShorthand:
 
     def test_policy_jurisdiction_accepts_single_reference(self):
         ref = NodeReference(PORT, "port_a")
-        policy_single = Policy("p1")
-        policy_list = Policy("p2")
+        policy_single = _Policy("p1")
+        policy_list = _Policy("p2")
 
         policy_single.set_jurisdiction(ref)
         policy_list.set_jurisdiction([ref])

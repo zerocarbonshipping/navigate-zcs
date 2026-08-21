@@ -10,7 +10,7 @@ import numpy as np
 import navigate.core.enum_ as enum_
 
 if TYPE_CHECKING:
-    from navigate.vessel import Vessel
+    from navigate.core.nodes.vessel import Vessel
 
 
 def extract_times(vessel: Vessel, idx: int) -> tuple[list, list]:

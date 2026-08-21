@@ -14,7 +14,7 @@ from navigate.investment.metric import calculate_age_levelized_cost
 from navigate.util import divide_nonzero
 
 if TYPE_CHECKING:
-    from navigate.fuel.producer.producer import Producer
+    from navigate.core.nodes.producer import Producer
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +31,7 @@ def calculate_uptake_inter_metric(plant, demand, minimum_offtake_duration, timel
         Plant for which inter uptake metric is being calculated.
     demand : dict[str, np.ndarray]
         The expected demand per fuel pathway that is not satisfied by current supply.
-    minimum_offtake_duration : Scalar | Calculator
+    minimum_offtake_duration : Scalar | calculator node
         The minimum duration of offtake to justify building a plant.
     timeline : np.ndarray
         Simulation timeline.

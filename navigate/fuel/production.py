@@ -5,12 +5,12 @@ import numpy as np
 
 from navigate.core.enum_ import SourceDependencyID
 from navigate.core.misc import YEAR
-from navigate.fuel.emission import Emission
-from navigate.fuel.feedstock import Feedstock
-from navigate.fuel.plant import Plant
-from navigate.fuel.process import Process
-from navigate.fuel.region import Region
-from navigate.fuel.source import Source
+from navigate.core.nodes.emission import Emission
+from navigate.core.nodes.feedstock import Feedstock
+from navigate.core.nodes.plant import Plant
+from navigate.core.nodes.process import Process
+from navigate.core.nodes.region import Region
+from navigate.core.nodes.source import Source
 from navigate.investment.flows import (
     Component,
     add_capex_flow,

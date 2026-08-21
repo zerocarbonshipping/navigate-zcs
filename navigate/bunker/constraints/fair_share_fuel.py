@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from navigate.bunker.bunker_algorithm import BunkerAlgorithm
-    from navigate.vessel import Vessel
+    from navigate.core.nodes.vessel import Vessel
 
 import numpy as np
 

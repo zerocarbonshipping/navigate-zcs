@@ -11,10 +11,10 @@ from numpy.typing import NDArray
 from navigate.core import calculate_compound_growth
 from navigate.core.enum_ import EnergyDemandTypeID
 from navigate.core.misc import ROUND_OFF
-from navigate.vessel import Vessel
+from navigate.core.nodes.vessel import Vessel
 
 if TYPE_CHECKING:
-    from navigate.vessel.fleet.fleet import Fleet
+    from navigate.core.nodes.fleet import Fleet
 
 
 def extract_cargo_miles(vessels: list[Vessel], idx: int | slice) -> list[NDArray[np.float64]]:

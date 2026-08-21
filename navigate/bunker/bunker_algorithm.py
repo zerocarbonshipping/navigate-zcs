@@ -68,13 +68,16 @@ from navigate.vessel.fuel_option import get_fuels_per_fuel_type
 if TYPE_CHECKING:
     import numpy as np
 
-    from navigate.bunker.bunker_options import BunkerOptions
     from navigate.core.enum_ import BunkerScopeID as BunkerScopeIDType
-    from navigate.fuel import Emission, Feedstock, Fuel
-    from navigate.policy import Levy, Regulation
-    from navigate.route import Port
-    from navigate.vessel import Vessel
-    from navigate.vessel.fleet import Fleet
+    from navigate.core.general_nodes.bunker_options import BunkerOptions
+    from navigate.core.nodes.emission import Emission
+    from navigate.core.nodes.feedstock import Feedstock
+    from navigate.core.nodes.fleet import Fleet
+    from navigate.core.nodes.fuel import Fuel
+    from navigate.core.nodes.levy import Levy
+    from navigate.core.nodes.port import Port
+    from navigate.core.nodes.regulation import Regulation
+    from navigate.core.nodes.vessel import Vessel
 
 logger = logging.getLogger(__name__)
 

@@ -3,6 +3,10 @@
 
 import numpy as np
 
+from navigate.core.nodes.converter import Converter
+from navigate.core.nodes.power_system import PowerSystem
+from navigate.core.nodes.tank import Tank
+from navigate.core.nodes.vessel import Vessel
 from navigate.investment.flows import (
     Component,
     add_capex_flow,
@@ -11,7 +15,6 @@ from navigate.investment.flows import (
     build_cargo_flow,
 )
 from navigate.investment.metric import calculate_net_present_value
-from navigate.vessel import Converter, PowerSystem, Tank, Vessel
 
 
 def calculate_vessel_charter_properties(vessel: Vessel,
@@ -242,7 +245,7 @@ def _initialize_vessel_component(vessel: Vessel,
     vessel
         The vessel whose timing (lifetime) governs the flow horizon.
     machinery
-        Machinery for which lifetime/replacement hooks should be initialized (optional).
+        _Machinery for which lifetime/replacement hooks should be initialized (optional).
     time_initial
         Absolute time at which the vessel component is assumed to be constructed or commissioned.
 

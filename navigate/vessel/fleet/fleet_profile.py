@@ -13,8 +13,8 @@ from navigate.util import divide_nonzero, get_increment_origin_index
 from navigate.vessel.fleet.fleet_speed import aggregate_speed_profile
 
 if TYPE_CHECKING:
-    from navigate.fuel import Fuel
-    from navigate.vessel.fleet import Fleet
+    from navigate.core.nodes.fleet import Fleet
+    from navigate.core.nodes.fuel import Fuel
 
 logger = logging.getLogger(__name__)
 

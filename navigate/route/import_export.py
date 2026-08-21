@@ -11,11 +11,11 @@ import numpy as np
 from navigate.util import TOLERANCE, divide_nonzero
 
 if TYPE_CHECKING:
-    from navigate.fuel.emission import Emission
-    from navigate.fuel.fuel import Fuel
-    from navigate.fuel.producer import Producer
-    from navigate.route.port import Port
-    from navigate.route.route import Route
+    from navigate.core.nodes.emission import Emission
+    from navigate.core.nodes.fuel import Fuel
+    from navigate.core.nodes.port import Port
+    from navigate.core.nodes.producer import Producer
+    from navigate.core.nodes.route import Route
 
 logger = logging.getLogger(__name__)
 

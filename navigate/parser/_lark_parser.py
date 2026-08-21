@@ -18,14 +18,14 @@ from typing import Any, List
 from lark import Lark, Transformer, v_args
 from lark.exceptions import UnexpectedCharacters, UnexpectedToken
 
-from navigate.calculator._table_data import (
+from navigate.core import Expression, NodeReference
+from navigate.core.node_reference import WildcardNodeReference
+from navigate.core.table_data import (
     SourceLoc,
     TableData,
     parse_table_cells,
     string_to_date,
 )
-from navigate.core import Expression, NodeReference
-from navigate.core.node_reference import WildcardNodeReference
 from navigate.exceptions import DeckFormatError
 from navigate.util import name_contains_wildcards
 

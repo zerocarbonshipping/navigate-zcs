@@ -4,9 +4,9 @@
 import numpy as np
 
 from navigate.core.enum_ import BunkerScopeID, EnergyDemandTypeID, FuelTypeID, RouteTypeID
-from navigate.route.port import Port
+from navigate.core.nodes.port import Port
+from navigate.core.nodes.vessel import Vessel
 from navigate.util import divide_nonzero
-from navigate.vessel import Vessel
 
 
 def calculate_fair_share_fuel_supply(fleets, fuels, ports, idx, scope):

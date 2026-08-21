@@ -8,17 +8,17 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.asset import Increment
 from navigate.core import calculate_inertia
 from navigate.core.enum_ import UtilityID
+from navigate.core.increment import Increment
 from navigate.core.misc import ROUND_OFF, TOLERANCE, YEAR
 from navigate.util import divide_nonzero, to_numpy
 from navigate.vessel.fleet.fleet_technology import calculate_package_charter_rates
 from navigate.vessel.fleet.fleet_utils import calculate_increments, extract_cargo_miles
 
 if TYPE_CHECKING:
-    from navigate.vessel import Vessel
-    from navigate.vessel.fleet import Fleet
+    from navigate.core.nodes.fleet import Fleet
+    from navigate.core.nodes.vessel import Vessel
 
 logger = logging.getLogger(__name__)
 

@@ -7,8 +7,8 @@ import numpy as np
 
 from navigate.core.enum_ import EnergyDemandTypeID, EnergyDemandTypePortID
 from navigate.core.misc import TOLERANCE
+from navigate.core.nodes.vessel import Vessel
 from navigate.route.operation import convert_to_regional_steps
-from navigate.vessel import Vessel
 from navigate.vessel.package import Package
 from navigate.vessel.saving import calculate_residual_energy
 

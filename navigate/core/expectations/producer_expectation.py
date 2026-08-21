@@ -11,8 +11,10 @@ from navigate.core.expectations._expectation import _Expectation
 from navigate.util import extract_from_dict
 
 if TYPE_CHECKING:
-    from navigate.fuel import Feedstock, Fuel, Process
-    from navigate.route import Port
+    from navigate.core.nodes.feedstock import Feedstock
+    from navigate.core.nodes.fuel import Fuel
+    from navigate.core.nodes.port import Port
+    from navigate.core.nodes.process import Process
 
 
 class ProducerExpectation(_Expectation):

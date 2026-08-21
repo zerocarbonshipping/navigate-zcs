@@ -11,7 +11,7 @@ from navigate.core.misc import YEAR
 from navigate.util import get_increment_origin_index, get_increments_origin_index
 
 if TYPE_CHECKING:
-    from navigate.fuel.producer.producer import Producer
+    from navigate.core.nodes.producer import Producer
 
 
 def calculate_profile(producer: Producer, timeline, idx):

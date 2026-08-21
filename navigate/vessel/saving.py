@@ -5,11 +5,11 @@ from __future__ import annotations
 
 import numpy as np
 
-from navigate.calculator.curve import Curve
 from navigate.core import Scalar
 from navigate.core.enum_ import EnergyDemandTypeID
+from navigate.core.nodes.curve import Curve
+from navigate.core.nodes.vessel import Vessel
 from navigate.core.unit import MWD_TO_GJ
-from navigate.vessel import Vessel
 from navigate.vessel.package import Package
 
 

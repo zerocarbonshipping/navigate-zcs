@@ -7,8 +7,10 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from navigate.bunker.bunker_algorithm import BunkerAlgorithm
-    from navigate.fuel import Emission, Fuel
-    from navigate.vessel import Converter, Vessel
+    from navigate.core.nodes.converter import Converter
+    from navigate.core.nodes.emission import Emission
+    from navigate.core.nodes.fuel import Fuel
+    from navigate.core.nodes.vessel import Vessel
 
 import navigate.core.enum_ as enum_
 from navigate.core.enum_ import BunkerScopeID, RegulationMeasureID

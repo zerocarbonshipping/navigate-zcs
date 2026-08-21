@@ -13,8 +13,10 @@ from navigate.core.misc import EMPTY_FLOAT
 from navigate.util import extract_from_dict, extract_from_tuple_dict
 
 if TYPE_CHECKING:
-    from navigate.fuel import Emission, Feedstock, Process
-    from navigate.route import Port
+    from navigate.core.nodes.emission import Emission
+    from navigate.core.nodes.feedstock import Feedstock
+    from navigate.core.nodes.port import Port
+    from navigate.core.nodes.process import Process
 
 
 class PlantExpectation(_Expectation):

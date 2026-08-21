@@ -8,14 +8,14 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.asset import Increment
+from navigate.core.increment import Increment
 from navigate.core.misc import TOLERANCE, YEAR
 from navigate.fuel.producer.producer_planning import calculate_constrained_uptakes
 from navigate.fuel.producer.producer_utils import calculate_increment_production_interval
 from navigate.util import divide_nonzero, get_increments_origin_index, slice_dict
 
 if TYPE_CHECKING:
-    from navigate.fuel.producer.producer import Producer
+    from navigate.core.nodes.producer import Producer
 
 logger = logging.getLogger(__name__)
 

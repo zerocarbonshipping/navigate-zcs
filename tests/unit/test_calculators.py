@@ -7,8 +7,8 @@ Tests verify the correctness of:
   - Addition/multiplier transforms: output = truncate(multiplier * (table(x) + addition))
   - Bound application: internal vs external bounds widen the envelope
   - Convexity detection on piecewise-linear functions
-  - Table1D interpolation with transforms, reverse lookup, pickle round-trip
-  - Table2D bilinear interpolation, reverse lookup, convexity, pickle round-trip
+  - _Table1D interpolation with transforms, reverse lookup, pickle round-trip
+  - _Table2D bilinear interpolation, reverse lookup, convexity, pickle round-trip
   - Variable scalar transform chain
 """
 import pickle
@@ -16,9 +16,9 @@ import pickle
 import numpy as np
 import pytest
 
-from navigate.calculator._calculator import Calculator
-from navigate.calculator._table1d import Table1D
-from navigate.calculator._table2d import Table2D
+from navigate.core.nodes._calculator import _Calculator
+from navigate.core.nodes._table1d import _Table1D
+from navigate.core.nodes._table2d import _Table2D
 
 # ---------------------------------------------------------------------------
 # Shared fixtures
@@ -29,14 +29,14 @@ TABLE_Y = np.array([0., 1., 4., 9., 16.])  # ~ x^2, convex
 
 
 def _make_table1d(x=TABLE_X, y=TABLE_Y, extrapolate='LINEAR'):
-    t = Table1D()
+    t = _Table1D()
     t.set_extrapolate(extrapolate)
     t._set_table(x, y)
     return t
 
 
 # ---------------------------------------------------------------------------
-# 1. Calculator base — truncation and bound logic
+# 1. _Calculator base — truncation and bound logic
 # ---------------------------------------------------------------------------
 
 class TestTruncateTransform:
@@ -44,7 +44,7 @@ class TestTruncateTransform:
 
     def test_identity_transform(self):
         """Default multiplier=1, addition=0 is the identity."""
-        c = Calculator()
+        c = _Calculator()
         assert c._truncate(5.0) == 5.0
 
     def test_multiplier_scales(self):
@@ -91,7 +91,7 @@ class TestBoundApplication:
 
     def test_truncate_clamps_to_applied_bounds(self):
         """Direct _truncate with manually set applied bounds."""
-        c = Calculator()
+        c = _Calculator()
         c._applied_lower_bound = 2.0
         c._applied_upper_bound = 8.0
         assert c._truncate(1.0) == pytest.approx(2.0)
@@ -99,7 +99,7 @@ class TestBoundApplication:
         assert c._truncate(10.0) == pytest.approx(8.0)
 
     def test_truncate_works_on_arrays(self):
-        c = Calculator()
+        c = _Calculator()
         c._applied_lower_bound = 2.0
         c._applied_upper_bound = 8.0
         result = c._truncate(np.array([0., 5., 12.]))
@@ -119,7 +119,7 @@ class TestBoundApplication:
 
     def test_tightening_logic_lower(self):
         """applied_lower = max(external, internal) — the tighter (most restrictive) wins."""
-        c = Calculator()
+        c = _Calculator()
         c.set_lower_bound(3.0)
         c.set_internal_lower_bound(5.0)
         c._assign_applied_bounds()
@@ -128,7 +128,7 @@ class TestBoundApplication:
 
     def test_tightening_logic_upper(self):
         """applied_upper = min(external, internal) — the tighter (most restrictive) wins."""
-        c = Calculator()
+        c = _Calculator()
         c.set_upper_bound(8.0)
         c.set_internal_upper_bound(5.0)
         c._assign_applied_bounds()
@@ -155,46 +155,46 @@ class TestConvexity:
         """x^2 sampled at integers is convex."""
         x = np.array([0., 1., 2., 3., 4.])
         y = x ** 2
-        assert Calculator._test_convexity(x, y) is True
+        assert _Calculator._test_convexity(x, y) is True
 
     def test_concave_function(self):
         """sqrt(x) is concave."""
         x = np.array([1., 4., 9., 16.])
         y = np.sqrt(x)  # [1, 2, 3, 4] — but slopes decrease: 1/3, 1/5, 1/7
-        assert Calculator._test_convexity(x, y) is False
+        assert _Calculator._test_convexity(x, y) is False
 
     def test_linear_is_convex(self):
         """A straight line has d2y/dx2 = 0, which counts as convex."""
         x = np.array([0., 1., 2., 3.])
         y = 2.0 * x + 5.0
-        assert Calculator._test_convexity(x, y) is True
+        assert _Calculator._test_convexity(x, y) is True
 
     def test_two_points_always_convex(self):
         """With < 3 points, short-circuits to True."""
         x = np.array([0., 1.])
         y = np.array([0., 100.])
-        assert Calculator._test_convexity(x, y) is True
+        assert _Calculator._test_convexity(x, y) is True
 
     def test_single_point_always_convex(self):
         x = np.array([0.])
         y = np.array([0.])
-        assert Calculator._test_convexity(x, y) is True
+        assert _Calculator._test_convexity(x, y) is True
 
     def test_nearly_convex_within_rounding(self):
         """A tiny concavity below 10^-5 is rounded away (ROUND_OFF=5)."""
         x = np.array([0., 1., 2.])
         # slopes: 1.0 and 1.0 - 1e-7 → d2y ~ -1e-7, rounds to 0
         y = np.array([0., 1.0, 2.0 - 1e-7])
-        assert Calculator._test_convexity(x, y) is True
+        assert _Calculator._test_convexity(x, y) is True
 
     def test_clearly_concave_not_rounded_away(self):
         """A concavity of ~0.01 is NOT rounded away."""
         x = np.array([0., 1., 2.])
         y = np.array([0., 1.0, 1.99])  # slopes: 1.0, 0.99 → d2y = -0.01
-        assert Calculator._test_convexity(x, y) is False
+        assert _Calculator._test_convexity(x, y) is False
 
     def test_convexity_propagates_to_table1d(self):
-        """Table1D sets is_convex on construction."""
+        """_Table1D sets is_convex on construction."""
         t = _make_table1d()  # x^2 data
         assert t.is_convex() is True
 
@@ -203,7 +203,7 @@ class TestConvexity:
 
 
 # ---------------------------------------------------------------------------
-# 4. Table1D — reverse lookup
+# 4. _Table1D — reverse lookup
 # ---------------------------------------------------------------------------
 
 class TestTable1DReverseLookup:
@@ -239,11 +239,11 @@ class TestTable1DReverseLookup:
 
 
 # ---------------------------------------------------------------------------
-# 5. Table1D — pickle round-trip
+# 5. _Table1D — pickle round-trip
 # ---------------------------------------------------------------------------
 
 class TestTable1DPickle:
-    """interp1d is not picklable; Table1D handles this via __getstate__/__setstate__."""
+    """interp1d is not picklable; _Table1D handles this via __getstate__/__setstate__."""
 
     def test_pickle_preserves_results(self):
         t = _make_table1d()
@@ -272,7 +272,7 @@ class TestTable1DPickle:
 
 
 # ---------------------------------------------------------------------------
-# 6. Table2D — bilinear interpolation
+# 6. _Table2D — bilinear interpolation
 # ---------------------------------------------------------------------------
 
 # Simple 3x3 grid: z = x + y
@@ -284,7 +284,7 @@ T2D_Z = np.array([[0., 10., 20.],
 
 
 def _make_table2d(x=T2D_X, y=T2D_Y, z=T2D_Z, extrapolate='LINEAR'):
-    t = Table2D()
+    t = _Table2D()
     t.set_extrapolate(extrapolate)
     t._set_table(x, y, z)
     return t
@@ -327,7 +327,7 @@ class TestTable2DInterpolation:
 
 
 # ---------------------------------------------------------------------------
-# 7. Table2D — convexity
+# 7. _Table2D — convexity
 # ---------------------------------------------------------------------------
 
 class TestTable2DConvexity:
@@ -362,7 +362,7 @@ class TestTable2DConvexity:
 
 
 # ---------------------------------------------------------------------------
-# 8. Table2D — reverse lookup
+# 8. _Table2D — reverse lookup
 # ---------------------------------------------------------------------------
 
 class TestTable2DReverseLookup:
@@ -392,7 +392,7 @@ class TestTable2DReverseLookup:
 
 
 # ---------------------------------------------------------------------------
-# 9. Table2D — pickle round-trip
+# 9. _Table2D — pickle round-trip
 # ---------------------------------------------------------------------------
 
 class TestTable2DPickle:
@@ -418,13 +418,13 @@ class TestVariable:
     """Variable.get() applies: truncate(multiplier * (value + addition))."""
 
     def test_plain_value(self):
-        from navigate.calculator.variable import Variable
+        from navigate.core.nodes.variable import Variable
         v = Variable('test')
         v.set_value(5.0)
         assert v.get() == pytest.approx(5.0)
 
     def test_multiplier_addition(self):
-        from navigate.calculator.variable import Variable
+        from navigate.core.nodes.variable import Variable
         v = Variable('test')
         v.set_value(5.0)
         v.set_multiplier(2.0)
@@ -433,7 +433,7 @@ class TestVariable:
         assert v.get() == pytest.approx(16.0)
 
     def test_bounds_clamp(self):
-        from navigate.calculator.variable import Variable
+        from navigate.core.nodes.variable import Variable
         v = Variable('test')
         v.set_value(100.0)
         v.set_upper_bound(50.0)
@@ -441,7 +441,7 @@ class TestVariable:
 
     def test_get_ignores_dummy_args(self):
         """get(x, y) signature accepts but ignores positional args."""
-        from navigate.calculator.variable import Variable
+        from navigate.core.nodes.variable import Variable
         v = Variable('test')
         v.set_value(7.0)
         assert v.get(x=99., y=99.) == pytest.approx(7.0)

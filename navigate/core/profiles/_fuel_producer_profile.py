@@ -12,9 +12,9 @@ from navigate.core.profiles._fuel_base_profile import _FuelBaseProfile
 from navigate.util import extract_from_dict
 
 if TYPE_CHECKING:
-    from navigate.fuel import Fuel
-    from navigate.fuel.feedstock import Feedstock
-    from navigate.fuel.process import Process
+    from navigate.core.nodes.feedstock import Feedstock
+    from navigate.core.nodes.fuel import Fuel
+    from navigate.core.nodes.process import Process
 
 
 class _FuelProducerProfile(_FuelBaseProfile):

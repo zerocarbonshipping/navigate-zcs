@@ -7,12 +7,13 @@ from unittest.mock import MagicMock
 import numpy as np
 import pytest
 
-from navigate.asset import Increment
 from navigate.core import Scalar
 from navigate.core.enum_ import EnergyDemandTypeID
 from navigate.core.id_ import FLEET, VESSEL
+from navigate.core.increment import Increment
 from navigate.core.misc import YEAR
-from navigate.vessel.fleet import Fleet, fleet_evolution
+from navigate.core.nodes.fleet import Fleet
+from navigate.vessel.fleet import fleet_evolution
 from navigate.vessel.fleet.fleet_conversion import reconcile_fuel_conversion_caps
 from navigate.vessel.fleet.fleet_evolution import (
     calculate_modelled_newbuilds,

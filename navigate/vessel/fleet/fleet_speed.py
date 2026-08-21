@@ -5,8 +5,8 @@ from typing import Callable
 
 import numpy as np
 
+from navigate.core.nodes.vessel import Vessel
 from navigate.core.profiles import FleetProfile
-from navigate.vessel import Vessel
 
 
 def aggregate_speed_profile(assets: list[Vessel],

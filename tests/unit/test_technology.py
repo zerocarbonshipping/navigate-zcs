@@ -19,8 +19,8 @@ import pytest
 
 from navigate.core import Scalar
 from navigate.core.enum_ import EnergyDemandTypeID
+from navigate.core.nodes.technology import Technology
 from navigate.core.unit import MWD_TO_GJ
-from navigate.vessel import Technology
 from navigate.vessel.package import Package
 from navigate.vessel.saving import (
     _calculate_power_transfer,
