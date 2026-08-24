@@ -8,8 +8,8 @@ from navigate.exceptions import PlotDataError
 
 
 def replot(path: Path, plot_inc: Path | str | None = None, data_dir: Path | str | None = None) -> None:
-    from navigate.illustrations.render import render_plots
     from navigate.output.plot_data import PlotData
+    from navigate.output.plots.render import render_plots
 
     plot_data = PlotData.load(str(path))
 
