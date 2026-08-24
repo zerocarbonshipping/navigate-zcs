@@ -62,7 +62,7 @@ from navigate.bunker.vessel_setup import (
 )
 from navigate.core.enum_ import BunkerScopeID
 from navigate.fleet.fuel_option import get_fuels_per_fuel_type
-from navigate.output import log_fair_share_convergence
+from navigate.logging_ import log_fair_share_convergence
 from navigate.policy import policies_affecting_port
 
 if TYPE_CHECKING:

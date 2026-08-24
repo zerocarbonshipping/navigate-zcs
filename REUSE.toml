@@ -15,7 +15,7 @@ SPDX-License-Identifier = "Apache-2.0"
 # Banner text embedded verbatim in generated output; adding a comment header
 # would alter program output.
 [[annotations]]
-path = "navigate/output/preamble.txt"
+path = "navigate/preamble.txt"
 SPDX-FileCopyrightText = "2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping"
 SPDX-License-Identifier = "CC-BY-4.0"
 

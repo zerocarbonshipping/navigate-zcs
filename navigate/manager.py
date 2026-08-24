@@ -46,7 +46,8 @@ from navigate.fuel import (
     calculate_plant_production_expectations,
 )
 from navigate.fuel import calculate_profile as calculate_producer_profile
-from navigate.output import export_assumptions, log_model_post_process, log_start_of_simulation
+from navigate.logging_ import log_model_post_process, log_start_of_simulation
+from navigate.output import export_assumptions
 from navigate.output.plot_data import PlotData
 from navigate.parser import Parser
 from navigate.policy import calculate_policy_emission_coefficients

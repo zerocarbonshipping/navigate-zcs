@@ -4,7 +4,7 @@
 """Smoke test that the console banner reports a real package version."""
 import re
 
-from navigate.output import print_preamble
+from navigate.logging_ import print_preamble
 
 
 def test_banner_shows_real_version(capsys):

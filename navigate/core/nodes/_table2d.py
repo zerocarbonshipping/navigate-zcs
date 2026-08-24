@@ -9,7 +9,7 @@ from scipy.interpolate import interpn
 from navigate.core import assign_id, assign_value
 from navigate.core.enum_ import ExtrapolateID, Interpolate2DID
 from navigate.core.nodes._calculator import _Calculator
-from navigate.output.logger import log_extrapolate_bounds
+from navigate.logging_ import log_extrapolate_bounds
 from navigate.util import find_nearest, is_strictly_increasing
 
 logger = logging.getLogger(__name__)
