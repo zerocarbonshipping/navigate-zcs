@@ -11,7 +11,7 @@ from navigate.core.nodes.plant import Plant
 from navigate.core.nodes.process import Process
 from navigate.core.nodes.region import Region
 from navigate.core.nodes.source import Source
-from navigate.investment.flows import (
+from navigate.economics.flows import (
     Component,
     add_capex_flow,
     add_fixed_opex,
@@ -20,7 +20,7 @@ from navigate.investment.flows import (
     add_variable_wtt,
     build_production_flow,
 )
-from navigate.investment.metric import calculate_levelized_cost
+from navigate.economics.metric import calculate_levelized_cost
 
 
 def calculate_plant_production_expectations(plant: Plant,

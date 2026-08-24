@@ -46,7 +46,7 @@ class Plot(Node):
         plot_data : PlotData
             The plot data container with simulation state.
         """
-        from navigate.illustrations.render import render_plots
+        from navigate.output.plots.render import render_plots
 
         deck_directory = plot_data.get_deck_directory()
         directory = os.path.join(deck_directory, self._directory) if self._directory else None

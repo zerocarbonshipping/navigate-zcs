@@ -16,7 +16,7 @@ import numpy as np
 from navigate.__main__ import ASSUMPTIONS_ENV_VAR
 from navigate.core.misc import YEAR
 from navigate.core.nodes.producer import Producer
-from navigate.manager import SimulationManager
+from navigate.simulation import SimulationManager
 
 # Tolerance for comparing per-step producer development against the nominal
 # per-year MaximumDevelopment in decks with yearly time steps: leap years

@@ -7,7 +7,7 @@ from navigate.core.general_nodes.bunker_logistics import BunkerLogistics
 from navigate.core.nodes.emission import Emission
 from navigate.core.nodes.plant import Plant
 from navigate.core.nodes.port import Port
-from navigate.investment.metric import calculate_age_levelized_cost
+from navigate.economics.metric import calculate_age_levelized_cost
 
 
 def calculate_plant_logistics_expectations(plants: dict[str, Plant],

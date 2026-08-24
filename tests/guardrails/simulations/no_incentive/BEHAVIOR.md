@@ -7,16 +7,16 @@ SPDX-License-Identifier: Apache-2.0
 
 ## Mechanism isolated
 
-The fleet's investment decisions (`navigate/vessel/fleet/`) in the complete
+The fleet's investment decisions (`navigate/fleet/`) in the complete
 absence of GHG pricing: no `Regulation`, no `Levy`. Two decision models are
 exercised:
 
 - the newbuild discrete choice model (nested logit over vessel LCOT,
-  `fleet_evolution.py`), driven purely by the domain-calibrated CAPEX/OPEX
+  `evolution.py`), driven purely by the domain-calibrated CAPEX/OPEX
   differentials of the four fuel variants of the default
   `container_15000_teu` fleet;
 - the efficiency levers: uptake of the fleet's energy-saving technologies
-  (`fleet_technology.py`), operational speed (`navigate/route/speed.py`),
+  (`technology.py`), operational speed (`speed.py`),
   and the global energy savings they produce.
 
 Fuel supply is deliberately ample (high `MaximumDevelopment`, no feed

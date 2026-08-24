@@ -8,8 +8,8 @@ SPDX-License-Identifier: Apache-2.0
 ## Mechanism isolated
 
 The demand signal propagating from the bunker algorithm to producer plant
-development (`navigate/fuel/producer/producer_evolution.py` /
-`producer_planning.py`):
+development (`navigate/fuel/evolution.py` /
+`planning.py`):
 
 - A GHG-intensity regulation with a shrinking threshold and a remedial cost
   far above the e-ammonia abatement cost imposes alternative-fuel demand on

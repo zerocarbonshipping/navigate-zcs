@@ -40,22 +40,22 @@ from navigate.core.nodes.variable import Variable
 from navigate.core.nodes.vessel import Vessel
 from navigate.core.profiles import FleetProfile
 from navigate.exceptions import no_value_assigned_error
-from navigate.util import is_non_strictly_increasing
-from navigate.vessel.fleet import fleet_evolution
-from navigate.vessel.fleet.fleet_technology import (
+from navigate.fleet.evolution import calculate_evolution_expectation
+from navigate.fleet.package import Package, preprocess_packages
+from navigate.fleet.technology import (
     build_technology_packages,
     define_initial_technology,
     transfer_technology_charter_rate,
     transfer_technology_uptake,
     update_residual_energy_demand,
 )
-from navigate.vessel.fleet.fleet_utils import (
+from navigate.fleet.utils import (
     calculate_projected_multipliers,
     define_initial_split,
     define_initial_trade,
     extract_cargo_miles,
 )
-from navigate.vessel.package import Package, preprocess_packages
+from navigate.util import is_non_strictly_increasing
 
 logger = logging.getLogger(__name__)
 
@@ -1026,7 +1026,7 @@ class Fleet(_AssetManager):
 
         # calculate the initial fleet evolution expectation
         self.expectation.set_uptakes(idx, self.current_uptake)
-        fleet_evolution.calculate_evolution_expectation(self, idx, timeline)
+        calculate_evolution_expectation(self, idx, timeline)
 
         # initialize technology effect
         self._transfer_multipliers_to_profile(idx)

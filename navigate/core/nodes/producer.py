@@ -26,7 +26,7 @@ from navigate.core.misc import YEAR
 from navigate.core.nodes._asset_manager import _AssetManager
 from navigate.core.profiles import ProducerProfile
 from navigate.exceptions import no_value_assigned_error
-from navigate.fuel.producer.producer_evolution import (
+from navigate.fuel.evolution import (
     calculate_evolution_expectation,
     calculate_export_expectation,
     calculate_feed_availability,
@@ -34,7 +34,7 @@ from navigate.fuel.producer.producer_evolution import (
     perform_decommissioning,
     perform_pipeline_delivery,
 )
-from navigate.fuel.producer.producer_planning import perform_pipeline_planning
+from navigate.fuel.planning import perform_pipeline_planning
 from navigate.util import (
     is_non_strictly_increasing,
 )

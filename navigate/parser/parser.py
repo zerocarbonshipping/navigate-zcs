@@ -18,7 +18,7 @@ from navigate.core.node_reference import WildcardNodeReference
 from navigate.core.node_registry import GeneralNodes, Nodes
 from navigate.core.nodes.node import Node
 from navigate.exceptions import AttributeAssignmentError, CommandError, DeckFormatError, DeckKeywordError
-from navigate.output import log_time_step_breaker, print_preamble
+from navigate.logging_ import log_time_step_breaker, print_preamble
 from navigate.parser._attributes import check_general_node_attribute_is_allowed, check_node_attribute_is_allowed
 from navigate.parser._commands import (
     CommandReference,
