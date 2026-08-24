@@ -18,7 +18,6 @@ import numpy as np
 
 from navigate.core import Scalar
 from navigate.core.increment import Increment
-from navigate.core.misc import YEAR
 from navigate.core.nodes.fleet import Fleet
 from navigate.core.nodes.node import Node
 from navigate.core.unit import YEAR_TO_DAYS
@@ -43,6 +42,7 @@ from navigate.fleet.technology import (
     define_initial_technology,
     transfer_technology_charter_rate,
 )
+from navigate.util import YEAR
 
 DISCOUNT = 0.08
 

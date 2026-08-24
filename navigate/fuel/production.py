@@ -4,7 +4,6 @@
 import numpy as np
 
 from navigate.core.enum_ import SourceDependencyID
-from navigate.core.misc import YEAR
 from navigate.core.nodes.emission import Emission
 from navigate.core.nodes.feedstock import Feedstock
 from navigate.core.nodes.plant import Plant
@@ -21,6 +20,7 @@ from navigate.economics.flows import (
     build_production_flow,
 )
 from navigate.economics.metric import calculate_levelized_cost
+from navigate.util import YEAR
 
 
 def calculate_plant_production_expectations(plant: Plant,

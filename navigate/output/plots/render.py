@@ -4,12 +4,12 @@
 import logging
 import os
 import timeit
+from math import floor
 
 import matplotlib.pyplot as plt
 
 from navigate.output.plots._registry import PLOT_LABELS, PLOTS, plot_label
 from navigate.output.plots._style import initialize_matplotlib
-from navigate.util import print_elapsed_time
 
 logger = logging.getLogger(__name__)
 
@@ -52,5 +52,12 @@ def render_plots(manager, directory=None, selected_plots=None):
     if plot_errors > 0:
         logger.warning("Plot generation completed with %d error(s).", plot_errors)
 
-    print_elapsed_time(timeit.default_timer() - start, 'plots')
+    _print_elapsed_time(timeit.default_timer() - start, 'plots')
     logger.info('Plots generated successfully.')
+
+
+def _print_elapsed_time(elapsed, section):
+    minutes = floor(elapsed / 60.)
+    seconds = int(elapsed - minutes * 60.)
+
+    print('Finished {}, elapsed time: {}m and {}s.'.format(section, minutes, seconds))

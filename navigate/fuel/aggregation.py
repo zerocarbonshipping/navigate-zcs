@@ -7,8 +7,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.misc import YEAR
-from navigate.util import get_increment_origin_index, get_increments_origin_index
+from navigate.util import YEAR, get_increment_origin_index, get_increments_origin_index
 
 if TYPE_CHECKING:
     from navigate.core.nodes.producer import Producer

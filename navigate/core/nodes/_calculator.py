@@ -6,7 +6,8 @@ import logging
 import numpy as np
 
 from navigate.core import assign_id, assign_value
-from navigate.core.misc import BOUNDS_MAP, ROUND_OFF
+from navigate.core.misc import BOUNDS_MAP
+from navigate.util import ROUND_OFF
 
 logger = logging.getLogger(__name__)
 

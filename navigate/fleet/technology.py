@@ -10,7 +10,6 @@ import numpy as np
 from numpy.typing import NDArray
 
 from navigate.core.enum_ import EnergyDemandTypeID, EnergyDemandTypePortID, UtilityID
-from navigate.core.misc import TOLERANCE, YEAR
 from navigate.core.nodes.node import Node
 from navigate.core.nodes.technology import Technology
 from navigate.core.nodes.vessel import Vessel
@@ -28,7 +27,7 @@ from navigate.fleet.package import (
 )
 from navigate.fleet.saving import calculate_residual_energy
 from navigate.fleet.utils import get_remaining_lifetime, is_retrofit_cycle
-from navigate.util import divide_nonzero
+from navigate.util import TOLERANCE, YEAR, divide_nonzero
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet

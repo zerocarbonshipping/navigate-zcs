@@ -10,7 +10,6 @@ canonical fuel-type ordering and dropping negligible contributions.
 
 import numpy as np
 
-from navigate.core.misc import TOLERANCE, YEAR
 from navigate.output.plots._colors import generate_color_dict
 from navigate.output.plots._labels import (
     FLEET_LABEL,
@@ -24,6 +23,8 @@ from navigate.output.plots._labels import (
     extract_label,
 )
 from navigate.util import (
+    TOLERANCE,
+    YEAR,
     dates_to_days,
     dates_to_years,
 )

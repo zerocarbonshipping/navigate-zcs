@@ -8,10 +8,9 @@ from typing import TYPE_CHECKING, Callable
 
 import numpy as np
 
-from navigate.core.misc import TOLERANCE, YEAR
 from navigate.core.nodes.vessel import Vessel
 from navigate.core.profiles import FleetProfile
-from navigate.util import divide_nonzero, get_increment_origin_index
+from navigate.util import TOLERANCE, YEAR, divide_nonzero, get_increment_origin_index
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet

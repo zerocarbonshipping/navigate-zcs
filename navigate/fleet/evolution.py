@@ -11,10 +11,9 @@ import numpy as np
 from navigate.core import calculate_inertia
 from navigate.core.enum_ import UtilityID
 from navigate.core.increment import Increment
-from navigate.core.misc import ROUND_OFF, TOLERANCE, YEAR
 from navigate.fleet.technology import calculate_package_charter_rates
 from navigate.fleet.utils import calculate_increments, extract_cargo_miles
-from navigate.util import divide_nonzero, to_numpy
+from navigate.util import ROUND_OFF, TOLERANCE, YEAR, divide_nonzero, to_numpy
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet

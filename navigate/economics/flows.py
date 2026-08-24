@@ -8,8 +8,9 @@ from typing import TYPE_CHECKING, Callable
 
 import numpy as np
 
-from navigate.core.misc import EMPTY_FLOAT, ROUND_OFF, YEAR
+from navigate.core.misc import EMPTY_FLOAT
 from navigate.core.unit import YEAR_TO_DAYS
+from navigate.util import ROUND_OFF, YEAR
 
 if TYPE_CHECKING:
     from navigate.core.nodes.converter import Converter

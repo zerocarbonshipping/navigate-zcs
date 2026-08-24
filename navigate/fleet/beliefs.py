@@ -4,7 +4,7 @@
 import numpy as np
 
 from navigate.core.enum_ import RegulationSchemeID
-from navigate.core.misc import YEAR
+from navigate.util import derive_smoothing_alpha, update_belief_path
 
 
 def update_vessel_scarcity_beliefs(fleets: dict, timeline: np.ndarray, idx: int) -> None:
@@ -36,8 +36,8 @@ def update_vessel_scarcity_beliefs(fleets: dict, timeline: np.ndarray, idx: int)
         tech_horizon = fleet.technology_horizon.get()
         speed_horizon = fleet.speed_horizon.get()
 
-        alpha_tech = _derive_smoothing_alpha(idx, tech_horizon, timeline)
-        alpha_speed = _derive_smoothing_alpha(idx, speed_horizon, timeline)
+        alpha_tech = derive_smoothing_alpha(idx, tech_horizon, timeline)
+        alpha_speed = derive_smoothing_alpha(idx, speed_horizon, timeline)
 
         for vessel in fleet.get_vessels():
             expectation = vessel.expectation
@@ -82,13 +82,13 @@ def update_regulation_flexibility_beliefs(regulations: dict, vessels: dict, time
             continue
 
         flexibility_horizon = regulation.flexibility_horizon.get()
-        alpha = _derive_smoothing_alpha(idx, flexibility_horizon, timeline)
+        alpha = derive_smoothing_alpha(idx, flexibility_horizon, timeline)
 
         expectation = regulation.expectation
         raw_cost = expectation.get_flexibility_cost()
         belief = expectation.get_belief_flexibility_cost()
 
-        _update_belief_path(raw_cost, belief, alpha, idx)
+        update_belief_path(raw_cost, belief, alpha, idx)
 
         for vessel_name, vessel in vessels.items():
 
@@ -206,79 +206,4 @@ def _smooth_pi_dict(raw_dict: dict,
     for energy_id, raw_legs in raw_dict.items():
         belief_legs = belief_dict[energy_id]
         for raw_leg, belief_leg in zip(raw_legs, belief_legs):
-            _update_belief_path(raw_leg, belief_leg, alpha, idx)
-
-
-def _update_belief_path(raw_path: np.ndarray,
-                        belief: np.ndarray,
-                        alpha: float | np.ndarray,
-                        idx: int
-                        ) -> None:
-    """
-    Calendar-date belief update for a single per-leg path.
-
-    Match is by calendar index, not look-ahead position, so a given future
-    year's belief evolves coherently as successive projections refine it. On
-    the first call the prior belief is all-zero, so the belief bootstraps to
-    the raw path; subsequent calls blend the new projection with the prior.
-
-    Parameters
-    ----------
-    raw_path
-        Raw forward path from the latest LP solve. Values at ``s < idx`` are
-        ignored.
-    belief
-        Previous belief path. Same length as ``raw_path``. Modified in place.
-    alpha
-        Smoothing weight. ``alpha = 1`` trusts the new projection fully;
-        ``alpha = 0`` ignores it entirely.
-    idx
-        Current outer time-step index. Only ``s >= idx`` are updated.
-    """
-
-    forward_slice = np.s_[idx:]
-    belief_forward = belief[forward_slice]
-    raw_forward = raw_path[forward_slice]
-
-    if (belief_forward == 0.).all():
-        # bootstrap: no prior evidence, adopt the raw path directly.
-        belief[forward_slice] = raw_forward
-    else:
-        # exponential smoothing: blend new projection with the prior belief.
-        belief[forward_slice] = alpha * raw_forward + (1. - alpha) * belief_forward
-
-
-def _derive_smoothing_alpha(idx: int,
-                            decision_horizon_years: float,
-                            timeline: np.ndarray,
-                            ) -> float:
-    """
-    Derive the EMA smoothing parameter from the decision horizon.
-
-    Shorter horizons give a larger alpha (more responsive). A 5-year
-    horizon with 1-year steps gives alpha ~ 0.17; a 3-year horizon
-    with 1-year steps gives alpha ~ 0.25.
-
-    Parameters
-    ----------
-    idx
-        Current outer time-step index.
-    decision_horizon_years
-        Characteristic decision horizon (years).
-    timeline
-        Simulation timeline in days.
-
-    Returns
-    -------
-    Smoothing parameter.
-    """
-
-    horizon_idx = timeline.size - 1
-    if idx > horizon_idx:
-        return 1.
-
-    outer_step_years = (timeline[idx] - timeline[idx - 1]) / YEAR
-    if outer_step_years <= 0.:
-        return 1.
-
-    return 1. / (1. + decision_horizon_years / outer_step_years)
+            update_belief_path(raw_leg, belief_leg, alpha, idx)

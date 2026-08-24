@@ -5,8 +5,8 @@
 import numpy as np
 import pytest
 
-from navigate.core.misc import YEAR
 from navigate.core.time_ import calculate_compound_growth, calculate_inertia
+from navigate.util import YEAR
 
 
 class TestCalculateInertia:

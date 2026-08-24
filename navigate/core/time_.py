@@ -3,7 +3,7 @@
 
 import numpy as np
 
-from navigate.core.misc import YEAR
+from navigate.util import YEAR
 
 
 def calculate_inertia(inertia, time_step):

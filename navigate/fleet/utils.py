@@ -10,8 +10,8 @@ from numpy.typing import NDArray
 
 from navigate.core import calculate_compound_growth
 from navigate.core.enum_ import EnergyDemandTypeID
-from navigate.core.misc import ROUND_OFF
 from navigate.core.nodes.vessel import Vessel
+from navigate.util import ROUND_OFF
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet

@@ -6,11 +6,11 @@ import logging
 import numpy as np
 
 from navigate.core.enum_ import EnergyDemandTypeID, EnergyDemandTypePortID
-from navigate.core.misc import TOLERANCE
 from navigate.core.nodes.vessel import Vessel
 from navigate.fleet.operation import convert_to_regional_steps
 from navigate.fleet.package import Package
 from navigate.fleet.saving import calculate_residual_energy
+from navigate.util import TOLERANCE
 
 logger = logging.getLogger(__name__)
 
