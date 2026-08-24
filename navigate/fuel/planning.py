@@ -13,7 +13,7 @@ from navigate.core.enum_ import UtilityID
 from navigate.core.increment import Increment
 from navigate.core.misc import YEAR
 from navigate.economics.decision import calculate_two_axis_uptake
-from navigate.fuel.producer.producer_utils import (
+from navigate.fuel.utils import (
     calculate_constrained_shares,
     calculate_uptake_inter_metric,
     calculate_uptake_intra_metric,

@@ -36,22 +36,20 @@ from navigate.fleet import (
     update_vessel_scarcity_beliefs,
 )
 from navigate.fuel import (
+    calculate_constrained_fair_share_fuel_demand,
+    calculate_development_potential,
+    calculate_expected_fuel_demand,
+    calculate_expected_fuel_supply,
+    calculate_fuel_import_to_ports,
+    calculate_fuel_supply_demand_gap,
     calculate_plant_logistics_expectations,
     calculate_plant_production_expectations,
 )
-from navigate.fuel.producer.producer_profile import calculate_profile as calculate_producer_profile
-from navigate.fuel.producer.producer_utils import calculate_development_potential
-from navigate.fuel.supply_demand import (
-    calculate_constrained_fair_share_fuel_demand,
-    calculate_expected_fuel_demand,
-    calculate_expected_fuel_supply,
-    calculate_fuel_supply_demand_gap,
-)
+from navigate.fuel import calculate_profile as calculate_producer_profile
 from navigate.output import export_assumptions, log_model_post_process, log_start_of_simulation
 from navigate.output.plot_data import PlotData
 from navigate.parser import Parser
 from navigate.policy import calculate_policy_emission_coefficients
-from navigate.route.import_export import calculate_fuel_import_to_ports
 from navigate.util import dates_to_days, timedelta_to_days
 from navigate.vessel.fair_share_fuel import calculate_fair_share_fuel_supply
 
