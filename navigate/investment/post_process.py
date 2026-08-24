@@ -6,8 +6,8 @@ import logging
 import numpy as np
 
 from navigate.core.unit import YEAR_TO_DAYS
-from navigate.investment.flows import build_operating_age_flow, get_flow_size
-from navigate.investment.metric import calculate_net_present_value
+from navigate.economics.flows import build_operating_age_flow, get_flow_size
+from navigate.economics.metric import calculate_net_present_value
 
 logger = logging.getLogger(__name__)
 

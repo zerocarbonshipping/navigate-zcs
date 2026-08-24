@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.misc import YEAR
-from navigate.investment.metric import calculate_age_levelized_cost
+from navigate.economics.metric import calculate_age_levelized_cost
 from navigate.util import divide_nonzero
 
 if TYPE_CHECKING:

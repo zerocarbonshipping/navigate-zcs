@@ -14,8 +14,8 @@ from navigate.core.misc import TOLERANCE, YEAR
 from navigate.core.nodes.node import Node
 from navigate.core.nodes.technology import Technology
 from navigate.core.nodes.vessel import Vessel
-from navigate.investment.decision import calculate_asset_shares
-from navigate.investment.flows import timeline_to_yearly
+from navigate.economics.decision import calculate_asset_shares
+from navigate.economics.flows import timeline_to_yearly
 from navigate.route.operation import convert_to_regional_steps
 from navigate.util import divide_nonzero
 from navigate.vessel.fleet.fleet_utils import get_remaining_lifetime, is_retrofit_cycle

@@ -3,7 +3,7 @@
 
 import numpy as np
 
-from navigate.investment.flows import get_age_flow
+from navigate.economics.flows import get_age_flow
 
 
 def calculate_age_levelized_cost(cost_flow, lifetime, discount_rate):

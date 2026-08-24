@@ -564,7 +564,7 @@ def calculate_modelled_uptake(fleet: Fleet,
         The uptake shares of each vessel type based on the discrete choice model.
     """
 
-    from navigate.investment.decision import calculate_asset_shares
+    from navigate.economics.decision import calculate_asset_shares
     from navigate.util import define_index_map, unique_list
 
     fuel_types = [vessel.fuel_type for vessel in vessels]

@@ -1,12 +1,12 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Unit tests for navigate.investment.decision."""
+"""Unit tests for navigate.economics.decision."""
 import numpy as np
 import pytest
 
 from navigate.core.enum_ import UtilityID
-from navigate.investment.decision import (
+from navigate.economics.decision import (
     _apply_limits,
     _beta_from_odds,
     _redistribute_proportional,

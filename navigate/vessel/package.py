@@ -12,14 +12,14 @@ from navigate.core.enum_ import EnergyDemandTypeID
 from navigate.core.nodes.curve import Curve
 from navigate.core.nodes.technology import Technology
 from navigate.core.nodes.vessel import Vessel
-from navigate.investment.flows import (
+from navigate.economics.flows import (
     Component,
     add_capex_flow,
     add_fixed_opex,
     expand_to_flow,
     get_flow_residual,
 )
-from navigate.investment.metric import calculate_levelized_cost, calculate_net_present_value
+from navigate.economics.metric import calculate_levelized_cost, calculate_net_present_value
 
 
 class Package:

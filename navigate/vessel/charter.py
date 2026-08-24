@@ -7,14 +7,14 @@ from navigate.core.nodes.converter import Converter
 from navigate.core.nodes.power_system import PowerSystem
 from navigate.core.nodes.tank import Tank
 from navigate.core.nodes.vessel import Vessel
-from navigate.investment.flows import (
+from navigate.economics.flows import (
     Component,
     add_capex_flow,
     add_fixed_opex,
     add_variable_opex,
     build_cargo_flow,
 )
-from navigate.investment.metric import calculate_net_present_value
+from navigate.economics.metric import calculate_net_present_value
 
 
 def calculate_vessel_charter_properties(vessel: Vessel,

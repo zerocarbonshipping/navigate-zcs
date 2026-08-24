@@ -22,8 +22,8 @@ from navigate.core.misc import YEAR
 from navigate.core.nodes.fleet import Fleet
 from navigate.core.nodes.node import Node
 from navigate.core.unit import YEAR_TO_DAYS
-from navigate.investment.flows import correct_flow_residual, get_age_flow
-from navigate.investment.metric import calculate_net_present_value
+from navigate.economics.flows import correct_flow_residual, get_age_flow
+from navigate.economics.metric import calculate_net_present_value
 from navigate.vessel.charter import (
     _calculate_cargo_unit_properties,
     _calculate_fuel_cost,
@@ -382,7 +382,7 @@ class TestCargoUnitPropertiesTechnologyCharge:
         baseline, component = self._freight_rate(0.)
         charged, _ = self._freight_rate(rate)
 
-        from navigate.investment.flows import build_cargo_flow
+        from navigate.economics.flows import build_cargo_flow
 
         age_npv = calculate_net_present_value(component.constant_overlap, DISCOUNT)
         cargo = np.full(int(component.get_length()) + 5, 5e6)
