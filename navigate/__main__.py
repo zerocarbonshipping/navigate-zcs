@@ -12,8 +12,8 @@ from pathlib import Path
 
 from navigate.exceptions import NavigateError
 from navigate.logging_ import LOG_LEVELS, log_summary, setup_logger
-from navigate.manager import SimulationManager
 from navigate.output.replot import replot
+from navigate.simulation import SimulationManager
 
 ASSUMPTIONS_ENV_VAR = "ASSUMPTIONS_DATA_DIR"
 
