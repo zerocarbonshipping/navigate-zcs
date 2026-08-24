@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from navigate.core.nodes.producer import Producer
 
 
-def calculate_profile(producer: Producer, timeline, idx):
+def calculate_producer_profile(producer: Producer, timeline, idx):
     """
     Calculate the producer profile for a given time step.
 

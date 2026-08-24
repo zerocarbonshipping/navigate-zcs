@@ -2,3 +2,4 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from navigate.output.assumptions import export_assumptions
+from navigate.output.plot_data import PlotData

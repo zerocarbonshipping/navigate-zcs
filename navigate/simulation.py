@@ -16,9 +16,7 @@ from navigate.core.profiles import ManagerProfile
 from navigate.fleet import (
     calculate_cargo_charter_properties,
     calculate_evolution_expectation,
-)
-from navigate.fleet import calculate_profile as calculate_fleet_profile
-from navigate.fleet import (
+    calculate_fleet_profile,
     calculate_vessel_charter_properties,
     convert_to_regional_steps,
     determine_fuel_type,
@@ -44,11 +42,10 @@ from navigate.fuel import (
     calculate_fuel_supply_demand_gap,
     calculate_plant_logistics_expectations,
     calculate_plant_production_expectations,
+    calculate_producer_profile,
 )
-from navigate.fuel import calculate_profile as calculate_producer_profile
 from navigate.logging_ import log_model_post_process, log_start_of_simulation
-from navigate.output import export_assumptions
-from navigate.output.plot_data import PlotData
+from navigate.output import PlotData, export_assumptions
 from navigate.parser import Parser
 from navigate.policy import calculate_policy_emission_coefficients
 from navigate.util import dates_to_days, timedelta_to_days

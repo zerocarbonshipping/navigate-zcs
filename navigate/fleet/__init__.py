@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-from navigate.fleet.aggregation import calculate_profile
+from navigate.fleet.aggregation import calculate_fleet_profile
 from navigate.fleet.beliefs import (
     record_investment_signals,
     update_regulation_flexibility_beliefs,

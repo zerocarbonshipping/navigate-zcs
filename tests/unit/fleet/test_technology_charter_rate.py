@@ -305,7 +305,7 @@ class TestDefineInitialTechnologySeeding:
 class TestFleetProfileTechnologyExpenses:
 
     def test_carried_rate_accumulates_multiplier_weighted(self):
-        from navigate.fleet.aggregation import calculate_profile
+        from navigate.fleet.aggregation import calculate_fleet_profile
 
         vessel = _make_priced_vessel("v0")
         vessel.expectation.get_asset_charter_rate.return_value = 0.5
@@ -325,7 +325,7 @@ class TestFleetProfileTechnologyExpenses:
         fleet.fuel_conversion_expenses = np.zeros(4)
 
         timeline = np.arange(4.) * YEAR
-        calculate_profile(fleet, fuels={}, timeline=timeline, idx=1)
+        calculate_fleet_profile(fleet, fuels={}, timeline=timeline, idx=1)
 
         fleet.profile.add_technology_expenses.assert_called_once_with(12. * 4., 1)
 

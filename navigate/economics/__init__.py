@@ -11,11 +11,13 @@ from navigate.economics.flows import (
     add_variable_wtt,
     as_equal_installments,
     build_cargo_flow,
+    build_operating_age_flow,
     build_production_flow,
     correct_flow_residual,
     expand_to_flow,
     get_age_flow,
     get_flow_residual,
+    get_flow_size,
     get_remaining_cost_flow,
     timeline_to_yearly,
 )
