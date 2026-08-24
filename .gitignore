@@ -90,7 +90,7 @@ dmypy.json
 # Simulation outputs
 # Navigate renders figures and writes reports into plots*/ folders (plots,
 # plots_analysis, plots_debug, ...) inside each run directory. These rules are
-# scoped to the run trees so the source package navigate/illustrations/plots/
+# scoped to the run trees so the source package navigate/output/plots/
 # stays tracked.
 /simulations/**/plots*/
 /simulations/examples/**/*.png

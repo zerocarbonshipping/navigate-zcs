@@ -65,6 +65,21 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   emissions.
 
 ### Changed
+- Internal reorganization (no DSL or result changes): the remaining
+  top-level modules regroup into two domain packages over shared layers.
+  `navigate/fleet/` merges `vessel/`, `route/` operation and speed, and
+  `vessel/fleet/`; `navigate/fuel/` absorbs `fuel/producer/` and
+  `route/import_export.py` (renamed `port_supply.py`);
+  `navigate/economics/` is the generic cash-flow/metric/discrete-choice
+  toolkit formerly `investment/`; `illustrations/` becomes
+  `navigate/output/plots/`; `output/logger.py` becomes top-level
+  `logging_.py`; `manager.py` becomes `simulation.py`;
+  `vessel/fair_share_fuel.py` becomes `bunker/supply_allocation.py`. The
+  `vessel/`, `route/`, `investment/` and `illustrations/` packages are
+  removed. Breaking for code importing navigate as a library. As with the
+  previous reorganization, `plot_data.pkl` files saved by earlier versions
+  cannot be loaded with `--replot` by this version — replot old results
+  with the version that produced them.
 - Internal reorganization (no DSL or result changes): calculation logic
   moved out of the node classes into sibling modules; all node classes
   moved into `navigate/core/nodes/` and all general-node classes into
