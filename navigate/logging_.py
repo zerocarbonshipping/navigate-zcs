@@ -6,12 +6,14 @@ import os
 import time as time_module
 from collections import Counter
 from importlib.metadata import PackageNotFoundError, version
+from math import floor, log10
 from pathlib import Path
 
+import numpy as np
 from tabulate import tabulate
 
 from navigate.core.unit import YEAR_TO_DAYS
-from navigate.util import round_for_display
+from navigate.util import TOLERANCE
 
 LOG_LEVELS = ["DEBUG", "INFO", "WARNING", "ERROR"]
 HLINE = '=' * 120
@@ -119,7 +121,7 @@ def log_model_post_process(logger):
 def log_fair_share_convergence(logger, statistics, iterations, converged) -> None:
     headers = ["Iter."] + list(statistics.keys())
     cols = list(statistics.values())
-    rows = [[i + 1] + [str(round_for_display(cols[c][i])) for c in range(len(cols))]
+    rows = [[i + 1] + [str(_round_for_display(cols[c][i])) for c in range(len(cols))]
             for i in range(iterations)]
 
     table = tabulate(rows, headers=headers, tablefmt="github", stralign="right")
@@ -166,3 +168,31 @@ def log_summary() -> str:
             summary += f"\n  ... and {n_unique - _MAX_DIGEST_WARNINGS} more"
 
     return summary
+
+
+def _round_for_display(x):
+    """
+    Rounds off a value to the appropriate decimals for visual display.
+
+    Parameters
+    ----------
+    x : float
+        Value to be rounded for display.
+
+    Returns
+    -------
+    float | int
+        Rounded value.
+    """
+
+    abs_x = abs(x)
+
+    if abs_x <= TOLERANCE:
+        return 0
+
+    significant = -int(floor(log10(abs_x)))
+
+    if significant <= 0:
+        return int(np.round(x, 0))
+
+    return np.round(x, significant)

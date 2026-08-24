@@ -76,7 +76,14 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `logging_.py`; `manager.py` becomes `simulation.py`;
   `vessel/fair_share_fuel.py` becomes `bunker/supply_allocation.py`. The
   `vessel/`, `route/`, `investment/` and `illustrations/` packages are
-  removed. Breaking for code importing navigate as a library. As with the
+  removed; `util.py` is split into a `util/` package (`collections`,
+  `numeric`, `dates`, `naming`) and the shared constants (`TOLERANCE`,
+  `ROUND_OFF`, `DAY`, `MONTH`, `YEAR`) move from `navigate.core.misc` into
+  it. Most `navigate.util` names are re-exported unchanged, but
+  `round_for_display`, `get_attributes`, `get_files_in_directory` and
+  `print_elapsed_time` became private helpers of their single consumers and
+  the unused `average` is deleted. Breaking for
+  code importing navigate as a library. As with the
   previous reorganization, `plot_data.pkl` files saved by earlier versions
   cannot be loaded with `--replot` by this version — replot old results
   with the version that produced them.

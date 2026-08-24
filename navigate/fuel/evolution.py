@@ -9,10 +9,9 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.increment import Increment
-from navigate.core.misc import TOLERANCE, YEAR
 from navigate.fuel.planning import calculate_constrained_uptakes
 from navigate.fuel.utils import calculate_increment_production_interval
-from navigate.util import divide_nonzero, get_increments_origin_index, slice_dict
+from navigate.util import TOLERANCE, YEAR, divide_nonzero, get_increments_origin_index, slice_dict
 
 if TYPE_CHECKING:
     from navigate.core.nodes.producer import Producer

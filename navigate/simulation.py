@@ -11,7 +11,6 @@ import numpy as np
 
 from navigate.bunker import BunkerAlgorithm, calculate_fair_share_fuel_supply
 from navigate.core.enum_ import BunkerScopeID, EnergyDemandTypeID, EnergyDemandTypePortID
-from navigate.core.misc import YEAR
 from navigate.core.profiles import ManagerProfile
 from navigate.fleet import (
     calculate_cargo_charter_properties,
@@ -48,7 +47,7 @@ from navigate.logging_ import log_model_post_process, log_start_of_simulation
 from navigate.output import PlotData, export_assumptions
 from navigate.parser import Parser
 from navigate.policy import calculate_policy_emission_coefficients
-from navigate.util import dates_to_days, timedelta_to_days
+from navigate.util import YEAR, dates_to_days, timedelta_to_days
 
 logger = logging.getLogger(__name__)
 

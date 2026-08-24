@@ -15,8 +15,8 @@ import numpy as np
 from navigate.core import Scalar, as_scalar, as_scalar_list, assign_list, assign_value
 from navigate.core.id_ import CURVE, FORECAST, VARIABLE
 from navigate.core.increment import Increment
-from navigate.core.misc import YEAR
 from navigate.core.nodes.node import Node
+from navigate.util import YEAR
 
 if TYPE_CHECKING:
     from navigate.core import NodeReference

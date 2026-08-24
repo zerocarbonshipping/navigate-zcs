@@ -4,12 +4,12 @@
 import numpy as np
 
 from navigate.core.expression import Expression
-from navigate.core.misc import BOOL_ID, ROUND_OFF, TOLERANCE
+from navigate.core.misc import BOOL_ID
 from navigate.core.node_reference import NodeReference
 from navigate.core.nodes.node import Node
 from navigate.core.scalar import Scalar
 from navigate.core.wrap import as_scalar
-from navigate.util import name_contains_wildcards, retrieve_keys, unique_list
+from navigate.util import ROUND_OFF, TOLERANCE, name_contains_wildcards, retrieve_keys, unique_list
 
 
 def assign_integer(assignment, lower=-np.inf, upper=np.inf, inclusive_lower=True, inclusive_upper=True,):

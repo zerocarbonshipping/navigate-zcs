@@ -22,7 +22,6 @@ from navigate.core.enum_ import ExtrapolateID
 from navigate.core.expectations import ProducerExpectation
 from navigate.core.id_ import FORECAST, PLANT, PRODUCER, VARIABLE
 from navigate.core.increment import Increment
-from navigate.core.misc import YEAR
 from navigate.core.nodes._asset_manager import _AssetManager
 from navigate.core.profiles import ProducerProfile
 from navigate.exceptions import no_value_assigned_error
@@ -36,6 +35,7 @@ from navigate.fuel.evolution import (
 )
 from navigate.fuel.planning import perform_pipeline_planning
 from navigate.util import (
+    YEAR,
     is_non_strictly_increasing,
 )
 

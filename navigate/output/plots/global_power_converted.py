@@ -4,7 +4,6 @@
 import matplotlib.patches as mpatches
 import numpy as np
 
-from navigate.core.misc import TOLERANCE
 from navigate.output.plots._aggregate import unpack_fuel_type_series
 from navigate.output.plots._figure import (
     format_axes,
@@ -15,6 +14,7 @@ from navigate.output.plots._figure import (
 from navigate.output.plots._style import LEGEND_OPTIONS
 from navigate.output.plots._units import find_best_metric_prefix
 from navigate.util import (
+    TOLERANCE,
     collapse_tuple_dict,
     dates_to_years,
     divide_nonzero,

@@ -3,7 +3,6 @@
 
 import numpy as np
 
-from navigate.core.misc import TOLERANCE
 from navigate.output.plots._figure import (
     format_axes,
     plot_stack_with_lines,
@@ -17,7 +16,7 @@ from navigate.output.plots._labels import (
     FUEL_TYPE_ORDER,
     extract_label,
 )
-from navigate.util import collapse_tuple_dict, dates_to_years
+from navigate.util import TOLERANCE, collapse_tuple_dict, dates_to_years
 
 
 def _vessel_series_by_fuel_type(series, vessel_map):

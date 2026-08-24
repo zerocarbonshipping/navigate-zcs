@@ -56,8 +56,6 @@ from navigate.parser._lark_parser import (
 )
 from navigate.util import (
     attribute_to_setter,
-    get_attributes,
-    get_files_in_directory,
     name_contains_wildcards,
     retrieve_keys,
     timedelta_to_days,
@@ -775,7 +773,7 @@ class Parser:
         for directory in (user_dir, install_dir):
             if not os.path.isdir(directory):
                 continue
-            for file_name in get_files_in_directory(directory):
+            for file_name in _get_files_in_directory(directory):
                 basename = os.path.splitext(file_name)[0]
                 if pattern.match(basename) and basename not in matched_names:
                     matched_names[basename] = directory
@@ -984,7 +982,7 @@ class Parser:
                    '_allowed_attributes', '_allowed_commands', '_headers', '_headers_row', '_headers_col', '_rows',
                    '_values', '_table', 'just_copied')
 
-        attributes = get_attributes(node, exclude=exclude)
+        attributes = _get_attributes(node, exclude=exclude)
 
         for attribute_name, attribute in attributes:
             self._replace_references_on_attribute(node, attribute, attribute_name=attribute_name)
@@ -1129,7 +1127,7 @@ class Parser:
             self._reading_default = False
 
     def _read_default_folder(self, name, directory):
-        file_names = get_files_in_directory(directory)
+        file_names = _get_files_in_directory(directory)
 
         for file_name in file_names:
             basename = os.path.splitext(file_name)[0]
@@ -1185,3 +1183,59 @@ class Parser:
         elif isinstance(value, Expression):
             if location is not None:
                 value.reference_location = location
+
+
+def _get_attributes(class_, exclude=(), name_only=False, attr_only=False):
+    """
+    Extracts all attributes from the supplied class except built-in attributes and attributes listed in 'exclude'.
+
+    Parameters
+    ----------
+    class_ : class
+        Class from which to extract attributes.
+    exclude : tuple[str]
+        Tuple of strings with attributes to exclude from the list.
+    name_only : bool
+        Only return attribute names (as strings).
+    attr_only : bool
+        Only return attributes.
+
+    Returns
+    -------
+    generator :
+        Generator of attributes.
+    """
+
+    attr = zip(list(class_.__dict__.keys()), list(class_.__dict__.values()))
+    decl = (a for a in attr if not (a[0].startswith('__') and a[0].endswith('__')) and not (a[0] in exclude))
+
+    if name_only:
+        return (a[0] for a in decl)
+    elif attr_only:
+        return (a[1] for a in decl)
+    else:
+        return decl
+
+
+def _get_files_in_directory(directory):
+    """
+    Extract a list of all file names in the top level directory, excluding known
+    helper/placeholder files (e.g. ``.gitkeep``).
+
+    Parameters
+    ----------
+    directory : str
+        Directory of where to look for files.
+
+    Returns
+    -------
+    list[str] :
+        List of file names.
+    """
+
+    ignored = frozenset({'.gitkeep'})
+
+    return [
+        f for f in os.listdir(directory)
+        if os.path.isfile(os.path.join(directory, f)) and f not in ignored
+    ]

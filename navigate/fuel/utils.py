@@ -9,9 +9,8 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.misc import YEAR
 from navigate.economics.metric import calculate_age_levelized_cost
-from navigate.util import divide_nonzero
+from navigate.util import YEAR, divide_nonzero
 
 if TYPE_CHECKING:
     from navigate.core.nodes.producer import Producer
