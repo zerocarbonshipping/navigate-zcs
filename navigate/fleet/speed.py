@@ -1,21 +1,26 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 import logging
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
 
 import numpy as np
 from scipy.optimize import minimize_scalar
 
 from navigate.core.enum_ import SpeedAlignmentID
 from navigate.core.misc import YEAR
-from navigate.core.nodes.fleet import Fleet
 from navigate.core.nodes.vessel import Vessel
-from navigate.route.operation import calculate_operational_profile, transfer_operational_profile
+from navigate.fleet.heuristic import calculate_marginal_speed_saving, get_smoothed_energy_duals_speed
+from navigate.fleet.operation import calculate_operational_profile, transfer_operational_profile
+from navigate.fleet.power import calculate_speed_bounds, calculate_technical_speed_limits, loads_are_convex
+from navigate.fleet.utils import net_energy_from_raw
 from navigate.util import to_numpy
-from navigate.vessel.fleet.fleet_utils import net_energy_from_raw
-from navigate.vessel.heuristic import calculate_marginal_speed_saving, get_smoothed_energy_duals_speed
-from navigate.vessel.power import calculate_speed_bounds, calculate_technical_speed_limits, loads_are_convex
+
+if TYPE_CHECKING:
+    from navigate.core.nodes.fleet import Fleet
 
 logger = logging.getLogger(__name__)
 

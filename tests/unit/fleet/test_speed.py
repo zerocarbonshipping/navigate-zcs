@@ -14,9 +14,9 @@ import numpy as np
 import pytest
 from scipy.optimize import minimize_scalar
 
-from navigate.route.speed import _mean_to_speeds, _update_mean_speed
-from navigate.vessel.heuristic import _calculate_dual_variable_saving
-from navigate.vessel.power import calculate_speed_bounds
+from navigate.fleet.heuristic import _calculate_dual_variable_saving
+from navigate.fleet.power import calculate_speed_bounds
+from navigate.fleet.speed import _mean_to_speeds, _update_mean_speed
 
 # ---------------------------------------------------------------------------
 # 1. Mean-to-speeds conversion

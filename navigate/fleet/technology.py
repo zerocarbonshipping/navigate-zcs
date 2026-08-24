@@ -16,11 +16,9 @@ from navigate.core.nodes.technology import Technology
 from navigate.core.nodes.vessel import Vessel
 from navigate.economics.decision import calculate_asset_shares
 from navigate.economics.flows import timeline_to_yearly
-from navigate.route.operation import convert_to_regional_steps
-from navigate.util import divide_nonzero
-from navigate.vessel.fleet.fleet_utils import get_remaining_lifetime, is_retrofit_cycle
-from navigate.vessel.heuristic import calculate_marginal_technology_saving
-from navigate.vessel.package import (
+from navigate.fleet.heuristic import calculate_marginal_technology_saving
+from navigate.fleet.operation import convert_to_regional_steps
+from navigate.fleet.package import (
     Package,
     annual_costs_for_retrofit_steps,
     levelize_package_cost,
@@ -28,7 +26,9 @@ from navigate.vessel.package import (
     npv_for_retrofit_steps,
     preprocess_packages,
 )
-from navigate.vessel.saving import calculate_residual_energy
+from navigate.fleet.saving import calculate_residual_energy
+from navigate.fleet.utils import get_remaining_lifetime, is_retrofit_cycle
+from navigate.util import divide_nonzero
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet

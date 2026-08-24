@@ -13,19 +13,19 @@ from navigate.core.id_ import FLEET, VESSEL
 from navigate.core.increment import Increment
 from navigate.core.misc import YEAR
 from navigate.core.nodes.fleet import Fleet
-from navigate.vessel.fleet import fleet_evolution
-from navigate.vessel.fleet.fleet_conversion import reconcile_fuel_conversion_caps
-from navigate.vessel.fleet.fleet_evolution import (
+from navigate.fleet import evolution as fleet_evolution
+from navigate.fleet.conversion import reconcile_fuel_conversion_caps
+from navigate.fleet.evolution import (
     calculate_modelled_newbuilds,
     calculate_modelled_uptake,
     calculate_orderbook_newbuilds,
 )
-from navigate.vessel.fleet.fleet_technology import (
+from navigate.fleet.technology import (
     reconcile_newbuild_technology_caps,
     reconcile_retrofit_technology_caps,
     transfer_retrofit_uptake,
 )
-from navigate.vessel.fleet.fleet_utils import (
+from navigate.fleet.utils import (
     calculate_increments,
     calculate_projected_multipliers,
     get_remaining_lifetime,

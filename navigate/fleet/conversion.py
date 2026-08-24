@@ -14,8 +14,8 @@ from navigate.core.misc import ROUND_OFF, YEAR
 from navigate.economics.decision import calculate_asset_shares
 from navigate.economics.flows import as_equal_installments, get_remaining_cost_flow
 from navigate.economics.metric import calculate_annualization_factor, calculate_net_present_value
+from navigate.fleet.utils import is_retrofit_cycle
 from navigate.util import extract_from_tuple_dict
-from navigate.vessel.fleet.fleet_utils import is_retrofit_cycle
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet

@@ -13,6 +13,28 @@ from navigate.bunker import BunkerAlgorithm
 from navigate.core.enum_ import BunkerScopeID, EnergyDemandTypeID, EnergyDemandTypePortID
 from navigate.core.misc import YEAR
 from navigate.core.profiles import ManagerProfile
+from navigate.fleet import (
+    calculate_cargo_charter_properties,
+    calculate_evolution_expectation,
+)
+from navigate.fleet import calculate_profile as calculate_fleet_profile
+from navigate.fleet import (
+    calculate_vessel_charter_properties,
+    convert_to_regional_steps,
+    determine_fuel_type,
+    determine_usable_fuel_types,
+    determine_usable_fuels,
+    get_fuels_per_fuel_type,
+    net_energy_from_raw,
+    perform_fleet_evolution,
+    perform_speed_management,
+    perform_technology_installation,
+    post_process_investment_metric,
+    record_investment_signals,
+    update_operational_profile,
+    update_regulation_flexibility_beliefs,
+    update_vessel_scarcity_beliefs,
+)
 from navigate.fuel import (
     calculate_plant_logistics_expectations,
     calculate_plant_production_expectations,
@@ -25,32 +47,13 @@ from navigate.fuel.supply_demand import (
     calculate_expected_fuel_supply,
     calculate_fuel_supply_demand_gap,
 )
-from navigate.investment.post_process import post_process_investment_metric
-from navigate.investment.signal import (
-    record_investment_signals,
-    update_regulation_flexibility_beliefs,
-    update_vessel_scarcity_beliefs,
-)
 from navigate.output import export_assumptions, log_model_post_process, log_start_of_simulation
 from navigate.output.plot_data import PlotData
 from navigate.parser import Parser
 from navigate.policy import calculate_policy_emission_coefficients
 from navigate.route.import_export import calculate_fuel_import_to_ports
-from navigate.route.operation import convert_to_regional_steps, update_operational_profile
-from navigate.route.speed import perform_speed_management
 from navigate.util import dates_to_days, timedelta_to_days
-from navigate.vessel.charter import calculate_cargo_charter_properties, calculate_vessel_charter_properties
 from navigate.vessel.fair_share_fuel import calculate_fair_share_fuel_supply
-from navigate.vessel.fleet import fleet_evolution
-from navigate.vessel.fleet import fleet_profile as fleet_profile_mod
-from navigate.vessel.fleet.fleet_technology import perform_technology_installation
-from navigate.vessel.fleet.fleet_utils import net_energy_from_raw
-from navigate.vessel.fuel_option import (
-    determine_fuel_type,
-    determine_usable_fuel_types,
-    determine_usable_fuels,
-    get_fuels_per_fuel_type,
-)
 
 logger = logging.getLogger(__name__)
 
@@ -512,7 +515,7 @@ class SimulationManager:
         # that have been allowed in the current
         # time-step have a non-zero multiplier
         for fleet in self.nodes.fleets.values():
-            fleet_evolution.calculate_evolution_expectation(fleet, self._idx, self._timeline)
+            calculate_evolution_expectation(fleet, self._idx, self._timeline)
 
         self.profile.add_fleet_state_time(self._idx, timeit.default_timer() - start_time)
 
@@ -590,7 +593,7 @@ class SimulationManager:
 
         for fleet in self.nodes.fleets.values():
 
-            fleet_evolution.perform_fleet_evolution(
+            perform_fleet_evolution(
                 fleet, self._timeline, self._time_step, self._idx)
 
         # set computational performance tracker
@@ -838,7 +841,7 @@ class SimulationManager:
         start_time = timeit.default_timer()
 
         for fleet in self.nodes.fleets.values():
-            fleet_profile_mod.calculate_profile(fleet, self.nodes.fuels, self._timeline, self._idx)
+            calculate_fleet_profile(fleet, self.nodes.fuels, self._timeline, self._idx)
 
         for port in self.nodes.ports.values():
             port.calculate_profile(self._idx)

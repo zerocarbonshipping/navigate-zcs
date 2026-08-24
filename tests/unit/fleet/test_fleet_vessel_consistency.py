@@ -9,7 +9,7 @@ import pytest
 from navigate.core.enum_ import EnergyDemandTypeID, FuelTypeID
 from navigate.core.profiles.fleet_profile import FleetProfile
 from navigate.core.profiles.vessel_profile import VesselProfile
-from navigate.vessel.fleet.fleet_profile import transfer_transport_work
+from navigate.fleet.aggregation import transfer_transport_work
 
 # ---------------------------------------------------------------------------
 # Builders

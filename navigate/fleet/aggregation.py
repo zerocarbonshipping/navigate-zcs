@@ -4,13 +4,14 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable
 
 import numpy as np
 
 from navigate.core.misc import TOLERANCE, YEAR
+from navigate.core.nodes.vessel import Vessel
+from navigate.core.profiles import FleetProfile
 from navigate.util import divide_nonzero, get_increment_origin_index
-from navigate.vessel.fleet.fleet_speed import aggregate_speed_profile
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
@@ -238,3 +239,70 @@ def transfer_transport_work(fleet: Fleet, idx: int) -> None:
     growth = divide_nonzero(cargo_miles, fleet.profile.get_cargo_miles(idx=0), default=1.)
     baseline = fleet.profile.get_raw_energy(idx=0) * growth
     fleet.profile.set_baseline_energy(idx, baseline)
+
+
+def aggregate_speed_profile(assets: list[Vessel],
+                            get_multiplier: Callable[[int], float],
+                            profile: FleetProfile,
+                            idx: int) -> None:
+    """
+    Aggregate vessel-level speed profiles into fleet-level weighted averages.
+
+    Parameters
+    ----------
+    assets
+        List of vessels in the fleet.
+    get_multiplier
+        Callable returning the multiplier for vessel index v.
+    profile
+        Fleet profile to write aggregated results to.
+    idx
+        Current time-step index.
+    """
+
+    reference_speed = 0.
+    minimum_speed = 0.
+    maximum_speed = 0.
+    actual_speed = 0.
+    optimal_speed = 0.
+    lowest_speed = 0.
+    highest_speed = 0.
+    reference_multiplier = 0.
+    other_multiplier = 0.
+
+    for v, vessel in enumerate(assets):
+
+        vessel_profile = vessel.profile
+        multiplier = get_multiplier(v)
+
+        reference = vessel_profile.get_reference_speed(idx)
+        minimum = vessel_profile.get_minimum_speed(idx)
+        maximum = vessel_profile.get_maximum_speed(idx)
+        actual = vessel_profile.get_actual_speed(idx)
+        optimal = vessel_profile.get_optimal_speed(idx)
+        lowest = vessel_profile.get_lowest_speed(idx)
+        highest = vessel_profile.get_highest_speed(idx)
+
+        reference_speed += multiplier * reference if not (np.isnan(reference)) else 0.
+
+        if not (np.isnan(minimum) or np.isnan(maximum) or np.isnan(actual)):
+
+            minimum_speed += multiplier * minimum
+            maximum_speed += multiplier * maximum
+            actual_speed += multiplier * actual
+            optimal_speed += multiplier * optimal
+            lowest_speed += multiplier * lowest
+            highest_speed += multiplier * highest
+            other_multiplier += multiplier
+
+        reference_multiplier += multiplier
+
+    profile.set_reference_speed(idx, reference_speed / reference_multiplier)
+
+    if other_multiplier > 0.:
+        profile.set_minimum_speed(idx, minimum_speed / other_multiplier)
+        profile.set_maximum_speed(idx, maximum_speed / other_multiplier)
+        profile.set_actual_speed(idx, actual_speed / other_multiplier)
+        profile.set_optimal_speed(idx, optimal_speed / other_multiplier)
+        profile.set_lowest_speed(idx, lowest_speed / other_multiplier)
+        profile.set_highest_speed(idx, highest_speed / other_multiplier)

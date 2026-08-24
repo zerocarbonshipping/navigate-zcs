@@ -24,24 +24,24 @@ from navigate.core.nodes.node import Node
 from navigate.core.unit import YEAR_TO_DAYS
 from navigate.economics.flows import correct_flow_residual, get_age_flow
 from navigate.economics.metric import calculate_net_present_value
-from navigate.vessel.charter import (
+from navigate.fleet.charter import (
     _calculate_cargo_unit_properties,
     _calculate_fuel_cost,
     _initialize_vessel_component,
 )
-from navigate.vessel.fleet.fleet_conversion import apply_fuel_conversions
-from navigate.vessel.fleet.fleet_evolution import add_newbuilds, clean_up_multipliers
-from navigate.vessel.fleet.fleet_technology import (
-    apply_uptake_transition,
-    calculate_package_charter_rates,
-    define_initial_technology,
-    transfer_technology_charter_rate,
-)
-from navigate.vessel.package import (
+from navigate.fleet.conversion import apply_fuel_conversions
+from navigate.fleet.evolution import add_newbuilds, clean_up_multipliers
+from navigate.fleet.package import (
     Package,
     _trim_flow_to_life,
     annual_costs_for_retrofit_steps,
     levelize_package_cost,
+)
+from navigate.fleet.technology import (
+    apply_uptake_transition,
+    calculate_package_charter_rates,
+    define_initial_technology,
+    transfer_technology_charter_rate,
 )
 
 DISCOUNT = 0.08
@@ -305,7 +305,7 @@ class TestDefineInitialTechnologySeeding:
 class TestFleetProfileTechnologyExpenses:
 
     def test_carried_rate_accumulates_multiplier_weighted(self):
-        from navigate.vessel.fleet.fleet_profile import calculate_profile
+        from navigate.fleet.aggregation import calculate_profile
 
         vessel = _make_priced_vessel("v0")
         vessel.expectation.get_asset_charter_rate.return_value = 0.5
@@ -333,7 +333,7 @@ class TestFleetProfileTechnologyExpenses:
 class TestPostProcessTechnologyExpenses:
 
     def test_technology_series_enters_operating_cost_flow(self):
-        from navigate.investment.post_process import _calculate_total_vessel_operating_expenses
+        from navigate.fleet.post_process import _calculate_total_vessel_operating_expenses
 
         rate = 2e6
         n = 8

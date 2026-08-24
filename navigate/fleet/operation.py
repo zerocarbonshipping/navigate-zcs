@@ -25,8 +25,8 @@ from navigate.core.misc import YEAR
 from navigate.core.nodes.route import Route
 from navigate.core.nodes.vessel import Vessel
 from navigate.core.unit import DAY_TO_HOURS, HOUR_TO_DAYS, MWD_TO_GJ
+from navigate.fleet.power import calculate_technical_speed_limits
 from navigate.util import divide_nonzero, to_numpy
-from navigate.vessel.power import calculate_technical_speed_limits
 
 
 @dataclass
