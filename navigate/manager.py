@@ -9,7 +9,7 @@ from pathlib import Path
 
 import numpy as np
 
-from navigate.bunker import BunkerAlgorithm
+from navigate.bunker import BunkerAlgorithm, calculate_fair_share_fuel_supply
 from navigate.core.enum_ import BunkerScopeID, EnergyDemandTypeID, EnergyDemandTypePortID
 from navigate.core.misc import YEAR
 from navigate.core.profiles import ManagerProfile
@@ -51,7 +51,6 @@ from navigate.output.plot_data import PlotData
 from navigate.parser import Parser
 from navigate.policy import calculate_policy_emission_coefficients
 from navigate.util import dates_to_days, timedelta_to_days
-from navigate.vessel.fair_share_fuel import calculate_fair_share_fuel_supply
 
 logger = logging.getLogger(__name__)
 

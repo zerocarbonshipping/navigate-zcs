@@ -2,3 +2,4 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from navigate.bunker.bunker_algorithm import BunkerAlgorithm
+from navigate.bunker.supply_allocation import calculate_fair_share_fuel_supply
