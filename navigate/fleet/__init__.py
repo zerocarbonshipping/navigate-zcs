@@ -14,8 +14,7 @@ from navigate.fleet.fuel_option import (
     determine_usable_fuels,
     get_fuels_per_fuel_type,
 )
-from navigate.fleet.operation import convert_to_regional_steps, update_operational_profile
+from navigate.fleet.operation import update_operational_profile
 from navigate.fleet.post_process import post_process_investment_metric
 from navigate.fleet.speed import perform_speed_management
-from navigate.fleet.technology import perform_technology_installation
-from navigate.fleet.utils import net_energy_from_raw
+from navigate.fleet.technology import approximate_missing_technology, perform_technology_installation

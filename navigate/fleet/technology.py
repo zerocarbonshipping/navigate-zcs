@@ -26,7 +26,7 @@ from navigate.fleet.package import (
     preprocess_packages,
 )
 from navigate.fleet.saving import calculate_residual_energy
-from navigate.fleet.utils import get_remaining_lifetime, is_retrofit_cycle
+from navigate.fleet.utils import get_remaining_lifetime, is_retrofit_cycle, net_energy_from_raw
 from navigate.util import TOLERANCE, YEAR, divide_nonzero
 
 if TYPE_CHECKING:
@@ -825,3 +825,87 @@ def update_residual_energy_demand(fleet: Fleet, idx: int) -> None:
 
         regional_sea = convert_to_regional_steps(vessel, avg_residual_sea)
         vessel.expectation.set_regional_energy_sea(idx, regional_sea)
+
+
+def approximate_missing_technology(fleets: dict, idx: int) -> None:
+    """
+    Estimates missing energy efficiency improvements for fleets and vessels, applies these
+    approximations to energy demands for both sea and port operations, and updates associated
+    vessel profiles and expectations.
+
+    The method pulls from vessels that can retrofit technologies and applies the average over
+    the fleet's vessels to estimate energy efficiency improvements.
+
+    Costs are ignored in this calculation, so we underestimate the costs of energy efficiency improvements.
+
+    Parameters
+    ----------
+    fleets
+        Mapping of fleet name to fleet object.
+    idx
+        Current time-step index.
+    """
+
+    average_energy_saving_sea = {energy: 0. for energy in EnergyDemandTypeID}
+    average_energy_saving_port = {energy: 0. for energy in EnergyDemandTypePortID}
+
+    weight_sea = {k: 0.0 for k in average_energy_saving_sea}
+    weight_port = {k: 0.0 for k in average_energy_saving_port}
+
+    for fleet in fleets.values():
+        if not fleet.can_retrofit():
+            continue
+
+        vessels = fleet.get_vessels()
+        for v, vessel in enumerate(vessels):
+            multiplier = fleet.get_multiplier(v)
+            expectation = vessel.expectation
+
+            raw_energy_sea = expectation.get_raw_energy_sea(idx=idx)
+            raw_energy_port = expectation.get_raw_energy_port(idx=idx)
+            savings_sea = expectation.get_energy_saving_sea(idx=idx)
+            savings_port = expectation.get_energy_saving_port(idx=idx)
+
+            for k in average_energy_saving_sea:
+                for leg, _ in enumerate(raw_energy_sea[k]):
+                    weight = raw_energy_sea[k][leg] * multiplier
+                    average_energy_saving_sea[k] += savings_sea[k][leg] * weight
+                    weight_sea[k] += weight
+            for k in average_energy_saving_port:
+                for leg, _ in enumerate(raw_energy_port[k]):
+                    weight = raw_energy_port[k][leg] * multiplier
+                    average_energy_saving_port[k] += savings_port[k][leg] * weight
+                    weight_port[k] += weight
+
+    for k in average_energy_saving_sea:
+        average_energy_saving_sea[k] = (average_energy_saving_sea[k] / weight_sea[k]) if weight_sea[k] else 0.0
+    for k in average_energy_saving_port:
+        average_energy_saving_port[k] = (average_energy_saving_port[k] / weight_port[k]) if weight_port[k] else 0.0
+
+    for fleet in fleets.values():
+        if fleet.can_retrofit() or not fleet.allow_technology_approximation:
+            continue
+        for vessel in fleet.get_vessels():
+            op_sea = vessel.expectation.get_operational_energy_sea(idx=idx)
+            op_port = vessel.expectation.get_operational_energy_port(idx=idx)
+
+            sav_sea = {k: [average_energy_saving_sea[k]] * len(op_sea[k])
+                       for k in average_energy_saving_sea if k in op_sea}
+
+            sav_port = {k: [average_energy_saving_port[k]] * len(op_port[k])
+                        for k in average_energy_saving_port if k in op_port}
+
+            net_sea = net_energy_from_raw(op_sea, sav_sea)
+            net_port = net_energy_from_raw(op_port, sav_port)
+            regional_sea = convert_to_regional_steps(vessel, net_sea)
+
+            vessel.expectation.set_energy_sea(idx, net_sea)
+            vessel.expectation.set_energy_port(idx, net_port)
+            vessel.expectation.set_regional_energy_sea(idx, regional_sea)
+
+            vessel.profile.set_energy_sea(
+                idx, {k: float(np.sum(net_sea[k])) for k in net_sea}
+            )
+            vessel.profile.set_energy_port(
+                idx, {k: float(np.sum(net_port[k])) for k in net_port}
+            )
