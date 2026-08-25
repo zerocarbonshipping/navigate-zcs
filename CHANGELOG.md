@@ -11,6 +11,14 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Fixed
+- LP variable and constraint creation order for in-port energy demands is now
+  deterministic across runs: the electrical/heat demand set is an ordered
+  tuple instead of a `set`, whose iteration order varied between interpreter
+  processes. The LP itself was unaffected, but row/column order could select
+  a different (equally valid) optimal basis in degenerate solves, making
+  order-sensitive outputs such as dual values vary run-to-run.
+
 ### Removed
 - The cumulative-intensity emission output of fuel-consumer profiles: the
   `CumulativeIntensityEquivalent{WTT,TTW,WTW}` and
