@@ -210,7 +210,7 @@ Information is provided in four levels, namely:
 `WARNING` refers to information that has an impact on results. This could be if the code makes automated adjustments to the simulation deck or things that will impact the results in different ways:
 
 ```
-14:29:16 [WARNING] navigate.fleet.technology: No technology cost of capital supplied for Fleet("bulk_carrier_handysize"), using vessel cost of capital. This will likely lead to a higher uptake of technologies.
+14:29:16 [WARNING] navigate.fleet.technology_adoption: No technology cost of capital supplied for Fleet("bulk_carrier_handysize"), using vessel cost of capital. This will likely lead to a higher uptake of technologies.
 ```
 
 `ERROR` means a problem was encountered which was detrimental to the continuation of the simulation. This will occur if there is a spurious formulation in the simulation deck which is not recognized by Navigate. Deck errors state the deck file, the include file, and the line at which the problem occurred:
