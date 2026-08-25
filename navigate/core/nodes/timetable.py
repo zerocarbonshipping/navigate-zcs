@@ -7,8 +7,8 @@ import numpy as np
 
 from navigate.core.enum_ import ExtrapolateID
 from navigate.core.id_ import TIMETABLE
+from navigate.core.node import Node
 from navigate.core.nodes._table2d import _Table2D, check_table2D_input
-from navigate.core.nodes.node import Node
 from navigate.core.table_data import TableData, build_table_2d
 from navigate.exceptions import no_value_assigned_error
 from navigate.util import timedelta_to_days

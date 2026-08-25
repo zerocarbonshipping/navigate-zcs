@@ -10,7 +10,7 @@ import pandas as pd
 
 from navigate.core.expression import Expression
 from navigate.core.id_ import CURVE, FORECAST, SURFACE, TIMETABLE
-from navigate.core.nodes.node import Node
+from navigate.core.node import Node
 from navigate.core.scalar import Scalar
 from navigate.output.unitdict import unitdict
 from navigate.util import attribute_to_setter

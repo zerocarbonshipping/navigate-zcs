@@ -14,9 +14,9 @@ from navigate.core import Expression, NodeReference
 from navigate.core.enum_ import SimulationSectionID
 from navigate.core.general_nodes.bunker_logistics import BunkerLogistics
 from navigate.core.general_nodes.bunker_options import BunkerOptions
+from navigate.core.node import Node
 from navigate.core.node_reference import WildcardNodeReference
 from navigate.core.node_registry import GeneralNodes, Nodes
-from navigate.core.nodes.node import Node
 from navigate.exceptions import AttributeAssignmentError, CommandError, DeckFormatError, DeckKeywordError
 from navigate.logging_ import log_time_step_breaker, print_preamble
 from navigate.parser._attributes import check_general_node_attribute_is_allowed, check_node_attribute_is_allowed

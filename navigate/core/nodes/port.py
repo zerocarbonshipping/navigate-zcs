@@ -18,7 +18,7 @@ from navigate.core import (
 )
 from navigate.core.expectations import PortExpectation
 from navigate.core.id_ import FORECAST, PORT, VARIABLE
-from navigate.core.nodes.node import Node
+from navigate.core.node import Node
 from navigate.core.profiles import PortProfile
 from navigate.core.unit import MWH_TO_GJ
 

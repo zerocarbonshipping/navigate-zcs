@@ -11,7 +11,7 @@ import navigate.core.id_ as id_
 from navigate.core import Scalar, as_list, as_scalar, assign_id, assign_list, assign_value
 from navigate.core.enum_ import FuelTypeID
 from navigate.core.expectations import VesselExpectation
-from navigate.core.nodes.node import Node
+from navigate.core.node import Node
 from navigate.core.nodes.tank import Tank
 from navigate.core.profiles import VesselProfile
 from navigate.exceptions import no_value_assigned_error

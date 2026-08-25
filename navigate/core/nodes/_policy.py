@@ -14,7 +14,7 @@ from navigate.core import (
 from navigate.core.assign import BOOL_ID
 from navigate.core.enum_ import PolicyScopeID
 from navigate.core.id_ import CURVE, EMISSION, FORECAST, FUEL, PORT, VARIABLE
-from navigate.core.nodes.node import Node
+from navigate.core.node import Node
 from navigate.exceptions import no_value_assigned_error
 
 

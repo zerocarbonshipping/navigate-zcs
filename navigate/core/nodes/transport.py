@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from navigate.core.id_ import TRANSPORT
-from navigate.core.nodes.node import Node
+from navigate.core.node import Node
 
 
 class Transport(Node):

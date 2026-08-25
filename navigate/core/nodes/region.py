@@ -3,7 +3,7 @@
 
 from navigate.core import Scalar, command_assignment_to_dict, command_assignment_to_tuple_dict
 from navigate.core.id_ import FORECAST, REGION, TIMETABLE, VARIABLE
-from navigate.core.nodes.node import Node
+from navigate.core.node import Node
 
 
 class Region(Node):

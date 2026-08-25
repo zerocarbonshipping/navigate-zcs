@@ -18,7 +18,7 @@ import openpyxl as xl
 from openpyxl.worksheet.worksheet import Worksheet
 
 from navigate.core.enum_ import ReportReduceID
-from navigate.core.nodes.node import Node
+from navigate.core.node import Node
 from navigate.util import (
     attribute_to_setter,
     collapse_dict,

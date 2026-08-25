@@ -19,7 +19,7 @@ from navigate.core import (
 )
 from navigate.core.enum_ import RouteTypeID
 from navigate.core.id_ import FORECAST, PORT, ROUTE, VARIABLE
-from navigate.core.nodes.node import Node
+from navigate.core.node import Node
 from navigate.exceptions import no_value_assigned_error
 from navigate.util import normalize_fractional, to_numpy, unique_list
 

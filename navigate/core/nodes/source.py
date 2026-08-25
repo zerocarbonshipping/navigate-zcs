@@ -4,7 +4,7 @@
 import navigate.core.id_ as id_
 from navigate.core import assign_id
 from navigate.core.enum_ import SourceDependencyID
-from navigate.core.nodes.node import Node
+from navigate.core.node import Node
 from navigate.exceptions import no_value_assigned_error
 
 

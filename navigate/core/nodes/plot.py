@@ -4,7 +4,7 @@
 import os
 
 from navigate.core.id_ import PLOT
-from navigate.core.nodes.node import Node
+from navigate.core.node import Node
 
 
 class Plot(Node):
