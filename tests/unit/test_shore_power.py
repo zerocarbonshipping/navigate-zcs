@@ -6,8 +6,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from navigate.bunker.coefficients import calculate_regulation_coefficients
 from navigate.bunker.transfer.shore_power import transfer_shore_power
-from navigate.bunker.vessel_setup import calculate_regulation_coefficients
 from navigate.core.enum_ import (
     BunkerScopeID,
     RegulationMeasureID,

@@ -16,6 +16,13 @@ from navigate.bunker.cleanup import (
     remove_redundant_regulations,
     remove_redundant_vessel,
 )
+
+# coefficients
+from navigate.bunker.coefficients import (
+    calculate_effective_lhv,
+    calculate_emission_factors,
+    calculate_policy_coefficients,
+)
 from navigate.bunker.constraints.bunkered_equals_spent import update_bunkered_equals_spent_constraint
 
 # constraints
@@ -53,13 +60,6 @@ from navigate.bunker.transfer.spend_sea import transfer_spend_sea
 
 # variables and objectives
 from navigate.bunker.variables import update_regulation_variables, update_vessel_variables
-
-# vessel setup
-from navigate.bunker.vessel_setup import (
-    calculate_effective_lhv,
-    calculate_emission_factors,
-    calculate_policy_coefficients,
-)
 from navigate.core.enum_ import BunkerScopeID
 from navigate.fleet.fuel_option import get_fuels_per_fuel_type
 from navigate.logging_ import log_fair_share_convergence
