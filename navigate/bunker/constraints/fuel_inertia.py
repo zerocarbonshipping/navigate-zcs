@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 import navigate.bunker.solver as gp
 from navigate.core.enum_ import BunkerScopeID
-from navigate.core.time_ import calculate_inertia
+from navigate.util import calculate_inertia
 
 
 def update_fuel_inertia_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> None:

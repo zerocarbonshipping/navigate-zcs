@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core import calculate_inertia
 from navigate.core.enum_ import UtilityID
 from navigate.core.increment import Increment
 from navigate.economics.decision import calculate_two_axis_uptake
@@ -17,7 +16,7 @@ from navigate.fuel.utils import (
     calculate_uptake_inter_metric,
     calculate_uptake_intra_metric,
 )
-from navigate.util import YEAR, divide_nonzero
+from navigate.util import YEAR, calculate_inertia, divide_nonzero
 
 if TYPE_CHECKING:
     from navigate.core.nodes.producer import Producer
