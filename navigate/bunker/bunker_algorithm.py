@@ -25,11 +25,11 @@ from navigate.bunker.constraints.mass_sufficient import update_mass_sufficient_c
 from navigate.bunker.constraints.pilot_fuel import update_pilot_fuel_constraints
 from navigate.bunker.constraints.power_capacity import update_power_capacity_constraints
 from navigate.bunker.constraints.regulation_flexibility import update_flexibility_regulation_threshold_constraints
-from navigate.bunker.constraints.regulation_helpers import (
+from navigate.bunker.constraints.regulation_individual import update_individual_regulation_threshold_constraints
+from navigate.bunker.constraints.regulation_terms import (
     update_regulation_flexibility_rhs,
     update_regulation_individual_rhs,
 )
-from navigate.bunker.constraints.regulation_individual import update_individual_regulation_threshold_constraints
 from navigate.bunker.constraints.tank_capacity import update_tank_capacity_constraints
 
 # fair-share
@@ -43,10 +43,10 @@ from navigate.bunker.threshold_adjustment import adjust_regulation_thresholds
 # transfer
 from navigate.bunker.transfer.bunker import transfer_bunker
 from navigate.bunker.transfer.dual_solution import transfer_dual_solution
+from navigate.bunker.transfer.regulation_flexibility import transfer_regulation_flexibility
+from navigate.bunker.transfer.regulation_individual import transfer_regulation_individual
+from navigate.bunker.transfer.regulation_measure import transfer_regulation_measure
 from navigate.bunker.transfer.regulation_properties import calculate_regulation_emission_properties
-from navigate.bunker.transfer.regulations_flexibility import transfer_regulations_flexibility
-from navigate.bunker.transfer.regulations_individual import transfer_regulations_individual
-from navigate.bunker.transfer.regulations_measure import transfer_regulations_measure
 from navigate.bunker.transfer.shore_power import transfer_shore_power
 from navigate.bunker.transfer.spend_port import transfer_spend_port
 from navigate.bunker.transfer.spend_sea import transfer_spend_sea
@@ -419,9 +419,9 @@ class BunkerAlgorithm:
         # must be calculated prior to the others as part of the
         # results are used in subsequent calculations
         properties = calculate_regulation_emission_properties(self)
-        transfer_regulations_measure(self, properties)
-        transfer_regulations_individual(self)
-        transfer_regulations_flexibility(self, properties)
+        transfer_regulation_measure(self, properties)
+        transfer_regulation_individual(self)
+        transfer_regulation_flexibility(self, properties)
 
         end = timeit.default_timer()
         self.transfer_time = end - start

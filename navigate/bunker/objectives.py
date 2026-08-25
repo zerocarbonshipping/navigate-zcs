@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 import logging
 
 import navigate.core.enum_ as enum_
-from navigate.bunker.helpers import extract_times
+from navigate.bunker.utils import extract_times
 from navigate.core.enum_ import BunkerScopeID
 from navigate.core.unit import MWD_TO_GJ
 from navigate.util import TOLERANCE

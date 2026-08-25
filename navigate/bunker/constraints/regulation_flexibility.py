@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from navigate.bunker.bunker_algorithm import BunkerAlgorithm
 
-from navigate.bunker.constraints.regulation_helpers import calculate_regulation_emission_term
+from navigate.bunker.constraints.regulation_terms import calculate_regulation_emission_term
 
 
 def update_flexibility_regulation_threshold_constraints(alg: BunkerAlgorithm) -> None:

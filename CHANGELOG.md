@@ -112,7 +112,11 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `residual_energy.py` and `technology.py` → `technology_adoption.py`
   (dropping the node-file/domain-module same-name convention, which had
   no other instance); `navigate/policy/coefficient.py` →
-  `emission_coefficient.py`.
+  `emission_coefficient.py`; in `navigate/bunker/`, `helpers.py` →
+  `utils.py` (matching the `fleet`/`fuel` convention),
+  `constraints/regulation_helpers.py` → `regulation_terms.py`, and the
+  `transfer/regulations_*.py` trio → `regulation_*.py`, singularizing
+  their `transfer_regulations_*` functions with them.
 - Internal reorganization (no DSL or result changes): calculation logic
   moved out of the node classes into sibling modules; all node classes
   moved into `navigate/core/nodes/` and all general-node classes into

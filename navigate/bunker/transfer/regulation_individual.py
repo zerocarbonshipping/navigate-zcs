@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 from navigate.core.enum_ import BunkerScopeID
 
 
-def transfer_regulations_individual(alg: BunkerAlgorithm) -> None:
+def transfer_regulation_individual(alg: BunkerAlgorithm) -> None:
     """
     Transfer individual regulation remedial factors.
 
