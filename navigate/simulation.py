@@ -29,7 +29,6 @@ from navigate.fleet import (
     post_process_investment_metric,
     record_investment_signals,
     update_operational_profile,
-    update_regulation_flexibility_beliefs,
     update_vessel_scarcity_beliefs,
 )
 from navigate.fuel import (
@@ -46,7 +45,7 @@ from navigate.fuel import (
 from navigate.logging_ import log_model_post_process, log_start_of_simulation
 from navigate.output import PlotData, export_assumptions
 from navigate.parser import Parser
-from navigate.policy import calculate_policy_emission_coefficients
+from navigate.policy import calculate_policy_emission_coefficients, update_regulation_flexibility_beliefs
 from navigate.util import YEAR, dates_to_days, timedelta_to_days
 
 logger = logging.getLogger(__name__)

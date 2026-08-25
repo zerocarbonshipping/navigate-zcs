@@ -4,7 +4,6 @@
 from navigate.fleet.aggregation import calculate_fleet_profile
 from navigate.fleet.beliefs import (
     record_investment_signals,
-    update_regulation_flexibility_beliefs,
     update_vessel_scarcity_beliefs,
 )
 from navigate.fleet.charter import calculate_cargo_charter_properties, calculate_vessel_charter_properties

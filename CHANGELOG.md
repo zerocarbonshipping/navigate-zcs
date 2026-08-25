@@ -83,7 +83,11 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `round_for_display`, `get_attributes`, `get_files_in_directory` and
   `print_elapsed_time` became private helpers of their single consumers and
   the unused `average` is deleted. Breaking for
-  code importing navigate as a library. As with the
+  code importing navigate as a library. Regulation flexibility-cost belief
+  smoothing lives in `navigate/policy/flexibility_beliefs.py` (the belief
+  itself is regulation-owned state; vessels only receive the derived
+  expenses), separate from the vessel scarcity beliefs in
+  `navigate/fleet/beliefs.py`. As with the
   previous reorganization, `plot_data.pkl` files saved by earlier versions
   cannot be loaded with `--replot` by this version — replot old results
   with the version that produced them.
