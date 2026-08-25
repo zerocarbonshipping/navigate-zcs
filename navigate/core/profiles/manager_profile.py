@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.misc import EMPTY_FLOAT
+from navigate.core.initial_values import EMPTY_FLOAT
 from navigate.core.profiles._infrastructure_aggregate_profile import _InfrastructureAggregateProfile
 from navigate.core.profiles._plant_aggregate_profile import _PlantAggregateProfile
 from navigate.core.profiles._vessel_aggregate_profile import _VesselAggregateProfile

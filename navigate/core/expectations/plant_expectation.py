@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.expectations._expectation import _Expectation
-from navigate.core.misc import EMPTY_FLOAT
+from navigate.core.initial_values import EMPTY_FLOAT
 from navigate.util import extract_from_dict, extract_from_tuple_dict
 
 if TYPE_CHECKING:

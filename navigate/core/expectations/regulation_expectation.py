@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Iterable
 import numpy as np
 
 from navigate.core.expectations._policy_expectation import _PolicyExpectation
-from navigate.core.misc import EMPTY_FLOAT
+from navigate.core.initial_values import EMPTY_FLOAT
 
 if TYPE_CHECKING:
     from navigate.core.nodes.vessel import Vessel

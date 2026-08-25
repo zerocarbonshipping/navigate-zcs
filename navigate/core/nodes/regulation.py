@@ -8,10 +8,10 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core import Scalar, as_scalar, assign_id, assign_value, command_assignment_to_dict
+from navigate.core.assign import BOOL_ID
 from navigate.core.enum_ import RegulationMeasureID, RegulationSchemeID
 from navigate.core.expectations import RegulationExpectation
 from navigate.core.id_ import FORECAST, REGULATION, VARIABLE
-from navigate.core.misc import BOOL_ID
 from navigate.core.nodes._policy import _Policy
 from navigate.core.profiles import RegulationProfile
 from navigate.exceptions import no_value_assigned_error

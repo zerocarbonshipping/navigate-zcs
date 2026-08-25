@@ -6,7 +6,6 @@ from navigate.core.enum_ import SimulationSectionID
 from navigate.core.general_nodes.bunker_logistics import BunkerLogistics
 from navigate.core.general_nodes.bunker_options import BunkerOptions
 from navigate.core.general_nodes.model_definition import ModelDefinition
-from navigate.core.misc import SECTION_BOTH, SECTION_DEFINE, SECTION_EVENTS
 from navigate.core.nodes.converter import Converter
 from navigate.core.nodes.curve import Curve
 from navigate.core.nodes.emission import Emission
@@ -33,6 +32,10 @@ from navigate.core.nodes.timetable import Timetable
 from navigate.core.nodes.transport import Transport
 from navigate.core.nodes.variable import Variable
 from navigate.core.nodes.vessel import Vessel
+
+SECTION_DEFINE = [SimulationSectionID.DEFINE]
+SECTION_EVENTS = [SimulationSectionID.EVENTS]
+SECTION_BOTH = [SimulationSectionID.DEFINE, SimulationSectionID.EVENTS]
 
 NODE_CLASS = {id_.CONVERTER:            Converter,
               id_.CURVE:                Curve,
