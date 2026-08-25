@@ -52,16 +52,9 @@ def _calculate_attribute_in_policy_jurisdiction(regulation, vessel, times, attri
     # spent in the jurisdiction of the regulation
     route = vessel.route
     ports = [port.get_name() for port in route.ports]
+    leg_idx = route.get_leg_indices()
 
-    if route.route_type == RouteTypeID.ROUND_TRIP:
-
-        n_legs = route.get_number_of_legs()
-        leg_idx = tuple((i, (i + 1) % n_legs) for i in range(n_legs))
-
-    else:
-
-        n_ports = route.get_number_of_ports()
-        leg_idx = tuple((i, j) for i in range(n_ports) for j in range(n_ports))
+    if route.route_type != RouteTypeID.ROUND_TRIP:
 
         # calculate the energy per leg
         attribute_sea = np.add.reduce(attribute_sea)
