@@ -111,7 +111,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `heuristic.py` → `marginal_saving.py`, `saving.py` →
   `residual_energy.py` and `technology.py` → `technology_adoption.py`
   (dropping the node-file/domain-module same-name convention, which had
-  no other instance).
+  no other instance); `navigate/policy/coefficient.py` →
+  `emission_coefficient.py`.
 - Internal reorganization (no DSL or result changes): calculation logic
   moved out of the node classes into sibling modules; all node classes
   moved into `navigate/core/nodes/` and all general-node classes into

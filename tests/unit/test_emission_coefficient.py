@@ -13,7 +13,7 @@ from unittest.mock import MagicMock
 import numpy as np
 import pytest
 
-from navigate.policy.coefficient import _average_wtt_over_ports
+from navigate.policy.emission_coefficient import _average_wtt_over_ports
 
 # ---------------------------------------------------------------------------
 # Shared fixtures
