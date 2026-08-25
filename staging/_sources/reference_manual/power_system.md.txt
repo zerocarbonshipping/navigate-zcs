@@ -9,6 +9,9 @@ A `PowerSystem` node defines a collection of converters which make up the full p
 the propulsion, electrical, and heat demand of a vessel. Examples of power systems are a conventional
 main engine, auxiliary engine, and boiler and a diesel-electric setup.
 
+The `Propulsion`, `Electrical`, and `Heat` attributes must reference three distinct converters within one
+power system; the same converter may, however, be reused across different power systems.
+
 Example:
 
 ```python
