@@ -17,6 +17,8 @@ pull request against the `dev` branch.
    `make pip-setup` (venv + pip).
 3. Create a branch from `dev` for your change.
 4. Verify your setup by running `make lint` and `make test-unit`.
+5. Skim [ARCHITECTURE.md](ARCHITECTURE.md) for the package map and the
+   data-flow invariants contributions must respect.
 
 ## What to contribute
 
