@@ -11,7 +11,6 @@ if TYPE_CHECKING:
 
 import navigate.bunker.solver as gp
 import navigate.core.enum_ as enum_
-from navigate.bunker.utils import get_converter_fuels
 
 
 def update_energy_conservation_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> None:
@@ -33,7 +32,7 @@ def update_energy_conservation_constraints(alg: BunkerAlgorithm, vessel: Vessel)
 
     # local variable hoisting for inner loops
     effective_lhv = alg.effective_lhv
-    converter_fuels_v = get_converter_fuels(vessel)
+    fuels_per_converter = alg.fuels_per_converter
     spend_sea = alg.spend_sea
     spend_port = alg.spend_port
     chgCoeff = alg.model.chgCoeff
@@ -68,7 +67,7 @@ def update_energy_conservation_constraints(alg: BunkerAlgorithm, vessel: Vessel)
 
             constraint.rhs = rhs
 
-            for f in converter_fuels_v[c]:
+            for f in fuels_per_converter[v, c]:
                 lhv_eff = effective_lhv[(v, c, f)]
                 chgCoeff(constraint, spend_sea[v, c, f, pi, pe], eff * lhv_eff)
 
@@ -93,7 +92,7 @@ def update_energy_conservation_constraints(alg: BunkerAlgorithm, vessel: Vessel)
 
             constraint.rhs = rhs
 
-            for f in converter_fuels_v[c]:
+            for f in fuels_per_converter[v, c]:
                 lhv_eff = effective_lhv[(v, c, f)]
                 chgCoeff(constraint, spend_port[v, c, f, p], eff * lhv_eff)
 

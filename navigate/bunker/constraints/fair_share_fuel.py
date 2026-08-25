@@ -11,12 +11,22 @@ if TYPE_CHECKING:
 
 import numpy as np
 
-import navigate.bunker.solver as gp
+from navigate.bunker.constraints._common import get_constraint
 
 
 def update_fair_share_fuel_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> None:
-    """
-    Add constraints limiting bunkered fuel at each port to its fair-share allocation.
+    r"""
+    Add the constraints capping bunkered fuel at each port at the vessel's fair share.
+
+    For each port q and usable fuel f the port may bunker and whose supply is
+    finite (vessel index omitted):
+
+        \sum_{p : name(p) = q} b_{p,f} <= A_{q,f}
+
+    where b is the fuel mass bunkered at route stop p and A the vessel's fair-share
+    allocation of the port's supply. A constrained port supply is split between the
+    competing vessels by the fair-share fixed point (fair_share.py); this caps the
+    vessel at its current allocation.
 
     Parameters
     ----------
@@ -47,25 +57,7 @@ def update_fair_share_fuel_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> 
 
             key = (v, port_name, f)
 
-            if key in alg.fair_share_fuel:
-
-                constraint = alg.fair_share_fuel[key]
-
-            else:
-
-                # add the constraint which will be modified below
-                name = "fair_share_fuel_{}_{}_{}".format(v, port_name, f)
-                constraint = alg.model.addConstr(gp.LinExpr() <= 0., name=name)
-                alg.fair_share_fuel[key] = constraint
-
-            # update the rhs of the constraint
+            constraint = get_constraint(alg, alg.fair_share_fuel, key, "<=", "fair_share_fuel")
             constraint.rhs = alg.allocation_fuel[key]
 
-            # although the coefficients do not change in time
-            # it is possible that the same port (with different
-            # index) is encountered twice in one loop for
-            # ROUND_TRIP routes. This is okay as it simply
-            # switches an additional bunker variable on.
-            variable = alg.bunker[v, p, f]
-            coefficient = 1.
-            alg.model.chgCoeff(constraint, variable, coefficient)
+            alg.model.chgCoeff(constraint, alg.bunker[v, p, f], 1.)

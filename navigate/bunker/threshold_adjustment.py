@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 from navigate.bunker.constraints.regulation_flexibility import update_flexibility_regulation_threshold_constraints
 from navigate.bunker.constraints.regulation_individual import update_individual_regulation_threshold_constraints
 from navigate.bunker.constraints.regulation_terms import get_regulation_vessel_threshold
-from navigate.bunker.utils import get_converter_fuels
+from navigate.bunker.utils import get_converters
 from navigate.core.enum_ import RegulationMeasureID, RegulationSchemeID
 from navigate.core.unit import TON_TO_KG
 from navigate.util import divide_nonzero
@@ -254,8 +254,6 @@ def _rebuild_regulation_constraints_for_adjustment(alg: BunkerAlgorithm, adjusta
 
     # for INTENSITY regulations, rebuild the regulation spend coefficients
     # by temporarily storing adjusted thresholds and recomputing coefficients
-    converter_fuels = {v: get_converter_fuels(vessel) for v, vessel in alg.vessels.items()}
-
     for r, regulation in adjustable_regulations.items():
 
         if regulation.measure != RegulationMeasureID.INTENSITY:
@@ -279,8 +277,8 @@ def _rebuild_regulation_constraints_for_adjustment(alg: BunkerAlgorithm, adjusta
                 else alg.adjusted_vessel_thresholds[key]
 
             # update the regulation spend coefficients with the adjusted threshold
-            for c, fuels in converter_fuels[v].items():
-                for f in fuels:
+            for c in get_converters(vessel):
+                for f in alg.fuels_per_converter[v, c]:
                     coeff_key = (v, c, f, r)
                     ef = alg.regulation_emission_factor[coeff_key]
                     lhv = alg.effective_lhv[(v, c, f)]
