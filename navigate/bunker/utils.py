@@ -13,7 +13,6 @@ from navigate.util import define_index_map
 if TYPE_CHECKING:
     from navigate.bunker.bunker_algorithm import BunkerAlgorithm
     from navigate.core.nodes.converter import Converter
-    from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.route import Route
     from navigate.core.nodes.vessel import Vessel
 
@@ -85,30 +84,6 @@ def get_port_converters(vessel: Vessel) -> dict[str, Converter]:
 
     power_system = vessel.power_system
     return {c.get_name(): c for c in (power_system.electrical, power_system.heat)}
-
-
-def get_converter_fuels(vessel: Vessel) -> dict[str, dict[str, Fuel]]:
-    """
-    The usable fuels of a vessel, filtered per converter to the fuel types the converter can consume.
-
-    Parameters
-    ----------
-    vessel
-        Vessel whose usable fuels are filtered.
-
-    Returns
-    -------
-    dict[str, dict[str, Fuel]]
-        Fuels keyed by name, per converter name.
-    """
-
-    converter_fuels = {}
-    for c, converter in get_converters(vessel).items():
-        fuel_types = converter.get_fuel_types()
-        converter_fuels[c] = {f: fuel for f, fuel in vessel.usable_fuels.items()
-                              if fuel.fuel_type in fuel_types}
-
-    return converter_fuels
 
 
 def initialize_converter_fuel_maps(alg: BunkerAlgorithm) -> None:

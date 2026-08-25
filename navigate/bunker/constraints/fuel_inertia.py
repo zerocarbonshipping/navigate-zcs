@@ -9,14 +9,25 @@ if TYPE_CHECKING:
     from navigate.bunker.bunker_algorithm import BunkerAlgorithm
     from navigate.core.nodes.vessel import Vessel
 
-import navigate.bunker.solver as gp
+from navigate.bunker.constraints._common import get_constraint
 from navigate.core.enum_ import BunkerScopeID
 from navigate.util import calculate_inertia
 
 
 def update_fuel_inertia_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> None:
-    """
-    Add constraints enforcing fuel inertia: minimum proportion of each fuel from previous time-step.
+    r"""
+    Add the constraints enforcing a floor on bunkered fuel carried over from the previous time-step.
+
+    For each port q and usable fuel f the port may bunker (vessel index omitted):
+
+        \sum_{p : name(p) = q} b_{p,f} >= I_{q,f}
+
+    where b is the fuel mass bunkered at route stop p and I the inertia floor: the
+    previously bunkered mass decayed by the port's bunkering inertia over the
+    time-step, scaled down when the vessel count or energy demand shrank, and capped
+    at the fair-share allocation. Models the stickiness of fuel procurement: an
+    established offtake winds down at the inertia rate instead of vanishing between
+    time-steps.
 
     Parameters
     ----------
@@ -63,22 +74,9 @@ def update_fuel_inertia_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> Non
             p = port.get_name()
             key = (v, p, f)
 
-            if key in alg.fuel_inertia:
+            constraint = get_constraint(alg, alg.fuel_inertia, key, ">=", "fuel_inertia")
 
-                constraint = alg.fuel_inertia[key]
-
-            else:
-
-                name = "fuel_inertia_{}_{}_{}".format(*key)
-                constraint = alg.model.addConstr(gp.LinExpr() >= 0., name=name)
-                alg.fuel_inertia[key] = constraint
-
-            # although the coefficient does not change,
-            # this is necessary to add variables together
-            # where the port index is a duplicate
-            variable = alg.bunker[v, pi, f]
-            coefficient = 1.
-            alg.model.chgCoeff(constraint, variable, coefficient)
+            alg.model.chgCoeff(constraint, alg.bunker[v, pi, f], 1.)
 
             # update the rhs of the constraint with
             # the newest inertia and bunker value.

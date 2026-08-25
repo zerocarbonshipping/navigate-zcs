@@ -9,13 +9,24 @@ if TYPE_CHECKING:
     from navigate.bunker.bunker_algorithm import BunkerAlgorithm
     from navigate.core.nodes.vessel import Vessel
 
-import navigate.bunker.solver as gp
-from navigate.bunker.utils import get_converter_fuels, get_converters, get_port_converters
+from navigate.bunker.constraints._common import get_constraint
 
 
 def update_mass_conservation_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> None:
-    """
-    Add constraints related to mass conservation in fuel tanks.
+    r"""
+    Add the constraints balancing the fuel mass in tanks from port to port.
+
+    For each usable fuel f and port p > 0 (vessel index omitted):
+
+        n m_{p,f} = n m_{p-1,f} + b_{p,f} - \sum_{c} x_{c,f,(p-1,p)} - \sum_{c} y_{c,f,p}
+
+    and for the first port n m_{0,f} = b_{0,f} - \sum_{c} y_{c,f,0}, i.e. the round
+    trip starts and ends with empty tanks. Here m is the fuel mass in tank when
+    departing a port on one voyage, n the number of voyages per year, b the annual
+    fuel mass bunkered at the port, x the annual mass spent by converter c at sea on
+    the leg into p, and y the annual mass spent by converter c in port. Ties tank
+    levels to bunkering and spend so fuel is only spent after it was bunkered
+    earlier on the voyage.
 
     Parameters
     ----------
@@ -32,9 +43,8 @@ def update_mass_conservation_constraints(alg: BunkerAlgorithm, vessel: Vessel) -
     bunker = alg.bunker
     spend_port = alg.spend_port
     spend_sea = alg.spend_sea
-    converters_v = get_converters(vessel)
-    port_converters_v = get_port_converters(vessel)
-    converter_fuels_v = get_converter_fuels(vessel)
+    converters_per_fuel = alg.converters_per_fuel
+    port_converters_per_fuel = alg.port_converters_per_fuel
     mass_conservation = alg.mass_conservation
     ports = vessel.route.ports
     port_idx = range(len(ports))
@@ -46,25 +56,18 @@ def update_mass_conservation_constraints(alg: BunkerAlgorithm, vessel: Vessel) -
             port = ports[p]
             key = (v, p, f)
 
-            if key in mass_conservation:
-                constraint = mass_conservation[key]
-            else:
-                name = "mass_conservation_{}_{}_{}".format(*key)
-                constraint = alg.model.addConstr(gp.LinExpr() == 0., name=name)
-                mass_conservation[key] = constraint
+            constraint = get_constraint(alg, mass_conservation, key, "==", "mass_conservation")
 
             chgCoeff(constraint, mass_tank[v, p, f], voyages)
 
             if port.is_bunkering_allowed(f):
                 chgCoeff(constraint, bunker[v, p, f], -1.)
 
-            for c in port_converters_v:
-                if f in converter_fuels_v[c]:
-                    chgCoeff(constraint, spend_port[v, c, f, p], 1.)
+            for c in port_converters_per_fuel[v, f]:
+                chgCoeff(constraint, spend_port[v, c, f, p], 1.)
 
             if p > 0:
-                for c in converters_v:
-                    if f in converter_fuels_v[c]:
-                        chgCoeff(constraint, spend_sea[v, c, f, p - 1, p], 1.)
+                for c in converters_per_fuel[v, f]:
+                    chgCoeff(constraint, spend_sea[v, c, f, p - 1, p], 1.)
 
                 chgCoeff(constraint, mass_tank[v, p - 1, f], -voyages)

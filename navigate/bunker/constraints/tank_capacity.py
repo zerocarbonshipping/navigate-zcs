@@ -9,12 +9,20 @@ if TYPE_CHECKING:
     from navigate.bunker.bunker_algorithm import BunkerAlgorithm
     from navigate.core.nodes.vessel import Vessel
 
-import navigate.bunker.solver as gp
+from navigate.bunker.constraints._common import get_constraint
 
 
 def update_tank_capacity_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> None:
-    """
-    Add constraints limiting fuel mass in tank to tank capacity.
+    r"""
+    Add the constraints that the fuel stored in each tank fits its volume.
+
+    For each port p and tank t (vessel index omitted):
+
+        \sum_{f in fuels(t)} m_{p,f} / \rho_f <= size_t
+
+    where m is the fuel mass in tank when departing port p, \rho the fuel mass
+    density, and fuels(t) the usable fuels matching the tank's fuel types. A tank
+    stores every such fuel, so it is their combined volume that the tank bounds.
 
     Parameters
     ----------
@@ -35,17 +43,7 @@ def update_tank_capacity_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> No
             t = tank.get_name()
             key = (v, p, t)
 
-            if key in alg.tank_capacity:
-
-                constraint = alg.tank_capacity[key]
-
-            else:
-
-                name = "tank_capacity_{}_{}_{}".format(*key)
-                constraint = alg.model.addConstr(gp.LinExpr() <= 0., name=name)
-                alg.tank_capacity[key] = constraint
-
-            # update the rhs of the constraint
+            constraint = get_constraint(alg, alg.tank_capacity, key, "<=", "tank_capacity")
             constraint.rhs = tank.size.get()
 
             for fuel_type in tank.get_fuel_types():
@@ -55,11 +53,4 @@ def update_tank_capacity_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> No
                     f = fuel.get_name()
 
                     if f in usable_fuels:
-
-                        # although the coefficient does not change,
-                        # this is necessary to activate later added
-                        # bunker fuels which were not available
-                        # when the constraint was initialized
-                        variable = alg.mass_tank[v, p, f]
-                        coefficient = 1. / fuel.mass_density.get()
-                        alg.model.chgCoeff(constraint, variable, coefficient)
+                        alg.model.chgCoeff(constraint, alg.mass_tank[v, p, f], 1. / fuel.mass_density.get())
