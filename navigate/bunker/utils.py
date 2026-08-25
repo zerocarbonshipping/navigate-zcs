@@ -8,8 +8,12 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 import navigate.core.enum_ as enum_
+from navigate.util import define_index_map
 
 if TYPE_CHECKING:
+    from navigate.core.nodes.converter import Converter
+    from navigate.core.nodes.fuel import Fuel
+    from navigate.core.nodes.route import Route
     from navigate.core.nodes.vessel import Vessel
 
 
@@ -43,3 +47,84 @@ def extract_times(vessel: Vessel, idx: int) -> tuple[list, list]:
         time_sea = np.multiply(sum(time_sea), sailing_fractions)
 
     return time_sea, time_port
+
+
+def get_converters(vessel: Vessel) -> dict[str, Converter]:
+    """
+    Converters of a vessel's power system, keyed by name.
+
+    Parameters
+    ----------
+    vessel
+        Vessel whose power system is queried.
+
+    Returns
+    -------
+    dict[str, Converter]
+        Converters keyed by name; a converter serving multiple energy demands appears once.
+    """
+
+    return {c.get_name(): c for c in vessel.power_system.get_converters()}
+
+
+def get_port_converters(vessel: Vessel) -> dict[str, Converter]:
+    """
+    Converters that serve port energy demands (ELECTRICAL, HEAT — not PROPULSION), keyed by name.
+
+    Parameters
+    ----------
+    vessel
+        Vessel whose power system is queried.
+
+    Returns
+    -------
+    dict[str, Converter]
+        Converters keyed by name; a converter serving multiple energy demands appears once.
+    """
+
+    power_system = vessel.power_system
+    converters = (power_system.get_converter_by_energy_type(energy_type)
+                  for energy_type in enum_.EnergyDemandTypePortID)
+    return {c.get_name(): c for c in converters}
+
+
+def get_converter_fuels(vessel: Vessel) -> dict[str, dict[str, Fuel]]:
+    """
+    The usable fuels of a vessel, filtered per converter to the fuel types the converter can consume.
+
+    Parameters
+    ----------
+    vessel
+        Vessel whose usable fuels are filtered.
+
+    Returns
+    -------
+    dict[str, dict[str, Fuel]]
+        Fuels keyed by name, per converter name.
+    """
+
+    converter_fuels = {}
+    for c, converter in get_converters(vessel).items():
+        fuel_types = converter.get_fuel_types()
+        converter_fuels[c] = {f: fuel for f, fuel in vessel.usable_fuels.items()
+                              if fuel.fuel_type in fuel_types}
+
+    return converter_fuels
+
+
+def get_port_name_to_indices(route: Route) -> dict[str, list[int]]:
+    """
+    The port indices of a route, keyed by port name.
+
+    Parameters
+    ----------
+    route
+        Route whose ports are indexed.
+
+    Returns
+    -------
+    dict[str, list[int]]
+        A name maps to multiple indices when a route calls the same port more than once.
+    """
+
+    return define_index_map([port.get_name() for port in route.ports])

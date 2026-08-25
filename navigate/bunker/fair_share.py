@@ -16,6 +16,7 @@ from numpy.linalg import norm
 from navigate.bunker.constraints.fair_share_fuel import update_fair_share_fuel_constraints
 from navigate.bunker.constraints.fuel_inertia import update_fuel_inertia_constraints
 from navigate.bunker.optimize import optimize
+from navigate.bunker.utils import get_port_name_to_indices
 from navigate.core.enum_ import BunkerScopeID
 
 logger = logging.getLogger(__name__)
@@ -206,6 +207,7 @@ def update_fair_share_allocation(alg: BunkerAlgorithm) -> None:
     """
 
     tol = alg.options.get_solution_tolerance()
+    port_name_to_indices = {v: get_port_name_to_indices(vessel.route) for v, vessel in alg.vessels.items()}
 
     consumed_by_unbounded = {}  # (port_name, f), total consumed supply by unbounded vessels
     bounded_fair_share = {}     # (port_name, f), sum of fair_share * multiplier for bounded vessels
@@ -221,7 +223,7 @@ def update_fair_share_allocation(alg: BunkerAlgorithm) -> None:
         key_pf = (port_name, f)
 
         # find all port indices that correspond to the given port
-        port_indices = alg.port_name_to_indices[v][port_name]
+        port_indices = port_name_to_indices[v][port_name]
         previous_bunker[key_vpf] = sum(alg.previous_bunker[(v, pi, f)] for pi in port_indices)
 
         # the vessel is considered bounded if it has

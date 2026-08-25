@@ -11,6 +11,7 @@ if TYPE_CHECKING:
 from navigate.bunker.constraints.regulation_flexibility import update_flexibility_regulation_threshold_constraints
 from navigate.bunker.constraints.regulation_individual import update_individual_regulation_threshold_constraints
 from navigate.bunker.constraints.regulation_terms import get_regulation_vessel_threshold
+from navigate.bunker.utils import get_converter_fuels
 from navigate.core.enum_ import RegulationMeasureID, RegulationSchemeID
 from navigate.core.unit import TON_TO_KG
 from navigate.util import divide_nonzero
@@ -253,6 +254,8 @@ def _rebuild_regulation_constraints_for_adjustment(alg: BunkerAlgorithm, adjusta
 
     # for INTENSITY regulations, rebuild the regulation spend coefficients
     # by temporarily storing adjusted thresholds and recomputing coefficients
+    converter_fuels = {v: get_converter_fuels(vessel) for v, vessel in alg.vessels.items()}
+
     for r, regulation in adjustable_regulations.items():
 
         if regulation.measure != RegulationMeasureID.INTENSITY:
@@ -266,7 +269,7 @@ def _rebuild_regulation_constraints_for_adjustment(alg: BunkerAlgorithm, adjusta
         shared_threshold = (alg.adjusted_shared_thresholds.get(r)
                             if regulation.scheme == RegulationSchemeID.FLEXIBLE else None)
 
-        for v in alg.vessels:
+        for v, vessel in alg.vessels.items():
             key = (r, v)
 
             if key not in alg.adjusted_vessel_thresholds:
@@ -276,16 +279,15 @@ def _rebuild_regulation_constraints_for_adjustment(alg: BunkerAlgorithm, adjusta
                 else alg.adjusted_vessel_thresholds[key]
 
             # update the regulation spend coefficients with the adjusted threshold
-            for c in alg.converters[v]:
-                for f in alg.converter_fuels[v][c]:
+            for c, fuels in converter_fuels[v].items():
+                for f in fuels:
                     coeff_key = (v, c, f, r)
                     ef = alg.regulation_emission_factor[coeff_key]
                     lhv = alg.effective_lhv[(v, c, f)]
                     alg.regulation_spend_coefficient[coeff_key] = ef - adjusted_threshold / TON_TO_KG * lhv
 
             # update shore power coefficients
-            route = alg.vessels[v].route
-            ports = route.ports
+            ports = vessel.route.ports
             for p, _port in enumerate(ports):
                 if (v, p, r) in alg.shore_power_regulation_coeff:
                     sp_ef = alg.shore_power_regulation_ef.get((v, p, r), 0.)

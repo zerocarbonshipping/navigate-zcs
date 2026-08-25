@@ -63,8 +63,6 @@ class TestShoreRegulationCoefficient:
         algo.idx = 0
         algo.scope = BunkerScopeID.EXISTING
         algo.emissions = {"co2": _make_emission("co2")}
-        algo.converters = {v: {}}
-        algo.converter_fuels = {v: {}}
 
         # shore power variable at port index 0
         sp_var = MagicMock()
@@ -81,6 +79,7 @@ class TestShoreRegulationCoefficient:
         vessel = MagicMock()
         vessel.get_name.return_value = v
         vessel.route = route
+        vessel.power_system.get_converters.return_value = ()
 
         # regulation: ABSOLUTE, targets all emissions
         regulation = _make_regulation(
@@ -113,8 +112,6 @@ class TestShoreRegulationCoefficient:
         algo.idx = 0
         algo.scope = BunkerScopeID.EXISTING
         algo.emissions = {"co2": _make_emission("co2")}
-        algo.converters = {v: {}}
-        algo.converter_fuels = {v: {}}
 
         sp_var = MagicMock()
         algo.shore_power = {(v, 0): sp_var}
@@ -129,6 +126,7 @@ class TestShoreRegulationCoefficient:
         vessel = MagicMock()
         vessel.get_name.return_value = v
         vessel.route = route
+        vessel.power_system.get_converters.return_value = ()
 
         threshold = 10.0  # ton CO2/ton fuel equivalent
         regulation = _make_regulation(
@@ -164,8 +162,6 @@ class TestShoreRegulationCoefficient:
         algo.idx = 0
         algo.scope = BunkerScopeID.EXISTING
         algo.emissions = {"co2": _make_emission("co2"), "ch4": _make_emission("ch4")}
-        algo.converters = {v: {}}
-        algo.converter_fuels = {v: {}}
 
         sp_var = MagicMock()
         algo.shore_power = {(v, 0): sp_var}
@@ -180,6 +176,7 @@ class TestShoreRegulationCoefficient:
         vessel = MagicMock()
         vessel.get_name.return_value = v
         vessel.route = route
+        vessel.power_system.get_converters.return_value = ()
 
         gwp = {"co2": 1.0, "ch4": 28.0}
         regulation = _make_regulation(
@@ -212,8 +209,6 @@ class TestShoreRegulationCoefficient:
         algo.idx = 0
         algo.scope = BunkerScopeID.EXISTING
         algo.emissions = {"co2": _make_emission("co2")}
-        algo.converters = {v: {}}
-        algo.converter_fuels = {v: {}}
         algo.shore_power = {}  # no shore power
 
         port = MagicMock()
@@ -226,6 +221,7 @@ class TestShoreRegulationCoefficient:
         vessel = MagicMock()
         vessel.get_name.return_value = v
         vessel.route = route
+        vessel.power_system.get_converters.return_value = ()
 
         regulation = _make_regulation(
             name=r,

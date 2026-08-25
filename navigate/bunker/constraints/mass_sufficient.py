@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from navigate.core.nodes.vessel import Vessel
 
 import navigate.bunker.solver as gp
+from navigate.bunker.utils import get_converter_fuels, get_converters
 
 
 def update_mass_sufficient_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> None:
@@ -29,13 +30,14 @@ def update_mass_sufficient_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> 
     chgCoeff = alg.model.chgCoeff
     mass_tank = alg.mass_tank
     spend_sea = alg.spend_sea
-    converters_v = alg.converters[v]
-    converter_fuels_v = alg.converter_fuels[v]
+    converters_v = get_converters(vessel)
+    converter_fuels_v = get_converter_fuels(vessel)
     mass_sufficient = alg.mass_sufficient
+    leg_idx = vessel.route.get_leg_indices()
 
-    for f in alg.usable_fuels[v]:
+    for f in vessel.usable_fuels:
 
-        for (pi, pe) in alg.leg_idx[v]:
+        for (pi, pe) in leg_idx:
 
             key = (v, pi, f)
 

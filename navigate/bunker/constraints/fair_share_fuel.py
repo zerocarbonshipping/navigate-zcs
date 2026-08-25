@@ -33,7 +33,7 @@ def update_fair_share_fuel_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> 
 
         port_name = port.get_name()
 
-        for f in alg.usable_fuels[v]:
+        for f in vessel.usable_fuels:
 
             if not port.is_bunkering_allowed(f):
                 continue

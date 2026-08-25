@@ -11,6 +11,7 @@ if TYPE_CHECKING:
 
 import navigate.bunker.solver as gp
 import navigate.core.enum_ as enum_
+from navigate.bunker.utils import get_converter_fuels, get_converters, get_port_converters
 
 
 def update_vessel_variables(alg: BunkerAlgorithm, vessel: Vessel) -> None:
@@ -28,11 +29,17 @@ def update_vessel_variables(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     v = vessel.get_name()
     route = vessel.route
     ports = route.ports
+    usable_fuels = vessel.usable_fuels
+    converters = get_converters(vessel)
+    port_converters = get_port_converters(vessel)
+    converter_fuels = get_converter_fuels(vessel)
+    leg_idx = route.get_leg_indices()
+    port_idx = range(len(ports))
 
     # add bunker variables
     for p, port in enumerate(ports):
 
-        for f in alg.usable_fuels[v]:
+        for f in usable_fuels:
 
             key = (v, p, f)
 
@@ -44,11 +51,11 @@ def update_vessel_variables(alg: BunkerAlgorithm, vessel: Vessel) -> None:
                     alg.bunker[key] = alg.model.addVar(vtype=gp.GRB.CONTINUOUS, name=name)
 
     # # add spend at sea variables
-    for c in alg.converters[v]:
+    for c in converters:
 
-        for f in alg.converter_fuels[v][c]:
+        for f in converter_fuels[c]:
 
-            for p1, p2 in alg.leg_idx[v]:
+            for p1, p2 in leg_idx:
 
                 key = (v, c, f, p1, p2)
 
@@ -58,11 +65,11 @@ def update_vessel_variables(alg: BunkerAlgorithm, vessel: Vessel) -> None:
                     alg.spend_sea[key] = alg.model.addVar(vtype=gp.GRB.CONTINUOUS, name=name)
 
     # add spend in port variables (only for converters with port energy demand)
-    for c in alg.port_converters[v]:
+    for c in port_converters:
 
-        for f in alg.converter_fuels[v][c]:
+        for f in converter_fuels[c]:
 
-            for p in alg.port_idx[v]:
+            for p in port_idx:
 
                 key = (v, c, f, p)
 
@@ -74,9 +81,9 @@ def update_vessel_variables(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     # add mass variables
     if route.route_type == enum_.RouteTypeID.ROUND_TRIP:
 
-        for p in alg.port_idx[v]:
+        for p in port_idx:
 
-            for f in alg.usable_fuels[v]:
+            for f in usable_fuels:
 
                 key = (v, p, f)
 

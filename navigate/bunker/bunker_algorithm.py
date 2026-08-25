@@ -56,7 +56,7 @@ from navigate.bunker.variables import update_regulation_variables, update_vessel
 
 # vessel setup
 from navigate.bunker.vessel_setup import (
-    build_vessel_specifics,
+    calculate_effective_lhv,
     calculate_emission_factors,
     calculate_policy_coefficients,
 )
@@ -114,19 +114,7 @@ class BunkerAlgorithm:
 
         # local attributes for a specific vessel -----------------------------------------------------------------------
 
-        # fuel specific
-        self.converters: dict[str, dict] = {}
-        self.port_converters: dict[str, dict] = {}
-        self.usable_fuels: dict[str, dict[str, Fuel]] = {}
-        self.converter_fuels: dict[str, dict[str, dict[str, Fuel]]] = {}
-
-        # indices
-        self.port_idx: dict[str, tuple[int, ...]] = {}
-        self.leg_idx: dict[str, tuple[tuple[int, int], ...]] = {}
-
-        # pre-computed vessel properties
-        self.port_name_to_indices: dict[str, dict[str, list[int]]] = {}
-        self.efficiency: dict[str, dict[str, float]] = {}
+        # pre-computed effective LHV per (vessel, converter, fuel)
         self.effective_lhv: dict[tuple, float] = {}
 
         # dynamic properties updated at every time-step ----------------------------------------------------------------
@@ -332,7 +320,7 @@ class BunkerAlgorithm:
                     self.vessels[v] = vessel
                     self.multipliers[v] = multiplier
 
-                    build_vessel_specifics(self, vessel)
+                    calculate_effective_lhv(self, vessel)
                     calculate_emission_factors(self, vessel)
                     calculate_policy_coefficients(self, vessel)
 

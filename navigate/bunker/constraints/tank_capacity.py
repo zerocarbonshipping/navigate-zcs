@@ -26,8 +26,9 @@ def update_tank_capacity_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> No
 
     v = vessel.get_name()
     tanks = vessel.tanks
+    usable_fuels = vessel.usable_fuels
 
-    for p in alg.port_idx[v]:
+    for p in range(vessel.route.get_number_of_ports()):
 
         for tank in tanks:
 
@@ -53,7 +54,7 @@ def update_tank_capacity_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> No
 
                     f = fuel.get_name()
 
-                    if f in alg.usable_fuels[v]:
+                    if f in usable_fuels:
 
                         # although the coefficient does not change,
                         # this is necessary to activate later added

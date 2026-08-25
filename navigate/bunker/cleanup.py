@@ -26,16 +26,8 @@ def remove_redundant_vessel(alg: BunkerAlgorithm, v: str) -> None:
     # remove all non-model related attributes
     del alg.vessels[v]
     del alg.multipliers[v]
-    del alg.usable_fuels[v]
-    del alg.converters[v]
-    del alg.port_converters[v]
-    del alg.converter_fuels[v]
-    del alg.port_idx[v]
-    del alg.leg_idx[v]
 
     # clean up pre-computed values
-    alg.port_name_to_indices.pop(v, None)
-    alg.efficiency.pop(v, None)
     for key in list(alg.effective_lhv):
         if key[0] == v:
             del alg.effective_lhv[key]

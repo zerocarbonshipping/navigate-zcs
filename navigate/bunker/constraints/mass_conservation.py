@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from navigate.core.nodes.vessel import Vessel
 
 import navigate.bunker.solver as gp
+from navigate.bunker.utils import get_converter_fuels, get_converters, get_port_converters
 
 
 def update_mass_conservation_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> None:
@@ -31,15 +32,16 @@ def update_mass_conservation_constraints(alg: BunkerAlgorithm, vessel: Vessel) -
     bunker = alg.bunker
     spend_port = alg.spend_port
     spend_sea = alg.spend_sea
-    converters_v = alg.converters[v]
-    port_converters_v = alg.port_converters[v]
-    converter_fuels_v = alg.converter_fuels[v]
+    converters_v = get_converters(vessel)
+    port_converters_v = get_port_converters(vessel)
+    converter_fuels_v = get_converter_fuels(vessel)
     mass_conservation = alg.mass_conservation
-    ports = alg.vessels[v].route.ports
+    ports = vessel.route.ports
+    port_idx = range(len(ports))
 
-    for f in alg.usable_fuels[v]:
+    for f in vessel.usable_fuels:
 
-        for p in alg.port_idx[v]:
+        for p in port_idx:
 
             port = ports[p]
             key = (v, p, f)

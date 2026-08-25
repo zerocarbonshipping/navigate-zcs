@@ -9,6 +9,8 @@ if TYPE_CHECKING:
     from navigate.bunker.bunker_algorithm import BunkerAlgorithm
     from navigate.core.nodes.vessel import Vessel
 
+from navigate.bunker.utils import get_converter_fuels, get_converters, get_port_converters
+
 
 def update_bunkered_equals_spent_constraint(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     """
@@ -23,9 +25,15 @@ def update_bunkered_equals_spent_constraint(alg: BunkerAlgorithm, vessel: Vessel
     """
 
     v = vessel.get_name()
-    ports = vessel.route.ports
+    route = vessel.route
+    ports = route.ports
+    converters = get_converters(vessel)
+    port_converters = get_port_converters(vessel)
+    converter_fuels = get_converter_fuels(vessel)
+    leg_idx = route.get_leg_indices()
+    port_idx = range(len(ports))
 
-    for f in alg.usable_fuels[v]:
+    for f in vessel.usable_fuels:
 
         key = (v, f)
         rhs = 0.
@@ -53,13 +61,13 @@ def update_bunkered_equals_spent_constraint(alg: BunkerAlgorithm, vessel: Vessel
                        for p, port in enumerate(ports)
                        if port.is_bunkering_allowed(f))
                    - sum(alg.spend_sea[v, c, f, pi, pe]
-                         for c in alg.converters[v]
-                         if f in alg.converter_fuels[v][c]
-                         for pi, pe in alg.leg_idx[v])
+                         for c in converters
+                         if f in converter_fuels[c]
+                         for pi, pe in leg_idx)
                    - sum(alg.spend_port[v, c, f, p]
-                         for c in alg.port_converters[v]
-                         if f in alg.converter_fuels[v][c]
-                         for p in alg.port_idx[v]))
+                         for c in port_converters
+                         if f in converter_fuels[c]
+                         for p in port_idx))
 
             name = "bunkered_equals_spent_{}_{}".format(*key)
             alg.bunker_equals_spent[key] = alg.model.addConstr(lhs == rhs, name=name)
