@@ -87,7 +87,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   smoothing lives in `navigate/policy/flexibility_beliefs.py` (the belief
   itself is regulation-owned state; vessels only receive the derived
   expenses), separate from the vessel scarcity beliefs in
-  `navigate/fleet/beliefs.py`. As with the
+  `navigate/fleet/beliefs.py`, and the missing-technology approximation
+  moves from the simulation loop into `navigate/fleet/technology.py`.
+  As with the
   previous reorganization, `plot_data.pkl` files saved by earlier versions
   cannot be loaded with `--replot` by this version — replot old results
   with the version that produced them.

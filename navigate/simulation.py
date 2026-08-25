@@ -7,22 +7,19 @@ import math
 import timeit
 from pathlib import Path
 
-import numpy as np
-
 from navigate.bunker import BunkerAlgorithm, calculate_fair_share_fuel_supply
-from navigate.core.enum_ import BunkerScopeID, EnergyDemandTypeID, EnergyDemandTypePortID
+from navigate.core.enum_ import BunkerScopeID
 from navigate.core.profiles import ManagerProfile
 from navigate.fleet import (
+    approximate_missing_technology,
     calculate_cargo_charter_properties,
     calculate_evolution_expectation,
     calculate_fleet_profile,
     calculate_vessel_charter_properties,
-    convert_to_regional_steps,
     determine_fuel_type,
     determine_usable_fuel_types,
     determine_usable_fuels,
     get_fuels_per_fuel_type,
-    net_energy_from_raw,
     perform_fleet_evolution,
     perform_speed_management,
     perform_technology_installation,
@@ -605,80 +602,12 @@ class SimulationManager:
 
     def _missing_technology_approximation(self):
         """
-        Estimates missing energy efficiency improvements for fleets and vessels, applies these
-        approximations to energy demands for both sea and port operations, and updates associated
-        vessel profiles and expectations.
-
-        The method pulls from vessels that can retrofit technologies and applies the average over
-        the fleet's vessels to estimate energy efficiency improvements.
-
-        Costs are ignored in this calculation, so we underestimate the costs of energy efficiency improvements.
+        Estimate energy-efficiency uptake for fleets without retrofittable
+        technologies from the fleet-average savings of those that have them.
         """
         start_time = timeit.default_timer()
 
-        average_energy_saving_sea = {energy: 0. for energy in EnergyDemandTypeID}
-        average_energy_saving_port = {energy: 0. for energy in EnergyDemandTypePortID}
-
-        weight_sea = {k: 0.0 for k in average_energy_saving_sea}
-        weight_port = {k: 0.0 for k in average_energy_saving_port}
-
-        for fleet in self.nodes.fleets.values():
-            if not fleet.can_retrofit():
-                continue
-
-            vessels = fleet.get_vessels()
-            for v, vessel in enumerate(vessels):
-                multiplier = fleet.get_multiplier(v)
-                expectation = vessel.expectation
-
-                raw_energy_sea = expectation.get_raw_energy_sea(idx=self._idx)
-                raw_energy_port = expectation.get_raw_energy_port(idx=self._idx)
-                savings_sea = expectation.get_energy_saving_sea(idx=self._idx)
-                savings_port = expectation.get_energy_saving_port(idx=self._idx)
-
-                for k in average_energy_saving_sea:
-                    for leg, _ in enumerate(raw_energy_sea[k]):
-                        weight = raw_energy_sea[k][leg] * multiplier
-                        average_energy_saving_sea[k] += savings_sea[k][leg] * weight
-                        weight_sea[k] += weight
-                for k in average_energy_saving_port:
-                    for leg, _ in enumerate(raw_energy_port[k]):
-                        weight = raw_energy_port[k][leg] * multiplier
-                        average_energy_saving_port[k] += savings_port[k][leg] * weight
-                        weight_port[k] += weight
-
-        for k in average_energy_saving_sea:
-            average_energy_saving_sea[k] = (average_energy_saving_sea[k] / weight_sea[k]) if weight_sea[k] else 0.0
-        for k in average_energy_saving_port:
-            average_energy_saving_port[k] = (average_energy_saving_port[k] / weight_port[k]) if weight_port[k] else 0.0
-
-        for fleet in self.nodes.fleets.values():
-            if fleet.can_retrofit() or not fleet.allow_technology_approximation:
-                continue
-            for vessel in fleet.get_vessels():
-                op_sea = vessel.expectation.get_operational_energy_sea(idx=self._idx)
-                op_port = vessel.expectation.get_operational_energy_port(idx=self._idx)
-
-                sav_sea = {k: [average_energy_saving_sea[k]] * len(op_sea[k])
-                           for k in average_energy_saving_sea if k in op_sea}
-
-                sav_port = {k: [average_energy_saving_port[k]] * len(op_port[k])
-                            for k in average_energy_saving_port if k in op_port}
-
-                net_sea = net_energy_from_raw(op_sea, sav_sea)
-                net_port = net_energy_from_raw(op_port, sav_port)
-                regional_sea = convert_to_regional_steps(vessel, net_sea)
-
-                vessel.expectation.set_energy_sea(self._idx, net_sea)
-                vessel.expectation.set_energy_port(self._idx, net_port)
-                vessel.expectation.set_regional_energy_sea(self._idx, regional_sea)
-
-                vessel.profile.set_energy_sea(
-                    self._idx, {k: float(np.sum(net_sea[k])) for k in net_sea}
-                )
-                vessel.profile.set_energy_port(
-                    self._idx, {k: float(np.sum(net_port[k])) for k in net_port}
-                )
+        approximate_missing_technology(self.nodes.fleets, self._idx)
 
         self.profile.add_fleet_state_time(self._idx, timeit.default_timer() - start_time)
 
