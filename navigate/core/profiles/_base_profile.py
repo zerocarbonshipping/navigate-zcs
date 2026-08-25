@@ -8,7 +8,7 @@ from collections.abc import Callable, Iterable
 
 import numpy as np
 
-from navigate.core.misc import EMPTY_FLOAT
+from navigate.core.initial_values import EMPTY_FLOAT
 from navigate.util import (
     add_dicts,
     divide_dicts,

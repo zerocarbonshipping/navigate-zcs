@@ -93,6 +93,18 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   previous reorganization, `plot_data.pkl` files saved by earlier versions
   cannot be loaded with `--replot` by this version — replot old results
   with the version that produced them.
+- Internal reorganization (no DSL or result changes): `navigate/core/misc.py`
+  is dissolved — the `EMPTY_*` sentinel arrays move to
+  `navigate/core/initial_values.py`, and `SECTION_*`, `BOOL_ID` and
+  `BOUNDS_MAP` move into their consumers (`parser/_keywords.py`,
+  `core/assign.py`, `core/nodes/_calculator.py`). `navigate/core/time_.py`
+  is likewise dissolved: `calculate_inertia` and `calculate_compound_growth`
+  join the shared numeric helpers in `navigate/util/numeric.py` and are
+  re-exported from `navigate.util` instead of `navigate.core`. The root
+  `Node` base class moves from `navigate/core/nodes/node.py` to
+  `navigate/core/node.py`, beside `node_reference.py` and
+  `node_registry.py` — every non-underscored file in `core/nodes/` is now
+  a DSL keyword.
 - Internal reorganization (no DSL or result changes): calculation logic
   moved out of the node classes into sibling modules; all node classes
   moved into `navigate/core/nodes/` and all general-node classes into

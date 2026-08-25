@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.misc import EMPTY_FLOAT, EMPTY_NAN
+from navigate.core.initial_values import EMPTY_FLOAT, EMPTY_NAN
 from navigate.core.profiles._plant_aggregate_profile import _PlantAggregateProfile
 from navigate.util import extract_from_dict
 

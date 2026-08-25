@@ -10,7 +10,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from navigate.core.enum_ import EnergyDemandTypeID, EnergyDemandTypePortID, UtilityID
-from navigate.core.nodes.node import Node
+from navigate.core.node import Node
 from navigate.core.nodes.technology import Technology
 from navigate.core.nodes.vessel import Vessel
 from navigate.economics.decision import calculate_asset_shares

@@ -9,7 +9,7 @@ import numpy as np
 
 from navigate.core.enum_ import EnergyDemandTypeID, EnergyDemandTypePortID
 from navigate.core.expectations._expectation import _Expectation
-from navigate.core.misc import EMPTY_FLOAT
+from navigate.core.initial_values import EMPTY_FLOAT
 from navigate.util import (
     divide_nonzero,
     extract_from_dict_list,

@@ -7,6 +7,7 @@ from typing import Iterable
 from navigate.core.general_nodes.bunker_logistics import BunkerLogistics
 from navigate.core.general_nodes.bunker_options import BunkerOptions
 from navigate.core.general_nodes.model_definition import ModelDefinition
+from navigate.core.node import Node
 from navigate.core.nodes.converter import Converter
 from navigate.core.nodes.curve import Curve
 from navigate.core.nodes.emission import Emission
@@ -15,7 +16,6 @@ from navigate.core.nodes.fleet import Fleet
 from navigate.core.nodes.forecast import Forecast
 from navigate.core.nodes.fuel import Fuel
 from navigate.core.nodes.levy import Levy
-from navigate.core.nodes.node import Node
 from navigate.core.nodes.plant import Plant
 from navigate.core.nodes.plot import Plot
 from navigate.core.nodes.port import Port

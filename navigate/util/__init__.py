@@ -40,6 +40,8 @@ from navigate.util.naming import (
 from navigate.util.numeric import (
     ROUND_OFF,
     TOLERANCE,
+    calculate_compound_growth,
+    calculate_inertia,
     derive_smoothing_alpha,
     divide_nonzero,
     find_nearest,

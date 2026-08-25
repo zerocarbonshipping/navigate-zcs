@@ -6,7 +6,7 @@ from __future__ import annotations
 import numpy as np
 
 from navigate.core.enum_ import FuelTypeID
-from navigate.core.misc import EMPTY_FLOAT
+from navigate.core.initial_values import EMPTY_FLOAT
 from navigate.core.profiles._fuel_consumer_profile import _FuelConsumerProfile
 from navigate.util import divide_nonzero, extract_from_dict, extract_from_tuple_dict
 

@@ -18,8 +18,8 @@ import numpy as np
 
 from navigate.core import Scalar
 from navigate.core.increment import Increment
+from navigate.core.node import Node
 from navigate.core.nodes.fleet import Fleet
-from navigate.core.nodes.node import Node
 from navigate.core.unit import YEAR_TO_DAYS
 from navigate.economics.flows import correct_flow_residual, get_age_flow
 from navigate.economics.metric import calculate_net_present_value

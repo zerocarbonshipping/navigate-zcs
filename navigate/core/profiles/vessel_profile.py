@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.enum_ import EnergyDemandTypeID, EnergyDemandTypePortID
-from navigate.core.misc import EMPTY_BOOL, EMPTY_FLOAT, EMPTY_NAN
+from navigate.core.initial_values import EMPTY_BOOL, EMPTY_FLOAT, EMPTY_NAN
 from navigate.core.profiles._fuel_consumer_profile import _FuelConsumerProfile
 from navigate.util import divide_nonzero
 

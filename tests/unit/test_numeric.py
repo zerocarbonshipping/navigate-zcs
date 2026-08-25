@@ -1,12 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Unit tests for navigate.core.time_ — inertia and compound growth calculations."""
+"""Unit tests for navigate.util.numeric — inertia and compound growth calculations."""
 import numpy as np
 import pytest
 
-from navigate.core.time_ import calculate_compound_growth, calculate_inertia
-from navigate.util import YEAR
+from navigate.util import YEAR, calculate_compound_growth, calculate_inertia
 
 
 class TestCalculateInertia:

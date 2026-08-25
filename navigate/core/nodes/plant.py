@@ -10,7 +10,7 @@ import numpy as np
 import navigate.core.id_ as id_
 from navigate.core import Scalar, as_scalar, assign_value, command_assignment_to_dict
 from navigate.core.expectations import PlantExpectation
-from navigate.core.nodes.node import Node
+from navigate.core.node import Node
 from navigate.core.profiles import PlantProfile
 from navigate.exceptions import no_value_assigned_error
 

@@ -2,9 +2,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import navigate.core.id_ as id_
-from navigate.core.misc import SECTION_BOTH, SECTION_DEFINE
 from navigate.exceptions import AttributeAssignmentError
-from navigate.parser._keywords import SECTION_NAME
+from navigate.parser._keywords import SECTION_BOTH, SECTION_DEFINE, SECTION_NAME
 
 # high-level class attributes to multiple nodes ------------------------------------------------------------------------
 _CALCULATOR_ATTRIBUTES = {'Addition':   SECTION_BOTH,

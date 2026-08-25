@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from navigate.core.misc import EMPTY_FLOAT
+from navigate.core.initial_values import EMPTY_FLOAT
 from navigate.core.profiles._fuel_producer_profile import _FuelProducerProfile
 
 

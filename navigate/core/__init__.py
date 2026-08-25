@@ -16,5 +16,4 @@ from navigate.core.assign import (
 from navigate.core.expression import Expression
 from navigate.core.node_reference import NodeReference
 from navigate.core.scalar import Scalar
-from navigate.core.time_ import calculate_compound_growth, calculate_inertia
 from navigate.core.wrap import as_list, as_scalar, as_scalar_list

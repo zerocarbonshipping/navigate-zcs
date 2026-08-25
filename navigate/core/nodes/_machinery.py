@@ -3,7 +3,7 @@
 
 from navigate.core import Scalar, as_scalar, assign_value
 from navigate.core.id_ import FORECAST, VARIABLE
-from navigate.core.nodes.node import Node
+from navigate.core.node import Node
 
 
 class _Machinery(Node):

@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from navigate.core.id_ import CURVE
+from navigate.core.node import Node
 from navigate.core.nodes._table1d import _Table1D, check_table1D_input
-from navigate.core.nodes.node import Node
 from navigate.core.table_data import TableData, build_table_1d
 from navigate.exceptions import no_value_assigned_error
 

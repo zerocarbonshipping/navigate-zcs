@@ -3,8 +3,8 @@
 
 from navigate.core import assign_value
 from navigate.core.id_ import VARIABLE
+from navigate.core.node import Node
 from navigate.core.nodes._calculator import _Calculator
-from navigate.core.nodes.node import Node
 from navigate.exceptions import no_value_assigned_error
 
 

@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.misc import EMPTY_FLOAT, EMPTY_NAN
+from navigate.core.initial_values import EMPTY_FLOAT, EMPTY_NAN
 from navigate.core.profiles._base_profile import _BaseProfile
 from navigate.util import extract_from_dict
 
