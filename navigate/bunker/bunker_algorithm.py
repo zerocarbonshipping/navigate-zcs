@@ -59,6 +59,7 @@ from navigate.bunker.transfer.spend_port import transfer_spend_port
 from navigate.bunker.transfer.spend_sea import transfer_spend_sea
 
 # variables and objectives
+from navigate.bunker.utils import initialize_converter_fuel_maps
 from navigate.bunker.variables import update_regulation_variables, update_vessel_variables
 from navigate.core.enum_ import BunkerScopeID
 from navigate.fleet.fuel_option import get_fuels_per_fuel_type
@@ -111,6 +112,12 @@ class BunkerAlgorithm:
         self.vessels: dict[str, Vessel] = {}
         self.multipliers: dict[str, float] = {}
         self.fuels_per_fuel_type: dict[str, list[Fuel]] = {}
+
+        # static converter-fuel maps, built on the first call to build
+        # (see initialize_converter_fuel_maps)
+        self.fuels_per_converter: dict[tuple, dict[str, Fuel]] = {}
+        self.converters_per_fuel: dict[tuple, tuple] = {}
+        self.port_converters_per_fuel: dict[tuple, tuple] = {}
 
         # local attributes for a specific vessel -----------------------------------------------------------------------
 
@@ -286,6 +293,11 @@ class BunkerAlgorithm:
         self.idx = idx
         self.time = time
         self.time_step = time_step
+
+        # the static converter-fuel maps depend on the existing fleet, which is
+        # only initialized after this algorithm -- build them on the first call
+        if not self.fuels_per_converter:
+            initialize_converter_fuel_maps(self)
 
         # reset dynamic properties which will
         # be recalculated from scratch at

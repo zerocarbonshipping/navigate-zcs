@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 import navigate.bunker.solver as gp
 import navigate.core.enum_ as enum_
-from navigate.bunker.utils import get_converter_fuels, get_converters, get_port_converters
+from navigate.bunker.utils import get_converters, get_port_converters
 
 
 def update_vessel_variables(alg: BunkerAlgorithm, vessel: Vessel) -> None:
@@ -32,7 +32,7 @@ def update_vessel_variables(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     usable_fuels = vessel.usable_fuels
     converters = get_converters(vessel)
     port_converters = get_port_converters(vessel)
-    converter_fuels = get_converter_fuels(vessel)
+    fuels_per_converter = alg.fuels_per_converter
     leg_idx = route.get_leg_indices()
     port_idx = range(len(ports))
 
@@ -53,7 +53,7 @@ def update_vessel_variables(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     # # add spend at sea variables
     for c in converters:
 
-        for f in converter_fuels[c]:
+        for f in fuels_per_converter[v, c]:
 
             for p1, p2 in leg_idx:
 
@@ -67,7 +67,7 @@ def update_vessel_variables(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     # add spend in port variables (only for converters with port energy demand)
     for c in port_converters:
 
-        for f in converter_fuels[c]:
+        for f in fuels_per_converter[v, c]:
 
             for p in port_idx:
 

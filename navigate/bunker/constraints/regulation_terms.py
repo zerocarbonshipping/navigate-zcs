@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 import navigate.bunker.solver as gp
 import navigate.core.enum_ as enum_
-from navigate.bunker.utils import get_converter_fuels, get_converters, get_port_converters
+from navigate.bunker.utils import get_converters, get_port_converters
 from navigate.core.enum_ import RegulationMeasureID
 from navigate.core.unit import TON_TO_GRAM
 from navigate.policy import (
@@ -51,7 +51,7 @@ def calculate_regulation_emission_term(alg: BunkerAlgorithm, vessel: Vessel, reg
     # extract the converters and fuels of the vessel
     converters = get_converters(vessel)
     port_converters = get_port_converters(vessel)
-    converter_fuels = get_converter_fuels(vessel)
+    fuels_per_converter = alg.fuels_per_converter
 
     # extract route information for the regulations
     route = vessel.route
@@ -74,7 +74,7 @@ def calculate_regulation_emission_term(alg: BunkerAlgorithm, vessel: Vessel, reg
                   alg.spend_port[v, c, f, p])
 
                  for c in port_converters
-                 for f in converter_fuels[c]
+                 for f in fuels_per_converter[v, c]
                  for p in regulated_ports]
 
     # at sea
@@ -107,7 +107,7 @@ def calculate_regulation_emission_term(alg: BunkerAlgorithm, vessel: Vessel, reg
                            alg.spend_sea[v, c, f, pi, pe])
 
                           for c in converters
-                          for f in converter_fuels[c]])
+                          for f in fuels_per_converter[v, c]])
 
     # shore power at regulated ports (always intra-jurisdiction)
     if intra_fraction > 0.:

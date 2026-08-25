@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.vessel import Vessel
 
-from navigate.bunker.utils import get_converter_fuels, get_converters
+from navigate.bunker.utils import get_converters
 from navigate.core.enum_ import BunkerScopeID, RegulationMeasureID
 from navigate.core.unit import TON_TO_KG
 
@@ -99,10 +99,9 @@ def calculate_effective_lhv(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     """
 
     v = vessel.get_name()
-    converter_fuels = get_converter_fuels(vessel)
 
     for c, converter in get_converters(vessel).items():
-        for f, fuel in converter_fuels[c].items():
+        for f, fuel in alg.fuels_per_converter[(v, c)].items():
             alg.effective_lhv[(v, c, f)] = _get_effective_lhv(converter, fuel)
 
 
@@ -119,10 +118,9 @@ def calculate_emission_factors(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     """
 
     v = vessel.get_name()
-    converter_fuels = get_converter_fuels(vessel)
 
     for c, converter in get_converters(vessel).items():
-        for f, fuel in converter_fuels[c].items():
+        for f, fuel in alg.fuels_per_converter[(v, c)].items():
             for e, emission in alg.emissions.items():
                 alg.emission_factor[(v, c, f, e)] = _calculate_emission_factor_TTW(converter, fuel, emission)
 
@@ -159,7 +157,7 @@ def calculate_regulation_coefficients(alg: BunkerAlgorithm, vessel: Vessel) -> N
 
     active_regulations = alg.active_regulations
     effective_lhv = alg.effective_lhv
-    converter_fuels = get_converter_fuels(vessel)
+    fuels_per_converter = alg.fuels_per_converter
     is_expected = alg.scope == BunkerScopeID.EXPECTED
     idx = alg.idx
 
@@ -173,8 +171,8 @@ def calculate_regulation_coefficients(alg: BunkerAlgorithm, vessel: Vessel) -> N
     factors = {(v, c, f, r): (regulation.expectation.get_expected_coefficient((v, c, f), idx)
                               if is_expected else
                               regulation.expectation.get_existing_coefficient((v, c, f), idx))
-               for c, fuels in converter_fuels.items()
-               for f in fuels
+               for c in get_converters(vessel)
+               for f in fuels_per_converter[v, c]
                for r, regulation in active_regulations.items()}
 
     coefficients = {(v, c, f, r):
