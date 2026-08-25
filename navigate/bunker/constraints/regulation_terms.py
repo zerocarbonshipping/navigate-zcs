@@ -12,6 +12,7 @@ if TYPE_CHECKING:
 
 import navigate.bunker.solver as gp
 import navigate.core.enum_ as enum_
+from navigate.bunker.utils import get_converter_fuels, get_converters, get_port_converters
 from navigate.core.enum_ import RegulationMeasureID
 from navigate.core.unit import TON_TO_GRAM
 from navigate.policy import (
@@ -47,6 +48,11 @@ def calculate_regulation_emission_term(alg: BunkerAlgorithm, vessel: Vessel, reg
     emission_factors = alg.regulation_emission_factor
     effective_lhv = alg.effective_lhv
 
+    # extract the converters and fuels of the vessel
+    converters = get_converters(vessel)
+    port_converters = get_port_converters(vessel)
+    converter_fuels = get_converter_fuels(vessel)
+
     # extract route information for the regulations
     route = vessel.route
     ports = route.ports
@@ -56,7 +62,7 @@ def calculate_regulation_emission_term(alg: BunkerAlgorithm, vessel: Vessel, reg
     extra_fraction = regulation.extra_fraction.get(alg.time)
 
     jurisdiction = regulation.jurisdiction
-    regulated_ports = [p for p in alg.port_idx[v] if ports[p] in jurisdiction]
+    regulated_ports = [p for p in range(len(ports)) if ports[p] in jurisdiction]
 
     # in ports
     terms = []
@@ -67,12 +73,12 @@ def calculate_regulation_emission_term(alg: BunkerAlgorithm, vessel: Vessel, reg
                    intra_fraction * effective_lhv[(v, c, f)]),
                   alg.spend_port[v, c, f, p])
 
-                 for c in alg.port_converters[v]
-                 for f in alg.converter_fuels[v][c]
+                 for c in port_converters
+                 for f in converter_fuels[c]
                  for p in regulated_ports]
 
     # at sea
-    for (pi, pe) in alg.leg_idx[v]:
+    for (pi, pe) in route.get_leg_indices():
 
         port_i = ports[pi]
         port_e = ports[pe]
@@ -100,8 +106,8 @@ def calculate_regulation_emission_term(alg: BunkerAlgorithm, vessel: Vessel, reg
                             fraction * effective_lhv[(v, c, f)]),
                            alg.spend_sea[v, c, f, pi, pe])
 
-                          for c in alg.converters[v]
-                          for f in alg.converter_fuels[v][c]])
+                          for c in converters
+                          for f in converter_fuels[c]])
 
     # shore power at regulated ports (always intra-jurisdiction)
     if intra_fraction > 0.:

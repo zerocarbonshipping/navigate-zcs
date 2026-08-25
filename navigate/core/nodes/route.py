@@ -353,6 +353,23 @@ class Route(Node):
     def get_number_of_ports(self):
         return len(self.ports)
 
+    def get_leg_indices(self) -> tuple[tuple[int, int], ...]:
+        """
+        The (origin, destination) port-index pairs of the legs on the route.
+
+        Returns
+        -------
+        Consecutive legs for a round trip, otherwise all port-to-port combinations (required for
+        regulatory purposes).
+        """
+
+        if self.route_type == RouteTypeID.ROUND_TRIP:
+            n_legs = self.get_number_of_legs()
+            return tuple((i, (i + 1) % n_legs) for i in range(n_legs))
+        else:
+            n_ports = self.get_number_of_ports()
+            return tuple((i, j) for i in range(n_ports) for j in range(n_ports))
+
     def local_to_global_leg_idx(self, p1: int, p2: int):
         if self.route_type == RouteTypeID.ROUND_TRIP:
             return p1

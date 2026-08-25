@@ -53,7 +53,7 @@ def update_fuel_inertia_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> Non
 
     multiplier_scaling = min(previous_multiplier / alg.multipliers[v], 1.)
 
-    for f in alg.usable_fuels[v]:
+    for f in vessel.usable_fuels:
 
         for pi, port in enumerate(ports):
 

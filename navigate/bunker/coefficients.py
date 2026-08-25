@@ -12,12 +12,12 @@ if TYPE_CHECKING:
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.vessel import Vessel
 
-import navigate.core.enum_ as enum_
+from navigate.bunker.utils import get_converter_fuels, get_converters
 from navigate.core.enum_ import BunkerScopeID, RegulationMeasureID
 from navigate.core.unit import TON_TO_KG
 
 
-def get_effective_lhv(converter: Converter, fuel: Fuel) -> float:
+def _get_effective_lhv(converter: Converter, fuel: Fuel) -> float:
     """
     Effective LHV accounting for slip: (1 - slip) * LHV_raw.
 
@@ -38,11 +38,9 @@ def get_effective_lhv(converter: Converter, fuel: Fuel) -> float:
     return (1. - slip) * fuel.lower_heating_value.get()
 
 
-def calculate_emission_factor_TTW(
-    vessel: Vessel, converter: Converter, fuel: Fuel, emission: Emission, idx: int,
-) -> float:
+def _calculate_emission_factor_TTW(converter: Converter, fuel: Fuel, emission: Emission) -> float:
     """
-    Calculate the TTW emission factor for an emission from consuming a fuel in a specific converter and vessel.
+    Calculate the TTW emission factor for an emission from consuming a fuel in a specific converter.
     Should be multiplied by the amount of spent fuel in that converter.
 
     The emission factor accounts for slip:
@@ -52,16 +50,12 @@ def calculate_emission_factor_TTW(
 
     Parameters
     ----------
-    vessel
-        Vessel on which the fuel is consumed.
     converter
         Converter the fuel is consumed in.
     fuel
         Fuel being consumed.
     emission
         Emission node.
-    idx
-        Current time-step index.
 
     Returns
     -------
@@ -91,67 +85,25 @@ def calculate_emission_factor_TTW(
     return EF
 
 
-def build_vessel_specifics(alg: BunkerAlgorithm, vessel: Vessel) -> None:
+def calculate_effective_lhv(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     """
-    Build technical vessel details used across various member methods such as adding variables, constraints,
-    and transferring results.
+    Pre-compute the effective LHV of every converter-fuel combination of a vessel.
+    The values are read repeatedly when building constraints and transferring results.
 
     Parameters
     ----------
     alg
         The algorithm instance.
     vessel
-        Vessel being initiated.
+        Vessel for which effective LHV values are computed.
     """
 
     v = vessel.get_name()
+    converter_fuels = get_converter_fuels(vessel)
 
-    alg.converters[v] = {c.get_name(): c for c in vessel.power_system.get_converters()}
-
-    # converters that serve port energy demands (ELECTRICAL, HEAT — not PROPULSION)
-    power_system = vessel.power_system
-    alg.port_converters[v] = {power_system.get_converter_by_energy_type(energy_type).get_name():
-                              power_system.get_converter_by_energy_type(energy_type)
-                              for energy_type in enum_.EnergyDemandTypePortID}
-
-    # the reference only has to be created once
-    # although usable fuels changes over time
-    alg.usable_fuels[v] = vessel.usable_fuels
-    alg.converter_fuels[v] = {c: {f: fuel for f, fuel in alg.usable_fuels[v].items()
-                                  if fuel.fuel_type in converter.get_fuel_types()}
-                              for c, converter in alg.converters[v].items()}
-
-    route = vessel.route
-
-    n_ports = route.get_number_of_ports()
-    n_legs = route.get_number_of_legs()
-    port_idx = tuple(i for i in range(n_ports))
-
-    if route.route_type == enum_.RouteTypeID.ROUND_TRIP:
-        leg_idx = tuple((i, (i + 1) % n_legs) for i in range(n_legs))
-    else:
-        # all possible port-to-port combinations
-        # required for regulatory purposes
-        leg_idx = tuple((i, j) for i in range(n_ports) for j in range(n_ports))
-
-    alg.port_idx[v] = port_idx
-    alg.leg_idx[v] = leg_idx
-
-    # pre-compute converter efficiencies and effective LHV values
-    eff_v = {}
-    for c, converter in alg.converters[v].items():
-        eff_v[c] = converter.efficiency.get()
-        for f, fuel in alg.converter_fuels[v][c].items():
-            lhv = get_effective_lhv(converter, fuel)
-            alg.effective_lhv[(v, c, f)] = lhv
-    alg.efficiency[v] = eff_v
-
-    # pre-compute port name to index mapping
-    ports = route.ports
-    pn2i = {}
-    for pi, port in enumerate(ports):
-        pn2i.setdefault(port.get_name(), []).append(pi)
-    alg.port_name_to_indices[v] = pn2i
+    for c, converter in get_converters(vessel).items():
+        for f, fuel in converter_fuels[c].items():
+            alg.effective_lhv[(v, c, f)] = _get_effective_lhv(converter, fuel)
 
 
 def calculate_emission_factors(alg: BunkerAlgorithm, vessel: Vessel) -> None:
@@ -167,12 +119,12 @@ def calculate_emission_factors(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     """
 
     v = vessel.get_name()
+    converter_fuels = get_converter_fuels(vessel)
 
-    for c, converter in alg.converters[v].items():
-        for f, fuel in alg.converter_fuels[v][c].items():
+    for c, converter in get_converters(vessel).items():
+        for f, fuel in converter_fuels[c].items():
             for e, emission in alg.emissions.items():
-                TTW = calculate_emission_factor_TTW(vessel, converter, fuel, emission, alg.idx)
-                alg.emission_factor[(v, c, f, e)] = TTW
+                alg.emission_factor[(v, c, f, e)] = _calculate_emission_factor_TTW(converter, fuel, emission)
 
 
 def calculate_policy_coefficients(alg: BunkerAlgorithm, vessel: Vessel) -> None:
@@ -207,6 +159,7 @@ def calculate_regulation_coefficients(alg: BunkerAlgorithm, vessel: Vessel) -> N
 
     active_regulations = alg.active_regulations
     effective_lhv = alg.effective_lhv
+    converter_fuels = get_converter_fuels(vessel)
     is_expected = alg.scope == BunkerScopeID.EXPECTED
     idx = alg.idx
 
@@ -220,8 +173,8 @@ def calculate_regulation_coefficients(alg: BunkerAlgorithm, vessel: Vessel) -> N
     factors = {(v, c, f, r): (regulation.expectation.get_expected_coefficient((v, c, f), idx)
                               if is_expected else
                               regulation.expectation.get_existing_coefficient((v, c, f), idx))
-               for c in alg.converters[v]
-               for f in alg.converter_fuels[v][c]
+               for c, fuels in converter_fuels.items()
+               for f in fuels
                for r, regulation in active_regulations.items()}
 
     coefficients = {(v, c, f, r):
@@ -282,7 +235,7 @@ def calculate_levy_coefficients(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     port_levies = alg.port_levies
     is_expected = alg.scope == BunkerScopeID.EXPECTED
     idx = alg.idx
-    usable_fuels = alg.usable_fuels[v]
+    usable_fuels = vessel.usable_fuels
 
     alg.cost_levy.update({(v, port.get_name(), f, levy.get_name()):
 

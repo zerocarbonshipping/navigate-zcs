@@ -65,6 +65,16 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   emissions.
 
 ### Changed
+- Internal simplification (no DSL or result changes): `BunkerAlgorithm` no
+  longer mirrors per-vessel node data in scratch containers (converters,
+  usable fuels, converter fuels, port/leg indices, efficiencies, port-name
+  indices) — the LP builders and transfers read the vessel nodes directly,
+  via shared helpers in `navigate/bunker/utils.py`; only the effective-LHV
+  values remain pre-computed. Leg-index enumeration is now
+  `Route.get_leg_indices()`, also replacing the duplicate in
+  `navigate/policy/jurisdiction.py`. `navigate/bunker/vessel_setup.py` →
+  `coefficients.py`: the module now computes only LP coefficients
+  (effective LHV, emission factors, regulation and levy coefficients).
 - Internal reorganization (no DSL or result changes): the remaining
   top-level modules regroup into two domain packages over shared layers.
   `navigate/fleet/` merges `vessel/`, `route/` operation and speed, and

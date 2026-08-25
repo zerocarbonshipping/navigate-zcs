@@ -11,6 +11,7 @@ if TYPE_CHECKING:
 
 import navigate.bunker.solver as gp
 import navigate.core.enum_ as enum_
+from navigate.bunker.utils import get_converter_fuels
 
 
 def update_energy_conservation_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> None:
@@ -28,19 +29,19 @@ def update_energy_conservation_constraints(alg: BunkerAlgorithm, vessel: Vessel)
     v = vessel.get_name()
     expectation = vessel.expectation
     power_system = vessel.power_system
+    route = vessel.route
 
     # local variable hoisting for inner loops
-    efficiency_v = alg.efficiency[v]
     effective_lhv = alg.effective_lhv
-    converter_fuels_v = alg.converter_fuels[v]
+    converter_fuels_v = get_converter_fuels(vessel)
     spend_sea = alg.spend_sea
     spend_port = alg.spend_port
     chgCoeff = alg.model.chgCoeff
     addConstr = alg.model.addConstr
     energy_conservation_sea = alg.energy_conservation_sea
     energy_conservation_port = alg.energy_conservation_port
-    leg_idx_v = alg.leg_idx[v]
-    port_idx_v = alg.port_idx[v]
+    leg_idx_v = route.get_leg_indices()
+    port_idx_v = range(route.get_number_of_ports())
 
     # extract the demand as dictionaries
     demands_sea = expectation.get_regional_energy_sea(idx=alg.idx)
@@ -51,7 +52,7 @@ def update_energy_conservation_constraints(alg: BunkerAlgorithm, vessel: Vessel)
 
         converter = power_system.get_converter_by_energy_type(energy_type)
         c = converter.get_name()
-        eff = efficiency_v[c]
+        eff = converter.efficiency.get()
 
         for leg, (pi, pe) in enumerate(leg_idx_v):
 
@@ -76,7 +77,7 @@ def update_energy_conservation_constraints(alg: BunkerAlgorithm, vessel: Vessel)
 
         converter = power_system.get_converter_by_energy_type(energy_type)
         c = converter.get_name()
-        eff = efficiency_v[c]
+        eff = converter.efficiency.get()
 
         for p in port_idx_v:
 

@@ -43,7 +43,7 @@ def update_vessel_objectives(alg: BunkerAlgorithm, vessel: Vessel) -> None:
         port_name = port.get_name()
         levies = port_levies[port_name]
 
-        for f, fuel in alg.usable_fuels[v].items():
+        for f, fuel in vessel.usable_fuels.items():
 
             if port.is_bunkering_allowed(f):
 

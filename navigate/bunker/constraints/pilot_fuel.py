@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from navigate.core.nodes.vessel import Vessel
 
 import navigate.bunker.solver as gp
+from navigate.bunker.utils import get_converters
 
 
 def update_pilot_fuel_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> None:
@@ -25,12 +26,16 @@ def update_pilot_fuel_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     """
 
     v = vessel.get_name()
+    route = vessel.route
+    usable_fuels = vessel.usable_fuels
     effective_lhv = alg.effective_lhv
     spend_sea = alg.spend_sea
     spend_port = alg.spend_port
     chgCoeff = alg.model.chgCoeff
+    leg_idx = route.get_leg_indices()
+    port_idx = range(route.get_number_of_ports())
 
-    for c, converter in alg.converters[v].items():
+    for c, converter in get_converters(vessel).items():
 
         if not converter.is_dual_fuel():
             continue
@@ -40,15 +45,15 @@ def update_pilot_fuel_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> None:
         pilot_fuels = [fuel.get_name()
                        for fuel_type in converter.pilot_fuel_types
                        for fuel in alg.fuels_per_fuel_type[fuel_type]
-                       if fuel.get_name() in alg.usable_fuels[v]]
+                       if fuel.get_name() in usable_fuels]
 
         main_fuels = [fuel.get_name()
                       for fuel_type in converter.main_fuel_types
                       for fuel in alg.fuels_per_fuel_type[fuel_type]
-                      if fuel.get_name() in alg.usable_fuels[v]]
+                      if fuel.get_name() in usable_fuels]
 
         # at sea
-        for pi, pe in alg.leg_idx[v]:
+        for pi, pe in leg_idx:
 
             key = (v, c, pi, pe)
 
@@ -73,7 +78,7 @@ def update_pilot_fuel_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> None:
             continue
 
         # in port
-        for p in alg.port_idx[v]:
+        for p in port_idx:
 
             key = (v, c, p)
 

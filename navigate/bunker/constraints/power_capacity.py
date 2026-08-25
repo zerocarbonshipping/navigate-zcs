@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from navigate.bunker.bunker_algorithm import BunkerAlgorithm
     from navigate.core.nodes.vessel import Vessel
 
-from navigate.bunker.utils import extract_times
+from navigate.bunker.utils import extract_times, get_converter_fuels, get_converters, get_port_converters
 from navigate.core.unit import DAY_TO_HOURS, MWH_TO_GJ
 
 
@@ -28,22 +28,24 @@ def update_power_capacity_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> N
     """
 
     v = vessel.get_name()
+    route = vessel.route
 
     time_sea, time_port = extract_times(vessel, alg.idx)
     unit = DAY_TO_HOURS * MWH_TO_GJ
-    efficiency_v = alg.efficiency[v]
     effective_lhv = alg.effective_lhv
     spend_sea = alg.spend_sea
     spend_port = alg.spend_port
-    converter_fuels_v = alg.converter_fuels[v]
+    converter_fuels_v = get_converter_fuels(vessel)
+    leg_idx_v = route.get_leg_indices()
+    port_idx_v = range(route.get_number_of_ports())
 
     # at sea
-    for c, converter in alg.converters[v].items():
+    for c, converter in get_converters(vessel).items():
 
-        eff = efficiency_v[c]
+        eff = converter.efficiency.get()
         power_cap = converter.power_capacity.get()
 
-        for leg, (pi, pe) in enumerate(alg.leg_idx[v]):
+        for leg, (pi, pe) in enumerate(leg_idx_v):
 
             key = (v, c, pi, pe)
             rhs = time_sea[leg] / eff * unit * power_cap
@@ -56,12 +58,12 @@ def update_power_capacity_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> N
                 alg.power_capacity_sea[key] = alg.model.addConstr(lhs <= rhs, name=name_sea)
 
     # in port (only converters with port energy demand)
-    for c, converter in alg.port_converters[v].items():
+    for c, converter in get_port_converters(vessel).items():
 
-        eff = efficiency_v[c]
+        eff = converter.efficiency.get()
         power_cap = converter.power_capacity.get()
 
-        for p in alg.port_idx[v]:
+        for p in port_idx_v:
 
             key = (v, c, p)
             rhs = time_port[p] / eff * unit * power_cap
