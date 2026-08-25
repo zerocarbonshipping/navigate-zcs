@@ -26,6 +26,12 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   was never exercised by any committed deck and would be double-counted
   wherever the converters are summed (installed power, cost, fuel demand).
   Reusing a converter across different power systems remains supported.
+- Internal refactor of the bunker constraint builders (no result changes):
+  a shared get-or-create constraint helper in
+  `navigate/bunker/constraints/_common.py`, converter-fuel maps precomputed
+  once per algorithm instance instead of rebuilt per builder call,
+  uniform re-apply-every-build coefficient semantics, and docstrings stating
+  the constraints' mathematical form.
 
 ### Removed
 - The cumulative-intensity emission output of fuel-consumer profiles: the

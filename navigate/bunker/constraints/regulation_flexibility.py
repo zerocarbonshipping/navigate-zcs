@@ -12,8 +12,24 @@ from navigate.bunker.constraints.regulation_terms import calculate_regulation_em
 
 
 def update_flexibility_regulation_threshold_constraints(alg: BunkerAlgorithm) -> None:
-    """
-    Add flexibility regulation threshold constraints across all policed vessels.
+    r"""
+    Add the fleet-pooled threshold constraint of each FLEXIBLE-scheme regulation.
+
+    For each regulation r:
+
+        \sum_{v policed} M_v E_{r,v} - w_r <= R_r
+
+    where E is a vessel's regulated constraint term (the coefficient expression of
+    calculate_regulation_emission_term -- see regulation_individual for how it
+    differs from the stored emission and energy expressions), M the number of
+    vessels it represents, w the remedial units bought for the pool, and R the
+    pooled threshold bound (update_regulation_flexibility_rhs). Vessels over their
+    individual target are balanced by vessels under it; only the pooled excess is
+    priced through the remedial variable.
+
+    The constraint is removed and re-added each build instead of mutated in place:
+    which spend variables enter E changes between builds (legs move between
+    jurisdiction fractions), so the row's sparsity pattern is not stable.
 
     Parameters
     ----------
@@ -41,7 +57,6 @@ def update_flexibility_regulation_threshold_constraints(alg: BunkerAlgorithm) ->
 
         lhs = terms - alg.remedial_factor_flexibility[r]
 
-        # remove and re-add the constraint (coefficients change each build)
         if r in alg.regulation_threshold_flexibility:
             alg.model.remove(alg.regulation_threshold_flexibility[r])
 
