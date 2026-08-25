@@ -9,13 +9,25 @@ if TYPE_CHECKING:
     from navigate.bunker.bunker_algorithm import BunkerAlgorithm
     from navigate.core.nodes.vessel import Vessel
 
-from navigate.bunker.utils import extract_times, get_converter_fuels, get_converters, get_port_converters
+from navigate.bunker.constraints._common import get_constraint
+from navigate.bunker.utils import extract_times, get_converters, get_port_converters
 from navigate.core.unit import DAY_TO_HOURS, MWH_TO_GJ
 
 
 def update_power_capacity_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> None:
-    """
-    Add constraints related to the installed power, namely that there is enough power to satisfy the demand.
+    r"""
+    Add the constraints that installed converter power covers the fuel spend.
+
+    For each converter c and leg (i, e) (vessel index omitted):
+
+        \sum_{f in fuels(c)} \lambda_{c,f} x_{c,f,i,e} <= P_c t_{i,e} u / \eta_c
+
+    and the same per port p with the port stay t_p and the port spend y. Here
+    \lambda is the effective lower heating value (GJ/t), x and y the annual fuel
+    mass spend, P the converter's power capacity (MW), t the annual time on the leg
+    or in port (days), \eta the converter efficiency, and u the days-to-hours times
+    MWh-to-GJ unit conversion. The fuel energy a converter takes in cannot exceed
+    what its installed power can convert in the available time.
     # TODO: this constraint is redundant. Just check installed power vs speed-power curve
     # TODO: using LHV is inconsistent with electricity. Should be MWh to GJ unit conversion
 
@@ -35,7 +47,8 @@ def update_power_capacity_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> N
     effective_lhv = alg.effective_lhv
     spend_sea = alg.spend_sea
     spend_port = alg.spend_port
-    converter_fuels_v = get_converter_fuels(vessel)
+    chgCoeff = alg.model.chgCoeff
+    fuels_per_converter = alg.fuels_per_converter
     leg_idx_v = route.get_leg_indices()
     port_idx_v = range(route.get_number_of_ports())
 
@@ -48,14 +61,12 @@ def update_power_capacity_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> N
         for leg, (pi, pe) in enumerate(leg_idx_v):
 
             key = (v, c, pi, pe)
-            rhs = time_sea[leg] / eff * unit * power_cap
 
-            if key in alg.power_capacity_sea:
-                alg.power_capacity_sea[key].rhs = rhs
-            else:
-                lhs = sum(spend_sea[v, c, f, pi, pe] * effective_lhv[(v, c, f)] for f in converter_fuels_v[c])
-                name_sea = "power_capacity_at_sea_{}_{}_{}_{}".format(*key)
-                alg.power_capacity_sea[key] = alg.model.addConstr(lhs <= rhs, name=name_sea)
+            constraint = get_constraint(alg, alg.power_capacity_sea, key, "<=", "power_capacity_at_sea")
+            constraint.rhs = time_sea[leg] / eff * unit * power_cap
+
+            for f in fuels_per_converter[v, c]:
+                chgCoeff(constraint, spend_sea[v, c, f, pi, pe], effective_lhv[(v, c, f)])
 
     # in port (only converters with port energy demand)
     for c, converter in get_port_converters(vessel).items():
@@ -66,11 +77,9 @@ def update_power_capacity_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> N
         for p in port_idx_v:
 
             key = (v, c, p)
-            rhs = time_port[p] / eff * unit * power_cap
 
-            if key in alg.power_capacity_port:
-                alg.power_capacity_port[key].rhs = rhs
-            else:
-                lhs = sum(spend_port[v, c, f, p] * effective_lhv[(v, c, f)] for f in converter_fuels_v[c])
-                name_port = "power_capacity_in_port_{}_{}_{}".format(*key)
-                alg.power_capacity_port[key] = alg.model.addConstr(lhs <= rhs, name=name_port)
+            constraint = get_constraint(alg, alg.power_capacity_port, key, "<=", "power_capacity_in_port")
+            constraint.rhs = time_port[p] / eff * unit * power_cap
+
+            for f in fuels_per_converter[v, c]:
+                chgCoeff(constraint, spend_port[v, c, f, p], effective_lhv[(v, c, f)])

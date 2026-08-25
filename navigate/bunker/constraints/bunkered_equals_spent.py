@@ -9,12 +9,21 @@ if TYPE_CHECKING:
     from navigate.bunker.bunker_algorithm import BunkerAlgorithm
     from navigate.core.nodes.vessel import Vessel
 
-from navigate.bunker.utils import get_converter_fuels, get_converters, get_port_converters
+from navigate.bunker.constraints._common import get_constraint
 
 
 def update_bunkered_equals_spent_constraint(alg: BunkerAlgorithm, vessel: Vessel) -> None:
-    """
-    Add constraint ensuring total bunkered fuel equals total spent fuel.
+    r"""
+    Add the constraints that all fuel bunkered over the route is spent.
+
+    For each usable fuel f (vessel index omitted):
+
+        \sum_{p} b_{p,f} = \sum_{c} \sum_{(i,e)} x_{c,f,i,e} + \sum_{c} \sum_{p} y_{c,f,p}
+
+    where b is the fuel mass bunkered at port p, x the fuel mass spent by converter c
+    at sea on leg (i, e), and y the fuel mass spent by converter c in port. Closes the
+    route-wide fuel balance; the per-port mass_conservation constraint (ROUND_TRIP
+    routes only) additionally tracks when along the route fuel is spent.
 
     Parameters
     ----------
@@ -26,48 +35,27 @@ def update_bunkered_equals_spent_constraint(alg: BunkerAlgorithm, vessel: Vessel
 
     v = vessel.get_name()
     route = vessel.route
-    ports = route.ports
-    converters = get_converters(vessel)
-    port_converters = get_port_converters(vessel)
-    converter_fuels = get_converter_fuels(vessel)
+    converters_per_fuel = alg.converters_per_fuel
+    port_converters_per_fuel = alg.port_converters_per_fuel
     leg_idx = route.get_leg_indices()
-    port_idx = range(len(ports))
+    port_idx = range(route.get_number_of_ports())
+
+    chgCoeff = alg.model.chgCoeff
 
     for f in vessel.usable_fuels:
 
         key = (v, f)
-        rhs = 0.
 
-        if key in alg.bunker_equals_spent:
+        constraint = get_constraint(alg, alg.bunker_equals_spent, key, "==", "bunkered_equals_spent")
 
-            constraint = alg.bunker_equals_spent[key]
+        for p in port_idx:
+            if (v, p, f) in alg.bunker:
+                chgCoeff(constraint, alg.bunker[v, p, f], 1.)
 
-            for p, _port in enumerate(ports):
+        for c in converters_per_fuel[v, f]:
+            for pi, pe in leg_idx:
+                chgCoeff(constraint, alg.spend_sea[v, c, f, pi, pe], -1.)
 
-                # although the coefficient does not change,
-                # this is necessary to activate later added
-                # bunker fuels which were not available
-                # when the constraint was initialized
-                if (v, p, f) in alg.bunker:
-
-                    variable = alg.bunker[v, p, f]
-                    coefficient = 1.
-                    alg.model.chgCoeff(constraint, variable, coefficient)
-
-        else:
-
-            # add constraint to the model
-            lhs = (sum(alg.bunker[v, p, f]
-                       for p, port in enumerate(ports)
-                       if port.is_bunkering_allowed(f))
-                   - sum(alg.spend_sea[v, c, f, pi, pe]
-                         for c in converters
-                         if f in converter_fuels[c]
-                         for pi, pe in leg_idx)
-                   - sum(alg.spend_port[v, c, f, p]
-                         for c in port_converters
-                         if f in converter_fuels[c]
-                         for p in port_idx))
-
-            name = "bunkered_equals_spent_{}_{}".format(*key)
-            alg.bunker_equals_spent[key] = alg.model.addConstr(lhs == rhs, name=name)
+        for c in port_converters_per_fuel[v, f]:
+            for p in port_idx:
+                chgCoeff(constraint, alg.spend_port[v, c, f, p], -1.)
