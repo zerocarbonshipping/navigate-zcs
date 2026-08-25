@@ -51,7 +51,7 @@ def extract_times(vessel: Vessel, idx: int) -> tuple[list, list]:
 
 def get_converters(vessel: Vessel) -> dict[str, Converter]:
     """
-    Converters of a vessel's power system, keyed by name.
+    The three converters of a vessel's power system, keyed by name.
 
     Parameters
     ----------
@@ -61,7 +61,7 @@ def get_converters(vessel: Vessel) -> dict[str, Converter]:
     Returns
     -------
     dict[str, Converter]
-        Converters keyed by name; a converter serving multiple energy demands appears once.
+        The propulsion, electrical, and heat converters keyed by name.
     """
 
     return {c.get_name(): c for c in vessel.power_system.get_converters()}
@@ -69,7 +69,7 @@ def get_converters(vessel: Vessel) -> dict[str, Converter]:
 
 def get_port_converters(vessel: Vessel) -> dict[str, Converter]:
     """
-    Converters that serve port energy demands (ELECTRICAL, HEAT — not PROPULSION), keyed by name.
+    The two converters that serve port energy demands (electrical and heat), keyed by name.
 
     Parameters
     ----------
@@ -79,13 +79,11 @@ def get_port_converters(vessel: Vessel) -> dict[str, Converter]:
     Returns
     -------
     dict[str, Converter]
-        Converters keyed by name; a converter serving multiple energy demands appears once.
+        The electrical and heat converters keyed by name.
     """
 
     power_system = vessel.power_system
-    converters = (power_system.get_converter_by_energy_type(energy_type)
-                  for energy_type in enum_.EnergyDemandTypePortID)
-    return {c.get_name(): c for c in converters}
+    return {c.get_name(): c for c in (power_system.electrical, power_system.heat)}
 
 
 def get_converter_fuels(vessel: Vessel) -> dict[str, dict[str, Fuel]]:

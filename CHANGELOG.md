@@ -19,6 +19,14 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   a different (equally valid) optimal basis in degenerate solves, making
   order-sensitive outputs such as dual values vary run-to-run.
 
+### Changed
+- **Breaking**: the `Propulsion`, `Electrical`, and `Heat` attributes of a
+  `PowerSystem` must reference three distinct converters; initialization now
+  fails otherwise. A converter shared across the slots of one power system
+  was never exercised by any committed deck and would be double-counted
+  wherever the converters are summed (installed power, cost, fuel demand).
+  Reusing a converter across different power systems remains supported.
+
 ### Removed
 - The cumulative-intensity emission output of fuel-consumer profiles: the
   `CumulativeIntensityEquivalent{WTT,TTW,WTW}` and
