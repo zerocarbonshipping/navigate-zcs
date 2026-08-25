@@ -32,7 +32,8 @@ class EnergyDemandTypeID(Enum):
     HEAT = auto()
 
 
-EnergyDemandTypePortID = {EnergyDemandTypeID.ELECTRICAL, EnergyDemandTypeID.HEAT}
+# iteration order feeds LP variable/constraint creation order, which must be deterministic across runs
+EnergyDemandTypePortID = (EnergyDemandTypeID.ELECTRICAL, EnergyDemandTypeID.HEAT)
 
 
 class RouteTypeID(Enum):

@@ -11,6 +11,22 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Fixed
+- LP variable and constraint creation order for in-port energy demands is now
+  deterministic across runs: the electrical/heat demand set is an ordered
+  tuple instead of a `set`, whose iteration order varied between interpreter
+  processes. The LP itself was unaffected, but row/column order could select
+  a different (equally valid) optimal basis in degenerate solves, making
+  order-sensitive outputs such as dual values vary run-to-run.
+
+### Changed
+- **Breaking**: the `Propulsion`, `Electrical`, and `Heat` attributes of a
+  `PowerSystem` must reference three distinct converters; initialization now
+  fails otherwise. A converter shared across the slots of one power system
+  was never exercised by any committed deck and would be double-counted
+  wherever the converters are summed (installed power, cost, fuel demand).
+  Reusing a converter across different power systems remains supported.
+
 ### Removed
 - The cumulative-intensity emission output of fuel-consumer profiles: the
   `CumulativeIntensityEquivalent{WTT,TTW,WTW}` and

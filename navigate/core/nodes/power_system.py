@@ -6,6 +6,7 @@ from navigate.core.enum_ import EnergyDemandTypeID
 from navigate.core.id_ import CONVERTER, POWER_SYSTEM
 from navigate.core.nodes._machinery import _Machinery
 from navigate.exceptions import no_value_assigned_error
+from navigate.util import list_is_unique
 
 
 class PowerSystem(_Machinery):
@@ -78,6 +79,12 @@ class PowerSystem(_Machinery):
 
         if not self.heat:
             no_value_assigned_error(self, 'Heat')
+
+        # downstream code sums over the converters (installed power, cost, fuel demand); a shared one would double-count
+        names = (self.propulsion.get_name(), self.electrical.get_name(), self.heat.get_name())
+        if not list_is_unique(names):
+            raise ValueError("{}: 'Propulsion', 'Electrical' and 'Heat' must be three distinct"
+                             " converters, got {}.".format(self, names))
 
         self._initialize_machinery()
 
