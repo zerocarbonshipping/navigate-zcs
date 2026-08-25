@@ -18,12 +18,27 @@ from navigate.core.unit import TON_TO_GRAM
 from navigate.policy import (
     calculate_cargo_miles_in_policy_jurisdiction,
     calculate_nominal_cargo_miles_in_policy_jurisdiction,
+    leg_jurisdiction_fraction,
 )
 
 
 def calculate_regulation_emission_term(alg: BunkerAlgorithm, vessel: Vessel, regulation: Regulation) -> tuple:
-    """
-    Calculate the regulation emission term for a vessel under a given regulation.
+    r"""
+    Calculate the three regulated linear expressions of a vessel under a regulation.
+
+    Over the vessel's regulated spend -- port spend, sea spend, and shore power --
+    the three expressions share one term list and differ only in their weights:
+
+        T = \sum_t \phi_t k_t z_t    (constraint term)
+        M = \sum_t \phi_t e_t z_t    (emissions, reporting only)
+        Q = \sum_t \phi_t \lambda_t z_t    (energy, reporting only)
+
+    where z is a spend or shore-power variable, \phi its jurisdiction fraction
+    (intra in port and for shore power; intra/inter/extra for sea legs by their
+    ports' membership), k its regulation spend coefficient, e its emission
+    factor, and \lambda its effective lower heating value (1 for shore power,
+    already in GJ). T enters the threshold constraints; M and Q are stored for
+    reporting.
 
     Parameters
     ----------
@@ -64,77 +79,62 @@ def calculate_regulation_emission_term(alg: BunkerAlgorithm, vessel: Vessel, reg
     jurisdiction = regulation.jurisdiction
     regulated_ports = [p for p in range(len(ports)) if ports[p] in jurisdiction]
 
-    # in ports
-    terms = []
+    # in ports (always intra-jurisdiction)
+    port_terms = []
     if intra_fraction > 0.:
 
-        terms = [((intra_fraction * coefficients[(v, c, f, r)],
-                   intra_fraction * emission_factors[(v, c, f, r)],
-                   intra_fraction * effective_lhv[(v, c, f)]),
-                  alg.spend_port[v, c, f, p])
+        port_terms = [((intra_fraction * coefficients[(v, c, f, r)],
+                        intra_fraction * emission_factors[(v, c, f, r)],
+                        intra_fraction * effective_lhv[(v, c, f)]),
+                       alg.spend_port[v, c, f, p])
 
-                 for c in port_converters
-                 for f in fuels_per_converter[v, c]
-                 for p in regulated_ports]
+                      for c in port_converters
+                      for f in fuels_per_converter[v, c]
+                      for p in regulated_ports]
 
-    # at sea
+    # at sea, weighted per leg by its ports' jurisdiction membership
+    sea_terms = []
     for (pi, pe) in route.get_leg_indices():
 
-        port_i = ports[pi]
-        port_e = ports[pe]
-
-        if (port_i in jurisdiction) and (port_e in jurisdiction):
-
-            # intra jurisdiction legs
-            fraction = intra_fraction
-
-        elif (((port_i in jurisdiction) and (port_e not in jurisdiction))
-              or ((port_i not in jurisdiction) and (port_e in jurisdiction))):
-
-            # inter jurisdiction legs
-            fraction = inter_fraction
-
-        else:
-
-            # extra jurisdiction legs
-            fraction = extra_fraction
+        fraction = leg_jurisdiction_fraction(ports[pi], ports[pe], jurisdiction,
+                                             intra_fraction, inter_fraction, extra_fraction)
 
         if fraction > 0.:
 
-            terms.extend([((fraction * coefficients[(v, c, f, r)],
-                            fraction * emission_factors[(v, c, f, r)],
-                            fraction * effective_lhv[(v, c, f)]),
-                           alg.spend_sea[v, c, f, pi, pe])
+            sea_terms.extend([((fraction * coefficients[(v, c, f, r)],
+                                fraction * emission_factors[(v, c, f, r)],
+                                fraction * effective_lhv[(v, c, f)]),
+                               alg.spend_sea[v, c, f, pi, pe])
 
-                          for c in converters
-                          for f in fuels_per_converter[v, c]])
+                              for c in converters
+                              for f in fuels_per_converter[v, c]])
 
     # shore power at regulated ports (always intra-jurisdiction)
+    shore_power_terms = []
     if intra_fraction > 0.:
         sp_reg_ef = alg.shore_power_regulation_ef
         sp_reg_coeff = alg.shore_power_regulation_coeff
 
         for p in regulated_ports:
             if (v, p, r) in sp_reg_coeff:
-                terms.append(((intra_fraction * sp_reg_coeff[(v, p, r)],
-                               intra_fraction * sp_reg_ef[(v, p, r)],
-                               intra_fraction * 1.0),
-                              alg.shore_power[v, p]))
+                shore_power_terms.append(((intra_fraction * sp_reg_coeff[(v, p, r)],
+                                           intra_fraction * sp_reg_ef[(v, p, r)],
+                                           intra_fraction * 1.0),
+                                          alg.shore_power[v, p]))
+
+    terms = port_terms + sea_terms + shore_power_terms
 
     if terms:
 
-        c, v = zip(*terms)
-        c_coefficients, c_emissions, c_energy = zip(*c)
+        weights, variables = zip(*terms)
+        constraint_weights, emission_weights, energy_weights = zip(*weights)
 
-        constraints = gp.LinExpr(c_coefficients, v)
-        emissions = gp.LinExpr(c_emissions, v)
-        energy = gp.LinExpr(c_energy, v)
+        constraints = gp.LinExpr(constraint_weights, variables)
+        emissions = gp.LinExpr(emission_weights, variables)
+        energy = gp.LinExpr(energy_weights, variables)
 
     else:
-        # in case none of the ports in the
-        # jurisdiction match the ports on the
-        # vessels route, initialize an empty
-        # expression
+        # no port or leg of the route is regulated
         constraints = gp.LinExpr()
         emissions = gp.LinExpr()
         energy = gp.LinExpr()

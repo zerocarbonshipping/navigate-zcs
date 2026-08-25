@@ -43,7 +43,6 @@ def update_power_capacity_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> N
     route = vessel.route
 
     time_sea, time_port = extract_times(vessel, alg.idx)
-    unit = DAY_TO_HOURS * MWH_TO_GJ
     effective_lhv = alg.effective_lhv
     spend_sea = alg.spend_sea
     spend_port = alg.spend_port
@@ -63,7 +62,7 @@ def update_power_capacity_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> N
             key = (v, c, pi, pe)
 
             constraint = get_constraint(alg, alg.power_capacity_sea, key, "<=", "power_capacity_at_sea")
-            constraint.rhs = time_sea[leg] / eff * unit * power_cap
+            constraint.rhs = _power_capacity_rhs(time_sea[leg], eff, power_cap)
 
             for f in fuels_per_converter[v, c]:
                 chgCoeff(constraint, spend_sea[v, c, f, pi, pe], effective_lhv[(v, c, f)])
@@ -79,7 +78,28 @@ def update_power_capacity_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> N
             key = (v, c, p)
 
             constraint = get_constraint(alg, alg.power_capacity_port, key, "<=", "power_capacity_in_port")
-            constraint.rhs = time_port[p] / eff * unit * power_cap
+            constraint.rhs = _power_capacity_rhs(time_port[p], eff, power_cap)
 
             for f in fuels_per_converter[v, c]:
                 chgCoeff(constraint, spend_port[v, c, f, p], effective_lhv[(v, c, f)])
+
+
+def _power_capacity_rhs(time: float, efficiency: float, power_capacity: float) -> float:
+    """
+    The maximum fuel energy (GJ) a converter can take in over an operating period.
+
+    Parameters
+    ----------
+    time
+        Operating time in the period (days).
+    efficiency
+        Efficiency of the converter.
+    power_capacity
+        Installed power of the converter (MW).
+
+    Returns
+    -------
+    The maximum fuel energy (GJ).
+    """
+
+    return time / efficiency * (DAY_TO_HOURS * MWH_TO_GJ) * power_capacity
