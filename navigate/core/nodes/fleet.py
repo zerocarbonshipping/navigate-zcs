@@ -42,7 +42,7 @@ from navigate.core.profiles import FleetProfile
 from navigate.exceptions import no_value_assigned_error
 from navigate.fleet.evolution import calculate_evolution_expectation
 from navigate.fleet.package import Package, preprocess_packages
-from navigate.fleet.technology import (
+from navigate.fleet.technology_adoption import (
     build_technology_packages,
     define_initial_technology,
     transfer_technology_charter_rate,

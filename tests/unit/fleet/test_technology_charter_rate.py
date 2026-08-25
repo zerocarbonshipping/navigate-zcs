@@ -36,7 +36,7 @@ from navigate.fleet.package import (
     annual_costs_for_retrofit_steps,
     levelize_package_cost,
 )
-from navigate.fleet.technology import (
+from navigate.fleet.technology_adoption import (
     apply_uptake_transition,
     calculate_package_charter_rates,
     define_initial_technology,

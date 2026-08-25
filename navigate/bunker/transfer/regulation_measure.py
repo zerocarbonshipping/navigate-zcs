@@ -12,7 +12,7 @@ from navigate.core.enum_ import BunkerScopeID, RegulationMeasureID, RegulationSc
 from navigate.util import divide_nonzero
 
 
-def transfer_regulations_measure(alg: BunkerAlgorithm, properties: dict) -> None:
+def transfer_regulation_measure(alg: BunkerAlgorithm, properties: dict) -> None:
     """
     Transfer regulation compliance measures.
 

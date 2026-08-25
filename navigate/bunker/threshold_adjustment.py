@@ -9,8 +9,8 @@ if TYPE_CHECKING:
     from navigate.bunker.bunker_algorithm import BunkerAlgorithm
 
 from navigate.bunker.constraints.regulation_flexibility import update_flexibility_regulation_threshold_constraints
-from navigate.bunker.constraints.regulation_helpers import get_regulation_vessel_threshold
 from navigate.bunker.constraints.regulation_individual import update_individual_regulation_threshold_constraints
+from navigate.bunker.constraints.regulation_terms import get_regulation_vessel_threshold
 from navigate.core.enum_ import RegulationMeasureID, RegulationSchemeID
 from navigate.core.unit import TON_TO_KG
 from navigate.util import divide_nonzero

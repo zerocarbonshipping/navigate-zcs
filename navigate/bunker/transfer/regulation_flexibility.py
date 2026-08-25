@@ -12,7 +12,7 @@ from navigate.core.enum_ import BunkerScopeID
 from navigate.util import divide_nonzero
 
 
-def transfer_regulations_flexibility(alg: BunkerAlgorithm, properties: dict) -> None:
+def transfer_regulation_flexibility(alg: BunkerAlgorithm, properties: dict) -> None:
     """
     Use a heuristic to split the cost of purchasing flexibility units and selling surplus units between the
     relevant vessels.

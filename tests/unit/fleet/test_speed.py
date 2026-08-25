@@ -14,7 +14,7 @@ import numpy as np
 import pytest
 from scipy.optimize import minimize_scalar
 
-from navigate.fleet.heuristic import _calculate_dual_variable_saving
+from navigate.fleet.marginal_saving import _calculate_dual_variable_saving
 from navigate.fleet.power import calculate_speed_bounds
 from navigate.fleet.speed import _mean_to_speeds, _update_mean_speed
 

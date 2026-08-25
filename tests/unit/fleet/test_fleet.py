@@ -19,7 +19,7 @@ from navigate.fleet.evolution import (
     calculate_modelled_uptake,
     calculate_orderbook_newbuilds,
 )
-from navigate.fleet.technology import (
+from navigate.fleet.technology_adoption import (
     reconcile_newbuild_technology_caps,
     reconcile_retrofit_technology_caps,
     transfer_retrofit_uptake,
