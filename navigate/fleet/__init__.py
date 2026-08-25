@@ -2,10 +2,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from navigate.fleet.aggregation import calculate_fleet_profile
-from navigate.fleet.beliefs import (
-    record_investment_signals,
-    update_vessel_scarcity_beliefs,
-)
 from navigate.fleet.charter import calculate_cargo_charter_properties, calculate_vessel_charter_properties
 from navigate.fleet.evolution import calculate_evolution_expectation, perform_fleet_evolution
 from navigate.fleet.fuel_option import (
@@ -16,5 +12,9 @@ from navigate.fleet.fuel_option import (
 )
 from navigate.fleet.operation import update_operational_profile
 from navigate.fleet.post_process import post_process_investment_metric
+from navigate.fleet.scarcity_beliefs import (
+    record_investment_signals,
+    update_vessel_scarcity_beliefs,
+)
 from navigate.fleet.speed import perform_speed_management
-from navigate.fleet.technology import approximate_missing_technology, perform_technology_installation
+from navigate.fleet.technology_adoption import approximate_missing_technology, perform_technology_installation

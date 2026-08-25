@@ -22,7 +22,7 @@ from navigate.core.enum_ import EnergyDemandTypeID
 from navigate.core.nodes.technology import Technology
 from navigate.core.unit import MWD_TO_GJ
 from navigate.fleet.package import Package
-from navigate.fleet.saving import (
+from navigate.fleet.residual_energy import (
     _calculate_power_transfer,
     _energy_to_power,
     _iterate_legs_or_ports,

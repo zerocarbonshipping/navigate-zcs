@@ -15,7 +15,7 @@ from navigate.core.nodes.technology import Technology
 from navigate.core.nodes.vessel import Vessel
 from navigate.economics.decision import calculate_asset_shares
 from navigate.economics.flows import timeline_to_yearly
-from navigate.fleet.heuristic import calculate_marginal_technology_saving
+from navigate.fleet.marginal_saving import calculate_marginal_technology_saving
 from navigate.fleet.operation import convert_to_regional_steps
 from navigate.fleet.package import (
     Package,
@@ -25,7 +25,7 @@ from navigate.fleet.package import (
     npv_for_retrofit_steps,
     preprocess_packages,
 )
-from navigate.fleet.saving import calculate_residual_energy
+from navigate.fleet.residual_energy import calculate_residual_energy
 from navigate.fleet.utils import get_remaining_lifetime, is_retrofit_cycle, net_energy_from_raw
 from navigate.util import TOLERANCE, YEAR, divide_nonzero
 

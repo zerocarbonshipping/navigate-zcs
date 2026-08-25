@@ -66,9 +66,6 @@ core table/report/plot nodes call into `logging_`/`output`.
 
 ## Naming conventions
 
-- `core/nodes/<keyword>.py` defines the DSL node class; a domain module of
-  the same name holds its behavior (`core/nodes/technology.py` declares the
-  `Technology` node, `fleet/technology.py` decides technology uptake).
 - `fleet/` and `fuel/` mirror each other deliberately (`evolution.py`,
   `aggregation.py`, `utils.py`): same name, same role in each domain.
 - A leading underscore on a module or class means package-private; anything

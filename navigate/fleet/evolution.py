@@ -10,7 +10,7 @@ import numpy as np
 
 from navigate.core.enum_ import UtilityID
 from navigate.core.increment import Increment
-from navigate.fleet.technology import calculate_package_charter_rates
+from navigate.fleet.technology_adoption import calculate_package_charter_rates
 from navigate.fleet.utils import calculate_increments, extract_cargo_miles
 from navigate.util import ROUND_OFF, TOLERANCE, YEAR, calculate_inertia, divide_nonzero, to_numpy
 
@@ -880,7 +880,7 @@ def perform_fleet_evolution(fleet: Fleet, timeline: np.ndarray, time_step: float
     """
 
     from navigate.fleet.conversion import perform_fuel_conversions
-    from navigate.fleet.technology import (
+    from navigate.fleet.technology_adoption import (
         reconcile_newbuild_technology_caps,
         transfer_technology_charter_rate,
         transfer_technology_uptake,

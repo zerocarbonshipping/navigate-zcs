@@ -16,7 +16,7 @@ exercised:
   differentials of the four fuel variants of the default
   `container_15000_teu` fleet;
 - the efficiency levers: uptake of the fleet's energy-saving technologies
-  (`technology.py`), operational speed (`speed.py`),
+  (`technology_adoption.py`), operational speed (`speed.py`),
   and the global energy savings they produce.
 
 Fuel supply is deliberately ample (high `MaximumDevelopment`, no feed

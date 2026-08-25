@@ -23,7 +23,7 @@ def transfer_dual_solution(alg: BunkerAlgorithm) -> None:
     """
 
     # only compute ranging for debug logging (expensive)
-    # SARHSLow/SARHSUp are used in heuristic.py
+    # SARHSLow/SARHSUp are used in marginal_saving.py
     transfer_ranging = logger.getEffectiveLevel() <= logging.DEBUG
 
     for (v, p1, p2, energy_id), constr in alg.energy_conservation_sea.items():
