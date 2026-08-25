@@ -22,6 +22,40 @@ def calculate_nominal_cargo_miles_in_policy_jurisdiction(regulation, vessel, tim
     return _calculate_attribute_in_policy_jurisdiction(regulation, vessel, time, nominal_cargo_miles)
 
 
+def leg_jurisdiction_fraction(port_i, port_e, jurisdiction, intra_fraction, inter_fraction, extra_fraction):
+    """
+    The regulated fraction of a leg from its ports' jurisdiction membership.
+
+    Parameters
+    ----------
+    port_i : Port | str
+        Departure port of the leg, in the same representation as the jurisdiction.
+    port_e : Port | str
+        Arrival port of the leg.
+    jurisdiction : list
+        Ports inside the regulation's jurisdiction.
+    intra_fraction : float
+        Fraction applied to legs with both ports inside.
+    inter_fraction : float
+        Fraction applied to legs with exactly one port inside.
+    extra_fraction : float
+        Fraction applied to legs with both ports outside.
+
+    Returns
+    -------
+    float
+        The fraction of the leg covered by the regulation.
+    """
+
+    if (port_i in jurisdiction) and (port_e in jurisdiction):
+        return intra_fraction
+
+    if (port_i in jurisdiction) or (port_e in jurisdiction):
+        return inter_fraction
+
+    return extra_fraction
+
+
 def _calculate_attribute_in_policy_jurisdiction(regulation, vessel, times, attribute_sea):
     """
 
@@ -66,24 +100,8 @@ def _calculate_attribute_in_policy_jurisdiction(regulation, vessel, times, attri
     # sum attribute at sea
     for leg, (pi, pe) in enumerate(leg_idx):
 
-        port_i = ports[pi]
-        port_e = ports[pe]
-
-        # intra region travel
-        if (port_i in jurisdiction) and (port_e in jurisdiction):
-
-            attribute += intra * attribute_sea[leg]
-
-        # inter region travel
-        elif (((port_i in jurisdiction) and (port_e not in jurisdiction))
-              or ((port_i not in jurisdiction) and (port_e in jurisdiction))):
-
-            attribute += inter * attribute_sea[leg]
-
-        # extra region travel
-        else:
-
-            attribute += extra * attribute_sea[leg]
+        fraction = leg_jurisdiction_fraction(ports[pi], ports[pe], jurisdiction, intra, inter, extra)
+        attribute += fraction * attribute_sea[leg]
 
     return attribute
 

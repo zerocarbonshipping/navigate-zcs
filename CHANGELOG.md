@@ -32,6 +32,13 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   once per algorithm instance instead of rebuilt per builder call,
   uniform re-apply-every-build coefficient semantics, and docstrings stating
   the constraints' mathematical form.
+- Internal refactor of the remaining bunker constraint builders (no result
+  changes): energy-conservation rows built by explicit per-demand calls
+  (propulsion/electrical/heat at sea, electrical/heat in port), extracted
+  pilot-fuel and power-capacity coefficient helpers, named regulation term
+  construction, docstrings completing the constraints' mathematical
+  documentation, and the leg intra/inter/extra jurisdiction classification
+  shared as `navigate.policy.leg_jurisdiction_fraction`.
 
 ### Removed
 - The cumulative-intensity emission output of fuel-consumer profiles: the

@@ -6,5 +6,6 @@ from navigate.policy.flexibility_beliefs import update_regulation_flexibility_be
 from navigate.policy.jurisdiction import (
     calculate_cargo_miles_in_policy_jurisdiction,
     calculate_nominal_cargo_miles_in_policy_jurisdiction,
+    leg_jurisdiction_fraction,
     policies_affecting_port,
 )
