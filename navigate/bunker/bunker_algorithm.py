@@ -127,6 +127,8 @@ class BunkerAlgorithm:
         # dynamic properties updated at every time-step ----------------------------------------------------------------
 
         # policies
+        self.active_regulations: dict[str, Regulation] = {}
+        self.port_levies: dict[str, list[Levy]] = {}
         self.cost_levy: dict[tuple, float] = {}
         self.regulation_vessel_threshold: dict[tuple, float] = {}
         self.regulation_emission_factor: dict[tuple, float] = {}
@@ -483,10 +485,13 @@ class BunkerAlgorithm:
         # reset policy coefficients
         self.regulation_vessel_threshold = {}
         self.regulation_emission_factor = {}
-        self.regulation_emission_coefficient = {}
+        self.regulation_spend_coefficient = {}
+        self.shore_power_regulation_emission_factor = {}
+        self.shore_power_regulation_coefficient = {}
         self.cost_levy = {}
 
         # reset regulation measurements
+        self.regulation_measure = {}
         self.regulation_rhs_individual = {}
         self.regulation_rhs_flexibility = {}
         self.regulation_total_rhs_flexibility = {}
