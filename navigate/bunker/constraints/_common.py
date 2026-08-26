@@ -21,7 +21,7 @@ def get_constraint(alg: BunkerAlgorithm, container: dict[tuple, gp.Constr], key:
     Return the constraint stored under a key, creating an empty one if absent.
 
     A new constraint starts as ``0 <sense> 0``; the caller must set its rhs (where it is
-    not the fixed zero) and re-apply every coefficient via ``chgCoeff`` on every build,
+    not the fixed zero) and re-apply every coefficient via ``model.chgCoeff`` on every build,
     new or reused -- re-applying is what lets a variable created after the constraint
     (e.g. a fuel that later becomes bunkerable at a port) join the row.
 

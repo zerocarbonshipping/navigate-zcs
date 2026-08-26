@@ -63,12 +63,12 @@ def update_pilot_fuel_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> None:
                       if fuel.get_name() in usable_fuels]
 
         # at sea
-        for pi, pe in leg_idx:
+        for port_start, port_end in leg_idx:
 
-            key = (v, c, pi, pe)
+            key = (v, c, port_start, port_end)
             constraint = get_constraint(alg, alg.pilot_fuel_sea, key, ">=", "pilot_fuel_at_sea")
 
-            _apply_pilot_fuel_coefficients(alg, constraint, alg.spend_sea, v, c, (pi, pe),
+            _apply_pilot_fuel_coefficients(alg, constraint, alg.spend_sea, v, c, (port_start, port_end),
                                            pilot_fuels, main_fuels, fraction)
 
         if c not in port_converters:
@@ -120,11 +120,11 @@ def _apply_pilot_fuel_coefficients(alg: BunkerAlgorithm,
         Minimum pilot fuel fraction of the converter.
     """
 
-    chgCoeff = alg.model.chgCoeff
+    change_coefficient = alg.model.chgCoeff
     effective_lhv = alg.effective_lhv
 
     for f in pilot_fuels:
-        chgCoeff(constraint, spend[(v, c, f, *indices)], (1. - fraction) * effective_lhv[(v, c, f)])
+        change_coefficient(constraint, spend[(v, c, f, *indices)], (1. - fraction) * effective_lhv[(v, c, f)])
 
     for f in main_fuels:
-        chgCoeff(constraint, spend[(v, c, f, *indices)], -fraction * effective_lhv[(v, c, f)])
+        change_coefficient(constraint, spend[(v, c, f, *indices)], -fraction * effective_lhv[(v, c, f)])

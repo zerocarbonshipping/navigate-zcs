@@ -46,15 +46,15 @@ def transfer_regulation_flexibility(alg: BunkerAlgorithm, properties: dict) -> N
                 continue
 
             # extract the emitted emissions and the allowed emissions
-            E_v, m_v, rhs_v = properties[(r, v)]
+            vessel_emissions, vessel_measure, vessel_rhs = properties[(r, v)]
 
             # calculate the units associated with the factors
-            non_compliance_units[v] = max(E_v - rhs_v, 0.)
-            surplus_units[v] = max(rhs_v - E_v, 0.)
+            non_compliance_units[v] = max(vessel_emissions - vessel_rhs, 0.)
+            surplus_units[v] = max(vessel_rhs - vessel_emissions, 0.)
 
             # calculate the non-compliance and surplus factors
-            non_compliance_factor[v] = non_compliance_units[v] / m_v
-            surplus_factor[v] = surplus_units[v] / m_v
+            non_compliance_factor[v] = non_compliance_units[v] / vessel_measure
+            surplus_factor[v] = surplus_units[v] / vessel_measure
 
         total_non_compliance_units = sum(unit * alg.multipliers[v] for v, unit in non_compliance_units.items())
         total_surplus_units = sum(unit * alg.multipliers[v] for v, unit in surplus_units.items())

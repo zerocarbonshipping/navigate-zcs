@@ -38,7 +38,7 @@ def update_mass_conservation_constraints(alg: BunkerAlgorithm, vessel: Vessel) -
 
     v = vessel.get_name()
     voyages = vessel.expectation.get_voyages(alg.idx)
-    chgCoeff = alg.model.chgCoeff
+    change_coefficient = alg.model.chgCoeff
     mass_tank = alg.mass_tank
     bunker = alg.bunker
     spend_port = alg.spend_port
@@ -58,16 +58,16 @@ def update_mass_conservation_constraints(alg: BunkerAlgorithm, vessel: Vessel) -
 
             constraint = get_constraint(alg, mass_conservation, key, "==", "mass_conservation")
 
-            chgCoeff(constraint, mass_tank[v, p, f], voyages)
+            change_coefficient(constraint, mass_tank[v, p, f], voyages)
 
             if port.is_bunkering_allowed(f):
-                chgCoeff(constraint, bunker[v, p, f], -1.)
+                change_coefficient(constraint, bunker[v, p, f], -1.)
 
             for c in port_converters_per_fuel[v, f]:
-                chgCoeff(constraint, spend_port[v, c, f, p], 1.)
+                change_coefficient(constraint, spend_port[v, c, f, p], 1.)
 
             if p > 0:
                 for c in converters_per_fuel[v, f]:
-                    chgCoeff(constraint, spend_sea[v, c, f, p - 1, p], 1.)
+                    change_coefficient(constraint, spend_sea[v, c, f, p - 1, p], 1.)
 
-                chgCoeff(constraint, mass_tank[v, p - 1, f], -voyages)
+                change_coefficient(constraint, mass_tank[v, p - 1, f], -voyages)

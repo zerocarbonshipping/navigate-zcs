@@ -50,14 +50,14 @@ def update_vessel_variables(alg: BunkerAlgorithm, vessel: Vessel) -> None:
                     name = "bunker_{}_{}_{}".format(*key)
                     alg.bunker[key] = alg.model.addVar(vtype=gp.GRB.CONTINUOUS, name=name)
 
-    # # add spend at sea variables
+    # add spend at sea variables
     for c in converters:
 
         for f in fuels_per_converter[v, c]:
 
-            for p1, p2 in leg_idx:
+            for port_start, port_end in leg_idx:
 
-                key = (v, c, f, p1, p2)
+                key = (v, c, f, port_start, port_end)
 
                 if key not in alg.spend_sea:
 

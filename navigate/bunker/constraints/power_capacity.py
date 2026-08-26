@@ -46,42 +46,42 @@ def update_power_capacity_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> N
     effective_lhv = alg.effective_lhv
     spend_sea = alg.spend_sea
     spend_port = alg.spend_port
-    chgCoeff = alg.model.chgCoeff
+    change_coefficient = alg.model.chgCoeff
     fuels_per_converter = alg.fuels_per_converter
-    leg_idx_v = route.get_leg_indices()
-    port_idx_v = range(route.get_number_of_ports())
+    leg_idx = route.get_leg_indices()
+    port_idx = range(route.get_number_of_ports())
 
     # at sea
     for c, converter in get_converters(vessel).items():
 
-        eff = converter.efficiency.get()
-        power_cap = converter.power_capacity.get()
+        efficiency = converter.efficiency.get()
+        power_capacity = converter.power_capacity.get()
 
-        for leg, (pi, pe) in enumerate(leg_idx_v):
+        for leg, (port_start, port_end) in enumerate(leg_idx):
 
-            key = (v, c, pi, pe)
+            key = (v, c, port_start, port_end)
 
             constraint = get_constraint(alg, alg.power_capacity_sea, key, "<=", "power_capacity_at_sea")
-            constraint.rhs = _power_capacity_rhs(time_sea[leg], eff, power_cap)
+            constraint.rhs = _power_capacity_rhs(time_sea[leg], efficiency, power_capacity)
 
             for f in fuels_per_converter[v, c]:
-                chgCoeff(constraint, spend_sea[v, c, f, pi, pe], effective_lhv[(v, c, f)])
+                change_coefficient(constraint, spend_sea[v, c, f, port_start, port_end], effective_lhv[(v, c, f)])
 
     # in port (only converters with port energy demand)
     for c, converter in get_port_converters(vessel).items():
 
-        eff = converter.efficiency.get()
-        power_cap = converter.power_capacity.get()
+        efficiency = converter.efficiency.get()
+        power_capacity = converter.power_capacity.get()
 
-        for p in port_idx_v:
+        for p in port_idx:
 
             key = (v, c, p)
 
             constraint = get_constraint(alg, alg.power_capacity_port, key, "<=", "power_capacity_in_port")
-            constraint.rhs = _power_capacity_rhs(time_port[p], eff, power_cap)
+            constraint.rhs = _power_capacity_rhs(time_port[p], efficiency, power_capacity)
 
             for f in fuels_per_converter[v, c]:
-                chgCoeff(constraint, spend_port[v, c, f, p], effective_lhv[(v, c, f)])
+                change_coefficient(constraint, spend_port[v, c, f, p], effective_lhv[(v, c, f)])
 
 
 def _power_capacity_rhs(time: float, efficiency: float, power_capacity: float) -> float:

@@ -65,18 +65,18 @@ def calculate_regulation_emission_properties(alg: BunkerAlgorithm) -> dict:
 
                 # intensity is a special case because both the emissions
                 # and allowance are a function of the bunker solution
-                measure = alg.regulation_energy_terms[(r, v)].getValue()
-                measure /= TON_TO_KG
+                vessel_measure = alg.regulation_energy_terms[(r, v)].getValue()
+                vessel_measure /= TON_TO_KG
 
                 threshold = _get_adjusted_threshold(alg, regulation, r, v)
                 if threshold is None:
                     threshold = get_regulation_vessel_threshold(alg, regulation, v)
 
-                rhs = threshold * measure
+                rhs = threshold * vessel_measure
 
             else:
 
-                measure = alg.regulation_measure[(r, v)]
+                vessel_measure = alg.regulation_measure[(r, v)]
 
                 threshold = _get_adjusted_threshold(alg, regulation, r, v)
                 if threshold is not None:
@@ -84,7 +84,7 @@ def calculate_regulation_emission_properties(alg: BunkerAlgorithm) -> dict:
                     if regulation.measure == RegulationMeasureID.ABSOLUTE:
                         rhs = threshold
                     else:
-                        rhs = threshold * measure
+                        rhs = threshold * vessel_measure
 
                 elif regulation.scheme == enum_.RegulationSchemeID.INDIVIDUAL:
                     rhs = alg.regulation_rhs_individual[(r, v)]
@@ -93,6 +93,6 @@ def calculate_regulation_emission_properties(alg: BunkerAlgorithm) -> dict:
                     rhs = alg.regulation_rhs_flexibility[(r, v)]
 
             # bundle output
-            properties[(r, v)] = (emissions, measure, rhs)
+            properties[(r, v)] = (emissions, vessel_measure, rhs)
 
     return properties

@@ -91,15 +91,15 @@ class TestShoreRegulationCoefficient:
         algo.effective_lhv = {}
         algo.regulation_emission_factor = {}
         algo.regulation_spend_coefficient = {}
-        algo.shore_power_regulation_ef = {}
-        algo.shore_power_regulation_coeff = {}
+        algo.shore_power_regulation_emission_factor = {}
+        algo.shore_power_regulation_coefficient = {}
 
         calculate_regulation_coefficients(algo, vessel)
 
         # shore power EF should be 0.05 ton/GJ
-        assert algo.shore_power_regulation_ef[(v, 0, r)] == pytest.approx(0.05)
+        assert algo.shore_power_regulation_emission_factor[(v, 0, r)] == pytest.approx(0.05)
         # for ABSOLUTE, coefficient == emission factor
-        assert algo.shore_power_regulation_coeff[(v, 0, r)] == pytest.approx(0.05)
+        assert algo.shore_power_regulation_coefficient[(v, 0, r)] == pytest.approx(0.05)
 
     def test_intensity_regulation_subtracts_threshold(self):
         """For INTENSITY measure, threshold / TON_TO_KG * 1.0 is subtracted from EF."""
@@ -140,16 +140,16 @@ class TestShoreRegulationCoefficient:
         algo.effective_lhv = {}
         algo.regulation_emission_factor = {}
         algo.regulation_spend_coefficient = {}
-        algo.shore_power_regulation_ef = {}
-        algo.shore_power_regulation_coeff = {}
+        algo.shore_power_regulation_emission_factor = {}
+        algo.shore_power_regulation_coefficient = {}
 
         calculate_regulation_coefficients(algo, vessel)
 
         expected_ef = 0.05
         expected_coeff = 0.05 - threshold / TON_TO_KG * 1.0
 
-        assert algo.shore_power_regulation_ef[(v, 0, r)] == pytest.approx(expected_ef)
-        assert algo.shore_power_regulation_coeff[(v, 0, r)] == pytest.approx(expected_coeff)
+        assert algo.shore_power_regulation_emission_factor[(v, 0, r)] == pytest.approx(expected_ef)
+        assert algo.shore_power_regulation_coefficient[(v, 0, r)] == pytest.approx(expected_coeff)
 
     def test_gwp_conversion_applied(self):
         """When regulation uses GWP units, shore power EF is multiplied by GWP."""
@@ -189,14 +189,14 @@ class TestShoreRegulationCoefficient:
         algo.effective_lhv = {}
         algo.regulation_emission_factor = {}
         algo.regulation_spend_coefficient = {}
-        algo.shore_power_regulation_ef = {}
-        algo.shore_power_regulation_coeff = {}
+        algo.shore_power_regulation_emission_factor = {}
+        algo.shore_power_regulation_coefficient = {}
 
         calculate_regulation_coefficients(algo, vessel)
 
         # co2: 0.05 * 1.0 + ch4: 0.001 * 28.0 = 0.078
         expected = 0.05 * 1.0 + 0.001 * 28.0
-        assert algo.shore_power_regulation_ef[(v, 0, r)] == pytest.approx(expected)
+        assert algo.shore_power_regulation_emission_factor[(v, 0, r)] == pytest.approx(expected)
 
     def test_no_shore_power_no_coefficient(self):
         """Ports without shore power variables get no regulation coefficient."""
@@ -232,13 +232,13 @@ class TestShoreRegulationCoefficient:
         algo.effective_lhv = {}
         algo.regulation_emission_factor = {}
         algo.regulation_spend_coefficient = {}
-        algo.shore_power_regulation_ef = {}
-        algo.shore_power_regulation_coeff = {}
+        algo.shore_power_regulation_emission_factor = {}
+        algo.shore_power_regulation_coefficient = {}
 
         calculate_regulation_coefficients(algo, vessel)
 
-        assert (v, 0, r) not in algo.shore_power_regulation_ef
-        assert (v, 0, r) not in algo.shore_power_regulation_coeff
+        assert (v, 0, r) not in algo.shore_power_regulation_emission_factor
+        assert (v, 0, r) not in algo.shore_power_regulation_coefficient
 
 
 class TestShoreTransferExpected:

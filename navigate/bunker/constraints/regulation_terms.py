@@ -94,9 +94,9 @@ def calculate_regulation_emission_term(alg: BunkerAlgorithm, vessel: Vessel, reg
 
     # at sea, weighted per leg by its ports' jurisdiction membership
     sea_terms = []
-    for (pi, pe) in route.get_leg_indices():
+    for (port_start, port_end) in route.get_leg_indices():
 
-        fraction = leg_jurisdiction_fraction(ports[pi], ports[pe], jurisdiction,
+        fraction = leg_jurisdiction_fraction(ports[port_start], ports[port_end], jurisdiction,
                                              intra_fraction, inter_fraction, extra_fraction)
 
         if fraction > 0.:
@@ -104,7 +104,7 @@ def calculate_regulation_emission_term(alg: BunkerAlgorithm, vessel: Vessel, reg
             sea_terms.extend([((fraction * coefficients[(v, c, f, r)],
                                 fraction * emission_factors[(v, c, f, r)],
                                 fraction * effective_lhv[(v, c, f)]),
-                               alg.spend_sea[v, c, f, pi, pe])
+                               alg.spend_sea[v, c, f, port_start, port_end])
 
                               for c in converters
                               for f in fuels_per_converter[v, c]])
@@ -112,13 +112,13 @@ def calculate_regulation_emission_term(alg: BunkerAlgorithm, vessel: Vessel, reg
     # shore power at regulated ports (always intra-jurisdiction)
     shore_power_terms = []
     if intra_fraction > 0.:
-        sp_reg_ef = alg.shore_power_regulation_ef
-        sp_reg_coeff = alg.shore_power_regulation_coeff
+        shore_power_emission_factors = alg.shore_power_regulation_emission_factor
+        shore_power_coefficients = alg.shore_power_regulation_coefficient
 
         for p in regulated_ports:
-            if (v, p, r) in sp_reg_coeff:
-                shore_power_terms.append(((intra_fraction * sp_reg_coeff[(v, p, r)],
-                                           intra_fraction * sp_reg_ef[(v, p, r)],
+            if (v, p, r) in shore_power_coefficients:
+                shore_power_terms.append(((intra_fraction * shore_power_coefficients[(v, p, r)],
+                                           intra_fraction * shore_power_emission_factors[(v, p, r)],
                                            intra_fraction * 1.0),
                                           alg.shore_power[v, p]))
 
@@ -193,7 +193,7 @@ def get_regulation_vessel_rhs(alg: BunkerAlgorithm, regulation: Regulation, v: s
 
     if measure == RegulationMeasureID.ABSOLUTE:
 
-        m = 1.
+        vessel_measure = 1.
         rhs = threshold
 
     elif measure == RegulationMeasureID.INTENSITY:
@@ -201,27 +201,27 @@ def get_regulation_vessel_rhs(alg: BunkerAlgorithm, regulation: Regulation, v: s
         # notice that the rhs of an intensity regulation is zero
         # because the threshold is moved inside the coefficient
         # since the energy is a function of the bunker solution
-        m = 0.
+        vessel_measure = 0.
         rhs = 0.
 
     elif measure == RegulationMeasureID.TRANSPORT:
 
-        m = calculate_cargo_miles_in_policy_jurisdiction(regulation, vessel, alg.time, alg.idx)
-        m *= regulation.expectation.get_vessel_capacity(v, alg.idx) / vessel.nominal_capacity.get(alg.time)
-        m /= TON_TO_GRAM
-        rhs = threshold * m
+        vessel_measure = calculate_cargo_miles_in_policy_jurisdiction(regulation, vessel, alg.time, alg.idx)
+        vessel_measure *= regulation.expectation.get_vessel_capacity(v, alg.idx) / vessel.nominal_capacity.get(alg.time)
+        vessel_measure /= TON_TO_GRAM
+        rhs = threshold * vessel_measure
 
     elif measure == RegulationMeasureID.TRANSPORT_NOMINAL:
 
-        m = calculate_nominal_cargo_miles_in_policy_jurisdiction(regulation, vessel, alg.time, alg.idx)
-        m *= regulation.expectation.get_vessel_capacity(v, alg.idx) / vessel.nominal_capacity.get(alg.time)
-        m /= TON_TO_GRAM
-        rhs = threshold * m
+        vessel_measure = calculate_nominal_cargo_miles_in_policy_jurisdiction(regulation, vessel, alg.time, alg.idx)
+        vessel_measure *= regulation.expectation.get_vessel_capacity(v, alg.idx) / vessel.nominal_capacity.get(alg.time)
+        vessel_measure /= TON_TO_GRAM
+        rhs = threshold * vessel_measure
 
     else:
         raise ValueError("Bug in code, Regulation 'Measure' not defined correctly.")
 
-    return rhs, m
+    return rhs, vessel_measure
 
 
 def update_regulation_individual_rhs(alg: BunkerAlgorithm) -> None:
@@ -244,8 +244,8 @@ def update_regulation_individual_rhs(alg: BunkerAlgorithm) -> None:
             if not regulation.vessel_is_policed(v):
                 continue
 
-            rhs, m = get_regulation_vessel_rhs(alg, regulation, v)
-            alg.regulation_measure[(r, v)] = m
+            rhs, vessel_measure = get_regulation_vessel_rhs(alg, regulation, v)
+            alg.regulation_measure[(r, v)] = vessel_measure
             alg.regulation_rhs_individual[(r, v)] = rhs
 
 
@@ -269,10 +269,10 @@ def update_regulation_flexibility_rhs(alg: BunkerAlgorithm) -> None:
 
             if regulation.vessel_is_policed(v):
 
-                rhs_v, m_v = get_regulation_vessel_rhs(alg, regulation, v)
-                rhs += rhs_v * alg.multipliers[v]
+                vessel_rhs, vessel_measure = get_regulation_vessel_rhs(alg, regulation, v)
+                rhs += vessel_rhs * alg.multipliers[v]
 
-                alg.regulation_measure[(r, v)] = m_v
-                alg.regulation_rhs_flexibility[(r, v)] = rhs_v
+                alg.regulation_measure[(r, v)] = vessel_measure
+                alg.regulation_rhs_flexibility[(r, v)] = vessel_rhs
 
         alg.regulation_total_rhs_flexibility[r] = rhs

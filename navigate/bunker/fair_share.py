@@ -125,10 +125,10 @@ def initialize_fair_share_allocation(alg: BunkerAlgorithm) -> None:
     alg.previously_released_fuel = {}
 
     # reset pre-allocated convergence arrays (keys may have changed)
-    alg.fs_bunker_keys = None
-    alg.fs_sol_previous = None
-    alg.fs_sol_new = None
-    alg.fs_difference = None
+    alg.fair_share_bunker_keys = None
+    alg.fair_share_solution_previous = None
+    alg.fair_share_solution_new = None
+    alg.fair_share_difference = None
 
     # allocate new initial fair-share
     for (v, p, f) in alg.bunker:
@@ -224,7 +224,7 @@ def update_fair_share_allocation(alg: BunkerAlgorithm) -> None:
 
         # find all port indices that correspond to the given port
         port_indices = port_name_to_indices[v][port_name]
-        previous_bunker[key_vpf] = sum(alg.previous_bunker[(v, pi, f)] for pi in port_indices)
+        previous_bunker[key_vpf] = sum(alg.previous_bunker[(v, p, f)] for p in port_indices)
 
         # the vessel is considered bounded if it has
         # a non-zero share of the supply, has a demand
@@ -309,10 +309,10 @@ def update_fair_share_solution(alg: BunkerAlgorithm) -> None:
     alg.previous_bunker = {key: bunker.X for key, bunker in alg.bunker.items()}
 
     # update pre-allocated arrays for convergence check
-    if alg.fs_bunker_keys is not None:
-        prev = alg.fs_sol_previous
-        for i, key in enumerate(alg.fs_bunker_keys):
-            prev[i] = alg.previous_bunker[key]
+    if alg.fair_share_bunker_keys is not None:
+        solution_previous = alg.fair_share_solution_previous
+        for i, key in enumerate(alg.fair_share_bunker_keys):
+            solution_previous[i] = alg.previous_bunker[key]
 
 
 def calculate_fair_share_solution_convergence(alg: BunkerAlgorithm) -> bool:
@@ -334,23 +334,23 @@ def calculate_fair_share_solution_convergence(alg: BunkerAlgorithm) -> bool:
     tol = alg.options.get_fair_share_tolerance()
 
     # lazy initialization of pre-allocated arrays
-    if alg.fs_bunker_keys is None:
-        alg.fs_bunker_keys = list(bunker.keys())
-        n = len(alg.fs_bunker_keys)
-        alg.fs_sol_previous = np.empty(n)
-        alg.fs_sol_new = np.empty(n)
-        alg.fs_difference = np.empty(n)
-        for i, key in enumerate(alg.fs_bunker_keys):
-            alg.fs_sol_previous[i] = alg.previous_bunker[key]
+    if alg.fair_share_bunker_keys is None:
+        alg.fair_share_bunker_keys = list(bunker.keys())
+        n = len(alg.fair_share_bunker_keys)
+        alg.fair_share_solution_previous = np.empty(n)
+        alg.fair_share_solution_new = np.empty(n)
+        alg.fair_share_difference = np.empty(n)
+        for i, key in enumerate(alg.fair_share_bunker_keys):
+            alg.fair_share_solution_previous[i] = alg.previous_bunker[key]
 
-    sol_previous = alg.fs_sol_previous
-    sol_new = alg.fs_sol_new
-    difference = alg.fs_difference
+    solution_previous = alg.fair_share_solution_previous
+    solution_new = alg.fair_share_solution_new
+    difference = alg.fair_share_difference
 
-    for i, key in enumerate(alg.fs_bunker_keys):
-        sol_new[i] = bunker[key].X
+    for i, key in enumerate(alg.fair_share_bunker_keys):
+        solution_new[i] = bunker[key].X
 
-    np.subtract(sol_previous, sol_new, out=difference)
+    np.subtract(solution_previous, solution_new, out=difference)
     np.abs(difference, out=difference)
 
     # calculate the fraction of non-zeros

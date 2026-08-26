@@ -26,22 +26,22 @@ def transfer_dual_solution(alg: BunkerAlgorithm) -> None:
     # SARHSLow/SARHSUp are used in marginal_saving.py
     transfer_ranging = logger.getEffectiveLevel() <= logging.DEBUG
 
-    for (v, p1, p2, energy_id), constr in alg.energy_conservation_sea.items():
+    for (v, port_start, port_end, energy_id), constr in alg.energy_conservation_sea.items():
 
         # convert a local leg-port pair index to the global leg idx
         vessel = alg.vessels[v]
-        leg = vessel.route.local_to_global_leg_idx(p1, p2)
+        leg = vessel.route.local_to_global_leg_idx(port_start, port_end)
 
         # the shadow price has been scaled with the number of vessels
         # in the objective function, so in order to get the impact
         # per vessel, it needs to be divided by the number of vessels
-        pi = constr.Pi / alg.multipliers[v]
+        shadow_price = constr.Pi / alg.multipliers[v]
 
         # the energy requirement (rhs) and energy polytope in
         # which the shadow price is valid is given per vessel
         rhs = constr.RHS
 
-        vessel.expectation.set_energy_conservation_pi_sea(alg.idx, energy_id, leg, pi)
+        vessel.expectation.set_energy_conservation_pi_sea(alg.idx, energy_id, leg, shadow_price)
         vessel.expectation.set_energy_conservation_rhs_sea(alg.idx, energy_id, leg, rhs)
 
         if transfer_ranging:
@@ -53,14 +53,14 @@ def transfer_dual_solution(alg: BunkerAlgorithm) -> None:
         # the shadow price has been scaled with the number of vessels
         # in the objective function, so in order to get the impact
         # per vessel, it needs to be divided by the number of vessels
-        pi = constr.Pi / alg.multipliers[v]
+        shadow_price = constr.Pi / alg.multipliers[v]
 
         # the energy requirement (rhs) and energy polytope in
         # which the shadow price is valid is given per vessel
         rhs = constr.RHS
 
         vessel = alg.vessels[v]
-        vessel.expectation.set_energy_conservation_pi_port(alg.idx, energy_id, p, pi)
+        vessel.expectation.set_energy_conservation_pi_port(alg.idx, energy_id, p, shadow_price)
         vessel.expectation.set_energy_conservation_rhs_port(alg.idx, energy_id, p, rhs)
 
         if transfer_ranging:
