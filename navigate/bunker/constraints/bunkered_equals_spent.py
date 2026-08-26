@@ -40,7 +40,7 @@ def update_bunkered_equals_spent_constraint(alg: BunkerAlgorithm, vessel: Vessel
     leg_idx = route.get_leg_indices()
     port_idx = range(route.get_number_of_ports())
 
-    chgCoeff = alg.model.chgCoeff
+    change_coefficient = alg.model.chgCoeff
 
     for f in vessel.usable_fuels:
 
@@ -50,12 +50,12 @@ def update_bunkered_equals_spent_constraint(alg: BunkerAlgorithm, vessel: Vessel
 
         for p in port_idx:
             if (v, p, f) in alg.bunker:
-                chgCoeff(constraint, alg.bunker[v, p, f], 1.)
+                change_coefficient(constraint, alg.bunker[v, p, f], 1.)
 
         for c in converters_per_fuel[v, f]:
-            for pi, pe in leg_idx:
-                chgCoeff(constraint, alg.spend_sea[v, c, f, pi, pe], -1.)
+            for port_start, port_end in leg_idx:
+                change_coefficient(constraint, alg.spend_sea[v, c, f, port_start, port_end], -1.)
 
         for c in port_converters_per_fuel[v, f]:
             for p in port_idx:
-                chgCoeff(constraint, alg.spend_port[v, c, f, p], -1.)
+                change_coefficient(constraint, alg.spend_port[v, c, f, p], -1.)

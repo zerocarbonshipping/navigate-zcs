@@ -38,6 +38,6 @@ def transfer_spend_port(alg: BunkerAlgorithm) -> None:
 
         # transfer tank-to-wake emissions
         for e in alg.emissions:
-            EF = alg.emission_factor[(v, c, f, e)]
-            TTW = EF * spend_port.X
-            vessel.profile.add_TTW(f, e, TTW, idx=alg.idx)
+            emission_factor = alg.emission_factor[(v, c, f, e)]
+            ttw_emissions = emission_factor * spend_port.X
+            vessel.profile.add_TTW(f, e, ttw_emissions, idx=alg.idx)

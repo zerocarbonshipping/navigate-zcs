@@ -35,6 +35,7 @@ def update_tank_capacity_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> No
     v = vessel.get_name()
     tanks = vessel.tanks
     usable_fuels = vessel.usable_fuels
+    change_coefficient = alg.model.chgCoeff
 
     for p in range(vessel.route.get_number_of_ports()):
 
@@ -53,4 +54,4 @@ def update_tank_capacity_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> No
                     f = fuel.get_name()
 
                     if f in usable_fuels:
-                        alg.model.chgCoeff(constraint, alg.mass_tank[v, p, f], 1. / fuel.mass_density.get())
+                        change_coefficient(constraint, alg.mass_tank[v, p, f], 1. / fuel.mass_density.get())

@@ -76,13 +76,13 @@ def check_solution(alg: BunkerAlgorithm) -> None:
         optimize(alg)
 
 
-def write_binding_lp(m: object, filename: str = "binding.lp", tol: float = 1e-6) -> None:
+def write_binding_lp(model: object, filename: str = "binding.lp", tol: float = 1e-6) -> None:
     """
     Export binding constraints from solved model to LP file (for debugging).
 
     Parameters
     ----------
-    m
+    model
         Solved LP model.
     filename
         Output file name.
@@ -90,47 +90,47 @@ def write_binding_lp(m: object, filename: str = "binding.lp", tol: float = 1e-6)
         Tolerance for considering a constraint binding.
     """
 
-    if m.SolCount == 0:
+    if model.SolCount == 0:
         raise RuntimeError("No solution available.")
 
     # New model
-    rm = gp.Model("binding_subset")
-    rm.Params.OutputFlag = 0
+    binding_model = gp.Model("binding_subset")
+    binding_model.Params.OutputFlag = 0
 
     # Copy variables
     xmap = {}
-    for v in m.getVars():
-        xmap[v.VarName] = rm.addVar(
-            lb=v.LB, ub=v.UB, vtype=v.VType, name=v.VarName
+    for var in model.getVars():
+        xmap[var.VarName] = binding_model.addVar(
+            lb=var.LB, ub=var.UB, vtype=var.VType, name=var.VarName
         )
-    rm.update()
+    binding_model.update()
 
     # Copy objective
     obj = gp.LinExpr()
-    for v in m.getVars():
-        coef = v.Obj
-        if coef != 0.0:
-            obj += coef * xmap[v.VarName]
-    rm.setObjective(obj, m.ModelSense)
+    for var in model.getVars():
+        coefficient = var.Obj
+        if coefficient != 0.0:
+            obj += coefficient * xmap[var.VarName]
+    binding_model.setObjective(obj, model.ModelSense)
 
     # Add only binding linear constraints
-    for c in m.getConstrs():
-        if abs(c.Slack) > tol:
+    for constr in model.getConstrs():
+        if abs(constr.Slack) > tol:
             continue
 
-        row = m.getRow(c)  # linear expression for this constraint
+        row = model.getRow(constr)  # linear expression for this constraint
         expr = gp.LinExpr()
         for i in range(row.size()):
-            v = row.getVar(i)
-            expr += row.getCoeff(i) * xmap[v.VarName]
+            var = row.getVar(i)
+            expr += row.getCoeff(i) * xmap[var.VarName]
 
         # Recreate with same sense/RHS
-        if c.Sense == gp.GRB.LESS_EQUAL:
-            rm.addConstr(expr <= c.RHS, name=c.ConstrName)
-        elif c.Sense == gp.GRB.GREATER_EQUAL:
-            rm.addConstr(expr >= c.RHS, name=c.ConstrName)
+        if constr.Sense == gp.GRB.LESS_EQUAL:
+            binding_model.addConstr(expr <= constr.RHS, name=constr.ConstrName)
+        elif constr.Sense == gp.GRB.GREATER_EQUAL:
+            binding_model.addConstr(expr >= constr.RHS, name=constr.ConstrName)
         else:
-            rm.addConstr(expr == c.RHS, name=c.ConstrName)
+            binding_model.addConstr(expr == constr.RHS, name=constr.ConstrName)
 
-    rm.update()
-    rm.write(filename)
+    binding_model.update()
+    binding_model.write(filename)

@@ -72,17 +72,17 @@ def _calculate_emission_factor_TTW(converter: Converter, fuel: Fuel, emission: E
     slip = converter.get_slip_fraction(fuel_type).get()
 
     # fuel-bound TTW emissions scale with burned fraction
-    EF = (1. - slip) * fuel.get_TTW(emission_name).get()
+    emission_factor = (1. - slip) * fuel.get_TTW(emission_name).get()
 
     # consumption emissions per ton fuel-in, no slip scaling
-    EF += converter.get_consumption_TTW(fuel_type, emission_name).get()
+    emission_factor += converter.get_consumption_TTW(fuel_type, emission_name).get()
 
     # slip emissions: slip per ton fuel-in, gated by emission fuel_type
     emission_fuel_type = emission.fuel_type
     if emission_fuel_type == fuel_type:
-        EF += slip
+        emission_factor += slip
 
-    return EF
+    return emission_factor
 
 
 def calculate_effective_lhv(alg: BunkerAlgorithm, vessel: Vessel) -> None:
@@ -198,22 +198,22 @@ def calculate_regulation_coefficients(alg: BunkerAlgorithm, vessel: Vessel) -> N
 
         for r, regulation in active_regulations.items():
 
-            sp_ef = 0.
+            shore_power_emission_factor = 0.
             for emission in regulation.emissions:
                 emission_name = emission.get_name()
-                ef = port_expectation.get_shore_power_emission_factor(emission_name, idx)
-                ef = ef * regulation.expectation.get_global_warming_potential(emission_name)
+                emission_factor = port_expectation.get_shore_power_emission_factor(emission_name, idx)
+                emission_factor *= regulation.expectation.get_global_warming_potential(emission_name)
 
-                sp_ef += ef
+                shore_power_emission_factor += emission_factor
 
             # shore power is already in GJ, so effective_lhv equivalent is 1.0
-            sp_coeff = sp_ef - (
+            shore_power_coefficient = shore_power_emission_factor - (
                 thresholds[(r, v)] / TON_TO_KG * 1.0
                 if regulation.measure == RegulationMeasureID.INTENSITY
                 else 0.)
 
-            alg.shore_power_regulation_ef[(v, p, r)] = sp_ef
-            alg.shore_power_regulation_coeff[(v, p, r)] = sp_coeff
+            alg.shore_power_regulation_emission_factor[(v, p, r)] = shore_power_emission_factor
+            alg.shore_power_regulation_coefficient[(v, p, r)] = shore_power_coefficient
 
 
 def calculate_levy_coefficients(alg: BunkerAlgorithm, vessel: Vessel) -> None:

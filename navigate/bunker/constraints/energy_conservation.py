@@ -62,11 +62,12 @@ def update_energy_conservation_constraints(alg: BunkerAlgorithm, vessel: Vessel)
                                      power_system.electrical, demands_port, port_idx)
 
     # the shore-power variables join the electrical port rows created just above
+    change_coefficient = alg.model.chgCoeff
     for p in port_idx:
 
         if (v, p) in alg.shore_power:
             constraint = alg.energy_conservation_port[(v, p, EnergyDemandTypeID.ELECTRICAL)]
-            alg.model.chgCoeff(constraint, alg.shore_power[v, p], 1.0)
+            change_coefficient(constraint, alg.shore_power[v, p], 1.0)
 
     _update_port_energy_conservation(alg, v, EnergyDemandTypeID.HEAT,
                                      power_system.heat, demands_port, port_idx)
@@ -99,22 +100,22 @@ def _update_sea_energy_conservation(alg: BunkerAlgorithm,
     """
 
     c = converter.get_name()
-    eff = converter.efficiency.get()
+    efficiency = converter.efficiency.get()
     demand = demands[energy_type]
     fuels = alg.fuels_per_converter[(v, c)]
     effective_lhv = alg.effective_lhv
     spend_sea = alg.spend_sea
-    chgCoeff = alg.model.chgCoeff
+    change_coefficient = alg.model.chgCoeff
 
-    for leg, (pi, pe) in enumerate(leg_idx):
+    for leg, (port_start, port_end) in enumerate(leg_idx):
 
-        key = (v, pi, pe, energy_type)
+        key = (v, port_start, port_end, energy_type)
 
         constraint = get_constraint(alg, alg.energy_conservation_sea, key, "==", "energy_conservation_at_sea")
         constraint.rhs = demand[leg]
 
         for f in fuels:
-            chgCoeff(constraint, spend_sea[v, c, f, pi, pe], eff * effective_lhv[(v, c, f)])
+            change_coefficient(constraint, spend_sea[v, c, f, port_start, port_end], efficiency * effective_lhv[(v, c, f)])
 
 
 def _update_port_energy_conservation(alg: BunkerAlgorithm,
@@ -144,12 +145,12 @@ def _update_port_energy_conservation(alg: BunkerAlgorithm,
     """
 
     c = converter.get_name()
-    eff = converter.efficiency.get()
+    efficiency = converter.efficiency.get()
     demand = demands[energy_type]
     fuels = alg.fuels_per_converter[(v, c)]
     effective_lhv = alg.effective_lhv
     spend_port = alg.spend_port
-    chgCoeff = alg.model.chgCoeff
+    change_coefficient = alg.model.chgCoeff
 
     for p in port_idx:
 
@@ -159,4 +160,4 @@ def _update_port_energy_conservation(alg: BunkerAlgorithm,
         constraint.rhs = demand[p]
 
         for f in fuels:
-            chgCoeff(constraint, spend_port[v, c, f, p], eff * effective_lhv[(v, c, f)])
+            change_coefficient(constraint, spend_port[v, c, f, p], efficiency * effective_lhv[(v, c, f)])

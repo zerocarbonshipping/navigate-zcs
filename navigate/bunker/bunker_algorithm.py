@@ -23,9 +23,9 @@ from navigate.bunker.coefficients import (
     calculate_emission_factors,
     calculate_policy_coefficients,
 )
-from navigate.bunker.constraints.bunkered_equals_spent import update_bunkered_equals_spent_constraint
 
 # constraints
+from navigate.bunker.constraints.bunkered_equals_spent import update_bunkered_equals_spent_constraint
 from navigate.bunker.constraints.energy_conservation import update_energy_conservation_constraints
 from navigate.bunker.constraints.mass_conservation import update_mass_conservation_constraints
 from navigate.bunker.constraints.mass_sufficient import update_mass_sufficient_constraints
@@ -127,12 +127,14 @@ class BunkerAlgorithm:
         # dynamic properties updated at every time-step ----------------------------------------------------------------
 
         # policies
+        self.active_regulations: dict[str, Regulation] = {}
+        self.port_levies: dict[str, list[Levy]] = {}
         self.cost_levy: dict[tuple, float] = {}
         self.regulation_vessel_threshold: dict[tuple, float] = {}
         self.regulation_emission_factor: dict[tuple, float] = {}
         self.regulation_spend_coefficient: dict[tuple, float] = {}
-        self.shore_power_regulation_ef: dict[tuple, float] = {}
-        self.shore_power_regulation_coeff: dict[tuple, float] = {}
+        self.shore_power_regulation_emission_factor: dict[tuple, float] = {}
+        self.shore_power_regulation_coefficient: dict[tuple, float] = {}
         self.regulation_rhs_individual: dict[tuple, float] = {}
         self.regulation_rhs_flexibility: dict[tuple, float] = {}
         self.regulation_total_rhs_flexibility: dict[str, float] = {}
@@ -158,10 +160,10 @@ class BunkerAlgorithm:
         self.allocation_fuel: dict[tuple, float] = {}
         self.previously_released_fuel: dict[tuple, bool] = {}
         self.fair_share_convergence_statistics: dict = {}
-        self.fs_bunker_keys: list[tuple] | None = None
-        self.fs_sol_previous: np.ndarray | None = None
-        self.fs_sol_new: np.ndarray | None = None
-        self.fs_difference: np.ndarray | None = None
+        self.fair_share_bunker_keys: list[tuple] | None = None
+        self.fair_share_solution_previous: np.ndarray | None = None
+        self.fair_share_solution_new: np.ndarray | None = None
+        self.fair_share_difference: np.ndarray | None = None
 
         # primary model attributes -------------------------------------------------------------------------------------
 
@@ -483,10 +485,13 @@ class BunkerAlgorithm:
         # reset policy coefficients
         self.regulation_vessel_threshold = {}
         self.regulation_emission_factor = {}
-        self.regulation_emission_coefficient = {}
+        self.regulation_spend_coefficient = {}
+        self.shore_power_regulation_emission_factor = {}
+        self.shore_power_regulation_coefficient = {}
         self.cost_levy = {}
 
         # reset regulation measurements
+        self.regulation_measure = {}
         self.regulation_rhs_individual = {}
         self.regulation_rhs_flexibility = {}
         self.regulation_total_rhs_flexibility = {}

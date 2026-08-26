@@ -63,20 +63,21 @@ def update_fuel_inertia_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> Non
         previous_multiplier = fleet.expectation.get_expected_multipliers(v, alg.idx - 1)
 
     multiplier_scaling = min(previous_multiplier / alg.multipliers[v], 1.)
+    change_coefficient = alg.model.chgCoeff
 
     for f in vessel.usable_fuels:
 
-        for pi, port in enumerate(ports):
+        for p, port in enumerate(ports):
 
             if not port.is_bunkering_allowed(f):
                 continue
 
-            p = port.get_name()
-            key = (v, p, f)
+            port_name = port.get_name()
+            key = (v, port_name, f)
 
             constraint = get_constraint(alg, alg.fuel_inertia, key, ">=", "fuel_inertia")
 
-            alg.model.chgCoeff(constraint, alg.bunker[v, pi, f], 1.)
+            change_coefficient(constraint, alg.bunker[v, p, f], 1.)
 
             # update the rhs of the constraint with
             # the newest inertia and bunker value.
@@ -85,9 +86,9 @@ def update_fuel_inertia_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> Non
             # was previously bunkered in the actual
             # solution
             if alg.scope == BunkerScopeID.EXPECTED and alg.idx > alg.current_idx:
-                bunkering = vessel.expectation.get_bunker_mass_expected(p, f)
+                bunkering = vessel.expectation.get_bunker_mass_expected(port_name, f)
             else:
-                bunkering = vessel.expectation.get_bunker_mass_existing(p, f)
+                bunkering = vessel.expectation.get_bunker_mass_existing(port_name, f)
 
             if bunkering > 0.:
 

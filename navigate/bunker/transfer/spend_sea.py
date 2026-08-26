@@ -25,7 +25,7 @@ def transfer_spend_sea(alg: BunkerAlgorithm) -> None:
         return
 
     # transfer spend at sea solution
-    for (v, c, f, _p1, _p2), spend_sea in alg.spend_sea.items():
+    for (v, c, f, _port_start, _port_end), spend_sea in alg.spend_sea.items():
 
         if spend_sea.X < alg.options.get_solution_tolerance():
             continue
@@ -38,6 +38,6 @@ def transfer_spend_sea(alg: BunkerAlgorithm) -> None:
 
         # transfer emissions
         for e in alg.emissions:
-            EF = alg.emission_factor[(v, c, f, e)]
-            TTW = EF * spend_sea.X
-            vessel.profile.add_TTW(f, e, TTW, idx=alg.idx)
+            emission_factor = alg.emission_factor[(v, c, f, e)]
+            ttw_emissions = emission_factor * spend_sea.X
+            vessel.profile.add_TTW(f, e, ttw_emissions, idx=alg.idx)

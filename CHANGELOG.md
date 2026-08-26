@@ -12,6 +12,11 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ### Fixed
+- The regulation spend coefficient, shore-power regulation coefficient, and
+  regulation measure containers of the bunker algorithm are now reset at
+  every time-step like the other dynamic policy coefficients; the reset
+  previously targeted an unused attribute, so entries of vessels that left
+  the fleet could leak into later time-steps.
 - LP variable and constraint creation order for in-port energy demands is now
   deterministic across runs: the electrical/heat demand set is an ordered
   tuple instead of a `set`, whose iteration order varied between interpreter

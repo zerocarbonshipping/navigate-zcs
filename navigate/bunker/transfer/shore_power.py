@@ -23,14 +23,14 @@ def transfer_shore_power(alg: BunkerAlgorithm) -> None:
 
     tol = alg.options.get_solution_tolerance()
 
-    for (v, p), sp_var in alg.shore_power.items():
+    for (v, p), shore_power_variable in alg.shore_power.items():
 
-        if sp_var.X < tol:
+        if shore_power_variable.X < tol:
             continue
 
         vessel = alg.vessels[v]
         port = vessel.route.ports[p]
-        shore_energy_gj = sp_var.X
+        shore_energy_gj = shore_power_variable.X
 
         # cost
         cost = port.expectation.get_shore_power_cost(alg.idx)
@@ -44,8 +44,8 @@ def transfer_shore_power(alg: BunkerAlgorithm) -> None:
 
             # WTW emissions
             for e in alg.emissions:
-                ef = port.expectation.get_shore_power_emission_factor(e, alg.idx)
-                emission_mass = ef * shore_energy_gj
+                emission_factor = port.expectation.get_shore_power_emission_factor(e, alg.idx)
+                emission_mass = emission_factor * shore_energy_gj
                 vessel.profile.add_shore_power_emission(e, alg.idx, emission_mass)
 
         else:

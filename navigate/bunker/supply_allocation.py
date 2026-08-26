@@ -296,17 +296,17 @@ def _calculate_energy_in_port_jurisdiction(vessel: Vessel,
         # sum energy at sea
         for energy_id in EnergyDemandTypeID:
 
-            for p, pi in enumerate(ports):
-                if pi == port and energy_id != EnergyDemandTypeID.PROPULSION:
+            for p, route_port in enumerate(ports):
+                if route_port == port and energy_id != EnergyDemandTypeID.PROPULSION:
                     energy[energy_id] += energy_port[energy_id][p]
 
             for leg in range(n_legs):
 
                 # initial and end port
-                pi = ports[leg]
-                pe = ports[(leg + 1) % n_legs]  # periodical boundary condition wrapping around to the first port
+                port_from = ports[leg]
+                port_to = ports[(leg + 1) % n_legs]  # periodical boundary condition wrapping around to the first port
 
-                if (pi == port) or (pe == port):
+                if (port_from == port) or (port_to == port):
                     energy[energy_id] += jurisdiction_fraction * energy_sea[energy_id][leg]
 
     return energy
