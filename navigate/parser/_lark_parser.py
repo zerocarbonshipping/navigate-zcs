@@ -17,6 +17,7 @@ from typing import Any, List
 
 from lark import Lark, Transformer, v_args
 from lark.exceptions import UnexpectedCharacters, UnexpectedToken
+from lark.lexer import PatternStr
 
 from navigate.calculator._table_data import (
     SourceLoc,
@@ -305,6 +306,19 @@ _FRIENDLY = {
     "COMMA": "','", "RPAR": "')'", "LPAR": "'('", "EQUAL": "'='",
     "LSQB": "'['", "RSQB": "']'", "COLON": "':'", "SEMICOLON": "';'",
 }
+
+# Lark names keyword terminals after the literal, uppercased ("Include" ->
+# INCLUDE), so the bare terminal name misreports the spelling the grammar
+# accepts — an error reading "expected INCLUDE" invites exactly the wrong fix.
+# Derive the real spelling from the grammar so this stays true if it changes.
+_FRIENDLY.update({
+    terminal.name: f"'{terminal.pattern.value}'"
+    for parser in (_deck_parser, _inc_parser)
+    for terminal in parser.terminals
+    if isinstance(terminal.pattern, PatternStr)
+    and terminal.pattern.value.isalpha()
+    and terminal.name not in _FRIENDLY
+})
 
 
 def _format_parse_error(e, source: str, file: str) -> str:
