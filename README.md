@@ -60,10 +60,10 @@ Navigate is run from the command line using the following command:
 navigate my_nav_file.nav
 ```
 
-For example, to run the basecase scenario with the included assumptions and export them to Excel:
+For example, to run the basecase scenario with the included assumptions:
 
 ```bash
-navigate simulations/scenarios/basecase_mid_regulation/basecase_mid_regulation.nav -d ./assumptions -e
+navigate simulations/scenarios/basecase_mid_regulation/basecase_mid_regulation.nav -d ./assumptions
 ```
 
 Expect a full scenario run to take roughly 25 minutes on the bundled open-source HiGHS solver. The four reference scenarios are described in [`simulations/scenarios/README.md`](simulations/scenarios/README.md).
@@ -76,11 +76,11 @@ The following options are available when running Navigate. See them in the comma
 |---------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `-d DIR`, `--data-dir DIR`      | Folder location for assumptions that may be imported. Can also be set with the environment variable `ASSUMPTIONS_DATA_DIR`. <br/> The Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping supplies assumptions in the `assumptions` folder of this repository. |
 | `-s`, `--suppress-plots`        | Suppress the generation of plots at the end of the simulation. Excel reports will still be generated.                                                                                                                                                             |
-| `-e`, `--export-assumptions`    | Export assumptions in an Excel format.                                                                                                                                                                                                                            |
 | `-l LEVEL`, `--log-level LEVEL` | Set the log level for the `.log` file. With `DEBUG`, a failed run also prints the full traceback to the console.                                                                                                                                                  |
 | `-r PATH`, `--replot PATH`      | Regenerate plots from previously exported plot data. Provide path to directory containing `plot_data.pkl` or to the file directly. Skips simulation. Optionally pass a `.inc` file with `Plot` node(s) as the trailing argument to use those instead of the plot nodes stored in the plot data.  |
 | `--solver {auto,gurobi,highs}`  | Solver backend. `auto` tries Gurobi then falls back to HiGHS. Default: `auto`.                                                                                                                                                                                    |
-| `-p`, `--profile`               | Profile the computational performance of the simulation. Note that this suppresses all output that is not directly related to the simulation.                                                                                                                 
+| `-p`, `--profile`               | Profile the computational performance of the simulation. Note that this suppresses all output that is not directly related to the simulation.                                                                                                                    |
+
 ## License
 
 Copyright 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping.

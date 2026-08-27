@@ -41,7 +41,7 @@ from navigate.fuel import (
     calculate_producer_profile,
 )
 from navigate.logging_ import log_model_post_process, log_start_of_simulation
-from navigate.output import PlotData, export_assumptions
+from navigate.output import PlotData
 from navigate.parser import Parser
 from navigate.policy import calculate_policy_emission_coefficients, update_regulation_flexibility_beliefs
 from navigate.util import YEAR, dates_to_days, timedelta_to_days
@@ -883,9 +883,6 @@ class SimulationManager:
 
     def get_elapsed_time(self):
         return _write_elapsed_time(timeit.default_timer() - self._computational_time)
-
-    def export_assumptions(self):
-        export_assumptions(self)
 
     def _export_plot_data(self):
         plot_data = PlotData.from_manager(self)

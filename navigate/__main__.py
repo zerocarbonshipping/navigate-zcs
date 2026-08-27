@@ -23,8 +23,6 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("-p", "--profile", action="store_true",
                         help="Profile the computational performance of the simulation. Note that this suppresses"
                              " all output that is not directly related to the simulation.")
-    parser.add_argument("-e", "--export-assumptions", action="store_true",
-                        help="Export Assumptions in an Excel format.")
     parser.add_argument("-s", "--suppress-plots", action="store_true",
                         help="Suppress the generation of plots at the end of the simulation. Note that Excel based"
                              " output reports will still be generated.")
@@ -139,9 +137,6 @@ def _dispatch(args: argparse.Namespace) -> int:
         return 0
 
     manager = _run(deck, args)
-
-    if args.export_assumptions:
-        manager.export_assumptions()
 
     if not args.suppress_plots:
         manager.export_graphs()

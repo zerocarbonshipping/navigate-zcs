@@ -56,7 +56,6 @@ def make_args(data_dir: Path | None = None) -> argparse.Namespace:
     return argparse.Namespace(
         data_dir=data_dir or default_assumptions_dir(),
         suppress_plots=True,
-        export_assumptions=False,
         solver=None,
         log_level="WARNING",
         profile=False,

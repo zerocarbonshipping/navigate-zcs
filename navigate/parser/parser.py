@@ -75,9 +75,6 @@ class Parser:
         self.nodes = Nodes()
         self.general_nodes = GeneralNodes()
 
-        # assumption tracking
-        self._assumption_updates = {}
-
         # event queue
         self._dates = []
         self._event_queue = {}
@@ -128,9 +125,6 @@ class Parser:
 
     def get_deck_name(self):
         return self._deck_name
-
-    def get_assumption_updates(self):
-        return self._assumption_updates
 
     # ══════════════════════════════════════════════════════════════════
     # Deck (.nav) reading — Lark-based
@@ -574,12 +568,6 @@ class Parser:
         target_nodes = nodes if isinstance(nodes, list) else [nodes]
         for node in target_nodes:
             try:
-                attr_name = attribute_to_setter(attribute, method='')
-                try:
-                    old_value = getattr(node, attr_name)
-                except AttributeError:
-                    old_value = getattr(node, attr_name.lstrip('_'))
-                self._track_assumption_update(node, attribute, value, old_value=old_value)
                 getattr(node, attribute_to_setter(attribute))(value)
 
             except ValueError as e:
@@ -787,32 +775,6 @@ class Parser:
         for name in sorted(matched_names):
             self._check_node_name_is_available(node_type, name)
             self._retrieve_node_from_default(name, node_type, reference_location=self._error_prefix())
-
-    # ══════════════════════════════════════════════════════════════════
-    # Assumption tracking
-    # ══════════════════════════════════════════════════════════════════
-
-    def _track_assumption_update(self, node, attribute, value, old_value=None):
-        if self._current_section != SimulationSectionID.EVENTS:
-            return
-
-        current_date = self._current_date
-        start_date = self.general_nodes.model_definition.get_start_date()
-
-        if current_date == start_date or current_date is None:
-            return
-
-        node_key = node.get_name()
-
-        if node_key not in self._assumption_updates:
-            self._assumption_updates[node_key] = []
-
-        self._assumption_updates[node_key].append({
-            'attribute': attribute,
-            'old_value': old_value,
-            'value': value,
-            'date': current_date,
-        })
 
     # ══════════════════════════════════════════════════════════════════
     # Collection helpers

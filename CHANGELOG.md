@@ -59,6 +59,13 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   shared as `navigate.policy.leg_jurisdiction_fraction`.
 
 ### Removed
+- **Breaking**: the Excel assumptions export — the `-e`/`--export-assumptions`
+  CLI flag, `SimulationManager.export_assumptions`,
+  `navigate/output/assumptions.py`, and the parser's assumption-update
+  tracking. Assumptions should not pass through the simulation model to be
+  re-serialized, and the export reflected only a deterministic run — not
+  scenario or uncertainty assumptions. Readable assumption views will be
+  produced upstream of Navigate, without running a simulation.
 - The cumulative-intensity emission output of fuel-consumer profiles: the
   `CumulativeIntensityEquivalent{WTT,TTW,WTW}` and
   `CumulativeIntensityTotalEquivalent{WTT,TTW,WTW}` report properties and

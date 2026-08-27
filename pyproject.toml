@@ -26,7 +26,6 @@ dependencies = [
     "numpy",
     "matplotlib",
     "scipy",
-    "XlsxWriter",
     "tabulate",
     "openpyxl",
     "lark"
