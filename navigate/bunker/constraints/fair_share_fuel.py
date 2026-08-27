@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 import numpy as np
 
-from navigate.bunker.constraints._common import get_constraint
+from navigate.bunker._build import get_constraint
 
 
 def update_fair_share_fuel_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> None:

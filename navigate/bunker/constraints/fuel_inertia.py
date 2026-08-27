@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from navigate.bunker.bunker_algorithm import BunkerAlgorithm
     from navigate.core.nodes.vessel import Vessel
 
-from navigate.bunker.constraints._common import get_constraint
+from navigate.bunker._build import get_constraint
 from navigate.core.enum_ import BunkerScopeID
 from navigate.util import calculate_inertia
 
