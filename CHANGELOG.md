@@ -46,7 +46,7 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   Reusing a converter across different power systems remains supported.
 - Internal refactor of the bunker constraint builders (no result changes):
   a shared get-or-create constraint helper in
-  `navigate/bunker/constraints/_common.py`, converter-fuel maps precomputed
+  `navigate/bunker/_build.py`, converter-fuel maps precomputed
   once per algorithm instance instead of rebuilt per builder call,
   uniform re-apply-every-build coefficient semantics, and docstrings stating
   the constraints' mathematical form.
@@ -57,6 +57,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   construction, docstrings completing the constraints' mathematical
   documentation, and the leg intra/inter/extra jurisdiction classification
   shared as `navigate.policy.leg_jurisdiction_fraction`.
+- Internal refactor of the bunker variable builders (no result changes): the
+  add-if-absent variable idiom shared as a helper next to the constraint
+  helper in `navigate/bunker/_build.py` (moved from
+  `navigate/bunker/constraints/_common.py`).
 
 ### Removed
 - **Breaking**: the Excel assumptions export — the `-e`/`--export-assumptions`

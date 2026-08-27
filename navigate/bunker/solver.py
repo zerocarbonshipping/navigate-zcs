@@ -30,6 +30,7 @@ from navigate.bunker.solver_highs import OPTIMAL as _highs_OPTIMAL
 from navigate.bunker.solver_highs import Constr as _highs_Constr
 from navigate.bunker.solver_highs import LinExpr as _highs_LinExpr
 from navigate.bunker.solver_highs import Model as _highs_Model
+from navigate.bunker.solver_highs import Var as _highs_Var
 from navigate.bunker.solver_highs import tupledict as _highs_tupledict
 from navigate.core.enum_ import SolverBackendID
 
@@ -68,6 +69,7 @@ if _GUROBI_AVAILABLE:
     _grb_GRB = _grb.GRB
     _grb_LinExpr = _grb.LinExpr
     _grb_Constr = _grb.Constr
+    _grb_Var = _grb.Var
     _grb_CONTINUOUS = _grb_GRB.CONTINUOUS
     _grb_OPTIMAL = _grb_GRB.OPTIMAL
     _grb_INFEASIBLE = _grb_GRB.INFEASIBLE
@@ -116,6 +118,7 @@ _active_backend = None          # "gurobi" or "highs", set by _configure()
 GRB = None
 LinExpr = None
 Constr = None
+Var = None
 Model = None
 tupledict = None
 CONTINUOUS = None
@@ -126,7 +129,7 @@ INF_OR_UNBD = None
 
 def _configure(preference):
     """Bind module-level solver names according to *preference*."""
-    global GRB, LinExpr, Constr, Model, tupledict
+    global GRB, LinExpr, Constr, Var, Model, tupledict
     global CONTINUOUS, OPTIMAL, INFEASIBLE, INF_OR_UNBD
     global _active_backend
 
@@ -155,6 +158,7 @@ def _configure(preference):
         GRB = _grb_GRB
         LinExpr = _grb_LinExpr
         Constr = _grb_Constr
+        Var = _grb_Var
         Model = _GurobiModel
         tupledict = _grb_tupledict
         CONTINUOUS = _grb_CONTINUOUS
@@ -166,6 +170,7 @@ def _configure(preference):
         GRB = _highs_GRB
         LinExpr = _highs_LinExpr
         Constr = _highs_Constr
+        Var = _highs_Var
         Model = _highs_Model
         tupledict = _highs_tupledict
         CONTINUOUS = _highs_CONTINUOUS
