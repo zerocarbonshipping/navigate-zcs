@@ -428,3 +428,40 @@ class TestSyntaxErrors:
     def test_bare_star_in_command(self):
         cmd = _body('Vessel "v" { set_energy_saving(*, 0.03) }')[0]
         assert cmd.args == ["*", 0.03]
+
+
+class TestKeywordSpellingInErrors:
+    """Parse errors must name keywords as the grammar spells them.
+
+    Lark derives keyword terminal names from the literal, uppercased
+    ("Include" -> INCLUDE). Leaking that name told users to write `INCLUDE`,
+    which the grammar rejects.
+    """
+
+    def test_wrong_case_include_suggests_title_case(self):
+        with pytest.raises(DeckFormatError) as excinfo:
+            parse_deck_content('DEFINE {\n    INCLUDE "a.inc"\n}\n')
+        message = str(excinfo.value)
+        assert "'Include'" in message
+        assert "expected INCLUDE" not in message
+
+    def test_lowercase_include_suggests_title_case(self):
+        with pytest.raises(DeckFormatError) as excinfo:
+            parse_deck_content('DEFINE {\n    include "a.inc"\n}\n')
+        assert "'Include'" in str(excinfo.value)
+
+    def test_load_keyword_named_in_title_case(self):
+        with pytest.raises(DeckFormatError) as excinfo:
+            parse_deck_content('DEFINE {\n    LOAD Module\n}\n')
+        assert "'Load'" in str(excinfo.value)
+
+    def test_include_directive_still_parses(self):
+        directives = parse_deck_content('DEFINE {\n    Include "a.inc"\n}\n')[0].directives
+        assert isinstance(directives[0], IncludeDirective)
+        assert directives[0].path == "a.inc"
+
+    def test_non_keyword_terminals_keep_friendly_names(self):
+        """The derived names must not displace the curated descriptions."""
+        with pytest.raises(DeckFormatError) as excinfo:
+            parse_include_content('Vessel "v" { Attr = }')
+        assert "a number" in str(excinfo.value)
