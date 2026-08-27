@@ -30,7 +30,6 @@ from navigate.bunker.constraints.energy_conservation import update_energy_conser
 from navigate.bunker.constraints.mass_conservation import update_mass_conservation_constraints
 from navigate.bunker.constraints.mass_sufficient import update_mass_sufficient_constraints
 from navigate.bunker.constraints.pilot_fuel import update_pilot_fuel_constraints
-from navigate.bunker.constraints.power_capacity import update_power_capacity_constraints
 from navigate.bunker.constraints.regulation_flexibility import update_flexibility_regulation_threshold_constraints
 from navigate.bunker.constraints.regulation_individual import update_individual_regulation_threshold_constraints
 from navigate.bunker.constraints.regulation_terms import (
@@ -183,8 +182,6 @@ class BunkerAlgorithm:
         # vessel constraints
         self.energy_conservation_sea: gp.tupledict | None = None
         self.energy_conservation_port: gp.tupledict | None = None
-        self.power_capacity_sea: gp.tupledict | None = None
-        self.power_capacity_port: gp.tupledict | None = None
         self.pilot_fuel_sea: gp.tupledict | None = None
         self.pilot_fuel_port: gp.tupledict | None = None
         self.mass_conservation: gp.tupledict | None = None
@@ -463,8 +460,6 @@ class BunkerAlgorithm:
         # initialize primary LP constraints
         self.energy_conservation_sea = gp.tupledict()
         self.energy_conservation_port = gp.tupledict()
-        self.power_capacity_sea = gp.tupledict()
-        self.power_capacity_port = gp.tupledict()
         self.pilot_fuel_sea = gp.tupledict()
         self.pilot_fuel_port = gp.tupledict()
         self.mass_conservation = gp.tupledict()
@@ -524,7 +519,6 @@ class BunkerAlgorithm:
 
         # add vessel technical constraints
         update_energy_conservation_constraints(self, vessel)
-        update_power_capacity_constraints(self, vessel)
         update_pilot_fuel_constraints(self, vessel)
 
         # add mass conservation constraints
