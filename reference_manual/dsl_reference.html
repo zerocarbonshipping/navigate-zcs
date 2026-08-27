@@ -27,18 +27,18 @@
   </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
-<link href="../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+  <link href="../_static/styles/theme.css?digest=cb8930eaaf36d9849b67" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=cb8930eaaf36d9849b67" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
   
   <!-- So that users can add custom icons -->
-  <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <script defer src="../_static/scripts/fontawesome.js?digest=cb8930eaaf36d9849b67"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
-<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67" />
 
     <script src="../_static/documentation_options.js?v=8d563738"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
@@ -48,7 +48,7 @@
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'reference_manual/dsl_reference';</script>
     <script>
-        DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
+        DOCUMENTATION_OPTIONS.theme_version = '0.21.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://zerocarbonshipping.github.io/navigate-zcs/_static/switcher.json';
         DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.0.0';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
@@ -473,19 +473,19 @@ SPDX-License-Identifier: CC-BY-4.0
 <section id="defining-a-node">
 <h2>Defining a node<a class="headerlink" href="#defining-a-node" title="Link to this heading">#</a></h2>
 <p>To define a node, use the following syntax:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">NodeType</span> <span class="s2">&quot;node_name&quot;</span> <span class="p">{</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">NodeType</span> <span class="s2">"node_name"</span> <span class="p">{</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <p>When specified in <code class="docutils literal notranslate"><span class="pre">.inc</span></code> files, a node is referred to by its name: <code class="docutils literal notranslate"><span class="pre">NodeType</span> <span class="pre">&quot;node_name&quot;</span></code>.</p>
 <p>To reference a node in other nodes, use the following syntax:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">NodeType</span><span class="p">(</span><span class="s2">&quot;node_name&quot;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">NodeType</span><span class="p">(</span><span class="s2">"node_name"</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>An example of a node’s general structure is included below:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">NodeType</span> <span class="s2">&quot;node_name&quot;</span> <span class="p">{</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">NodeType</span> <span class="s2">"node_name"</span> <span class="p">{</span>
     <span class="n">Attribute</span> <span class="o">=</span> <span class="n">ValueA</span>
-    <span class="n">set_command</span><span class="p">(</span><span class="s2">&quot;key&quot;</span><span class="p">,</span> <span class="n">ValueB</span><span class="p">)</span>
+    <span class="n">set_command</span><span class="p">(</span><span class="s2">"key"</span><span class="p">,</span> <span class="n">ValueB</span><span class="p">)</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -502,7 +502,7 @@ SPDX-License-Identifier: CC-BY-4.0
 <p>An example of a general node’s structure is included below:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">NodeType</span> <span class="p">{</span>
     <span class="n">Attribute</span> <span class="o">=</span> <span class="n">ValueA</span>
-    <span class="n">set_command</span><span class="p">(</span><span class="s2">&quot;key&quot;</span><span class="p">,</span> <span class="n">ValueB</span><span class="p">)</span>
+    <span class="n">set_command</span><span class="p">(</span><span class="s2">"key"</span><span class="p">,</span> <span class="n">ValueB</span><span class="p">)</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -520,7 +520,7 @@ SPDX-License-Identifier: CC-BY-4.0
 </pre></div>
 </div>
 <p><strong>Node reference:</strong></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Attribute</span> <span class="o">=</span> <span class="n">NodeType</span><span class="p">(</span><span class="s2">&quot;node_name&quot;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Attribute</span> <span class="o">=</span> <span class="n">NodeType</span><span class="p">(</span><span class="s2">"node_name"</span><span class="p">)</span>
 </pre></div>
 </div>
 <p><strong>ID:</strong></p>
@@ -533,23 +533,23 @@ SPDX-License-Identifier: CC-BY-4.0
 </pre></div>
 </div>
 <p><strong>List:</strong></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Attribute</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">NodeType</span><span class="p">(</span><span class="s2">&quot;node_name&quot;</span><span class="p">)]</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Attribute</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">NodeType</span><span class="p">(</span><span class="s2">"node_name"</span><span class="p">)]</span>
 </pre></div>
 </div>
 <p>A list can be defined over several lines:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Attribute</span> <span class="o">=</span> <span class="p">[</span>
     <span class="mi">0</span><span class="p">,</span>
     <span class="mi">1</span><span class="p">,</span>
-    <span class="n">NodeType</span><span class="p">(</span><span class="s2">&quot;node_name&quot;</span><span class="p">),</span>
+    <span class="n">NodeType</span><span class="p">(</span><span class="s2">"node_name"</span><span class="p">),</span>
 <span class="p">]</span>
 </pre></div>
 </div>
 <p>For list attributes that accept a single element, the brackets may be omitted:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Attribute</span> <span class="o">=</span> <span class="n">NodeType</span><span class="p">(</span><span class="s2">&quot;node_name&quot;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Attribute</span> <span class="o">=</span> <span class="n">NodeType</span><span class="p">(</span><span class="s2">"node_name"</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>is equivalent to:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Attribute</span> <span class="o">=</span> <span class="p">[</span><span class="n">NodeType</span><span class="p">(</span><span class="s2">&quot;node_name&quot;</span><span class="p">)]</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Attribute</span> <span class="o">=</span> <span class="p">[</span><span class="n">NodeType</span><span class="p">(</span><span class="s2">"node_name"</span><span class="p">)]</span>
 </pre></div>
 </div>
 <p>Multi-element assignments still require brackets.</p>
@@ -558,11 +558,11 @@ SPDX-License-Identifier: CC-BY-4.0
 <h2>Assigning commands<a class="headerlink" href="#assigning-commands" title="Link to this heading">#</a></h2>
 <p>Commands are used when an attribute may hold different values based on other nodes. An example is that a fuel may have a tank-to-wake (TTW) emission per emission included in the simulation files. Commands may either take one or two keys and a value. The syntax is:</p>
 <p><strong>Single key command:</strong></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">set_single_command</span><span class="p">(</span><span class="s2">&quot;node_name&quot;</span><span class="p">,</span> <span class="mf">3.2</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">set_single_command</span><span class="p">(</span><span class="s2">"node_name"</span><span class="p">,</span> <span class="mf">3.2</span><span class="p">)</span>
 </pre></div>
 </div>
 <p><strong>Double key command:</strong></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">set_double_command</span><span class="p">(</span><span class="s2">&quot;node_name&quot;</span><span class="p">,</span> <span class="n">SPECIFIC_ID</span><span class="p">,</span> <span class="mf">3.2</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">set_double_command</span><span class="p">(</span><span class="s2">"node_name"</span><span class="p">,</span> <span class="n">SPECIFIC_ID</span><span class="p">,</span> <span class="mf">3.2</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The assignment options via commands are limited to floats, node references, and boolean values.</p>
@@ -580,7 +580,7 @@ SPDX-License-Identifier: CC-BY-4.0
 <section id="curve">
 <h3>Curve<a class="headerlink" href="#curve" title="Link to this heading">#</a></h3>
 <p>The syntax for defining a table on a curve is as follows:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Curve</span> <span class="s2">&quot;node_name&quot;</span> <span class="p">{</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Curve</span> <span class="s2">"node_name"</span> <span class="p">{</span>
     <span class="n">Table</span> <span class="o">=</span> <span class="p">[</span>
         <span class="c1"># x y</span>
         <span class="mf">0.0</span> <span class="mf">1.0</span>
@@ -594,12 +594,12 @@ SPDX-License-Identifier: CC-BY-4.0
 <section id="forecast">
 <h3>Forecast<a class="headerlink" href="#forecast" title="Link to this heading">#</a></h3>
 <p>The syntax for defining a table on a forecast is as follows:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Forecast</span> <span class="s2">&quot;node_name&quot;</span> <span class="p">{</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Forecast</span> <span class="s2">"node_name"</span> <span class="p">{</span>
     <span class="n">Table</span> <span class="o">=</span> <span class="p">[</span>
         <span class="c1"># x y</span>
-        <span class="s2">&quot;01-01-2024&quot;</span> <span class="mf">1.0</span>
-        <span class="s2">&quot;01-01-2030&quot;</span> <span class="mf">2.0</span>
-        <span class="s2">&quot;01-01-2050&quot;</span> <span class="mf">4.0</span>
+        <span class="s2">"01-01-2024"</span> <span class="mf">1.0</span>
+        <span class="s2">"01-01-2030"</span> <span class="mf">2.0</span>
+        <span class="s2">"01-01-2050"</span> <span class="mf">4.0</span>
     <span class="p">]</span>
 <span class="p">}</span>
 </pre></div>
@@ -609,7 +609,7 @@ SPDX-License-Identifier: CC-BY-4.0
 <section id="surface">
 <h3>Surface<a class="headerlink" href="#surface" title="Link to this heading">#</a></h3>
 <p>A surface is a two-dimensional curve and has the syntax:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Surface</span> <span class="s2">&quot;node_name&quot;</span> <span class="p">{</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Surface</span> <span class="s2">"node_name"</span> <span class="p">{</span>
     <span class="n">Table</span> <span class="o">=</span> <span class="p">[</span>
         <span class="c1"># x-axis (top line)</span>
         <span class="c1"># y-axis (first in rows)</span>
@@ -626,14 +626,14 @@ SPDX-License-Identifier: CC-BY-4.0
 <section id="timetable">
 <h3>Timetable<a class="headerlink" href="#timetable" title="Link to this heading">#</a></h3>
 <p>A timetable is a two-dimensional mixture of a curve and a forecast and has the syntax:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Timetable</span> <span class="s2">&quot;node_name&quot;</span> <span class="p">{</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Timetable</span> <span class="s2">"node_name"</span> <span class="p">{</span>
     <span class="n">Table</span> <span class="o">=</span> <span class="p">[</span>
         <span class="c1"># x-axis (top line)</span>
         <span class="c1"># y-axis (first in rows)</span>
         <span class="mi">0</span> <span class="mi">1</span> <span class="mi">2</span>
-        <span class="s2">&quot;01-01-2024&quot;</span> <span class="mi">0</span> <span class="mi">1</span> <span class="mi">2</span>
-        <span class="s2">&quot;01-01-2030&quot;</span> <span class="mi">3</span> <span class="mi">4</span> <span class="mi">12</span>
-        <span class="s2">&quot;01-01-2050&quot;</span> <span class="mi">20</span> <span class="mi">21</span> <span class="mi">22</span>
+        <span class="s2">"01-01-2024"</span> <span class="mi">0</span> <span class="mi">1</span> <span class="mi">2</span>
+        <span class="s2">"01-01-2030"</span> <span class="mi">3</span> <span class="mi">4</span> <span class="mi">12</span>
+        <span class="s2">"01-01-2050"</span> <span class="mi">20</span> <span class="mi">21</span> <span class="mi">22</span>
     <span class="p">]</span>
 <span class="p">}</span>
 </pre></div>
@@ -645,17 +645,17 @@ SPDX-License-Identifier: CC-BY-4.0
 <h2>Expressions<a class="headerlink" href="#expressions" title="Link to this heading">#</a></h2>
 <p>An expression is a syntax that allows the use of arithmetic when assigning values to attributes and commands. The syntax is:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Attribute</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span> <span class="o">-</span> <span class="n">c</span> <span class="o">/</span> <span class="n">d</span><span class="o">&gt;</span>
-<span class="n">set_command</span><span class="p">(</span><span class="s2">&quot;key&quot;</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span> <span class="o">-</span> <span class="n">c</span> <span class="o">/</span> <span class="n">d</span><span class="o">&gt;</span><span class="p">)</span>
+<span class="n">set_command</span><span class="p">(</span><span class="s2">"key"</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span> <span class="o">-</span> <span class="n">c</span> <span class="o">/</span> <span class="n">d</span><span class="o">&gt;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>An example could be separating values to better comment and explain an assumption in the simulation file:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Attribute</span> <span class="o">=</span> <span class="o">&lt;</span><span class="mf">0.05</span> <span class="o">*</span> <span class="mf">1e6</span><span class="o">&gt;</span>
-<span class="n">set_command</span><span class="p">(</span><span class="s2">&quot;key&quot;</span><span class="p">,</span> <span class="o">&lt;</span><span class="mf">0.05</span> <span class="o">*</span> <span class="mf">1e6</span><span class="o">&gt;</span><span class="p">)</span>
+<span class="n">set_command</span><span class="p">(</span><span class="s2">"key"</span><span class="p">,</span> <span class="o">&lt;</span><span class="mf">0.05</span> <span class="o">*</span> <span class="mf">1e6</span><span class="o">&gt;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>It is also possible to include Curves, Forecasts, Surfaces, Timetables, and Values in an expression. However, the node used must align the data type allowed by the attribute:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Attribute</span> <span class="o">=</span> <span class="o">&lt;</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">Forecast</span><span class="p">(</span><span class="s2">&quot;name_1&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="n">Forecast</span><span class="p">(</span><span class="s2">&quot;name_2&quot;</span><span class="p">)</span><span class="o">&gt;</span>
-<span class="n">set_command</span><span class="p">(</span><span class="s2">&quot;key&quot;</span><span class="p">,</span> <span class="o">&lt;</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">Forecast</span><span class="p">(</span><span class="s2">&quot;name_1&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="n">Forecast</span><span class="p">(</span><span class="s2">&quot;name_2&quot;</span><span class="p">)</span><span class="o">&gt;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Attribute</span> <span class="o">=</span> <span class="o">&lt;</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">Forecast</span><span class="p">(</span><span class="s2">"name_1"</span><span class="p">)</span> <span class="o">+</span> <span class="n">Forecast</span><span class="p">(</span><span class="s2">"name_2"</span><span class="p">)</span><span class="o">&gt;</span>
+<span class="n">set_command</span><span class="p">(</span><span class="s2">"key"</span><span class="p">,</span> <span class="o">&lt;</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">Forecast</span><span class="p">(</span><span class="s2">"name_1"</span><span class="p">)</span> <span class="o">+</span> <span class="n">Forecast</span><span class="p">(</span><span class="s2">"name_2"</span><span class="p">)</span><span class="o">&gt;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Expressions are restricted arithmetic, not general Python. The only accepted syntax is: numeric literals (including scientific notation such as <code class="docutils literal notranslate"><span class="pre">1e6</span></code>), the operators <code class="docutils literal notranslate"><span class="pre">+</span></code>, <code class="docutils literal notranslate"><span class="pre">-</span></code>, <code class="docutils literal notranslate"><span class="pre">*</span></code>, <code class="docutils literal notranslate"><span class="pre">/</span></code>, and <code class="docutils literal notranslate"><span class="pre">**</span></code>, unary minus, parentheses for grouping, and node references of the form <code class="docutils literal notranslate"><span class="pre">Type(&quot;name&quot;)</span></code> with a single string argument. Anything else — names, comparisons, other function calls, and so on — is rejected with an error when the deck is loaded. In particular, expressions cannot execute code or access the file system.</p>
@@ -678,7 +678,7 @@ SPDX-License-Identifier: CC-BY-4.0
 <section id="importing-a-node">
 <h2>Importing a node<a class="headerlink" href="#importing-a-node" title="Link to this heading">#</a></h2>
 <p>It is possible to import nodes directly from the default folders using the syntax:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Import</span> <span class="n">NodeType</span> <span class="s2">&quot;node_name&quot;</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Import</span> <span class="n">NodeType</span> <span class="s2">"node_name"</span>
 </pre></div>
 </div>
 <p>This defines the node. Subsequent to this it is possible reassign a subset of attributes on the node as described in “Defining a node”.</p>
@@ -686,7 +686,7 @@ SPDX-License-Identifier: CC-BY-4.0
 <section id="copying-a-node">
 <h2>Copying a node<a class="headerlink" href="#copying-a-node" title="Link to this heading">#</a></h2>
 <p>It is possible to copy a node either from a node already defined in the simulation files or directly from the default folders using the syntax:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Copy</span> <span class="n">NodeType</span> <span class="s2">&quot;node_copy_from&quot;</span> <span class="s2">&quot;node_copy_to&quot;</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Copy</span> <span class="n">NodeType</span> <span class="s2">"node_copy_from"</span> <span class="s2">"node_copy_to"</span>
 </pre></div>
 </div>
 <p>After copying any reassignment of attributes done to <code class="docutils literal notranslate"><span class="pre">&quot;node_copy_from&quot;</span></code> will not be reflected in <code class="docutils literal notranslate"><span class="pre">&quot;node_copy_to&quot;</span></code> as they are now two separate nodes.</p>
@@ -820,8 +820,8 @@ as an example of a defined node.</p>
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script defer src="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
-<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+  <script defer src="../_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -855,7 +855,7 @@ as an example of a defined node.</p>
         <div class="footer-item">
 <p class="theme-version">
   <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.20.0.
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.21.0.
 </p></div>
       
     </div>

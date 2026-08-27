@@ -27,18 +27,18 @@
   </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
-<link href="../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+  <link href="../_static/styles/theme.css?digest=cb8930eaaf36d9849b67" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=cb8930eaaf36d9849b67" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
   
   <!-- So that users can add custom icons -->
-  <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <script defer src="../_static/scripts/fontawesome.js?digest=cb8930eaaf36d9849b67"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
-<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67" />
 
     <script src="../_static/documentation_options.js?v=8d563738"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
@@ -48,7 +48,7 @@
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'tutorials/tutorial_1';</script>
     <script>
-        DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
+        DOCUMENTATION_OPTIONS.theme_version = '0.21.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://zerocarbonshipping.github.io/navigate-zcs/_static/switcher.json';
         DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.0.0';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
@@ -450,7 +450,7 @@ The input files created in this tutorial reflect the minimum input that you need
 In this file you will define all nodes that will be part of the simulation.</p></li>
 </ol>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">DEFINE</span> <span class="p">{</span>
-    <span class="n">Include</span> <span class="s2">&quot;./includes/define.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">"./includes/define.inc"</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -463,7 +463,7 @@ In this file you will define all nodes that will be part of the simulation.</p><
 By doing this, the simulation can access the information about the changes to nodes in time.</p></li>
 </ol>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">EVENTS</span> <span class="p">{</span>
-    <span class="n">Include</span> <span class="s2">&quot;./includes/events.inc&quot;</span>
+    <span class="n">Include</span> <span class="s2">"./includes/events.inc"</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -487,7 +487,7 @@ Define a start date for the model, for which we use <code class="docutils litera
 Later, you will define intermediate annual time steps until 2050.</p></li>
 </ol>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ModelDefinition</span> <span class="p">{</span>
-    <span class="n">StartDate</span> <span class="o">=</span> <span class="s2">&quot;01/01/2025&quot;</span> 
+    <span class="n">StartDate</span> <span class="o">=</span> <span class="s2">"01/01/2025"</span> 
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -500,7 +500,7 @@ Later, you will define intermediate annual time steps until 2050.</p></li>
 <ol class="arabic simple">
 <li><p>Define the node <code class="docutils literal notranslate"><span class="pre">&quot;fleet&quot;</span></code> with the node type <code class="docutils literal notranslate"><span class="pre">Fleet</span></code>.</p></li>
 </ol>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Fleet</span> <span class="s2">&quot;fleet&quot;</span> <span class="p">{</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Fleet</span> <span class="s2">"fleet"</span> <span class="p">{</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -513,7 +513,7 @@ Later, you will define intermediate annual time steps until 2050.</p></li>
 <li><p>Type <code class="docutils literal notranslate"><span class="pre">navigate</span> <span class="pre">tutorial_1.nav</span></code></p></li>
 </ol>
 <p>This should throw the following error message:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="ne">ValueError</span><span class="p">:</span> <span class="n">Fleet</span><span class="p">(</span><span class="s2">&quot;fleet&quot;</span><span class="p">):</span> <span class="n">Attribute</span> <span class="s1">&#39;Vessel&#39;</span> <span class="ow">is</span> <span class="n">unassigned</span><span class="o">.</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="ne">ValueError</span><span class="p">:</span> <span class="n">Fleet</span><span class="p">(</span><span class="s2">"fleet"</span><span class="p">):</span> <span class="n">Attribute</span> <span class="s1">'Vessel'</span> <span class="ow">is</span> <span class="n">unassigned</span><span class="o">.</span>
 </pre></div>
 </div>
 <p>This is because any node of the type Fleet requires a set of attributes, namely the attributes Vessels and the fuel sensitivities (<code class="docutils literal notranslate"><span class="pre">InterFuelSensitivity</span></code> and <code class="docutils literal notranslate"><span class="pre">IntraFuelSensitivity</span></code>). If the model is run while one of these attributes is not defined, there will be an error message notifying you of the missing attribute, as you saw just now.</p>
@@ -529,7 +529,7 @@ Later, you will define intermediate annual time steps until 2050.</p></li>
 <li><p>As the error message told you, the node Vessel needs to be defined.
 Define Vessel with the node called <code class="docutils literal notranslate"><span class="pre">&quot;vessel_ice_oil&quot;</span></code>.</p></li>
 </ol>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Vessel</span> <span class="s2">&quot;vessel_ice_oil&quot;</span> <span class="p">{</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Vessel</span> <span class="s2">"vessel_ice_oil"</span> <span class="p">{</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -546,8 +546,8 @@ This is a naming convention we use but is not required; a node can be named anyt
 <li><p>The <code class="docutils literal notranslate"><span class="pre">IntraFuelSensitivity</span></code> attribute does the same for the choice <em>between engine technologies within a single fuel type</em> (different engine technologies are for example combustion engines vs. fuel cells). A value of <code class="docutils literal notranslate"><span class="pre">0.5</span></code> likewise means a 10% higher LCOT halves the odds.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">InitialVessels</span></code> describes the number of vessels present at the defined start date. <code class="docutils literal notranslate"><span class="pre">InitialVessels</span></code> is not a mandatory attribute for the node “fleet” and therefore not necessary to run the model, but necessary if we want an output.</p></li>
 </ol>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Fleet</span> <span class="s2">&quot;fleet&quot;</span> <span class="p">{</span>	 
-    <span class="n">Vessels</span> <span class="o">=</span> <span class="p">[</span><span class="n">Vessel</span><span class="p">(</span><span class="s2">&quot;vessel_ice_oil&quot;</span><span class="p">)]</span>  
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Fleet</span> <span class="s2">"fleet"</span> <span class="p">{</span>	 
+    <span class="n">Vessels</span> <span class="o">=</span> <span class="p">[</span><span class="n">Vessel</span><span class="p">(</span><span class="s2">"vessel_ice_oil"</span><span class="p">)]</span>  
     <span class="n">InterFuelSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
     <span class="n">IntraFuelSensitivity</span> <span class="o">=</span> <span class="mf">0.5</span>
     <span class="n">InitialVessels</span> <span class="o">=</span> <span class="mi">100</span>
@@ -573,11 +573,11 @@ It allows for input on the characteristics of one or more onboard tanks. The tan
 It describes the propulsion load level at sea, i.e., how much power we need to move the reference vessel <code class="docutils literal notranslate"><span class="pre">&quot;vessel_ice_oil&quot;</span></code>.
 LoadLevel’s (propulsion, electrical, heat) generally describe power and therefore have the unit MW (mega-watt). It is not a mandatory attribute to run the model, but necessary if we want an output.  We can assign a number, a Curve, or a Surface as the value of the attribute PropulsionLoad.</p></li>
 </ol>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Vessel</span> <span class="s2">&quot;vessel_ice_oil&quot;</span> <span class="p">{</span>
-    <span class="n">PowerSystem</span> <span class="o">=</span> <span class="n">PowerSystem</span><span class="p">(</span><span class="s2">&quot;ice_oil&quot;</span><span class="p">)</span>
-    <span class="n">Route</span> <span class="o">=</span> <span class="n">Route</span><span class="p">(</span><span class="s2">&quot;route&quot;</span><span class="p">)</span> 	
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Vessel</span> <span class="s2">"vessel_ice_oil"</span> <span class="p">{</span>
+    <span class="n">PowerSystem</span> <span class="o">=</span> <span class="n">PowerSystem</span><span class="p">(</span><span class="s2">"ice_oil"</span><span class="p">)</span>
+    <span class="n">Route</span> <span class="o">=</span> <span class="n">Route</span><span class="p">(</span><span class="s2">"route"</span><span class="p">)</span> 	
     <span class="n">NominalCapacity</span> <span class="o">=</span> <span class="mi">8000</span>
-    <span class="n">Tanks</span> <span class="o">=</span> <span class="p">[</span><span class="n">Tank</span><span class="p">(</span><span class="s2">&quot;main_oil&quot;</span><span class="p">)]</span>
+    <span class="n">Tanks</span> <span class="o">=</span> <span class="p">[</span><span class="n">Tank</span><span class="p">(</span><span class="s2">"main_oil"</span><span class="p">)]</span>
     <span class="n">PropulsionLoad</span> <span class="o">=</span> <span class="mi">10</span>
 <span class="p">}</span>
 </pre></div>
@@ -601,10 +601,10 @@ The electrical demand is often met through an auxiliary engine, which is mostly 
 <li><p>Define how the Heat demand is met.
 The demand is usually met through a boiler.</p></li>
 </ol>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">PowerSystem</span> <span class="s2">&quot;ice_oil&quot;</span> <span class="p">{</span>
-    <span class="n">Propulsion</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">&quot;propulsion_ice_oil&quot;</span><span class="p">)</span>
-    <span class="n">Electrical</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">&quot;electrical_ice_oil&quot;</span><span class="p">)</span>
-    <span class="n">Heat</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">&quot;heat_boiler_oil&quot;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">PowerSystem</span> <span class="s2">"ice_oil"</span> <span class="p">{</span>
+    <span class="n">Propulsion</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"propulsion_ice_oil"</span><span class="p">)</span>
+    <span class="n">Electrical</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"electrical_ice_oil"</span><span class="p">)</span>
+    <span class="n">Heat</span> <span class="o">=</span> <span class="n">Converter</span><span class="p">(</span><span class="s2">"heat_boiler_oil"</span><span class="p">)</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -623,7 +623,7 @@ Each converter can use one or more fuel types. In this case, the main engine can
 <li><p>Define <code class="docutils literal notranslate"><span class="pre">Efficiency</span></code>.
 Efficiency defines the fraction of chemical energy (e.g., in a fuel) that is converted to kinetic energy (e.g., mechanical).</p></li>
 </ol>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Converter</span> <span class="s2">&quot;propulsion_ice_oil&quot;</span> <span class="p">{</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Converter</span> <span class="s2">"propulsion_ice_oil"</span> <span class="p">{</span>
     <span class="n">PowerCapacity</span> <span class="o">=</span> <span class="mi">50</span>
     <span class="n">MainFuelTypes</span> <span class="o">=</span> <span class="n">OIL</span>
     <span class="n">Efficiency</span> <span class="o">=</span> <span class="mf">0.5</span>
@@ -635,7 +635,7 @@ Efficiency defines the fraction of chemical energy (e.g., in a fuel) that is con
 <li><p>Define the node <code class="docutils literal notranslate"><span class="pre">&quot;electrical_ice_oil&quot;</span></code> of the node type Converter, e.g. a generator that produces electricity.
 Similar to the <code class="docutils literal notranslate"><span class="pre">&quot;propulsion_ice_oil&quot;</span></code>, assign the attributes <code class="docutils literal notranslate"><span class="pre">PowerCapacity</span></code>, <code class="docutils literal notranslate"><span class="pre">MainFuelTypes</span></code>, and <code class="docutils literal notranslate"><span class="pre">Efficiency</span></code> to it.</p></li>
 </ol>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Converter</span> <span class="s2">&quot;electrical_ice_oil&quot;</span> <span class="p">{</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Converter</span> <span class="s2">"electrical_ice_oil"</span> <span class="p">{</span>
     <span class="n">PowerCapacity</span> <span class="o">=</span> <span class="mi">10</span>
     <span class="n">MainFuelTypes</span> <span class="o">=</span> <span class="n">OIL</span>
     <span class="n">Efficiency</span> <span class="o">=</span> <span class="mf">0.5</span>
@@ -646,7 +646,7 @@ Similar to the <code class="docutils literal notranslate"><span class="pre">&quo
 <li><p>Define the node <code class="docutils literal notranslate"><span class="pre">&quot;heat_boiler_oil&quot;</span></code> of the node type Converter.
 Define and assign the attributes <code class="docutils literal notranslate"><span class="pre">PowerCapacity</span></code>, <code class="docutils literal notranslate"><span class="pre">MainFuelTypes</span></code>, and <code class="docutils literal notranslate"><span class="pre">Efficiency</span></code> as for <code class="docutils literal notranslate"><span class="pre">&quot;propulsion_ice_oil&quot;</span></code>.</p></li>
 </ol>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Converter</span> <span class="s2">&quot;heat_boiler_oil&quot;</span> <span class="p">{</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Converter</span> <span class="s2">"heat_boiler_oil"</span> <span class="p">{</span>
     <span class="n">PowerCapacity</span> <span class="o">=</span> <span class="mi">5</span>
     <span class="n">MainFuelTypes</span> <span class="o">=</span> <span class="n">OIL</span>
     <span class="n">Efficiency</span> <span class="o">=</span> <span class="mf">0.5</span>
@@ -665,7 +665,7 @@ You can further specify the characteristics of the tank. For alternative fuels, 
 Set the fuel types that the tank can hold. In this example, the tank can only use OIL, but we can also specify more than one fuel type. Therefore, we specify that the fuel oil tank is the “main” tank in the vessel.
 Set the tank’s <code class="docutils literal notranslate"><span class="pre">Size</span></code>. It is given in cubic meters.</p></li>
 </ol>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Tank</span> <span class="s2">&quot;main_oil&quot;</span> <span class="p">{</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Tank</span> <span class="s2">"main_oil"</span> <span class="p">{</span>
     <span class="n">FuelTypes</span> <span class="o">=</span> <span class="n">OIL</span>
     <span class="n">Size</span> <span class="o">=</span> <span class="mi">9000</span>
 <span class="p">}</span>
@@ -679,9 +679,9 @@ Set the <code class="docutils literal notranslate"><span class="pre">TimeAtSea</
 Set the <code class="docutils literal notranslate"><span class="pre">ConditionDistribution</span></code>, which defines the proportion of the total TimeAtSea, that is spent for each leg of the journey (here: only one leg, i.e. 100% of the total <code class="docutils literal notranslate"><span class="pre">TimeAtSea</span></code> are spent on the leg).
 Set the Speeds of the vessel, given in knots, at each leg of the journey (here: only one leg).</p></li>
 </ol>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Route</span> <span class="s2">&quot;route&quot;</span> <span class="p">{</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Route</span> <span class="s2">"route"</span> <span class="p">{</span>
     <span class="n">RouteType</span> <span class="o">=</span> <span class="n">REGIONAL_TRIP</span> 
-    <span class="n">Ports</span> <span class="o">=</span> <span class="p">[</span><span class="n">Port</span><span class="p">(</span><span class="s2">&quot;port&quot;</span><span class="p">)]</span> 
+    <span class="n">Ports</span> <span class="o">=</span> <span class="p">[</span><span class="n">Port</span><span class="p">(</span><span class="s2">"port"</span><span class="p">)]</span> 
     <span class="n">TimeAtSea</span> <span class="o">=</span> <span class="mf">0.75</span>
     <span class="n">ConditionDistribution</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">]</span>
     <span class="n">Speeds</span> <span class="o">=</span> <span class="p">[</span><span class="mi">10</span><span class="p">]</span>
@@ -696,7 +696,7 @@ Set the Speeds of the vessel, given in knots, at each leg of the journey (here: 
 </pre></div>
 </div>
 <p>You should have received the error message below.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Port</span><span class="p">(</span><span class="s2">&quot;port&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="n">referenced</span> <span class="n">but</span> <span class="ow">not</span> <span class="n">found</span> <span class="ow">in</span> <span class="n">either</span> <span class="n">the</span> <span class="n">deck</span> <span class="ow">or</span> <span class="n">the</span> <span class="n">default</span> <span class="n">location</span> <span class="n">of</span> <span class="n">Port</span><span class="o">.</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Port</span><span class="p">(</span><span class="s2">"port"</span><span class="p">)</span> <span class="ow">is</span> <span class="n">referenced</span> <span class="n">but</span> <span class="ow">not</span> <span class="n">found</span> <span class="ow">in</span> <span class="n">either</span> <span class="n">the</span> <span class="n">deck</span> <span class="ow">or</span> <span class="n">the</span> <span class="n">default</span> <span class="n">location</span> <span class="n">of</span> <span class="n">Port</span><span class="o">.</span>
 </pre></div>
 </div>
 <p>Although you have defined all the attributes that are mandatory for the vessel node, you do not yet have enough input to run the model, e.g., the “port” node.</p>
@@ -709,9 +709,9 @@ Set the Speeds of the vessel, given in knots, at each leg of the journey (here: 
 <li><p>Define the node <code class="docutils literal notranslate"><span class="pre">&quot;port&quot;</span></code> with the node type <code class="docutils literal notranslate"><span class="pre">Port</span></code>.
 Navigate builds on various underlying assumptions. Amongst these assumptions for bunker price and emissions. These are here overwritten for this tutorial.</p></li>
 </ol>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Port</span> <span class="s2">&quot;port&quot;</span> <span class="p">{</span>	
-    <span class="n">set_bunker_price_overwrite</span><span class="p">(</span><span class="s2">&quot;heavy_fuel_oil&quot;</span><span class="p">,</span> <span class="mi">250</span><span class="p">)</span>
-    <span class="n">set_bunker_wtt_overwrite</span><span class="p">(</span><span class="s2">&quot;heavy_fuel_oil&quot;</span><span class="p">,</span> <span class="s2">&quot;carbon_dioxide&quot;</span><span class="p">,</span> <span class="mf">0.62</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Port</span> <span class="s2">"port"</span> <span class="p">{</span>	
+    <span class="n">set_bunker_price_overwrite</span><span class="p">(</span><span class="s2">"heavy_fuel_oil"</span><span class="p">,</span> <span class="mi">250</span><span class="p">)</span>
+    <span class="n">set_bunker_wtt_overwrite</span><span class="p">(</span><span class="s2">"heavy_fuel_oil"</span><span class="p">,</span> <span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="mf">0.62</span><span class="p">)</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -722,14 +722,14 @@ Navigate builds on various underlying assumptions. Amongst these assumptions for
 <li><p><code class="docutils literal notranslate"><span class="pre">BunkerLogistics</span></code> is a mandatory general node which for the purpose of this tutorial is used to define that the Fuel <code class="docutils literal notranslate"><span class="pre">&quot;heavy_fuel_oil&quot;</span></code> belongs to a liquid market. This means that the availability of the fuel is unconstrained.</p></li>
 </ol>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">BunkerLogistics</span> <span class="p">{</span>
-	<span class="n">LiquidMarketFuels</span> <span class="o">=</span> <span class="p">[</span><span class="n">Fuel</span><span class="p">(</span><span class="s2">&quot;heavy_fuel_oil&quot;</span><span class="p">)]</span>
+	<span class="n">LiquidMarketFuels</span> <span class="o">=</span> <span class="p">[</span><span class="n">Fuel</span><span class="p">(</span><span class="s2">"heavy_fuel_oil"</span><span class="p">)]</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <ol class="arabic simple" start="3">
 <li><p>Run navigate again after saving. <code class="docutils literal notranslate"><span class="pre">navigate</span> <span class="pre">tutorial_1.nav</span></code>. You should recieve the following error:</p></li>
 </ol>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Fuel</span><span class="p">(</span><span class="s2">&quot;heavy_fuel_oil&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="n">referenced</span> <span class="n">but</span> <span class="ow">not</span> <span class="n">found</span> <span class="ow">in</span> <span class="n">either</span> <span class="n">the</span> <span class="n">deck</span> <span class="ow">or</span> <span class="n">the</span> <span class="n">default</span> <span class="n">location</span> <span class="n">of</span> <span class="n">Fuel</span><span class="o">.</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Fuel</span><span class="p">(</span><span class="s2">"heavy_fuel_oil"</span><span class="p">)</span> <span class="ow">is</span> <span class="n">referenced</span> <span class="n">but</span> <span class="ow">not</span> <span class="n">found</span> <span class="ow">in</span> <span class="n">either</span> <span class="n">the</span> <span class="n">deck</span> <span class="ow">or</span> <span class="n">the</span> <span class="n">default</span> <span class="n">location</span> <span class="n">of</span> <span class="n">Fuel</span><span class="o">.</span>
 </pre></div>
 </div>
 </section>
@@ -750,15 +750,15 @@ Each fuel has a mass density which is a physical constant, so this value is not 
 The <code class="docutils literal notranslate"><span class="pre">set_ttw(..)</span></code> marks a command in the Navigate syntax. Commands are similar to functions in programming languages, and have the syntax <code class="docutils literal notranslate"><span class="pre">set_xxx(key1,</span> <span class="pre">key2,</span> <span class="pre">value)</span></code>. A command can take 2-3 inputs. In this instance it only has 2 inputs, namely key1 and value.
 The unit of an emission factor is ton emissions/ton fuel.</p></li>
 </ol>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Fuel</span> <span class="s2">&quot;heavy_fuel_oil&quot;</span> <span class="p">{</span>	
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Fuel</span> <span class="s2">"heavy_fuel_oil"</span> <span class="p">{</span>	
     <span class="n">FuelType</span> <span class="o">=</span> <span class="n">OIL</span>
     
     <span class="n">LowerHeatingValue</span> <span class="o">=</span> <span class="mf">41.2</span>
     <span class="n">MassDensity</span> <span class="o">=</span> <span class="mf">0.9</span>
     
-    <span class="n">set_ttw</span><span class="p">(</span><span class="s2">&quot;carbon_dioxide&quot;</span><span class="p">,</span> <span class="mf">3.114</span><span class="p">)</span>
-    <span class="n">set_ttw</span><span class="p">(</span><span class="s2">&quot;methane&quot;</span><span class="p">,</span> <span class="mf">0.00005</span><span class="p">)</span>
-    <span class="n">set_ttw</span><span class="p">(</span><span class="s2">&quot;nitrous_oxide&quot;</span><span class="p">,</span> <span class="mf">0.00018</span><span class="p">)</span>
+    <span class="n">set_ttw</span><span class="p">(</span><span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="mf">3.114</span><span class="p">)</span>
+    <span class="n">set_ttw</span><span class="p">(</span><span class="s2">"methane"</span><span class="p">,</span> <span class="mf">0.00005</span><span class="p">)</span>
+    <span class="n">set_ttw</span><span class="p">(</span><span class="s2">"nitrous_oxide"</span><span class="p">,</span> <span class="mf">0.00018</span><span class="p">)</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -768,15 +768,15 @@ The unit of an emission factor is ton emissions/ton fuel.</p></li>
 <ol class="arabic simple">
 <li><p>Define the <code class="docutils literal notranslate"><span class="pre">Emission</span></code> nodes <code class="docutils literal notranslate"><span class="pre">&quot;carbon_dioxide&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;methane&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;nitrous_oxide&quot;</span></code></p></li>
 </ol>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Emission</span> <span class="s2">&quot;carbon_dioxide&quot;</span> <span class="p">{</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Emission</span> <span class="s2">"carbon_dioxide"</span> <span class="p">{</span>
 	<span class="n">GlobalWarmingPotential</span> <span class="o">=</span> <span class="mi">1</span>
 <span class="p">}</span>
 
-<span class="n">Emission</span> <span class="s2">&quot;methane&quot;</span> <span class="p">{</span>
+<span class="n">Emission</span> <span class="s2">"methane"</span> <span class="p">{</span>
 	<span class="n">GlobalWarmingPotential</span> <span class="o">=</span> <span class="mi">25</span>
 <span class="p">}</span>
 
-<span class="n">Emission</span> <span class="s2">&quot;nitrous_oxide&quot;</span> <span class="p">{</span>
+<span class="n">Emission</span> <span class="s2">"nitrous_oxide"</span> <span class="p">{</span>
 	<span class="n">GlobalWarmingPotential</span> <span class="o">=</span> <span class="mi">273</span>
 <span class="p">}</span>
 </pre></div>
@@ -790,12 +790,12 @@ The unit of an emission factor is ton emissions/ton fuel.</p></li>
 <li><p>Set the <code class="docutils literal notranslate"><span class="pre">Directory</span></code> attribute to <code class="docutils literal notranslate"><span class="pre">&quot;./plots/&quot;</span></code>. This is the subfolder, relative to the <code class="docutils literal notranslate"><span class="pre">.nav</span></code> file, where the plots are saved. Navigate creates the folder if it does not already exist.</p></li>
 <li><p>Use the <code class="docutils literal notranslate"><span class="pre">add_plot(...)</span></code> command once per plot you want produced. Each takes the label of a plot. For this tutorial we produce the absolute emissions, the global fuel mix, and the bunker price at the port.</p></li>
 </ol>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Plot</span> <span class="s2">&quot;plots&quot;</span> <span class="p">{</span>
-    <span class="n">Directory</span> <span class="o">=</span> <span class="s2">&quot;./plots/&quot;</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Plot</span> <span class="s2">"plots"</span> <span class="p">{</span>
+    <span class="n">Directory</span> <span class="o">=</span> <span class="s2">"./plots/"</span>
 
-    <span class="n">add_plot</span><span class="p">(</span><span class="s2">&quot;global_emission_absolute&quot;</span><span class="p">)</span>
-    <span class="n">add_plot</span><span class="p">(</span><span class="s2">&quot;global_fuel_consumed&quot;</span><span class="p">)</span>
-    <span class="n">add_plot</span><span class="p">(</span><span class="s2">&quot;port_bunker_price&quot;</span><span class="p">)</span>
+    <span class="n">add_plot</span><span class="p">(</span><span class="s2">"global_emission_absolute"</span><span class="p">)</span>
+    <span class="n">add_plot</span><span class="p">(</span><span class="s2">"global_fuel_consumed"</span><span class="p">)</span>
+    <span class="n">add_plot</span><span class="p">(</span><span class="s2">"port_bunker_price"</span><span class="p">)</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -815,32 +815,32 @@ You will define the End later.</p></li>
 <li><p>Because we want Navigate to run simulations until 2050, you need to define intermediate time steps until 2050. In this tutorial we have decided on annual time-steps, but one could also decide on 5-year time-steps or quarterly time-steps, for example.
 Define annual time-steps with a reference Date.</p></li>
 </ol>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Date</span> <span class="s2">&quot;01-01-2025&quot;</span>
-<span class="n">Date</span> <span class="s2">&quot;01-01-2026&quot;</span>
-<span class="n">Date</span> <span class="s2">&quot;01-01-2027&quot;</span>
-<span class="n">Date</span> <span class="s2">&quot;01-01-2028&quot;</span>
-<span class="n">Date</span> <span class="s2">&quot;01-01-2029&quot;</span>
-<span class="n">Date</span> <span class="s2">&quot;01-01-2030&quot;</span>
-<span class="n">Date</span> <span class="s2">&quot;01-01-2031&quot;</span>
-<span class="n">Date</span> <span class="s2">&quot;01-01-2032&quot;</span>
-<span class="n">Date</span> <span class="s2">&quot;01-01-2033&quot;</span>
-<span class="n">Date</span> <span class="s2">&quot;01-01-2034&quot;</span>
-<span class="n">Date</span> <span class="s2">&quot;01-01-2035&quot;</span>
-<span class="n">Date</span> <span class="s2">&quot;01-01-2036&quot;</span>
-<span class="n">Date</span> <span class="s2">&quot;01-01-2037&quot;</span>
-<span class="n">Date</span> <span class="s2">&quot;01-01-2038&quot;</span>
-<span class="n">Date</span> <span class="s2">&quot;01-01-2039&quot;</span>
-<span class="n">Date</span> <span class="s2">&quot;01-01-2040&quot;</span>
-<span class="n">Date</span> <span class="s2">&quot;01-01-2041&quot;</span>
-<span class="n">Date</span> <span class="s2">&quot;01-01-2042&quot;</span>
-<span class="n">Date</span> <span class="s2">&quot;01-01-2043&quot;</span>
-<span class="n">Date</span> <span class="s2">&quot;01-01-2044&quot;</span>
-<span class="n">Date</span> <span class="s2">&quot;01-01-2045&quot;</span>
-<span class="n">Date</span> <span class="s2">&quot;01-01-2046&quot;</span>
-<span class="n">Date</span> <span class="s2">&quot;01-01-2047&quot;</span>
-<span class="n">Date</span> <span class="s2">&quot;01-01-2048&quot;</span>
-<span class="n">Date</span> <span class="s2">&quot;01-01-2049&quot;</span>
-<span class="n">Date</span> <span class="s2">&quot;01-01-2050&quot;</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Date</span> <span class="s2">"01-01-2025"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2026"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2027"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2028"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2029"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2030"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2031"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2032"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2033"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2034"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2035"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2036"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2037"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2038"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2039"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2040"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2041"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2042"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2043"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2044"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2045"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2046"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2047"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2048"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2049"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2050"</span>
 </pre></div>
 </div>
 <ol class="arabic simple" start="4">
@@ -978,8 +978,8 @@ Define annual time-steps with a reference Date.</p></li>
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script defer src="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
-<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+  <script defer src="../_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -1013,7 +1013,7 @@ Define annual time-steps with a reference Date.</p></li>
         <div class="footer-item">
 <p class="theme-version">
   <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.20.0.
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.21.0.
 </p></div>
       
     </div>

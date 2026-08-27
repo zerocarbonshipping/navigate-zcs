@@ -27,18 +27,18 @@
   </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
-<link href="../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+  <link href="../_static/styles/theme.css?digest=cb8930eaaf36d9849b67" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=cb8930eaaf36d9849b67" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
   
   <!-- So that users can add custom icons -->
-  <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <script defer src="../_static/scripts/fontawesome.js?digest=cb8930eaaf36d9849b67"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
-<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67" />
 
     <script src="../_static/documentation_options.js?v=8d563738"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
@@ -48,7 +48,7 @@
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'reference_manual/regulation';</script>
     <script>
-        DOCUMENTATION_OPTIONS.theme_version = '0.20.0';
+        DOCUMENTATION_OPTIONS.theme_version = '0.21.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://zerocarbonshipping.github.io/navigate-zcs/_static/switcher.json';
         DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.0.0';
         DOCUMENTATION_OPTIONS.show_version_warning_banner =
@@ -474,17 +474,17 @@ SPDX-License-Identifier: CC-BY-4.0
 regulations are goal-base fuel standards (such as the IMO Net-Zero Framework and FuelEU Maritime) and
 transport based regulation such as the IMO CII regulation.</p>
 <p>Example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Regulation</span> <span class="s2">&quot;cii&quot;</span> <span class="p">{</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Regulation</span> <span class="s2">"cii"</span> <span class="p">{</span>
 	<span class="n">Measure</span> <span class="o">=</span> <span class="n">TRANSPORT_NOMINAL</span>
 	<span class="n">Scheme</span> <span class="o">=</span> <span class="n">INDIVIDUAL</span>
 
 	<span class="n">Scope</span> <span class="o">=</span> <span class="n">TTW</span>
 	<span class="n">IncludeSlip</span> <span class="o">=</span> <span class="n">FALSE</span>
 
-	<span class="n">Emissions</span> <span class="o">=</span> <span class="n">Emission</span><span class="p">(</span><span class="s2">&quot;carbon_dioxide&quot;</span><span class="p">)</span>
-	<span class="n">Fuels</span> <span class="o">=</span> <span class="n">Fuel</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="p">)</span>
+	<span class="n">Emissions</span> <span class="o">=</span> <span class="n">Emission</span><span class="p">(</span><span class="s2">"carbon_dioxide"</span><span class="p">)</span>
+	<span class="n">Fuels</span> <span class="o">=</span> <span class="n">Fuel</span><span class="p">(</span><span class="s2">"*"</span><span class="p">)</span>
 	
-	<span class="n">Jurisdiction</span> <span class="o">=</span> <span class="p">[</span><span class="n">Port</span><span class="p">(</span><span class="s2">&quot;africa&quot;</span><span class="p">),</span> <span class="n">Port</span><span class="p">(</span><span class="s2">&quot;americas&quot;</span><span class="p">),</span> <span class="n">Port</span><span class="p">(</span><span class="s2">&quot;asia&quot;</span><span class="p">),</span> <span class="n">Port</span><span class="p">(</span><span class="s2">&quot;europe&quot;</span><span class="p">),</span> <span class="n">Port</span><span class="p">(</span><span class="s2">&quot;middle_east&quot;</span><span class="p">)]</span>
+	<span class="n">Jurisdiction</span> <span class="o">=</span> <span class="p">[</span><span class="n">Port</span><span class="p">(</span><span class="s2">"africa"</span><span class="p">),</span> <span class="n">Port</span><span class="p">(</span><span class="s2">"americas"</span><span class="p">),</span> <span class="n">Port</span><span class="p">(</span><span class="s2">"asia"</span><span class="p">),</span> <span class="n">Port</span><span class="p">(</span><span class="s2">"europe"</span><span class="p">),</span> <span class="n">Port</span><span class="p">(</span><span class="s2">"middle_east"</span><span class="p">)]</span>
 	
 	<span class="n">RemedialCost</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="p">}</span>
@@ -897,8 +897,8 @@ jurisdiction (inter) should be counted in the calculation.</p>
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script defer src="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
-<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+  <script defer src="../_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -932,7 +932,7 @@ jurisdiction (inter) should be counted in the calculation.</p>
         <div class="footer-item">
 <p class="theme-version">
   <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.20.0.
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.21.0.
 </p></div>
       
     </div>
