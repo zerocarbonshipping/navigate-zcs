@@ -17,8 +17,8 @@ from navigate.core import (
     command_assignment_to_tuple_dict,
 )
 from navigate.core.expectations import PortExpectation
-from navigate.core.id_ import FORECAST, PORT, VARIABLE
 from navigate.core.node import Node
+from navigate.core.node_type import FORECAST, PORT, VARIABLE
 from navigate.core.profiles import PortProfile
 from navigate.core.unit import MWH_TO_GJ
 

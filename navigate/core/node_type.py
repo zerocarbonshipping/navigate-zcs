@@ -1,6 +1,14 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""
+Node-type names: the DSL keywords that declare nodes in `.nav`/`.inc` files.
+For regular nodes the name is also the value stored in the node's `_type`
+attribute, so type checks and the parser's per-type tables share a single
+vocabulary; general nodes carry no `_type` and use theirs only as parser
+dispatch keys.
+"""
+
 CONVERTER = "Converter"
 CURVE = "Curve"
 EMISSION = "Emission"
@@ -32,8 +40,3 @@ VESSEL = "Vessel"
 BUNKER_LOGISTICS = "BunkerLogistics"
 BUNKER_OPTIONS = "BunkerOptions"
 MODEL_DEFINITION = "ModelDefinition"
-
-# Miscellaneous
-DATE = "Date"
-END = "End"
-START = "Start"

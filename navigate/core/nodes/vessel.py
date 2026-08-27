@@ -7,11 +7,11 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-import navigate.core.id_ as id_
 from navigate.core import Scalar, as_list, as_scalar, assign_id, assign_list, assign_value
 from navigate.core.enum_ import FuelTypeID
 from navigate.core.expectations import VesselExpectation
 from navigate.core.node import Node
+from navigate.core.node_type import CURVE, FORECAST, POWER_SYSTEM, ROUTE, SURFACE, TANK, VARIABLE, VESSEL
 from navigate.core.nodes.tank import Tank
 from navigate.core.profiles import VesselProfile
 from navigate.exceptions import no_value_assigned_error
@@ -26,7 +26,7 @@ class Vessel(Node):
     def __init__(self, name):
         super().__init__(name)
 
-        self._type = id_.VESSEL
+        self._type = VESSEL
 
         # power demand
         self.propulsion_load = None          # float, Curve or Surface, load in MW (at sea)
@@ -82,7 +82,7 @@ class Vessel(Node):
         """
 
         self.propulsion_load = assign_value(as_scalar(propulsion_load),
-                                            type_=(id_.CURVE, id_.SURFACE, id_.VARIABLE),
+                                            type_=(CURVE, SURFACE, VARIABLE),
                                             lower=0.)
 
     def set_electrical_load_at_sea(self, electrical_load_at_sea):
@@ -106,7 +106,7 @@ class Vessel(Node):
         """
 
         self.electrical_load_at_sea = assign_value(as_scalar(electrical_load_at_sea),
-                                                   type_=(id_.CURVE, id_.SURFACE, id_.VARIABLE),
+                                                   type_=(CURVE, SURFACE, VARIABLE),
                                                    lower=0.)
 
     def set_electrical_load_in_port(self, electrical_load_in_port):
@@ -125,7 +125,7 @@ class Vessel(Node):
         """
 
         self.electrical_load_in_port = assign_value(as_scalar(electrical_load_in_port),
-                                                    type_=id_.VARIABLE,
+                                                    type_=VARIABLE,
                                                     lower=0.)
 
     def set_heat_load_at_sea(self, heat_load_at_sea):
@@ -149,7 +149,7 @@ class Vessel(Node):
         """
 
         self.heat_load_at_sea = assign_value(as_scalar(heat_load_at_sea),
-                                             type_=(id_.CURVE, id_.SURFACE, id_.VARIABLE),
+                                             type_=(CURVE, SURFACE, VARIABLE),
                                              lower=0.)
 
     def set_heat_load_in_port(self, heat_load_in_port):
@@ -167,7 +167,7 @@ class Vessel(Node):
             The heating load in port in MW.
         """
 
-        self.heat_load_in_port = assign_value(as_scalar(heat_load_in_port), type_=id_.VARIABLE, lower=0.)
+        self.heat_load_in_port = assign_value(as_scalar(heat_load_in_port), type_=VARIABLE, lower=0.)
 
     def set_fuel_type(self, fuel_type):
         """
@@ -203,7 +203,7 @@ class Vessel(Node):
             The powersystem used to convert fuel to energy.
         """
 
-        self.power_system = assign_value(power_system, scalar=False, type_=id_.POWER_SYSTEM)
+        self.power_system = assign_value(power_system, scalar=False, type_=POWER_SYSTEM)
 
     def set_tanks(self, tanks):
         """
@@ -220,7 +220,7 @@ class Vessel(Node):
             List of node references to tanks.
         """
 
-        self.tanks = assign_list(as_list(tanks), unique=True, scalar=False, type_=id_.TANK)
+        self.tanks = assign_list(as_list(tanks), unique=True, scalar=False, type_=TANK)
 
     def set_route(self, route):
         """
@@ -236,7 +236,7 @@ class Vessel(Node):
             The route the vessel is sailing on.
         """
 
-        self.route = assign_value(route, scalar=False, type_=id_.ROUTE)
+        self.route = assign_value(route, scalar=False, type_=ROUTE)
 
     def set_nominal_capacity(self, nominal_capacity):
         """
@@ -260,7 +260,7 @@ class Vessel(Node):
             The nominal cargo carrying capacity of the vessel.
         """
 
-        self.nominal_capacity = assign_value(as_scalar(nominal_capacity), type_=id_.VARIABLE, lower=0.)
+        self.nominal_capacity = assign_value(as_scalar(nominal_capacity), type_=VARIABLE, lower=0.)
 
     def set_lifetime(self, lifetime):
         """
@@ -278,7 +278,7 @@ class Vessel(Node):
             Lifetime of the vessel in years.
         """
 
-        self.lifetime = assign_value(as_scalar(lifetime), type_=(id_.FORECAST, id_.VARIABLE),
+        self.lifetime = assign_value(as_scalar(lifetime), type_=(FORECAST, VARIABLE),
                                      lower=0., inclusive_lower=False)
 
     def set_lead_time(self, lead_time):
@@ -298,7 +298,7 @@ class Vessel(Node):
             Lead time of the vessel in years.
         """
 
-        self.lead_time = assign_value(as_scalar(lead_time), type_=(id_.FORECAST, id_.VARIABLE), lower=0.)
+        self.lead_time = assign_value(as_scalar(lead_time), type_=(FORECAST, VARIABLE), lower=0.)
 
     def set_CAPEX(self, CAPEX):
         """
@@ -315,7 +315,7 @@ class Vessel(Node):
             The base CAPEX of building the vessel in USD.
         """
 
-        self.CAPEX = assign_value(as_scalar(CAPEX), type_=(id_.FORECAST, id_.VARIABLE), lower=0.)
+        self.CAPEX = assign_value(as_scalar(CAPEX), type_=(FORECAST, VARIABLE), lower=0.)
 
     def set_OPEX(self, OPEX):
         """
@@ -332,7 +332,7 @@ class Vessel(Node):
             The base OPEX of maintaining the vessel in USD/year.
         """
 
-        self.OPEX = assign_value(as_scalar(OPEX), type_=(id_.FORECAST, id_.VARIABLE), lower=0.)
+        self.OPEX = assign_value(as_scalar(OPEX), type_=(FORECAST, VARIABLE), lower=0.)
 
     def set_cost_of_capital(self, cost_of_capital):
         """
@@ -351,7 +351,7 @@ class Vessel(Node):
             Cost of capital.
         """
 
-        self.cost_of_capital = assign_value(as_scalar(cost_of_capital), type_=(id_.FORECAST, id_.VARIABLE), lower=0.)
+        self.cost_of_capital = assign_value(as_scalar(cost_of_capital), type_=(FORECAST, VARIABLE), lower=0.)
 
     # internal methods -------------------------------------------------------------------------------------------------
     def initialize(self):

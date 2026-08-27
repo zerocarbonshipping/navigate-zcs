@@ -18,8 +18,8 @@ from navigate.core import (
     command_assignment_to_tuple_dict,
 )
 from navigate.core.enum_ import RouteTypeID
-from navigate.core.id_ import FORECAST, PORT, ROUTE, VARIABLE
 from navigate.core.node import Node
+from navigate.core.node_type import FORECAST, PORT, ROUTE, VARIABLE
 from navigate.exceptions import no_value_assigned_error
 from navigate.util import normalize_fractional, to_numpy, unique_list
 

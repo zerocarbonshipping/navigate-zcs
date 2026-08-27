@@ -3,7 +3,7 @@
 
 from navigate.core import Scalar, as_list, assign_list, command_assignment_to_dict, command_assignment_to_tuple_dict
 from navigate.core.general_nodes._general_node import _GeneralNode
-from navigate.core.id_ import FORECAST, FUEL, VARIABLE
+from navigate.core.node_type import FORECAST, FUEL, VARIABLE
 
 
 class BunkerLogistics(_GeneralNode):

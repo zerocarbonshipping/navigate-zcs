@@ -4,7 +4,7 @@
 from navigate.core import Scalar, as_scalar, assign_id, assign_value, command_assignment_to_tuple_dict
 from navigate.core.assign import command_assignment_to_dict
 from navigate.core.enum_ import EnergyDemandTypeID
-from navigate.core.id_ import CURVE, TECHNOLOGY, VARIABLE
+from navigate.core.node_type import CURVE, TECHNOLOGY, VARIABLE
 from navigate.core.nodes._machinery import _Machinery
 from navigate.core.nodes.curve import Curve
 from navigate.core.nodes.variable import Variable

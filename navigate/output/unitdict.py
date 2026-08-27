@@ -1,7 +1,28 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-import navigate.core.id_ as id_
+from navigate.core.node_type import (
+    CONVERTER,
+    EMISSION,
+    FEEDSTOCK,
+    FLEET,
+    FUEL,
+    LEVY,
+    PLANT,
+    PORT,
+    POWER_SYSTEM,
+    PROCESS,
+    PRODUCER,
+    REGION,
+    REGULATION,
+    REPORT,
+    ROUTE,
+    SOURCE,
+    TANK,
+    TECHNOLOGY,
+    TRANSPORT,
+    VESSEL,
+)
 
 _CONVERTER_UNITS = {
     'CAPEX':                            'USD/MW',
@@ -269,24 +290,24 @@ _BUNKER_OPTIONS_UNITS = {
 }
 
 unitdict = {
-    id_.CONVERTER:           _CONVERTER_UNITS,
-    id_.EMISSION:            _EMISSION_UNITS,
-    id_.FEEDSTOCK:           _FEEDSTOCK_UNITS,
-    id_.FLEET:               _FLEET_UNITS,
-    id_.FUEL:                _FUEL_UNITS,
-    id_.LEVY:                _LEVY_UNITS,
-    id_.PLANT:               _PLANT_UNITS,
-    id_.PORT:                _PORT_UNITS,
-    id_.POWER_SYSTEM:        _POWER_SYSTEM_UNITS,
-    id_.PROCESS:             _PROCESS_UNITS,
-    id_.PRODUCER:            _PRODUCER_UNITS,
-    id_.REGION:              _REGION_UNITS,
-    id_.REGULATION:          _REGULATION_UNITS,
-    id_.REPORT:              _REPORT_UNITS,
-    id_.ROUTE:               _ROUTE_UNITS,
-    id_.SOURCE:              _SOURCE_UNITS,
-    id_.TANK:                _TANK_UNITS,
-    id_.TECHNOLOGY:          _TECHNOLOGY_UNITS,
-    id_.TRANSPORT:           _TRANSPORT_UNITS,
-    id_.VESSEL:              _VESSEL_UNITS
+    CONVERTER:           _CONVERTER_UNITS,
+    EMISSION:            _EMISSION_UNITS,
+    FEEDSTOCK:           _FEEDSTOCK_UNITS,
+    FLEET:               _FLEET_UNITS,
+    FUEL:                _FUEL_UNITS,
+    LEVY:                _LEVY_UNITS,
+    PLANT:               _PLANT_UNITS,
+    PORT:                _PORT_UNITS,
+    POWER_SYSTEM:        _POWER_SYSTEM_UNITS,
+    PROCESS:             _PROCESS_UNITS,
+    PRODUCER:            _PRODUCER_UNITS,
+    REGION:              _REGION_UNITS,
+    REGULATION:          _REGULATION_UNITS,
+    REPORT:              _REPORT_UNITS,
+    ROUTE:               _ROUTE_UNITS,
+    SOURCE:              _SOURCE_UNITS,
+    TANK:                _TANK_UNITS,
+    TECHNOLOGY:          _TECHNOLOGY_UNITS,
+    TRANSPORT:           _TRANSPORT_UNITS,
+    VESSEL:              _VESSEL_UNITS
 }

@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from navigate.core import as_list, as_scalar_list, assign_list
-from navigate.core.id_ import FEEDSTOCK, FORECAST, PROCESS, VARIABLE
 from navigate.core.node import Node
+from navigate.core.node_type import FEEDSTOCK, FORECAST, PROCESS, VARIABLE
 
 
 class Process(Node):

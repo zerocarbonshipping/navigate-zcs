@@ -1,7 +1,37 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-import navigate.core.id_ as id_
+from navigate.core.node_type import (
+    BUNKER_LOGISTICS,
+    BUNKER_OPTIONS,
+    CONVERTER,
+    CURVE,
+    EMISSION,
+    FEEDSTOCK,
+    FLEET,
+    FORECAST,
+    FUEL,
+    LEVY,
+    MODEL_DEFINITION,
+    PLANT,
+    PLOT,
+    PORT,
+    POWER_SYSTEM,
+    PROCESS,
+    PRODUCER,
+    REGION,
+    REGULATION,
+    REPORT,
+    ROUTE,
+    SOURCE,
+    SURFACE,
+    TANK,
+    TECHNOLOGY,
+    TIMETABLE,
+    TRANSPORT,
+    VARIABLE,
+    VESSEL,
+)
 from navigate.exceptions import AttributeAssignmentError
 from navigate.parser._keywords import SECTION_BOTH, SECTION_DEFINE, SECTION_NAME
 
@@ -205,36 +235,36 @@ _BUNKER_OPTIONS_ATTRIBUTES = {'Solver':                        SECTION_DEFINE,
                               'FairShareTolerance':           SECTION_DEFINE}
 
 # assemble dicts -------------------------------------------------------------------------------------------------------
-NODE_ATTRIBUTE_SECTIONS = {id_.CONVERTER:           _CONVERTER_ATTRIBUTES,
-                           id_.CURVE:               _CURVE_ATTRIBUTES,
-                           id_.EMISSION:            _EMISSION_ATTRIBUTES,
-                           id_.FEEDSTOCK:           _FEEDSTOCK_ATTRIBUTES,
-                           id_.FLEET:               _FLEET_ATTRIBUTES,
-                           id_.FORECAST:            _FORECAST_ATTRIBUTES,
-                           id_.FUEL:                _FUEL_ATTRIBUTES,
-                           id_.LEVY:                _LEVY_ATTRIBUTES,
-                           id_.PLANT:               _PLANT_ATTRIBUTES,
-                           id_.PLOT:                _PLOT_ATTRIBUTES,
-                           id_.PORT:                _PORT_ATTRIBUTES,
-                           id_.POWER_SYSTEM:        _POWER_SYSTEM_ATTRIBUTES,
-                           id_.PROCESS:             _PROCESS_ATTRIBUTES,
-                           id_.PRODUCER:            _PRODUCER_ATTRIBUTES,
-                           id_.REGION:              _REGION_ATTRIBUTES,
-                           id_.REGULATION:          _REGULATION_ATTRIBUTES,
-                           id_.REPORT:              _REPORT_ATTRIBUTES,
-                           id_.ROUTE:               _ROUTE_ATTRIBUTES,
-                           id_.SOURCE:              _SOURCE_ATTRIBUTES,
-                           id_.SURFACE:             _SURFACE_ATTRIBUTES,
-                           id_.TANK:                _TANK_ATTRIBUTES,
-                           id_.TECHNOLOGY:          _TECHNOLOGY_ATTRIBUTES,
-                           id_.TIMETABLE:           _TIMETABLE_ATTRIBUTES,
-                           id_.TRANSPORT:           _TRANSPORT_ATTRIBUTES,
-                           id_.VARIABLE:            _VARIABLE_ATTRIBUTES,
-                           id_.VESSEL:              _VESSEL_ATTRIBUTES}
+NODE_ATTRIBUTE_SECTIONS = {CONVERTER:           _CONVERTER_ATTRIBUTES,
+                           CURVE:               _CURVE_ATTRIBUTES,
+                           EMISSION:            _EMISSION_ATTRIBUTES,
+                           FEEDSTOCK:           _FEEDSTOCK_ATTRIBUTES,
+                           FLEET:               _FLEET_ATTRIBUTES,
+                           FORECAST:            _FORECAST_ATTRIBUTES,
+                           FUEL:                _FUEL_ATTRIBUTES,
+                           LEVY:                _LEVY_ATTRIBUTES,
+                           PLANT:               _PLANT_ATTRIBUTES,
+                           PLOT:                _PLOT_ATTRIBUTES,
+                           PORT:                _PORT_ATTRIBUTES,
+                           POWER_SYSTEM:        _POWER_SYSTEM_ATTRIBUTES,
+                           PROCESS:             _PROCESS_ATTRIBUTES,
+                           PRODUCER:            _PRODUCER_ATTRIBUTES,
+                           REGION:              _REGION_ATTRIBUTES,
+                           REGULATION:          _REGULATION_ATTRIBUTES,
+                           REPORT:              _REPORT_ATTRIBUTES,
+                           ROUTE:               _ROUTE_ATTRIBUTES,
+                           SOURCE:              _SOURCE_ATTRIBUTES,
+                           SURFACE:             _SURFACE_ATTRIBUTES,
+                           TANK:                _TANK_ATTRIBUTES,
+                           TECHNOLOGY:          _TECHNOLOGY_ATTRIBUTES,
+                           TIMETABLE:           _TIMETABLE_ATTRIBUTES,
+                           TRANSPORT:           _TRANSPORT_ATTRIBUTES,
+                           VARIABLE:            _VARIABLE_ATTRIBUTES,
+                           VESSEL:              _VESSEL_ATTRIBUTES}
 
-GENERAL_NODE_ATTRIBUTE_SECTIONS = {id_.MODEL_DEFINITION: _MODEL_DEFINITION_ATTRIBUTES,
-                                   id_.BUNKER_LOGISTICS: _BUNKER_LOGISTICS_ATTRIBUTES,
-                                   id_.BUNKER_OPTIONS:   _BUNKER_OPTIONS_ATTRIBUTES}
+GENERAL_NODE_ATTRIBUTE_SECTIONS = {MODEL_DEFINITION: _MODEL_DEFINITION_ATTRIBUTES,
+                                   BUNKER_LOGISTICS: _BUNKER_LOGISTICS_ATTRIBUTES,
+                                   BUNKER_OPTIONS:   _BUNKER_OPTIONS_ATTRIBUTES}
 
 
 # methods --------------------------------------------------------------------------------------------------------------
