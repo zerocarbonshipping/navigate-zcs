@@ -3,8 +3,8 @@
 
 from navigate.core import Scalar, as_scalar, assign_id, assign_value
 from navigate.core.enum_ import FuelTypeID
-from navigate.core.id_ import CURVE, EMISSION, VARIABLE
 from navigate.core.node import Node
+from navigate.core.node_type import CURVE, EMISSION, VARIABLE
 
 
 class Emission(Node):

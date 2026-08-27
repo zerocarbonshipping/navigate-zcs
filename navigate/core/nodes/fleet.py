@@ -28,8 +28,8 @@ from navigate.core.enum_ import (
     SpeedAlignmentID,
 )
 from navigate.core.expectations import FleetExpectation
-from navigate.core.id_ import CURVE, FLEET, FORECAST, TECHNOLOGY, VARIABLE, VESSEL
 from navigate.core.increment import Increment
+from navigate.core.node_type import CURVE, FLEET, FORECAST, TECHNOLOGY, VARIABLE, VESSEL
 from navigate.core.nodes._asset_manager import _AssetManager
 from navigate.core.nodes.curve import Curve
 from navigate.core.nodes.emission import Emission

@@ -8,7 +8,7 @@ import numpy as np
 from navigate.core import Scalar, as_scalar, assign_id, assign_value
 from navigate.core.enum_ import LevySchemeID
 from navigate.core.expectations import LevyExpectation
-from navigate.core.id_ import FORECAST, LEVY, VARIABLE
+from navigate.core.node_type import FORECAST, LEVY, VARIABLE
 from navigate.core.nodes._policy import _Policy
 from navigate.core.profiles import LevyProfile
 from navigate.exceptions import no_value_assigned_error

@@ -6,9 +6,39 @@ from collections.abc import Iterable
 from enum import Enum
 from itertools import product
 
-import navigate.core.id_ as id_
 from navigate.core.assign import expand_id_wildcard
 from navigate.core.enum_ import EnergyDemandTypeID, FuelTypeID
+from navigate.core.node_type import (
+    BUNKER_LOGISTICS,
+    BUNKER_OPTIONS,
+    CONVERTER,
+    CURVE,
+    EMISSION,
+    FEEDSTOCK,
+    FLEET,
+    FORECAST,
+    FUEL,
+    LEVY,
+    MODEL_DEFINITION,
+    PLANT,
+    PLOT,
+    PORT,
+    POWER_SYSTEM,
+    PROCESS,
+    PRODUCER,
+    REGION,
+    REGULATION,
+    REPORT,
+    ROUTE,
+    SOURCE,
+    SURFACE,
+    TANK,
+    TECHNOLOGY,
+    TIMETABLE,
+    TRANSPORT,
+    VARIABLE,
+    VESSEL,
+)
 from navigate.exceptions import CommandError
 from navigate.parser._keywords import SECTION_BOTH, SECTION_DEFINE, SECTION_NAME
 from navigate.util import name_contains_wildcards
@@ -135,36 +165,36 @@ _BUNKER_OPTIONS_COMMANDS = {}
 _MODEL_DEFINITION_COMMANDS = {}
 
 # assemble dicts -------------------------------------------------------------------------------------------------------
-NODE_COMMAND_SECTIONS = {id_.CONVERTER:             _CONVERTER_COMMANDS,
-                         id_.CURVE:                 _CURVE_COMMANDS,
-                         id_.EMISSION:              _EMISSION_COMMANDS,
-                         id_.FEEDSTOCK:             _FEEDSTOCK_COMMANDS,
-                         id_.FLEET:                 _FLEET_COMMANDS,
-                         id_.FORECAST:              _FORECAST_COMMANDS,
-                         id_.FUEL:                  _FUEL_COMMANDS,
-                         id_.LEVY:                  _LEVY_COMMANDS,
-                         id_.PLANT:                 _PLANT_COMMANDS,
-                         id_.PLOT:                  _PLOT_COMMANDS,
-                         id_.PORT:                  _PORT_COMMANDS,
-                         id_.POWER_SYSTEM:          _POWER_SYSTEM_COMMANDS,
-                         id_.PROCESS:               _PROCESS_COMMANDS,
-                         id_.PRODUCER:              _PRODUCER_COMMANDS,
-                         id_.REGION:                _REGION_COMMANDS,
-                         id_.REGULATION:            _REGULATION_COMMANDS,
-                         id_.REPORT:                _REPORT_COMMANDS,
-                         id_.ROUTE:                 _ROUTE_COMMANDS,
-                         id_.SOURCE:                _SOURCE_COMMANDS,
-                         id_.SURFACE:               _SURFACE_COMMANDS,
-                         id_.TANK:                  _TANK_COMMANDS,
-                         id_.TECHNOLOGY:            _TECHNOLOGY_COMMANDS,
-                         id_.TIMETABLE:             _TIMETABLE_COMMANDS,
-                         id_.TRANSPORT:             _TRANSPORT_COMMANDS,
-                         id_.VARIABLE:              _VARIABLE_COMMANDS,
-                         id_.VESSEL:                _VESSEL_COMMANDS}
+NODE_COMMAND_SECTIONS = {CONVERTER:             _CONVERTER_COMMANDS,
+                         CURVE:                 _CURVE_COMMANDS,
+                         EMISSION:              _EMISSION_COMMANDS,
+                         FEEDSTOCK:             _FEEDSTOCK_COMMANDS,
+                         FLEET:                 _FLEET_COMMANDS,
+                         FORECAST:              _FORECAST_COMMANDS,
+                         FUEL:                  _FUEL_COMMANDS,
+                         LEVY:                  _LEVY_COMMANDS,
+                         PLANT:                 _PLANT_COMMANDS,
+                         PLOT:                  _PLOT_COMMANDS,
+                         PORT:                  _PORT_COMMANDS,
+                         POWER_SYSTEM:          _POWER_SYSTEM_COMMANDS,
+                         PROCESS:               _PROCESS_COMMANDS,
+                         PRODUCER:              _PRODUCER_COMMANDS,
+                         REGION:                _REGION_COMMANDS,
+                         REGULATION:            _REGULATION_COMMANDS,
+                         REPORT:                _REPORT_COMMANDS,
+                         ROUTE:                 _ROUTE_COMMANDS,
+                         SOURCE:                _SOURCE_COMMANDS,
+                         SURFACE:               _SURFACE_COMMANDS,
+                         TANK:                  _TANK_COMMANDS,
+                         TECHNOLOGY:            _TECHNOLOGY_COMMANDS,
+                         TIMETABLE:             _TIMETABLE_COMMANDS,
+                         TRANSPORT:             _TRANSPORT_COMMANDS,
+                         VARIABLE:              _VARIABLE_COMMANDS,
+                         VESSEL:                _VESSEL_COMMANDS}
 
-GENERAL_NODE_COMMAND_SECTIONS = {id_.BUNKER_LOGISTICS:  _BUNKER_LOGISTICS_COMMANDS,
-                                 id_.BUNKER_OPTIONS:    _BUNKER_OPTIONS_COMMANDS,
-                                 id_.MODEL_DEFINITION:  _MODEL_DEFINITION_COMMANDS}
+GENERAL_NODE_COMMAND_SECTIONS = {BUNKER_LOGISTICS:  _BUNKER_LOGISTICS_COMMANDS,
+                                 BUNKER_OPTIONS:    _BUNKER_OPTIONS_COMMANDS,
+                                 MODEL_DEFINITION:  _MODEL_DEFINITION_COMMANDS}
 
 
 # classes --------------------------------------------------------------------------------------------------------------

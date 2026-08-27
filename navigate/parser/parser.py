@@ -9,7 +9,6 @@ from pathlib import Path
 
 import numpy as np
 
-import navigate.core.id_ as id_
 from navigate.core import Expression, NodeReference
 from navigate.core.enum_ import SimulationSectionID
 from navigate.core.general_nodes.bunker_logistics import BunkerLogistics
@@ -27,11 +26,14 @@ from navigate.parser._commands import (
 )
 from navigate.parser._event import Event
 from navigate.parser._keywords import (
+    DATE,
+    END,
     GENERAL_NODE_GROUP,
     KEYWORD_SECTIONS,
     NODE_ALLOW_COPY,
     NODE_GROUP,
     SECTION_NAME,
+    START,
     define_new_general_node,
     define_new_node,
 )
@@ -445,7 +447,7 @@ class Parser:
                                   + ": Unable to alter timeline while retrieving default nodes.")
 
     def _start_timeline(self):
-        self._check_keyword(id_.START)
+        self._check_keyword(START)
         self._check_timeline_change()
 
         if self._current_date is not None:
@@ -454,10 +456,10 @@ class Parser:
 
         self._reading_events = True
         self._place_in_queue = True
-        self._assign_current_event(id_.START)
+        self._assign_current_event(START)
 
     def _end_timeline(self):
-        self._check_keyword(id_.END)
+        self._check_keyword(END)
         self._check_timeline_change()
 
         self._reading_events = False
@@ -466,7 +468,7 @@ class Parser:
 
     def _read_date(self, stmt):
         """Process a DateStmt AST node."""
-        self._check_keyword(id_.DATE)
+        self._check_keyword(DATE)
         self._check_timeline_change()
 
         date = string_to_date(stmt.date_string,
@@ -499,16 +501,16 @@ class Parser:
     def _replace_start_keyword(self):
         start_date = self.general_nodes.model_definition.get_start_date()
 
-        self._dates = np.array([start_date if d == id_.START else d for d in self._dates], dtype='datetime64[D]')
+        self._dates = np.array([start_date if d == START else d for d in self._dates], dtype='datetime64[D]')
         self._dates = np.unique(self._dates)
 
-        if id_.START in self._event_queue:
+        if START in self._event_queue:
             if start_date not in self._event_queue:
                 start_events = []
             else:
                 start_events = self._event_queue.pop(start_date)
 
-            self._event_queue[start_date] = [*self._event_queue.pop(id_.START), *start_events]
+            self._event_queue[start_date] = [*self._event_queue.pop(START), *start_events]
 
         else:
             if start_date not in self._dates:

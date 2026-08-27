@@ -12,7 +12,7 @@ from navigate.core import (
     command_assignment_to_tuple_dict,
 )
 from navigate.core.enum_ import FuelTypeID
-from navigate.core.id_ import CONVERTER, FORECAST, VARIABLE
+from navigate.core.node_type import CONVERTER, FORECAST, VARIABLE
 from navigate.core.nodes._machinery import _Machinery
 from navigate.exceptions import no_value_assigned_error
 from navigate.util import list_is_unique

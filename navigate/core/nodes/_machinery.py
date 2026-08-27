@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from navigate.core import Scalar, as_scalar, assign_value
-from navigate.core.id_ import FORECAST, VARIABLE
 from navigate.core.node import Node
+from navigate.core.node_type import FORECAST, VARIABLE
 
 
 class _Machinery(Node):

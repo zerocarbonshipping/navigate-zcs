@@ -3,7 +3,7 @@
 
 from navigate.core import as_list, as_scalar, assign_id_list, assign_value
 from navigate.core.enum_ import FuelTypeID
-from navigate.core.id_ import TANK, VARIABLE
+from navigate.core.node_type import TANK, VARIABLE
 from navigate.core.nodes._machinery import _Machinery
 from navigate.exceptions import no_value_assigned_error
 

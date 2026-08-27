@@ -7,10 +7,10 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-import navigate.core.id_ as id_
 from navigate.core import Scalar, as_scalar, assign_value, command_assignment_to_dict
 from navigate.core.expectations import PlantExpectation
 from navigate.core.node import Node
+from navigate.core.node_type import FORECAST, FUEL, PLANT, PROCESS, REGION, SOURCE, TRANSPORT, VARIABLE
 from navigate.core.profiles import PlantProfile
 from navigate.exceptions import no_value_assigned_error
 
@@ -25,7 +25,7 @@ class Plant(Node):
     def __init__(self, name):
         super().__init__(name)
 
-        self._type = id_.PLANT
+        self._type = PLANT
 
         self.fuel = None       # Fuel, the fuel being produced by the plant
         self.process = None    # Process, the top-level production process used at the plant
@@ -60,7 +60,7 @@ class Plant(Node):
             A Fuel node.
         """
 
-        self.fuel = assign_value(fuel, scalar=False, type_=id_.FUEL)
+        self.fuel = assign_value(fuel, scalar=False, type_=FUEL)
 
     def set_process(self, process):
         """
@@ -76,7 +76,7 @@ class Plant(Node):
             A Process node.
         """
 
-        self.process = assign_value(process, scalar=False, type_=id_.PROCESS)
+        self.process = assign_value(process, scalar=False, type_=PROCESS)
 
     def set_region(self, region):
         """
@@ -92,7 +92,7 @@ class Plant(Node):
             A Region node.
         """
 
-        self.region = assign_value(region, scalar=False, type_=id_.REGION)
+        self.region = assign_value(region, scalar=False, type_=REGION)
 
     def set_source(self, source):
         """
@@ -108,7 +108,7 @@ class Plant(Node):
             A Source node.
         """
 
-        self.source = assign_value(source, scalar=False, type_=id_.SOURCE)
+        self.source = assign_value(source, scalar=False, type_=SOURCE)
 
     def set_capacity(self, capacity):
         """
@@ -125,7 +125,7 @@ class Plant(Node):
             Production capacity of the plant in tons/day.
         """
 
-        self.capacity = assign_value(as_scalar(capacity), type_=(id_.FORECAST, id_.VARIABLE),
+        self.capacity = assign_value(as_scalar(capacity), type_=(FORECAST, VARIABLE),
                                      lower=0., inclusive_lower=False)
 
     def set_uptime(self, uptime):
@@ -143,7 +143,7 @@ class Plant(Node):
             Production uptime of the plant in time/time.
         """
 
-        self.uptime = assign_value(as_scalar(uptime), type_=(id_.FORECAST, id_.VARIABLE),
+        self.uptime = assign_value(as_scalar(uptime), type_=(FORECAST, VARIABLE),
                                    lower=0., upper=1., inclusive_lower=False)
 
     def set_lifetime(self, lifetime):
@@ -162,7 +162,7 @@ class Plant(Node):
             Lifetime of the plant in years.
         """
 
-        self.lifetime = assign_value(as_scalar(lifetime), type_=(id_.FORECAST, id_.VARIABLE),
+        self.lifetime = assign_value(as_scalar(lifetime), type_=(FORECAST, VARIABLE),
                                      lower=0., inclusive_lower=False)
 
     def set_lead_time(self, lead_time):
@@ -180,7 +180,7 @@ class Plant(Node):
             Construction lead time of the plant in years.
         """
 
-        self.lead_time = assign_value(as_scalar(lead_time), type_=(id_.FORECAST, id_.VARIABLE), lower=0.)
+        self.lead_time = assign_value(as_scalar(lead_time), type_=(FORECAST, VARIABLE), lower=0.)
 
     def set_cost_of_capital(self, cost_of_capital):
         """
@@ -199,7 +199,7 @@ class Plant(Node):
             Cost of capital.
         """
 
-        self.cost_of_capital = assign_value(as_scalar(cost_of_capital), type_=(id_.FORECAST, id_.VARIABLE), lower=0.)
+        self.cost_of_capital = assign_value(as_scalar(cost_of_capital), type_=(FORECAST, VARIABLE), lower=0.)
 
     # external commands called in the input deck -----------------------------------------------------------------------
     def set_feed_transport(self, feed_name, value):
@@ -219,7 +219,7 @@ class Plant(Node):
             The transport mode used to transport the feedstock or process output.
         """
 
-        command_assignment_to_dict(feed_name, value, self.feed_transport, type_=id_.TRANSPORT)
+        command_assignment_to_dict(feed_name, value, self.feed_transport, type_=TRANSPORT)
 
     def set_feed_distance(self, feed_name, value):
         """
@@ -242,7 +242,7 @@ class Plant(Node):
         command_assignment_to_dict(feed_name,
                                    value,
                                    self.feed_distance,
-                                   type_=(id_.FORECAST, id_.VARIABLE),
+                                   type_=(FORECAST, VARIABLE),
                                    lower=0.)
 
     # internal methods -------------------------------------------------------------------------------------------------

@@ -6,8 +6,8 @@ import pytest
 
 from navigate.core.assign import assign_id_list, assign_list, assign_value, expand_id_wildcard
 from navigate.core.enum_ import EnergyDemandTypeID, FuelTypeID
-from navigate.core.id_ import FUEL, PORT
 from navigate.core.node_reference import NodeReference, WildcardNodeReference
+from navigate.core.node_type import FUEL, PORT
 from navigate.util import retrieve_keys
 
 # ── expand_id_wildcard ────────────────────────────────────────────────────────

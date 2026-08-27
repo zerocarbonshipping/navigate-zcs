@@ -3,8 +3,8 @@
 
 from navigate.core import Scalar, as_scalar, assign_id, assign_value, command_assignment_to_dict
 from navigate.core.enum_ import FuelTypeID
-from navigate.core.id_ import FUEL, VARIABLE
 from navigate.core.node import Node
+from navigate.core.node_type import FUEL, VARIABLE
 from navigate.exceptions import no_value_assigned_error
 
 

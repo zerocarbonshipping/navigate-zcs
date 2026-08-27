@@ -1,7 +1,28 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-import navigate.core.id_ as id_
+from navigate.core.node_type import (
+    CONVERTER,
+    CURVE,
+    EMISSION,
+    FEEDSTOCK,
+    FLEET,
+    FORECAST,
+    FUEL,
+    LEVY,
+    PLOT,
+    PORT,
+    POWER_SYSTEM,
+    PROCESS,
+    REGULATION,
+    REPORT,
+    ROUTE,
+    SURFACE,
+    TANK,
+    TIMETABLE,
+    VARIABLE,
+    VESSEL,
+)
 
 
 class CommandReferenceMixin:
@@ -20,31 +41,30 @@ class CommandReferenceMixin:
         self._command_references = []
 
 
-# Map method names to id_ constants
 _TYPE_CHECKS = {
-    'is_converter': id_.CONVERTER,
-    'is_curve': id_.CURVE,
-    'is_emission': id_.EMISSION,
-    'is_feedstock': id_.FEEDSTOCK,
-    'is_fleet': id_.FLEET,
-    'is_forecast': id_.FORECAST,
-    'is_fuel': id_.FUEL,
-    'is_levy': id_.LEVY,
-    'is_plot': id_.PLOT,
-    'is_port': id_.PORT,
-    'is_power_system': id_.POWER_SYSTEM,
-    'is_process': id_.PROCESS,
-    'is_regulation': id_.REGULATION,
-    'is_report': id_.REPORT,
-    'is_route': id_.ROUTE,
-    'is_surface': id_.SURFACE,
-    'is_tank': id_.TANK,
-    'is_timetable': id_.TIMETABLE,
-    'is_variable': id_.VARIABLE,
-    'is_vessel': id_.VESSEL,
+    'is_converter': CONVERTER,
+    'is_curve': CURVE,
+    'is_emission': EMISSION,
+    'is_feedstock': FEEDSTOCK,
+    'is_fleet': FLEET,
+    'is_forecast': FORECAST,
+    'is_fuel': FUEL,
+    'is_levy': LEVY,
+    'is_plot': PLOT,
+    'is_port': PORT,
+    'is_power_system': POWER_SYSTEM,
+    'is_process': PROCESS,
+    'is_regulation': REGULATION,
+    'is_report': REPORT,
+    'is_route': ROUTE,
+    'is_surface': SURFACE,
+    'is_tank': TANK,
+    'is_timetable': TIMETABLE,
+    'is_variable': VARIABLE,
+    'is_vessel': VESSEL,
 }
 
-_CALCULATOR_TYPES = (id_.CURVE, id_.FORECAST, id_.SURFACE, id_.TIMETABLE, id_.VARIABLE)
+_CALCULATOR_TYPES = (CURVE, FORECAST, SURFACE, TIMETABLE, VARIABLE)
 
 
 class TypeCheckMixin:

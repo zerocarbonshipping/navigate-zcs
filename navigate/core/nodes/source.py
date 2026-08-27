@@ -1,10 +1,10 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-import navigate.core.id_ as id_
 from navigate.core import assign_id
 from navigate.core.enum_ import SourceDependencyID
 from navigate.core.node import Node
+from navigate.core.node_type import SOURCE
 from navigate.exceptions import no_value_assigned_error
 
 
@@ -12,7 +12,7 @@ class Source(Node):
     def __init__(self, name):
         super().__init__(name)
 
-        self._type = id_.SOURCE
+        self._type = SOURCE
 
         self._dependency = None  # enum, whether source is standalone or connected
 

@@ -8,8 +8,8 @@ Verifies that setters wrapping their argument with ``as_list`` accept both
 is wrapped into a list so the parser's wildcard-expansion pass picks it up.
 """
 
-from navigate.core.id_ import PORT, TECHNOLOGY, VESSEL
 from navigate.core.node_reference import NodeReference, WildcardNodeReference
+from navigate.core.node_type import PORT, TECHNOLOGY, VESSEL
 from navigate.core.nodes._policy import _Policy
 from navigate.core.nodes.fleet import Fleet
 from navigate.core.nodes.fuel import Fuel

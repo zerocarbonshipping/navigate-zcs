@@ -3,8 +3,8 @@
 
 import os
 
-from navigate.core.id_ import PLOT
 from navigate.core.node import Node
+from navigate.core.node_type import PLOT
 
 
 class Plot(Node):

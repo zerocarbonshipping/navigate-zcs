@@ -13,8 +13,8 @@ import openpyxl as xl
 
 from navigate.core import assign_id
 from navigate.core.enum_ import FileFormatID, ReportReduceID
-from navigate.core.id_ import REPORT
 from navigate.core.node import Node
+from navigate.core.node_type import REPORT
 from navigate.output.report_writer import (
     NodeReport,
     export_properties_csv,

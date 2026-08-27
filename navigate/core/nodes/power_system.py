@@ -3,7 +3,7 @@
 
 from navigate.core import assign_value
 from navigate.core.enum_ import EnergyDemandTypeID
-from navigate.core.id_ import CONVERTER, POWER_SYSTEM
+from navigate.core.node_type import CONVERTER, POWER_SYSTEM
 from navigate.core.nodes._machinery import _Machinery
 from navigate.exceptions import no_value_assigned_error
 from navigate.util import list_is_unique

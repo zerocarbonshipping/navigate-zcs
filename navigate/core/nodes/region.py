@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from navigate.core import Scalar, command_assignment_to_dict, command_assignment_to_tuple_dict
-from navigate.core.id_ import FORECAST, REGION, TIMETABLE, VARIABLE
 from navigate.core.node import Node
+from navigate.core.node_type import FORECAST, REGION, TIMETABLE, VARIABLE
 
 
 class Region(Node):

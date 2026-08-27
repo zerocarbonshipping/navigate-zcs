@@ -13,9 +13,9 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core import Scalar, as_scalar, as_scalar_list, assign_list, assign_value
-from navigate.core.id_ import CURVE, FORECAST, VARIABLE
 from navigate.core.increment import Increment
 from navigate.core.node import Node
+from navigate.core.node_type import CURVE, FORECAST, VARIABLE
 from navigate.util import YEAR
 
 if TYPE_CHECKING:

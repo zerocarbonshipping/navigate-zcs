@@ -9,8 +9,8 @@ import pytest
 
 from navigate.core import Scalar
 from navigate.core.enum_ import EnergyDemandTypeID
-from navigate.core.id_ import FLEET, VESSEL
 from navigate.core.increment import Increment
+from navigate.core.node_type import FLEET, VESSEL
 from navigate.core.nodes.fleet import Fleet
 from navigate.fleet import evolution as fleet_evolution
 from navigate.fleet.conversion import reconcile_fuel_conversion_caps
