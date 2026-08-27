@@ -4,11 +4,15 @@
 import numpy as np
 
 from navigate.core import Scalar
+from navigate.core.enum_ import EnergyDemandTypeID, EnergyDemandTypePortID
+from navigate.core.nodes.converter import Converter
 from navigate.core.nodes.curve import Curve
 from navigate.core.nodes.surface import Surface
 from navigate.core.nodes.variable import Variable
 from navigate.core.nodes.vessel import Vessel
-from navigate.util import to_numpy
+from navigate.core.unit import MWD_TO_GJ
+from navigate.exceptions import PowerCapacityError
+from navigate.util import TOLERANCE, to_numpy
 
 
 def calculate_speed_bounds(speeds_min: np.ndarray,
@@ -132,6 +136,100 @@ def loads_are_convex(vessel: Vessel) -> bool:
     heat = _load_is_convex(vessel.heat_load_at_sea)
 
     return propulsion and electrical and heat
+
+
+def verify_power_capacity(vessel: Vessel, idx: int) -> None:
+    """
+    Verify that installed converter power covers every energy demand of a vessel.
+
+    Each demand is compared per leg and per port: the energy a converter delivers over
+    a step cannot exceed its power capacity times the time spent on that step. Since
+    speed, and thus load, is constant within a leg, the per-leg comparison bounds the
+    load at every operating speed. Port demands must fit the onboard converter alone;
+    shore power gives no allowance.
+
+    Parameters
+    ----------
+    vessel
+        Vessel whose energy demands are verified.
+    idx
+        Current time-step index.
+
+    Raises
+    ------
+    PowerCapacityError
+        If any energy demand exceeds what the serving converter can deliver.
+    """
+
+    expectation = vessel.expectation
+    power_system = vessel.power_system
+
+    times_sea = expectation.get_time_sea(idx)
+    times_port = expectation.get_time_port(idx)
+    energies_sea = expectation.get_energy_sea(idx=idx)
+    energies_port = expectation.get_energy_port(idx=idx)
+
+    domains = (
+        (energies_sea, times_sea, "leg", EnergyDemandTypeID),
+        (energies_port, times_port, "port", EnergyDemandTypePortID),
+    )
+
+    violations = []
+
+    for energies, times, step_label, demand_types in domains:
+
+        for demand_type in demand_types:
+            converter = power_system.get_converter_by_energy_type(demand_type)
+            violations += _find_capacity_violations(converter, demand_type, energies[demand_type], times, step_label)
+
+    if violations:
+        raise PowerCapacityError("{}: energy demand exceeds installed converter power:\n{}"
+                                 .format(vessel, "\n".join(violations)))
+
+
+def _find_capacity_violations(converter: Converter,
+                              demand_type: EnergyDemandTypeID,
+                              energies: list[float],
+                              times: list[float],
+                              step_label: str
+                              ) -> list[str]:
+    """
+    Compare one energy demand against a converter's deliverable energy per leg or port.
+
+    Parameters
+    ----------
+    converter
+        Converter serving the demand.
+    demand_type
+        Energy demand type being verified.
+    energies
+        Energy demand per step (GJ).
+    times
+        Time spent on each step (days).
+    step_label
+        Name of the step dimension ("leg" or "port") used in violation messages.
+
+    Returns
+    -------
+    One message per step whose demand exceeds the deliverable energy.
+    """
+
+    power_capacity = converter.power_capacity.get()
+    violations = []
+
+    for step, (energy, time) in enumerate(zip(energies, times)):
+
+        deliverable = power_capacity * time * MWD_TO_GJ
+
+        if energy - deliverable <= TOLERANCE * max(1., deliverable):
+            continue
+
+        implied_power = energy / (time * MWD_TO_GJ) if time > 0. else float("inf")
+        violations.append("  {} demand on {} {} requires {:.2f} MW but {} has {:.2f} MW installed."
+                          .format(demand_type.name.lower(), step_label, step,
+                                  implied_power, converter, power_capacity))
+
+    return violations
 
 
 def _expand_speed_to_legs(vessel, speed: float | list[float]) -> np.ndarray:

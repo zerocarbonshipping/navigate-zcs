@@ -46,6 +46,10 @@ class InfeasibleLPError(NavigateError):
     """Raised if an LP is infeasible."""
 
 
+class PowerCapacityError(NavigateError):
+    """Raised if a vessel's energy demand exceeds what its installed converter power can deliver."""
+
+
 class ConvergenceError(NavigateError):
     """Raised if an iterative algorithm fails to converge."""
 

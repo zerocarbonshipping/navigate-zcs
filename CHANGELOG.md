@@ -25,6 +25,19 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   order-sensitive outputs such as dual values vary run-to-run.
 
 ### Changed
+- The converter power-capacity check moved out of the bunker LP into a
+  per-time-step fleet validation. The LP rows were redundant: the
+  energy-conservation equalities fix each row's left-hand side, so a row
+  either held for every solution or made the LP infeasible. Undersized
+  converters now raise a `PowerCapacityError` naming the vessel, converter,
+  leg or port, and the required versus installed power, instead of an LP
+  infeasibility with an IIS dump. Two behavior tightenings follow:
+  - **Breaking**: port electrical demand must fit the onboard electrical
+    converter; previously, when shore power was available, the LP forced a
+    shore-power purchase to cover the shortfall instead of failing.
+  - **Breaking**: on regional routes the check holds per condition leg;
+    the LP row only constrained the sailing-fraction-weighted mean, which
+    could mask an overload at the fastest sea condition.
 - **Breaking**: the `Propulsion`, `Electrical`, and `Heat` attributes of a
   `PowerSystem` must reference three distinct converters; initialization now
   fails otherwise. A converter shared across the slots of one power system

@@ -42,8 +42,6 @@ def remove_redundant_vessel(alg: BunkerAlgorithm, v: str) -> None:
     # remove primary constraints
     remove_model_attribute_and_dict_element(alg, v, alg.energy_conservation_sea)
     remove_model_attribute_and_dict_element(alg, v, alg.energy_conservation_port)
-    remove_model_attribute_and_dict_element(alg, v, alg.power_capacity_sea)
-    remove_model_attribute_and_dict_element(alg, v, alg.power_capacity_port)
     remove_model_attribute_and_dict_element(alg, v, alg.pilot_fuel_sea)
     remove_model_attribute_and_dict_element(alg, v, alg.pilot_fuel_port)
     remove_model_attribute_and_dict_element(alg, v, alg.mass_conservation)
