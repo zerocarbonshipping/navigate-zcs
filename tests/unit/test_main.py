@@ -139,18 +139,6 @@ class TestTopLevelErrorHandling:
         assert 'no plot configurations' in captured.err
         assert 'Traceback' not in captured.err
 
-    def test_replot_old_schema_no_traceback(self, monkeypatch, capsys, tmp_path):
-        plot_data = PlotData()
-        vars(plot_data).clear()
-        vars(plot_data).update({'_plot_configs': [], '_deck_directory': str(tmp_path)})
-        plot_data.save(str(tmp_path))
-
-        assert _run_main(monkeypatch, '--replot', tmp_path) == 1
-
-        captured = capsys.readouterr()
-        assert 'older Navigate version' in captured.err
-        assert 'Traceback' not in captured.err
-
     def test_keyboard_interrupt_exits_130(self, monkeypatch, capsys, tmp_path):
         deck = tmp_path / 'deck.nav'
         deck.write_text(GARBLED_DECK)

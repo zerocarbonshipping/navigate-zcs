@@ -8,8 +8,6 @@ import os
 import pickle
 import timeit
 
-from navigate.exceptions import PlotDataError
-
 logger = logging.getLogger(__name__)
 
 _STRIPPED_NODE_DICTS = ('plots', 'reports')
@@ -116,12 +114,6 @@ class PlotData:
 
         with gzip.open(path, 'rb') as f:
             plot_data = pickle.load(f)
-
-        if not hasattr(plot_data, 'plot_configs'):
-            raise PlotDataError(
-                "The plot data was saved by an older Navigate version and cannot be "
-                "loaded by this one. Replot it with the version that produced it."
-            )
 
         logger.info(f"Loaded plot data from '{path}'")
         return plot_data
