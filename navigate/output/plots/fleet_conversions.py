@@ -51,7 +51,7 @@ def plot_fleet_conversions_cumulative(manager, directory):
         # used for trimming
         count += 1
 
-        vessel_map = {vessel.name: vessel for vessel in fleets[fleet_name].get_vessels()}
+        vessel_map = {vessel.name: vessel for vessel in fleets[fleet_name].vessels}
 
         conversions_from = collapse_tuple_dict(conversions, key1=True)
         conversions_from = {key: -conversion for key, conversion in conversions_from.items()}

@@ -36,7 +36,6 @@ from navigate.core.nodes.forecast import Forecast
 from navigate.core.nodes.fuel import Fuel
 from navigate.core.nodes.technology import Technology
 from navigate.core.nodes.variable import Variable
-from navigate.core.nodes.vessel import Vessel
 from navigate.core.profiles import FleetProfile
 from navigate.exceptions import no_value_assigned_error
 from navigate.fleet.evolution import calculate_evolution_expectation
@@ -111,8 +110,8 @@ class Fleet(_AssetManager):
         self.technology_packages: list[Package] = []                # Packages based on technology input
         self.package_to_technology_map: dict[int, int] = {}         # Package index -> technology index
 
-    # parser compatibility — attribute_to_setter("Vessels") resolves to "_vessels"
-    vessels = property(lambda self: self.assets, lambda self, v: setattr(self, 'assets', v))
+    # public domain name for the inherited assets list
+    vessels = property(lambda self: self.assets)
 
     # external attributes set through the input deck -------------------------------------------------------------------
 
@@ -721,15 +720,9 @@ class Fleet(_AssetManager):
         command_assignment_to_dict(id_, saving, self.operational_saving_port, type_=(FORECAST, VARIABLE),
                                    lower=0., upper=1.)
 
-    def get_operational_saving_sea(self, energy_type: EnergyDemandTypeID) -> float:
-        return self.operational_saving_sea[energy_type].get()
-
-    def get_operational_saving_port(self, energy_type: EnergyDemandTypeID) -> float:
-        return self.operational_saving_port[energy_type].get()
-
     def transfer_operational_saving_to_vessels(self) -> None:
-        saving_sea = {d: self.get_operational_saving_sea(d) for d in EnergyDemandTypeID}
-        saving_port = {d: self.get_operational_saving_port(d) for d in EnergyDemandTypePortID}
+        saving_sea = {d: self.operational_saving_sea[d].get() for d in EnergyDemandTypeID}
+        saving_port = {d: self.operational_saving_port[d].get() for d in EnergyDemandTypePortID}
         for vessel in self.assets:
             vessel.expectation.set_operational_saving_fraction_sea(saving_sea)
             vessel.expectation.set_operational_saving_fraction_port(saving_port)
@@ -918,11 +911,11 @@ class Fleet(_AssetManager):
                 if isinstance(orderbook, Forecast):
 
                     # check that orderbooks are cumulative
-                    if not is_non_strictly_increasing(orderbook.get_y()):
+                    if not is_non_strictly_increasing(orderbook.y):
                         raise ValueError("{}: Orderbook ({}) is not non-strictly increasing.".format(self, orderbook))
 
                     # print a warning if the forecast allows extrapolation
-                    if orderbook.get_extrapolate() == ExtrapolateID.LINEAR:
+                    if orderbook.extrapolate == ExtrapolateID.LINEAR:
                         logger.warning("{}: Orderbook ({}) allows extrapolation and"
                                        " may therefore continue past the last date.".format(self, orderbook))
 
@@ -1071,9 +1064,6 @@ class Fleet(_AssetManager):
         cargo_miles = extract_cargo_miles(self.assets, idx)
 
         return np.dot(multipliers, cargo_miles)
-
-    def get_vessels(self) -> list[Vessel]:
-        return self.assets
 
     def can_retrofit(self) -> bool:
         return bool(self.technologies)

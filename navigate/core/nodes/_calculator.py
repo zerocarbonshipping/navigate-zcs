@@ -17,10 +17,10 @@ BOUNDS_MAP = {'-INF': -np.inf,
 class _Calculator:
     def __init__(self):
 
-        self._addition = 0.
-        self._multiplier = 1.
-        self._lower_bound = -np.inf
-        self._upper_bound = np.inf
+        self.addition = 0.
+        self.multiplier = 1.
+        self.lower_bound = -np.inf
+        self.upper_bound = np.inf
 
         # extrapolation warning
         self._extrapolation_warned = False
@@ -45,7 +45,7 @@ class _Calculator:
             Addition to the calculated value.
         """
 
-        self._addition = assign_value(addition)
+        self.addition = assign_value(addition)
 
     def set_multiplier(self, multiplier):
         """
@@ -57,7 +57,7 @@ class _Calculator:
             Multiplier of the calculated value.
         """
 
-        self._multiplier = assign_value(multiplier)
+        self.multiplier = assign_value(multiplier)
 
     def set_lower_bound(self, lower_bound):
         """
@@ -70,10 +70,10 @@ class _Calculator:
         """
 
         if isinstance(lower_bound, float):
-            self._lower_bound = assign_value(lower_bound)
+            self.lower_bound = assign_value(lower_bound)
 
         else:
-            self._lower_bound = assign_id(lower_bound, BOUNDS_MAP)
+            self.lower_bound = assign_id(lower_bound, BOUNDS_MAP)
 
         # called here in case the lower bound is changed during time-stepping
         self._assign_applied_bounds()
@@ -89,10 +89,10 @@ class _Calculator:
         """
 
         if isinstance(upper_bound, float):
-            self._upper_bound = assign_value(upper_bound)
+            self.upper_bound = assign_value(upper_bound)
 
         else:
-            self._upper_bound = assign_id(upper_bound, BOUNDS_MAP)
+            self.upper_bound = assign_id(upper_bound, BOUNDS_MAP)
 
         # called here in case the upper bound is changed during time-stepping
         self._assign_applied_bounds()
@@ -166,15 +166,6 @@ class _Calculator:
 
         self._internal_upper_bound = internal_upper_bound
 
-    def get_bounds(self):
-        return self._lower_bound, self._upper_bound
-
-    def get_addition(self):
-        return self._addition
-
-    def get_multiplier(self):
-        return self._multiplier
-
     def _truncate(self, value):
         """
         Truncate a calculated value.
@@ -201,8 +192,8 @@ class _Calculator:
         the minimum or maximum values based on the respective constraints.
         """
 
-        self._applied_lower_bound = np.maximum(self._lower_bound, self._internal_lower_bound)
-        self._applied_upper_bound = np.minimum(self._upper_bound, self._internal_upper_bound)
+        self._applied_lower_bound = np.maximum(self.lower_bound, self._internal_lower_bound)
+        self._applied_upper_bound = np.minimum(self.upper_bound, self._internal_upper_bound)
 
     @staticmethod
     def _test_convexity(x, y):

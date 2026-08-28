@@ -90,8 +90,8 @@ class Producer(_AssetManager):
         # dynamic properties
         self.current_utilization = None    # float, current fraction of construction capacity utilized
 
-    # parser compatibility — attribute_to_setter("Plants") resolves to "_plants"
-    plants = property(lambda self: self.assets, lambda self, v: setattr(self, 'assets', v))
+    # public domain name for the inherited assets list
+    plants = property(lambda self: self.assets)
 
     # external attributes set through the input deck -------------------------------------------------------------------
     def set_plants(self, plants):
@@ -381,11 +381,11 @@ class Producer(_AssetManager):
                     continue
 
                 # check that pipelines are cumulative
-                if not is_non_strictly_increasing(pipeline.get_y()):
+                if not is_non_strictly_increasing(pipeline.y):
                     raise ValueError("{}: Pipeline ({}) is not non-strictly increasing.".format(self, pipeline))
 
                 # print a warning if the forecast allows extrapolation
-                if pipeline.get_extrapolate() == ExtrapolateID.LINEAR:
+                if pipeline.extrapolate == ExtrapolateID.LINEAR:
                     logger.warning("{}: Pipeline ({}) allows extrapolation and"
                                    " may therefore continue past the last date.".format(self, pipeline))
 
@@ -570,12 +570,6 @@ class Producer(_AssetManager):
         dt = time_step / YEAR
         self._age_increments(self.increments, dt)
         self._age_increments(self.pipeline, dt)
-
-    def get_plants(self):
-        return self.assets
-
-    def get_fuels(self):
-        return self.fuels
 
     def can_produce(self, fuel_name):
         return fuel_name in self.fuels

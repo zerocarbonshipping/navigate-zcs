@@ -100,12 +100,12 @@ class Package:
 
         # Compound savings: 1 - prod(1 - saving_i) per energy type
         for energy_id in EnergyDemandTypeID:
-            arr = np.array([t.get_energy_saving(energy_id).get() for t in self._technologies])
+            arr = np.array([t.energy_saving[energy_id].get() for t in self._technologies])
             self._compound_savings[energy_id] = 1. - float(np.prod(1. - arr))
 
         # Compound powers: sum(power_i) per energy type
         for energy_id in EnergyDemandTypeID:
-            arr = np.array([t.get_external_power(energy_id).get() for t in self._technologies])
+            arr = np.array([t.external_power[energy_id].get() for t in self._technologies])
             self._compound_powers[energy_id] = float(np.sum(arr))
 
         # Transfer curves: collect only non-zero (source, destination) pairs
@@ -115,7 +115,7 @@ class Package:
                 curves: list[Curve | Scalar] = []
 
                 for tech in self._technologies:
-                    obj = tech.get_power_transfer(source, destination)
+                    obj = tech.power_transfer[(source, destination)]
 
                     if isinstance(obj, Scalar) and obj.get() == 0.:
                         continue

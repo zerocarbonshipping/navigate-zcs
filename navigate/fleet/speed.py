@@ -66,7 +66,7 @@ def perform_speed_management(fleet: Fleet,
     fleet.transfer_operational_saving_to_vessels()
 
     # phase 1: individual optimization
-    results = [_optimize_vessel_speed(vessel, maximum_change, idx) for vessel in fleet.get_vessels()]
+    results = [_optimize_vessel_speed(vessel, maximum_change, idx) for vessel in fleet.vessels]
 
     # anchor speed to reference if enabled
     if fleet.assume_reference_speed_optimal:

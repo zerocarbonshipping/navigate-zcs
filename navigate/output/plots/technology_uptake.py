@@ -54,12 +54,12 @@ def plot_technology_uptake(manager, directory):
 
             values_nb = [
                 shares_nb[vessel.name]
-                for vessel in fleet.get_vessels()
+                for vessel in fleet.vessels
                 if vessel.name in shares_nb
             ]
             values_rf = [
                 shares_rf[vessel.name]
-                for vessel in fleet.get_vessels()
+                for vessel in fleet.vessels
                 if vessel.name in shares_rf
             ]
 
@@ -67,12 +67,12 @@ def plot_technology_uptake(manager, directory):
             # filtering weights on shares_rf pairs them with values_rf
             weights = [
                 multipliers[vessel.name]
-                for vessel in fleet.get_vessels()
+                for vessel in fleet.vessels
                 if vessel.name in shares_rf
             ]
             weights_nb = [
                 profile.get_newbuilds(vessel.name)
-                for vessel in fleet.get_vessels()
+                for vessel in fleet.vessels
                 if vessel.name in shares_nb
             ]
 

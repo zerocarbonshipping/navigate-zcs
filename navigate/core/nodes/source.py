@@ -14,7 +14,7 @@ class Source(Node):
 
         self.type = SOURCE
 
-        self._dependency = None  # enum, whether source is standalone or connected
+        self.dependency = None  # enum, whether source is standalone or connected
 
     # external attributes set through the input deck -------------------------------------------------------------------
     def set_dependency(self, dependency):
@@ -32,12 +32,9 @@ class Source(Node):
             Type of dependency.
         """
 
-        self._dependency = assign_id(dependency, SourceDependencyID)
+        self.dependency = assign_id(dependency, SourceDependencyID)
 
     # internal methods -------------------------------------------------------------------------------------------------
     def initialize(self):
-        if self._dependency is None:
+        if self.dependency is None:
             no_value_assigned_error(self, 'Dependency')
-
-    def get_dependency(self):
-        return self._dependency

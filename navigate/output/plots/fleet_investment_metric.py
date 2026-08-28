@@ -22,7 +22,7 @@ def plot_fleet_investment_metric(manager, directory):
 
     for fleet in fleets.values():
 
-        vessels = fleet.get_vessels()
+        vessels = fleet.vessels
 
         fig, axes = subplot_grid(len(vessels), sharey=True)
 

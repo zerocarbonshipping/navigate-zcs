@@ -241,7 +241,7 @@ class TestSimulationGating:
             get_existing_multipliers=lambda v, idx: existing_multiplier,
             get_expected_multipliers=lambda v, idx: np.asarray(expected_multipliers)[idx],
         )
-        fleet = SimpleNamespace(get_vessels=lambda: [vessel], expectation=expectation)
+        fleet = SimpleNamespace(vessels=[vessel], expectation=expectation)
         return SimpleNamespace(nodes=SimpleNamespace(fleets={"fleet": fleet}), _idx=IDX)
 
     @staticmethod

@@ -34,7 +34,7 @@ def _get_effective_lhv(converter: Converter, fuel: Fuel) -> float:
         Effective lower heating value (GJ/ton fuel-in).
     """
 
-    slip = converter.get_slip_fraction(fuel.fuel_type).get()
+    slip = converter.slip_fraction[fuel.fuel_type].get()
     return (1. - slip) * fuel.lower_heating_value.get()
 
 
@@ -69,13 +69,13 @@ def _calculate_emission_factor_TTW(converter: Converter, fuel: Fuel, emission: E
     if fuel_type not in converter.get_fuel_types():
         return 0.
 
-    slip = converter.get_slip_fraction(fuel_type).get()
+    slip = converter.slip_fraction[fuel_type].get()
 
     # fuel-bound TTW emissions scale with burned fraction
-    emission_factor = (1. - slip) * fuel.get_TTW(emission_name).get()
+    emission_factor = (1. - slip) * fuel.TTW[emission_name].get()
 
     # consumption emissions per ton fuel-in, no slip scaling
-    emission_factor += converter.get_consumption_TTW(fuel_type, emission_name).get()
+    emission_factor += converter.consumption_TTW[(fuel_type, emission_name)].get()
 
     # slip emissions: slip per ton fuel-in, gated by emission fuel_type
     emission_fuel_type = emission.fuel_type
@@ -163,7 +163,7 @@ def calculate_regulation_coefficients(alg: BunkerAlgorithm, vessel: Vessel) -> N
 
     # evaluate the vessel thresholds once per build; non-policed vessels carry
     # a threshold of zero (their emission terms never enter a constraint)
-    thresholds = {(r, v): (regulation.get_vessel_threshold(v).get(alg.time)
+    thresholds = {(r, v): (regulation.vessel_threshold[v].get(alg.time)
                            if regulation.vessel_is_policed(v) else 0.)
                   for r, regulation in active_regulations.items()}
     alg.regulation_vessel_threshold.update(thresholds)

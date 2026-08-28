@@ -399,7 +399,7 @@ class SimulationManager:
 
             allow_speed_management = fleet.allow_speed_management
 
-            for vessel in fleet.get_vessels():
+            for vessel in fleet.vessels:
                 update_operational_profile(vessel, allow_speed_management, self._idx)
 
         self.profile.add_vessel_time(self._idx, timeit.default_timer() - start_time)
@@ -539,7 +539,7 @@ class SimulationManager:
 
         for fleet in self.nodes.fleets.values():
 
-            for vessel in fleet.get_vessels():
+            for vessel in fleet.vessels:
 
                 v = vessel.name
 
@@ -606,7 +606,7 @@ class SimulationManager:
         start_time = timeit.default_timer()
 
         for fleet in self.nodes.fleets.values():
-            for vessel in fleet.get_vessels():
+            for vessel in fleet.vessels:
                 calculate_vessel_charter_properties(vessel, self.timeline, self._idx)
 
         self.profile.add_vessel_time(self._idx, timeit.default_timer() - start_time)
@@ -615,7 +615,7 @@ class SimulationManager:
         start_time = timeit.default_timer()
 
         for fleet in self.nodes.fleets.values():
-            for vessel in fleet.get_vessels():
+            for vessel in fleet.vessels:
                 calculate_cargo_charter_properties(vessel, self.timeline, self._idx)
 
         self.profile.add_vessel_time(self._idx, timeit.default_timer() - start_time)

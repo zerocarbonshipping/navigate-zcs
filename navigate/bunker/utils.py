@@ -104,7 +104,7 @@ def initialize_converter_fuel_maps(alg: BunkerAlgorithm) -> None:
 
     for fleet in alg.fleets.values():
 
-        for vessel in fleet.get_vessels():
+        for vessel in fleet.vessels:
 
             v = vessel.name
             converters = get_converters(vessel)

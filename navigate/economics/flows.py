@@ -85,11 +85,11 @@ class Component:
 
     def initialize_process_component(self, region: Region, process_name: str) -> None:
 
-        lifetime = region.get_process_lifetime(process_name)
+        lifetime = region.process_lifetime[process_name]
         if lifetime is not None:
             self._lifetime = lambda time: lifetime.get(time)
 
-        self._replacement = lambda time: region.get_process_replacement(process_name).get(time)
+        self._replacement = lambda time: region.process_replacement[process_name].get(time)
 
         self.compute_overlap_schedule()
 

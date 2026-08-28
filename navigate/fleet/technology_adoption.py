@@ -856,7 +856,7 @@ def approximate_missing_technology(fleets: dict, idx: int) -> None:
         if not fleet.can_retrofit():
             continue
 
-        vessels = fleet.get_vessels()
+        vessels = fleet.vessels
         for v, vessel in enumerate(vessels):
             multiplier = fleet.get_multiplier(v)
             expectation = vessel.expectation
@@ -885,7 +885,7 @@ def approximate_missing_technology(fleets: dict, idx: int) -> None:
     for fleet in fleets.values():
         if fleet.can_retrofit() or not fleet.allow_technology_approximation:
             continue
-        for vessel in fleet.get_vessels():
+        for vessel in fleet.vessels:
             op_sea = vessel.expectation.get_operational_energy_sea(idx=idx)
             op_port = vessel.expectation.get_operational_energy_port(idx=idx)
 

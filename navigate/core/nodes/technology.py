@@ -119,12 +119,3 @@ class Technology(_Machinery):
                     self.power_transfer[(power_system_id, energy_id)] = Scalar(0)
 
         self._initialize_machinery()
-
-    def get_energy_saving(self, energy_id: EnergyDemandTypeID) -> Scalar:
-        return self.energy_saving[energy_id]
-
-    def get_external_power(self, energy_id: EnergyDemandTypeID) -> Scalar:
-        return self.external_power[energy_id]
-
-    def get_power_transfer(self, power_system_id: EnergyDemandTypeID, energy_id: EnergyDemandTypeID) -> Scalar | Curve:
-        return self.power_transfer[(power_system_id, energy_id)]

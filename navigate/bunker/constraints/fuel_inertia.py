@@ -92,7 +92,7 @@ def update_fuel_inertia_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> Non
 
             if bunkering > 0.:
 
-                inertia = port.get_bunkering_inertia(f).get(alg.time)
+                inertia = port.bunkering_inertia[f].get(alg.time)
                 fuel_inertia = bunkering * calculate_inertia(inertia, alg.time_step)
                 fuel_inertia *= multiplier_scaling * energy_scaling
 

@@ -63,6 +63,24 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `navigate/bunker/constraints/_common.py`).
 
 ### Removed
+- **Breaking** for code importing navigate as a library: the remaining
+  node-class getters are replaced by direct attribute access (CODESTYLE.md,
+  Class variables) — the keyed dict getters on `Region` (13, backing dicts
+  now public), `Port` (4), `Plant` (2), `Technology` (3), `Fuel.get_TTW`,
+  `Converter.get_slip_fraction`/`get_consumption_TTW`, and
+  `Regulation.get_vessel_threshold` become direct dict indexing;
+  `Source.get_dependency` becomes a public `dependency` attribute;
+  `Fleet.get_vessels`/`get_operational_saving_sea`/`get_operational_saving_port`
+  and `Producer.get_plants`/`get_fuels` are read via the public
+  `vessels`/`plants`/`fuels` names; the table and calculator accessors
+  (`get_x`/`get_y`/`get_x_min`/`get_x_max`/`get_extrapolate`/`get_bounds`/
+  `get_addition`/`get_multiplier`) become public
+  `x`/`y`/`extrapolate`/`lower_bound`/`upper_bound`/`addition`/`multiplier`
+  attributes. `Converter.get_slip_fraction`'s missing-key fallback was
+  unreachable through the parser (the dict is seeded for every fuel type
+  before deck commands run), so direct indexing behaves identically; for
+  library callers, an unknown fuel type now raises `KeyError` instead of
+  returning zero.
 - **Breaking** for code importing navigate as a library: `Node.get_name()`/
   `get_type()` and `NodeReference.get_name()`/`get_type()` are replaced by
   direct attribute access (CODESTYLE.md, Class variables) — `name` was

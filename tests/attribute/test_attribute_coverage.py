@@ -41,5 +41,5 @@ class TestAttributeCoverage:
         assert len(manager.nodes.fleets) >= 2
 
     def test_four_vessel_types(self, manager):
-        total = sum(len(f.get_vessels()) for f in manager.nodes.fleets.values())
+        total = sum(len(f.vessels) for f in manager.nodes.fleets.values())
         assert total >= 4

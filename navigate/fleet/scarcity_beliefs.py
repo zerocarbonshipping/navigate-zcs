@@ -38,7 +38,7 @@ def update_vessel_scarcity_beliefs(fleets: dict, timeline: np.ndarray, idx: int)
         alpha_tech = derive_smoothing_alpha(idx, tech_horizon, timeline)
         alpha_speed = derive_smoothing_alpha(idx, speed_horizon, timeline)
 
-        for vessel in fleet.get_vessels():
+        for vessel in fleet.vessels:
             expectation = vessel.expectation
 
             raw_pi_sea = expectation.get_energy_conservation_pi_sea()
@@ -67,7 +67,7 @@ def record_investment_signals(fleets: dict, idx: int) -> None:
     """
 
     for fleet in fleets.values():
-        for vessel in fleet.get_vessels():
+        for vessel in fleet.vessels:
             expectation = vessel.expectation
 
             rhs_sea = expectation.get_energy_conservation_rhs_sea()

@@ -310,7 +310,7 @@ class BunkerAlgorithm:
         # if they are active and in the fleet
         for fleet in self.fleets.values():
 
-            for vessel in fleet.get_vessels():
+            for vessel in fleet.vessels:
 
                 v = vessel.name
 

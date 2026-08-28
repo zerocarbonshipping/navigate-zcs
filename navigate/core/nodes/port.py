@@ -394,15 +394,3 @@ class Port(Node):
         """
 
         return self.bunkering_allowed[fuel_name]
-
-    def get_bunkering_inertia(self, fuel_name):
-        return self.bunkering_inertia[fuel_name]
-
-    def get_handling_cost(self, fuel_name):
-        return self.handling_cost[fuel_name]
-
-    def get_bunker_price_overwrite(self, fuel_name):
-        return self.bunker_price_overwrite[fuel_name]
-
-    def get_bunker_WTT_overwrite(self, fuel_name, emission_name):
-        return self.bunker_WTT_overwrite[(fuel_name, emission_name)]

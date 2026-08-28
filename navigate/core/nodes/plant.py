@@ -333,9 +333,3 @@ class Plant(Node):
 
     def is_assigned_to_producer(self):
         return self.producer_assignment is not None
-
-    def get_feed_transport(self, feed_name):
-        return self.feed_transport[feed_name]
-
-    def get_feed_distance(self, feed_name):
-        return self.feed_distance[feed_name]

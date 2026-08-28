@@ -313,7 +313,7 @@ def calculate_development_potential(producer: Producer, time_step: float, idx: i
     maximum_development *= utilization
 
     # pre-allocate containers
-    potential = {fuel_name: 0. for fuel_name in producer.get_fuels()}
+    potential = {fuel_name: 0. for fuel_name in producer.fuels}
 
     for plant in producer.assets:
 
@@ -355,7 +355,7 @@ def calculate_development_potential(producer: Producer, time_step: float, idx: i
         potential[fuel_name] += plant_potential * production
 
     # transfer the development potential per fuel
-    for fuel_name in producer.get_fuels():
+    for fuel_name in producer.fuels:
 
         # TODO: can easily loop over export distribution to include shares going to ports
         producer.expectation.set_development_potential(fuel_name, potential[fuel_name])

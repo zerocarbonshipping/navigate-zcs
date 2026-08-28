@@ -97,7 +97,7 @@ def _calculate_import_from_liquid_market(ports: dict[str, Port],
 
             allowed = port.is_bunkering_allowed(f)
 
-            if port.get_bunker_price_overwrite(f) is not None:
+            if port.bunker_price_overwrite[f] is not None:
                 price = port.expectation.get_bunker_price_overwrite(f, idx_)
             else:
                 price = np.zeros(port.expectation.get_shape(idx))
@@ -133,7 +133,7 @@ def _calculate_import_from_liquid_market(ports: dict[str, Port],
             for e in emissions:
 
                 # check if the bunker WTT is overwritten on the port
-                if port.get_bunker_WTT_overwrite(f, e) is not None:
+                if port.bunker_WTT_overwrite[(f, e)] is not None:
                     wtt = port.expectation.get_bunker_WTT_overwrite(f, e, idx_)
                 else:
                     wtt = np.zeros(port.expectation.get_shape(idx))
@@ -192,7 +192,7 @@ def _calculate_import_from_producers(ports: dict[str, Port],
 
         export_distribution = producer.expectation.get_export_distribution(idx=idx_)
 
-        for plant in producer.get_plants():
+        for plant in producer.plants:
 
             plant_name = plant.name
 
@@ -255,7 +255,7 @@ def _calculate_import_from_producers(ports: dict[str, Port],
         for f in fuels:
 
             # check if the bunker price is overwritten on the port
-            if port.get_bunker_price_overwrite(f) is not None:
+            if port.bunker_price_overwrite[f] is not None:
                 price = port.expectation.get_bunker_price_overwrite(f, idx_)
             else:
                 # normalize the weighted average
@@ -273,7 +273,7 @@ def _calculate_import_from_producers(ports: dict[str, Port],
             for e in emissions:
 
                 # check if the bunker WTT is overwritten on the port
-                if port.get_bunker_WTT_overwrite(f, e) is not None:
+                if port.bunker_WTT_overwrite[(f, e)] is not None:
                     wtt = port.expectation.get_bunker_WTT_overwrite(f, e, idx_)
                 else:
                     # normalize the weighted average

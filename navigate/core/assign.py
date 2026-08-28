@@ -564,10 +564,10 @@ def _check_table_holder(assignment, lower=-np.inf, upper=np.inf):
 
     # TODO: if Curve or Forecast add warning based on extrapolate if LINEAR and no bounds.
 
-    addition = assignment.get_addition()
-    multiplier = assignment.get_multiplier()
+    addition = assignment.addition
+    multiplier = assignment.multiplier
 
-    bounds = assignment.get_bounds()
+    bounds = (assignment.lower_bound, assignment.upper_bound)
     table_limits = assignment.get_table_limits()
 
     # theoretical limits of the table
