@@ -16,7 +16,7 @@ def replot(path: Path, plot_inc: Path | str | None = None, data_dir: Path | str 
     if plot_inc is not None:
         configs = _plot_configs_from_include(plot_inc, data_dir)
     else:
-        configs = plot_data.get_plot_configs()
+        configs = plot_data.plot_configs
 
     if not configs:
         if plot_inc is not None:
@@ -27,7 +27,7 @@ def replot(path: Path, plot_inc: Path | str | None = None, data_dir: Path | str 
             "additional argument to replot."
         )
 
-    deck_directory = plot_data.get_deck_directory()
+    deck_directory = plot_data.deck_directory
     for config in configs:
         directory = os.path.join(deck_directory, config["directory"]) if config["directory"] else None
         render_plots(plot_data, directory=directory, selected_plots=config["selected_plots"] or None)
@@ -38,6 +38,6 @@ def _plot_configs_from_include(plot_inc: Path | str, data_dir: Path | str | None
 
     plot_nodes = Parser.parse_plot_nodes(plot_inc, data_dir=data_dir)
     return [
-        {"name": name, "directory": node._directory, "selected_plots": set(node._selected_plots)}
+        {"name": name, "directory": node.directory, "selected_plots": set(node.selected_plots)}
         for name, node in plot_nodes.items()
     ]

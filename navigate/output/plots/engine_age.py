@@ -18,7 +18,7 @@ from navigate.output.plots._labels import (
 
 
 def plot_engine_age(manager, directory):
-    dateline = manager.get_dateline()
+    dateline = manager.dateline
 
     weighted_avg_age = manager.profile.get_weighted_average_age()
 

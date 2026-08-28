@@ -33,7 +33,7 @@ def _vessel_series_by_fuel_type(series, vessel_map):
 
 
 def plot_fleet_conversions_cumulative(manager, directory):
-    dateline = manager.get_dateline()
+    dateline = manager.dateline
     fleets = manager.nodes.fleets
 
     fuel_conversions = {fleet_name: fleet.profile.get_fuel_conversions()

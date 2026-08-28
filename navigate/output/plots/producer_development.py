@@ -14,7 +14,7 @@ from navigate.output.plots._style import LEGEND_OPTIONS
 
 def _plot_producer_development(manager, directory, cumulative=False):
 
-    dateline = manager.get_dateline()
+    dateline = manager.dateline
     producers = manager.nodes.producers
 
     if not producers:

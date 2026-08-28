@@ -78,7 +78,7 @@ def run_fair_share_solve(alg: BunkerAlgorithm) -> tuple[int, bool]:
     optimize(alg)
     update_fair_share_solution(alg)
 
-    max_iter = alg.options.get_fair_share_maximum_iterations()
+    max_iter = alg.options.fair_share_maximum_iterations
     converged = False
     i = 0
 
@@ -206,7 +206,7 @@ def update_fair_share_allocation(alg: BunkerAlgorithm) -> None:
         The algorithm instance.
     """
 
-    tol = alg.options.get_solution_tolerance()
+    tol = alg.options.solution_tolerance
     port_name_to_indices = {v: get_port_name_to_indices(vessel.route) for v, vessel in alg.vessels.items()}
 
     consumed_by_unbounded = {}  # (port_name, f), total consumed supply by unbounded vessels
@@ -331,7 +331,7 @@ def calculate_fair_share_solution_convergence(alg: BunkerAlgorithm) -> bool:
     """
 
     bunker = alg.bunker
-    tol = alg.options.get_fair_share_tolerance()
+    tol = alg.options.fair_share_tolerance
 
     # lazy initialization of pre-allocated arrays
     if alg.fair_share_bunker_keys is None:

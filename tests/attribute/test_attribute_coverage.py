@@ -35,7 +35,7 @@ class TestAttributeCoverage:
 
     def test_has_expected_time_steps(self, manager):
         """Timeline should have at least 9 yearly steps."""
-        assert len(manager.get_dateline()) >= 9
+        assert len(manager.dateline) >= 9
 
     def test_two_fleets(self, manager):
         assert len(manager.nodes.fleets) >= 2

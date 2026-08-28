@@ -63,6 +63,25 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `navigate/bunker/constraints/_common.py`).
 
 ### Removed
+- **Breaking** for code importing navigate as a library: trivial getters on
+  the helper classes are replaced by direct attribute access
+  (CODESTYLE.md, Class variables) — `SimulationManager.get_timeline`/
+  `get_dateline`/`get_name` (now plain `timeline`/`dateline`/`name`, and
+  `_parser` is now public `parser`), `Parser.get_model_definition`/
+  `get_dates`/`get_deck_directory`/`get_deck_name` (now `dates`/
+  `deck_directory`/`deck_name`), `PlotData.get_dateline`/`get_timeline`/
+  `get_deck_directory`/`get_plot_configs`, `Plot`'s internal
+  `_directory`/`_selected_plots` (now public), `BunkerAlgorithm.get_build_time`/
+  `get_solve_time`/`get_transfer_time`, all six `BunkerOptions` getters,
+  `ModelDefinition.get_start_date`/`get_emissions_lifetime`,
+  `CommandReference.get_command`, `Event.get_stmts`,
+  `Expression.get_node_references`/`set_node_references` (now plain
+  `node_references`), and the `Package.cost_flow` read-only property (now a
+  plain attribute). `Expression`'s attribute-reference consistency check was
+  deleted outright: its backing list was never populated, so the check never
+  ran. `plot_data.pkl` files saved by earlier versions cannot be loaded with
+  `--replot` by this version — replot old results with the version that
+  produced them.
 - **Breaking** for code importing navigate as a library: unused accessor
   methods with no callers in the codebase —
   `Forecast.get_x_date`, `Timetable.get_x_date`,

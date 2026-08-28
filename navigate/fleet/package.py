@@ -44,7 +44,7 @@ class Package:
         self._transfer_curves: dict[tuple[EnergyDemandTypeID, EnergyDemandTypeID], list[Curve | Scalar]] = {}
         self._shore_power_capacity: float = 0.
 
-        self._cost_flow: np.ndarray | None = None
+        self.cost_flow: np.ndarray | None = None
 
     @property
     def is_empty(self) -> bool:
@@ -74,10 +74,6 @@ class Package:
     @property
     def shore_power_capacity(self) -> float:
         return self._shore_power_capacity
-
-    @property
-    def cost_flow(self) -> np.ndarray | None:
-        return self._cost_flow
 
     def __len__(self) -> int:
         return len(self._technologies)
@@ -156,7 +152,7 @@ def preprocess_packages(packages: list[Package],
     # Empty-package component and cost
     empty_component = Component()
     empty_component.initialize_flow(0., lifetime, time)
-    packages[0]._cost_flow = np.zeros(lifetime, dtype=float)
+    packages[0].cost_flow = np.zeros(lifetime, dtype=float)
 
     last_package = packages[-1]
     cumulative_component = empty_component
@@ -171,7 +167,7 @@ def preprocess_packages(packages: list[Package],
         cumulative_component = new_cumulative
 
         pkg = packages[i + 1]
-        pkg._cost_flow = new_cumulative.get_cost_flow()
+        pkg.cost_flow = new_cumulative.get_cost_flow()
 
     # Precompute energy state for all non-empty packages
     for pkg in packages:

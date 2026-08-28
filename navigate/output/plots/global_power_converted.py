@@ -22,7 +22,7 @@ from navigate.util import (
 
 
 def _plot_global_power_converted(manager, directory, cumulative=False):
-    dateline = manager.get_dateline()
+    dateline = manager.dateline
 
     fig, ax = single_panel()
 

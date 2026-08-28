@@ -108,7 +108,7 @@ def assertable_end(manager: SimulationManager, producer: Producer) -> int:
     Exclusive end index, guaranteed within (0, len(timeline)].
     """
 
-    timeline = manager.get_timeline()
+    timeline = manager.timeline
     lead_time = int(round(producer.assets[0].lead_time.get(timeline[0])))
     end = len(timeline) - lead_time
     # guard against vacuously-true assertions on empty (or, with negative
@@ -130,8 +130,8 @@ def check_invariants(manager: SimulationManager) -> None:
         Manager of a completed run.
     """
 
-    dateline = manager.get_dateline()
-    timeline = manager.get_timeline()
+    dateline = manager.dateline
+    timeline = manager.timeline
     assert dateline is not None
     assert len(dateline) >= 2
     assert len(timeline) == len(dateline)

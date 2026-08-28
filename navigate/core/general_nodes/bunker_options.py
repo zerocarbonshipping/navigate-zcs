@@ -10,14 +10,14 @@ class BunkerOptions(_GeneralNode):
     def __init__(self):
         super().__init__()
 
-        self._solver = None                         # enum, solver backend (AUTOMATIC, GUROBI, HIGHS)
-        self._solver_method = None                  # enum, LP solver method
-        self._solution_tolerance = None             # float, the tolerance of the solution
-        self._threads = None                        # int, the number of threads used for LP solves
+        self.solver = None                         # enum, solver backend (AUTOMATIC, GUROBI, HIGHS)
+        self.solver_method = None                  # enum, LP solver method
+        self.solution_tolerance = None             # float, the tolerance of the solution
+        self.threads = None                        # int, the number of threads used for LP solves
 
         # fair-share
-        self._fair_share_maximum_iterations = None      # int, maximum number of fair-share iterations
-        self._fair_share_tolerance = None               # float, the tolerance of the fair-share convergence
+        self.fair_share_maximum_iterations = None      # int, maximum number of fair-share iterations
+        self.fair_share_tolerance = None               # float, the tolerance of the fair-share convergence
 
     # external attributes set through the input deck -------------------------------------------------------------------
     def set_solver(self, solver: str):
@@ -38,7 +38,7 @@ class BunkerOptions(_GeneralNode):
             HIGHS skips Gurobi and uses HiGHS directly.
         """
 
-        self._solver = assign_id(solver, SolverBackendID)
+        self.solver = assign_id(solver, SolverBackendID)
 
     def set_solver_method(self, solver_method: str):
         """
@@ -56,7 +56,7 @@ class BunkerOptions(_GeneralNode):
             LP solver method used by HiGHS to solve LP's in the bunker algorithm.
         """
 
-        self._solver_method = assign_id(solver_method, SolverMethodID)
+        self.solver_method = assign_id(solver_method, SolverMethodID)
 
     def set_solution_tolerance(self, solution_tolerance: float):
         """
@@ -74,7 +74,7 @@ class BunkerOptions(_GeneralNode):
             Tolerance used when transferring the BunkerAlgorithm solutions to profiles.
         """
 
-        self._solution_tolerance = assign_value(solution_tolerance, lower=0, inclusive_lower=False)
+        self.solution_tolerance = assign_value(solution_tolerance, lower=0, inclusive_lower=False)
 
     def set_threads(self, threads: float):
         """
@@ -92,7 +92,7 @@ class BunkerOptions(_GeneralNode):
             Threads used by the LP solver in the bunker algorithm.
         """
 
-        self._threads = assign_integer(threads, lower=0)
+        self.threads = assign_integer(threads, lower=0)
 
     def set_fair_share_maximum_iterations(self, fair_share_maximum_iterations: int):
         """
@@ -108,7 +108,7 @@ class BunkerOptions(_GeneralNode):
             Maximum iterations allowed for the sequential LP of the bunker algorithm.
         """
 
-        self._fair_share_maximum_iterations = int(assign_value(fair_share_maximum_iterations, lower=1))
+        self.fair_share_maximum_iterations = int(assign_value(fair_share_maximum_iterations, lower=1))
 
     def set_fair_share_tolerance(self, fair_share_tolerance: float):
         """
@@ -124,43 +124,25 @@ class BunkerOptions(_GeneralNode):
             Tolerance used when checking convergence of fair-share bunker solution.
         """
 
-        self._fair_share_tolerance = assign_value(fair_share_tolerance, lower=0., inclusive_lower=False)
+        self.fair_share_tolerance = assign_value(fair_share_tolerance, lower=0., inclusive_lower=False)
 
     # internal methods -------------------------------------------------------------------------------------------------
     def initialize(self):
 
-        if self._solver is None:
-            self._solver = SolverBackendID.AUTOMATIC
+        if self.solver is None:
+            self.solver = SolverBackendID.AUTOMATIC
 
-        if self._solver_method is None:
-            self._solver_method = SolverMethodID.DETERMINISTIC
+        if self.solver_method is None:
+            self.solver_method = SolverMethodID.DETERMINISTIC
 
-        if self._solution_tolerance is None:
-            self._solution_tolerance = 1e-6
+        if self.solution_tolerance is None:
+            self.solution_tolerance = 1e-6
 
-        if self._threads is None:
-            self._threads = 0
+        if self.threads is None:
+            self.threads = 0
 
-        if self._fair_share_maximum_iterations is None:
-            self._fair_share_maximum_iterations = 50
+        if self.fair_share_maximum_iterations is None:
+            self.fair_share_maximum_iterations = 50
 
-        if self._fair_share_tolerance is None:
-            self._fair_share_tolerance = 1e-1
-
-    def get_solver(self):
-        return self._solver
-
-    def get_solver_method(self):
-        return self._solver_method
-
-    def get_solution_tolerance(self):
-        return self._solution_tolerance
-
-    def get_threads(self):
-        return self._threads
-
-    def get_fair_share_maximum_iterations(self):
-        return self._fair_share_maximum_iterations
-
-    def get_fair_share_tolerance(self):
-        return self._fair_share_tolerance
+        if self.fair_share_tolerance is None:
+            self.fair_share_tolerance = 1e-1

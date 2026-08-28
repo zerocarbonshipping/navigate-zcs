@@ -21,7 +21,7 @@ def transfer_shore_power(alg: BunkerAlgorithm) -> None:
         The algorithm instance.
     """
 
-    tol = alg.options.get_solution_tolerance()
+    tol = alg.options.solution_tolerance
 
     for (v, p), shore_power_variable in alg.shore_power.items():
 

@@ -16,15 +16,12 @@ class Event:
     """
 
     def __init__(self, source: SourceLoc, deck_line: int = 0):
-        self._stmts: list = []
+        self.stmts: list = []
         self._source = source
         self._deck_line = deck_line
 
     def add_stmt(self, stmt):
-        self._stmts.append(stmt)
-
-    def get_stmts(self) -> list:
-        return self._stmts
+        self.stmts.append(stmt)
 
     @property
     def source(self) -> SourceLoc:

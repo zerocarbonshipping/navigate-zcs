@@ -16,7 +16,7 @@ from navigate.output.plots._figure import (
 
 
 def plot_global_energy_saving(manager, directory):
-    dateline = manager.get_dateline()
+    dateline = manager.dateline
 
     fig, axes = subplot_grid(6, sharey=True)
 

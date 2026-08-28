@@ -35,7 +35,7 @@ def transfer_bunker(alg: BunkerAlgorithm) -> None:
     # transfer bunker solution
     for (v, p, f), bunker in alg.bunker.items():
 
-        if bunker.X < alg.options.get_solution_tolerance():
+        if bunker.X < alg.options.solution_tolerance:
             continue
 
         # extract relevant nodes

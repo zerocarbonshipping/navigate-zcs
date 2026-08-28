@@ -19,15 +19,11 @@ def render_plots(manager, directory=None, selected_plots=None):
     start = timeit.default_timer()
 
     if directory is None:
-        if hasattr(manager, '_parser'):
-            deck_directory = manager._parser._deck_directory
-        else:
-            deck_directory = manager.get_deck_directory()
-        directory = os.path.join(deck_directory, 'plots')
+        directory = os.path.join(manager.deck_directory, 'plots')
 
     os.makedirs(directory, exist_ok=True)
 
-    dateline = manager._dateline
+    dateline = manager.dateline
 
     if dateline.size < 2:
         return

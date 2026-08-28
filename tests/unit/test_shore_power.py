@@ -256,7 +256,7 @@ class TestShoreTransferExpected:
         algo.emissions = {"co2": _make_emission("co2")}
 
         options = MagicMock()
-        options.get_solution_tolerance.return_value = 1e-6
+        options.solution_tolerance = 1e-6
         algo.options = options
 
         # shore power variable with solution value
@@ -298,7 +298,7 @@ class TestShoreTransferExpected:
         algo.emissions = {"co2": _make_emission("co2")}
 
         options = MagicMock()
-        options.get_solution_tolerance.return_value = 1e-6
+        options.solution_tolerance = 1e-6
         algo.options = options
 
         sp_var = MagicMock()
@@ -340,7 +340,7 @@ class TestShoreTransferExpected:
         algo.emissions = {}
 
         options = MagicMock()
-        options.get_solution_tolerance.return_value = 1e-6
+        options.solution_tolerance = 1e-6
         algo.options = options
 
         sp_var = MagicMock()

@@ -12,7 +12,7 @@ from navigate.output.plots._labels import FUEL_LABEL, extract_label
 
 
 def plot_producer_fair_share(manager, directory):
-    dateline = manager.get_dateline()
+    dateline = manager.dateline
 
     fuels = manager.nodes.fuels
     fuels = {fuel_name: fuel for fuel_name, fuel in fuels.items() if not fuel.belongs_to_liquid_market()}

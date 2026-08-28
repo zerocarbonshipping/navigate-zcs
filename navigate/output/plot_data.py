@@ -8,6 +8,8 @@ import os
 import pickle
 import timeit
 
+from navigate.exceptions import PlotDataError
+
 logger = logging.getLogger(__name__)
 
 _STRIPPED_NODE_DICTS = ('plots', 'reports')
@@ -23,13 +25,13 @@ class PlotData:
     """
 
     def __init__(self):
-        self._dateline = None
-        self._timeline = None
+        self.dateline = None
+        self.timeline = None
         self.profile = None
         self.nodes = None
         self.general_nodes = None
-        self._deck_directory = None
-        self._plot_configs = []
+        self.deck_directory = None
+        self.plot_configs = []
 
     @classmethod
     def from_manager(cls, manager):
@@ -47,14 +49,14 @@ class PlotData:
             A new PlotData instance with references to manager state.
         """
         plot_data = cls()
-        plot_data._dateline = manager._dateline
-        plot_data._timeline = manager._timeline
+        plot_data.dateline = manager.dateline
+        plot_data.timeline = manager.timeline
         plot_data.profile = manager.profile
         plot_data.nodes = manager.nodes
         plot_data.general_nodes = manager.general_nodes
-        plot_data._deck_directory = manager._parser._deck_directory
-        plot_data._plot_configs = [
-            {"name": name, "directory": node._directory, "selected_plots": set(node._selected_plots)}
+        plot_data.deck_directory = manager.parser.deck_directory
+        plot_data.plot_configs = [
+            {"name": name, "directory": node.directory, "selected_plots": set(node.selected_plots)}
             for name, node in manager.nodes.plots.items()
         ]
         return plot_data
@@ -79,7 +81,7 @@ class PlotData:
             Directory to save to. Defaults to the deck directory.
         """
         if directory is None:
-            directory = self._deck_directory
+            directory = self.deck_directory
 
         os.makedirs(directory, exist_ok=True)
         path = os.path.join(directory, 'plot_data.pkl')
@@ -115,17 +117,11 @@ class PlotData:
         with gzip.open(path, 'rb') as f:
             plot_data = pickle.load(f)
 
+        if not hasattr(plot_data, 'plot_configs'):
+            raise PlotDataError(
+                "The plot data was saved by an older Navigate version and cannot be "
+                "loaded by this one. Replot it with the version that produced it."
+            )
+
         logger.info(f"Loaded plot data from '{path}'")
         return plot_data
-
-    def get_dateline(self):
-        return self._dateline
-
-    def get_timeline(self):
-        return self._timeline
-
-    def get_deck_directory(self):
-        return self._deck_directory
-
-    def get_plot_configs(self):
-        return self._plot_configs

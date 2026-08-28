@@ -102,46 +102,46 @@ class TestNodeReferences:
         expression.initialize(_StubNode())
         assert expression.is_initialized()
 
-        assert expression.get_node_references() == ['Forecast("x")']
+        assert expression.node_references == ['Forecast("x")']
 
-        expression.set_node_references([_StubNode(2.)])
+        expression.node_references = [_StubNode(2.)]
         assert expression.get() == 3.
 
     def test_reference_only(self):
         expression = _initialized('Forecast("x")')
-        expression.set_node_references([_StubNode(4.)])
+        expression.node_references = [_StubNode(4.)]
         assert expression.get() == 4.
 
     def test_reference_arithmetic(self):
         expression = _initialized('0.5 * Forecast("a") + Forecast("b")')
-        expression.set_node_references([_StubNode(4.), _StubNode(1.)])
+        expression.node_references = [_StubNode(4.), _StubNode(1.)]
         assert expression.get() == 3.
 
     def test_multiple_distinct_references_keep_order(self):
         expression = _initialized('Forecast("a") - Variable("b")')
-        assert expression.get_node_references() == ['Forecast("a")', 'Variable("b")']
+        assert expression.node_references == ['Forecast("a")', 'Variable("b")']
 
-        expression.set_node_references([_StubNode(4.), _StubNode(1.)])
+        expression.node_references = [_StubNode(4.), _StubNode(1.)]
         assert expression.get() == 3.
 
     def test_duplicate_reference_yields_entry_per_occurrence(self):
         expression = _initialized('Forecast("x") + Forecast("x")')
-        assert expression.get_node_references() == ['Forecast("x")', 'Forecast("x")']
+        assert expression.node_references == ['Forecast("x")', 'Forecast("x")']
 
-        expression.set_node_references([_StubNode(2.), _StubNode(2.)])
+        expression.node_references = [_StubNode(2.), _StubNode(2.)]
         assert expression.get() == 4.
 
     def test_reference_with_spacing_is_canonicalized(self):
         expression = _initialized('Forecast( "x" )')
-        assert expression.get_node_references() == ['Forecast("x")']
+        assert expression.node_references == ['Forecast("x")']
 
     def test_single_quoted_reference_is_canonicalized(self):
         expression = _initialized("Forecast('x')")
-        assert expression.get_node_references() == ['Forecast("x")']
+        assert expression.node_references == ['Forecast("x")']
 
     def test_x_is_passed_to_references(self):
         expression = _initialized('Forecast("f")')
-        expression.set_node_references([_EchoNode()])
+        expression.node_references = [_EchoNode()]
         assert expression.get(x=5.) == 5.
 
     def test_repr_returns_deck_text(self):
@@ -180,7 +180,7 @@ class TestBroadcastAndBounds:
 
     def test_ndarray_reference_passthrough(self):
         expression = _initialized('2 * Forecast("f")')
-        expression.set_node_references([_EchoNode()])
+        expression.node_references = [_EchoNode()]
 
         value = expression.get(x=np.array([1., 2.]))
         np.testing.assert_array_equal(value, np.array([2., 4.]))
@@ -349,24 +349,24 @@ class TestCopySemantics:
 
     def test_deepcopy_preserves_value(self):
         expression = _initialized('1 + Forecast("x")')
-        expression.set_node_references([_StubNode(2.)])
+        expression.node_references = [_StubNode(2.)]
 
         clone = copy.deepcopy(expression)
         assert clone.get() == 3.
 
     def test_deepcopy_clone_is_independent_of_original(self):
         expression = _initialized('Forecast("x")')
-        expression.set_node_references([_StubNode(2.)])
+        expression.node_references = [_StubNode(2.)]
 
         clone = copy.deepcopy(expression)
-        clone.set_node_references([_StubNode(5.)])
+        clone.node_references = [_StubNode(5.)]
 
         assert expression.get() == 2.
         assert clone.get() == 5.
 
     def test_pickle_round_trip_after_initialize(self):
         expression = _initialized('2 * Forecast("x")')
-        expression.set_node_references([_StubNode(3.)])
+        expression.node_references = [_StubNode(3.)]
 
         restored = pickle.loads(pickle.dumps(expression))
         assert restored.get() == 6.

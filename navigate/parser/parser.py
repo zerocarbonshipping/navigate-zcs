@@ -76,7 +76,7 @@ class Parser:
         self.general_nodes = GeneralNodes()
 
         # event queue
-        self._dates = []
+        self.dates = []
         self._event_queue = {}
         self._idx_date = 0
         self._current_date = None
@@ -85,8 +85,8 @@ class Parser:
         # paths
         self._exe_directory = None
         self._deck_path = None
-        self._deck_directory = None
-        self._deck_name = None
+        self.deck_directory = None
+        self.deck_name = None
         self._user_default_directory = None
         self._user_module_directory = None
         self._installation_default_directory = None
@@ -105,20 +105,6 @@ class Parser:
         # source tracking — set per include-file processing pass
         self._current_deck_line = 0
         self._current_source = SourceLoc()
-
-    # ── public getters ────────────────────────────────────────────────
-
-    def get_model_definition(self):
-        return self.general_nodes.model_definition
-
-    def get_dates(self):
-        return self._dates
-
-    def get_deck_directory(self):
-        return self._deck_directory
-
-    def get_deck_name(self):
-        return self._deck_name
 
     # ══════════════════════════════════════════════════════════════════
     # Deck (.nav) reading — Lark-based
@@ -143,8 +129,8 @@ class Parser:
             raise FileNotFoundError("Unable to locate {}.".format(path))
 
         self._deck_path = path
-        self._deck_directory = str(path.parent)
-        self._deck_name = path.stem
+        self.deck_directory = str(path.parent)
+        self.deck_name = path.stem
         self._define_internal_directories(data_dir=data_dir)
 
         print_preamble()
@@ -233,7 +219,7 @@ class Parser:
 
         if (self._idx_date > 1) and (date is not None):
             log_time_step_breaker(logger, self._idx_date - 1, date,
-                                  timedelta_to_days(date - self._dates[0]))
+                                  timedelta_to_days(date - self.dates[0]))
 
         self._current_date = date
 
@@ -292,7 +278,7 @@ class Parser:
             Path of include file (relative to deck directory).
         """
         if not os.path.isabs(path):
-            path = os.path.join(self._deck_directory or '', path)
+            path = os.path.join(self.deck_directory or '', path)
 
         try:
             with open(path, mode='r', encoding='utf8') as f:
@@ -376,8 +362,8 @@ class Parser:
     # ══════════════════════════════════════════════════════════════════
 
     def _next_event(self):
-        if self._idx_date < len(self._dates):
-            date = self._dates[self._idx_date]
+        if self._idx_date < len(self.dates):
+            date = self.dates[self._idx_date]
         else:
             return None, []
 
@@ -392,7 +378,7 @@ class Parser:
         self._current_deck_line = event.deck_line
         self._current_source = event.source
 
-        for stmt in event.get_stmts():
+        for stmt in event.stmts:
             self._current_source = getattr(stmt, 'source', self._current_source)
             self._process_event_stmt(stmt)
 
@@ -472,7 +458,7 @@ class Parser:
         event = Event(source=self._current_source, deck_line=self._current_deck_line)
 
         if date not in self._event_queue:
-            self._dates.append(date)
+            self.dates.append(date)
             self._event_queue[date] = [event]
         else:
             self._event_queue[date].append(event)
@@ -487,10 +473,10 @@ class Parser:
                                       + ": Dates must be ordered chronologically within individual include files.")
 
     def _replace_start_keyword(self):
-        start_date = self.general_nodes.model_definition.get_start_date()
+        start_date = self.general_nodes.model_definition.start_date
 
-        self._dates = np.array([start_date if d == START else d for d in self._dates], dtype='datetime64[D]')
-        self._dates = np.unique(self._dates)
+        self.dates = np.array([start_date if d == START else d for d in self.dates], dtype='datetime64[D]')
+        self.dates = np.unique(self.dates)
 
         if START in self._event_queue:
             if start_date not in self._event_queue:
@@ -501,15 +487,15 @@ class Parser:
             self._event_queue[start_date] = [*self._event_queue.pop(START), *start_events]
 
         else:
-            if start_date not in self._dates:
-                self._dates = np.insert(self._dates, 0, start_date)
+            if start_date not in self.dates:
+                self.dates = np.insert(self.dates, 0, start_date)
                 self._event_queue[start_date] = []
 
     def _timeline_is_consistent(self):
-        start_date = self.general_nodes.model_definition.get_start_date()
+        start_date = self.general_nodes.model_definition.start_date
 
         msg = ""
-        for date in self._dates:
+        for date in self.dates:
             if date < start_date:
                 for event in self._event_queue.get(date, []):
                     msg += "\t- NAV file, line {}, include file '{}', line {}: Date '{}' is before start date '{}'\n"\
@@ -776,7 +762,7 @@ class Parser:
 
     def includes_necessary_information(self):
         checks = [
-            (self._dates, "timeline"),
+            (self.dates, "timeline"),
             (self.nodes.fleets, "Fleets"),
             (self.nodes.fuels, "Fuels"),
             (self.nodes.ports, "Ports"),
@@ -864,16 +850,16 @@ class Parser:
             except KeyError as e:
                 raise CommandError(self._error_prefix()
                                    + ": '{}' attempts to reference non-existing name(s) {}."
-                                   .format(cmd_ref.get_command(), str(e)))
+                                   .format(cmd_ref.command, str(e)))
 
             except ValueError as e:
                 raise ValueError(self._error_prefix() + ": '{}' {}"
-                                 .format(cmd_ref.get_command(), str(e)))
+                                 .format(cmd_ref.command, str(e)))
 
         node.clear_command_references()
 
     def _replace_temporary_tables(self):
-        start_date = self.general_nodes.model_definition.get_start_date()
+        start_date = self.general_nodes.model_definition.start_date
 
         for node in (*self.nodes.forecasts.values(), *self.nodes.timetables.values()):
             try:
@@ -985,13 +971,13 @@ class Parser:
         elif isinstance(attribute, Expression):
             if not attribute.is_initialized():
                 attribute.initialize(node)
-                reference_strings = attribute.get_node_references()
-                attribute.set_node_references([self._read_node_reference(ref) for ref in reference_strings])
-                self._assign_node_reference_location(attribute.get_node_references(),
+                reference_strings = attribute.node_references
+                attribute.node_references = [self._read_node_reference(ref) for ref in reference_strings]
+                self._assign_node_reference_location(attribute.node_references,
                                                      location=attribute.reference_location)
                 attribute.check_consistency()
 
-            self._replace_references_on_attribute(node, attribute.get_node_references())
+            self._replace_references_on_attribute(node, attribute.node_references)
             return
 
         else:

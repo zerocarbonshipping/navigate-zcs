@@ -19,7 +19,7 @@ from navigate.output.plots._units import find_best_metric_prefix
 
 
 def plot_global_installed_power(manager, directory):
-    dateline = manager.get_dateline()
+    dateline = manager.dateline
 
     fig, ax = single_panel()
 

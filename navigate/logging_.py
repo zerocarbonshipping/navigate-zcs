@@ -33,7 +33,7 @@ class _DeduplicatingFilter(logging.Filter):
 
     def __init__(self):
         super().__init__()
-        self._seen: set = set()
+        self.seen: set = set()
         self.suppressed: int = 0
         self.unique_warnings: list = []
 
@@ -41,10 +41,10 @@ class _DeduplicatingFilter(logging.Filter):
         if record.levelno < logging.WARNING:
             return True
         key = record.getMessage()
-        if key in self._seen:
+        if key in self.seen:
             self.suppressed += 1
             return False
-        self._seen.add(key)
+        self.seen.add(key)
         if len(self.unique_warnings) < _MAX_DIGEST_WARNINGS:
             self.unique_warnings.append(key)
         return True
@@ -157,7 +157,7 @@ def log_summary() -> str:
 
     # Append warning digest from dedup filter
     if _DEDUP_FILTER and _DEDUP_FILTER.unique_warnings:
-        n_unique = len(_DEDUP_FILTER._seen)
+        n_unique = len(_DEDUP_FILTER.seen)
         n_suppressed = _DEDUP_FILTER.suppressed
         summary += f"\n\nUnique warnings ({n_unique} unique, {n_suppressed} duplicates suppressed):"
         for i, msg in enumerate(_DEDUP_FILTER.unique_warnings, 1):

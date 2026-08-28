@@ -23,7 +23,7 @@ from navigate.util import divide_nonzero
 
 
 def plot_port_bunker_supply(manager, directory):
-    dateline = manager.get_dateline()
+    dateline = manager.dateline
 
     ports = manager.nodes.ports
     fuels = manager.nodes.fuels

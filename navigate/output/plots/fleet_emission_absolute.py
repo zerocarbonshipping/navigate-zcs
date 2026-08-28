@@ -13,7 +13,7 @@ from navigate.output.plots._units import get_best_unit_mass
 
 
 def plot_fleet_emission_absolute(manager, directory):
-    dateline = manager.get_dateline()
+    dateline = manager.dateline
     fleets = manager.nodes.fleets
 
     fig, axes = subplot_grid(len(fleets))

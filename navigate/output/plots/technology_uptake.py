@@ -24,7 +24,7 @@ from navigate.util import extract_from_tuple_dict
 
 
 def plot_technology_uptake(manager, directory):
-    dateline = manager.get_dateline()
+    dateline = manager.dateline
     fleets = manager.nodes.fleets
 
     for fleet_name, fleet in fleets.items():

@@ -15,7 +15,7 @@ from navigate.output.plots._figure import (
 
 def plot_regulation_flexibility_cost(manager, directory):
 
-    dateline = manager.get_dateline()
+    dateline = manager.dateline
     regulations = manager.nodes.regulations
 
     for regulation_name, regulation in regulations.items():

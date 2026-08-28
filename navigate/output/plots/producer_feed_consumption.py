@@ -23,7 +23,7 @@ from navigate.util import divide_nonzero
 
 
 def plot_producer_feed_consumption(manager, directory):
-    dateline = manager.get_dateline()
+    dateline = manager.dateline
 
     producers = manager.nodes.producers
     feedstocks = manager.nodes.feedstocks

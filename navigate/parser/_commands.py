@@ -214,21 +214,18 @@ class CommandReference:
     """
 
     def __init__(self, command, inputs, source, deck_line=0):
-        self._command = command
+        self.command = command
         self._inputs = inputs
         self._source = source
         self._deck_line = deck_line
 
     def execute(self, node):
-        method = getattr(node, self._command)
+        method = getattr(node, self.command)
         self._check_command(node, method)
 
-        expanded = _expand_inputs(self._command, self._inputs)
+        expanded = _expand_inputs(self.command, self._inputs)
         for combo in expanded:
             method(*combo)
-
-    def get_command(self):
-        return self._command
 
     @property
     def source(self):
@@ -272,7 +269,7 @@ class CommandReference:
 
             raise CommandError("{}: Command '{}' requires {} inputs, {}, but only {} {} given"
                                .format(node,
-                                       self._command,
+                                       self.command,
                                        n_args,
                                        input_names,
                                        n_given,
@@ -295,7 +292,7 @@ class CommandReference:
 
             raise CommandError("{}: Command '{}' takes up to {} inputs, {}, but {} {} given"
                                .format(node,
-                                       self._command,
+                                       self.command,
                                        n_args + n_kwargs,
                                        input_names,
                                        n_given,

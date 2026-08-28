@@ -19,7 +19,7 @@ from navigate.output.plots._labels import (
 
 
 def plot_engine_pilot_fuel_share(manager, directory):
-    dateline = manager.get_dateline()
+    dateline = manager.dateline
     converters = manager.nodes.converters
 
     relevant_fuel_types = [FuelTypeID.METHANE, FuelTypeID.METHANOL, FuelTypeID.AMMONIA]

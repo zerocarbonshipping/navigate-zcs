@@ -130,7 +130,7 @@ class Report(Node):
 
     def export_manager(self, manager):
         if self._manager_reports:
-            self._export_sheet('Global', {manager.get_name(): manager}, self._manager_reports)
+            self._export_sheet('Global', {manager.name: manager}, self._manager_reports)
 
     def export_fleets(self, fleets):
         if self._fleet_reports:

@@ -15,7 +15,7 @@ from navigate.output.plots._illu_util import (
 
 
 def plot_port_bunker_price(manager, directory):
-    dateline = manager.get_dateline()
+    dateline = manager.dateline
     fuels = manager.nodes.fuels
     ports = manager.nodes.ports
 
