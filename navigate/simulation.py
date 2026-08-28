@@ -896,15 +896,6 @@ class SimulationManager:
         plot_data = PlotData.from_manager(self)
         self._export_plots(plot_data)
 
-    def get_time(self):
-        return self._time
-
-    def get_date(self):
-        return self._date
-
-    def get_parser(self):
-        return self._parser
-
     def get_timeline(self):
         return self._timeline
 

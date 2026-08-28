@@ -30,7 +30,6 @@ class Timetable(Node, _Table2D):
 
         # used for temporary storage of tables during deck parsing
         self._temporary_table: tuple | None = None
-        self._x_date: np.ndarray | None = None
 
     def initialize(self) -> None:
         if self._table is None:
@@ -49,9 +48,6 @@ class Timetable(Node, _Table2D):
             x = self._current_time
         return self.calculate(x, y)
 
-    def get_x_date(self) -> np.ndarray | None:
-        return self._x_date
-
     def set_current_time(self, time: float) -> None:
         self._current_time = time
 
@@ -64,7 +60,6 @@ class Timetable(Node, _Table2D):
             return
 
         x, y, z = self._temporary_table
-        self._x_date = x
 
         if np.issubdtype(x.dtype, np.datetime64):
             x = timedelta_to_days(x - reference)

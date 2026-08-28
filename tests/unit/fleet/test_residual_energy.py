@@ -12,6 +12,7 @@ Tests verify the correctness of:
   - Shore power capacity aggregation
   - Combined savings + external power + transfer through the full pipeline
 """
+import pickle
 from unittest.mock import MagicMock
 
 import numpy as np
@@ -21,7 +22,7 @@ from navigate.core import Scalar
 from navigate.core.enum_ import EnergyDemandTypeID
 from navigate.core.nodes.technology import Technology
 from navigate.core.unit import MWD_TO_GJ
-from navigate.fleet.package import Package
+from navigate.fleet.package import Package, preprocess_packages
 from navigate.fleet.residual_energy import (
     _calculate_power_transfer,
     _energy_to_power,
@@ -477,3 +478,21 @@ class TestCombinedResidualEnergy:
         r2 = _iterate_legs_or_ports(vessel, pkg_two, durations, raw_demands)
 
         assert np.all(r2[PROPULSION][0] <= r1[PROPULSION][0])
+
+
+class TestPackagePickling:
+    """Packages are pickled through the fleet nodes in PlotData.save, so
+    preprocess_packages must leave only picklable state on them."""
+
+    def test_preprocessed_packages_round_trip(self):
+        tech = _make_technology('vfd', energy_saving={PROPULSION: 0.05},
+                                capex=100., opex=10., lifetime=5.)
+        packages = [Package([]), Package([tech])]
+
+        vessel = MagicMock()
+        vessel.lifetime = Scalar(10.)
+
+        preprocess_packages(packages, [vessel], time=0.)
+
+        restored = pickle.loads(pickle.dumps(packages))
+        np.testing.assert_array_equal(restored[1].cost_flow, packages[1].cost_flow)

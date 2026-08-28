@@ -63,6 +63,19 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `navigate/bunker/constraints/_common.py`).
 
 ### Removed
+- **Breaking** for code importing navigate as a library: unused accessor
+  methods with no callers in the codebase —
+  `Forecast.get_x_date`, `Timetable.get_x_date`,
+  `_Table1D.get_y_min`/`get_y_max`, `_Table2D.get_y_min`/`get_y_max`,
+  `_Calculator.get_internal_lower_bound`/`get_internal_upper_bound`,
+  `Fleet.get_multiplier_increments`/`get_fuel_conversion_cost_pairs`,
+  `_Policy.get_global_warming_potential` (the expectation-level method
+  remains), `Parser.get_bunker_logistics`/`get_bunker_options`,
+  `CommandReference.get_inputs`,
+  `SimulationManager.get_time`/`get_date`/`get_parser`, and
+  `Package.get_component` — along with backing state that only those
+  accessors read (`Forecast`/`Timetable._x_date`, `Package._component`
+  with its `set_component` and pickling special-case).
 - **Breaking**: the Excel assumptions export — the `-e`/`--export-assumptions`
   CLI flag, `SimulationManager.export_assumptions`,
   `navigate/output/assumptions.py`, and the parser's assumption-update

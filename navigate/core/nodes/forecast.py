@@ -25,7 +25,6 @@ class Forecast(Node, _Table1D):
 
         # used for temporary storage of tables during deck parsing
         self._temporary_table: tuple | None = None
-        self._x_date: np.ndarray | None = None
 
     def initialize(self) -> None:
         if self._table is None:
@@ -49,9 +48,6 @@ class Forecast(Node, _Table1D):
         else:
             return self._current_value
 
-    def get_x_date(self) -> np.ndarray | None:
-        return self._x_date
-
     def precalculate(self, time: float | np.ndarray) -> None:
         """
         Parameters
@@ -70,7 +66,6 @@ class Forecast(Node, _Table1D):
             return
 
         x, y = self._temporary_table
-        self._x_date = x
 
         if np.issubdtype(x.dtype, np.datetime64):
             x = timedelta_to_days(x - reference)
