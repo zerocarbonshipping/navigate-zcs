@@ -37,7 +37,7 @@ def calculate_fair_share_fuel_supply(fleets, fuels, ports, idx, scope):
 
         for port in vessel.route.ports:
 
-            p = port.get_name()
+            p = port.name
 
             for f, fuel in fuels.items():
 
@@ -79,15 +79,15 @@ def _calculate_demand_based_fair_share_fuel_supply(fleets, ports, idx, scope):
     else:
         _idx = np.s_[idx:]
 
-    vessels = {vessel.get_name(): vessel
+    vessels = {vessel.name: vessel
                for fleet in fleets.values()
                for vessel in fleet.get_vessels()}
 
-    multipliers = {vessel.get_name():
+    multipliers = {vessel.name:
 
-                   fleet.expectation.get_existing_multipliers(vessel.get_name(), _idx)
+                   fleet.expectation.get_existing_multipliers(vessel.name, _idx)
                    if scope == BunkerScopeID.EXISTING
-                   else fleet.expectation.get_expected_multipliers(vessel.get_name(), _idx)
+                   else fleet.expectation.get_expected_multipliers(vessel.name, _idx)
 
                    for fleet in fleets.values()
                    for vessel in fleet.get_vessels()}
@@ -118,7 +118,7 @@ def _calculate_demand_based_fair_share_fuel_supply(fleets, ports, idx, scope):
 
         for port in vessel.route.ports:
 
-            p = port.get_name()
+            p = port.name
 
             for ft in FuelTypeID:
 
@@ -264,7 +264,7 @@ def _calculate_energy_in_port_jurisdiction(vessel: Vessel,
     if route_type == RouteTypeID.REGIONAL_TRIP:
 
         port_idx = ports.index(port)
-        port_name = port.get_name()
+        port_name = port.name
 
         voyage_distribution = route.get_voyage_distribution()
 

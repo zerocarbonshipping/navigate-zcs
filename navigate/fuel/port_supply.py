@@ -57,7 +57,7 @@ def calculate_fuel_import_to_ports(ports: dict[str, Port],
     liquid_fuels = {f: fuel for f, fuel in fuels.items() if fuel.belongs_to_liquid_market()}
     production_fuels = {f: fuel for f, fuel in fuels.items() if not fuel.belongs_to_liquid_market()}
 
-    active_port_names = {port.get_name() for route in routes.values() for port in route.ports}
+    active_port_names = {port.name for route in routes.values() for port in route.ports}
     active_ports = {p: port for p, port in ports.items() if p in active_port_names}
 
     _calculate_import_from_liquid_market(ports, liquid_fuels, emissions, idx)
@@ -194,11 +194,11 @@ def _calculate_import_from_producers(ports: dict[str, Port],
 
         for plant in producer.get_plants():
 
-            plant_name = plant.get_name()
+            plant_name = plant.name
 
             # extract the fuel the plant produces
             fuel = plant.fuel
-            f = fuel.get_name()
+            f = fuel.name
 
             # if the fuel is not allowed for bunkering
             # in any port then no export can occur and
@@ -437,7 +437,7 @@ def _align_finite_export_with_bunkering_limits(supplies: dict[str, dict[str, flo
         Array index.
     """
 
-    fuel_name = fuel.get_name()
+    fuel_name = fuel.name
 
     surplus = {}
     deficit = {}

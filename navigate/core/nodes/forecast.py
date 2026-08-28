@@ -16,7 +16,7 @@ class Forecast(Node, _Table1D):
         Node.__init__(self, name)
         _Table1D.__init__(self)
 
-        self._type = FORECAST
+        self.type = FORECAST
 
         self.allow_dates_in_table = True
 

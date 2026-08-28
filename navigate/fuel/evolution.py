@@ -197,7 +197,7 @@ def calculate_evolution_expectation(producer: Producer, timeline, idx):
     # is never initiated due to no expected supply and thus no expected
     # demand. This is accounted for by introducing a partially uniform
     # uptake expectation weighted by the jump-start fraction
-    allowed = np.array([producer.allow_plant[plant.get_name()] for plant in producer.assets], dtype=bool)
+    allowed = np.array([producer.allow_plant[plant.name] for plant in producer.assets], dtype=bool)
     total = np.count_nonzero(allowed)
     uniform = np.zeros_like(producer.current_uptake)
     uniform[allowed] = 1. / total
@@ -314,9 +314,9 @@ def calculate_evolution_expectation(producer: Producer, timeline, idx):
 
     # transfer expected production
     for p, plant in enumerate(producer.assets):
-        producer.expectation.set_existing_production(idx, plant.get_name(), existing[p, :])
-        producer.expectation.set_pipeline_production(idx, plant.get_name(), pipeline[p, :])
-        producer.expectation.set_newbuild_production(idx, plant.get_name(), newbuild[p, :])
+        producer.expectation.set_existing_production(idx, plant.name, existing[p, :])
+        producer.expectation.set_pipeline_production(idx, plant.name, pipeline[p, :])
+        producer.expectation.set_newbuild_production(idx, plant.name, newbuild[p, :])
 
     supply = existing[:, 0] + pipeline[:, 0] + newbuild[:, 0]
 
@@ -441,7 +441,7 @@ def calculate_feed_availability(producer: Producer, timeline, idx) -> None:
 
         for plant in producer.assets:
 
-            plant_name = plant.get_name()
+            plant_name = plant.name
             expectation = plant.expectation
 
             # calculate the feed used per plant
@@ -537,7 +537,7 @@ def calculate_feed_availability(producer: Producer, timeline, idx) -> None:
         # Minimum is used as opposed to average to ensure
         # guaranteed consistency with the constraint
         lead_times = [plant.lead_time.get() for plant in producer.assets
-                      if producer.expectation.get_plant_feed_consumption(plant.get_name(), feed_name) > 0.]
+                      if producer.expectation.get_plant_feed_consumption(plant.name, feed_name) > 0.]
 
         if not lead_times:
             continue

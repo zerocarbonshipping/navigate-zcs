@@ -38,7 +38,7 @@ def update_pilot_fuel_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> None:
         Vessel for which constraints are added.
     """
 
-    v = vessel.get_name()
+    v = vessel.name
     route = vessel.route
     usable_fuels = vessel.usable_fuels
     port_converters = get_port_converters(vessel)
@@ -52,15 +52,15 @@ def update_pilot_fuel_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> None:
 
         fraction = converter.minimum_pilot_fuel.get()
 
-        pilot_fuels = [fuel.get_name()
+        pilot_fuels = [fuel.name
                        for fuel_type in converter.pilot_fuel_types
                        for fuel in alg.fuels_per_fuel_type[fuel_type]
-                       if fuel.get_name() in usable_fuels]
+                       if fuel.name in usable_fuels]
 
-        main_fuels = [fuel.get_name()
+        main_fuels = [fuel.name
                       for fuel_type in converter.main_fuel_types
                       for fuel in alg.fuels_per_fuel_type[fuel_type]
-                      if fuel.get_name() in usable_fuels]
+                      if fuel.name in usable_fuels]
 
         # at sea
         for port_start, port_end in leg_idx:

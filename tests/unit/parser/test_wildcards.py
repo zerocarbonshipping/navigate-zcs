@@ -110,12 +110,12 @@ class TestWildcardNodeReferenceExpansion:
     def test_expand_star_returns_all_nodes_of_type(self):
         parser = self._make_parser_with_fuels("fuel_a", "fuel_b", "fuel_c")
         matched = parser._expand_wildcard_node_reference(WildcardNodeReference("Fuel", "*"))
-        assert {n.get_name() for n in matched} == {"fuel_a", "fuel_b", "fuel_c"}
+        assert {n.name for n in matched} == {"fuel_a", "fuel_b", "fuel_c"}
 
     def test_expand_prefix_pattern(self):
         parser = self._make_parser_with_fuels("bio_a", "bio_b", "fossil_c")
         matched = parser._expand_wildcard_node_reference(WildcardNodeReference("Fuel", "bio_*"))
-        assert {n.get_name() for n in matched} == {"bio_a", "bio_b"}
+        assert {n.name for n in matched} == {"bio_a", "bio_b"}
 
     def test_expand_no_match_raises(self):
         parser = self._make_parser_with_fuels("fuel_a")
@@ -127,7 +127,7 @@ class TestWildcardNodeReferenceExpansion:
         container = [WildcardNodeReference("Fuel", "*")]
         parser._replace_references_on_attribute(node=None, attribute=container[0],
                                                 container=container, idx_or_key=0)
-        assert {n.get_name() for n in container} == {"fuel_a", "fuel_b"}
+        assert {n.name for n in container} == {"fuel_a", "fuel_b"}
 
     def test_list_splice_preserves_surrounding_entries(self):
         parser = Parser()
@@ -143,7 +143,7 @@ class TestWildcardNodeReferenceExpansion:
 
         assert container[0] == marker_before
         assert container[-1] == marker_after
-        middle_names = {n.get_name() for n in container[1:-1]}
+        middle_names = {n.name for n in container[1:-1]}
         assert middle_names == {"port_a", "port_b"}
 
     def test_wildcard_outside_list_raises(self):

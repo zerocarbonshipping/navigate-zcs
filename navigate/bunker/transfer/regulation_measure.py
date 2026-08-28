@@ -35,7 +35,7 @@ def transfer_regulation_measure(alg: BunkerAlgorithm, properties: dict) -> None:
 
         for vessel, multiplier in zip(alg.vessels.values(), alg.multipliers.values()):
 
-            v = vessel.get_name()
+            v = vessel.name
 
             if not regulation.vessel_is_policed(v):
                 continue

@@ -12,7 +12,7 @@ class Tank(_Machinery):
     def __init__(self, name):
         super().__init__(name)
 
-        self._type = TANK
+        self.type = TANK
 
         self.fuel_types = None             # list, fuel type ID
         self.size = None                   # float, tank size

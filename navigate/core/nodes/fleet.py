@@ -67,7 +67,7 @@ class Fleet(_AssetManager):
 
     def __init__(self, name: str) -> None:
         super().__init__(name)
-        self._type = FLEET
+        self.type = FLEET
 
         self.trade_growth: ScalarLike = None                        # Trade-growth of the fleet
         self.fixed_scrap_rate: ScalarLike = None                    # Fixed scrap rate to replace age based
@@ -937,7 +937,7 @@ class Fleet(_AssetManager):
         """
 
         for vessel in self.assets:
-            name = vessel.get_name()
+            name = vessel.name
             self.fuel_conversion_cost.setdefault((name, name), None)
             # placeholder self-pair so command_assignment_to_tuple_dict can validate cross-pair keys;
             # real (from, to) defaults are filled post-commands in `initialize`
@@ -948,15 +948,15 @@ class Fleet(_AssetManager):
             self.newbuild_limit.setdefault(name, Scalar(1.))
 
             for tech in self.technologies:
-                self.initial_technology_share.setdefault((name, tech.get_name()), None)
+                self.initial_technology_share.setdefault((name, tech.name), None)
 
         for tech in self.technologies:
-            self.newbuild_technology_limit.setdefault(tech.get_name(), Scalar(1.))
-            self.retrofit_technology_limit.setdefault(tech.get_name(), Scalar(1.))
+            self.newbuild_technology_limit.setdefault(tech.name, Scalar(1.))
+            self.retrofit_technology_limit.setdefault(tech.name, Scalar(1.))
 
     def initialize_expectation(self, length: int, fuels: dict[str, Fuel]) -> None:
 
-        vessel_names = [vessel.get_name() for vessel in self.assets]
+        vessel_names = [vessel.name for vessel in self.assets]
 
         self.expectation = FleetExpectation()
         self.expectation.initialize(length, vessel_names, fuels)
@@ -968,8 +968,8 @@ class Fleet(_AssetManager):
                            regulation_names: list[str] = (),
                            levy_names: list[str] = ()) -> None:
 
-        vessel_names = [vessel.get_name() for vessel in self.assets]
-        technology_names = [technology.get_name() for technology in self.technologies]
+        vessel_names = [vessel.name for vessel in self.assets]
+        technology_names = [technology.name for technology in self.technologies]
 
         self.profile = FleetProfile()
         self.profile.initialize(timeline, vessel_names, technology_names, fuels, emissions, emissions_lifetime,
@@ -1064,7 +1064,7 @@ class Fleet(_AssetManager):
         """
 
         for v, vessel in enumerate(self.assets):
-            self.profile.set_existing_vessels(idx, vessel.get_name(), self.get_multiplier(v))
+            self.profile.set_existing_vessels(idx, vessel.name, self.get_multiplier(v))
 
     def get_cargo_miles(self, idx: int) -> float:
         multipliers = [self.get_multiplier(v) for v in range(len(self.assets))]

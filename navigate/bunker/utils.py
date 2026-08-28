@@ -64,7 +64,7 @@ def get_converters(vessel: Vessel) -> dict[str, Converter]:
         The propulsion, electrical, and heat converters keyed by name.
     """
 
-    return {c.get_name(): c for c in vessel.power_system.get_converters()}
+    return {c.name: c for c in vessel.power_system.get_converters()}
 
 
 def get_port_converters(vessel: Vessel) -> dict[str, Converter]:
@@ -83,7 +83,7 @@ def get_port_converters(vessel: Vessel) -> dict[str, Converter]:
     """
 
     power_system = vessel.power_system
-    return {c.get_name(): c for c in (power_system.electrical, power_system.heat)}
+    return {c.name: c for c in (power_system.electrical, power_system.heat)}
 
 
 def initialize_converter_fuel_maps(alg: BunkerAlgorithm) -> None:
@@ -106,7 +106,7 @@ def initialize_converter_fuel_maps(alg: BunkerAlgorithm) -> None:
 
         for vessel in fleet.get_vessels():
 
-            v = vessel.get_name()
+            v = vessel.name
             converters = get_converters(vessel)
             port_converters = get_port_converters(vessel)
 
@@ -137,4 +137,4 @@ def get_port_name_to_indices(route: Route) -> dict[str, list[int]]:
         A name maps to multiple indices when a route calls the same port more than once.
     """
 
-    return define_index_map([port.get_name() for port in route.ports])
+    return define_index_map([port.name for port in route.ports])

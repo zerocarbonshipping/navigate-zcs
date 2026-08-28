@@ -182,8 +182,8 @@ class TestConversionCarriesCharterRate:
 
     def test_rate_rides_along(self):
         vessel_a, vessel_b = MagicMock(), MagicMock()
-        vessel_a.get_name.return_value = "a"
-        vessel_b.get_name.return_value = "b"
+        vessel_a.name = "a"
+        vessel_b.name = "b"
 
         fleet = Fleet.__new__(Fleet)
         fleet.assets = [vessel_a, vessel_b]
@@ -224,7 +224,7 @@ def _make_cost_package(technologies: list, cost_flow: np.ndarray) -> Package:
 
 def _make_priced_vessel(name: str) -> MagicMock:
     vessel = MagicMock()
-    vessel.get_name.return_value = name
+    vessel.name = name
     vessel.lifetime = Scalar(10.)
     vessel.cost_of_capital = Scalar(DISCOUNT)
     return vessel
@@ -283,7 +283,7 @@ class TestDefineInitialTechnologySeeding:
 
     def test_seeded_uptake_charged_as_if_newbuild(self):
         tech = MagicMock()
-        tech.get_name.return_value = "t0"
+        tech.name = "t0"
         flow = _example_cost_flow(n=10)
 
         fleet = Fleet.__new__(Fleet)

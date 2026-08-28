@@ -63,6 +63,15 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `navigate/bunker/constraints/_common.py`).
 
 ### Removed
+- **Breaking** for code importing navigate as a library: `Node.get_name()`/
+  `get_type()` and `NodeReference.get_name()`/`get_type()` are replaced by
+  direct attribute access (CODESTYLE.md, Class variables) — `name` was
+  already public, and the internal `_type` is now public `type` on both
+  classes. `CommandReferenceMixin.get_command_references()` is likewise
+  replaced by a public `command_references` attribute (`add_`/`clear_`
+  mutators unchanged). Nodes inside `plot_data.pkl` carry the renamed
+  attribute, so the pickle incompatibility with earlier versions noted
+  below extends to this change.
 - **Breaking** for code importing navigate as a library: trivial getters on
   the helper classes are replaced by direct attribute access
   (CODESTYLE.md, Class variables) — `SimulationManager.get_timeline`/

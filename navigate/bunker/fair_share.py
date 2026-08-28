@@ -144,7 +144,7 @@ def initialize_fair_share_allocation(alg: BunkerAlgorithm) -> None:
         if not np.isfinite(supply):
             continue
 
-        port_name = port.get_name()
+        port_name = port.name
         key = (v, port_name, f)
 
         # if the port is a duplicate for that route,

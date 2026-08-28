@@ -16,13 +16,10 @@ class _StubNode:
 
     def __init__(self, value=1., type_='Forecast'):
         self._value = value
-        self._type = type_
+        self.type = type_
 
     def __str__(self):
         return 'StubNode'
-
-    def get_type(self):
-        return self._type
 
     def get(self, x=None, y=None):
         return self._value

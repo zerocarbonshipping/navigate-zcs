@@ -21,7 +21,7 @@ class Timetable(Node, _Table2D):
         Node.__init__(self, name)
         _Table2D.__init__(self)
 
-        self._type = TIMETABLE
+        self.type = TIMETABLE
 
         self.allow_dates_in_table = True
 

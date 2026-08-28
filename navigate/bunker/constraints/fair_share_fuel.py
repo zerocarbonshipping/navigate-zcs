@@ -36,13 +36,13 @@ def update_fair_share_fuel_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> 
         Vessel for which the constraint is added.
     """
 
-    v = vessel.get_name()
+    v = vessel.name
     ports = vessel.route.ports
     change_coefficient = alg.model.chgCoeff
 
     for p, port in enumerate(ports):
 
-        port_name = port.get_name()
+        port_name = port.name
 
         for f in vessel.usable_fuels:
 

@@ -62,7 +62,7 @@ def plot_fuel_type_supply_demand(manager, directory):
 
                 if not fuel.belongs_to_liquid_market():
 
-                    fuel_name = fuel.get_name()
+                    fuel_name = fuel.name
 
                     # add fuel supply
                     available = port_profile.get_bunkering_allowed(fuel_name)

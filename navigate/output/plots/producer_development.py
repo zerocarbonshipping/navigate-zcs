@@ -40,7 +40,7 @@ def _plot_producer_development(manager, directory, cumulative=False):
             ax.plot(dateline, development_constraint, 'k--', label='Constraint', lw=2.)
 
         legend = ax.legend(**LEGEND_OPTIONS)
-        ax.set_title(producer.get_name())
+        ax.set_title(producer.name)
 
         if cumulative:
             ax.set_ylabel('Development [plants]')

@@ -250,7 +250,7 @@ def _calculate_recursive_process(component: Component,
     production = expectation.get_production(idx)
 
     # save the conversion factor for later use
-    expectation.add_feed_mass(idx, process.get_name(), conversion)
+    expectation.add_feed_mass(idx, process.name, conversion)
 
     # calculate cost and emissions related
     # to the production process
@@ -279,7 +279,7 @@ def _calculate_recursive_process(component: Component,
             # tree is met in this direction
 
             # save the conversion factor for later use
-            expectation.add_feed_mass(idx, feed.get_name(), conversion_feed)
+            expectation.add_feed_mass(idx, feed.name, conversion_feed)
 
             # calculate the cost and emissions related
             # to acquiring feedstock for the process
@@ -351,7 +351,7 @@ def _initialize_process_component(plant: Plant,
 
     # initialize callables
     region = plant.region
-    p = process.get_name()
+    p = process.name
     component.initialize_process_component(region, p)
 
     return component
@@ -390,7 +390,7 @@ def _calculate_process_cost(component: Component,
     """
 
     size = plant.expectation.get_size(idx)
-    p = process.get_name()
+    p = process.name
 
     capex_obj = region.get_process_CAPEX(p)
     opex_obj = region.get_process_OPEX(p)
@@ -430,7 +430,7 @@ def _calculate_process_emissions(component: Component,
         Cumulative mass conversion factor reflecting upstream inputs per unit fuel.
     """
 
-    p = process.get_name()
+    p = process.name
 
     wtt_callables = {}
     for e in emissions:
@@ -472,8 +472,8 @@ def _calculate_energy_cost(component: Component,
         Current time-step index in the simulation timeline.
     """
 
-    s = source.get_name()
-    p = process.get_name()
+    s = source.name
+    p = process.name
 
     energy_obj = region.get_process_energy(p)
     energy = lambda time, _e=energy_obj: _e.get(time) * production * conversion
@@ -542,8 +542,8 @@ def _calculate_energy_emissions(component: Component,
         Current time-step index in the simulation timeline.
     """
 
-    s = source.get_name()
-    p = process.get_name()
+    s = source.name
+    p = process.name
 
     energy_obj = region.get_process_energy(p)
     energy = lambda time, _e=energy_obj: _e.get(time) * production * conversion
@@ -605,7 +605,7 @@ def _calculate_feedstock_cost(component: Component,
     conversion
         Cumulative mass conversion factor representing required input per unit fuel.
     """
-    f = feedstock.get_name()
+    f = feedstock.name
 
     cost_obj = region.get_feedstock_cost(f)
     metric = lambda time: conversion
@@ -641,7 +641,7 @@ def _calculate_feedstock_emissions(component: Component,
     conversion
         Cumulative mass conversion factor representing input mass per unit fuel.
     """
-    f = feedstock.get_name()
+    f = feedstock.name
 
     metric = lambda time: conversion
 
@@ -681,7 +681,7 @@ def _calculate_transport_cost(component: Component,
     conversion
         Cumulative mass conversion factor representing transported mass per unit fuel.
     """
-    f = feed.get_name()
+    f = feed.name
     transport = plant.get_feed_transport(f)
 
     # if transport is undefined then no
@@ -689,7 +689,7 @@ def _calculate_transport_cost(component: Component,
     if transport is None:
         return
 
-    t = transport.get_name()
+    t = transport.name
 
     dist_obj = plant.get_feed_distance(f)
     cost_obj = region.get_transport_cost(t)
@@ -732,7 +732,7 @@ def _calculate_transport_emissions(component: Component,
     conversion
         Cumulative mass conversion factor representing transported mass per unit fuel.
     """
-    f = feed.get_name()
+    f = feed.name
 
     transport = plant.get_feed_transport(f)
 
@@ -741,7 +741,7 @@ def _calculate_transport_emissions(component: Component,
     if transport is None:
         return
 
-    t = transport.get_name()
+    t = transport.name
 
     dist_obj = plant.get_feed_distance(f)
     metric = lambda time: conversion

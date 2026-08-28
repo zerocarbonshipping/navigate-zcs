@@ -55,8 +55,8 @@ def calculate_regulation_emission_term(alg: BunkerAlgorithm, vessel: Vessel, reg
         Constraint expression, emission expression, and energy expression.
     """
 
-    v = vessel.get_name()
-    r = regulation.get_name()
+    v = vessel.name
+    r = regulation.name
 
     # extract the various coefficients needed
     coefficients = alg.regulation_spend_coefficient
@@ -164,7 +164,7 @@ def get_regulation_vessel_threshold(alg: BunkerAlgorithm, regulation: Regulation
         The threshold value.
     """
 
-    return alg.regulation_vessel_threshold[(regulation.get_name(), v)]
+    return alg.regulation_vessel_threshold[(regulation.name, v)]
 
 
 def get_regulation_vessel_rhs(alg: BunkerAlgorithm, regulation: Regulation, v: str) -> tuple[float, float]:

@@ -291,15 +291,15 @@ class _Policy(Node):
     def _initialize_policy_dependencies(self, vessels):
 
         for fuel in self.fuels:
-            fuel_name = fuel.get_name()
+            fuel_name = fuel.name
 
             for emission in self.emissions:
-                key = (fuel_name, emission.get_name())
+                key = (fuel_name, emission.name)
                 self.fuel_WTT[key] = None
                 self.fuel_TTW[key] = None
 
         for emission in self.emissions:
-            self.global_warming_potential[emission.get_name()] = None
+            self.global_warming_potential[emission.name] = None
 
         for vessel_name in vessels:
             if vessel_name not in self.include_vessel:

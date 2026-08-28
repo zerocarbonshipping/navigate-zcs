@@ -28,7 +28,7 @@ def transfer_bunker(alg: BunkerAlgorithm) -> None:
     if alg.scope == BunkerScopeID.EXISTING:
         for levies in alg.port_levies.values():
             for levy in levies:
-                name = levy.get_name()
+                name = levy.name
                 if name not in levy_level_cache:
                     levy_level_cache[name] = levy.expectation.get_level(alg.idx)
 
@@ -41,7 +41,7 @@ def transfer_bunker(alg: BunkerAlgorithm) -> None:
         # extract relevant nodes
         vessel = alg.vessels[v]
         port = vessel.route.ports[p]
-        port_name = port.get_name()
+        port_name = port.name
 
         # add the demand to the fleet
         fleet_name = vessel.fleet_assignment
@@ -95,16 +95,16 @@ def transfer_bunker(alg: BunkerAlgorithm) -> None:
             if not levy.vessel_is_policed(v):
                 continue
 
-            collected = alg.cost_levy[(v, port_name, f, levy.get_name())] * bunker.X
+            collected = alg.cost_levy[(v, port_name, f, levy.name)] * bunker.X
 
             if alg.scope == BunkerScopeID.EXISTING:
                 levy.profile.add_collected(alg.idx, collected * alg.multipliers[v])
                 vessel.profile.add_levy_expenses(f, collected, alg.idx)
 
                 # track per-vessel levy emission units (collected / level)
-                level = levy_level_cache[levy.get_name()]
+                level = levy_level_cache[levy.name]
                 if level > 0.:
-                    vessel.profile.add_levy_units(levy.get_name(), alg.idx, collected / level)
+                    vessel.profile.add_levy_units(levy.name, alg.idx, collected / level)
 
     # transfer the fleet fuel demand
     if alg.scope == BunkerScopeID.EXPECTED:

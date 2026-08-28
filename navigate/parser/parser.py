@@ -66,6 +66,12 @@ from navigate.util import (
 
 logger = logging.getLogger(__name__)
 
+# node attributes that can never hold node references, skipped when the parser
+# scans instance attributes to resolve references; every entry must name a real
+# attribute (pinned by a unit test) so stale entries cannot accumulate silently
+REFERENCE_SCAN_EXCLUDE = ('name', 'type', 'allow_dates_in_table', 'expectation', 'profile',
+                          '_table', 'just_copied')
+
 
 class Parser:
     def __init__(self):
@@ -704,7 +710,7 @@ class Parser:
                                    + ": Unable to {} new nodes outside DEFINE.".format(action))
 
     def _set_node(self, node_type, node):
-        getattr(self.nodes, NODE_GROUP[node_type])[node.get_name()] = node
+        getattr(self.nodes, NODE_GROUP[node_type])[node.name] = node
 
     def _check_keyword(self, keyword, name=None):
         if keyword in KEYWORD_SECTIONS:
@@ -834,7 +840,7 @@ class Parser:
             self._execute_node_commands(node)
 
     def _execute_node_commands(self, node):
-        for cmd_ref in node.get_command_references():
+        for cmd_ref in node.command_references:
             self._current_deck_line = cmd_ref.deck_line
             self._current_source = cmd_ref.source
 
@@ -922,11 +928,7 @@ class Parser:
             self._replace_references_on_node(general_node)
 
     def _replace_references_on_node(self, node):
-        exclude = ('name', '_type', 'allow_dates_in_table', '_expectation', '_profile',
-                   '_allowed_attributes', '_allowed_commands', '_headers', '_headers_row', '_headers_col', '_rows',
-                   '_values', '_table', 'just_copied')
-
-        attributes = _get_attributes(node, exclude=exclude)
+        attributes = _get_attributes(node, exclude=REFERENCE_SCAN_EXCLUDE)
 
         for attribute_name, attribute in attributes:
             self._replace_references_on_attribute(node, attribute, attribute_name=attribute_name)
@@ -948,7 +950,7 @@ class Parser:
             actual_node, default = self._get_node_from_reference(attribute)
 
         elif isinstance(attribute, Node) and isinstance(node, Node) and node.just_copied:
-            actual_node = getattr(self.nodes, NODE_GROUP[attribute.get_type()])[attribute.get_name()]
+            actual_node = getattr(self.nodes, NODE_GROUP[attribute.type])[attribute.name]
             default = False
             del attribute
 
@@ -992,8 +994,8 @@ class Parser:
             self._replace_references_on_node(actual_node)
 
     def _get_node_from_reference(self, reference):
-        name = reference.get_name()
-        node_type = reference.get_type()
+        name = reference.name
+        node_type = reference.type
 
         group = getattr(self.nodes, NODE_GROUP[node_type])
 
@@ -1023,7 +1025,7 @@ class Parser:
         Matched nodes from the registry.
         """
 
-        node_type = wildcard_ref.get_type()
+        node_type = wildcard_ref.type
         pattern = wildcard_ref.pattern
         group = getattr(self.nodes, NODE_GROUP[node_type])
 

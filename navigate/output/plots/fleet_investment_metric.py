@@ -42,7 +42,7 @@ def plot_fleet_investment_metric(manager, directory):
                         color=color, label='Instantaneous', lw=2.5)
 
             ax.set_ylabel('Freight rate [{}]'.format(unit))
-            ax.set_title(vessel.get_name() + ' vessel')
+            ax.set_title(vessel.name + ' vessel')
             legend = ax.legend(**LEGEND_OPTIONS)
             format_axes(ax, len(vessels), dateline, legend, y_lim=None)
 
@@ -51,4 +51,4 @@ def plot_fleet_investment_metric(manager, directory):
 
         trim_axes(axes, len(vessels))
 
-        save_figure(fig, directory, 'fleet_investment_metric_{}.png'.format(fleet.get_name()))
+        save_figure(fig, directory, 'fleet_investment_metric_{}.png'.format(fleet.name))

@@ -52,7 +52,7 @@ class Producer(_AssetManager):
     def __init__(self, name):
         super().__init__(name)
 
-        self._type = PRODUCER
+        self.type = PRODUCER
 
         # external properties ------------------------------------------------------------------------------------------
 
@@ -417,7 +417,7 @@ class Producer(_AssetManager):
         for feed_name in {**feedstocks, **processes}:
             self.feed_constraints.setdefault(feed_name, None)
 
-        active_port_names = {port.get_name() for route in routes.values() for port in route.ports}
+        active_port_names = {port.name for route in routes.values() for port in route.ports}
 
         for port_name in ports:
 
@@ -426,7 +426,7 @@ class Producer(_AssetManager):
 
         # default dependent dicts
         for plant in self.assets:
-            name = plant.get_name()
+            name = plant.name
             self.allow_plant.setdefault(name, True)
             self.existing_pipelines.setdefault(name, None)
 
@@ -434,7 +434,7 @@ class Producer(_AssetManager):
                                fuels: dict[str, Fuel], ports: dict[str, Port],
                                processes: dict[str, Process]) -> None:
 
-        plant_names = [plant.get_name() for plant in self.assets]
+        plant_names = [plant.name for plant in self.assets]
 
         self.expectation = ProducerExpectation()
         self.expectation.initialize(length, plant_names, feedstocks, fuels, ports, processes)
@@ -489,7 +489,7 @@ class Producer(_AssetManager):
         # store all possible production fuels for convenience
         for plant in self.assets:
             fuel = plant.fuel
-            self.fuels.setdefault(fuel.get_name(), fuel)
+            self.fuels.setdefault(fuel.name, fuel)
 
         # set static properties
         self._initialized = True

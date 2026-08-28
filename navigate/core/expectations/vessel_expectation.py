@@ -112,7 +112,7 @@ class VesselExpectation(_Expectation):
     def initialize(self, length: int, route: Route, fuels: dict[str, Fuel]) -> None:
         self._initialize_expectation(length)
 
-        port_names = [port.get_name() for port in route.ports]
+        port_names = [port.name for port in route.ports]
         n_leg = route.get_number_of_legs()
         n_leg_regional = route.get_number_of_regional_legs()
         n_port = route.get_number_of_ports()

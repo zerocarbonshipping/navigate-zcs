@@ -9,7 +9,7 @@ from navigate.core._mixin import TypeCheckMixin
 class NodeReference(TypeCheckMixin):
     def __init__(self, type_, name):
 
-        self._type = type_
+        self.type = type_
         self.name = name
         self.unit = None
 
@@ -22,17 +22,11 @@ class NodeReference(TypeCheckMixin):
         # bounds on the attribute are included in the call
         self.internal_bounds = (-np.inf, np.inf)
 
-    def get_type(self):
-        return self._type
-
-    def get_name(self):
-        return self.name
-
     def set_internal_bounds(self, lower, upper):
         self.internal_bounds = (lower, upper)
 
     def __repr__(self):
-        return "{}(\"{}\")".format(self._type, self.name)
+        return "{}(\"{}\")".format(self.type, self.name)
 
 
 class WildcardNodeReference(NodeReference):

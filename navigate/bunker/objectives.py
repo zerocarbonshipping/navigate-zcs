@@ -32,7 +32,7 @@ def update_vessel_objectives(alg: BunkerAlgorithm, vessel: Vessel) -> None:
         Vessel for which objective is updated.
     """
 
-    v = vessel.get_name()
+    v = vessel.name
     multiplier = alg.multipliers[v]
     ports = vessel.route.ports
     port_levies = alg.port_levies
@@ -40,7 +40,7 @@ def update_vessel_objectives(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     # add bunkering costs
     for p, port in enumerate(ports):
 
-        port_name = port.get_name()
+        port_name = port.name
         levies = port_levies[port_name]
 
         for f, fuel in vessel.usable_fuels.items():
@@ -50,7 +50,7 @@ def update_vessel_objectives(alg: BunkerAlgorithm, vessel: Vessel) -> None:
                 price = port.expectation.get_bunker_price(f, alg.idx)
 
                 # calculate the cost across all levies
-                cost_levy = sum(alg.cost_levy[(v, port_name, f, levy.get_name())]
+                cost_levy = sum(alg.cost_levy[(v, port_name, f, levy.name)]
                                 for levy in levies if levy.vessel_is_policed(v))
 
                 # calculate the total price for fuel and levies

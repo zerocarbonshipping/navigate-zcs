@@ -188,7 +188,7 @@ def determine_usable_fuels(vessel: Vessel, fuels_by_fuel_type: dict[FuelTypeID, 
 
         for fuel in fuels:
 
-            vessel.usable_fuels.setdefault(fuel.get_name(), fuel)
+            vessel.usable_fuels.setdefault(fuel.name, fuel)
 
     # check that the vessel can bunker
     if not vessel.usable_fuels:

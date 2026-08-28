@@ -32,7 +32,7 @@ def update_tank_capacity_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> No
         Vessel for which constraints are updated.
     """
 
-    v = vessel.get_name()
+    v = vessel.name
     tanks = vessel.tanks
     usable_fuels = vessel.usable_fuels
     change_coefficient = alg.model.chgCoeff
@@ -41,7 +41,7 @@ def update_tank_capacity_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> No
 
         for tank in tanks:
 
-            t = tank.get_name()
+            t = tank.name
             key = (v, p, t)
 
             constraint = get_constraint(alg, alg.tank_capacity, key, "<=", "tank_capacity")
@@ -51,7 +51,7 @@ def update_tank_capacity_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> No
 
                 for fuel in alg.fuels_per_fuel_type[fuel_type]:
 
-                    f = fuel.get_name()
+                    f = fuel.name
 
                     if f in usable_fuels:
                         change_coefficient(constraint, alg.mass_tank[v, p, f], 1. / fuel.mass_density.get())

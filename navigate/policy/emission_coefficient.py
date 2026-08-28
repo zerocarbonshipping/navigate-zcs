@@ -127,7 +127,7 @@ def _assign_regulation_wtt_factors(regulation: Regulation,
     wtt_supplied = {}
     for fuel in regulation.fuels:
         for emission in target_emissions:
-            key = (fuel.get_name(), emission.get_name())
+            key = (fuel.name, emission.name)
             supplied = fuel_wtts[key]
             wtt_supplied[key] = supplied.get(timeline[idx:]) if supplied is not None else None
 
@@ -146,10 +146,10 @@ def _assign_regulation_wtt_factors(regulation: Regulation,
         target_fuels = _usable_target_fuels(regulation, usable_fuels)
 
         for fuel in target_fuels:
-            fuel_name = fuel.get_name()
+            fuel_name = fuel.name
 
             for emission in target_emissions:
-                emission_name = emission.get_name()
+                emission_name = emission.name
                 key = (fuel_name, emission_name)
 
                 # user-supplied WTT overrides the per-port average
@@ -199,10 +199,10 @@ def _assign_regulation_ttw_factors(regulation: Regulation,
         converters = vessel.power_system.get_converters()
 
         for fuel in target_fuels:
-            fuel_name = fuel.get_name()
+            fuel_name = fuel.name
 
             for emission in target_emissions:
-                emission_name = emission.get_name()
+                emission_name = emission.name
 
                 # if a user-supplied TTW is assigned on the regulation, it
                 # applies uniformly to every converter (with zero slip);
@@ -213,7 +213,7 @@ def _assign_regulation_ttw_factors(regulation: Regulation,
 
                 for converter in converters:
 
-                    converter_name = converter.get_name()
+                    converter_name = converter.name
 
                     if ttw_supplied is not None:
                         ttw_consumption = ttw_supplied
@@ -256,11 +256,11 @@ def _assign_regulation_emission_coefficients(regulation: Regulation,
 
         for converter in vessel.power_system.get_converters():
 
-            converter_name = converter.get_name()
+            converter_name = converter.name
             fuel_types = converter.get_fuel_types()
 
             for fuel in target_fuels:
-                fuel_name = fuel.get_name()
+                fuel_name = fuel.name
 
                 if fuel.fuel_type not in fuel_types:
                     continue
@@ -311,10 +311,10 @@ def _calculate_regulation_emission_factor(regulation: Regulation,
     Emission factor.
     """
 
-    vessel_name = vessel.get_name()
-    converter_name = converter.get_name()
-    fuel_name = fuel.get_name()
-    emission_name = emission.get_name()
+    vessel_name = vessel.name
+    converter_name = converter.name
+    fuel_name = fuel.name
+    emission_name = emission.name
 
     key_wtt = (vessel_name, fuel_name, emission_name)
     key_ttw = (converter_name, fuel_name, emission_name)
@@ -379,10 +379,10 @@ def _assign_levy_wtt_factors(levy: Levy,
     target_emissions = levy.emissions
 
     for fuel in levy.fuels:
-        fuel_name = fuel.get_name()
+        fuel_name = fuel.name
 
         for emission in target_emissions:
-            emission_name = emission.get_name()
+            emission_name = emission.name
 
             # user-supplied WTT (None falls back to the port-specific model
             # value resolved inside the per-port loop below).
@@ -391,7 +391,7 @@ def _assign_levy_wtt_factors(levy: Levy,
             wtt_supplied = supplied.get(timeline[idx:]) if supplied is not None else None
 
             for port in levy.jurisdiction:
-                port_name = port.get_name()
+                port_name = port.name
 
                 if not port.is_bunkering_allowed(fuel_name):
                     factor = np.nan
@@ -440,10 +440,10 @@ def _assign_levy_ttw_factors(levy: Levy,
         target_fuels = _usable_target_fuels(levy, usable_fuels)
 
         for fuel in target_fuels:
-            fuel_name = fuel.get_name()
+            fuel_name = fuel.name
 
             for emission in target_emissions:
-                emission_name = emission.get_name()
+                emission_name = emission.name
 
                 key = (vessel_name, fuel_name, emission_name)
                 ttw = fuel_ttws[(fuel_name, emission_name)]
@@ -496,10 +496,10 @@ def _assign_levy_emission_coefficients(levy: Levy,
 
         for port in ports:
 
-            port_name = port.get_name()
+            port_name = port.name
 
             for fuel in target_fuels:
-                fuel_name = fuel.get_name()
+                fuel_name = fuel.name
 
                 if not port.is_bunkering_allowed(fuel_name):
                     continue
@@ -554,10 +554,10 @@ def _calculate_levy_emission_factor(levy: Levy,
     Emission factor.
     """
 
-    vessel_name = vessel.get_name()
-    port_name = port.get_name()
-    fuel_name = fuel.get_name()
-    emission_name = emission.get_name()
+    vessel_name = vessel.name
+    port_name = port.name
+    fuel_name = fuel.name
+    emission_name = emission.name
 
     key_wtt = (port_name, fuel_name, emission_name)
     key_ttw = (vessel_name, fuel_name, emission_name)
@@ -628,7 +628,7 @@ def _calculate_converter_ttw(converter: Converter,
     Consumption TTW and slip TTW.
     """
 
-    emission_name = emission.get_name()
+    emission_name = emission.name
     fuel_type = fuel.fuel_type
 
     if fuel_type not in converter.get_fuel_types():
@@ -689,7 +689,7 @@ def _average_wtt_over_ports(ports: list[Port],
     Approximate converter WTT.
     """
 
-    fuel_name = fuel.get_name()
+    fuel_name = fuel.name
     from_idx = np.s_[idx:]
 
     supplies = []
@@ -844,7 +844,7 @@ def _apply_gwp(emission_factor: float | np.ndarray,
     GWP-weighted emission factor.
     """
 
-    gwp = policy.expectation.get_global_warming_potential(emission.get_name())
+    gwp = policy.expectation.get_global_warming_potential(emission.name)
 
     return emission_factor * gwp
 
@@ -865,7 +865,7 @@ def _usable_target_fuels(policy: Levy | Regulation, usable_fuels: dict[str, Fuel
     Targeted fuels also usable by the vessel.
     """
 
-    return [fuel for fuel in policy.fuels if fuel.get_name() in usable_fuels]
+    return [fuel for fuel in policy.fuels if fuel.name in usable_fuels]
 
 
 def _get_port_bunker_wtt(port: Port, fuel: Fuel, emission: Emission, idx: int) -> np.ndarray:
@@ -890,8 +890,8 @@ def _get_port_bunker_wtt(port: Port, fuel: Fuel, emission: Emission, idx: int) -
 
     from_idx = np.s_[idx:]
 
-    fuel_name = fuel.get_name()
-    emission_name = emission.get_name()
+    fuel_name = fuel.name
+    emission_name = emission.name
     wtt = port.expectation.get_bunker_WTT(fuel_name, emission_name, from_idx)
 
     return wtt

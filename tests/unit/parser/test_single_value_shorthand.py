@@ -81,4 +81,4 @@ class TestBareWildcardShorthand:
 
         parser._replace_references_on_attribute(route, route.ports)
 
-        assert {p.get_name() for p in route.ports} == {"port_a", "port_b"}
+        assert {p.name for p in route.ports} == {"port_a", "port_b"}

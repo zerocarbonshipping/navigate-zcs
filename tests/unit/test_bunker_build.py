@@ -110,9 +110,6 @@ class _StubConverter:
     def __init__(self, name):
         self.name = name
 
-    def get_name(self):
-        return self.name
-
 
 class _StubPowerSystem:
     def __init__(self):
@@ -148,9 +145,7 @@ class _StubVessel:
         self.usable_fuels = {"hfo": object()}
         self.power_system = _StubPowerSystem()
         self.expectation = _StubVesselExpectation()
-
-    def get_name(self):
-        return "vessel_a"
+        self.name = "vessel_a"
 
 
 def test_update_vessel_variables_adds_mass_tank_per_port_and_fuel():

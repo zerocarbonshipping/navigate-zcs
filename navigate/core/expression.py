@@ -224,6 +224,6 @@ def _extract_node_type(node_reference):
     if isinstance(node_reference, str):
         type_ = node_reference.split('(')[0]
     else:
-        type_ = node_reference.get_type()
+        type_ = node_reference.type
 
     return type_

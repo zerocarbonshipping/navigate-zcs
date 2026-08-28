@@ -12,7 +12,7 @@ class Fuel(Node):
     def __init__(self, name):
         super().__init__(name)
 
-        self._type = FUEL
+        self.type = FUEL
 
         # definition
         self.fuel_type = None              # enum, fuel type ID

@@ -171,7 +171,7 @@ FEEDSTOCK_COLOR = {
 
 
 def extract_label(node, default_dict):
-    return default_label(node.get_name(), default_dict)
+    return default_label(node.name, default_dict)
 
 
 def default_label(key, default_dict):

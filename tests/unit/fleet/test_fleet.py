@@ -41,9 +41,8 @@ from navigate.util import YEAR
 def _make_vessel(name):
     """Create a mock Vessel with minimal interface."""
     v = MagicMock()
-    v.get_name.return_value = name
-    v.get_type.return_value = VESSEL
-    v._type = VESSEL
+    v.name = name
+    v.type = VESSEL
     v.is_type.side_effect = lambda t: t == VESSEL
     return v
 
@@ -176,7 +175,7 @@ class TestNetEnergyFromRaw:
 
 def _make_technology(name: str):
     t = MagicMock()
-    t.get_name.return_value = name
+    t.name = name
     return t
 
 
@@ -521,7 +520,7 @@ def _make_fleet_for_modelled_uptakes(fuel_types: list[str], freight_rates: list[
     both DCM levels so the unconstrained shares are 1/N, making cap effects directly observable.
     """
     fleet = Fleet.__new__(Fleet)
-    fleet._type = FLEET
+    fleet.type = FLEET
     fleet.name = "test_fleet"
     fleet.inter_fuel_sensitivity = _make_uniform_sensitivity()
     fleet.intra_fuel_sensitivity = _make_uniform_sensitivity()
@@ -619,7 +618,7 @@ def _make_fleet_for_newbuilds(cargo_miles: list[float],
     for v, cm in zip(vessels, cargo_miles):
         v.expectation.get_cargo_miles.return_value = cm
 
-    names = [v.get_name() for v in vessels]
+    names = [v.name for v in vessels]
     fleet.allow_vessel = dict.fromkeys(names, True)
     fleet.newbuild_available = dict.fromkeys(names, True)
     fleet.orderbooks = list(orderbooks) if orderbooks is not None else []

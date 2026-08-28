@@ -33,7 +33,7 @@ def update_bunkered_equals_spent_constraint(alg: BunkerAlgorithm, vessel: Vessel
         Vessel for which constraints are updated.
     """
 
-    v = vessel.get_name()
+    v = vessel.name
     route = vessel.route
     converters_per_fuel = alg.converters_per_fuel
     port_converters_per_fuel = alg.port_converters_per_fuel

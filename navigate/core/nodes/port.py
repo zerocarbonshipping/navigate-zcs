@@ -33,7 +33,7 @@ class Port(Node):
     def __init__(self, name):
         super().__init__(name)
 
-        self._type = PORT
+        self.type = PORT
 
         # external properties ------------------------------------------------------------------------------------------
         # bunkering

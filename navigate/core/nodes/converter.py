@@ -22,7 +22,7 @@ class Converter(_Machinery):
     def __init__(self, name):
         super().__init__(name)
 
-        self._type = CONVERTER
+        self.type = CONVERTER
 
         # power
         self.power_capacity = None         # float, power capacity of the Converter, MW

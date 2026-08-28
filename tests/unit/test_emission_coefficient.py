@@ -20,10 +20,10 @@ from navigate.policy.emission_coefficient import _average_wtt_over_ports
 # ---------------------------------------------------------------------------
 
 FUEL = MagicMock()
-FUEL.get_name.return_value = 'fuel_bio'
+FUEL.name = 'fuel_bio'
 
 EMISSION = MagicMock()
-EMISSION.get_name.return_value = 'carbon_dioxide'
+EMISSION.name = 'carbon_dioxide'
 
 
 def _make_port(allowed, supply, wtt):

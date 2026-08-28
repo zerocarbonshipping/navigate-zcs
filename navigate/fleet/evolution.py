@@ -138,7 +138,7 @@ def perform_age_based_scrapping(fleet: Fleet, idx: int):
                 incs[0].multiplier -= scrapping
 
         # transfer to profile
-        fleet.profile.add_scrap(vessel.get_name(), idx, scrapped_vessels)
+        fleet.profile.add_scrap(vessel.name, idx, scrapped_vessels)
 
 
 def perform_fixed_rate_scrapping(fleet: Fleet, time_step: float, idx: int):
@@ -277,7 +277,7 @@ def perform_fixed_trade_scrapping(fleet: Fleet, trade_gap: float, idx: int):
                 youngest_age = age + dt * (1. - scrap_fraction)
 
                 # transfer to profile
-                fleet.profile.add_scrap(fleet.assets[v].get_name(), idx, to_scrap)
+                fleet.profile.add_scrap(fleet.assets[v].name, idx, to_scrap)
 
             # the trade-gap is per definition zero
             trade_gap = 0.
@@ -298,7 +298,7 @@ def perform_fixed_trade_scrapping(fleet: Fleet, trade_gap: float, idx: int):
                 youngest_index[v] = ii + 1
 
                 # transfer to profile
-                fleet.profile.add_scrap(fleet.assets[v].get_name(), idx, increment)
+                fleet.profile.add_scrap(fleet.assets[v].name, idx, increment)
 
     # secondary scrapping for anything older than the youngest age
     for v, i in enumerate(youngest_index):
@@ -346,7 +346,7 @@ def calculate_orderbook_newbuilds(fleet: Fleet, trade_gap: float, cap_count: np.
 
     # extract whether the vessel type is allowed
     # and trade delivered by the vessel type
-    allowed = np.array([(fleet.allow_vessel[vessel.get_name()] and fleet.newbuild_available[vessel.get_name()])
+    allowed = np.array([(fleet.allow_vessel[vessel.name] and fleet.newbuild_available[vessel.name])
                         for vessel in fleet.assets])
 
     cargo_miles = np.array(extract_cargo_miles(fleet.assets, idx=idx))
@@ -413,7 +413,7 @@ def calculate_orderbook_newbuilds(fleet: Fleet, trade_gap: float, cap_count: np.
 
     # transfer to profile
     for v, vessel in enumerate(fleet.assets):
-        fleet.profile.add_newbuilds(vessel.get_name(), idx, delivery[v])
+        fleet.profile.add_newbuilds(vessel.name, idx, delivery[v])
 
     cap_count_remaining = np.maximum(cap_count - delivery, 0.)
 
@@ -473,8 +473,8 @@ def calculate_modelled_newbuilds(fleet: Fleet, trade_gap: float, cap_count: np.n
 
     # extract allowed vessels and index map
     index, vessels = zip(*((i, vessel) for i, vessel in enumerate(fleet.assets)
-                           if fleet.allow_vessel[vessel.get_name()]
-                           and fleet.newbuild_available[vessel.get_name()]))
+                           if fleet.allow_vessel[vessel.name]
+                           and fleet.newbuild_available[vessel.name]))
 
     # make it a valid array index to numpy
     index = np.array(index)
@@ -525,7 +525,7 @@ def calculate_modelled_newbuilds(fleet: Fleet, trade_gap: float, cap_count: np.n
         increments[v] = inertia_increments[i] + modelled_increments[i]
 
         # transfer to the profile
-        fleet.profile.add_newbuilds(fleet.assets[v].get_name(), idx, increments[v])
+        fleet.profile.add_newbuilds(fleet.assets[v].name, idx, increments[v])
 
     return increments, np.dot(np.add(inertia_increments, modelled_increments), cargo_miles)
 
@@ -844,7 +844,7 @@ def calculate_evolution_expectation(fleet: Fleet, idx: int, timeline: np.ndarray
     jump_start = jump_start_rel * total_multipliers
     for v, vessel in enumerate(fleet.assets):
 
-        if fleet.allow_vessel[vessel.get_name()] and fleet.newbuild_available[vessel.get_name()]:
+        if fleet.allow_vessel[vessel.name] and fleet.newbuild_available[vessel.name]:
             non_existent = np.where(existing[v, :] + newbuild[v, :] == 0.)
             newbuild[v, non_existent] = jump_start[non_existent]
 
@@ -858,8 +858,8 @@ def calculate_evolution_expectation(fleet: Fleet, idx: int, timeline: np.ndarray
     # replace them is expected to follow the
     # same distribution.
     for v, vessel in enumerate(fleet.assets):
-        fleet.expectation.set_existing_multipliers(idx, vessel.get_name(), existing[v, :])
-        fleet.expectation.set_newbuild_multipliers(idx, vessel.get_name(), newbuild[v, :])
+        fleet.expectation.set_existing_multipliers(idx, vessel.name, existing[v, :])
+        fleet.expectation.set_newbuild_multipliers(idx, vessel.name, newbuild[v, :])
 
 
 def perform_fleet_evolution(fleet: Fleet, timeline: np.ndarray, time_step: float, idx: int) -> None:
@@ -901,7 +901,7 @@ def perform_fleet_evolution(fleet: Fleet, timeline: np.ndarray, time_step: float
     # Cap denominator is the pre-newbuild fleet count (proxy for yard capacity); time_step/YEAR scales
     # the per-year limit to a per-step budget.
     multipliers_total = float(sum(fleet.get_multipliers()))
-    limit_share = np.array([fleet.newbuild_limit[v.get_name()].get() for v in fleet.assets])
+    limit_share = np.array([fleet.newbuild_limit[v.name].get() for v in fleet.assets])
     cap_count = limit_share * multipliers_total * (time_step / YEAR)
 
     # handle order book

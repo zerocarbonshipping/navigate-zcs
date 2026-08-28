@@ -13,7 +13,7 @@ class PowerSystem(_Machinery):
     def __init__(self, name):
         super().__init__(name)
 
-        self._type = POWER_SYSTEM
+        self.type = POWER_SYSTEM
         # converters
         self.propulsion = None   # Converter, main engine delivering propulsion power
         self.electrical = None   # Converter, auxiliary engine delivering electrical power
@@ -81,7 +81,7 @@ class PowerSystem(_Machinery):
             no_value_assigned_error(self, 'Heat')
 
         # downstream code sums over the converters (installed power, cost, fuel demand); a shared one would double-count
-        names = (self.propulsion.get_name(), self.electrical.get_name(), self.heat.get_name())
+        names = (self.propulsion.name, self.electrical.name, self.heat.name)
         if not list_is_unique(names):
             raise ValueError("{}: 'Propulsion', 'Electrical' and 'Heat' must be three distinct"
                              " converters, got {}.".format(self, names))

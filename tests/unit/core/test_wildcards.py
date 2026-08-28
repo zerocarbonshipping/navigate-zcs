@@ -99,7 +99,7 @@ class TestWildcardNodeReference:
 
     def test_basic_attributes(self):
         ref = WildcardNodeReference("Fuel", "bio_*")
-        assert ref.get_type() == "Fuel"
+        assert ref.type == "Fuel"
         assert ref.pattern == "bio_*"
 
     def test_repr(self):
@@ -115,9 +115,9 @@ class TestWildcardNodeReference:
         ref = WildcardNodeReference("Fuel", "*")
         assert isinstance(ref, NodeReference)
 
-    def test_get_name_returns_pattern(self):
+    def test_name_is_pattern(self):
         ref = WildcardNodeReference("Fuel", "bio_*")
-        assert ref.get_name() == "bio_*"
+        assert ref.name == "bio_*"
 
     def test_inherited_set_internal_bounds_is_callable(self):
         ref = WildcardNodeReference("Fuel", "*")

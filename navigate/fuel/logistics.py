@@ -46,8 +46,8 @@ def calculate_plant_logistics_expectations(plants: dict[str, Plant],
         region = plant.region
         fuel = plant.fuel
 
-        region_name = region.get_name()
-        fuel_name = fuel.get_name()
+        region_name = region.name
+        fuel_name = fuel.name
 
         for port_name, port in ports.items():
 
