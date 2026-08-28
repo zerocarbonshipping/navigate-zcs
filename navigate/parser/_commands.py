@@ -207,7 +207,7 @@ class CommandReference:
         Method name to call on the node.
     inputs : list
         Positional arguments for the method.
-    source : SourceLoc
+    source : SourceLocation
         Source location of the command in the include file.
     deck_line : int
         Line in the .nav file of the enclosing INCLUDE directive.

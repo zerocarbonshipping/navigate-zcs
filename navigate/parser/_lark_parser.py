@@ -20,14 +20,19 @@ from lark.exceptions import UnexpectedCharacters, UnexpectedToken
 
 from navigate.core import Expression, NodeReference
 from navigate.core.node_reference import WildcardNodeReference
-from navigate.core.table_data import (
-    SourceLoc,
-    TableData,
-    parse_table_cells,
-    string_to_date,
-)
+from navigate.core.table_data import TableData, parse_table_cells, string_to_date
 from navigate.exceptions import DeckFormatError
 from navigate.util import name_contains_wildcards
+
+
+@dataclass(frozen=True)
+class SourceLocation:
+    """Immutable source-location tag attached to every AST node."""
+
+    file: str = ""
+    line: int = 0
+    deck_line: int = 0
+
 
 # ═════════════════════════════════════════════════════════════════════════
 # AST — deck level (.nav)
@@ -39,7 +44,7 @@ class IncludeDirective:
     """``INCLUDE "path/to/file.inc"``."""
 
     path: str
-    source: SourceLoc = field(default_factory=SourceLoc)
+    source: SourceLocation = field(default_factory=SourceLocation)
 
 
 @dataclass
@@ -47,7 +52,7 @@ class LoadModuleDirective:
     """``Load ModuleName``."""
 
     name: str
-    source: SourceLoc = field(default_factory=SourceLoc)
+    source: SourceLocation = field(default_factory=SourceLocation)
 
 
 @dataclass
@@ -55,7 +60,7 @@ class DefineBlock:
     """``DEFINE { ... }`` block."""
 
     directives: list
-    source: SourceLoc = field(default_factory=SourceLoc)
+    source: SourceLocation = field(default_factory=SourceLocation)
 
 
 @dataclass
@@ -63,7 +68,7 @@ class EventsBlock:
     """``EVENTS { ... }`` block."""
 
     directives: list
-    source: SourceLoc = field(default_factory=SourceLoc)
+    source: SourceLocation = field(default_factory=SourceLocation)
 
 
 # ═════════════════════════════════════════════════════════════════════════
@@ -72,63 +77,63 @@ class EventsBlock:
 
 
 @dataclass
-class NodeDecl:
+class NodeDeclaration:
     """Named node declaration, e.g. ``Vessel "my_ship" { ... }``."""
 
     node_type: str
     name: str
     body: list
-    source: SourceLoc = field(default_factory=SourceLoc)
+    source: SourceLocation = field(default_factory=SourceLocation)
 
 
 @dataclass
-class GeneralNodeDecl:
+class GeneralNodeDeclaration:
     """Singleton node declaration, e.g. ``ModelDefinition { ... }``."""
 
     node_type: str
     body: list
-    source: SourceLoc = field(default_factory=SourceLoc)
+    source: SourceLocation = field(default_factory=SourceLocation)
 
 
 @dataclass
-class CopyStmt:
-    """``Copy Vessel "source" "target"``."""
+class CopyStatement:
+    """``Copy Vessel "copy_from" "copy_to"``."""
 
     node_type: str
-    src: str
-    dst: str
-    source: SourceLoc = field(default_factory=SourceLoc)
+    copy_from: str
+    copy_to: str
+    source: SourceLocation = field(default_factory=SourceLocation)
 
 
 @dataclass
-class ImportStmt:
+class ImportStatement:
     """``Import Vessel "name"``."""
 
     node_type: str
     name: str
-    source: SourceLoc = field(default_factory=SourceLoc)
+    source: SourceLocation = field(default_factory=SourceLocation)
 
 
 @dataclass
-class DateStmt:
+class DateStatement:
     """``Date "01-01-2025"``."""
 
     date_string: str
-    source: SourceLoc = field(default_factory=SourceLoc)
+    source: SourceLocation = field(default_factory=SourceLocation)
 
 
 @dataclass
 class StartTimeline:
     """``Start`` keyword."""
 
-    source: SourceLoc = field(default_factory=SourceLoc)
+    source: SourceLocation = field(default_factory=SourceLocation)
 
 
 @dataclass
 class EndTimeline:
     """``End`` keyword."""
 
-    source: SourceLoc = field(default_factory=SourceLoc)
+    source: SourceLocation = field(default_factory=SourceLocation)
 
 
 @dataclass
@@ -137,7 +142,7 @@ class Assignment:
 
     attribute: str
     value: Any
-    source: SourceLoc = field(default_factory=SourceLoc)
+    source: SourceLocation = field(default_factory=SourceLocation)
 
 
 @dataclass
@@ -146,7 +151,7 @@ class Command:
 
     name: str
     args: list = field(default_factory=list)
-    source: SourceLoc = field(default_factory=SourceLoc)
+    source: SourceLocation = field(default_factory=SourceLocation)
 
 
 # ═════════════════════════════════════════════════════════════════════════
@@ -160,31 +165,31 @@ class NavTransformer(Transformer):
     """Convert Lark parse trees to Navigate AST nodes.
 
     The ``file`` attribute is set before each transform call so that
-    every produced ``SourceLoc`` carries the originating file path.
+    every produced ``SourceLocation`` carries the originating file path.
     """
 
     file: str = ""
 
-    def _loc(self, meta) -> SourceLoc:
-        return SourceLoc(file=self.file, line=meta.line)
+    def _loc(self, meta) -> SourceLocation:
+        return SourceLocation(file=self.file, line=meta.line)
 
     @staticmethod
-    def _check_one_stmt_per_line(stmts: list) -> None:
+    def _check_one_statement_per_line(statements: list) -> None:
         seen_lines: dict = {}
-        for stmt in stmts:
-            loc = getattr(stmt, 'source', None)
-            if loc and loc.line in seen_lines:
+        for statement in statements:
+            location = getattr(statement, 'source', None)
+            if location and location.line in seen_lines:
                 raise DeckFormatError(
-                    f"Line {loc.line}: Multiple statements on the same line. "
+                    f"Line {location.line}: Multiple statements on the same line. "
                     f"Each statement must be on its own line."
                 )
-            if loc:
-                seen_lines[loc.line] = True
+            if location:
+                seen_lines[location.line] = True
 
     # ── deck ──────────────────────────────────────────────────────
 
     def deck(self, meta, items):
-        self._check_one_stmt_per_line(list(items))
+        self._check_one_statement_per_line(list(items))
         return list(items)
 
     def define_block(self, meta, items):
@@ -204,28 +209,28 @@ class NavTransformer(Transformer):
     # ── include statements ────────────────────────────────────────
 
     def start(self, meta, items):
-        stmts = list(items)
-        self._check_one_stmt_per_line(stmts)
-        return stmts
+        statements = list(items)
+        self._check_one_statement_per_line(statements)
+        return statements
 
-    def node_decl(self, meta, items):
+    def node_declaration(self, meta, items):
         body = list(items[2:])
-        self._check_one_stmt_per_line(body)
-        return NodeDecl(str(items[0]), str(items[1])[1:-1], body, source=self._loc(meta))
+        self._check_one_statement_per_line(body)
+        return NodeDeclaration(str(items[0]), str(items[1])[1:-1], body, source=self._loc(meta))
 
-    def general_node_decl(self, meta, items):
+    def general_node_declaration(self, meta, items):
         body = list(items[1:])
-        self._check_one_stmt_per_line(body)
-        return GeneralNodeDecl(str(items[0]), body, source=self._loc(meta))
+        self._check_one_statement_per_line(body)
+        return GeneralNodeDeclaration(str(items[0]), body, source=self._loc(meta))
 
-    def copy_stmt(self, meta, items):
-        return CopyStmt(str(items[0]), str(items[1])[1:-1], str(items[2])[1:-1], source=self._loc(meta))
+    def copy_statement(self, meta, items):
+        return CopyStatement(str(items[0]), str(items[1])[1:-1], str(items[2])[1:-1], source=self._loc(meta))
 
-    def import_stmt(self, meta, items):
-        return ImportStmt(str(items[0]), str(items[1])[1:-1], source=self._loc(meta))
+    def import_statement(self, meta, items):
+        return ImportStatement(str(items[0]), str(items[1])[1:-1], source=self._loc(meta))
 
-    def date_stmt(self, meta, items):
-        return DateStmt(str(items[0])[1:-1], source=self._loc(meta))
+    def date_statement(self, meta, items):
+        return DateStatement(str(items[0])[1:-1], source=self._loc(meta))
 
     def start_timeline(self, meta, items):
         return StartTimeline(source=self._loc(meta))
@@ -243,19 +248,18 @@ class NavTransformer(Transformer):
         args = items[1] if len(items) > 1 else []
         return Command(name, args, source=self._loc(meta))
 
-    def arg_list(self, meta, items):
+    def arguments(self, meta, items):
         return list(items)
 
     def table_block(self, meta, items):
-        return Assignment("Table", TableData(parse_table_cells(str(items[0])), source=self._loc(meta)),
-                          source=self._loc(meta))
+        return Assignment("Table", TableData(parse_table_cells(str(items[0]))), source=self._loc(meta))
 
     # ── values ────────────────────────────────────────────────────
 
     def number(self, meta, items):
         return float(items[0])
 
-    def node_ref(self, meta, items):
+    def node_reference(self, meta, items):
         node_type = str(items[0])
         name = str(items[1])[1:-1]
         if name_contains_wildcards(name):
@@ -281,7 +285,7 @@ class NavTransformer(Transformer):
         return list(items)
 
     def table_value(self, meta, items):
-        return TableData(parse_table_cells(str(items[0])), source=self._loc(meta))
+        return TableData(parse_table_cells(str(items[0])))
 
     def template_value(self, meta, items):
         return str(items[0])
@@ -319,13 +323,13 @@ def _format_parse_error(e, source: str, file: str) -> str:
             src_line = lines[line_no - 1]
             parts.append(f"line {line_no}:\n\n  {line_no} | {src_line}\n  {' ' * len(str(line_no))} | {' ' * (col - 1)}^")
     if isinstance(e, UnexpectedToken):
-        tok = _FRIENDLY.get(e.token.type, repr(e.token.value))
+        token = _FRIENDLY.get(e.token.type, repr(e.token.value))
         expected = [_FRIENDLY.get(x, x) for x in sorted(e.expected)]
         if len(expected) > 1:
             exp_str = ', '.join(expected[:-1]) + ' or ' + expected[-1]
         else:
             exp_str = expected[0]
-        parts.append(f"\nUnexpected {tok} — expected {exp_str}")
+        parts.append(f"\nUnexpected {token} — expected {exp_str}")
     else:
         parts.append(str(e))
     return ", ".join(parts[:2]) + "".join(parts[2:])

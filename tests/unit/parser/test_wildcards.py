@@ -9,7 +9,7 @@ from navigate.core.nodes.fuel import Fuel
 from navigate.core.nodes.port import Port
 from navigate.exceptions import DeckFormatError
 from navigate.parser._commands import CommandReference
-from navigate.parser._lark_parser import SourceLoc
+from navigate.parser._lark_parser import SourceLocation
 from navigate.parser.parser import Parser
 
 # ── CommandReference domain-aware wildcard expansion ─────────────────────────
@@ -30,7 +30,7 @@ class TestCommandReferenceWildcard:
 
         node = DummyNode()
         ref = CommandReference("set_slip_fraction", ["M*", 0.03],
-                               source=SourceLoc("test.inc", 1))
+                               source=SourceLocation("test.inc", 1))
         ref.execute(node)
 
         fuel_types = [c[0] for c in call_log]
@@ -51,7 +51,7 @@ class TestCommandReferenceWildcard:
 
         node = DummyNode()
         ref = CommandReference("set_include_vessel", ["*", "TRUE"],
-                               source=SourceLoc("test.inc", 1))
+                               source=SourceLocation("test.inc", 1))
         ref.execute(node)
 
         assert call_log == [("*", "TRUE")]
@@ -68,7 +68,7 @@ class TestCommandReferenceWildcard:
 
         node = DummyNode()
         ref = CommandReference("set_slip_fraction", ["METHANE", 0.03],
-                               source=SourceLoc("test.inc", 1))
+                               source=SourceLocation("test.inc", 1))
         ref.execute(node)
 
         assert call_log == [("METHANE", 0.03)]
@@ -86,7 +86,7 @@ class TestCommandReferenceWildcard:
 
         node = DummyNode()
         ref = CommandReference("set_consumption_ttw", ["M*", "co2_*", 0.5],
-                               source=SourceLoc("test.inc", 1))
+                               source=SourceLocation("test.inc", 1))
         ref.execute(node)
 
         fuel_types = [c[0] for c in call_log]
@@ -126,7 +126,7 @@ class TestWildcardNodeReferenceExpansion:
         parser = self._make_parser_with_fuels("fuel_a", "fuel_b")
         container = [WildcardNodeReference("Fuel", "*")]
         parser._replace_references_on_attribute(node=None, attribute=container[0],
-                                                container=container, idx_or_key=0)
+                                                container=container, index_or_key=0)
         assert {n.name for n in container} == {"fuel_a", "fuel_b"}
 
     def test_list_splice_preserves_surrounding_entries(self):
@@ -151,4 +151,4 @@ class TestWildcardNodeReferenceExpansion:
         wildcard = WildcardNodeReference("Fuel", "*")
         with pytest.raises(DeckFormatError, match="Wildcard node references may only appear inside lists"):
             parser._replace_references_on_attribute(node=None, attribute=wildcard,
-                                                    container=None, idx_or_key=None)
+                                                    container=None, index_or_key=None)

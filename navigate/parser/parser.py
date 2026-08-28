@@ -40,17 +40,17 @@ from navigate.parser._keywords import (
 from navigate.parser._lark_parser import (
     Assignment,
     Command,
-    CopyStmt,
-    DateStmt,
+    CopyStatement,
+    DateStatement,
     DefineBlock,
     EndTimeline,
     EventsBlock,
-    GeneralNodeDecl,
-    ImportStmt,
+    GeneralNodeDeclaration,
+    ImportStatement,
     IncludeDirective,
     LoadModuleDirective,
-    NodeDecl,
-    SourceLoc,
+    NodeDeclaration,
+    SourceLocation,
     StartTimeline,
     parse_deck_content,
     parse_include_content,
@@ -110,7 +110,7 @@ class Parser:
 
         # source tracking — set per include-file processing pass
         self._current_deck_line = 0
-        self._current_source = SourceLoc()
+        self._current_source = SourceLocation()
 
     # ══════════════════════════════════════════════════════════════════
     # Deck (.nav) reading — Lark-based
@@ -238,12 +238,12 @@ class Parser:
 
     # ── error formatting ──────────────────────────────────────────────
 
-    def _error_prefix(self, source: SourceLoc = None, deck_line: int = None):
+    def _error_prefix(self, source: SourceLocation = None, deck_line: int = None):
         """Build an error prefix string from source location.
 
         Parameters
         ----------
-        source : SourceLoc, optional
+        source : SourceLocation, optional
             Include file location.  Falls back to ``self._current_source``.
         deck_line : int, optional
             Deck line.  Falls back to ``self._current_deck_line``.
@@ -295,9 +295,9 @@ class Parser:
 
         abs_path = os.path.abspath(path) if not os.path.isabs(path) else path
 
-        stmts = parse_include_content(content, file=abs_path)
+        statements = parse_include_content(content, file=abs_path)
 
-        self._process_stmts(stmts)
+        self._process_statements(statements)
 
     def _load_module(self, directive):
         """Load a module referenced in the deck file.
@@ -329,39 +329,39 @@ class Parser:
     # AST statement processing
     # ══════════════════════════════════════════════════════════════════
 
-    def _process_stmts(self, stmts):
+    def _process_statements(self, statements):
         """Walk a list of AST statements from a parsed .inc file."""
-        for stmt in stmts:
-            self._current_source = getattr(stmt, 'source', self._current_source)
+        for statement in statements:
+            self._current_source = getattr(statement, 'source', self._current_source)
 
-            if isinstance(stmt, StartTimeline):
+            if isinstance(statement, StartTimeline):
                 self._start_timeline()
 
-            elif isinstance(stmt, EndTimeline):
+            elif isinstance(statement, EndTimeline):
                 self._end_timeline()
 
-            elif isinstance(stmt, DateStmt):
-                self._read_date(stmt)
+            elif isinstance(statement, DateStatement):
+                self._read_date(statement)
 
             elif self._place_in_queue:
-                self._current_event.add_stmt(stmt)
+                self._current_event.add_statement(statement)
 
             else:
-                self._process_event_stmt(stmt)
+                self._process_event_statement(statement)
 
     _EVENT_DISPATCH = {
-        GeneralNodeDecl: '_process_general_node_decl',
-        NodeDecl: '_process_node_decl',
-        ImportStmt: '_process_import_node',
-        CopyStmt: '_process_copy_node',
+        GeneralNodeDeclaration: '_process_general_node_declaration',
+        NodeDeclaration: '_process_node_declaration',
+        ImportStatement: '_process_import_node',
+        CopyStatement: '_process_copy_node',
     }
 
-    def _process_event_stmt(self, stmt):
-        """Process a single AST statement (node decl, copy, import)."""
-        handler_name = self._EVENT_DISPATCH.get(type(stmt))
+    def _process_event_statement(self, statement):
+        """Process a single AST statement (node declaration, copy, import)."""
+        handler_name = self._EVENT_DISPATCH.get(type(statement))
         if handler_name is None:
             raise DeckKeywordError(self._error_prefix() + ": Action not recognized.")
-        getattr(self, handler_name)(stmt)
+        getattr(self, handler_name)(statement)
 
     # ══════════════════════════════════════════════════════════════════
     # Event queue & timeline
@@ -384,9 +384,9 @@ class Parser:
         self._current_deck_line = event.deck_line
         self._current_source = event.source
 
-        for stmt in event.stmts:
-            self._current_source = getattr(stmt, 'source', self._current_source)
-            self._process_event_stmt(stmt)
+        for statement in event.statements:
+            self._current_source = getattr(statement, 'source', self._current_source)
+            self._process_event_statement(statement)
 
         self._current_event = None
         self._reading_events = False
@@ -446,12 +446,12 @@ class Parser:
         self._place_in_queue = False
         self._current_date = None
 
-    def _read_date(self, stmt):
-        """Process a DateStmt AST node."""
+    def _read_date(self, statement):
+        """Process a DateStatement AST node."""
         self._check_keyword(DATE)
         self._check_timeline_change()
 
-        date = string_to_date(stmt.date_string,
+        date = string_to_date(statement.date_string,
                               msg="Error in date definition: Must be in format dd-mm-yyyy or dd/mm/yyyy.")
         self._progress_is_chronological(date)
         self._assign_current_event(date)
@@ -600,79 +600,80 @@ class Parser:
     # Node declaration processing
     # ══════════════════════════════════════════════════════════════════
 
-    def _process_node_decl(self, decl):
-        """Process a NodeDecl AST node."""
-        self._check_keyword(decl.node_type, name=decl.name)
-        nodes = self._retrieve_nodes(decl.node_type, decl.name)
+    def _process_node_declaration(self, declaration):
+        """Process a NodeDeclaration AST node."""
+        self._check_keyword(declaration.node_type, name=declaration.name)
+        nodes = self._retrieve_nodes(declaration.node_type, declaration.name)
 
-        for item in decl.body:
+        for item in declaration.body:
             item_type = type(item)
             if item_type is Command:
-                self._queue_command(nodes, item, decl.node_type)
+                self._queue_command(nodes, item, declaration.node_type)
             elif item_type is Assignment:
-                self._apply_assignment(nodes, item, decl.node_type)
+                self._apply_assignment(nodes, item, declaration.node_type)
             else:
                 raise DeckKeywordError(self._error_prefix(item.source)
                                        + ": '{}' is not a valid keyword.".format(type(item).__name__))
 
         for node in nodes:
-            self._set_node(decl.node_type, node)
+            self._set_node(declaration.node_type, node)
 
-    def _process_general_node_decl(self, decl):
-        """Process a GeneralNodeDecl AST node."""
-        self._check_keyword(decl.node_type)
-        general_node = self._retrieve_general_node(decl.node_type)
+    def _process_general_node_declaration(self, declaration):
+        """Process a GeneralNodeDeclaration AST node."""
+        self._check_keyword(declaration.node_type)
+        general_node = self._retrieve_general_node(declaration.node_type)
 
-        for item in decl.body:
+        for item in declaration.body:
             item_type = type(item)
             if item_type is Command:
-                self._queue_command(general_node, item, decl.node_type, is_general=True)
+                self._queue_command(general_node, item, declaration.node_type, is_general=True)
             elif item_type is Assignment:
-                self._apply_assignment(general_node, item, decl.node_type, is_general=True)
+                self._apply_assignment(general_node, item, declaration.node_type, is_general=True)
             else:
                 raise DeckKeywordError(self._error_prefix(item.source)
                                        + ": '{}' is not a valid keyword.".format(type(item).__name__))
 
-        setattr(self.general_nodes, GENERAL_NODE_GROUP[decl.node_type], general_node)
+        setattr(self.general_nodes, GENERAL_NODE_GROUP[declaration.node_type], general_node)
 
-    def _process_copy_node(self, stmt):
-        """Process a CopyStmt AST node."""
+    def _process_copy_node(self, statement):
+        """Process a CopyStatement AST node."""
         self._check_allow_new_node('copy')
-        self._check_keyword(stmt.node_type)
+        self._check_keyword(statement.node_type)
 
-        if not NODE_ALLOW_COPY[stmt.node_type]:
+        if not NODE_ALLOW_COPY[statement.node_type]:
             raise ValueError(self._error_prefix()
-                             + ": Unable to copy nodes of type '{}'.".format(stmt.node_type))
+                             + ": Unable to copy nodes of type '{}'.".format(statement.node_type))
 
-        self._check_node_name_is_available(stmt.node_type, stmt.dst)
+        self._check_node_name_is_available(statement.node_type, statement.copy_to)
 
-        group = getattr(self.nodes, NODE_GROUP[stmt.node_type])
+        group = getattr(self.nodes, NODE_GROUP[statement.node_type])
 
         from_default = False
-        if stmt.src not in group:
-            self._retrieve_node_from_default(stmt.src, stmt.node_type, reference_location=self._error_prefix())
+        if statement.copy_from not in group:
+            self._retrieve_node_from_default(statement.copy_from, statement.node_type,
+                                             reference_location=self._error_prefix())
             from_default = True
 
-        copy_node = group[stmt.src]
+        copy_node = group[statement.copy_from]
         new_node = copy.deepcopy(copy_node)
-        new_node.name = stmt.dst
+        new_node.name = statement.copy_to
         new_node.just_copied = True
 
         if from_default:
-            del group[stmt.src]
+            del group[statement.copy_from]
 
-        group[stmt.dst] = new_node
+        group[statement.copy_to] = new_node
 
-    def _process_import_node(self, stmt):
-        """Process an ImportStmt AST node."""
+    def _process_import_node(self, statement):
+        """Process an ImportStatement AST node."""
         self._check_allow_new_node('import')
-        self._check_keyword(stmt.node_type)
+        self._check_keyword(statement.node_type)
 
-        if name_contains_wildcards(stmt.name):
-            self._read_import_node_wildcard(stmt.node_type, stmt.name)
+        if name_contains_wildcards(statement.name):
+            self._read_import_node_wildcard(statement.node_type, statement.name)
         else:
-            self._check_node_name_is_available(stmt.node_type, stmt.name)
-            self._retrieve_node_from_default(stmt.name, stmt.node_type, reference_location=self._error_prefix())
+            self._check_node_name_is_available(statement.node_type, statement.name)
+            self._retrieve_node_from_default(statement.name, statement.node_type, reference_location=self._error_prefix())
 
     # ══════════════════════════════════════════════════════════════════
     # Node retrieval / creation
@@ -933,7 +934,7 @@ class Parser:
         for attribute_name, attribute in attributes:
             self._replace_references_on_attribute(node, attribute, attribute_name=attribute_name)
 
-    def _replace_references_on_attribute(self, node, attribute, attribute_name=None, container=None, idx_or_key=None):
+    def _replace_references_on_attribute(self, node, attribute, attribute_name=None, container=None, index_or_key=None):
 
         if isinstance(attribute, WildcardNodeReference):
 
@@ -943,7 +944,7 @@ class Parser:
 
             matched = self._expand_wildcard_node_reference(attribute)
             # splice matched nodes into the list, replacing the wildcard entry
-            container[idx_or_key:idx_or_key + 1] = matched
+            container[index_or_key:index_or_key + 1] = matched
             return
 
         elif isinstance(attribute, NodeReference):
@@ -958,16 +959,16 @@ class Parser:
             # iterate by index because wildcard expansion can grow the list
             i = 0
             while i < len(attribute):
-                attr = attribute[i]
+                element = attribute[i]
                 old_len = len(attribute)
-                self._replace_references_on_attribute(node, attr, container=attribute, idx_or_key=i)
+                self._replace_references_on_attribute(node, element, container=attribute, index_or_key=i)
                 # if the list grew (wildcard splice), advance past the inserted items
                 i += 1 + (len(attribute) - old_len)
             return
 
         elif isinstance(attribute, dict):
-            for key, attr in attribute.items():
-                self._replace_references_on_attribute(node, attr, container=attribute, idx_or_key=key)
+            for key, element in attribute.items():
+                self._replace_references_on_attribute(node, element, container=attribute, index_or_key=key)
             return
 
         elif isinstance(attribute, Expression):
@@ -987,8 +988,8 @@ class Parser:
 
         if attribute_name is not None:
             setattr(node, attribute_name, actual_node)
-        elif idx_or_key is not None:
-            container[idx_or_key] = actual_node
+        elif index_or_key is not None:
+            container[index_or_key] = actual_node
 
         if default:
             self._replace_references_on_node(actual_node)
@@ -1131,7 +1132,7 @@ class Parser:
                 value.reference_location = location
 
 
-def _get_attributes(class_, exclude=(), name_only=False, attr_only=False):
+def _get_attributes(class_, exclude=()):
     """
     Extracts all attributes from the supplied class except built-in attributes and attributes listed in 'exclude'.
 
@@ -1141,26 +1142,16 @@ def _get_attributes(class_, exclude=(), name_only=False, attr_only=False):
         Class from which to extract attributes.
     exclude : tuple[str]
         Tuple of strings with attributes to exclude from the list.
-    name_only : bool
-        Only return attribute names (as strings).
-    attr_only : bool
-        Only return attributes.
 
     Returns
     -------
     generator :
-        Generator of attributes.
+        Generator of (name, attribute) pairs.
     """
 
-    attr = zip(list(class_.__dict__.keys()), list(class_.__dict__.values()))
-    decl = (a for a in attr if not (a[0].startswith('__') and a[0].endswith('__')) and not (a[0] in exclude))
-
-    if name_only:
-        return (a[0] for a in decl)
-    elif attr_only:
-        return (a[1] for a in decl)
-    else:
-        return decl
+    attributes = list(class_.__dict__.items())
+    return ((name, attribute) for name, attribute in attributes
+            if not (name.startswith('__') and name.endswith('__')) and name not in exclude)
 
 
 def _get_files_in_directory(directory):

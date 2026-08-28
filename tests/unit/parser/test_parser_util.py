@@ -12,17 +12,17 @@ from navigate.exceptions import DeckFormatError
 from navigate.parser._lark_parser import (
     Assignment,
     Command,
-    CopyStmt,
-    DateStmt,
+    CopyStatement,
+    DateStatement,
     DefineBlock,
     EndTimeline,
     EventsBlock,
-    GeneralNodeDecl,
-    ImportStmt,
+    GeneralNodeDeclaration,
+    ImportStatement,
     IncludeDirective,
     LoadModuleDirective,
-    NodeDecl,
-    SourceLoc,
+    NodeDeclaration,
+    SourceLocation,
     StartTimeline,
     TableData,
     parse_deck_content,
@@ -46,19 +46,19 @@ def _val(text: str):
 
 
 # ═════════════════════════════════════════════════════════════════════════════════
-# SourceLoc
+# SourceLocation
 # ═════════════════════════════════════════════════════════════════════════════════
-class TestSourceLoc:
+class TestSourceLocation:
     def test_immutable(self):
-        loc = SourceLoc(file="test.inc", line=10, deck_line=5)
+        location = SourceLocation(file="test.inc", line=10, deck_line=5)
         with pytest.raises(AttributeError):
-            loc.line = 20
+            location.line = 20
 
     def test_defaults(self):
-        loc = SourceLoc()
-        assert loc.file == ""
-        assert loc.line == 0
-        assert loc.deck_line == 0
+        location = SourceLocation()
+        assert location.file == ""
+        assert location.line == 0
+        assert location.deck_line == 0
 
 
 # ═════════════════════════════════════════════════════════════════════════════════
@@ -120,7 +120,7 @@ class TestDeckParsing:
         assert blocks[0].directives == []
         assert blocks[1].directives == []
 
-    def test_source_loc_carries_file(self):
+    def test_source_location_carries_file(self):
         blocks = parse_deck_content('DEFINE { Include "f.inc" }', file="my.nav")
         assert blocks[0].source.file == "my.nav"
         assert blocks[0].directives[0].source.file == "my.nav"
@@ -142,46 +142,46 @@ class TestStatements:
 
     # ── node declarations ──────────────────────────────────────────
     def test_named_node(self):
-        stmts = parse_include_content('Vessel "my_ship" { Lifetime = 25 }')
-        decl = stmts[0]
-        assert isinstance(decl, NodeDecl)
-        assert decl.node_type == 'Vessel'
-        assert decl.name == 'my_ship'
-        assert decl.body[0].attribute == 'Lifetime'
-        assert decl.body[0].value == 25.0
+        statements = parse_include_content('Vessel "my_ship" { Lifetime = 25 }')
+        declaration = statements[0]
+        assert isinstance(declaration, NodeDeclaration)
+        assert declaration.node_type == 'Vessel'
+        assert declaration.name == 'my_ship'
+        assert declaration.body[0].attribute == 'Lifetime'
+        assert declaration.body[0].value == 25.0
 
     def test_general_node(self):
-        stmts = parse_include_content('ModelDefinition { Attribute = TRUE }')
-        decl = stmts[0]
-        assert isinstance(decl, GeneralNodeDecl)
-        assert decl.node_type == 'ModelDefinition'
-        assert decl.body[0].value == 'TRUE'
+        statements = parse_include_content('ModelDefinition { Attribute = TRUE }')
+        declaration = statements[0]
+        assert isinstance(declaration, GeneralNodeDeclaration)
+        assert declaration.node_type == 'ModelDefinition'
+        assert declaration.body[0].value == 'TRUE'
 
     def test_empty_body(self):
-        stmts = parse_include_content('Vessel "v" { }')
-        assert stmts[0].body == []
+        statements = parse_include_content('Vessel "v" { }')
+        assert statements[0].body == []
 
     # ── copy / import / date / timeline ────────────────────────────
-    def test_copy_stmt(self):
+    def test_copy_statement(self):
         s = parse_include_content('Copy Vessel "original" "copy"')[0]
-        assert isinstance(s, CopyStmt)
+        assert isinstance(s, CopyStatement)
         assert s.node_type == 'Vessel'
-        assert s.src == 'original'
-        assert s.dst == 'copy'
+        assert s.copy_from == 'original'
+        assert s.copy_to == 'copy'
 
-    def test_import_stmt(self):
+    def test_import_statement(self):
         s = parse_include_content('Import Vessel "ship"')[0]
-        assert isinstance(s, ImportStmt)
+        assert isinstance(s, ImportStatement)
         assert s.node_type == 'Vessel'
         assert s.name == 'ship'
 
-    def test_date_stmt(self):
-        assert isinstance(parse_include_content('Date "01-01-2025"')[0], DateStmt)
+    def test_date_statement(self):
+        assert isinstance(parse_include_content('Date "01-01-2025"')[0], DateStatement)
 
     def test_start_end_timeline(self):
-        stmts = parse_include_content('Start\nEnd')
-        assert isinstance(stmts[0], StartTimeline)
-        assert isinstance(stmts[1], EndTimeline)
+        statements = parse_include_content('Start\nEnd')
+        assert isinstance(statements[0], StartTimeline)
+        assert isinstance(statements[1], EndTimeline)
 
     # ── multiple statements ────────────────────────────────────────
     def test_multiple_statements(self):
@@ -192,16 +192,16 @@ class TestStatements:
         assert parse_include_content('') == []
 
     def test_comments_ignored(self):
-        stmts = parse_include_content('# comment\nVessel "v" { Lifetime = 25 } # inline')
-        assert len(stmts) == 1
+        statements = parse_include_content('# comment\nVessel "v" { Lifetime = 25 } # inline')
+        assert len(statements) == 1
 
     # ── source location ───────────────────────────────────────────
-    def test_source_loc_on_nodes(self):
-        stmts = parse_include_content('Vessel "v" {\n  Lifetime = 25\n}', file="test.inc")
-        assert stmts[0].source.file == "test.inc"
-        assert stmts[0].source.line == 1
-        assert stmts[0].body[0].source.file == "test.inc"
-        assert stmts[0].body[0].source.line == 2
+    def test_source_location_on_nodes(self):
+        statements = parse_include_content('Vessel "v" {\n  Lifetime = 25\n}', file="test.inc")
+        assert statements[0].source.file == "test.inc"
+        assert statements[0].source.line == 1
+        assert statements[0].body[0].source.file == "test.inc"
+        assert statements[0].body[0].source.line == 2
 
 
 # ═════════════════════════════════════════════════════════════════════════════════
@@ -253,7 +253,7 @@ class TestValues:
         assert _val('Price = BunkerIntensityPrice') == 'BunkerIntensityPrice'
 
     # ── lists ──────────────────────────────────────────────────────
-    def test_list_of_node_refs(self):
+    def test_list_of_node_references(self):
         val = _val('Ports = [Port("a"), Port("b")]')
         assert isinstance(val, list) and len(val) == 2
         assert all(isinstance(v, NodeReference) for v in val)
@@ -343,8 +343,8 @@ class TestCasingRules:
 
     # ── digits allowed in node types ───────────────────────────────
     def test_digits_in_node_type(self):
-        stmts = parse_include_content('Vessel2 "v" { }')
-        assert stmts[0].node_type == 'Vessel2'
+        statements = parse_include_content('Vessel2 "v" { }')
+        assert statements[0].node_type == 'Vessel2'
 
     # ── attributes accept any casing ───────────────────────────────
     def test_lowercase_attribute(self):
@@ -371,7 +371,7 @@ class TestCasingRules:
 # ═════════════════════════════════════════════════════════════════════════════════
 class TestOneStatementPerLine:
 
-    def test_two_stmts_same_line_rejected(self):
+    def test_two_statements_same_line_rejected(self):
         with pytest.raises(VisitError, match="same line"):
             parse_include_content('Vessel "a" { } Vessel "b" { }')
 
@@ -384,8 +384,8 @@ class TestOneStatementPerLine:
             parse_deck_content('DEFINE { } EVENTS { }')
 
     def test_separate_lines_accepted(self):
-        stmts = parse_include_content('Vessel "a" { }\nVessel "b" { }')
-        assert len(stmts) == 2
+        statements = parse_include_content('Vessel "a" { }\nVessel "b" { }')
+        assert len(statements) == 2
 
     def test_body_items_separate_lines_accepted(self):
         body = _body('Vessel "v" {\n  A = 1\n  B = 2\n}')
@@ -413,9 +413,9 @@ class TestSyntaxErrors:
         with pytest.raises(DeckFormatError):
             parse_include_content('Vessel "v" { Attr = ??? }')
 
-    def test_wildcard_in_node_ref_produces_wildcard_reference(self):
-        stmts = parse_include_content('Vessel "v" { Route = Route("r_*") }')
-        assignment = stmts[0].body[0]
+    def test_wildcard_in_node_reference_produces_wildcard_reference(self):
+        statements = parse_include_content('Vessel "v" { Route = Route("r_*") }')
+        assignment = statements[0].body[0]
         assert isinstance(assignment.value, WildcardNodeReference)
         assert assignment.value.pattern == "r_*"
         assert assignment.value.type == "Route"

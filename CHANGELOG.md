@@ -66,6 +66,17 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   add-if-absent variable idiom shared as a helper next to the constraint
   helper in `navigate/bunker/_build.py` (moved from
   `navigate/bunker/constraints/_common.py`).
+- Internal parser identifiers are renamed to descriptive names (no DSL or
+  result changes): the AST classes `CopyStmt`/`ImportStmt`/`DateStmt`/
+  `NodeDecl`/`GeneralNodeDecl` are now `CopyStatement`/`ImportStatement`/
+  `DateStatement`/`NodeDeclaration`/`GeneralNodeDeclaration` (grammar rules
+  and transformer callbacks follow), `Event.stmts`/`add_stmt` are now
+  `statements`/`add_statement`, and the remaining abbreviated identifiers in
+  `navigate/parser/` are spelled out (`statement`, `declaration`,
+  `node_reference`, `arguments`, `copy_from`/`copy_to`). `SourceLoc` moves
+  from `navigate/core/table_data.py` into the parser AST module as
+  `SourceLocation` — the parser is its only consumer — and the never-read
+  `TableData.source` field is dropped.
 
 ### Removed
 - **Breaking** for code importing navigate as a library: the remaining

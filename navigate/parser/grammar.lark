@@ -26,21 +26,21 @@ events_block: "EVENTS" "{" directive* "}"
           | "Load" NODE_TYPE          -> load_module
 
 // ── Include-level (.inc) ─────────────────────────────────────────────────
-start: stmt*
+start: statement*
 
-?stmt: node_decl
-     | general_node_decl
-     | copy_stmt
-     | import_stmt
-     | date_stmt
-     | "Start" -> start_timeline
-     | "End" -> end_timeline
+?statement: node_declaration
+          | general_node_declaration
+          | copy_statement
+          | import_statement
+          | date_statement
+          | "Start" -> start_timeline
+          | "End" -> end_timeline
 
-node_decl: NODE_TYPE QUOTED_STRING "{" body_item* "}"
-general_node_decl: NODE_TYPE "{" body_item* "}"
-copy_stmt: "Copy" NODE_TYPE QUOTED_STRING QUOTED_STRING
-import_stmt: "Import" NODE_TYPE QUOTED_STRING
-date_stmt: "Date" QUOTED_STRING
+node_declaration: NODE_TYPE QUOTED_STRING "{" body_item* "}"
+general_node_declaration: NODE_TYPE "{" body_item* "}"
+copy_statement: "Copy" NODE_TYPE QUOTED_STRING QUOTED_STRING
+import_statement: "Import" NODE_TYPE QUOTED_STRING
+date_statement: "Date" QUOTED_STRING
 
 // ── Node body items ──────────────────────────────────────────────────────
 ?body_item: assignment
@@ -48,13 +48,13 @@ date_stmt: "Date" QUOTED_STRING
           | TABLE_BLOCK -> table_block
 
 assignment: name "=" value
-command: name "(" arg_list ")"
+command: name "(" arguments ")"
 ?name: NAME | NODE_TYPE
-arg_list: [value ("," value)*]
+arguments: [value ("," value)*]
 
 // ── Values ───────────────────────────────────────────────────────────────
 ?value: SIGNED_NUMBER                  -> number
-      | name "(" QUOTED_STRING ")"      -> node_ref
+      | name "(" QUOTED_STRING ")"      -> node_reference
       | EXPRESSION                     -> expression
       | WILDCARD_NAME                  -> wildcard_value
       | NODE_TYPE                       -> ident_value
