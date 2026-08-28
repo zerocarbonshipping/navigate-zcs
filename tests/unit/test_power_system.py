@@ -11,7 +11,7 @@ from navigate.core.nodes.power_system import PowerSystem
 
 def _mock_converter(name):
     converter = MagicMock()
-    converter.get_name.return_value = name
+    converter.name = name
     return converter
 
 

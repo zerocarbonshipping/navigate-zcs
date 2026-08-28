@@ -25,7 +25,7 @@ class Plant(Node):
     def __init__(self, name):
         super().__init__(name)
 
-        self._type = PLANT
+        self.type = PLANT
 
         self.fuel = None       # Fuel, the fuel being produced by the plant
         self.process = None    # Process, the top-level production process used at the plant

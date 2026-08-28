@@ -119,7 +119,7 @@ def define_initial_technology(fleet: Fleet) -> None:
 
     # apply per vessel, per age increment
     for v, vessel in enumerate(fleet.assets):
-        vessel_name = vessel.get_name()
+        vessel_name = vessel.name
         truncation_count = 0
         truncated_tech_names: set[str] = set()
 
@@ -132,7 +132,7 @@ def define_initial_technology(fleet: Fleet) -> None:
             # build per-technology shares for this increment's age
             shares = np.zeros(len(fleet.technologies))
             for t, tech in enumerate(fleet.technologies):
-                curve = fleet.initial_technology_share.get((vessel_name, tech.get_name()))
+                curve = fleet.initial_technology_share.get((vessel_name, tech.name))
                 if isinstance(curve, Node):
                     shares[t] = curve.get(inc.age)
 
@@ -176,7 +176,7 @@ def shares_to_package_mix(technologies: list[Technology],
     """
 
     tech_to_idx = {t: i for i, t in enumerate(technologies)}
-    tech_names = [t.get_name() for t in technologies]
+    tech_names = [t.name for t in technologies]
 
     remaining = shares.astype(float, copy=True)
     pkg_shares = np.zeros(len(packages), dtype=float)
@@ -455,7 +455,7 @@ def reconcile_retrofit_technology_caps(fleet: Fleet,
     budget = multipliers_total * (time_step / YEAR)
 
     for i in range(len(sorted_technologies) - 1, -1, -1):
-        technology_name = sorted_technologies[i].get_name()
+        technology_name = sorted_technologies[i].name
         cap = fleet.retrofit_technology_limit[technology_name].get() * budget
 
         # Cache (proposal, tail_sum) so the binding-case scale pass doesn't re-sum.
@@ -522,7 +522,7 @@ def reconcile_newbuild_technology_caps(fleet: Fleet,
     budget = multipliers_total * (time_step / YEAR)
 
     for i in range(len(sorted_technologies) - 1, -1, -1):
-        technology_name = sorted_technologies[i].get_name()
+        technology_name = sorted_technologies[i].name
         cap = fleet.newbuild_technology_limit[technology_name].get() * budget
         k_start = i + 1
 
@@ -642,7 +642,7 @@ def transfer_retrofit_uptake(fleet: Fleet,
         for i, technology in enumerate(sorted_technologies):
             count = retrofit_counts.get((v, i), 0.)
             share = divide_nonzero(count, multipliers_total)
-            fleet.profile.set_retrofit_technology_uptake(vessel.get_name(), technology.get_name(),
+            fleet.profile.set_retrofit_technology_uptake(vessel.name, technology.name,
                                                          idx, share)
 
 
@@ -697,7 +697,7 @@ def transfer_technology_uptake(fleet: Fleet, idx: int) -> None:
 
             # transfer newbuild uptake
             nb_uptake = np.sum(fleet.newbuild_package_uptake[v][p:])
-            fleet.profile.set_newbuild_technology_uptake(vessel.get_name(), technology.get_name(), idx, nb_uptake)
+            fleet.profile.set_newbuild_technology_uptake(vessel.name, technology.name, idx, nb_uptake)
 
             # transfer average fleet uptake
             avg_uptake = 0.
@@ -708,7 +708,7 @@ def transfer_technology_uptake(fleet: Fleet, idx: int) -> None:
                 weight += inc.multiplier
 
             avg_uptake = divide_nonzero(avg_uptake, weight)
-            fleet.profile.set_technology_uptake(vessel.get_name(), technology.get_name(), idx, avg_uptake)
+            fleet.profile.set_technology_uptake(vessel.name, technology.name, idx, avg_uptake)
 
 
 def update_residual_energy_demand(fleet: Fleet, idx: int) -> None:

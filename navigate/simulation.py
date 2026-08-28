@@ -541,7 +541,7 @@ class SimulationManager:
 
             for vessel in fleet.get_vessels():
 
-                v = vessel.get_name()
+                v = vessel.name
 
                 if scope == BunkerScopeID.EXISTING:
                     multiplier = fleet.expectation.get_existing_multipliers(v, self._idx)

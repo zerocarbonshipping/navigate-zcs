@@ -10,7 +10,7 @@ class Region(Node):
     def __init__(self, name):
         super().__init__(name)
 
-        self._type = REGION
+        self.type = REGION
 
         # process
         self._process_CAPEX = {}                    # dict[process_name: float], CAPEX of a process, USD/ton

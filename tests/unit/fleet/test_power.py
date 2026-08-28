@@ -31,11 +31,11 @@ IDX = 3
 class _StubConverter:
 
     def __init__(self, name: str, power_capacity: float) -> None:
-        self._name = name
+        self.name = name
         self.power_capacity = Scalar(power_capacity)
 
     def __repr__(self) -> str:
-        return 'Converter("{}")'.format(self._name)
+        return 'Converter("{}")'.format(self.name)
 
 
 class _StubExpectation:
@@ -78,17 +78,14 @@ class _StubVessel:
                  times_port: list,
                  name: str = "boat"
                  ) -> None:
-        self._name = name
+        self.name = name
         converters = {d: _StubConverter("{}_{}".format(name, d.name.lower()), capacity)
                       for d, capacity in capacities.items()}
         self.power_system = SimpleNamespace(get_converter_by_energy_type=lambda demand_type: converters[demand_type])
         self.expectation = _StubExpectation(energies_sea, times_sea, energies_port, times_port)
 
-    def get_name(self) -> str:
-        return self._name
-
     def __repr__(self) -> str:
-        return 'Vessel("{}")'.format(self._name)
+        return 'Vessel("{}")'.format(self.name)
 
 
 def _make_vessel(**overrides) -> _StubVessel:

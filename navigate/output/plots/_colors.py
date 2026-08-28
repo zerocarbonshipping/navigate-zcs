@@ -174,7 +174,7 @@ def center_color_saturation(n, shift=False):
 def generate_color_dict(nodes, default_dict):
 
     if not isinstance(nodes, dict):
-        nodes = {node.get_name(): node for node in nodes}
+        nodes = {node.name: node for node in nodes}
 
     out_dict = {key: None for key in nodes}
     colors_used = []

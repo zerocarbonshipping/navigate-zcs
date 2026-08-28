@@ -110,7 +110,7 @@ def propose_fuel_conversions(fleet: Fleet, idx: int, time_step: float) -> dict:
     minimum_age = fleet.fuel_conversion_minimum_age.get()
     time_step_years = time_step / YEAR
 
-    vessels = {vessel.get_name(): vessel for vessel in fleet.assets}
+    vessels = {vessel.name: vessel for vessel in fleet.assets}
 
     # working copy — updated as proposals are gathered so the DCM supply cap stays realistic
     # TODO: update to expectation, not profile
@@ -122,7 +122,7 @@ def propose_fuel_conversions(fleet: Fleet, idx: int, time_step: float) -> dict:
 
     for v, vessel_from in enumerate(fleet.assets):
 
-        name_from = vessel_from.get_name()
+        name_from = vessel_from.name
         conversion_costs = extract_from_tuple_dict(fleet.fuel_conversion_cost, key1=name_from)
         conversion_costs = {name_to: cost for name_to, cost in conversion_costs.items() if cost is not None}
 
@@ -312,7 +312,7 @@ def apply_fuel_conversions(fleet: Fleet, proposals: dict, idx: int, timeline: np
         spreading.
     """
 
-    indices = {vessel.get_name(): i for i, vessel in enumerate(fleet.assets)}
+    indices = {vessel.name: i for i, vessel in enumerate(fleet.assets)}
     years = timeline / YEAR
 
     # from-side decrements + profile + expenses

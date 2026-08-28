@@ -24,7 +24,7 @@ class Regulation(_Policy):
     def __init__(self, name):
         super().__init__(name)
 
-        self._type = REGULATION
+        self.type = REGULATION
 
         self.measure = None            # enum, ID of emissions measure
 
@@ -297,7 +297,7 @@ class Regulation(_Policy):
 
     def initialize_expectation(self, length: int, vessels: dict[str, Vessel]) -> None:
         self.expectation = RegulationExpectation()
-        self.expectation.initialize(length, [e.get_name() for e in self.emissions], vessels)
+        self.expectation.initialize(length, [e.name for e in self.emissions], vessels)
 
     def initialize_profile(self, timeline: np.ndarray, vessels: dict[str, Vessel]) -> None:
 

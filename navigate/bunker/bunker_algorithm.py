@@ -312,7 +312,7 @@ class BunkerAlgorithm:
 
             for vessel in fleet.get_vessels():
 
-                v = vessel.get_name()
+                v = vessel.name
 
                 # during expected bunkering it is necessary to find a solution
                 # for every vessel type as the results are used for calculating

@@ -13,7 +13,7 @@ class Curve(Node, _Table1D):
         Node.__init__(self, name)
         _Table1D.__init__(self)
 
-        self._type = CURVE
+        self.type = CURVE
 
     def initialize(self) -> None:
         if self._table is None:

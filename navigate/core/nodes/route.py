@@ -30,7 +30,7 @@ class Route(Node):
     def __init__(self, name):
         super().__init__(name)
 
-        self._type = ROUTE
+        self.type = ROUTE
 
         self.route_type = None             # int, route type ID
         self.ports = []                    # list[Port], ports a vessel can bunker in
@@ -335,7 +335,7 @@ class Route(Node):
                 logger.warning("{}: 'PortDurations' is assigned but is unused for a REGIONAL_TRIP.".format(self))
 
     def initialize_dependencies(self):
-        names = [port.get_name() for port in self.ports]
+        names = [port.name for port in self.ports]
         for key in itertools.product(names, names):
             self.voyage_distribution.setdefault(key, Scalar(0.))
 
@@ -343,7 +343,7 @@ class Route(Node):
         fractions = normalize_fractional(self.voyage_distribution, None)
 
         if to_array:
-            return [fractions[(pi.get_name(), pj.get_name())] for pj in self.ports for pi in self.ports]
+            return [fractions[(pi.name, pj.name)] for pj in self.ports for pi in self.ports]
         else:
             return fractions
 

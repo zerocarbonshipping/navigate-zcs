@@ -192,8 +192,8 @@ def _calculate_expected_producer_fuel_supply(producer, idx):
 
     for plant in producer.get_plants():
 
-        plant_name = plant.get_name()
-        fuel_name = plant.fuel.get_name()
+        plant_name = plant.name
+        fuel_name = plant.fuel.name
 
         supply.setdefault(fuel_name, 0.)
         supply[fuel_name] += expectation.get_guaranteed_production(plant_name, idx=idx_)

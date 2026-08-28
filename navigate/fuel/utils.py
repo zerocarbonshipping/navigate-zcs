@@ -60,7 +60,7 @@ def calculate_uptake_inter_metric(plant, demand, minimum_offtake_duration, timel
     # produce to fit with a business cost
     # flow length
     fuel = plant.fuel
-    fuel_name = fuel.get_name()
+    fuel_name = fuel.name
     lhv = fuel.lower_heating_value.get()
     demand_int = np.interp(evaluation_timeline, timeline, demand[fuel_name], left=0.)
 
@@ -317,8 +317,8 @@ def calculate_development_potential(producer: Producer, time_step: float, idx: i
 
     for plant in producer.assets:
 
-        plant_name = plant.get_name()
-        fuel_name = plant.fuel.get_name()
+        plant_name = plant.name
+        fuel_name = plant.fuel.name
         production = plant.expectation.get_production(idx)
 
         # if the plant has become disallowed

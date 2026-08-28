@@ -28,7 +28,7 @@ class Report(Node):
     def __init__(self, name):
         super().__init__(name)
 
-        self._type = REPORT
+        self.type = REPORT
 
         # external properties
         self._directory = None  # str, either relative to deck directory or absolute path

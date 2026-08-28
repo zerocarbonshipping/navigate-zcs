@@ -36,7 +36,7 @@ def update_mass_conservation_constraints(alg: BunkerAlgorithm, vessel: Vessel) -
         Vessel for which constraints are updated.
     """
 
-    v = vessel.get_name()
+    v = vessel.name
     voyages = vessel.expectation.get_voyages(alg.idx)
     change_coefficient = alg.model.chgCoeff
     mass_tank = alg.mass_tank

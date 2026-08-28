@@ -80,7 +80,7 @@ def calculate_fleet_profile(fleet: Fleet, fuels: dict[str, Fuel], timeline: np.n
 
     # transfer power related properties
     for v, vessel in enumerate(fleet.assets):
-        vessel_name = vessel.get_name()
+        vessel_name = vessel.name
         fuel_type = vessel.fuel_type
 
         # calculate the total installed
@@ -97,7 +97,7 @@ def calculate_fleet_profile(fleet: Fleet, fuels: dict[str, Fuel], timeline: np.n
         fleet.profile.add_weighted_age(fuel_type, age_power_sum, count_power_sum, idx)
 
     # transfer fuel converted power
-    vessel_map = {vessel.get_name(): vessel for vessel in fleet.assets}
+    vessel_map = {vessel.name: vessel for vessel in fleet.assets}
     fuel_conversions = fleet.profile.get_fuel_conversions(idx=idx)
 
     for (v_from, v_to), multiplier in fuel_conversions.items():
@@ -139,7 +139,7 @@ def calculate_fleet_profile(fleet: Fleet, fuels: dict[str, Fuel], timeline: np.n
             # extract the spend energy for the
             # given converter from the latest
             # existing bunkering solution
-            converter_demand = vessel.expectation.get_spend_energy(converter.get_name())
+            converter_demand = vessel.expectation.get_spend_energy(converter.name)
 
             # scale by the number of vessels
             fleet_demand = converter_demand * multiplier
@@ -176,7 +176,7 @@ def calculate_fleet_profile(fleet: Fleet, fuels: dict[str, Fuel], timeline: np.n
 
         for port in ports:
 
-            port_name = port.get_name()
+            port_name = port.name
 
             for fuel_name, fuel in fuels.items():
 

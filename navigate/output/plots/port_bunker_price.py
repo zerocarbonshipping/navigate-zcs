@@ -21,8 +21,8 @@ def plot_port_bunker_price(manager, directory):
 
     for port_name, port in ports.items():
 
-        fuel_costs = {fuel.get_name():
-                      port.profile.get_bunker_price(fuel.get_name())
+        fuel_costs = {fuel.name:
+                      port.profile.get_bunker_price(fuel.name)
                       / fuel.lower_heating_value.get() for fuel in fuels.values()}
 
         # remove unavailable time of fuel

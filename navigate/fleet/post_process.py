@@ -96,7 +96,7 @@ def _aggregate_fleet_freight_rate(fleet, timeline):
 
         for vessel in fleet.get_vessels():
 
-            multiplier = fleet.profile.get_existing_vessels(vessel.get_name(), idx)
+            multiplier = fleet.profile.get_existing_vessels(vessel.name, idx)
             if multiplier <= 0. or not vessel.profile.cost_is_calculated(idx):
                 continue
 

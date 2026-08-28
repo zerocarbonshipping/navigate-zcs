@@ -43,7 +43,7 @@ def calculate_producer_profile(producer: Producer, timeline, idx):
         if not len(incs):
             continue
 
-        fuel_name = plant.fuel.get_name()
+        fuel_name = plant.fuel.name
         expectation = plant.expectation
 
         decided = np.array([inc.decided for inc in incs])

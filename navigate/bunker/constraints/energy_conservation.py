@@ -39,7 +39,7 @@ def update_energy_conservation_constraints(alg: BunkerAlgorithm, vessel: Vessel)
         Vessel for which constraints are updated.
     """
 
-    v = vessel.get_name()
+    v = vessel.name
     expectation = vessel.expectation
     power_system = vessel.power_system
     route = vessel.route
@@ -99,7 +99,7 @@ def _update_sea_energy_conservation(alg: BunkerAlgorithm,
         Leg indices of the vessel's route.
     """
 
-    c = converter.get_name()
+    c = converter.name
     efficiency = converter.efficiency.get()
     demand = demands[energy_type]
     fuels = alg.fuels_per_converter[(v, c)]
@@ -144,7 +144,7 @@ def _update_port_energy_conservation(alg: BunkerAlgorithm,
         Port indices of the vessel's route.
     """
 
-    c = converter.get_name()
+    c = converter.name
     efficiency = converter.efficiency.get()
     demand = demands[energy_type]
     fuels = alg.fuels_per_converter[(v, c)]

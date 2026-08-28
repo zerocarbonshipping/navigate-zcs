@@ -77,7 +77,7 @@ def technology_uptake(fleet):
     uptake = fleet.profile.get_fleet_technology_uptake()
     # every configured technology must be measured — a technology silently
     # missing from the profile must not pass by omission
-    assert set(uptake) == {technology.get_name() for technology in fleet.technologies}
+    assert set(uptake) == {technology.name for technology in fleet.technologies}
     return uptake
 
 

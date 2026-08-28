@@ -11,7 +11,7 @@ class Plot(Node):
     def __init__(self, name):
         super().__init__(name)
 
-        self._type = PLOT
+        self.type = PLOT
 
         # external properties
         self.directory = None

@@ -10,7 +10,7 @@ class Process(Node):
     def __init__(self, name):
         super().__init__(name)
 
-        self._type = PROCESS
+        self.type = PROCESS
 
         self.feeds = []        # list[Feedstock | Process], feedstock or sub-process used in the process
         self.conversions = []  # list[float], conversion factor for each process/feedstock

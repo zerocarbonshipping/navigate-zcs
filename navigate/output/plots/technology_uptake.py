@@ -44,7 +44,7 @@ def plot_technology_uptake(manager, directory):
         uptake_nb = {}
         uptake_rf = {}
 
-        technology_names = [technology.get_name() for technology in fleet.technologies]
+        technology_names = [technology.name for technology in fleet.technologies]
 
         for name in technology_names:
 
@@ -53,27 +53,27 @@ def plot_technology_uptake(manager, directory):
             shares_rf = extract_from_tuple_dict(uptakes_rf, key2=name) if uptakes_rf else {}
 
             values_nb = [
-                shares_nb[vessel.get_name()]
+                shares_nb[vessel.name]
                 for vessel in fleet.get_vessels()
-                if vessel.get_name() in shares_nb
+                if vessel.name in shares_nb
             ]
             values_rf = [
-                shares_rf[vessel.get_name()]
+                shares_rf[vessel.name]
                 for vessel in fleet.get_vessels()
-                if vessel.get_name() in shares_rf
+                if vessel.name in shares_rf
             ]
 
             # the uptake tuple-dicts are dense over the same vessel set, so
             # filtering weights on shares_rf pairs them with values_rf
             weights = [
-                multipliers[vessel.get_name()]
+                multipliers[vessel.name]
                 for vessel in fleet.get_vessels()
-                if vessel.get_name() in shares_rf
+                if vessel.name in shares_rf
             ]
             weights_nb = [
-                profile.get_newbuilds(vessel.get_name())
+                profile.get_newbuilds(vessel.name)
                 for vessel in fleet.get_vessels()
-                if vessel.get_name() in shares_nb
+                if vessel.name in shares_nb
             ]
 
             # Fleet-wide weighted uptake (existing fleet)

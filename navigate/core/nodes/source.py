@@ -12,7 +12,7 @@ class Source(Node):
     def __init__(self, name):
         super().__init__(name)
 
-        self._type = SOURCE
+        self.type = SOURCE
 
         self._dependency = None  # enum, whether source is standalone or connected
 

@@ -17,7 +17,7 @@ from navigate.core.unit import TON_TO_KG
 
 def _make_emission(name):
     e = MagicMock()
-    e.get_name.return_value = name
+    e.name = name
     return e
 
 
@@ -33,7 +33,7 @@ def _make_port_expectation(shore_ef, shore_cost=0., connection_share=1.0, capaci
 def _make_regulation(name, measure, emissions, gwp=None):
     """Create a mock regulation with standard methods."""
     reg = MagicMock()
-    reg.get_name.return_value = name
+    reg.name = name
     reg.measure = measure
     reg.emissions = emissions
     reg.is_active.return_value = True
@@ -77,7 +77,7 @@ class TestShoreRegulationCoefficient:
         route.ports = [port]
 
         vessel = MagicMock()
-        vessel.get_name.return_value = v
+        vessel.name = v
         vessel.route = route
         vessel.power_system.get_converters.return_value = ()
 
@@ -124,7 +124,7 @@ class TestShoreRegulationCoefficient:
         route.ports = [port]
 
         vessel = MagicMock()
-        vessel.get_name.return_value = v
+        vessel.name = v
         vessel.route = route
         vessel.power_system.get_converters.return_value = ()
 
@@ -174,7 +174,7 @@ class TestShoreRegulationCoefficient:
         route.ports = [port]
 
         vessel = MagicMock()
-        vessel.get_name.return_value = v
+        vessel.name = v
         vessel.route = route
         vessel.power_system.get_converters.return_value = ()
 
@@ -219,7 +219,7 @@ class TestShoreRegulationCoefficient:
         route.ports = [port]
 
         vessel = MagicMock()
-        vessel.get_name.return_value = v
+        vessel.name = v
         vessel.route = route
         vessel.power_system.get_converters.return_value = ()
 
@@ -275,7 +275,7 @@ class TestShoreTransferExpected:
 
         vessel_exp = MagicMock()
         vessel = MagicMock()
-        vessel.get_name.return_value = v
+        vessel.name = v
         vessel.route = route
         vessel.expectation = vessel_exp
 
@@ -316,7 +316,7 @@ class TestShoreTransferExpected:
 
         vessel_profile = MagicMock()
         vessel = MagicMock()
-        vessel.get_name.return_value = v
+        vessel.name = v
         vessel.route = route
         vessel.profile = vessel_profile
 

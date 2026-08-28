@@ -26,7 +26,7 @@ class Vessel(Node):
     def __init__(self, name):
         super().__init__(name)
 
-        self._type = VESSEL
+        self.type = VESSEL
 
         # power demand
         self.propulsion_load = None          # float, Curve or Surface, load in MW (at sea)

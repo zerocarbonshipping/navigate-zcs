@@ -9,7 +9,7 @@ class Node(CommandReferenceMixin, TypeCheckMixin):
         CommandReferenceMixin.__init__(self)
 
         self.name = name            # str
-        self._type = None           # str
+        self.type = None            # str
 
         # expectation/profile
         self.expectation = None
@@ -22,16 +22,10 @@ class Node(CommandReferenceMixin, TypeCheckMixin):
         self.just_copied = False            # whether node was just copied (used in Parser)
 
     def __repr__(self):
-        return "{}(\"{}\")".format(self._type, self.name)
+        return "{}(\"{}\")".format(self.type, self.name)
 
     def initialize(self):
         pass
-
-    def get_name(self) -> str:
-        return self.name
-
-    def get_type(self):
-        return self._type
 
     @staticmethod
     def is_node():

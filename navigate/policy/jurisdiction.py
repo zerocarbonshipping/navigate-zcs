@@ -76,7 +76,7 @@ def _calculate_attribute_in_policy_jurisdiction(regulation, vessel, times, attri
         Energy used within the regulation jurisdiction.
     """
 
-    jurisdiction = [port.get_name() for port in regulation.jurisdiction]
+    jurisdiction = [port.name for port in regulation.jurisdiction]
 
     intra = regulation.intra_fraction.get(times)
     inter = regulation.inter_fraction.get(times)
@@ -85,7 +85,7 @@ def _calculate_attribute_in_policy_jurisdiction(regulation, vessel, times, attri
     # scale the demand by the fraction of time
     # spent in the jurisdiction of the regulation
     route = vessel.route
-    ports = [port.get_name() for port in route.ports]
+    ports = [port.name for port in route.ports]
     leg_idx = route.get_leg_indices()
 
     if route.route_type != RouteTypeID.ROUND_TRIP:

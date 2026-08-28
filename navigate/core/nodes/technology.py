@@ -20,7 +20,7 @@ class Technology(_Machinery):
     def __init__(self, name):
         super().__init__(name)
 
-        self._type = TECHNOLOGY
+        self.type = TECHNOLOGY
 
         self.shore_power_capacity: Scalar | None = None
 

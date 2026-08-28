@@ -18,7 +18,7 @@ class Levy(_Policy):
     def __init__(self, name):
         super().__init__(name)
 
-        self._type = LEVY
+        self.type = LEVY
 
         self.level = None              # dict[vessel_name: float], level of the levy, USD/ton emission
         self.lower_threshold = None    # float, reference emissions factor between penalty and subsidy
@@ -130,7 +130,7 @@ class Levy(_Policy):
 
     def initialize_expectation(self, length: int) -> None:
         self.expectation = LevyExpectation()
-        self.expectation.initialize(length, [e.get_name() for e in self.emissions])
+        self.expectation.initialize(length, [e.name for e in self.emissions])
 
     def initialize_profile(self, timeline: np.ndarray) -> None:
 

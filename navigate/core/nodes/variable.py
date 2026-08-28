@@ -13,7 +13,7 @@ class Variable(Node, _Calculator):
         Node.__init__(self, name)
         _Calculator.__init__(self)
 
-        self._type = VARIABLE
+        self.type = VARIABLE
 
         self._value = None
 

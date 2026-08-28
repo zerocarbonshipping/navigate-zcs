@@ -26,7 +26,7 @@ def update_vessel_variables(alg: BunkerAlgorithm, vessel: Vessel) -> None:
         Vessel for which variables are updated.
     """
 
-    v = vessel.get_name()
+    v = vessel.name
     route = vessel.route
     ports = route.ports
     usable_fuels = vessel.usable_fuels

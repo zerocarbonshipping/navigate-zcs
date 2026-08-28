@@ -40,7 +40,7 @@ def update_fuel_inertia_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> Non
     if alg.idx == 0:
         return
 
-    v = vessel.get_name()
+    v = vessel.name
     route = vessel.route
     ports = route.ports
 
@@ -72,7 +72,7 @@ def update_fuel_inertia_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> Non
             if not port.is_bunkering_allowed(f):
                 continue
 
-            port_name = port.get_name()
+            port_name = port.name
             key = (v, port_name, f)
 
             constraint = get_constraint(alg, alg.fuel_inertia, key, ">=", "fuel_inertia")

@@ -29,16 +29,13 @@ class CommandReferenceMixin:
     """Mixin providing command reference storage and retrieval for Node and _GeneralNode."""
 
     def __init__(self):
-        self._command_references = []
+        self.command_references = []
 
     def add_command_reference(self, command_reference):
-        self._command_references.append(command_reference)
-
-    def get_command_references(self):
-        return self._command_references
+        self.command_references.append(command_reference)
 
     def clear_command_references(self):
-        self._command_references = []
+        self.command_references = []
 
 
 _TYPE_CHECKS = {
@@ -68,18 +65,18 @@ _CALCULATOR_TYPES = (CURVE, FORECAST, SURFACE, TIMETABLE, VARIABLE)
 
 
 class TypeCheckMixin:
-    """Provides is_*() type-checking methods for classes with a _type attribute."""
+    """Provides is_*() type-checking methods for classes with a type attribute."""
 
     def is_type(self, type_):
-        return self._type == type_
+        return self.type == type_
 
     def is_calculator(self):
-        return self._type in _CALCULATOR_TYPES
+        return self.type in _CALCULATOR_TYPES
 
 
 def _make_checker(type_id):
     def checker(self):
-        return self._type == type_id
+        return self.type == type_id
     return checker
 
 

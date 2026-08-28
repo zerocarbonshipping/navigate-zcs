@@ -418,7 +418,7 @@ class TestSyntaxErrors:
         assignment = stmts[0].body[0]
         assert isinstance(assignment.value, WildcardNodeReference)
         assert assignment.value.pattern == "r_*"
-        assert assignment.value.get_type() == "Route"
+        assert assignment.value.type == "Route"
 
     def test_unquoted_wildcard_in_command(self):
         cmd = _body('Vessel "v" { set_slip_fraction(M*, 0.03) }')[0]
@@ -428,3 +428,16 @@ class TestSyntaxErrors:
     def test_bare_star_in_command(self):
         cmd = _body('Vessel "v" { set_energy_saving(*, 0.03) }')[0]
         assert cmd.args == ["*", 0.03]
+
+
+class TestReferenceScanExclude:
+    """Every exclude entry must name a real node attribute, so stale entries
+    cannot accumulate silently in the reference-resolution scan."""
+
+    def test_entries_are_real_node_attributes(self):
+        from navigate.core.nodes.curve import Curve
+        from navigate.parser.parser import REFERENCE_SCAN_EXCLUDE
+
+        curve = Curve('c')
+        for entry in REFERENCE_SCAN_EXCLUDE:
+            assert entry in vars(curve), entry

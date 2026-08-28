@@ -53,7 +53,7 @@ def perform_pipeline_planning(producer: Producer, timeline, time_step, idx):
         # from inertia and subtract from
         # the demand of the fuel
         production = plant.expectation.get_production(idx) * inertia_increments[p]
-        demand[plant.fuel.get_name()] -= production
+        demand[plant.fuel.name] -= production
 
     # calculate the "levelized multiplier"
     # which is used as the metric for uptake
@@ -69,7 +69,7 @@ def perform_pipeline_planning(producer: Producer, timeline, time_step, idx):
     # extract the maximum number of newbuild
     # plants that may enter the pipeline
     demand_multipliers = np.array([plant.expectation.get_demand_newbuilds()
-                                   if producer.allow_plant[plant.get_name()] else 0.
+                                   if producer.allow_plant[plant.name] else 0.
                                    for plant in producer.assets])
 
     # calculate the modelled increments of each plant
@@ -170,7 +170,7 @@ def calculate_inertia_increments(producer: Producer, time_step, idx):
     # adjust the current uptake to account for disallowed plants
     for p, plant in enumerate(producer.assets):
 
-        if not producer.allow_plant[plant.get_name()]:
+        if not producer.allow_plant[plant.name]:
             producer.current_uptake[p] = 0.
 
     # inertia only happens if the producer is development constrained
@@ -185,7 +185,7 @@ def calculate_inertia_increments(producer: Producer, time_step, idx):
         # extract the maximum number of newbuild
         # plants that may enter the pipeline
         demand_multipliers = np.array([plant.expectation.get_demand_newbuilds()
-                                       if producer.allow_plant[plant.get_name()] else 0.
+                                       if producer.allow_plant[plant.name] else 0.
                                        for plant in producer.assets])
 
         # calculate maximum possible share
@@ -211,7 +211,7 @@ def calculate_inertia_increments(producer: Producer, time_step, idx):
 
             for p, plant in enumerate(producer.assets):
 
-                plant_name = plant.get_name()
+                plant_name = plant.name
 
                 # calculate the feed used per plant
                 consumption = producer.expectation.get_plant_feed_consumption(plant_name, feed_name)
@@ -244,7 +244,7 @@ def calculate_modelled_uptake(producer: Producer) -> np.ndarray:
     try:
 
         index, plants = zip(*((i, plant) for i, plant in enumerate(producer.assets)
-                            if producer.allow_plant[plant.get_name()]
+                            if producer.allow_plant[plant.name]
                             and plant.expectation.is_in_demand()))
 
     except ValueError:
@@ -255,7 +255,7 @@ def calculate_modelled_uptake(producer: Producer) -> np.ndarray:
 
     index = np.array(index)
 
-    group_keys = [plant.fuel.get_name() for plant in plants]
+    group_keys = [plant.fuel.name for plant in plants]
     metrics_intra = [plant.expectation.get_intra_fuel_metric() for plant in plants]
     metrics_inter = [plant.expectation.get_inter_fuel_metric() for plant in plants]
 
@@ -378,7 +378,7 @@ def calculate_feed_uptake_limit_iteration(producer: Producer, development, uptak
 
         for p, plant in enumerate(producer.assets):
 
-            key = (plant.get_name(), feed_name)
+            key = (plant.name, feed_name)
             consumption = producer.expectation.get_plant_feed_consumption(*key)
 
             # calculate the feed use that would
@@ -402,7 +402,7 @@ def calculate_feed_uptake_limit_iteration(producer: Producer, development, uptak
 
         for _p, plant in enumerate(producer.assets):
 
-            key = (plant.get_name(), feed_name)
+            key = (plant.name, feed_name)
 
             if scaling == np.inf:
                 spend_map[key] = np.inf
@@ -416,7 +416,7 @@ def calculate_feed_uptake_limit_iteration(producer: Producer, development, uptak
     limits = np.ones_like(uptakes)
     for p, plant in enumerate(producer.assets):
 
-        plant_name = plant.get_name()
+        plant_name = plant.name
         current_limit = 1.
 
         for feed_name in total_spend:

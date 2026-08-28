@@ -118,7 +118,7 @@ def assign_value(assignment, scalar=True, date=False, type_=None,
 
         if type_is_list:
 
-            if not assignment.get_type() in type_:
+            if assignment.type not in type_:
                 raise ValueError("{}, but got {}".format(_failed_value_message(scalar, date, type_), assignment))
 
         elif not assignment.is_type(type_):
@@ -534,7 +534,7 @@ def _check_list_is_unique(assignment):
     seen = set()
     for entry in assignment:
         if isinstance(entry, NodeReference):
-            name = entry.get_name()
+            name = entry.name
             if name in seen:
                 raise ValueError("requires all entries in the list to be unique")
             seen.add(name)

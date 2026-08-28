@@ -18,7 +18,7 @@ class Surface(Node, _Table2D):
         Node.__init__(self, name)
         _Table2D.__init__(self)
 
-        self._type = SURFACE
+        self.type = SURFACE
 
     def initialize(self) -> None:
         if self._table is None:

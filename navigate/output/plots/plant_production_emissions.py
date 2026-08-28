@@ -27,7 +27,7 @@ def plot_plant_production_emissions(manager, directory):
     for region_name, region in regions.items():
 
         plants_region = [plant for plant in plants.values() if plant.region is region]
-        plants_region = sorted(plants_region, key=lambda x: x.get_name())
+        plants_region = sorted(plants_region, key=lambda x: x.name)
         n = len(plants_region)
 
         if not plants_region:
@@ -42,7 +42,7 @@ def plot_plant_production_emissions(manager, directory):
         for ax, plant in zip(axes, plants_region):
 
             fuel = plant.fuel
-            fuel_name = fuel.get_name()
+            fuel_name = fuel.name
             lhv = fuel.lower_heating_value.get()
 
             TTW = 0.
@@ -62,7 +62,7 @@ def plot_plant_production_emissions(manager, directory):
             ax.plot(dateline, investment, color=colors[fuel_name], label='Investment', lw=2.5, ls='--')
             ax.plot(dateline, instantaneous, color=colors[fuel_name], label='Instantaneous', lw=2.5)
 
-            ax.set_title(plant.get_name())
+            ax.set_title(plant.name)
             ax.set_ylabel('WTW [kgCO$_2$-eq/GJ]')
             legend = ax.legend()
             format_axes(ax, n, dateline, legend, y_lim=(None, None))

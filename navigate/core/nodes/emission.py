@@ -11,7 +11,7 @@ class Emission(Node):
     def __init__(self, name):
         super().__init__(name)
 
-        self._type = EMISSION
+        self.type = EMISSION
 
         self.global_warming_potential = None
         self.fuel_type = None
