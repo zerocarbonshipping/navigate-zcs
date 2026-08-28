@@ -37,7 +37,7 @@ class Converter(_Machinery):
         self.efficiency = None             # float, conversion efficiency from potential to kinetic energy
 
         # emissions
-        self.consumption_TTW = {}          # dict of floats, emissions from consumption in the engine, ton/ton
+        self.consumption_ttw = {}          # dict of floats, emissions from consumption in the engine, ton/ton
         self.slip_fraction = {}            # dict[FuelTypeID, Scalar], fraction of fuel mass escaping unburned
 
     # external attributes set through the input deck -------------------------------------------------------------------
@@ -196,10 +196,10 @@ class Converter(_Machinery):
         # neccesary due to incoherent error thrown if
         # passing a non-existing key to an empty dict
         key = (id_, emission_name)
-        if key not in self.consumption_TTW:
+        if key not in self.consumption_ttw:
             raise KeyError(f"{emission_name}")
 
-        command_assignment_to_tuple_dict(key, value, self.consumption_TTW, type_=VARIABLE, lower=0.)
+        command_assignment_to_tuple_dict(key, value, self.consumption_ttw, type_=VARIABLE, lower=0.)
 
     # internal methods -------------------------------------------------------------------------------------------------
     def initialize(self):
@@ -233,9 +233,9 @@ class Converter(_Machinery):
                 self.slip_fraction[fuel_type] = Scalar(0)
 
         # default emissions from consumption in the engine
-        for fuel_type, emission_name in self.consumption_TTW:
-            if not self.consumption_TTW[(fuel_type, emission_name)]:
-                self.consumption_TTW[(fuel_type, emission_name)] = Scalar(0)
+        for fuel_type, emission_name in self.consumption_ttw:
+            if not self.consumption_ttw[(fuel_type, emission_name)]:
+                self.consumption_ttw[(fuel_type, emission_name)] = Scalar(0)
 
     def initialize_dependencies(self, emissions):
         """
@@ -250,8 +250,8 @@ class Converter(_Machinery):
         if not self.slip_fraction:
             self.slip_fraction = {fuel_type: None for fuel_type in self.get_fuel_types()}
 
-        if not self.consumption_TTW:
-            self.consumption_TTW = {(fuel_type, emission_name): None
+        if not self.consumption_ttw:
+            self.consumption_ttw = {(fuel_type, emission_name): None
                                     for fuel_type in self.get_fuel_types()
                                     for emission_name in emissions}
 

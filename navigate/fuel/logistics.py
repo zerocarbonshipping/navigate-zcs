@@ -39,7 +39,7 @@ def calculate_plant_logistics_expectations(plants: dict[str, Plant],
 
     # assemble the fuel logistic
     # cost and emission maps
-    cost, WTT = _assemble_fuel_logistic_maps(bunker_logistics, times)
+    cost, wtt = _assemble_fuel_logistic_maps(bunker_logistics, times)
 
     for plant in plants.values():
 
@@ -70,7 +70,7 @@ def calculate_plant_logistics_expectations(plants: dict[str, Plant],
             # be assigned as instantaneous values
             for emission_name in emissions:
                 key = (region_name, port_name, fuel_name, emission_name)
-                plant.expectation.set_delivery_WTT(idx, port_name, emission_name, WTT[key])
+                plant.expectation.set_delivery_wtt(idx, port_name, emission_name, wtt[key])
 
 
 def _assemble_fuel_logistic_maps(bunker_logistics: BunkerLogistics,
@@ -91,7 +91,7 @@ def _assemble_fuel_logistic_maps(bunker_logistics: BunkerLogistics,
 
     distances = bunker_logistics.distances
     transport_costs = bunker_logistics.transport_costs
-    transport_WTTs = bunker_logistics.transport_WTT
+    transport_wtts = bunker_logistics.transport_wtt
 
     # assemble the transport cost map
     cost_map = {}
@@ -109,11 +109,11 @@ def _assemble_fuel_logistic_maps(bunker_logistics: BunkerLogistics,
 
     # assemble the emissions map
     wtt_map = {}
-    for (fuel_name, emission_name), transport_WTT in transport_WTTs.items():
+    for (fuel_name, emission_name), transport_wtt in transport_wtts.items():
 
         # calculate the transport
         # unit emission expectation
-        wtt = transport_WTT.get(times)
+        wtt = transport_wtt.get(times)
 
         for (region_name, port_name), distance in distances.items():
 

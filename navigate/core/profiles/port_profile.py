@@ -21,14 +21,14 @@ class PortProfile(_InfrastructureAggregateProfile):
         super().__init__()
 
         # constants
-        self._GWP: dict[str, float] = {}
+        self._global_warming_potential: dict[str, float] = {}
 
         # bunkering
         self._bunkering_allowed: dict[str, np.ndarray] = {}    # bool, is bunkering allowed
 
         # results
         self._bunker_price: dict[str, np.ndarray] = {}      # fuel price paid for bunkering
-        self._bunker_WTT: dict[tuple[str, str], np.ndarray] = {}  # WTT emissions from fuel
+        self._bunker_wtt: dict[tuple[str, str], np.ndarray] = {}  # WTT emissions from fuel
 
     def initialize(self, timeline: np.ndarray, emissions: dict[str, Emission],
                    fuels: dict[str, Fuel], emissions_lifetime: float) -> None:
@@ -54,10 +54,10 @@ class PortProfile(_InfrastructureAggregateProfile):
         self._bunkering_allowed = self._default_dict(fuels, default=False)
 
         self._bunker_price = self._default_dict(fuels)
-        self._bunker_WTT = self._default_tuple_dict(fuels, emissions)
+        self._bunker_wtt = self._default_tuple_dict(fuels, emissions)
 
         for emission_name, emission in emissions.items():
-            self._GWP[emission_name] = emission.global_warming_potential.get(emissions_lifetime)
+            self._global_warming_potential[emission_name] = emission.global_warming_potential.get(emissions_lifetime)
 
     def _to_price_intensity(self, method: Callable, fuel_name: str | None = None,
                             idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
@@ -88,7 +88,7 @@ class PortProfile(_InfrastructureAggregateProfile):
 
         else:
             return {(fuel_name, emission_name): self._to_emission_intensity(method, fuel_name, emission_name, idx)
-                    for fuel_name in self._bunkering_allowed for emission_name in self._GWP}
+                    for fuel_name in self._bunkering_allowed for emission_name in self._global_warming_potential}
 
     def _to_emission_intensity_total(self, method: Callable, fuel_name: str | None = None,
                                      idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
@@ -110,8 +110,8 @@ class PortProfile(_InfrastructureAggregateProfile):
     def set_bunker_price(self, idx: int, fuel_name: str, price: float) -> None:
         self._bunker_price[fuel_name][idx] = price
 
-    def set_bunker_WTT(self, idx: int, fuel_name: str, emission_name: str, WTT: float) -> None:
-        self._bunker_WTT[(fuel_name, emission_name)][idx] = WTT
+    def set_bunker_wtt(self, idx: int, fuel_name: str, emission_name: str, wtt: float) -> None:
+        self._bunker_wtt[(fuel_name, emission_name)][idx] = wtt
 
     def set_bunkering_allowed(self, idx: int, fuel_name: str, available: bool) -> None:
         self._bunkering_allowed[fuel_name][idx] = available
@@ -129,47 +129,47 @@ class PortProfile(_InfrastructureAggregateProfile):
             idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
         return self._to_price_intensity(self.get_bunker_price, fuel_name, idx)
 
-    def get_bunker_WTT(
+    def get_bunker_wtt(
             self, fuel_name: str | None = None,
             emission_name: str | None = None,
             idx: int | slice = np.s_[:]) -> np.ndarray | dict[tuple[str, str], np.ndarray]:
-        return extract_from_tuple_dict(self._bunker_WTT, key1=fuel_name, key2=emission_name, idx=idx)
+        return extract_from_tuple_dict(self._bunker_wtt, key1=fuel_name, key2=emission_name, idx=idx)
 
-    def get_equivalent_bunker_WTT(
+    def get_equivalent_bunker_wtt(
             self, fuel_name: str | None = None,
             emission_name: str | None = None,
             idx: int | slice = np.s_[:]) -> np.ndarray | dict[tuple[str, str], np.ndarray]:
         if emission_name is not None:
-            return extract_from_tuple_dict(self._bunker_WTT, key1=fuel_name, key2=emission_name, idx=idx,
-                                           transform=lambda x: x * self._GWP[emission_name])
+            return extract_from_tuple_dict(self._bunker_wtt, key1=fuel_name, key2=emission_name, idx=idx,
+                                           transform=lambda x: x * self._global_warming_potential[emission_name])
         if fuel_name is not None:
-            return {(fuel_name, en): self.get_equivalent_bunker_WTT(fuel_name, en, idx)
-                    for en in self._GWP}
-        return {key: self.get_equivalent_bunker_WTT(*key, idx) for key in self._bunker_WTT}
+            return {(fuel_name, en): self.get_equivalent_bunker_wtt(fuel_name, en, idx)
+                    for en in self._global_warming_potential}
+        return {key: self.get_equivalent_bunker_wtt(*key, idx) for key in self._bunker_wtt}
 
-    def get_total_equivalent_bunker_WTT(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._get_total_method(self.get_equivalent_bunker_WTT, idx)
+    def get_total_equivalent_bunker_wtt(self, idx: int | slice = np.s_[:]) -> np.ndarray:
+        return self._get_total_method(self.get_equivalent_bunker_wtt, idx)
 
-    def get_bunker_intensity_WTT(
+    def get_bunker_intensity_wtt(
             self, fuel_name: str | None = None,
             emission_name: str | None = None,
             idx: int | slice = np.s_[:]) -> np.ndarray | dict[tuple[str, str], np.ndarray]:
-        return self._to_emission_intensity(self.get_bunker_WTT, fuel_name, emission_name, idx)
+        return self._to_emission_intensity(self.get_bunker_wtt, fuel_name, emission_name, idx)
 
-    def get_bunker_intensity_equivalent_WTT(
+    def get_bunker_intensity_equivalent_wtt(
             self, fuel_name: str | None = None,
             emission_name: str | None = None,
             idx: int | slice = np.s_[:]) -> np.ndarray | dict[tuple[str, str], np.ndarray]:
-        return self._to_emission_intensity(self.get_equivalent_bunker_WTT, fuel_name, emission_name, idx)
+        return self._to_emission_intensity(self.get_equivalent_bunker_wtt, fuel_name, emission_name, idx)
 
-    def get_bunker_intensity_total_equivalent_WTT(
+    def get_bunker_intensity_total_equivalent_wtt(
             self, fuel_name: str | None = None,
             idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
         if fuel_name is not None:
-            equiv = self.get_equivalent_bunker_WTT(fuel_name=fuel_name, idx=idx)
+            equiv = self.get_equivalent_bunker_wtt(fuel_name=fuel_name, idx=idx)
             total = np.add.reduce(list(equiv.values()))
             if fuel_name in self._lower_heating_value:
                 return total / (self._lower_heating_value[fuel_name] / 1e3)
             return self._default_array(default=np.nan)[idx]
-        return {fn: self.get_bunker_intensity_total_equivalent_WTT(fn, idx)
+        return {fn: self.get_bunker_intensity_total_equivalent_wtt(fn, idx)
                 for fn in self._bunkering_allowed}

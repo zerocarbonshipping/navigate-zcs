@@ -150,7 +150,7 @@ d = {
 - Prefer names that reveal intent (`pending_orders`) over names that describe shape (`order_list`).
 - Avoid generic suffixes like `_data`, `_obj`, `_thing`.
 - Boolean names should read positively (`is_ready`, not `not_unready`).
-- DSL command names (node methods callable from `.nav`/`.inc` files) are pure lowercase snake_case; acronyms are lowercased (`set_fuel_wtt`, not `set_fuel_WTT`). ALL_CAPS is reserved for enum keyword values (`AMMONIA`, `WTT`, `FLAT`).
+- All Python identifiers, including DSL command names (node methods callable from `.nav`/`.inc` files), are pure snake_case; acronyms are lowercased (`set_fuel_wtt`, `capex`, not `set_fuel_WTT`, `CAPEX`). Deck-facing attribute tokens keep their DSL casing (`CAPEX`, `TotalEquivalentWTT`) and are mapped to the snake_case method names by `attribute_to_setter`. ALL_CAPS is reserved for enum keyword values (`AMMONIA`, `WTT`, `FLAT`) and module-level constants.
 - Methods should be prefixed with `_` if they are internal and only used within the same file, e.g., `_internal_method`.
 - Classes should be prefixed with `_` if they are internal and only used within the package where they are defined, e.g., `_InternalClass`.
 - Files should be prefixed with `_` if they are internal and only used within the package where they are defined, e.g., `_internal_file.py`.

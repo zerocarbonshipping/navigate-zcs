@@ -47,7 +47,7 @@ class Port(Node):
         # bunker overwrite
         self.liquid_market_fuel = {}       # dict[bool], whether a fuel belongs to a liquid market
         self.bunker_price_overwrite = {}   # dict[float], manual bunker price, overwrites production, USD/ton
-        self.bunker_WTT_overwrite = {}     # dict[float], manual bunker WTT, overwrites production, USD/ton
+        self.bunker_wtt_overwrite = {}     # dict[float], manual bunker WTT, overwrites production, USD/ton
 
         # shore power
         self.shore_power_cost: Scalar | None = None               # USD/GJ (stored internally, input in USD/MWh)
@@ -179,7 +179,7 @@ class Port(Node):
 
         command_assignment_to_tuple_dict((fuel_name, emission_name),
                                          value,
-                                         self.bunker_WTT_overwrite,
+                                         self.bunker_wtt_overwrite,
                                          type_=(FORECAST, VARIABLE))
 
     def set_shore_power_cost(self, value):
@@ -262,9 +262,9 @@ class Port(Node):
             if (price is None) and self.liquid_market_fuel[fuel_name]:
                 self.bunker_price_overwrite[fuel_name] = Scalar(0.)
 
-        for (fuel_name, emission_name), WTT in self.bunker_WTT_overwrite.items():
-            if (WTT is None) and self.liquid_market_fuel[fuel_name]:
-                self.bunker_WTT_overwrite[(fuel_name, emission_name)] = Scalar(0.)
+        for (fuel_name, emission_name), wtt in self.bunker_wtt_overwrite.items():
+            if (wtt is None) and self.liquid_market_fuel[fuel_name]:
+                self.bunker_wtt_overwrite[(fuel_name, emission_name)] = Scalar(0.)
 
         # shore power defaults
         if self.shore_power_cost is None:
@@ -299,7 +299,7 @@ class Port(Node):
             self.bunker_price_overwrite.setdefault(fuel_name, None)
 
             for emission_name in emissions:
-                self.bunker_WTT_overwrite.setdefault((fuel_name, emission_name), None)
+                self.bunker_wtt_overwrite.setdefault((fuel_name, emission_name), None)
 
         for emission_name in emissions:
             self.shore_power_emission_factor.setdefault(emission_name, None)
@@ -354,11 +354,11 @@ class Port(Node):
 
                 self.expectation.set_bunker_price_overwrite(idx, fuel_name, overwrite.get(times))
 
-        for (fuel_name, emission_name), overwrite in self.bunker_WTT_overwrite.items():
+        for (fuel_name, emission_name), overwrite in self.bunker_wtt_overwrite.items():
 
             if overwrite is not None:
 
-                self.expectation.set_bunker_WTT_overwrite(idx, fuel_name, emission_name, overwrite.get(times))
+                self.expectation.set_bunker_wtt_overwrite(idx, fuel_name, emission_name, overwrite.get(times))
 
         # shore power (convert from USD/MWh to USD/GJ, and ton/MWh to ton/GJ)
         self.expectation.set_shore_power_cost(idx, self.shore_power_cost.get(times) / MWH_TO_GJ)

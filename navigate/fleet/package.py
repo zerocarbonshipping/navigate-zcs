@@ -308,8 +308,8 @@ def _build_technology_component(technology: Technology, vessel_lifetime: float, 
     component.initialize_flow(0., vessel_lifetime, time_initial)
     component.initialize_machinery_component(technology)
 
-    capex = lambda time: technology.CAPEX.get(time)
-    opex = lambda time: technology.OPEX.get(time)
+    capex = lambda time: technology.capex.get(time)
+    opex = lambda time: technology.opex.get(time)
 
     add_capex_flow(component, capex)
     add_fixed_opex(component, opex)

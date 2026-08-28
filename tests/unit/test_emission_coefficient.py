@@ -30,7 +30,7 @@ def _make_port(allowed, supply, wtt):
     port = MagicMock()
     port.is_bunkering_allowed.return_value = allowed
     port.expectation.get_bunker_supply.return_value = np.asarray(supply, dtype=float)
-    port.expectation.get_bunker_WTT.return_value = np.asarray(wtt, dtype=float)
+    port.expectation.get_bunker_wtt.return_value = np.asarray(wtt, dtype=float)
     return port
 
 

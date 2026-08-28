@@ -38,7 +38,7 @@ def _get_effective_lhv(converter: Converter, fuel: Fuel) -> float:
     return (1. - slip) * fuel.lower_heating_value.get()
 
 
-def _calculate_emission_factor_TTW(converter: Converter, fuel: Fuel, emission: Emission) -> float:
+def _calculate_emission_factor_ttw(converter: Converter, fuel: Fuel, emission: Emission) -> float:
     """
     Calculate the TTW emission factor for an emission from consuming a fuel in a specific converter.
     Should be multiplied by the amount of spent fuel in that converter.
@@ -72,10 +72,10 @@ def _calculate_emission_factor_TTW(converter: Converter, fuel: Fuel, emission: E
     slip = converter.slip_fraction[fuel_type].get()
 
     # fuel-bound TTW emissions scale with burned fraction
-    emission_factor = (1. - slip) * fuel.TTW[emission_name].get()
+    emission_factor = (1. - slip) * fuel.ttw[emission_name].get()
 
     # consumption emissions per ton fuel-in, no slip scaling
-    emission_factor += converter.consumption_TTW[(fuel_type, emission_name)].get()
+    emission_factor += converter.consumption_ttw[(fuel_type, emission_name)].get()
 
     # slip emissions: slip per ton fuel-in, gated by emission fuel_type
     emission_fuel_type = emission.fuel_type
@@ -122,7 +122,7 @@ def calculate_emission_factors(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     for c, converter in get_converters(vessel).items():
         for f, fuel in alg.fuels_per_converter[(v, c)].items():
             for e, emission in alg.emissions.items():
-                alg.emission_factor[(v, c, f, e)] = _calculate_emission_factor_TTW(converter, fuel, emission)
+                alg.emission_factor[(v, c, f, e)] = _calculate_emission_factor_ttw(converter, fuel, emission)
 
 
 def calculate_policy_coefficients(alg: BunkerAlgorithm, vessel: Vessel) -> None:

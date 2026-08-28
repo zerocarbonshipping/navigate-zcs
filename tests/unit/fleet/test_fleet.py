@@ -355,16 +355,16 @@ class TestReconcileRetrofitTechnologyCaps:
         ]
         reconcile_retrofit_technology_caps(fleet, proposals, time_step=YEAR, multipliers_total=100.)
         # Aggregate A across both: 0.8*5/8*(4+6) = 5
-        agg_A = (np.sum(proposals[0][3][1:]) * 4. + np.sum(proposals[1][3][1:]) * 6.)
-        np.testing.assert_almost_equal(agg_A, 5.)
+        agg_a = (np.sum(proposals[0][3][1:]) * 4. + np.sum(proposals[1][3][1:]) * 6.)
+        np.testing.assert_almost_equal(agg_a, 5.)
 
     def test_time_step_scales_budget(self):
         # 5-year time_step with limit 0.05 ⇒ cap = 0.05 * 100 * 5 = 25.
         fleet = _make_fleet_for_retrofit(["A"], {"A": 0.05}, [np.array([100.])])
         proposals = [_proposal(0, 0, 0, np.array([0.5, 0.5]), 1.)]  # 50 retrofits-to-A unconstrained
         reconcile_retrofit_technology_caps(fleet, proposals, time_step=5.0 * YEAR, multipliers_total=100.)
-        agg_A = np.sum(proposals[0][3][1:]) * 100.
-        np.testing.assert_almost_equal(agg_A, 25.)
+        agg_a = np.sum(proposals[0][3][1:]) * 100.
+        np.testing.assert_almost_equal(agg_a, 25.)
 
     def test_zero_multipliers_total_no_op(self):
         fleet = _make_fleet_for_retrofit(["A"], {"A": 0.05}, [np.array([10.])])
@@ -390,11 +390,11 @@ class TestReconcileRetrofitTechnologyCapsEligibility:
         ]
         reconcile_retrofit_technology_caps(fleet, proposals, time_step=YEAR, multipliers_total=100.)
         # Post-reconcile aggregate for B equals the cap.
-        agg_B = (
+        agg_b = (
             0.5 * 10. * float(np.sum(proposals[0][3][2:]))   # package_idx=0 → k_start=2
             + 0.5 * 10. * float(np.sum(proposals[1][3][1:]))  # package_idx=1 → k_start=1
         )
-        np.testing.assert_almost_equal(agg_B, 5.)
+        np.testing.assert_almost_equal(agg_b, 5.)
 
     def test_zero_current_proposal_excluded_from_aggregate(self):
         # A proposal with current = 0 must not consume cap budget.
@@ -463,8 +463,8 @@ class TestReconcileNewbuildTechnologyCaps:
         fleet = _make_fleet_for_newbuild_technology(
             ["A", "B"], {"A": 0.05, "B": 1.0}, [np.array([0.2, 0.3, 0.5])], n_vessels=1)
         reconcile_newbuild_technology_caps(fleet, np.array([10.]), time_step=YEAR, multipliers_total=100.)
-        installs_A = float(np.sum(fleet.newbuild_package_uptake[0][1:])) * 10.
-        np.testing.assert_almost_equal(installs_A, 5.)
+        installs_a = float(np.sum(fleet.newbuild_package_uptake[0][1:])) * 10.
+        np.testing.assert_almost_equal(installs_a, 5.)
         np.testing.assert_almost_equal(np.sum(fleet.newbuild_package_uptake[0]), 1.)
 
     def test_caps_independent(self):
@@ -472,8 +472,8 @@ class TestReconcileNewbuildTechnologyCaps:
         fleet = _make_fleet_for_newbuild_technology(
             ["A", "B"], {"A": 1.0, "B": 0.02}, [np.array([0.2, 0.3, 0.5])], n_vessels=1)
         reconcile_newbuild_technology_caps(fleet, np.array([10.]), time_step=YEAR, multipliers_total=100.)
-        installs_B = float(fleet.newbuild_package_uptake[0][2]) * 10.
-        np.testing.assert_almost_equal(installs_B, 2.)
+        installs_b = float(fleet.newbuild_package_uptake[0][2]) * 10.
+        np.testing.assert_almost_equal(installs_b, 2.)
 
     def test_aggregates_across_vessels(self):
         # Two vessel types, each with 5 newbuilds and same uptake. A cap 0.05 (5/yr).
@@ -482,9 +482,9 @@ class TestReconcileNewbuildTechnologyCaps:
             ["A", "B"], {"A": 0.05},
             [np.array([0.2, 0.3, 0.5]), np.array([0.2, 0.3, 0.5])], n_vessels=2)
         reconcile_newbuild_technology_caps(fleet, np.array([5., 5.]), time_step=YEAR, multipliers_total=100.)
-        agg_A = (float(np.sum(fleet.newbuild_package_uptake[0][1:])) * 5.
+        agg_a = (float(np.sum(fleet.newbuild_package_uptake[0][1:])) * 5.
                  + float(np.sum(fleet.newbuild_package_uptake[1][1:])) * 5.)
-        np.testing.assert_almost_equal(agg_A, 5.)
+        np.testing.assert_almost_equal(agg_a, 5.)
 
     def test_zero_increments_no_contribution(self):
         # Vessel 0 has 0 newbuilds ⇒ doesn't contribute. Vessel 1 carries the binding.
@@ -492,8 +492,8 @@ class TestReconcileNewbuildTechnologyCaps:
             ["A"], {"A": 0.05},
             [np.array([0.5, 0.5]), np.array([0.5, 0.5])], n_vessels=2)
         reconcile_newbuild_technology_caps(fleet, np.array([0., 100.]), time_step=YEAR, multipliers_total=100.)
-        installs_A = float(fleet.newbuild_package_uptake[1][1]) * 100.
-        np.testing.assert_almost_equal(installs_A, 5.)
+        installs_a = float(fleet.newbuild_package_uptake[1][1]) * 100.
+        np.testing.assert_almost_equal(installs_a, 5.)
 
     def test_zero_multipliers_total_no_op(self):
         fleet = _make_fleet_for_newbuild_technology(

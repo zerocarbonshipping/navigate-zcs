@@ -45,13 +45,13 @@ def plot_plant_production_emissions(manager, directory):
             fuel_name = fuel.name
             lhv = fuel.lower_heating_value.get()
 
-            TTW = 0.
+            ttw = 0.
             for emission_name, emission in emissions.items():
-                TTW += fuel.TTW[emission_name].get() * emission.global_warming_potential.get(emissions_lifetime)
+                ttw += fuel.ttw[emission_name].get() * emission.global_warming_potential.get(emissions_lifetime)
 
             profile = plant.profile
-            investment = np.round((profile.get_total_equivalent_investment_WTT() + TTW) / lhv * 1e3, 5)
-            instantaneous = np.round((profile.get_total_equivalent_instantaneous_WTT() + TTW) / lhv * 1e3, 5)
+            investment = np.round((profile.get_total_equivalent_investment_wtt() + ttw) / lhv * 1e3, 5)
+            instantaneous = np.round((profile.get_total_equivalent_instantaneous_wtt() + ttw) / lhv * 1e3, 5)
 
             # update axes limits
             investment_lim = np.where(np.isnan(investment), 0., investment)

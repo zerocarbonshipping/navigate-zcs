@@ -25,6 +25,11 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   order-sensitive outputs such as dual values vary run-to-run.
 
 ### Changed
+- Internal Python identifiers containing uppercase acronyms are now
+  lowercase (`set_capex`, `get_total_equivalent_wtt`, formerly `set_CAPEX`,
+  `get_total_equivalent_WTT`). The DSL surface is unchanged: decks keep
+  writing `CAPEX`, `Scope = WTT`, and Report properties such as
+  `TotalEquivalentWTT`.
 - The converter power-capacity check moved out of the bunker LP into a
   per-time-step fleet validation. The LP rows were redundant: the
   energy-conservation equalities fix each row's left-hand side, so a row

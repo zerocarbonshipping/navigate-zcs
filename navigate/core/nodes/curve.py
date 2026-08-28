@@ -3,7 +3,7 @@
 
 from navigate.core.node import Node
 from navigate.core.node_type import CURVE
-from navigate.core.nodes._table1d import _Table1D, check_table1D_input
+from navigate.core.nodes._table1d import _Table1D, check_table1d_input
 from navigate.core.table_data import TableData, build_table_1d
 from navigate.exceptions import no_value_assigned_error
 
@@ -36,5 +36,5 @@ class Curve(Node, _Table1D):
 
     def set_table(self, table: TableData) -> None:
         x, y = build_table_1d(table)
-        check_table1D_input(x, y)
+        check_table1d_input(x, y)
         self._set_table(x, y)

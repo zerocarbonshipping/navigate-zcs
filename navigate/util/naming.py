@@ -56,6 +56,9 @@ def attribute_to_setter(attribute, method='set'):
     to internal setter method format:
         <method>_abcd_efgh
 
+    Acronym runs are lowercased as a single segment: 'CAPEX' becomes
+    'set_capex' and 'TotalEquivalentWTT' becomes 'get_total_equivalent_wtt'.
+
     Examples
     --------
     - Extrapolate
@@ -77,15 +80,7 @@ def attribute_to_setter(attribute, method='set'):
     matches = re.findall(r'([A-Z]{2,}(?=[A-Z][a-z]|$)|[A-Z][a-z]*)', attribute)
 
     for match in matches:
-        method += '_'
-
-        # all characters are capitalized, such as CAPEX
-        if len(match) > 1 and match.isupper():
-            method += match
-
-        # only first letter is capitalized
-        else:
-            method += match.lower()
+        method += '_' + match.lower()
 
     return method
 

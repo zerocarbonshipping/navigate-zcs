@@ -119,7 +119,7 @@ def _assign_regulation_wtt_factors(regulation: Regulation,
     """
 
     expectation = regulation.expectation
-    fuel_wtts = regulation.fuel_WTT
+    fuel_wtts = regulation.fuel_wtt
     target_emissions = regulation.emissions
 
     # precompute user-supplied WTT once per (fuel, emission); these are
@@ -161,9 +161,9 @@ def _assign_regulation_wtt_factors(regulation: Regulation,
                 factor = _apply_gwp(factor, regulation, emission)
 
                 if bunker_scope == BunkerScopeID.EXPECTED:
-                    expectation.set_expected_WTT(idx, (vessel_name, *key), factor)
+                    expectation.set_expected_wtt(idx, (vessel_name, *key), factor)
                 else:
-                    expectation.set_existing_WTT(idx, (vessel_name, *key), factor)
+                    expectation.set_existing_wtt(idx, (vessel_name, *key), factor)
 
 
 def _assign_regulation_ttw_factors(regulation: Regulation,
@@ -188,7 +188,7 @@ def _assign_regulation_ttw_factors(regulation: Regulation,
     include_slip = regulation.include_slip
 
     expectation = regulation.expectation
-    fuel_ttws = regulation.fuel_TTW
+    fuel_ttws = regulation.fuel_ttw
     target_emissions = regulation.emissions
 
     for vessel in vessels.values():
@@ -224,8 +224,8 @@ def _assign_regulation_ttw_factors(regulation: Regulation,
                     factor_consumption = _apply_gwp(ttw_consumption, regulation, emission)
                     factor_slip = _apply_gwp(ttw_slip, regulation, emission)
 
-                    expectation.set_TTW_consumption(idx, (converter_name, *key), factor_consumption)
-                    expectation.set_TTW_slip(idx, (converter_name, *key), factor_slip)
+                    expectation.set_ttw_consumption(idx, (converter_name, *key), factor_consumption)
+                    expectation.set_ttw_slip(idx, (converter_name, *key), factor_slip)
 
 
 def _assign_regulation_emission_coefficients(regulation: Regulation,
@@ -375,7 +375,7 @@ def _assign_levy_wtt_factors(levy: Levy,
     """
 
     expectation = levy.expectation
-    fuel_wtts = levy.fuel_WTT
+    fuel_wtts = levy.fuel_wtt
     target_emissions = levy.emissions
 
     for fuel in levy.fuels:
@@ -404,9 +404,9 @@ def _assign_levy_wtt_factors(levy: Levy,
                     factor = _apply_gwp(wtt, levy, emission)
 
                 if bunker_scope == BunkerScopeID.EXPECTED:
-                    expectation.set_expected_WTT(idx, (port_name, *key), factor)
+                    expectation.set_expected_wtt(idx, (port_name, *key), factor)
                 else:
-                    expectation.set_existing_WTT(idx, (port_name, *key), factor)
+                    expectation.set_existing_wtt(idx, (port_name, *key), factor)
 
 
 def _assign_levy_ttw_factors(levy: Levy,
@@ -431,7 +431,7 @@ def _assign_levy_ttw_factors(levy: Levy,
     include_slip = levy.include_slip
 
     expectation = levy.expectation
-    fuel_ttws = levy.fuel_TTW
+    fuel_ttws = levy.fuel_ttw
     target_emissions = levy.emissions
 
     for vessel_name, vessel in vessels.items():
@@ -460,8 +460,8 @@ def _assign_levy_ttw_factors(levy: Levy,
                 factor_consumption = _apply_gwp(ttw_consumption, levy, emission)
                 factor_slip = _apply_gwp(ttw_slip, levy, emission)
 
-                expectation.set_TTW_consumption(idx, key, factor_consumption)
-                expectation.set_TTW_slip(idx, key, factor_slip)
+                expectation.set_ttw_consumption(idx, key, factor_consumption)
+                expectation.set_ttw_slip(idx, key, factor_slip)
 
 
 def _assign_levy_emission_coefficients(levy: Levy,
@@ -637,10 +637,10 @@ def _calculate_converter_ttw(converter: Converter,
     slip = converter.slip_fraction[fuel_type].get()
 
     # fuel-bound TTW emissions scale with burned fraction (1 - slip)
-    ttw_consumption = (1. - slip) * fuel.TTW[emission_name].get()
+    ttw_consumption = (1. - slip) * fuel.ttw[emission_name].get()
 
     # consumption emissions per ton fuel-in, no slip scaling
-    ttw_consumption += converter.consumption_TTW[(fuel_type, emission_name)].get()
+    ttw_consumption += converter.consumption_ttw[(fuel_type, emission_name)].get()
 
     # slip emissions: X per ton fuel-in, gated by emission fuel_type
     ttw_slip = 0.
@@ -808,12 +808,12 @@ def _calculate_emission_factor(policy: Levy | Regulation,
     expectation = policy.expectation
 
     if bunker_scope == BunkerScopeID.EXPECTED:
-        wtt = expectation.get_expected_WTT(key_wtt, from_idx)
+        wtt = expectation.get_expected_wtt(key_wtt, from_idx)
     else:
-        wtt = expectation.get_existing_WTT(key_wtt, from_idx)
+        wtt = expectation.get_existing_wtt(key_wtt, from_idx)
 
-    ttw_consumption = expectation.get_TTW_consumption(key_ttw, from_idx)
-    ttw_slip = expectation.get_TTW_slip(key_ttw, from_idx)
+    ttw_consumption = expectation.get_ttw_consumption(key_ttw, from_idx)
+    ttw_slip = expectation.get_ttw_slip(key_ttw, from_idx)
 
     # during calculation of the WTT and TTWs
     # results are adjusted for scope, inclusion
@@ -892,6 +892,6 @@ def _get_port_bunker_wtt(port: Port, fuel: Fuel, emission: Emission, idx: int) -
 
     fuel_name = fuel.name
     emission_name = emission.name
-    wtt = port.expectation.get_bunker_WTT(fuel_name, emission_name, from_idx)
+    wtt = port.expectation.get_bunker_wtt(fuel_name, emission_name, from_idx)
 
     return wtt

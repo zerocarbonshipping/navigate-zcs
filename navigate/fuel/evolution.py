@@ -23,7 +23,7 @@ def _accumulate_weighted_cost(incs: list[Increment], plant, origins: np.ndarray,
                               production: np.ndarray, today: float, times: np.ndarray,
                               emissions: list, p: int,
                               cost: np.ndarray, weight: np.ndarray,
-                              WTT: dict[str, np.ndarray]) -> None:
+                              wtt: dict[str, np.ndarray]) -> None:
     """
     Accumulate weighted production cost and emissions for a set of increments.
     Shared by the existing-plant and pipeline sections of the evolution expectation.
@@ -48,7 +48,7 @@ def _accumulate_weighted_cost(incs: list[Increment], plant, origins: np.ndarray,
         weight[p, :] += interval
 
         for e in emissions:
-            WTT[e][p, :] += interval * expectation.get_production_WTT(e, origins[i])
+            wtt[e][p, :] += interval * expectation.get_production_wtt(e, origins[i])
 
 
 def perform_decommissioning(producer: Producer, idx: int) -> None:
@@ -120,7 +120,7 @@ def calculate_evolution_expectation(producer: Producer, timeline, idx):
     # pre-allocating containers for calculation of
     # average expected production cost and emissions
     cost = np.zeros((n, times.size))
-    WTT = {emission_name: np.zeros((n, times.size)) for emission_name in emissions}
+    wtt = {emission_name: np.zeros((n, times.size)) for emission_name in emissions}
     weight = np.zeros((n, times.size))
 
     # loop over plant types and subtract
@@ -156,7 +156,7 @@ def calculate_evolution_expectation(producer: Producer, timeline, idx):
         existing[p, :] -= cum_decommissioning
 
         _accumulate_weighted_cost(incs, plant, origins, production,
-                                  today, times, emissions, p, cost, weight, WTT)
+                                  today, times, emissions, p, cost, weight, wtt)
 
     # loop over plant types and add
     # the pipeline to the baseline
@@ -191,7 +191,7 @@ def calculate_evolution_expectation(producer: Producer, timeline, idx):
         pipeline[p, :] = cum_pipeline - cum_decommissioning
 
         _accumulate_weighted_cost(pinc, plant, origins, production,
-                                  today, times, emissions, p, cost, weight, WTT)
+                                  today, times, emissions, p, cost, weight, wtt)
 
     # if no initial production exists, the supply/demand interaction
     # is never initiated due to no expected supply and thus no expected
@@ -293,8 +293,8 @@ def calculate_evolution_expectation(producer: Producer, timeline, idx):
             # have on the expected production emissions
             for e in emissions:
 
-                newbuild_WTT = expectation.get_production_WTT(e, idx + t)
-                WTT[e][p, :] += newbuild_production * newbuild_WTT
+                newbuild_wtt = expectation.get_production_wtt(e, idx + t)
+                wtt[e][p, :] += newbuild_production * newbuild_wtt
 
             # update the additional feed consumption
             # dict to account for what has been added as
@@ -310,7 +310,7 @@ def calculate_evolution_expectation(producer: Producer, timeline, idx):
 
     # normalize the weighted averages by the weight
     cost_avg = divide_nonzero(cost, weight)
-    WTT_avg = {emission_name: divide_nonzero(unit_WTT, weight) for emission_name, unit_WTT in WTT.items()}
+    wtt_avg = {emission_name: divide_nonzero(unit_wtt, weight) for emission_name, unit_wtt in wtt.items()}
 
     # transfer expected production
     for p, plant in enumerate(producer.assets):
@@ -326,7 +326,7 @@ def calculate_evolution_expectation(producer: Producer, timeline, idx):
         plant.expectation.set_expected_production_cost(idx, cost_avg[p, :])
 
         for e in plant.expectation.get_emissions():
-            plant.expectation.set_expected_production_WTT(idx, e, WTT_avg[e][p, :])
+            plant.expectation.set_expected_production_wtt(idx, e, wtt_avg[e][p, :])
 
     # transfer expectation to profile
     for p, plant in enumerate(producer.assets):
@@ -336,7 +336,7 @@ def calculate_evolution_expectation(producer: Producer, timeline, idx):
             plant.profile.set_instantaneous_cost(idx, cost_avg[p, 0])
 
             for e in plant.expectation.get_emissions():
-                plant.profile.set_instantaneous_WTT(idx, e, WTT_avg[e][p, 0])
+                plant.profile.set_instantaneous_wtt(idx, e, wtt_avg[e][p, 0])
 
 
 def perform_pipeline_delivery(producer: Producer, idx: int) -> None:

@@ -200,7 +200,7 @@ class _Table2D(_Calculator):
         self._table = interp
 
 
-def check_table2D_input(x, y, z):
+def check_table2d_input(x, y, z):
     """
 
     Parameters

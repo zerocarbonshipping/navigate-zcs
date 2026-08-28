@@ -70,9 +70,9 @@ def _make_technology(name: str, **kwargs) -> Technology:
         tech.set_power_transfer(src.name, dst.name, val)
 
     if 'capex' in kwargs:
-        tech.set_CAPEX(kwargs['capex'])
+        tech.set_capex(kwargs['capex'])
     if 'opex' in kwargs:
-        tech.set_OPEX(kwargs['opex'])
+        tech.set_opex(kwargs['opex'])
     if 'lifetime' in kwargs:
         tech.set_lifetime(kwargs['lifetime'])
 

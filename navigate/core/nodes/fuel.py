@@ -22,7 +22,7 @@ class Fuel(Node):
         self.mass_density = None           # float, mass density ton/m3 (equivalent to g/cm3)
 
         # emissions
-        self.TTW = {}                      # dict, emission factor in ton of emission per ton of fuel
+        self.ttw = {}                      # dict, emission factor in ton of emission per ton of fuel
 
         # internal attributes
         self.liquid_market = False         # bool, whether the fuel belongs to a liquid market
@@ -79,7 +79,7 @@ class Fuel(Node):
         self.mass_density = assign_value(as_scalar(mass_density), type_=VARIABLE, lower=0.)
 
     # external commands called in the input deck -----------------------------------------------------------------------
-    def set_ttw(self, emission_name, TTW):
+    def set_ttw(self, emission_name, ttw):
         """
         Set the TTW emission factor during a stoichiometric process of fuel conversion to energy.
 
@@ -92,11 +92,11 @@ class Fuel(Node):
         ----------
         emission_name : str
             Name of emission emitted.
-        TTW : float | NodeReference
+        ttw : float | NodeReference
             Ton of emissions per ton of fuel.
         """
 
-        command_assignment_to_dict(emission_name, TTW, self.TTW, type_=VARIABLE, lower=0.)
+        command_assignment_to_dict(emission_name, ttw, self.ttw, type_=VARIABLE, lower=0.)
 
     # internal methods -------------------------------------------------------------------------------------------------
     def initialize(self):
@@ -109,14 +109,14 @@ class Fuel(Node):
         if (self.mass_density is None) or (self.mass_density.get() == 0.):
             raise ValueError("{}: Attribute 'MassDensity' must be defined and greater than zero.".format(self))
 
-        for emission_name in self.TTW:
-            if self.TTW[emission_name] is None:
-                self.TTW[emission_name] = Scalar(0.)
+        for emission_name in self.ttw:
+            if self.ttw[emission_name] is None:
+                self.ttw[emission_name] = Scalar(0.)
 
     def initialize_dependencies(self, emissions):
 
         for emission_name in emissions:
-            self.TTW.setdefault(emission_name, None)
+            self.ttw.setdefault(emission_name, None)
 
     def belongs_to_liquid_market(self):
         return self.liquid_market

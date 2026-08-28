@@ -13,25 +13,25 @@ class Region(Node):
         self.type = REGION
 
         # process
-        self.process_CAPEX = {}                    # dict[process_name: float], CAPEX of a process, USD/ton
-        self.process_OPEX = {}                     # dict[process_name: float], OPEX of a process, USD/ton/year
+        self.process_capex = {}                    # dict[process_name: float], CAPEX of a process, USD/ton
+        self.process_opex = {}                     # dict[process_name: float], OPEX of a process, USD/ton/year
         self.process_energy = {}                   # dict[process_name: float], energy demand of a process, MWh/ton
         self.process_lifetime = {}                 # dict[process_name: float], lifetime of the process, years
         self.process_replacement = {}              # dict[process_name: float], fraction of CAPEX repaid at EoL
-        self.process_WTT = {}                      # dict[(process_name, emission_name): float], ton emission/ton fuel
+        self.process_wtt = {}                      # dict[(process_name, emission_name): float], ton emission/ton fuel
 
         # source
-        self.source_CAPEX = {}     # dict[source_name: float], CAPEX of a source, USD/MWh (stand-alone)
-        self.source_OPEX = {}      # dict[source_name: float], OPEX of a source, USD/MWh/year (stand-alone)
-        self.source_WTT = {}       # dict[(source_name, emission_name): float], ton emission/MWh
+        self.source_capex = {}     # dict[source_name: float], CAPEX of a source, USD/MWh (stand-alone)
+        self.source_opex = {}      # dict[source_name: float], OPEX of a source, USD/MWh/year (stand-alone)
+        self.source_wtt = {}       # dict[(source_name, emission_name): float], ton emission/MWh
 
         # feedstock
         self.feedstock_cost = {}   # dict[feedstock_name: float], cost of a feedstock, USD/ton
-        self.feedstock_WTT = {}    # dict[(feedstock_name, emission_name): float], ton emission/ton fuel
+        self.feedstock_wtt = {}    # dict[(feedstock_name, emission_name): float], ton emission/ton fuel
 
         # transport
         self.transport_cost = {}   # dict[transport_name: float], cost of a transport, USD/ton-nautical mile
-        self.transport_WTT = {}    # dict[(transport_name, emission_name): float], ton emission/ton-nautical mile
+        self.transport_wtt = {}    # dict[(transport_name, emission_name): float], ton emission/ton-nautical mile
 
     # external commands called in the input deck -----------------------------------------------------------------------
     def set_process_capex(self, process_name, value):
@@ -51,7 +51,7 @@ class Region(Node):
             The CAPEX cost of the process in USD/ton.
         """
 
-        command_assignment_to_dict(process_name, value, self.process_CAPEX, type_=(FORECAST, TIMETABLE, VARIABLE),
+        command_assignment_to_dict(process_name, value, self.process_capex, type_=(FORECAST, TIMETABLE, VARIABLE),
                                    lower=0.)
 
     def set_process_opex(self, process_name, value):
@@ -74,7 +74,7 @@ class Region(Node):
             The OPEX cost of the process in USD/ton/year.
         """
 
-        command_assignment_to_dict(process_name, value, self.process_OPEX, type_=(FORECAST, TIMETABLE, VARIABLE))
+        command_assignment_to_dict(process_name, value, self.process_opex, type_=(FORECAST, TIMETABLE, VARIABLE))
 
     def set_process_energy(self, process_name, value):
         """
@@ -153,7 +153,7 @@ class Region(Node):
             The amount of emissions emitted during the production in ton emissions/ton fuel.
         """
 
-        command_assignment_to_tuple_dict((process_name, emission_name), value, self.process_WTT,
+        command_assignment_to_tuple_dict((process_name, emission_name), value, self.process_wtt,
                                          type_=(FORECAST, VARIABLE))
 
     def set_source_capex(self, source_name, value):
@@ -173,7 +173,7 @@ class Region(Node):
             The CAPEX cost of the source in USD/MWh.
         """
 
-        command_assignment_to_dict(source_name, value, self.source_CAPEX, type_=(FORECAST, VARIABLE), lower=0.)
+        command_assignment_to_dict(source_name, value, self.source_capex, type_=(FORECAST, VARIABLE), lower=0.)
 
     def set_source_opex(self, source_name, value):
         """
@@ -192,7 +192,7 @@ class Region(Node):
             The OPEX cost of the source in USD/MWh/year.
         """
 
-        command_assignment_to_dict(source_name, value, self.source_OPEX, type_=(FORECAST, VARIABLE), lower=0.)
+        command_assignment_to_dict(source_name, value, self.source_opex, type_=(FORECAST, VARIABLE), lower=0.)
 
     def set_source_wtt(self, source_name, emission_name, value):
         """
@@ -213,7 +213,7 @@ class Region(Node):
             The amount of emissions emitted by using a source in ton emission/MWh.
         """
 
-        command_assignment_to_tuple_dict((source_name, emission_name), value, self.source_WTT,
+        command_assignment_to_tuple_dict((source_name, emission_name), value, self.source_wtt,
                                          type_=(FORECAST, VARIABLE))
 
     def set_feedstock_cost(self, feedstock_name, value):
@@ -256,7 +256,7 @@ class Region(Node):
 
         command_assignment_to_tuple_dict((feedstock_name, emission_name),
                                          value,
-                                         self.feedstock_WTT,
+                                         self.feedstock_wtt,
                                          type_=(FORECAST, VARIABLE))
 
     def set_transport_cost(self, transport_name, value):
@@ -299,19 +299,19 @@ class Region(Node):
 
         command_assignment_to_tuple_dict((transport_name, emission_name),
                                          value,
-                                         self.transport_WTT,
+                                         self.transport_wtt,
                                          type_=(FORECAST, VARIABLE))
 
     # internal methods -------------------------------------------------------------------------------------------------
     def initialize(self):
 
-        for process_name in self.process_CAPEX:
+        for process_name in self.process_capex:
 
-            if not self.process_CAPEX[process_name]:
-                self.process_CAPEX[process_name] = Scalar(0.)
+            if not self.process_capex[process_name]:
+                self.process_capex[process_name] = Scalar(0.)
 
-            if not self.process_OPEX[process_name]:
-                self.process_OPEX[process_name] = Scalar(0.)
+            if not self.process_opex[process_name]:
+                self.process_opex[process_name] = Scalar(0.)
 
             if not self.process_energy[process_name]:
                 self.process_energy[process_name] = Scalar(0.)
@@ -319,37 +319,37 @@ class Region(Node):
             if not self.process_replacement[process_name]:
                 self.process_replacement[process_name] = Scalar(0.)
 
-        for (process_name, emission_name) in self.process_WTT:
-            if not self.process_WTT[(process_name, emission_name)]:
-                self.process_WTT[(process_name, emission_name)] = Scalar(0.)
+        for (process_name, emission_name) in self.process_wtt:
+            if not self.process_wtt[(process_name, emission_name)]:
+                self.process_wtt[(process_name, emission_name)] = Scalar(0.)
 
         for feedstock_name in self.feedstock_cost:
             if not self.feedstock_cost[feedstock_name]:
                 self.feedstock_cost[feedstock_name] = Scalar(0.)
 
-        for (feedstock_name, emission_name) in self.feedstock_WTT:
-            if not self.feedstock_WTT[(feedstock_name, emission_name)]:
-                self.feedstock_WTT[(feedstock_name, emission_name)] = Scalar(0.)
+        for (feedstock_name, emission_name) in self.feedstock_wtt:
+            if not self.feedstock_wtt[(feedstock_name, emission_name)]:
+                self.feedstock_wtt[(feedstock_name, emission_name)] = Scalar(0.)
 
-        for source_name in self.source_CAPEX:
-            if not self.source_CAPEX[source_name]:
-                self.source_CAPEX[source_name] = Scalar(0.)
+        for source_name in self.source_capex:
+            if not self.source_capex[source_name]:
+                self.source_capex[source_name] = Scalar(0.)
 
-        for source_name in self.source_OPEX:
-            if not self.source_OPEX[source_name]:
-                self.source_OPEX[source_name] = Scalar(0.)
+        for source_name in self.source_opex:
+            if not self.source_opex[source_name]:
+                self.source_opex[source_name] = Scalar(0.)
 
-        for (source_name, emission_name) in self.source_WTT:
-            if not self.source_WTT[(source_name, emission_name)]:
-                self.source_WTT[(source_name, emission_name)] = Scalar(0.)
+        for (source_name, emission_name) in self.source_wtt:
+            if not self.source_wtt[(source_name, emission_name)]:
+                self.source_wtt[(source_name, emission_name)] = Scalar(0.)
 
         for transport_name in self.transport_cost:
             if not self.transport_cost[transport_name]:
                 self.transport_cost[transport_name] = Scalar(0.)
 
-        for (transport_name, emission_name) in self.transport_WTT:
-            if not self.transport_WTT[(transport_name, emission_name)]:
-                self.transport_WTT[(transport_name, emission_name)] = Scalar(0.)
+        for (transport_name, emission_name) in self.transport_wtt:
+            if not self.transport_wtt[(transport_name, emission_name)]:
+                self.transport_wtt[(transport_name, emission_name)] = Scalar(0.)
 
     def initialize_dependencies(self, emissions, feedstocks, processes, sources, transports):
         """
@@ -371,33 +371,33 @@ class Region(Node):
 
         for process_name in processes:
 
-            self.process_CAPEX.setdefault(process_name, None)
-            self.process_OPEX.setdefault(process_name, None)
+            self.process_capex.setdefault(process_name, None)
+            self.process_opex.setdefault(process_name, None)
             self.process_energy.setdefault(process_name, None)
             self.process_lifetime.setdefault(process_name, None)
             self.process_replacement.setdefault(process_name, None)
 
             for emission_name in emissions:
-                self.process_WTT.setdefault((process_name, emission_name), None)
+                self.process_wtt.setdefault((process_name, emission_name), None)
 
         for feedstock_name in feedstocks:
 
             self.feedstock_cost.setdefault(feedstock_name, None)
 
             for emission_name in emissions:
-                self.feedstock_WTT.setdefault((feedstock_name, emission_name), None)
+                self.feedstock_wtt.setdefault((feedstock_name, emission_name), None)
 
         for source_name in sources:
 
-            self.source_CAPEX.setdefault(source_name, None)
-            self.source_OPEX.setdefault(source_name, None)
+            self.source_capex.setdefault(source_name, None)
+            self.source_opex.setdefault(source_name, None)
 
             for emission_name in emissions:
-                self.source_WTT.setdefault((source_name, emission_name), None)
+                self.source_wtt.setdefault((source_name, emission_name), None)
 
         for transport_name in transports:
 
             self.transport_cost.setdefault(transport_name, None)
 
             for emission_name in emissions:
-                self.transport_WTT.setdefault((transport_name, emission_name), None)
+                self.transport_wtt.setdefault((transport_name, emission_name), None)

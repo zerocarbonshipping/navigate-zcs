@@ -14,7 +14,7 @@ def plot_global_emission_intensity(manager, directory):
     fig, ax = single_panel()
 
     profile = manager.profile
-    intensity = profile.get_intensity_total_equivalent_WTW()
+    intensity = profile.get_intensity_total_equivalent_wtw()
 
     ax.plot(dateline, intensity, color='k')
 

@@ -17,13 +17,13 @@ class _Machinery(Node):
     def __init__(self, name):
         super().__init__(name)
 
-        self.CAPEX = None          # float, CAPEX for installation
-        self.OPEX = None           # float, OPEX for installation
+        self.capex = None          # float, CAPEX for installation
+        self.opex = None           # float, OPEX for installation
         self.lifetime = None       # float, lifetime of the installation
         self.replacement = None    # float, fraction of CAPEX paid when replacing at end of lifetime
 
     # external attributes set through the input deck -------------------------------------------------------------------
-    def set_CAPEX(self, CAPEX):
+    def set_capex(self, capex):
         """
         Set the CAPEX related to installing the machinery.
 
@@ -34,13 +34,13 @@ class _Machinery(Node):
 
         Parameters
         ----------
-        CAPEX : float | NodeReference
+        capex : float | NodeReference
             CAPEX cost of installing the machinery.
         """
 
-        self.CAPEX = assign_value(as_scalar(CAPEX), type_=(FORECAST, VARIABLE), lower=0.)
+        self.capex = assign_value(as_scalar(capex), type_=(FORECAST, VARIABLE), lower=0.)
 
-    def set_OPEX(self, OPEX):
+    def set_opex(self, opex):
         """
         Set the OPEX related to maintaining the machinery.
 
@@ -51,11 +51,11 @@ class _Machinery(Node):
 
         Parameters
         ----------
-        OPEX : float | NodeReference
+        opex : float | NodeReference
             OPEX cost per year of maintaining the machinery.
         """
 
-        self.OPEX = assign_value(as_scalar(OPEX), type_=(FORECAST, VARIABLE), lower=0.)
+        self.opex = assign_value(as_scalar(opex), type_=(FORECAST, VARIABLE), lower=0.)
 
     def set_lifetime(self, lifetime):
         """
@@ -97,11 +97,11 @@ class _Machinery(Node):
     # internal methods -------------------------------------------------------------------------------------------------
     def _initialize_machinery(self):
 
-        if self.CAPEX is None:
-            self.CAPEX = Scalar(0.)
+        if self.capex is None:
+            self.capex = Scalar(0.)
 
-        if self.OPEX is None:
-            self.OPEX = Scalar(0.)
+        if self.opex is None:
+            self.opex = Scalar(0.)
 
         if self.replacement is None:
             self.replacement = Scalar(1.)

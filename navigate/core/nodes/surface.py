@@ -6,7 +6,7 @@ import logging
 from navigate.core.enum_ import ExtrapolateID
 from navigate.core.node import Node
 from navigate.core.node_type import SURFACE
-from navigate.core.nodes._table2d import _Table2D, check_table2D_input
+from navigate.core.nodes._table2d import _Table2D, check_table2d_input
 from navigate.core.table_data import TableData, build_table_2d
 from navigate.exceptions import no_value_assigned_error
 
@@ -37,5 +37,5 @@ class Surface(Node, _Table2D):
 
     def set_table(self, table: TableData) -> None:
         x, y, z = build_table_2d(table)
-        check_table2D_input(x, y, z)
+        check_table2d_input(x, y, z)
         self._set_table(x, y, z)
