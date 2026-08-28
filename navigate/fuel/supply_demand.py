@@ -190,7 +190,7 @@ def _calculate_expected_producer_fuel_supply(producer, idx):
     expectation = producer.expectation
     supply = {}
 
-    for plant in producer.get_plants():
+    for plant in producer.plants:
 
         plant_name = plant.name
         fuel_name = plant.fuel.name

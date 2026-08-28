@@ -24,7 +24,7 @@ class Surface(Node, _Table2D):
         if self._table is None:
             no_value_assigned_error(self, 'Table')
 
-        if self._extrapolate == ExtrapolateID.FLAT:
+        if self.extrapolate == ExtrapolateID.FLAT:
             if self._outside is None:
                 raise ValueError("{}: 'Outside' must be defined when 'Extrapolate' is set to FLAT.")
 

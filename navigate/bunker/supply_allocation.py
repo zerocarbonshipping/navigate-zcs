@@ -81,7 +81,7 @@ def _calculate_demand_based_fair_share_fuel_supply(fleets, ports, idx, scope):
 
     vessels = {vessel.name: vessel
                for fleet in fleets.values()
-               for vessel in fleet.get_vessels()}
+               for vessel in fleet.vessels}
 
     multipliers = {vessel.name:
 
@@ -90,7 +90,7 @@ def _calculate_demand_based_fair_share_fuel_supply(fleets, ports, idx, scope):
                    else fleet.expectation.get_expected_multipliers(vessel.name, _idx)
 
                    for fleet in fleets.values()
-                   for vessel in fleet.get_vessels()}
+                   for vessel in fleet.vessels}
 
     all_demand = {(v, p, ft): 0. for v in vessels for p in ports for ft in FuelTypeID}
 

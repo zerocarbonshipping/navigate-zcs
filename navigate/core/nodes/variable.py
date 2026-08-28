@@ -51,4 +51,4 @@ class Variable(Node, _Calculator):
             # expression
             value = self._value.get()
 
-        return self._truncate(self._multiplier * (value + self._addition))
+        return self._truncate(self.multiplier * (value + self.addition))

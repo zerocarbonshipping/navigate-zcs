@@ -43,7 +43,7 @@ def plot_fleet_speed_per_vessel(manager, directory):
         ax.fill_between(dateline, minimum, maximum, label='Min/Max', color=CENTER_COLORS_GREY[1], alpha=0.3)
 
         # plot the actual speed per vessel
-        for vessel in fleet.get_vessels():
+        for vessel in fleet.vessels:
 
             actual = vessel.profile.get_actual_speed()
             label = FUEL_TYPE_LABEL[vessel.fuel_type]

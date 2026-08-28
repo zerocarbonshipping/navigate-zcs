@@ -34,7 +34,7 @@ def plot_fleet_investment_signal_speed_per_vessel(manager, directory):
 def _plot_investment_signal_per_vessel(dateline, manager, directory, signal_getter, filename):
 
     fleets = manager.nodes.fleets
-    relevant_fleets = {fleet_name: fleet for fleet_name, fleet in fleets.items() if fleet.get_vessels()}
+    relevant_fleets = {fleet_name: fleet for fleet_name, fleet in fleets.items() if fleet.vessels}
 
     if not relevant_fleets:
         return
@@ -45,7 +45,7 @@ def _plot_investment_signal_per_vessel(dateline, manager, directory, signal_gett
 
         # plot the energy-weighted investment signal per vessel
         signals = []
-        for vessel in fleet.get_vessels():
+        for vessel in fleet.vessels:
 
             signal = signal_getter(vessel.profile)
             label = FUEL_TYPE_LABEL[vessel.fuel_type]

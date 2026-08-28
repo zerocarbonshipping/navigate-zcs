@@ -89,7 +89,7 @@ def calculate_technical_speed_limits(vessel: Vessel) -> tuple[np.ndarray, np.nda
 
         else:
             # use minimum from speed-power curve/surface
-            speed_minimum = load.get_x_min()
+            speed_minimum = load.x[0]
 
         # calculate the maximum speed in case the
         # maximum power is lower than the maximum
@@ -101,10 +101,10 @@ def calculate_technical_speed_limits(vessel: Vessel) -> tuple[np.ndarray, np.nda
         # function, the reverse lookup returns
         # None which has to be handled
         if speed_minimum is None:
-            speed_minimum = load.get_x_min()
+            speed_minimum = load.x[0]
 
         if speed_maximum is None:
-            speed_maximum = load.get_x_max()
+            speed_maximum = load.x[-1]
 
         # ensure the minimum and maximum speeds
         # are given per leg because the capacity

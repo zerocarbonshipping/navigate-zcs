@@ -2,12 +2,14 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """Unit tests for shore power: regulation integration, expected-scope transfer, and gate logic."""
+from collections import defaultdict
 from unittest.mock import MagicMock
 
 import pytest
 
 from navigate.bunker.coefficients import calculate_regulation_coefficients
 from navigate.bunker.transfer.shore_power import transfer_shore_power
+from navigate.core import Scalar
 from navigate.core.enum_ import (
     BunkerScopeID,
     RegulationMeasureID,
@@ -43,7 +45,7 @@ def _make_regulation(name, measure, emissions, gwp=None):
     reg_exp.get_global_warming_potential = lambda e: gwp.get(e, 1.)
     reg.expectation = reg_exp
 
-    reg.get_vessel_threshold.return_value.get.return_value = 0.
+    reg.vessel_threshold = defaultdict(lambda: Scalar(0.))
 
     return reg
 
@@ -134,7 +136,7 @@ class TestShoreRegulationCoefficient:
             measure=RegulationMeasureID.INTENSITY,
             emissions=[_make_emission("co2")],
         )
-        regulation.get_vessel_threshold.return_value.get.return_value = threshold
+        regulation.vessel_threshold = defaultdict(lambda: Scalar(threshold))
 
         algo.active_regulations = {r: regulation}
         algo.effective_lhv = {}

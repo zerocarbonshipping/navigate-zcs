@@ -141,7 +141,7 @@ def check_invariants(manager: SimulationManager) -> None:
 
     fleets = manager.nodes.fleets
     assert len(fleets) > 0, "No fleets defined"
-    total_vessels = sum(len(f.get_vessels()) for f in fleets.values())
+    total_vessels = sum(len(f.vessels) for f in fleets.values())
     assert total_vessels > 0, "No vessels in any fleet"
 
     for fuel_name, energy in manager.profile.get_consumed_energy().items():

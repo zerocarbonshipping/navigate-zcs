@@ -258,11 +258,5 @@ class Converter(_Machinery):
     def get_fuel_types(self):
         return self.main_fuel_types + self.pilot_fuel_types
 
-    def get_slip_fraction(self, fuel_type):
-        return self.slip_fraction.get(fuel_type, Scalar(0.))
-
-    def get_consumption_TTW(self, fuel_type, emission_name):
-        return self.consumption_TTW[(fuel_type, emission_name)]
-
     def is_dual_fuel(self):
         return self.pilot_fuel_types

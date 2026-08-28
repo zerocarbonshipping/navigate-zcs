@@ -113,7 +113,7 @@ class _AssetManager(Node):
                 if self._initial_age_distribution and isinstance(self._initial_age_distribution[a], Node):
 
                     curve = self._initial_age_distribution[a]
-                    ages = curve.get_x()[::-1].copy()
+                    ages = curve.x[::-1].copy()
 
                 else:
 
@@ -157,7 +157,7 @@ class _AssetManager(Node):
                 if self._initial_age_distribution and isinstance(self._initial_age_distribution[a], Node):
 
                     curve = self._initial_age_distribution[a]
-                    fractions = curve.get_y()[::-1]
+                    fractions = curve.y[::-1]
 
                     for i, inc in enumerate(incs):
                         inc.multiplier = multiplier * fractions[i]

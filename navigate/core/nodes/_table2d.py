@@ -23,11 +23,11 @@ class _Table2D(_Calculator):
         self._interpolate = Interpolate2DID.LINEAR
 
         # extrapolation
-        self._extrapolate = ExtrapolateID.LINEAR
+        self.extrapolate = ExtrapolateID.LINEAR
         self._outside = None
 
-        self._x = None
-        self._y = None
+        self.x = None
+        self.y = None
         self._z = None
         self._table = None
         self._is_convex = None
@@ -39,32 +39,20 @@ class _Table2D(_Calculator):
 
     def __setstate__(self, state):
         self.__dict__.update(state)
-        if self._x is not None and self._y is not None and self._z is not None:
-            self._set_table(self._x, self._y, self._z)
+        if self.x is not None and self.y is not None and self._z is not None:
+            self._set_table(self.x, self.y, self._z)
 
     # external attributes set through the input deck -------------------------------------------------------------------
     def set_interpolate(self, interpolate):
         self._interpolate = assign_id(interpolate, Interpolate2DID)
 
     def set_extrapolate(self, extrapolate):
-        self._extrapolate = assign_id(extrapolate, ExtrapolateID)
+        self.extrapolate = assign_id(extrapolate, ExtrapolateID)
 
     def set_outside(self, outside):
         self._outside = assign_value(outside)
 
     # internal methods -------------------------------------------------------------------------------------------------
-    def get_x(self):
-        return self._x
-
-    def get_y(self):
-        return self._y
-
-    def get_x_min(self):
-        return self._x[0]
-
-    def get_x_max(self):
-        return self._x[-1]
-
     def get_table_limits(self):
         return np.min(self._z), np.max(self._z)
 
@@ -72,11 +60,11 @@ class _Table2D(_Calculator):
         return self._is_convex
 
     def calculate(self, x, y):
-        return self._truncate(self._multiplier * (self._table(x, y) + self._addition))
+        return self._truncate(self.multiplier * (self._table(x, y) + self.addition))
 
     def reverse_lookup(self, z, y=None, interpolate=True):
         if y is None:
-            y = self._y
+            y = self.y
 
         return self._reverse_lookup_x(y, z, interpolate)
 
@@ -109,35 +97,35 @@ class _Table2D(_Calculator):
             for yp in y:
 
                 # extract a z-slice for the given y
-                zp = self.calculate(self._x, yp)
+                zp = self.calculate(self.x, yp)
 
                 if not is_strictly_increasing(zp):
                     return None
 
                 # then reverse calculate along
                 # the x-axis using the z-slice
-                x.append(np.interp(z, zp, self._x))
+                x.append(np.interp(z, zp, self.x))
 
         else:
 
             for yp in y:
 
                 # extract a z-slice for the given y
-                zp = self.calculate(self._x, yp)
+                zp = self.calculate(self.x, yp)
 
                 idx = find_nearest(zp, z)
-                x.append(self._x[idx])
+                x.append(self.x[idx])
 
         return np.array(x)
 
     def _check_extrapolation(self, x, y):
-        x_range = self._x[-1] - self._x[0]
-        y_range = self._y[-1] - self._y[0]
+        x_range = self.x[-1] - self.x[0]
+        y_range = self.y[-1] - self.y[0]
         x_atol = max(x_range * 1e-4, 1e-9)
         y_atol = max(y_range * 1e-4, 1e-9)
 
-        x_oob = np.any(x < self._x[0] - x_atol) or np.any(x > self._x[-1] + x_atol)
-        y_oob = np.any(y < self._y[0] - y_atol) or np.any(y > self._y[-1] + y_atol)
+        x_oob = np.any(x < self.x[0] - x_atol) or np.any(x > self.x[-1] + x_atol)
+        y_oob = np.any(y < self.y[0] - y_atol) or np.any(y > self.y[-1] + y_atol)
 
         if x_oob or y_oob:
             if not self._extrapolation_warned:
@@ -150,10 +138,10 @@ class _Table2D(_Calculator):
                 logger.debug(f"{self}: Extrapolating beyond table limits (suppressed repeat).")
 
     def _get_x_limits(self):
-        return self._x[0], self._x[-1]
+        return self.x[0], self.x[-1]
 
     def _get_y_limits(self):
-        return self._y[0], self._y[-1]
+        return self.y[0], self.y[-1]
 
     def _get_interpolate_internal(self):
         if self._interpolate == Interpolate2DID.LINEAR:
@@ -163,18 +151,18 @@ class _Table2D(_Calculator):
             return 'nearest'
 
     def _get_allow_extrapolate_internal(self):
-        return True if self._extrapolate == ExtrapolateID.FALSE else False
+        return True if self.extrapolate == ExtrapolateID.FALSE else False
 
     def _get_extrapolate_internal(self):
-        if self._extrapolate == ExtrapolateID.FLAT:
+        if self.extrapolate == ExtrapolateID.FLAT:
             return self._outside
 
-        elif self._extrapolate == ExtrapolateID.LINEAR:
+        elif self.extrapolate == ExtrapolateID.LINEAR:
             return None
 
     def _set_table(self, x, y, z):
-        self._x = x
-        self._y = y
+        self.x = x
+        self.y = y
         self._z = z
 
         # if all linear paths in the x-direction

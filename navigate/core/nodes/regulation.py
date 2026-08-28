@@ -337,6 +337,3 @@ class Regulation(_Policy):
 
             if self.vessel_is_policed(vessel_name):
                 self.profile.set_vessel_threshold(idx, vessel_name, threshold.get())
-
-    def get_vessel_threshold(self, vessel_name):
-        return self.vessel_threshold[vessel_name]

@@ -26,7 +26,7 @@ def post_process_investment_metric(fleets, timeline):
 
     for fleet in fleets.values():
 
-        for vessel in fleet.get_vessels():
+        for vessel in fleet.vessels:
 
             profile = vessel.profile
 
@@ -94,7 +94,7 @@ def _aggregate_fleet_freight_rate(fleet, timeline):
         cost_weighted = 0.
         cargo_weighted = 0.
 
-        for vessel in fleet.get_vessels():
+        for vessel in fleet.vessels:
 
             multiplier = fleet.profile.get_existing_vessels(vessel.name, idx)
             if multiplier <= 0. or not vessel.profile.cost_is_calculated(idx):

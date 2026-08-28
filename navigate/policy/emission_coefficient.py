@@ -634,13 +634,13 @@ def _calculate_converter_ttw(converter: Converter,
     if fuel_type not in converter.get_fuel_types():
         return 0., 0.
 
-    slip = converter.get_slip_fraction(fuel_type).get()
+    slip = converter.slip_fraction[fuel_type].get()
 
     # fuel-bound TTW emissions scale with burned fraction (1 - slip)
-    ttw_consumption = (1. - slip) * fuel.get_TTW(emission_name).get()
+    ttw_consumption = (1. - slip) * fuel.TTW[emission_name].get()
 
     # consumption emissions per ton fuel-in, no slip scaling
-    ttw_consumption += converter.get_consumption_TTW(fuel_type, emission_name).get()
+    ttw_consumption += converter.consumption_TTW[(fuel_type, emission_name)].get()
 
     # slip emissions: X per ton fuel-in, gated by emission fuel_type
     ttw_slip = 0.

@@ -392,8 +392,8 @@ def _calculate_process_cost(component: Component,
     size = plant.expectation.get_size(idx)
     p = process.name
 
-    capex_obj = region.get_process_CAPEX(p)
-    opex_obj = region.get_process_OPEX(p)
+    capex_obj = region.process_CAPEX[p]
+    opex_obj = region.process_OPEX[p]
     capex = lambda time, _c=capex_obj: _c.get(time, size * conversion) * production * conversion
     opex = lambda time, _o=opex_obj: _o.get(time, size * conversion) * production * conversion
 
@@ -434,7 +434,7 @@ def _calculate_process_emissions(component: Component,
 
     wtt_callables = {}
     for e in emissions:
-        wtt_obj = region.get_process_WTT(p, e)
+        wtt_obj = region.process_WTT[(p, e)]
         wtt_callables[e] = lambda time, _w=wtt_obj: _w.get(time) * production * conversion
 
     add_fixed_wtt(component=component, wtt_callables=wtt_callables)
@@ -475,10 +475,10 @@ def _calculate_energy_cost(component: Component,
     s = source.name
     p = process.name
 
-    energy_obj = region.get_process_energy(p)
+    energy_obj = region.process_energy[p]
     energy = lambda time, _e=energy_obj: _e.get(time) * production * conversion
 
-    if source.get_dependency() == SourceDependencyID.STANDALONE:
+    if source.dependency == SourceDependencyID.STANDALONE:
         # if the energy source is standalone
         # the costs are defined, at the time
         # of construction. While the energy
@@ -488,21 +488,21 @@ def _calculate_energy_cost(component: Component,
         # when the standalone source is built
 
         time_invest = component.time_initial
-        capex_val = region.get_source_CAPEX(s).get(time_invest)
-        opex_val = region.get_source_OPEX(s).get(time_invest)
+        capex_val = region.source_CAPEX[s].get(time_invest)
+        opex_val = region.source_OPEX[s].get(time_invest)
         capex = lambda time: capex_val * energy(time)
         opex = lambda time: opex_val * energy(time)
 
         add_capex_flow(component=component, capex=capex)
         add_fixed_opex(component=component, value=opex)
 
-    elif source.get_dependency() == SourceDependencyID.CONNECTED:
+    elif source.dependency == SourceDependencyID.CONNECTED:
         # if the energy source is connected the
         # energy consumption is defined at the
         # time of construction but the energy
         # cost is variable over time
 
-        opex_obj = region.get_source_OPEX(s)
+        opex_obj = region.source_OPEX[s]
         opex = lambda time, _o=opex_obj: _o.get(time)
         add_variable_opex(component=component, metric=energy, cost=opex)
 
@@ -545,10 +545,10 @@ def _calculate_energy_emissions(component: Component,
     s = source.name
     p = process.name
 
-    energy_obj = region.get_process_energy(p)
+    energy_obj = region.process_energy[p]
     energy = lambda time, _e=energy_obj: _e.get(time) * production * conversion
 
-    if source.get_dependency() == SourceDependencyID.STANDALONE:
+    if source.dependency == SourceDependencyID.STANDALONE:
         # if the energy source is standalone
         # the emissions are are defined, at
         # the time of construction. While
@@ -561,12 +561,12 @@ def _calculate_energy_emissions(component: Component,
         time_invest = component.time_initial
         wtt_callables = {}
         for e in emissions:
-            wtt_val = region.get_source_WTT(s, e).get(time_invest)
+            wtt_val = region.source_WTT[(s, e)].get(time_invest)
             wtt_callables[e] = lambda time, _wv=wtt_val: _wv * energy(time)
 
         add_fixed_wtt(component=component, wtt_callables=wtt_callables)
 
-    elif source.get_dependency() == SourceDependencyID.CONNECTED:
+    elif source.dependency == SourceDependencyID.CONNECTED:
         # if the energy source is connected the
         # energy consumption is defined at the
         # time of construction but the energy
@@ -574,7 +574,7 @@ def _calculate_energy_emissions(component: Component,
 
         wtt_callables = {}
         for e in emissions:
-            wtt_obj = region.get_source_WTT(s, e)
+            wtt_obj = region.source_WTT[(s, e)]
             wtt_callables[e] = lambda time, _w=wtt_obj: _w.get(time)
 
         add_variable_wtt(component=component, metric=energy, wtt_callables=wtt_callables)
@@ -607,7 +607,7 @@ def _calculate_feedstock_cost(component: Component,
     """
     f = feedstock.name
 
-    cost_obj = region.get_feedstock_cost(f)
+    cost_obj = region.feedstock_cost[f]
     metric = lambda time: conversion
     cost = lambda time, _c=cost_obj: _c.get(time) * production
 
@@ -647,7 +647,7 @@ def _calculate_feedstock_emissions(component: Component,
 
     wtt_callables = {}
     for e in emissions:
-        wtt_obj = region.get_feedstock_WTT(f, e)
+        wtt_obj = region.feedstock_WTT[(f, e)]
         wtt_callables[e] = lambda time, _w=wtt_obj: _w.get(time) * production
 
     add_variable_wtt(component=component, metric=metric, wtt_callables=wtt_callables)
@@ -682,7 +682,7 @@ def _calculate_transport_cost(component: Component,
         Cumulative mass conversion factor representing transported mass per unit fuel.
     """
     f = feed.name
-    transport = plant.get_feed_transport(f)
+    transport = plant.feed_transport[f]
 
     # if transport is undefined then no
     # transport costs can be assigned
@@ -691,8 +691,8 @@ def _calculate_transport_cost(component: Component,
 
     t = transport.name
 
-    dist_obj = plant.get_feed_distance(f)
-    cost_obj = region.get_transport_cost(t)
+    dist_obj = plant.feed_distance[f]
+    cost_obj = region.transport_cost[t]
     metric = lambda time: conversion
     distance = lambda time, _d=dist_obj: _d.get(time) * production
     cost = lambda time, _c=cost_obj: _c.get(time) * distance(time)
@@ -734,7 +734,7 @@ def _calculate_transport_emissions(component: Component,
     """
     f = feed.name
 
-    transport = plant.get_feed_transport(f)
+    transport = plant.feed_transport[f]
 
     # if transport is undefined then no
     # transport costs can be assigned
@@ -743,13 +743,13 @@ def _calculate_transport_emissions(component: Component,
 
     t = transport.name
 
-    dist_obj = plant.get_feed_distance(f)
+    dist_obj = plant.feed_distance[f]
     metric = lambda time: conversion
     distance = lambda time, _d=dist_obj: _d.get(time)
 
     wtt_callables = {}
     for e in emissions:
-        wtt_obj = region.get_transport_WTT(t, e)
+        wtt_obj = region.transport_WTT[(t, e)]
         wtt_callables[e] = lambda time, _w=wtt_obj: _w.get(time) * distance(time) * production
 
     add_variable_wtt(component=component, metric=metric, wtt_callables=wtt_callables)

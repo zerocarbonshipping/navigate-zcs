@@ -266,8 +266,8 @@ class TestTable1DPickle:
         data = pickle.dumps(t)
         t2 = pickle.loads(data)
 
-        assert t2.get_multiplier() == pytest.approx(2.0)
-        assert t2.get_addition() == pytest.approx(3.0)
+        assert t2.multiplier == pytest.approx(2.0)
+        assert t2.addition == pytest.approx(3.0)
         assert t2.calculate(0.0) == pytest.approx(max(2.0 * (0.0 + 3.0), 1.0))
 
 

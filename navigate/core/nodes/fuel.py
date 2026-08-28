@@ -120,6 +120,3 @@ class Fuel(Node):
 
     def belongs_to_liquid_market(self):
         return self.liquid_market
-
-    def get_TTW(self, emission_name):
-        return self.TTW[emission_name]

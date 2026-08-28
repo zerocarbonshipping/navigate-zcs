@@ -47,7 +47,7 @@ def plot_plant_production_emissions(manager, directory):
 
             TTW = 0.
             for emission_name, emission in emissions.items():
-                TTW += fuel.get_TTW(emission_name).get() * emission.global_warming_potential.get(emissions_lifetime)
+                TTW += fuel.TTW[emission_name].get() * emission.global_warming_potential.get(emissions_lifetime)
 
             profile = plant.profile
             investment = np.round((profile.get_total_equivalent_investment_WTT() + TTW) / lhv * 1e3, 5)

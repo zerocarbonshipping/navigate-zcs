@@ -598,8 +598,8 @@ def define_existing_pipeline(producer: Producer, timeline: np.ndarray) -> None:
         # extract the planned capacity
         # and the dates at which it will
         # arrive from the pipeline
-        planned_delivery = pipeline.get_x()
-        planned_capacity = pipeline.get_y()
+        planned_delivery = pipeline.x
+        planned_capacity = pipeline.y
 
         # interpolate with the timeline
         # to ensure exact overlap with
