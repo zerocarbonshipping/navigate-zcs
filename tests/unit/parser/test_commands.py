@@ -12,7 +12,7 @@ from navigate.parser._commands import (
     check_general_node_command_is_allowed,
     check_node_command_is_allowed,
 )
-from navigate.parser._lark_parser import SourceLoc
+from navigate.parser._lark_parser import SourceLocation
 
 
 class TestCheckNodeCommandIsAllowed:
@@ -64,7 +64,7 @@ class TestCommandReference:
                 return "DummyNode"
 
         node = DummyNode()
-        ref = CommandReference("my_method", [1], source=SourceLoc("file.nav", 5), deck_line=10)
+        ref = CommandReference("my_method", [1], source=SourceLocation("file.nav", 5), deck_line=10)
 
         with pytest.raises(CommandError, match="requires 2 inputs"):
             ref.execute(node)
@@ -80,7 +80,7 @@ class TestCommandReference:
                 return "DummyNode"
 
         node = DummyNode()
-        ref = CommandReference("my_method", [1, 2, 3], source=SourceLoc("file.nav", 5), deck_line=10)
+        ref = CommandReference("my_method", [1, 2, 3], source=SourceLocation("file.nav", 5), deck_line=10)
 
         with pytest.raises(CommandError, match="takes up to 1 inputs"):
             ref.execute(node)
@@ -97,6 +97,6 @@ class TestCommandReference:
                 return "DummyNode"
 
         node = DummyNode()
-        ref = CommandReference("my_method", [1, 2], source=SourceLoc("file.nav", 5), deck_line=10)
+        ref = CommandReference("my_method", [1, 2], source=SourceLocation("file.nav", 5), deck_line=10)
         ref.execute(node)
         assert call_log == [(1, 2)]

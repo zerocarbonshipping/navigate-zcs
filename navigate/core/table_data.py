@@ -20,15 +20,6 @@ import numpy as np
 # ═════════════════════════════════════════════════════════════════════════
 
 
-@dataclass(frozen=True)
-class SourceLoc:
-    """Immutable source-location tag attached to every AST node."""
-
-    file: str = ""
-    line: int = 0
-    deck_line: int = 0
-
-
 @dataclass
 class TableData:
     """Fully-parsed table — rows of typed cells.
@@ -38,7 +29,6 @@ class TableData:
     """
 
     rows: list[list[float | str]] = field(default_factory=list)
-    source: SourceLoc = field(default_factory=SourceLoc)
 
 
 # ═════════════════════════════════════════════════════════════════════════
