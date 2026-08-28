@@ -28,7 +28,6 @@ from navigate.core.enum_ import (
     SpeedAlignmentID,
 )
 from navigate.core.expectations import FleetExpectation
-from navigate.core.increment import Increment
 from navigate.core.node_type import CURVE, FLEET, FORECAST, TECHNOLOGY, VARIABLE, VESSEL
 from navigate.core.nodes._asset_manager import _AssetManager
 from navigate.core.nodes.curve import Curve
@@ -1073,9 +1072,6 @@ class Fleet(_AssetManager):
 
         return np.dot(multipliers, cargo_miles)
 
-    def get_multiplier_increments(self) -> list[list[Increment]]:
-        return self.increments
-
     def get_vessels(self) -> list[Vessel]:
         return self.assets
 
@@ -1085,6 +1081,3 @@ class Fleet(_AssetManager):
     def can_fuel_convert(self) -> bool:
         return (any(value is not None for value in self.fuel_conversion_cost.values())
                 and (self.fuel_conversion_sensitivity is not None))
-
-    def get_fuel_conversion_cost_pairs(self) -> list[tuple[str, str]]:
-        return [pair for pair, cost in self.fuel_conversion_cost.items() if cost is not None]

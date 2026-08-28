@@ -175,12 +175,6 @@ class _Calculator:
     def get_multiplier(self):
         return self._multiplier
 
-    def get_internal_lower_bound(self):
-        return self._internal_lower_bound
-
-    def get_internal_upper_bound(self):
-        return self._internal_upper_bound
-
     def _truncate(self, value):
         """
         Truncate a calculated value.

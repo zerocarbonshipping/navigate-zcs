@@ -65,12 +65,6 @@ class _Table2D(_Calculator):
     def get_x_max(self):
         return self._x[-1]
 
-    def get_y_min(self):
-        return self._y[0]
-
-    def get_y_max(self):
-        return self._y[-1]
-
     def get_table_limits(self):
         return np.min(self._z), np.max(self._z)
 

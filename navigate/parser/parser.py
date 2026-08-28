@@ -111,12 +111,6 @@ class Parser:
     def get_model_definition(self):
         return self.general_nodes.model_definition
 
-    def get_bunker_logistics(self):
-        return self.general_nodes.bunker_logistics
-
-    def get_bunker_options(self):
-        return self.general_nodes.bunker_options
-
     def get_dates(self):
         return self._dates
 

@@ -230,9 +230,6 @@ class CommandReference:
     def get_command(self):
         return self._command
 
-    def get_inputs(self):
-        return self._inputs
-
     @property
     def source(self):
         return self._source

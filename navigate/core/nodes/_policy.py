@@ -328,6 +328,3 @@ class _Policy(Node):
 
     def vessel_is_policed(self, vessel_name):
         return self.include_vessel[vessel_name] and self.in_jurisdiction_vessel[vessel_name]
-
-    def get_global_warming_potential(self, emission_name):
-        return self.global_warming_potential[emission_name]
