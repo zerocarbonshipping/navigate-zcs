@@ -185,6 +185,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   offset lines and bands of the emission and compliance plots. Offsetting
   is not relevant to the model; the emission output now shows residual
   emissions.
+- **Breaking** for code importing navigate as a library:
+  `write_binding_lp` (`navigate/bunker/optimize.py`), a debugging helper
+  that exported a solved model's binding constraints to an LP file. It had
+  no callers.
 
 ### Changed
 - Internal simplification (no DSL or result changes): `BunkerAlgorithm` no
