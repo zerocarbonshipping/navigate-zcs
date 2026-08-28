@@ -23,6 +23,12 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   processes. The LP itself was unaffected, but row/column order could select
   a different (equally valid) optimal basis in degenerate solves, making
   order-sensitive outputs such as dual values vary run-to-run.
+- The `Converter` reference-manual page and docstrings no longer show
+  `Forecast` references for `MinimumLoad`, `Efficiency`, and
+  `set_consumption_ttw`: the code accepts only floats and `Variable`
+  references there, and the documented `Forecast("name")` assignment raises
+  a `ValueError`. `PowerCapacity` gains the opposite correction — it accepts
+  `Variable` references but was documented as `Float` only.
 
 ### Changed
 - Internal Python identifiers containing uppercase acronyms are now

@@ -48,10 +48,11 @@ class Converter(_Machinery):
         Examples
         --------
         - 50.0
+        - Variable("name")
 
         Parameters
         ----------
-        power_capacity : float
+        power_capacity : float | NodeReference
             The maximum power capacity of the converter.
         """
 
@@ -64,7 +65,7 @@ class Converter(_Machinery):
         Examples
         --------
         - 0.3
-        - Forecast("name")
+        - Variable("name")
 
         Parameters
         ----------
@@ -132,7 +133,7 @@ class Converter(_Machinery):
         Examples
         --------
         - 0.3
-        - Forecast("name")
+        - Variable("name")
 
         Parameters
         ----------
@@ -169,7 +170,7 @@ class Converter(_Machinery):
 
     def set_consumption_ttw(self, fuel_type, emission_name, value):
         """
-        set a consumption related emission of a specific emission when using a specific fuel type in the converter.
+        Set a consumption related emission of a specific emission when using a specific fuel type in the converter.
 
         Notice that this number is given in the unit ton emission / ton fuel into the engine. I.e., if the engine
         has slip (e.g., methane slip) then this number is already adjusted for this.
@@ -177,6 +178,7 @@ class Converter(_Machinery):
         Examples
         --------
         - OIL, "nitrous_oxide", 0.001
+        - OIL, "carbon_dioxide", Variable("name")
 
         Parameters
         ----------
@@ -185,7 +187,7 @@ class Converter(_Machinery):
         emission_name : str
             Name of emission emitted as particles.
         value : float | NodeReference
-            Fraction of fuel emitted as particles.
+            Ton of emission emitted per ton of fuel consumed.
         """
 
         id_ = assign_id(fuel_type, FuelTypeID)
