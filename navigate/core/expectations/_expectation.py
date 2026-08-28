@@ -49,7 +49,7 @@ class _Expectation:
 
             return np.full(self.get_shape(), default, dtype=dtype)
 
-    def _default_2D_array(self, n: int, default: float | bool | None = None) -> np.ndarray:
+    def _default_2d_array(self, n: int, default: float | bool | None = None) -> np.ndarray:
         shape = (n, self._length)
 
         if default is None:

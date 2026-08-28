@@ -55,7 +55,7 @@ def build_technology_packages(technologies: list[Technology]
     Tuple of (packages, package_to_technology_map).
     """
 
-    sorted_pairs = sorted(enumerate(technologies), key=lambda p: p[1].CAPEX.get())
+    sorted_pairs = sorted(enumerate(technologies), key=lambda p: p[1].capex.get())
     sorted_techs = [t for _, t in sorted_pairs]
     packages = [Package(sorted_techs[:i]) for i in range(len(sorted_techs) + 1)]
     package_to_technology_map = {i: sorted_pairs[i - 1][0] for i in range(1, len(sorted_pairs) + 1)}

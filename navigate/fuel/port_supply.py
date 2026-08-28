@@ -133,17 +133,17 @@ def _calculate_import_from_liquid_market(ports: dict[str, Port],
             for e in emissions:
 
                 # check if the bunker WTT is overwritten on the port
-                if port.bunker_WTT_overwrite[(f, e)] is not None:
-                    wtt = port.expectation.get_bunker_WTT_overwrite(f, e, idx_)
+                if port.bunker_wtt_overwrite[(f, e)] is not None:
+                    wtt = port.expectation.get_bunker_wtt_overwrite(f, e, idx_)
                 else:
                     wtt = np.zeros(port.expectation.get_shape(idx))
 
                 # transfer the bunker WTT to
                 # expectation and profile
-                port.expectation.set_bunker_WTT(idx, f, e, wtt)
+                port.expectation.set_bunker_wtt(idx, f, e, wtt)
 
                 if allowed:
-                    port.profile.set_bunker_WTT(idx, f, e, wtt[0])
+                    port.profile.set_bunker_wtt(idx, f, e, wtt[0])
 
 
 def _calculate_import_from_producers(ports: dict[str, Port],
@@ -245,7 +245,7 @@ def _calculate_import_from_producers(ports: dict[str, Port],
 
                 # calculate the supply weighted WTT emissions
                 for e in emissions:
-                    wtts[p][(f, e)] += supply * expectation.get_expected_delivered_WTT(p, e, idx_)
+                    wtts[p][(f, e)] += supply * expectation.get_expected_delivered_wtt(p, e, idx_)
 
     # transfer the supply-weighted average price
     # and WTT to the ports before adjusting the
@@ -273,18 +273,18 @@ def _calculate_import_from_producers(ports: dict[str, Port],
             for e in emissions:
 
                 # check if the bunker WTT is overwritten on the port
-                if port.bunker_WTT_overwrite[(f, e)] is not None:
-                    wtt = port.expectation.get_bunker_WTT_overwrite(f, e, idx_)
+                if port.bunker_wtt_overwrite[(f, e)] is not None:
+                    wtt = port.expectation.get_bunker_wtt_overwrite(f, e, idx_)
                 else:
                     # normalize the weighted average
                     wtt = divide_nonzero(wtts[p][(f, e)], supplies[p][f])
 
                 # transfer the average bunker WTT
                 # to expectation and profile
-                port.expectation.set_bunker_WTT(idx, f, e, wtt)
+                port.expectation.set_bunker_wtt(idx, f, e, wtt)
 
                 if supplies[p][f][0] > 0.:
-                    port.profile.set_bunker_WTT(idx, f, e, wtt[0])
+                    port.profile.set_bunker_wtt(idx, f, e, wtt[0])
 
     # the import of fuel to ports is adjusted to
     # account for local bunkering limitations.

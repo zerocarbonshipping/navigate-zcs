@@ -40,4 +40,4 @@ def transfer_spend_sea(alg: BunkerAlgorithm) -> None:
         for e in alg.emissions:
             emission_factor = alg.emission_factor[(v, c, f, e)]
             ttw_emissions = emission_factor * spend_sea.X
-            vessel.profile.add_TTW(f, e, ttw_emissions, idx=alg.idx)
+            vessel.profile.add_ttw(f, e, ttw_emissions, idx=alg.idx)

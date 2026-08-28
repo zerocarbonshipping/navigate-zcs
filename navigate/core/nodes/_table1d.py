@@ -169,7 +169,7 @@ class _Table1D(_Calculator):
                                fill_value=self._get_extrapolate_internal())
 
 
-def check_table1D_input(x, y):
+def check_table1d_input(x, y):
     """
 
     Parameters

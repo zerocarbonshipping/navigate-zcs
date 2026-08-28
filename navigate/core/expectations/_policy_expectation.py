@@ -18,13 +18,13 @@ class _PolicyExpectation(_Expectation):
 
         # for levy the key is:       (port_name, fuel_name, emission_name)
         # for regulation the key is: (vessel_name, fuel_name, emission_name)
-        self._expected_WTT: dict[tuple[str, ...], np.ndarray] = {}
-        self._existing_WTT: dict[tuple[str, ...], np.ndarray] = {}
+        self._expected_wtt: dict[tuple[str, ...], np.ndarray] = {}
+        self._existing_wtt: dict[tuple[str, ...], np.ndarray] = {}
 
         # for levy the key is:       (vessel_name, fuel_name, emission_name)
         # for regulation the key is: (converter_name, fuel_name, emission_name)
-        self._TTW_consumption: dict[tuple[str, ...], np.ndarray] = {}
-        self._TTW_slip: dict[tuple[str, ...], np.ndarray] = {}
+        self._ttw_consumption: dict[tuple[str, ...], np.ndarray] = {}
+        self._ttw_slip: dict[tuple[str, ...], np.ndarray] = {}
 
         # for levy the key is:       (vessel_name, port_name, fuel_name)
         # for regulation the key is: (vessel_name, converter_name, fuel_name)
@@ -38,21 +38,21 @@ class _PolicyExpectation(_Expectation):
     def set_global_warming_potential(self, emission_name: str, global_warming_potential: float) -> None:
         self._global_warming_potential[emission_name] = global_warming_potential
 
-    def set_expected_WTT(self, idx: int, key: tuple[str, ...], WTT: float | np.ndarray) -> None:
-        self._expected_WTT.setdefault(key, self._default_array())
-        self._expected_WTT[key][idx:] = WTT
+    def set_expected_wtt(self, idx: int, key: tuple[str, ...], wtt: float | np.ndarray) -> None:
+        self._expected_wtt.setdefault(key, self._default_array())
+        self._expected_wtt[key][idx:] = wtt
 
-    def set_existing_WTT(self, idx: int, key: tuple[str, ...], WTT: float | np.ndarray) -> None:
-        self._existing_WTT.setdefault(key, self._default_array())
-        self._existing_WTT[key][idx:] = WTT
+    def set_existing_wtt(self, idx: int, key: tuple[str, ...], wtt: float | np.ndarray) -> None:
+        self._existing_wtt.setdefault(key, self._default_array())
+        self._existing_wtt[key][idx:] = wtt
 
-    def set_TTW_consumption(self, idx: int, key: tuple[str, ...], TTW: float | np.ndarray) -> None:
-        self._TTW_consumption.setdefault(key, self._default_array())
-        self._TTW_consumption[key][idx:] = TTW
+    def set_ttw_consumption(self, idx: int, key: tuple[str, ...], ttw: float | np.ndarray) -> None:
+        self._ttw_consumption.setdefault(key, self._default_array())
+        self._ttw_consumption[key][idx:] = ttw
 
-    def set_TTW_slip(self, idx: int, key: tuple[str, ...], TTW: float | np.ndarray) -> None:
-        self._TTW_slip.setdefault(key, self._default_array())
-        self._TTW_slip[key][idx:] = TTW
+    def set_ttw_slip(self, idx: int, key: tuple[str, ...], ttw: float | np.ndarray) -> None:
+        self._ttw_slip.setdefault(key, self._default_array())
+        self._ttw_slip[key][idx:] = ttw
 
     def set_expected_coefficient(self, idx: int, key: tuple[str, ...], coefficient: float | np.ndarray) -> None:
         self._expected_coefficient.setdefault(key, self._default_array())
@@ -65,31 +65,31 @@ class _PolicyExpectation(_Expectation):
     def get_global_warming_potential(self, emission_name: str) -> float:
         return self._global_warming_potential[emission_name]
 
-    def get_expected_WTT(self, key: tuple[str, ...], idx: int) -> float:
+    def get_expected_wtt(self, key: tuple[str, ...], idx: int) -> float:
 
-        if key in self._expected_WTT:
-            return self._expected_WTT[key][idx]
+        if key in self._expected_wtt:
+            return self._expected_wtt[key][idx]
         else:
             return 0.
 
-    def get_existing_WTT(self, key: tuple[str, ...], idx: int) -> float:
+    def get_existing_wtt(self, key: tuple[str, ...], idx: int) -> float:
 
-        if key in self._existing_WTT:
-            return self._existing_WTT[key][idx]
+        if key in self._existing_wtt:
+            return self._existing_wtt[key][idx]
         else:
             return 0.
 
-    def get_TTW_consumption(self, key: tuple[str, ...], idx: int) -> float:
+    def get_ttw_consumption(self, key: tuple[str, ...], idx: int) -> float:
 
-        if key in self._TTW_consumption:
-            return self._TTW_consumption[key][idx]
+        if key in self._ttw_consumption:
+            return self._ttw_consumption[key][idx]
         else:
             return 0.
 
-    def get_TTW_slip(self, key: tuple[str, ...], idx: int) -> float:
+    def get_ttw_slip(self, key: tuple[str, ...], idx: int) -> float:
 
-        if key in self._TTW_slip:
-            return self._TTW_slip[key][idx]
+        if key in self._ttw_slip:
+            return self._ttw_slip[key][idx]
         else:
             return 0.
 

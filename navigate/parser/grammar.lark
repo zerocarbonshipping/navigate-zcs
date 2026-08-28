@@ -10,7 +10,8 @@
 // Keywords and attributes use Title case. Command names are pure lowercase
 // snake_case with acronyms lowercased (set_fuel_wtt, set_process_capex) and
 // must match the node method name exactly. ALL_CAPS is reserved for enum
-// keyword values (AMMONIA, WTT, FLAT) and the CAPEX/OPEX attribute names.
+// keyword values (AMMONIA, WTT, FLAT) and the CAPEX/OPEX attribute names,
+// which map to the snake_case setters set_capex/set_opex.
 
 // ── Deck-level (.nav) ────────────────────────────────────────────────────
 deck: block*

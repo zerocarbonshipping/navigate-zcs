@@ -41,8 +41,8 @@ class _Policy(Node):
 
         # emission factors
         self.global_warming_potential = {}     # dict[emission_name: float], policy specific GWP
-        self.fuel_WTT = {}     # dict[(fuel_name, emission_name): float], policy specified WTT emissions factor
-        self.fuel_TTW = {}     # dict[(fuel_name, emission_name): float], policy specified TTW emissions factor
+        self.fuel_wtt = {}     # dict[(fuel_name, emission_name): float], policy specified WTT emissions factor
+        self.fuel_ttw = {}     # dict[(fuel_name, emission_name): float], policy specified TTW emissions factor
 
         # internal attributes
         self.in_jurisdiction_vessel = {}  # dict[vessel_name: bool], whether a vessel is outside the jurisdiction
@@ -238,7 +238,7 @@ class _Policy(Node):
 
         command_assignment_to_tuple_dict((fuel_name, emission_name),
                                          emission_factor,
-                                         self.fuel_WTT,
+                                         self.fuel_wtt,
                                          type_=(FORECAST, VARIABLE))
 
     def set_fuel_ttw(self, fuel_name, emission_name, emission_factor):
@@ -264,7 +264,7 @@ class _Policy(Node):
 
         command_assignment_to_tuple_dict((fuel_name, emission_name),
                                          emission_factor,
-                                         self.fuel_TTW,
+                                         self.fuel_ttw,
                                          type_=(FORECAST, VARIABLE))
 
     # internal methods -------------------------------------------------------------------------------------------------
@@ -295,8 +295,8 @@ class _Policy(Node):
 
             for emission in self.emissions:
                 key = (fuel_name, emission.name)
-                self.fuel_WTT[key] = None
-                self.fuel_TTW[key] = None
+                self.fuel_wtt[key] = None
+                self.fuel_ttw[key] = None
 
         for emission in self.emissions:
             self.global_warming_potential[emission.name] = None

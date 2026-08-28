@@ -43,12 +43,12 @@ class PlantExpectation(_Expectation):
         self._tied_capital: list[np.ndarray | None] = []     # list[time_step: np.ndarray], USD
 
         # emissions
-        self._production_WTT: dict[str, np.ndarray] = {}   # dict[emission_name: np.ndarray], production emissions, ton e/ton f
-        self._delivery_WTT: dict[tuple[str, str], np.ndarray] = {}     # delivery emissions, ton e/ton f
+        self._production_wtt: dict[str, np.ndarray] = {}   # dict[emission_name: np.ndarray], production emissions, ton e/ton f
+        self._delivery_wtt: dict[tuple[str, str], np.ndarray] = {}     # delivery emissions, ton e/ton f
 
         # production-weighted properties across plants
         self._expected_production_cost: np.ndarray = EMPTY_FLOAT
-        self._expected_production_WTT: dict[str, np.ndarray] = {}
+        self._expected_production_wtt: dict[str, np.ndarray] = {}
 
         # decision related
         self._demand_newbuilds: float = 0.   # float, maximum number of newbuilds to satisfy expected supply gap
@@ -73,11 +73,11 @@ class PlantExpectation(_Expectation):
 
         self._tied_capital = [None] * length
 
-        self._production_WTT = self._default_dict_array(emissions)
-        self._delivery_WTT = self._default_tuple_dict_array(ports, emissions)
+        self._production_wtt = self._default_dict_array(emissions)
+        self._delivery_wtt = self._default_tuple_dict_array(ports, emissions)
 
         self._expected_production_cost = self._default_array()
-        self._expected_production_WTT = self._default_dict_array(emissions)
+        self._expected_production_wtt = self._default_dict_array(emissions)
 
         self._demand_newbuilds = self._default_float()
         self._inter_fuel_metric = self._default_float()
@@ -88,7 +88,7 @@ class PlantExpectation(_Expectation):
         self._reset_dict_array_partial(self._feed_mass, idx=idx)
 
     def get_emissions(self) -> KeysView[str]:
-        return self._production_WTT.keys()
+        return self._production_wtt.keys()
 
     def set_lifetime(self, idx: int, lifetime: np.ndarray) -> None:
         self._lifetime[idx:] = lifetime
@@ -108,11 +108,11 @@ class PlantExpectation(_Expectation):
     def add_feed_mass(self, idx: int, feed_name: str, feed_mass: np.ndarray) -> None:
         self._feed_mass[feed_name][idx:] += feed_mass
 
-    def set_production_WTT(self, idx: int, emission_name: str, production_WTT: float) -> None:
-        self._production_WTT[emission_name][idx] = production_WTT
+    def set_production_wtt(self, idx: int, emission_name: str, production_wtt: float) -> None:
+        self._production_wtt[emission_name][idx] = production_wtt
 
-    def set_delivery_WTT(self, idx: int, port_name: str, emission_name: str, delivery_WTT: np.ndarray) -> None:
-        self._delivery_WTT[(port_name, emission_name)][idx:] = delivery_WTT
+    def set_delivery_wtt(self, idx: int, port_name: str, emission_name: str, delivery_wtt: np.ndarray) -> None:
+        self._delivery_wtt[(port_name, emission_name)][idx:] = delivery_wtt
 
     def set_levelized_production_cost(self, idx: int, levelized_production_cost: float) -> None:
         self._levelized_production_cost[idx] = levelized_production_cost
@@ -126,8 +126,8 @@ class PlantExpectation(_Expectation):
     def set_expected_production_cost(self, idx: int, expected_cost: np.ndarray) -> None:
         self._expected_production_cost[idx:] = expected_cost
 
-    def set_expected_production_WTT(self, idx: int, emission_name: str, expected_WTT: np.ndarray) -> None:
-        self._expected_production_WTT[emission_name][idx:] = expected_WTT
+    def set_expected_production_wtt(self, idx: int, emission_name: str, expected_wtt: np.ndarray) -> None:
+        self._expected_production_wtt[emission_name][idx:] = expected_wtt
 
     def set_demand_newbuilds(self, demand_newbuilds: float) -> None:
         self._demand_newbuilds = demand_newbuilds
@@ -172,20 +172,20 @@ class PlantExpectation(_Expectation):
     def get_tied_capital(self, idx: int) -> np.ndarray:
         return self._tied_capital[idx]
 
-    def get_production_WTT(self, emission_name: str | None = None,
+    def get_production_wtt(self, emission_name: str | None = None,
                            idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
-        return extract_from_dict(self._production_WTT, emission_name, idx)
+        return extract_from_dict(self._production_wtt, emission_name, idx)
 
-    def get_delivery_WTT(self, port_name: str | None = None, emission_name: str | None = None,
+    def get_delivery_wtt(self, port_name: str | None = None, emission_name: str | None = None,
                          idx: int | slice = np.s_[:]) -> np.ndarray | dict[tuple[str, str], np.ndarray]:
-        return extract_from_tuple_dict(self._delivery_WTT, port_name, emission_name, idx)
+        return extract_from_tuple_dict(self._delivery_wtt, port_name, emission_name, idx)
 
-    def get_expected_production_WTT(self, emission_name: str | None = None,
+    def get_expected_production_wtt(self, emission_name: str | None = None,
                                     idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
-        return extract_from_dict(self._expected_production_WTT, emission_name, idx)
+        return extract_from_dict(self._expected_production_wtt, emission_name, idx)
 
-    def get_expected_delivered_WTT(self, port_name: str, emission_name: str, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self.get_delivery_WTT(port_name, emission_name, idx) + self.get_expected_production_WTT(emission_name, idx)
+    def get_expected_delivered_wtt(self, port_name: str, emission_name: str, idx: int | slice = np.s_[:]) -> np.ndarray:
+        return self.get_delivery_wtt(port_name, emission_name, idx) + self.get_expected_production_wtt(emission_name, idx)
 
     def get_demand_newbuilds(self) -> float:
         return self._demand_newbuilds

@@ -5,7 +5,7 @@ import numpy as np
 
 from navigate.core.node import Node
 from navigate.core.node_type import FORECAST
-from navigate.core.nodes._table1d import _Table1D, check_table1D_input
+from navigate.core.nodes._table1d import _Table1D, check_table1d_input
 from navigate.core.table_data import TableData, build_table_1d
 from navigate.exceptions import no_value_assigned_error
 from navigate.util import timedelta_to_days
@@ -70,7 +70,7 @@ class Forecast(Node, _Table1D):
         if np.issubdtype(x.dtype, np.datetime64):
             x = timedelta_to_days(x - reference)
 
-        check_table1D_input(x, y)
+        check_table1d_input(x, y)
 
         self._set_table(x, y)
         self._temporary_table = None

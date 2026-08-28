@@ -8,7 +8,7 @@ import numpy as np
 from navigate.core.enum_ import ExtrapolateID
 from navigate.core.node import Node
 from navigate.core.node_type import TIMETABLE
-from navigate.core.nodes._table2d import _Table2D, check_table2D_input
+from navigate.core.nodes._table2d import _Table2D, check_table2d_input
 from navigate.core.table_data import TableData, build_table_2d
 from navigate.exceptions import no_value_assigned_error
 from navigate.util import timedelta_to_days
@@ -64,7 +64,7 @@ class Timetable(Node, _Table2D):
         if np.issubdtype(x.dtype, np.datetime64):
             x = timedelta_to_days(x - reference)
 
-        check_table2D_input(x, y, z)
+        check_table2d_input(x, y, z)
 
         self._set_table(x, y, z)
         self._temporary_table = None

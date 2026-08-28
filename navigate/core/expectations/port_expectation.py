@@ -24,11 +24,11 @@ class PortExpectation(_Expectation):
         self._bunkering_limit: dict[str, np.ndarray] = {}
 
         self._bunker_price_overwrite: dict[str, np.ndarray] = {}
-        self._bunker_WTT_overwrite: dict[tuple[str, str], np.ndarray] = {}
+        self._bunker_wtt_overwrite: dict[tuple[str, str], np.ndarray] = {}
 
         self._bunker_supply: dict[str, np.ndarray] = {}   # expected future bunker supply, tons/year
         self._bunker_price: dict[str, np.ndarray] = {}    # dict[fuel_name: np.ndarray], expected future bunker price, USD/ton
-        self._bunker_WTT: dict[tuple[str, str], np.ndarray] = {}      # expected future bunker WTT, ton/ton
+        self._bunker_wtt: dict[tuple[str, str], np.ndarray] = {}      # expected future bunker WTT, ton/ton
 
         # bunkering used for inertia
         self._bunker_mass_expected: dict[str, float] = {}     # bunkered in previous nested time-step, tons
@@ -47,10 +47,10 @@ class PortExpectation(_Expectation):
         self._bunkering_limit = self._default_dict_array(fuels, default=np.inf)
 
         self._bunker_price_overwrite = self._default_dict_array(fuels, default=np.nan)
-        self._bunker_WTT_overwrite = self._default_tuple_dict_array(fuels, emissions, default=np.nan)
+        self._bunker_wtt_overwrite = self._default_tuple_dict_array(fuels, emissions, default=np.nan)
 
         self._bunker_price = self._default_dict_array(fuels)
-        self._bunker_WTT = self._default_tuple_dict_array(fuels, emissions)
+        self._bunker_wtt = self._default_tuple_dict_array(fuels, emissions)
 
         self._bunker_mass_expected = self._default_dict_float(fuels)
         self._bunker_mass_existing = self._default_dict_float(fuels)
@@ -81,8 +81,8 @@ class PortExpectation(_Expectation):
     def set_bunker_price_overwrite(self, idx: int, fuel_name: str, bunker_price_overwrite: np.ndarray) -> None:
         self._bunker_price_overwrite[fuel_name][idx:] = bunker_price_overwrite
 
-    def set_bunker_WTT_overwrite(self, idx: int, fuel_name: str, emission_name: str, bunker_WTT_overwrite: np.ndarray) -> None:
-        self._bunker_WTT_overwrite[(fuel_name, emission_name)][idx:] = bunker_WTT_overwrite
+    def set_bunker_wtt_overwrite(self, idx: int, fuel_name: str, emission_name: str, bunker_wtt_overwrite: np.ndarray) -> None:
+        self._bunker_wtt_overwrite[(fuel_name, emission_name)][idx:] = bunker_wtt_overwrite
 
     def set_bunker_supply(self, idx: int, fuel_name: str, bunker_supply: np.ndarray) -> None:
         self._bunker_supply[fuel_name][idx:] = bunker_supply
@@ -90,8 +90,8 @@ class PortExpectation(_Expectation):
     def set_bunker_price(self, idx: int, fuel_name: str, bunker_price: np.ndarray) -> None:
         self._bunker_price[fuel_name][idx:] = bunker_price
 
-    def set_bunker_WTT(self, idx: int, fuel_name: str, emission_name: str, bunker_WTT: np.ndarray) -> None:
-        self._bunker_WTT[(fuel_name, emission_name)][idx:] = bunker_WTT
+    def set_bunker_wtt(self, idx: int, fuel_name: str, emission_name: str, bunker_wtt: np.ndarray) -> None:
+        self._bunker_wtt[(fuel_name, emission_name)][idx:] = bunker_wtt
 
     def add_bunker_mass_expected(self, fuel_name: str, fuel_mass: float) -> None:
         self._bunker_mass_expected[fuel_name] += fuel_mass
@@ -108,8 +108,8 @@ class PortExpectation(_Expectation):
     def get_bunker_price_overwrite(self, fuel_name: str, idx: int | slice = np.s_[:]) -> np.ndarray:
         return self._bunker_price_overwrite[fuel_name][idx]
 
-    def get_bunker_WTT_overwrite(self, fuel_name: str, emission_name: str, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._bunker_WTT_overwrite[(fuel_name, emission_name)][idx]
+    def get_bunker_wtt_overwrite(self, fuel_name: str, emission_name: str, idx: int | slice = np.s_[:]) -> np.ndarray:
+        return self._bunker_wtt_overwrite[(fuel_name, emission_name)][idx]
 
     def get_bunker_supply(self, fuel_name: str, idx: int | slice = np.s_[:]) -> np.ndarray:
         return self._bunker_supply[fuel_name][idx]
@@ -117,8 +117,8 @@ class PortExpectation(_Expectation):
     def get_bunker_price(self, fuel_name: str, idx: int | slice = np.s_[:]) -> np.ndarray:
         return self._bunker_price[fuel_name][idx]
 
-    def get_bunker_WTT(self, fuel_name: str, emission_name: str, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._bunker_WTT[(fuel_name, emission_name)][idx]
+    def get_bunker_wtt(self, fuel_name: str, emission_name: str, idx: int | slice = np.s_[:]) -> np.ndarray:
+        return self._bunker_wtt[(fuel_name, emission_name)][idx]
 
     def get_bunker_mass_expected(self, fuel_name: str) -> float:
         return self._bunker_mass_expected[fuel_name]

@@ -85,9 +85,9 @@ def transfer_bunker(alg: BunkerAlgorithm) -> None:
 
             if alg.scope == BunkerScopeID.EXISTING:
 
-                emission_factor = port.expectation.get_bunker_WTT(f, emission_name, alg.idx)
+                emission_factor = port.expectation.get_bunker_wtt(f, emission_name, alg.idx)
                 wtt_emissions = emission_factor * bunker.X
-                vessel.profile.add_WTT(f, emission_name, wtt_emissions, idx=alg.idx)
+                vessel.profile.add_wtt(f, emission_name, wtt_emissions, idx=alg.idx)
 
         # transfer levy penalties and subsidies
         for levy in alg.port_levies[port_name]:

@@ -34,7 +34,7 @@ class FleetExpectation(_Expectation):
 
         self._fuel_demand = self._default_dict_array(fuels)
 
-        self._uptakes = self._default_2D_array(len(vessel_names))
+        self._uptakes = self._default_2d_array(len(vessel_names))
 
     def set_existing_multipliers(self, idx: int, vessel_name: str, multipliers: np.ndarray) -> None:
         self._existing_multipliers[vessel_name][idx:] = multipliers

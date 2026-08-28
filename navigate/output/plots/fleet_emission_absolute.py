@@ -21,12 +21,12 @@ def plot_fleet_emission_absolute(manager, directory):
     for ax, fleet in zip(axes, fleets.values()):
 
         profile = fleet.profile
-        WTW = profile.get_total_equivalent_WTW()
+        wtw = profile.get_total_equivalent_wtw()
 
-        divisor, unit = get_best_unit_mass(WTW.max())
-        WTW /= divisor
+        divisor, unit = get_best_unit_mass(wtw.max())
+        wtw /= divisor
 
-        ax.plot(dateline, WTW, label='WTW', color='k')
+        ax.plot(dateline, wtw, label='WTW', color='k')
 
         ax.set_ylabel('WTW CO$_2$-eq. [{}]'.format(unit))
         ax.set_title(extract_label(fleet, FLEET_LABEL))

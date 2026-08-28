@@ -44,8 +44,8 @@ class Vessel(Node):
         self.nominal_capacity = None   # float, nominal capacity of the vessel in TEU/DWT/GT
 
         # base cost
-        self.CAPEX = None              # float, base CAPEX of vessel. Hull, etc.
-        self.OPEX = None               # float, base OPEX of vessel. Hull, etc.
+        self.capex = None              # float, base CAPEX of vessel. Hull, etc.
+        self.opex = None               # float, base OPEX of vessel. Hull, etc.
         self.lifetime = None           # float, lifetime of vessel
         self.lead_time = None          # float, lead time of vessel (only relevant for cost calculations)
         self.cost_of_capital = None    # float, cost of capital
@@ -300,7 +300,7 @@ class Vessel(Node):
 
         self.lead_time = assign_value(as_scalar(lead_time), type_=(FORECAST, VARIABLE), lower=0.)
 
-    def set_CAPEX(self, CAPEX):
+    def set_capex(self, capex):
         """
         Set the base CAPEX of building the vessel in USD.
 
@@ -311,13 +311,13 @@ class Vessel(Node):
 
         Parameters
         ----------
-        CAPEX : float | NodeReference
+        capex : float | NodeReference
             The base CAPEX of building the vessel in USD.
         """
 
-        self.CAPEX = assign_value(as_scalar(CAPEX), type_=(FORECAST, VARIABLE), lower=0.)
+        self.capex = assign_value(as_scalar(capex), type_=(FORECAST, VARIABLE), lower=0.)
 
-    def set_OPEX(self, OPEX):
+    def set_opex(self, opex):
         """
         Set the base OPEX of maintaining the vessel in USD/year.
 
@@ -328,11 +328,11 @@ class Vessel(Node):
 
         Parameters
         ----------
-        OPEX : float | NodeReference
+        opex : float | NodeReference
             The base OPEX of maintaining the vessel in USD/year.
         """
 
-        self.OPEX = assign_value(as_scalar(OPEX), type_=(FORECAST, VARIABLE), lower=0.)
+        self.opex = assign_value(as_scalar(opex), type_=(FORECAST, VARIABLE), lower=0.)
 
     def set_cost_of_capital(self, cost_of_capital):
         """
@@ -389,11 +389,11 @@ class Vessel(Node):
         if self.lead_time is None:
             self.lead_time = Scalar(0)
 
-        if self.CAPEX is None:
-            self.CAPEX = Scalar(0)
+        if self.capex is None:
+            self.capex = Scalar(0)
 
-        if self.OPEX is None:
-            self.OPEX = Scalar(0)
+        if self.opex is None:
+            self.opex = Scalar(0)
 
         if self.cost_of_capital is None:
             self.cost_of_capital = Scalar(0)

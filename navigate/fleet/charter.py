@@ -283,8 +283,8 @@ def _calculate_base_cost(vessel: Vessel, component: Component) -> None:
         The root component that accumulates vessel cost flows.
     """
 
-    capex = lambda time: vessel.CAPEX.get(time)
-    opex = lambda time: vessel.OPEX.get(time)
+    capex = lambda time: vessel.capex.get(time)
+    opex = lambda time: vessel.opex.get(time)
 
     add_capex_flow(component=component, capex=capex)
     add_fixed_opex(component=component, value=opex)
@@ -310,8 +310,8 @@ def _calculate_power_system_cost(vessel: Vessel, component: Component) -> None:
                                                 machinery=power_system,
                                                 time_initial=component.time_initial)
 
-    capex = lambda time: power_system.CAPEX.get(time)
-    opex = lambda time: power_system.OPEX.get(time)
+    capex = lambda time: power_system.capex.get(time)
+    opex = lambda time: power_system.opex.get(time)
 
     add_capex_flow(component=subcomponent, capex=capex)
     add_fixed_opex(component=subcomponent, value=opex)
@@ -339,8 +339,8 @@ def _calculate_converter_cost(vessel: Vessel, component: Component) -> None:
                                                     time_initial=component.time_initial)
 
         power = converter.power_capacity.get()
-        capex = lambda time: converter.CAPEX.get(time) * power
-        opex = lambda time: converter.OPEX.get(time) * power
+        capex = lambda time: converter.capex.get(time) * power
+        opex = lambda time: converter.opex.get(time) * power
 
         add_capex_flow(component=subcomponent, capex=capex)
         add_fixed_opex(component=subcomponent, value=opex)
@@ -368,8 +368,8 @@ def _calculate_tank_cost(vessel: Vessel, component: Component) -> None:
                                                     time_initial=component.time_initial)
 
         size = tank.size.get()
-        capex = lambda time: tank.CAPEX.get(time) * size
-        opex = lambda time: tank.OPEX.get(time) * size
+        capex = lambda time: tank.capex.get(time) * size
+        opex = lambda time: tank.opex.get(time) * size
 
         add_capex_flow(component=subcomponent, capex=capex)
         add_fixed_opex(component=subcomponent, value=opex)

@@ -115,7 +115,7 @@ def calculate_plant_production_expectations(plant: Plant,
     # transfer the WTT that is used at the
     # time of investment for the plant
     for e in emissions:
-        plant.profile.set_investment_WTT(idx, e, plant.expectation.get_production_WTT(e, idx))
+        plant.profile.set_investment_wtt(idx, e, plant.expectation.get_production_wtt(e, idx))
 
 
 def _calculate_unit_properties(component: Component, plant: Plant, idx: int) -> None:
@@ -164,7 +164,7 @@ def _calculate_unit_properties(component: Component, plant: Plant, idx: int) -> 
 
         emission_commence = emission_flow[idx_commence]
         wtt = emission_commence / production_commence
-        plant.expectation.set_production_WTT(idx, e, wtt)
+        plant.expectation.set_production_wtt(idx, e, wtt)
 
 
 def _calculate_plant_production(plant: Plant, timeline: np.ndarray, idx: int) -> None:
@@ -392,8 +392,8 @@ def _calculate_process_cost(component: Component,
     size = plant.expectation.get_size(idx)
     p = process.name
 
-    capex_obj = region.process_CAPEX[p]
-    opex_obj = region.process_OPEX[p]
+    capex_obj = region.process_capex[p]
+    opex_obj = region.process_opex[p]
     capex = lambda time, _c=capex_obj: _c.get(time, size * conversion) * production * conversion
     opex = lambda time, _o=opex_obj: _o.get(time, size * conversion) * production * conversion
 
@@ -434,7 +434,7 @@ def _calculate_process_emissions(component: Component,
 
     wtt_callables = {}
     for e in emissions:
-        wtt_obj = region.process_WTT[(p, e)]
+        wtt_obj = region.process_wtt[(p, e)]
         wtt_callables[e] = lambda time, _w=wtt_obj: _w.get(time) * production * conversion
 
     add_fixed_wtt(component=component, wtt_callables=wtt_callables)
@@ -488,8 +488,8 @@ def _calculate_energy_cost(component: Component,
         # when the standalone source is built
 
         time_invest = component.time_initial
-        capex_val = region.source_CAPEX[s].get(time_invest)
-        opex_val = region.source_OPEX[s].get(time_invest)
+        capex_val = region.source_capex[s].get(time_invest)
+        opex_val = region.source_opex[s].get(time_invest)
         capex = lambda time: capex_val * energy(time)
         opex = lambda time: opex_val * energy(time)
 
@@ -502,7 +502,7 @@ def _calculate_energy_cost(component: Component,
         # time of construction but the energy
         # cost is variable over time
 
-        opex_obj = region.source_OPEX[s]
+        opex_obj = region.source_opex[s]
         opex = lambda time, _o=opex_obj: _o.get(time)
         add_variable_opex(component=component, metric=energy, cost=opex)
 
@@ -561,7 +561,7 @@ def _calculate_energy_emissions(component: Component,
         time_invest = component.time_initial
         wtt_callables = {}
         for e in emissions:
-            wtt_val = region.source_WTT[(s, e)].get(time_invest)
+            wtt_val = region.source_wtt[(s, e)].get(time_invest)
             wtt_callables[e] = lambda time, _wv=wtt_val: _wv * energy(time)
 
         add_fixed_wtt(component=component, wtt_callables=wtt_callables)
@@ -574,7 +574,7 @@ def _calculate_energy_emissions(component: Component,
 
         wtt_callables = {}
         for e in emissions:
-            wtt_obj = region.source_WTT[(s, e)]
+            wtt_obj = region.source_wtt[(s, e)]
             wtt_callables[e] = lambda time, _w=wtt_obj: _w.get(time)
 
         add_variable_wtt(component=component, metric=energy, wtt_callables=wtt_callables)
@@ -647,7 +647,7 @@ def _calculate_feedstock_emissions(component: Component,
 
     wtt_callables = {}
     for e in emissions:
-        wtt_obj = region.feedstock_WTT[(f, e)]
+        wtt_obj = region.feedstock_wtt[(f, e)]
         wtt_callables[e] = lambda time, _w=wtt_obj: _w.get(time) * production
 
     add_variable_wtt(component=component, metric=metric, wtt_callables=wtt_callables)
@@ -749,7 +749,7 @@ def _calculate_transport_emissions(component: Component,
 
     wtt_callables = {}
     for e in emissions:
-        wtt_obj = region.transport_WTT[(t, e)]
+        wtt_obj = region.transport_wtt[(t, e)]
         wtt_callables[e] = lambda time, _w=wtt_obj: _w.get(time) * distance(time) * production
 
     add_variable_wtt(component=component, metric=metric, wtt_callables=wtt_callables)

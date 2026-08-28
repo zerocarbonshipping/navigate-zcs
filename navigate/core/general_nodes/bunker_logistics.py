@@ -14,7 +14,7 @@ class BunkerLogistics(_GeneralNode):
 
         self.distances = {}        # dict[(region_name, port_name): float], distance between regions and ports
         self.transport_costs = {}  # dict[fuel_name: float], cost of transporting fuel
-        self.transport_WTT = {}    # dict[(fuel_name, emission_name): float], WTT from transporting fuel
+        self.transport_wtt = {}    # dict[(fuel_name, emission_name): float], WTT from transporting fuel
 
     # external attributes set through the input deck -------------------------------------------------------------------
     def set_liquid_market_fuels(self, fuels: list):
@@ -77,7 +77,7 @@ class BunkerLogistics(_GeneralNode):
 
         command_assignment_to_dict(fuel_name, transport_cost, self.transport_costs, type_=(FORECAST, VARIABLE), lower=0.)
 
-    def set_transport_wtt(self, fuel_name: str, emission_name: str, transport_WTT: float):
+    def set_transport_wtt(self, fuel_name: str, emission_name: str, transport_wtt: float):
         """
         Set the WTT emissions from transporting a fuel in ton emissions/ton fuel/nautical-mile.
 
@@ -92,11 +92,11 @@ class BunkerLogistics(_GeneralNode):
             The name of a fuel.
         emission_name
             The name of an emission.
-        transport_WTT
+        transport_wtt
             The WTT emissions from transporting a fuel in ton emissions/ton fuel/nautical-mile.
         """
 
-        command_assignment_to_tuple_dict((fuel_name, emission_name), transport_WTT, self.transport_WTT,
+        command_assignment_to_tuple_dict((fuel_name, emission_name), transport_wtt, self.transport_wtt,
                                          type_=(FORECAST, VARIABLE), lower=0.)
 
     # internal methods -------------------------------------------------------------------------------------------------
@@ -118,11 +118,11 @@ class BunkerLogistics(_GeneralNode):
 
                 self.transport_costs[fuel_name] = Scalar(0.)
 
-        for (fuel_name, emission_name) in self.transport_WTT:
+        for (fuel_name, emission_name) in self.transport_wtt:
 
-            if self.transport_WTT[(fuel_name, emission_name)] is None:
+            if self.transport_wtt[(fuel_name, emission_name)] is None:
 
-                self.transport_WTT[(fuel_name, emission_name)] = Scalar(0.)
+                self.transport_wtt[(fuel_name, emission_name)] = Scalar(0.)
 
     def initialize_dependencies(self, emissions, fuels, ports, regions):
         """
@@ -152,4 +152,4 @@ class BunkerLogistics(_GeneralNode):
 
             for emission_name in emissions:
 
-                self.transport_WTT.setdefault((fuel_name, emission_name), None)
+                self.transport_wtt.setdefault((fuel_name, emission_name), None)
