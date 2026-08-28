@@ -18,7 +18,7 @@ from navigate.output.plots._labels import FLEET_LABEL, extract_label
 
 
 def plot_fleet_speed(manager, directory):
-    dateline = manager.get_dateline()
+    dateline = manager.dateline
 
     fleets = manager.nodes.fleets
     relevant_fleets = {fleet_name: fleet for fleet_name, fleet in fleets.items() if fleet.allow_speed_management}

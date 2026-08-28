@@ -443,10 +443,10 @@ class BunkerAlgorithm:
         self.model = gp.Model(model_name)
 
         self.model.Params.OutputFlag = 0   # suppress solver console output
-        self.model.Params.Method = self.options.get_solver_method().value  # using the integer value directly
-        self.model.Params.Threads = self.options.get_threads()
-        self.model.Params.FeasibilityTol = self.options.get_solution_tolerance()
-        self.model.Params.OptimalityTol = self.options.get_solution_tolerance()
+        self.model.Params.Method = self.options.solver_method.value  # using the integer value directly
+        self.model.Params.Threads = self.options.threads
+        self.model.Params.FeasibilityTol = self.options.solution_tolerance
+        self.model.Params.OptimalityTol = self.options.solution_tolerance
 
         # initialize primary LP variables
         self.bunker = gp.tupledict()
@@ -530,12 +530,3 @@ class BunkerAlgorithm:
 
         # ensure all fuel is spent on each voyage
         update_bunkered_equals_spent_constraint(self, vessel)
-
-    def get_build_time(self) -> float:
-        return self.build_time
-
-    def get_solve_time(self) -> float:
-        return self.solve_time
-
-    def get_transfer_time(self) -> float:
-        return self.transfer_time

@@ -14,7 +14,7 @@ from navigate.output.plots._style import LEGEND_OPTIONS
 
 
 def plot_fleet_investment_metric(manager, directory):
-    dateline = manager.get_dateline()
+    dateline = manager.dateline
     fleets = manager.nodes.fleets
 
     unit = 'USD/k cargo-mile'

@@ -79,8 +79,7 @@ class Expression:
 
         self._internal_expression = None    # evaluator tree built from the parsed expression
         self._node = None                   # Node on which expression is assigned
-        self._node_references = []          # list[Node] referenced in the expression
-        self._attribute_references = []     # list[str] names of attributes referenced
+        self.node_references = []           # list[Node] referenced in the expression
         self.reference_location = ''       # the file and line in the deck where the node is reference
         self.internal_bounds = (-np.inf, np.inf)
 
@@ -179,12 +178,12 @@ class Expression:
 
         # node references are stored as canonical strings and changed
         # to actual NodeReference classes in the Parser later
-        self._node_references.append('{}("{}")'.format(node_ast.func.id, argument.value))
+        self.node_references.append('{}("{}")'.format(node_ast.func.id, argument.value))
 
-        return _Reference(len(self._node_references) - 1)
+        return _Reference(len(self.node_references) - 1)
 
     def get(self, x=None, y=None):
-        value = self._internal_expression.evaluate(self._node_references, x, y)
+        value = self._internal_expression.evaluate(self.node_references, x, y)
         value = np.clip(value, *self.internal_bounds)
 
         # resize to same shape as the input
@@ -202,15 +201,6 @@ class Expression:
     def set_internal_bounds(self, lower, upper):
         self.internal_bounds = (lower, upper)
 
-    def get_node_references(self):
-        return self._node_references
-
-    def get_attribute_references(self):
-        return self._attribute_references
-
-    def set_node_references(self, node_references):
-        self._node_references = node_references
-
     def is_initialized(self):
         return self._internal_expression is not None
 
@@ -218,14 +208,8 @@ class Expression:
         # check that the attribute to which the expression
         # is assigned allows the kind of node reference
         # that is being used in the expression
-        for node_reference in self._node_references:
+        for node_reference in self.node_references:
             self._check_node_reference(_extract_node_type(node_reference))
-
-        # if the references attribute is another expression
-        # a recursive check must be made to ensure it does
-        # not reference node references which are disallowed
-        for attribute_reference in self._attribute_references:
-            self._check_attribute_reference(attribute_reference)
 
     def _check_node_reference(self, type_):
         if self._allowed_types is None:
@@ -234,39 +218,6 @@ class Expression:
         elif type_ not in self._allowed_types:
             raise ValueError("{}: Expression <{}> references unacceptable type {}."
                              .format(self._node, self._expression, type_))
-
-    def _check_attribute_reference(self, attribute_name):
-        """
-        Recursively traverse down the expression chain to ensure none of them contains
-        references to nodes of disallowed types.
-
-        Parameters
-        ----------
-        attribute_name : str
-            Internal name of the attribute being referenced.
-        """
-
-        attribute = getattr(self._node, attribute_name)
-
-        if isinstance(attribute, Expression):
-
-            # if the expression referenced in the higher
-            # level expression is not yet initialized
-            # the consistency check cannot be finished.
-            # an expression can only link to attributes
-            # on the same node, so the expression can be
-            # initialized prior to checking.
-            if not attribute.is_initialized():
-                attribute.initialize(self._node)
-
-            for node_reference in attribute.get_node_references():
-                self._check_node_reference(_extract_node_type(node_reference))
-
-            # if the expression references another expression
-            # it is necessary to recursively check that the
-            # type through the chain of expressions
-            for attribute_reference in attribute.get_attribute_references():
-                self._check_attribute_reference(attribute_reference)
 
 
 def _extract_node_type(node_reference):

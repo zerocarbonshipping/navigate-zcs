@@ -23,7 +23,7 @@ from navigate.output.plots._units import get_best_unit_energy
 
 
 def plot_fuel_type_supply_demand(manager, directory):
-    dateline = manager.get_dateline()
+    dateline = manager.dateline
     # fleets = manager.nodes.fleets
     ports = manager.nodes.ports
     fuels = manager.nodes.fuels

@@ -15,12 +15,12 @@ from navigate.output.plots._labels import FUEL_COLOR
 
 def plot_plant_production_emissions(manager, directory):
 
-    dateline = manager.get_dateline()
+    dateline = manager.dateline
     fuels = manager.nodes.fuels
     regions = manager.nodes.regions
     plants = manager.nodes.plants
     emissions = manager.nodes.emissions
-    emissions_lifetime = manager.general_nodes.model_definition.get_emissions_lifetime()
+    emissions_lifetime = manager.general_nodes.model_definition.emissions_lifetime
 
     colors = generate_color_dict(fuels, FUEL_COLOR)
 

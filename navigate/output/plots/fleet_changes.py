@@ -12,7 +12,7 @@ from navigate.output.plots._illu_util import trim_axes
 
 
 def plot_fleet_changes(manager, directory):
-    dateline = manager.get_dateline()
+    dateline = manager.dateline
     fleets = manager.nodes.fleets
 
     fig, axes = subplot_grid(len(fleets))

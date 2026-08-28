@@ -18,14 +18,14 @@ from navigate.output.plots._labels import (
 
 
 def plot_fleet_investment_signal_technology_per_vessel(manager, directory):
-    dateline = manager.get_dateline()
+    dateline = manager.dateline
     _plot_investment_signal_per_vessel(dateline, manager, directory,
                                        lambda profile: profile.get_investment_signal_technology(),
                                        'fleet_investment_signal_technology_per_vessel.png')
 
 
 def plot_fleet_investment_signal_speed_per_vessel(manager, directory):
-    dateline = manager.get_dateline()
+    dateline = manager.dateline
     _plot_investment_signal_per_vessel(dateline, manager, directory,
                                        lambda profile: profile.get_investment_signal_speed(),
                                        'fleet_investment_signal_speed_per_vessel.png')

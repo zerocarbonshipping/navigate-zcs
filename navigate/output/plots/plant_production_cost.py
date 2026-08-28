@@ -17,7 +17,7 @@ from navigate.output.plots._labels import FUEL_COLOR
 
 def plot_plant_production_cost(manager, directory):
 
-    dateline = manager.get_dateline()
+    dateline = manager.dateline
     fuels = manager.nodes.fuels
     regions = manager.nodes.regions
     plants = manager.nodes.plants

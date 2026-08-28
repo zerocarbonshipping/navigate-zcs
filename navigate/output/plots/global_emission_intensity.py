@@ -9,7 +9,7 @@ from navigate.output.plots._figure import (
 
 
 def plot_global_emission_intensity(manager, directory):
-    dateline = manager.get_dateline()
+    dateline = manager.dateline
 
     fig, ax = single_panel()
 

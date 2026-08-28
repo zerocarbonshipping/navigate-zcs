@@ -27,7 +27,7 @@ def transfer_spend_port(alg: BunkerAlgorithm) -> None:
     # transfer spend in port solution
     for (v, c, f, _p), spend_port in alg.spend_port.items():
 
-        if spend_port.X < alg.options.get_solution_tolerance():
+        if spend_port.X < alg.options.solution_tolerance:
             continue
 
         vessel = alg.vessels[v]

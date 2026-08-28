@@ -11,7 +11,7 @@ from navigate.output.plots._labels import FLEET_LABEL, extract_label
 
 
 def plot_fleet_emission_intensity(manager, directory):
-    dateline = manager.get_dateline()
+    dateline = manager.dateline
     fleets = manager.nodes.fleets
 
     fig, axes = subplot_grid(len(fleets))

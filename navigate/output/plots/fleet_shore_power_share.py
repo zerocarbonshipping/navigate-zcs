@@ -13,7 +13,7 @@ from navigate.util import divide_nonzero
 
 
 def plot_fleet_shore_power_share(manager, directory):
-    dateline = manager.get_dateline()
+    dateline = manager.dateline
 
     fleets = manager.nodes.fleets
     fig, axes = subplot_grid(len(fleets), sharey=True)

@@ -45,15 +45,15 @@ class TestParsePlotNodes:
 
         assert set(nodes) == {"custom"}
         node = nodes["custom"]
-        assert node._directory == "./plots_custom/"
-        assert node._selected_plots == {"global_emission_absolute", "fleet_evolution"}
+        assert node.directory == "./plots_custom/"
+        assert node.selected_plots == {"global_emission_absolute", "fleet_evolution"}
 
     def test_multiple_plot_nodes(self, tmp_path):
         nodes = Parser.parse_plot_nodes(_write_inc(tmp_path, MULTI_PLOT_INC))
 
         assert set(nodes) == {"a", "b"}
-        assert nodes["a"]._selected_plots == {"global_emission_absolute"}
-        assert nodes["b"]._selected_plots == {"fleet_evolution", "fleet_speed"}
+        assert nodes["a"].selected_plots == {"global_emission_absolute"}
+        assert nodes["b"].selected_plots == {"fleet_evolution", "fleet_speed"}
 
     def test_missing_file_raises(self, tmp_path):
         with pytest.raises(FileNotFoundError):
@@ -65,11 +65,8 @@ class TestReplotErrors:
     def test_raises_when_no_configs_and_no_include(self, monkeypatch):
         """A pkl with no stored plot configs and no include file is a clear error, not AttributeError."""
         class _Stub:
-            def get_plot_configs(self):
-                return []
-
-            def get_deck_directory(self):
-                return "."
+            plot_configs = []
+            deck_directory = "."
 
         monkeypatch.setattr(plot_data_module.PlotData, "load", classmethod(lambda cls, path: _Stub()))
 
@@ -81,12 +78,9 @@ class TestReplotErrors:
         empty_inc = _write_inc(tmp_path, "# no plot nodes here\n", name="empty.inc")
 
         class _Stub:
-            def get_plot_configs(self):
-                # non-empty on purpose: the include must take precedence over stored configs
-                return [{"name": "stored", "directory": "./p/", "selected_plots": set()}]
-
-            def get_deck_directory(self):
-                return str(tmp_path)
+            # non-empty on purpose: the include must take precedence over stored configs
+            plot_configs = [{"name": "stored", "directory": "./p/", "selected_plots": set()}]
+            deck_directory = str(tmp_path)
 
         monkeypatch.setattr(plot_data_module.PlotData, "load", classmethod(lambda cls, path: _Stub()))
 

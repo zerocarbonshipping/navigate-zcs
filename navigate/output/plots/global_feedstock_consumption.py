@@ -21,7 +21,7 @@ from navigate.util import divide_nonzero
 
 
 def plot_global_feedstock_consumption(manager, directory):
-    dateline = manager.get_dateline()
+    dateline = manager.dateline
 
     feedstocks = manager.nodes.feedstocks
     profile = manager.profile

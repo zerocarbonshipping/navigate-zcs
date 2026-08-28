@@ -23,7 +23,7 @@ from navigate.util import divide_nonzero
 
 
 def plot_fuel_supply_demand(manager, directory):
-    dateline = manager.get_dateline()
+    dateline = manager.dateline
 
     fuels = manager.nodes.fuels
     profile = manager.profile

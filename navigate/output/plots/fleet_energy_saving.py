@@ -19,7 +19,7 @@ from navigate.output.plots._style import LEGEND_OPTIONS
 
 
 def plot_fleet_energy_saving(manager, directory):
-    dateline = manager.get_dateline()
+    dateline = manager.dateline
 
     fleets = manager.nodes.fleets
 

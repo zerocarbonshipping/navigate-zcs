@@ -17,7 +17,7 @@ from navigate.output.plots._units import find_best_metric_prefix
 
 def plot_regulation_flexibility(manager, directory):
 
-    dateline = manager.get_dateline()
+    dateline = manager.dateline
     regulations = manager.nodes.regulations
     vessels = manager.nodes.vessels
 

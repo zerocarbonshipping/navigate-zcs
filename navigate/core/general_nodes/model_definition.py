@@ -10,8 +10,8 @@ class ModelDefinition(_GeneralNode):
     def __init__(self):
         super().__init__()
 
-        self._start_date = None
-        self._emissions_lifetime = None
+        self.start_date = None
+        self.emissions_lifetime = None
 
     # external attributes set through the input deck -------------------------------------------------------------------
     def set_start_date(self, start_date):
@@ -29,7 +29,7 @@ class ModelDefinition(_GeneralNode):
             Assignment read from input deck.
         """
 
-        self._start_date = assign_value(start_date, scalar=False, date=True)
+        self.start_date = assign_value(start_date, scalar=False, date=True)
 
     def set_emissions_lifetime(self, emissions_lifetime):
         """
@@ -45,19 +45,13 @@ class ModelDefinition(_GeneralNode):
             Assignment read from input deck.
         """
 
-        self._emissions_lifetime = assign_value(emissions_lifetime, lower=0.)
+        self.emissions_lifetime = assign_value(emissions_lifetime, lower=0.)
 
     # internal methods -------------------------------------------------------------------------------------------------
     def initialize(self):
 
-        if self._start_date is None:
+        if self.start_date is None:
             raise DeckKeywordError("Error in ModelDefinition: 'StartDate' must be defined.")
 
-        if self._emissions_lifetime is None:
-            self._emissions_lifetime = 100.
-
-    def get_start_date(self):
-        return self._start_date
-
-    def get_emissions_lifetime(self):
-        return self._emissions_lifetime
+        if self.emissions_lifetime is None:
+            self.emissions_lifetime = 100.

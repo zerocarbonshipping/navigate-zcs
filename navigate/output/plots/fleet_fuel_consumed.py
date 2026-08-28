@@ -17,7 +17,7 @@ from navigate.output.plots._units import get_best_unit_energy
 
 
 def plot_fleet_fuel_consumed(manager, directory):
-    dateline = manager.get_dateline()
+    dateline = manager.dateline
 
     fuels = manager.nodes.fuels
     fleets = manager.nodes.fleets

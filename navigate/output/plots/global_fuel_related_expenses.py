@@ -20,7 +20,7 @@ from navigate.output.plots._units import get_best_unit_cost
 
 
 def _plot_global_fuel_related_expenses(manager, directory, cumulative=False):
-    dateline = manager.get_dateline()
+    dateline = manager.dateline
 
     fig, ax = single_panel()
 

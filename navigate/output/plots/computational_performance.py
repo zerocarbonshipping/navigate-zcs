@@ -23,7 +23,7 @@ from navigate.output.plots._style import (
 
 
 def _plot_computational_performance(manager, directory, cumulative=False):
-    dateline = manager.get_dateline()
+    dateline = manager.dateline
 
     fig, ax = single_panel()
 

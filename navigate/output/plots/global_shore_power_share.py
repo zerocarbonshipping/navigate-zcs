@@ -11,7 +11,7 @@ from navigate.util import divide_nonzero
 
 
 def plot_global_shore_power_share(manager, directory):
-    dateline = manager.get_dateline()
+    dateline = manager.dateline
 
     fig, ax = single_panel()
 

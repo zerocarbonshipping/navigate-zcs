@@ -265,7 +265,7 @@ def _extract_properties(node: Node,
     """
 
     profile = node.profile
-    node_name = node.get_name()
+    node_name = node.name
 
     for attribute, getter, reduce in zip(attributes, getters, reductions):
 
@@ -369,7 +369,7 @@ def _export_node(ws: Worksheet, node: Node, properties: dict, col: int) -> int:
     # duplicate node name across each column header
     # if this is the first instance of the node export
     for col in range(first_col, last_col):
-        ws.cell(row=ROW_NODE, column=col).value = node.get_name()
+        ws.cell(row=ROW_NODE, column=col).value = node.name
 
     return last_col
 

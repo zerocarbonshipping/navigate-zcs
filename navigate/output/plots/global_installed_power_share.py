@@ -15,7 +15,7 @@ from navigate.output.plots._labels import FUEL_TYPE_ORDER
 
 
 def plot_global_installed_power_share(manager, directory):
-    dateline = manager.get_dateline()
+    dateline = manager.dateline
 
     engine_power = {ft: manager.profile.get_installed_power(ft) for ft in FUEL_TYPE_ORDER}
 

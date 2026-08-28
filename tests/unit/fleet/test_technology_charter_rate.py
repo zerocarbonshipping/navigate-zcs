@@ -218,7 +218,7 @@ class _ShareCurve(Node):
 
 def _make_cost_package(technologies: list, cost_flow: np.ndarray) -> Package:
     package = Package(technologies)
-    package._cost_flow = cost_flow
+    package.cost_flow = cost_flow
     return package
 
 
