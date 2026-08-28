@@ -20,7 +20,7 @@ Converter "internal_combustion_engine" {
     MinimumPilotFuel = 0.01
     Efficiency = 0.51
     
-    set_slip_fraction(METHANE, Forecast("converter_methane_slip"))
+    set_slip_fraction(METHANE, Variable("converter_methane_slip"))
     
     CAPEX = 300000
     OPEX = 30000
@@ -81,10 +81,10 @@ This attribute sets the fraction of CAPEX paid when part of the machinery is rep
 
 This attribute sets the minimum load as a fraction of power capacity.
 
-* **Data type**: `Float`, `Forecast`, `Variable`
+* **Data type**: `Float`, `Variable`
 * **Example values**:
   + `0.3`
-  + `Forecast("name")`
+  + `Variable("name")`
 * **Unit**: Fraction
 * **Minimum value**: 0
 * **Maximum value**: 1
@@ -94,8 +94,10 @@ This attribute sets the minimum load as a fraction of power capacity.
 
 This attribute sets the power capacity of the Converter.
 
-* **Data type**: `Float`
-* **Example values**: `50`
+* **Data type**: `Float`, `Variable`
+* **Example values**:
+  + `50`
+  + `Variable("name")`
 * **Unit**: MW
 * **Minimum value**: 0
 * **Default**: None. Must be provided by the user.
@@ -139,10 +141,10 @@ This attribute sets the minimum fraction of pilot fuel required out of the total
 
 This attribute sets the fraction of the potential energy that is converted to kinetic energy.
 
-* **Data type**: `Float`, `Forecast`, `Variable`
+* **Data type**: `Float`, `Variable`
 * **Example values**:
   + `0.5`
-  + `Forecast("name")`
+  + `Variable("name")`
 * **Minimum value**: 0
 * **Maximum value**: 1
 * **Unit**: GJ/GJ
@@ -156,10 +158,10 @@ This command sets the emissions in the converter as a fraction of the amount of 
 
 * **Primary key type**: ID ([FuelTypeID](appendix_ids.md#fueltypeid))
 * **Secondary key type**: String (Emission name)
-* **Data type**: `Float`, `Forecast`, `Variable`
+* **Data type**: `Float`, `Variable`
 * **Example values**:
   + `OIL, "nitrous_oxide", 0.001`
-  + `OIL, "carbon_dioxide", Forecast("name")`
+  + `OIL, "carbon_dioxide", Variable("name")`
 * **Unit**: Ton of emission / ton of fuel
 * **Minimum value**: 0
 * **Default**: 0

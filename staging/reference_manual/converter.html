@@ -482,7 +482,7 @@ fuel cells, and motors.</p>
     <span class="n">MinimumPilotFuel</span> <span class="o">=</span> <span class="mf">0.01</span>
     <span class="n">Efficiency</span> <span class="o">=</span> <span class="mf">0.51</span>
     
-    <span class="n">set_slip_fraction</span><span class="p">(</span><span class="n">METHANE</span><span class="p">,</span> <span class="n">Forecast</span><span class="p">(</span><span class="s2">"converter_methane_slip"</span><span class="p">))</span>
+    <span class="n">set_slip_fraction</span><span class="p">(</span><span class="n">METHANE</span><span class="p">,</span> <span class="n">Variable</span><span class="p">(</span><span class="s2">"converter_methane_slip"</span><span class="p">))</span>
     
     <span class="n">CAPEX</span> <span class="o">=</span> <span class="mi">300000</span>
     <span class="n">OPEX</span> <span class="o">=</span> <span class="mi">30000</span>
@@ -559,11 +559,11 @@ fuel cells, and motors.</p>
 <h3>MinimumLoad<a class="headerlink" href="#minimumload" title="Link to this heading">#</a></h3>
 <p>This attribute sets the minimum load as a fraction of power capacity.</p>
 <ul class="simple">
-<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
+<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">0.3</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Forecast(&quot;name&quot;)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Variable(&quot;name&quot;)</span></code></p></li>
 </ul>
 </li>
 <li><p><strong>Unit</strong>: Fraction</p></li>
@@ -576,8 +576,13 @@ fuel cells, and motors.</p>
 <h3>PowerCapacity<a class="headerlink" href="#powercapacity" title="Link to this heading">#</a></h3>
 <p>This attribute sets the power capacity of the Converter.</p>
 <ul class="simple">
-<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code></p></li>
-<li><p><strong>Example values</strong>: <code class="docutils literal notranslate"><span class="pre">50</span></code></p></li>
+<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
+<li><p><strong>Example values</strong>:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">50</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Variable(&quot;name&quot;)</span></code></p></li>
+</ul>
+</li>
 <li><p><strong>Unit</strong>: MW</p></li>
 <li><p><strong>Minimum value</strong>: 0</p></li>
 <li><p><strong>Default</strong>: None. Must be provided by the user.</p></li>
@@ -634,11 +639,11 @@ fuel cells, and motors.</p>
 <h3>Efficiency<a class="headerlink" href="#efficiency" title="Link to this heading">#</a></h3>
 <p>This attribute sets the fraction of the potential energy that is converted to kinetic energy.</p>
 <ul class="simple">
-<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
+<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">0.5</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Forecast(&quot;name&quot;)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Variable(&quot;name&quot;)</span></code></p></li>
 </ul>
 </li>
 <li><p><strong>Minimum value</strong>: 0</p></li>
@@ -656,11 +661,11 @@ fuel cells, and motors.</p>
 <ul class="simple">
 <li><p><strong>Primary key type</strong>: ID (<a class="reference internal" href="appendix_ids.html#fueltypeid"><span class="std std-ref">FuelTypeID</span></a>)</p></li>
 <li><p><strong>Secondary key type</strong>: String (Emission name)</p></li>
-<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
+<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">OIL,</span> <span class="pre">&quot;nitrous_oxide&quot;,</span> <span class="pre">0.001</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">OIL,</span> <span class="pre">&quot;carbon_dioxide&quot;,</span> <span class="pre">Forecast(&quot;name&quot;)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">OIL,</span> <span class="pre">&quot;carbon_dioxide&quot;,</span> <span class="pre">Variable(&quot;name&quot;)</span></code></p></li>
 </ul>
 </li>
 <li><p><strong>Unit</strong>: Ton of emission / ton of fuel</p></li>
