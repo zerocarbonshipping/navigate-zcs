@@ -195,7 +195,7 @@ class TestConversionCarriesCharterRate:
         fleet.fuel_conversion_expenses = np.zeros_like(timeline)
 
         proposals = {("a", 0): {"age": 5., "dt": 1.,
-                                "costs_per_vessel": {"b": np.array([1.])},
+                                "costs_per_vessel": {"b": (1., 1.)},
                                 "conversions": {"b": 2.}}}
         apply_fuel_conversions(fleet, proposals, idx=0, timeline=timeline)
 

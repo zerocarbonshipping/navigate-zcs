@@ -74,26 +74,6 @@ def calculate_net_present_value(values, discount_rate):
     return float(np.sum(_discount_values(values, discount_rate)))
 
 
-def calculate_annualization_factor(cost_of_capital, lifetime):
-    """
-    Calculate the annualization factor of a capital investment based on the discount rate and lifetime of the asset.
-
-    Parameters
-    ----------
-    cost_of_capital : float
-        Discount rate of the investment.
-    lifetime : float
-        Lifetime of the asset being invested in.
-
-    Returns
-    -------
-    float
-        Annualization factor
-    """
-
-    return 1. / ((1. / lifetime) + cost_of_capital)
-
-
 def _discount_values(values, discount_rate):
     """
     Discounts values along a time dimension according to a specific discount factor.

@@ -10,8 +10,8 @@ import numpy as np
 from navigate.core.enum_ import FuelTypeID, UtilityID
 from navigate.core.increment import Increment
 from navigate.economics.decision import calculate_asset_shares
-from navigate.economics.flows import as_equal_installments, trim_flow_to_lifetime
-from navigate.economics.metric import calculate_annualization_factor, calculate_net_present_value
+from navigate.economics.flows import expand_to_flow, trim_flow_to_lifetime
+from navigate.economics.metric import calculate_net_present_value
 from navigate.fleet.utils import is_retrofit_cycle
 from navigate.util import ROUND_OFF, YEAR, extract_from_tuple_dict
 
@@ -102,7 +102,9 @@ def propose_fuel_conversions(fleet: Fleet, idx: int, time_step: float) -> dict:
     -------
     Dict keyed by ``(name_from, increment_idx)``. Each entry stores the proposed conversion
     counts for that increment (``'conversions': {name_to: count}``), the increment's ``'age'``
-    and ``'dt'``, and the per-vessel cost flows ``'costs_per_vessel'`` used by the apply step.
+    and ``'dt'``, and ``'costs_per_vessel': {name_to: (charge, window)}`` — the constant
+    yearly charge per converted vessel, whose net present value over the window (the
+    destination type's remaining lifetime) equals the conversion cost.
     """
 
     retrofit_frequency = fleet.retrofit_frequency.get()
@@ -135,8 +137,9 @@ def propose_fuel_conversions(fleet: Fleet, idx: int, time_step: float) -> dict:
         # summed ship CAPEX of the vessel being converted, used to non-dimensionalize the conversion NPV
         capex_npv_from = vessel_from.expectation.get_capex_npv(idx)
 
-        # increments are walked youngest to oldest (index 0 is the oldest cohort) so the
-        # early-out below can stop at the first age without a business case
+        # increments are walked youngest to oldest (index 0 is the oldest cohort); when
+        # target-fuel supply binds, younger cohorts with longer remaining lifetimes claim
+        # the working supply_excess first
         increments = fleet.increments[v]
         for increment_idx in reversed(range(len(increments))):
 
@@ -149,15 +152,13 @@ def propose_fuel_conversions(fleet: Fleet, idx: int, time_step: float) -> dict:
             if avg_age < minimum_age:
                 continue
 
-            remaining_lifetime_from = vessel_from.lifetime.get() - avg_age
+            remaining_lifetime_from = round(vessel_from.lifetime.get() - avg_age, ROUND_OFF)
             if remaining_lifetime_from <= 0.:
                 continue
 
             multiplier = increment.multiplier
             if multiplier <= 0:
                 continue
-
-            remaining_cost_fuel_from = trim_flow_to_lifetime(cost_fuel_from, remaining_lifetime_from)
 
             metrics, costs, limits, energies_to = {}, {}, {}, {}
 
@@ -168,7 +169,7 @@ def propose_fuel_conversions(fleet: Fleet, idx: int, time_step: float) -> dict:
                 if (not fleet.allow_vessel[name_to]) or (not fleet.conversion_available[name_to]):
                     continue
 
-                remaining_lifetime_to = vessel_to.lifetime.get() - avg_age
+                remaining_lifetime_to = round(vessel_to.lifetime.get() - avg_age, ROUND_OFF)
                 if remaining_lifetime_to <= 0.:
                     continue
 
@@ -183,24 +184,25 @@ def propose_fuel_conversions(fleet: Fleet, idx: int, time_step: float) -> dict:
                 energies_to[name_to] = energy_demand
 
                 cost_fuel_to = vessel_to.expectation.get_fuel_cost_flow()
-                remaining_cost_fuel_to = trim_flow_to_lifetime(cost_fuel_to, remaining_lifetime_to)
 
-                length = min(remaining_cost_fuel_from.size, remaining_cost_fuel_to.size)
-                delta_cost_flow = remaining_cost_fuel_from[:length] - remaining_cost_fuel_to[:length]
-
-                annualization = calculate_annualization_factor(discount_rate, remaining_lifetime_to)
-                conversion_cost_annualized = conversion_cost.get() * remaining_lifetime_to / annualization
-                conversion_cost_flow = as_equal_installments(remaining_lifetime_to, conversion_cost_annualized)
-
-                cash_flow = delta_cost_flow
+                # fuel savings count over the window both the current and the converted
+                # vessel type still serve; the conversion cost is a lump sum up front
+                window = min(remaining_lifetime_from, remaining_lifetime_to)
+                cash_flow = (trim_flow_to_lifetime(cost_fuel_from, window)
+                             - trim_flow_to_lifetime(cost_fuel_to, window))
                 cash_flow[0] -= conversion_cost.get()
 
                 metrics[name_to] = calculate_net_present_value(cash_flow, discount_rate)
-                costs[name_to] = conversion_cost_flow
+
+                # for expense reporting the cost is levelized exactly: a constant yearly
+                # charge whose NPV over the destination type's remaining lifetime equals
+                # the conversion cost
+                ones_flow = expand_to_flow(remaining_lifetime_to, 1.)
+                charge = conversion_cost.get() / calculate_net_present_value(ones_flow, discount_rate)
+                costs[name_to] = (charge, remaining_lifetime_to)
 
             if not metrics:
-                # no business case at this age implies older increments fail too
-                break
+                continue
 
             # the BAU sentinel (metric=0., limit=1.) sits at index -1 of the DCM input and is dropped on return
             metrics_list = list(metrics.values()) + [0.]
@@ -302,14 +304,15 @@ def apply_fuel_conversions(fleet: Fleet, proposals: dict, idx: int, timeline: np
         Output of ``propose_fuel_conversions`` after ``reconcile_fuel_conversion_caps`` has rescaled
         it. Read-only here; mutates ``fleet`` instead.
     idx
-        Current time-step index, used for profile writes and the expense interpolation start.
+        Current time-step index, used for profile writes and the start of the expense window.
     timeline
         Simulation timeline in dateline units; used to compute the years axis for expense
-        spreading.
+        booking.
     """
 
     indices = {vessel.name: i for i, vessel in enumerate(fleet.assets)}
-    years = timeline / YEAR
+    years_ahead = timeline[idx:] / YEAR
+    expenses_ahead = fleet.fuel_conversion_expenses[idx:]
 
     # from-side decrements + profile + expenses
     for (name_from, increment_idx), proposal in proposals.items():
@@ -330,10 +333,12 @@ def apply_fuel_conversions(fleet: Fleet, proposals: dict, idx: int, timeline: np
 
             fleet.profile.add_fuel_conversions(name_from, name_to, idx, conversion)
 
-            expenses = conversion * costs[name_to]
-            fleet.fuel_conversion_expenses[idx:] += np.interp(years[idx:],
-                                                              years[idx] + np.arange(expenses.size),
-                                                              expenses, left=0., right=0.)
+            # book the levelized charge over the service window; the coverage
+            # prorates the final partial year so the booked amounts match the
+            # levelization identity
+            charge, window = costs[name_to]
+            coverage = np.clip(window - np.floor(years_ahead - years_ahead[0]), 0., 1.)
+            expenses_ahead += conversion * charge * coverage
 
     # to-side inserts (deferred to avoid multi-stage conversions within this timestep)
     for (name_from, increment_idx), proposal in proposals.items():

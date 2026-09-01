@@ -9,7 +9,6 @@ from navigate.economics.flows import (
     add_fixed_wtt,
     add_variable_opex,
     add_variable_wtt,
-    as_equal_installments,
     build_cargo_flow,
     build_operating_age_flow,
     build_production_flow,
@@ -22,7 +21,6 @@ from navigate.economics.flows import (
 )
 from navigate.economics.metric import (
     calculate_age_levelized_cost,
-    calculate_annualization_factor,
     calculate_levelized_cost,
     calculate_net_present_value,
 )
