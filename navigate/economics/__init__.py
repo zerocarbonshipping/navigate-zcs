@@ -16,10 +16,9 @@ from navigate.economics.flows import (
     correct_flow_residual,
     expand_to_flow,
     get_age_flow,
-    get_flow_residual,
     get_flow_size,
-    get_remaining_cost_flow,
     timeline_to_yearly,
+    trim_flow_to_lifetime,
 )
 from navigate.economics.metric import (
     calculate_age_levelized_cost,

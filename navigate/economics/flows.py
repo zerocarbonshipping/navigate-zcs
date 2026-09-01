@@ -477,7 +477,7 @@ def get_flow_size(lead_time: float, lifetime: float) -> int:
         Size of the vector required to hold a property.
     """
 
-    return int(np.ceil(lead_time + lifetime))
+    return int(np.ceil(round(lead_time + lifetime, ROUND_OFF)))
 
 
 def _add_initial_capex_flow(component: Component, capex: Callable[[float], float]) -> None:
@@ -961,57 +961,27 @@ def _initialize_flow(lead_time: float, lifetime: float) -> np.ndarray:
     return np.zeros(get_flow_shape(lead_time, lifetime), dtype=float)
 
 
-# TODO: Legacy methods retained until fuel conversion code is refactored -----------------------------------------------
-def as_equal_installments(lifetime, cost):
+def trim_flow_to_lifetime(flow: np.ndarray, lifetime: float) -> np.ndarray:
     """
-    Expand a single cost into a cost-flow of equal installments over the remaining lifetime of the asset.
+    Trim a yearly flow to its first `lifetime` years, prorating a partial final year.
 
     Parameters
     ----------
-    cost : float
-        Cost.
-    lifetime : float
-        Lifetime of the asset.
+    flow
+        Yearly flow covering at least `lifetime` years.
+    lifetime
+        Years to keep.
 
     Returns
     -------
     np.ndarray
-        Cost-flow for the remainder of the asset's lifetime.
+        Trimmed copy; the input flow is left untouched.
     """
 
-    return expand_to_flow(lifetime, cost / lifetime)
+    trimmed = flow[:get_flow_size(lead_time=0., lifetime=lifetime)].copy()
+    correct_flow_residual(lifetime, trimmed)
 
-
-def get_remaining_cost_flow(cost_flow, remaining_lifetime, initial=True):
-    """
-    Get the cost-flow relevant for the remainder of an existing vessel's lifetime.
-
-    Parameters
-    ----------
-    cost_flow : np.ndarray
-        Cost flow
-    remaining_lifetime : float
-        Remaining lifetime of the vessel.
-    initial : bool
-        If true then return from the start of the cost flow, otherwise from the end.
-
-    Returns
-    -------
-    np.ndarray
-        Cost-flow for the remainder of the vessel's lifetime.
-    """
-
-    remaining_lifetime = round(remaining_lifetime, ROUND_OFF)
-    size = get_flow_size(lead_time=0., lifetime=remaining_lifetime)
-
-    if initial:
-        remaining_cost = cost_flow[:size]
-    else:
-        remaining_cost = cost_flow[cost_flow.size - size:]
-
-    correct_flow_residual(remaining_lifetime, remaining_cost)
-
-    return remaining_cost
+    return trimmed
 
 
 def expand_to_flow(lifetime, value):
@@ -1072,7 +1042,29 @@ def get_flow_residual(lifetime):
         Residual cost multiplier.
     """
 
+    lifetime = round(lifetime, ROUND_OFF)
     partial = lifetime < get_flow_size(lead_time=0., lifetime=lifetime)
     residual = lifetime - floor(lifetime)
 
     return partial, residual
+
+
+# TODO: legacy method retained until the fuel-conversion expense annualization is refactored ---------------------------
+def as_equal_installments(lifetime, cost):
+    """
+    Expand a single cost into a cost-flow of equal installments over the remaining lifetime of the asset.
+
+    Parameters
+    ----------
+    cost : float
+        Cost.
+    lifetime : float
+        Lifetime of the asset.
+
+    Returns
+    -------
+    np.ndarray
+        Cost-flow for the remainder of the asset's lifetime.
+    """
+
+    return expand_to_flow(lifetime, cost / lifetime)

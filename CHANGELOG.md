@@ -33,6 +33,14 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   installment schedule was previously anchored at time-step indices, which on
   calendar-date timelines (365/366-day years against the 365.25-day model
   year) dropped or distorted the conversion-year installment.
+- Trimming a fuel-cost flow to an increment's remaining lifetime in the
+  conversion business case no longer prorates the shared flow in place;
+  repeated trims could double-prorate a year when two increments' horizons
+  rounded to the same length (reachable only with sub-year time steps — no
+  committed deck is affected). The float-fuzz rounding that guarded this
+  trim now sits in the shared `get_flow_size`/`get_flow_residual`
+  primitives, so every flow-sizing caller quantizes lifetimes at the same
+  5-decimal precision.
 
 ### Changed
 - Internal Python identifiers containing uppercase acronyms are now
@@ -210,6 +218,11 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `write_binding_lp` (`navigate/bunker/optimize.py`), a debugging helper
   that exported a solved model's binding constraints to an LP file. It had
   no callers.
+- **Breaking** for code importing navigate as a library:
+  `get_remaining_cost_flow` (`navigate/economics/flows.py`), superseded by
+  `trim_flow_to_lifetime`; its slice-from-the-end mode (`initial=False`) had
+  no callers. The `get_flow_residual` re-export from `navigate.economics`
+  goes with it — no consumer outside `flows.py` remains.
 
 ### Changed
 - Internal simplification (no DSL or result changes): `BunkerAlgorithm` no
@@ -353,6 +366,11 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - `FleetProfile.get_fleet_technology_uptake`: fleet-wide technology uptake
   (existing-vessel-weighted), shared by the technology_uptake plot and the
   guardrail tests.
+- `navigate.economics.flows.trim_flow_to_lifetime`: trims a yearly flow to a
+  possibly fractional number of years on a copy, prorating the final year.
+  Shared by the technology-retrofit and fuel-conversion business cases
+  (previously a package-private helper and the legacy
+  `get_remaining_cost_flow`).
 
 ## [1.0.0] - 2026-07-16
 

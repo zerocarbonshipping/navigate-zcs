@@ -3,8 +3,6 @@
 
 from __future__ import annotations
 
-from math import ceil
-
 import numpy as np
 
 from navigate.core import Scalar
@@ -17,7 +15,7 @@ from navigate.economics.flows import (
     add_capex_flow,
     add_fixed_opex,
     expand_to_flow,
-    get_flow_residual,
+    trim_flow_to_lifetime,
 )
 from navigate.economics.metric import calculate_levelized_cost, calculate_net_present_value
 
@@ -196,7 +194,7 @@ def npv_for_retrofit_steps(pkg_idx: int,
                            discount_rate: float):
 
     n_pkgs = len(package_savings)
-    savings_flow = _trim_flow_to_life(package_savings[pkg_idx], remaining)
+    savings_flow = trim_flow_to_lifetime(package_savings[pkg_idx], remaining)
     max_steps = n_pkgs - pkg_idx
     npv = np.full(max_steps, -np.inf, dtype=float)
     npv[0] = 0.
@@ -217,7 +215,7 @@ def _incremental_cost_flow(packages: list[Package],
 
     inc_cost_flow = packages[pkg_idx + step].cost_flow - packages[pkg_idx].cost_flow
 
-    return _trim_flow_to_life(inc_cost_flow, remaining)
+    return trim_flow_to_lifetime(inc_cost_flow, remaining)
 
 
 def annual_costs_for_retrofit_steps(pkg_idx: int,
@@ -287,7 +285,7 @@ def levelize_package_cost(cost_flow: np.ndarray,
     if window <= 0.:
         return 0.
 
-    return _levelize_trimmed(_trim_flow_to_life(cost_flow, window), window, discount_rate)
+    return _levelize_trimmed(trim_flow_to_lifetime(cost_flow, window), window, discount_rate)
 
 
 def _levelize_trimmed(trimmed: np.ndarray, window: float, discount_rate: float) -> float:
@@ -315,15 +313,3 @@ def _build_technology_component(technology: Technology, vessel_lifetime: float, 
     add_fixed_opex(component, opex)
 
     return component
-
-
-def _trim_flow_to_life(flow: np.ndarray, remaining_life: float):
-
-    n = int(ceil(remaining_life))
-    partial, residual = get_flow_residual(remaining_life)
-
-    trimmed = flow[:n].copy()
-    if partial:
-        trimmed[-1] *= residual
-
-    return trimmed
