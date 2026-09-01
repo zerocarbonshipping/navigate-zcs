@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Callable
 
 import numpy as np
 
+from navigate.core.enum_ import FuelTypeID
 from navigate.core.nodes.vessel import Vessel
 from navigate.core.profiles import FleetProfile
 from navigate.util import TOLERANCE, YEAR, divide_nonzero, get_increment_origin_index
@@ -122,7 +123,10 @@ def calculate_fleet_profile(fleet: Fleet, fuels: dict[str, Fuel], timeline: np.n
 
         fleet.profile.add_fuel_converted_power(fuel_type_from, fuel_type_to, float(power_from * multiplier), idx=idx)
 
-    # transfer the fuel type specific demand for the fleet
+    # gather the fuel type specific demand for the fleet; the reset must come
+    # after fleet evolution, which reads the previous step's totals
+    fleet.expectation.reset_fuel_type_totals()
+
     for v, vessel in enumerate(fleet.assets):
 
         multiplier = fleet.get_multiplier(v)
@@ -153,16 +157,16 @@ def calculate_fleet_profile(fleet: Fleet, fuels: dict[str, Fuel], timeline: np.n
             # loop over each main and pilot
             # fuel type and add the demand
             for fuel_type in converter.main_fuel_types:
-                fleet.profile.add_fuel_type_demand(fuel_type, (1. - pilot_fuel_share) * fleet_demand, idx)
+                fleet.expectation.add_fuel_type_demand(fuel_type, (1. - pilot_fuel_share) * fleet_demand)
 
             for fuel_type in converter.pilot_fuel_types:
-                fleet.profile.add_fuel_type_demand(fuel_type, pilot_fuel_share * fleet_demand, idx)
+                fleet.expectation.add_fuel_type_demand(fuel_type, pilot_fuel_share * fleet_demand)
 
         # resetting the previously spend energy
         # values to avoid lingering solutions
         vessel.expectation.reset_spend_energy()
 
-    # transfer the fuel type specific supply for the fleet
+    # gather the fuel type specific supply for the fleet
     for v, vessel in enumerate(fleet.assets):
 
         multiplier = fleet.get_multiplier(v)
@@ -206,7 +210,11 @@ def calculate_fleet_profile(fleet: Fleet, fuels: dict[str, Fuel], timeline: np.n
                     # in the jurisdiction of the port
                     fair_share_supply = 0.
 
-                fleet.profile.add_fuel_type_supply(fuel_type, fair_share_supply, idx)
+                fleet.expectation.add_fuel_type_supply(fuel_type, fair_share_supply)
+
+    # transfer the demand totals to the output profile
+    for fuel_type in FuelTypeID:
+        fleet.profile.add_fuel_type_demand(fuel_type, fleet.expectation.get_fuel_type_demand(fuel_type), idx)
 
     # calculate the average speeds of the fleet across all vessel types
     aggregate_speed_profile(fleet.assets, fleet.get_multiplier, fleet.profile, idx)

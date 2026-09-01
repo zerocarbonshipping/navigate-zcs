@@ -140,8 +140,8 @@ def propose_fuel_conversions(fleet: Fleet, idx: int, time_step: float) -> list[_
     fleet
         The fleet instance.
     idx
-        Current time-step index. Drives the supply/demand snapshot taken from the previous step
-        and the energy/cost-flow lookups on each vessel's expectation.
+        Current time-step index. Drives the energy/cost-flow lookups on each vessel's
+        expectation.
     time_step
         Current time-step size in dateline units; converted to years to evaluate retrofit cycles.
 
@@ -157,10 +157,10 @@ def propose_fuel_conversions(fleet: Fleet, idx: int, time_step: float) -> list[_
 
     vessels = {vessel.name: vessel for vessel in fleet.vessels}
 
-    # working copy — updated as proposals are gathered so the DCM supply cap stays realistic
-    # TODO: update to expectation, not profile
-    supply_excess = {fuel_type: fleet.profile.get_fuel_type_supply(fuel_type, idx - 1)
-                     - fleet.profile.get_fuel_type_demand(fuel_type, idx - 1)
+    # working copy holding the previous step's totals (the profile phase writes them after this
+    # runs) — updated as proposals are gathered so the DCM supply cap stays realistic
+    supply_excess = {fuel_type: fleet.expectation.get_fuel_type_supply(fuel_type)
+                     - fleet.expectation.get_fuel_type_demand(fuel_type)
                      for fuel_type in FuelTypeID}
 
     proposals = []

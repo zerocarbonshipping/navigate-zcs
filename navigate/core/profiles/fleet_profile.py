@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.enum_ import FuelTypeID
 from navigate.core.initial_values import EMPTY_FLOAT, EMPTY_NAN
 from navigate.core.profiles._vessel_aggregate_profile import _VesselAggregateProfile
 
@@ -32,8 +31,6 @@ class FleetProfile(_VesselAggregateProfile):
         self._technology_uptake: dict[tuple[str, str], np.ndarray] = {}
         self._newbuild_technology_uptake: dict[tuple[str, str], np.ndarray] = {}
         self._retrofit_technology_uptake: dict[tuple[str, str], np.ndarray] = {}
-
-        self._fuel_type_supply: dict[FuelTypeID, np.ndarray] = {}
 
         # speed
         self._reference_speed: np.ndarray = EMPTY_NAN   # average reference speed, knots
@@ -87,8 +84,6 @@ class FleetProfile(_VesselAggregateProfile):
         self._newbuild_technology_uptake = self._default_tuple_dict(vessel_names, technology_names)
         self._retrofit_technology_uptake = self._default_tuple_dict(vessel_names, technology_names)
 
-        self._fuel_type_supply = self._default_dict(FuelTypeID)
-
         self._reference_speed = self._default_array(default=np.nan)
         self._minimum_speed = self._default_array(default=np.nan)
         self._maximum_speed = self._default_array(default=np.nan)
@@ -125,9 +120,6 @@ class FleetProfile(_VesselAggregateProfile):
 
     def set_retrofit_technology_uptake(self, vessel_name: str, technology_name: str, idx: int, uptake: float) -> None:
         self._retrofit_technology_uptake[(vessel_name, technology_name)][idx] = uptake
-
-    def add_fuel_type_supply(self, fuel_type: FuelTypeID, supply: float, idx: int | slice = np.s_[:]) -> None:
-        self._fuel_type_supply[fuel_type][idx] += supply
 
     def set_reference_speed(self, idx: int, reference_speed: float) -> None:
         self._reference_speed[idx] = reference_speed
@@ -225,11 +217,6 @@ class FleetProfile(_VesselAggregateProfile):
             technology_name: str | None = None,
             idx: int | slice = np.s_[:]) -> np.ndarray | dict[tuple[str, str], np.ndarray]:
         return extract_from_tuple_dict(self._retrofit_technology_uptake, vessel_name, technology_name, idx)
-
-    def get_fuel_type_supply(
-            self, fuel_type: FuelTypeID | None = None,
-            idx: int | slice = np.s_[:]) -> np.ndarray | dict[FuelTypeID, np.ndarray]:
-        return extract_from_dict(self._fuel_type_supply, fuel_type, idx)
 
     def get_reference_speed(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         return self._reference_speed[idx]

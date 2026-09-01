@@ -50,8 +50,9 @@ def _fleet(vessels: list, conversion_cost: dict, supply: dict) -> Fleet:
     fleet.allow_vessel = {vessel.name: True for vessel in vessels}
     fleet.conversion_available = {vessel.name: True for vessel in vessels}
     fleet.profile = MagicMock()
-    fleet.profile.get_fuel_type_supply.side_effect = lambda fuel_type, idx: supply.get(fuel_type, 0.)
-    fleet.profile.get_fuel_type_demand.return_value = 0.
+    fleet.expectation = MagicMock()
+    fleet.expectation.get_fuel_type_supply.side_effect = lambda fuel_type: supply.get(fuel_type, 0.)
+    fleet.expectation.get_fuel_type_demand.return_value = 0.
     return fleet
 
 

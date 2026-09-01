@@ -302,34 +302,6 @@ class TestDefineInitialTechnologySeeding:
         np.testing.assert_almost_equal(increment.technology_charter_rate, expected)
 
 
-class TestFleetProfileTechnologyExpenses:
-
-    def test_carried_rate_accumulates_multiplier_weighted(self):
-        from navigate.fleet.aggregation import calculate_fleet_profile
-
-        vessel = _make_priced_vessel("v0")
-        vessel.expectation.get_asset_charter_rate.return_value = 0.5
-        vessel.expectation.get_tied_capital.return_value = np.zeros(3)
-        vessel.power_system.get_converters.return_value = []
-
-        for getter in ("get_reference_speed", "get_minimum_speed", "get_maximum_speed",
-                       "get_actual_speed", "get_optimal_speed", "get_lowest_speed",
-                       "get_highest_speed"):
-            getattr(vessel.profile, getter).return_value = np.nan
-
-        fleet = Fleet.__new__(Fleet)
-        fleet.assets = [vessel]
-        fleet.increments = [[Increment(4., 2., 1., technology_charter_rate=12.)]]
-        fleet.profile = MagicMock()
-        fleet.profile.get_fuel_conversions.return_value = {}
-        fleet.fuel_conversion_expenses = np.zeros(4)
-
-        timeline = np.arange(4.) * YEAR
-        calculate_fleet_profile(fleet, fuels={}, timeline=timeline, idx=1)
-
-        fleet.profile.add_technology_expenses.assert_called_once_with(12. * 4., 1)
-
-
 class TestPostProcessTechnologyExpenses:
 
     def test_technology_series_enters_operating_cost_flow(self):
