@@ -12,7 +12,12 @@ from navigate.core.increment import Increment
 from navigate.core.nodes.fleet import Fleet
 from navigate.economics.flows import expand_to_flow
 from navigate.economics.metric import calculate_net_present_value
-from navigate.fleet.conversion import apply_fuel_conversions, propose_fuel_conversions
+from navigate.fleet.conversion import (
+    _ConversionCandidate,
+    _ConversionProposal,
+    apply_fuel_conversions,
+    propose_fuel_conversions,
+)
 from navigate.util import YEAR, dates_to_days
 
 
@@ -65,9 +70,18 @@ _DCM = 'navigate.fleet.conversion.calculate_asset_shares'
 _SHARES = (np.array([0.25, 0.75]), "")
 
 
+def _make_proposal(name_from: str, increment_idx: int, age: float, dt: float,
+                   candidates: dict[str, tuple[float, float, float]]) -> _ConversionProposal:
+    """candidates maps name_to -> (count, charge, window); the DCM fields are inert for apply."""
+    return _ConversionProposal(name_from, increment_idx, age, dt,
+                               {name_to: _ConversionCandidate(metric=0., limit=1., energy_per_vessel=0.,
+                                                              charge=charge, window=window, count=count)
+                                for name_to, (count, charge, window) in candidates.items()})
+
+
 def _assert_no_proposals(fleet: Fleet) -> None:
     with patch(_DCM) as dcm:
-        assert propose_fuel_conversions(fleet, idx=3, time_step=YEAR) == {}
+        assert propose_fuel_conversions(fleet, idx=3, time_step=YEAR) == []
 
     dcm.assert_not_called()
 
@@ -95,12 +109,14 @@ class TestProposeFuelConversions:
         assert kwargs['reference'] == 500.
         assert kwargs['limits'] == [1., 1.]
 
-        proposal = proposals[("oil", 0)]
-        assert proposal['age'] == 10.
-        assert proposal['dt'] == 1.
-        np.testing.assert_almost_equal(proposal['conversions']['ammonia'], 0.25 * 4.)
+        proposal = proposals[0]
+        assert proposal.name_from == "oil"
+        assert proposal.increment_idx == 0
+        assert proposal.age == 10.
+        assert proposal.dt == 1.
+        np.testing.assert_almost_equal(proposal.candidates['ammonia'].count, 0.25 * 4.)
 
-    def test_costs_per_vessel_levelizes_conversion_cost(self):
+    def test_charge_levelizes_conversion_cost(self):
         fleet = _oil_to_ammonia_fleet()
 
         with patch(_DCM, return_value=_SHARES):
@@ -109,12 +125,12 @@ class TestProposeFuelConversions:
         # discounting the constant charge over the remaining lifetime recovers
         # exactly the conversion cost; the charge itself matches the closed-form
         # annuity over 14 full years plus a prorated half year
-        charge, window = proposals[("oil", 0)]['costs_per_vessel']['ammonia']
-        assert window == 14.5
-        np.testing.assert_almost_equal(charge,
+        candidate = proposals[0].candidates['ammonia']
+        assert candidate.window == 14.5
+        np.testing.assert_almost_equal(candidate.charge,
                                        100. / (np.sum(1.1 ** -np.arange(14.)) + 0.5 * 1.1 ** -14.))
         np.testing.assert_almost_equal(
-            calculate_net_present_value(charge * expand_to_flow(window, 1.), 0.1), 100.)
+            calculate_net_present_value(candidate.charge * expand_to_flow(candidate.window, 1.), 0.1), 100.)
 
     def test_mismatched_lifetimes_split_metric_window_and_charge_horizon(self):
         # a 30-year destination lifetime leaves 19.5 remaining years against the
@@ -135,10 +151,10 @@ class TestProposeFuelConversions:
         np.testing.assert_almost_equal(metrics_list[0],
                                        calculate_net_present_value(expected_cash, 0.1))
 
-        charge, window = proposals[("oil", 0)]['costs_per_vessel']['ammonia']
-        assert window == 19.5
+        candidate = proposals[0].candidates['ammonia']
+        assert candidate.window == 19.5
         np.testing.assert_almost_equal(
-            calculate_net_present_value(charge * expand_to_flow(window, 1.), 0.1), 100.)
+            calculate_net_present_value(candidate.charge * expand_to_flow(candidate.window, 1.), 0.1), 100.)
 
     def test_empty_business_case_does_not_stop_older_increments(self):
         # two cohorts share an age with different dt: the one walked first (larger
@@ -153,7 +169,7 @@ class TestProposeFuelConversions:
             proposals = propose_fuel_conversions(fleet, idx=3, time_step=YEAR)
 
         assert dcm.call_count == 1
-        assert ("oil", 0) in proposals
+        assert [(p.name_from, p.increment_idx) for p in proposals] == [("oil", 0)]
 
     def test_expectation_flows_not_mutated(self):
         fleet = _oil_to_ammonia_fleet()
@@ -219,9 +235,7 @@ class TestApplyFuelConversionExpenses:
         fleet.fuel_conversion_expenses = np.zeros_like(timeline)
 
         idx = 1
-        proposals = {("a", 0): {"age": 5., "dt": 1.,
-                                "costs_per_vessel": {"b": (30., 3.)},
-                                "conversions": {"b": 2.}}}
+        proposals = [_make_proposal("a", 0, age=5., dt=1., candidates={"b": (2., 30., 3.)})]
         apply_fuel_conversions(fleet, proposals, idx=idx, timeline=timeline)
 
         expected = np.zeros_like(timeline)
@@ -243,9 +257,7 @@ class TestApplyFuelConversionExpenses:
 
         # a 1.5-year window books the full charge in the conversion year and half
         # the charge in the partial second service year
-        proposals = {("a", 0): {"age": 5., "dt": 1.,
-                                "costs_per_vessel": {"b": (30., 1.5)},
-                                "conversions": {"b": 2.}}}
+        proposals = [_make_proposal("a", 0, age=5., dt=1., candidates={"b": (2., 30., 1.5)})]
         apply_fuel_conversions(fleet, proposals, idx=1, timeline=timeline)
 
         np.testing.assert_array_almost_equal(fleet.fuel_conversion_expenses,

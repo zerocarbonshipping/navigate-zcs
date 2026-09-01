@@ -13,7 +13,7 @@ from navigate.core.increment import Increment
 from navigate.core.node_type import FLEET, VESSEL
 from navigate.core.nodes.fleet import Fleet
 from navigate.fleet import evolution as fleet_evolution
-from navigate.fleet.conversion import reconcile_fuel_conversion_caps
+from navigate.fleet.conversion import _ConversionCandidate, _ConversionProposal, reconcile_fuel_conversion_caps
 from navigate.fleet.evolution import (
     calculate_modelled_newbuilds,
     calculate_modelled_uptake,
@@ -208,15 +208,18 @@ def _make_fleet_for_cap(pair_limits: dict[tuple[str, str], float] | None = None)
     return fleet
 
 
-def _proposals(items: dict[tuple[str, int], dict[str, float]]) -> dict:
-    """items maps (name_from, increment_idx) -> {name_to: count}; wraps into the proposal dict shape."""
-    return {key: {'age': 0., 'dt': 1., 'conversions': dict(conv), 'costs_per_vessel': {}}
-            for key, conv in items.items()}
+def _proposals(items: dict[tuple[str, int], dict[str, float]]) -> list[_ConversionProposal]:
+    """items maps (name_from, increment_idx) -> {name_to: count}; wraps into the proposal shape."""
+    return [_ConversionProposal(name_from, increment_idx, 0., 1.,
+                                {name_to: _ConversionCandidate(metric=0., limit=1., energy_per_vessel=0.,
+                                                               charge=0., window=0., count=count)
+                                 for name_to, count in conversions.items()})
+            for (name_from, increment_idx), conversions in items.items()]
 
 
-def _conv_total(proposals: dict, pair: tuple[str, str]) -> float:
-    return sum(p['conversions'].get(pair[1], 0.) for (name_from, _increment_idx), p in proposals.items()
-               if name_from == pair[0])
+def _conv_total(proposals: list[_ConversionProposal], pair: tuple[str, str]) -> float:
+    return sum(proposal.candidates[pair[1]].count for proposal in proposals
+               if proposal.name_from == pair[0] and pair[1] in proposal.candidates)
 
 
 class TestReconcileFuelConversionCaps:
@@ -252,8 +255,8 @@ class TestReconcileFuelConversionCaps:
         # Two increments of x→y: 4 and 6. Sum=10 > pair_cap=5 ⇒ scale 0.5 each.
         proposals = _proposals({('x', 0): {'y': 4.}, ('x', 1): {'y': 6.}})
         reconcile_fuel_conversion_caps(fleet, proposals, time_step=YEAR, existing_total=100.)
-        np.testing.assert_almost_equal(proposals[('x', 0)]['conversions']['y'], 2.)
-        np.testing.assert_almost_equal(proposals[('x', 1)]['conversions']['y'], 3.)
+        np.testing.assert_almost_equal(proposals[0].candidates['y'].count, 2.)
+        np.testing.assert_almost_equal(proposals[1].candidates['y'].count, 3.)
 
     def test_time_step_scales_budget(self):
         # 5-year time_step with pair_limit=0.1 ⇒ pair_cap = 0.5 × 100 = 50.
@@ -267,7 +270,7 @@ class TestReconcileFuelConversionCaps:
         fleet = _make_fleet_for_cap(pair_limits={('x', 'y'): 0.1})
         proposals = _proposals({('x', 0): {'y': 5.}})
         reconcile_fuel_conversion_caps(fleet, proposals, time_step=YEAR, existing_total=0.)
-        np.testing.assert_almost_equal(proposals[('x', 0)]['conversions']['y'], 5.)
+        np.testing.assert_almost_equal(proposals[0].candidates['y'].count, 5.)
 
 
 # ---------------------------------------------------------------------------
