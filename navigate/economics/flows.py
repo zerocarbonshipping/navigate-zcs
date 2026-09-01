@@ -1047,24 +1047,3 @@ def get_flow_residual(lifetime):
     residual = lifetime - floor(lifetime)
 
     return partial, residual
-
-
-# TODO: legacy method retained until the fuel-conversion expense annualization is refactored ---------------------------
-def as_equal_installments(lifetime, cost):
-    """
-    Expand a single cost into a cost-flow of equal installments over the remaining lifetime of the asset.
-
-    Parameters
-    ----------
-    cost : float
-        Cost.
-    lifetime : float
-        Lifetime of the asset.
-
-    Returns
-    -------
-    np.ndarray
-        Cost-flow for the remainder of the asset's lifetime.
-    """
-
-    return expand_to_flow(lifetime, cost / lifetime)

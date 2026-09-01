@@ -43,6 +43,26 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   5-decimal precision.
 
 ### Changed
+- The fuel-conversion business case compares fuel costs over the common
+  remaining-lifetime window of the source and destination vessel types,
+  prorating both flows at that window. Previously each flow was prorated at
+  its own remaining lifetime and then truncated to the shorter length,
+  weighing a full year against a prorated year whenever the lifetimes
+  differ. No committed deck defines conversion pairs with differing
+  lifetimes, so current results are unchanged.
+- The fuel-conversion proposal walk no longer stops at the first increment
+  without an eligible destination; it skips to the next cohort instead. The
+  early-out could drop proposals only for a cohort sharing an age with a
+  longer-spanning cohort walked before it — a layout no committed deck
+  produces, so current results are unchanged.
+- Fuel-conversion expenses are levelized exactly: the reported yearly charge
+  discounts back to the conversion cost at the destination vessel's cost of
+  capital, replacing the approximate capital-recovery factor `1/L + r`,
+  which overstated the discounted total (about 21% at a 5-year window and
+  8% discount rate). The charge is booked per service year within the window
+  (prorated in a partial final year) instead of being interpolated between
+  yearly anchors, which zeroed or blended timeline points near the window's
+  edges.
 - Internal Python identifiers containing uppercase acronyms are now
   lowercase (`set_capex`, `get_total_equivalent_wtt`, formerly `set_CAPEX`,
   `get_total_equivalent_WTT`). The DSL surface is unchanged: decks keep
@@ -223,6 +243,11 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `trim_flow_to_lifetime`; its slice-from-the-end mode (`initial=False`) had
   no callers. The `get_flow_residual` re-export from `navigate.economics`
   goes with it — no consumer outside `flows.py` remains.
+- **Breaking** for code importing navigate as a library:
+  `calculate_annualization_factor` (`navigate/economics/metric.py`) and
+  `as_equal_installments` (`navigate/economics/flows.py`). The approximate
+  capital-recovery annualization they implemented is replaced by exact
+  levelization in the conversion expense booking; nothing else called them.
 
 ### Changed
 - Internal simplification (no DSL or result changes): `BunkerAlgorithm` no
