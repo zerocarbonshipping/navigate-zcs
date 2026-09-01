@@ -1021,7 +1021,7 @@ class Fleet(_AssetManager):
         calculate_evolution_expectation(self, idx, timeline)
 
         # initialize technology effect
-        self._transfer_multipliers_to_profile(idx)
+        self.transfer_multipliers_to_profile(idx)
         transfer_technology_uptake(self, idx)
         transfer_technology_charter_rate(self, idx)
 
@@ -1046,7 +1046,7 @@ class Fleet(_AssetManager):
     def _define_initial_technology(self):
         define_initial_technology(self)
 
-    def _transfer_multipliers_to_profile(self, idx: int) -> None:
+    def transfer_multipliers_to_profile(self, idx: int) -> None:
         """
         Transfer the current multiplier state to the profile for output.
 

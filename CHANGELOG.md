@@ -126,6 +126,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   from `navigate/core/table_data.py` into the parser AST module as
   `SourceLocation` — the parser is its only consumer — and the never-read
   `TableData.source` field is dropped.
+- **Breaking** for code importing navigate as a library:
+  `Fleet._transfer_multipliers_to_profile` is now public
+  `transfer_multipliers_to_profile` — it is called across modules
+  (fleet evolution), so it carries a public name. No behavior change.
 
 ### Removed
 - The fuel-type supply members on `FleetProfile`
