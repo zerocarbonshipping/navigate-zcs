@@ -29,6 +29,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   references there, and the documented `Forecast("name")` assignment raises
   a `ValueError`. `PowerCapacity` gains the opposite correction — it accepts
   `Variable` references but was documented as `Float` only.
+- Fuel-conversion expenses are booked on the elapsed-years axis. The
+  installment schedule was previously anchored at time-step indices, which on
+  calendar-date timelines (365/366-day years against the 365.25-day model
+  year) dropped or distorted the conversion-year installment.
 
 ### Changed
 - Internal Python identifiers containing uppercase acronyms are now

@@ -336,7 +336,7 @@ def apply_fuel_conversions(fleet: Fleet, proposals: dict, idx: int, timeline: np
 
             expenses = conversion * costs[name_to]
             fleet.fuel_conversion_expenses[idx:] += np.interp(years[idx:],
-                                                              range(idx, idx + expenses.size),
+                                                              years[idx] + np.arange(expenses.size),
                                                               expenses, left=0., right=0.)
 
     # to-side inserts (deferred to avoid multi-stage conversions within this timestep)
