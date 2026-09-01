@@ -58,9 +58,13 @@ core table/report/plot nodes call into `logging_`/`output`.
 ## Data-flow invariants
 
 - Dynamic results that cross modules flow through the node's `expectation`:
-  the computing module writes via `set_*`, everyone else reads via `get_*`.
-- `profile` is write-only storage for end-of-simulation output; it is never
-  read back as dynamic state during the simulation.
+  the computing module writes via `set_*`/`add_*`, everyone else reads via
+  `get_*`.
+- `profile` is output storage for end-of-simulation reports and plots; it is
+  never read as an input to a simulation decision. Inside the
+  profile-aggregation phase (`SimulationManager._calculate_profile`) and
+  post-processing, deriving one profile value from an already-written one is
+  fine — nothing downstream of those phases feeds a decision.
 - Direct attribute access (`node.some_input.get()`) is reserved for
   DSL-defined inputs.
 

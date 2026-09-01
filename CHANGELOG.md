@@ -43,6 +43,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   5-decimal precision.
 
 ### Changed
+- The fuel-conversion supply/demand snapshot is read from the fleet
+  expectation, which accumulates the fuel-type totals per time-step, instead
+  of being read back from the fleet profile — profiles are output-only
+  (ARCHITECTURE.md, Data-flow invariants). Simulation results are unchanged.
 - **Breaking** for code importing navigate as a library: the fuel-conversion
   phases exchange dataclasses instead of nested dicts —
   `propose_fuel_conversions` returns a list of `_ConversionProposal` objects,
@@ -124,6 +128,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `TableData.source` field is dropped.
 
 ### Removed
+- The fuel-type supply members on `FleetProfile`
+  (`add_fuel_type_supply`/`get_fuel_type_supply`): their only reader was the
+  fuel-conversion snapshot, which now reads the fleet expectation; no report
+  or plot consumes fleet-level fuel-type supply.
 - **Breaking** for code importing navigate as a library: the remaining
   node-class getters are replaced by direct attribute access (CODESTYLE.md,
   Class variables) — the keyed dict getters on `Region` (13, backing dicts
