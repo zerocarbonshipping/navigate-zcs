@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-from copy import deepcopy
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -11,7 +10,7 @@ import numpy as np
 from navigate.core.enum_ import FuelTypeID, UtilityID
 from navigate.core.increment import Increment
 from navigate.economics.decision import calculate_asset_shares
-from navigate.economics.flows import as_equal_installments, get_remaining_cost_flow
+from navigate.economics.flows import as_equal_installments, trim_flow_to_lifetime
 from navigate.economics.metric import calculate_annualization_factor, calculate_net_present_value
 from navigate.fleet.utils import is_retrofit_cycle
 from navigate.util import ROUND_OFF, YEAR, extract_from_tuple_dict
@@ -129,22 +128,24 @@ def propose_fuel_conversions(fleet: Fleet, idx: int, time_step: float) -> dict:
         if not conversion_costs:
             continue
 
-        cost_fuel_from = deepcopy(vessel_from.expectation.get_fuel_cost_flow())
+        cost_fuel_from = vessel_from.expectation.get_fuel_cost_flow()
         energy_from_per_vessel = vessel_from.expectation.get_total_energy(idx)
         fuel_type_from = vessel_from.fuel_type
 
         # summed ship CAPEX of the vessel being converted, used to non-dimensionalize the conversion NPV
         capex_npv_from = vessel_from.expectation.get_capex_npv(idx)
 
-        # increments are walked oldest → newest (reverse) so the early-out below skips ages that
-        # already failed the business case
+        # increments are walked youngest to oldest (index 0 is the oldest cohort) so the
+        # early-out below can stop at the first age without a business case
         increments = fleet.increments[v]
-        for i, inc_rev in enumerate(reversed(increments)):
+        for increment_idx in reversed(range(len(increments))):
 
-            if not is_retrofit_cycle(inc_rev.age, retrofit_frequency, time_step_years):
+            increment = increments[increment_idx]
+
+            if not is_retrofit_cycle(increment.age, retrofit_frequency, time_step_years):
                 continue
 
-            avg_age = round(inc_rev.age + inc_rev.dt / 2., ROUND_OFF)
+            avg_age = round(increment.age + increment.dt / 2., ROUND_OFF)
             if avg_age < minimum_age:
                 continue
 
@@ -152,14 +153,11 @@ def propose_fuel_conversions(fleet: Fleet, idx: int, time_step: float) -> dict:
             if remaining_lifetime_from <= 0.:
                 continue
 
-            increment_idx = len(increments) - 1 - i
-            increment = increments[increment_idx].multiplier
-            if increment <= 0:
+            multiplier = increment.multiplier
+            if multiplier <= 0:
                 continue
 
-            remaining_cost_fuel_from = get_remaining_cost_flow(cost_fuel_from,
-                                                               remaining_lifetime_from,
-                                                               initial=True)
+            remaining_cost_fuel_from = trim_flow_to_lifetime(cost_fuel_from, remaining_lifetime_from)
 
             metrics, costs, limits, energies_to = {}, {}, {}, {}
 
@@ -181,13 +179,11 @@ def propose_fuel_conversions(fleet: Fleet, idx: int, time_step: float) -> dict:
                 discount_rate = vessel_to.cost_of_capital.get()
                 energy_demand = vessel_to.expectation.get_total_energy(idx)
                 maximum_vessels = supply_excess[fuel_type_to] / energy_demand
-                limits[name_to] = min(maximum_vessels / increment, 1.)
+                limits[name_to] = min(maximum_vessels / multiplier, 1.)
                 energies_to[name_to] = energy_demand
 
-                cost_fuel_to = deepcopy(vessel_to.expectation.get_fuel_cost_flow())
-                remaining_cost_fuel_to = get_remaining_cost_flow(cost_fuel_to,
-                                                                 remaining_lifetime_to,
-                                                                 initial=True)
+                cost_fuel_to = vessel_to.expectation.get_fuel_cost_flow()
+                remaining_cost_fuel_to = trim_flow_to_lifetime(cost_fuel_to, remaining_lifetime_to)
 
                 length = min(remaining_cost_fuel_from.size, remaining_cost_fuel_to.size)
                 delta_cost_flow = remaining_cost_fuel_from[:length] - remaining_cost_fuel_to[:length]
@@ -216,11 +212,11 @@ def propose_fuel_conversions(fleet: Fleet, idx: int, time_step: float) -> dict:
             uptakes = {name: share for name, share in zip(metrics.keys(), uptakes_arr)}
 
             # store as conversion counts so reconciliation can scale per-pair without a re-multiply
-            conversions = {name_to: share * increment for name_to, share in uptakes.items()}
+            conversions = {name_to: share * multiplier for name_to, share in uptakes.items()}
 
             proposals[(name_from, increment_idx)] = {
-                'age': inc_rev.age,
-                'dt': inc_rev.dt,
+                'age': increment.age,
+                'dt': increment.dt,
                 'conversions': conversions,
                 'costs_per_vessel': costs,
             }

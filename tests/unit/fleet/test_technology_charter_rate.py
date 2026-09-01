@@ -21,7 +21,7 @@ from navigate.core.increment import Increment
 from navigate.core.node import Node
 from navigate.core.nodes.fleet import Fleet
 from navigate.core.unit import YEAR_TO_DAYS
-from navigate.economics.flows import correct_flow_residual, get_age_flow
+from navigate.economics.flows import correct_flow_residual, get_age_flow, trim_flow_to_lifetime
 from navigate.economics.metric import calculate_net_present_value
 from navigate.fleet.charter import (
     _calculate_cargo_unit_properties,
@@ -32,7 +32,6 @@ from navigate.fleet.conversion import apply_fuel_conversions
 from navigate.fleet.evolution import add_newbuilds, clean_up_multipliers
 from navigate.fleet.package import (
     Package,
-    _trim_flow_to_life,
     annual_costs_for_retrofit_steps,
     levelize_package_cost,
 )
@@ -84,7 +83,7 @@ class TestLevelizePackageCost:
         rate = levelize_package_cost(flow, window=4.5, discount_rate=DISCOUNT)
 
         charge_flow = rate * _charge_window_flow(4.5)
-        trimmed = _trim_flow_to_life(flow, 4.5)
+        trimmed = trim_flow_to_lifetime(flow, 4.5)
         np.testing.assert_almost_equal(calculate_net_present_value(charge_flow, DISCOUNT),
                                        calculate_net_present_value(trimmed, DISCOUNT))
         np.testing.assert_array_almost_equal(_charge_window_flow(4.5), [1., 1., 1., 1., .5])
