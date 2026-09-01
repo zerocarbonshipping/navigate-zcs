@@ -43,6 +43,13 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   5-decimal precision.
 
 ### Changed
+- **Breaking** for code importing navigate as a library: the fuel-conversion
+  phases exchange dataclasses instead of nested dicts —
+  `propose_fuel_conversions` returns a list of `_ConversionProposal` objects,
+  each holding a `_ConversionCandidate` per destination type, rather than a
+  dict keyed by `(name_from, increment_idx)`, and
+  `reconcile_fuel_conversion_caps` / `apply_fuel_conversions` take that
+  list. Simulation results are unchanged.
 - The fuel-conversion business case compares fuel costs over the common
   remaining-lifetime window of the source and destination vessel types,
   prorating both flows at that window. Previously each flow was prorated at

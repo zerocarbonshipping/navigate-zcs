@@ -28,7 +28,7 @@ from navigate.fleet.charter import (
     _calculate_fuel_cost,
     _initialize_vessel_component,
 )
-from navigate.fleet.conversion import apply_fuel_conversions
+from navigate.fleet.conversion import _ConversionCandidate, _ConversionProposal, apply_fuel_conversions
 from navigate.fleet.evolution import add_newbuilds, clean_up_multipliers
 from navigate.fleet.package import (
     Package,
@@ -194,9 +194,10 @@ class TestConversionCarriesCharterRate:
         timeline = np.arange(3.) * YEAR_TO_DAYS
         fleet.fuel_conversion_expenses = np.zeros_like(timeline)
 
-        proposals = {("a", 0): {"age": 5., "dt": 1.,
-                                "costs_per_vessel": {"b": (1., 1.)},
-                                "conversions": {"b": 2.}}}
+        proposals = [_ConversionProposal("a", 0, age=5., dt=1.,
+                                         candidates={"b": _ConversionCandidate(metric=0., limit=1.,
+                                                                               energy_per_vessel=0., charge=1.,
+                                                                               window=1., count=2.)})]
         apply_fuel_conversions(fleet, proposals, idx=0, timeline=timeline)
 
         converted = fleet.increments[1][0]
