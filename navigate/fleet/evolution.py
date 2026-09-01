@@ -963,4 +963,4 @@ def perform_fleet_evolution(fleet: Fleet, timeline: np.ndarray, time_step: float
 
     # assign to the profile
     fleet.profile.set_trade(idx, trade - trade_gap)
-    fleet._transfer_multipliers_to_profile(idx)
+    fleet.transfer_multipliers_to_profile(idx)
