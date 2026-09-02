@@ -46,10 +46,17 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - **Breaking** for code importing navigate as a library: the node type is
   set through the constructor instead of being assigned afterwards —
   `Node.__init__` (and the `_AssetManager`, `_Machinery`, and `_Policy`
-  bases) takes a required `type_` argument that `TypeCheckMixin` stores, so
+  bases) takes a required `type_` argument that the node stores, so
   external `Node` subclasses must pass their type constant to
   `super().__init__`. The never-read `unit` attribute on `NodeReference`
   is removed. Simulation results are unchanged.
+- **Breaking** for code importing navigate as a library: the
+  `navigate.core._mixin` module is dissolved — `TypeCheckMixin` lives in
+  `navigate.core.node_type` next to the type constants it checks against,
+  and `CommandReferenceMixin` is removed with its `command_references`
+  storage and `add_`/`clear_` mutators defined directly on `Node` and
+  `_GeneralNode`. The unused `is_node()` statics on both classes are
+  removed. Simulation results are unchanged.
 - The fuel-conversion supply/demand snapshot is read from the fleet
   expectation, which accumulates the fuel-type totals per time-step, instead
   of being read back from the fleet profile — profiles are output-only
@@ -165,9 +172,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `get_type()` and `NodeReference.get_name()`/`get_type()` are replaced by
   direct attribute access (CODESTYLE.md, Class variables) — `name` was
   already public, and the internal `_type` is now public `type` on both
-  classes. `CommandReferenceMixin.get_command_references()` is likewise
-  replaced by a public `command_references` attribute (`add_`/`clear_`
-  mutators unchanged). Nodes inside `plot_data.pkl` carry the renamed
+  classes. `get_command_references()` on `Node` and `_GeneralNode` is
+  likewise replaced by a public `command_references` attribute
+  (`add_`/`clear_` mutators unchanged). Nodes inside `plot_data.pkl` carry the renamed
   attribute, so the pickle incompatibility with earlier versions noted
   below extends to this change.
 - **Breaking** for code importing navigate as a library: trivial getters on

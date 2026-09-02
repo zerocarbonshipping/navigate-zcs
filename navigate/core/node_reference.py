@@ -3,12 +3,12 @@
 
 import numpy as np
 
-from navigate.core._mixin import TypeCheckMixin
+from navigate.core.node_type import TypeCheckMixin
 
 
 class NodeReference(TypeCheckMixin):
     def __init__(self, type_: str, name: str) -> None:
-        TypeCheckMixin.__init__(self, type_)
+        super().__init__(type_)
 
         self.name = name
 
