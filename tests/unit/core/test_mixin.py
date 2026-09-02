@@ -27,6 +27,7 @@ from navigate.core.node_type import (
     VARIABLE,
     VESSEL,
 )
+from navigate.parser._keywords import NODE_CLASS
 
 TYPE_PREDICATES = {
     'is_converter': CONVERTER,
@@ -54,28 +55,31 @@ TYPE_PREDICATES = {
 CALCULATOR_TYPES = (CURVE, FORECAST, SURFACE, TIMETABLE, VARIABLE)
 
 
-class _Typed(TypeCheckMixin):
-
-    def __init__(self, type_: str) -> None:
-        self.type = type_
-
-
 class TestTypePredicates:
 
     @pytest.mark.parametrize('method, type_', TYPE_PREDICATES.items())
     def test_true_for_own_type(self, method: str, type_: str):
-        assert getattr(_Typed(type_), method)()
+        assert getattr(TypeCheckMixin(type_), method)()
 
     @pytest.mark.parametrize('method, type_', TYPE_PREDICATES.items())
     def test_false_for_every_other_type(self, method: str, type_: str):
         for other in TYPE_PREDICATES.values():
             if other != type_:
-                assert not getattr(_Typed(other), method)()
+                assert not getattr(TypeCheckMixin(other), method)()
 
     def test_is_type(self):
-        assert _Typed(FUEL).is_type(FUEL)
-        assert not _Typed(FUEL).is_type(VESSEL)
+        assert TypeCheckMixin(FUEL).is_type(FUEL)
+        assert not TypeCheckMixin(FUEL).is_type(VESSEL)
 
     @pytest.mark.parametrize('type_', TYPE_PREDICATES.values())
     def test_is_calculator(self, type_: str):
-        assert _Typed(type_).is_calculator() == (type_ in CALCULATOR_TYPES)
+        assert TypeCheckMixin(type_).is_calculator() == (type_ in CALCULATOR_TYPES)
+
+
+class TestNodeTypeAttribute:
+
+    @pytest.mark.parametrize('type_, cls', NODE_CLASS.items())
+    def test_every_node_class_carries_its_type(self, type_: str, cls: type):
+        node = cls("n")
+        assert node.type == type_
+        assert node.is_type(type_)

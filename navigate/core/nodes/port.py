@@ -31,9 +31,7 @@ logger = logging.getLogger(__name__)
 
 class Port(Node):
     def __init__(self, name):
-        super().__init__(name)
-
-        self.type = PORT
+        super().__init__(name, PORT)
 
         # external properties ------------------------------------------------------------------------------------------
         # bunkering

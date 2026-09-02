@@ -19,6 +19,7 @@ import numpy as np
 from navigate.core import Scalar
 from navigate.core.increment import Increment
 from navigate.core.node import Node
+from navigate.core.node_type import CURVE
 from navigate.core.nodes.fleet import Fleet
 from navigate.core.unit import YEAR_TO_DAYS
 from navigate.economics.flows import correct_flow_residual, get_age_flow, trim_flow_to_lifetime
@@ -209,7 +210,7 @@ class _ShareCurve(Node):
     """Constant age-share curve stub for define_initial_technology."""
 
     def __init__(self, value: float):
-        super().__init__("share")
+        super().__init__("share", CURVE)
         self._value = value
 
     def get(self, age: float) -> float:

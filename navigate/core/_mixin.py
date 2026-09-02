@@ -42,7 +42,10 @@ _CALCULATOR_TYPES = (CURVE, FORECAST, SURFACE, TIMETABLE, VARIABLE)
 
 
 class TypeCheckMixin:
-    """Provides is_*() type-checking methods for classes with a type attribute."""
+    """Stores the node type and provides the is_*() type-checking methods."""
+
+    def __init__(self, type_: str) -> None:
+        self.type = type_
 
     def is_type(self, type_: str) -> bool:
         return self.type == type_

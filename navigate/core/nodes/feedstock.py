@@ -7,6 +7,4 @@ from navigate.core.node_type import FEEDSTOCK
 
 class Feedstock(Node):
     def __init__(self, name):
-        super().__init__(name)
-
-        self.type = FEEDSTOCK
+        super().__init__(name, FEEDSTOCK)

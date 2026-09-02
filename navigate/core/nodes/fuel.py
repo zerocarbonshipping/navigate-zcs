@@ -10,9 +10,7 @@ from navigate.exceptions import no_value_assigned_error
 
 class Fuel(Node):
     def __init__(self, name):
-        super().__init__(name)
-
-        self.type = FUEL
+        super().__init__(name, FUEL)
 
         # definition
         self.fuel_type = None              # enum, fuel type ID

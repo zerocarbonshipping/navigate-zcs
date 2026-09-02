@@ -5,11 +5,11 @@ from navigate.core._mixin import CommandReferenceMixin, TypeCheckMixin
 
 
 class Node(CommandReferenceMixin, TypeCheckMixin):
-    def __init__(self, name):
+    def __init__(self, name: str, type_: str) -> None:
         CommandReferenceMixin.__init__(self)
+        TypeCheckMixin.__init__(self, type_)
 
         self.name = name            # str
-        self.type = None            # str
 
         # expectation/profile
         self.expectation = None

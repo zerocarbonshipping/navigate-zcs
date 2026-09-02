@@ -7,11 +7,10 @@ from navigate.core._mixin import TypeCheckMixin
 
 
 class NodeReference(TypeCheckMixin):
-    def __init__(self, type_, name):
+    def __init__(self, type_: str, name: str) -> None:
+        TypeCheckMixin.__init__(self, type_)
 
-        self.type = type_
         self.name = name
-        self.unit = None
 
         # string indicating the file and line in
         # the deck where the node is referenced

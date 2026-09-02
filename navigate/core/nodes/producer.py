@@ -50,9 +50,7 @@ logger = logging.getLogger(__name__)
 
 class Producer(_AssetManager):
     def __init__(self, name):
-        super().__init__(name)
-
-        self.type = PRODUCER
+        super().__init__(name, PRODUCER)
 
         # external properties ------------------------------------------------------------------------------------------
 

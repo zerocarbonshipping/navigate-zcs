@@ -28,9 +28,7 @@ logger = logging.getLogger(__name__)
 
 class Route(Node):
     def __init__(self, name):
-        super().__init__(name)
-
-        self.type = ROUTE
+        super().__init__(name, ROUTE)
 
         self.route_type = None             # int, route type ID
         self.ports = []                    # list[Port], ports a vessel can bunker in

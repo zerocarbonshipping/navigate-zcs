@@ -10,10 +10,8 @@ from navigate.exceptions import no_value_assigned_error
 
 class Curve(Node, _Table1D):
     def __init__(self, name: str) -> None:
-        Node.__init__(self, name)
+        Node.__init__(self, name, CURVE)
         _Table1D.__init__(self)
-
-        self.type = CURVE
 
     def initialize(self) -> None:
         if self._table is None:

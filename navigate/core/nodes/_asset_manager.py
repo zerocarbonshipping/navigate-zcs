@@ -28,8 +28,8 @@ class _AssetManager(Node):
     increments of asset types over time using a discrete-choice investment model.
     """
 
-    def __init__(self, name: str) -> None:
-        super().__init__(name)
+    def __init__(self, name: str, type_: str) -> None:
+        super().__init__(name, type_)
 
         # shared decision attribute
         self.inertia: Scalar | None = None
