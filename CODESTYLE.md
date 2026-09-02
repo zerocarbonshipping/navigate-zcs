@@ -30,7 +30,7 @@ Type hints are required for all functions and classes, but **only on signatures 
 class Boat(Node):
 
     def __init__(self, name: str) -> None:
-        super().__init__(name)
+        super().__init__(name, VESSEL)
         self.price: int = 0
         self.length: float = 0.
 
@@ -141,7 +141,6 @@ d = {
   'c_long': z_long
 }
 ```
-
 
 ## Naming
 

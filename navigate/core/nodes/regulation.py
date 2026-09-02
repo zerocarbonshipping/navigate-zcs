@@ -22,9 +22,7 @@ if TYPE_CHECKING:
 
 class Regulation(_Policy):
     def __init__(self, name):
-        super().__init__(name)
-
-        self.type = REGULATION
+        super().__init__(name, REGULATION)
 
         self.measure = None            # enum, ID of emissions measure
 

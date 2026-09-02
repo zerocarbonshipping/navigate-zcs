@@ -24,9 +24,7 @@ if TYPE_CHECKING:
 
 class Vessel(Node):
     def __init__(self, name):
-        super().__init__(name)
-
-        self.type = VESSEL
+        super().__init__(name, VESSEL)
 
         # power demand
         self.propulsion_load = None          # float, Curve or Surface, load in MW (at sea)

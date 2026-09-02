@@ -15,10 +15,8 @@ logger = logging.getLogger(__name__)
 
 class Surface(Node, _Table2D):
     def __init__(self, name: str) -> None:
-        Node.__init__(self, name)
+        Node.__init__(self, name, SURFACE)
         _Table2D.__init__(self)
-
-        self.type = SURFACE
 
     def initialize(self) -> None:
         if self._table is None:

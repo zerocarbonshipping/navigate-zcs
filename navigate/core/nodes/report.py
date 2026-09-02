@@ -26,9 +26,7 @@ from navigate.output.report_writer import (
 
 class Report(Node):
     def __init__(self, name):
-        super().__init__(name)
-
-        self.type = REPORT
+        super().__init__(name, REPORT)
 
         # external properties
         self._directory = None  # str, either relative to deck directory or absolute path

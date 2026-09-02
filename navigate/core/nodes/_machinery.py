@@ -14,8 +14,8 @@ class _Machinery(Node):
     - Technology
     """
 
-    def __init__(self, name):
-        super().__init__(name)
+    def __init__(self, name: str, type_: str) -> None:
+        super().__init__(name, type_)
 
         self.capex = None          # float, CAPEX for installation
         self.opex = None           # float, OPEX for installation

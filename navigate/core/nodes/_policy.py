@@ -19,8 +19,8 @@ from navigate.exceptions import no_value_assigned_error
 
 
 class _Policy(Node):
-    def __init__(self, name):
-        super().__init__(name)
+    def __init__(self, name: str, type_: str) -> None:
+        super().__init__(name, type_)
 
         # active
         self.active = None                 # bool, whether the regulation is active and known

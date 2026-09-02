@@ -20,9 +20,7 @@ from navigate.util import list_is_unique
 
 class Converter(_Machinery):
     def __init__(self, name):
-        super().__init__(name)
-
-        self.type = CONVERTER
+        super().__init__(name, CONVERTER)
 
         # power
         self.power_capacity = None         # float, power capacity of the Converter, MW

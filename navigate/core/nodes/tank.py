@@ -10,9 +10,7 @@ from navigate.exceptions import no_value_assigned_error
 
 class Tank(_Machinery):
     def __init__(self, name):
-        super().__init__(name)
-
-        self.type = TANK
+        super().__init__(name, TANK)
 
         self.fuel_types = None             # list, fuel type ID
         self.size = None                   # float, tank size

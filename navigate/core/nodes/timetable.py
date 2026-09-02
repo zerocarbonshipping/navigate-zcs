@@ -18,10 +18,8 @@ logger = logging.getLogger(__name__)
 
 class Timetable(Node, _Table2D):
     def __init__(self, name: str) -> None:
-        Node.__init__(self, name)
+        Node.__init__(self, name, TIMETABLE)
         _Table2D.__init__(self)
-
-        self.type = TIMETABLE
 
         self.allow_dates_in_table = True
 

@@ -8,9 +8,7 @@ from navigate.core.node_type import FEEDSTOCK, FORECAST, PROCESS, VARIABLE
 
 class Process(Node):
     def __init__(self, name):
-        super().__init__(name)
-
-        self.type = PROCESS
+        super().__init__(name, PROCESS)
 
         self.feeds = []        # list[Feedstock | Process], feedstock or sub-process used in the process
         self.conversions = []  # list[float], conversion factor for each process/feedstock

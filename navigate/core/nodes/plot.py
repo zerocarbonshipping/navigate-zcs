@@ -9,9 +9,7 @@ from navigate.core.node_type import PLOT
 
 class Plot(Node):
     def __init__(self, name):
-        super().__init__(name)
-
-        self.type = PLOT
+        super().__init__(name, PLOT)
 
         # external properties
         self.directory = None

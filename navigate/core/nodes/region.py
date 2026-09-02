@@ -8,9 +8,7 @@ from navigate.core.node_type import FORECAST, REGION, TIMETABLE, VARIABLE
 
 class Region(Node):
     def __init__(self, name):
-        super().__init__(name)
-
-        self.type = REGION
+        super().__init__(name, REGION)
 
         # process
         self.process_capex = {}                    # dict[process_name: float], CAPEX of a process, USD/ton

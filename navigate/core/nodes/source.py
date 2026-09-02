@@ -10,9 +10,7 @@ from navigate.exceptions import no_value_assigned_error
 
 class Source(Node):
     def __init__(self, name):
-        super().__init__(name)
-
-        self.type = SOURCE
+        super().__init__(name, SOURCE)
 
         self.dependency = None  # enum, whether source is standalone or connected
 

@@ -18,9 +18,7 @@ class Technology(_Machinery):
     alternative power source, or an emission-reduction measure.
     """
     def __init__(self, name):
-        super().__init__(name)
-
-        self.type = TECHNOLOGY
+        super().__init__(name, TECHNOLOGY)
 
         self.shore_power_capacity: Scalar | None = None
 

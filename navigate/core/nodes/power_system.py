@@ -11,9 +11,7 @@ from navigate.util import list_is_unique
 
 class PowerSystem(_Machinery):
     def __init__(self, name):
-        super().__init__(name)
-
-        self.type = POWER_SYSTEM
+        super().__init__(name, POWER_SYSTEM)
         # converters
         self.propulsion = None   # Converter, main engine delivering propulsion power
         self.electrical = None   # Converter, auxiliary engine delivering electrical power

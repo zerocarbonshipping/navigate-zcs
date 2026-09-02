@@ -10,10 +10,8 @@ from navigate.exceptions import no_value_assigned_error
 
 class Variable(Node, _Calculator):
     def __init__(self, name):
-        Node.__init__(self, name)
+        Node.__init__(self, name, VARIABLE)
         _Calculator.__init__(self)
-
-        self.type = VARIABLE
 
         self._value = None
 

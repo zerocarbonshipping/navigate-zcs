@@ -65,8 +65,7 @@ type InputScalarLike = Scalar | Forecast | Variable
 class Fleet(_AssetManager):
 
     def __init__(self, name: str) -> None:
-        super().__init__(name)
-        self.type = FLEET
+        super().__init__(name, FLEET)
 
         self.trade_growth: ScalarLike = None                        # Trade-growth of the fleet
         self.fixed_scrap_rate: ScalarLike = None                    # Fixed scrap rate to replace age based

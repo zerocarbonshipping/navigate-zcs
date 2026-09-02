@@ -13,10 +13,8 @@ from navigate.util import timedelta_to_days
 
 class Forecast(Node, _Table1D):
     def __init__(self, name: str) -> None:
-        Node.__init__(self, name)
+        Node.__init__(self, name, FORECAST)
         _Table1D.__init__(self)
-
-        self.type = FORECAST
 
         self.allow_dates_in_table = True
 

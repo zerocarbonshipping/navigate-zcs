@@ -16,9 +16,7 @@ from navigate.exceptions import no_value_assigned_error
 
 class Levy(_Policy):
     def __init__(self, name):
-        super().__init__(name)
-
-        self.type = LEVY
+        super().__init__(name, LEVY)
 
         self.level = None              # dict[vessel_name: float], level of the levy, USD/ton emission
         self.lower_threshold = None    # float, reference emissions factor between penalty and subsidy

@@ -43,6 +43,13 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   5-decimal precision.
 
 ### Changed
+- **Breaking** for code importing navigate as a library: the node type is
+  set through the constructor instead of being assigned afterwards —
+  `Node.__init__` (and the `_AssetManager`, `_Machinery`, and `_Policy`
+  bases) takes a required `type_` argument that `TypeCheckMixin` stores, so
+  external `Node` subclasses must pass their type constant to
+  `super().__init__`. The never-read `unit` attribute on `NodeReference`
+  is removed. Simulation results are unchanged.
 - The fuel-conversion supply/demand snapshot is read from the fleet
   expectation, which accumulates the fuel-type totals per time-step, instead
   of being read back from the fleet profile — profiles are output-only
