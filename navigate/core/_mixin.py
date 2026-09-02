@@ -38,47 +38,74 @@ class CommandReferenceMixin:
         self.command_references = []
 
 
-_TYPE_CHECKS = {
-    'is_converter': CONVERTER,
-    'is_curve': CURVE,
-    'is_emission': EMISSION,
-    'is_feedstock': FEEDSTOCK,
-    'is_fleet': FLEET,
-    'is_forecast': FORECAST,
-    'is_fuel': FUEL,
-    'is_levy': LEVY,
-    'is_plot': PLOT,
-    'is_port': PORT,
-    'is_power_system': POWER_SYSTEM,
-    'is_process': PROCESS,
-    'is_regulation': REGULATION,
-    'is_report': REPORT,
-    'is_route': ROUTE,
-    'is_surface': SURFACE,
-    'is_tank': TANK,
-    'is_timetable': TIMETABLE,
-    'is_variable': VARIABLE,
-    'is_vessel': VESSEL,
-}
-
 _CALCULATOR_TYPES = (CURVE, FORECAST, SURFACE, TIMETABLE, VARIABLE)
 
 
 class TypeCheckMixin:
     """Provides is_*() type-checking methods for classes with a type attribute."""
 
-    def is_type(self, type_):
+    def is_type(self, type_: str) -> bool:
         return self.type == type_
 
-    def is_calculator(self):
+    def is_calculator(self) -> bool:
         return self.type in _CALCULATOR_TYPES
 
+    def is_converter(self) -> bool:
+        return self.type == CONVERTER
 
-def _make_checker(type_id):
-    def checker(self):
-        return self.type == type_id
-    return checker
+    def is_curve(self) -> bool:
+        return self.type == CURVE
 
+    def is_emission(self) -> bool:
+        return self.type == EMISSION
 
-for _name, _type_id in _TYPE_CHECKS.items():
-    setattr(TypeCheckMixin, _name, _make_checker(_type_id))
+    def is_feedstock(self) -> bool:
+        return self.type == FEEDSTOCK
+
+    def is_fleet(self) -> bool:
+        return self.type == FLEET
+
+    def is_forecast(self) -> bool:
+        return self.type == FORECAST
+
+    def is_fuel(self) -> bool:
+        return self.type == FUEL
+
+    def is_levy(self) -> bool:
+        return self.type == LEVY
+
+    def is_plot(self) -> bool:
+        return self.type == PLOT
+
+    def is_port(self) -> bool:
+        return self.type == PORT
+
+    def is_power_system(self) -> bool:
+        return self.type == POWER_SYSTEM
+
+    def is_process(self) -> bool:
+        return self.type == PROCESS
+
+    def is_regulation(self) -> bool:
+        return self.type == REGULATION
+
+    def is_report(self) -> bool:
+        return self.type == REPORT
+
+    def is_route(self) -> bool:
+        return self.type == ROUTE
+
+    def is_surface(self) -> bool:
+        return self.type == SURFACE
+
+    def is_tank(self) -> bool:
+        return self.type == TANK
+
+    def is_timetable(self) -> bool:
+        return self.type == TIMETABLE
+
+    def is_variable(self) -> bool:
+        return self.type == VARIABLE
+
+    def is_vessel(self) -> bool:
+        return self.type == VESSEL
