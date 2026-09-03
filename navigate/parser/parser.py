@@ -51,6 +51,7 @@ from navigate.parser._lark_parser import (
     parse_include_content,
     string_to_date,
 )
+from navigate.parser._scan import REFERENCE_SCAN_EXCLUDE, get_attributes
 from navigate.util import (
     attribute_to_setter,
     name_contains_wildcards,
@@ -60,12 +61,6 @@ from navigate.util import (
 )
 
 logger = logging.getLogger(__name__)
-
-# node attributes that can never hold node references, skipped when the parser
-# scans instance attributes to resolve references; every entry must name a real
-# attribute (pinned by a unit test) so stale entries cannot accumulate silently
-REFERENCE_SCAN_EXCLUDE = ('name', 'type', 'allow_dates_in_table', 'expectation', 'profile',
-                          '_table', 'just_copied')
 
 
 class Parser:
@@ -903,7 +898,7 @@ class Parser:
             self._replace_references_on_node(node)
 
     def _replace_references_on_node(self, node):
-        attributes = _get_attributes(node, exclude=REFERENCE_SCAN_EXCLUDE)
+        attributes = get_attributes(node, exclude=REFERENCE_SCAN_EXCLUDE)
 
         for attribute_name, attribute in attributes:
             self._replace_references_on_attribute(node, attribute, attribute_name=attribute_name)
@@ -1104,28 +1099,6 @@ class Parser:
         elif isinstance(value, Expression):
             if location is not None:
                 value.reference_location = location
-
-
-def _get_attributes(class_, exclude=()):
-    """
-    Extracts all attributes from the supplied class except built-in attributes and attributes listed in 'exclude'.
-
-    Parameters
-    ----------
-    class_ : class
-        Class from which to extract attributes.
-    exclude : tuple[str]
-        Tuple of strings with attributes to exclude from the list.
-
-    Returns
-    -------
-    generator :
-        Generator of (name, attribute) pairs.
-    """
-
-    attributes = list(class_.__dict__.items())
-    return ((name, attribute) for name, attribute in attributes
-            if not (name.startswith('__') and name.endswith('__')) and name not in exclude)
 
 
 def _get_files_in_directory(directory):
