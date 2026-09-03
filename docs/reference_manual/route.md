@@ -32,7 +32,7 @@ There are several conditions that must be met depending on whether the RouteType
 
 If RouteType is defined as ROUND\_TRIP:
 
-* Several attributes under the node ‘Route’ are irrelevant (TimeAtSea, PortCalls, Times, Jurisdiction).
+* Several attributes under the node ‘Route’ are irrelevant (TimeAtSea, PortCalls, Times).
 * Values for following attributes must be provided by the user: PortDurations, Distances.
 * The number of defined Distances and Speeds must correspond.
 * A minimum of 2 ports must be assigned.
@@ -48,7 +48,6 @@ If RouteType is defined as REGIONAL\_TRIP:
 * The number of defined Times and Speeds must correspond.
 * All ports must be unique.
 * The number of defined Ports and PortCalls must correspond.
-* The number of defined Ports and Jurisdiction must correspond.
 
 ## Attributes
 
