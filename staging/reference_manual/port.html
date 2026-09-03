@@ -471,7 +471,8 @@ SPDX-License-Identifier: CC-BY-4.0
 <h1>Port<a class="headerlink" href="#port" title="Link to this heading">#</a></h1>
 <p>A <code class="docutils literal notranslate"><span class="pre">Port</span></code> node defines a port in which a vessel can bunker fuel. Port nodes are often defined as a region in
 which the vessel is operating. Examples of ports are Rotterdam (if used specifically) and Asia
-(if used regionally).</p>
+(if used regionally). A port participates in the simulation only when a <code class="docutils literal notranslate"><span class="pre">Route</span></code>’s <code class="docutils literal notranslate"><span class="pre">Ports</span></code> lists it; an
+unrouted port is removed (see <a class="reference internal" href="dsl_reference.html#unreachable-nodes"><span class="std std-ref">Unreachable nodes</span></a>).</p>
 <p>Example:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Port</span> <span class="s2">"asia"</span> <span class="p">{</span>
     <span class="n">WindUtilization</span> <span class="o">=</span> <span class="mf">0.4</span>

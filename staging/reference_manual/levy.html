@@ -506,7 +506,7 @@ CO<sub>2</sub>-taxes and subsidy schemes.</p>
 </section>
 <section id="jurisdiction">
 <h3>Jurisdiction<a class="headerlink" href="#jurisdiction" title="Link to this heading">#</a></h3>
-<p>This attribute defines a list of ports that are under the jurisdiction of the policy.</p>
+<p>This attribute defines a list of ports that are under the jurisdiction of the policy. Only ports assigned to a <code class="docutils literal notranslate"><span class="pre">Route</span></code> participate in the simulation; a listed port on no route is removed from the simulation and from this list with a warning (see <a class="reference internal" href="dsl_reference.html#unreachable-nodes"><span class="std std-ref">Unreachable nodes</span></a>).</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: List of <code class="docutils literal notranslate"><span class="pre">Port</span></code> nodes</p></li>
 <li><p><strong>Example values</strong>:</p>

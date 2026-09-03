@@ -42,7 +42,7 @@ This attribute sets the scheme of the levy. Specifically whether it penalizes em
 
 ### Jurisdiction 
 
-This attribute defines a list of ports that are under the jurisdiction of the policy.
+This attribute defines a list of ports that are under the jurisdiction of the policy. Only ports assigned to a `Route` participate in the simulation; a listed port on no route is removed from the simulation and from this list with a warning (see [Unreachable nodes](dsl_reference.md#unreachable-nodes)).
 
 * **Data type**: List of `Port` nodes
 * **Example values**:

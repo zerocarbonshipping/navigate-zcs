@@ -492,7 +492,7 @@ Europe (if regional).</p>
 <p>There are several conditions that must be met depending on whether the RouteType is defined as REGIONAL_TRIP or ROUND_TRIP.</p>
 <p>If RouteType is defined as ROUND_TRIP:</p>
 <ul class="simple">
-<li><p>Several attributes under the node ‘Route’ are irrelevant (TimeAtSea, PortCalls, Times, Jurisdiction).</p></li>
+<li><p>Several attributes under the node ‘Route’ are irrelevant (TimeAtSea, PortCalls, Times).</p></li>
 <li><p>Values for following attributes must be provided by the user: PortDurations, Distances.</p></li>
 <li><p>The number of defined Distances and Speeds must correspond.</p></li>
 <li><p>A minimum of 2 ports must be assigned.</p></li>
@@ -508,7 +508,6 @@ Europe (if regional).</p>
 <li><p>The number of defined Times and Speeds must correspond.</p></li>
 <li><p>All ports must be unique.</p></li>
 <li><p>The number of defined Ports and PortCalls must correspond.</p></li>
-<li><p>The number of defined Ports and Jurisdiction must correspond.</p></li>
 </ul>
 </section>
 <section id="attributes">
@@ -526,7 +525,7 @@ Europe (if regional).</p>
 </section>
 <section id="ports">
 <h3>Ports<a class="headerlink" href="#ports" title="Link to this heading">#</a></h3>
-<p>This attribute sets the list of ports available for bunkering on the route. The number of ports and bunker regions must correspond.</p>
+<p>This attribute sets the list of ports available for bunkering on the route. The number of ports and bunker regions must correspond. This is the only attribute that keeps a <code class="docutils literal notranslate"><span class="pre">Port</span></code> in the simulation — a port on no route is removed (see <a class="reference internal" href="dsl_reference.html#unreachable-nodes"><span class="std std-ref">Unreachable nodes</span></a>).</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: List of <code class="docutils literal notranslate"><span class="pre">Port</span></code> nodes</p></li>
 <li><p><strong>Example values</strong>:</p>
