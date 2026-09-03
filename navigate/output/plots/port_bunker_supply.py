@@ -27,7 +27,7 @@ def plot_port_bunker_supply(manager, directory):
 
     ports = manager.nodes.ports
     fuels = manager.nodes.fuels
-    fuels = {fuel_name: fuel for fuel_name, fuel in fuels.items() if not fuel.belongs_to_liquid_market()}
+    fuels = {fuel_name: fuel for fuel_name, fuel in fuels.items() if not fuel.liquid_market}
 
     if not fuels:
         return

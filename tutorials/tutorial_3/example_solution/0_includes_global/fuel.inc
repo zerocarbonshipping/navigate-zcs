@@ -7,6 +7,7 @@
 # Definition of "heavy_fuel_oil"
 Fuel "heavy_fuel_oil" {
 	FuelType = OIL
+	LiquidMarket = TRUE
 
 	LowerHeatingValue = 41.2
 	MassDensity = 0.9

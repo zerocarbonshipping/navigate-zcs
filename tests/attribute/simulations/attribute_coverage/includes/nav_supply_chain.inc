@@ -16,7 +16,8 @@
 #   Region:    (none - only commands)
 #
 # Commands covered:
-#   Plant:    set_feed_transport, set_feed_distance
+#   Plant:    set_feed_transport, set_feed_distance, set_fuel_transport,
+#             set_fuel_distance
 #   Producer: set_existing_pipeline, set_allow_plant, set_feed_constraint,
 #             set_export_distribution
 #   Region:   set_process_capex, set_process_opex, set_process_energy,
@@ -75,6 +76,8 @@ Plant "plant_methanol" {
 	LeadTime = 4
 	set_feed_transport("water", Transport("truck"))
 	set_feed_distance("water", 100)
+	set_fuel_transport("port_a", Transport("truck"))
+	set_fuel_distance("port_a", 500)
 }
 
 Producer "producer_global" {

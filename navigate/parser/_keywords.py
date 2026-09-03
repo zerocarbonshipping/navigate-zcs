@@ -2,11 +2,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from navigate.core.enum_ import SimulationSectionID
-from navigate.core.general_nodes.bunker_logistics import BunkerLogistics
 from navigate.core.general_nodes.bunker_options import BunkerOptions
 from navigate.core.general_nodes.model_definition import ModelDefinition
 from navigate.core.node_type import (
-    BUNKER_LOGISTICS,
     BUNKER_OPTIONS,
     CONVERTER,
     CURVE,
@@ -99,8 +97,7 @@ NODE_CLASS = {CONVERTER:            Converter,
               VARIABLE:             Variable,
               VESSEL:               Vessel}
 
-GENERAL_NODE_CLASS = {BUNKER_LOGISTICS: BunkerLogistics,
-                      BUNKER_OPTIONS:   BunkerOptions,
+GENERAL_NODE_CLASS = {BUNKER_OPTIONS:   BunkerOptions,
                       MODEL_DEFINITION: ModelDefinition}
 
 NODE_GROUP = {CONVERTER:            'converters',
@@ -130,8 +127,7 @@ NODE_GROUP = {CONVERTER:            'converters',
               VARIABLE:             'variables',
               VESSEL:               'vessels'}
 
-GENERAL_NODE_GROUP = {BUNKER_LOGISTICS: 'bunker_logistics',
-                      BUNKER_OPTIONS:   'bunker_options',
+GENERAL_NODE_GROUP = {BUNKER_OPTIONS:   'bunker_options',
                       MODEL_DEFINITION: 'model_definition'}
 
 NODE_ALLOW_COPY = {CONVERTER:           True,
@@ -189,7 +185,6 @@ KEYWORD_SECTIONS = {CONVERTER:          SECTION_BOTH,
                     VARIABLE:           SECTION_BOTH,
                     VESSEL:             SECTION_BOTH,
                     # general nodes ----------------
-                    BUNKER_LOGISTICS:   SECTION_DEFINE,
                     BUNKER_OPTIONS:     SECTION_DEFINE,
                     MODEL_DEFINITION:   SECTION_DEFINE,
                     # miscellaneous ----------------

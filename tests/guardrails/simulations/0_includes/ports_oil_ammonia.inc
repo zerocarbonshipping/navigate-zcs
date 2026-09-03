@@ -17,8 +17,3 @@ Port "*" {
 	# e-ammonia: renewable production, no upstream emissions
 	set_bunker_wtt_overwrite("ammonia_electro", "carbon_dioxide", 0.)
 }
-
-BunkerLogistics {
-	# oil is a liquid market fuel: available without a Producer
-	LiquidMarketFuels = [Fuel("fossil_fuel_oil")]
-}

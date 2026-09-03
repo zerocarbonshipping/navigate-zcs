@@ -25,7 +25,7 @@ SPDX-License-Identifier: Apache-2.0
             </dict>
             <dict>
                 <key>match</key>
-                <string>\b(DEFINE|EVENTS|Include|Load|Start|End|ModelDefinition|BunkerLogistics|BunkerOptions|Date|Import|Copy|Converter|Curve|Emission|EmissionReduction|Feedstock|Finance|Fleet|Forecast|Fuel|Levy|Lookup|Matrix|Plant|Port|PowerSystem|Process|Producer|Region|Regulation|Report|ReportFT|ReportTCO|Route|Router|Source|Surface|Tank|Timetable|Transport|Variable|Vessel)\b</string>
+                <string>\b(DEFINE|EVENTS|Include|Load|Start|End|ModelDefinition|BunkerOptions|Date|Import|Copy|Converter|Curve|Emission|EmissionReduction|Feedstock|Finance|Fleet|Forecast|Fuel|Levy|Lookup|Matrix|Plant|Port|PowerSystem|Process|Producer|Region|Regulation|Report|ReportFT|ReportTCO|Route|Router|Source|Surface|Tank|Timetable|Transport|Variable|Vessel)\b</string>
                 <key>name</key>
                 <string>keyword.control.navigate</string>
             </dict>

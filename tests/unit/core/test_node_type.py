@@ -4,7 +4,6 @@
 """Unit tests for the TypeCheckMixin type predicates."""
 import pytest
 
-from navigate.core._mixin import TypeCheckMixin
 from navigate.core.node_type import (
     CONVERTER,
     CURVE,
@@ -26,6 +25,7 @@ from navigate.core.node_type import (
     TIMETABLE,
     VARIABLE,
     VESSEL,
+    TypeCheckMixin,
 )
 from navigate.parser._keywords import NODE_CLASS
 

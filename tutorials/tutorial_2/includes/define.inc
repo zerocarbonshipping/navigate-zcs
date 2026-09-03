@@ -147,11 +147,6 @@ Port "port" {
 }
 
 
-BunkerLogistics {
-	LiquidMarketFuels = [Fuel("heavy_fuel_oil")]
-}
-
-
 # Definition of the node "Region" 
 
 	# e-methane
@@ -170,6 +165,7 @@ BunkerLogistics {
 # Definition of "heavy_fuel_oil" (same as Tutorial 1).
 Fuel "heavy_fuel_oil" {
 	FuelType = OIL
+	LiquidMarket = TRUE
 	LowerHeatingValue = 41.2
 	MassDensity = 0.9
 

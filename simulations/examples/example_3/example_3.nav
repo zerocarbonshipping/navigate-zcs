@@ -57,7 +57,6 @@ DEFINE {
     # and port conditions.
     Include "includes/route.inc"
     Include "includes/ports.inc"
-    Include "includes/bunker_logistics.inc"
 
     # ----------------------------- FUEL ------------------------------
     # Defines the fuels available in the scenario, their production processes,

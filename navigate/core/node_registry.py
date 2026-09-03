@@ -4,7 +4,6 @@
 from dataclasses import dataclass, field
 from typing import Iterable
 
-from navigate.core.general_nodes.bunker_logistics import BunkerLogistics
 from navigate.core.general_nodes.bunker_options import BunkerOptions
 from navigate.core.general_nodes.model_definition import ModelDefinition
 from navigate.core.node import Node
@@ -86,6 +85,5 @@ class Nodes:
 
 @dataclass
 class GeneralNodes:
-    bunker_logistics:   BunkerLogistics | None = None
     bunker_options:     BunkerOptions | None = None
     model_definition:   ModelDefinition | None = None

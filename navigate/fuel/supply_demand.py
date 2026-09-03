@@ -79,7 +79,7 @@ def calculate_fuel_supply_demand_gap(fuels, supply, demand):
     gap = {}
     for fuel_name, fuel in fuels.items():
 
-        if fuel.belongs_to_liquid_market():
+        if fuel.liquid_market:
             continue
 
         gap.setdefault(fuel_name, 0.)

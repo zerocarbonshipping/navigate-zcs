@@ -7,9 +7,9 @@
 # It includes both conventional fossil fuel oil and a bio-fuel alternative (FAME),
 # along with their associated production plants, processes, and feedstocks.
 #
-# Regional supply and producer definitions are specified separately in producer.inc 
-# and regions.inc. FAME production is assumed to take place in Europe and transported
-# to Australia and New Zealand, with fossil fuels treated as globally available.
+# Regional supply and producer definitions are specified separately in producer.inc
+# and regions.inc. FAME production is assumed to take place in Europe, with
+# fossil fuels treated as globally available.
 #
 # ----------------------------------------------------------------------------------------
 
@@ -21,7 +21,7 @@ Import Fuel "fossil_fuel_oil"
 # Renewable biodiesel (Fatty Acid Methyl Ester) produced from waste oils and fats
 Import Fuel "fatty_acid_methyl_ester"
 
-# FAME production plant located in Europe, but has to be transported to AU/NZ
+# FAME production plant located in Europe
 Import Plant "plant_fatty_acid_methyl_ester"
 
 Plant "plant_fatty_acid_methyl_ester" {

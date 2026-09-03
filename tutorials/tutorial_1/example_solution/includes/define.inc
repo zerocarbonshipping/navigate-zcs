@@ -93,11 +93,6 @@ Port "port" {
 }
 
 
-BunkerLogistics {
-	LiquidMarketFuels = [Fuel("heavy_fuel_oil")]
-}
-
-
 # D) DEFINITION OF A FUEL
 # Define the node "heavy_fuel_oil" below.
 
@@ -105,6 +100,7 @@ BunkerLogistics {
 
 Fuel "heavy_fuel_oil" {	
 	FuelType = OIL
+	LiquidMarket = TRUE
 	LowerHeatingValue = 41.2
 	MassDensity = 0.9
 

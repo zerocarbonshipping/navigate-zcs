@@ -33,7 +33,7 @@ class _FuelInfrastructureProfile(_FuelBaseProfile):
 
         for fuel_name, fuel in fuels.items():
 
-            if fuel.belongs_to_liquid_market():
+            if fuel.liquid_market:
                 self._bunker_supply_mass[fuel_name] = self._default_array(default=np.nan)
             else:
                 self._bunker_supply_mass[fuel_name] = self._default_array()

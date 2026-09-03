@@ -7,7 +7,6 @@ DEFINE {
 				
 	### model definition and general conditions
 	Include "../../0_includes_global/model_definition.inc"
-	Include "../../0_includes_global/bunker_logistics.inc"
 	
 	# fleets
 	Include "../../0_includes_global/fleet_bulk.inc"

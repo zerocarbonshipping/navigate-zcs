@@ -43,7 +43,6 @@ DEFINE {
     # bunker price of fossil fuels and handling costs in ports
     Include "includes/route.inc"
     Include "includes/ports.inc"
-    Include "includes/bunker_logistics.inc"
 
     # --------------------------- FUEL -----------------------------
     # Define the fuel plants that can be built

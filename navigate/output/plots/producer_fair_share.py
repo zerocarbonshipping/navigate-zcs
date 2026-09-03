@@ -15,7 +15,7 @@ def plot_producer_fair_share(manager, directory):
     dateline = manager.dateline
 
     fuels = manager.nodes.fuels
-    fuels = {fuel_name: fuel for fuel_name, fuel in fuels.items() if not fuel.belongs_to_liquid_market()}
+    fuels = {fuel_name: fuel for fuel_name, fuel in fuels.items() if not fuel.liquid_market}
     producers = manager.nodes.producers
 
     if not producers:

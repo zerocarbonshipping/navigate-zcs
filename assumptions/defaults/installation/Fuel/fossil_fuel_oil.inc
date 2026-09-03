@@ -3,6 +3,7 @@
 
 Fuel "fossil_fuel_oil" {
 	FuelType = OIL
+	LiquidMarket = TRUE
 
 	LowerHeatingValue = Variable("lower_heating_value_oil")
 	MassDensity = Variable("mass_density_oil")

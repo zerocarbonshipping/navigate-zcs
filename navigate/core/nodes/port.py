@@ -303,7 +303,7 @@ class Port(Node):
             self.shore_power_emission_factor.setdefault(emission_name, None)
 
         # set internal property
-        self.liquid_market_fuel = {fuel_name: fuel.belongs_to_liquid_market() for fuel_name, fuel in fuels.items()}
+        self.liquid_market_fuel = {fuel_name: fuel.liquid_market for fuel_name, fuel in fuels.items()}
 
     def initialize_expectation(self, length: int, fuels: dict[str, Fuel],
                                emissions: dict[str, Emission]) -> None:

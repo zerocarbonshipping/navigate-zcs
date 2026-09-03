@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from navigate.core.node_type import (
-    BUNKER_LOGISTICS,
     BUNKER_OPTIONS,
     CONVERTER,
     CURVE,
@@ -114,6 +113,7 @@ _FORECAST_ATTRIBUTES = {'Table': SECTION_BOTH,
                         **_TABLE1D_ATTRIBUTES}
 
 _FUEL_ATTRIBUTES = {'FuelType':          SECTION_DEFINE,
+                    'LiquidMarket':      SECTION_DEFINE,
                     'LowerHeatingValue': SECTION_DEFINE,
                     'MassDensity':       SECTION_DEFINE}
 
@@ -225,8 +225,6 @@ _VESSEL_ATTRIBUTES = {'PropulsionLoad':         SECTION_DEFINE,
 _MODEL_DEFINITION_ATTRIBUTES = {'StartDate':         SECTION_DEFINE,
                                 'EmissionsLifetime': SECTION_DEFINE}
 
-_BUNKER_LOGISTICS_ATTRIBUTES = {'LiquidMarketFuels': SECTION_DEFINE}
-
 _BUNKER_OPTIONS_ATTRIBUTES = {'Solver':                        SECTION_DEFINE,
                               'SolverMethod':                 SECTION_DEFINE,
                               'SolutionTolerance':            SECTION_DEFINE,
@@ -263,7 +261,6 @@ NODE_ATTRIBUTE_SECTIONS = {CONVERTER:           _CONVERTER_ATTRIBUTES,
                            VESSEL:              _VESSEL_ATTRIBUTES}
 
 GENERAL_NODE_ATTRIBUTE_SECTIONS = {MODEL_DEFINITION: _MODEL_DEFINITION_ATTRIBUTES,
-                                   BUNKER_LOGISTICS: _BUNKER_LOGISTICS_ATTRIBUTES,
                                    BUNKER_OPTIONS:   _BUNKER_OPTIONS_ATTRIBUTES}
 
 

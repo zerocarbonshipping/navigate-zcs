@@ -61,7 +61,7 @@ class PortExpectation(_Expectation):
         self._shore_power_emission_factor = self._default_dict_array(emissions)
 
         for fuel_name, fuel in fuels.items():
-            if fuel.belongs_to_liquid_market():
+            if fuel.liquid_market:
                 self._bunker_supply[fuel_name] = self._default_array(default=np.inf)
             else:
                 self._bunker_supply[fuel_name] = self._default_array()
