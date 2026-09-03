@@ -548,6 +548,19 @@ End
 
         assert 'Levy("levy") Jurisdiction: Port("jur_port")' in caplog.text
 
+    def test_every_surviving_port_is_routed(self, tmp_path, caplog):
+        # the invariant consumers rely on (producer export seeding, the
+        # fuel-import path): after the prune, no registry port is unrouted
+        define_extra = (LEVY_DECK.format(name='levy', jurisdiction='[Port("port"), Port("jur_port")]',
+                                         extra='')
+                        + JURISDICTION_PORT + GHOST_ROUTE)
+
+        with caplog.at_level(logging.WARNING):
+            parser = _read_deck(tmp_path, define_extra=define_extra)
+
+        routed = {port.name for route in parser.nodes.routes.values() for port in route.ports}
+        assert set(parser.nodes.ports) == routed
+
     def test_wildcard_jurisdiction_scrubbed_to_surviving_ports(self, tmp_path, caplog):
         # the wildcard expands before the prune, so the pruned ghost port
         # lands in the jurisdiction list and must be scrubbed back out

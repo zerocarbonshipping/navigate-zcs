@@ -15,7 +15,6 @@ if TYPE_CHECKING:
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.port import Port
     from navigate.core.nodes.producer import Producer
-    from navigate.core.nodes.route import Route
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +23,6 @@ def calculate_fuel_import_to_ports(ports: dict[str, Port],
                                    producers: dict[str, Producer],
                                    emissions: dict[str, Emission],
                                    fuels: dict[str, Fuel],
-                                   routes: dict[str, Route],
                                    timeline: np.ndarray,
                                    idx: int
                                    ) -> None:
@@ -41,11 +39,6 @@ def calculate_fuel_import_to_ports(ports: dict[str, Port],
         All emissions in the simulation.
     fuels
         All fuels in the simulation.
-    routes
-        All routes in the simulation. Used to restrict the producer-pipeline
-        path to ports that are actually visited by a vessel — a port declared
-        but absent from every route would otherwise absorb its share of the
-        producer export distribution and silently strand that supply.
     timeline
         The simulation timeline.
     idx
@@ -57,11 +50,8 @@ def calculate_fuel_import_to_ports(ports: dict[str, Port],
     liquid_fuels = {f: fuel for f, fuel in fuels.items() if fuel.liquid_market}
     production_fuels = {f: fuel for f, fuel in fuels.items() if not fuel.liquid_market}
 
-    active_port_names = {port.name for route in routes.values() for port in route.ports}
-    active_ports = {p: port for p, port in ports.items() if p in active_port_names}
-
     _calculate_import_from_liquid_market(ports, liquid_fuels, emissions, idx)
-    _calculate_import_from_producers(active_ports,
+    _calculate_import_from_producers(ports,
                                      producers,
                                      emissions,
                                      production_fuels,
@@ -218,13 +208,6 @@ def _calculate_import_from_producers(ports: dict[str, Port],
 
             # export the production to individual ports
             for p, export in export_distribution.items():
-
-                # the expectation tracks all declared ports, but only ports
-                # on at least one route absorb exports. skip the rest so
-                # the supply stays with destinations a vessel can actually
-                # bunker from.
-                if p not in ports:
-                    continue
 
                 # if bunkering of the produced fuel
                 # is disallowed in the port then skip

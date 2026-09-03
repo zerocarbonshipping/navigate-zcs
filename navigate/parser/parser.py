@@ -1064,8 +1064,7 @@ class Parser:
             port.initialize_dependencies(self.nodes.emissions, self.nodes.fuels)
 
         for producer in self.nodes.producers.values():
-            producer.initialize_dependencies(self.nodes.feedstocks, self.nodes.ports, self.nodes.processes,
-                                             self.nodes.routes)
+            producer.initialize_dependencies(self.nodes.feedstocks, self.nodes.ports, self.nodes.processes)
 
         for region in self.nodes.regions.values():
             region.initialize_dependencies(self.nodes.emissions,

@@ -434,7 +434,6 @@ class SimulationManager:
                                        self.nodes.producers,
                                        self.nodes.emissions,
                                        self.nodes.fuels,
-                                       self.nodes.routes,
                                        self.timeline,
                                        self._idx)
 

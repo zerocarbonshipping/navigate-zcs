@@ -73,7 +73,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   navigate as a library, `Vessel.is_assigned_to_fleet` and
   `Plant.is_assigned_to_producer` are removed — after the prune every
   surviving vessel and plant is assigned, so both predicates were
-  tautological.
+  tautological; for the same reason `Producer.initialize_dependencies` and
+  `navigate.fuel.calculate_fuel_import_to_ports` no longer take a `routes`
+  argument — every surviving port is routed.
 - **Breaking** for code importing navigate as a library: the node type is
   set through the constructor instead of being assigned afterwards —
   `Node.__init__` (and the `_AssetManager`, `_Machinery`, and `_Policy`
