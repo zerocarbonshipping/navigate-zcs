@@ -11,6 +11,11 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Added
+- The console prints the number of logged warnings at the end of a run,
+  pointing at the `.log` file. Warnings were previously visible only in the
+  log, so a run whose results they affect could look clean on the console.
+
 ### Fixed
 - The regulation spend coefficient, shore-power regulation coefficient, and
   regulation measure containers of the bunker algorithm are now reset at

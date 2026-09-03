@@ -7,10 +7,12 @@ synthetic registries, and the parser's prune-and-warn pass over inline decks.
 """
 
 import logging
+import sys
 
 import pytest
 
 from helpers.simulation import default_assumptions_dir
+from navigate.__main__ import main
 from navigate.core import Expression, NodeReference
 from navigate.core.node_reference import WildcardNodeReference
 from navigate.core.node_registry import GeneralNodes, Nodes
@@ -254,12 +256,17 @@ End
 '''
 
 
-def _read_deck(tmp_path, define_extra='', events_content=EVENTS_BASE, parser=None):
+def _write_deck(tmp_path, define_extra='', events_content=EVENTS_BASE):
     (tmp_path / 'define.inc').write_text(DEFINE_BASE + define_extra)
     (tmp_path / 'events.inc').write_text(events_content)
 
     deck = tmp_path / 'deck.nav'
     deck.write_text('DEFINE { Include "./define.inc" }\nEVENTS { Include "./events.inc" }\n')
+    return deck
+
+
+def _read_deck(tmp_path, define_extra='', events_content=EVENTS_BASE, parser=None):
+    deck = _write_deck(tmp_path, define_extra, events_content)
 
     parser = parser or Parser()
     parser.read_deck(deck, data_dir=default_assumptions_dir())
@@ -443,6 +450,24 @@ End
         assert parser.nodes.vessels is vessels_group
         assert 'ghost' not in vessels_group
         assert 'vessel' in vessels_group
+
+    def test_warning_count_printed_to_console(self, tmp_path, capsys, monkeypatch):
+        deck = _write_deck(tmp_path, define_extra=GHOST_VESSEL)
+
+        monkeypatch.setattr(sys, 'argv', ['navigate', str(deck), '-s',
+                                          '-d', str(default_assumptions_dir())])
+
+        # main() attaches root-logger handlers via setup_logger; close them so
+        # the file handler does not leak past this test
+        try:
+            assert main() == 0
+
+            assert 'warning(s) logged' in capsys.readouterr().out
+        finally:
+            root = logging.getLogger()
+            for handler in root.handlers[:]:
+                handler.close()
+                root.removeHandler(handler)
 
     def test_command_naming_pruned_node_errors_with_hint(self, tmp_path):
         define_extra = GHOST_VESSEL + LEVY_GHOST
