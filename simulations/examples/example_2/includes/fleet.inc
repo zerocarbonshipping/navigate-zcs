@@ -10,7 +10,7 @@
 # For simplicity, vessel specifications (capacity, load levels, capital and 
 # operating costs) are assumed to be the same regardless of whether they run 
 # on fuel oil or FAME. Differences in fuel type, emissions, and costs are captured
-# through the fuel production, bunker logistics and regulation definition
+# through the fuel production and regulation definition
 #
 # The vessels are of different ages, and you can change the initital number, the
 # level of trade growth or allowance of speed management to see how it affects

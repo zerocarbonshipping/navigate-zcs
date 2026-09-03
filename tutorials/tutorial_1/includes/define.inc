@@ -58,7 +58,6 @@
 
 
 
-#Define the node "BunkerLogistics" below.
 
 
 

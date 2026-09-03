@@ -3,6 +3,7 @@
 
 Fuel "liquefied_natural_gas" {
 	FuelType = METHANE
+	LiquidMarket = TRUE
 
 	LowerHeatingValue = Variable("lower_heating_value_natural_gas")
 	MassDensity = Variable("mass_density_liquefied_natural_gas")

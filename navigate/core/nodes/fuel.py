@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from navigate.core import Scalar, as_scalar, assign_id, assign_value, command_assignment_to_dict
+from navigate.core.assign import BOOL_ID
 from navigate.core.enum_ import FuelTypeID
 from navigate.core.node import Node
 from navigate.core.node_type import FUEL, VARIABLE
@@ -14,6 +15,7 @@ class Fuel(Node):
 
         # definition
         self.fuel_type = None              # enum, fuel type ID
+        self.liquid_market = False         # bool, whether the fuel belongs to a liquid market
 
         # physical properties
         self.lower_heating_value = None    # float, lower heating value GJ/ton
@@ -21,9 +23,6 @@ class Fuel(Node):
 
         # emissions
         self.ttw = {}                      # dict, emission factor in ton of emission per ton of fuel
-
-        # internal attributes
-        self.liquid_market = False         # bool, whether the fuel belongs to a liquid market
 
     # external attributes set through the input deck -------------------------------------------------------------------
     def set_fuel_type(self, fuel_type):
@@ -43,6 +42,26 @@ class Fuel(Node):
         """
 
         self.fuel_type = assign_id(fuel_type, FuelTypeID)
+
+    def set_liquid_market(self, liquid_market):
+        """
+        Set the flag for whether the fuel belongs to a liquid market.
+
+        Fuels which belong to a liquid market cannot be modelled bottom-up via Plant and Producer nodes but require
+        manual assignment of supply, price, and WTT emissions at Port level.
+
+        Examples
+        --------
+        - TRUE
+        - FALSE
+
+        Parameters
+        ----------
+        liquid_market : str
+            Whether the fuel belongs to a liquid market.
+        """
+
+        self.liquid_market = assign_id(liquid_market, BOOL_ID)
 
     def set_lower_heating_value(self, lower_heating_value):
         """
@@ -115,6 +134,3 @@ class Fuel(Node):
 
         for emission_name in emissions:
             self.ttw.setdefault(emission_name, None)
-
-    def belongs_to_liquid_market(self):
-        return self.liquid_market

@@ -146,6 +146,24 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   (fleet evolution), so it carries a public name. No behavior change.
 
 ### Removed
+- **Breaking** for input decks: the `BunkerLogistics` general node is
+  removed. Its responsibilities move to regular nodes: whether a fuel
+  belongs to a liquid market is the new `LiquidMarket` attribute on `Fuel`
+  (replacing `LiquidMarketFuels`; the shipped defaults for
+  `fossil_fuel_oil` and `liquefied_natural_gas` set it, replacing the
+  deleted `DefaultBunkerLogistics` module), and fuel delivery to ports is
+  the new `set_fuel_transport`/`set_fuel_distance` commands on `Plant`,
+  mirroring the feed twins: a per-port transport mode and distance priced
+  through the plant region's `set_transport_cost`/`set_transport_wtt`
+  rates (replacing `set_distance`/`set_transport_cost`/`set_transport_wtt`
+  keyed by fuel, whose per-fuel global rates could not differ per plant).
+  General nodes no longer accept commands, and no general node
+  participates in node-dependency initialization. For library code,
+  `Fuel.belongs_to_liquid_market()` is replaced by the public
+  `liquid_market` attribute, and `calculate_plant_logistics_expectations`
+  loses its `bunker_logistics` parameter. Committed decks are results-
+  neutral except the examples, which lose their flat transport-cost
+  assignments (delivery costs become zero).
 - The fuel-type supply members on `FleetProfile`
   (`add_fuel_type_supply`/`get_fuel_type_supply`): their only reader was the
   fuel-conversion snapshot, which now reads the fleet expectation; no report

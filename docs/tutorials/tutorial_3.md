@@ -117,29 +117,28 @@ There are multiple different ways/logics of how you could split the content of t
 3.	`scenario_170.nav`
 #### `.inc` files (0_includes_global):
 1.	`model_definition.inc`
-2.	`bunker_logistics.inc`
-3.	`fleet_bulk.inc`
-4.	`fleet_container.inc`
-5.	`fleet_uptake.inc`
-6.	`container_ice_oil.inc`
-7.	`container_ice_methane.inc`
-8.	`bulk_ice_methanol.inc`
-9.	`bulk_ice_ammonia.inc`
-10.	`tanks.inc`
-11.	`route.inc`
-12.	`port.inc`
-13.	`producer.inc`
-14.	`producer_uptake.inc`
-15.	`plant.inc`
-16.	`fuel.inc`
-17.	`emissions.inc`
-18.	`process.inc`
-19.	`feedstock.inc`
-20.	`region.inc`
-21.	`source.inc`
-22.	`report.inc`
-23.	`plot.inc`
-24.	`time_steps_yearly.inc`
+2.	`fleet_bulk.inc`
+3.	`fleet_container.inc`
+4.	`fleet_uptake.inc`
+5.	`container_ice_oil.inc`
+6.	`container_ice_methane.inc`
+7.	`bulk_ice_methanol.inc`
+8.	`bulk_ice_ammonia.inc`
+9.	`tanks.inc`
+10.	`route.inc`
+11.	`port.inc`
+12.	`producer.inc`
+13.	`producer_uptake.inc`
+14.	`plant.inc`
+15.	`fuel.inc`
+16.	`emissions.inc`
+17.	`process.inc`
+18.	`feedstock.inc`
+19.	`region.inc`
+20.	`source.inc`
+21.	`report.inc`
+22.	`plot.inc`
+23.	`time_steps_yearly.inc`
 
 Each section in the list represents a separate `.inc` file in the new file structure.
 
@@ -150,12 +149,11 @@ We have taken the liberty of creating empty working files for you in the folder 
 1. Open these files:
    - From folder ‘tutorial_3/0_includes_global:
       - `model_definition.inc`
-      - `bunker_logistics.inc`
    - From the folder `tutorial_2`:
       - `define.inc` (T2DEF)
 
 2. Copy the relevant section from T2DEF into the corresponding empty file.
-3. Copy the node `ModelDefinition` into the file `model_definition.inc`. Copy the node `BunkerLogistics` into the file `bunker_logistics.inc`.
+3. Copy the node `ModelDefinition` into the file `model_definition.inc`.
 
 ### DEFINE File: Definition of the Fleets
 
@@ -469,7 +467,6 @@ DEFINE {
 
     # model definition
     Include "../../0_includes_global/model_definition.inc"
-    Include "../../0_includes_global/bunker_logistics.inc"
 
     # fleets
     Include "../../0_includes_global/fleet_container.inc"
@@ -574,7 +571,6 @@ DEFINE {
 
     # general nodes
     Include "../../0_includes_global/model_definition.inc"
-    Include "../../0_includes_global/bunker_logistics.inc"
 
     # fleets
     Include "../../0_includes_global/fleet_container.inc"
@@ -673,7 +669,6 @@ DEFINE {
 
     # general nodes
     Include "../../0_includes_global/model_definition.inc"
-    Include "../../0_includes_global/bunker_logistics.inc"
 
     # fleets
     Include "../../0_includes_global/fleet_container.inc"

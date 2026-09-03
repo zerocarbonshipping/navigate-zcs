@@ -11,10 +11,10 @@
 #
 # The fleet is modeled with a single vessel specification, which can operate 
 # on either fossil marine fuels or renewable alternatives such as
-# B100-grade FAME. FAME is assumed to be produced from waste oils under 
-# recognized sustainability schemes, with supply available at the main ports 
-# in Australia and New Zealand. Smaller island ports are assumed to provide 
-# only fossil fuels, requiring planning of bunkering logistics.
+# B100-grade FAME. FAME is assumed to be produced from waste oils under
+# recognized sustainability schemes, with supply available at the main ports
+# in Australia and New Zealand. Smaller island ports are assumed to provide
+# only fossil fuels.
 #
 # EU regulatory measures are excluded. Only international/IMO frameworks are 
 # considered (e.g., CII and potential IMO market-based measures).
@@ -34,13 +34,6 @@ DEFINE {
     # Import the default model settings. These provide baseline constants
     # and parameters that can be overwritten in this scenario.
     Load DefaultModelDefinition
-
-    # ---------------------- BUNKER LOGISTICS -------------------------
-    # Defines the cost and handling assumptions for transporting and supplying
-    # fuels. This is particularly relevant as FAME is produced in Europe and
-    # shipped to the South Pacific, while fossil fuels are treated as widely
-    # available regionally.
-    Include "includes/bunker_logistics.inc"
 
     # ---------------------------- FLEET ------------------------------
     # Defines the vessel type used, size, age structure, and initial uptake

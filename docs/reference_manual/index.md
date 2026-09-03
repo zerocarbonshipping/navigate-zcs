@@ -23,7 +23,6 @@ dsl_reference
 :caption: General nodes
 
 model_definition
-bunker_logistics
 bunker_options
 ```
 

@@ -54,8 +54,8 @@ def calculate_fuel_import_to_ports(ports: dict[str, Port],
 
     # split fuels: those drawn from a liquid market
     # versus those produced specifically for shipping
-    liquid_fuels = {f: fuel for f, fuel in fuels.items() if fuel.belongs_to_liquid_market()}
-    production_fuels = {f: fuel for f, fuel in fuels.items() if not fuel.belongs_to_liquid_market()}
+    liquid_fuels = {f: fuel for f, fuel in fuels.items() if fuel.liquid_market}
+    production_fuels = {f: fuel for f, fuel in fuels.items() if not fuel.liquid_market}
 
     active_port_names = {port.name for route in routes.values() for port in route.ports}
     active_ports = {p: port for p, port in ports.items() if p in active_port_names}

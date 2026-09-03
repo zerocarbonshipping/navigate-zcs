@@ -11,7 +11,6 @@ import numpy as np
 
 from navigate.core import Expression, NodeReference
 from navigate.core.enum_ import SimulationSectionID
-from navigate.core.general_nodes.bunker_logistics import BunkerLogistics
 from navigate.core.general_nodes.bunker_options import BunkerOptions
 from navigate.core.node import Node
 from navigate.core.node_reference import WildcardNodeReference
@@ -19,11 +18,7 @@ from navigate.core.node_registry import GeneralNodes, Nodes
 from navigate.exceptions import AttributeAssignmentError, CommandError, DeckFormatError, DeckKeywordError
 from navigate.logging_ import log_time_step_breaker, print_preamble
 from navigate.parser._attributes import check_general_node_attribute_is_allowed, check_node_attribute_is_allowed
-from navigate.parser._commands import (
-    CommandReference,
-    check_general_node_command_is_allowed,
-    check_node_command_is_allowed,
-)
+from navigate.parser._commands import CommandReference, check_node_command_is_allowed
 from navigate.parser._event import Event
 from navigate.parser._keywords import (
     DATE,
@@ -560,8 +555,9 @@ class Parser:
                 raise ValueError(self._error_prefix() + ": {} attribute '{}' {}."
                                  .format(node, attribute, e))
 
-    def _queue_command(self, nodes, item, node_type, is_general=False):
-        """Validate and queue a Command AST node on one or more nodes.
+    def _queue_command(self, nodes, item, node_type):
+        """
+        Validate and queue a Command AST node on one or more nodes.
 
         Parameters
         ----------
@@ -571,18 +567,14 @@ class Parser:
             The command AST node.
         node_type : str
             Node type string for validation.
-        is_general : bool
-            Whether this is a general node.
         """
+
         self._current_source = item.source
 
         try:
             command = item.name
             inputs = item.args
-            if is_general:
-                check_general_node_command_is_allowed(node_type, command, self._current_section)
-            else:
-                check_node_command_is_allowed(node_type, command, self._current_section)
+            check_node_command_is_allowed(node_type, command, self._current_section)
             self._assign_node_reference_location(inputs)
 
         except CommandError as e:
@@ -626,7 +618,8 @@ class Parser:
         for item in declaration.body:
             item_type = type(item)
             if item_type is Command:
-                self._queue_command(general_node, item, declaration.node_type, is_general=True)
+                raise CommandError(self._error_prefix(item.source)
+                                   + ": '{}' does not support commands.".format(declaration.node_type))
             elif item_type is Assignment:
                 self._apply_assignment(general_node, item, declaration.node_type, is_general=True)
             else:
@@ -784,11 +777,6 @@ class Parser:
     def _get_all_nodes(self):
         return list(self.nodes.all_nodes())
 
-    def _get_all_general_nodes(self):
-        return [self.general_nodes.bunker_logistics,
-                self.general_nodes.bunker_options,
-                self.general_nodes.model_definition]
-
     def _get_all_node_names(self):
         return list(self.nodes.all_names())
 
@@ -806,9 +794,6 @@ class Parser:
             self.general_nodes.bunker_options = BunkerOptions()
 
         self.general_nodes.bunker_options.initialize()
-
-        if self.general_nodes.bunker_logistics is None:
-            self.general_nodes.bunker_logistics = BunkerLogistics()
 
     def _update_dependencies(self):
         """Replace references, execute commands, initialize nodes.
@@ -836,8 +821,7 @@ class Parser:
         self._reading_events = False
 
     def _execute_commands(self):
-        all_nodes = [*self._get_all_nodes(), *self._get_all_general_nodes()]
-        for node in all_nodes:
+        for node in self._get_all_nodes():
             self._execute_node_commands(node)
 
     def _execute_node_commands(self, node):
@@ -875,8 +859,6 @@ class Parser:
                 raise ValueError("{}: {}".format(node, str(e)))
 
     def _initialize_nodes(self):
-        self.general_nodes.bunker_logistics.initialize()
-
         for node in self._get_all_nodes():
             node.initialize()
 
@@ -894,7 +876,7 @@ class Parser:
             levy.initialize_dependencies(self.nodes.vessels)
 
         for plant in self.nodes.plants.values():
-            plant.initialize_dependencies(self.nodes.feedstocks, self.nodes.processes)
+            plant.initialize_dependencies(self.nodes.feedstocks, self.nodes.ports, self.nodes.processes)
 
         for port in self.nodes.ports.values():
             port.initialize_dependencies(self.nodes.emissions, self.nodes.fuels)
@@ -916,17 +898,9 @@ class Parser:
         for route in self.nodes.routes.values():
             route.initialize_dependencies()
 
-        self.general_nodes.bunker_logistics.initialize_dependencies(self.nodes.emissions,
-                                                                    self.nodes.fuels,
-                                                                    self.nodes.ports,
-                                                                    self.nodes.regions)
-
     def _replace_references(self):
         for node in self._get_all_nodes():
             self._replace_references_on_node(node)
-
-        for general_node in self._get_all_general_nodes():
-            self._replace_references_on_node(general_node)
 
     def _replace_references_on_node(self, node):
         attributes = _get_attributes(node, exclude=REFERENCE_SCAN_EXCLUDE)

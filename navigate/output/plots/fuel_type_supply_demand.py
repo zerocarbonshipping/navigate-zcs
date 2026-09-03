@@ -60,7 +60,7 @@ def plot_fuel_type_supply_demand(manager, directory):
 
             for fuel in usable_fuels:
 
-                if not fuel.belongs_to_liquid_market():
+                if not fuel.liquid_market:
 
                     fuel_name = fuel.name
 

@@ -36,7 +36,7 @@ def plot_fuel_supply_demand(manager, directory):
 
         consumed = profile.get_consumed_energy(fuel_name)
 
-        if not fuel.belongs_to_liquid_market():
+        if not fuel.liquid_market:
             production = profile.get_production_energy(fuel_name)
         else:
             production = np.zeros_like(consumed)
@@ -46,7 +46,7 @@ def plot_fuel_supply_demand(manager, directory):
 
         plot_stack_with_lines(ax, dateline, [divide_nonzero(consumed, divisor)], ['Consumed'], [colors[fuel_name]], alpha=0.7)
 
-        if not fuel.belongs_to_liquid_market():
+        if not fuel.liquid_market:
 
             ax.plot(dateline, divide_nonzero(production, divisor), 'k', label='Produced')
 

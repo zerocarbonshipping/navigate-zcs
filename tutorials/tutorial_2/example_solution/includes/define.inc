@@ -240,16 +240,11 @@ Tank "main_ammonia" {
 
 
 # D) DEFINITION OF THE PORT
-# Definition of the node "port" and BunkerLogistics from tutorial 1 below:
+# Definition of the node "port" from tutorial 1 below:
 
 Port "port" {
 	set_bunker_price_overwrite("heavy_fuel_oil", 120)
 	set_bunker_wtt_overwrite("heavy_fuel_oil", "carbon_dioxide", 0.62)
-}
-
-
-BunkerLogistics {
-	LiquidMarketFuels = [Fuel("heavy_fuel_oil")]
 }
 
 Region "region" {
@@ -292,6 +287,7 @@ Region "region" {
 # Definition of "heavy_fuel_oil" (same as Tutorial 1).
 Fuel "heavy_fuel_oil" {
 	FuelType = OIL
+	LiquidMarket = TRUE
 	LowerHeatingValue = 41.2
 	MassDensity = 0.9
 

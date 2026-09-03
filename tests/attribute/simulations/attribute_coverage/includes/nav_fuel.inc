@@ -4,7 +4,7 @@
 # Fuels and Emissions
 #
 # Attributes covered:
-#   Fuel:     FuelType, LowerHeatingValue, MassDensity
+#   Fuel:     FuelType, LiquidMarket, LowerHeatingValue, MassDensity
 #   Emission: GlobalWarmingPotential, FuelType
 #
 # Commands covered:
@@ -12,6 +12,7 @@
 
 Fuel "hfo" {
 	FuelType = OIL
+	LiquidMarket = TRUE
 	LowerHeatingValue = 41.2
 	MassDensity = 0.9
 	set_ttw("carbon_dioxide", 3.114)
@@ -21,6 +22,7 @@ Fuel "hfo" {
 
 Fuel "lng" {
 	FuelType = METHANE
+	LiquidMarket = TRUE
 	LowerHeatingValue = 50.0
 	MassDensity = 0.43
 	set_ttw("carbon_dioxide", 2.75)
@@ -37,6 +39,7 @@ Fuel "bio_methanol" {
 
 Fuel "blue_ammonia" {
 	FuelType = AMMONIA
+	LiquidMarket = TRUE
 	LowerHeatingValue = 18.8
 	MassDensity = 0.623
 	set_ttw("carbon_dioxide", 0)

@@ -422,7 +422,6 @@ class SimulationManager:
         calculate_plant_logistics_expectations(self.nodes.plants,
                                                self.nodes.ports,
                                                self.nodes.emissions,
-                                               self.general_nodes.bunker_logistics,
                                                self.timeline,
                                                self._idx)
 
@@ -456,7 +455,7 @@ class SimulationManager:
     def _calculate_fair_share_fuel_supply(self, scope):
         start_time = timeit.default_timer()
 
-        fuels = {fuel_name: fuel for fuel_name, fuel in self.nodes.fuels.items() if not fuel.belongs_to_liquid_market()}
+        fuels = {fuel_name: fuel for fuel_name, fuel in self.nodes.fuels.items() if not fuel.liquid_market}
         calculate_fair_share_fuel_supply(self.nodes.fleets, fuels, self.nodes.ports, self._idx, scope)
 
         self.profile.add_policy_time(self._idx, timeit.default_timer() - start_time)
@@ -475,7 +474,7 @@ class SimulationManager:
         start_time = timeit.default_timer()
 
         # extract all fuels not belonging to a liquid market
-        fuels = {key: value for key, value in self.nodes.fuels.items() if not value.belongs_to_liquid_market()}
+        fuels = {key: value for key, value in self.nodes.fuels.items() if not value.liquid_market}
 
         # update the existing production and
         # calculate development potential

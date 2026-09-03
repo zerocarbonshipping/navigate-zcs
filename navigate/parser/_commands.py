@@ -9,8 +9,6 @@ from itertools import product
 from navigate.core.assign import expand_id_wildcard
 from navigate.core.enum_ import EnergyDemandTypeID, FuelTypeID
 from navigate.core.node_type import (
-    BUNKER_LOGISTICS,
-    BUNKER_OPTIONS,
     CONVERTER,
     CURVE,
     EMISSION,
@@ -19,7 +17,6 @@ from navigate.core.node_type import (
     FORECAST,
     FUEL,
     LEVY,
-    MODEL_DEFINITION,
     PLANT,
     PLOT,
     PORT,
@@ -93,7 +90,9 @@ _FUEL_COMMANDS = {'set_ttw': SECTION_DEFINE}
 _LEVY_COMMANDS = {**_POLICY_COMMANDS}
 
 _PLANT_COMMANDS = {'set_feed_transport':   SECTION_BOTH,
-                   'set_feed_distance':    SECTION_BOTH}
+                   'set_feed_distance':    SECTION_BOTH,
+                   'set_fuel_transport':   SECTION_BOTH,
+                   'set_fuel_distance':    SECTION_BOTH}
 
 _PLOT_COMMANDS = {'add_plot': SECTION_DEFINE}
 
@@ -156,14 +155,6 @@ _TRANSPORT_COMMANDS = {}
 _VARIABLE_COMMANDS = {}
 _VESSEL_COMMANDS = {}
 
-# general nodes --------------------------------------------------------------------------------------------------------
-_BUNKER_LOGISTICS_COMMANDS = {'set_distance':       SECTION_DEFINE,
-                              'set_transport_cost': SECTION_DEFINE,
-                              'set_transport_wtt': SECTION_DEFINE}
-
-_BUNKER_OPTIONS_COMMANDS = {}
-_MODEL_DEFINITION_COMMANDS = {}
-
 # assemble dicts -------------------------------------------------------------------------------------------------------
 NODE_COMMAND_SECTIONS = {CONVERTER:             _CONVERTER_COMMANDS,
                          CURVE:                 _CURVE_COMMANDS,
@@ -191,10 +182,6 @@ NODE_COMMAND_SECTIONS = {CONVERTER:             _CONVERTER_COMMANDS,
                          TRANSPORT:             _TRANSPORT_COMMANDS,
                          VARIABLE:              _VARIABLE_COMMANDS,
                          VESSEL:                _VESSEL_COMMANDS}
-
-GENERAL_NODE_COMMAND_SECTIONS = {BUNKER_LOGISTICS:  _BUNKER_LOGISTICS_COMMANDS,
-                                 BUNKER_OPTIONS:    _BUNKER_OPTIONS_COMMANDS,
-                                 MODEL_DEFINITION:  _MODEL_DEFINITION_COMMANDS}
 
 
 # classes --------------------------------------------------------------------------------------------------------------
@@ -361,41 +348,3 @@ def check_node_command_is_allowed(node_type, command_name, section):
     else:
 
         raise CommandError("Nodes of type '{}' has no command '{}'".format(node_type, command_name))
-
-
-def check_general_node_command_is_allowed(type_, command_name, section):
-    """
-
-    Parameters
-    ----------
-    type_ : str
-        The general node type.
-    command_name : str
-        The name of the command.
-    section : Enum
-        The section (DEFINE or EVENTS) at which the command is used.
-
-    Returns
-    -------
-    bool
-        Whether the command is allowed.
-    """
-
-    allowed_commands = GENERAL_NODE_COMMAND_SECTIONS[type_]
-
-    if command_name in allowed_commands:
-
-        allowed_sections = allowed_commands[command_name]
-
-        if section in allowed_sections:
-
-            return True
-
-        else:
-
-            raise CommandError("'{}' does not allow use of command '{}' in '{}'"
-                               .format(type_, command_name, SECTION_NAME[section]))
-
-    else:
-
-        raise CommandError("'{}' has no command '{}'".format(type_, command_name))

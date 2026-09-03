@@ -313,17 +313,7 @@ Port "port" {
 }
 ```
 
-### Definition of `BunkerLogistics`
-
-1. `BunkerLogistics` is a mandatory general node which for the purpose of this tutorial is used to define that the Fuel `"heavy_fuel_oil"` belongs to a liquid market. This means that the availability of the fuel is unconstrained.
-
-```python
-BunkerLogistics {
-	LiquidMarketFuels = [Fuel("heavy_fuel_oil")]
-}
-```
-
-3. Run navigate again after saving. `navigate tutorial_1.nav`. You should recieve the following error:
+2. Run navigate again after saving. `navigate tutorial_1.nav`. You should recieve the following error:
 
 ```
 Fuel("heavy_fuel_oil") is referenced but not found in either the deck or the default location of Fuel.
@@ -338,17 +328,20 @@ Fuels are defined separately from the vessels and the ports.
 Heavy fuel oil is one of several fuels that has the fuel type OIL.
 Different fuels can have the same fuel type, as a fuel essentially is a fuel-pathway (where the pathway describes how it was produced), so e.g., the fuel "blue ammonia" is different from "e-ammonia" due to the way they are produced (their pathway).
 In other words, blue and e-ammonia are two different fuels with the same fuel type. 
-3. Set the `LowerHeatingValue`.
+3. Set `LiquidMarket` to `TRUE`.
+This defines that the fuel belongs to a liquid market, meaning that its availability is unconstrained and its price and WTT emissions are the ones assigned on the port.
+4. Set the `LowerHeatingValue`.
 Each fuel has a lower heating value which is a physical constant, so this value is not changed. The lower heating value describes the heat energy that is being released when the fuel is combusted at a certain temperature. Given in GJ/ton.
-4. Set the `MassDensity`.
+5. Set the `MassDensity`.
 Each fuel has a mass density which is a physical constant, so this value is not changed. Given in kg/m3.
-5. Add the Tank-to-Wake (TTW) emission factors of carbon dioxide, methane and nitrous oxide for the process of converting fuel to energy. 
+6. Add the Tank-to-Wake (TTW) emission factors of carbon dioxide, methane and nitrous oxide for the process of converting fuel to energy. 
 The `set_ttw(..)` marks a command in the Navigate syntax. Commands are similar to functions in programming languages, and have the syntax `set_xxx(key1, key2, value)`. A command can take 2-3 inputs. In this instance it only has 2 inputs, namely key1 and value.
 The unit of an emission factor is ton emissions/ton fuel.
 
 ```python
 Fuel "heavy_fuel_oil" {	
     FuelType = OIL
+    LiquidMarket = TRUE
     
     LowerHeatingValue = 41.2
     MassDensity = 0.9

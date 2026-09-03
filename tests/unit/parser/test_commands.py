@@ -6,13 +6,9 @@ import pytest
 
 from navigate.core.enum_ import SimulationSectionID
 from navigate.exceptions import CommandError
-from navigate.parser._commands import (
-    NODE_COMMAND_SECTIONS,
-    CommandReference,
-    check_general_node_command_is_allowed,
-    check_node_command_is_allowed,
-)
-from navigate.parser._lark_parser import SourceLocation
+from navigate.parser._commands import NODE_COMMAND_SECTIONS, CommandReference, check_node_command_is_allowed
+from navigate.parser._lark_parser import Command, GeneralNodeDeclaration, SourceLocation
+from navigate.parser.parser import Parser
 
 
 class TestCheckNodeCommandIsAllowed:
@@ -32,23 +28,29 @@ class TestCheckNodeCommandIsAllowed:
         with pytest.raises(CommandError, match="has no command"):
             check_node_command_is_allowed("Port", "nonexistent_command", SimulationSectionID.DEFINE)
 
+    def test_plant_fuel_transport_both_sections(self):
+        assert check_node_command_is_allowed("Plant", "set_fuel_transport", SimulationSectionID.DEFINE)
+        assert check_node_command_is_allowed("Plant", "set_fuel_transport", SimulationSectionID.EVENTS)
+        assert check_node_command_is_allowed("Plant", "set_fuel_distance", SimulationSectionID.DEFINE)
+        assert check_node_command_is_allowed("Plant", "set_fuel_distance", SimulationSectionID.EVENTS)
+
     @pytest.mark.parametrize("node_type", list(NODE_COMMAND_SECTIONS.keys()))
     def test_all_node_types_have_dict(self, node_type):
         assert isinstance(NODE_COMMAND_SECTIONS[node_type], dict)
 
 
-class TestCheckGeneralNodeCommandIsAllowed:
+class TestGeneralNodeCommands:
 
-    def test_bunker_logistics_set_distance(self):
-        assert check_general_node_command_is_allowed("BunkerLogistics", "set_distance", SimulationSectionID.DEFINE)
+    def test_command_on_general_node_raises(self):
+        parser = Parser()
+        parser._current_section = SimulationSectionID.DEFINE
+        declaration = GeneralNodeDeclaration(
+            node_type="BunkerOptions",
+            body=[Command(name="set_solver", args=["GUROBI"], source=SourceLocation("file.nav", 5))],
+        )
 
-    def test_bunker_logistics_set_distance_in_events_raises(self):
-        with pytest.raises(CommandError, match="does not allow use of command"):
-            check_general_node_command_is_allowed("BunkerLogistics", "set_distance", SimulationSectionID.EVENTS)
-
-    def test_unknown_general_node_command_raises(self):
-        with pytest.raises(CommandError, match="has no command"):
-            check_general_node_command_is_allowed("BunkerLogistics", "fake_cmd", SimulationSectionID.DEFINE)
+        with pytest.raises(CommandError, match="does not support commands"):
+            parser._process_general_node_declaration(declaration)
 
 
 class TestCommandReference:

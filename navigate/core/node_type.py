@@ -37,7 +37,6 @@ VARIABLE = "Variable"
 VESSEL = "Vessel"
 
 # general nodes
-BUNKER_LOGISTICS = "BunkerLogistics"
 BUNKER_OPTIONS = "BunkerOptions"
 MODEL_DEFINITION = "ModelDefinition"
 

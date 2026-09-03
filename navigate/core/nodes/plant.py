@@ -40,6 +40,9 @@ class Plant(Node):
         self.feed_transport = {}  # dict[feedstock_name: Transport], transport mode for feedstock
         self.feed_distance = {}   # dict[feedstock_name: float], distance transported, nautical miles
 
+        self.fuel_transport = {}  # dict[port_name: Transport], transport mode for delivering the produced fuel
+        self.fuel_distance = {}   # dict[port_name: float], distance to the port, nautical miles
+
         # cross-check properties
         self.producer_assignment = None  # name of producer plant is assigned to
 
@@ -243,6 +246,50 @@ class Plant(Node):
                                    type_=(FORECAST, VARIABLE),
                                    lower=0.)
 
+    def set_fuel_transport(self, port_name, value):
+        """
+        Set the transport mode used for delivering the produced fuel to a given port.
+
+        The cost and WTT emissions of the delivery are given by the transport rates of the plant's region,
+        see `Region.set_transport_cost` and `Region.set_transport_wtt`.
+
+        Examples
+        --------
+        - "port_name", Transport("name")
+
+        Parameters
+        ----------
+        port_name : str
+            The name of a port.
+        value : NodeReference
+            The transport mode used to deliver the produced fuel to the port.
+        """
+
+        command_assignment_to_dict(port_name, value, self.fuel_transport, type_=TRANSPORT)
+
+    def set_fuel_distance(self, port_name, value):
+        """
+        Set the distance the produced fuel is transported to a given port in nautical miles.
+
+        Examples
+        --------
+        - "port_name", 100
+        - "port_name", Forecast("name")
+
+        Parameters
+        ----------
+        port_name : str
+            The name of a port.
+        value : float | NodeReference
+            The distance of transport in nautical miles.
+        """
+
+        command_assignment_to_dict(port_name,
+                                   value,
+                                   self.fuel_distance,
+                                   type_=(FORECAST, VARIABLE),
+                                   lower=0.)
+
     # internal methods -------------------------------------------------------------------------------------------------
     def initialize(self):
 
@@ -261,9 +308,9 @@ class Plant(Node):
         if self.capacity is None:
             no_value_assigned_error(self, 'Capacity')
 
-        if self.fuel.belongs_to_liquid_market():
-            raise ValueError("{}: Unable to assign {} to attribute 'Fuel' as it is assigned to the list of liquid"
-                             " markets in BunkerLogistics.".format(self, self.fuel))
+        if self.fuel.liquid_market:
+            raise ValueError("{}: Unable to assign {} to attribute 'Fuel' as it belongs to a liquid market"
+                             " ('LiquidMarket = TRUE').".format(self, self.fuel))
 
         if self.uptime is None:
             self.uptime = Scalar(1)
@@ -277,19 +324,25 @@ class Plant(Node):
         if self.cost_of_capital is None:
             self.cost_of_capital = Scalar(0)
 
-        for feed_name in self.feed_transport:
+        self._pair_transport_and_distance(self.feed_transport, self.feed_distance)
+        self._pair_transport_and_distance(self.fuel_transport, self.fuel_distance)
 
-            transport = self.feed_transport[feed_name]
-            distance = self.feed_distance[feed_name]
+    def _pair_transport_and_distance(self, transports, distances):
+        """Require a transport wherever a distance is set, and default the distance to zero where it is not."""
+
+        for name in transports:
+
+            transport = transports[name]
+            distance = distances[name]
 
             if (transport is None) and (distance is not None):
                 raise ValueError("{}: Unable to assign a transport distance to '{}' as no transport is assigned."
-                                 .format(self, feed_name))
+                                 .format(self, name))
 
             elif (transport is not None) and (distance is None):
-                self.feed_distance[feed_name] = Scalar(0.)
+                distances[name] = Scalar(0.)
 
-    def initialize_dependencies(self, feedstocks, processes):
+    def initialize_dependencies(self, feedstocks, ports, processes):
         """
         Initialize all dependent dictionaries.
 
@@ -297,6 +350,8 @@ class Plant(Node):
         ----------
         feedstocks : dict[str, Feedstock]
             All feedstocks in the simulation.
+        ports : dict[str, Port]
+            All ports in the simulation.
         processes : dict[str, Process]
             All processes in the simulation.
         """
@@ -308,6 +363,10 @@ class Plant(Node):
         for process_name in processes:
             self.feed_transport.setdefault(process_name, None)
             self.feed_distance.setdefault(process_name, None)
+
+        for port_name in ports:
+            self.fuel_transport.setdefault(port_name, None)
+            self.fuel_distance.setdefault(port_name, None)
 
     def initialize_expectation(self, length: int, emissions: dict[str, Emission],
                                feedstocks: dict[str, Feedstock], ports: dict[str, Port],

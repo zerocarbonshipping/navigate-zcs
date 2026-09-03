@@ -11,6 +11,8 @@
 # (supply_constrained); supply_then_demand_constrained overrides it in its
 # own includes/ so supply catches up mid-simulation.
 
+# oil imports LiquidMarket = TRUE from the defaults: available without a
+# Producer, priced and emission-rated at the ports
 Import Fuel "fossil_fuel_oil"
 
 Import Fuel "ammonia_electro"

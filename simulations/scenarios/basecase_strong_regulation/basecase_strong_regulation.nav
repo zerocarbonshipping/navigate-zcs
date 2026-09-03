@@ -3,7 +3,6 @@
 
 DEFINE {
 	Load DefaultModelDefinition
-    Load DefaultBunkerLogistics
 
     # fleets
     Load DefaultFleet

@@ -6,6 +6,8 @@
 # never be the reason a fuel gets a small share. The e-ammonia chain is
 # shared from ../0_includes/fuel_supply_ammonia.inc.
 
+# LNG imports LiquidMarket = TRUE from the defaults: available without a
+# Producer, priced and emission-rated at the ports
 Import Fuel "liquefied_natural_gas"
 
 Import Fuel "methanol_bio"
