@@ -715,18 +715,7 @@ Navigate builds on various underlying assumptions. Amongst these assumptions for
 <span class="p">}</span>
 </pre></div>
 </div>
-</section>
-<section id="definition-of-bunkerlogistics">
-<h3>Definition of <code class="docutils literal notranslate"><span class="pre">BunkerLogistics</span></code><a class="headerlink" href="#definition-of-bunkerlogistics" title="Link to this heading">#</a></h3>
-<ol class="arabic simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">BunkerLogistics</span></code> is a mandatory general node which for the purpose of this tutorial is used to define that the Fuel <code class="docutils literal notranslate"><span class="pre">&quot;heavy_fuel_oil&quot;</span></code> belongs to a liquid market. This means that the availability of the fuel is unconstrained.</p></li>
-</ol>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">BunkerLogistics</span> <span class="p">{</span>
-	<span class="n">LiquidMarketFuels</span> <span class="o">=</span> <span class="p">[</span><span class="n">Fuel</span><span class="p">(</span><span class="s2">"heavy_fuel_oil"</span><span class="p">)]</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-<ol class="arabic simple" start="3">
+<ol class="arabic simple" start="2">
 <li><p>Run navigate again after saving. <code class="docutils literal notranslate"><span class="pre">navigate</span> <span class="pre">tutorial_1.nav</span></code>. You should recieve the following error:</p></li>
 </ol>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Fuel</span><span class="p">(</span><span class="s2">"heavy_fuel_oil"</span><span class="p">)</span> <span class="ow">is</span> <span class="n">referenced</span> <span class="n">but</span> <span class="ow">not</span> <span class="n">found</span> <span class="ow">in</span> <span class="n">either</span> <span class="n">the</span> <span class="n">deck</span> <span class="ow">or</span> <span class="n">the</span> <span class="n">default</span> <span class="n">location</span> <span class="n">of</span> <span class="n">Fuel</span><span class="o">.</span>
@@ -742,6 +731,8 @@ Navigate builds on various underlying assumptions. Amongst these assumptions for
 Heavy fuel oil is one of several fuels that has the fuel type OIL.
 Different fuels can have the same fuel type, as a fuel essentially is a fuel-pathway (where the pathway describes how it was produced), so e.g., the fuel “blue ammonia” is different from “e-ammonia” due to the way they are produced (their pathway).
 In other words, blue and e-ammonia are two different fuels with the same fuel type.</p></li>
+<li><p>Set <code class="docutils literal notranslate"><span class="pre">LiquidMarket</span></code> to <code class="docutils literal notranslate"><span class="pre">TRUE</span></code>.
+This defines that the fuel belongs to a liquid market, meaning that its availability is unconstrained and its price and WTT emissions are the ones assigned on the port.</p></li>
 <li><p>Set the <code class="docutils literal notranslate"><span class="pre">LowerHeatingValue</span></code>.
 Each fuel has a lower heating value which is a physical constant, so this value is not changed. The lower heating value describes the heat energy that is being released when the fuel is combusted at a certain temperature. Given in GJ/ton.</p></li>
 <li><p>Set the <code class="docutils literal notranslate"><span class="pre">MassDensity</span></code>.
@@ -752,6 +743,7 @@ The unit of an emission factor is ton emissions/ton fuel.</p></li>
 </ol>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Fuel</span> <span class="s2">"heavy_fuel_oil"</span> <span class="p">{</span>	
     <span class="n">FuelType</span> <span class="o">=</span> <span class="n">OIL</span>
+    <span class="n">LiquidMarket</span> <span class="o">=</span> <span class="n">TRUE</span>
     
     <span class="n">LowerHeatingValue</span> <span class="o">=</span> <span class="mf">41.2</span>
     <span class="n">MassDensity</span> <span class="o">=</span> <span class="mf">0.9</span>
@@ -944,7 +936,6 @@ Define annual time-steps with a reference Date.</p></li>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#definition-of-a-port">Definition of a <code class="docutils literal notranslate"><span class="pre">Port</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#definition-of-bunkerlogistics">Definition of <code class="docutils literal notranslate"><span class="pre">BunkerLogistics</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#definition-of-a-fuel">Definition of a <code class="docutils literal notranslate"><span class="pre">Fuel</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#definition-of-emission">Definition of <code class="docutils literal notranslate"><span class="pre">Emission</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#definition-of-plot">Definition of <code class="docutils literal notranslate"><span class="pre">Plot</span></code></a></li>

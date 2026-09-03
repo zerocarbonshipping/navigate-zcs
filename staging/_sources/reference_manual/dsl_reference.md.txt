@@ -49,11 +49,10 @@ An example of a general node’s structure is included below:
 ```python
 NodeType {
     Attribute = ValueA
-    set_command("key", ValueB)
 }
 ```
 
-General nodes can only be defined in the `DEFINE` section.
+General nodes carry attributes only — they do not support commands — and can only be defined in the `DEFINE` section.
 
 ## Assigning attributes
 

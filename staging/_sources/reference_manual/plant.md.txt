@@ -146,3 +146,24 @@ This command sets the distance a given feedstock or process output is transporte
   + `"process_name", 100`
   + `"process_name", Forecast("name")`
 * **Default**: None
+
+### set\_fuel\_transport
+
+This command sets the transport mode used for delivering the produced fuel to a given port. The cost and WTT emissions of the delivery are given by the transport rates of the plant's region, see `set_transport_cost` and `set_transport_wtt` on the [Region](region.md) node.
+
+* **Primary key type**: String (Name of port)
+* **Data type**: `Transport` node
+* **Example values**:
+  + `"port_name", Transport("name")`
+* **Default**: None
+
+### set\_fuel\_distance
+
+This command sets the distance the produced fuel is transported to a given port in nautical miles.
+
+* **Primary key type**: String (Name of port)
+* **Data type**: `Float`, `Forecast`, `Variable`
+* **Example values**:
+  + `"port_name", 100`
+  + `"port_name", Forecast("name")`
+* **Default**: None

@@ -364,16 +364,12 @@ In this tutorial you will continue to define heavy fuel oil on the port level bu
 
 #### Port
 
-The `Port` `"port"` and `BunkerLogistics` nodes are carried over from tutorial 1. Update the heavy fuel oil bunker price from 250 to 120; the WTT emission factor and `BunkerLogistics` stay the same.
+The `Port` `"port"` node is carried over from tutorial 1. Update the heavy fuel oil bunker price from 250 to 120; the WTT emission factor stays the same.
 
 ```python
 Port "port" {
    set_bunker_price_overwrite("heavy_fuel_oil", 120)
    set_bunker_wtt_overwrite("heavy_fuel_oil", "carbon_dioxide", 0.62)			
-}
-
-BunkerLogistics {
-   LiquidMarketFuels = [Fuel("heavy_fuel_oil")]
 }
 ```
 

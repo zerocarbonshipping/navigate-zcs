@@ -821,14 +821,10 @@ Note that it has a different fuel type.</p></li>
 <p>In this tutorial you will continue to define heavy fuel oil on the port level but the other fuels will be modelled bottom-up.</p>
 <section id="port">
 <h4>Port<a class="headerlink" href="#port" title="Link to this heading">#</a></h4>
-<p>The <code class="docutils literal notranslate"><span class="pre">Port</span></code> <code class="docutils literal notranslate"><span class="pre">&quot;port&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">BunkerLogistics</span></code> nodes are carried over from tutorial 1. Update the heavy fuel oil bunker price from 250 to 120; the WTT emission factor and <code class="docutils literal notranslate"><span class="pre">BunkerLogistics</span></code> stay the same.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">Port</span></code> <code class="docutils literal notranslate"><span class="pre">&quot;port&quot;</span></code> node is carried over from tutorial 1. Update the heavy fuel oil bunker price from 250 to 120; the WTT emission factor stays the same.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Port</span> <span class="s2">"port"</span> <span class="p">{</span>
    <span class="n">set_bunker_price_overwrite</span><span class="p">(</span><span class="s2">"heavy_fuel_oil"</span><span class="p">,</span> <span class="mi">120</span><span class="p">)</span>
    <span class="n">set_bunker_wtt_overwrite</span><span class="p">(</span><span class="s2">"heavy_fuel_oil"</span><span class="p">,</span> <span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="mf">0.62</span><span class="p">)</span>			
-<span class="p">}</span>
-
-<span class="n">BunkerLogistics</span> <span class="p">{</span>
-   <span class="n">LiquidMarketFuels</span> <span class="o">=</span> <span class="p">[</span><span class="n">Fuel</span><span class="p">(</span><span class="s2">"heavy_fuel_oil"</span><span class="p">)]</span>
 <span class="p">}</span>
 </pre></div>
 </div>

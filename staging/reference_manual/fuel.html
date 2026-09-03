@@ -369,7 +369,6 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">General nodes</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="model_definition.html">ModelDefinition</a></li>
-<li class="toctree-l1"><a class="reference internal" href="bunker_logistics.html">BunkerLogistics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="bunker_options.html">BunkerOptions</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Nodes</span></p>
@@ -475,6 +474,7 @@ liquefied natural gas and e-ammonia.</p>
 <p>Example:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Fuel</span> <span class="s2">"liquefied_natural_gas"</span> <span class="p">{</span>
 	<span class="n">FuelType</span> <span class="o">=</span> <span class="n">METHANE</span>
+	<span class="n">LiquidMarket</span> <span class="o">=</span> <span class="n">TRUE</span>
 	
 	<span class="n">LowerHeatingValue</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="s2">"lower_heating_value_natural_gas"</span><span class="p">)</span>
 	<span class="n">MassDensity</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="s2">"mass_density_liquefied_natural_gas"</span><span class="p">)</span>
@@ -492,6 +492,15 @@ liquefied natural gas and e-ammonia.</p>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">ID</span></code></p></li>
 <li><p><strong>Legal values</strong>: <a class="reference internal" href="appendix_ids.html#fueltypeid"><span class="std std-ref">FuelTypeID</span></a></p></li>
 <li><p><strong>Default</strong>: None. Must be defined by the user.</p></li>
+</ul>
+</section>
+<section id="liquidmarket">
+<h3>LiquidMarket<a class="headerlink" href="#liquidmarket" title="Link to this heading">#</a></h3>
+<p>This attribute specifies whether the fuel belongs to a liquid market. Fuels which belong to a liquid market cannot be modelled bottom-up via <code class="docutils literal notranslate"><span class="pre">Plant</span></code> and <code class="docutils literal notranslate"><span class="pre">Producer</span></code> nodes but require manual assignment of supply, price, and WTT emissions at <code class="docutils literal notranslate"><span class="pre">Port</span></code> level (see <code class="docutils literal notranslate"><span class="pre">set_bunker_price_overwrite</span></code> and <code class="docutils literal notranslate"><span class="pre">set_bunker_wtt_overwrite</span></code> on the <a class="reference internal" href="port.html"><span class="std std-doc">Port</span></a> node).</p>
+<ul class="simple">
+<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Bool</span></code></p></li>
+<li><p><strong>Example values</strong>: <code class="docutils literal notranslate"><span class="pre">TRUE</span></code></p></li>
+<li><p><strong>Default</strong>: <code class="docutils literal notranslate"><span class="pre">FALSE</span></code></p></li>
 </ul>
 </section>
 <section id="lowerheatingvalue">
@@ -587,6 +596,7 @@ liquefied natural gas and e-ammonia.</p>
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#attributes">Attributes</a><ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fueltype">FuelType</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#liquidmarket">LiquidMarket</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#lowerheatingvalue">LowerHeatingValue</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#massdensity">MassDensity</a></li>
 </ul>

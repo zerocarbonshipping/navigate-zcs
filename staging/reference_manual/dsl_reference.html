@@ -369,7 +369,6 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">General nodes</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="model_definition.html">ModelDefinition</a></li>
-<li class="toctree-l1"><a class="reference internal" href="bunker_logistics.html">BunkerLogistics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="bunker_options.html">BunkerOptions</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Nodes</span></p>
@@ -502,11 +501,10 @@ SPDX-License-Identifier: CC-BY-4.0
 <p>An example of a general node’s structure is included below:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">NodeType</span> <span class="p">{</span>
     <span class="n">Attribute</span> <span class="o">=</span> <span class="n">ValueA</span>
-    <span class="n">set_command</span><span class="p">(</span><span class="s2">"key"</span><span class="p">,</span> <span class="n">ValueB</span><span class="p">)</span>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>General nodes can only be defined in the <code class="docutils literal notranslate"><span class="pre">DEFINE</span></code> section.</p>
+<p>General nodes carry attributes only — they do not support commands — and can only be defined in the <code class="docutils literal notranslate"><span class="pre">DEFINE</span></code> section.</p>
 </section>
 <section id="assigning-attributes">
 <h2>Assigning attributes<a class="headerlink" href="#assigning-attributes" title="Link to this heading">#</a></h2>

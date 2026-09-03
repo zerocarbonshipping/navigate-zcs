@@ -369,7 +369,6 @@
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">General nodes</span></p>
 <ul class="nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="model_definition.html">ModelDefinition</a></li>
-<li class="toctree-l1"><a class="reference internal" href="bunker_logistics.html">BunkerLogistics</a></li>
 <li class="toctree-l1"><a class="reference internal" href="bunker_options.html">BunkerOptions</a></li>
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Nodes</span></p>
@@ -640,6 +639,35 @@ Examples of plants are e-methanol plants and blue ammonia plants.</p>
 <li><p><strong>Default</strong>: None</p></li>
 </ul>
 </section>
+<section id="set-fuel-transport">
+<h3>set_fuel_transport<a class="headerlink" href="#set-fuel-transport" title="Link to this heading">#</a></h3>
+<p>This command sets the transport mode used for delivering the produced fuel to a given port. The cost and WTT emissions of the delivery are given by the transport rates of the plant’s region, see <code class="docutils literal notranslate"><span class="pre">set_transport_cost</span></code> and <code class="docutils literal notranslate"><span class="pre">set_transport_wtt</span></code> on the <a class="reference internal" href="region.html"><span class="std std-doc">Region</span></a> node.</p>
+<ul class="simple">
+<li><p><strong>Primary key type</strong>: String (Name of port)</p></li>
+<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Transport</span></code> node</p></li>
+<li><p><strong>Example values</strong>:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;port_name&quot;,</span> <span class="pre">Transport(&quot;name&quot;)</span></code></p></li>
+</ul>
+</li>
+<li><p><strong>Default</strong>: None</p></li>
+</ul>
+</section>
+<section id="set-fuel-distance">
+<h3>set_fuel_distance<a class="headerlink" href="#set-fuel-distance" title="Link to this heading">#</a></h3>
+<p>This command sets the distance the produced fuel is transported to a given port in nautical miles.</p>
+<ul class="simple">
+<li><p><strong>Primary key type</strong>: String (Name of port)</p></li>
+<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
+<li><p><strong>Example values</strong>:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;port_name&quot;,</span> <span class="pre">100</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;port_name&quot;,</span> <span class="pre">Forecast(&quot;name&quot;)</span></code></p></li>
+</ul>
+</li>
+<li><p><strong>Default</strong>: None</p></li>
+</ul>
+</section>
 </section>
 </section>
 
@@ -705,6 +733,8 @@ Examples of plants are e-methanol plants and blue ammonia plants.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#commands">Commands</a><ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#set-feed-transport">set_feed_transport</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#set-feed-distance">set_feed_distance</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#set-fuel-transport">set_fuel_transport</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#set-fuel-distance">set_fuel_distance</a></li>
 </ul>
 </li>
 </ul>
