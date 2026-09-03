@@ -49,7 +49,7 @@ Transport "truck" {
 }
 
 Region "region_a" {
-	set_process_capex("methanol_synthesis", 180)
+	set_process_capex("methanol_synthesis", Timetable("timetable_cost"))
 	set_process_opex("methanol_synthesis", 100)
 	set_process_energy("methanol_synthesis", 0.52)
 	set_process_lifetime("methanol_synthesis", 25)
@@ -80,10 +80,22 @@ Plant "plant_methanol" {
 	set_fuel_distance("port_a", 500)
 }
 
+Plant "plant_methanol_grid" {
+	Fuel = Fuel("bio_methanol")
+	Process = Process("methanol_synthesis")
+	Source = Source("source_grid")
+	Region = Region("region_a")
+	CostOfCapital = 0.08
+	Capacity = 500
+	Uptime = 0.9
+	Lifetime = 25
+	LeadTime = 4
+}
+
 Producer "producer_global" {
-	Plants = [Plant("plant_methanol")]
-	InitialCapacity = [500]
-	InitialAgeDistribution = [Curve("curve_plant_age")]
+	Plants = [Plant("plant_methanol"), Plant("plant_methanol_grid")]
+	InitialCapacity = [500, 0]
+	InitialAgeDistribution = [Curve("curve_plant_age"), Curve("curve_plant_age")]
 	Inertia = 0.1
 	MinimumOfftakeDuration = 1
 	FuelDemandSensitivity = 1.25
