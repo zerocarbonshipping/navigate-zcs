@@ -43,6 +43,24 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   5-decimal precision.
 
 ### Changed
+- Nodes that no chain of node references connects to a top-level node
+  (`Fleet`, `Producer`, `Levy`, `Regulation`, `Emission`, `Fuel`, `Report`,
+  `Plot`) are removed after the DEFINE section is processed, with one
+  aggregated warning listing them. Previously such nodes half-participated
+  in results: an unassigned `Port` was summed into the global supply
+  aggregation, the ports of an unassigned `Route` were seeded as producer
+  export destinations, and unassigned `Vessel`s/`Plant`s exported zero-filled
+  report columns. Consequences: queued `EVENTS` statements targeting only
+  removed nodes are dropped; a removed node never runs its initialization,
+  so an incompletely configured unused node no longer errors; a command
+  naming a removed node raises the unknown-name error, with a hint naming
+  the removed node; a node used only as a `Copy` source is removed without
+  a warning; the per-node "is not assigned to a 'Fleet'/'Producer'"
+  warnings are superseded by the aggregated warning. For code importing
+  navigate as a library, `Vessel.is_assigned_to_fleet` and
+  `Plant.is_assigned_to_producer` are removed — after the prune every
+  surviving vessel and plant is assigned, so both predicates were
+  tautological.
 - **Breaking** for code importing navigate as a library: the node type is
   set through the constructor instead of being assigned afterwards —
   `Node.__init__` (and the `_AssetManager`, `_Machinery`, and `_Policy`

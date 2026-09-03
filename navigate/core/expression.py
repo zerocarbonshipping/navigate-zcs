@@ -182,6 +182,26 @@ class Expression:
 
         return _Reference(len(self.node_references) - 1)
 
+    def reference_strings(self):
+        """
+        The node reference strings in the expression text, extracted without
+        touching this instance's state. A text that does not parse yields
+        none; the error surfaces when the expression is initialized for real.
+
+        Returns
+        -------
+        Canonical reference strings, e.g. 'Forecast("name")'.
+        """
+
+        probe = Expression(self._expression)
+
+        try:
+            probe.initialize(None)
+        except (ValueError, NotImplementedError):
+            return []
+
+        return probe.node_references
+
     def get(self, x=None, y=None):
         value = self._internal_expression.evaluate(self.node_references, x, y)
         value = np.clip(value, *self.internal_bounds)

@@ -49,6 +49,32 @@ def retrieve_keys(key, allowed_keys, key_fn=None):
     return keys
 
 
+def matching_keys(key, allowed_keys, key_fn=None):
+    """
+    Retrieve the keys matching the (potential) wildcard expression in 'key',
+    with a key matching nothing returning an empty list instead of raising.
+
+    Parameters
+    ----------
+    key : str | int | Enum
+        Name of node, possibly including wildcards.
+    allowed_keys : tuple | dict | Enum
+        Collection of allowable keys.
+    key_fn : callable, optional
+        Function to extract a string name from each key for matching.
+
+    Returns
+    -------
+    list :
+        List of all keys matching 'key'; empty when nothing matches.
+    """
+
+    try:
+        return retrieve_keys(key, allowed_keys, key_fn)
+    except KeyError:
+        return []
+
+
 def attribute_to_setter(attribute, method='set'):
     """
     Converts attributes read by the Parser from the input deck in format:

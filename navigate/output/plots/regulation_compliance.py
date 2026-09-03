@@ -41,11 +41,6 @@ def plot_regulation_compliance(manager, directory):
             compliance = profile.get_vessel_compliance()
             thresholds = profile.get_vessel_threshold()
 
-            # remove non-assigned vessels
-            vessels = manager.nodes.vessels
-            compliance = {key: value for key, value in compliance.items() if vessels[key].is_assigned_to_fleet()}
-            thresholds = {key: value for key, value in thresholds.items() if vessels[key].is_assigned_to_fleet()}
-
             # retrieve adjusted thresholds for the compliance coloring
             if has_threshold_adjustment:
                 adjusted = profile.get_adjusted_vessel_threshold()

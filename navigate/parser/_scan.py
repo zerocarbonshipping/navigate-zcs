@@ -6,7 +6,12 @@ Shared machinery for scanning node instance attributes for node references,
 used by the parser's reference resolution and the reachability analysis.
 """
 
+import re
 from typing import Any, Iterator
+
+# a node reference in canonical deck form, e.g. Vessel("name");
+# group 1 is the node type and group 3 the node name
+NODE_REFERENCE_PATTERN = re.compile(r'^\s*(([A-Z][a-z]+)+)\(\s*"([^"]+)"\s*\)\s*$')
 
 # node attributes that can never hold node references, skipped when the parser
 # scans instance attributes to resolve references; every entry must name a real
