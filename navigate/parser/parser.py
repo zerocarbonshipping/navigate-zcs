@@ -51,8 +51,11 @@ from navigate.parser._lark_parser import (
     parse_include_content,
     string_to_date,
 )
+from navigate.parser._reachability import ROOT_TYPES, find_unreachable
+from navigate.parser._scan import NODE_REFERENCE_PATTERN, REFERENCE_SCAN_EXCLUDE, get_attributes
 from navigate.util import (
     attribute_to_setter,
+    matching_keys,
     name_contains_wildcards,
     retrieve_keys,
     timedelta_to_days,
@@ -60,12 +63,6 @@ from navigate.util import (
 )
 
 logger = logging.getLogger(__name__)
-
-# node attributes that can never hold node references, skipped when the parser
-# scans instance attributes to resolve references; every entry must name a real
-# attribute (pinned by a unit test) so stale entries cannot accumulate silently
-REFERENCE_SCAN_EXCLUDE = ('name', 'type', 'allow_dates_in_table', 'expectation', 'profile',
-                          '_table', 'just_copied')
 
 
 class Parser:
@@ -97,6 +94,8 @@ class Parser:
         self._reading_events = False
         self._place_in_queue = False
         self._reading_default = False
+        self._pruned_nodes = set()
+        self._copy_source_names = set()
         self._user_default_name = None
 
         # section flags
@@ -654,6 +653,8 @@ class Parser:
 
         if from_default:
             del group[statement.copy_from]
+        else:
+            self._copy_source_names.add((statement.node_type, statement.copy_from))
 
         group[statement.copy_to] = new_node
 
@@ -798,14 +799,21 @@ class Parser:
     def _update_dependencies(self):
         """Replace references, execute commands, initialize nodes.
 
-        The sequence is: replace refs → replace tables → init dicts →
-        execute commands → replace refs again (commands may create new
-        ones) → replace tables again → initialize nodes.
+        The sequence is: replace refs → replace tables → prune unreachable
+        nodes (DEFINE pass only) → init dicts → execute commands → replace
+        refs again (commands may create new ones) → replace tables again →
+        initialize nodes.
         """
         self._reading_events = True
 
         self._replace_references()
         self._replace_temporary_tables()
+
+        # prune before the dependency dicts are seeded so no dict carries a
+        # key for a node that is absent from the registry; the per-time-step
+        # calls arrive under EVENTS, so the prune runs exactly once
+        if self._current_section == SimulationSectionID.DEFINE:
+            self._prune_unreachable_nodes()
 
         self._initialize_dependent_dicts()
         self._execute_commands()
@@ -819,6 +827,106 @@ class Parser:
             node.just_copied = False
 
         self._reading_events = False
+
+    def _prune_unreachable_nodes(self):
+        """Remove every node no chain of references connects to a root."""
+
+        unreachable = find_unreachable(self.nodes, self.general_nodes, self._event_queue)
+
+        if not unreachable:
+            return
+
+        for node_type, name in unreachable:
+            del getattr(self.nodes, NODE_GROUP[node_type])[name]
+
+        self._pruned_nodes = set(unreachable)
+        dropped_statements = self._drop_event_statements_targeting_pruned()
+
+        # a node used only as a Copy source served its purpose at parse time
+        # and is removed without a warning
+        reported = [pair for pair in unreachable if pair not in self._copy_source_names]
+
+        if reported:
+            self._handle_unreachable(reported, dropped_statements)
+
+        elif dropped_statements:
+
+            logger.warning("Dropped {} queued EVENTS statement(s) targeting node(s) removed after use "
+                           "as a Copy source; re-assign the copies instead.".format(dropped_statements))
+
+    def _handle_unreachable(self, reported: list, dropped_statements: int) -> None:
+        """Warn about the pruned nodes.
+
+        Detection stays separate from this action so pruning can be made
+        fatal by raising ``DeckInsufficientError`` here instead.
+
+        Parameters
+        ----------
+        reported
+            The pruned (node type, node name) pairs to warn about.
+        dropped_statements
+            Number of queued EVENTS statements dropped with them.
+        """
+
+        lines = "".join('\n\t- {}("{}")'.format(node_type, name) for node_type, name in reported)
+
+        dropped = ""
+        if dropped_statements:
+            dropped = ("\nAlso dropped {} queued EVENTS statement(s) targeting only removed nodes."
+                       .format(dropped_statements))
+
+        logger.warning("Removed {} node(s) not reachable from any top-level node ({}) and consequently "
+                       "ignored during the simulation:{}{}"
+                       "\nAssign them to a parent node or remove them from the deck."
+                       .format(len(reported), ", ".join(ROOT_TYPES), lines, dropped))
+
+    def _drop_event_statements_targeting_pruned(self) -> int:
+        """Remove queued EVENTS statements that only target pruned nodes.
+
+        Executing such a statement would recreate the node from the default
+        library or fail; a target name matching any surviving node keeps the
+        statement.
+
+        Returns
+        -------
+        Number of statements dropped.
+        """
+
+        pruned_names_by_type = {}
+        for node_type, name in self._pruned_nodes:
+            pruned_names_by_type.setdefault(node_type, set()).add(name)
+
+        dropped = 0
+
+        for events in self._event_queue.values():
+            for event in events:
+                kept = [statement for statement in event.statements
+                        if not self._targets_only_pruned(statement, pruned_names_by_type)]
+                dropped += len(event.statements) - len(kept)
+                event.statements = kept
+
+        return dropped
+
+    def _targets_only_pruned(self, statement, pruned_names_by_type: dict) -> bool:
+        """Whether a queued statement's target names only pruned nodes.
+
+        Parameters
+        ----------
+        statement
+            A queued EVENTS AST statement.
+        pruned_names_by_type
+            Pruned node names grouped by node type.
+        """
+
+        if not isinstance(statement, NodeDeclaration):
+            return False
+
+        pruned_names = pruned_names_by_type.get(statement.node_type, ())
+
+        if not matching_keys(statement.name, pruned_names):
+            return False
+
+        return not matching_keys(statement.name, getattr(self.nodes, NODE_GROUP[statement.node_type]))
 
     def _execute_commands(self):
         for node in self._get_all_nodes():
@@ -839,9 +947,17 @@ class Parser:
                 raise CommandError(self._error_prefix() + ": {}.".format(str(e)))
 
             except KeyError as e:
+                hint = ""
+                key = e.args[0] if e.args else None
+                pruned = matching_keys(key, {name for _, name in self._pruned_nodes}) \
+                    if isinstance(key, str) else []
+                if pruned:
+                    hint = (" Note: {} removed because unreachable from any top-level node."
+                            .format(", ".join("'{}'".format(name) for name in sorted(pruned))))
+
                 raise CommandError(self._error_prefix()
-                                   + ": '{}' attempts to reference non-existing name(s) {}."
-                                   .format(cmd_ref.command, str(e)))
+                                   + ": '{}' attempts to reference non-existing name(s) {}.{}"
+                                   .format(cmd_ref.command, str(e), hint))
 
             except ValueError as e:
                 raise ValueError(self._error_prefix() + ": '{}' {}"
@@ -903,13 +1019,15 @@ class Parser:
             self._replace_references_on_node(node)
 
     def _replace_references_on_node(self, node):
-        attributes = _get_attributes(node, exclude=REFERENCE_SCAN_EXCLUDE)
+        attributes = get_attributes(node, exclude=REFERENCE_SCAN_EXCLUDE)
 
         for attribute_name, attribute in attributes:
             self._replace_references_on_attribute(node, attribute, attribute_name=attribute_name)
 
     def _replace_references_on_attribute(self, node, attribute, attribute_name=None, container=None, index_or_key=None):
-
+        # kept in lockstep with _reachability._iter_references: a value shape
+        # added here must be recognized there, or nodes referenced through
+        # that shape are wrongly pruned
         if isinstance(attribute, WildcardNodeReference):
 
             if not isinstance(container, list):
@@ -1073,7 +1191,7 @@ class Parser:
         -------
         NodeReference
         """
-        match = re.match(r'^\s*(([A-Z][a-z]+)+)\(\s*"([^"]+)"\s*\)\s*$', assignment_str)
+        match = NODE_REFERENCE_PATTERN.match(assignment_str)
         if match:
             node_type = match.group(1)
             name = match.group(3)
@@ -1104,28 +1222,6 @@ class Parser:
         elif isinstance(value, Expression):
             if location is not None:
                 value.reference_location = location
-
-
-def _get_attributes(class_, exclude=()):
-    """
-    Extracts all attributes from the supplied class except built-in attributes and attributes listed in 'exclude'.
-
-    Parameters
-    ----------
-    class_ : class
-        Class from which to extract attributes.
-    exclude : tuple[str]
-        Tuple of strings with attributes to exclude from the list.
-
-    Returns
-    -------
-    generator :
-        Generator of (name, attribute) pairs.
-    """
-
-    attributes = list(class_.__dict__.items())
-    return ((name, attribute) for name, attribute in attributes
-            if not (name.startswith('__') and name.endswith('__')) and name not in exclude)
 
 
 def _get_files_in_directory(directory):

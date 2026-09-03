@@ -11,7 +11,7 @@ import traceback
 from pathlib import Path
 
 from navigate.exceptions import NavigateError
-from navigate.logging_ import LOG_LEVELS, log_summary, setup_logger
+from navigate.logging_ import LOG_LEVELS, log_summary, print_warning_summary, setup_logger
 from navigate.output.replot import replot
 from navigate.simulation import SimulationManager
 
@@ -180,6 +180,10 @@ def _run(path: Path, args: argparse.Namespace) -> SimulationManager:
     logger = logging.getLogger(__name__)
     logger.info(f"Simulation completed successfully in {manager.get_elapsed_time()} seconds.")
     logger.info(log_summary())
+
+    if not args.profile:
+        print_warning_summary()
+
     return manager
 
 

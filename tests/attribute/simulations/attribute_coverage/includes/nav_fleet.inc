@@ -48,7 +48,7 @@ Converter "prop_oil" {
 Converter "elec_oil" {
 	PowerCapacity = 10
 	MainFuelTypes = OIL
-	Efficiency = 0.5
+	Efficiency = Variable("var_efficiency")
 }
 
 Converter "heat_oil" {
@@ -212,7 +212,7 @@ Vessel "vessel_oil" {
 
 Vessel "vessel_methane" {
 	PowerSystem = PowerSystem("ps_methane")
-	Route = Route("route_regional")
+	Route = Route("route_roundtrip")
 	NominalCapacity = 8000
 	Tanks = [Tank("tank_methane"), Tank("tank_pilot")]
 	PropulsionLoad = 10
@@ -224,7 +224,7 @@ Vessel "vessel_methanol" {
 	Route = Route("route_regional")
 	NominalCapacity = 8000
 	Tanks = [Tank("tank_methanol"), Tank("tank_pilot")]
-	PropulsionLoad = 10
+	PropulsionLoad = Surface("surface_load")
 }
 
 Vessel "vessel_ammonia" {

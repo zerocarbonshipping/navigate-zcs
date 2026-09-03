@@ -387,6 +387,3 @@ class Plant(Node):
                              .format(producer_name, self, self.producer_assignment))
 
         self.producer_assignment = producer_name
-
-    def is_assigned_to_producer(self):
-        return self.producer_assignment is not None

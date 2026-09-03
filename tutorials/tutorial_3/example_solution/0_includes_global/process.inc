@@ -3,12 +3,6 @@
 
 # Definition of fuel processing
 
-# Definition of "fuel_oil_process"
-Process "fuel_oil_process" {				
-	Feeds = [Feedstock("crude_oil")]
-	Conversions = [1.0]						
-}
-
 # Definition of "methane_liquefaction_electro"
 Process "methane_liquefaction_electro" {  
 	Feeds = [Process("methane_synthesis_electro")]

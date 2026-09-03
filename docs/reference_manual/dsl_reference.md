@@ -227,6 +227,14 @@ set_command("key", <0.5 * Forecast("name_1") + Forecast("name_2")>)
 Expressions are restricted arithmetic, not general Python. The only accepted syntax is: numeric literals (including scientific notation such as `1e6`), the operators `+`, `-`, `*`, `/`, and `**`, unary minus, parentheses for grouping, and node references of the form `Type("name")` with a single string argument. Anything else — names, comparisons, other function calls, and so on — is rejected with an error when the deck is loaded. In particular, expressions cannot execute code or access the file system.
 
 
+## Unreachable nodes
+
+A defined node only participates in the simulation when a chain of node references connects it to a top-level node: `Fleet`, `Producer`, `Levy`, `Regulation`, `Emission`, `Fuel`, `Report`, or `Plot`. For example, a `Converter` participates when a `PowerSystem` referencing it is assigned to a `Vessel` that is itself assigned to a `Fleet`.
+
+After the `DEFINE` section is processed, Navigate removes every node without such a chain and logs one warning listing them. Removed nodes produce no results, and `EVENTS` re-assignments targeting only removed nodes are dropped. A node referenced only from an `EVENTS` re-assignment is kept, provided the re-assignment's target is itself reachable. A node used only as the source of a `Copy` is removed silently — its copies carry its role.
+
+Only node references count towards reachability. Plain name strings do not — neither in commands (e.g. `set_export_distribution("port_name", ...)`) nor in `Report` property requests. A command naming a removed node raises an error; a `Report` property request matching no node logs a warning at export and is skipped.
+
 ## Default nodes
 
 Navigate comes with a substantial library of default nodes which may be included in the simulation model.

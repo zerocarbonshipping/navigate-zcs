@@ -776,28 +776,10 @@ class SimulationManager:
         for fleet in self.nodes.fleets.values():
             fleet.initialize_existing_fleet(self.timeline)
 
-        # loop over vessels and log a warning if
-        # the plant is not assigned to any fleet
-        for vessel in self.nodes.vessels.values():
-
-            if not vessel.is_assigned_to_fleet():
-
-                logger.warning("{}: Is not assigned to a 'Fleet' and consequently ignored during the simulation."
-                               .format(vessel))
-
     def _initialize_existing_production(self):
 
         for producer in self.nodes.producers.values():
             producer.initialize_existing_producer(self.timeline)
-
-        # loop over plants and log a warning if the
-        # plant is not assigned to any producer
-        for plant in self.nodes.plants.values():
-
-            if not plant.is_assigned_to_producer():
-
-                logger.warning("{}: Is not assigned to a 'Producer' and consequently ignored during the simulation."
-                               .format(plant))
 
     def _calculate_profile(self):
 

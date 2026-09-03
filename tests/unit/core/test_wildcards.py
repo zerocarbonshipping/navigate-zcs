@@ -8,7 +8,7 @@ from navigate.core.assign import assign_id_list, assign_list, assign_value, expa
 from navigate.core.enum_ import EnergyDemandTypeID, FuelTypeID
 from navigate.core.node_reference import NodeReference, WildcardNodeReference
 from navigate.core.node_type import FUEL, PORT
-from navigate.util import retrieve_keys
+from navigate.util import matching_keys, retrieve_keys
 
 # ── expand_id_wildcard ────────────────────────────────────────────────────────
 
@@ -91,6 +91,23 @@ class TestRetrieveKeysEnum:
         d = {e: i for i, e in enumerate(EnergyDemandTypeID)}
         result = retrieve_keys("*", d, key_fn=self._key_fn)
         assert set(result) == set(EnergyDemandTypeID)
+
+
+# ── matching_keys ─────────────────────────────────────────────────────────────
+
+class TestMatchingKeys:
+
+    def test_exact_match(self):
+        assert matching_keys("a", {"a": 1, "b": 2}) == ["a"]
+
+    def test_wildcard_match(self):
+        assert set(matching_keys("a*", {"a1": 1, "a2": 2, "b": 3})) == {"a1", "a2"}
+
+    def test_exact_miss_returns_empty(self):
+        assert matching_keys("z", {"a": 1}) == []
+
+    def test_wildcard_miss_returns_empty(self):
+        assert matching_keys("z*", {"a": 1}) == []
 
 
 # ── WildcardNodeReference ─────────────────────────────────────────────────────

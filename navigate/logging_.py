@@ -19,6 +19,7 @@ LOG_LEVELS = ["DEBUG", "INFO", "WARNING", "ERROR"]
 HLINE = '=' * 120
 _COUNT_HANDLER = None
 _DEDUP_FILTER = None
+_LOG_FILE_NAME = None
 _WALL_START_TIME = None
 
 _MAX_DIGEST_WARNINGS = 20
@@ -54,6 +55,9 @@ def setup_logger(path: str, level=logging.INFO) -> logging.Logger:
 
     filename = os.path.splitext(path)[0] + '.log'
     file_handler = logging.FileHandler(filename, mode="w")
+
+    global _LOG_FILE_NAME
+    _LOG_FILE_NAME = os.path.basename(filename)
 
     class _CountingHandler(logging.Handler):
         def __init__(self):
@@ -168,6 +172,18 @@ def log_summary() -> str:
             summary += f"\n  ... and {n_unique - _MAX_DIGEST_WARNINGS} more"
 
     return summary
+
+
+def print_warning_summary() -> None:
+    """
+    Print the number of logged warnings to the console, pointing at the log
+    file that setup_logger opened.
+    """
+
+    warnings = get_log_counts().get("WARNING", 0)
+
+    if warnings and _LOG_FILE_NAME:
+        print("{} warning(s) logged - see '{}'.".format(warnings, _LOG_FILE_NAME))
 
 
 def _round_for_display(x):

@@ -3,12 +3,7 @@
 
 # Definition of feedstocks
 
-
-# Definition of "crude_oil" 
-Feedstock "crude_oil" {	
-}
-
-# Definition of "demineralized_water" 
+# Definition of "demineralized_water"
 Feedstock "demineralized_water" {	
 }
 

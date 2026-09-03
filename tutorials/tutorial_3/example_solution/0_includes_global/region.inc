@@ -6,16 +6,6 @@
 Region "region" {
 #set CapEx, OpEx, Process and feedstock WTT emissions for the different processes that produces the alternative fuels. The expensens and emissions related to the production of the fuels depend on the region.
 
-## LSFO ##
-	# Set process cost below:
-	set_feedstock_cost("crude_oil", 600)  #USD/ton
-	set_feedstock_wtt("crude_oil", "carbon_dioxide", 0.3)
-	# Set WTT process emissions below:
-	set_process_wtt("fuel_oil_process", "carbon_dioxide", 0.68)
-	# Set WTT feedstock emissions below:
-	set_feedstock_wtt("crude_oil", "methane", 0.05)
-
-
 ### E-methane ###
 	set_process_capex("methane_synthesis_electro", 100)
 	set_process_opex("methane_liquefaction_electro", 88)

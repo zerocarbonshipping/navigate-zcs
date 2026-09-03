@@ -202,7 +202,7 @@ class CommandReference:
 
     def __init__(self, command, inputs, source, deck_line=0):
         self.command = command
-        self._inputs = inputs
+        self.inputs = inputs
         self._source = source
         self._deck_line = deck_line
 
@@ -210,7 +210,7 @@ class CommandReference:
         method = getattr(node, self.command)
         self._check_command(node, method)
 
-        expanded = _expand_inputs(self.command, self._inputs)
+        expanded = _expand_inputs(self.command, self.inputs)
         for combo in expanded:
             method(*combo)
 
@@ -239,7 +239,7 @@ class CommandReference:
         # check that the number of provided inputs
         # corresponding to the required inputs,
         # otherwise throw and error.
-        n_given = len(self._inputs)
+        n_given = len(self.inputs)
 
         if n_given < n_args:
 

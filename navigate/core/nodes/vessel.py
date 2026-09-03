@@ -429,6 +429,3 @@ class Vessel(Node):
                              .format(fleet_name, self, self.fleet_assignment))
 
         self.fleet_assignment = fleet_name
-
-    def is_assigned_to_fleet(self):
-        return self.fleet_assignment is not None

@@ -23,9 +23,6 @@ Region "europe" {
 
 Region "*" {
 
-	set_transport_cost("truck", 0.0)
-	set_transport_wtt("truck", "carbon_dioxide", Forecast("truck_emissions"))
-
 	# Feedstock cost and WTT for FAME production
 	set_feedstock_cost("demineralized_water", Forecast("demineralized_water_cost"))
 	set_feedstock_cost("used_cooking_oil", Forecast("used_cooking_oil_cost_europe"))
@@ -37,7 +34,4 @@ Region "*" {
 	set_process_wtt("fatty_acid_methyl_ester_synthesis", "carbon_dioxide", <-Variable("carbon_dioxide_per_fame") + Forecast("fame_wtt_carbon_dioxide")>)
 	set_process_wtt("fatty_acid_methyl_ester_synthesis", "methane", Forecast("fame_wtt_methane"))
 	set_process_wtt("fatty_acid_methyl_ester_synthesis", "nitrous_oxide", Forecast("fame_wtt_nitrous_oxide"))
-}
-
-Transport "truck" {
 }
