@@ -32,7 +32,7 @@ There are several conditions that must be met depending on whether the RouteType
 
 If RouteType is defined as ROUND\_TRIP:
 
-* Several attributes under the node ‘Route’ are irrelevant (TimeAtSea, PortCalls, Times).
+* Several attributes under the node ‘Route’ are irrelevant (TimeAtSea, PortCalls, ConditionDistribution).
 * Values for following attributes must be provided by the user: PortDurations, Distances.
 * The number of defined Distances and Speeds must correspond.
 * A minimum of 2 ports must be assigned.
@@ -45,7 +45,7 @@ If RouteType is defined as REGIONAL\_TRIP:
 
 * Several attributes under the node ‘Route’ are irrelevant (Distances, PortDurations)
 * Values for TimeAtSea must be provided by the user.
-* The number of defined Times and Speeds must correspond.
+* The number of defined ConditionDistribution fractions and Speeds must correspond.
 * All ports must be unique.
 * The number of defined Ports and PortCalls must correspond.
 
@@ -135,7 +135,7 @@ This attribute sets the fraction of time spent on the various legs of the trip. 
 
 ### Speeds 
 
-This attribute sets the speed of the various legs of the trip in knots. The number of defined Speeds must be equal to the number of defined fractions for CapacityUtilizations, WindUtilizations, and SolarUtilizations, respectively – this corresponds to the number of legs of the trip. Also refer to the section ‘Conditions’.
+This attribute sets the speed of the various legs of the trip in knots. The number of defined Speeds must be equal to the number of defined CapacityUtilizations – this corresponds to the number of legs of the trip. Also refer to the section ‘Conditions’.
 
 * **Data type**: List of `Floats` OR `Forecasts` OR `Variables`
 * **Example values**:
@@ -147,39 +147,13 @@ This attribute sets the speed of the various legs of the trip in knots. The numb
 
 ### CapacityUtilizations
 
-This attribute sets the cargo capacity utilization of the various legs of the trip. The number of defined CapacityUtilizations must be equal to the number of defined fractions for SolarUtilizations, WindUtilization, and defined Speeds, respectively – this corresponds to the number of legs of the trip. Also refer to the section ‘Conditions’.
+This attribute sets the cargo capacity utilization of the various legs of the trip. The number of defined CapacityUtilizations must be equal to the number of defined Speeds – this corresponds to the number of legs of the trip. Also refer to the section ‘Conditions’.
 
 * **Data type**: List of `Floats` OR `Forecasts` OR `Variables`
 * **Example values**:
     - [1, 0]
     - [Forecast("name"), Variable("name")]
 * **Unit**: Fraction of cargo capacity
-* **Minimum value**: 0
-* **Maximum value**: 1
-* **Default**: List of 1s
-
-### WindUtilizations
-
-This attribute defines what fraction of the capacity of installed wind utilization technology is used on the various legs of the trip. The number of defined WindUtilizations must be equal to the number of defined fractions for CapacityUtilizations, SolarUtilization, and defined Speeds, respectively – this corresponds to the number of legs of the trip. Also refer to the section ‘Conditions’.
-
-* **Data type**: List of `Floats`
-* **Example values**:
-    - [0.7]
-    - [0.1, 0.5]
-* **Unit**: Fraction of max. wind utilization capacity used
-* **Minimum value**: 0
-* **Maximum value**: 1
-* **Default**: List of 1s
-
-### SolarUtilizations
-
-This attribute defines what fraction of the capacity of installed solar utilization technology is used on the various legs of the trip. The number of defined SolarUtilizations must be equal to the number of defined fractions for CapacityUtilizations, WindUtilizations, and defined Speeds, respectively – this corresponds to the number of legs of the trip. Also refer to the section ‘Conditions’.
-
-* **Data type**: List of `Floats`
-* **Example values**:
-    - [0.7]
-    - [0.1, 0.5]
-* **Unit**: Fraction of max. solar utilization capacity used
 * **Minimum value**: 0
 * **Maximum value**: 1
 * **Default**: List of 1s
