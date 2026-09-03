@@ -11,7 +11,18 @@ from navigate.parser._attributes import (
     NODE_ATTRIBUTE_SECTIONS,
     check_general_node_attribute_is_allowed,
     check_node_attribute_is_allowed,
+    instance_to_dsl_name,
 )
+
+
+class TestInstanceToDslName:
+
+    def test_returns_the_assigning_dsl_attribute(self):
+        assert instance_to_dsl_name("Levy", "jurisdiction") == "Jurisdiction"
+        assert instance_to_dsl_name("Fuel", "lower_heating_value") == "LowerHeatingValue"
+
+    def test_falls_back_to_the_instance_name(self):
+        assert instance_to_dsl_name("Levy", "include_vessel") == "include_vessel"
 
 
 class TestCheckNodeAttributeIsAllowed:

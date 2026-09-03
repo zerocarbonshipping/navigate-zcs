@@ -235,6 +235,8 @@ After the `DEFINE` section is processed, Navigate removes every node without suc
 
 Only node references count towards reachability. Plain name strings do not — neither in commands (e.g. `set_export_distribution("port_name", ...)`) nor in `Report` property requests. A command naming a removed node raises an error; a `Report` property request matching no node logs a warning at export and is skipped.
 
+A `Port` is reachable only through a `Route`'s `Ports` attribute, since only routed ports can be bunkered in. A `Levy`/`Regulation` `Jurisdiction` selects among routed ports and does not keep a port alive: a port on no route is removed even when a jurisdiction lists it, and removed ports are dropped from the surviving policies' `Jurisdiction` lists with a warning. A `Jurisdiction` emptied this way fails with the unassigned-attribute error.
+
 ## Default nodes
 
 Navigate comes with a substantial library of default nodes which may be included in the simulation model.

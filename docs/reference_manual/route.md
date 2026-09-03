@@ -66,7 +66,7 @@ In a REGIONAL\_TRIP, *individual legs of the journey are not specified*. Instead
 
 ### Ports 
 
-This attribute sets the list of ports available for bunkering on the route. The number of ports and bunker regions must correspond.
+This attribute sets the list of ports available for bunkering on the route. The number of ports and bunker regions must correspond. This is the only attribute that keeps a `Port` in the simulation — a port on no route is removed (see [Unreachable nodes](dsl_reference.md#unreachable-nodes)).
 
 * **Data type**: List of `Port` nodes
 * **Example values**:

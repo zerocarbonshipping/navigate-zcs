@@ -32,6 +32,7 @@ from navigate.util.dates import (
     timedelta_to_days,
 )
 from navigate.util.naming import (
+    attribute_to_instance_name,
     attribute_to_setter,
     matching_keys,
     name_contains_wildcards,

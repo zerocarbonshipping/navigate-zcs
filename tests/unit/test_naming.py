@@ -4,7 +4,7 @@
 """Unit tests for the deck-token to method-name mapping in navigate.util.naming."""
 import pytest
 
-from navigate.util import attribute_to_setter
+from navigate.util import attribute_to_instance_name, attribute_to_setter
 
 
 @pytest.mark.parametrize("attribute, expected", [
@@ -27,5 +27,10 @@ def test_attribute_to_getter(attribute, expected):
     assert attribute_to_setter(attribute, method="get") == expected
 
 
-def test_attribute_to_file_name():
-    assert attribute_to_setter("EmissionFactors", method="")[1:] == "emission_factors"
+@pytest.mark.parametrize("attribute, expected", [
+    ("EmissionFactors", "emission_factors"),
+    ("Jurisdiction", "jurisdiction"),
+    ("BunkerWTTOverwrite", "bunker_wtt_overwrite"),
+])
+def test_attribute_to_instance_name(attribute, expected):
+    assert attribute_to_instance_name(attribute) == expected

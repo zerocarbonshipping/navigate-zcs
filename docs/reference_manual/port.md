@@ -7,7 +7,8 @@ SPDX-License-Identifier: CC-BY-4.0
 
 A `Port` node defines a port in which a vessel can bunker fuel. Port nodes are often defined as a region in
 which the vessel is operating. Examples of ports are Rotterdam (if used specifically) and Asia
-(if used regionally).
+(if used regionally). A port participates in the simulation only when a `Route`'s `Ports` lists it; an
+unrouted port is removed (see [Unreachable nodes](dsl_reference.md#unreachable-nodes)).
 
 Example:
 
