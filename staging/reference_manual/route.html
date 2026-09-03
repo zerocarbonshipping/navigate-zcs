@@ -492,7 +492,7 @@ Europe (if regional).</p>
 <p>There are several conditions that must be met depending on whether the RouteType is defined as REGIONAL_TRIP or ROUND_TRIP.</p>
 <p>If RouteType is defined as ROUND_TRIP:</p>
 <ul class="simple">
-<li><p>Several attributes under the node ‘Route’ are irrelevant (TimeAtSea, PortCalls, Times).</p></li>
+<li><p>Several attributes under the node ‘Route’ are irrelevant (TimeAtSea, PortCalls, ConditionDistribution).</p></li>
 <li><p>Values for following attributes must be provided by the user: PortDurations, Distances.</p></li>
 <li><p>The number of defined Distances and Speeds must correspond.</p></li>
 <li><p>A minimum of 2 ports must be assigned.</p></li>
@@ -505,7 +505,7 @@ Europe (if regional).</p>
 <ul class="simple">
 <li><p>Several attributes under the node ‘Route’ are irrelevant (Distances, PortDurations)</p></li>
 <li><p>Values for TimeAtSea must be provided by the user.</p></li>
-<li><p>The number of defined Times and Speeds must correspond.</p></li>
+<li><p>The number of defined ConditionDistribution fractions and Speeds must correspond.</p></li>
 <li><p>All ports must be unique.</p></li>
 <li><p>The number of defined Ports and PortCalls must correspond.</p></li>
 </ul>
@@ -616,7 +616,7 @@ Europe (if regional).</p>
 </section>
 <section id="speeds">
 <h3>Speeds<a class="headerlink" href="#speeds" title="Link to this heading">#</a></h3>
-<p>This attribute sets the speed of the various legs of the trip in knots. The number of defined Speeds must be equal to the number of defined fractions for CapacityUtilizations, WindUtilizations, and SolarUtilizations, respectively – this corresponds to the number of legs of the trip. Also refer to the section ‘Conditions’.</p>
+<p>This attribute sets the speed of the various legs of the trip in knots. The number of defined Speeds must be equal to the number of defined CapacityUtilizations – this corresponds to the number of legs of the trip. Also refer to the section ‘Conditions’.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: List of <code class="docutils literal notranslate"><span class="pre">Floats</span></code> OR <code class="docutils literal notranslate"><span class="pre">Forecasts</span></code> OR <code class="docutils literal notranslate"><span class="pre">Variables</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
@@ -632,7 +632,7 @@ Europe (if regional).</p>
 </section>
 <section id="capacityutilizations">
 <h3>CapacityUtilizations<a class="headerlink" href="#capacityutilizations" title="Link to this heading">#</a></h3>
-<p>This attribute sets the cargo capacity utilization of the various legs of the trip. The number of defined CapacityUtilizations must be equal to the number of defined fractions for SolarUtilizations, WindUtilization, and defined Speeds, respectively – this corresponds to the number of legs of the trip. Also refer to the section ‘Conditions’.</p>
+<p>This attribute sets the cargo capacity utilization of the various legs of the trip. The number of defined CapacityUtilizations must be equal to the number of defined Speeds – this corresponds to the number of legs of the trip. Also refer to the section ‘Conditions’.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: List of <code class="docutils literal notranslate"><span class="pre">Floats</span></code> OR <code class="docutils literal notranslate"><span class="pre">Forecasts</span></code> OR <code class="docutils literal notranslate"><span class="pre">Variables</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
@@ -642,40 +642,6 @@ Europe (if regional).</p>
 </ul>
 </li>
 <li><p><strong>Unit</strong>: Fraction of cargo capacity</p></li>
-<li><p><strong>Minimum value</strong>: 0</p></li>
-<li><p><strong>Maximum value</strong>: 1</p></li>
-<li><p><strong>Default</strong>: List of 1s</p></li>
-</ul>
-</section>
-<section id="windutilizations">
-<h3>WindUtilizations<a class="headerlink" href="#windutilizations" title="Link to this heading">#</a></h3>
-<p>This attribute defines what fraction of the capacity of installed wind utilization technology is used on the various legs of the trip. The number of defined WindUtilizations must be equal to the number of defined fractions for CapacityUtilizations, SolarUtilization, and defined Speeds, respectively – this corresponds to the number of legs of the trip. Also refer to the section ‘Conditions’.</p>
-<ul class="simple">
-<li><p><strong>Data type</strong>: List of <code class="docutils literal notranslate"><span class="pre">Floats</span></code></p></li>
-<li><p><strong>Example values</strong>:</p>
-<ul>
-<li><p>[0.7]</p></li>
-<li><p>[0.1, 0.5]</p></li>
-</ul>
-</li>
-<li><p><strong>Unit</strong>: Fraction of max. wind utilization capacity used</p></li>
-<li><p><strong>Minimum value</strong>: 0</p></li>
-<li><p><strong>Maximum value</strong>: 1</p></li>
-<li><p><strong>Default</strong>: List of 1s</p></li>
-</ul>
-</section>
-<section id="solarutilizations">
-<h3>SolarUtilizations<a class="headerlink" href="#solarutilizations" title="Link to this heading">#</a></h3>
-<p>This attribute defines what fraction of the capacity of installed solar utilization technology is used on the various legs of the trip. The number of defined SolarUtilizations must be equal to the number of defined fractions for CapacityUtilizations, WindUtilizations, and defined Speeds, respectively – this corresponds to the number of legs of the trip. Also refer to the section ‘Conditions’.</p>
-<ul class="simple">
-<li><p><strong>Data type</strong>: List of <code class="docutils literal notranslate"><span class="pre">Floats</span></code></p></li>
-<li><p><strong>Example values</strong>:</p>
-<ul>
-<li><p>[0.7]</p></li>
-<li><p>[0.1, 0.5]</p></li>
-</ul>
-</li>
-<li><p><strong>Unit</strong>: Fraction of max. solar utilization capacity used</p></li>
 <li><p><strong>Minimum value</strong>: 0</p></li>
 <li><p><strong>Maximum value</strong>: 1</p></li>
 <li><p><strong>Default</strong>: List of 1s</p></li>
@@ -762,8 +728,6 @@ Europe (if regional).</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#conditiondistribution">ConditionDistribution</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#speeds">Speeds</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#capacityutilizations">CapacityUtilizations</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#windutilizations">WindUtilizations</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#solarutilizations">SolarUtilizations</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#commands">Commands</a><ul class="pst-show_toc_level nav section-nav flex-column">
