@@ -43,6 +43,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   5-decimal precision.
 
 ### Changed
+- A `Report` property request that matches no node in the simulation logs a
+  warning at export instead of silently producing no columns.
 - Nodes that no chain of node references connects to a top-level node
   (`Fleet`, `Producer`, `Levy`, `Regulation`, `Emission`, `Fuel`, `Report`,
   `Plot`) are removed after the DEFINE section is processed, with one

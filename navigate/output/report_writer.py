@@ -26,7 +26,7 @@ from navigate.util import (
     dates_to_days,
     is_single_dict,
     is_tuple_dict,
-    retrieve_keys,
+    matching_keys,
 )
 
 logger = logging.getLogger(__name__)
@@ -191,7 +191,7 @@ def export_properties_xlsx(ws: Worksheet,
 
     col = 3
 
-    export = _prepare_export(nodes, extraction_dict)
+    export = _prepare_export(nodes, extraction_dict, report_name, ws.title)
 
     for node_name, (attributes, getters, reductions) in export.items():
 
@@ -225,7 +225,7 @@ def export_properties_csv(sheet_name: str,
         Per-sheet headers and columns, modified in-place.
     """
 
-    export = _prepare_export(nodes, extraction_dict)
+    export = _prepare_export(nodes, extraction_dict, report_name, sheet_name)
 
     headers = []
     columns = []
@@ -327,16 +327,24 @@ def _get_alternative_path(base_path: str, counter: int) -> str:
     return f"{base} ({counter}){ext}"
 
 
-def _prepare_export(nodes: dict[str, Node], extraction_dict: dict[str, NodeReport]) -> dict:
+def _prepare_export(nodes: dict[str, Node],
+                    extraction_dict: dict[str, NodeReport],
+                    report_name: str,
+                    sheet_name: str
+                    ) -> dict:
 
     export = {}
 
     for key, report in extraction_dict.items():
 
-        try:
-            node_names = retrieve_keys(key, nodes)
-        except KeyError:
-            node_names = ()
+        node_names = matching_keys(key, nodes)
+
+        if not node_names:
+
+            logger.warning("Report '%s': property request '%s' on sheet '%s' does not match any node in the "
+                           "simulation; skipping.", report_name, key, sheet_name)
+
+            continue
 
         for node_name in node_names:
 

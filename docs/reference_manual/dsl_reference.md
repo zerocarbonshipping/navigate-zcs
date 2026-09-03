@@ -233,7 +233,7 @@ A defined node only participates in the simulation when a chain of node referenc
 
 After the `DEFINE` section is processed, Navigate removes every node without such a chain and logs one warning listing them. Removed nodes produce no results, and `EVENTS` re-assignments targeting only removed nodes are dropped. A node referenced only from an `EVENTS` re-assignment is kept, provided the re-assignment's target is itself reachable. A node used only as the source of a `Copy` is removed silently — its copies carry its role.
 
-Only node references count towards reachability. Plain name strings do not — neither in commands (e.g. `set_export_distribution("port_name", ...)`) nor in `Report` property requests. A command naming a removed node raises an error; a `Report` property request naming one matches nothing at export.
+Only node references count towards reachability. Plain name strings do not — neither in commands (e.g. `set_export_distribution("port_name", ...)`) nor in `Report` property requests. A command naming a removed node raises an error; a `Report` property request matching no node logs a warning at export and is skipped.
 
 ## Default nodes
 
