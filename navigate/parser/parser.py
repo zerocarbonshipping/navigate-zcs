@@ -17,7 +17,11 @@ from navigate.core.node_reference import WildcardNodeReference
 from navigate.core.node_registry import GeneralNodes, Nodes
 from navigate.exceptions import AttributeAssignmentError, CommandError, DeckFormatError, DeckKeywordError
 from navigate.logging_ import log_time_step_breaker, print_preamble
-from navigate.parser._attributes import check_general_node_attribute_is_allowed, check_node_attribute_is_allowed
+from navigate.parser._attributes import (
+    check_general_node_attribute_is_allowed,
+    check_node_attribute_is_allowed,
+    instance_to_dsl_name,
+)
 from navigate.parser._commands import CommandReference, check_node_command_is_allowed
 from navigate.parser._event import Event
 from navigate.parser._keywords import (
@@ -54,6 +58,7 @@ from navigate.parser._lark_parser import (
 from navigate.parser._reachability import ROOT_TYPES, find_unreachable
 from navigate.parser._scan import NODE_REFERENCE_PATTERN, REFERENCE_SCAN_EXCLUDE, get_attributes
 from navigate.util import (
+    attribute_to_instance_name,
     attribute_to_setter,
     matching_keys,
     name_contains_wildcards,
@@ -306,7 +311,7 @@ class Parser:
                                   + f": Module '{directive.name}' is requested but no assumptions "
                                   "directory is specified. Use the -d flag or ASSUMPTIONS_DATA_DIR.")
 
-        file_name = attribute_to_setter(directive.name, method='')[1:]
+        file_name = attribute_to_instance_name(directive.name)
 
         found = self._read_default_folder(file_name, self._user_module_directory)
         if found:
@@ -840,6 +845,7 @@ class Parser:
             del getattr(self.nodes, NODE_GROUP[node_type])[name]
 
         self._pruned_nodes = set(unreachable)
+        scrubbed = self._scrub_references_to_pruned()
         dropped_statements = self._drop_event_statements_targeting_pruned()
 
         # a node used only as a Copy source served its purpose at parse time
@@ -853,6 +859,11 @@ class Parser:
 
             logger.warning("Dropped {} queued EVENTS statement(s) targeting node(s) removed after use "
                            "as a Copy source; re-assign the copies instead.".format(dropped_statements))
+
+        # reported independently: a scrub changes a surviving node even when
+        # the pruned target itself was a silently removed Copy source
+        if scrubbed:
+            self._warn_scrubbed_references(scrubbed)
 
     def _handle_unreachable(self, reported: list, dropped_statements: int) -> None:
         """Warn about the pruned nodes.
@@ -879,6 +890,61 @@ class Parser:
                        "ignored during the simulation:{}{}"
                        "\nAssign them to a parent node or remove them from the deck."
                        .format(len(reported), ", ".join(ROOT_TYPES), lines, dropped))
+
+    def _scrub_references_to_pruned(self) -> list:
+        """Remove every reference to a pruned node from the surviving nodes'
+        list-valued attributes — the only shape holding references outside a
+        restricted type's activation edges, pinned by the reference-site
+        classification test. A surviving reference to a pruned node is by
+        construction non-activating, so nothing load-bearing is removed, but
+        left in place it would hand consumers a node that never ran
+        initialize().
+
+        Returns
+        -------
+        (node, instance-attribute name, removed nodes) records for every
+        attribute that lost references.
+        """
+
+        def is_pruned(element):
+            return (isinstance(element, (Node, NodeReference))
+                    and (element.type, element.name) in self._pruned_nodes)
+
+        records = []
+
+        for node in self._get_all_nodes():
+            for attribute_name, attribute in get_attributes(node, exclude=REFERENCE_SCAN_EXCLUDE):
+
+                if not isinstance(attribute, list):
+                    continue
+
+                kept, removed = [], []
+                for element in attribute:
+                    (removed if is_pruned(element) else kept).append(element)
+
+                if removed:
+                    setattr(node, attribute_name, kept)
+                    records.append((node, attribute_name, removed))
+
+        return records
+
+    def _warn_scrubbed_references(self, scrubbed: list) -> None:
+        """Warn about references to pruned nodes removed from surviving nodes.
+
+        Parameters
+        ----------
+        scrubbed
+            (node, instance-attribute name, removed nodes) records from
+            ``_scrub_references_to_pruned``.
+        """
+
+        lines = ['\n\t- {} {}: {}'.format(node, instance_to_dsl_name(node.type, attribute_name),
+                                          ", ".join(map(str, removed)))
+                 for node, attribute_name, removed in scrubbed]
+
+        logger.warning("Removed the reference(s) to pruned node(s) from {} attribute(s):{}"
+                       "\nAssign the removed node(s) to a parent node to keep them, or drop the "
+                       "stale reference(s) from the deck.".format(len(scrubbed), "".join(lines)))
 
     def _drop_event_statements_targeting_pruned(self) -> int:
         """Remove queued EVENTS statements that only target pruned nodes.
@@ -998,8 +1064,7 @@ class Parser:
             port.initialize_dependencies(self.nodes.emissions, self.nodes.fuels)
 
         for producer in self.nodes.producers.values():
-            producer.initialize_dependencies(self.nodes.feedstocks, self.nodes.ports, self.nodes.processes,
-                                             self.nodes.routes)
+            producer.initialize_dependencies(self.nodes.feedstocks, self.nodes.ports, self.nodes.processes)
 
         for region in self.nodes.regions.values():
             region.initialize_dependencies(self.nodes.emissions,

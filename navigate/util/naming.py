@@ -111,6 +111,25 @@ def attribute_to_setter(attribute, method='set'):
     return method
 
 
+def attribute_to_instance_name(attribute):
+    """
+    Converts a DSL attribute name (e.g. 'LowerHeatingValue') to the snake_case
+    instance-attribute name its setter assigns (e.g. 'lower_heating_value').
+
+    Parameters
+    ----------
+    attribute : str
+        String read as the left-hand side of an assignment statement in the input deck.
+
+    Returns
+    -------
+    str :
+        The corresponding instance-attribute name.
+    """
+
+    return attribute_to_setter(attribute, method='')[1:]
+
+
 def name_contains_wildcards(name):
     """
     Test whether a node name include wildcard characters.

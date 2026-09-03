@@ -7,20 +7,24 @@ synthetic registries, and the parser's prune-and-warn pass over inline decks.
 """
 
 import logging
+import re
 import sys
+from pathlib import Path
 
 import pytest
 
+import navigate.core.nodes
 from helpers.simulation import default_assumptions_dir
 from navigate.__main__ import main
 from navigate.core import Expression, NodeReference
 from navigate.core.node_reference import WildcardNodeReference
 from navigate.core.node_registry import GeneralNodes, Nodes
-from navigate.core.node_type import CURVE, VESSEL
+from navigate.core.node_type import CURVE, LEVY, PORT, VESSEL
 from navigate.core.nodes.converter import Converter
 from navigate.core.nodes.curve import Curve
 from navigate.core.nodes.fleet import Fleet
 from navigate.core.nodes.forecast import Forecast
+from navigate.core.nodes.levy import Levy
 from navigate.core.nodes.plant import Plant
 from navigate.core.nodes.port import Port
 from navigate.core.nodes.power_system import PowerSystem
@@ -31,11 +35,14 @@ from navigate.core.nodes.tank import Tank
 from navigate.core.nodes.variable import Variable
 from navigate.core.nodes.vessel import Vessel
 from navigate.exceptions import CommandError
+from navigate.parser._attributes import NODE_ATTRIBUTE_SECTIONS
 from navigate.parser._commands import CommandReference
 from navigate.parser._event import Event
+from navigate.parser._keywords import NODE_GROUP, SECTION_DEFINE, define_new_node
 from navigate.parser._lark_parser import Assignment, NodeDeclaration, SourceLocation
-from navigate.parser._reachability import find_unreachable
+from navigate.parser._reachability import ACTIVATION_EDGES, find_unreachable
 from navigate.parser.parser import Parser
+from navigate.util import attribute_to_instance_name
 
 
 def _event_with(statements):
@@ -172,6 +179,42 @@ class TestFindUnreachable:
 
         assert find_unreachable(nodes, GeneralNodes(), {}) == []
 
+    def test_jurisdiction_reference_does_not_activate_port(self):
+        nodes = self._fleet_chain()
+        nodes.levies['levy'] = levy = Levy('levy')
+        nodes.ports['jur_port'] = jur_port = Port('jur_port')
+
+        levy.jurisdiction = [jur_port]
+
+        assert find_unreachable(nodes, GeneralNodes(), {}) == [('Port', 'jur_port')]
+
+    def test_routed_port_in_jurisdiction_is_reachable(self):
+        nodes = self._fleet_chain()
+        nodes.levies['levy'] = levy = Levy('levy')
+
+        levy.jurisdiction = [nodes.ports['port']]
+
+        assert find_unreachable(nodes, GeneralNodes(), {}) == []
+
+    def test_expression_reference_does_not_activate_port(self):
+        nodes = self._fleet_chain()
+        nodes.ports['expr_port'] = Port('expr_port')
+
+        nodes.vessels['vessel'].propulsion_load = Expression('0.5 * Port("expr_port")')
+
+        assert find_unreachable(nodes, GeneralNodes(), {}) == [('Port', 'expr_port')]
+
+    def test_events_jurisdiction_assignment_creates_no_edge(self):
+        nodes = self._fleet_chain()
+        nodes.levies['levy'] = Levy('levy')
+        nodes.ports['jur_port'] = Port('jur_port')
+
+        event_queue = {'d': [_event_with([
+            _reassignment(LEVY, 'levy', 'Jurisdiction', [NodeReference(PORT, 'jur_port')]),
+        ])]}
+
+        assert find_unreachable(nodes, GeneralNodes(), event_queue) == [('Port', 'jur_port')]
+
 
 DEFINE_BASE = '''
 ModelDefinition {
@@ -282,19 +325,39 @@ Vessel "ghost" {
 '''
 
 
-LEVY = '''
-Levy "levy" {{
+LEVY_DECK = '''
+Levy "{name}" {{
     Scheme = BOTH
     Emissions = [Emission("co2")]
     Fuels = [Fuel("oil")]
-    Jurisdiction = [Port("port")]
+    Jurisdiction = {jurisdiction}
     Level = 30
-    set_include_vessel({}, TRUE)
+    {extra}
 }}
 '''
 
-LEVY_STAR = LEVY.format('"*"')
-LEVY_GHOST = LEVY.format('"ghost"')
+LEVY_STAR = LEVY_DECK.format(name='levy', jurisdiction='[Port("port")]',
+                             extra='set_include_vessel("*", TRUE)')
+LEVY_GHOST = LEVY_DECK.format(name='levy', jurisdiction='[Port("port")]',
+                              extra='set_include_vessel("ghost", TRUE)')
+
+JURISDICTION_PORT = '''
+Port "jur_port" {
+}
+'''
+
+GHOST_ROUTE = '''
+Route "ghost_route" {
+    RouteType = REGIONAL_TRIP
+    Ports = [Port("ghost_port")]
+    TimeAtSea = 0.5
+    ConditionDistribution = [1.0]
+    Speeds = [10]
+}
+
+Port "ghost_port" {
+}
+'''
 
 
 class TestPruneUnreachableNodes:
@@ -319,18 +382,7 @@ class TestPruneUnreachableNodes:
         assert set(parser.nodes.vessels) == {'vessel'}
 
     def test_ghost_chain_pruned_and_dicts_seeded_without_ghosts(self, tmp_path, caplog):
-        define_extra = GHOST_VESSEL + LEVY_STAR + '''
-Route "ghost_route" {
-    RouteType = REGIONAL_TRIP
-    Ports = [Port("ghost_port")]
-    TimeAtSea = 0.5
-    ConditionDistribution = [1.0]
-    Speeds = [10]
-}
-
-Port "ghost_port" {
-}
-'''
+        define_extra = GHOST_VESSEL + LEVY_STAR + GHOST_ROUTE
         with caplog.at_level(logging.WARNING):
             parser = _read_deck(tmp_path, define_extra=define_extra)
 
@@ -473,3 +525,144 @@ End
         define_extra = GHOST_VESSEL + LEVY_GHOST
         with pytest.raises(CommandError, match='unreachable from any top-level node'):
             _read_deck(tmp_path, define_extra=define_extra)
+
+    def test_jurisdiction_only_port_pruned_and_scrubbed(self, tmp_path, caplog):
+        define_extra = LEVY_DECK.format(
+            name='levy', jurisdiction='[Port("port"), Port("jur_port")]',
+            extra='') + JURISDICTION_PORT
+
+        with caplog.at_level(logging.WARNING):
+            parser = _read_deck(tmp_path, define_extra=define_extra)
+
+        assert set(parser.nodes.ports) == {'port'}
+        assert [port.name for port in parser.nodes.levies['levy'].jurisdiction] == ['port']
+        assert 'Levy("levy") Jurisdiction: Port("jur_port")' in caplog.text
+
+    def test_empty_jurisdiction_after_scrub_errors_at_initialize(self, tmp_path, caplog):
+        define_extra = LEVY_DECK.format(
+            name='levy', jurisdiction='[Port("jur_port")]', extra='') + JURISDICTION_PORT
+
+        with caplog.at_level(logging.WARNING), \
+                pytest.raises(ValueError, match="Attribute 'Jurisdiction' is unassigned"):
+            _read_deck(tmp_path, define_extra=define_extra)
+
+        assert 'Levy("levy") Jurisdiction: Port("jur_port")' in caplog.text
+
+    def test_every_surviving_port_is_routed(self, tmp_path, caplog):
+        # the invariant consumers rely on (producer export seeding, the
+        # fuel-import path): after the prune, no registry port is unrouted
+        define_extra = (LEVY_DECK.format(name='levy', jurisdiction='[Port("port"), Port("jur_port")]',
+                                         extra='')
+                        + JURISDICTION_PORT + GHOST_ROUTE)
+
+        with caplog.at_level(logging.WARNING):
+            parser = _read_deck(tmp_path, define_extra=define_extra)
+
+        routed = {port.name for route in parser.nodes.routes.values() for port in route.ports}
+        assert set(parser.nodes.ports) == routed
+
+    def test_wildcard_jurisdiction_scrubbed_to_surviving_ports(self, tmp_path, caplog):
+        # the wildcard expands before the prune, so the pruned ghost port
+        # lands in the jurisdiction list and must be scrubbed back out
+        define_extra = LEVY_DECK.format(name='levy', jurisdiction='Port("*")',
+                                        extra='') + GHOST_ROUTE
+
+        with caplog.at_level(logging.WARNING):
+            parser = _read_deck(tmp_path, define_extra=define_extra)
+
+        assert set(parser.nodes.ports) == {'port'}
+        assert [port.name for port in parser.nodes.levies['levy'].jurisdiction] == ['port']
+
+    def test_copy_source_port_scrub_still_warned(self, tmp_path, caplog):
+        define_extra = LEVY_DECK.format(
+            name='levy', jurisdiction='[Port("port"), Port("port_template")]', extra='') + '''
+Port "port_template" {
+}
+
+Copy Port "port_template" "port_copy"
+
+Route "route_copy" {
+    RouteType = REGIONAL_TRIP
+    Ports = [Port("port_copy")]
+    TimeAtSea = 0.75
+    ConditionDistribution = [1.0]
+    Speeds = [10]
+}
+
+Vessel "vessel_copy" {
+    PowerSystem = PowerSystem("ps")
+    Route = Route("route_copy")
+    NominalCapacity = 8000
+    Tanks = [Tank("tank")]
+    PropulsionLoad = 10
+}
+
+Fleet "fleet_copy" {
+    Vessels = [Vessel("vessel_copy")]
+    InterFuelSensitivity = 0.5
+    IntraFuelSensitivity = 0.5
+    InitialVessels = 10
+}
+'''
+        with caplog.at_level(logging.WARNING):
+            parser = _read_deck(tmp_path, define_extra=define_extra)
+
+        assert 'port_template' not in parser.nodes.ports
+        assert 'port_copy' in parser.nodes.ports
+        assert 'not reachable' not in caplog.text
+        assert 'Levy("levy") Jurisdiction: Port("port_template")' in caplog.text
+
+    def test_shared_pruned_port_scrubbed_from_all_policies(self, tmp_path, caplog):
+        jurisdiction = '[Port("port"), Port("jur_port")]'
+        define_extra = (LEVY_DECK.format(name='levy', jurisdiction=jurisdiction, extra='')
+                        + LEVY_DECK.format(name='levy_two', jurisdiction=jurisdiction, extra='')
+                        + JURISDICTION_PORT)
+
+        with caplog.at_level(logging.WARNING):
+            parser = _read_deck(tmp_path, define_extra=define_extra)
+
+        for name in ('levy', 'levy_two'):
+            assert [port.name for port in parser.nodes.levies[name].jurisdiction] == ['port']
+
+
+class TestActivationEdges:
+    """Every declared activation edge must name a real DEFINE-only list
+    attribute with one DSL name, and every reference site of a restricted
+    type must be classified, so the edge map cannot drift from the node
+    classes."""
+
+    def test_edges_name_real_define_only_list_attributes(self):
+        for target_type, edges in ACTIVATION_EDGES.items():
+            assert target_type in NODE_GROUP
+
+            for owner_type, attribute_name in edges:
+                owner = define_new_node(owner_type, 'pin')
+                assert isinstance(getattr(owner, attribute_name), list)
+
+                dsl_names = [key for key in NODE_ATTRIBUTE_SECTIONS[owner_type]
+                             if attribute_to_instance_name(key) == attribute_name]
+                assert len(dsl_names) == 1
+
+                # _statement_references relies on no activation edge being
+                # assignable inside a queued EVENTS body
+                assert NODE_ATTRIBUTE_SECTIONS[owner_type][dsl_names[0]] == SECTION_DEFINE
+
+    def test_every_port_reference_site_is_classified(self):
+        # a new Port-typed reference site must be declared an activation edge
+        # or added to the classified set here before this test passes, so a
+        # reference kind can never activate (or fail to activate) unclassified;
+        # a site outside the scrubbed plain-list shape surfaces as its raw line
+        classified = {('route.py', 'ports'), ('_policy.py', 'jurisdiction')}
+
+        site = re.compile(r'.*type_=.*\bPORT\b.*')
+        list_attribute = re.compile(r'\s*self\.(\w+)\s*=\s*assign_\w+\(')
+
+        core = Path(navigate.core.nodes.__file__).parents[1]
+
+        found = set()
+        for path in list((core / 'nodes').glob('*.py')) + list((core / 'general_nodes').glob('*.py')):
+            for line in site.findall(path.read_text()):
+                match = list_attribute.match(line)
+                found.add((path.name, match.group(1) if match else line.strip()))
+
+        assert found == classified

@@ -394,7 +394,7 @@ class Producer(_AssetManager):
 
                 self.export_distribution[port_name] = Scalar(0.)
 
-    def initialize_dependencies(self, feedstocks, ports, processes, routes):
+    def initialize_dependencies(self, feedstocks, ports, processes):
         """
         Initialize dependent dictionaries to allow wildcarding during command calls.
 
@@ -406,21 +406,13 @@ class Producer(_AssetManager):
             All ports in the simulation.
         processes : dict[str, Process]
             All processes in the simulation.
-        routes : dict[str, Route]
-            All routes in the simulation. Export defaults are seeded only for
-            ports that appear on at least one route — exporting production to
-            a port no vessel visits would strand supply there.
         """
 
         for feed_name in {**feedstocks, **processes}:
             self.feed_constraints.setdefault(feed_name, None)
 
-        active_port_names = {port.name for route in routes.values() for port in route.ports}
-
         for port_name in ports:
-
-            if port_name in active_port_names:
-                self.export_distribution.setdefault(port_name, None)
+            self.export_distribution.setdefault(port_name, None)
 
         # default dependent dicts
         for plant in self.assets:

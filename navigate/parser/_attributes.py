@@ -33,6 +33,7 @@ from navigate.core.node_type import (
 )
 from navigate.exceptions import AttributeAssignmentError
 from navigate.parser._keywords import SECTION_BOTH, SECTION_DEFINE, SECTION_NAME
+from navigate.util import attribute_to_instance_name
 
 # high-level class attributes to multiple nodes ------------------------------------------------------------------------
 _CALCULATOR_ATTRIBUTES = {'Addition':   SECTION_BOTH,
@@ -265,6 +266,31 @@ GENERAL_NODE_ATTRIBUTE_SECTIONS = {MODEL_DEFINITION: _MODEL_DEFINITION_ATTRIBUTE
 
 
 # methods --------------------------------------------------------------------------------------------------------------
+def instance_to_dsl_name(node_type, attribute_name):
+    """
+    Look up the DSL attribute that assigns a node instance attribute.
+
+    Parameters
+    ----------
+    node_type : str
+        The node type.
+    attribute_name : str
+        The instance-attribute name.
+
+    Returns
+    -------
+    str :
+        The DSL attribute name, or the instance-attribute name itself when no
+        DSL attribute assigns it.
+    """
+
+    for dsl_name in NODE_ATTRIBUTE_SECTIONS[node_type]:
+        if attribute_to_instance_name(dsl_name) == attribute_name:
+            return dsl_name
+
+    return attribute_name
+
+
 def check_node_attribute_is_allowed(node_type, attribute_name, section):
     """
 

@@ -8,16 +8,18 @@ A declared node participates in the simulation only when a chain of typed
 node references connects it to a top-level node: the node types nothing
 assigns (ROOT_TYPES) and the general nodes. Name-string keys in per-node
 dicts parameterize a node but never activate it, so they do not count as
-references. References live in resolved attributes, in queued commands, and
-in queued EVENTS statements; an EVENTS reference keeps a node alive only
-when the statement's target node is itself reachable.
+references. A node type listed in ACTIVATION_EDGES is further restricted:
+only its declared edges activate it, and any other reference to it counts
+for nothing. References live in resolved attributes, in queued commands,
+and in queued EVENTS statements; an EVENTS reference keeps a node alive
+only when the statement's target node is itself reachable.
 """
 
 from navigate.core import Expression, NodeReference
 from navigate.core.node import Node
 from navigate.core.node_reference import WildcardNodeReference
 from navigate.core.node_registry import GeneralNodes, Nodes
-from navigate.core.node_type import EMISSION, FLEET, FUEL, LEVY, PLOT, PRODUCER, REGULATION, REPORT
+from navigate.core.node_type import EMISSION, FLEET, FUEL, LEVY, PLOT, PORT, PRODUCER, REGULATION, REPORT, ROUTE
 from navigate.parser._commands import CommandReference
 from navigate.parser._keywords import GENERAL_NODE_GROUP, NODE_GROUP
 from navigate.parser._lark_parser import Assignment, Command, NodeDeclaration
@@ -26,6 +28,12 @@ from navigate.util import matching_keys
 
 ROOT_TYPES = (EMISSION, FLEET, FUEL, LEVY, PLOT, PRODUCER, REGULATION, REPORT)
 ROOT_GROUPS = tuple(NODE_GROUP[node_type] for node_type in ROOT_TYPES)
+
+# the (owner type, instance attribute) edges that activate a restricted node
+# type; an entry is needed only where a non-activating reference kind exists:
+# a Levy/Regulation Jurisdiction filters routed ports and must not pull an
+# unrouted port into the fuel-supply aggregation
+ACTIVATION_EDGES = {PORT: ((ROUTE, 'ports'),)}
 
 
 def find_unreachable(nodes: Nodes, general_nodes: GeneralNodes, event_queue: dict) -> list[tuple[str, str]]:
@@ -56,7 +64,8 @@ def find_unreachable(nodes: Nodes, general_nodes: GeneralNodes, event_queue: dic
         pending.update((node.type, node.name) for node in getattr(nodes, group_name).values())
 
     # general nodes can neither be referenced nor targeted by events, so
-    # their references are collected once up front
+    # their references are collected once up front; their attributes are not
+    # activation edges, so they never activate a restricted type
     for field in GENERAL_NODE_GROUP.values():
         general_node = getattr(general_nodes, field)
 
@@ -64,7 +73,7 @@ def find_unreachable(nodes: Nodes, general_nodes: GeneralNodes, event_queue: dic
             continue
 
         for _, attribute in get_attributes(general_node, exclude=REFERENCE_SCAN_EXCLUDE):
-            pending.update(_iter_references(attribute, nodes))
+            pending.update(_activating_references(None, attribute, nodes))
 
     reachable = set()
 
@@ -81,8 +90,8 @@ def find_unreachable(nodes: Nodes, general_nodes: GeneralNodes, event_queue: dic
         if node is None:
             continue
 
-        for _, attribute in get_attributes(node, exclude=REFERENCE_SCAN_EXCLUDE):
-            pending.update(_iter_references(attribute, nodes))
+        for attribute_name, attribute in get_attributes(node, exclude=REFERENCE_SCAN_EXCLUDE):
+            pending.update(_activating_references((node_type, attribute_name), attribute, nodes))
 
         pending.update(event_edges.get((node_type, name), ()))
 
@@ -94,6 +103,33 @@ def find_unreachable(nodes: Nodes, general_nodes: GeneralNodes, event_queue: dic
     return sorted(unreachable)
 
 
+def _activating_references(edge, value, nodes: Nodes):
+    """
+    Yield the references in a value that activate their target: every
+    reference to an unrestricted node type, and references to a type in
+    ACTIVATION_EDGES only when the value sits on one of its declared edges.
+
+    Parameters
+    ----------
+    edge : tuple | None
+        (owner type, instance-attribute name) the value sits under; ``None``
+        where the value sits under no node attribute (a general node, a
+        queued EVENTS body). Only a declared edge activates a restricted
+        type, so references under any other attribute — command references
+        included — activate nothing.
+    value
+        Attribute value, command input, or queued EVENTS value.
+    nodes
+        The registry, used to expand wildcard references.
+    """
+
+    for node_type, name in _iter_references(value, nodes):
+        edges = ACTIVATION_EDGES.get(node_type)
+
+        if edges is None or edge in edges:
+            yield node_type, name
+
+
 def _iter_references(value, nodes: Nodes):
     """
     Yield the (node type, node name) of every node reference in a value,
@@ -101,7 +137,10 @@ def _iter_references(value, nodes: Nodes):
 
     Kept in lockstep with Parser._replace_references_on_attribute: a value
     shape added there must be recognized here, or nodes referenced through
-    that shape are wrongly pruned.
+    that shape are wrongly pruned. The whole yield is attributed to the one
+    attribute the value sits under, so a reference nested anywhere inside —
+    Expression strings included — activates a restricted type only when that
+    attribute is one of its declared edges.
 
     Parameters
     ----------
@@ -199,10 +238,12 @@ def _statement_references(statement: NodeDeclaration, nodes: Nodes) -> set:
 
     references = set()
 
+    # every activation edge is DEFINE-only (pinned by a unit test), so a
+    # queued body can never sit on one and no edge is passed
     for body_statement in statement.body:
         if isinstance(body_statement, Assignment):
-            references.update(_iter_references(body_statement.value, nodes))
+            references.update(_activating_references(None, body_statement.value, nodes))
         elif isinstance(body_statement, Command):
-            references.update(_iter_references(body_statement.args, nodes))
+            references.update(_activating_references(None, body_statement.args, nodes))
 
     return references
