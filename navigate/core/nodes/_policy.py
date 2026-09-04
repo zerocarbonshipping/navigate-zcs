@@ -295,11 +295,11 @@ class _Policy(Node):
 
             for emission in self.emissions:
                 key = (fuel_name, emission.name)
-                self.fuel_wtt[key] = None
-                self.fuel_ttw[key] = None
+                self.fuel_wtt.setdefault(key, None)
+                self.fuel_ttw.setdefault(key, None)
 
         for emission in self.emissions:
-            self.global_warming_potential[emission.name] = None
+            self.global_warming_potential.setdefault(emission.name, None)
 
         for vessel_name in vessels:
             if vessel_name not in self.include_vessel:
