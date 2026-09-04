@@ -123,6 +123,14 @@ class Levy(_Policy):
             self.level = Scalar(0)
 
     def initialize_dependencies(self, vessels):
+        """
+        Initialize dependent dictionaries to allow wildcarding during command calls.
+
+        Parameters
+        ----------
+        vessels : dict[str, Vessel]
+            All vessels in the simulation.
+        """
 
         self._initialize_policy_dependencies(vessels)
 

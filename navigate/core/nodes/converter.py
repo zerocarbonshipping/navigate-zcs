@@ -228,18 +228,18 @@ class Converter(_Machinery):
         self._initialize_machinery()
 
         # default slip fractions
-        for fuel_type in self.slip_fraction:
-            if not self.slip_fraction[fuel_type]:
+        for fuel_type, slip_fraction in self.slip_fraction.items():
+            if slip_fraction is None:
                 self.slip_fraction[fuel_type] = Scalar(0)
 
         # default emissions from consumption in the engine
-        for fuel_type, emission_name in self.consumption_ttw:
-            if not self.consumption_ttw[(fuel_type, emission_name)]:
-                self.consumption_ttw[(fuel_type, emission_name)] = Scalar(0)
+        for key, consumption in self.consumption_ttw.items():
+            if consumption is None:
+                self.consumption_ttw[key] = Scalar(0)
 
     def initialize_dependencies(self, emissions):
         """
-        Initialize emissions parameters with relevant keys.
+        Seed the per-fuel-type dictionaries so `initialize` can default unassigned entries.
 
         Parameters
         ----------
@@ -247,13 +247,11 @@ class Converter(_Machinery):
             Dict of class Emission.
         """
 
-        if not self.slip_fraction:
-            self.slip_fraction = {fuel_type: None for fuel_type in self.get_fuel_types()}
+        for fuel_type in self.get_fuel_types():
+            self.slip_fraction.setdefault(fuel_type, None)
 
-        if not self.consumption_ttw:
-            self.consumption_ttw = {(fuel_type, emission_name): None
-                                    for fuel_type in self.get_fuel_types()
-                                    for emission_name in emissions}
+            for emission_name in emissions:
+                self.consumption_ttw.setdefault((fuel_type, emission_name), None)
 
     def get_fuel_types(self):
         return self.main_fuel_types + self.pilot_fuel_types

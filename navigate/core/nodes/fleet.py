@@ -94,14 +94,14 @@ class Fleet(_AssetManager):
         self.technologies: list[Technology] = []                    # Energy efficiency technologies
         self.operational_saving_sea: dict[EnergyDemandTypeID, InputScalarLike] = {d: Scalar(0) for d in EnergyDemandTypeID}
         self.operational_saving_port: dict[EnergyDemandTypeID, InputScalarLike] = {d: Scalar(0) for d in EnergyDemandTypePortID}
-        self.fuel_conversion_cost: dict[tuple[str, str], float | Forecast] = {}     # Fuel conversion costs
-        self.fuel_conversion_limit: dict[tuple[str, str], InputScalarLike] = {}     # Per-pair conversion cap
-        self.newbuild_limit: dict[str, InputScalarLike] = {}        # Per-vessel newbuild share cap
-        self.newbuild_technology_limit: dict[str, InputScalarLike] = {}             # Per-tech newbuild install cap
-        self.retrofit_technology_limit: dict[str, InputScalarLike] = {}             # Per-tech retrofit cap
-        self.allow_vessel: dict[str, bool] = {}                     # Whether a vessel is allowed
-        self.newbuild_available: dict[str, bool] = {}               # Whether newbuild is available
-        self.conversion_available: dict[str, bool] = {}             # Whether conversion is available
+        self.fuel_conversion_cost: dict[tuple[str, str], float | Forecast | None] = {}       # Fuel conversion costs
+        self.fuel_conversion_limit: dict[tuple[str, str], InputScalarLike | None] = {}       # Per-pair conversion cap
+        self.newbuild_limit: dict[str, InputScalarLike | None] = {}                 # Per-vessel newbuild share cap
+        self.newbuild_technology_limit: dict[str, InputScalarLike | None] = {}      # Per-tech newbuild install cap
+        self.retrofit_technology_limit: dict[str, InputScalarLike | None] = {}      # Per-tech retrofit cap
+        self.allow_vessel: dict[str, bool | None] = {}              # Whether a vessel is allowed
+        self.newbuild_available: dict[str, bool | None] = {}        # Whether newbuild is available
+        self.conversion_available: dict[str, bool | None] = {}      # Whether conversion is available
         self.trade: NDArray[np.float64] = np.ndarray(0)             # Trade by the fleet, cargo-miles
         self.newbuild_package_uptake: list[NDArray[np.float64]] = []                # EE uptake on newbuilds
         self.orders_delivered: NDArray[np.float64] = np.empty(0)    # Orders delivered per vessel type
@@ -885,10 +885,39 @@ class Fleet(_AssetManager):
         if self.fuel_conversion_minimum_age is None:
             self.fuel_conversion_minimum_age = Scalar(0)
 
-        for (name_from, name_to), cost in self.fuel_conversion_cost.items():
-            if cost is None:
-                continue
-            self.fuel_conversion_limit.setdefault((name_from, name_to), Scalar(1.))
+        # cross-pair keys exist only after commands fill fuel_conversion_cost; seed them
+        # before the defaulting loop below
+        for key, cost in self.fuel_conversion_cost.items():
+            if cost is not None:
+                self.fuel_conversion_limit.setdefault(key, None)
+
+        for key, limit in self.fuel_conversion_limit.items():
+            if limit is None:
+                self.fuel_conversion_limit[key] = Scalar(1.)
+
+        for name, allow in self.allow_vessel.items():
+            if allow is None:
+                self.allow_vessel[name] = True
+
+        for name, available in self.newbuild_available.items():
+            if available is None:
+                self.newbuild_available[name] = True
+
+        for name, available in self.conversion_available.items():
+            if available is None:
+                self.conversion_available[name] = True
+
+        for name, limit in self.newbuild_limit.items():
+            if limit is None:
+                self.newbuild_limit[name] = Scalar(1.)
+
+        for name, limit in self.newbuild_technology_limit.items():
+            if limit is None:
+                self.newbuild_technology_limit[name] = Scalar(1.)
+
+        for name, limit in self.retrofit_technology_limit.items():
+            if limit is None:
+                self.retrofit_technology_limit[name] = Scalar(1.)
 
         if self.initial_split and (len(self.assets) != len(self.initial_split)):
             raise ValueError("{}: The length of Vessel ({}) and InitialSplit ({}) must correspond."
@@ -930,21 +959,22 @@ class Fleet(_AssetManager):
 
         for vessel in self.assets:
             name = vessel.name
+            # stays None when unset: a None cost marks the pair as not convertible
             self.fuel_conversion_cost.setdefault((name, name), None)
-            # placeholder self-pair so command_assignment_to_tuple_dict can validate cross-pair keys;
-            # real (from, to) defaults are filled post-commands in `initialize`
-            self.fuel_conversion_limit.setdefault((name, name), Scalar(1.))
-            self.allow_vessel.setdefault(name, True)
-            self.newbuild_available.setdefault(name, True)
-            self.conversion_available.setdefault(name, True)
-            self.newbuild_limit.setdefault(name, Scalar(1.))
+            # placeholder self-pair so command_assignment_to_tuple_dict can validate cross-pair keys
+            self.fuel_conversion_limit.setdefault((name, name), None)
+            self.allow_vessel.setdefault(name, None)
+            self.newbuild_available.setdefault(name, None)
+            self.conversion_available.setdefault(name, None)
+            self.newbuild_limit.setdefault(name, None)
 
             for tech in self.technologies:
+                # stays None when unset: technology adoption treats a missing curve as no initial share
                 self.initial_technology_share.setdefault((name, tech.name), None)
 
         for tech in self.technologies:
-            self.newbuild_technology_limit.setdefault(tech.name, Scalar(1.))
-            self.retrofit_technology_limit.setdefault(tech.name, Scalar(1.))
+            self.newbuild_technology_limit.setdefault(tech.name, None)
+            self.retrofit_technology_limit.setdefault(tech.name, None)
 
     def initialize_expectation(self, length: int, fuels: dict[str, Fuel]) -> None:
 

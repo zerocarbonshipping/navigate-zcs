@@ -126,11 +126,19 @@ class Fuel(Node):
         if (self.mass_density is None) or (self.mass_density.get() == 0.):
             raise ValueError("{}: Attribute 'MassDensity' must be defined and greater than zero.".format(self))
 
-        for emission_name in self.ttw:
-            if self.ttw[emission_name] is None:
+        for emission_name, ttw in self.ttw.items():
+            if ttw is None:
                 self.ttw[emission_name] = Scalar(0.)
 
     def initialize_dependencies(self, emissions):
+        """
+        Initialize dependent dictionaries to allow wildcarding during command calls.
+
+        Parameters
+        ----------
+        emissions : dict[str, Emission]
+            All emissions in the simulation.
+        """
 
         for emission_name in emissions:
             self.ttw.setdefault(emission_name, None)

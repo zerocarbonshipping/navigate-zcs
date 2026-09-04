@@ -244,16 +244,16 @@ class Port(Node):
     # internal methods -------------------------------------------------------------------------------------------------
     def initialize(self):
 
-        for fuel_name in self.bunkering_allowed:
-            if self.bunkering_allowed[fuel_name] is None:
+        for fuel_name, allowed in self.bunkering_allowed.items():
+            if allowed is None:
                 self.bunkering_allowed[fuel_name] = True
 
-        for fuel_name in self.bunkering_inertia:
-            if self.bunkering_inertia[fuel_name] is None:
+        for fuel_name, inertia in self.bunkering_inertia.items():
+            if inertia is None:
                 self.bunkering_inertia[fuel_name] = Scalar(0.)
 
-        for fuel_name in self.handling_cost:
-            if self.handling_cost[fuel_name] is None:
+        for fuel_name, cost in self.handling_cost.items():
+            if cost is None:
                 self.handling_cost[fuel_name] = Scalar(0.)
 
         for fuel_name, price in self.bunker_price_overwrite.items():
@@ -271,8 +271,8 @@ class Port(Node):
         if self.shore_power_connection_share is None:
             self.shore_power_connection_share = Scalar(0.)
 
-        for emission_name in self.shore_power_emission_factor:
-            if self.shore_power_emission_factor[emission_name] is None:
+        for emission_name, factor in self.shore_power_emission_factor.items():
+            if factor is None:
                 self.shore_power_emission_factor[emission_name] = Scalar(0.)
 
     def initialize_dependencies(self, emissions, fuels):
@@ -290,6 +290,7 @@ class Port(Node):
         for fuel_name in fuels:
 
             self.bunkering_allowed.setdefault(fuel_name, None)
+            # stays None when unset: PortExpectation reads a missing limit as unlimited
             self.bunkering_limit.setdefault(fuel_name, None)
             self.bunkering_inertia.setdefault(fuel_name, None)
 
@@ -302,7 +303,7 @@ class Port(Node):
         for emission_name in emissions:
             self.shore_power_emission_factor.setdefault(emission_name, None)
 
-        # set internal property
+        # derived from the current fuels, so recomputed unconditionally every pass
         self.liquid_market_fuel = {fuel_name: fuel.liquid_market for fuel_name, fuel in fuels.items()}
 
     def initialize_expectation(self, length: int, fuels: dict[str, Fuel],

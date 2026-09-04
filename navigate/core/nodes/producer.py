@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import itertools
 import logging
 from typing import TYPE_CHECKING
 
@@ -389,10 +390,12 @@ class Producer(_AssetManager):
 
         # ensure consistent export distribution
         for port_name, export in self.export_distribution.items():
-
             if export is None:
-
                 self.export_distribution[port_name] = Scalar(0.)
+
+        for plant_name, allow in self.allow_plant.items():
+            if allow is None:
+                self.allow_plant[plant_name] = True
 
     def initialize_dependencies(self, feedstocks, ports, processes):
         """
@@ -408,16 +411,17 @@ class Producer(_AssetManager):
             All processes in the simulation.
         """
 
-        for feed_name in {**feedstocks, **processes}:
+        for feed_name in itertools.chain(feedstocks, processes):
+            # stays None when unset: ProducerExpectation reads a missing constraint as unlimited
             self.feed_constraints.setdefault(feed_name, None)
 
         for port_name in ports:
             self.export_distribution.setdefault(port_name, None)
 
-        # default dependent dicts
         for plant in self.assets:
             name = plant.name
-            self.allow_plant.setdefault(name, True)
+            self.allow_plant.setdefault(name, None)
+            # stays None when unset: a None entry means the plant has no committed pipeline
             self.existing_pipelines.setdefault(name, None)
 
     def initialize_expectation(self, length: int, feedstocks: dict[str, Feedstock],

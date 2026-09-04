@@ -330,9 +330,8 @@ class Plant(Node):
     def _pair_transport_and_distance(self, transports, distances):
         """Require a transport wherever a distance is set, and default the distance to zero where it is not."""
 
-        for name in transports:
+        for name, transport in transports.items():
 
-            transport = transports[name]
             distance = distances[name]
 
             if (transport is None) and (distance is not None):
@@ -344,7 +343,7 @@ class Plant(Node):
 
     def initialize_dependencies(self, feedstocks, ports, processes):
         """
-        Initialize all dependent dictionaries.
+        Initialize dependent dictionaries to allow wildcarding during command calls.
 
         Parameters
         ----------

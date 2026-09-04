@@ -288,8 +288,14 @@ class _Policy(Node):
         if self.include_slip is None:
             self.include_slip = True
 
+        for vessel_name, include_vessel in self.include_vessel.items():
+            if include_vessel is None:
+                self.include_vessel[vessel_name] = False
+
     def _initialize_policy_dependencies(self, vessels):
 
+        # fuel_wtt, fuel_ttw, and global_warming_potential stay None when unset:
+        # consumers fall back to the model's own factors
         for fuel in self.fuels:
             fuel_name = fuel.name
 
@@ -302,12 +308,12 @@ class _Policy(Node):
             self.global_warming_potential.setdefault(emission.name, None)
 
         for vessel_name in vessels:
-            if vessel_name not in self.include_vessel:
-                self.include_vessel[vessel_name] = False
+            self.include_vessel.setdefault(vessel_name, None)
 
+        # derived from the current routes and jurisdiction, so recomputed unconditionally every pass
+        jurisdiction = set(self.jurisdiction)
         for vessel_name, vessel in vessels.items():
-            in_jurisdiction = not set(vessel.route.ports).isdisjoint(set(self.jurisdiction))
-            self.in_jurisdiction_vessel[vessel_name] = in_jurisdiction
+            self.in_jurisdiction_vessel[vessel_name] = not jurisdiction.isdisjoint(vessel.route.ports)
 
     def _calculate_policy_expectations(self, expectation, emissions, emissions_lifetime):
 
