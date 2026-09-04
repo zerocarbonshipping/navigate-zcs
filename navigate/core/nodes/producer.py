@@ -514,15 +514,15 @@ class Producer(_AssetManager):
             .format(self, self._initial_capacity[index].get(), self.assets[index]))
         return 0.
 
-    def perform_progression(self, timeline, time_step, idx):
+    def perform_progression(self, timeline, idx):
 
         # decommission plants which are
         # past their technical lifetime
-        perform_decommissioning(self, idx)
+        perform_decommissioning(self)
 
         # deliver plants from the pipeline
         # which have passed their lead time
-        perform_pipeline_delivery(self, idx)
+        perform_pipeline_delivery(self)
 
         # calculate the gap between feed used
         # in current and pipeline production

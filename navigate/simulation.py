@@ -478,7 +478,7 @@ class SimulationManager:
         # update the existing production and
         # calculate development potential
         for producer in self.nodes.producers.values():
-            producer.perform_progression(self.timeline, self._time_step, self._idx)
+            producer.perform_progression(self.timeline, self._idx)
             calculate_development_potential(producer, self._time_step, self._idx)
 
         # calculate the expected fuel demand once as
