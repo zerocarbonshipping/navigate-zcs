@@ -17,6 +17,13 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   log, so a run whose results they affect could look clean on the console.
 
 ### Fixed
+- `Levy`/`Regulation` values assigned through `set_fuel_wtt`, `set_fuel_ttw`,
+  and `set_global_warming_potential` now survive timeline progression. The
+  per-time-step dependency pass unconditionally re-seeded these dictionaries
+  to `None`, so the overrides applied only until the first time step and then
+  silently fell back to the `Emission` nodes' values. Results change for any
+  deck using these commands, including `simulations/examples/example_1`
+  (CII and EU-ETS overrides).
 - The regulation spend coefficient, shore-power regulation coefficient, and
   regulation measure containers of the bunker algorithm are now reset at
   every time-step like the other dynamic policy coefficients; the reset
