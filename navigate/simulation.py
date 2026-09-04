@@ -67,8 +67,8 @@ class SimulationManager:
         self.profile = ManagerProfile()
 
         # bunker algorithm ---------------------------------------------------------------------------------------------
-        self._bunker_existing: BunkerAlgorithm | None = None    # BunkerAlgorithm
-        self._bunker_expected: BunkerAlgorithm | None = None    # BunkerAlgorithm
+        self._bunker_existing = BunkerAlgorithm()
+        self._bunker_expected = BunkerAlgorithm()
 
         # parser -------------------------------------------------------------------------------------------------------
         self.parser = Parser()
@@ -658,7 +658,6 @@ class SimulationManager:
         solver.set_solver_preference(self.general_nodes.bunker_options.solver)
 
         # initialize BunkerAlgorithm for existing bunkering
-        self._bunker_existing = BunkerAlgorithm()
         self._bunker_existing.initialize(self.nodes.emissions,
                                          self.nodes.feedstocks,
                                          self.nodes.fleets,
@@ -671,7 +670,6 @@ class SimulationManager:
                                          output_directory=self.parser.deck_directory)
 
         # initialize a BunkerAlgorithm for expected bunkering
-        self._bunker_expected = BunkerAlgorithm()
         self._bunker_expected.initialize(self.nodes.emissions,
                                          self.nodes.feedstocks,
                                          self.nodes.fleets,
