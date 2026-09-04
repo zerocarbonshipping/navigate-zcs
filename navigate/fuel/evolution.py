@@ -51,7 +51,7 @@ def _accumulate_weighted_cost(incs: list[Increment], plant, origins: np.ndarray,
             wtt[e][p, :] += interval * expectation.get_production_wtt(e, origins[i])
 
 
-def perform_decommissioning(producer: Producer, idx: int) -> None:
+def perform_decommissioning(producer: Producer) -> None:
     """
     Decommission increments that have exceeded their asset's lifetime.
 
@@ -59,8 +59,6 @@ def perform_decommissioning(producer: Producer, idx: int) -> None:
     ----------
     producer
         The producer instance.
-    idx
-        Current time-step index.
     """
 
     for a, asset in enumerate(producer.assets):
@@ -339,7 +337,7 @@ def calculate_evolution_expectation(producer: Producer, timeline, idx):
                 plant.profile.set_instantaneous_wtt(idx, e, wtt_avg[e][p, 0])
 
 
-def perform_pipeline_delivery(producer: Producer, idx: int) -> None:
+def perform_pipeline_delivery(producer: Producer) -> None:
     """
     Deliver plants from the pipeline that have passed their lead time.
 
@@ -351,8 +349,6 @@ def perform_pipeline_delivery(producer: Producer, idx: int) -> None:
     ----------
     producer
         The producer instance.
-    idx
-        Current time-step index.
     """
 
     for p in range(len(producer.assets)):

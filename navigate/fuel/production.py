@@ -259,8 +259,8 @@ def _calculate_recursive_process(component: Component,
 
     # calculate cost and emissions related to the
     # energy source used to power the process
-    _calculate_energy_cost(component, process, region, source, production, conversion, idx)
-    _calculate_energy_emissions(component, process, emissions, region, source, production, conversion, idx)
+    _calculate_energy_cost(component, process, region, source, production, conversion)
+    _calculate_energy_emissions(component, process, emissions, region, source, production, conversion)
 
     # calculate the cost and emissions related
     # to transporting output from the process
@@ -445,8 +445,7 @@ def _calculate_energy_cost(component: Component,
                            region: Region,
                            source: Source,
                            production: float,
-                           conversion: float,
-                           idx: int) -> None:
+                           conversion: float) -> None:
     """
     Adds energy-related costs for powering the process, handling standalone vs. connected sources.
 
@@ -468,8 +467,6 @@ def _calculate_energy_cost(component: Component,
         Pre-resolved production value for this timestep.
     conversion
         Cumulative mass conversion factor used to scale energy demand to fuel output.
-    idx
-        Current time-step index in the simulation timeline.
     """
 
     s = source.name
@@ -513,8 +510,7 @@ def _calculate_energy_emissions(component: Component,
                                 region: Region,
                                 source: Source,
                                 production: float,
-                                conversion: float,
-                                idx: int) -> None:
+                                conversion: float) -> None:
     """
     Adds energy-related WTT emissions for the process, respecting source dependency.
 
@@ -538,8 +534,6 @@ def _calculate_energy_emissions(component: Component,
         Pre-resolved production value for this timestep.
     conversion
         Cumulative mass conversion factor used to scale energy demand.
-    idx
-        Current time-step index in the simulation timeline.
     """
 
     s = source.name
