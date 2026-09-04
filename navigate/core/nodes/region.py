@@ -303,55 +303,57 @@ class Region(Node):
     # internal methods -------------------------------------------------------------------------------------------------
     def initialize(self):
 
-        for process_name in self.process_capex:
-
-            if not self.process_capex[process_name]:
+        for process_name, capex in self.process_capex.items():
+            if capex is None:
                 self.process_capex[process_name] = Scalar(0.)
 
-            if not self.process_opex[process_name]:
+        for process_name, opex in self.process_opex.items():
+            if opex is None:
                 self.process_opex[process_name] = Scalar(0.)
 
-            if not self.process_energy[process_name]:
+        for process_name, energy in self.process_energy.items():
+            if energy is None:
                 self.process_energy[process_name] = Scalar(0.)
 
-            if not self.process_replacement[process_name]:
+        for process_name, replacement in self.process_replacement.items():
+            if replacement is None:
                 self.process_replacement[process_name] = Scalar(0.)
 
-        for (process_name, emission_name) in self.process_wtt:
-            if not self.process_wtt[(process_name, emission_name)]:
-                self.process_wtt[(process_name, emission_name)] = Scalar(0.)
+        for key, wtt in self.process_wtt.items():
+            if wtt is None:
+                self.process_wtt[key] = Scalar(0.)
 
-        for feedstock_name in self.feedstock_cost:
-            if not self.feedstock_cost[feedstock_name]:
+        for feedstock_name, cost in self.feedstock_cost.items():
+            if cost is None:
                 self.feedstock_cost[feedstock_name] = Scalar(0.)
 
-        for (feedstock_name, emission_name) in self.feedstock_wtt:
-            if not self.feedstock_wtt[(feedstock_name, emission_name)]:
-                self.feedstock_wtt[(feedstock_name, emission_name)] = Scalar(0.)
+        for key, wtt in self.feedstock_wtt.items():
+            if wtt is None:
+                self.feedstock_wtt[key] = Scalar(0.)
 
-        for source_name in self.source_capex:
-            if not self.source_capex[source_name]:
+        for source_name, capex in self.source_capex.items():
+            if capex is None:
                 self.source_capex[source_name] = Scalar(0.)
 
-        for source_name in self.source_opex:
-            if not self.source_opex[source_name]:
+        for source_name, opex in self.source_opex.items():
+            if opex is None:
                 self.source_opex[source_name] = Scalar(0.)
 
-        for (source_name, emission_name) in self.source_wtt:
-            if not self.source_wtt[(source_name, emission_name)]:
-                self.source_wtt[(source_name, emission_name)] = Scalar(0.)
+        for key, wtt in self.source_wtt.items():
+            if wtt is None:
+                self.source_wtt[key] = Scalar(0.)
 
-        for transport_name in self.transport_cost:
-            if not self.transport_cost[transport_name]:
+        for transport_name, cost in self.transport_cost.items():
+            if cost is None:
                 self.transport_cost[transport_name] = Scalar(0.)
 
-        for (transport_name, emission_name) in self.transport_wtt:
-            if not self.transport_wtt[(transport_name, emission_name)]:
-                self.transport_wtt[(transport_name, emission_name)] = Scalar(0.)
+        for key, wtt in self.transport_wtt.items():
+            if wtt is None:
+                self.transport_wtt[key] = Scalar(0.)
 
     def initialize_dependencies(self, emissions, feedstocks, processes, sources, transports):
         """
-        Initialize all dependent dictionaries.
+        Initialize dependent dictionaries to allow wildcarding during command calls.
 
         Parameters
         ----------
@@ -372,6 +374,7 @@ class Region(Node):
             self.process_capex.setdefault(process_name, None)
             self.process_opex.setdefault(process_name, None)
             self.process_energy.setdefault(process_name, None)
+            # stays None when unset: Component.initialize_process_component branches on it
             self.process_lifetime.setdefault(process_name, None)
             self.process_replacement.setdefault(process_name, None)
 

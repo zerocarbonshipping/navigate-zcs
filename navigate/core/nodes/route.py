@@ -332,10 +332,18 @@ class Route(Node):
             if self.port_durations:
                 logger.warning("{}: 'PortDurations' is assigned but is unused for a REGIONAL_TRIP.".format(self))
 
+        for key, distribution in self.voyage_distribution.items():
+            if distribution is None:
+                self.voyage_distribution[key] = Scalar(0.)
+
     def initialize_dependencies(self):
+        """
+        Initialize dependent dictionaries to allow wildcarding during command calls.
+        """
+
         names = [port.name for port in self.ports]
         for key in itertools.product(names, names):
-            self.voyage_distribution.setdefault(key, Scalar(0.))
+            self.voyage_distribution.setdefault(key, None)
 
     def get_voyage_distribution(self, to_array=False):
         fractions = normalize_fractional(self.voyage_distribution, None)

@@ -55,6 +55,16 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   5-decimal precision.
 
 ### Changed
+- Internal simplification (no DSL or result changes): node initialization is
+  unified on one idiom — `initialize_dependencies` seeds dictionary keys with
+  `setdefault(key, None)` and all defaulting happens in `initialize` via
+  `is None` checks. Defaults that previously lived in the seeding step
+  (`Fleet` limits and availability flags, `Producer.allow_plant`,
+  `Route.voyage_distribution`, policy `IncludeVessel`) moved to `initialize`
+  with unchanged values, and `Converter` now seeds per key instead of only
+  into an empty dictionary — the latter can only turn a `KeyError` on
+  late-added fuel types or emissions into a seeded default, never change a
+  working deck.
 - A `Report` property request that matches no node in the simulation logs a
   warning at export instead of silently producing no columns.
 - Nodes that no chain of node references connects to a top-level node

@@ -285,11 +285,18 @@ class Regulation(_Policy):
                                  " no vessel_threshold is defined.".format(self, vessel_name))
 
     def initialize_dependencies(self, vessels):
+        """
+        Initialize dependent dictionaries to allow wildcarding during command calls.
+
+        Parameters
+        ----------
+        vessels : dict[str, Vessel]
+            All vessels in the simulation.
+        """
 
         for vessel_name in vessels:
-            if vessel_name not in self.vessel_threshold:
-                self.vessel_threshold[vessel_name] = None
-                self.vessel_capacity[vessel_name] = None
+            self.vessel_threshold.setdefault(vessel_name, None)
+            self.vessel_capacity.setdefault(vessel_name, None)
 
         self._initialize_policy_dependencies(vessels)
 

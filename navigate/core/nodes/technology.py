@@ -105,15 +105,16 @@ class Technology(_Machinery):
         if self.shore_power_capacity is None:
             self.shore_power_capacity = Scalar(0.)
 
-        for energy_id in EnergyDemandTypeID:
-            if self.energy_saving[energy_id] is None:
+        for energy_id, saving in self.energy_saving.items():
+            if saving is None:
                 self.energy_saving[energy_id] = Scalar(0)
 
-            if self.external_power[energy_id] is None:
+        for energy_id, power in self.external_power.items():
+            if power is None:
                 self.external_power[energy_id] = Scalar(0)
 
-            for power_system_id in EnergyDemandTypeID:
-                if self.power_transfer[(power_system_id, energy_id)] is None:
-                    self.power_transfer[(power_system_id, energy_id)] = Scalar(0)
+        for key, transfer in self.power_transfer.items():
+            if transfer is None:
+                self.power_transfer[key] = Scalar(0)
 
         self._initialize_machinery()
