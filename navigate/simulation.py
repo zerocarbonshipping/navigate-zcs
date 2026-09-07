@@ -515,7 +515,7 @@ class SimulationManager:
         # that have been allowed in the current
         # time-step have a non-zero multiplier
         for fleet in self.nodes.fleets.values():
-            calculate_evolution_expectation(fleet, self._idx, self.timeline)
+            calculate_evolution_expectation(fleet, self.timeline, self._idx)
 
         self.profile.add_fleet_state_time(self._idx, timeit.default_timer() - start_time)
 

@@ -726,7 +726,7 @@ def clean_up_multipliers(fleet: Fleet):
         fleet.increments[v] = [inc for inc in fleet.increments[v] if inc.multiplier >= 1e-3]
 
 
-def calculate_evolution_expectation(fleet: Fleet, idx: int, timeline: np.ndarray):
+def calculate_evolution_expectation(fleet: Fleet, timeline: np.ndarray, idx: int) -> None:
     """
     Calculates the expected evolution of multipliers based on vessel scrapping,
     uptake patterns, and trade gaps within a given timeline.
@@ -742,11 +742,11 @@ def calculate_evolution_expectation(fleet: Fleet, idx: int, timeline: np.ndarray
     ----------
     fleet
         The fleet instance.
-    idx
-        The starting index for the timeline to begin recalculations of expectations.
     timeline
         A timeline indicating the years for which the evolutions are calculated,
         expressed in numpy array format. Expected to be in units of time.
+    idx
+        The starting index for the timeline to begin recalculations of expectations.
     """
     idx_ = np.s_[idx:]
     times = timeline[idx_] / YEAR
@@ -959,7 +959,7 @@ def perform_fleet_evolution(fleet: Fleet, timeline: np.ndarray, time_step: float
     fleet.expectation.set_uptakes(idx, current_uptake)
 
     # calculate expected fleet evolution
-    calculate_evolution_expectation(fleet, idx, timeline)
+    calculate_evolution_expectation(fleet, timeline, idx)
 
     # assign to the profile
     fleet.profile.set_trade(idx, trade - trade_gap)

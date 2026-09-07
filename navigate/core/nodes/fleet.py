@@ -1047,7 +1047,7 @@ class Fleet(_AssetManager):
 
         # calculate the initial fleet evolution expectation
         self.expectation.set_uptakes(idx, self.current_uptake)
-        calculate_evolution_expectation(self, idx, timeline)
+        calculate_evolution_expectation(self, timeline, idx)
 
         # initialize technology effect
         self.transfer_multipliers_to_profile(idx)
