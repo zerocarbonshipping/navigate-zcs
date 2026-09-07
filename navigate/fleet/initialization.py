@@ -53,9 +53,10 @@ def initialize_existing_fleet(fleet: Fleet, timeline: np.ndarray) -> None:
     preprocess_packages(fleet.technology_packages, fleet.assets, timeline[idx])
 
     # existing fleet; the initial split must be defined before the
-    # discretization because _get_initial_multiplier reads it
+    # age discretization because _get_initial_multiplier reads it
     define_initial_split(fleet)
-    fleet.discretize_initial_assets()
+    fleet.define_initial_age()
+    fleet.define_initial_multipliers()
     define_initial_technology(fleet)
     define_initial_trade(fleet, timeline)
 

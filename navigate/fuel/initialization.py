@@ -40,7 +40,16 @@ def initialize_existing_producer(producer: Producer, timeline: np.ndarray) -> No
     idx = 0
 
     # existing producer
-    producer.discretize_initial_assets()
+    producer.define_initial_capacity()
+    producer.define_initial_age()
+    producer.define_initial_decided()
+    producer.define_initial_multipliers()
+
+    # clean up zero multipliers to reduce overhead
+    # and avoid round-off error issue when calculating
+    # increment average properties
+    for a in range(len(producer.increments)):
+        producer.increments[a] = [inc for inc in producer.increments[a] if inc.multiplier > 0.]
 
     # existing pipeline
     define_existing_pipeline(producer, timeline)

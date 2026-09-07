@@ -427,27 +427,7 @@ class Producer(_AssetManager):
         self.profile = ProducerProfile()
         self.profile.initialize(timeline, feedstocks, fuels, processes)
 
-    def discretize_initial_assets(self) -> None:
-        """
-        Discretize the initial plant capacity into age-based increments.
-
-        Replaces the shared sequence to interleave the producer-specific steps: defaulting
-        the initial capacity, stamping the decided time on each increment, and pruning zero
-        increments.
-        """
-
-        self._define_initial_capacity()
-        self._define_initial_age()
-        self._initialize_decided()
-        self._define_initial_multipliers()
-
-        # clean up zero multipliers to reduce overhead
-        # and avoid round-off error issue when calculating
-        # increment average properties
-        for a in range(len(self.increments)):
-            self.increments[a] = [inc for inc in self.increments[a] if inc.multiplier > 0.]
-
-    def _define_initial_capacity(self):
+    def define_initial_capacity(self) -> None:
         """
         Define the initial capacity of each plant type.
         """
@@ -459,14 +439,14 @@ class Producer(_AssetManager):
             # zero initial capacity
             self._initial_capacity = [Scalar(0.) for _ in self.assets]
 
-    # -- _AssetManager abstract interface -----------------------------------------------------------
-
-    def _initialize_decided(self) -> None:
+    def define_initial_decided(self) -> None:
         """Set the decided field on each increment based on age + lead time."""
         for p, plant in enumerate(self.assets):
             lead_time = plant.lead_time.get()
             for inc in self.increments[p]:
                 inc.decided = inc.age + lead_time
+
+    # -- _AssetManager abstract interface -----------------------------------------------------------
 
     def _get_initial_multiplier(self, index: int) -> float:
         capacity = self.assets[index].capacity.get()

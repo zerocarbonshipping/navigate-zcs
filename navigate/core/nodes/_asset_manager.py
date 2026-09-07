@@ -101,7 +101,7 @@ class _AssetManager(Node):
 
     # -- shared increment initialization -------------------------------------------------
 
-    def _define_initial_age(self) -> None:
+    def define_initial_age(self) -> None:
         """
         Define the age distribution of the existing assets and create
         empty Increment lists with ages and dt populated.
@@ -143,7 +143,7 @@ class _AssetManager(Node):
 
         return lifetime
 
-    def _define_initial_multipliers(self) -> None:
+    def define_initial_multipliers(self) -> None:
         """
         Define the initial numbers of assets of each asset type by distributing
         the total multiplier across age-based increments.
@@ -171,19 +171,6 @@ class _AssetManager(Node):
 
                     for inc in incs:
                         inc.multiplier = multiplier / n
-
-    def discretize_initial_assets(self) -> None:
-        """
-        Discretize the initial asset stock into age-based increments.
-
-        Splits the total initial multiplier of each asset type across increments of varying
-        age according to the initial age distribution. This is a lifecycle entry point, not
-        a template contract: subclasses may replace the sequence wholesale to interleave
-        their own steps.
-        """
-
-        self._define_initial_age()
-        self._define_initial_multipliers()
 
     # -- shared runtime methods ----------------------------------------------------------
 
