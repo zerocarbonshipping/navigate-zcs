@@ -30,12 +30,13 @@ from navigate.fleet.charter import (
     _initialize_vessel_component,
 )
 from navigate.fleet.conversion import _ConversionCandidate, _ConversionProposal, apply_fuel_conversions
-from navigate.fleet.evolution import add_newbuilds, clean_up_multipliers
+from navigate.fleet.evolution import clean_up_multipliers
 from navigate.fleet.package import (
     Package,
     annual_costs_for_retrofit_steps,
     levelize_package_cost,
 )
+from navigate.fleet.planning import add_newbuilds
 from navigate.fleet.technology_adoption import (
     apply_uptake_transition,
     calculate_package_charter_rates,
