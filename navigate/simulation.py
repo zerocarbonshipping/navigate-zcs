@@ -20,6 +20,7 @@ from navigate.fleet import (
     determine_usable_fuel_types,
     determine_usable_fuels,
     get_fuels_per_fuel_type,
+    initialize_existing_fleet,
     perform_fleet_evolution,
     perform_speed_management,
     perform_technology_installation,
@@ -775,7 +776,7 @@ class SimulationManager:
             determine_usable_fuels(vessel, fuel_by_fuel_type)
 
         for fleet in self.nodes.fleets.values():
-            fleet.initialize_existing_fleet(self.timeline)
+            initialize_existing_fleet(fleet, self.timeline)
 
     def _initialize_existing_production(self):
 

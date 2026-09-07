@@ -271,10 +271,12 @@ class _FleetStub:
 
     def __init__(self, profile, cargo_miles_by_idx):
         self.profile = profile
-        self.cargo_miles_by_idx = cargo_miles_by_idx
+        vessel = MagicMock()
+        vessel.expectation.get_cargo_miles.side_effect = lambda idx: cargo_miles_by_idx[idx]
+        self.assets = [vessel]
 
-    def get_cargo_miles(self, idx):
-        return self.cargo_miles_by_idx[idx]
+    def get_multiplier(self, index):
+        return 1.0
 
 
 class TestEnergyIntensitySaving:

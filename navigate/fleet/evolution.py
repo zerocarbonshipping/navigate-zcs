@@ -8,8 +8,9 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
+from navigate.fleet.aggregation import transfer_multipliers_to_profile
 from navigate.fleet.planning import add_newbuilds, calculate_modelled_newbuilds, calculate_orderbook_newbuilds
-from navigate.fleet.utils import extract_cargo_miles
+from navigate.fleet.utils import extract_cargo_miles, get_cargo_miles
 from navigate.util import ROUND_OFF, TOLERANCE, YEAR, calculate_inertia, divide_nonzero
 
 if TYPE_CHECKING:
@@ -156,7 +157,7 @@ def perform_fixed_rate_scrapping(fleet: Fleet, time_step: float, idx: int):
 
     # calculate the targeted scrap in trade
     scrap_rate = fleet.fixed_scrap_rate.get() * time_step / YEAR
-    target_scrap = scrap_rate * fleet.get_cargo_miles(idx)
+    target_scrap = scrap_rate * get_cargo_miles(fleet, idx)
 
     # scrap vessels matching the targeted trade
     perform_fixed_trade_scrapping(fleet, -target_scrap, idx)
@@ -534,7 +535,7 @@ def perform_fleet_evolution(fleet: Fleet, timeline: np.ndarray, time_step: float
 
     # calculate the existing trade-gap
     trade = fleet.trade[idx]
-    trade_gap = trade - fleet.get_cargo_miles(idx)
+    trade_gap = trade - get_cargo_miles(fleet, idx)
 
     # per-vessel newbuild count budget for this timestep, threaded across the three newbuild sources.
     # Cap denominator is the pre-newbuild fleet count (proxy for yard capacity); time_step/YEAR scales
@@ -602,4 +603,4 @@ def perform_fleet_evolution(fleet: Fleet, timeline: np.ndarray, time_step: float
 
     # assign to the profile
     fleet.profile.set_trade(idx, trade - trade_gap)
-    fleet.transfer_multipliers_to_profile(idx)
+    transfer_multipliers_to_profile(fleet, idx)

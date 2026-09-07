@@ -11,6 +11,7 @@ import numpy as np
 from navigate.core.enum_ import FuelTypeID
 from navigate.core.nodes.vessel import Vessel
 from navigate.core.profiles import FleetProfile
+from navigate.fleet.utils import get_cargo_miles
 from navigate.util import TOLERANCE, YEAR, divide_nonzero, get_increment_origin_index
 
 if TYPE_CHECKING:
@@ -240,7 +241,7 @@ def transfer_transport_work(fleet: Fleet, idx: int) -> None:
         Current time-step index.
     """
 
-    cargo_miles = fleet.get_cargo_miles(idx)
+    cargo_miles = get_cargo_miles(fleet, idx)
     fleet.profile.set_cargo_miles(idx, cargo_miles)
 
     growth = divide_nonzero(cargo_miles, fleet.profile.get_cargo_miles(idx=0), default=1.)
@@ -313,3 +314,19 @@ def aggregate_speed_profile(assets: list[Vessel],
         profile.set_optimal_speed(idx, optimal_speed / other_multiplier)
         profile.set_lowest_speed(idx, lowest_speed / other_multiplier)
         profile.set_highest_speed(idx, highest_speed / other_multiplier)
+
+
+def transfer_multipliers_to_profile(fleet: Fleet, idx: int) -> None:
+    """
+    Transfer the current multiplier state to the profile for output.
+
+    Parameters
+    ----------
+    fleet
+        The fleet instance.
+    idx
+        Current time-step index.
+    """
+
+    for v, vessel in enumerate(fleet.assets):
+        fleet.profile.set_existing_vessels(idx, vessel.name, fleet.get_multiplier(v))

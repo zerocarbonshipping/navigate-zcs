@@ -16,7 +16,7 @@ from navigate.core.nodes.vessel import Vessel
 from navigate.economics.decision import calculate_asset_shares
 from navigate.economics.flows import timeline_to_yearly
 from navigate.fleet.marginal_saving import calculate_marginal_technology_saving
-from navigate.fleet.operation import convert_to_regional_steps
+from navigate.fleet.operation import convert_to_regional_steps, transfer_operational_saving_to_vessels
 from navigate.fleet.package import (
     Package,
     annual_costs_for_retrofit_steps,
@@ -724,7 +724,7 @@ def update_residual_energy_demand(fleet: Fleet, idx: int) -> None:
     """
 
     # Transfer fleet-level operational savings to each vessel expectation
-    fleet.transfer_operational_saving_to_vessels()
+    transfer_operational_saving_to_vessels(fleet)
 
     for v, vessel in enumerate(fleet.assets):
         route = vessel.route
