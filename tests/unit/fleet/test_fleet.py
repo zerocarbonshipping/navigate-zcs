@@ -12,9 +12,9 @@ from navigate.core.enum_ import EnergyDemandTypeID
 from navigate.core.increment import Increment
 from navigate.core.node_type import FLEET, VESSEL
 from navigate.core.nodes.fleet import Fleet
-from navigate.fleet import evolution as fleet_evolution
+from navigate.fleet import planning as fleet_planning
 from navigate.fleet.conversion import _ConversionCandidate, _ConversionProposal, reconcile_fuel_conversion_caps
-from navigate.fleet.evolution import (
+from navigate.fleet.planning import (
     calculate_modelled_newbuilds,
     calculate_modelled_uptake,
     calculate_orderbook_newbuilds,
@@ -641,7 +641,7 @@ def _spy_on_modelled_uptake(monkeypatch) -> dict:
         captured["cap_share"] = cap_share
         return np.zeros(len(vessels))
 
-    monkeypatch.setattr(fleet_evolution, "calculate_modelled_uptake", fake_uptake)
+    monkeypatch.setattr(fleet_planning, "calculate_modelled_uptake", fake_uptake)
 
     return captured
 

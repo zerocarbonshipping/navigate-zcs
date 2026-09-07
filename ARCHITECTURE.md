@@ -50,10 +50,11 @@ output      → core, util
 simulation  → everything
 ```
 
-Known back-edges: `core/nodes/fleet.py` and `core/nodes/producer.py`
-delegate behavior into `fleet/`/`fuel/`
-([#22](https://github.com/zerocarbonshipping/navigate-zcs/issues/22)), and
-core table/report/plot nodes call into `logging_`/`output`.
+Known back-edge: core table/report/plot nodes call into
+`logging_`/`output`
+([#22](https://github.com/zerocarbonshipping/navigate-zcs/issues/22)).
+`tests/unit/test_layering.py` enforces that `core/` has no runtime import
+of `fleet/` or `fuel/`.
 
 ## Data-flow invariants
 
@@ -70,8 +71,9 @@ core table/report/plot nodes call into `logging_`/`output`.
 
 ## Naming conventions
 
-- `fleet/` and `fuel/` mirror each other deliberately (`evolution.py`,
-  `aggregation.py`, `utils.py`): same name, same role in each domain.
+- `fleet/` and `fuel/` mirror each other deliberately (`initialization.py`,
+  `evolution.py`, `planning.py`, `aggregation.py`, `utils.py`): same name,
+  same role in each domain.
 - A leading underscore on a module or class means package-private; anything
   used across package boundaries carries a public name.
 - Each package's `__init__.py` re-exports its externally consumed entry

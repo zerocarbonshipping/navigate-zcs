@@ -205,3 +205,30 @@ class TestTwoAxisUptake:
         )
         assert uptake.sum() == pytest.approx(1.0)
         assert uptake[0] > uptake[1]
+
+    def test_limits_compose_to_per_asset_bound(self):
+        # equal metrics and odds of 1 give uniform shares, so every binding limit saturates:
+        # group 'a' caps at 0.2 + 0.3 and its members at exactly their per-asset bounds
+        uptake = calculate_two_axis_uptake(
+            ['a', 'a', 'b'], [100., 100., 100.], [100., 100., 100.],
+            intra_utility=UtilityID.LOWER_LOG_RATIO,
+            inter_utility=UtilityID.LOWER_LOG_RATIO,
+            intra_odds=1., inter_odds=1.,
+            limits=[0.2, 0.3, 1.],
+        )
+        assert uptake.sum() == pytest.approx(1.0)
+        assert uptake[0] == pytest.approx(0.2)
+        assert uptake[1] == pytest.approx(0.3)
+        assert uptake[2] == pytest.approx(0.5)
+
+    def test_zero_limited_group_gets_no_share(self):
+        uptake = calculate_two_axis_uptake(
+            ['a', 'a', 'b'], [100., 100., 100.], [100., 100., 100.],
+            intra_utility=UtilityID.LOWER_LOG_RATIO,
+            inter_utility=UtilityID.LOWER_LOG_RATIO,
+            intra_odds=1., inter_odds=1.,
+            limits=[0., 0., 1.],
+        )
+        assert uptake[0] == pytest.approx(0.0)
+        assert uptake[1] == pytest.approx(0.0)
+        assert uptake[2] == pytest.approx(1.0)

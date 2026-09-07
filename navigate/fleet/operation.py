@@ -16,16 +16,22 @@ crowds out sea time and limits the throughput gain. This reproduces the round-tr
 (port time as a binding activity constraint) within the aggregate regional representation.
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.enum_ import EnergyDemandTypeID, RouteTypeID
+from navigate.core.enum_ import EnergyDemandTypeID, EnergyDemandTypePortID, RouteTypeID
 from navigate.core.nodes.route import Route
 from navigate.core.nodes.vessel import Vessel
 from navigate.core.unit import DAY_TO_HOURS, HOUR_TO_DAYS, MWD_TO_GJ
 from navigate.fleet.power import calculate_technical_speed_limits
 from navigate.util import YEAR, divide_nonzero, to_numpy
+
+if TYPE_CHECKING:
+    from navigate.core.nodes.fleet import Fleet
 
 
 @dataclass
@@ -442,3 +448,20 @@ def _load_to_energy(load: float | np.ndarray, time: np.ndarray) -> np.ndarray:
     """
 
     return load * time * MWD_TO_GJ
+
+
+def transfer_operational_saving_to_vessels(fleet: Fleet) -> None:
+    """
+    Transfer the fleet-level operational saving fractions to each vessel's expectation.
+
+    Parameters
+    ----------
+    fleet
+        The fleet instance.
+    """
+
+    saving_sea = {d: fleet.operational_saving_sea[d].get() for d in EnergyDemandTypeID}
+    saving_port = {d: fleet.operational_saving_port[d].get() for d in EnergyDemandTypePortID}
+    for vessel in fleet.assets:
+        vessel.expectation.set_operational_saving_fraction_sea(saving_sea)
+        vessel.expectation.set_operational_saving_fraction_port(saving_port)

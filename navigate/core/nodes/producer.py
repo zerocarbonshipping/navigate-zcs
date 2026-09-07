@@ -26,19 +26,7 @@ from navigate.core.node_type import FORECAST, PLANT, PRODUCER, VARIABLE
 from navigate.core.nodes._asset_manager import _AssetManager
 from navigate.core.profiles import ProducerProfile
 from navigate.exceptions import no_value_assigned_error
-from navigate.fuel.evolution import (
-    calculate_evolution_expectation,
-    calculate_export_expectation,
-    calculate_feed_availability,
-    define_existing_pipeline,
-    perform_decommissioning,
-    perform_pipeline_delivery,
-)
-from navigate.fuel.planning import perform_pipeline_planning
-from navigate.util import (
-    YEAR,
-    is_non_strictly_increasing,
-)
+from navigate.util import is_non_strictly_increasing
 
 if TYPE_CHECKING:
     from navigate.core.nodes.feedstock import Feedstock
@@ -81,9 +69,9 @@ class Producer(_AssetManager):
         # internal properties ------------------------------------------------------------------------------------------
         # pipeline increments (Producer-specific, separate from active increments in _AssetManager)
         self.pipeline: list[list[Increment]] = []
+        self._increment_stores.append(self.pipeline)
 
         # static properties
-        self._initialized = False       # bool, true if the fleet has been initialized
         self.fuels = {}                # dict[Fuel], store a list of possible production fuels for convenience
 
         # dynamic properties
@@ -439,56 +427,7 @@ class Producer(_AssetManager):
         self.profile = ProducerProfile()
         self.profile.initialize(timeline, feedstocks, fuels, processes)
 
-    def calculate_expectation(self, timeline, idx):
-        calculate_export_expectation(self, timeline, idx)
-
-    def initialize_existing_producer(self, timeline):
-        """
-        Initialize the existing producer. This means discretizing the existing producer in time, by splitting the
-        initial number of plants into individual increments with varying age.
-
-        Parameters
-        ----------
-        timeline : np.ndarray
-            Simulation timeline.
-        """
-
-        if self._initialized:
-            return
-
-        for plant in self.assets:
-            plant.set_producer_assignment(self.name)
-
-        idx = 0
-
-        # existing producer
-        self._define_initial_capacity()
-        self._define_initial_age()
-        self._initialize_decided()
-        self._define_initial_multipliers()
-
-        # clean up zero multipliers to reduce overhead
-        # and avoid round-off error issue when calculating
-        # increment average properties
-        for a in range(len(self.increments)):
-            self.increments[a] = [inc for inc in self.increments[a] if inc.multiplier > 0.]
-
-        # existing pipeline
-        define_existing_pipeline(self, timeline)
-
-        # calculate the initial producer evolution expectation
-        calculate_feed_availability(self, timeline, idx)
-        calculate_evolution_expectation(self, timeline, idx)
-
-        # store all possible production fuels for convenience
-        for plant in self.assets:
-            fuel = plant.fuel
-            self.fuels.setdefault(fuel.name, fuel)
-
-        # set static properties
-        self._initialized = True
-
-    def _define_initial_capacity(self):
+    def define_initial_capacity(self) -> None:
         """
         Define the initial capacity of each plant type.
         """
@@ -500,14 +439,14 @@ class Producer(_AssetManager):
             # zero initial capacity
             self._initial_capacity = [Scalar(0.) for _ in self.assets]
 
-    # -- _AssetManager abstract interface -----------------------------------------------------------
-
-    def _initialize_decided(self) -> None:
+    def define_initial_decided(self) -> None:
         """Set the decided field on each increment based on age + lead time."""
         for p, plant in enumerate(self.assets):
             lead_time = plant.lead_time.get()
             for inc in self.increments[p]:
                 inc.decided = inc.age + lead_time
+
+    # -- _AssetManager abstract interface -----------------------------------------------------------
 
     def _get_initial_multiplier(self, index: int) -> float:
         capacity = self.assets[index].capacity.get()
@@ -517,53 +456,6 @@ class Producer(_AssetManager):
             "{}: Unable to initialize a capacity of tons/day from {} (plant {}) as the plant capacity is zero."
             .format(self, self._initial_capacity[index].get(), self.assets[index]))
         return 0.
-
-    def perform_progression(self, timeline, idx):
-
-        # decommission plants which are
-        # past their technical lifetime
-        perform_decommissioning(self)
-
-        # deliver plants from the pipeline
-        # which have passed their lead time
-        perform_pipeline_delivery(self)
-
-        # calculate the gap between feed used
-        # in current and pipeline production
-        # and the available supply
-        calculate_feed_availability(self, timeline, idx)
-
-    def perform_planning(self, timeline, time_step, idx):
-
-        # add new plants to the pipeline
-        # based on fuel supply/ demand gap
-        perform_pipeline_planning(self, timeline, time_step, idx)
-
-        # the feed gap needs to be updated
-        # again prior to calculation the evolution
-        # expectation to account newly added plants
-        # to the pipeline
-        calculate_feed_availability(self, timeline, idx)
-
-        # calculate the expected evolution
-        # of fuel supply for use to quantify
-        # the next supply/demand gap
-        calculate_evolution_expectation(self, timeline, idx)
-
-    def update_increment_ages(self, time_step):
-        """
-        Update the ages of the increments with the progressed time since last time-step.
-        This includes the plants awaiting delivery in the pipeline.
-
-        Parameters
-        ----------
-        time_step : float
-            Current time-step size.
-        """
-
-        dt = time_step / YEAR
-        self._age_increments(self.increments, dt)
-        self._age_increments(self.pipeline, dt)
 
     def can_produce(self, fuel_name):
         return fuel_name in self.fuels

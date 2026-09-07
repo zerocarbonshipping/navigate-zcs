@@ -10,6 +10,7 @@ from navigate.fleet.fuel_option import (
     determine_usable_fuels,
     get_fuels_per_fuel_type,
 )
+from navigate.fleet.initialization import initialize_existing_fleet
 from navigate.fleet.operation import update_operational_profile
 from navigate.fleet.post_process import post_process_investment_metric
 from navigate.fleet.power import verify_power_capacity

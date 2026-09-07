@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.increment import Increment
-from navigate.fuel.planning import calculate_constrained_uptakes
+from navigate.fuel.planning import calculate_constrained_uptakes, perform_pipeline_planning
 from navigate.fuel.utils import calculate_increment_production_interval
 from navigate.util import TOLERANCE, YEAR, divide_nonzero, get_increments_origin_index, slice_dict
 
@@ -700,3 +700,65 @@ def calculate_export_expectation(producer: Producer, timeline: np.ndarray, idx: 
 
     for port_name, export in exports.items():
         producer.expectation.set_export_distribution(idx, port_name, divide_nonzero(export, norm, default=default))
+
+
+def perform_progression(producer: Producer, timeline: np.ndarray, idx: int) -> None:
+    """
+    Progress the existing production in time: decommissioning, pipeline delivery, and the
+    resulting feed availability.
+
+    Parameters
+    ----------
+    producer
+        The producer instance.
+    timeline
+        Simulation timeline.
+    idx
+        Current time-step index.
+    """
+
+    # decommission plants which are
+    # past their technical lifetime
+    perform_decommissioning(producer)
+
+    # deliver plants from the pipeline
+    # which have passed their lead time
+    perform_pipeline_delivery(producer)
+
+    # calculate the gap between feed used
+    # in current and pipeline production
+    # and the available supply
+    calculate_feed_availability(producer, timeline, idx)
+
+
+def perform_planning(producer: Producer, timeline: np.ndarray, time_step: float, idx: int) -> None:
+    """
+    Plan new plants into the pipeline from the fuel supply/demand gap and refresh the
+    evolution expectation used to quantify the next gap.
+
+    Parameters
+    ----------
+    producer
+        The producer instance.
+    timeline
+        Simulation timeline.
+    time_step
+        Current time-step size.
+    idx
+        Current time-step index.
+    """
+
+    # add new plants to the pipeline
+    # based on fuel supply/ demand gap
+    perform_pipeline_planning(producer, timeline, time_step, idx)
+
+    # the feed gap needs to be updated
+    # again prior to calculation the evolution
+    # expectation to account newly added plants
+    # to the pipeline
+    calculate_feed_availability(producer, timeline, idx)
+
+    # calculate the expected evolution
+    # of fuel supply for use to quantify
+    # the next supply/demand gap
+    calculate_evolution_expectation(producer, timeline, idx)

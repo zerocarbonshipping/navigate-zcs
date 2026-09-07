@@ -20,6 +20,13 @@ def extract_cargo_miles(vessels: list[Vessel], idx: int | slice) -> list[NDArray
     return [vessel.expectation.get_cargo_miles(idx) for vessel in vessels]
 
 
+def get_cargo_miles(fleet: Fleet, idx: int) -> float:
+    multipliers = fleet.get_multipliers()
+    cargo_miles = extract_cargo_miles(fleet.assets, idx)
+
+    return np.dot(multipliers, cargo_miles)
+
+
 def is_retrofit_cycle(age: float, retrofit_frequency: float, time_step: float, decimals: int = 2) -> bool:
     """
     Returns whether the vessel is in a retrofit cycle.

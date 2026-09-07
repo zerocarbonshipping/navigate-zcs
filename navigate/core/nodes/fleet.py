@@ -1,7 +1,10 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 import logging
+from typing import TYPE_CHECKING
 
 import numpy as np
 from numpy.typing import NDArray
@@ -38,22 +41,10 @@ from navigate.core.nodes.technology import Technology
 from navigate.core.nodes.variable import Variable
 from navigate.core.profiles import FleetProfile
 from navigate.exceptions import no_value_assigned_error
-from navigate.fleet.evolution import calculate_evolution_expectation
-from navigate.fleet.package import Package, preprocess_packages
-from navigate.fleet.technology_adoption import (
-    build_technology_packages,
-    define_initial_technology,
-    transfer_technology_charter_rate,
-    transfer_technology_uptake,
-    update_residual_energy_demand,
-)
-from navigate.fleet.utils import (
-    calculate_projected_multipliers,
-    define_initial_split,
-    define_initial_trade,
-    extract_cargo_miles,
-)
 from navigate.util import is_non_strictly_increasing
+
+if TYPE_CHECKING:
+    from navigate.fleet.package import Package
 
 logger = logging.getLogger(__name__)
 
@@ -719,13 +710,6 @@ class Fleet(_AssetManager):
         command_assignment_to_dict(id_, saving, self.operational_saving_port, type_=(FORECAST, VARIABLE),
                                    lower=0., upper=1.)
 
-    def transfer_operational_saving_to_vessels(self) -> None:
-        saving_sea = {d: self.operational_saving_sea[d].get() for d in EnergyDemandTypeID}
-        saving_port = {d: self.operational_saving_port[d].get() for d in EnergyDemandTypePortID}
-        for vessel in self.assets:
-            vessel.expectation.set_operational_saving_fraction_sea(saving_sea)
-            vessel.expectation.set_operational_saving_fraction_port(saving_port)
-
     # external commands called in the input deck -----------------------------------------------------------------------
     def set_fuel_conversion_cost(self, vessel_name_from: str, vessel_name_to: str, fuel_conversion_cost: float):
         """
@@ -997,66 +981,6 @@ class Fleet(_AssetManager):
         self.profile.initialize(timeline, vessel_names, technology_names, fuels, emissions, emissions_lifetime,
                                 regulation_names, levy_names)
 
-    def initialize_existing_fleet(self, timeline: np.ndarray):
-        """
-        Initialize the existing fleet. This means discretizing the existing fleet in time, by splitting the initial
-        number of vessels into individual increments with varying age.
-
-        Parameters
-        ----------
-        timeline
-            Simulation time-line.
-        """
-
-        for vessel in self.assets:
-            vessel.set_fleet_assignment(self.name)
-
-        idx = 0
-        nv = len(self.assets)
-
-        # build the technology packages and their cost flows; the cost flows
-        # must exist before the initial technology uptake is seeded, since the
-        # seeding levelizes them into the carried technology charter rate
-        self._build_technology_packages()
-        preprocess_packages(self.technology_packages, self.assets, timeline[idx])
-
-        # existing fleet
-        define_initial_split(self)
-        self._define_initial_age()
-        self._define_initial_multipliers()
-        self._define_initial_technology()
-        define_initial_trade(self, timeline)
-
-        # order book
-        self.orders_delivered = np.zeros((nv,))
-        self.orders_postponed = np.zeros((nv,))
-
-        # initialize baseline for partial age-based scrapping
-        for incs in self.increments:
-            if incs:
-                incs[0].baseline = incs[0].multiplier
-
-        # calculate a naive projection of multipliers
-        # which is used to calculate fair-share emissions
-        # for fleet level and global regulations
-        multipliers = sum(self.get_multiplier(v) for v in range(nv))
-        self.projected_multipliers = calculate_projected_multipliers(multipliers, self.trade)
-
-        # calculate the initial effect from technology
-        update_residual_energy_demand(self, idx)
-
-        # calculate the initial fleet evolution expectation
-        self.expectation.set_uptakes(idx, self.current_uptake)
-        calculate_evolution_expectation(self, idx, timeline)
-
-        # initialize technology effect
-        self.transfer_multipliers_to_profile(idx)
-        transfer_technology_uptake(self, idx)
-        transfer_technology_charter_rate(self, idx)
-
-        # set dynamic properties
-        self.fuel_conversion_expenses = np.zeros_like(timeline)
-
     # -- _AssetManager abstract interface -----------------------------------------------------------
 
     def _get_initial_multiplier(self, index: int) -> float:
@@ -1068,31 +992,6 @@ class Fleet(_AssetManager):
             if scrap_rate > 0.:
                 lifetime = min(lifetime, 1. / scrap_rate)
         return lifetime
-
-    def _build_technology_packages(self):
-        self.technology_packages, self.package_to_technology_map = build_technology_packages(self.technologies)
-
-    def _define_initial_technology(self):
-        define_initial_technology(self)
-
-    def transfer_multipliers_to_profile(self, idx: int) -> None:
-        """
-        Transfer the current multiplier state to the profile for output.
-
-        Parameters
-        ----------
-        idx
-            Current time-step index.
-        """
-
-        for v, vessel in enumerate(self.assets):
-            self.profile.set_existing_vessels(idx, vessel.name, self.get_multiplier(v))
-
-    def get_cargo_miles(self, idx: int) -> float:
-        multipliers = [self.get_multiplier(v) for v in range(len(self.assets))]
-        cargo_miles = extract_cargo_miles(self.assets, idx)
-
-        return np.dot(multipliers, cargo_miles)
 
     def can_retrofit(self) -> bool:
         return bool(self.technologies)

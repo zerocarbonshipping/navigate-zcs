@@ -43,6 +43,11 @@ class _AssetManager(Node):
         # increment storage — one list of Increment per asset type
         self.increments: list[list[Increment]] = []
 
+        # every store registered here ages together in update_increment_ages; subclasses append
+        # their extra stores. Registration holds references: a registered store must never be
+        # rebound, only have its inner lists replaced.
+        self._increment_stores: list[list[list[Increment]]] = [self.increments]
+
         # dynamic properties
         self.current_uptake: np.ndarray = np.empty(0)
 
@@ -96,7 +101,7 @@ class _AssetManager(Node):
 
     # -- shared increment initialization -------------------------------------------------
 
-    def _define_initial_age(self) -> None:
+    def define_initial_age(self) -> None:
         """
         Define the age distribution of the existing assets and create
         empty Increment lists with ages and dt populated.
@@ -138,7 +143,7 @@ class _AssetManager(Node):
 
         return lifetime
 
-    def _define_initial_multipliers(self) -> None:
+    def define_initial_multipliers(self) -> None:
         """
         Define the initial numbers of assets of each asset type by distributing
         the total multiplier across age-based increments.
@@ -190,7 +195,8 @@ class _AssetManager(Node):
 
     def update_increment_ages(self, time_step: float) -> None:
         """
-        Update the ages of all active increments with the progressed time since last time-step.
+        Update the ages of all registered increment stores with the progressed time since
+        the last time-step.
 
         Parameters
         ----------
@@ -198,7 +204,9 @@ class _AssetManager(Node):
             Current time-step size.
         """
 
-        self._age_increments(self.increments, time_step / YEAR)
+        dt = time_step / YEAR
+        for store in self._increment_stores:
+            self._age_increments(store, dt)
 
     def get_multiplier(self, index: int) -> float:
         return sum(inc.multiplier for inc in self.increments[index])

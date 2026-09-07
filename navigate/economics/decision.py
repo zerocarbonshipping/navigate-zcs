@@ -321,8 +321,7 @@ def calculate_two_axis_uptake(group_keys: list,
                               inter_utility: UtilityID,
                               intra_odds: float,
                               inter_odds: float,
-                              intra_limit: list | np.ndarray | None = None,
-                              inter_limit: list | np.ndarray | None = None,
+                              limits: list | np.ndarray | None = None,
                               context: str = "") -> np.ndarray:
     """
     Calculate uptake shares using a two-axis discrete choice model.
@@ -330,6 +329,11 @@ def calculate_two_axis_uptake(group_keys: list,
     Assets are grouped by *group_keys* (e.g. fuel type). Within each group, intra-group shares are
     determined from *metrics_intra*. Across groups, inter-group shares are determined from the
     intra-share-weighted *metrics_inter*. The final per-asset share is the product of the two.
+
+    When *limits* is given, the per-asset bounds are projected onto the two axes: the inter-group
+    cap is the sum of the member caps (clamped to 1.0), so a group can absorb its members' joint
+    capacity, and the intra-group caps are normalized by the group cap so the composed bound
+    ``group_cap * intra_cap`` equals the per-asset limit.
 
     Parameters
     ----------
@@ -347,10 +351,8 @@ def calculate_two_axis_uptake(group_keys: list,
         Odds ratio calibrating the intra-group sensitivity.
     inter_odds
         Odds ratio calibrating the inter-group sensitivity.
-    intra_limit
-        Optional per-asset share upper bounds for the intra-group axis.
-    inter_limit
-        Optional per-group share upper bounds for the inter-group axis.
+    limits
+        Optional per-asset upper bound on the final share, each in [0, 1]. None disables limits.
     context
         Optional string used as prefix in warning messages.
 
@@ -365,12 +367,25 @@ def calculate_two_axis_uptake(group_keys: list,
 
     metrics_2nd = []
     uptake = np.zeros((len(metrics_intra),))
+    group_limits: list | None = [] if limits is not None else None
 
     for group in unique_groups:
 
         indices = group_map[group]
         metrics_1st = [metrics_intra[i] for i in indices]
-        shares, msg = calculate_asset_shares(metrics_1st, intra_utility, intra_odds, limits=intra_limit)
+
+        intra_limits = None
+        if limits is not None:
+            group_cap = min(sum(limits[i] for i in indices), 1.)
+            if group_cap > 0.:
+                intra_limits = [limits[i] / group_cap for i in indices]
+            else:
+                # group hard-capped to zero by the inter-group limit; intra shares are
+                # irrelevant but the intra DCM still needs well-posed limits
+                intra_limits = [1. for _ in indices]
+            group_limits.append(group_cap)
+
+        shares, msg = calculate_asset_shares(metrics_1st, intra_utility, intra_odds, limits=intra_limits)
 
         if msg:
             logger.warning("%s: intra-group '%s' %s", context, group, msg)
@@ -380,7 +395,7 @@ def calculate_two_axis_uptake(group_keys: list,
 
         metrics_2nd.append(np.dot(metrics_inter_arr[indices], shares))
 
-    group_shares, msg = calculate_asset_shares(metrics_2nd, inter_utility, inter_odds, limits=inter_limit)
+    group_shares, msg = calculate_asset_shares(metrics_2nd, inter_utility, inter_odds, limits=group_limits)
 
     if msg:
         logger.warning("%s: inter-group %s", context, msg)
