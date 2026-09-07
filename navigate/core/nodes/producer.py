@@ -26,15 +26,6 @@ from navigate.core.node_type import FORECAST, PLANT, PRODUCER, VARIABLE
 from navigate.core.nodes._asset_manager import _AssetManager
 from navigate.core.profiles import ProducerProfile
 from navigate.exceptions import no_value_assigned_error
-from navigate.fuel.evolution import (
-    calculate_evolution_expectation,
-    calculate_export_expectation,
-    calculate_feed_availability,
-    define_existing_pipeline,
-    perform_decommissioning,
-    perform_pipeline_delivery,
-)
-from navigate.fuel.planning import perform_pipeline_planning
 from navigate.util import is_non_strictly_increasing
 
 if TYPE_CHECKING:
@@ -81,7 +72,6 @@ class Producer(_AssetManager):
         self._increment_stores.append(self.pipeline)
 
         # static properties
-        self._initialized = False       # bool, true if the fleet has been initialized
         self.fuels = {}                # dict[Fuel], store a list of possible production fuels for convenience
 
         # dynamic properties
@@ -437,29 +427,15 @@ class Producer(_AssetManager):
         self.profile = ProducerProfile()
         self.profile.initialize(timeline, feedstocks, fuels, processes)
 
-    def calculate_expectation(self, timeline, idx):
-        calculate_export_expectation(self, timeline, idx)
-
-    def initialize_existing_producer(self, timeline):
+    def discretize_initial_assets(self) -> None:
         """
-        Initialize the existing producer. This means discretizing the existing producer in time, by splitting the
-        initial number of plants into individual increments with varying age.
+        Discretize the initial plant capacity into age-based increments.
 
-        Parameters
-        ----------
-        timeline : np.ndarray
-            Simulation timeline.
+        Extends the shared discretization with the producer-specific steps: defaulting the
+        initial capacity, stamping the decided time on each increment, and pruning zero
+        increments.
         """
 
-        if self._initialized:
-            return
-
-        for plant in self.assets:
-            plant.set_producer_assignment(self.name)
-
-        idx = 0
-
-        # existing producer
         self._define_initial_capacity()
         self._define_initial_age()
         self._initialize_decided()
@@ -470,21 +446,6 @@ class Producer(_AssetManager):
         # increment average properties
         for a in range(len(self.increments)):
             self.increments[a] = [inc for inc in self.increments[a] if inc.multiplier > 0.]
-
-        # existing pipeline
-        define_existing_pipeline(self, timeline)
-
-        # calculate the initial producer evolution expectation
-        calculate_feed_availability(self, timeline, idx)
-        calculate_evolution_expectation(self, timeline, idx)
-
-        # store all possible production fuels for convenience
-        for plant in self.assets:
-            fuel = plant.fuel
-            self.fuels.setdefault(fuel.name, fuel)
-
-        # set static properties
-        self._initialized = True
 
     def _define_initial_capacity(self):
         """
@@ -515,38 +476,6 @@ class Producer(_AssetManager):
             "{}: Unable to initialize a capacity of tons/day from {} (plant {}) as the plant capacity is zero."
             .format(self, self._initial_capacity[index].get(), self.assets[index]))
         return 0.
-
-    def perform_progression(self, timeline, idx):
-
-        # decommission plants which are
-        # past their technical lifetime
-        perform_decommissioning(self)
-
-        # deliver plants from the pipeline
-        # which have passed their lead time
-        perform_pipeline_delivery(self)
-
-        # calculate the gap between feed used
-        # in current and pipeline production
-        # and the available supply
-        calculate_feed_availability(self, timeline, idx)
-
-    def perform_planning(self, timeline, time_step, idx):
-
-        # add new plants to the pipeline
-        # based on fuel supply/ demand gap
-        perform_pipeline_planning(self, timeline, time_step, idx)
-
-        # the feed gap needs to be updated
-        # again prior to calculation the evolution
-        # expectation to account newly added plants
-        # to the pipeline
-        calculate_feed_availability(self, timeline, idx)
-
-        # calculate the expected evolution
-        # of fuel supply for use to quantify
-        # the next supply/demand gap
-        calculate_evolution_expectation(self, timeline, idx)
 
     def can_produce(self, fuel_name):
         return fuel_name in self.fuels

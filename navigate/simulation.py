@@ -34,11 +34,15 @@ from navigate.fuel import (
     calculate_development_potential,
     calculate_expected_fuel_demand,
     calculate_expected_fuel_supply,
+    calculate_export_expectation,
     calculate_fuel_import_to_ports,
     calculate_fuel_supply_demand_gap,
     calculate_plant_logistics_expectations,
     calculate_plant_production_expectations,
     calculate_producer_profile,
+    initialize_existing_producer,
+    perform_planning,
+    perform_progression,
 )
 from navigate.logging_ import log_model_post_process, log_start_of_simulation
 from navigate.output import PlotData
@@ -382,7 +386,7 @@ class SimulationManager:
             port.calculate_expectation(self.timeline, self._idx)
 
         for producer in self.nodes.producers.values():
-            producer.calculate_expectation(self.timeline, self._idx)
+            calculate_export_expectation(producer, self.timeline, self._idx)
 
         for regulation in self.nodes.regulations.values():
             regulation.calculate_expectation(self.nodes.emissions,
@@ -478,7 +482,7 @@ class SimulationManager:
         # update the existing production and
         # calculate development potential
         for producer in self.nodes.producers.values():
-            producer.perform_progression(self.timeline, self._idx)
+            perform_progression(producer, self.timeline, self._idx)
             calculate_development_potential(producer, self._time_step, self._idx)
 
         # calculate the expected fuel demand once as
@@ -491,7 +495,7 @@ class SimulationManager:
         calculate_constrained_fair_share_fuel_demand(fuels, self.nodes.producers, gap, self._idx)
 
         for producer in self.nodes.producers.values():
-            producer.perform_planning(self.timeline, self._time_step, self._idx)
+            perform_planning(producer, self.timeline, self._time_step, self._idx)
 
         # set computational performance tracker
         self.profile.add_producer_evolution_time(self._idx, timeit.default_timer() - start_time)
@@ -776,7 +780,7 @@ class SimulationManager:
     def _initialize_existing_production(self):
 
         for producer in self.nodes.producers.values():
-            producer.initialize_existing_producer(self.timeline)
+            initialize_existing_producer(producer, self.timeline)
 
     def _calculate_profile(self):
 

@@ -172,6 +172,19 @@ class _AssetManager(Node):
                     for inc in incs:
                         inc.multiplier = multiplier / n
 
+    def discretize_initial_assets(self) -> None:
+        """
+        Discretize the initial asset stock into age-based increments.
+
+        Splits the total initial multiplier of each asset type across increments of varying
+        age according to the initial age distribution. This is a lifecycle entry point, not
+        a template contract: subclasses may replace the sequence wholesale to interleave
+        their own steps.
+        """
+
+        self._define_initial_age()
+        self._define_initial_multipliers()
+
     # -- shared runtime methods ----------------------------------------------------------
 
     @staticmethod
