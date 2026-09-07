@@ -35,10 +35,7 @@ from navigate.fuel.evolution import (
     perform_pipeline_delivery,
 )
 from navigate.fuel.planning import perform_pipeline_planning
-from navigate.util import (
-    YEAR,
-    is_non_strictly_increasing,
-)
+from navigate.util import is_non_strictly_increasing
 
 if TYPE_CHECKING:
     from navigate.core.nodes.feedstock import Feedstock
@@ -81,6 +78,7 @@ class Producer(_AssetManager):
         # internal properties ------------------------------------------------------------------------------------------
         # pipeline increments (Producer-specific, separate from active increments in _AssetManager)
         self.pipeline: list[list[Increment]] = []
+        self._increment_stores.append(self.pipeline)
 
         # static properties
         self._initialized = False       # bool, true if the fleet has been initialized
@@ -549,21 +547,6 @@ class Producer(_AssetManager):
         # of fuel supply for use to quantify
         # the next supply/demand gap
         calculate_evolution_expectation(self, timeline, idx)
-
-    def update_increment_ages(self, time_step):
-        """
-        Update the ages of the increments with the progressed time since last time-step.
-        This includes the plants awaiting delivery in the pipeline.
-
-        Parameters
-        ----------
-        time_step : float
-            Current time-step size.
-        """
-
-        dt = time_step / YEAR
-        self._age_increments(self.increments, dt)
-        self._age_increments(self.pipeline, dt)
 
     def can_produce(self, fuel_name):
         return fuel_name in self.fuels
