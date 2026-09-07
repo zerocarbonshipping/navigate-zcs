@@ -21,7 +21,7 @@ def extract_cargo_miles(vessels: list[Vessel], idx: int | slice) -> list[NDArray
 
 
 def get_cargo_miles(fleet: Fleet, idx: int) -> float:
-    multipliers = [fleet.get_multiplier(v) for v in range(len(fleet.assets))]
+    multipliers = fleet.get_multipliers()
     cargo_miles = extract_cargo_miles(fleet.assets, idx)
 
     return np.dot(multipliers, cargo_miles)

@@ -30,6 +30,8 @@ def initialize_existing_fleet(fleet: Fleet, timeline: np.ndarray) -> None:
     Initialize the existing fleet. This means discretizing the existing fleet in time, by splitting the initial
     number of vessels into individual increments with varying age.
 
+    Must be called exactly once per fleet: discretization appends to the increment stores.
+
     Parameters
     ----------
     fleet
@@ -69,7 +71,7 @@ def initialize_existing_fleet(fleet: Fleet, timeline: np.ndarray) -> None:
     # calculate a naive projection of multipliers
     # which is used to calculate fair-share emissions
     # for fleet level and global regulations
-    multipliers = sum(fleet.get_multiplier(v) for v in range(nv))
+    multipliers = sum(fleet.get_multipliers())
     fleet.projected_multipliers = calculate_projected_multipliers(multipliers, fleet.trade)
 
     # calculate the initial effect from technology

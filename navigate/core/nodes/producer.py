@@ -431,8 +431,8 @@ class Producer(_AssetManager):
         """
         Discretize the initial plant capacity into age-based increments.
 
-        Extends the shared discretization with the producer-specific steps: defaulting the
-        initial capacity, stamping the decided time on each increment, and pruning zero
+        Replaces the shared sequence to interleave the producer-specific steps: defaulting
+        the initial capacity, stamping the decided time on each increment, and pruning zero
         increments.
         """
 

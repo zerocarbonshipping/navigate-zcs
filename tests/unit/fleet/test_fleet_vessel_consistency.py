@@ -275,8 +275,8 @@ class _FleetStub:
         vessel.expectation.get_cargo_miles.side_effect = lambda idx: cargo_miles_by_idx[idx]
         self.assets = [vessel]
 
-    def get_multiplier(self, index):
-        return 1.0
+    def get_multipliers(self):
+        return [1.0]
 
 
 class TestEnergyIntensitySaving:
