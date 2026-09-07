@@ -12,7 +12,7 @@ absence of GHG pricing: no `Regulation`, no `Levy`. Two decision models are
 exercised:
 
 - the newbuild discrete choice model (nested logit over vessel LCOT,
-  `evolution.py`), driven purely by the domain-calibrated CAPEX/OPEX
+  `planning.py`), driven purely by the domain-calibrated CAPEX/OPEX
   differentials of the four fuel variants of the default
   `container_15000_teu` fleet;
 - the efficiency levers: uptake of the fleet's energy-saving technologies

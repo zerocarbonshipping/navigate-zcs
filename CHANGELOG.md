@@ -190,10 +190,23 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   from `navigate/core/table_data.py` into the parser AST module as
   `SourceLocation` — the parser is its only consumer — and the never-read
   `TableData.source` field is dropped.
-- **Breaking** for code importing navigate as a library:
-  `Fleet._transfer_multipliers_to_profile` is now public
-  `transfer_multipliers_to_profile` — it is called across modules
-  (fleet evolution), so it carries a public name. No behavior change.
+- **Breaking** for code importing navigate as a library: the `Producer` and
+  `Fleet` node classes no longer carry calculation methods — the
+  core → `fuel`/`fleet` back-edge is gone. `initialize_existing_producer`
+  (new `navigate.fuel.initialization`), `perform_progression`, and
+  `perform_planning` are free functions in `navigate.fuel`, and
+  `Producer.calculate_expectation` is replaced by calling
+  `calculate_export_expectation` directly. `initialize_existing_fleet`
+  (new `navigate.fleet.initialization`), `transfer_multipliers_to_profile`
+  (`navigate.fleet.aggregation`), `get_cargo_miles`
+  (`navigate.fleet.utils`), and `transfer_operational_saving_to_vessels`
+  (`navigate.fleet.operation`) are free functions taking the fleet. The
+  fleet newbuild-decision functions (`calculate_orderbook_newbuilds`,
+  `calculate_modelled_newbuilds`, `calculate_modelled_uptake`,
+  `log_orderbook_deferral`, `add_newbuilds`) move from
+  `navigate.fleet.evolution` to the new `navigate.fleet.planning`, and
+  `navigate.fleet.evolution.calculate_evolution_expectation` now takes
+  `(fleet, timeline, idx)`. Simulation results are unchanged.
 
 ### Removed
 - **Breaking** for input decks: the `BunkerLogistics` general node is
