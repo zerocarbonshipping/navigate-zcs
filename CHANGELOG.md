@@ -206,7 +206,11 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `log_orderbook_deferral`, `add_newbuilds`) move from
   `navigate.fleet.evolution` to the new `navigate.fleet.planning`, and
   `navigate.fleet.evolution.calculate_evolution_expectation` now takes
-  `(fleet, timeline, idx)`. Simulation results are unchanged.
+  `(fleet, timeline, idx)`. The fleet newbuild choice now runs through the
+  shared `navigate.economics.calculate_two_axis_uptake`, whose unused
+  `intra_limit`/`inter_limit` parameters are replaced by one per-asset
+  `limits` parameter projected onto both axes. Simulation results are
+  unchanged.
 
 ### Removed
 - **Breaking** for input decks: the `BunkerLogistics` general node is

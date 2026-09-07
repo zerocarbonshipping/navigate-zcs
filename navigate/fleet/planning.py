@@ -10,6 +10,7 @@ import numpy as np
 
 from navigate.core.enum_ import UtilityID
 from navigate.core.increment import Increment
+from navigate.economics.decision import calculate_two_axis_uptake
 from navigate.fleet.technology_adoption import calculate_package_charter_rates
 from navigate.fleet.utils import calculate_increments, extract_cargo_miles
 from navigate.util import TOLERANCE, YEAR, to_numpy
@@ -159,6 +160,53 @@ def log_orderbook_deferral(fleet: Fleet,
                 fleet, reason, pct)
 
 
+def calculate_inertia_increments(fleet: Fleet,
+                                 uptakes: np.ndarray,
+                                 cargo_miles: np.ndarray,
+                                 trade_gap: float,
+                                 cap_count: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """
+    Calculate the newbuild increments being built due to inertia from the previous uptake.
+
+    Parameters
+    ----------
+    fleet
+        The fleet instance.
+    uptakes
+        Current uptake share per vessel type.
+    cargo_miles
+        Cargo-miles per vessel type.
+    trade_gap
+        Gap in trade due to scrapping and market growth/decline.
+    cap_count
+        Per-vessel newbuild count budget for this timestep.
+
+    Returns
+    -------
+    Inertia-based increments per vessel type and the newbuild budget remaining after them.
+    """
+
+    # notice that the inertia related reduction
+    # of trade-gap was accounted for previously
+    # by reducing the uptake shares
+    increments = calculate_increments(uptakes, cargo_miles, trade_gap)
+
+    # apply the per-vessel newbuild-limit cap on inertia (no redistribution: unused capacity
+    # rolls into the residual trade gap and is filled by the modelled DCM)
+    cap_count = cap_count.astype(np.float64).copy()
+    over = increments > cap_count + TOLERANCE
+    if np.any(over):
+        attempted = float(np.sum(increments))
+        increments[over] = cap_count[over]
+        delivered = float(np.sum(increments))
+        pct = 100. * delivered / attempted if attempted > 0. else 0.
+
+        logger.info("%s: Inertia not fully applied due to newbuild limit (%.0f%% delivered).",
+                    fleet, pct)
+
+    return increments, np.maximum(cap_count - increments, 0.)
+
+
 def calculate_modelled_newbuilds(fleet: Fleet, trade_gap: float, cap_count: np.ndarray, idx: int):
     """
     Calculate the number and type of vessels that will enter the fleet to satisfy a given trade gap.
@@ -190,27 +238,9 @@ def calculate_modelled_newbuilds(fleet: Fleet, trade_gap: float, cap_count: np.n
     # extract the cargo-miles per active vessel
     cargo_miles = np.array(extract_cargo_miles(vessels, idx))
 
-    # calculate inertia based increments of
-    # each vessel. Notice that the inertia
-    # related reduction of trade-gap was
-    # accounted for in the previously
-    # by reducing the uptake shares
-    inertia_increments = calculate_increments(fleet.current_uptake[index], cargo_miles, trade_gap)
-
-    # apply per-vessel newbuild-limit cap on inertia (no redistribution: unused capacity rolls into the
-    # residual trade gap and is filled by the modelled DCM)
-    cap_count_subset = cap_count[index].astype(np.float64).copy()
-    over = inertia_increments > cap_count_subset + TOLERANCE
-    if np.any(over):
-        attempted = float(np.sum(inertia_increments))
-        inertia_increments[over] = cap_count_subset[over]
-        delivered = float(np.sum(inertia_increments))
-        pct = 100. * delivered / attempted if attempted > 0. else 0.
-
-        logger.info("%s: Inertia not fully applied due to newbuild limit (%.0f%% delivered).",
-                    fleet, pct)
-
-    cap_count_subset = np.maximum(cap_count_subset - inertia_increments, 0.)
+    # calculate the inertia based increments of each vessel
+    inertia_increments, cap_count_subset = calculate_inertia_increments(
+        fleet, fleet.current_uptake[index], cargo_miles, trade_gap, cap_count[index])
 
     # reduce the trade-gap by the new vessels
     trade_gap -= np.dot(inertia_increments, cargo_miles)
@@ -246,12 +276,6 @@ def calculate_modelled_uptake(fleet: Fleet,
     Calculate the relative uptake share of each vessel type using a two-axis discrete choice model
     grouped by fuel type.
 
-    When `cap_share` is provided, per-vessel upper bounds are projected to the two DCM levels: the
-    inter-fuel cap per fuel type is the *sum* of the constituent vessel caps (clamped to 1.0), so
-    a fuel group with multiple capped vessels can absorb their joint capacity. The intra-fuel cap
-    per vessel is normalized by the group cap so the composed per-vessel bound matches
-    `cap_share[i]`.
-
     Parameters
     ----------
     fleet
@@ -270,77 +294,20 @@ def calculate_modelled_uptake(fleet: Fleet,
         The uptake shares of each vessel type based on the discrete choice model.
     """
 
-    from navigate.economics.decision import calculate_asset_shares
-    from navigate.util import define_index_map, unique_list
-
     fuel_types = [vessel.fuel_type for vessel in vessels]
-    fuel_technology_map = define_index_map(fuel_types)
-    unique_fuel_types = unique_list(fuel_types)
-
     metrics = [vessel.expectation.get_freight_rate(idx) for vessel in vessels]
 
-    metrics_inter_fuel: list[float] = []
-    uptake = np.zeros((len(metrics),))
-    inter_fuel_limits: list[float] | None = [] if cap_share is not None else None
-
-    for fuel_type in unique_fuel_types:
-
-        indices = fuel_technology_map[fuel_type]
-        metrics_intra_fuel = [metrics[i] for i in indices]
-
-        # The inter-fuel cap is the sum of constituent per-vessel caps (clamped to 1.0); intra-fuel caps
-        # are normalized by the group cap so the composed bound `group_cap · intra_limits[i]` equals
-        # `cap_share[i]`.
-        intra_limits = None
-        group_cap = None
-        if cap_share is not None:
-            group_cap = min(sum(cap_share[i] for i in indices), 1.)
-            if group_cap > 0.:
-                intra_limits = [cap_share[i] / group_cap for i in indices]
-            else:
-                # Group hard-capped to zero by the inter-fuel limit; intra shares are irrelevant but
-                # the intra DCM still needs well-posed limits.
-                intra_limits = [1. for _ in indices]
-
-        shares, msg = calculate_asset_shares(metrics_intra_fuel,
-                                             UtilityID.LOWER_LOG_RATIO,
-                                             fleet.intra_fuel_sensitivity.get(),
-                                             limits=intra_limits)
-
-        if msg:
-            logger.warning("{}: The number of allowed vessels for fuel type {} {}"
-                           .format(fleet, fuel_type, msg))
-
-        for i, share in zip(indices, shares):
-            uptake[i] = share
-
-        # average across options of the same fuel type
-        metrics_inter_fuel.append(float(np.dot(metrics_intra_fuel, shares)))
-
-        if inter_fuel_limits is not None:
-            inter_fuel_limits.append(group_cap)
-
-    fuel_shares, msg = calculate_asset_shares(metrics_inter_fuel,
-                                              UtilityID.LOWER_LOG_RATIO,
-                                              fleet.inter_fuel_sensitivity.get(),
-                                              limits=inter_fuel_limits)
-
-    if msg:
-        if inter_fuel_limits is not None:
-            ignored_pct = max(0., 1. - float(sum(inter_fuel_limits))) * 100.
-            logger.warning("%s: Uptake newbuilds not fully applied (%.0f%% ignored) due to newbuild limit.",
-                           fleet, ignored_pct)
-        else:
-            logger.warning("{}: The number of unique fuel types {}".format(fleet, msg))
-
-    for j, fuel_type in enumerate(unique_fuel_types):
-
-        indices = fuel_technology_map[fuel_type]
-
-        for i in indices:
-            uptake[i] *= fuel_shares[j]
-
-    return uptake
+    return calculate_two_axis_uptake(
+        group_keys=fuel_types,
+        metrics_intra=metrics,
+        metrics_inter=metrics,
+        intra_utility=UtilityID.LOWER_LOG_RATIO,
+        inter_utility=UtilityID.LOWER_LOG_RATIO,
+        intra_odds=fleet.intra_fuel_sensitivity.get(),
+        inter_odds=fleet.inter_fuel_sensitivity.get(),
+        limits=cap_share,
+        context=str(fleet),
+    )
 
 
 def add_newbuilds(fleet: Fleet, increments: list[float], time_step: float):
