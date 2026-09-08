@@ -10,6 +10,7 @@ class BunkerOptions(_GeneralNode):
     def __init__(self):
         super().__init__()
 
+        # external variables -------------------------------------------------------------------------------------------
         self.solver = None                         # enum, solver backend (AUTOMATIC, GUROBI, HIGHS)
         self.solver_method = None                  # enum, LP solver method
         self.solution_tolerance = None             # float, the tolerance of the solution
@@ -19,7 +20,7 @@ class BunkerOptions(_GeneralNode):
         self.fair_share_maximum_iterations = None      # int, maximum number of fair-share iterations
         self.fair_share_tolerance = None               # float, the tolerance of the fair-share convergence
 
-    # external attributes set through the input deck -------------------------------------------------------------------
+    # external methods (DSL attributes) --------------------------------------------------------------------------------
     def set_solver(self, solver: str):
         """
         Set the solver backend for the bunker algorithm.

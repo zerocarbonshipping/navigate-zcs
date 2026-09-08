@@ -22,6 +22,7 @@ class Converter(_Machinery):
     def __init__(self, name):
         super().__init__(name, CONVERTER)
 
+        # external variables -------------------------------------------------------------------------------------------
         # power
         self.power_capacity = None         # float, power capacity of the Converter, MW
         self.minimum_load = None           # float, minimum load, fraction of power capacity
@@ -38,7 +39,7 @@ class Converter(_Machinery):
         self.consumption_ttw = {}          # dict of floats, emissions from consumption in the engine, ton/ton
         self.slip_fraction = {}            # dict[FuelTypeID, Scalar], fraction of fuel mass escaping unburned
 
-    # external attributes set through the input deck -------------------------------------------------------------------
+    # external methods (DSL attributes) --------------------------------------------------------------------------------
     def set_power_capacity(self, power_capacity):
         """
         Set the maximum power capacity of the converter.
@@ -141,7 +142,7 @@ class Converter(_Machinery):
 
         self.efficiency = assign_value(as_scalar(efficiency), type_=VARIABLE, lower=0., upper=1.)
 
-    # external commands called in the input deck -----------------------------------------------------------------------
+    # external methods (DSL commands) ----------------------------------------------------------------------------------
     def set_slip_fraction(self, fuel_type, value):
         """
         Set the fraction of fuel mass that escapes unburned (slip) when using a specific fuel type.

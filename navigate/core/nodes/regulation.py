@@ -24,6 +24,7 @@ class Regulation(_Policy):
     def __init__(self, name):
         super().__init__(name, REGULATION)
 
+        # external variables -------------------------------------------------------------------------------------------
         self.measure = None            # enum, ID of emissions measure
 
         self.intra_fraction = None     # float, fraction of emissions on intra travel accounted for
@@ -45,7 +46,11 @@ class Regulation(_Policy):
         # threshold adjustment
         self.allow_threshold_adjustment = False  # bool, if True, bunker algorithm adjusts thresholds on non-compliance
 
-    # external attributes set through the input deck -------------------------------------------------------------------
+        # internal variables -------------------------------------------------------------------------------------------
+        self.expectation: RegulationExpectation = RegulationExpectation()
+        self.profile: RegulationProfile = RegulationProfile()
+
+    # external methods (DSL attributes) --------------------------------------------------------------------------------
     def set_scheme(self, scheme):
         """
         Set the scheme of the regulation.
@@ -181,7 +186,7 @@ class Regulation(_Policy):
 
         self.flexibility_horizon = assign_value(as_scalar(flexibility_horizon), type_=(FORECAST, VARIABLE), lower=0.)
 
-    # external commands called in the input deck -----------------------------------------------------------------------
+    # external methods (DSL commands) ----------------------------------------------------------------------------------
     def set_vessel_threshold(self, vessel_name, threshold):
         """
         Set the threshold that a specific vessel must satisfy in the measure unit.
@@ -301,12 +306,9 @@ class Regulation(_Policy):
         self._initialize_policy_dependencies(vessels)
 
     def initialize_expectation(self, length: int, vessels: dict[str, Vessel]) -> None:
-        self.expectation = RegulationExpectation()
         self.expectation.initialize(length, [e.name for e in self.emissions], vessels)
 
     def initialize_profile(self, timeline: np.ndarray, vessels: dict[str, Vessel]) -> None:
-
-        self.profile = RegulationProfile()
         self.profile.initialize(timeline, vessels)
 
     def calculate_expectation(self, emissions, vessels, emissions_lifetime, timeline, idx):

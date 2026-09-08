@@ -41,8 +41,7 @@ class Producer(_AssetManager):
     def __init__(self, name):
         super().__init__(name, PRODUCER)
 
-        # external properties ------------------------------------------------------------------------------------------
-
+        # external variables -------------------------------------------------------------------------------------------
         # plant uptake
         self.minimum_offtake_duration = None   # float, minimum duration of offtake agreements, years
         self.fuel_demand_sensitivity = None    # float, odds ratio for pathway choice on expected demand
@@ -66,21 +65,24 @@ class Producer(_AssetManager):
         # boolean
         self.allow_plant = {}  # dict[bool], whether a plant is allowed to be built
 
-        # internal properties ------------------------------------------------------------------------------------------
+        # internal variables -------------------------------------------------------------------------------------------
+        self.expectation: ProducerExpectation = ProducerExpectation()
+        self.profile: ProducerProfile = ProducerProfile()
+
         # pipeline increments (Producer-specific, separate from active increments in _AssetManager)
         self.pipeline: list[list[Increment]] = []
         self._increment_stores.append(self.pipeline)
 
-        # static properties
+        # static variables
         self.fuels = {}                # dict[Fuel], store a list of possible production fuels for convenience
 
-        # dynamic properties
+        # dynamic variables
         self.current_utilization = None    # float, current fraction of construction capacity utilized
 
     # public domain name for the inherited assets list
     plants = property(lambda self: self.assets)
 
-    # external attributes set through the input deck -------------------------------------------------------------------
+    # external methods (DSL attributes) --------------------------------------------------------------------------------
     def set_plants(self, plants):
         """
         Set the list of plant types that can be built.
@@ -232,7 +234,7 @@ class Producer(_AssetManager):
 
         self.jump_start_fraction = assign_value(jump_start_fraction, lower=0., upper=1.)
 
-    # external commands called in the input deck -----------------------------------------------------------------------
+    # external methods (DSL commands) ----------------------------------------------------------------------------------
     def set_existing_pipeline(self, plant_name, existing_pipeline):
         """
         Set an existing pipelines for a given plant used for determining the new plants from the pipeline.
@@ -418,13 +420,11 @@ class Producer(_AssetManager):
 
         plant_names = [plant.name for plant in self.assets]
 
-        self.expectation = ProducerExpectation()
         self.expectation.initialize(length, plant_names, feedstocks, fuels, ports, processes)
 
     def initialize_profile(self, timeline: np.ndarray, feedstocks: dict[str, Feedstock],
                            fuels: dict[str, Fuel], processes: dict[str, Process]) -> None:
 
-        self.profile = ProducerProfile()
         self.profile.initialize(timeline, feedstocks, fuels, processes)
 
     def define_initial_capacity(self) -> None:
@@ -446,7 +446,7 @@ class Producer(_AssetManager):
             for inc in self.increments[p]:
                 inc.decided = inc.age + lead_time
 
-    # -- _AssetManager abstract interface -----------------------------------------------------------
+    # _AssetManager abstract interface
 
     def _get_initial_multiplier(self, index: int) -> float:
         capacity = self.assets[index].capacity.get()

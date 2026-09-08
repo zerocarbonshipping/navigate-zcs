@@ -10,6 +10,7 @@ class Region(Node):
     def __init__(self, name):
         super().__init__(name, REGION)
 
+        # external variables -------------------------------------------------------------------------------------------
         # process
         self.process_capex = {}                    # dict[process_name: float], CAPEX of a process, USD/ton
         self.process_opex = {}                     # dict[process_name: float], OPEX of a process, USD/ton/year
@@ -31,7 +32,7 @@ class Region(Node):
         self.transport_cost = {}   # dict[transport_name: float], cost of a transport, USD/ton-nautical mile
         self.transport_wtt = {}    # dict[(transport_name, emission_name): float], ton emission/ton-nautical mile
 
-    # external commands called in the input deck -----------------------------------------------------------------------
+    # external methods (DSL commands) ----------------------------------------------------------------------------------
     def set_process_capex(self, process_name, value):
         """
         Set the CAPEX associated with a production process in USD/ton.

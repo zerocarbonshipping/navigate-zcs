@@ -11,11 +11,11 @@ class Plot(Node):
     def __init__(self, name):
         super().__init__(name, PLOT)
 
-        # external properties
+        # external variables -------------------------------------------------------------------------------------------
         self.directory = None
         self.selected_plots = set()
 
-    # external attributes set through the input deck -------------------------------------------------------------------
+    # external methods (DSL attributes) --------------------------------------------------------------------------------
     def set_directory(self, directory):
         """
         Set the plot output directory.
@@ -27,7 +27,7 @@ class Plot(Node):
         """
         self.directory = directory
 
-    # external commands called in the input deck -----------------------------------------------------------------------
+    # external methods (DSL commands) ----------------------------------------------------------------------------------
     def add_plot(self, label):
         self.selected_plots.add(label)
 

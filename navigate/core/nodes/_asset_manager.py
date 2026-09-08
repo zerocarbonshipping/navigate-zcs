@@ -31,6 +31,7 @@ class _AssetManager(Node):
     def __init__(self, name: str, type_: str) -> None:
         super().__init__(name, type_)
 
+        # external variables -------------------------------------------------------------------------------------------
         # shared decision attribute
         self.inertia: Scalar | None = None
 
@@ -40,6 +41,7 @@ class _AssetManager(Node):
         # asset types (vessels or plants)
         self.assets: list = []
 
+        # internal variables -------------------------------------------------------------------------------------------
         # increment storage — one list of Increment per asset type
         self.increments: list[list[Increment]] = []
 
@@ -48,17 +50,10 @@ class _AssetManager(Node):
         # rebound, only have its inner lists replaced.
         self._increment_stores: list[list[list[Increment]]] = [self.increments]
 
-        # dynamic properties
+        # dynamic variables
         self.current_uptake: np.ndarray = np.empty(0)
 
-    # -- abstract interface that subclasses must provide ----------------------------------
-
-    def _get_initial_multiplier(self, index: int) -> float:
-        """Return the total initial multiplier for asset type at *index*."""
-        raise NotImplementedError
-
-    # -- shared setter methods (identical in Producer and Fleet) --------------------------
-
+    # external methods (DSL attributes) --------------------------------------------------------------------------------
     def set_inertia(self, inertia: float | NodeReference) -> None:
         """
         Set the inertia used in the uptake decision of newbuild assets.
@@ -99,8 +94,13 @@ class _AssetManager(Node):
 
         self._initial_age_distribution = assign_list(as_scalar_list(initial_age_distribution), type_=CURVE, lower=0.)
 
-    # -- shared increment initialization -------------------------------------------------
+    # internal methods -------------------------------------------------------------------------------------------------
+    # abstract interface that subclasses must provide
+    def _get_initial_multiplier(self, index: int) -> float:
+        """Return the total initial multiplier for asset type at *index*."""
+        raise NotImplementedError
 
+    # shared increment initialization
     def define_initial_age(self) -> None:
         """
         Define the age distribution of the existing assets and create
@@ -172,7 +172,7 @@ class _AssetManager(Node):
                     for inc in incs:
                         inc.multiplier = multiplier / n
 
-    # -- shared runtime methods ----------------------------------------------------------
+    # shared runtime methods
 
     @staticmethod
     def _age_increments(increment_lists: list[list[Increment]], dt: float) -> None:

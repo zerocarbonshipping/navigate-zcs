@@ -12,12 +12,14 @@ from navigate.util import list_is_unique
 class PowerSystem(_Machinery):
     def __init__(self, name):
         super().__init__(name, POWER_SYSTEM)
+
+        # external variables -------------------------------------------------------------------------------------------
         # converters
         self.propulsion = None   # Converter, main engine delivering propulsion power
         self.electrical = None   # Converter, auxiliary engine delivering electrical power
         self.heat = None         # Converter, boiler delivering heat
 
-    # external attributes set through the input deck -------------------------------------------------------------------
+    # external methods (DSL attributes) --------------------------------------------------------------------------------
     def set_propulsion(self, propulsion):
         """
         Set the converter used to satisfy the propulsion demand.

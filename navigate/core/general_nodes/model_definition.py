@@ -10,10 +10,11 @@ class ModelDefinition(_GeneralNode):
     def __init__(self):
         super().__init__()
 
+        # external variables -------------------------------------------------------------------------------------------
         self.start_date = None
         self.emissions_lifetime = None
 
-    # external attributes set through the input deck -------------------------------------------------------------------
+    # external methods (DSL attributes) --------------------------------------------------------------------------------
     def set_start_date(self, start_date):
         """
         Set the start date of the simulation in dd-mm-yyyy format (either hyphen or slash).

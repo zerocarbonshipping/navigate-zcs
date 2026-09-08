@@ -12,9 +12,10 @@ class Source(Node):
     def __init__(self, name):
         super().__init__(name, SOURCE)
 
+        # external variables -------------------------------------------------------------------------------------------
         self.dependency = None  # enum, whether source is standalone or connected
 
-    # external attributes set through the input deck -------------------------------------------------------------------
+    # external methods (DSL attributes) --------------------------------------------------------------------------------
     def set_dependency(self, dependency):
         """
         Set the dependency of the source.

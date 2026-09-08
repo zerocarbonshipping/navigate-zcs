@@ -30,6 +30,7 @@ class Route(Node):
     def __init__(self, name):
         super().__init__(name, ROUTE)
 
+        # external variables -------------------------------------------------------------------------------------------
         self.route_type = None             # int, route type ID
         self.ports = []                    # list[Port], ports a vessel can bunker in
 
@@ -47,7 +48,7 @@ class Route(Node):
         # regulation
         self.voyage_distribution = {}      # dict[(port_name, port_name)], fraction of sea time spent between ports
 
-    # external attributes set through the input deck -------------------------------------------------------------------
+    # external methods (DSL attributes) --------------------------------------------------------------------------------
     def set_route_type(self, route_type):
         """
         Set the route type.
@@ -217,7 +218,7 @@ class Route(Node):
                                                  lower=0.,
                                                  upper=1.)
 
-    # external commands called in the input deck -----------------------------------------------------------------------
+    # external methods (DSL commands) ----------------------------------------------------------------------------------
     def set_voyage_distribution(self, port_name_from, port_name_to, fraction):
         """
         Set the fraction of total sailing time spent traveling from 'port_from' to 'port_to'.

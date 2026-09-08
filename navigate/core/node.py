@@ -10,14 +10,8 @@ class Node(TypeCheckMixin):
 
         self.name = name            # str
 
-        # expectation/profile
-        self.expectation = None
-        self.profile = None
-
-        # static properties
+        # internal variables -------------------------------------------------------------------------------------------
         self.allow_dates_in_table = False   # whether added tables can contain dates
-
-        # dynamic properties
         self.just_copied = False            # whether node was just copied (used in Parser)
         self.command_references = []        # CommandReference queue executed by the Parser
 

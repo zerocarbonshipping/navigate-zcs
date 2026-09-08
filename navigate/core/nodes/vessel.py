@@ -26,6 +26,7 @@ class Vessel(Node):
     def __init__(self, name):
         super().__init__(name, VESSEL)
 
+        # external variables -------------------------------------------------------------------------------------------
         # power demand
         self.propulsion_load = None          # float, Curve or Surface, load in MW (at sea)
         self.electrical_load_at_sea = None   # float, Curve or Surface, load in MW (at sea)
@@ -51,14 +52,18 @@ class Vessel(Node):
         # tag
         self.fuel_type = None          # int, ID of primary fuel type
 
-        # convenience properties
+        # internal variables -------------------------------------------------------------------------------------------
+        self.expectation: VesselExpectation = VesselExpectation()
+        self.profile: VesselProfile = VesselProfile()
+
+        # convenience variables
         self.usable_fuel_types = []    # list[FuelTypeID], list of fuel types usable in the power system of the vessel
         self.usable_fuels = {}         # dict[Fuel], dictionary of fuels usable in the power system of the vessel
 
-        # cross-check properties
+        # cross-check variables
         self.fleet_assignment = None   # name of fleet vessel is assigned to
 
-    # external attributes set through the input deck -------------------------------------------------------------------
+    # external methods (DSL attributes) --------------------------------------------------------------------------------
     def set_propulsion_load(self, propulsion_load):
         """
         Set the propulsion load in MW.
@@ -397,15 +402,12 @@ class Vessel(Node):
             self.cost_of_capital = Scalar(0)
 
     def initialize_expectation(self, length: int, fuels: dict[str, Fuel]) -> None:
-
-        self.expectation = VesselExpectation()
         self.expectation.initialize(length, self.route, fuels)
 
     def initialize_profile(self, timeline: np.ndarray, emissions: dict[str, Emission],
                            fuels: dict[str, Fuel], emissions_lifetime: float,
                            regulation_names: list[str] = (), levy_names: list[str] = ()) -> None:
 
-        self.profile = VesselProfile()
         self.profile.initialize(timeline, emissions, fuels, emissions_lifetime, regulation_names, levy_names)
 
     def calculate_expectation(self, idx):
