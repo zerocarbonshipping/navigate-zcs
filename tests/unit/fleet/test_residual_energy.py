@@ -94,17 +94,18 @@ def _make_package(*technologies: Technology) -> Package:
 class TestCompoundSavings:
     """Verify: compound_saving = 1 - prod(1 - s_i), per energy type."""
 
-    def test_single_technology(self):
-        tech = _make_technology('vfd', energy_saving={ELECTRICAL: 0.08})
-        pkg = _make_package(tech)
-        assert pkg.compound_savings[ELECTRICAL] == pytest.approx(0.08)
-
-    def test_two_technologies_multiplicative(self):
-        """4% + 7.5% propulsion savings → 1 - 0.96 * 0.925 = 0.112."""
-        t1 = _make_technology('t1', energy_saving={PROPULSION: 0.04})
-        t2 = _make_technology('t2', energy_saving={PROPULSION: 0.075})
-        pkg = _make_package(t1, t2)
-        expected = 1. - (1. - 0.04) * (1. - 0.075)
+    @pytest.mark.parametrize('savings, expected', [
+        ([0.08], 0.08),
+        # 4% + 7.5% → 1 - 0.96 * 0.925 = 0.112
+        ([0.04, 0.075], 1. - (1. - 0.04) * (1. - 0.075)),
+        # all-zero savings → compound = 0
+        ([0.0, 0.0], 0.0),
+        # one technology with saving = 1 absorbs: compound = 1 regardless of others
+        ([0.5, 1.0], 1.0),
+    ])
+    def test_compound_value(self, savings, expected):
+        techs = [_make_technology(f't{i}', energy_saving={PROPULSION: s}) for i, s in enumerate(savings)]
+        pkg = _make_package(*techs)
         assert pkg.compound_savings[PROPULSION] == pytest.approx(expected)
 
     def test_not_additive(self):
@@ -122,20 +123,6 @@ class TestCompoundSavings:
         expected = 1. - 0.9 ** n
         assert pkg.compound_savings[PROPULSION] == pytest.approx(expected)
         assert 0. < pkg.compound_savings[PROPULSION] < 1.
-
-    def test_zero_savings_identity(self):
-        """All-zero savings → compound = 0."""
-        t1 = _make_technology('t1', energy_saving={PROPULSION: 0.0})
-        t2 = _make_technology('t2', energy_saving={PROPULSION: 0.0})
-        pkg = _make_package(t1, t2)
-        assert pkg.compound_savings[PROPULSION] == pytest.approx(0.0)
-
-    def test_full_saving_absorbing(self):
-        """One technology with saving = 1 → compound = 1 regardless of others."""
-        t1 = _make_technology('t1', energy_saving={PROPULSION: 0.5})
-        t2 = _make_technology('t2', energy_saving={PROPULSION: 1.0})
-        pkg = _make_package(t1, t2)
-        assert pkg.compound_savings[PROPULSION] == pytest.approx(1.0)
 
     def test_per_energy_type_independence(self):
         """Propulsion savings don't leak into electrical or heat."""
@@ -166,16 +153,14 @@ class TestCompoundSavings:
 class TestCompoundPower:
     """Verify: compound_power = sum(power_i), per energy type."""
 
-    def test_single_technology(self):
-        tech = _make_technology('kite', external_power={PROPULSION: 1.25})
-        pkg = _make_package(tech)
-        assert pkg.compound_powers[PROPULSION] == pytest.approx(1.25)
-
-    def test_additive(self):
-        t1 = _make_technology('kite', external_power={PROPULSION: 1.25})
-        t2 = _make_technology('rotor', external_power={PROPULSION: 2.0})
-        pkg = _make_package(t1, t2)
-        assert pkg.compound_powers[PROPULSION] == pytest.approx(3.25)
+    @pytest.mark.parametrize('powers, expected', [
+        ([1.25], 1.25),
+        ([1.25, 2.0], 3.25),
+    ])
+    def test_compound_value(self, powers, expected):
+        techs = [_make_technology(f't{i}', external_power={PROPULSION: p}) for i, p in enumerate(powers)]
+        pkg = _make_package(*techs)
+        assert pkg.compound_powers[PROPULSION] == pytest.approx(expected)
 
     def test_defaults_to_zero(self):
         tech = _make_technology('vfd', energy_saving={ELECTRICAL: 0.08})
@@ -198,46 +183,18 @@ class TestCompoundPower:
 class TestResidualEnergy:
     """Verify: residual = max(raw * (1 - saving) - external, 0)."""
 
-    def test_passthrough_no_savings_no_external(self):
-        raw = np.array([100., 200., 300.])
-        result = _raw_to_residual_energy(raw, 0.0, np.array([0., 0., 0.]))
-        np.testing.assert_array_almost_equal(result, raw)
-
-    def test_saving_only(self):
-        raw = np.array([100., 200.])
-        result = _raw_to_residual_energy(raw, 0.20, np.zeros(2))
-        np.testing.assert_array_almost_equal(result, [80., 160.])
-
-    def test_external_only(self):
-        raw = np.array([100.])
-        external = np.array([30.])
-        result = _raw_to_residual_energy(raw, 0.0, external)
-        np.testing.assert_array_almost_equal(result, [70.])
-
-    def test_combined_saving_then_external(self):
-        """Saving is applied first (multiplicative), then external is subtracted."""
-        raw = np.array([100.])
-        result = _raw_to_residual_energy(raw, 0.20, np.array([10.]))
-        # 100 * 0.8 - 10 = 70
-        np.testing.assert_array_almost_equal(result, [70.])
-
-    def test_non_negativity_clamp(self):
-        """External power exceeding post-saving demand → 0, not negative."""
-        raw = np.array([10.])
-        result = _raw_to_residual_energy(raw, 0.0, np.array([999.]))
-        np.testing.assert_array_almost_equal(result, [0.])
-
-    def test_full_saving(self):
-        raw = np.array([1000.])
-        result = _raw_to_residual_energy(raw, 1.0, np.zeros(1))
-        np.testing.assert_array_almost_equal(result, [0.])
-
-    def test_vectorized(self):
-        """Works element-wise on arrays."""
-        raw = np.array([100., 200., 300.])
-        external = np.array([10., 20., 30.])
-        result = _raw_to_residual_energy(raw, 0.10, external)
-        expected = np.maximum(raw * 0.9 - external, 0.)
+    @pytest.mark.parametrize('raw, saving, external, expected', [
+        ([100., 200., 300.], 0.0, [0., 0., 0.], [100., 200., 300.]),
+        ([100., 200.], 0.20, [0., 0.], [80., 160.]),
+        ([100.], 0.0, [30.], [70.]),
+        # saving is applied first (multiplicative), then external is subtracted: 100 * 0.8 - 10 = 70
+        ([100.], 0.20, [10.], [70.]),
+        # external power exceeding post-saving demand → 0, not negative
+        ([10.], 0.0, [999.], [0.]),
+        ([1000.], 1.0, [0.], [0.]),
+    ])
+    def test_residual(self, raw, saving, external, expected):
+        result = _raw_to_residual_energy(np.array(raw), saving, np.array(external))
         np.testing.assert_array_almost_equal(result, expected)
 
 
@@ -318,16 +275,14 @@ class TestTransferCurves:
 class TestShorePowerCapacity:
     """Verify shore power capacity is additive across technologies."""
 
-    def test_single_technology(self):
-        tech = _make_technology('sp', shore_power_capacity=4.0)
-        pkg = _make_package(tech)
-        assert pkg.shore_power_capacity == pytest.approx(4.0)
-
-    def test_additive(self):
-        t1 = _make_technology('sp1', shore_power_capacity=4.0)
-        t2 = _make_technology('sp2', shore_power_capacity=2.5)
-        pkg = _make_package(t1, t2)
-        assert pkg.shore_power_capacity == pytest.approx(6.5)
+    @pytest.mark.parametrize('capacities, expected', [
+        ([4.0], 4.0),
+        ([4.0, 2.5], 6.5),
+    ])
+    def test_compound_value(self, capacities, expected):
+        techs = [_make_technology(f'sp{i}', shore_power_capacity=c) for i, c in enumerate(capacities)]
+        pkg = _make_package(*techs)
+        assert pkg.shore_power_capacity == pytest.approx(expected)
 
     def test_defaults_to_zero(self):
         tech = _make_technology('vfd', energy_saving={ELECTRICAL: 0.08})

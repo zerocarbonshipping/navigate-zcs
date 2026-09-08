@@ -19,19 +19,10 @@ from navigate.output.plots._labels import (
 )
 
 
-def test_label_and_colour_tables_cover_the_same_fuel_types():
+def test_label_tables_are_consistent():
     assert set(FUEL_TYPE_LABEL) == set(FUEL_TYPE_COLOR)
-
-
-def test_type_ordering_covers_every_labelled_fuel_type():
     assert set(FUEL_TYPE_ORDER) == set(FUEL_TYPE_LABEL)
-
-
-def test_fuel_ordering_is_labelled_and_coloured():
     assert set(FUEL_ORDER) <= set(FUEL_LABEL)
     assert set(FUEL_ORDER) <= set(FUEL_COLOR)
-
-
-def test_orderings_have_no_duplicates():
     assert len(FUEL_TYPE_ORDER) == len(set(FUEL_TYPE_ORDER))
     assert len(FUEL_ORDER) == len(set(FUEL_ORDER))

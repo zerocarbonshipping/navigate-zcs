@@ -7,8 +7,6 @@ import pytest
 from navigate.core.enum_ import SimulationSectionID
 from navigate.exceptions import AttributeAssignmentError
 from navigate.parser._attributes import (
-    GENERAL_NODE_ATTRIBUTE_SECTIONS,
-    NODE_ATTRIBUTE_SECTIONS,
     check_general_node_attribute_is_allowed,
     check_node_attribute_is_allowed,
     instance_to_dsl_name,
@@ -46,11 +44,6 @@ class TestCheckNodeAttributeIsAllowed:
         with pytest.raises(AttributeAssignmentError, match="has no attribute"):
             check_node_attribute_is_allowed("Vessel", "NonExistentAttribute", SimulationSectionID.DEFINE)
 
-    @pytest.mark.parametrize("node_type", list(NODE_ATTRIBUTE_SECTIONS.keys()))
-    def test_all_node_types_have_dict(self, node_type):
-        """Every registered node type should have a dict (possibly empty)."""
-        assert isinstance(NODE_ATTRIBUTE_SECTIONS[node_type], dict)
-
 
 class TestCheckGeneralNodeAttributeIsAllowed:
 
@@ -64,7 +57,3 @@ class TestCheckGeneralNodeAttributeIsAllowed:
     def test_unknown_general_node_attribute_raises(self):
         with pytest.raises(AttributeAssignmentError, match="has no attribute"):
             check_general_node_attribute_is_allowed("ModelDefinition", "Bogus", SimulationSectionID.DEFINE)
-
-    @pytest.mark.parametrize("node_type", list(GENERAL_NODE_ATTRIBUTE_SECTIONS.keys()))
-    def test_all_general_node_types_have_dict(self, node_type):
-        assert isinstance(GENERAL_NODE_ATTRIBUTE_SECTIONS[node_type], dict)

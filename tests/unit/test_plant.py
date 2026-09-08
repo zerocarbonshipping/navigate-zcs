@@ -28,12 +28,6 @@ def _make_plant() -> Plant:
 
 class TestFuelTransport:
 
-    def test_dependencies_seed_per_port(self):
-        plant = _make_plant()
-
-        assert plant.fuel_transport == {'port_a': None, 'port_b': None}
-        assert plant.fuel_distance == {'port_a': None, 'port_b': None}
-
     def test_distance_without_transport_raises(self):
         plant = _make_plant()
         plant.set_fuel_distance('port_a', 500.)

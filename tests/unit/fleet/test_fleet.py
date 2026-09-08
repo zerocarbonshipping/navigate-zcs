@@ -54,119 +54,81 @@ def _make_vessel(name):
 class TestIsRetrofitCycle:
     """Test _is_retrofit_cycle standalone function."""
 
-    def test_age_zero_not_retrofit(self):
-        assert is_retrofit_cycle(0.0, 5.0, 1.0) is False
-
-    def test_age_one_not_retrofit(self):
-        assert is_retrofit_cycle(1.0, 5.0, 1.0) is False
-
-    def test_age_five_is_retrofit(self):
-        assert is_retrofit_cycle(5.0, 5.0, 1.0) is True
-
-    def test_age_ten_is_retrofit(self):
-        assert is_retrofit_cycle(10.0, 5.0, 1.0) is True
-
-    def test_age_three_not_retrofit_freq_five(self):
-        assert is_retrofit_cycle(3.0, 5.0, 1.0) is False
-
-    def test_first_time_step_excluded(self):
+    @pytest.mark.parametrize("age, frequency, dt, expected", [
+        (0.0, 5.0, 1.0, False),
+        (1.0, 5.0, 1.0, False),
+        (5.0, 5.0, 1.0, True),
+        (10.0, 5.0, 1.0, True),
+        (3.0, 5.0, 1.0, False),
         # age == time_step means vessel just entered, should not retrofit
-        assert is_retrofit_cycle(1.0, 1.0, 1.0) is False
+        (1.0, 1.0, 1.0, False),
+    ])
+    def test_cycle(self, age, frequency, dt, expected):
+        assert is_retrofit_cycle(age, frequency, dt) is expected
 
 
 class TestCalculateProjectedMultipliers:
     """Test _calculate_projected_multipliers."""
 
-    def test_constant_trade(self):
-        trade = np.array([100., 100., 100.])
-        result = calculate_projected_multipliers(50., trade)
-        np.testing.assert_array_almost_equal(result, [50., 50., 50.])
-
-    def test_doubling_trade(self):
-        trade = np.array([100., 200.])
-        result = calculate_projected_multipliers(10., trade)
-        np.testing.assert_array_almost_equal(result, [10., 20.])
-
-    def test_single_point(self):
-        trade = np.array([50.])
-        result = calculate_projected_multipliers(20., trade)
-        np.testing.assert_array_almost_equal(result, [20.])
+    @pytest.mark.parametrize("multiplier, trade, expected", [
+        (50., [100., 100., 100.], [50., 50., 50.]),
+        (10., [100., 200.], [10., 20.]),
+        (20., [50.], [20.]),
+    ])
+    def test_scales_with_trade(self, multiplier, trade, expected):
+        result = calculate_projected_multipliers(multiplier, np.array(trade))
+        np.testing.assert_array_almost_equal(result, expected)
 
 
 class TestCalculateIncrements:
     """Test _calculate_increments."""
 
-    def test_equal_uptake(self):
-        uptakes = np.array([0.5, 0.5])
-        cargo_miles = np.array([100., 100.])
-        result = calculate_increments(uptakes, cargo_miles, 1000.)
-        np.testing.assert_array_almost_equal(result, [5., 5.])
-
-    def test_unequal_cargo_miles(self):
-        uptakes = np.array([1.0])
-        cargo_miles = np.array([200.])
-        result = calculate_increments(uptakes, cargo_miles, 1000.)
-        np.testing.assert_array_almost_equal(result, [5.])
-
-    def test_zero_trade_gap(self):
-        uptakes = np.array([0.5, 0.5])
-        cargo_miles = np.array([100., 100.])
-        result = calculate_increments(uptakes, cargo_miles, 0.)
-        np.testing.assert_array_almost_equal(result, [0., 0.])
+    @pytest.mark.parametrize("uptakes, cargo_miles, trade_gap, expected", [
+        ([0.5, 0.5], [100., 100.], 1000., [5., 5.]),
+        ([1.0], [200.], 1000., [5.]),
+        ([0.5, 0.5], [100., 100.], 0., [0., 0.]),
+    ])
+    def test_increments(self, uptakes, cargo_miles, trade_gap, expected):
+        result = calculate_increments(np.array(uptakes), np.array(cargo_miles), trade_gap)
+        np.testing.assert_array_almost_equal(result, expected)
 
 
 class TestGetRemainingLifetime:
     """Test _get_remaining_lifetime."""
 
-    def test_new_vessel(self):
+    @pytest.mark.parametrize("age, expected", [
+        (0.0, 24),
+        (24.0, 0),
+        (30.0, 0),
+    ])
+    def test_remaining(self, age, expected):
         vessel = _make_vessel("v")
         vessel.lifetime = Scalar(25)
-        assert get_remaining_lifetime(vessel, age=0.0, dt=1.0) == 24
-
-    def test_old_vessel(self):
-        vessel = _make_vessel("v")
-        vessel.lifetime = Scalar(25)
-        assert get_remaining_lifetime(vessel, age=24.0, dt=1.0) == 0
-
-    def test_beyond_lifetime(self):
-        vessel = _make_vessel("v")
-        vessel.lifetime = Scalar(25)
-        assert get_remaining_lifetime(vessel, age=30.0, dt=1.0) == 0
+        assert get_remaining_lifetime(vessel, age=age, dt=1.0) == expected
 
 
 class TestNetEnergyFromRaw:
     """Test net_energy_from_raw."""
 
-    def test_no_savings(self):
-        raw = {EnergyDemandTypeID.PROPULSION: [100., 200.]}
-        sav = {EnergyDemandTypeID.PROPULSION: [0., 0.]}
+    @pytest.mark.parametrize("raw, sav, expected", [
+        ({EnergyDemandTypeID.PROPULSION: [100., 200.]},
+         {EnergyDemandTypeID.PROPULSION: [0., 0.]},
+         {EnergyDemandTypeID.PROPULSION: [100., 200.]}),
+        ({EnergyDemandTypeID.PROPULSION: [100., 200.]},
+         {EnergyDemandTypeID.PROPULSION: [0.5, 0.5]},
+         {EnergyDemandTypeID.PROPULSION: [50., 100.]}),
+        ({EnergyDemandTypeID.PROPULSION: [100.]},
+         {EnergyDemandTypeID.PROPULSION: [1.0]},
+         {EnergyDemandTypeID.PROPULSION: [0.]}),
+        ({EnergyDemandTypeID.PROPULSION: [100.], EnergyDemandTypeID.ELECTRICAL: [50.]},
+         {EnergyDemandTypeID.PROPULSION: [0.1], EnergyDemandTypeID.ELECTRICAL: [0.2]},
+         {EnergyDemandTypeID.PROPULSION: [90.], EnergyDemandTypeID.ELECTRICAL: [40.]}),
+    ])
+    def test_savings_applied_per_energy_type(self, raw, sav, expected):
         result = net_energy_from_raw(raw, sav)
-        assert result[EnergyDemandTypeID.PROPULSION] == pytest.approx([100., 200.])
-
-    def test_half_savings(self):
-        raw = {EnergyDemandTypeID.PROPULSION: [100., 200.]}
-        sav = {EnergyDemandTypeID.PROPULSION: [0.5, 0.5]}
-        result = net_energy_from_raw(raw, sav)
-        assert result[EnergyDemandTypeID.PROPULSION] == pytest.approx([50., 100.])
-
-    def test_full_savings(self):
-        raw = {EnergyDemandTypeID.PROPULSION: [100.]}
-        sav = {EnergyDemandTypeID.PROPULSION: [1.0]}
-        result = net_energy_from_raw(raw, sav)
-        assert result[EnergyDemandTypeID.PROPULSION] == pytest.approx([0.])
-
-    def test_multiple_energy_types(self):
-        raw = {
-            EnergyDemandTypeID.PROPULSION: [100.],
-            EnergyDemandTypeID.ELECTRICAL: [50.],
-        }
-        sav = {
-            EnergyDemandTypeID.PROPULSION: [0.1],
-            EnergyDemandTypeID.ELECTRICAL: [0.2],
-        }
-        result = net_energy_from_raw(raw, sav)
-        assert result[EnergyDemandTypeID.PROPULSION] == pytest.approx([90.])
-        assert result[EnergyDemandTypeID.ELECTRICAL] == pytest.approx([40.])
+        assert set(result) == set(expected)
+        for energy_type, values in expected.items():
+            assert result[energy_type] == pytest.approx(values)
 
 
 # ---------------------------------------------------------------------------
@@ -378,7 +340,7 @@ class TestReconcileRetrofitTechnologyCaps:
 
 
 class TestReconcileRetrofitTechnologyCapsEligibility:
-    """Eligibility-share weighting: cap aggregation must use `multiplier · current` (Codex Finding 2)."""
+    """Eligibility-share weighting: cap aggregation must use `multiplier · current`."""
 
     def test_stratified_split_does_not_double_count(self):
         # Vessel split 50/50 between package 0 and package 1. Two proposals, one per package_idx, same

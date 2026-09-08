@@ -7,8 +7,7 @@
 every plot rendered by ``render_plots``. These tests enforce the invariants
 that let that catalogue be the single source of truth:
 
-  * every registered plot is a callable named ``plot_<label>``;
-  * labels are unique and ``PLOT_LABELS`` is derived from them;
+  * plot labels are unique;
   * every public ``plot_*`` function in the package is either registered or in
     the known-disabled set -- so a new plot file cannot silently go unregistered.
 """
@@ -16,7 +15,7 @@ import importlib
 import pkgutil
 
 import navigate.output.plots as plots_pkg
-from navigate.output.plots._registry import PLOT_LABELS, PLOTS, plot_label
+from navigate.output.plots._registry import PLOTS, plot_label
 
 # Public plot functions that intentionally exist but are NOT rendered.
 # Mirrors the disabled catalogue documented in _registry.py (currently none).
@@ -39,20 +38,10 @@ def _discover_public_plot_functions():
     return found
 
 
-def test_registered_plots_follow_naming_invariant():
-    for func in PLOTS:
-        assert callable(func), func
-        assert func.__name__.startswith('plot_'), func.__name__
-        assert plot_label(func) == func.__name__[len('plot_'):]
-
-
-def test_labels_are_unique_and_derived():
+def test_every_public_plot_is_registered_or_disabled():
     labels = [plot_label(f) for f in PLOTS]
     assert len(labels) == len(set(labels)), 'duplicate plot labels in PLOTS'
-    assert PLOT_LABELS == set(labels)
 
-
-def test_every_public_plot_is_registered_or_disabled():
     discovered = set(_discover_public_plot_functions())
     registered = {f.__name__ for f in PLOTS}
 

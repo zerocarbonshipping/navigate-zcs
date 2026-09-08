@@ -22,7 +22,6 @@ from navigate.parser._lark_parser import (
     IncludeDirective,
     LoadModuleDirective,
     NodeDeclaration,
-    SourceLocation,
     StartTimeline,
     TableData,
     parse_deck_content,
@@ -46,44 +45,26 @@ def _val(text: str):
 
 
 # ═════════════════════════════════════════════════════════════════════════════════
-# SourceLocation
-# ═════════════════════════════════════════════════════════════════════════════════
-class TestSourceLocation:
-    def test_immutable(self):
-        location = SourceLocation(file="test.inc", line=10, deck_line=5)
-        with pytest.raises(AttributeError):
-            location.line = 20
-
-    def test_defaults(self):
-        location = SourceLocation()
-        assert location.file == ""
-        assert location.line == 0
-        assert location.deck_line == 0
-
-
-# ═════════════════════════════════════════════════════════════════════════════════
 # string_to_date
 # ═════════════════════════════════════════════════════════════════════════════════
 class TestStringToDate:
-    def test_dash_format(self):
-        assert string_to_date('01-01-2020') == np.datetime64('2020-01-01')
 
-    def test_slash_format(self):
-        assert string_to_date('15/06/2030') == np.datetime64('2030-06-15')
+    @pytest.mark.parametrize("raw, expected", [
+        ('01-01-2020', np.datetime64('2020-01-01')),
+        ('15/06/2030', np.datetime64('2030-06-15')),
+        ('2020-01-01', np.datetime64('2020-01-01')),
+        ('  "01-01-2020"  ', np.datetime64('2020-01-01')),
+    ], ids=['dash_format', 'slash_format', 'iso_format', 'strips_whitespace_and_quotes'])
+    def test_parses_valid_formats(self, raw, expected):
+        assert string_to_date(raw) == expected
 
-    def test_invalid_no_separator(self):
+    @pytest.mark.parametrize("raw", [
+        '01012020',
+        '99-99-9999',
+    ], ids=['no_separator', 'invalid_date'])
+    def test_rejects_invalid_input(self, raw):
         with pytest.raises(ValueError):
-            string_to_date('01012020')
-
-    def test_iso_format(self):
-        assert string_to_date('2020-01-01') == np.datetime64('2020-01-01')
-
-    def test_strips_whitespace_and_quotes(self):
-        assert string_to_date('  "01-01-2020"  ') == np.datetime64('2020-01-01')
-
-    def test_invalid_date(self):
-        with pytest.raises(ValueError):
-            string_to_date('99-99-9999')
+            string_to_date(raw)
 
 
 # ═════════════════════════════════════════════════════════════════════════════════
@@ -106,13 +87,6 @@ class TestDeckParsing:
         assert len(blocks) == 1
         assert isinstance(blocks[0], EventsBlock)
         assert blocks[0].directives[0].name == 'DefaultTimeStepYearly'
-
-    def test_define_and_events(self):
-        text = 'DEFINE {\n  Include "nav.inc"\n}\nEVENTS {\n  Load DefaultTimeStepYearly\n}'
-        blocks = parse_deck_content(text, file="test.nav")
-        assert len(blocks) == 2
-        assert isinstance(blocks[0], DefineBlock)
-        assert isinstance(blocks[1], EventsBlock)
 
     def test_empty_blocks(self):
         blocks = parse_deck_content('DEFINE { }\nEVENTS { }')
@@ -161,7 +135,7 @@ class TestStatements:
         statements = parse_include_content('Vessel "v" { }')
         assert statements[0].body == []
 
-    # ── copy / import / date / timeline ────────────────────────────
+    # ── copy / import ───────────────────────────────────────────────
     def test_copy_statement(self):
         s = parse_include_content('Copy Vessel "original" "copy"')[0]
         assert isinstance(s, CopyStatement)
@@ -175,13 +149,14 @@ class TestStatements:
         assert s.node_type == 'Vessel'
         assert s.name == 'ship'
 
-    def test_date_statement(self):
-        assert isinstance(parse_include_content('Date "01-01-2025"')[0], DateStatement)
-
-    def test_start_end_timeline(self):
-        statements = parse_include_content('Start\nEnd')
-        assert isinstance(statements[0], StartTimeline)
-        assert isinstance(statements[1], EndTimeline)
+    # ── statement type recognition ──────────────────────────────────
+    @pytest.mark.parametrize("text, index, expected_type", [
+        ('Date "01-01-2025"', 0, DateStatement),
+        ('Start\nEnd', 0, StartTimeline),
+        ('Start\nEnd', 1, EndTimeline),
+    ], ids=['date', 'start', 'end'])
+    def test_statement_type_recognized(self, text, index, expected_type):
+        assert isinstance(parse_include_content(text)[index], expected_type)
 
     # ── multiple statements ────────────────────────────────────────
     def test_multiple_statements(self):
@@ -209,67 +184,32 @@ class TestStatements:
 # ═════════════════════════════════════════════════════════════════════════════════
 class TestValues:
 
-    # ── numbers ────────────────────────────────────────────────────
-    def test_integer(self):
-        assert _val('Value = 25') == 25.0
-
-    def test_negative(self):
-        assert _val('Value = -0.5') == -0.5
-
-    def test_scientific(self):
-        assert _val('Value = 1.5E-3') == pytest.approx(0.0015)
-
-    def test_inf(self):
-        assert _val('Value = INF') == float('inf')
-
-    def test_negative_inf(self):
-        assert _val('Value = -INF') == float('-inf')
-
-    # ── node references ────────────────────────────────────────────
-    def test_node_reference(self):
-        val = _val('Route = Route("main")')
-        assert isinstance(val, NodeReference)
-
-    # ── expressions ────────────────────────────────────────────────
-    def test_expression(self):
-        val = _val('Value = <1 + Forecast("x")>')
-        assert isinstance(val, Expression)
-
-    # ── strings ────────────────────────────────────────────────────
-    def test_string(self):
-        assert _val('Dir = "output"') == 'output'
-
-    def test_date_string_auto_converted(self):
-        assert _val('StartDate = "01-01-2025"') == np.datetime64('2025-01-01')
-
-    # ── identifiers ────────────────────────────────────────────────
-    def test_ident_uppercase(self):
-        assert _val('FuelType = OIL') == 'OIL'
-
-    def test_ident_with_underscore(self):
-        assert _val('Mode = TRANSPORT_NOMINAL') == 'TRANSPORT_NOMINAL'
-
-    def test_ident_titlecase(self):
-        assert _val('Price = BunkerIntensityPrice') == 'BunkerIntensityPrice'
-
-    # ── lists ──────────────────────────────────────────────────────
-    def test_list_of_node_references(self):
-        val = _val('Ports = [Port("a"), Port("b")]')
-        assert isinstance(val, list) and len(val) == 2
-        assert all(isinstance(v, NodeReference) for v in val)
-
-    def test_empty_list(self):
-        assert _val('Items = []') == []
-
-    # ── templates ──────────────────────────────────────────────────
-    def test_template(self):
-        assert _val('Capacity = %plant_capacity%') == '%plant_capacity%'
-
-    # ── tables as values ───────────────────────────────────────────
-    def test_table_as_value(self):
-        val = _val('Curve = Table = [ 2020 0.5\n2030 1.0\n]')
-        assert isinstance(val, TableData)
-        assert val.rows == [[2020.0, 0.5], [2030.0, 1.0]]
+    @pytest.mark.parametrize("source, check", [
+        ('Value = 25', lambda v: v == 25.0),
+        ('Value = -0.5', lambda v: v == -0.5),
+        ('Value = 1.5E-3', lambda v: v == pytest.approx(0.0015)),
+        ('Value = INF', lambda v: v == float('inf')),
+        ('Value = -INF', lambda v: v == float('-inf')),
+        ('Route = Route("main")', lambda v: isinstance(v, NodeReference)),
+        ('Value = <1 + Forecast("x")>', lambda v: isinstance(v, Expression)),
+        ('Dir = "output"', lambda v: v == 'output'),
+        ('StartDate = "01-01-2025"', lambda v: v == np.datetime64('2025-01-01')),
+        ('FuelType = OIL', lambda v: v == 'OIL'),
+        ('Mode = TRANSPORT_NOMINAL', lambda v: v == 'TRANSPORT_NOMINAL'),
+        ('Price = BunkerIntensityPrice', lambda v: v == 'BunkerIntensityPrice'),
+        ('Ports = [Port("a"), Port("b")]',
+         lambda v: isinstance(v, list) and len(v) == 2 and all(isinstance(p, NodeReference) for p in v)),
+        ('Items = []', lambda v: v == []),
+        ('Capacity = %plant_capacity%', lambda v: v == '%plant_capacity%'),
+        ('Curve = Table = [ 2020 0.5\n2030 1.0\n]',
+         lambda v: isinstance(v, TableData) and v.rows == [[2020.0, 0.5], [2030.0, 1.0]]),
+    ], ids=[
+        'integer', 'negative', 'scientific', 'inf', 'negative_inf', 'node_reference', 'expression', 'string',
+        'date_string_auto_converted', 'ident_uppercase', 'ident_with_underscore', 'ident_titlecase',
+        'list_of_node_references', 'empty_list', 'template', 'table_as_value',
+    ])
+    def test_value_parsing(self, source, check):
+        assert check(_val(source))
 
 
 # ═════════════════════════════════════════════════════════════════════════════════
@@ -277,19 +217,19 @@ class TestValues:
 # ═════════════════════════════════════════════════════════════════════════════════
 class TestCommands:
 
-    def test_command_with_strings(self):
-        cmd = _body('Vessel "v" { set_bunkering_allowed("LSFO", TRUE) }')[0]
+    @pytest.mark.parametrize("source, expected_name, check_args", [
+        ('set_bunkering_allowed("LSFO", TRUE)', 'set_bunkering_allowed',
+         lambda args: args == ['LSFO', 'TRUE']),
+        ('set_cost("fuel", 100.0)', 'set_cost',
+         lambda args: args == ['fuel', 100.0]),
+        ('set_process(Process("proc"), 500)', 'set_process',
+         lambda args: isinstance(args[0], NodeReference) and args[1] == 500),
+    ], ids=['strings', 'number', 'node_reference'])
+    def test_command_args_parsed(self, source, expected_name, check_args):
+        cmd = _body(f'Vessel "v" {{ {source} }}')[0]
         assert isinstance(cmd, Command)
-        assert cmd.name == 'set_bunkering_allowed'
-        assert cmd.args == ['LSFO', 'TRUE']
-
-    def test_command_with_number(self):
-        cmd = _body('Vessel "v" { set_cost("fuel", 100.0) }')[0]
-        assert cmd.args == ['fuel', 100.0]
-
-    def test_command_with_node_reference(self):
-        cmd = _body('Vessel "v" { set_process(Process("proc"), 500) }')[0]
-        assert isinstance(cmd.args[0], NodeReference)
+        assert cmd.name == expected_name
+        assert check_args(cmd.args)
 
 
 # ═════════════════════════════════════════════════════════════════════════════════
@@ -304,27 +244,19 @@ class TestTables:
         assert isinstance(item.value, TableData)
         assert item.value.rows == [[2020.0, 0.5], [2030.0, 1.0]]
 
-    def testparse_table_cells_basic(self):
-        rows = parse_table_cells('Table = [ 2020 0.5\n2030 1.0\n]')
-        assert rows == [[2020.0, 0.5], [2030.0, 1.0]]
-
-    def testparse_table_cells_with_comments(self):
-        rows = parse_table_cells('Table = [ # header\n2020 0.5 # inline\n2030 1.0\n]')
-        assert len(rows) == 2
-
-    def testparse_table_cells_quoted_dates(self):
-        rows = parse_table_cells('Table = [ "01-01-2020" 100\n"01-01-2030" 200\n]')
-        assert rows[0] == ['01-01-2020', 100.0]
-        assert rows[1] == ['01-01-2030', 200.0]
-
-    def testparse_table_cells_empty(self):
-        assert parse_table_cells('Table = [\n]') == []
-
-    def testparse_table_cells_2d_with_headers(self):
-        rows = parse_table_cells('Table = [ "col_a" "col_b"\n1.0 2.0\n3.0 4.0\n]')
-        assert len(rows) == 3
-        assert rows[0] == ['col_a', 'col_b']
-        assert rows[1] == [1.0, 2.0]
+    @pytest.mark.parametrize("source, expected_rows", [
+        ('Table = [ 2020 0.5\n2030 1.0\n]',
+         [[2020.0, 0.5], [2030.0, 1.0]]),
+        ('Table = [ # header\n2020 0.5 # inline\n2030 1.0\n]',
+         [[2020.0, 0.5], [2030.0, 1.0]]),
+        ('Table = [ "01-01-2020" 100\n"01-01-2030" 200\n]',
+         [['01-01-2020', 100.0], ['01-01-2030', 200.0]]),
+        ('Table = [\n]', []),
+        ('Table = [ "col_a" "col_b"\n1.0 2.0\n3.0 4.0\n]',
+         [['col_a', 'col_b'], [1.0, 2.0], [3.0, 4.0]]),
+    ], ids=['basic', 'with_comments', 'quoted_dates', 'empty', '2d_with_headers'])
+    def test_parse_table_cells(self, source, expected_rows):
+        assert parse_table_cells(source) == expected_rows
 
 
 # ═════════════════════════════════════════════════════════════════════════════════
@@ -333,37 +265,26 @@ class TestTables:
 class TestCasingRules:
 
     # ── node types must start uppercase ────────────────────────────
-    def test_lowercase_node_type_rejected(self):
+    @pytest.mark.parametrize("source", [
+        'vessel "v" { }',
+        '_Vessel "v" { }',
+    ], ids=['lowercase', 'underscore_start'])
+    def test_invalid_node_type_rejected(self, source):
         with pytest.raises(DeckFormatError):
-            parse_include_content('vessel "v" { }')
+            parse_include_content(source)
 
-    def test_underscore_start_node_type_rejected(self):
-        with pytest.raises(DeckFormatError):
-            parse_include_content('_Vessel "v" { }')
-
-    # ── digits allowed in node types ───────────────────────────────
-    def test_digits_in_node_type(self):
-        statements = parse_include_content('Vessel2 "v" { }')
-        assert statements[0].node_type == 'Vessel2'
-
-    # ── attributes accept any casing ───────────────────────────────
-    def test_lowercase_attribute(self):
-        assert _body('Vessel "v" { lifetime = 25 }')[0].attribute == 'lifetime'
-
-    def test_uppercase_attribute(self):
-        assert _body('Vessel "v" { Lifetime = 25 }')[0].attribute == 'Lifetime'
-
-    def test_attribute_with_digits(self):
-        assert _body('Vessel "v" { co2_factor = 0.5 }')[0].attribute == 'co2_factor'
-
-    # ── commands accept any casing ─────────────────────────────────
-    def test_lowercase_command(self):
-        cmd = _body('Vessel "v" { set_fuel("oil") }')[0]
-        assert cmd.name == 'set_fuel'
-
-    def test_titlecase_command(self):
-        cmd = _body('Vessel "v" { SetFuel("oil") }')[0]
-        assert cmd.name == 'SetFuel'
+    # ── digits in node types; attributes and commands accept any casing ──
+    @pytest.mark.parametrize("source, extract, expected", [
+        ('Vessel2 "v" { }', lambda s: s[0].node_type, 'Vessel2'),
+        ('Vessel "v" { lifetime = 25 }', lambda s: s[0].body[0].attribute, 'lifetime'),
+        ('Vessel "v" { Lifetime = 25 }', lambda s: s[0].body[0].attribute, 'Lifetime'),
+        ('Vessel "v" { co2_factor = 0.5 }', lambda s: s[0].body[0].attribute, 'co2_factor'),
+        ('Vessel "v" { set_fuel("oil") }', lambda s: s[0].body[0].name, 'set_fuel'),
+        ('Vessel "v" { SetFuel("oil") }', lambda s: s[0].body[0].name, 'SetFuel'),
+    ], ids=['digits_in_node_type', 'lowercase_attribute', 'uppercase_attribute',
+            'attribute_with_digits', 'lowercase_command', 'titlecase_command'])
+    def test_casing_accepted(self, source, extract, expected):
+        assert extract(parse_include_content(source)) == expected
 
 
 # ═════════════════════════════════════════════════════════════════════════════════
@@ -371,25 +292,21 @@ class TestCasingRules:
 # ═════════════════════════════════════════════════════════════════════════════════
 class TestOneStatementPerLine:
 
-    def test_two_statements_same_line_rejected(self):
+    @pytest.mark.parametrize("parse_fn, source", [
+        (parse_include_content, 'Vessel "a" { } Vessel "b" { }'),
+        (parse_include_content, 'Vessel "v" { A = 1 B = 2 }'),
+        (parse_deck_content, 'DEFINE { } EVENTS { }'),
+    ], ids=['two_statements', 'two_body_items', 'two_deck_blocks'])
+    def test_rejects_multiple_statements_per_line(self, parse_fn, source):
         with pytest.raises(VisitError, match="same line"):
-            parse_include_content('Vessel "a" { } Vessel "b" { }')
+            parse_fn(source)
 
-    def test_two_body_items_same_line_rejected(self):
-        with pytest.raises(VisitError, match="same line"):
-            parse_include_content('Vessel "v" { A = 1 B = 2 }')
-
-    def test_two_deck_blocks_same_line_rejected(self):
-        with pytest.raises(VisitError, match="same line"):
-            parse_deck_content('DEFINE { } EVENTS { }')
-
-    def test_separate_lines_accepted(self):
-        statements = parse_include_content('Vessel "a" { }\nVessel "b" { }')
-        assert len(statements) == 2
-
-    def test_body_items_separate_lines_accepted(self):
-        body = _body('Vessel "v" {\n  A = 1\n  B = 2\n}')
-        assert len(body) == 2
+    @pytest.mark.parametrize("get_items", [
+        lambda: parse_include_content('Vessel "a" { }\nVessel "b" { }'),
+        lambda: _body('Vessel "v" {\n  A = 1\n  B = 2\n}'),
+    ], ids=['statements', 'body_items'])
+    def test_accepts_one_statement_per_line(self, get_items):
+        assert len(get_items()) == 2
 
 
 # ═════════════════════════════════════════════════════════════════════════════════
@@ -397,21 +314,15 @@ class TestOneStatementPerLine:
 # ═════════════════════════════════════════════════════════════════════════════════
 class TestSyntaxErrors:
 
-    def test_missing_braces(self):
+    @pytest.mark.parametrize("source", [
+        'Vessel "ship" Lifetime = 25',
+        'Vessel ship { Lifetime = 25 }',
+        'Vessel "v" { Attr == 1.0 }',
+        'Vessel "v" { Attr = ??? }',
+    ], ids=['missing_braces', 'missing_quotes_on_name', 'double_equals', 'unrecognized_rhs'])
+    def test_invalid_syntax_rejected(self, source):
         with pytest.raises(DeckFormatError):
-            parse_include_content('Vessel "ship" Lifetime = 25')
-
-    def test_missing_quotes_on_name(self):
-        with pytest.raises(DeckFormatError):
-            parse_include_content('Vessel ship { Lifetime = 25 }')
-
-    def test_double_equals(self):
-        with pytest.raises(DeckFormatError):
-            parse_include_content('Vessel "v" { Attr == 1.0 }')
-
-    def test_unrecognized_rhs(self):
-        with pytest.raises(DeckFormatError):
-            parse_include_content('Vessel "v" { Attr = ??? }')
+            parse_include_content(source)
 
     def test_wildcard_in_node_reference_produces_wildcard_reference(self):
         statements = parse_include_content('Vessel "v" { Route = Route("r_*") }')

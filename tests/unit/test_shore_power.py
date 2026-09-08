@@ -53,27 +53,21 @@ def _make_regulation(name, measure, emissions, gwp=None):
 class TestShoreRegulationCoefficient:
     """Test shore power regulation emission factor and spend coefficient computation."""
 
-    def test_absolute_regulation_coefficient_equals_emission_factor(self):
-        """For ABSOLUTE measure, spend coefficient equals emission factor (no threshold subtraction)."""
+    @staticmethod
+    def _run(measure, shore_ef, gwp=None, threshold=0., has_shore_power=True):
         from navigate.bunker.bunker_algorithm import BunkerAlgorithm
 
         algo = BunkerAlgorithm()
 
-        # minimal state
         v = "vessel_1"
         r = "reg_1"
         algo.idx = 0
         algo.scope = BunkerScopeID.EXISTING
-        algo.emissions = {"co2": _make_emission("co2")}
+        algo.emissions = {name: _make_emission(name) for name in shore_ef}
+        algo.shore_power = {(v, 0): MagicMock()} if has_shore_power else {}
 
-        # shore power variable at port index 0
-        sp_var = MagicMock()
-        algo.shore_power = {(v, 0): sp_var}
-
-        # port with shore power emission factor
         port = MagicMock()
-        port_exp = _make_port_expectation(shore_ef={"co2": 0.05})
-        port.expectation = port_exp
+        port.expectation = _make_port_expectation(shore_ef=shore_ef)
 
         route = MagicMock()
         route.ports = [port]
@@ -83,110 +77,15 @@ class TestShoreRegulationCoefficient:
         vessel.route = route
         vessel.power_system.get_converters.return_value = ()
 
-        # regulation: ABSOLUTE, targets all emissions
         regulation = _make_regulation(
             name=r,
-            measure=RegulationMeasureID.ABSOLUTE,
-            emissions=[_make_emission("co2")],
-        )
-        algo.active_regulations = {r: regulation}
-        algo.effective_lhv = {}
-        algo.regulation_emission_factor = {}
-        algo.regulation_spend_coefficient = {}
-        algo.shore_power_regulation_emission_factor = {}
-        algo.shore_power_regulation_coefficient = {}
-
-        calculate_regulation_coefficients(algo, vessel)
-
-        # shore power EF should be 0.05 ton/GJ
-        assert algo.shore_power_regulation_emission_factor[(v, 0, r)] == pytest.approx(0.05)
-        # for ABSOLUTE, coefficient == emission factor
-        assert algo.shore_power_regulation_coefficient[(v, 0, r)] == pytest.approx(0.05)
-
-    def test_intensity_regulation_subtracts_threshold(self):
-        """For INTENSITY measure, threshold / TON_TO_KG * 1.0 is subtracted from EF."""
-        from navigate.bunker.bunker_algorithm import BunkerAlgorithm
-
-        algo = BunkerAlgorithm()
-
-        v = "vessel_1"
-        r = "reg_1"
-        algo.idx = 0
-        algo.scope = BunkerScopeID.EXISTING
-        algo.emissions = {"co2": _make_emission("co2")}
-
-        sp_var = MagicMock()
-        algo.shore_power = {(v, 0): sp_var}
-
-        port = MagicMock()
-        port_exp = _make_port_expectation(shore_ef={"co2": 0.05})
-        port.expectation = port_exp
-
-        route = MagicMock()
-        route.ports = [port]
-
-        vessel = MagicMock()
-        vessel.name = v
-        vessel.route = route
-        vessel.power_system.get_converters.return_value = ()
-
-        threshold = 10.0  # ton CO2/ton fuel equivalent
-        regulation = _make_regulation(
-            name=r,
-            measure=RegulationMeasureID.INTENSITY,
-            emissions=[_make_emission("co2")],
-        )
-        regulation.vessel_threshold = defaultdict(lambda: Scalar(threshold))
-
-        algo.active_regulations = {r: regulation}
-        algo.effective_lhv = {}
-        algo.regulation_emission_factor = {}
-        algo.regulation_spend_coefficient = {}
-        algo.shore_power_regulation_emission_factor = {}
-        algo.shore_power_regulation_coefficient = {}
-
-        calculate_regulation_coefficients(algo, vessel)
-
-        expected_ef = 0.05
-        expected_coeff = 0.05 - threshold / TON_TO_KG * 1.0
-
-        assert algo.shore_power_regulation_emission_factor[(v, 0, r)] == pytest.approx(expected_ef)
-        assert algo.shore_power_regulation_coefficient[(v, 0, r)] == pytest.approx(expected_coeff)
-
-    def test_gwp_conversion_applied(self):
-        """When regulation uses GWP units, shore power EF is multiplied by GWP."""
-        from navigate.bunker.bunker_algorithm import BunkerAlgorithm
-
-        algo = BunkerAlgorithm()
-
-        v = "vessel_1"
-        r = "reg_1"
-        algo.idx = 0
-        algo.scope = BunkerScopeID.EXISTING
-        algo.emissions = {"co2": _make_emission("co2"), "ch4": _make_emission("ch4")}
-
-        sp_var = MagicMock()
-        algo.shore_power = {(v, 0): sp_var}
-
-        port = MagicMock()
-        port_exp = _make_port_expectation(shore_ef={"co2": 0.05, "ch4": 0.001})
-        port.expectation = port_exp
-
-        route = MagicMock()
-        route.ports = [port]
-
-        vessel = MagicMock()
-        vessel.name = v
-        vessel.route = route
-        vessel.power_system.get_converters.return_value = ()
-
-        gwp = {"co2": 1.0, "ch4": 28.0}
-        regulation = _make_regulation(
-            name=r,
-            measure=RegulationMeasureID.ABSOLUTE,
-            emissions=[_make_emission("co2"), _make_emission("ch4")],
+            measure=measure,
+            emissions=[_make_emission(name) for name in shore_ef],
             gwp=gwp,
         )
+        if threshold:
+            regulation.vessel_threshold = defaultdict(lambda: Scalar(threshold))
+
         algo.active_regulations = {r: regulation}
         algo.effective_lhv = {}
         algo.regulation_emission_factor = {}
@@ -196,51 +95,48 @@ class TestShoreRegulationCoefficient:
 
         calculate_regulation_coefficients(algo, vessel)
 
-        # co2: 0.05 * 1.0 + ch4: 0.001 * 28.0 = 0.078
-        expected = 0.05 * 1.0 + 0.001 * 28.0
-        assert algo.shore_power_regulation_emission_factor[(v, 0, r)] == pytest.approx(expected)
+        return algo, (v, 0, r)
 
-    def test_no_shore_power_no_coefficient(self):
-        """Ports without shore power variables get no regulation coefficient."""
-        from navigate.bunker.bunker_algorithm import BunkerAlgorithm
+    @pytest.mark.parametrize(
+        "measure, shore_ef, gwp, threshold, has_shore_power, expected_ef, expected_coeff",
+        [
+            # ABSOLUTE: coefficient equals the emission factor, no threshold subtraction
+            pytest.param(
+                RegulationMeasureID.ABSOLUTE, {"co2": 0.05}, None, 0., True, 0.05, 0.05,
+                id="absolute_equals_emission_factor",
+            ),
+            # INTENSITY: threshold / TON_TO_KG * 1.0 is subtracted from the emission factor
+            pytest.param(
+                RegulationMeasureID.INTENSITY, {"co2": 0.05}, None, 10., True,
+                0.05, 0.05 - 10.0 / TON_TO_KG * 1.0,
+                id="intensity_subtracts_threshold",
+            ),
+            # co2: 0.05 * 1.0 + ch4: 0.001 * 28.0 = 0.078
+            pytest.param(
+                RegulationMeasureID.ABSOLUTE, {"co2": 0.05, "ch4": 0.001}, {"co2": 1.0, "ch4": 28.0}, 0., True,
+                0.05 * 1.0 + 0.001 * 28.0, None,
+                id="gwp_conversion_applied",
+            ),
+            # ports without a shore power variable get no regulation coefficient
+            pytest.param(
+                RegulationMeasureID.ABSOLUTE, {"co2": 0.05}, None, 0., False, None, None,
+                id="no_shore_power_no_coefficient",
+            ),
+        ],
+    )
+    def test_regulation_coefficient(
+        self, measure, shore_ef, gwp, threshold, has_shore_power, expected_ef, expected_coeff,
+    ):
+        algo, key = self._run(measure, shore_ef, gwp=gwp, threshold=threshold, has_shore_power=has_shore_power)
 
-        algo = BunkerAlgorithm()
+        if not has_shore_power:
+            assert key not in algo.shore_power_regulation_emission_factor
+            assert key not in algo.shore_power_regulation_coefficient
+            return
 
-        v = "vessel_1"
-        r = "reg_1"
-        algo.idx = 0
-        algo.scope = BunkerScopeID.EXISTING
-        algo.emissions = {"co2": _make_emission("co2")}
-        algo.shore_power = {}  # no shore power
-
-        port = MagicMock()
-        port_exp = _make_port_expectation(shore_ef={"co2": 0.05})
-        port.expectation = port_exp
-
-        route = MagicMock()
-        route.ports = [port]
-
-        vessel = MagicMock()
-        vessel.name = v
-        vessel.route = route
-        vessel.power_system.get_converters.return_value = ()
-
-        regulation = _make_regulation(
-            name=r,
-            measure=RegulationMeasureID.ABSOLUTE,
-            emissions=[_make_emission("co2")],
-        )
-        algo.active_regulations = {r: regulation}
-        algo.effective_lhv = {}
-        algo.regulation_emission_factor = {}
-        algo.regulation_spend_coefficient = {}
-        algo.shore_power_regulation_emission_factor = {}
-        algo.shore_power_regulation_coefficient = {}
-
-        calculate_regulation_coefficients(algo, vessel)
-
-        assert (v, 0, r) not in algo.shore_power_regulation_emission_factor
-        assert (v, 0, r) not in algo.shore_power_regulation_coefficient
+        assert algo.shore_power_regulation_emission_factor[key] == pytest.approx(expected_ef)
+        if expected_coeff is not None:
+            assert algo.shore_power_regulation_coefficient[key] == pytest.approx(expected_coeff)
 
 
 class TestShoreTransferExpected:

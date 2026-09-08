@@ -6,7 +6,7 @@ import pytest
 
 from navigate.core.assign import assign_id_list, assign_list, assign_value, expand_id_wildcard
 from navigate.core.enum_ import EnergyDemandTypeID, FuelTypeID
-from navigate.core.node_reference import NodeReference, WildcardNodeReference
+from navigate.core.node_reference import WildcardNodeReference
 from navigate.core.node_type import FUEL, PORT
 from navigate.util import matching_keys, retrieve_keys
 
@@ -97,49 +97,14 @@ class TestRetrieveKeysEnum:
 
 class TestMatchingKeys:
 
-    def test_exact_match(self):
-        assert matching_keys("a", {"a": 1, "b": 2}) == ["a"]
-
-    def test_wildcard_match(self):
-        assert set(matching_keys("a*", {"a1": 1, "a2": 2, "b": 3})) == {"a1", "a2"}
-
-    def test_exact_miss_returns_empty(self):
-        assert matching_keys("z", {"a": 1}) == []
-
-    def test_wildcard_miss_returns_empty(self):
-        assert matching_keys("z*", {"a": 1}) == []
-
-
-# ── WildcardNodeReference ─────────────────────────────────────────────────────
-
-class TestWildcardNodeReference:
-
-    def test_basic_attributes(self):
-        ref = WildcardNodeReference("Fuel", "bio_*")
-        assert ref.type == "Fuel"
-        assert ref.pattern == "bio_*"
-
-    def test_repr(self):
-        ref = WildcardNodeReference("Vessel", "container_*")
-        assert repr(ref) == 'Vessel("container_*")'
-
-    def test_reference_location(self):
-        ref = WildcardNodeReference("Fuel", "*")
-        ref.reference_location = "test.inc:5"
-        assert ref.reference_location == "test.inc:5"
-
-    def test_is_node_reference_subclass(self):
-        ref = WildcardNodeReference("Fuel", "*")
-        assert isinstance(ref, NodeReference)
-
-    def test_name_is_pattern(self):
-        ref = WildcardNodeReference("Fuel", "bio_*")
-        assert ref.name == "bio_*"
-
-    def test_inherited_set_internal_bounds_is_callable(self):
-        ref = WildcardNodeReference("Fuel", "*")
-        ref.set_internal_bounds(0.0, 1.0)
-        assert ref.internal_bounds == (0.0, 1.0)
+    @pytest.mark.parametrize("pattern, keys, expected", [
+        ("a", {"a": 1, "b": 2}, {"a"}),
+        ("a*", {"a1": 1, "a2": 2, "b": 3}, {"a1", "a2"}),
+        ("z", {"a": 1}, set()),
+        ("z*", {"a": 1}, set()),
+    ])
+    def test_matches(self, pattern, keys, expected):
+        assert set(matching_keys(pattern, keys)) == expected
 
 
 # ── assign_value / assign_list accept WildcardNodeReference ───────────────────

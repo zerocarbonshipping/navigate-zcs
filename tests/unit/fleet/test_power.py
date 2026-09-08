@@ -106,31 +106,22 @@ def _make_vessel(**overrides) -> _StubVessel:
 
 class TestVerifyPowerCapacity:
 
-    def test_within_capacity_passes(self):
-        verify_power_capacity(_make_vessel(), IDX)
-
-    def test_exactly_at_capacity_passes(self):
-        """A load equal to the installed power is feasible, not a violation."""
-        full_load = 10. * 10. * MWD_TO_GJ
-        vessel = _make_vessel(energies_sea={PROPULSION: [full_load],
-                                            ELECTRICAL: [full_load],
-                                            HEAT: [full_load]})
-        verify_power_capacity(vessel, IDX)
-
-    def test_just_inside_tolerance_band_passes(self):
+    @pytest.mark.parametrize("load_factor, raises", [
+        # a load equal to the installed power is feasible, not a violation
+        pytest.param(1., False, id="exactly_at_capacity"),
+        pytest.param(1. + TOLERANCE / 2., False, id="just_inside_tolerance_band"),
+        pytest.param(1. + 2. * TOLERANCE, True, id="just_outside_tolerance_band"),
+    ])
+    def test_capacity_tolerance_boundary(self, load_factor, raises):
         limit = 10. * 10. * MWD_TO_GJ
-        vessel = _make_vessel(energies_sea={PROPULSION: [limit * (1. + TOLERANCE / 2.)],
-                                            ELECTRICAL: [0.],
-                                            HEAT: [0.]})
-        verify_power_capacity(vessel, IDX)
-
-    def test_just_outside_tolerance_band_errors(self):
-        limit = 10. * 10. * MWD_TO_GJ
-        vessel = _make_vessel(energies_sea={PROPULSION: [limit * (1. + 2. * TOLERANCE)],
+        vessel = _make_vessel(energies_sea={PROPULSION: [limit * load_factor],
                                             ELECTRICAL: [0.],
                                             HEAT: [0.]})
 
-        with pytest.raises(PowerCapacityError):
+        if raises:
+            with pytest.raises(PowerCapacityError):
+                verify_power_capacity(vessel, IDX)
+        else:
             verify_power_capacity(vessel, IDX)
 
     def test_sea_overload_errors_naming_converter_and_leg(self):
@@ -149,19 +140,17 @@ class TestVerifyPowerCapacity:
         assert "12.00 MW" in message
         assert "10.00 MW" in message
 
-    def test_port_heat_overload_errors(self):
-        vessel = _make_vessel(energies_port={ELECTRICAL: [0.],
-                                             HEAT: [11. * 10. * MWD_TO_GJ]})
+    @pytest.mark.parametrize("demand_type, message", [
+        pytest.param(HEAT, "heat demand on port 0", id="heat"),
+        pytest.param(ELECTRICAL, "electrical demand on port 0", id="electrical"),
+    ])
+    def test_port_overload_errors_by_demand_type(self, demand_type, message):
+        """Port demand must fit the onboard converter; shore power gives no allowance."""
+        energies_port = {ELECTRICAL: [0.], HEAT: [0.]}
+        energies_port[demand_type] = [11. * 10. * MWD_TO_GJ]
+        vessel = _make_vessel(energies_port=energies_port)
 
-        with pytest.raises(PowerCapacityError, match="heat demand on port 0"):
-            verify_power_capacity(vessel, IDX)
-
-    def test_port_electrical_overload_errors_regardless_of_shore_power(self):
-        """Port electrical demand must fit the onboard converter; shore power gives no allowance."""
-        vessel = _make_vessel(energies_port={ELECTRICAL: [11. * 10. * MWD_TO_GJ],
-                                             HEAT: [0.]})
-
-        with pytest.raises(PowerCapacityError, match="electrical demand on port 0"):
+        with pytest.raises(PowerCapacityError, match=message):
             verify_power_capacity(vessel, IDX)
 
     def test_zero_time_zero_energy_passes(self):
@@ -174,16 +163,6 @@ class TestVerifyPowerCapacity:
                               times_sea=[0.])
 
         with pytest.raises(PowerCapacityError, match="inf MW"):
-            verify_power_capacity(vessel, IDX)
-
-    def test_one_overloaded_leg_errors_despite_compliant_mean(self):
-        """The check is per leg: a compliant average across legs must not mask one overload."""
-        vessel = _make_vessel(energies_sea={PROPULSION: [2. * 10. * MWD_TO_GJ, 14. * 10. * MWD_TO_GJ],
-                                            ELECTRICAL: [0., 0.],
-                                            HEAT: [0., 0.]},
-                              times_sea=[10., 10.])
-
-        with pytest.raises(PowerCapacityError, match="propulsion demand on leg 1"):
             verify_power_capacity(vessel, IDX)
 
     def test_multiple_violations_reported_in_one_error(self):

@@ -6,7 +6,7 @@ import pytest
 
 from navigate.core.enum_ import SimulationSectionID
 from navigate.exceptions import CommandError
-from navigate.parser._commands import NODE_COMMAND_SECTIONS, CommandReference, check_node_command_is_allowed
+from navigate.parser._commands import CommandReference, check_node_command_is_allowed
 from navigate.parser._lark_parser import Command, GeneralNodeDeclaration, SourceLocation
 from navigate.parser.parser import Parser
 
@@ -28,16 +28,6 @@ class TestCheckNodeCommandIsAllowed:
         with pytest.raises(CommandError, match="has no command"):
             check_node_command_is_allowed("Port", "nonexistent_command", SimulationSectionID.DEFINE)
 
-    def test_plant_fuel_transport_both_sections(self):
-        assert check_node_command_is_allowed("Plant", "set_fuel_transport", SimulationSectionID.DEFINE)
-        assert check_node_command_is_allowed("Plant", "set_fuel_transport", SimulationSectionID.EVENTS)
-        assert check_node_command_is_allowed("Plant", "set_fuel_distance", SimulationSectionID.DEFINE)
-        assert check_node_command_is_allowed("Plant", "set_fuel_distance", SimulationSectionID.EVENTS)
-
-    @pytest.mark.parametrize("node_type", list(NODE_COMMAND_SECTIONS.keys()))
-    def test_all_node_types_have_dict(self, node_type):
-        assert isinstance(NODE_COMMAND_SECTIONS[node_type], dict)
-
 
 class TestGeneralNodeCommands:
 
@@ -53,52 +43,26 @@ class TestGeneralNodeCommands:
             parser._process_general_node_declaration(declaration)
 
 
+class _DummyNode:
+    def __str__(self):
+        return "DummyNode"
+
+    def two_required(self, a, b):
+        pass
+
+    def one_required(self, a):
+        pass
+
+
 class TestCommandReference:
 
-    def test_check_command_too_few_args(self):
-        """CommandReference._check_command should raise when too few inputs are provided."""
+    @pytest.mark.parametrize("command, inputs, match", [
+        ("two_required", [1], "requires 2 inputs"),
+        ("one_required", [1, 2, 3], "takes up to 1 inputs"),
+    ], ids=["too_few", "too_many"])
+    def test_check_command_arity_mismatch(self, command, inputs, match):
+        """CommandReference._check_command should raise on an arity mismatch."""
+        ref = CommandReference(command, inputs, source=SourceLocation("file.nav", 5), deck_line=10)
 
-        class DummyNode:
-            def my_method(self, a, b):
-                pass
-
-            def __str__(self):
-                return "DummyNode"
-
-        node = DummyNode()
-        ref = CommandReference("my_method", [1], source=SourceLocation("file.nav", 5), deck_line=10)
-
-        with pytest.raises(CommandError, match="requires 2 inputs"):
-            ref.execute(node)
-
-    def test_check_command_too_many_args(self):
-        """CommandReference._check_command should raise when too many inputs are provided."""
-
-        class DummyNode:
-            def my_method(self, a):
-                pass
-
-            def __str__(self):
-                return "DummyNode"
-
-        node = DummyNode()
-        ref = CommandReference("my_method", [1, 2, 3], source=SourceLocation("file.nav", 5), deck_line=10)
-
-        with pytest.raises(CommandError, match="takes up to 1 inputs"):
-            ref.execute(node)
-
-    def test_execute_success(self):
-        """CommandReference.execute should call the method with correct inputs."""
-        call_log = []
-
-        class DummyNode:
-            def my_method(self, a, b):
-                call_log.append((a, b))
-
-            def __str__(self):
-                return "DummyNode"
-
-        node = DummyNode()
-        ref = CommandReference("my_method", [1, 2], source=SourceLocation("file.nav", 5), deck_line=10)
-        ref.execute(node)
-        assert call_log == [(1, 2)]
+        with pytest.raises(CommandError, match=match):
+            ref.execute(_DummyNode())

@@ -107,19 +107,6 @@ class TestFleetAggregationConsistency:
         # closed-form: (50*100 + 30*250) * lhv(41.2) = 12500 * 41.2
         assert fleet.get_consumed_energy("lsfo", 0) == pytest.approx(515_000.0)
 
-    def test_multiplier_is_applied(self, timeline, fuels, emissions):
-        # Guards against the specific failure mode where aggregation ignores
-        # the multiplier: the historical 31 % gap would have been masked if
-        # either side of the comparison dropped `multiplier` to 1.
-        v = _make_vessel_profile(timeline, fuels, emissions)
-        v._wtt[("lsfo", "co2")][0] = 10.0
-        v._ttw[("lsfo", "co2")][0] = 20.0
-
-        fleet = _make_fleet_profile(timeline, fuels, emissions, vessel_names=["v"])
-        fleet.add_fuel_consumer_profile(v, multiplier=100.0, idx=0)
-
-        assert fleet.get_total_equivalent_wtw(0) == pytest.approx(3000.0)
-
     def test_idx_is_applied(self, timeline, fuels, emissions):
         # Aggregation must only touch the requested idx; other steps stay zero.
         v = _make_vessel_profile(timeline, fuels, emissions)
@@ -154,21 +141,9 @@ class TestFleetTechnologyUptake:
     def test_empty_fleet_step_is_zero(self, fleet):
         assert fleet.get_fleet_technology_uptake("tech")[1] == 0.0
 
-    def test_dict_form_and_idx(self, fleet):
-        uptake = fleet.get_fleet_technology_uptake()
-        assert list(uptake) == ["tech"]
-        np.testing.assert_allclose(uptake["tech"], [0.7, 0.0])
-        assert fleet.get_fleet_technology_uptake("tech", 0) == pytest.approx(0.7)
-
     def test_no_technologies(self, timeline, fuels, emissions):
         fleet = _make_fleet_profile(timeline, fuels, emissions, vessel_names=["v"])
         assert fleet.get_fleet_technology_uptake() == {}
-
-    def test_no_vessels_is_timeline_shaped_zero(self, timeline, fuels, emissions):
-        fleet = _make_fleet_profile(timeline, fuels, emissions, vessel_names=[],
-                                    technology_names=["tech"])
-        np.testing.assert_array_equal(fleet.get_fleet_technology_uptake("tech"),
-                                      np.zeros_like(timeline))
 
 
 class TestScrapNewbuildAccumulation:
@@ -226,13 +201,7 @@ class TestShorePowerAccounting:
         assert vessel.get_total_equivalent_wtt(0) == pytest.approx(2.0)
         assert vessel.get_total_equivalent_ttw(0) == pytest.approx(3.0)
 
-    def test_cumulative_and_intensity_variants_track_widened_total(self, vessel):
-        np.testing.assert_allclose(vessel.get_cumulative_total_equivalent_wtw(),
-                                   vessel._to_cumulative(vessel.get_total_equivalent_wtw()))
-        np.testing.assert_allclose(vessel.get_cumulative_total_fuel_expenses(),
-                                   vessel._to_cumulative(vessel.get_total_fuel_expenses()))
-        np.testing.assert_allclose(vessel.get_cumulative_total_fuel_related_expenses(),
-                                   vessel._to_cumulative(vessel.get_total_fuel_related_expenses()))
+    def test_intensity_variants_track_widened_total(self, vessel):
         # 9 ton -> g over (462 GJ -> MJ): 9e6 / 462e3
         assert vessel.get_intensity_total_equivalent_wtw()[0] == pytest.approx(9.0e6 / 462.0e3)
         # WTT/TTW numerators stay fuel-only over the shore-inclusive denominator

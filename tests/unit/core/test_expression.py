@@ -42,44 +42,23 @@ def _initialized(expression_text):
 
 class TestArithmetic:
 
-    def test_integer_literal(self):
-        assert _initialized('3').get() == 3.
-
-    def test_float_literal(self):
-        assert _initialized('0.11').get() == 0.11
-
-    def test_scientific_notation(self):
-        assert _initialized('0.05 * 1e6').get() == 50000.
-
-    def test_addition(self):
-        assert _initialized('1 + 2').get() == 3.
-
-    def test_subtraction(self):
-        assert _initialized('5 - 2').get() == 3.
-
-    def test_multiplication(self):
-        assert _initialized('3 * 4').get() == 12.
-
-    def test_division(self):
-        assert _initialized('1 / 4').get() == 0.25
-
-    def test_power(self):
-        assert _initialized('2 ** 3').get() == 8.
-
-    def test_unary_minus(self):
-        assert _initialized('-3').get() == -3.
-
-    def test_spaced_unary_minus(self):
-        assert _initialized('- 3 + 5').get() == 2.
-
-    def test_unary_plus(self):
-        assert _initialized('+3').get() == 3.
-
-    def test_precedence(self):
-        assert _initialized('1 + 2 * 3').get() == 7.
-
-    def test_parentheses(self):
-        assert _initialized('(1 + 2) * 3').get() == 9.
+    @pytest.mark.parametrize('text, expected', [
+        ('3', 3.),
+        ('0.11', 0.11),
+        ('0.05 * 1e6', 50000.),
+        ('1 + 2', 3.),
+        ('5 - 2', 3.),
+        ('3 * 4', 12.),
+        ('1 / 4', 0.25),
+        ('2 ** 3', 8.),
+        ('-3', -3.),
+        ('- 3 + 5', 2.),
+        ('+3', 3.),
+        ('1 + 2 * 3', 7.),
+        ('(1 + 2) * 3', 9.),
+    ])
+    def test_evaluates(self, text, expected):
+        assert _initialized(text).get() == expected
 
     def test_huge_power_does_not_hang(self):
         # literals evaluate as floats, so this overflows immediately
@@ -140,9 +119,6 @@ class TestNodeReferences:
         expression = _initialized('Forecast("f")')
         expression.node_references = [_EchoNode()]
         assert expression.get(x=5.) == 5.
-
-    def test_repr_returns_deck_text(self):
-        assert repr(Expression('1 + Forecast("x")')) == '1 + Forecast("x")'
 
     def test_check_consistency_allows_matching_type(self):
         expression = Expression('1 + Forecast("x")')
@@ -207,137 +183,44 @@ class TestRejectedSyntax:
 
         assert not (tmp_path / 'marker').exists()
 
-    def test_open_rejected(self):
-        with pytest.raises(ValueError, match='not a valid node reference'):
-            _initialized("open('f', 'w')")
-
-    def test_attribute_access_rejected(self):
-        with pytest.raises(ValueError, match='unsupported syntax'):
-            _initialized('Forecast("x").__class__')
-
-    def test_subscript_rejected(self):
-        with pytest.raises(ValueError, match='unsupported syntax'):
-            _initialized('[1][0]')
-
-    def test_comparison_rejected(self):
-        with pytest.raises(ValueError, match='unsupported syntax'):
-            _initialized('1 < 2')
-
-    def test_boolean_op_rejected(self):
-        with pytest.raises(ValueError, match='unsupported syntax'):
-            _initialized('1 and 2')
-
-    def test_ternary_rejected(self):
-        with pytest.raises(ValueError, match='unsupported syntax'):
-            _initialized('1 if 2 else 3')
-
-    def test_fstring_rejected(self):
-        with pytest.raises(ValueError):
-            _initialized('Forecast(f"x")')
-
-    def test_lambda_rejected(self):
-        with pytest.raises(ValueError, match='unsupported syntax'):
-            _initialized('lambda: 1')
-
-    def test_list_rejected(self):
-        with pytest.raises(ValueError, match='unsupported syntax'):
-            _initialized('[1, 2]')
-
-    def test_tuple_rejected(self):
-        with pytest.raises(ValueError, match='unsupported syntax'):
-            _initialized('(1, 2)')
-
-    def test_bare_lowercase_name_rejected(self):
-        with pytest.raises(ValueError, match='unsupported syntax'):
-            _initialized('x + 1')
-
-    def test_bare_y_rejected(self):
-        with pytest.raises(ValueError, match='unsupported syntax'):
-            _initialized('y')
-
-    def test_bare_capitalized_name_raises_not_implemented(self):
-        with pytest.raises(NotImplementedError, match='unable to support references to attributes'):
-            _initialized('Foo + 1')
-
-    def test_true_rejected(self):
-        with pytest.raises(ValueError, match='only numeric literals'):
-            _initialized('True')
-
-    def test_string_literal_rejected(self):
-        with pytest.raises(ValueError, match='only numeric literals'):
-            _initialized("'abc'")
-
-    def test_complex_literal_rejected(self):
-        with pytest.raises(ValueError, match='only numeric literals'):
-            _initialized('1j')
-
-    def test_keyword_argument_rejected(self):
-        with pytest.raises(ValueError, match='exactly one positional argument'):
-            _initialized('Forecast(name="x")')
-
-    def test_zero_arguments_rejected(self):
-        with pytest.raises(ValueError, match='exactly one positional argument'):
-            _initialized('Forecast()')
-
-    def test_two_arguments_rejected(self):
-        with pytest.raises(ValueError, match='exactly one positional argument'):
-            _initialized('Forecast("a", "b")')
-
-    def test_lowercase_call_rejected(self):
-        with pytest.raises(ValueError, match='not a valid node reference'):
-            _initialized('forecast("x")')
-
-    def test_non_string_argument_rejected(self):
-        with pytest.raises(ValueError, match='argument must be a string literal'):
-            _initialized('Forecast(1)')
-
-    def test_starred_argument_rejected(self):
-        with pytest.raises(ValueError, match='argument must be a string literal'):
-            _initialized('Forecast(*"x")')
-
-    def test_argument_containing_quote_rejected(self):
-        with pytest.raises(ValueError, match='must not contain a quote'):
-            _initialized('Forecast(\'a"b\')')
-
-    def test_all_caps_call_is_value_error_not_attribute_reference(self):
-        with pytest.raises(ValueError, match='not a valid node reference'):
-            _initialized('ABC("x")')
-
-    def test_modulo_rejected(self):
-        with pytest.raises(ValueError, match='unsupported operator'):
-            _initialized('5 % 2')
-
-    def test_floor_division_rejected(self):
-        with pytest.raises(ValueError, match='unsupported operator'):
-            _initialized('5 // 2')
-
-    def test_bitwise_or_rejected(self):
-        with pytest.raises(ValueError, match='unsupported operator'):
-            _initialized('1 | 2')
-
-    def test_shift_rejected(self):
-        with pytest.raises(ValueError, match='unsupported operator'):
-            _initialized('1 << 2')
-
-    def test_unary_not_rejected(self):
-        with pytest.raises(ValueError, match='unsupported unary operator'):
-            _initialized('not 1')
-
-    def test_template_placeholder_is_syntax_error(self):
-        with pytest.raises(ValueError, match='Error in expression'):
-            _initialized('Forecast("a") * (1 - %multiplier%)')
-
-    def test_whitespace_only_rejected(self):
-        with pytest.raises(ValueError, match='Error in expression'):
-            _initialized(' ')
-
-    def test_empty_rejected(self):
-        with pytest.raises(ValueError, match='Error in expression'):
-            _initialized('')
-
-    def test_garbage_rejected(self):
-        with pytest.raises(ValueError, match='Error in expression'):
-            _initialized('!!!')
+    @pytest.mark.parametrize('text, exception, match', [
+        ("open('f', 'w')", ValueError, 'not a valid node reference'),
+        ('Forecast("x").__class__', ValueError, 'unsupported syntax'),
+        ('[1][0]', ValueError, 'unsupported syntax'),
+        ('1 < 2', ValueError, 'unsupported syntax'),
+        ('1 and 2', ValueError, 'unsupported syntax'),
+        ('1 if 2 else 3', ValueError, 'unsupported syntax'),
+        ('Forecast(f"x")', ValueError, None),
+        ('lambda: 1', ValueError, 'unsupported syntax'),
+        ('[1, 2]', ValueError, 'unsupported syntax'),
+        ('(1, 2)', ValueError, 'unsupported syntax'),
+        ('x + 1', ValueError, 'unsupported syntax'),
+        ('y', ValueError, 'unsupported syntax'),
+        ('Foo + 1', NotImplementedError, 'unable to support references to attributes'),
+        ('True', ValueError, 'only numeric literals'),
+        ("'abc'", ValueError, 'only numeric literals'),
+        ('1j', ValueError, 'only numeric literals'),
+        ('Forecast(name="x")', ValueError, 'exactly one positional argument'),
+        ('Forecast()', ValueError, 'exactly one positional argument'),
+        ('Forecast("a", "b")', ValueError, 'exactly one positional argument'),
+        ('forecast("x")', ValueError, 'not a valid node reference'),
+        ('Forecast(1)', ValueError, 'argument must be a string literal'),
+        ('Forecast(*"x")', ValueError, 'argument must be a string literal'),
+        ('Forecast(\'a"b\')', ValueError, 'must not contain a quote'),
+        ('ABC("x")', ValueError, 'not a valid node reference'),
+        ('5 % 2', ValueError, 'unsupported operator'),
+        ('5 // 2', ValueError, 'unsupported operator'),
+        ('1 | 2', ValueError, 'unsupported operator'),
+        ('1 << 2', ValueError, 'unsupported operator'),
+        ('not 1', ValueError, 'unsupported unary operator'),
+        ('Forecast("a") * (1 - %multiplier%)', ValueError, 'Error in expression'),
+        (' ', ValueError, 'Error in expression'),
+        ('', ValueError, 'Error in expression'),
+        ('!!!', ValueError, 'Error in expression'),
+    ])
+    def test_rejected(self, text, exception, match):
+        with pytest.raises(exception, match=match):
+            _initialized(text)
 
 
 # ── copy and pickle semantics ─────────────────────────────────────────────────

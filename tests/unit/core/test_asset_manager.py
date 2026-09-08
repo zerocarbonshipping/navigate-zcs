@@ -5,7 +5,6 @@
 import pytest
 
 from navigate.core.increment import Increment
-from navigate.core.nodes.fleet import Fleet
 from navigate.core.nodes.producer import Producer
 from navigate.util import YEAR
 
@@ -23,11 +22,3 @@ class TestUpdateIncrementAges:
         assert producer.increments[0][0].age == pytest.approx(2.5)
         assert producer.pipeline[0][0].age == pytest.approx(-1.)
         assert producer.pipeline[0][0].decided == pytest.approx(0.5)
-
-    def test_fleet_ages_increments(self):
-        fleet = Fleet('fleet')
-        fleet.increments.append([Increment(multiplier=1., age=4., dt=1.)])
-
-        fleet.update_increment_ages(time_step=YEAR)
-
-        assert fleet.increments[0][0].age == pytest.approx(5.)

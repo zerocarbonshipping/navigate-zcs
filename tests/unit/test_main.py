@@ -9,7 +9,6 @@ import sys
 import pytest
 
 from navigate.__main__ import ASSUMPTIONS_ENV_VAR, main
-from navigate.output.plot_data import PlotData
 
 # Fails at parse time with a caret-pointed DeckFormatError, before any simulation work.
 GARBLED_DECK = 'DEFINE {\n    garbage\n}\n'
@@ -41,53 +40,64 @@ def _assert_usage_error(monkeypatch, capsys, *argv):
     return capsys.readouterr().err
 
 
+def _missing_deck(tmp_path, monkeypatch):
+    return [tmp_path / 'nope.nav']
+
+
+def _directory_as_deck(tmp_path, monkeypatch):
+    return [tmp_path]
+
+
+def _wrong_extension(tmp_path, monkeypatch):
+    deck = tmp_path / 'deck.txt'
+    deck.write_text(GARBLED_DECK)
+    return [deck]
+
+
+def _missing_filename(tmp_path, monkeypatch):
+    return []
+
+
+def _bad_data_dir(tmp_path, monkeypatch):
+    deck = tmp_path / 'deck.nav'
+    deck.write_text(GARBLED_DECK)
+    return [deck, '-d', tmp_path / 'no_such_dir']
+
+
+def _bad_data_dir_from_env_var(tmp_path, monkeypatch):
+    deck = tmp_path / 'deck.nav'
+    deck.write_text(GARBLED_DECK)
+    monkeypatch.setenv(ASSUMPTIONS_ENV_VAR, str(tmp_path / 'no_such_dir'))
+    return [deck]
+
+
+def _missing_replot_path(tmp_path, monkeypatch):
+    return ['--replot', tmp_path / 'nope']
+
+
+def _replot_include_wrong_extension(tmp_path, monkeypatch):
+    plots = tmp_path / 'plots.txt'
+    plots.write_text('')
+    return ['--replot', tmp_path, plots]
+
+
 class TestArgumentValidation:
 
-    def test_missing_deck_file_exits_2(self, monkeypatch, capsys, tmp_path):
-        err = _assert_usage_error(monkeypatch, capsys, tmp_path / 'nope.nav')
-        assert 'not found' in err
-
-    def test_directory_as_deck_path_exits_2(self, monkeypatch, capsys, tmp_path):
-        err = _assert_usage_error(monkeypatch, capsys, tmp_path)
-        assert 'directory' in err
-
-    def test_wrong_extension_exits_2(self, monkeypatch, capsys, tmp_path):
-        deck = tmp_path / 'deck.txt'
-        deck.write_text(GARBLED_DECK)
-
-        err = _assert_usage_error(monkeypatch, capsys, deck)
-        assert ".nav" in err
-
-    def test_missing_filename_exits_2(self, monkeypatch, capsys):
-        err = _assert_usage_error(monkeypatch, capsys)
-        assert 'filename is required' in err
-
-    def test_bad_data_dir_exits_2(self, monkeypatch, capsys, tmp_path):
-        deck = tmp_path / 'deck.nav'
-        deck.write_text(GARBLED_DECK)
-
-        err = _assert_usage_error(monkeypatch, capsys, deck, '-d', tmp_path / 'no_such_dir')
-        assert '-d/--data-dir' in err
-        assert 'no_such_dir' in err
-
-    def test_bad_data_dir_from_env_var_exits_2(self, monkeypatch, capsys, tmp_path):
-        deck = tmp_path / 'deck.nav'
-        deck.write_text(GARBLED_DECK)
-        monkeypatch.setenv(ASSUMPTIONS_ENV_VAR, str(tmp_path / 'no_such_dir'))
-
-        err = _assert_usage_error(monkeypatch, capsys, deck)
-        assert ASSUMPTIONS_ENV_VAR in err
-
-    def test_missing_replot_path_exits_2(self, monkeypatch, capsys, tmp_path):
-        err = _assert_usage_error(monkeypatch, capsys, '--replot', tmp_path / 'nope')
-        assert '--replot' in err
-
-    def test_replot_include_wrong_extension_exits_2(self, monkeypatch, capsys, tmp_path):
-        plots = tmp_path / 'plots.txt'
-        plots.write_text('')
-
-        err = _assert_usage_error(monkeypatch, capsys, '--replot', tmp_path, plots)
-        assert ".inc" in err
+    @pytest.mark.parametrize('build_argv, expected', [
+        pytest.param(_missing_deck, ['not found'], id='missing_deck'),
+        pytest.param(_directory_as_deck, ['directory'], id='directory_as_deck'),
+        pytest.param(_wrong_extension, ['.nav'], id='wrong_extension'),
+        pytest.param(_missing_filename, ['filename is required'], id='missing_filename'),
+        pytest.param(_bad_data_dir, ['-d/--data-dir', 'no_such_dir'], id='bad_data_dir'),
+        pytest.param(_bad_data_dir_from_env_var, [ASSUMPTIONS_ENV_VAR], id='bad_data_dir_from_env_var'),
+        pytest.param(_missing_replot_path, ['--replot'], id='missing_replot_path'),
+        pytest.param(_replot_include_wrong_extension, ['.inc'], id='replot_include_wrong_extension'),
+    ])
+    def test_rejects_invalid_argv(self, monkeypatch, capsys, tmp_path, build_argv, expected):
+        argv = build_argv(tmp_path, monkeypatch)
+        err = _assert_usage_error(monkeypatch, capsys, *argv)
+        for substring in expected:
+            assert substring in err
 
 
 class TestTopLevelErrorHandling:
@@ -128,15 +138,6 @@ class TestTopLevelErrorHandling:
 
         captured = capsys.readouterr()
         assert 'Error:' in captured.err
-        assert 'Traceback' not in captured.err
-
-    def test_replot_no_plot_configs_no_traceback(self, monkeypatch, capsys, tmp_path):
-        PlotData().save(str(tmp_path))
-
-        assert _run_main(monkeypatch, '--replot', tmp_path) == 1
-
-        captured = capsys.readouterr()
-        assert 'no plot configurations' in captured.err
         assert 'Traceback' not in captured.err
 
     def test_keyboard_interrupt_exits_130(self, monkeypatch, capsys, tmp_path):

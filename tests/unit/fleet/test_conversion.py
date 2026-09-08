@@ -5,6 +5,7 @@
 from unittest.mock import MagicMock, patch
 
 import numpy as np
+import pytest
 
 from navigate.core import Scalar
 from navigate.core.enum_ import FuelTypeID, UtilityID
@@ -85,6 +86,18 @@ def _assert_no_proposals(fleet: Fleet) -> None:
         assert propose_fuel_conversions(fleet, idx=3, time_step=YEAR) == []
 
     dcm.assert_not_called()
+
+
+def _below_minimum_age_fleet() -> Fleet:
+    fleet = _oil_to_ammonia_fleet()
+    fleet.fuel_conversion_minimum_age = Scalar(15.)
+    return fleet
+
+
+def _unavailable_destination_fleet() -> Fleet:
+    fleet = _oil_to_ammonia_fleet()
+    fleet.conversion_available["ammonia"] = False
+    return fleet
 
 
 class TestProposeFuelConversions:
@@ -196,24 +209,15 @@ class TestProposeFuelConversions:
         limits = [call.kwargs['limits'][0] for call in dcm.call_args_list]
         np.testing.assert_almost_equal(limits, [0.75, 0.25])
 
-    def test_skips_increment_off_retrofit_cycle(self):
-        _assert_no_proposals(_oil_to_ammonia_fleet(age=7.))
-
-    def test_skips_increment_below_minimum_age(self):
-        fleet = _oil_to_ammonia_fleet()
-        fleet.fuel_conversion_minimum_age = Scalar(15.)
-        _assert_no_proposals(fleet)
-
-    def test_skips_increment_beyond_lifetime(self):
-        _assert_no_proposals(_oil_to_ammonia_fleet(age=25.))
-
-    def test_skips_unavailable_destination(self):
-        fleet = _oil_to_ammonia_fleet()
-        fleet.conversion_available["ammonia"] = False
-        _assert_no_proposals(fleet)
-
-    def test_skips_destination_without_supply(self):
-        _assert_no_proposals(_oil_to_ammonia_fleet(supply=0.))
+    @pytest.mark.parametrize("build_fleet", [
+        pytest.param(lambda: _oil_to_ammonia_fleet(age=7.), id="off_retrofit_cycle"),
+        pytest.param(_below_minimum_age_fleet, id="below_minimum_age"),
+        pytest.param(lambda: _oil_to_ammonia_fleet(age=25.), id="beyond_lifetime"),
+        pytest.param(_unavailable_destination_fleet, id="unavailable_destination"),
+        pytest.param(lambda: _oil_to_ammonia_fleet(supply=0.), id="destination_without_supply"),
+    ])
+    def test_skips_ineligible_conversions(self, build_fleet):
+        _assert_no_proposals(build_fleet())
 
 
 class TestApplyFuelConversionExpenses:

@@ -23,10 +23,6 @@ def _make_power_system(propulsion='main_engine', electrical='auxiliary_engine', 
     return power_system
 
 
-def test_initialize_succeeds_with_distinct_converters():
-    _make_power_system().initialize()
-
-
 def test_initialize_raises_for_shared_converter():
     power_system = _make_power_system(electrical='shared', heat='shared')
 

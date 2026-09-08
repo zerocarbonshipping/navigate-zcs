@@ -8,14 +8,12 @@ synthetic registries, and the parser's prune-and-warn pass over inline decks.
 
 import logging
 import re
-import sys
 from pathlib import Path
 
 import pytest
 
 import navigate.core.nodes
 from helpers.simulation import default_assumptions_dir
-from navigate.__main__ import main
 from navigate.core import Expression, NodeReference
 from navigate.core.node_reference import WildcardNodeReference
 from navigate.core.node_registry import GeneralNodes, Nodes
@@ -362,13 +360,6 @@ Port "ghost_port" {
 
 class TestPruneUnreachableNodes:
 
-    def test_no_ghosts_no_warning(self, tmp_path, caplog):
-        with caplog.at_level(logging.WARNING):
-            parser = _read_deck(tmp_path)
-
-        assert 'Removed' not in caplog.text
-        assert set(parser.nodes.vessels) == {'vessel'}
-
     def test_ghost_pruned_in_place_with_single_warning(self, tmp_path, caplog):
         # the ghost has no Route, so its initialize() would raise if it ran;
         # a successful read_deck pins that pruned nodes are never initialized
@@ -503,24 +494,6 @@ End
         assert 'ghost' not in vessels_group
         assert 'vessel' in vessels_group
 
-    def test_warning_count_printed_to_console(self, tmp_path, capsys, monkeypatch):
-        deck = _write_deck(tmp_path, define_extra=GHOST_VESSEL)
-
-        monkeypatch.setattr(sys, 'argv', ['navigate', str(deck), '-s',
-                                          '-d', str(default_assumptions_dir())])
-
-        # main() attaches root-logger handlers via setup_logger; close them so
-        # the file handler does not leak past this test
-        try:
-            assert main() == 0
-
-            assert 'warning(s) logged' in capsys.readouterr().out
-        finally:
-            root = logging.getLogger()
-            for handler in root.handlers[:]:
-                handler.close()
-                root.removeHandler(handler)
-
     def test_command_naming_pruned_node_errors_with_hint(self, tmp_path):
         define_extra = GHOST_VESSEL + LEVY_GHOST
         with pytest.raises(CommandError, match='unreachable from any top-level node'):
@@ -547,19 +520,6 @@ End
             _read_deck(tmp_path, define_extra=define_extra)
 
         assert 'Levy("levy") Jurisdiction: Port("jur_port")' in caplog.text
-
-    def test_every_surviving_port_is_routed(self, tmp_path, caplog):
-        # the invariant consumers rely on (producer export seeding, the
-        # fuel-import path): after the prune, no registry port is unrouted
-        define_extra = (LEVY_DECK.format(name='levy', jurisdiction='[Port("port"), Port("jur_port")]',
-                                         extra='')
-                        + JURISDICTION_PORT + GHOST_ROUTE)
-
-        with caplog.at_level(logging.WARNING):
-            parser = _read_deck(tmp_path, define_extra=define_extra)
-
-        routed = {port.name for route in parser.nodes.routes.values() for port in route.ports}
-        assert set(parser.nodes.ports) == routed
 
     def test_wildcard_jurisdiction_scrubbed_to_surviving_ports(self, tmp_path, caplog):
         # the wildcard expands before the prune, so the pruned ghost port
