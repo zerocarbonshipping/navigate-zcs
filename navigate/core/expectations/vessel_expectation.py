@@ -52,8 +52,8 @@ class VesselExpectation(_Expectation):
         self._operational_energy_sea: dict[EnergyDemandTypeID, list[np.ndarray]] = {}
         self._operational_energy_port: dict[EnergyDemandTypeID, list[np.ndarray]] = {}
 
-        self._operational_saving_fraction_sea: dict[EnergyDemandTypeID, float] = {d: 0. for d in EnergyDemandTypeID}
-        self._operational_saving_fraction_port: dict[EnergyDemandTypeID, float] = {d: 0. for d in EnergyDemandTypePortID}
+        self._operational_saving_fraction_sea: dict[EnergyDemandTypeID, float] = {}
+        self._operational_saving_fraction_port: dict[EnergyDemandTypeID, float] = {}
 
         self._energy_sea: dict[EnergyDemandTypeID, list[np.ndarray]] = {}
         self._energy_port: dict[EnergyDemandTypeID, list[np.ndarray]] = {}
@@ -141,6 +141,8 @@ class VesselExpectation(_Expectation):
         self._raw_energy_port = self._default_dict_list_array(EnergyDemandTypePortID, n_port)
         self._operational_energy_sea = self._default_dict_list_array(EnergyDemandTypeID, n_leg)
         self._operational_energy_port = self._default_dict_list_array(EnergyDemandTypePortID, n_port)
+        self._operational_saving_fraction_sea = self._default_dict_float(EnergyDemandTypeID)
+        self._operational_saving_fraction_port = self._default_dict_float(EnergyDemandTypePortID)
         self._energy_sea = self._default_dict_list_array(EnergyDemandTypeID, n_leg)
         self._energy_port = self._default_dict_list_array(EnergyDemandTypePortID, n_port)
         self._regional_raw_energy_sea = self._default_dict_list_array(EnergyDemandTypeID, n_leg_regional)
@@ -188,7 +190,7 @@ class VesselExpectation(_Expectation):
         self._asset_charter_rate = self._default_array()
         self._freight_rate = self._default_array()
         self._technology_charter_rate = self._default_array()
-        self._tied_capital = [None] * length
+        self._tied_capital = self._allocate_list()
 
     def reset_expected_bunkering(self) -> None:
         self._total_energy = self._default_array()

@@ -65,6 +65,14 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   plot node. `NodeReport` moves from `navigate.output.report_writer` to
   `navigate.core.nodes.report`. The DSL surface and simulation results are
   unchanged.
+- Internal simplification (no DSL or result changes): profile and expectation
+  `initialize` methods build default-valued per-key storage through the
+  base-class helpers (`_default_dict`, `_default_dict_float`,
+  `_allocate_list`, and a new `_default_nested_dict`) instead of manual
+  per-key loops and raw `[None] * length` expressions; the unused
+  profile-side `_allocate_list` is removed. Loops that copy real per-key
+  values (heating values, GWP, liquid-market supply sentinels) are
+  unchanged.
 - Internal simplification (no DSL or result changes): node initialization is
   unified on one idiom — `initialize_dependencies` seeds dictionary keys with
   `setdefault(key, None)` and all defaulting happens in `initialize` via
