@@ -71,7 +71,7 @@ class PlantExpectation(_Expectation):
         self._levelized_production_cost = self._default_array()
         self._levelized_delivery_cost = self._default_dict_array(ports)
 
-        self._tied_capital = [None] * length
+        self._tied_capital = self._allocate_list()
 
         self._production_wtt = self._default_dict_array(emissions)
         self._delivery_wtt = self._default_tuple_dict_array(ports, emissions)

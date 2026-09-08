@@ -107,7 +107,7 @@ class _FuelConsumerProfile(_FuelBaseProfile):
 
         self._consumed_mass = self._default_dict(fuels)
 
-        self._converter_mass = {fuel_type: self._default_dict(fuels) for fuel_type in FuelTypeID}
+        self._converter_mass = self._default_nested_dict(FuelTypeID, fuels)
 
         self._wtt = self._default_tuple_dict(fuels, emissions)
         self._ttw = self._default_tuple_dict(fuels, emissions)

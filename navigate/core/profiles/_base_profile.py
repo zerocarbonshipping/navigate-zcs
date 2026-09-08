@@ -34,9 +34,6 @@ class _BaseProfile:
     def get_shape(self, idx: int | slice = np.s_[:]) -> tuple[int, ...]:
         return self.get_length(idx),
 
-    def _allocate_list(self) -> list[None]:
-        return [None for _ in range(self.get_length())]
-
     def _default_array(self, default: float | bool | None = None,
                        idx: int | slice = np.s_[:]) -> np.ndarray:
 
@@ -58,6 +55,11 @@ class _BaseProfile:
                             default: float | bool | None = None,
                             idx: int | slice = np.s_[:]) -> dict[tuple[str, str], np.ndarray]:
         return self._default_dict(itertools.product(keys1, keys2), default, idx)
+
+    def _default_nested_dict(self, keys1: Iterable[str], keys2: Iterable[str],
+                             default: float | bool | None = None,
+                             idx: int | slice = np.s_[:]) -> dict[str, dict[str, np.ndarray]]:
+        return {key: self._default_dict(keys2, default, idx) for key in keys1}
 
     def _reset_array(self, array: np.ndarray, idx: int, default: float | None = None) -> None:
         array[idx:] = self._default_array(default, np.s_[idx:])

@@ -72,11 +72,9 @@ class FleetProfile(_VesselAggregateProfile):
         self._trade = self._default_array()
         self._cargo_miles = self._default_array()
 
-        for vessel_name in vessel_names:
-
-            self._existing_vessels[vessel_name] = self._default_array()
-            self._scrap[vessel_name] = self._default_array()
-            self._newbuilds[vessel_name] = self._default_array()
+        self._existing_vessels = self._default_dict(vessel_names)
+        self._scrap = self._default_dict(vessel_names)
+        self._newbuilds = self._default_dict(vessel_names)
 
         self._fuel_conversions = self._default_tuple_dict(vessel_names, vessel_names)
 
