@@ -8,6 +8,8 @@ Verifies that setters wrapping their argument with ``as_list`` accept both
 is wrapped into a list so the parser's wildcard-expansion pass picks it up.
 """
 
+import pytest
+
 from navigate.core.node_reference import NodeReference, WildcardNodeReference
 from navigate.core.node_type import PORT, REGULATION, TECHNOLOGY, VESSEL
 from navigate.core.nodes._policy import _Policy
@@ -20,45 +22,21 @@ from navigate.parser.parser import Parser
 
 class TestSingleValueShorthand:
 
-    def test_route_ports_accepts_single_reference(self):
-        ref = NodeReference(PORT, "port_a")
-        route_single = Route("r1")
-        route_list = Route("r2")
+    @pytest.mark.parametrize("node_type, make_node, setter, attribute", [
+        (PORT, lambda: Route("r"), "set_ports", "ports"),
+        (PORT, lambda: _Policy("p", REGULATION), "set_jurisdiction", "jurisdiction"),
+        (VESSEL, lambda: Fleet("f"), "set_vessels", "assets"),
+        (TECHNOLOGY, lambda: Fleet("f"), "set_technologies", "technologies"),
+    ], ids=["route_ports", "policy_jurisdiction", "fleet_vessels", "fleet_technologies"])
+    def test_setter_accepts_single_reference(self, node_type, make_node, setter, attribute):
+        ref = NodeReference(node_type, "name_a")
+        node_single = make_node()
+        node_list = make_node()
 
-        route_single.set_ports(ref)
-        route_list.set_ports([ref])
+        getattr(node_single, setter)(ref)
+        getattr(node_list, setter)([ref])
 
-        assert route_single.ports == route_list.ports == [ref]
-
-    def test_policy_jurisdiction_accepts_single_reference(self):
-        ref = NodeReference(PORT, "port_a")
-        policy_single = _Policy("p1", REGULATION)
-        policy_list = _Policy("p2", REGULATION)
-
-        policy_single.set_jurisdiction(ref)
-        policy_list.set_jurisdiction([ref])
-
-        assert policy_single.jurisdiction == policy_list.jurisdiction == [ref]
-
-    def test_fleet_vessels_accepts_single_reference(self):
-        ref = NodeReference(VESSEL, "vessel_oil")
-        fleet_single = Fleet("f1")
-        fleet_list = Fleet("f2")
-
-        fleet_single.set_vessels(ref)
-        fleet_list.set_vessels([ref])
-
-        assert fleet_single.assets == fleet_list.assets == [ref]
-
-    def test_fleet_technologies_accepts_single_reference(self):
-        ref = NodeReference(TECHNOLOGY, "tech_a")
-        fleet_single = Fleet("f1")
-        fleet_list = Fleet("f2")
-
-        fleet_single.set_technologies(ref)
-        fleet_list.set_technologies([ref])
-
-        assert fleet_single.technologies == fleet_list.technologies == [ref]
+        assert getattr(node_single, attribute) == getattr(node_list, attribute) == [ref]
 
 
 class TestBareWildcardShorthand:

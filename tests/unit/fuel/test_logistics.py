@@ -3,6 +3,7 @@
 
 """Unit tests for navigate.fuel.logistics — plant fuel-delivery expectations."""
 import numpy as np
+import pytest
 
 from navigate.core import Scalar
 from navigate.core.node_reference import NodeReference
@@ -49,20 +50,16 @@ def _make_plant(ports) -> Plant:
 
 class TestCalculatePlantLogisticsExpectations:
 
-    def test_disallowed_port_is_skipped(self):
-        ports = {'port_a': _StubPort(bunkering_allowed=False)}
+    @pytest.mark.parametrize("bunkering_allowed, set_transport", [
+        pytest.param(False, True, id="disallowed_port"),
+        pytest.param(True, False, id="no_transport"),
+    ])
+    def test_skips_when_ineligible(self, bunkering_allowed, set_transport):
+        ports = {'port_a': _StubPort(bunkering_allowed=bunkering_allowed)}
         plant = _make_plant(ports)
-        plant.set_fuel_transport('port_a', NodeReference(TRANSPORT, 'truck'))
-        plant.set_fuel_distance('port_a', DISTANCE)
-
-        calculate_plant_logistics_expectations({'plant': plant}, ports, EMISSIONS, TIMELINE, 0)
-
-        assert np.all(plant.expectation.get_levelized_delivery_cost('port_a') == 0.)
-        assert np.all(plant.expectation.get_delivery_wtt('port_a', 'carbon_dioxide') == 0.)
-
-    def test_no_transport_leaves_zero_defaults(self):
-        ports = {'port_a': _StubPort(bunkering_allowed=True)}
-        plant = _make_plant(ports)
+        if set_transport:
+            plant.set_fuel_transport('port_a', NodeReference(TRANSPORT, 'truck'))
+            plant.set_fuel_distance('port_a', DISTANCE)
 
         calculate_plant_logistics_expectations({'plant': plant}, ports, EMISSIONS, TIMELINE, 0)
 

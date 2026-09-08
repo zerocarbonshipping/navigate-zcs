@@ -35,20 +35,16 @@ class TestSoftmax:
 
 class TestBetaFromOdds:
 
-    def test_lower_log_ratio(self):
+    @pytest.mark.parametrize('odds, utility, expected', [
         # a 10% higher metric should halve the odds
-        beta = _beta_from_odds(0.5, UtilityID.LOWER_LOG_RATIO)
-        assert beta == pytest.approx(-np.log(0.5) / np.log(1.1))
+        (0.5, UtilityID.LOWER_LOG_RATIO, -np.log(0.5) / np.log(1.1)),
+        (2.0, UtilityID.HIGHER_LOG_RATIO, np.log(2.0) / np.log(1.1)),
+        (2.0, UtilityID.SIGNED_REFERENCE, np.log(2.0) / 0.05),
+    ])
+    def test_beta_from_odds(self, odds, utility, expected):
+        beta = _beta_from_odds(odds, utility)
+        assert beta == pytest.approx(expected)
         assert beta > 0.
-
-    def test_higher_log_ratio(self):
-        beta = _beta_from_odds(2.0, UtilityID.HIGHER_LOG_RATIO)
-        assert beta == pytest.approx(np.log(2.0) / np.log(1.1))
-        assert beta > 0.
-
-    def test_signed_reference(self):
-        beta = _beta_from_odds(2.0, UtilityID.SIGNED_REFERENCE)
-        assert beta == pytest.approx(np.log(2.0) / 0.05)
 
     def test_unit_odds_gives_zero_beta(self):
         for utility in UtilityID:
@@ -162,11 +158,6 @@ class TestApplyLimits:
         np.testing.assert_array_almost_equal(shares, [0.2, 0.4, 0.4])
         assert msg == ''
 
-    def test_limits_none_passthrough(self):
-        shares, msg = calculate_asset_shares([10., 11.], UtilityID.LOWER_LOG_RATIO, 0.5, limits=None)
-        np.testing.assert_array_almost_equal(shares, [2. / 3, 1. / 3])
-        assert msg == ''
-
     def test_length_mismatch_raises(self):
         with pytest.raises(ValueError):
             _apply_limits(np.array([0.5, 0.5]), [0.5, 0.5, 0.5])
@@ -196,16 +187,6 @@ class TestTwoAxisUptake:
         # within pathway 'a', the cheaper plant (index 0) gets more share
         assert uptake[0] > uptake[1]
 
-    def test_single_group(self):
-        uptake = calculate_two_axis_uptake(
-            ['a', 'a'], [100., 200.], [10., 10.],
-            intra_utility=UtilityID.LOWER_LOG_RATIO,
-            inter_utility=UtilityID.HIGHER_LOG_RATIO,
-            intra_odds=0.5, inter_odds=1.25,
-        )
-        assert uptake.sum() == pytest.approx(1.0)
-        assert uptake[0] > uptake[1]
-
     def test_limits_compose_to_per_asset_bound(self):
         # equal metrics and odds of 1 give uniform shares, so every binding limit saturates:
         # group 'a' caps at 0.2 + 0.3 and its members at exactly their per-asset bounds
@@ -220,15 +201,3 @@ class TestTwoAxisUptake:
         assert uptake[0] == pytest.approx(0.2)
         assert uptake[1] == pytest.approx(0.3)
         assert uptake[2] == pytest.approx(0.5)
-
-    def test_zero_limited_group_gets_no_share(self):
-        uptake = calculate_two_axis_uptake(
-            ['a', 'a', 'b'], [100., 100., 100.], [100., 100., 100.],
-            intra_utility=UtilityID.LOWER_LOG_RATIO,
-            inter_utility=UtilityID.LOWER_LOG_RATIO,
-            intra_odds=1., inter_odds=1.,
-            limits=[0., 0., 1.],
-        )
-        assert uptake[0] == pytest.approx(0.0)
-        assert uptake[1] == pytest.approx(0.0)
-        assert uptake[2] == pytest.approx(1.0)

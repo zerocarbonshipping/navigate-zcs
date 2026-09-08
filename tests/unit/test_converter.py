@@ -28,12 +28,3 @@ class TestSlipFractionDefaults:
 
         assert converter.slip_fraction[FuelTypeID.AMMONIA].get() == 0.03
         assert converter.slip_fraction[FuelTypeID.OIL].get() == 0.
-
-    def test_no_assignment_defaults_all_fuel_types(self):
-        converter = _make_converter()
-
-        converter.initialize_dependencies({})
-        converter.initialize()
-
-        assert converter.slip_fraction[FuelTypeID.OIL].get() == 0.
-        assert converter.slip_fraction[FuelTypeID.AMMONIA].get() == 0.

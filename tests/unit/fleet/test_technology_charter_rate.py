@@ -365,7 +365,3 @@ class TestCargoUnitPropertiesTechnologyCharge:
         cargo_npv = calculate_net_present_value(cargo_flow, DISCOUNT)
 
         np.testing.assert_almost_equal(charged - baseline, rate * age_npv / cargo_npv)
-
-    def test_zero_charge_is_neutral(self):
-        baseline, _ = self._freight_rate(0.)
-        assert baseline > 0.

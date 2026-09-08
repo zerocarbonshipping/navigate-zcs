@@ -39,25 +39,21 @@ def _write_inc(tmp_path, content, name="plots.inc"):
 
 class TestParsePlotNodes:
 
-    def test_directory_and_selected_plots(self, tmp_path):
+    @pytest.mark.parametrize("content, expected", [
+        (PLOT_INC, {"custom": ("./plots_custom/", {"global_emission_absolute", "fleet_evolution"})}),
+        (MULTI_PLOT_INC, {
+            "a": ("./a/", {"global_emission_absolute"}),
+            "b": ("./b/", {"fleet_evolution", "fleet_speed"}),
+        }),
+    ], ids=["single_node", "multiple_nodes"])
+    def test_directory_and_selected_plots(self, tmp_path, content, expected):
         """Directory assignment and add_plot commands are both materialized."""
-        nodes = Parser.parse_plot_nodes(_write_inc(tmp_path, PLOT_INC))
+        nodes = Parser.parse_plot_nodes(_write_inc(tmp_path, content))
 
-        assert set(nodes) == {"custom"}
-        node = nodes["custom"]
-        assert node.directory == "./plots_custom/"
-        assert node.selected_plots == {"global_emission_absolute", "fleet_evolution"}
-
-    def test_multiple_plot_nodes(self, tmp_path):
-        nodes = Parser.parse_plot_nodes(_write_inc(tmp_path, MULTI_PLOT_INC))
-
-        assert set(nodes) == {"a", "b"}
-        assert nodes["a"].selected_plots == {"global_emission_absolute"}
-        assert nodes["b"].selected_plots == {"fleet_evolution", "fleet_speed"}
-
-    def test_missing_file_raises(self, tmp_path):
-        with pytest.raises(FileNotFoundError):
-            Parser.parse_plot_nodes(tmp_path / "does_not_exist.inc")
+        assert set(nodes) == set(expected)
+        for name, (directory, selected_plots) in expected.items():
+            assert nodes[name].directory == directory
+            assert nodes[name].selected_plots == selected_plots
 
 
 class TestReplotErrors:

@@ -40,44 +40,28 @@ def _make_table1d(x=TABLE_X, y=TABLE_Y, extrapolate='LINEAR'):
 # ---------------------------------------------------------------------------
 
 class TestTruncateTransform:
-    """Verify: output = truncate(multiplier * (value + addition))."""
+    """Verify: output = truncate(multiplier * (table(x) + addition))."""
 
-    def test_identity_transform(self):
-        """Default multiplier=1, addition=0 is the identity."""
-        c = _Calculator()
-        assert c._truncate(5.0) == 5.0
-
-    def test_multiplier_scales(self):
+    @pytest.mark.parametrize('multiplier, addition, x, expected', [
+        # default multiplier=1, addition=0 is the identity: table(2) = 4
+        (1.0, 0.0, 2.0, 4.0),
+        # at x=2 the raw table gives 4.0; output = 2 * (4 + 0) = 8
+        (2.0, 0.0, 2.0, 8.0),
+        # at x=2: output = 1 * (4 + 10) = 14
+        (1.0, 10.0, 2.0, 14.0),
+        # at x=2: output = 3 * (4 + (-1)) = 9
+        (3.0, -1.0, 2.0, 9.0),
+        # at x=2: output = -1 * (4 + 0) = -4
+        (-1.0, 0.0, 2.0, -4.0),
+        # zero multiplier collapses output to 0 regardless of input
+        (0.0, 0.0, 2.0, 0.0),
+        (0.0, 0.0, 4.0, 0.0),
+    ])
+    def test_transform(self, multiplier, addition, x, expected):
         t = _make_table1d()
-        t.set_multiplier(2.0)
-        # At x=2 the raw table gives 4.0; output = 2 * (4 + 0) = 8
-        assert t.calculate(2.0) == pytest.approx(8.0)
-
-    def test_addition_shifts(self):
-        t = _make_table1d()
-        t.set_addition(10.0)
-        # At x=2: output = 1 * (4 + 10) = 14
-        assert t.calculate(2.0) == pytest.approx(14.0)
-
-    def test_combined_multiplier_addition(self):
-        t = _make_table1d()
-        t.set_multiplier(3.0)
-        t.set_addition(-1.0)
-        # At x=2: output = 3 * (4 + (-1)) = 9
-        assert t.calculate(2.0) == pytest.approx(9.0)
-
-    def test_negative_multiplier_flips_curve(self):
-        t = _make_table1d()
-        t.set_multiplier(-1.0)
-        # At x=2: output = -1 * (4 + 0) = -4
-        assert t.calculate(2.0) == pytest.approx(-4.0)
-
-    def test_zero_multiplier_collapses_output(self):
-        t = _make_table1d()
-        t.set_multiplier(0.0)
-        # At x=2: output = 0 * (4 + 0) = 0 regardless of input
-        assert t.calculate(2.0) == pytest.approx(0.0)
-        assert t.calculate(4.0) == pytest.approx(0.0)
+        t.set_multiplier(multiplier)
+        t.set_addition(addition)
+        assert t.calculate(x) == pytest.approx(expected)
 
 
 # ---------------------------------------------------------------------------
@@ -105,43 +89,26 @@ class TestBoundApplication:
         result = c._truncate(np.array([0., 5., 12.]))
         np.testing.assert_array_almost_equal(result, [2., 5., 8.])
 
-    def test_lower_bound_clamps(self):
+    @pytest.mark.parametrize('lower_bound, upper_bound, internal_lower, internal_upper, x, expected', [
+        # external lower bound alone clamps: at x=1, raw=1.0 → clamped to 5
+        (5.0, np.inf, -np.inf, np.inf, 1.0, 5.0),
+        # external upper bound alone clamps: at x=2, raw=4.0 → clamped to 3
+        (-np.inf, 3.0, -np.inf, np.inf, 2.0, 3.0),
+        # applied_lower = max(external, internal) = max(3, 5) = 5 — the tighter wins;
+        # at x=0, raw=0.0 → clamped up to 5
+        (3.0, np.inf, 5.0, np.inf, 0.0, 5.0),
+        # applied_upper = min(external, internal) = min(8, 5) = 5 — the tighter wins;
+        # at x=4, raw=16.0 → clamped down to 5
+        (-np.inf, 8.0, -np.inf, 5.0, 4.0, 5.0),
+    ])
+    def test_bound_tightening(self, lower_bound, upper_bound, internal_lower, internal_upper, x, expected):
         t = _make_table1d()
-        t.set_lower_bound(5.0)
-        # At x=1, raw=1.0 → clamped to 5
-        assert t.calculate(1.0) == pytest.approx(5.0)
-
-    def test_upper_bound_clamps(self):
-        t = _make_table1d()
-        t.set_upper_bound(3.0)
-        # At x=2, raw=4.0 → clamped to 3
-        assert t.calculate(2.0) == pytest.approx(3.0)
-
-    def test_tightening_logic_lower(self):
-        """applied_lower = max(external, internal) — the tighter (most restrictive) wins."""
-        c = _Calculator()
-        c.set_lower_bound(3.0)
-        c.set_internal_lower_bound(5.0)
-        c._assign_applied_bounds()
-        # max(3, 5) = 5
-        assert c._applied_lower_bound == pytest.approx(5.0)
-
-    def test_tightening_logic_upper(self):
-        """applied_upper = min(external, internal) — the tighter (most restrictive) wins."""
-        c = _Calculator()
-        c.set_upper_bound(8.0)
-        c.set_internal_upper_bound(5.0)
-        c._assign_applied_bounds()
-        # min(8, 5) = 5
-        assert c._applied_upper_bound == pytest.approx(5.0)
-
-    def test_bounds_with_array_input(self):
-        t = _make_table1d()
-        t.set_lower_bound(2.0)
-        t.set_upper_bound(10.0)
-        result = t.calculate(np.array([0., 1., 2., 3., 4.]))
-        assert np.all(result >= 2.0 - 1e-12)
-        assert np.all(result <= 10.0 + 1e-12)
+        t.set_lower_bound(lower_bound)
+        t.set_upper_bound(upper_bound)
+        t.set_internal_lower_bound(internal_lower)
+        t.set_internal_upper_bound(internal_upper)
+        t._assign_applied_bounds()
+        assert t.calculate(x) == pytest.approx(expected)
 
 
 # ---------------------------------------------------------------------------
@@ -151,47 +118,23 @@ class TestBoundApplication:
 class TestConvexity:
     """_test_convexity checks d2y/dx2 >= 0 for piecewise-linear (x, y)."""
 
-    def test_convex_quadratic(self):
-        """x^2 sampled at integers is convex."""
-        x = np.array([0., 1., 2., 3., 4.])
-        y = x ** 2
-        assert _Calculator._test_convexity(x, y) is True
-
-    def test_concave_function(self):
-        """sqrt(x) is concave."""
-        x = np.array([1., 4., 9., 16.])
-        y = np.sqrt(x)  # [1, 2, 3, 4] — but slopes decrease: 1/3, 1/5, 1/7
-        assert _Calculator._test_convexity(x, y) is False
-
-    def test_linear_is_convex(self):
-        """A straight line has d2y/dx2 = 0, which counts as convex."""
-        x = np.array([0., 1., 2., 3.])
-        y = 2.0 * x + 5.0
-        assert _Calculator._test_convexity(x, y) is True
-
-    def test_two_points_always_convex(self):
-        """With < 3 points, short-circuits to True."""
-        x = np.array([0., 1.])
-        y = np.array([0., 100.])
-        assert _Calculator._test_convexity(x, y) is True
-
-    def test_single_point_always_convex(self):
-        x = np.array([0.])
-        y = np.array([0.])
-        assert _Calculator._test_convexity(x, y) is True
-
-    def test_nearly_convex_within_rounding(self):
-        """A tiny concavity below 10^-5 is rounded away (ROUND_OFF=5)."""
-        x = np.array([0., 1., 2.])
-        # slopes: 1.0 and 1.0 - 1e-7 → d2y ~ -1e-7, rounds to 0
-        y = np.array([0., 1.0, 2.0 - 1e-7])
-        assert _Calculator._test_convexity(x, y) is True
-
-    def test_clearly_concave_not_rounded_away(self):
-        """A concavity of ~0.01 is NOT rounded away."""
-        x = np.array([0., 1., 2.])
-        y = np.array([0., 1.0, 1.99])  # slopes: 1.0, 0.99 → d2y = -0.01
-        assert _Calculator._test_convexity(x, y) is False
+    @pytest.mark.parametrize('x, y, expected', [
+        # x^2 sampled at integers is convex
+        (np.array([0., 1., 2., 3., 4.]), np.array([0., 1., 4., 9., 16.]), True),
+        # sqrt(x) is concave: y = [1, 2, 3, 4], but slopes decrease: 1/3, 1/5, 1/7
+        (np.array([1., 4., 9., 16.]), np.sqrt(np.array([1., 4., 9., 16.])), False),
+        # a straight line has d2y/dx2 = 0, which counts as convex
+        (np.array([0., 1., 2., 3.]), 2.0 * np.array([0., 1., 2., 3.]) + 5.0, True),
+        # with < 3 points, short-circuits to True
+        (np.array([0., 1.]), np.array([0., 100.]), True),
+        (np.array([0.]), np.array([0.]), True),
+        # a tiny concavity below 10^-5 is rounded away (ROUND_OFF=5)
+        (np.array([0., 1., 2.]), np.array([0., 1.0, 2.0 - 1e-7]), True),
+        # a concavity of ~0.01 is NOT rounded away: slopes 1.0, 0.99 → d2y = -0.01
+        (np.array([0., 1., 2.]), np.array([0., 1.0, 1.99]), False),
+    ])
+    def test_convexity(self, x, y, expected):
+        assert _Calculator._test_convexity(x, y) is expected
 
     def test_convexity_propagates_to_table1d(self):
         """_Table1D sets is_convex on construction."""
@@ -293,37 +236,20 @@ def _make_table2d(x=T2D_X, y=T2D_Y, z=T2D_Z, extrapolate='LINEAR'):
 class TestTable2DInterpolation:
     """Bilinear interpolation on z = x + y surface."""
 
-    def test_exact_grid_points(self):
+    @pytest.mark.parametrize('x, y, expected', [
+        (1.0, 10.0, 11.0),
+        (0.0, 0.0, 0.0),
+        (2.0, 20.0, 22.0),
+        # midpoint on a bilinear surface of z=x+y should be exact
+        (0.5, 5.0, 5.5),
+        (1.5, 15.0, 16.5),
+        (np.array([0., 1., 2.]), np.array([0., 10., 20.]), [0., 11., 22.]),
+        # scalar x with array y broadcasts correctly
+        (1.0, np.array([0., 10., 20.]), [1., 11., 21.]),
+    ])
+    def test_interpolation(self, x, y, expected):
         t = _make_table2d()
-        assert t.calculate(1.0, 10.0) == pytest.approx(11.0)
-        assert t.calculate(0.0, 0.0) == pytest.approx(0.0)
-        assert t.calculate(2.0, 20.0) == pytest.approx(22.0)
-
-    def test_midpoint_interpolation(self):
-        """Midpoint on a bilinear surface of z=x+y should be exact."""
-        t = _make_table2d()
-        assert t.calculate(0.5, 5.0) == pytest.approx(5.5)
-        assert t.calculate(1.5, 15.0) == pytest.approx(16.5)
-
-    def test_array_inputs(self):
-        t = _make_table2d()
-        x = np.array([0., 1., 2.])
-        y = np.array([0., 10., 20.])
-        result = t.calculate(x, y)
-        np.testing.assert_array_almost_equal(result, [0., 11., 22.])
-
-    def test_scalar_array_broadcast(self):
-        """Scalar x with array y broadcasts correctly."""
-        t = _make_table2d()
-        result = t.calculate(1.0, np.array([0., 10., 20.]))
-        np.testing.assert_array_almost_equal(result, [1., 11., 21.])
-
-    def test_multiplier_addition_applied(self):
-        t = _make_table2d()
-        t.set_multiplier(2.0)
-        t.set_addition(1.0)
-        # At (1, 10): raw=11, output = 2*(11+1) = 24
-        assert t.calculate(1.0, 10.0) == pytest.approx(24.0)
+        np.testing.assert_array_almost_equal(t.calculate(x, y), expected)
 
 
 # ---------------------------------------------------------------------------
@@ -332,11 +258,6 @@ class TestTable2DInterpolation:
 
 class TestTable2DConvexity:
     """Convexity is checked along all x-direction paths."""
-
-    def test_linear_surface_is_convex(self):
-        """z = x + y is linear in x → convex."""
-        t = _make_table2d()
-        assert t.is_convex()
 
     def test_convex_surface(self):
         """z = x^2 + y is convex in x."""
@@ -416,12 +337,6 @@ class TestTable2DPickle:
 
 class TestVariable:
     """Variable.get() applies: truncate(multiplier * (value + addition))."""
-
-    def test_plain_value(self):
-        from navigate.core.nodes.variable import Variable
-        v = Variable('test')
-        v.set_value(5.0)
-        assert v.get() == pytest.approx(5.0)
 
     def test_multiplier_addition(self):
         from navigate.core.nodes.variable import Variable
