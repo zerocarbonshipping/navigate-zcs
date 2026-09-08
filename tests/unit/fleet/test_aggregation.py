@@ -32,12 +32,6 @@ def _vessel() -> MagicMock:
     vessel.name = "v0"
     vessel.expectation.get_asset_charter_rate.return_value = 0.5
     vessel.expectation.get_tied_capital.return_value = np.zeros(3)
-
-    for getter in ("get_reference_speed", "get_minimum_speed", "get_maximum_speed",
-                   "get_actual_speed", "get_optimal_speed", "get_lowest_speed",
-                   "get_highest_speed"):
-        getattr(vessel.profile, getter).return_value = np.nan
-
     return vessel
 
 
@@ -56,10 +50,8 @@ def _fleet(vessel: MagicMock, increment: Increment | None = None) -> Fleet:
     fleet.assets = [vessel]
     fleet.increments = [[increment if increment is not None else Increment(4., 2., 1.)]]
     fleet.profile = MagicMock()
-    fleet.profile.get_fuel_conversions.return_value = {}
     fleet.expectation = FleetExpectation()
     fleet.expectation.initialize(4, ["v0"], {})
-    fleet.fuel_conversion_expenses = np.zeros(4)
     return fleet
 
 

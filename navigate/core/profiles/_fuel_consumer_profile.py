@@ -125,17 +125,18 @@ class _FuelConsumerProfile(_FuelBaseProfile):
         self._shore_power_emission = self._default_dict(emissions)
 
     def add_fuel_consumer_profile(self, profile: _FuelConsumerProfile,
-                                  multiplier: float = 1., idx: int | slice = np.s_[:]) -> None:
+                                  multiplier: float | np.ndarray = 1., idx: int | slice = np.s_[:]) -> None:
         """
 
         Parameters
         ----------
         profile : _FuelConsumerProfile
             Consumer profile from another node.
-        multiplier : float
-            Multiplier applied to each additive attribute when adding.
-        idx : int
-            Current time-step index.
+        multiplier : float | np.ndarray
+            Multiplier applied to each additive attribute when adding; a
+            scalar, or elementwise weights matching the idx selection.
+        idx : int | slice
+            Time-step index or slice.
         """
 
         for energy_id in EnergyDemandTypeID:

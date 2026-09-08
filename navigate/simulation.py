@@ -24,6 +24,7 @@ from navigate.fleet import (
     perform_fleet_evolution,
     perform_speed_management,
     perform_technology_installation,
+    post_process_fleet_profile,
     post_process_investment_metric,
     record_investment_signals,
     update_operational_profile,
@@ -808,6 +809,11 @@ class SimulationManager:
     def _post_process(self):
 
         log_model_post_process(logger)
+
+        # fold the recorded multipliers into the fleet output profiles before
+        # the investment metric reads the in-fleet windows and before the
+        # fleet profiles are merged into the global profile
+        post_process_fleet_profile(self.nodes.fleets)
 
         # post-process investment metrics
         post_process_investment_metric(self.nodes.fleets, self.timeline)

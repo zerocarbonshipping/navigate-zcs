@@ -11,6 +11,16 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Changed
+- The output-only fleet aggregations (in-fleet flags, vessel-to-fleet
+  consumer totals, fuel-conversion expenses, installed/newbuild/scrapped and
+  fuel-converted power, fleet speeds, transport work and baseline energy) run
+  once after the simulation instead of every time step. Outputs are
+  bit-identical, with two edge deltas: the differing-installed-power fuel
+  conversion warning is logged once per vessel pair instead of once per
+  affected time step, and the fleet reference speed at a step where the
+  fleet has no vessels is NaN (previously an undefined division).
+
 ### Added
 - The console prints the number of logged warnings at the end of a run,
   pointing at the `.log` file. Warnings were previously visible only in the

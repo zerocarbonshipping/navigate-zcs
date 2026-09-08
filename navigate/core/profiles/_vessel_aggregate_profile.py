@@ -95,17 +95,17 @@ class _VesselAggregateProfile(_FuelConsumerProfile):
         for key in self._fuel_type_demand:
             self._fuel_type_demand[key][idx] += profile._fuel_type_demand[key][idx]
 
-    def add_installed_power(self, fuel_type: FuelTypeID, power: float, idx: int | slice = np.s_[:]) -> None:
+    def add_installed_power(self, fuel_type: FuelTypeID, power: float | np.ndarray, idx: int | slice = np.s_[:]) -> None:
         self._installed_power[fuel_type][idx] += power
 
-    def add_newbuild_power(self, fuel_type: FuelTypeID, power: float, idx: int | slice = np.s_[:]) -> None:
+    def add_newbuild_power(self, fuel_type: FuelTypeID, power: float | np.ndarray, idx: int | slice = np.s_[:]) -> None:
         self._newbuild_power[fuel_type][idx] += power
 
-    def add_scrapped_power(self, fuel_type: FuelTypeID, power: float, idx: int | slice = np.s_[:]) -> None:
+    def add_scrapped_power(self, fuel_type: FuelTypeID, power: float | np.ndarray, idx: int | slice = np.s_[:]) -> None:
         self._scrapped_power[fuel_type][idx] += power
 
     def add_fuel_converted_power(self, fuel_type_from: FuelTypeID, fuel_type_to: FuelTypeID,
-                                 power: float, idx: int | slice = np.s_[:]) -> None:
+                                 power: float | np.ndarray, idx: int | slice = np.s_[:]) -> None:
         self._fuel_converted_power[(fuel_type_from, fuel_type_to)][idx] += power
 
     def add_vessel_expenses(self, expenses: float, idx: int | slice = np.s_[:]) -> None:
@@ -117,7 +117,7 @@ class _VesselAggregateProfile(_FuelConsumerProfile):
     def add_vessel_tied_capital(self, tied_capital: float, idx: int | slice = np.s_[:]) -> None:
         self._vessel_tied_capital[idx] += tied_capital
 
-    def add_fuel_conversion_expenses(self, expenses: float, idx: int | slice = np.s_[:]) -> None:
+    def add_fuel_conversion_expenses(self, expenses: float | np.ndarray, idx: int | slice = np.s_[:]) -> None:
         self._fuel_conversion_expenses[idx] += expenses
 
     def add_weighted_age(self, fuel_type: FuelTypeID, numerator: float, denominator: float,
@@ -128,7 +128,7 @@ class _VesselAggregateProfile(_FuelConsumerProfile):
     def add_fuel_type_demand(self, fuel_type: FuelTypeID, demand: float, idx: int | slice = np.s_[:]) -> None:
         self._fuel_type_demand[fuel_type][idx] += demand
 
-    def set_baseline_energy(self, idx: int, energy: float) -> None:
+    def set_baseline_energy(self, idx: int | slice, energy: float | np.ndarray) -> None:
         self._baseline_energy[idx] = energy
 
     def get_baseline_energy(self, idx: int | slice = np.s_[:]) -> np.ndarray:
