@@ -394,7 +394,7 @@ class TestReconcileRetrofitTechnologyCapsEligibility:
         proposals = [_proposal(0, 0, 0, np.array([0.2, 0.3, 0.5]), 0.4)]
         transfer_retrofit_uptake(fleet, proposals, idx=0)
         # The profile setter is called once per (vessel, technology). Inspect args to find technology "A".
-        calls = {c.args[1]: c.args[3] for c in fleet.profile.set_retrofit_technology_uptake.call_args_list}
+        calls = {c.args[2]: c.args[3] for c in fleet.profile.set_retrofit_technology_uptake.call_args_list}
         np.testing.assert_almost_equal(calls["A"], 0.32)
         np.testing.assert_almost_equal(calls["B"], 0.4 * 0.5)  # k_start=2, tail=0.5 → 0.4·10·0.5 / 10 = 0.2
 

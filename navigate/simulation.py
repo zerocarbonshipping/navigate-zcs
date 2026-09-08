@@ -235,7 +235,7 @@ class SimulationManager:
         # precalculate certain expectations
         # which are simulation bottlenecks
         self._calculate_expectations()
-        self.profile.add_temporal_time(self._idx, timeit.default_timer() - start_time)
+        self.profile.add_temporal_time(timeit.default_timer() - start_time, self._idx)
 
         # calculate the raw energy demand
         # and trade carrying capacity of
@@ -260,7 +260,7 @@ class SimulationManager:
             # initialize the existing production based
             # on the defined initial conditions
             self._initialize_existing_production()
-            self.profile.add_overhead_time(self._idx, timeit.default_timer() - start_time_overhead)
+            self.profile.add_overhead_time(timeit.default_timer() - start_time_overhead, self._idx)
 
         # calculate the chartering costs of all vessels in the fleet.
         # Technology costs are excluded here: they enter the cargo charter
@@ -408,7 +408,7 @@ class SimulationManager:
             for vessel in fleet.vessels:
                 update_operational_profile(vessel, allow_speed_management, self._idx)
 
-        self.profile.add_vessel_time(self._idx, timeit.default_timer() - start_time)
+        self.profile.add_vessel_time(timeit.default_timer() - start_time, self._idx)
 
     def _calculate_fuel_production_properties(self):
         start_time = timeit.default_timer()
@@ -420,7 +420,7 @@ class SimulationManager:
             plant.expectation.reset_additive_properties(self._idx)
             calculate_plant_production_expectations(plant, self.nodes.emissions, self.timeline, self._idx)
 
-        self.profile.add_fuel_supply_time(self._idx, timeit.default_timer() - start_time)
+        self.profile.add_fuel_supply_time(timeit.default_timer() - start_time, self._idx)
 
     def _calculate_fuel_logistics_properties(self):
         start_time = timeit.default_timer()
@@ -431,7 +431,7 @@ class SimulationManager:
                                                self.timeline,
                                                self._idx)
 
-        self.profile.add_fuel_supply_time(self._idx, timeit.default_timer() - start_time)
+        self.profile.add_fuel_supply_time(timeit.default_timer() - start_time, self._idx)
 
     def _calculate_fuel_import(self):
         start_time = timeit.default_timer()
@@ -443,7 +443,7 @@ class SimulationManager:
                                        self.timeline,
                                        self._idx)
 
-        self.profile.add_fuel_supply_time(self._idx, timeit.default_timer() - start_time)
+        self.profile.add_fuel_supply_time(timeit.default_timer() - start_time, self._idx)
 
     def _calculate_policy_emission_coefficients(self, bunker_scope):
         start_time = timeit.default_timer()
@@ -455,7 +455,7 @@ class SimulationManager:
                                                self.timeline,
                                                self._idx)
 
-        self.profile.add_policy_time(self._idx, timeit.default_timer() - start_time)
+        self.profile.add_policy_time(timeit.default_timer() - start_time, self._idx)
 
     def _calculate_fair_share_fuel_supply(self, scope):
         start_time = timeit.default_timer()
@@ -463,7 +463,7 @@ class SimulationManager:
         fuels = {fuel_name: fuel for fuel_name, fuel in self.nodes.fuels.items() if not fuel.liquid_market}
         calculate_fair_share_fuel_supply(self.nodes.fleets, fuels, self.nodes.ports, self._idx, scope)
 
-        self.profile.add_policy_time(self._idx, timeit.default_timer() - start_time)
+        self.profile.add_policy_time(timeit.default_timer() - start_time, self._idx)
 
     def _perform_producer_evolution(self):
         """
@@ -500,7 +500,7 @@ class SimulationManager:
             perform_planning(producer, self.timeline, self._time_step, self._idx)
 
         # set computational performance tracker
-        self.profile.add_producer_evolution_time(self._idx, timeit.default_timer() - start_time)
+        self.profile.add_producer_evolution_time(timeit.default_timer() - start_time, self._idx)
 
     def _update_increment_ages(self):
         start_time = timeit.default_timer()
@@ -511,7 +511,7 @@ class SimulationManager:
         for producer in self.nodes.producers.values():
             producer.update_increment_ages(self._time_step)
 
-        self.profile.add_fleet_state_time(self._idx, timeit.default_timer() - start_time)
+        self.profile.add_fleet_state_time(timeit.default_timer() - start_time, self._idx)
 
     def _update_fleet_evolution_expectation(self):
         start_time = timeit.default_timer()
@@ -523,7 +523,7 @@ class SimulationManager:
         for fleet in self.nodes.fleets.values():
             calculate_evolution_expectation(fleet, self.timeline, self._idx)
 
-        self.profile.add_fleet_state_time(self._idx, timeit.default_timer() - start_time)
+        self.profile.add_fleet_state_time(timeit.default_timer() - start_time, self._idx)
 
     def _verify_power_capacity(self, scope):
         """
@@ -575,9 +575,9 @@ class SimulationManager:
             self._bunker_expected.transfer()
 
             # set computational performance tracker
-            self.profile.add_expected_build_time(self._idx, self._bunker_expected.build_time)
-            self.profile.add_expected_solve_time(self._idx, self._bunker_expected.solve_time)
-            self.profile.add_expected_transfer_time(self._idx, self._bunker_expected.transfer_time)
+            self.profile.add_expected_build_time(self._bunker_expected.build_time, self._idx)
+            self.profile.add_expected_solve_time(self._bunker_expected.solve_time, self._idx)
+            self.profile.add_expected_transfer_time(self._bunker_expected.transfer_time, self._idx)
 
     def _update_scarcity_signals(self):
         start_time = timeit.default_timer()
@@ -586,7 +586,7 @@ class SimulationManager:
         update_regulation_flexibility_beliefs(self.nodes.regulations, self.nodes.vessels, self.timeline, self._idx)
         record_investment_signals(self.nodes.fleets, self._idx)
 
-        self.profile.add_overhead_time(self._idx, timeit.default_timer() - start_time)
+        self.profile.add_overhead_time(timeit.default_timer() - start_time, self._idx)
 
     def _perform_fleet_speed_management(self):
         start_time = timeit.default_timer()
@@ -613,7 +613,7 @@ class SimulationManager:
             for vessel in fleet.vessels:
                 calculate_vessel_charter_properties(vessel, self.timeline, self._idx)
 
-        self.profile.add_vessel_time(self._idx, timeit.default_timer() - start_time)
+        self.profile.add_vessel_time(timeit.default_timer() - start_time, self._idx)
 
     def _calculate_cargo_charter_properties(self):
         start_time = timeit.default_timer()
@@ -622,7 +622,7 @@ class SimulationManager:
             for vessel in fleet.vessels:
                 calculate_cargo_charter_properties(vessel, self.timeline, self._idx)
 
-        self.profile.add_vessel_time(self._idx, timeit.default_timer() - start_time)
+        self.profile.add_vessel_time(timeit.default_timer() - start_time, self._idx)
 
     def _perform_fleet_evolution(self):
         start_time = timeit.default_timer()
@@ -633,7 +633,7 @@ class SimulationManager:
                 fleet, self.timeline, self._time_step, self._idx)
 
         # set computational performance tracker
-        self.profile.add_fleet_evolution_time(self._idx, timeit.default_timer() - start_time)
+        self.profile.add_fleet_evolution_time(timeit.default_timer() - start_time, self._idx)
 
     def _perform_existing_bunkering(self):
 
@@ -655,7 +655,7 @@ class SimulationManager:
 
         approximate_missing_technology(self.nodes.fleets, self._idx)
 
-        self.profile.add_fleet_state_time(self._idx, timeit.default_timer() - start_time)
+        self.profile.add_fleet_state_time(timeit.default_timer() - start_time, self._idx)
 
     def _initialize_bunker_models(self):
 
@@ -803,7 +803,7 @@ class SimulationManager:
         for vessel in self.nodes.vessels.values():
             vessel.calculate_profile(self._idx)
 
-        self.profile.add_profile_agg_time(self._idx, timeit.default_timer() - start_time)
+        self.profile.add_profile_agg_time(timeit.default_timer() - start_time, self._idx)
 
     def _post_process(self):
 

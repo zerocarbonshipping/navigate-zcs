@@ -130,7 +130,7 @@ class RegulationProfile(_BaseProfile):
     def set_flexibility_units(self, idx: int, units: float) -> None:
         self._flexibility_units[idx] = units
 
-    def add_remedial_units(self, idx: int, units: float) -> None:
+    def add_remedial_units(self, units: float, idx: int | slice = np.s_[:]) -> None:
         self._remedial_units[idx] += units
 
     def set_surplus_revenue(self, idx: int, revenue: float) -> None:
@@ -139,7 +139,7 @@ class RegulationProfile(_BaseProfile):
     def set_flexibility_expenses(self, idx: int, expenses: float) -> None:
         self._flexibility_expenses[idx] = expenses
 
-    def add_remedial_expenses(self, idx: int, expenses: float) -> None:
+    def add_remedial_expenses(self, expenses: float, idx: int | slice = np.s_[:]) -> None:
         self._remedial_expenses[idx] += expenses
 
     def get_remedial_cost(self, idx: int | slice = np.s_[:]) -> np.ndarray:

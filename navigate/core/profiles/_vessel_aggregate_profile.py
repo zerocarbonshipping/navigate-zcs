@@ -104,9 +104,9 @@ class _VesselAggregateProfile(_FuelConsumerProfile):
     def add_scrapped_power(self, fuel_type: FuelTypeID, power: float, idx: int | slice = np.s_[:]) -> None:
         self._scrapped_power[fuel_type][idx] += power
 
-    def add_fuel_converted_power(self, fuel_type_to: FuelTypeID, fuel_type_from: FuelTypeID,
+    def add_fuel_converted_power(self, fuel_type_from: FuelTypeID, fuel_type_to: FuelTypeID,
                                  power: float, idx: int | slice = np.s_[:]) -> None:
-        self._fuel_converted_power[(fuel_type_to, fuel_type_from)][idx] += power
+        self._fuel_converted_power[(fuel_type_from, fuel_type_to)][idx] += power
 
     def add_vessel_expenses(self, expenses: float, idx: int | slice = np.s_[:]) -> None:
         self._vessel_expenses[idx] += expenses
@@ -114,7 +114,7 @@ class _VesselAggregateProfile(_FuelConsumerProfile):
     def add_technology_expenses(self, expenses: float, idx: int | slice = np.s_[:]) -> None:
         self._technology_expenses[idx] += expenses
 
-    def add_vessel_tied_capital(self, tied_capital: float, idx: int) -> None:
+    def add_vessel_tied_capital(self, tied_capital: float, idx: int | slice = np.s_[:]) -> None:
         self._vessel_tied_capital[idx] += tied_capital
 
     def add_fuel_conversion_expenses(self, expenses: float, idx: int | slice = np.s_[:]) -> None:

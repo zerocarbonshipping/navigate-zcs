@@ -53,14 +53,14 @@ def calculate_producer_profile(producer: Producer, timeline, idx):
         production_unit = expectation.get_production(origins)
         production = np.sum(production_unit * multipliers)
 
-        producer.profile.add_production_mass(idx, fuel_name, production)
+        producer.profile.add_production_mass(fuel_name, production, idx)
 
         conversions = expectation.get_feed_mass(idx=origins)
 
         for feed_name, conversion in conversions.items():
 
             feed_mass = np.sum(production_unit * conversion * multipliers)
-            producer.profile.add_feed_mass(idx, feed_name, feed_mass)
+            producer.profile.add_feed_mass(feed_name, feed_mass, idx)
 
     # transfer tied-up capital per increment
     for p, plant in enumerate(producer.assets):

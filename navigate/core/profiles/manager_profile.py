@@ -83,13 +83,13 @@ class ManagerProfile(_VesselAggregateProfile, _PlantAggregateProfile, _Infrastru
     def set_total_time(self, idx: int, time: float) -> None:
         self._total_time[idx] = time
 
-    def add_expected_build_time(self, idx: int, time: float) -> None:
+    def add_expected_build_time(self, time: float, idx: int | slice = np.s_[:]) -> None:
         self._expected_build_time[idx] += time
 
-    def add_expected_solve_time(self, idx: int, time: float) -> None:
+    def add_expected_solve_time(self, time: float, idx: int | slice = np.s_[:]) -> None:
         self._expected_solve_time[idx] += time
 
-    def add_expected_transfer_time(self, idx: int, time: float) -> None:
+    def add_expected_transfer_time(self, time: float, idx: int | slice = np.s_[:]) -> None:
         self._expected_transfer_time[idx] += time
 
     def set_speed_time(self, idx: int, time: float) -> None:
@@ -98,10 +98,10 @@ class ManagerProfile(_VesselAggregateProfile, _PlantAggregateProfile, _Infrastru
     def set_retrofit_time(self, idx: int, time: float) -> None:
         self._retrofit_time[idx] = time
 
-    def add_fleet_evolution_time(self, idx: int, time: float) -> None:
+    def add_fleet_evolution_time(self, time: float, idx: int | slice = np.s_[:]) -> None:
         self._fleet_evolution_time[idx] += time
 
-    def add_producer_evolution_time(self, idx: int, time: float) -> None:
+    def add_producer_evolution_time(self, time: float, idx: int | slice = np.s_[:]) -> None:
         self._producer_evolution_time[idx] += time
 
     def set_existing_build_time(self, idx: int, time: float) -> None:
@@ -113,25 +113,25 @@ class ManagerProfile(_VesselAggregateProfile, _PlantAggregateProfile, _Infrastru
     def set_existing_transfer_time(self, idx: int, time: float) -> None:
         self._existing_transfer_time[idx] = time
 
-    def add_temporal_time(self, idx: int, time: float) -> None:
+    def add_temporal_time(self, time: float, idx: int | slice = np.s_[:]) -> None:
         self._temporal_time[idx] += time
 
-    def add_vessel_time(self, idx: int, time: float) -> None:
+    def add_vessel_time(self, time: float, idx: int | slice = np.s_[:]) -> None:
         self._vessel_time[idx] += time
 
-    def add_fuel_supply_time(self, idx: int, time: float) -> None:
+    def add_fuel_supply_time(self, time: float, idx: int | slice = np.s_[:]) -> None:
         self._fuel_supply_time[idx] += time
 
-    def add_policy_time(self, idx: int, time: float) -> None:
+    def add_policy_time(self, time: float, idx: int | slice = np.s_[:]) -> None:
         self._policy_time[idx] += time
 
-    def add_fleet_state_time(self, idx: int, time: float) -> None:
+    def add_fleet_state_time(self, time: float, idx: int | slice = np.s_[:]) -> None:
         self._fleet_state_time[idx] += time
 
-    def add_profile_agg_time(self, idx: int, time: float) -> None:
+    def add_profile_agg_time(self, time: float, idx: int | slice = np.s_[:]) -> None:
         self._profile_agg_time[idx] += time
 
-    def add_overhead_time(self, idx: int, time: float) -> None:
+    def add_overhead_time(self, time: float, idx: int | slice = np.s_[:]) -> None:
         self._overhead_time[idx] += time
 
     def get_total_time(self, idx: int | slice = np.s_[:]) -> np.ndarray:

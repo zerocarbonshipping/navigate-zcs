@@ -39,14 +39,14 @@ def transfer_shore_power(alg: BunkerAlgorithm) -> None:
         if alg.scope == BunkerScopeID.EXISTING:
 
             # transfer to vessel profile
-            vessel.profile.add_shore_power_energy(alg.idx, shore_energy_gj)
-            vessel.profile.add_shore_power_expenses(alg.idx, shore_cost)
+            vessel.profile.add_shore_power_energy(shore_energy_gj, alg.idx)
+            vessel.profile.add_shore_power_expenses(shore_cost, alg.idx)
 
             # WTW emissions
             for e in alg.emissions:
                 emission_factor = port.expectation.get_shore_power_emission_factor(e, alg.idx)
                 emission_mass = emission_factor * shore_energy_gj
-                vessel.profile.add_shore_power_emission(e, alg.idx, emission_mass)
+                vessel.profile.add_shore_power_emission(e, emission_mass, alg.idx)
 
         else:
 

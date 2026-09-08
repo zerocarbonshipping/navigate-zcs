@@ -642,8 +642,7 @@ def transfer_retrofit_uptake(fleet: Fleet,
         for i, technology in enumerate(sorted_technologies):
             count = retrofit_counts.get((v, i), 0.)
             share = divide_nonzero(count, multipliers_total)
-            fleet.profile.set_retrofit_technology_uptake(vessel.name, technology.name,
-                                                         idx, share)
+            fleet.profile.set_retrofit_technology_uptake(idx, vessel.name, technology.name, share)
 
 
 def transfer_technology_charter_rate(fleet: Fleet, idx: int) -> None:
@@ -697,7 +696,7 @@ def transfer_technology_uptake(fleet: Fleet, idx: int) -> None:
 
             # transfer newbuild uptake
             nb_uptake = np.sum(fleet.newbuild_package_uptake[v][p:])
-            fleet.profile.set_newbuild_technology_uptake(vessel.name, technology.name, idx, nb_uptake)
+            fleet.profile.set_newbuild_technology_uptake(idx, vessel.name, technology.name, nb_uptake)
 
             # transfer average fleet uptake
             avg_uptake = 0.
@@ -708,7 +707,7 @@ def transfer_technology_uptake(fleet: Fleet, idx: int) -> None:
                 weight += inc.multiplier
 
             avg_uptake = divide_nonzero(avg_uptake, weight)
-            fleet.profile.set_technology_uptake(vessel.name, technology.name, idx, avg_uptake)
+            fleet.profile.set_technology_uptake(idx, vessel.name, technology.name, avg_uptake)
 
 
 def update_residual_energy_demand(fleet: Fleet, idx: int) -> None:

@@ -101,22 +101,23 @@ class FleetProfile(_VesselAggregateProfile):
     def set_existing_vessels(self, idx: int, vessel_name: str, existing_vessels: float) -> None:
         self._existing_vessels[vessel_name][idx] = existing_vessels
 
-    def add_scrap(self, vessel_name: str, idx: int, scrap: float) -> None:
+    def add_scrap(self, vessel_name: str, scrap: float, idx: int | slice = np.s_[:]) -> None:
         self._scrap[vessel_name][idx] += scrap
 
-    def add_newbuilds(self, vessel_name: str, idx: int, newbuilds: float) -> None:
+    def add_newbuilds(self, vessel_name: str, newbuilds: float, idx: int | slice = np.s_[:]) -> None:
         self._newbuilds[vessel_name][idx] += newbuilds
 
-    def add_fuel_conversions(self, vessel_name_from: str, vessel_name_to: str, idx: int, conversions: float) -> None:
+    def add_fuel_conversions(self, vessel_name_from: str, vessel_name_to: str, conversions: float,
+                             idx: int | slice = np.s_[:]) -> None:
         self._fuel_conversions[(vessel_name_from, vessel_name_to)][idx] += conversions
 
-    def set_technology_uptake(self, vessel_name: str, technology_name: str, idx: int, uptake: float) -> None:
+    def set_technology_uptake(self, idx: int, vessel_name: str, technology_name: str, uptake: float) -> None:
         self._technology_uptake[(vessel_name, technology_name)][idx] = uptake
 
-    def set_newbuild_technology_uptake(self, vessel_name: str, technology_name: str, idx: int, uptake: float) -> None:
+    def set_newbuild_technology_uptake(self, idx: int, vessel_name: str, technology_name: str, uptake: float) -> None:
         self._newbuild_technology_uptake[(vessel_name, technology_name)][idx] = uptake
 
-    def set_retrofit_technology_uptake(self, vessel_name: str, technology_name: str, idx: int, uptake: float) -> None:
+    def set_retrofit_technology_uptake(self, idx: int, vessel_name: str, technology_name: str, uptake: float) -> None:
         self._retrofit_technology_uptake[(vessel_name, technology_name)][idx] = uptake
 
     def set_reference_speed(self, idx: int, reference_speed: float) -> None:
@@ -165,10 +166,10 @@ class FleetProfile(_VesselAggregateProfile):
         return extract_from_dict(self._newbuilds, vessel_name, idx)
 
     def get_fuel_conversions(
-            self, vessel_name_to: str | None = None,
-            vessel_name_from: str | None = None,
+            self, vessel_name_from: str | None = None,
+            vessel_name_to: str | None = None,
             idx: int | slice = np.s_[:]) -> np.ndarray | dict[tuple[str, str], np.ndarray]:
-        return extract_from_tuple_dict(self._fuel_conversions, vessel_name_to, vessel_name_from, idx)
+        return extract_from_tuple_dict(self._fuel_conversions, vessel_name_from, vessel_name_to, idx)
 
     def get_technology_uptake(
             self, vessel_name: str | None = None,
@@ -228,8 +229,8 @@ class FleetProfile(_VesselAggregateProfile):
     def get_actual_speed(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         return self._actual_speed[idx]
 
-    def get_optimal_speed(self) -> np.ndarray:
-        return self._optimal_speed
+    def get_optimal_speed(self, idx: int | slice = np.s_[:]) -> np.ndarray:
+        return self._optimal_speed[idx]
 
     def get_lowest_speed(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         return self._lowest_speed[idx]

@@ -58,7 +58,7 @@ class _FuelInfrastructureProfile(_FuelBaseProfile):
         for key in self._bunkering_limit_mass:
             self._bunkering_limit_mass[key][idx] += profile._bunkering_limit_mass[key][idx]
 
-    def add_bunker_mass(self, idx: int, fuel_name: str, mass: float) -> None:
+    def add_bunker_mass(self, fuel_name: str, mass: float, idx: int | slice = np.s_[:]) -> None:
         self._bunker_mass[fuel_name][idx] += mass
 
     def set_bunkering_limit_mass(self, idx: int, fuel_name: str, mass: float) -> None:

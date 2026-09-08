@@ -222,9 +222,9 @@ class TestShoreTransferExpected:
 
         transfer_shore_power(algo)
 
-        vessel_profile.add_shore_power_energy.assert_called_once_with(3, 50.0)
-        vessel_profile.add_shore_power_expenses.assert_called_once_with(3, 1000.0)
-        vessel_profile.add_shore_power_emission.assert_called_once_with("co2", 3, 2.5)
+        vessel_profile.add_shore_power_energy.assert_called_once_with(50.0, 3)
+        vessel_profile.add_shore_power_expenses.assert_called_once_with(1000.0, 3)
+        vessel_profile.add_shore_power_emission.assert_called_once_with("co2", 2.5, 3)
 
     def test_below_tolerance_skipped(self):
         """Shore power below solution tolerance should not be transferred."""
