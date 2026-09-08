@@ -304,34 +304,34 @@ class _FuelConsumerProfile(_FuelBaseProfile):
     def add_levy_expenses(self, fuel_name: str, expenses: float, idx: int | slice = np.s_[:]) -> None:
         self._levy_expenses[fuel_name][idx] += expenses
 
-    def add_remedial_expenses(self, idx: int | slice, expenses: float) -> None:
+    def add_remedial_expenses(self, expenses: float, idx: int | slice = np.s_[:]) -> None:
         self._remedial_expenses[idx] += expenses
 
-    def add_remedial_units(self, policy_name: str, idx: int | slice, units: float) -> None:
+    def add_remedial_units(self, policy_name: str, units: float, idx: int | slice = np.s_[:]) -> None:
         self._remedial_units[policy_name][idx] += units
 
     def get_remedial_units(self, policy_name: str, idx: int | slice = np.s_[:]) -> np.ndarray:
         return self._remedial_units[policy_name][idx]
 
-    def add_levy_units(self, policy_name: str, idx: int | slice, units: float) -> None:
+    def add_levy_units(self, policy_name: str, units: float, idx: int | slice = np.s_[:]) -> None:
         self._levy_units[policy_name][idx] += units
 
     def get_levy_units(self, policy_name: str, idx: int | slice = np.s_[:]) -> np.ndarray:
         return self._levy_units[policy_name][idx]
 
-    def add_flexibility_expenses(self, idx: int | slice, expenses: float) -> None:
+    def add_flexibility_expenses(self, expenses: float, idx: int | slice = np.s_[:]) -> None:
         self._flexibility_expenses[idx] += expenses
 
-    def add_surplus_revenue(self, idx: int | slice, revenue: float) -> None:
+    def add_surplus_revenue(self, revenue: float, idx: int | slice = np.s_[:]) -> None:
         self._surplus_revenue[idx] += revenue
 
-    def add_shore_power_energy(self, idx: int | slice, energy: float) -> None:
+    def add_shore_power_energy(self, energy: float, idx: int | slice = np.s_[:]) -> None:
         self._shore_power_energy[idx] += energy
 
-    def add_shore_power_expenses(self, idx: int | slice, expenses: float) -> None:
+    def add_shore_power_expenses(self, expenses: float, idx: int | slice = np.s_[:]) -> None:
         self._shore_power_expenses[idx] += expenses
 
-    def add_shore_power_emission(self, emission_name: str, idx: int | slice, emission: float) -> None:
+    def add_shore_power_emission(self, emission_name: str, emission: float, idx: int | slice = np.s_[:]) -> None:
         self._shore_power_emission[emission_name][idx] += emission
 
     def get_raw_energy_sea(self, energy_id: EnergyDemandTypeID | None = None,

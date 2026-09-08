@@ -63,10 +63,10 @@ class _FuelProducerProfile(_FuelBaseProfile):
         for key in self._feed_constraint:
             self._feed_constraint[key][idx] += profile._feed_constraint[key][idx]
 
-    def add_production_mass(self, idx: int, fuel_name: str, mass: float) -> None:
+    def add_production_mass(self, fuel_name: str, mass: float, idx: int | slice = np.s_[:]) -> None:
         self._production_mass[fuel_name][idx] += mass
 
-    def add_feed_mass(self, idx: int, feed_name: str, mass: float) -> None:
+    def add_feed_mass(self, feed_name: str, mass: float, idx: int | slice = np.s_[:]) -> None:
         self._feed_mass[feed_name][idx] += mass
 
     def set_feed_constraint(self, idx: int, feed_name: str, constraint: float) -> None:

@@ -151,10 +151,10 @@ class TestScrapNewbuildAccumulation:
     def test_writers_accumulate_per_vessel(self, timeline, fuels, emissions):
         fleet = _make_fleet_profile(timeline, fuels, emissions, vessel_names=["a", "b"])
 
-        fleet.add_scrap("a", 0, 1.5)
-        fleet.add_scrap("a", 0, 0.5)
-        fleet.add_newbuilds("a", 1, 2.0)
-        fleet.add_newbuilds("a", 1, 3.0)
+        fleet.add_scrap("a", 1.5, 0)
+        fleet.add_scrap("a", 0.5, 0)
+        fleet.add_newbuilds("a", 2.0, 1)
+        fleet.add_newbuilds("a", 3.0, 1)
 
         assert fleet.get_scrap("a", 0) == pytest.approx(2.0)
         assert fleet.get_newbuilds("a", 1) == pytest.approx(5.0)
@@ -171,9 +171,9 @@ class TestShorePowerAccounting:
         p.add_wtt("lsfo", "co2", 2.0, 0)
         p.add_ttw("lsfo", "co2", 3.0, 0)
         if shore:
-            p.add_shore_power_energy(0, 50.0)
-            p.add_shore_power_expenses(0, 25.0)
-            p.add_shore_power_emission("co2", 0, 4.0)
+            p.add_shore_power_energy(50.0, 0)
+            p.add_shore_power_expenses(25.0, 0)
+            p.add_shore_power_emission("co2", 4.0, 0)
         return p
 
     @pytest.fixture

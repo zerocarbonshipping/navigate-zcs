@@ -122,7 +122,7 @@ def calculate_orderbook_newbuilds(fleet: Fleet, trade_gap: float, cap_count: np.
 
     # transfer to profile
     for v, vessel in enumerate(fleet.assets):
-        fleet.profile.add_newbuilds(vessel.name, idx, delivery[v])
+        fleet.profile.add_newbuilds(vessel.name, delivery[v], idx)
 
     cap_count_remaining = np.maximum(cap_count - delivery, 0.)
 
@@ -263,7 +263,7 @@ def calculate_modelled_newbuilds(fleet: Fleet, trade_gap: float, cap_count: np.n
         increments[v] = inertia_increments[i] + modelled_increments[i]
 
         # transfer to the profile
-        fleet.profile.add_newbuilds(fleet.assets[v].name, idx, increments[v])
+        fleet.profile.add_newbuilds(fleet.assets[v].name, increments[v], idx)
 
     return increments, np.dot(np.add(inertia_increments, modelled_increments), cargo_miles)
 

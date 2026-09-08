@@ -20,7 +20,7 @@ class LevyProfile(_BaseProfile):
 
         self._collected = self._default_array()
 
-    def add_collected(self, idx: int, collected: float) -> None:
+    def add_collected(self, collected: float, idx: int | slice = np.s_[:]) -> None:
         self._collected[idx] += collected
 
     def set_collected(self, idx: int, collected: float) -> None:

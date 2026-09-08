@@ -208,7 +208,7 @@ class VesselProfile(_FuelConsumerProfile):
     def get_actual_speed(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         return self._actual_speed[idx]
 
-    def get_optimal_speed(self, idx: int | slice) -> np.ndarray:
+    def get_optimal_speed(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         return self._optimal_speed[idx]
 
     def get_lowest_speed(self, idx: int | slice = np.s_[:]) -> np.ndarray:

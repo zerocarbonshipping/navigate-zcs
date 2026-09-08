@@ -136,7 +136,7 @@ def perform_age_based_scrapping(fleet: Fleet, idx: int):
                 incs[0].multiplier -= scrapping
 
         # transfer to profile
-        fleet.profile.add_scrap(vessel.name, idx, scrapped_vessels)
+        fleet.profile.add_scrap(vessel.name, scrapped_vessels, idx)
 
 
 def perform_fixed_rate_scrapping(fleet: Fleet, time_step: float, idx: int):
@@ -275,7 +275,7 @@ def perform_fixed_trade_scrapping(fleet: Fleet, trade_gap: float, idx: int):
                 youngest_age = age + dt * (1. - scrap_fraction)
 
                 # transfer to profile
-                fleet.profile.add_scrap(fleet.assets[v].name, idx, to_scrap)
+                fleet.profile.add_scrap(fleet.assets[v].name, to_scrap, idx)
 
             # the trade-gap is per definition zero
             trade_gap = 0.
@@ -296,7 +296,7 @@ def perform_fixed_trade_scrapping(fleet: Fleet, trade_gap: float, idx: int):
                 youngest_index[v] = ii + 1
 
                 # transfer to profile
-                fleet.profile.add_scrap(fleet.assets[v].name, idx, increment)
+                fleet.profile.add_scrap(fleet.assets[v].name, increment, idx)
 
     # secondary scrapping for anything older than the youngest age
     for v, i in enumerate(youngest_index):

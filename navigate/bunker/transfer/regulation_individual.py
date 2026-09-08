@@ -41,12 +41,12 @@ def transfer_regulation_individual(alg: BunkerAlgorithm) -> None:
         if alg.scope == BunkerScopeID.EXISTING:
 
             # transfer to regulation
-            regulation.profile.add_remedial_units(alg.idx, remedial_units)
-            regulation.profile.add_remedial_expenses(alg.idx, remedial_expenses)
+            regulation.profile.add_remedial_units(remedial_units, alg.idx)
+            regulation.profile.add_remedial_expenses(remedial_expenses, alg.idx)
 
             # transfer to vessel (remedial_factor.X is per-ship remedial units)
-            vessel.profile.add_remedial_units(r, alg.idx, remedial_factor.X)
-            vessel.profile.add_remedial_expenses(alg.idx, vessel_remediation)
+            vessel.profile.add_remedial_units(r, remedial_factor.X, alg.idx)
+            vessel.profile.add_remedial_expenses(vessel_remediation, alg.idx)
 
         else:
 

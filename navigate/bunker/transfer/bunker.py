@@ -71,7 +71,7 @@ def transfer_bunker(alg: BunkerAlgorithm) -> None:
             vessel.profile.add_fuel_expenses(f, fuel_expenses, alg.idx)
 
             # transfer to port profile
-            port.profile.add_bunker_mass(alg.idx, f, alg.multipliers[v] * bunker.X)
+            port.profile.add_bunker_mass(f, alg.multipliers[v] * bunker.X, alg.idx)
 
         else:
 
@@ -98,13 +98,13 @@ def transfer_bunker(alg: BunkerAlgorithm) -> None:
             collected = alg.cost_levy[(v, port_name, f, levy.name)] * bunker.X
 
             if alg.scope == BunkerScopeID.EXISTING:
-                levy.profile.add_collected(alg.idx, collected * alg.multipliers[v])
+                levy.profile.add_collected(collected * alg.multipliers[v], alg.idx)
                 vessel.profile.add_levy_expenses(f, collected, alg.idx)
 
                 # track per-vessel levy emission units (collected / level)
                 level = levy_level_cache[levy.name]
                 if level > 0.:
-                    vessel.profile.add_levy_units(levy.name, alg.idx, collected / level)
+                    vessel.profile.add_levy_units(levy.name, collected / level, alg.idx)
 
     # transfer the fleet fuel demand
     if alg.scope == BunkerScopeID.EXPECTED:

@@ -11,8 +11,8 @@ import numpy as np
 from navigate.core.enum_ import FuelTypeID
 from navigate.core.nodes.vessel import Vessel
 from navigate.core.profiles import FleetProfile
-from navigate.fleet.utils import get_cargo_miles
-from navigate.util import TOLERANCE, YEAR, divide_nonzero, get_increment_origin_index
+from navigate.fleet.utils import get_cargo_miles, get_total_power_capacity
+from navigate.util import TOLERANCE, YEAR, divide_nonzero, get_increment_origin_index, interpolate_tied_capital
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
@@ -37,17 +37,74 @@ def calculate_fleet_profile(fleet: Fleet, fuels: dict[str, Fuel], timeline: np.n
         Current time-step index.
     """
 
-    # transfer boolean to vessel profile
+    _transfer_in_fleet_flags(fleet, idx)
+    _transfer_fuel_consumer_profiles(fleet, idx)
+    _transfer_increment_expenses(fleet, timeline, idx)
+    _transfer_fuel_conversion_expenses(fleet, idx)
+    _transfer_power_totals(fleet, idx)
+    _transfer_weighted_age(fleet, idx)
+    _transfer_fuel_converted_power(fleet, idx)
+    _gather_fuel_type_demand(fleet)
+    _gather_fuel_type_supply(fleet, fuels, idx)
+    _transfer_fuel_type_demand(fleet, idx)
+
+    # calculate the average speeds of the fleet across all vessel types
+    aggregate_speed_profile(fleet.assets, fleet.get_multiplier, fleet.profile, idx)
+
+    # transfer the transport work performed and the counterfactual baseline energy
+    transfer_transport_work(fleet, idx)
+
+
+def _transfer_in_fleet_flags(fleet: Fleet, idx: int) -> None:
+    """
+    Transfer whether each vessel type is present in the fleet to its profile.
+
+    Parameters
+    ----------
+    fleet
+        Fleet instance.
+    idx
+        Current time-step index.
+    """
+
     for v, vessel in enumerate(fleet.assets):
         in_fleet = fleet.get_multiplier(v) > 0.
         vessel.profile.set_in_fleet(idx, in_fleet)
 
-    # transfer emissions and fuel consumer data
+
+def _transfer_fuel_consumer_profiles(fleet: Fleet, idx: int) -> None:
+    """
+    Accumulate the multiplier-weighted vessel consumer profiles (emissions,
+    energy, fuel expenses) onto the fleet profile.
+
+    Parameters
+    ----------
+    fleet
+        Fleet instance.
+    idx
+        Current time-step index.
+    """
+
     for v, vessel in enumerate(fleet.assets):
         multiplier = fleet.get_multiplier(v)
         fleet.profile.add_fuel_consumer_profile(vessel.profile, multiplier, idx)
 
-    # transfer running vessel expenses
+
+def _transfer_increment_expenses(fleet: Fleet, timeline: np.ndarray, idx: int) -> None:
+    """
+    Transfer the running vessel expenses per increment: instantaneous charter
+    rate, remaining tied-up capital, and the carried technology charge.
+
+    Parameters
+    ----------
+    fleet
+        Fleet instance.
+    timeline
+        Simulation timeline.
+    idx
+        Current time-step index.
+    """
+
     years = timeline / YEAR
     current_year = years[idx]
 
@@ -67,8 +124,7 @@ def calculate_fleet_profile(fleet: Fleet, fuels: dict[str, Fuel], timeline: np.n
 
             # calculate remaining tied up capital
             tied_capital_flow = vessel.expectation.get_tied_capital(origin)
-            time_flow = np.arange(0, tied_capital_flow.size) * YEAR
-            tied_capital = np.interp(inc.age * YEAR, time_flow, tied_capital_flow)
+            tied_capital = interpolate_tied_capital(tied_capital_flow, inc.age)
 
             fleet.profile.add_vessel_expenses(cost * inc.multiplier, idx)
             fleet.profile.add_vessel_tied_capital(tied_capital * inc.multiplier, idx)
@@ -77,28 +133,79 @@ def calculate_fleet_profile(fleet: Fleet, fuels: dict[str, Fuel], timeline: np.n
             # asset charter rate for the cohort's installed technologies
             fleet.profile.add_technology_expenses(inc.technology_charter_rate * inc.multiplier, idx)
 
-    # transfer running technology retrofit and fuel conversion expenses
+
+def _transfer_fuel_conversion_expenses(fleet: Fleet, idx: int) -> None:
+    """
+    Transfer the running technology retrofit and fuel conversion expenses.
+
+    Parameters
+    ----------
+    fleet
+        Fleet instance.
+    idx
+        Current time-step index.
+    """
+
     fleet.profile.add_fuel_conversion_expenses(fleet.fuel_conversion_expenses[idx], idx)
 
-    # transfer power related properties
+
+def _transfer_power_totals(fleet: Fleet, idx: int) -> None:
+    """
+    Transfer the installed, newbuild, and scrapped power per fuel type.
+
+    Parameters
+    ----------
+    fleet
+        Fleet instance.
+    idx
+        Current time-step index.
+    """
+
     for v, vessel in enumerate(fleet.assets):
         vessel_name = vessel.name
         fuel_type = vessel.fuel_type
 
-        # calculate the total installed
-        # power on the vessel
-        power = sum([c.power_capacity.get() for c in vessel.power_system.get_converters()])
+        power = get_total_power_capacity(vessel)
 
         fleet.profile.add_installed_power(fuel_type, power * fleet.get_multiplier(v), idx)
         fleet.profile.add_newbuild_power(fuel_type, float(power * fleet.profile.get_newbuilds(vessel_name, idx)), idx)
         fleet.profile.add_scrapped_power(fuel_type, float(power * fleet.profile.get_scrap(vessel_name, idx)), idx)
 
-        # weighted average age: accumulate numerator (age * count * power) and denominator (count * power)
+
+def _transfer_weighted_age(fleet: Fleet, idx: int) -> None:
+    """
+    Transfer the power-weighted average fleet age per fuel type as separate
+    numerator (age * count * power) and denominator (count * power) sums.
+
+    Parameters
+    ----------
+    fleet
+        Fleet instance.
+    idx
+        Current time-step index.
+    """
+
+    for v, vessel in enumerate(fleet.assets):
+        power = get_total_power_capacity(vessel)
+
         age_power_sum = float(sum(inc.age * inc.multiplier for inc in fleet.increments[v])) * power
         count_power_sum = float(sum(inc.multiplier for inc in fleet.increments[v])) * power
-        fleet.profile.add_weighted_age(fuel_type, age_power_sum, count_power_sum, idx)
+        fleet.profile.add_weighted_age(vessel.fuel_type, age_power_sum, count_power_sum, idx)
 
-    # transfer fuel converted power
+
+def _transfer_fuel_converted_power(fleet: Fleet, idx: int) -> None:
+    """
+    Transfer the power converted between fuel types by this time step's fuel
+    conversions.
+
+    Parameters
+    ----------
+    fleet
+        Fleet instance.
+    idx
+        Current time-step index.
+    """
+
     vessel_map = {vessel.name: vessel for vessel in fleet.assets}
     fuel_conversions = fleet.profile.get_fuel_conversions(idx=idx)
 
@@ -113,10 +220,8 @@ def calculate_fleet_profile(fleet: Fleet, fuels: dict[str, Fuel], timeline: np.n
         fuel_type_from = vessel_from.fuel_type
         fuel_type_to = vessel_to.fuel_type
 
-        # calculate the total installed
-        # power on the vessels
-        power_from = sum([c.power_capacity.get() for c in vessel_from.power_system.get_converters()])
-        power_to = sum([c.power_capacity.get() for c in vessel_to.power_system.get_converters()])
+        power_from = get_total_power_capacity(vessel_from)
+        power_to = get_total_power_capacity(vessel_to)
 
         if abs(power_to - power_from) > TOLERANCE:
             logger.warning("{}: Fuel conversion occurred with different installed power {} ({}) to {} ({})."
@@ -124,8 +229,20 @@ def calculate_fleet_profile(fleet: Fleet, fuels: dict[str, Fuel], timeline: np.n
 
         fleet.profile.add_fuel_converted_power(fuel_type_from, fuel_type_to, float(power_from * multiplier), idx=idx)
 
-    # gather the fuel type specific demand for the fleet; the reset must come
-    # after fleet evolution, which reads the previous step's totals
+
+def _gather_fuel_type_demand(fleet: Fleet) -> None:
+    """
+    Gather the fuel type specific demand for the fleet from the latest
+    bunkering solution onto the fleet expectation.
+
+    Parameters
+    ----------
+    fleet
+        Fleet instance.
+    """
+
+    # the reset must come after fleet evolution, which
+    # reads the previous step's totals
     fleet.expectation.reset_fuel_type_totals()
 
     for v, vessel in enumerate(fleet.assets):
@@ -167,7 +284,22 @@ def calculate_fleet_profile(fleet: Fleet, fuels: dict[str, Fuel], timeline: np.n
         # values to avoid lingering solutions
         vessel.expectation.reset_spend_energy()
 
-    # gather the fuel type specific supply for the fleet
+
+def _gather_fuel_type_supply(fleet: Fleet, fuels: dict[str, Fuel], idx: int) -> None:
+    """
+    Gather the fuel type specific supply for the fleet from each vessel's
+    fair share of the port supplies onto the fleet expectation.
+
+    Parameters
+    ----------
+    fleet
+        Fleet instance.
+    fuels
+        All fuels in the simulation.
+    idx
+        Current time-step index.
+    """
+
     for v, vessel in enumerate(fleet.assets):
 
         multiplier = fleet.get_multiplier(v)
@@ -213,15 +345,21 @@ def calculate_fleet_profile(fleet: Fleet, fuels: dict[str, Fuel], timeline: np.n
 
                 fleet.expectation.add_fuel_type_supply(fuel_type, fair_share_supply)
 
-    # transfer the demand totals to the output profile
+
+def _transfer_fuel_type_demand(fleet: Fleet, idx: int) -> None:
+    """
+    Transfer the gathered fuel type demand totals to the output profile.
+
+    Parameters
+    ----------
+    fleet
+        Fleet instance.
+    idx
+        Current time-step index.
+    """
+
     for fuel_type in FuelTypeID:
         fleet.profile.add_fuel_type_demand(fuel_type, fleet.expectation.get_fuel_type_demand(fuel_type), idx)
-
-    # calculate the average speeds of the fleet across all vessel types
-    aggregate_speed_profile(fleet.assets, fleet.get_multiplier, fleet.profile, idx)
-
-    # transfer the transport work performed and the counterfactual baseline energy
-    transfer_transport_work(fleet, idx)
 
 
 def transfer_transport_work(fleet: Fleet, idx: int) -> None:

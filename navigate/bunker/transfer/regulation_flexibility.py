@@ -102,8 +102,8 @@ def transfer_regulation_flexibility(alg: BunkerAlgorithm, properties: dict) -> N
         if alg.scope == BunkerScopeID.EXISTING:
 
             # transfer remedial
-            regulation.profile.add_remedial_units(alg.idx, total_remedial_units)
-            regulation.profile.add_remedial_expenses(alg.idx, total_remedial_expenses)
+            regulation.profile.add_remedial_units(total_remedial_units, alg.idx)
+            regulation.profile.add_remedial_expenses(total_remedial_expenses, alg.idx)
 
             # transfer flexibility
             regulation.profile.set_flexibility_cost(alg.idx, flexibility_cost)
@@ -137,10 +137,10 @@ def transfer_regulation_flexibility(alg: BunkerAlgorithm, properties: dict) -> N
                 flexibility_expenses = flexibility_units[v] * flexibility_cost
                 surplus_revenue = surplus_units[v] * flexibility_cost
 
-                vessel.profile.add_remedial_units(r, alg.idx, remedial_units[v])
-                vessel.profile.add_remedial_expenses(alg.idx, remedial_expenses)
-                vessel.profile.add_flexibility_expenses(alg.idx, flexibility_expenses)
-                vessel.profile.add_surplus_revenue(alg.idx, surplus_revenue)
+                vessel.profile.add_remedial_units(r, remedial_units[v], alg.idx)
+                vessel.profile.add_remedial_expenses(remedial_expenses, alg.idx)
+                vessel.profile.add_flexibility_expenses(flexibility_expenses, alg.idx)
+                vessel.profile.add_surplus_revenue(surplus_revenue, alg.idx)
 
             else:
 
