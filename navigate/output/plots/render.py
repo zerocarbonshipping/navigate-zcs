@@ -14,6 +14,22 @@ from navigate.output.plots._style import initialize_matplotlib
 logger = logging.getLogger(__name__)
 
 
+def generate_plots(plot, plot_data):
+    """
+    Renders the plots requested by one Plot node from exported plot data.
+
+    Parameters
+    ----------
+    plot : Plot
+        Plot node holding the output directory and selected plot labels.
+    plot_data : PlotData
+        The plot data container with simulation state.
+    """
+    directory = os.path.join(plot_data.deck_directory, plot.directory) if plot.directory else None
+    selected_plots = plot.selected_plots or None  # an empty set selects all plots
+    render_plots(plot_data, directory=directory, selected_plots=selected_plots)
+
+
 def render_plots(manager, directory=None, selected_plots=None):
     initialize_matplotlib()
     start = timeit.default_timer()

@@ -47,6 +47,7 @@ from navigate.fuel import (
 )
 from navigate.logging_ import log_model_post_process, log_start_of_simulation
 from navigate.output import PlotData
+from navigate.output.report_writer import write_report
 from navigate.parser import Parser
 from navigate.policy import calculate_policy_emission_coefficients, update_regulation_flexibility_beliefs
 from navigate.util import YEAR, dates_to_days, timedelta_to_days
@@ -828,42 +829,8 @@ class SimulationManager:
             self.profile.add_plant_aggregate_profile(producer.profile)
 
     def _export_reports(self):
-
-        for report_name, report in self.nodes.reports.items():
-
-            # Layer 3: Protect report initialization
-            try:
-                report.start_export()
-            except Exception as e:
-                logger.error("Report '%s': Failed to initialize, skipping: %s", report_name, e)
-                continue
-
-            # Layer 2: Protect each sheet export individually
-            sheet_errors = 0
-            for sheet_name, method_name, args in [
-                ("manager",     "export_manager",      (self,)),
-                ("fleets",      "export_fleets",       (self.nodes.fleets,)),
-                ("levies",      "export_levies",       (self.nodes.levies,)),
-                ("plants",      "export_plants",       (self.nodes.plants,)),
-                ("ports",       "export_ports",        (self.nodes.ports,)),
-                ("producers",   "export_producers",    (self.nodes.producers,)),
-                ("regulations", "export_regulations",  (self.nodes.regulations,)),
-                ("vessels",     "export_vessels",       (self.nodes.vessels,)),
-            ]:
-                try:
-                    getattr(report, method_name)(*args)
-                except Exception as e:
-                    logger.error("Report '%s': Failed to export '%s': %s", report_name, sheet_name, e)
-                    sheet_errors += 1
-
-            # Layer 3: Protect file save
-            try:
-                report.end_export(self.parser.deck_directory, self.parser.deck_name, self.dateline)
-            except Exception as e:
-                logger.error("Report '%s': Failed to save file: %s", report_name, e)
-
-            if sheet_errors:
-                logger.warning("Report '%s': Completed with %d sheet error(s).", report_name, sheet_errors)
+        for report in self.nodes.reports.values():
+            write_report(report, self, self.parser.deck_directory, self.parser.deck_name, self.dateline)
 
     def get_elapsed_time(self):
         return _write_elapsed_time(timeit.default_timer() - self._computational_time)
@@ -873,8 +840,11 @@ class SimulationManager:
         plot_data.save()
 
     def _export_plots(self, plot_data):
+        # deferred so matplotlib only loads when plots are actually rendered (see also replot.py)
+        from navigate.output.plots.render import generate_plots
+
         for plot_node in self.nodes.plots.values():
-            plot_node.generate_plots(plot_data)
+            generate_plots(plot_node, plot_data)
 
     def export_graphs(self):
         plot_data = PlotData.from_manager(self)

@@ -3,24 +3,26 @@
 
 """
 Excel and CSV writing engine behind the Report node. The Report node collects which properties to
-extract per node type; the functions here resolve those requests against the node profiles and
-write the workbook or CSV files.
+extract per node type; write_report, driven by the simulation manager, resolves those requests
+against the node profiles and writes the workbook or CSV files.
 """
+
+from __future__ import annotations
 
 import csv
 import logging
 import os
 from datetime import datetime
 from enum import Enum
+from typing import TYPE_CHECKING
 
 import numpy as np
 import openpyxl as xl
 from openpyxl.worksheet.worksheet import Worksheet
 
-from navigate.core.enum_ import ReportReduceID
+from navigate.core.enum_ import FileFormatID, ReportReduceID
 from navigate.core.node import Node
 from navigate.util import (
-    attribute_to_setter,
     collapse_dict,
     collapse_tuple_dict,
     dates_to_days,
@@ -28,6 +30,10 @@ from navigate.util import (
     is_tuple_dict,
     matching_keys,
 )
+
+if TYPE_CHECKING:
+    from navigate.core.nodes.report import NodeReport, Report
+    from navigate.simulation import SimulationManager
 
 logger = logging.getLogger(__name__)
 
@@ -37,18 +43,84 @@ ROW_KEY = 3
 ROW_RESULT = 5
 
 
-class NodeReport:
-    def __init__(self) -> None:
+def write_report(report: Report,
+                 manager: SimulationManager,
+                 deck_directory: str,
+                 deck_name: str,
+                 dateline: np.ndarray
+                 ) -> None:
+    """
+    Writes one report node's requested properties to an XLSX or CSV file. Failures are contained
+    per layer: a failed sheet is logged and skipped so the remaining sheets still export, and a
+    failed save aborts only this report.
 
-        self.attributes: list[str] = []
-        self.getters: list[str] = []
-        self.reduce: list[ReportReduceID] = []
+    The manager exports under its node name 'global', which is what the key of Report.add_property
+    requests must match.
 
-    def add_property(self, attribute: str, reduce: ReportReduceID) -> None:
-        if attribute not in self.attributes:
-            self.attributes.append(attribute)
-            self.getters.append(attribute_to_setter(attribute, method='get'))
-            self.reduce.append(reduce)
+    Parameters
+    ----------
+    report
+        Report node holding the collected export requests.
+    manager
+        Simulation manager providing the node collections.
+    deck_directory
+        Directory of the simulation deck, base for the report directory.
+    deck_name
+        Name of the simulation deck, used in the filenames.
+    dateline
+        Dates of the simulation timeline.
+    """
+
+    report_name = report.name
+    is_xlsx = report.file_format == FileFormatID.XLSX
+
+    wb = xl.Workbook() if is_xlsx else None
+    csv_data = None if is_xlsx else {}
+
+    sections = (
+        ('manager',     'Global',      {manager.name: manager},   report.manager_reports),
+        ('fleets',      'Fleets',      manager.nodes.fleets,      report.fleet_reports),
+        ('levies',      'Levies',      manager.nodes.levies,      report.levy_reports),
+        ('plants',      'Plants',      manager.nodes.plants,      report.plant_reports),
+        ('ports',       'Ports',       manager.nodes.ports,       report.port_reports),
+        ('producers',   'Producers',   manager.nodes.producers,   report.producer_reports),
+        ('regulations', 'Regulations', manager.nodes.regulations, report.regulation_reports),
+        ('vessels',     'Vessels',     manager.nodes.vessels,     report.vessel_reports),
+    )
+
+    sheet_errors = 0
+
+    for section_name, sheet_title, nodes, extraction_dict in sections:
+
+        if not extraction_dict:
+            continue
+
+        try:
+            if is_xlsx:
+                export_properties_xlsx(wb.create_sheet(title=sheet_title), nodes, extraction_dict, report_name)
+            else:
+                export_properties_csv(sheet_title, nodes, extraction_dict, report_name, csv_data)
+        except Exception as e:
+            logger.error("Report '%s': Failed to export '%s': %s", report_name, section_name, e)
+            sheet_errors += 1
+
+    try:
+        if report.directory is not None:
+            directory = os.path.join(deck_directory, report.directory)
+        else:
+            directory = deck_directory
+
+        os.makedirs(directory, exist_ok=True)
+
+        if is_xlsx:
+            write_xlsx_report(wb, directory, deck_name, report_name, dateline)
+        else:
+            write_csv_report(csv_data, directory, deck_name, report_name, dateline)
+    except Exception as e:
+        logger.error("Report '%s': Failed to save file: %s", report_name, e)
+
+    if sheet_errors:
+        logger.warning("Report '%s': Completed with %d sheet error(s).", report_name, sheet_errors)
 
 
 def write_xlsx_report(wb: xl.Workbook,
