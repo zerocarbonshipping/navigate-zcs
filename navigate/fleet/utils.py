@@ -20,6 +20,23 @@ def extract_cargo_miles(vessels: list[Vessel], idx: int | slice) -> list[NDArray
     return [vessel.expectation.get_cargo_miles(idx) for vessel in vessels]
 
 
+def get_total_power_capacity(vessel: Vessel) -> float:
+    """
+    Total installed converter power capacity on a vessel.
+
+    Parameters
+    ----------
+    vessel
+        Vessel whose power-system converters are summed.
+
+    Returns
+    -------
+    Total installed power across the converters, MW.
+    """
+
+    return sum([converter.power_capacity.get() for converter in vessel.power_system.get_converters()])
+
+
 def get_cargo_miles(fleet: Fleet, idx: int) -> float:
     multipliers = fleet.get_multipliers()
     cargo_miles = extract_cargo_miles(fleet.assets, idx)

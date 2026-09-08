@@ -49,6 +49,7 @@ from navigate.util.numeric import (
     find_nearest,
     get_increment_origin_index,
     get_increments_origin_index,
+    interpolate_tied_capital,
     is_non_strictly_increasing,
     is_strictly_increasing,
     normalize_fractional,

@@ -145,6 +145,27 @@ def normalize_fractional(values, times):
     return out
 
 
+def interpolate_tied_capital(tied_capital_flow: np.ndarray, age: float) -> float:
+    """
+    Interpolate the remaining tied-up capital of an increment at a given age
+    from its yearly tied-capital flow.
+
+    Parameters
+    ----------
+    tied_capital_flow
+        Remaining tied-up capital per year over the increment's life.
+    age
+        Age of the increment in years.
+
+    Returns
+    -------
+    Remaining tied-up capital at the given age.
+    """
+
+    time_flow = np.arange(0, tied_capital_flow.size) * YEAR
+    return np.interp(age * YEAR, time_flow, tied_capital_flow)
+
+
 def get_increments_origin_index(years, current_year, ages):
     """
     Find the time-step indexes at which a increments (vessel or plant) entered the simulation at 'age' years ago.
