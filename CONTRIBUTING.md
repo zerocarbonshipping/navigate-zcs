@@ -54,16 +54,13 @@ values, so that the provenance of the model inputs stays traceable.
 ## Testing
 
 All tests must pass before a pull request can be merged. Run the full suite
-with `make test-all`, or the individual suites during development:
+with `make test-all`, or the individual suites during development.
 
-New code needs appropriate test coverage:
-
-- New node attributes must be covered by the attribute tests
-  (`tests/attribute`).
-- New non-trivial calculations need a unit test (`tests/unit`).
-- Changes that alter simulation results should explain the difference in the
-  pull request description and must keep the behavior guardrails passing
-  (`tests/guardrails` — see its `README.md` before touching thresholds).
+New code needs appropriate test coverage: `tests/README.md` says which suite
+a check belongs in and points to each suite's conventions. Changes that alter
+simulation results should explain the difference in the pull request
+description and must keep the behavior guardrails passing (`tests/guardrails`
+— see its `README.md` before touching thresholds).
 
 ## Questions
 
