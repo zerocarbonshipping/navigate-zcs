@@ -32,12 +32,17 @@ its signal, not its size.
 
 - A table of (input, expected) pairs is one parametrized test, not one
   function per pair.
-- Build real nodes (`set_*` + `initialize()`) instead of mocking them —
-  `tests/unit/fleet/test_residual_energy.py` is the pattern. A test that
-  needs screens of mock setup is testing at the wrong altitude.
-- Importing a shared private base or kernel that solely owns the logic is
-  correct; importing private steps of a public function pins its
-  decomposition — test the public function instead.
+- Prefer real nodes (`set_*` + `initialize()`) where construction is cheap —
+  `tests/unit/fleet/test_residual_energy.py` is the pattern. A stub that only
+  carries input data (`tests/unit/test_emission_coefficient.py`'s ports) is
+  fine; mock choreography that mirrors the implementation's call sequence, or
+  screens of setup, means the test sits at the wrong altitude.
+- Private functions are a normal test surface: test at whatever level the
+  contract can be stated without reference to the caller (a formula, a
+  validation rule), underscore or not. What pins a decomposition is a test
+  that transcribes the caller's internal data flow — intermediate tuple
+  shapes, call ordering, orchestration state with no contract of its own;
+  test the enclosing function instead.
 - Numeric tolerances are module-level constants whose rationale lives in a
   comment on the constant (same convention as the guardrail suite).
 
