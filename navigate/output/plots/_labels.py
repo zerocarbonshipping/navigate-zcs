@@ -50,7 +50,6 @@ FUEL_TYPE_LABEL = {
     FuelTypeID.AMMONIA:     'Ammonia',
     FuelTypeID.ELECTRICITY: 'Electricity',
     FuelTypeID.HYDROGEN:    'Hydrogen',
-    FuelTypeID.LPG:         'LPG',
     FuelTypeID.METHANE:     'Methane',
     FuelTypeID.METHANOL:    'Methanol',
     FuelTypeID.OIL:         'Oil'
@@ -61,7 +60,6 @@ FUEL_TYPE_COLOR = {
     FuelTypeID.AMMONIA:      CENTER_COLORS_BLUE[4],
     FuelTypeID.ELECTRICITY:  CENTER_COLORS_GREEN[3],
     FuelTypeID.HYDROGEN:     CENTER_COLORS_YELLOW[5],
-    FuelTypeID.LPG:          CENTER_COLORS_GREY[4],
     FuelTypeID.METHANE:      CENTER_COLORS_RED[4],
     FuelTypeID.METHANOL:     CENTER_COLORS_GREEN[4],
     FuelTypeID.OIL:          CENTER_COLORS_GREY[5]
@@ -73,7 +71,6 @@ FUEL_TYPE_COLOR = {
 # or groups by fuel type.
 FUEL_TYPE_ORDER = (
     FuelTypeID.OIL,
-    FuelTypeID.LPG,
     FuelTypeID.METHANE,
     FuelTypeID.METHANOL,
     FuelTypeID.AMMONIA,
@@ -89,7 +86,6 @@ FUEL_LABEL = {
     'diesel_electro':              'e-diesel',
     'electricity':                 'Electricity',
     'fatty_acid_methyl_ester':     'FAME',
-    'liquefied_petroleum_gas':     'LPG',
     'liquefied_natural_gas':       'LNG',
     'heavy_fuel_oil':              'HFO',
     'fossil_fuel_oil':             'Fuel oil',
@@ -110,7 +106,6 @@ FUEL_COLOR = {
     'electricity':                CENTER_COLORS_GREEN[1],
     'oil_bio':                    np.array([158., 88., 88.]) / 255.,
     'fatty_acid_methyl_ester':    np.array([250., 200., 194.]) / 255.,
-    'liquefied_petroleum_gas':    np.array([140., 140., 140.]) / 255.,
     'liquefied_natural_gas':      np.array([220., 220., 220.]) / 255.,
     'heavy_fuel_oil':             np.array([65., 65., 65.]) / 255.,
     'fossil_fuel_oil':            np.array([65., 65., 65.]) / 255.,
@@ -127,7 +122,6 @@ FUEL_COLOR = {
 # and is a subset of the FUEL_LABEL / FUEL_COLOR keys.
 FUEL_ORDER = (
     'fossil_fuel_oil',
-    'liquefied_petroleum_gas',
     'liquefied_natural_gas',
     'ammonia_grey',
     'fatty_acid_methyl_ester',

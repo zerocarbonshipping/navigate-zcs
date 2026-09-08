@@ -121,7 +121,7 @@ This attribute sets the pilot fuel types that a Converter can use. All 'PilotFue
 * **Legal values**: [FuelTypeID](appendix_ids.md#fueltypeid)
 * **Example values**:
   + `OIL`
-  + `[OIL, LPG]`
+  + `[OIL, METHANOL]`
 * **Default**: None.
 
 ### MinimumPilotFuel

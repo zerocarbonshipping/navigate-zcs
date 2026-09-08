@@ -15,7 +15,6 @@ class FuelTypeID(Enum):
     ELECTRICITY = auto()
     ETHANOL = auto()
     HYDROGEN = auto()
-    LPG = auto()
     METHANE = auto()
     METHANOL = auto()
     OIL = auto()

@@ -48,7 +48,6 @@ Different fuels can have the same fuel type, as a fuel corresponds to a fuel-pat
 | ELECTRICITY | Not actually a fuel, but a way to implement battery-electric vessels.                                                |
 | ETHANOL     | The fuel primarily consists of the molecule ethanol.  Fuel example: Bio-ethanol.                                     |
 | HYDROGEN    | The fuel primarily consists of the molecule hydrogen.  Fuel examples: Blue hydrogen, e-hydrogen, grey hydrogen.      |
-| LPG         | The fuel is a pressurized liquefied gas. Fuel examples: Butane and propane.                                          |
 | METHANE     | The fuel primarily consists of the molecule methane.  Fuel examples: LNG, bio-methane.                               |
 | METHANOL    | The fuel primarily consists of the molecule methanol.  Fuel examples: Bio-methanol, e-methanol.                      |
 | OIL         | The fuel is an oil or diesel based fuel. Fuel examples: HFO, LFO, VLSFO, MDO, MGO, bio-diesel, bio-oil, or e-diesel. |
