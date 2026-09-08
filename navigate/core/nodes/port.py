@@ -33,7 +33,7 @@ class Port(Node):
     def __init__(self, name):
         super().__init__(name, PORT)
 
-        # external properties ------------------------------------------------------------------------------------------
+        # external variables -------------------------------------------------------------------------------------------
         # bunkering
         self.bunkering_allowed = {}    # dict[bool], whether bunkering of a fuel is allowed
         self.bunkering_limit = {}      # dict[float], maximum achievable bunkering of a fuel in the port, ton/year
@@ -52,7 +52,11 @@ class Port(Node):
         self.shore_power_connection_share: Scalar | None = None   # fraction [0,1]
         self.shore_power_emission_factor = {}                     # dict[emission_name: Scalar], ton/GJ (internal)
 
-    # external commands called in the input deck -----------------------------------------------------------------------
+        # internal variables -------------------------------------------------------------------------------------------
+        self.expectation: PortExpectation = PortExpectation()
+        self.profile: PortProfile = PortProfile()
+
+    # external methods (DSL commands) ----------------------------------------------------------------------------------
     def set_bunkering_allowed(self, fuel_name, value):
         """
         Set whether it is allowed to bunker a specific fuel in the port.
@@ -309,26 +313,11 @@ class Port(Node):
     def initialize_expectation(self, length: int, fuels: dict[str, Fuel],
                                emissions: dict[str, Emission]) -> None:
 
-        self.expectation = PortExpectation()
         self.expectation.initialize(length, fuels, emissions)
 
     def initialize_profile(self, timeline: np.ndarray, emissions: dict[str, Emission],
                            fuels: dict[str, Fuel], lifetime: float) -> None:
-        """
 
-        Parameters
-        ----------
-        timeline : np.ndarray
-            Simulation timeline in years.
-        fuels : dict[Fuel]
-            All fuels in the simulation.
-        emissions : dict[Emission]
-            Dict of class Emission.
-        lifetime : float
-            GWP lifetime.
-        """
-
-        self.profile = PortProfile()
         self.profile.initialize(timeline, emissions, fuels, lifetime)
 
     def calculate_expectation(self, timeline, idx):

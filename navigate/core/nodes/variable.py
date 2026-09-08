@@ -13,12 +13,13 @@ class Variable(Node, _Calculator):
         Node.__init__(self, name, VARIABLE)
         _Calculator.__init__(self)
 
+        # internal variables -------------------------------------------------------------------------------------------
         self._value = None
 
     def __repr__(self):
         return str(self.get())
 
-    # external attributes set through the input deck -------------------------------------------------------------------
+    # external methods (DSL attributes) --------------------------------------------------------------------------------
     def set_value(self, value):
         self._value = assign_value(value)
 

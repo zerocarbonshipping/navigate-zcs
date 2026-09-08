@@ -10,10 +10,11 @@ class Process(Node):
     def __init__(self, name):
         super().__init__(name, PROCESS)
 
+        # external variables -------------------------------------------------------------------------------------------
         self.feeds = []        # list[Feedstock | Process], feedstock or sub-process used in the process
         self.conversions = []  # list[float], conversion factor for each process/feedstock
 
-    # external attributes set through the input deck -------------------------------------------------------------------
+    # external methods (DSL attributes) --------------------------------------------------------------------------------
     def set_feeds(self, feeds):
         """
         Set the list of feedstocks or output from other processes used in the process.

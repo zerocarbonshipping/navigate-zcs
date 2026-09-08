@@ -17,11 +17,13 @@ BOUNDS_MAP = {'-INF': -np.inf,
 class _Calculator:
     def __init__(self):
 
+        # external variables -------------------------------------------------------------------------------------------
         self.addition = 0.
         self.multiplier = 1.
         self.lower_bound = -np.inf
         self.upper_bound = np.inf
 
+        # internal variables -------------------------------------------------------------------------------------------
         # extrapolation warning
         self._extrapolation_warned = False
 
@@ -34,7 +36,7 @@ class _Calculator:
         self._applied_lower_bound = -np.inf
         self._applied_upper_bound = np.inf
 
-    # external attributes set through the input deck -------------------------------------------------------------------
+    # external methods (DSL attributes) --------------------------------------------------------------------------------
     def set_addition(self, addition):
         """
         Set the addition of the calculator.

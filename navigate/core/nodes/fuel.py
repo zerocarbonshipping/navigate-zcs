@@ -13,6 +13,7 @@ class Fuel(Node):
     def __init__(self, name):
         super().__init__(name, FUEL)
 
+        # external variables -------------------------------------------------------------------------------------------
         # definition
         self.fuel_type = None              # enum, fuel type ID
         self.liquid_market = False         # bool, whether the fuel belongs to a liquid market
@@ -24,7 +25,7 @@ class Fuel(Node):
         # emissions
         self.ttw = {}                      # dict, emission factor in ton of emission per ton of fuel
 
-    # external attributes set through the input deck -------------------------------------------------------------------
+    # external methods (DSL attributes) --------------------------------------------------------------------------------
     def set_fuel_type(self, fuel_type):
         """
         Set the fuel type of the fuel.
@@ -95,7 +96,7 @@ class Fuel(Node):
 
         self.mass_density = assign_value(as_scalar(mass_density), type_=VARIABLE, lower=0.)
 
-    # external commands called in the input deck -----------------------------------------------------------------------
+    # external methods (DSL commands) ----------------------------------------------------------------------------------
     def set_ttw(self, emission_name, ttw):
         """
         Set the TTW emission factor during a stoichiometric process of fuel conversion to energy.

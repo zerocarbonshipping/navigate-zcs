@@ -17,12 +17,13 @@ class _Machinery(Node):
     def __init__(self, name: str, type_: str) -> None:
         super().__init__(name, type_)
 
+        # external variables -------------------------------------------------------------------------------------------
         self.capex = None          # float, CAPEX for installation
         self.opex = None           # float, OPEX for installation
         self.lifetime = None       # float, lifetime of the installation
         self.replacement = None    # float, fraction of CAPEX paid when replacing at end of lifetime
 
-    # external attributes set through the input deck -------------------------------------------------------------------
+    # external methods (DSL attributes) --------------------------------------------------------------------------------
     def set_capex(self, capex):
         """
         Set the CAPEX related to installing the machinery.

@@ -19,6 +19,7 @@ class _Table2D(_Calculator):
     def __init__(self):
         _Calculator.__init__(self)
 
+        # external variables -------------------------------------------------------------------------------------------
         # interpolation
         self._interpolate = Interpolate2DID.LINEAR
 
@@ -26,6 +27,7 @@ class _Table2D(_Calculator):
         self.extrapolate = ExtrapolateID.LINEAR
         self._outside = None
 
+        # internal variables -------------------------------------------------------------------------------------------
         self.x = None
         self.y = None
         self._z = None
@@ -42,7 +44,7 @@ class _Table2D(_Calculator):
         if self.x is not None and self.y is not None and self._z is not None:
             self._set_table(self.x, self.y, self._z)
 
-    # external attributes set through the input deck -------------------------------------------------------------------
+    # external methods (DSL attributes) --------------------------------------------------------------------------------
     def set_interpolate(self, interpolate):
         self._interpolate = assign_id(interpolate, Interpolate2DID)
 

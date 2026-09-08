@@ -28,10 +28,11 @@ class Report(Node):
     def __init__(self, name):
         super().__init__(name, REPORT)
 
-        # external properties
+        # external variables -------------------------------------------------------------------------------------------
         self._directory = None  # str, either relative to deck directory or absolute path
         self._file_format = FileFormatID.XLSX  # Default format for backward compatibility
 
+        # internal variables -------------------------------------------------------------------------------------------
         # reports
         self._manager_reports = {}
         self._fleet_reports = {}
@@ -42,11 +43,11 @@ class Report(Node):
         self._regulation_reports = {}
         self._vessel_reports = {}
 
-        # static properties
+        # static variables
         self._wb = None
         self._csv_data = None
 
-    # external attributes set through the input deck -------------------------------------------------------------------
+    # external methods (DSL attributes) --------------------------------------------------------------------------------
     def set_directory(self, directory):
         """
         Set the directory for where to export the report. Can be either a relative or absolute path.
@@ -77,7 +78,7 @@ class Report(Node):
         else:
             self._file_format = file_format
 
-    # external commands called in the input deck -----------------------------------------------------------------------
+    # external methods (DSL commands) ----------------------------------------------------------------------------------
     def add_property(self, attribute, reduce=None):
         self._add_property('global', self._manager_reports, attribute, reduce=reduce)
 

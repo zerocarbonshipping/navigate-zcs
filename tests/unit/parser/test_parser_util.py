@@ -435,9 +435,9 @@ class TestReferenceScanExclude:
     cannot accumulate silently in the reference-resolution scan."""
 
     def test_entries_are_real_node_attributes(self):
-        from navigate.core.nodes.curve import Curve
+        from navigate.parser._keywords import NODE_CLASS
         from navigate.parser.parser import REFERENCE_SCAN_EXCLUDE
 
-        curve = Curve('c')
+        attributes = set().union(*(vars(cls('x')).keys() for cls in NODE_CLASS.values()))
         for entry in REFERENCE_SCAN_EXCLUDE:
-            assert entry in vars(curve), entry
+            assert entry in attributes, entry

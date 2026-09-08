@@ -25,6 +25,7 @@ class Plant(Node):
     def __init__(self, name):
         super().__init__(name, PLANT)
 
+        # external variables -------------------------------------------------------------------------------------------
         self.fuel = None       # Fuel, the fuel being produced by the plant
         self.process = None    # Process, the top-level production process used at the plant
         self.region = None     # Region, region in which fuel is being produced.
@@ -43,10 +44,14 @@ class Plant(Node):
         self.fuel_transport = {}  # dict[port_name: Transport], transport mode for delivering the produced fuel
         self.fuel_distance = {}   # dict[port_name: float], distance to the port, nautical miles
 
-        # cross-check properties
+        # internal variables -------------------------------------------------------------------------------------------
+        self.expectation: PlantExpectation = PlantExpectation()
+        self.profile: PlantProfile = PlantProfile()
+
+        # cross-check variables
         self.producer_assignment = None  # name of producer plant is assigned to
 
-    # external attributes set through the input deck -------------------------------------------------------------------
+    # external methods (DSL attributes) --------------------------------------------------------------------------------
     def set_fuel(self, fuel):
         """
         Set the fuel which is produced by the plant.
@@ -202,7 +207,7 @@ class Plant(Node):
 
         self.cost_of_capital = assign_value(as_scalar(cost_of_capital), type_=(FORECAST, VARIABLE), lower=0.)
 
-    # external commands called in the input deck -----------------------------------------------------------------------
+    # external methods (DSL commands) ----------------------------------------------------------------------------------
     def set_feed_transport(self, feed_name, value):
         """
         Set the transport mode used for transporting a specific feedstock or process output the plant.
@@ -371,13 +376,11 @@ class Plant(Node):
                                feedstocks: dict[str, Feedstock], ports: dict[str, Port],
                                processes: dict[str, Process]) -> None:
 
-        self.expectation = PlantExpectation()
         self.expectation.initialize(length, emissions, feedstocks, ports, processes)
 
     def initialize_profile(self, timeline: np.ndarray, emissions: dict[str, Emission],
                            emissions_lifetime: float) -> None:
 
-        self.profile = PlantProfile()
         self.profile.initialize(timeline, self.fuel, emissions, emissions_lifetime)
 
     def set_producer_assignment(self, producer_name):

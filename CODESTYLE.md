@@ -102,6 +102,7 @@ for entry in entries:
     entry.value *= ratio
 ```
 
+- Node modules section their `__init__` variables and methods with full-width (120-column) comment dividers, using only these labels: `external variables`, `internal variables`, `external methods (DSL attributes)`, `external methods (DSL commands)`, `internal methods`.
 - Prefer guard clauses over deeply nested `if`/`else`.
 - Group related local variables; do not interleave them with logic.
 - Keep functions focused. If you cannot name what a function does without "and", consider splitting.

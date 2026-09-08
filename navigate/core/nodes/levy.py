@@ -18,11 +18,16 @@ class Levy(_Policy):
     def __init__(self, name):
         super().__init__(name, LEVY)
 
+        # external variables -------------------------------------------------------------------------------------------
         self.level = None              # dict[vessel_name: float], level of the levy, USD/ton emission
         self.lower_threshold = None    # float, reference emissions factor between penalty and subsidy
         self.upper_threshold = None    # float, upper cap on emission factor for penalty calculation
 
-    # external attributes set through the input deck -------------------------------------------------------------------
+        # internal variables -------------------------------------------------------------------------------------------
+        self.expectation: LevyExpectation = LevyExpectation()
+        self.profile: LevyProfile = LevyProfile()
+
+    # external methods (DSL attributes) --------------------------------------------------------------------------------
     def set_scheme(self, scheme):
         """
         Set the scheme of the levy.
@@ -135,12 +140,9 @@ class Levy(_Policy):
         self._initialize_policy_dependencies(vessels)
 
     def initialize_expectation(self, length: int) -> None:
-        self.expectation = LevyExpectation()
         self.expectation.initialize(length, [e.name for e in self.emissions])
 
     def initialize_profile(self, timeline: np.ndarray) -> None:
-
-        self.profile = LevyProfile()
         self.profile.initialize(timeline)
 
     def calculate_expectation(self, emissions, emissions_lifetime, timeline, idx):

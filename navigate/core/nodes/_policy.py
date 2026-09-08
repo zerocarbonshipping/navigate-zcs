@@ -22,6 +22,7 @@ class _Policy(Node):
     def __init__(self, name: str, type_: str) -> None:
         super().__init__(name, type_)
 
+        # external variables -------------------------------------------------------------------------------------------
         # active
         self.active = None                 # bool, whether the regulation is active and known
 
@@ -44,10 +45,10 @@ class _Policy(Node):
         self.fuel_wtt = {}     # dict[(fuel_name, emission_name): float], policy specified WTT emissions factor
         self.fuel_ttw = {}     # dict[(fuel_name, emission_name): float], policy specified TTW emissions factor
 
-        # internal attributes
+        # internal variables -------------------------------------------------------------------------------------------
         self.in_jurisdiction_vessel = {}  # dict[vessel_name: bool], whether a vessel is outside the jurisdiction
 
-    # external attributes set through the input deck -------------------------------------------------------------------
+    # external methods (DSL attributes) --------------------------------------------------------------------------------
     def set_active(self, active):
         """
         Set the flag for whether the policy is active.
@@ -171,7 +172,7 @@ class _Policy(Node):
 
         self.emissions_lifetime = assign_value(as_scalar(emissions_lifetime), type_=VARIABLE, lower=0.)
 
-    # external commands called in the input deck -----------------------------------------------------------------------
+    # external methods (DSL commands) ----------------------------------------------------------------------------------
     def set_include_vessel(self, vessel_name, include_vessel):
         """
         Set whether a specific vessel is impacted by the policy.

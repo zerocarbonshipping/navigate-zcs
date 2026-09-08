@@ -11,10 +11,11 @@ class Emission(Node):
     def __init__(self, name):
         super().__init__(name, EMISSION)
 
+        # external variables -------------------------------------------------------------------------------------------
         self.global_warming_potential = None
         self.fuel_type = None
 
-    # external attributes set through the input deck -------------------------------------------------------------------
+    # external methods (DSL attributes) --------------------------------------------------------------------------------
     def set_global_warming_potential(self, global_warming_potential):
         """
         Set the Global Warming Potential (GWP) of the emission.

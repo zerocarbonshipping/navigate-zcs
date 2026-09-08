@@ -58,6 +58,7 @@ class Fleet(_AssetManager):
     def __init__(self, name: str) -> None:
         super().__init__(name, FLEET)
 
+        # external variables -------------------------------------------------------------------------------------------
         self.trade_growth: ScalarLike = None                        # Trade-growth of the fleet
         self.fixed_scrap_rate: ScalarLike = None                    # Fixed scrap rate to replace age based
         self.allow_secondary_scrapping: bool = True                 # Whether to allow secondary scrapping
@@ -77,8 +78,6 @@ class Fleet(_AssetManager):
         self.speed_horizon: ScalarLike = None                       # Belief horizon for speed management, years
         self.fuel_conversion_minimum_age: Scalar | None = None      # Minimum age of fuel conversions
         self.allow_technology_approximation: bool = True            # Whether to allow technology approximation
-        self.projected_multipliers: NDArray[np.float64] | None = None       # Naive projection of future multipliers
-        self.fuel_conversion_expenses: NDArray[np.float64] | None = None    # Rolling costs of previous fuel conversions
         self.initial_split: list[float] = []                        # Fraction of vessel type at start
         self.initial_technology_share: dict[tuple[str, str], Curve | None] = {}  # (vessel, tech) -> Curve
         self.orderbooks: list[Forecast] = []                        # Cumulative vessels by date
@@ -93,6 +92,13 @@ class Fleet(_AssetManager):
         self.allow_vessel: dict[str, bool | None] = {}              # Whether a vessel is allowed
         self.newbuild_available: dict[str, bool | None] = {}        # Whether newbuild is available
         self.conversion_available: dict[str, bool | None] = {}      # Whether conversion is available
+
+        # internal variables -------------------------------------------------------------------------------------------
+        self.expectation: FleetExpectation = FleetExpectation()
+        self.profile: FleetProfile = FleetProfile()
+
+        self.projected_multipliers: NDArray[np.float64] | None = None       # Naive projection of future multipliers
+        self.fuel_conversion_expenses: NDArray[np.float64] | None = None    # Rolling costs of previous fuel conversions
         self.trade: NDArray[np.float64] = np.ndarray(0)             # Trade by the fleet, cargo-miles
         self.newbuild_package_uptake: list[NDArray[np.float64]] = []                # EE uptake on newbuilds
         self.orders_delivered: NDArray[np.float64] = np.empty(0)    # Orders delivered per vessel type
@@ -103,7 +109,7 @@ class Fleet(_AssetManager):
     # public domain name for the inherited assets list
     vessels = property(lambda self: self.assets)
 
-    # external attributes set through the input deck -------------------------------------------------------------------
+    # external methods (DSL attributes) --------------------------------------------------------------------------------
 
     def set_vessels(self, vessels: list[NodeReference]):
         """
@@ -260,33 +266,6 @@ class Fleet(_AssetManager):
         """
 
         self.technologies = assign_list(as_list(technologies), unique=True, scalar=False, type_=TECHNOLOGY)
-
-    def set_initial_technology_share(self, vessel_name: str, technology_name: str, uptake_curve):
-        """
-        Set the initial technology uptake as a function of vessel age.
-
-        The Curve x-axis is vessel age, y-axis is uptake fraction [0, 1].
-        Supports wildcards for vessel_name and technology_name.
-
-        Examples
-        --------
-        - "*oil*", "hull_painting*", Curve("uptake_hull_painting")
-        - "vessel_name", "technology_name", Curve("uptake_curve")
-
-        Parameters
-        ----------
-        vessel_name
-            Name of vessel type (supports wildcards).
-        technology_name
-            Name of technology (supports wildcards).
-        uptake_curve
-            Curve with age on x-axis and uptake fraction on y-axis.
-        """
-
-        command_assignment_to_tuple_dict(
-            (vessel_name, technology_name), uptake_curve,
-            self.initial_technology_share, scalar=False, type_=CURVE, lower=0., upper=1.
-        )
 
     def set_intra_fuel_sensitivity(self, intra_fuel_sensitivity: float | NodeReference):
         """
@@ -575,75 +554,6 @@ class Fleet(_AssetManager):
         self.fuel_conversion_minimum_age = assign_value(as_scalar(fuel_conversion_minimum_age),
                                                         type_=(FORECAST, VARIABLE), lower=0.)
 
-    def set_newbuild_limit(self, vessel_name: str, limit: float | NodeReference):
-        """
-        Set the maximum share of a single timestep's newbuild cargo-miles delivered by the given vessel type.
-
-        The limit is enforced across the orderbook, inertia, and modelled-uptake newbuild sources, so the
-        cumulative share across the three sources cannot exceed the configured value.
-
-        Examples
-        --------
-        - "vessel_oil", 0.4
-        - "*ammonia*", Forecast("name")
-
-        Parameters
-        ----------
-        vessel_name
-            Name of the vessel (wildcards supported).
-        limit
-            Maximum share in [0, 1].
-        """
-
-        command_assignment_to_dict(vessel_name, limit, self.newbuild_limit, type_=(FORECAST, VARIABLE),
-                                   lower=0., upper=1.)
-
-    def set_newbuild_technology_limit(self, technology_name: str, limit: float | NodeReference):
-        """
-        Set the maximum fraction of the existing fleet that can install the technology on newbuilds in one year.
-
-        Cap is enforced as ``installs_A_per_year <= limit * y``, where ``y`` is the pre-newbuild total
-        multipliers of the fleet. Independent from the retrofit cap.
-
-        Examples
-        --------
-        - "scrubber", 0.05
-        - "ammonia_kit", Forecast("name")
-
-        Parameters
-        ----------
-        technology_name
-            Name of the technology (wildcards supported).
-        limit
-            Maximum yearly install share in [0, 1].
-        """
-
-        command_assignment_to_dict(technology_name, limit, self.newbuild_technology_limit,
-                                   type_=(FORECAST, VARIABLE), lower=0., upper=1.)
-
-    def set_retrofit_technology_limit(self, technology_name: str, limit: float | NodeReference):
-        """
-        Set the maximum fraction of the existing fleet that can retrofit to the technology in one year.
-
-        Cap is enforced as ``retrofits_A_per_year <= limit * y``, where ``y`` is the pre-newbuild total
-        multipliers of the fleet. Independent from the newbuild cap.
-
-        Examples
-        --------
-        - "scrubber", 0.03
-        - "ammonia_kit", Forecast("name")
-
-        Parameters
-        ----------
-        technology_name
-            Name of the technology (wildcards supported).
-        limit
-            Maximum yearly retrofit share in [0, 1].
-        """
-
-        command_assignment_to_dict(technology_name, limit, self.retrofit_technology_limit,
-                                   type_=(FORECAST, VARIABLE), lower=0., upper=1.)
-
     def set_allow_technology_approximation(self, allow_technology_approximation: str):
         """
         Set the flag for whether the fleet should approximate technology uptake based on an average impact on technology
@@ -664,53 +574,7 @@ class Fleet(_AssetManager):
 
         self.allow_technology_approximation = assign_id(allow_technology_approximation, BOOL_ID)
 
-    def set_operational_saving_sea(self, energy_type: str, saving):
-        """
-        Set the fraction of energy saved at sea through operational measures (e.g., JIT arrival, weather routing).
-
-        These represent zero-cost energy reductions that are not modeled through technology business cases.
-
-        Examples
-        --------
-        - PROPULSION, 0.1
-        - ELECTRICAL, Forecast("name")
-
-        Parameters
-        ----------
-        energy_type
-            Energy demand type (PROPULSION, ELECTRICAL, HEAT).
-        saving
-            Fraction of energy saved.
-        """
-
-        id_ = assign_id(energy_type, EnergyDemandTypeID)
-        command_assignment_to_dict(id_, saving, self.operational_saving_sea, type_=(FORECAST, VARIABLE),
-                                   lower=0., upper=1.)
-
-    def set_operational_saving_port(self, energy_type: str, saving):
-        """
-        Set the fraction of energy saved in port through operational measures.
-
-        These represent zero-cost energy reductions that are not modeled through technology business cases.
-
-        Examples
-        --------
-        - ELECTRICAL, 0.1
-        - HEAT, Forecast("name")
-
-        Parameters
-        ----------
-        energy_type
-            Energy demand type (ELECTRICAL, HEAT).
-        saving
-            Fraction of energy saved.
-        """
-
-        id_ = assign_id(energy_type, EnergyDemandTypeID)
-        command_assignment_to_dict(id_, saving, self.operational_saving_port, type_=(FORECAST, VARIABLE),
-                                   lower=0., upper=1.)
-
-    # external commands called in the input deck -----------------------------------------------------------------------
+    # external methods (DSL commands) ----------------------------------------------------------------------------------
     def set_fuel_conversion_cost(self, vessel_name_from: str, vessel_name_to: str, fuel_conversion_cost: float):
         """
         Set the cost of performing a fuel conversion of a vessel from one type to another, in USD.
@@ -825,6 +689,148 @@ class Fleet(_AssetManager):
         """
 
         command_assignment_to_boolean_dict(vessel_name, conversion_available, self.conversion_available, allow_empty=True)
+
+    def set_initial_technology_share(self, vessel_name: str, technology_name: str, uptake_curve):
+        """
+        Set the initial technology uptake as a function of vessel age.
+
+        The Curve x-axis is vessel age, y-axis is uptake fraction [0, 1].
+        Supports wildcards for vessel_name and technology_name.
+
+        Examples
+        --------
+        - "*oil*", "hull_painting*", Curve("uptake_hull_painting")
+        - "vessel_name", "technology_name", Curve("uptake_curve")
+
+        Parameters
+        ----------
+        vessel_name
+            Name of vessel type (supports wildcards).
+        technology_name
+            Name of technology (supports wildcards).
+        uptake_curve
+            Curve with age on x-axis and uptake fraction on y-axis.
+        """
+
+        command_assignment_to_tuple_dict(
+            (vessel_name, technology_name), uptake_curve,
+            self.initial_technology_share, scalar=False, type_=CURVE, lower=0., upper=1.
+        )
+
+    def set_newbuild_limit(self, vessel_name: str, limit: float | NodeReference):
+        """
+        Set the maximum share of a single timestep's newbuild cargo-miles delivered by the given vessel type.
+
+        The limit is enforced across the orderbook, inertia, and modelled-uptake newbuild sources, so the
+        cumulative share across the three sources cannot exceed the configured value.
+
+        Examples
+        --------
+        - "vessel_oil", 0.4
+        - "*ammonia*", Forecast("name")
+
+        Parameters
+        ----------
+        vessel_name
+            Name of the vessel (wildcards supported).
+        limit
+            Maximum share in [0, 1].
+        """
+
+        command_assignment_to_dict(vessel_name, limit, self.newbuild_limit, type_=(FORECAST, VARIABLE),
+                                   lower=0., upper=1.)
+
+    def set_newbuild_technology_limit(self, technology_name: str, limit: float | NodeReference):
+        """
+        Set the maximum fraction of the existing fleet that can install the technology on newbuilds in one year.
+
+        Cap is enforced as ``installs_A_per_year <= limit * y``, where ``y`` is the pre-newbuild total
+        multipliers of the fleet. Independent from the retrofit cap.
+
+        Examples
+        --------
+        - "scrubber", 0.05
+        - "ammonia_kit", Forecast("name")
+
+        Parameters
+        ----------
+        technology_name
+            Name of the technology (wildcards supported).
+        limit
+            Maximum yearly install share in [0, 1].
+        """
+
+        command_assignment_to_dict(technology_name, limit, self.newbuild_technology_limit,
+                                   type_=(FORECAST, VARIABLE), lower=0., upper=1.)
+
+    def set_retrofit_technology_limit(self, technology_name: str, limit: float | NodeReference):
+        """
+        Set the maximum fraction of the existing fleet that can retrofit to the technology in one year.
+
+        Cap is enforced as ``retrofits_A_per_year <= limit * y``, where ``y`` is the pre-newbuild total
+        multipliers of the fleet. Independent from the newbuild cap.
+
+        Examples
+        --------
+        - "scrubber", 0.03
+        - "ammonia_kit", Forecast("name")
+
+        Parameters
+        ----------
+        technology_name
+            Name of the technology (wildcards supported).
+        limit
+            Maximum yearly retrofit share in [0, 1].
+        """
+
+        command_assignment_to_dict(technology_name, limit, self.retrofit_technology_limit,
+                                   type_=(FORECAST, VARIABLE), lower=0., upper=1.)
+
+    def set_operational_saving_sea(self, energy_type: str, saving):
+        """
+        Set the fraction of energy saved at sea through operational measures (e.g., JIT arrival, weather routing).
+
+        These represent zero-cost energy reductions that are not modeled through technology business cases.
+
+        Examples
+        --------
+        - PROPULSION, 0.1
+        - ELECTRICAL, Forecast("name")
+
+        Parameters
+        ----------
+        energy_type
+            Energy demand type (PROPULSION, ELECTRICAL, HEAT).
+        saving
+            Fraction of energy saved.
+        """
+
+        id_ = assign_id(energy_type, EnergyDemandTypeID)
+        command_assignment_to_dict(id_, saving, self.operational_saving_sea, type_=(FORECAST, VARIABLE),
+                                   lower=0., upper=1.)
+
+    def set_operational_saving_port(self, energy_type: str, saving):
+        """
+        Set the fraction of energy saved in port through operational measures.
+
+        These represent zero-cost energy reductions that are not modeled through technology business cases.
+
+        Examples
+        --------
+        - ELECTRICAL, 0.1
+        - HEAT, Forecast("name")
+
+        Parameters
+        ----------
+        energy_type
+            Energy demand type (ELECTRICAL, HEAT).
+        saving
+            Fraction of energy saved.
+        """
+
+        id_ = assign_id(energy_type, EnergyDemandTypeID)
+        command_assignment_to_dict(id_, saving, self.operational_saving_port, type_=(FORECAST, VARIABLE),
+                                   lower=0., upper=1.)
 
     # internal methods -------------------------------------------------------------------------------------------------
     def initialize(self):
@@ -964,7 +970,6 @@ class Fleet(_AssetManager):
 
         vessel_names = [vessel.name for vessel in self.assets]
 
-        self.expectation = FleetExpectation()
         self.expectation.initialize(length, vessel_names, fuels)
 
     def initialize_profile(self, timeline: np.ndarray,
@@ -977,11 +982,10 @@ class Fleet(_AssetManager):
         vessel_names = [vessel.name for vessel in self.assets]
         technology_names = [technology.name for technology in self.technologies]
 
-        self.profile = FleetProfile()
         self.profile.initialize(timeline, vessel_names, technology_names, fuels, emissions, emissions_lifetime,
                                 regulation_names, levy_names)
 
-    # -- _AssetManager abstract interface -----------------------------------------------------------
+    # _AssetManager abstract interface
 
     def _get_initial_multiplier(self, index: int) -> float:
         return self.initial_split[index] * self.initial_vessels.get()
