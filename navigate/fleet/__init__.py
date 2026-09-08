@@ -12,7 +12,7 @@ from navigate.fleet.fuel_option import (
 )
 from navigate.fleet.initialization import initialize_existing_fleet
 from navigate.fleet.operation import update_operational_profile
-from navigate.fleet.post_process import post_process_investment_metric
+from navigate.fleet.post_process import post_process_fleet_profile, post_process_investment_metric
 from navigate.fleet.power import verify_power_capacity
 from navigate.fleet.scarcity_beliefs import (
     record_investment_signals,

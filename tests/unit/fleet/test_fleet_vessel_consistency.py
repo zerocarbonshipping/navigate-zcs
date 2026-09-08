@@ -9,7 +9,7 @@ import pytest
 from navigate.core.enum_ import EnergyDemandTypeID, FuelTypeID
 from navigate.core.profiles.fleet_profile import FleetProfile
 from navigate.core.profiles.vessel_profile import VesselProfile
-from navigate.fleet.aggregation import transfer_transport_work
+from navigate.fleet.post_process import aggregate_speed_profile, transfer_transport_work
 
 # ---------------------------------------------------------------------------
 # Builders
@@ -238,14 +238,15 @@ class TestShorePowerAccounting:
 class _FleetStub:
     """Minimal stand-in for Fleet as seen by transfer_transport_work."""
 
-    def __init__(self, profile, cargo_miles_by_idx):
+    def __init__(self, profile, cargo_miles_by_idx, name="a"):
         self.profile = profile
         vessel = MagicMock()
-        vessel.expectation.get_cargo_miles.side_effect = lambda idx: cargo_miles_by_idx[idx]
+        vessel.name = name
+        vessel.expectation.get_cargo_miles.return_value = np.asarray(cargo_miles_by_idx)
         self.assets = [vessel]
 
-    def get_multipliers(self):
-        return [1.0]
+        for idx in range(len(cargo_miles_by_idx)):
+            profile.set_existing_vessels(idx, name, 1.0)
 
 
 class TestEnergyIntensitySaving:
@@ -270,11 +271,9 @@ class TestEnergyIntensitySaving:
 
         fleet.add_fuel_consumer_profile(v_a, 10.0, 0)
         fleet.add_fuel_consumer_profile(v_b, 10.0, 0)
-        transfer_transport_work(stub, 0)
-
         fleet.add_fuel_consumer_profile(v_a, 1000.0 / 90.0, 1)
         fleet.add_fuel_consumer_profile(v_b, 10.0, 1)
-        transfer_transport_work(stub, 1)
+        transfer_transport_work(stub)
 
         np.testing.assert_allclose(fleet.get_cargo_miles(), [1100.0, 1100.0])
         np.testing.assert_allclose(fleet.get_baseline_energy(), [1200.0, 1200.0])
@@ -319,11 +318,10 @@ class TestEnergyIntensitySaving:
         v._raw_energy_sea[EnergyDemandTypeID.PROPULSION][:] = [0.0, 500.0]
 
         fleet = _make_fleet_profile(timeline, fuels, emissions, vessel_names=["v"])
-        stub = _FleetStub(fleet, cargo_miles_by_idx=[0.0, 400.0])
+        stub = _FleetStub(fleet, cargo_miles_by_idx=[0.0, 400.0], name="v")
 
-        transfer_transport_work(stub, 0)
         fleet.add_fuel_consumer_profile(v, 4.0, 1)
-        transfer_transport_work(stub, 1)
+        transfer_transport_work(stub)
 
         np.testing.assert_allclose(fleet.get_baseline_energy(), [0.0, 0.0])
         np.testing.assert_allclose(fleet.get_speed_energy_intensity_saving(), [0.0, 0.0])
@@ -341,3 +339,65 @@ class TestEnergyIntensitySaving:
         assert v.get_speed_energy_intensity_saving(1) == pytest.approx(1.0 - 0.729 / 0.9)
         assert v.get_speed_energy_saving(1) == pytest.approx(1.0 - 0.729)
         assert v.get_technology_energy_intensity_saving(1) == pytest.approx(v.get_technology_energy_saving(1))
+
+
+def _vessel_with_speeds(timeline, fuels, emissions, name, **speeds):
+    vessel = MagicMock()
+    vessel.name = name
+    vessel.profile = _make_vessel_profile(timeline, fuels, emissions)
+    for speed_name, value in speeds.items():
+        getattr(vessel.profile, "set_{}_speed".format(speed_name))(0, value)
+    return vessel
+
+
+class TestSpeedAggregation:
+    """Fleet speeds are multiplier-weighted averages under the NaN-mask rules."""
+
+    def test_weighted_averages_and_nan_masks(self, timeline, fuels, emissions):
+        # vessel "a" (2 ships): every speed defined. Vessel "b" (3 ships):
+        # reference and optimal undefined, minimum/maximum/actual defined, so
+        # it counts toward every non-reference average and its undefined
+        # optimal poisons only that one. Vessel "c" (5 ships): minimum
+        # undefined, so it is excluded from every average except the
+        # reference. Hand math at step 0:
+        #   reference = (2*10 + 5*14) / (2+3+5) = 9.0
+        #   minimum = (2*8 + 3*6) / (2+3) = 6.8
+        #   maximum = (2*12 + 3*10) / 5 = 10.8
+        #   actual = (2*11 + 3*8) / 5 = 9.2
+        #   lowest = (2*7 + 3*5) / 5 = 5.8
+        #   highest = (2*13 + 3*11) / 5 = 11.8
+        vessel_a = _vessel_with_speeds(timeline, fuels, emissions, "a", reference=10.,
+                                       minimum=8., maximum=12., actual=11., optimal=9.,
+                                       lowest=7., highest=13.)
+        vessel_b = _vessel_with_speeds(timeline, fuels, emissions, "b",
+                                       minimum=6., maximum=10., actual=8.,
+                                       lowest=5., highest=11.)
+        vessel_c = _vessel_with_speeds(timeline, fuels, emissions, "c", reference=14.,
+                                       maximum=100., actual=100.)
+
+        fleet = MagicMock()
+        fleet.profile = _make_fleet_profile(timeline, fuels, emissions, vessel_names=["a", "b", "c"])
+        fleet.assets = [vessel_a, vessel_b, vessel_c]
+
+        for name, multiplier in (("a", 2.), ("b", 3.), ("c", 5.)):
+            fleet.profile.set_existing_vessels(0, name, multiplier)
+
+        aggregate_speed_profile(fleet)
+
+        profile = fleet.profile
+        assert profile.get_reference_speed(0) == pytest.approx(9.0)
+        assert profile.get_minimum_speed(0) == pytest.approx(6.8)
+        assert profile.get_maximum_speed(0) == pytest.approx(10.8)
+        assert profile.get_actual_speed(0) == pytest.approx(9.2)
+        assert np.isnan(profile.get_optimal_speed(0))
+        assert profile.get_lowest_speed(0) == pytest.approx(5.8)
+        assert profile.get_highest_speed(0) == pytest.approx(11.8)
+
+        # step 1 has no vessels in the fleet: every average is undefined
+        assert np.isnan(profile.get_reference_speed(1))
+        assert np.isnan(profile.get_minimum_speed(1))
+        assert np.isnan(profile.get_maximum_speed(1))
+        assert np.isnan(profile.get_actual_speed(1))
+        assert np.isnan(profile.get_optimal_speed(1))
+        assert np.isnan(profile.get_lowest_speed(1))
+        assert np.isnan(profile.get_highest_speed(1))

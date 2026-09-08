@@ -169,7 +169,7 @@ class VesselProfile(_FuelConsumerProfile):
     def set_technology_cost(self, idx: int, cost: float) -> None:
         self._technology_cost[idx] = cost
 
-    def set_in_fleet(self, idx: int, in_fleet: bool) -> None:
+    def set_in_fleet(self, idx: int | slice, in_fleet: bool | np.ndarray) -> None:
         self._in_fleet[idx] = in_fleet
 
     def set_cost_is_calculated(self, idx: int, cost_is_calculated: bool) -> None:

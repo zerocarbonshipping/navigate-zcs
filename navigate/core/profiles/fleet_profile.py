@@ -95,7 +95,7 @@ class FleetProfile(_VesselAggregateProfile):
     def set_trade(self, idx: int, trade: float) -> None:
         self._trade[idx] = trade
 
-    def set_cargo_miles(self, idx: int, cargo_miles: float) -> None:
+    def set_cargo_miles(self, idx: int | slice, cargo_miles: float | np.ndarray) -> None:
         self._cargo_miles[idx] = cargo_miles
 
     def set_existing_vessels(self, idx: int, vessel_name: str, existing_vessels: float) -> None:
@@ -120,25 +120,25 @@ class FleetProfile(_VesselAggregateProfile):
     def set_retrofit_technology_uptake(self, idx: int, vessel_name: str, technology_name: str, uptake: float) -> None:
         self._retrofit_technology_uptake[(vessel_name, technology_name)][idx] = uptake
 
-    def set_reference_speed(self, idx: int, reference_speed: float) -> None:
+    def set_reference_speed(self, idx: int | slice, reference_speed: float | np.ndarray) -> None:
         self._reference_speed[idx] = reference_speed
 
-    def set_minimum_speed(self, idx: int, minimum_speed: float) -> None:
+    def set_minimum_speed(self, idx: int | slice, minimum_speed: float | np.ndarray) -> None:
         self._minimum_speed[idx] = minimum_speed
 
-    def set_maximum_speed(self, idx: int, maximum_speed: float) -> None:
+    def set_maximum_speed(self, idx: int | slice, maximum_speed: float | np.ndarray) -> None:
         self._maximum_speed[idx] = maximum_speed
 
-    def set_actual_speed(self, idx: int, actual_speed: float) -> None:
+    def set_actual_speed(self, idx: int | slice, actual_speed: float | np.ndarray) -> None:
         self._actual_speed[idx] = actual_speed
 
-    def set_optimal_speed(self, idx: int, optimal_speed: float) -> None:
+    def set_optimal_speed(self, idx: int | slice, optimal_speed: float | np.ndarray) -> None:
         self._optimal_speed[idx] = optimal_speed
 
-    def set_lowest_speed(self, idx: int, lowest_speed: float) -> None:
+    def set_lowest_speed(self, idx: int | slice, lowest_speed: float | np.ndarray) -> None:
         self._lowest_speed[idx] = lowest_speed
 
-    def set_highest_speed(self, idx: int, highest_speed: float) -> None:
+    def set_highest_speed(self, idx: int | slice, highest_speed: float | np.ndarray) -> None:
         self._highest_speed[idx] = highest_speed
 
     def set_instantaneous_freight_rate(self, idx: int, instantaneous_freight_rate: float) -> None:
