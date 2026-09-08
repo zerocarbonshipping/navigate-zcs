@@ -1,7 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-import os
+"""
+The Plot node collects which plots to render and where; the rendering is done by
+navigate.output.plots.render.generate_plots, driven by the simulation manager. The Plot node is
+not assigned on any other node.
+"""
 
 from navigate.core.node import Node
 from navigate.core.node_type import PLOT
@@ -30,23 +34,3 @@ class Plot(Node):
     # external methods (DSL commands) ----------------------------------------------------------------------------------
     def add_plot(self, label):
         self.selected_plots.add(label)
-
-    # internal methods -------------------------------------------------------------------------------------------------
-    def initialize(self):
-        pass
-
-    def generate_plots(self, plot_data):
-        """
-        Generate plots from exported plot data.
-
-        Parameters
-        ----------
-        plot_data : PlotData
-            The plot data container with simulation state.
-        """
-        from navigate.output.plots.render import render_plots
-
-        deck_directory = plot_data.deck_directory
-        directory = os.path.join(deck_directory, self.directory) if self.directory else None
-        selected_plots = self.selected_plots or None  # empty set → None → all plots
-        render_plots(plot_data, directory=directory, selected_plots=selected_plots)

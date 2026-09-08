@@ -55,6 +55,16 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   5-decimal precision.
 
 ### Changed
+- **Breaking** for code importing navigate as a library: the `Report` and
+  `Plot` node classes no longer carry export methods — the core → `output`
+  back-edge is gone. `Report.start_export`, `end_export`, and the
+  `export_*` methods are replaced by the free function
+  `navigate.output.report_writer.write_report`, which owns the workbook/CSV state and the
+  per-sheet error containment; `Plot.generate_plots` is replaced by
+  `navigate.output.plots.render.generate_plots`, a free function taking the
+  plot node. `NodeReport` moves from `navigate.output.report_writer` to
+  `navigate.core.nodes.report`. The DSL surface and simulation results are
+  unchanged.
 - Internal simplification (no DSL or result changes): node initialization is
   unified on one idiom — `initialize_dependencies` seeds dictionary keys with
   `setdefault(key, None)` and all defaulting happens in `initialize` via

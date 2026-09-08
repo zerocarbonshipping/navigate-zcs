@@ -50,11 +50,15 @@ output      → core, util
 simulation  → everything
 ```
 
-Known back-edge: core table/report/plot nodes call into
-`logging_`/`output`
+`exceptions.py` and `logging_.py` are foundation modules available to every
+layer alongside `util`.
+
+Known back-edge: the core table nodes call into `logging_`, which itself
+imports `core.unit`
 ([#22](https://github.com/zerocarbonshipping/navigate-zcs/issues/22)).
-`tests/unit/test_layering.py` enforces that `core/` has no runtime import
-of `fleet/` or `fuel/`.
+`tests/unit/test_layering.py` enforces that `core/` imports nothing from
+`navigate` at runtime beyond `core/`, `util/`, `exceptions.py`, and
+`logging_.py`.
 
 ## Data-flow invariants
 
