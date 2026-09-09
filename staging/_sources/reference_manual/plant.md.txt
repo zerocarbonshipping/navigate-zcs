@@ -112,7 +112,7 @@ This attribute sets the planning to production lead time of the plant in years.
 
 ### CostOfCapital
 
-This attribute sets the cost of capital used to calculate the costs associated with financing the investment (through debt and equity) as well as the discount rate used in calculating the levelized cost of production.
+This attribute sets the cost of capital used to calculate the costs associated with financing the investment (through debt and equity) as well as the discount rate used in calculating the levelized costs of production and delivery.
 
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
