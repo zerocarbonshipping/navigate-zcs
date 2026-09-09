@@ -63,6 +63,15 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   trim now sits in the shared `get_flow_size`/`get_flow_residual`
   primitives, so every flow-sizing caller quantizes lifetimes at the same
   5-decimal precision.
+- The expected fuel-delivery cost from plant to port is production-levelized
+  over the same window as the levelized cost of production: rates and
+  distance are sampled over the plant's operating years (construction lead
+  time excluded, re-anchored at every forward step) and levelized against
+  the discounted production flow. It was previously age-levelized with the
+  cost flow spanning the remaining simulation timeline but the leveling flow
+  spanning the plant lifetime, so even a constant per-ton rate did not
+  levelize to itself and the delivery cost drifted with the remaining
+  horizon. Results change for any deck assigning `FuelTransport` on a plant.
 
 ### Changed
 - **Breaking** for code importing navigate as a library: the `Report` and
