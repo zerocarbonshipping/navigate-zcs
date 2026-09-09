@@ -21,7 +21,7 @@ newbuild counts per vessel type are known; the reconciled shares reach the profi
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -110,6 +110,21 @@ class _RetrofitProposal:
         (CAPEX-sorted order). May exceed the number of steps; callers guard.
         """
         return technology_idx - self.package_idx + 1
+
+
+@dataclass
+class _CapContribution:
+    """One share vector's contribution to a technology's cap aggregate."""
+
+    shares: np.ndarray  # retrofit choices or newbuild uptake; tail scaled in place when the cap binds
+    start: int          # first index adopting the capped technology
+    weight: float       # vessels behind the vector: eligible_count (retrofit) or newbuild count
+
+    # sum of shares[start:], cached at construction and reused by the scale pass
+    adopting_share: float = field(init=False)
+
+    def __post_init__(self) -> None:
+        self.adopting_share = float(np.sum(self.shares[self.start:]))
 
 
 def build_technology_packages(technologies: list[Technology]
@@ -496,24 +511,13 @@ def reconcile_retrofit_technology_caps(fleet: Fleet,
     retrofits adopting it this timestep does not exceed `limit · multipliers_total · time_step / YEAR`.
 
     The cap aggregate weights each proposal's tail-sum by its `eligible_count`, matching the count
-    `_apply_retrofits` will produce.
+    `_apply_retrofits` will produce. Displaced mass moves to the stay option (see
+    `_scale_tails_to_cap`).
 
     Iterates technologies from outermost to innermost in the CAPEX-sorted package order. Scaling a
     single proposal's tail (`choices[k_start:]`) reduces retrofits for *all* technologies introduced
     by those steps, so processing the outer technologies first keeps the inner-technology aggregates
     monotonic.
-
-    Model choice — where displaced mass goes
-    ----------------------------------------
-    When a cap on technology `i` binds, the displaced share of every proposal that adopts `i` is
-    moved to `choices[0]` (the "stay" / no-retrofit option), not to the nearest feasible package
-    below `i`. For a cumulative package list `[none, A, A+B]` with a binding cap on B, demand for
-    `A+B` in excess of the cap is sent to `none`, even when A's own cap has slack — it is *not*
-    reallocated to the `A`-only package.
-
-    This is intentional. The package is the unit of choice in the DCM upstream; if decision makers
-    ranked `A+B` highest and B is rationed, the model reads that as "defer this cycle" rather than
-    "fall back to a package they did not pick".
 
     Parameters
     ----------
@@ -542,9 +546,7 @@ def reconcile_retrofit_technology_caps(fleet: Fleet,
         technology_name = sorted_technologies[i].name
         cap = fleet.retrofit_technology_limit[technology_name].get() * budget
 
-        # Cache (proposal, tail_sum) so the binding-case scale pass doesn't re-sum.
         contributions = []
-        aggregate = 0.
         for proposal in proposals:
             if proposal.package_idx > i:
                 continue
@@ -553,18 +555,9 @@ def reconcile_retrofit_technology_caps(fleet: Fleet,
             if k_start >= len(proposal.choices):
                 continue
 
-            tail_sum = float(np.sum(proposal.choices[k_start:]))
-            aggregate += proposal.eligible_count * tail_sum
-            contributions.append((proposal.choices, k_start, tail_sum))
+            contributions.append(_CapContribution(proposal.choices, k_start, proposal.eligible_count))
 
-        if aggregate <= cap + TOLERANCE:
-            continue
-
-        scale = cap / aggregate
-
-        for choices, k_start, tail_sum in contributions:
-            choices[k_start:] *= scale
-            choices[0] += (1. - scale) * tail_sum
+        _scale_tails_to_cap(contributions, cap)
 
 
 def reconcile_newbuild_technology_caps(fleet: Fleet,
@@ -577,8 +570,8 @@ def reconcile_newbuild_technology_caps(fleet: Fleet,
     `limit · multipliers_total · time_step / YEAR`.
 
     Iterates technologies from outermost to innermost in the CAPEX-sorted package order, mirroring
-    the retrofit reconciliation. Reductions push displaced probability into the no-technology
-    package (`uptake[0]`), preserving the invariant that each per-vessel uptake vector sums to 1.
+    the retrofit reconciliation. Displaced probability moves to the no-technology package (see
+    `_scale_tails_to_cap`), preserving the invariant that each per-vessel uptake vector sums to 1.
 
     Parameters
     ----------
@@ -609,24 +602,50 @@ def reconcile_newbuild_technology_caps(fleet: Fleet,
         k_start = i + 1
 
         contributions = []
-        aggregate = 0.
         for v in range(len(fleet.assets)):
             uptake = fleet.newbuild_package_uptake[v]
             if k_start >= len(uptake) or increments[v] <= 0.:
                 continue
 
-            tail_sum = float(np.sum(uptake[k_start:]))
-            aggregate += float(increments[v]) * tail_sum
-            contributions.append((uptake, tail_sum))
+            contributions.append(_CapContribution(uptake, k_start, float(increments[v])))
 
-        if aggregate <= cap + TOLERANCE:
-            continue
+        _scale_tails_to_cap(contributions, cap)
 
-        scale = cap / aggregate
 
-        for uptake, tail_sum in contributions:
-            uptake[k_start:] *= scale
-            uptake[0] += (1. - scale) * tail_sum
+def _scale_tails_to_cap(contributions: list[_CapContribution], cap: float) -> None:
+    """
+    Scale the adopting tails of the contributions so their weighted aggregate fits the cap.
+
+    Model choice — where displaced mass goes
+    ----------------------------------------
+    When a cap binds, the displaced share of every contribution is moved to `shares[0]` (the
+    "stay" / no-technology option), not to the nearest feasible package below. For a cumulative
+    package list `[none, A, A+B]` with a binding cap on B, demand for `A+B` in excess of the cap
+    is sent to `none`, even when A's own cap has slack — it is *not* reallocated to the `A`-only
+    package. The package is the unit of choice in the DCM upstream; if decision makers ranked
+    `A+B` highest and B is rationed, the model reads that as "defer this cycle" (retrofits) or
+    "build without technology" (newbuilds) rather than "fall back to a package they did not pick".
+
+    Parameters
+    ----------
+    contributions
+        The share vectors adopting the capped technology, with cached tail sums.
+    cap
+        Maximum weighted aggregate of adopting shares this time-step.
+    """
+
+    aggregate = 0.
+    for contribution in contributions:
+        aggregate += contribution.weight * contribution.adopting_share
+
+    if aggregate <= cap + TOLERANCE:
+        return
+
+    scale = cap / aggregate
+
+    for contribution in contributions:
+        contribution.shares[contribution.start:] *= scale
+        contribution.shares[0] += (1. - scale) * contribution.adopting_share
 
 
 def _apply_retrofits(proposals: list[_RetrofitProposal]) -> None:
