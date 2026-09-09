@@ -8,8 +8,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.unit import YEAR_TO_DAYS
-from navigate.economics.flows import build_operating_age_flow, get_flow_size
+from navigate.economics.flows import build_operating_flows, get_flow_size
 from navigate.economics.metric import calculate_net_present_value
 from navigate.fleet.utils import get_total_power_capacity
 from navigate.util import TOLERANCE, divide_nonzero
@@ -336,37 +335,6 @@ def _aggregate_fleet_freight_rate(fleet, timeline):
             fleet.profile.set_instantaneous_freight_rate(idx, cost_weighted / cargo_weighted)
 
 
-def _operating_flows(idx, lead_time, lifetime, timeline):
-    """
-    Build the lead-aware operating-year grid and overlap fractions for a vessel evaluated at a step.
-
-    The overlap is zero during the construction lead time and (prorated) one during operational years;
-    the year grid gives the absolute calendar time (days) of each bin, anchored at the evaluation step.
-    Both span `lead_time + lifetime` years so reconstructed cost, cargo, and age flows share one basis.
-
-    Parameters
-    ----------
-    idx : int
-        Time-step index at which the vessel is evaluated.
-    lead_time : float
-        Construction lead time (years).
-    lifetime : float
-        Operational lifetime (years).
-    timeline : np.ndarray
-        Full timeline of the simulation (days).
-
-    Returns
-    -------
-    tuple[np.ndarray, np.ndarray]
-        Absolute year grid (days) and per-year operating fraction.
-    """
-
-    overlap = build_operating_age_flow(lead_time, lifetime)
-    year_flow = timeline[idx] + np.arange(overlap.size) * YEAR_TO_DAYS
-
-    return year_flow, overlap
-
-
 def _calculate_total_vessel_operating_expenses(vessel, idx, timeline):
     """
     Assigns the fuel, levy, regulation, and technology expenses for a vessel in the fleet at a given time
@@ -406,7 +374,7 @@ def _calculate_total_vessel_operating_expenses(vessel, idx, timeline):
 
     # operating-year grid: zero during construction lead time, operational
     # thereafter, so costs are only incurred while the vessel operates
-    year_flow, overlap = _operating_flows(idx, lead_time, lifetime, timeline)
+    year_flow, overlap = build_operating_flows(timeline[idx], lead_time, lifetime)
 
     fuel = np.interp(year_flow, timeline, profile.get_total_fuel_expenses()) * overlap
     levy = np.interp(year_flow, timeline, profile.get_total_levy_expenses()) * overlap

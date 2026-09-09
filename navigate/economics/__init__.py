@@ -11,6 +11,7 @@ from navigate.economics.flows import (
     add_variable_wtt,
     build_cargo_flow,
     build_operating_age_flow,
+    build_operating_flows,
     build_production_flow,
     correct_flow_residual,
     expand_to_flow,
