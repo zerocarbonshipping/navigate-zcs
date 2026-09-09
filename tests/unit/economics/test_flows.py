@@ -4,7 +4,14 @@
 """Tests for the yearly cash-flow helpers (navigate/economics/flows.py)."""
 import numpy as np
 
-from navigate.economics.flows import get_flow_residual, get_flow_size, trim_flow_to_lifetime
+from navigate.core.unit import YEAR_TO_DAYS
+from navigate.economics.flows import (
+    Component,
+    build_operating_flows,
+    get_flow_residual,
+    get_flow_size,
+    trim_flow_to_lifetime,
+)
 
 
 class TestGetFlowSize:
@@ -17,6 +24,34 @@ class TestGetFlowSize:
 
     def test_fuzz_collapses_to_year_boundary(self):
         assert get_flow_size(lead_time=0., lifetime=4. + 1e-9) == 4
+
+
+class TestBuildOperatingFlows:
+
+    def test_whole_years(self):
+        year_flow, overlap = build_operating_flows(time_initial=10. * YEAR_TO_DAYS, lead_time=2., lifetime=3.)
+        np.testing.assert_array_almost_equal(year_flow, np.array([10., 11., 12., 13., 14.]) * YEAR_TO_DAYS)
+        np.testing.assert_array_almost_equal(overlap, [0., 0., 1., 1., 1.])
+
+    def test_fractional_lead_time_prorates_commissioning_year(self):
+        # operation runs from the end of the lead time to the end of the
+        # flow horizon, so only the commissioning year is prorated
+        year_flow, overlap = build_operating_flows(time_initial=0., lead_time=1.5, lifetime=3.)
+        np.testing.assert_array_almost_equal(year_flow, np.arange(5.) * YEAR_TO_DAYS)
+        np.testing.assert_array_almost_equal(overlap, [0., 0.5, 1., 1., 1.])
+
+    def test_matches_component_window(self):
+        # the delivery-cost levelization builds its operating window through
+        # this helper while the production-cost levelization builds it through
+        # Component; both must describe the same window for the levelized
+        # delivered cost to be a consistent sum of the two
+        component = Component()
+        component.initialize_flow(lead_time=1.5, lifetime=3., time_initial=7. * YEAR_TO_DAYS)
+
+        year_flow, overlap = build_operating_flows(time_initial=7. * YEAR_TO_DAYS, lead_time=1.5, lifetime=3.)
+
+        np.testing.assert_array_almost_equal(year_flow, component.year_flow)
+        np.testing.assert_array_almost_equal(overlap, component.constant_overlap)
 
 
 class TestGetFlowResidual:

@@ -438,6 +438,37 @@ def build_operating_age_flow(lead_time: float, lifetime: float) -> np.ndarray:
     return _overlap_year_bins(year_starts, commence, end) / YEAR_TO_DAYS
 
 
+def build_operating_flows(time_initial: float,
+                          lead_time: float,
+                          lifetime: float) -> tuple[np.ndarray, np.ndarray]:
+    """
+    Build the lead-aware operating-year grid and overlap fractions for an asset evaluated at a given time.
+
+    The overlap is zero during the construction lead time and (prorated) one during operational years;
+    the year grid gives the absolute calendar time (days) of each bin, anchored at the evaluation time.
+    Both span `lead_time + lifetime` years so reconstructed cost, production, and age flows share one basis.
+
+    Parameters
+    ----------
+    time_initial
+        Absolute time (days) at which the asset is evaluated.
+    lead_time
+        Construction lead time (years).
+    lifetime
+        Operational lifetime (years).
+
+    Returns
+    -------
+    tuple[np.ndarray, np.ndarray]
+        Absolute year grid (days) and per-year operating fraction.
+    """
+
+    overlap = build_operating_age_flow(lead_time, lifetime)
+    year_flow = time_initial + np.arange(overlap.size) * YEAR_TO_DAYS
+
+    return year_flow, overlap
+
+
 def get_flow_shape(lead_time: float, lifetime: float) -> tuple[int]:
     """
     Get the shape of the vector required to store an asset's construction and lifetime operations in yearly increments.
