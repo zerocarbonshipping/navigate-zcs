@@ -7,7 +7,7 @@ Verifies:
   - Levelization identity: discounting the constant charge over its window reproduces
     the NPV of the event's cost flow, for full-lifetime and fractional windows.
   - Retrofit-step annual costs mirror the incremental package cost flows.
-  - apply_uptake_transition accumulates the moved-share-weighted annuity.
+  - _apply_retrofits accumulates the moved-share-weighted annuity.
   - clean_up_multipliers merges the carried rate multiplier-weighted.
   - Fuel conversion carries the rate onto the target vessel type.
   - The cargo charter metrics shift by exactly the technology charge.
@@ -38,7 +38,8 @@ from navigate.fleet.package import (
 )
 from navigate.fleet.planning import add_newbuilds
 from navigate.fleet.technology_adoption import (
-    apply_uptake_transition,
+    _apply_retrofits,
+    _RetrofitProposal,
     calculate_package_charter_rates,
     define_initial_technology,
     transfer_technology_charter_rate,
@@ -132,29 +133,26 @@ class TestCalculatePackageCharterRates:
         np.testing.assert_almost_equal(rates[1], levelize_package_cost(flow, 10., DISCOUNT))
 
 
-class TestApplyUptakeTransition:
+class TestApplyRetrofits:
 
     def test_moved_share_accumulates_annuity(self):
-        fleet = Fleet.__new__(Fleet)
         increment = Increment(multiplier=10., age=5., dt=1.,
                               package_uptake=np.array([1., 0., 0.]))
-        fleet.increments = [[increment]]
 
         choices = np.array([0.5, 0.3, 0.2])
         annual_costs = np.array([0., 10., 25.])
-        apply_uptake_transition(fleet, 0, 0, 0, choices, annual_costs)
+        _apply_retrofits([_RetrofitProposal(0, increment, 0, choices, 1., annual_costs)])
 
         np.testing.assert_array_almost_equal(increment.package_uptake, [0.5, 0.3, 0.2])
         np.testing.assert_almost_equal(increment.technology_charter_rate, 0.3 * 10. + 0.2 * 25.)
 
     def test_partial_current_scales_charge(self):
-        fleet = Fleet.__new__(Fleet)
         increment = Increment(multiplier=10., age=5., dt=1.,
                               package_uptake=np.array([0.4, 0.6]),
                               technology_charter_rate=3.)
-        fleet.increments = [[increment]]
 
-        apply_uptake_transition(fleet, 0, 0, 0, np.array([0.5, 0.5]), np.array([0., 20.]))
+        _apply_retrofits([_RetrofitProposal(0, increment, 0, np.array([0.5, 0.5]), 0.4,
+                                            np.array([0., 20.]))])
 
         # only the 0.4 eligible share moves; the carried rate rises by 0.4 * 0.5 * 20
         np.testing.assert_almost_equal(increment.technology_charter_rate, 3. + 0.4 * 0.5 * 20.)
