@@ -27,6 +27,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   log, so a run whose results they affect could look clean on the console.
 
 ### Fixed
+- `set_initial_technology_share` values built from expressions (e.g.
+  `<0.5 * Curve("uptake")>`) are honored; the seeding previously accepted
+  only direct node references and silently ignored anything else, so
+  expression-valued shares left the fleet without initial technology.
 - `Levy`/`Regulation` values assigned through `set_fuel_wtt`, `set_fuel_ttw`,
   and `set_global_warming_potential` now survive timeline progression. The
   per-time-step dependency pass unconditionally re-seeded these dictionaries
@@ -74,6 +78,25 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   horizon. Results change for any deck assigning `FuelTransport` on a plant.
 
 ### Changed
+- Internal reorganization (no DSL or result changes): the retrofit flow of
+  `navigate/fleet/technology_adoption.py` communicates through
+  `_RetrofitProposal`/`_AdoptionBasis` dataclasses instead of an anonymous
+  6-tuple and loose per-vessel parameters; the two technology cap
+  reconcilers share their scaling arithmetic (`_scale_tails_to_cap`); the
+  residual-energy update and the missing-technology approximation are
+  decomposed into per-phase helpers. Outputs are bit-identical.
+- **Breaking** for code importing navigate as a library:
+  `get_technology_discount_rate` (folded into the per-vessel adoption
+  basis), `collect_retrofit_proposals` and `apply_uptake_transition`
+  (replaced by the module-internal `_propose_retrofits` and
+  `_apply_retrofits`), and `shares_to_package_mix`,
+  `calculate_packages_saving`, `reconcile_retrofit_technology_caps`, and
+  `transfer_retrofit_uptake` (renamed module-internal with a `_` prefix),
+  all in `navigate/fleet/technology_adoption.py`. No callers outside the
+  module remain.
+- The warning about a missing `TechnologyCostOfCapital` is removed; the
+  fallback to the vessel's cost of capital is documented on the attribute
+  instead.
 - **Breaking** for code importing navigate as a library: the `Report` and
   `Plot` node classes no longer carry export methods — the core → `output`
   back-edge is gone. `Report.start_export`, `end_export`, and the
