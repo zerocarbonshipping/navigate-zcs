@@ -140,12 +140,8 @@ class _TechnologyEffect:
 def build_technology_packages(technologies: list[Technology]
                               ) -> tuple[list[Package], dict[int, int]]:
     """
-    Sorts technologies by their CAPEX values and organizes them into packages.
-
-    Processes a list of technologies, sorts them based on their CAPEX
-    (Capital Expenditure) values, and then creates incremental subsets (packages)
-    of technologies. Also produces a mapping dictionary to associate package
-    indices with their respective technology indices from the original list.
+    Sort technologies by CAPEX and organize them into cumulative packages, from empty to full,
+    with a map from package index to the technology index in the original list.
 
     Parameters
     ----------
@@ -195,17 +191,15 @@ def calculate_package_charter_rates(packages: list[Package], vessel: Vessel) -> 
 
 def define_initial_technology(fleet: Fleet) -> None:
     """
-    Define and initialize the technology adoption structure and initial package uptakes.
-
-    Computes age-dependent initial technology adoption shares for each vessel increment.
-    Each (vessel, technology) pair may have an uptake Curve with age on the x-axis,
-    which is queried via interpolation at each increment's age.
+    Initialize the technology-adoption storage for the fleet and seed each vessel's initial
+    package uptake (see `_seed_vessel_initial_uptake`).
 
     Parameters
     ----------
     fleet
         The fleet to initialize technology for.
     """
+
     n_pkgs = len(fleet.technologies) + 1
     n_vessels = len(fleet.assets)
 
@@ -219,46 +213,67 @@ def define_initial_technology(fleet: Fleet) -> None:
     if not any(isinstance(v, Node) for v in fleet.initial_technology_share.values()):
         return
 
-    # apply per vessel, per age increment
     for v, vessel in enumerate(fleet.assets):
-        vessel_name = vessel.name
-        truncation_count = 0
-        truncated_tech_names: set[str] = set()
-
-        # seeded uptake is charged as if installed at build (consistent with the
-        # hull, which the instantaneous freight rate charges at full newbuild cost)
-        package_rates = calculate_package_charter_rates(fleet.technology_packages, vessel)
-
-        for inc in fleet.increments[v]:
-
-            # build per-technology shares for this increment's age
-            shares = np.zeros(len(fleet.technologies))
-            for t, tech in enumerate(fleet.technologies):
-                curve = fleet.initial_technology_share.get((vessel_name, tech.name))
-                if isinstance(curve, Node):
-                    shares[t] = curve.get(inc.age)
-
-            package_mix, truncated = shares_to_package_mix(
-                fleet.technologies, fleet.technology_packages, shares)
-            inc.package_uptake[:] = package_mix
-            inc.technology_charter_rate = float(np.dot(package_mix, package_rates))
-
-            if truncated:
-                truncation_count += 1
-                truncated_tech_names |= truncated
-
-        if truncation_count > 0:
-            techs = ", ".join(sorted(truncated_tech_names))
-            logger.warning(
-                "Truncated initial technology shares for vessel '%s' across %d age increment(s): %s",
-                vessel_name, truncation_count, techs,
-            )
+        _seed_vessel_initial_uptake(fleet, vessel, v)
 
 
-def shares_to_package_mix(technologies: list[Technology],
-                          packages: list[Package],
-                          shares: np.ndarray
-                          ) -> tuple[np.ndarray, set[str]]:
+def _seed_vessel_initial_uptake(fleet: Fleet, vessel: Vessel, vessel_idx: int) -> None:
+    """
+    Seed one vessel's age-dependent initial package mix and carried technology charge.
+
+    Each (vessel, technology) pair may have an uptake Curve with age on the x-axis, queried via
+    interpolation at each increment's age. Shares exceeding what the cumulative packages can
+    represent are truncated, with one warning per vessel.
+
+    Parameters
+    ----------
+    fleet
+        The fleet owning the vessel.
+    vessel
+        The vessel to seed initial uptake for.
+    vessel_idx
+        Index of `vessel` in `fleet.assets`.
+    """
+
+    vessel_name = vessel.name
+    truncation_count = 0
+    truncated_tech_names = set()
+
+    # seeded uptake is charged as if installed at build (consistent with the
+    # hull, which the instantaneous freight rate charges at full newbuild cost)
+    package_rates = calculate_package_charter_rates(fleet.technology_packages, vessel)
+
+    for inc in fleet.increments[vessel_idx]:
+
+        # build per-technology shares for this increment's age
+        shares = np.zeros(len(fleet.technologies))
+        for t, tech in enumerate(fleet.technologies):
+            curve = fleet.initial_technology_share.get((vessel_name, tech.name))
+            if isinstance(curve, Node):
+                shares[t] = curve.get(inc.age)
+
+        package_mix, truncated = _shares_to_package_mix(
+            fleet.technologies, fleet.technology_packages, shares)
+        inc.package_uptake[:] = package_mix
+        inc.technology_charter_rate = float(np.dot(package_mix, package_rates))
+
+        if truncated:
+            truncation_count += 1
+            truncated_tech_names |= truncated
+
+    if truncation_count > 0:
+        techs = ", ".join(sorted(truncated_tech_names))
+
+        logger.warning(
+            "Truncated initial technology shares for vessel '%s' across %d age increment(s): %s",
+            vessel_name, truncation_count, techs,
+        )
+
+
+def _shares_to_package_mix(technologies: list[Technology],
+                           packages: list[Package],
+                           shares: np.ndarray
+                           ) -> tuple[np.ndarray, set[str]]:
     """
     Convert per-technology shares into per-package shares by greedily allocating
     to larger packages first, then putting remainder into the empty package.
@@ -299,11 +314,11 @@ def shares_to_package_mix(technologies: list[Technology],
     return pkg_shares, truncated_techs
 
 
-def calculate_packages_saving(vessel: Vessel,
-                              packages: list[Package],
-                              timeline: NDArray[np.float64],
-                              idx: int
-                              ) -> list[NDArray[np.float64]]:
+def _calculate_packages_saving(vessel: Vessel,
+                               packages: list[Package],
+                               timeline: NDArray[np.float64],
+                               idx: int
+                               ) -> list[NDArray[np.float64]]:
     """
     Calculate the marginal energy saving for each technology package.
 
@@ -416,7 +431,7 @@ def _extract_adoption_basis(fleet: Fleet,
     else:
         discount_rate = vessel.cost_of_capital.get()
 
-    packages_saving = calculate_packages_saving(vessel, fleet.technology_packages, timeline, idx)
+    packages_saving = _calculate_packages_saving(vessel, fleet.technology_packages, timeline, idx)
 
     # NPV is non-dimensionalized by the summed ship CAPEX so the sensitivity is unit-free.
     capex_npv = vessel.expectation.get_capex_npv(idx)
