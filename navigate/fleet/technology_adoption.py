@@ -28,7 +28,6 @@ import numpy as np
 from numpy.typing import NDArray
 
 from navigate.core.enum_ import EnergyDemandTypeID, EnergyDemandTypePortID, UtilityID
-from navigate.core.node import Node
 from navigate.core.nodes.technology import Technology
 from navigate.core.nodes.vessel import Vessel
 from navigate.economics.decision import calculate_asset_shares
@@ -231,7 +230,7 @@ def define_initial_technology(fleet: Fleet) -> None:
         for inc in fleet.increments[v]:
             inc.package_uptake = np.zeros(n_pkgs, dtype=float)
 
-    if not any(isinstance(v, Node) for v in fleet.initial_technology_share.values()):
+    if all(share is None for share in fleet.initial_technology_share.values()):
         return
 
     for v, vessel in enumerate(fleet.assets):
@@ -270,7 +269,7 @@ def _seed_vessel_initial_uptake(fleet: Fleet, vessel: Vessel, vessel_idx: int) -
         shares = np.zeros(len(fleet.technologies))
         for t, tech in enumerate(fleet.technologies):
             curve = fleet.initial_technology_share.get((vessel_name, tech.name))
-            if isinstance(curve, Node):
+            if curve is not None:
                 shares[t] = curve.get(inc.age)
 
         package_mix, truncated = _shares_to_package_mix(

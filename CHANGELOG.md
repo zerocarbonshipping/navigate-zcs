@@ -27,6 +27,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   log, so a run whose results they affect could look clean on the console.
 
 ### Fixed
+- `set_initial_technology_share` values built from expressions (e.g.
+  `<0.5 * Curve("uptake")>`) are honored; the seeding previously accepted
+  only direct node references and silently ignored anything else, so
+  expression-valued shares left the fleet without initial technology.
 - `Levy`/`Regulation` values assigned through `set_fuel_wtt`, `set_fuel_ttw`,
   and `set_global_warming_potential` now survive timeline progression. The
   per-time-step dependency pass unconditionally re-seeded these dictionaries
