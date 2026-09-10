@@ -1006,14 +1006,12 @@ def _transfer_residual_energy(vessel: Vessel,
 
 def approximate_missing_technology(fleets: dict, idx: int) -> None:
     """
-    Estimates missing energy efficiency improvements for fleets and vessels, applies these
-    approximations to energy demands for both sea and port operations, and updates associated
-    vessel profiles and expectations.
+    Estimate energy-efficiency savings for fleets that cannot retrofit technologies from the
+    fleet-average savings of those that can, and apply them to the energy demand at sea and
+    in port of every fleet allowing the approximation.
 
-    The method pulls from vessels that can retrofit technologies and applies the average over
-    the fleet's vessels to estimate energy efficiency improvements.
-
-    Costs are ignored in this calculation, so we underestimate the costs of energy efficiency improvements.
+    Costs are ignored in this calculation, so the costs of energy efficiency improvements
+    are underestimated.
 
     Parameters
     ----------
@@ -1023,18 +1021,46 @@ def approximate_missing_technology(fleets: dict, idx: int) -> None:
         Current time-step index.
     """
 
-    average_energy_saving_sea = {energy: 0. for energy in EnergyDemandTypeID}
-    average_energy_saving_port = {energy: 0. for energy in EnergyDemandTypePortID}
+    average_saving_sea, average_saving_port = _average_retrofit_savings(fleets, idx)
 
-    weight_sea = {k: 0.0 for k in average_energy_saving_sea}
-    weight_port = {k: 0.0 for k in average_energy_saving_port}
+    for fleet in fleets.values():
+        if fleet.can_retrofit() or not fleet.allow_technology_approximation:
+            continue
+
+        for vessel in fleet.vessels:
+            _apply_approximated_saving(vessel, average_saving_sea, average_saving_port, idx)
+
+
+def _average_retrofit_savings(fleets: dict,
+                              idx: int
+                              ) -> tuple[dict[EnergyDemandTypeID, float],
+                                         dict[EnergyDemandTypePortID, float]]:
+    """
+    Energy-weighted average technology saving fractions over the retrofit-capable fleets.
+
+    Parameters
+    ----------
+    fleets
+        Mapping of fleet name to fleet object.
+    idx
+        Current time-step index.
+
+    Returns
+    -------
+    Tuple of (average saving fraction at sea, average saving fraction in port), per demand type.
+    """
+
+    average_saving_sea = {energy: 0. for energy in EnergyDemandTypeID}
+    average_saving_port = {energy: 0. for energy in EnergyDemandTypePortID}
+
+    weight_sea = {k: 0.0 for k in average_saving_sea}
+    weight_port = {k: 0.0 for k in average_saving_port}
 
     for fleet in fleets.values():
         if not fleet.can_retrofit():
             continue
 
-        vessels = fleet.vessels
-        for v, vessel in enumerate(vessels):
+        for v, vessel in enumerate(fleet.vessels):
             multiplier = fleet.get_multiplier(v)
             expectation = vessel.expectation
 
@@ -1043,46 +1069,89 @@ def approximate_missing_technology(fleets: dict, idx: int) -> None:
             savings_sea = expectation.get_energy_saving_sea(idx=idx)
             savings_port = expectation.get_energy_saving_port(idx=idx)
 
-            for k in average_energy_saving_sea:
-                for leg, _ in enumerate(raw_energy_sea[k]):
-                    weight = raw_energy_sea[k][leg] * multiplier
-                    average_energy_saving_sea[k] += savings_sea[k][leg] * weight
-                    weight_sea[k] += weight
-            for k in average_energy_saving_port:
-                for leg, _ in enumerate(raw_energy_port[k]):
-                    weight = raw_energy_port[k][leg] * multiplier
-                    average_energy_saving_port[k] += savings_port[k][leg] * weight
-                    weight_port[k] += weight
+            _accumulate_energy_weighted_saving(raw_energy_sea, savings_sea, multiplier,
+                                               average_saving_sea, weight_sea)
+            _accumulate_energy_weighted_saving(raw_energy_port, savings_port, multiplier,
+                                               average_saving_port, weight_port)
 
-    for k in average_energy_saving_sea:
-        average_energy_saving_sea[k] = (average_energy_saving_sea[k] / weight_sea[k]) if weight_sea[k] else 0.0
-    for k in average_energy_saving_port:
-        average_energy_saving_port[k] = (average_energy_saving_port[k] / weight_port[k]) if weight_port[k] else 0.0
+    for k in average_saving_sea:
+        average_saving_sea[k] = (average_saving_sea[k] / weight_sea[k]) if weight_sea[k] else 0.0
+    for k in average_saving_port:
+        average_saving_port[k] = (average_saving_port[k] / weight_port[k]) if weight_port[k] else 0.0
 
-    for fleet in fleets.values():
-        if fleet.can_retrofit() or not fleet.allow_technology_approximation:
-            continue
-        for vessel in fleet.vessels:
-            op_sea = vessel.expectation.get_operational_energy_sea(idx=idx)
-            op_port = vessel.expectation.get_operational_energy_port(idx=idx)
+    return average_saving_sea, average_saving_port
 
-            sav_sea = {k: [average_energy_saving_sea[k]] * len(op_sea[k])
-                       for k in average_energy_saving_sea if k in op_sea}
 
-            sav_port = {k: [average_energy_saving_port[k]] * len(op_port[k])
-                        for k in average_energy_saving_port if k in op_port}
+def _accumulate_energy_weighted_saving(raw_energy: dict,
+                                       savings: dict,
+                                       multiplier: float,
+                                       saving_totals: dict,
+                                       weight_totals: dict) -> None:
+    """
+    Accumulate one vessel's energy-weighted saving fractions into the running totals.
 
-            net_sea = net_energy_from_raw(op_sea, sav_sea)
-            net_port = net_energy_from_raw(op_port, sav_port)
-            regional_sea = convert_to_regional_steps(vessel, net_sea)
+    Parameters
+    ----------
+    raw_energy
+        Raw energy demand per demand type, one value per leg or port call; forms the
+        accumulation weight together with `multiplier`.
+    savings
+        Saving fraction per demand type, one value per leg or port call.
+    multiplier
+        Number of vessels of this type.
+    saving_totals
+        Running weighted saving sums per demand type; updated in place.
+    weight_totals
+        Running weight sums per demand type; updated in place.
+    """
 
-            vessel.expectation.set_energy_sea(idx, net_sea)
-            vessel.expectation.set_energy_port(idx, net_port)
-            vessel.expectation.set_regional_energy_sea(idx, regional_sea)
+    for k in saving_totals:
+        for leg, raw in enumerate(raw_energy[k]):
+            weight = raw * multiplier
+            saving_totals[k] += savings[k][leg] * weight
+            weight_totals[k] += weight
 
-            vessel.profile.set_energy_sea(
-                idx, {k: float(np.sum(net_sea[k])) for k in net_sea}
-            )
-            vessel.profile.set_energy_port(
-                idx, {k: float(np.sum(net_port[k])) for k in net_port}
-            )
+
+def _apply_approximated_saving(vessel: Vessel,
+                               average_saving_sea: dict[EnergyDemandTypeID, float],
+                               average_saving_port: dict[EnergyDemandTypePortID, float],
+                               idx: int) -> None:
+    """
+    Apply the fleet-average saving fractions to one vessel's operational energy and store the
+    net energy demand on expectation and profile.
+
+    Parameters
+    ----------
+    vessel
+        The vessel to apply the approximated savings to.
+    average_saving_sea
+        Average saving fraction at sea per demand type.
+    average_saving_port
+        Average saving fraction in port per demand type.
+    idx
+        Current time-step index.
+    """
+
+    op_sea = vessel.expectation.get_operational_energy_sea(idx=idx)
+    op_port = vessel.expectation.get_operational_energy_port(idx=idx)
+
+    sav_sea = {k: [average_saving_sea[k]] * len(op_sea[k])
+               for k in average_saving_sea if k in op_sea}
+
+    sav_port = {k: [average_saving_port[k]] * len(op_port[k])
+                for k in average_saving_port if k in op_port}
+
+    net_sea = net_energy_from_raw(op_sea, sav_sea)
+    net_port = net_energy_from_raw(op_port, sav_port)
+    regional_sea = convert_to_regional_steps(vessel, net_sea)
+
+    vessel.expectation.set_energy_sea(idx, net_sea)
+    vessel.expectation.set_energy_port(idx, net_port)
+    vessel.expectation.set_regional_energy_sea(idx, regional_sea)
+
+    vessel.profile.set_energy_sea(
+        idx, {k: float(np.sum(net_sea[k])) for k in net_sea}
+    )
+    vessel.profile.set_energy_port(
+        idx, {k: float(np.sum(net_port[k])) for k in net_port}
+    )
