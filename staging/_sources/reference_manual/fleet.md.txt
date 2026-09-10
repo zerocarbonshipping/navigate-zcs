@@ -134,7 +134,7 @@ This attribute sets the cost of capital used for evaluating technology investmen
   + `Forecast("name")`
 * **Unit**: Fraction
 * **Minimum value**: 0
-* **Default**: None
+* **Default**: None. When not supplied, each vessel's own [CostOfCapital](vessel.md#costofcapital) is used for its technology adoption decisions, which typically leads to a higher uptake of technologies.
 
 ### TechnologyHorizon
 
