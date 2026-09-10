@@ -94,6 +94,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `transfer_retrofit_uptake` (renamed module-internal with a `_` prefix),
   all in `navigate/fleet/technology_adoption.py`. No callers outside the
   module remain.
+- The warning about a missing `TechnologyCostOfCapital` is removed; the
+  fallback to the vessel's cost of capital is documented on the attribute
+  instead.
 - **Breaking** for code importing navigate as a library: the `Report` and
   `Plot` node classes no longer carry export methods — the core → `output`
   back-edge is gone. `Report.start_export`, `end_export`, and the

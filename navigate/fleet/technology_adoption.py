@@ -397,10 +397,6 @@ def perform_technology_installation(fleet: Fleet,
 
     preprocess_packages(fleet.technology_packages, fleet.assets, timeline[idx])
 
-    if not fleet.technology_cost_of_capital:
-        logger.warning(f"No technology cost of capital supplied for {fleet}, using vessel cost of capital."
-                       f" This will likely lead to a higher uptake of technologies.")
-
     # Pre-newbuild fleet count: denominator for both retrofit and newbuild-technology caps.
     multipliers_total = float(sum(fleet.get_multipliers()))
 
