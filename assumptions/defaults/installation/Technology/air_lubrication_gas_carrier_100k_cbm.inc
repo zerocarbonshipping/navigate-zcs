@@ -4,6 +4,6 @@
 Technology "air_lubrication_gas_carrier_100k_cbm" {
 	set_energy_saving(PROPULSION, 0.04)
 	
-	CAPEX = 2e6
-	OPEX = 20e3
+	Capex = 2e6
+	Opex = 20e3
 }

@@ -10,6 +10,6 @@ Converter "propulsion_ice_methanol_container_1500_teu" {
 	MinimumLoad = Variable("propulsion_minimum_load_container")
 	Efficiency = Variable("propulsion_methanol_efficiency")
 
-	CAPEX = Forecast("propulsion_methanol_capex")
-	OPEX = Forecast("propulsion_methanol_opex")
+	Capex = Forecast("propulsion_methanol_capex")
+	Opex = Forecast("propulsion_methanol_opex")
 }

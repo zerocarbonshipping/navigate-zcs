@@ -4,6 +4,6 @@
 Technology "flettner_rotor_bulk_carrier_panamax" {
 	set_external_power(PROPULSION, 0.4)
 	
-	CAPEX = 2e6
-	OPEX = 40e3
+	Capex = 2e6
+	Opex = 40e3
 }

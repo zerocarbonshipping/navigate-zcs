@@ -4,6 +4,6 @@
 Technology "shaft_motor_bulk_carrier_capesize" {
 	set_energy_saving(PROPULSION, 0.075)
 	
-	CAPEX = 8.26e6
-	OPEX = 20e3
+	Capex = 8.26e6
+	Opex = 20e3
 }

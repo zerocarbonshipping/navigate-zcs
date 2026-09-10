@@ -9,8 +9,8 @@ Converter "propulsion_ice_ammonia_other" {
 	PowerCapacity = Variable("other_propulsion_power_capacity")
 	Efficiency = Variable("propulsion_ammonia_efficiency")
 
-	CAPEX = Forecast("propulsion_ammonia_capex")
-	OPEX = Forecast("propulsion_ammonia_opex")
+	Capex = Forecast("propulsion_ammonia_capex")
+	Opex = Forecast("propulsion_ammonia_opex")
 	
 	set_consumption_ttw(AMMONIA, "nitrous_oxide", Variable("propulsion_ammonia_nitrous_oxide_release"))
 }

@@ -13,18 +13,18 @@ Report "report" {
 		
 	# port
 	add_port_property("*", BunkerIntensityPrice)				# USD/GJ
-	add_port_property("*", BunkerIntensityTotalEquivalentWTT)	# kg / GJ
+	add_port_property("*", BunkerIntensityTotalEquivalentWtt)	# kg / GJ
 		
 	# fleet
-	add_fleet_property("*", TotalEquivalentWTT)		# ton/year
-	add_fleet_property("*", TotalEquivalentTTW)		# ton/year
-	add_fleet_property("*", TotalEquivalentWTW)		# ton/year
+	add_fleet_property("*", TotalEquivalentWtt)		# ton/year
+	add_fleet_property("*", TotalEquivalentTtw)		# ton/year
+	add_fleet_property("*", TotalEquivalentWtw)		# ton/year
 	add_fleet_property("*", TotalConsumedEnergy)	# GJ/year
 
 	# global
-	add_property(TotalEquivalentWTT)				# ton/year
-	add_property(TotalEquivalentTTW)				# ton/year
-	add_property(TotalEquivalentWTW)				# ton/year
+	add_property(TotalEquivalentWtt)				# ton/year
+	add_property(TotalEquivalentTtw)				# ton/year
+	add_property(TotalEquivalentWtw)				# ton/year
 	add_property(TotalConsumedEnergy)				# GJ/year
 	add_property(ConsumedEnergy)					# GJ/year
 	add_property(InstalledPower)					# MW

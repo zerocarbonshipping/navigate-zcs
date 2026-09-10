@@ -6,6 +6,6 @@ PowerSystem "ice_methanol_cruise_100k_gt" {
 	Electrical = Converter("electrical_ice_methanol_cruise_100k_gt")
 	Heat = Converter("heat_boiler_oil_cruise_100k_gt")
 
-	CAPEX = Forecast("cruise_100k_gt_supply_system_methanol_capex")
-	OPEX = <Forecast("cruise_100k_gt_supply_system_methanol_capex") * Variable("supply_system_opex_percentage_of_capex")>
+	Capex = Forecast("cruise_100k_gt_supply_system_methanol_capex")
+	Opex = <Forecast("cruise_100k_gt_supply_system_methanol_capex") * Variable("supply_system_opex_percentage_of_capex")>
 }

@@ -16,7 +16,7 @@ Vessel "general_cargo_ice_ammonia" {
 	NominalCapacity = Variable("general_cargo_nominal_capacity")
 	Lifetime = Variable("general_cargo_lifetime")
 	
-	CAPEX = Forecast("general_cargo_capex")
-	OPEX = Forecast("general_cargo_opex")
+	Capex = Forecast("general_cargo_capex")
+	Opex = Forecast("general_cargo_opex")
 	CostOfCapital = Forecast("cost_of_capital_vessel_ammonia")
 }

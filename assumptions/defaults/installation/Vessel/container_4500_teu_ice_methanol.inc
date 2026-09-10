@@ -16,7 +16,7 @@ Vessel "container_4500_teu_ice_methanol" {
 	NominalCapacity = Variable("container_4500_teu_nominal_capacity")
 	Lifetime = Variable("container_4500_teu_lifetime")
 	
-	CAPEX = Forecast("container_4500_teu_capex")
-	OPEX = Forecast("container_4500_teu_opex")
+	Capex = Forecast("container_4500_teu_capex")
+	Opex = Forecast("container_4500_teu_opex")
 	CostOfCapital = Variable("cost_of_capital_vessel")
 }

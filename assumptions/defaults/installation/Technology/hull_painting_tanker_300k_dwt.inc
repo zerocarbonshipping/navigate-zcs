@@ -5,6 +5,6 @@ Technology "hull_painting_tanker_300k_dwt" {
 	set_energy_saving(PROPULSION, 0.05)
 	
 	Lifetime = 5.
-	CAPEX = 0.35e6
-	OPEX = 24e3
+	Capex = 0.35e6
+	Opex = 24e3
 }

@@ -16,7 +16,7 @@ Vessel "roro_7000_ceu_ice_oil" {
 	NominalCapacity = Variable("roro_7000_ceu_nominal_capacity")
 	Lifetime = Variable("roro_7000_ceu_lifetime")
 	
-	CAPEX = Forecast("roro_7000_ceu_capex")
-	OPEX = Forecast("roro_7000_ceu_opex")
+	Capex = Forecast("roro_7000_ceu_capex")
+	Opex = Forecast("roro_7000_ceu_opex")
 	CostOfCapital = Variable("cost_of_capital_vessel")
 }

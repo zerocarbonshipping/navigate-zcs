@@ -19,12 +19,12 @@ Report "report_default" {
 	# add_levy_property("*", Collected)
 
 	# manager
-	add_property(TotalEquivalentWTT)
-	add_property(TotalEquivalentTTW)
-	add_property(TotalEquivalentWTW)
-	add_property(IntensityTotalEquivalentWTT)
-	add_property(IntensityTotalEquivalentTTW)
-	add_property(IntensityTotalEquivalentWTW)
+	add_property(TotalEquivalentWtt)
+	add_property(TotalEquivalentTtw)
+	add_property(TotalEquivalentWtw)
+	add_property(IntensityTotalEquivalentWtt)
+	add_property(IntensityTotalEquivalentTtw)
+	add_property(IntensityTotalEquivalentWtw)
 	add_property(ConsumedEnergy)
 	add_property(InstalledPower)
 	add_property(NewbuildPower)

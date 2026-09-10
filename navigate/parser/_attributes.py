@@ -49,8 +49,8 @@ _TABLE1D_ATTRIBUTES = {'Below': SECTION_DEFINE,
 
 _TABLE2D_ATTRIBUTES = {'Outside': SECTION_DEFINE}
 
-_MACHINERY_ATTRIBUTES = {'CAPEX':       SECTION_BOTH,
-                         'OPEX':        SECTION_BOTH,
+_MACHINERY_ATTRIBUTES = {'Capex':       SECTION_BOTH,
+                         'Opex':        SECTION_BOTH,
                          'Lifetime':    SECTION_BOTH,
                          'Replacement': SECTION_BOTH}
 
@@ -218,8 +218,8 @@ _VESSEL_ATTRIBUTES = {'PropulsionLoad':         SECTION_DEFINE,
                       'NominalCapacity':        SECTION_DEFINE,
                       'Lifetime':               SECTION_BOTH,
                       'LeadTime':               SECTION_BOTH,
-                      'CAPEX':                  SECTION_BOTH,
-                      'OPEX':                   SECTION_BOTH,
+                      'Capex':                  SECTION_BOTH,
+                      'Opex':                   SECTION_BOTH,
                       'CostOfCapital':          SECTION_BOTH}
 
 # general nodes --------------------------------------------------------------------------------------------------------

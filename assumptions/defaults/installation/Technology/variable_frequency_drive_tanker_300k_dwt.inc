@@ -4,6 +4,6 @@
 Technology "variable_frequency_drive_tanker_300k_dwt" {
 	set_energy_saving(ELECTRICAL, 0.1)
 	
-	CAPEX = 125e3
-	OPEX = 5e3
+	Capex = 125e3
+	Opex = 5e3
 }

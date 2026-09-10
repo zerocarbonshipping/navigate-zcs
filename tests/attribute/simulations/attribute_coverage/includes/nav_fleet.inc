@@ -5,14 +5,14 @@
 #
 # Attributes covered:
 #   Converter:   PowerCapacity, MinimumLoad, MainFuelTypes, PilotFuelTypes,
-#                MinimumPilotFuel, Efficiency, CAPEX, OPEX, Lifetime, Replacement
-#   PowerSystem: Propulsion, Electrical, Heat, CAPEX, OPEX, Lifetime, Replacement
-#   Tank:        FuelTypes, Size, CAPEX, OPEX, Lifetime, Replacement
-#   Technology:  CAPEX, OPEX, Lifetime, Replacement, ShorePowerCapacity
+#                MinimumPilotFuel, Efficiency, Capex, Opex, Lifetime, Replacement
+#   PowerSystem: Propulsion, Electrical, Heat, Capex, Opex, Lifetime, Replacement
+#   Tank:        FuelTypes, Size, Capex, Opex, Lifetime, Replacement
+#   Technology:  Capex, Opex, Lifetime, Replacement, ShorePowerCapacity
 #   Vessel:      PropulsionLoad, ElectricalLoadAtSea, ElectricalLoadInPort,
 #                HeatLoadAtSea, HeatLoadInPort, FuelType, PowerSystem, Tanks,
 #                Route, NominalCapacity, Lifetime, LeadTime,
-#                CAPEX, OPEX, CostOfCapital
+#                Capex, Opex, CostOfCapital
 #   Fleet:       Vessels, InitialVessels, TradeGrowth, InitialSplit,
 #                InitialAgeDistribution, Orderbooks, Technologies,
 #                TechnologyCostOfCapital, FixedScrapRate, AllowSecondaryScrapping,
@@ -38,8 +38,8 @@ Converter "prop_oil" {
 	MinimumLoad = 0.1
 	MainFuelTypes = OIL
 	Efficiency = 0.51
-	CAPEX = 1e6
-	OPEX = 50000
+	Capex = 1e6
+	Opex = 50000
 	Lifetime = 25
 	Replacement = 0.5
 	set_consumption_ttw(OIL, "nitrous_oxide", 0.00018)
@@ -113,8 +113,8 @@ PowerSystem "ps_oil" {
 	Propulsion = Converter("prop_oil")
 	Electrical = Converter("elec_oil")
 	Heat = Converter("heat_oil")
-	CAPEX = 0
-	OPEX = 0
+	Capex = 0
+	Opex = 0
 	Lifetime = 25
 	Replacement = 1.0
 }
@@ -142,8 +142,8 @@ PowerSystem "ps_ammonia" {
 Tank "tank_oil" {
 	FuelTypes = OIL
 	Size = 9000
-	CAPEX = 100000
-	OPEX = 5000
+	Capex = 100000
+	Opex = 5000
 	Lifetime = 25
 	Replacement = 0.5
 }
@@ -171,8 +171,8 @@ Tank "tank_pilot" {
 # --- Technologies ------------------------------------------------------------
 
 Technology "tech_ees" {
-	CAPEX = 100000
-	OPEX = 5000
+	Capex = 100000
+	Opex = 5000
 	Lifetime = 15
 	Replacement = 0.3
 	ShorePowerCapacity = 0
@@ -182,8 +182,8 @@ Technology "tech_ees" {
 }
 
 Technology "tech_shore" {
-	CAPEX = 200000
-	OPEX = 10000
+	Capex = 200000
+	Opex = 10000
 	Lifetime = 20
 	Replacement = 0.5
 	ShorePowerCapacity = 5.0
@@ -205,8 +205,8 @@ Vessel "vessel_oil" {
 	HeatLoadInPort = 0.5
 	Lifetime = 25
 	LeadTime = 2
-	CAPEX = 50e6
-	OPEX = 2e6
+	Capex = 50e6
+	Opex = 2e6
 	CostOfCapital = 0.08
 }
 

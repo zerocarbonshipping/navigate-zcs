@@ -9,6 +9,6 @@ Converter "electrical_ice_methanol_roro_4000_ceu" {
 	PowerCapacity = Variable("roro_4000_ceu_electrical_power_capacity")
 	Efficiency = Variable("electrical_methanol_efficiency")
 
-	CAPEX = Forecast("electrical_methanol_capex")
-	OPEX = Forecast("electrical_methanol_opex")
+	Capex = Forecast("electrical_methanol_capex")
+	Opex = Forecast("electrical_methanol_opex")
 }

@@ -4,6 +4,6 @@
 Technology "lighting_system_gas_carrier_100k_cbm" {
 	set_energy_saving(ELECTRICAL, 0.025)
 	
-	CAPEX = 100e3
-	OPEX = 0.
+	Capex = 100e3
+	Opex = 0.
 }

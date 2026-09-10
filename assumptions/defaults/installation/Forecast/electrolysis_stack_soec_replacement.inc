@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: CC-BY-4.0
 
-# Description: CAPEX replacement fraction of an electrolysis stack (SOEC).
+# Description: Capex replacement fraction of an electrolysis stack (SOEC).
 # Unit: Years
 
 Forecast "electrolysis_stack_soec_replacement" {

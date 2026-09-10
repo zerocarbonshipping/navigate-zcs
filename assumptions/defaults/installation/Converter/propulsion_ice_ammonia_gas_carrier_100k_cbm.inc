@@ -10,8 +10,8 @@ Converter "propulsion_ice_ammonia_gas_carrier_100k_cbm" {
 	MinimumLoad = Variable("propulsion_minimum_load_gas_carrier")
 	Efficiency = Variable("propulsion_ammonia_efficiency")
 
-	CAPEX = Forecast("propulsion_ammonia_capex")
-	OPEX = Forecast("propulsion_ammonia_opex")
+	Capex = Forecast("propulsion_ammonia_capex")
+	Opex = Forecast("propulsion_ammonia_opex")
 	
 	set_consumption_ttw(AMMONIA, "nitrous_oxide", Variable("propulsion_ammonia_nitrous_oxide_release"))
 }

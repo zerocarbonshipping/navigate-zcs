@@ -216,7 +216,7 @@ Information is provided in four levels, namely:
 `ERROR` means a problem was encountered which was detrimental to the continuation of the simulation. This will occur if there is a spurious formulation in the simulation deck which is not recognized by Navigate. Deck errors state the deck file, the include file, and the line at which the problem occurred:
 
 ```
-14:29:16 [ERROR] navigate.__main__: Fatal error: Error in deck file, line 2, include file '/home/user/sim/includes/fuels.inc', line 14: Nodes of type 'Fuel' has no command 'set_TTW'.
+14:29:16 [ERROR] navigate.__main__: Fatal error: Error in deck file, line 2, include file '/home/user/sim/includes/fuels.inc', line 14: Nodes of type 'Fuel' has no command 'set_wtw'.
 ```
 
 If an ERROR occurs the simulation stops: the console shows the error message on its own (run with `-l DEBUG` to also see the full Python traceback there), and the `.log` file records the error together with its full traceback regardless of the chosen log level.

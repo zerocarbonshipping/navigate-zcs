@@ -5,6 +5,6 @@ Technology "air_lubrication_bulk_carrier_panamax" {
 	set_energy_saving(PROPULSION, 0.04)
 	
 	Lifetime = 25
-	CAPEX = 1.5e6
-	OPEX = 20e3
+	Capex = 1.5e6
+	Opex = 20e3
 }

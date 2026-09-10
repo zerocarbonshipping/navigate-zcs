@@ -4,6 +4,6 @@
 Technology "cargo_systems_gas_carrier_100k_cbm" {
 	set_energy_saving(HEAT, 0.10)
 	
-	CAPEX = 20e3
-	OPEX = 0.
+	Capex = 20e3
+	Opex = 0.
 }

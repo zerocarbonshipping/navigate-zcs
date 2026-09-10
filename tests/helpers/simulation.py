@@ -25,6 +25,8 @@ from navigate.util import YEAR
 # check_invariants does).
 EPS_DEVELOPMENT_REL = 2.5e-3
 
+REPO_ROOT = Path(__file__).resolve().parents[2]
+
 
 def default_assumptions_dir() -> Path:
     """
@@ -39,7 +41,7 @@ def default_assumptions_dir() -> Path:
     env = os.environ.get(ASSUMPTIONS_ENV_VAR)
     if env:
         return Path(env)
-    return Path(__file__).resolve().parents[2] / "assumptions"
+    return REPO_ROOT / "assumptions"
 
 
 def make_args(data_dir: Path | None = None) -> argparse.Namespace:

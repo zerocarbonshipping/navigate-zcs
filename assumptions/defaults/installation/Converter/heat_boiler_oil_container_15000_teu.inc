@@ -7,6 +7,6 @@ Converter "heat_boiler_oil_container_15000_teu" {
 	PowerCapacity = Variable("container_15000_teu_heat_power_capacity")
 	Efficiency = Variable("heat_oil_efficiency")
 
-	CAPEX = Forecast("heat_oil_capex")
-	OPEX = Forecast("heat_oil_opex")
+	Capex = Forecast("heat_oil_capex")
+	Opex = Forecast("heat_oil_opex")
 }

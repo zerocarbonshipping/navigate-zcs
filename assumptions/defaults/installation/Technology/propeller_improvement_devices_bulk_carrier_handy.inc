@@ -4,6 +4,6 @@
 Technology "propeller_improvement_devices_bulk_carrier_handy" {
 	set_energy_saving(PROPULSION, 0.02)
 	
-	CAPEX = 100e3
-	OPEX = 0.
+	Capex = 100e3
+	Opex = 0.
 }

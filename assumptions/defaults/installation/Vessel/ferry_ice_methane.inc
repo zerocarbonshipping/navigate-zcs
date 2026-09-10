@@ -16,7 +16,7 @@ Vessel "ferry_ice_methane" {
 	NominalCapacity = Variable("ferry_nominal_capacity")
 	Lifetime = Variable("ferry_lifetime")
 	
-	CAPEX = Forecast("ferry_capex")
-	OPEX = Forecast("ferry_opex")
+	Capex = Forecast("ferry_capex")
+	Opex = Forecast("ferry_opex")
 	CostOfCapital = Variable("cost_of_capital_vessel")
 }

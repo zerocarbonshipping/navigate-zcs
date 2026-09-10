@@ -5,6 +5,6 @@ Technology "cargo_systems_tanker_100k_dwt" {
 	set_energy_saving(HEAT, 0.50)
 	
 	Lifetime = 25
-	CAPEX = 20e3
-	OPEX = 0.
+	Capex = 20e3
+	Opex = 0.
 }

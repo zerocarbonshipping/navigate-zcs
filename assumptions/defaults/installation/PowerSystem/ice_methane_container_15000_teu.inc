@@ -6,6 +6,6 @@ PowerSystem "ice_methane_container_15000_teu" {
 	Electrical = Converter("electrical_ice_methane_container_15000_teu")
 	Heat = Converter("heat_boiler_oil_container_15000_teu")
 
-	CAPEX = Forecast("container_15000_teu_supply_system_methane_capex")
-	OPEX = <Forecast("container_15000_teu_supply_system_methane_capex") * Variable("supply_system_opex_percentage_of_capex")>
+	Capex = Forecast("container_15000_teu_supply_system_methane_capex")
+	Opex = <Forecast("container_15000_teu_supply_system_methane_capex") * Variable("supply_system_opex_percentage_of_capex")>
 }

@@ -4,6 +4,6 @@
 Technology "waste_heat_recovery_system_bulk_carrier_capesize" {
 	set_energy_saving(ELECTRICAL, 0.45)
 	
-	CAPEX = 7.5e6
-	OPEX = 1e4
+	Capex = 7.5e6
+	Opex = 1e4
 }

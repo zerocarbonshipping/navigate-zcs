@@ -82,8 +82,8 @@ def attribute_to_setter(attribute, method='set'):
     to internal setter method format:
         <method>_abcd_efgh
 
-    Acronym runs are lowercased as a single segment: 'CAPEX' becomes
-    'set_capex' and 'TotalEquivalentWTT' becomes 'get_total_equivalent_wtt'.
+    Only capitalized words are kept: any character outside an [A-Z][a-z]* run
+    is dropped.
 
     Examples
     --------
@@ -103,12 +103,7 @@ def attribute_to_setter(attribute, method='set'):
         String which can be used to call a setter method of a Class using 'getattr()'.
     """
 
-    matches = re.findall(r'([A-Z]{2,}(?=[A-Z][a-z]|$)|[A-Z][a-z]*)', attribute)
-
-    for match in matches:
-        method += '_' + match.lower()
-
-    return method
+    return method + ''.join('_' + word.lower() for word in re.findall(r'[A-Z][a-z]*', attribute))
 
 
 def attribute_to_instance_name(attribute):

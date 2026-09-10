@@ -7,6 +7,6 @@ Converter "electrical_ice_oil_bulk_carrier_52k_dwt" {
 	PowerCapacity = Variable("bulk_carrier_52k_dwt_electrical_power_capacity")
 	Efficiency = Variable("electrical_oil_efficiency")
 
-	CAPEX = Forecast("electrical_oil_capex")
-	OPEX = Forecast("electrical_oil_opex")
+	Capex = Forecast("electrical_oil_capex")
+	Opex = Forecast("electrical_oil_opex")
 }

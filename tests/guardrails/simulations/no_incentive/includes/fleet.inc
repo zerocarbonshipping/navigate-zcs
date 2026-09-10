@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # The stock default container fleet ships all four fuel variants (ammonia,
-# methane, methanol, oil) with domain-calibrated CAPEX/OPEX differentials —
+# methane, methanol, oil) with domain-calibrated Capex/Opex differentials —
 # the very cost differences this deck exercises. A hand-rolled vessel set
 # would substitute made-up cost gaps for the calibrated ones.
 # Decision sensitivities come from Load DefaultCalibration in the .nav.

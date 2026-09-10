@@ -4,6 +4,6 @@
 Technology "variable_frequency_drive_container_3500_teu" {
 	set_energy_saving(ELECTRICAL, 0.08)
 	
-	CAPEX = 75e3
-	OPEX = 5e3
+	Capex = 75e3
+	Opex = 5e3
 }

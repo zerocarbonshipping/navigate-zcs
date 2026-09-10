@@ -4,6 +4,6 @@
 Technology "air_lubrication_bulk_carrier_handy" {
 	set_energy_saving(PROPULSION, 0.04)
 	
-	CAPEX = 1e6
-	OPEX = 15e3
+	Capex = 1e6
+	Opex = 15e3
 }

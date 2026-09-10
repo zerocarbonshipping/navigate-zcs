@@ -9,6 +9,6 @@ Converter "electrical_ice_methanol_container_1500_teu" {
 	PowerCapacity = Variable("container_1500_teu_electrical_power_capacity")
 	Efficiency = Variable("electrical_methanol_efficiency")
 
-	CAPEX = Forecast("electrical_methanol_capex")
-	OPEX = Forecast("electrical_methanol_opex")
+	Capex = Forecast("electrical_methanol_capex")
+	Opex = Forecast("electrical_methanol_opex")
 }

@@ -10,8 +10,8 @@ Converter "propulsion_ice_ammonia_tanker_7500_dwt" {
 	MinimumLoad = Variable("propulsion_minimum_load_tanker")
 	Efficiency = Variable("propulsion_ammonia_efficiency")
 
-	CAPEX = Forecast("propulsion_ammonia_capex")
-	OPEX = Forecast("propulsion_ammonia_opex")
+	Capex = Forecast("propulsion_ammonia_capex")
+	Opex = Forecast("propulsion_ammonia_opex")
 	
 	set_consumption_ttw(AMMONIA, "nitrous_oxide", Variable("propulsion_ammonia_nitrous_oxide_release"))
 }

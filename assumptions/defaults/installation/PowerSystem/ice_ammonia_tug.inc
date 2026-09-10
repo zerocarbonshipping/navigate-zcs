@@ -6,6 +6,6 @@ PowerSystem "ice_ammonia_tug" {
 	Electrical = Converter("electrical_ice_ammonia_tug")
 	Heat = Converter("heat_boiler_oil_tug")
 
-	CAPEX = Forecast("tug_supply_system_ammonia_capex")
-	OPEX = <Forecast("tug_supply_system_ammonia_capex") * Variable("supply_system_opex_percentage_of_capex")>
+	Capex = Forecast("tug_supply_system_ammonia_capex")
+	Opex = <Forecast("tug_supply_system_ammonia_capex") * Variable("supply_system_opex_percentage_of_capex")>
 }

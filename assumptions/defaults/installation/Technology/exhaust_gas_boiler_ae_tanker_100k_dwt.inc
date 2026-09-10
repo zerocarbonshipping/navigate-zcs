@@ -4,6 +4,6 @@
 Technology "exhaust_gas_boiler_ae_tanker_100k_dwt" {
 	set_energy_saving(HEAT, 0.05)
 	
-	CAPEX = 100e3
-	OPEX = 10e3
+	Capex = 100e3
+	Opex = 10e3
 }

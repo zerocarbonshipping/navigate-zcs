@@ -4,6 +4,6 @@
 Technology "propeller_improvement_devices_gas_carrier_100k_cbm" {
 	set_energy_saving(PROPULSION, 0.03)
 	
-	CAPEX = 150e3
-	OPEX = 0.
+	Capex = 150e3
+	Opex = 0.
 }
