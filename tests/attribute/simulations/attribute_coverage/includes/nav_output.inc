@@ -16,7 +16,7 @@
 Report "report" {
 	Directory = "./output/"
 	FileFormat = XLSX
-	add_property(TotalEquivalentWTW)
+	add_property(TotalEquivalentWtw)
 	add_property(ConsumedEnergy)
 	add_fleet_property("fleet_a", ExistingVessels)
 	add_fleet_property("fleet_a", Scrap)

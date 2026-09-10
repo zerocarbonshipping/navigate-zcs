@@ -16,7 +16,7 @@ Vessel "bulk_carrier_52k_dwt_ice_methane" {
 	NominalCapacity = Variable("bulk_carrier_52k_dwt_nominal_capacity")
 	Lifetime = Variable("bulk_carrier_52k_dwt_lifetime")
 	
-	CAPEX = Forecast("bulk_carrier_52k_dwt_capex")
-	OPEX = Forecast("bulk_carrier_52k_dwt_opex")
+	Capex = Forecast("bulk_carrier_52k_dwt_capex")
+	Opex = Forecast("bulk_carrier_52k_dwt_opex")
 	CostOfCapital = Variable("cost_of_capital_vessel")
 }

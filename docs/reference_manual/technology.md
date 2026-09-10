@@ -12,8 +12,8 @@ Example:
 
 ```python
 Technology "air_lubrication" {
-	CAPEX = 2.5e6
-	OPEX = 30e3
+	Capex = 2.5e6
+	Opex = 30e3
 
     set_energy_saving(PROPULSION, 0.04)
 }
@@ -21,7 +21,7 @@ Technology "air_lubrication" {
 
 ## Attributes
 
-### CAPEX
+### Capex
 
 This attribute represents the CAPEX (capital expenditure) for installing the machinery.
 
@@ -33,7 +33,7 @@ This attribute represents the CAPEX (capital expenditure) for installing the mac
 * **Minimum value**: 0
 * **Default**: 0
 
-### OPEX
+### Opex
 
 This attribute represents the OPEX (operational expenditure) for maintaining the machinery annually.
 

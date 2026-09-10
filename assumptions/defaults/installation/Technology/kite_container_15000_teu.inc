@@ -4,6 +4,6 @@
 Technology "kite_container_15000_teu" {
 	set_external_power(PROPULSION, 1.25)
 	
-	CAPEX = 2e6
-	OPEX = 75e3
+	Capex = 2e6
+	Opex = 75e3
 }

@@ -16,7 +16,7 @@ Vessel "gas_carrier_100k_cbm_ice_methanol" {
 	NominalCapacity = Variable("gas_carrier_100k_cbm_nominal_capacity")
 	Lifetime = Variable("gas_carrier_100k_cbm_lifetime")
 	
-	CAPEX = Forecast("gas_carrier_100k_cbm_capex")
-	OPEX = Forecast("gas_carrier_100k_cbm_opex")
+	Capex = Forecast("gas_carrier_100k_cbm_capex")
+	Opex = Forecast("gas_carrier_100k_cbm_opex")
 	CostOfCapital = Variable("cost_of_capital_vessel")
 }

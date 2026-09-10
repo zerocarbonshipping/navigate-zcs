@@ -9,8 +9,8 @@ Converter "electrical_ice_methane_general_cargo" {
 	PowerCapacity = Variable("general_cargo_electrical_power_capacity")
 	Efficiency = Variable("electrical_methane_efficiency")
 
-	CAPEX = Forecast("electrical_methane_capex")
-	OPEX = Forecast("electrical_methane_opex")
+	Capex = Forecast("electrical_methane_capex")
+	Opex = Forecast("electrical_methane_opex")
 	
 	set_slip_fraction(METHANE, Variable("electrical_methane_methane_slip"))
 }

@@ -5,6 +5,6 @@ Technology "air_lubrication_tanker_35k_dwt" {
 	set_energy_saving(PROPULSION, 0.04)
 	
 	Lifetime = 25
-	CAPEX = 1e6
-	OPEX = 15e3
+	Capex = 1e6
+	Opex = 15e3
 }

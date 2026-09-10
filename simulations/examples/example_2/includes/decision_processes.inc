@@ -13,7 +13,7 @@ Fleet "bulk_carrier_handysize" {
 	# Decision sensitivities for newbuilds (odds ratios)
 	InterFuelSensitivity = 0.5      # Between engine fuel types: a 10% higher LCOT halves the odds
 	IntraFuelSensitivity = 0.5      # Within a single engine fuel type
-	TechnologySensitivity = 2       # Energy efficiency: a 5%-of-CAPEX NPV advantage doubles the odds
+	TechnologySensitivity = 2       # Energy efficiency: a 5%-of-Capex NPV advantage doubles the odds
 }
 
 Producer "producer_fame" {

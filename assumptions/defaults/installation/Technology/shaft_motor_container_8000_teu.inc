@@ -4,6 +4,6 @@
 Technology "shaft_motor_container_8000_teu" {
 	set_energy_saving(PROPULSION, 0.075)
 	
-	CAPEX = 9.7e6
-	OPEX = 20e3
+	Capex = 9.7e6
+	Opex = 20e3
 }

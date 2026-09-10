@@ -26,8 +26,8 @@ Date "01-01-2027"
 Converter "prop_oil" {
 	Efficiency = 0.52
 	MinimumPilotFuel = 0.0
-	CAPEX = 1.1e6
-	OPEX = 55000
+	Capex = 1.1e6
+	Opex = 55000
 	Lifetime = 25
 	Replacement = 0.6
 	set_slip_fraction(OIL, 0.0)
@@ -35,15 +35,15 @@ Converter "prop_oil" {
 }
 
 PowerSystem "ps_oil" {
-	CAPEX = 10000
-	OPEX = 1000
+	Capex = 10000
+	Opex = 1000
 	Lifetime = 25
 	Replacement = 0.9
 }
 
 Tank "tank_oil" {
-	CAPEX = 110000
-	OPEX = 5500
+	Capex = 110000
+	Opex = 5500
 	Lifetime = 25
 	Replacement = 0.6
 }
@@ -51,8 +51,8 @@ Tank "tank_oil" {
 Vessel "vessel_oil" {
 	Lifetime = 25
 	LeadTime = 1
-	CAPEX = 52e6
-	OPEX = 2.1e6
+	Capex = 52e6
+	Opex = 2.1e6
 	CostOfCapital = 0.07
 }
 
@@ -89,8 +89,8 @@ Fleet "fleet_b" {
 Date "01-01-2029"
 
 Technology "tech_ees" {
-	CAPEX = 110000
-	OPEX = 5500
+	Capex = 110000
+	Opex = 5500
 	Lifetime = 16
 	Replacement = 0.35
 	ShorePowerCapacity = 0.5

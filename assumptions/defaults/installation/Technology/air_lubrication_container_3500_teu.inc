@@ -5,6 +5,6 @@ Technology "air_lubrication_container_3500_teu" {
 	set_energy_saving(PROPULSION, 0.04)
 	
 	Lifetime = 25
-	CAPEX = 1e6
-	OPEX = 15e3
+	Capex = 1e6
+	Opex = 15e3
 }

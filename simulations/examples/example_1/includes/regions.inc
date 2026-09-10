@@ -29,7 +29,7 @@ Region "*" {
 	set_transport_wtt("truck", "carbon_dioxide", Forecast("truck_emissions"))
 
 	# Bio-methanol
-	# The cost (OPEX, CAPEX) as well as emissions can be changed, altering the fuel production cost.
+	# The cost (Opex, Capex) as well as emissions can be changed, altering the fuel production cost.
 	set_process_capex("methanol_synthesis_bio_gasification", Forecast("methanol_synthesis_bio_gasification_capex"))
 	set_process_opex("methanol_synthesis_bio_gasification", Forecast("methanol_synthesis_bio_gasification_opex"))
 	set_process_energy("methanol_synthesis_bio_gasification", Forecast("methanol_synthesis_bio_gasification_energy"))

@@ -16,7 +16,7 @@ Vessel "tug_ice_oil" {
 	NominalCapacity = Variable("tug_nominal_capacity")
 	Lifetime = Variable("tug_lifetime")
 	
-	CAPEX = Forecast("tug_capex")
-	OPEX = Forecast("tug_opex")
+	Capex = Forecast("tug_capex")
+	Opex = Forecast("tug_opex")
 	CostOfCapital = Variable("cost_of_capital_vessel")
 }

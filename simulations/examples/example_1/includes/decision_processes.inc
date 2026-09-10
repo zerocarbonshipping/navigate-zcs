@@ -14,7 +14,7 @@ Fleet "*" {
 	InterFuelSensitivity = 0.5 # Between fuel types: a 10% higher LCOT halves the odds
 	IntraFuelSensitivity = 0.5 # Within a single fuel type
 
-	# Sensitivity for fuel conversions (NPV vs ship CAPEX; higher-is-better, so use a value above 1)
+	# Sensitivity for fuel conversions (NPV vs ship Capex; higher-is-better, so use a value above 1)
 	FuelConversionSensitivity = 2
 }
 

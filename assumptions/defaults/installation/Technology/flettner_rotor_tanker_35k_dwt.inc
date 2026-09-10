@@ -4,6 +4,6 @@
 Technology "flettner_rotor_tanker_35k_dwt" {
 	set_external_power(PROPULSION, 0.2)
 	
-	CAPEX = 1e6
-	OPEX = 30e3
+	Capex = 1e6
+	Opex = 30e3
 }

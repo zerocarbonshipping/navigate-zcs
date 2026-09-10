@@ -10,6 +10,6 @@ Converter "propulsion_ice_methanol_tanker_47k_dwt" {
 	MinimumLoad = Variable("propulsion_minimum_load_tanker")
 	Efficiency = Variable("propulsion_methanol_efficiency")
 
-	CAPEX = Forecast("propulsion_methanol_capex")
-	OPEX = Forecast("propulsion_methanol_opex")
+	Capex = Forecast("propulsion_methanol_capex")
+	Opex = Forecast("propulsion_methanol_opex")
 }

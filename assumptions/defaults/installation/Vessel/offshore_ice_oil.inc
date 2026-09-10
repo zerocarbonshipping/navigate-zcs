@@ -16,7 +16,7 @@ Vessel "offshore_ice_oil" {
 	NominalCapacity = Variable("offshore_nominal_capacity")
 	Lifetime = Variable("offshore_lifetime")
 	
-	CAPEX = Forecast("offshore_capex")
-	OPEX = Forecast("offshore_opex")
+	Capex = Forecast("offshore_capex")
+	Opex = Forecast("offshore_opex")
 	CostOfCapital = Variable("cost_of_capital_vessel")
 }

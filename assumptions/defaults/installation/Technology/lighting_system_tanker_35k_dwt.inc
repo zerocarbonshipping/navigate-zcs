@@ -4,6 +4,6 @@
 Technology "lighting_system_tanker_35k_dwt" {
 	set_energy_saving(ELECTRICAL, 0.025)
 	
-	CAPEX = 100e3
-	OPEX = 0.
+	Capex = 100e3
+	Opex = 0.
 }

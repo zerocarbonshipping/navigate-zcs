@@ -4,6 +4,6 @@
 Technology "exhaust_gas_boiler_ae_bulk_carrier_handy" {
 	set_energy_saving(HEAT, 0.05)
 	
-	CAPEX = 75e3
-	OPEX = 10e3
+	Capex = 75e3
+	Opex = 10e3
 }

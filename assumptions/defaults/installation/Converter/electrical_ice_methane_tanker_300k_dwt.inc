@@ -9,8 +9,8 @@ Converter "electrical_ice_methane_tanker_300k_dwt" {
 	PowerCapacity = Variable("tanker_300k_dwt_electrical_power_capacity")
 	Efficiency = Variable("electrical_methane_efficiency")
 
-	CAPEX = Forecast("electrical_methane_capex")
-	OPEX = Forecast("electrical_methane_opex")
+	Capex = Forecast("electrical_methane_capex")
+	Opex = Forecast("electrical_methane_opex")
 	
 	set_slip_fraction(METHANE, Variable("electrical_methane_methane_slip"))
 }

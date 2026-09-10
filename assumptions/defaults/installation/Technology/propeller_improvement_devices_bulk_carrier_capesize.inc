@@ -4,6 +4,6 @@
 Technology "propeller_improvement_devices_bulk_carrier_capesize" {
 	set_energy_saving(PROPULSION, 0.02)
 	
-	CAPEX = 2e5
-	OPEX = 0.
+	Capex = 2e5
+	Opex = 0.
 }

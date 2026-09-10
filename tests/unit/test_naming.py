@@ -10,18 +10,17 @@ from navigate.util import attribute_to_instance_name, attribute_to_setter
 @pytest.mark.parametrize("attribute, expected", [
     ("Extrapolate", "set_extrapolate"),
     ("LowerHeatingValue", "set_lower_heating_value"),
-    ("CAPEX", "set_capex"),
-    ("OPEX", "set_opex"),
-    ("BunkerWTTOverwrite", "set_bunker_wtt_overwrite"),
+    ("Capex", "set_capex"),
+    ("Opex", "set_opex"),
 ])
 def test_attribute_to_setter(attribute, expected):
     assert attribute_to_setter(attribute) == expected
 
 
 @pytest.mark.parametrize("attribute, expected", [
-    ("TotalEquivalentWTT", "get_total_equivalent_wtt"),
-    ("CumulativeEquivalentTTW", "get_cumulative_equivalent_ttw"),
-    ("BunkerIntensityTotalEquivalentWTW", "get_bunker_intensity_total_equivalent_wtw"),
+    ("TotalEquivalentWtt", "get_total_equivalent_wtt"),
+    ("CumulativeEquivalentTtw", "get_cumulative_equivalent_ttw"),
+    ("BunkerIntensityTotalEquivalentWtw", "get_bunker_intensity_total_equivalent_wtw"),
 ])
 def test_attribute_to_getter(attribute, expected):
     assert attribute_to_setter(attribute, method="get") == expected
@@ -30,7 +29,7 @@ def test_attribute_to_getter(attribute, expected):
 @pytest.mark.parametrize("attribute, expected", [
     ("EmissionFactors", "emission_factors"),
     ("Jurisdiction", "jurisdiction"),
-    ("BunkerWTTOverwrite", "bunker_wtt_overwrite"),
+    ("BunkerWttOverwrite", "bunker_wtt_overwrite"),
 ])
 def test_attribute_to_instance_name(attribute, expected):
     assert attribute_to_instance_name(attribute) == expected

@@ -16,7 +16,7 @@ Vessel "tanker_300k_dwt_ice_ammonia" {
 	NominalCapacity = Variable("tanker_300k_dwt_nominal_capacity")
 	Lifetime = Variable("tanker_300k_dwt_lifetime")
 	
-	CAPEX = Forecast("tanker_300k_dwt_capex")
-	OPEX = Forecast("tanker_300k_dwt_opex")
+	Capex = Forecast("tanker_300k_dwt_capex")
+	Opex = Forecast("tanker_300k_dwt_opex")
 	CostOfCapital = Forecast("cost_of_capital_vessel_ammonia")
 }

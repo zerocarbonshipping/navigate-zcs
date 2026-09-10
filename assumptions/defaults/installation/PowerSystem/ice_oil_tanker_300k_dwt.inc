@@ -6,6 +6,6 @@ PowerSystem "ice_oil_tanker_300k_dwt" {
 	Electrical = Converter("electrical_ice_oil_tanker_300k_dwt")
 	Heat = Converter("heat_boiler_oil_tanker_300k_dwt")
 
-	CAPEX = Forecast("tanker_300k_dwt_supply_system_oil_capex")
-	OPEX = <Forecast("tanker_300k_dwt_supply_system_oil_capex") * Variable("supply_system_opex_percentage_of_capex")>
+	Capex = Forecast("tanker_300k_dwt_supply_system_oil_capex")
+	Opex = <Forecast("tanker_300k_dwt_supply_system_oil_capex") * Variable("supply_system_opex_percentage_of_capex")>
 }

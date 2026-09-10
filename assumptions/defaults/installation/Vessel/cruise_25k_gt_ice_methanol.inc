@@ -16,7 +16,7 @@ Vessel "cruise_25k_gt_ice_methanol" {
 	NominalCapacity = Variable("cruise_25k_gt_nominal_capacity")
 	Lifetime = Variable("cruise_25k_gt_lifetime")
 	
-	CAPEX = Forecast("cruise_25k_gt_capex")
-	OPEX = Forecast("cruise_25k_gt_opex")
+	Capex = Forecast("cruise_25k_gt_capex")
+	Opex = Forecast("cruise_25k_gt_opex")
 	CostOfCapital = Variable("cost_of_capital_vessel")
 }

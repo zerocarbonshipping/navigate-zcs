@@ -5,6 +5,6 @@ Technology "hull_painting_container_8000_teu" {
 	set_energy_saving(PROPULSION, 0.03)
 	
 	Lifetime = 5.
-	CAPEX = 200e3
-	OPEX = 18e3
+	Capex = 200e3
+	Opex = 18e3
 }

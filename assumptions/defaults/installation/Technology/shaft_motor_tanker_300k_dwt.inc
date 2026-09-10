@@ -4,6 +4,6 @@
 Technology "shaft_motor_tanker_300k_dwt" {
 	set_energy_saving(PROPULSION, 0.075)
 	
-	CAPEX = 8.8e6
-	OPEX = 20e3
+	Capex = 8.8e6
+	Opex = 20e3
 }

@@ -10,8 +10,8 @@ Converter "propulsion_ice_methane_gas_carrier_100k_cbm" {
 	MinimumLoad = Variable("propulsion_minimum_load_gas_carrier")
 	Efficiency = Variable("propulsion_methane_efficiency")
 
-	CAPEX = Forecast("propulsion_methane_capex")
-	OPEX = Forecast("propulsion_methane_opex")
+	Capex = Forecast("propulsion_methane_capex")
+	Opex = Forecast("propulsion_methane_opex")
 	
 	set_slip_fraction(METHANE, Variable("propulsion_methane_methane_slip"))
 }

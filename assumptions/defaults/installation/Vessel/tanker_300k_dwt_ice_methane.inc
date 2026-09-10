@@ -16,7 +16,7 @@ Vessel "tanker_300k_dwt_ice_methane" {
 	NominalCapacity = Variable("tanker_300k_dwt_nominal_capacity")
 	Lifetime = Variable("tanker_300k_dwt_lifetime")
 	
-	CAPEX = Forecast("tanker_300k_dwt_capex")
-	OPEX = Forecast("tanker_300k_dwt_opex")
+	Capex = Forecast("tanker_300k_dwt_capex")
+	Opex = Forecast("tanker_300k_dwt_opex")
 	CostOfCapital = Variable("cost_of_capital_vessel")
 }

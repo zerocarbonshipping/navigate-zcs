@@ -9,8 +9,8 @@ Converter "propulsion_ice_methane_cruise_100k_gt" {
 	PowerCapacity = Variable("cruise_100k_gt_propulsion_power_capacity")
 	Efficiency = Variable("propulsion_methane_efficiency")
 
-	CAPEX = Forecast("propulsion_methane_capex")
-	OPEX = Forecast("propulsion_methane_opex")
+	Capex = Forecast("propulsion_methane_capex")
+	Opex = Forecast("propulsion_methane_opex")
 	
 	set_slip_fraction(METHANE, Variable("propulsion_methane_methane_slip"))
 }

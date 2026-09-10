@@ -9,6 +9,6 @@ Converter "propulsion_ice_methanol_tug" {
 	PowerCapacity = Variable("tug_propulsion_power_capacity")
 	Efficiency = Variable("propulsion_methanol_efficiency")
 
-	CAPEX = Forecast("propulsion_methanol_capex")
-	OPEX = Forecast("propulsion_methanol_opex")
+	Capex = Forecast("propulsion_methanol_capex")
+	Opex = Forecast("propulsion_methanol_opex")
 }

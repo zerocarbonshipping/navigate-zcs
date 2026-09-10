@@ -4,6 +4,6 @@
 Technology "lighting_system_bulk_carrier_panamax" {
 	set_energy_saving(ELECTRICAL, 0.025)
 	
-	CAPEX = 1e5
-	OPEX = 0.
+	Capex = 1e5
+	Opex = 0.
 }

@@ -7,6 +7,6 @@ Converter "propulsion_ice_oil_tug" {
 	PowerCapacity = Variable("tug_propulsion_power_capacity")
 	Efficiency = Variable("propulsion_oil_efficiency")
 
-	CAPEX = Forecast("propulsion_oil_capex")
-	OPEX = Forecast("propulsion_oil_opex")
+	Capex = Forecast("propulsion_oil_capex")
+	Opex = Forecast("propulsion_oil_opex")
 }

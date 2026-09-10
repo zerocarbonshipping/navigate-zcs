@@ -5,6 +5,6 @@ Technology "hull_painting_bulk_carrier_panamax" {
 	set_energy_saving(PROPULSION, 0.05)
 	
 	Lifetime = 5.
-	CAPEX = 200e3
-	OPEX = 24e3
+	Capex = 200e3
+	Opex = 24e3
 }

@@ -6,6 +6,6 @@ PowerSystem "ice_methane_bulk_carrier_200k_dwt" {
 	Electrical = Converter("electrical_ice_methane_bulk_carrier_200k_dwt")
 	Heat = Converter("heat_boiler_oil_bulk_carrier_200k_dwt")
 
-	CAPEX = Forecast("bulk_carrier_200k_dwt_supply_system_methane_capex")
-	OPEX = <Forecast("bulk_carrier_200k_dwt_supply_system_methane_capex") * Variable("supply_system_opex_percentage_of_capex")>
+	Capex = Forecast("bulk_carrier_200k_dwt_supply_system_methane_capex")
+	Opex = <Forecast("bulk_carrier_200k_dwt_supply_system_methane_capex") * Variable("supply_system_opex_percentage_of_capex")>
 }

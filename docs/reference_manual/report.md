@@ -14,7 +14,7 @@ Example:
 Report "report_name" {
     add_property(ConsumedEnergy)
     add_port_property("*", BunkerPrice)
-    add_vessel_property("*", CAPEX)
+    add_vessel_property("*", AssetCharterRate)
 }
 ```
 
@@ -145,25 +145,25 @@ The properties are applicable for the following commands:
 | ShorePowerEnergy                      | GJ/year                     | Shore power energy supplied.                                                                 |
 | ConverterFuelEnergy                   | GJ/year                     | Fuel consumed in energy in vessels of a fuel type across fuels per fuel type.                |
 | PilotFuelShare                        | Ton/ton                     | The fraction of total fuel spent which is pilot fuel for each vessel fuel type.              |
-| EquivalentWTT                         | Ton CO<sub>2</sub>-eq./year | Emitted well-to-tank emissions per fuel and emission.                                        |
-| TotalEquivalentWTT                    | Ton CO<sub>2</sub>-eq./year | Total emitted well-to-tank emissions.                                                        |
-| EquivalentTTW                         | Ton CO<sub>2</sub>-eq./year | Emitted Tank-to-wake emissions per fuel and emission.                                        |
-| TotalEquivalentTTW                    | Ton CO<sub>2</sub>-eq./year | Total emitted tank-to-wake emissions.                                                        |
-| EquivalentWTW                         | Ton CO<sub>2</sub>-eq./year | Emitted well-to-wake emissions per fuel and emission.                                        |
-| TotalEquivalentWTW                    | Ton CO<sub>2</sub>-eq./year | Total emitted well-to-wake emissions across all fuels plus shore power.                      |
+| EquivalentWtt                         | Ton CO<sub>2</sub>-eq./year | Emitted well-to-tank emissions per fuel and emission.                                        |
+| TotalEquivalentWtt                    | Ton CO<sub>2</sub>-eq./year | Total emitted well-to-tank emissions.                                                        |
+| EquivalentTtw                         | Ton CO<sub>2</sub>-eq./year | Emitted Tank-to-wake emissions per fuel and emission.                                        |
+| TotalEquivalentTtw                    | Ton CO<sub>2</sub>-eq./year | Total emitted tank-to-wake emissions.                                                        |
+| EquivalentWtw                         | Ton CO<sub>2</sub>-eq./year | Emitted well-to-wake emissions per fuel and emission.                                        |
+| TotalEquivalentWtw                    | Ton CO<sub>2</sub>-eq./year | Total emitted well-to-wake emissions across all fuels plus shore power.                      |
 | ShorePowerEmission                    | Ton/year                    | Shore power emission per emission (well-to-wake lump, no WTT/TTW split).                     |
-| CumulativeEquivalentWTT               | Ton CO<sub>2</sub>-eq.      | Cumulative emitted well-to-tank emissions per fuel and emission.                             |
-| CumulativeTotalEquivalentWTT          | Ton CO<sub>2</sub>-eq.      | Cumulative total emitted well-to-tank emissions.                                             |
-| CumulativeEquivalentTTW               | Ton CO<sub>2</sub>-eq.      | Cumulative emitted tank-to-wake emissions per fuel and emission.                             |
-| CumulativeTotalEquivalentTTW          | Ton CO<sub>2</sub>-eq.      | Cumulative total emitted tank-to-wake emissions.                                             |
-| CumulativeEquivalentWTW               | Ton CO<sub>2</sub>-eq.      | Cumulative emitted well-to-wake emissions per fuel and emission.                             |
-| CumulativeTotalEquivalentWTW          | Ton CO<sub>2</sub>-eq.      | Cumulative total emitted well-to-wake emissions, including shore power.                      |
-| IntensityEquivalentWTT                | Kg CO<sub>2</sub>-eq./GJ    | Emitted well-to-tank emissions per energy per fuel and emission.                             |
-| IntensityTotalEquivalentWTT           | Kg CO<sub>2</sub>-eq./GJ    | Total emitted well-to-tank emissions per total consumed energy (including shore power).      |
-| IntensityEquivalentTTW                | Kg CO<sub>2</sub>-eq./GJ    | Emitted tank-to-wake emissions per energy per fuel and emission.                             |
-| IntensityTotalEquivalentTTW           | Kg CO<sub>2</sub>-eq./GJ    | Total emitted tank-to-wake emissions per total consumed energy (including shore power).      |
-| IntensityEquivalentWTW                | Kg CO<sub>2</sub>-eq./GJ    | Emitted well-to-wake emissions per energy per fuel and emission.                             |
-| IntensityTotalEquivalentWTW           | Kg CO<sub>2</sub>-eq./GJ    | Total emitted well-to-wake emissions per energy, including shore power.                      |
+| CumulativeEquivalentWtt               | Ton CO<sub>2</sub>-eq.      | Cumulative emitted well-to-tank emissions per fuel and emission.                             |
+| CumulativeTotalEquivalentWtt          | Ton CO<sub>2</sub>-eq.      | Cumulative total emitted well-to-tank emissions.                                             |
+| CumulativeEquivalentTtw               | Ton CO<sub>2</sub>-eq.      | Cumulative emitted tank-to-wake emissions per fuel and emission.                             |
+| CumulativeTotalEquivalentTtw          | Ton CO<sub>2</sub>-eq.      | Cumulative total emitted tank-to-wake emissions.                                             |
+| CumulativeEquivalentWtw               | Ton CO<sub>2</sub>-eq.      | Cumulative emitted well-to-wake emissions per fuel and emission.                             |
+| CumulativeTotalEquivalentWtw          | Ton CO<sub>2</sub>-eq.      | Cumulative total emitted well-to-wake emissions, including shore power.                      |
+| IntensityEquivalentWtt                | Kg CO<sub>2</sub>-eq./GJ    | Emitted well-to-tank emissions per energy per fuel and emission.                             |
+| IntensityTotalEquivalentWtt           | Kg CO<sub>2</sub>-eq./GJ    | Total emitted well-to-tank emissions per total consumed energy (including shore power).      |
+| IntensityEquivalentTtw                | Kg CO<sub>2</sub>-eq./GJ    | Emitted tank-to-wake emissions per energy per fuel and emission.                             |
+| IntensityTotalEquivalentTtw           | Kg CO<sub>2</sub>-eq./GJ    | Total emitted tank-to-wake emissions per total consumed energy (including shore power).      |
+| IntensityEquivalentWtw                | Kg CO<sub>2</sub>-eq./GJ    | Emitted well-to-wake emissions per energy per fuel and emission.                             |
+| IntensityTotalEquivalentWtw           | Kg CO<sub>2</sub>-eq./GJ    | Total emitted well-to-wake emissions per energy, including shore power.                      |
 |  FuelExpenses                         | USD/year                    | Fuel expenses per fuel.                                                                      |
 | LevyExpenses                          | USD/year                    | Levy expenses per fuel.                                                                      |
 | FuelRelatedExpenses                   | USD/year                    | Fuel related expenses (fuel and levy) per fuel.                                              |
@@ -330,14 +330,14 @@ The properties are applicable for the following commands:
 |------------------------------------------|-----------------------------|---------------------------------------------------------------------------------|
 | InvestmentCost                           | USD/ton                     | Levelized production cost at time of investment.                                |
 | InstantaneousCost                        | USD/ton                     | Supply-weighted average cost over all plants.                                   |
-| EquivalentInvestmentWTT                  | Ton CO<sub>2</sub>-eq./ton  | Well-to-tank emissions at time of investment per ton of fuel per emission.      |
-| TotalEquivalentInvestmentWTT             | Ton CO<sub>2</sub>-eq./ton  | Total well-to-tank emissions at time of investment per ton of fuel.             |
-| IntensityEquivalentInvestmentWTT         | Ton CO<sub>2</sub>-eq./GJ   | Well-to-tank emissions at time of investment per energy in fuel per emission.   |
-| IntensityTotalEquivalentInvestmentWTT    | Ton CO<sub>2</sub>-eq./GJ   | Total well-to-tank emissions at time of investment per energy in fuel.          |
-| EquivalentInstantaneousWTT               | Ton CO<sub>2</sub>-eq./ton  | Supply-weighted average well-to-tank emissions per ton of fuel per emission.    |
-| TotalEquivalentInstantaneousWTT          | Ton CO<sub>2</sub>-eq./ton  | Supply-weighted average total well-to-tank emissions per ton of fuel.           |
-| IntensityEquivalentInstantaneousWTT      | Ton CO<sub>2</sub>-eq./GJ   | Supply-weighted average well-to-tank emissions per energy in fuel per emission. |
-| IntensityTotalEquivalentInstantaneousWTT | Ton CO<sub>2</sub>-eq./GJ   | Supply-weighted average total well-to-tank emissions per energy in fuel.        |
+| EquivalentInvestmentWtt                  | Ton CO<sub>2</sub>-eq./ton  | Well-to-tank emissions at time of investment per ton of fuel per emission.      |
+| TotalEquivalentInvestmentWtt             | Ton CO<sub>2</sub>-eq./ton  | Total well-to-tank emissions at time of investment per ton of fuel.             |
+| IntensityEquivalentInvestmentWtt         | Ton CO<sub>2</sub>-eq./GJ   | Well-to-tank emissions at time of investment per energy in fuel per emission.   |
+| IntensityTotalEquivalentInvestmentWtt    | Ton CO<sub>2</sub>-eq./GJ   | Total well-to-tank emissions at time of investment per energy in fuel.          |
+| EquivalentInstantaneousWtt               | Ton CO<sub>2</sub>-eq./ton  | Supply-weighted average well-to-tank emissions per ton of fuel per emission.    |
+| TotalEquivalentInstantaneousWtt          | Ton CO<sub>2</sub>-eq./ton  | Supply-weighted average total well-to-tank emissions per ton of fuel.           |
+| IntensityEquivalentInstantaneousWtt      | Ton CO<sub>2</sub>-eq./GJ   | Supply-weighted average well-to-tank emissions per energy in fuel per emission. |
+| IntensityTotalEquivalentInstantaneousWtt | Ton CO<sub>2</sub>-eq./GJ   | Supply-weighted average total well-to-tank emissions per energy in fuel.        |
 
 The properties are applicable for the following commands:
 
@@ -347,12 +347,12 @@ The properties are applicable for the following commands:
 |-----------------------------------|----------------------------|---------------------------------------------------------------------------------|
 | BunkerPrice                       | USD/ton                    | Bunker price per ton of fuel.                                                   |
 | BunkerIntensityPrice              | USD/GJ                     | Bunker price per energy in fuel.                                                |
-| BunkerWTT                         | Ton/ton                    | Well-to-tank emissions of bunker fuel per ton of fuel per fuel and emission.    |
-| BunkerEquivalentWTT               | Ton CO<sub>2</sub>-eq./ton | Well-to-tank emissions of bunker fuel per ton of fuel per fuel and emission.    |
-| BunkerTotalEquivalentWTT          | Ton CO<sub>2</sub>-eq./ton | Well-to-tank emissions of bunker fuel per ton of fuel per fuel.                 |
-| BunkerIntensityWTT                | Ton/GJ                     | Well-to-tank emissions of bunker fuel per energy in fuel per fuel and emission. |
-| BunkerIntensityEquivalentWTT      | Ton CO<sub>2</sub>-eq./GJ  | Well-to-tank emissions of bunker fuel per energy in fuel per fuel and emission. |
-| BunkerIntensityTotalEquivalentWTT | Ton CO<sub>2</sub>-eq./GJ  | Well-to-tank emissions of bunker fuel per energy in per fuel.                   |
+| BunkerWtt                         | Ton/ton                    | Well-to-tank emissions of bunker fuel per ton of fuel per fuel and emission.    |
+| EquivalentBunkerWtt               | Ton CO<sub>2</sub>-eq./ton | Well-to-tank emissions of bunker fuel per ton of fuel per fuel and emission.    |
+| TotalEquivalentBunkerWtt          | Ton CO<sub>2</sub>-eq./ton | Well-to-tank emissions of bunker fuel per ton of fuel per fuel.                 |
+| BunkerIntensityWtt                | Ton/GJ                     | Well-to-tank emissions of bunker fuel per energy in fuel per fuel and emission. |
+| BunkerIntensityEquivalentWtt      | Ton CO<sub>2</sub>-eq./GJ  | Well-to-tank emissions of bunker fuel per energy in fuel per fuel and emission. |
+| BunkerIntensityTotalEquivalentWtt | Ton CO<sub>2</sub>-eq./GJ  | Well-to-tank emissions of bunker fuel per energy in per fuel.                   |
 
 The properties are applicable for the following commands:
 

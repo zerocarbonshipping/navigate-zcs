@@ -15,14 +15,14 @@ Tank "fuel_oil_tank" {
     FuelTypes = [OIL]
     Size = 5000
     
-    CAPEX = 500
-    OPEX = 5
+    Capex = 500
+    Opex = 5
 }
 ```
 
 ## Attributes
 
-### CAPEX
+### Capex
 
 This attribute represents the CAPEX (capital expenditure) for installing the machinery.
 
@@ -34,7 +34,7 @@ This attribute represents the CAPEX (capital expenditure) for installing the mac
 * **Minimum value**: 0
 * **Default**: 0
 
-### OPEX
+### Opex
 
 This attribute represents the OPEX (operational expenditure) for maintaining the machinery annually.
 

@@ -22,14 +22,14 @@ Converter "internal_combustion_engine" {
     
     set_slip_fraction(METHANE, Variable("converter_methane_slip"))
     
-    CAPEX = 300000
-    OPEX = 30000
+    Capex = 300000
+    Opex = 30000
 }
 ```
 
 ## Attributes
 
-### CAPEX
+### Capex
 
 This attribute represents the CAPEX (capital expenditure) for installing the machinery.
 
@@ -41,7 +41,7 @@ This attribute represents the CAPEX (capital expenditure) for installing the mac
 * **Minimum value**: 0
 * **Default**: 0
 
-### OPEX
+### Opex
 
 This attribute represents the OPEX (operational expenditure) for maintaining the machinery annually.
 

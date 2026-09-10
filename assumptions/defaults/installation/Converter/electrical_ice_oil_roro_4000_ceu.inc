@@ -7,6 +7,6 @@ Converter "electrical_ice_oil_roro_4000_ceu" {
 	PowerCapacity = Variable("roro_4000_ceu_electrical_power_capacity")
 	Efficiency = Variable("electrical_oil_efficiency")
 
-	CAPEX = Forecast("electrical_oil_capex")
-	OPEX = Forecast("electrical_oil_opex")
+	Capex = Forecast("electrical_oil_capex")
+	Opex = Forecast("electrical_oil_opex")
 }

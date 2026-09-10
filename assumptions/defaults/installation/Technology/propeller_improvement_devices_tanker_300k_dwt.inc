@@ -4,6 +4,6 @@
 Technology "propeller_improvement_devices_tanker_300k_dwt" {
 	set_energy_saving(PROPULSION, 0.02)
 	
-	CAPEX = 200e3
-	OPEX = 0.
+	Capex = 200e3
+	Opex = 0.
 }

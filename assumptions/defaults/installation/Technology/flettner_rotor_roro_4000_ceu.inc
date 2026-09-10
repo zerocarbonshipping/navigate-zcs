@@ -4,6 +4,6 @@
 Technology "flettner_rotor_roro_4000_ceu" {
 	set_external_power(PROPULSION, 0.7)
 	
-	CAPEX = 2e6
-	OPEX = 40e3
+	Capex = 2e6
+	Opex = 40e3
 }

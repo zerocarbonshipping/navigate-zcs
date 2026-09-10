@@ -20,14 +20,14 @@ PowerSystem "conventional" {
     Electrical = Converter("auxiliary_engine")
     Heat = Converter("boiler")
     
-    CAPEX = 1e6
-    OPEX = 1e4
+    Capex = 1e6
+    Opex = 1e4
 }
 ```
 
 ## Attributes
 
-### CAPEX
+### Capex
 
 This attribute represents the CAPEX (capital expenditure) for installing the machinery.
 
@@ -39,7 +39,7 @@ This attribute represents the CAPEX (capital expenditure) for installing the mac
 * **Minimum value**: 0
 * **Default**: 0
 
-### OPEX
+### Opex
 
 This attribute represents the OPEX (operational expenditure) for maintaining the machinery annually.
 

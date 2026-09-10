@@ -4,6 +4,6 @@
 Technology "flettner_rotor_bulk_carrier_capesize" {
 	set_external_power(PROPULSION, 0.8)
 	
-	CAPEX = 3e6
-	OPEX = 50e3
+	Capex = 3e6
+	Opex = 50e3
 }

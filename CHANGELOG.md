@@ -12,6 +12,16 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ### Changed
+- **Breaking**: the DSL surface no longer contains uppercase acronym runs.
+  The `CAPEX`/`OPEX` attributes are now `Capex`/`Opex` (Converter,
+  PowerSystem, Tank, Technology, Vessel), and report properties end in
+  `Wtt`/`Ttw`/`Wtw` (`TotalEquivalentWtt`, formerly `TotalEquivalentWTT`),
+  which changes the report column headers. An old attribute spelling fails
+  parsing; an old report property spelling makes its column disappear from
+  the report, with the reason recorded only in the `.log` — report
+  properties have no parse-time validation. Enum keyword values
+  (`Scope = WTT`, `AMMONIA`, `FLAT`) remain ALL_CAPS, so that casing now
+  means exactly one thing in a deck: an enum value.
 - The output-only fleet aggregations (in-fleet flags, vessel-to-fleet
   consumer totals, fuel-conversion expenses, installed/newbuild/scrapped and
   fuel-converted power, fleet speeds, transport work and baseline energy) run
@@ -27,6 +37,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   log, so a run whose results they affect could look clean on the console.
 
 ### Fixed
+- The reference manual documented two port report properties under names that
+  never resolved (`BunkerEquivalentWTT`, `BunkerTotalEquivalentWTT`); the
+  working names are `EquivalentBunkerWtt` and `TotalEquivalentBunkerWtt`.
 - `set_initial_technology_share` values built from expressions (e.g.
   `<0.5 * Curve("uptake")>`) are honored; the seeding previously accepted
   only direct node references and silently ignored anything else, so

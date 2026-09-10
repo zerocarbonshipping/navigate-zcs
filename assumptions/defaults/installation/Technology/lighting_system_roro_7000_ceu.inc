@@ -4,6 +4,6 @@
 Technology "lighting_system_roro_7000_ceu" {
 	set_energy_saving(ELECTRICAL, 0.025)
 	
-	CAPEX = 100e3
-	OPEX = 0.
+	Capex = 100e3
+	Opex = 0.
 }

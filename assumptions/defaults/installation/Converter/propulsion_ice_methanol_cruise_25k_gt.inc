@@ -9,6 +9,6 @@ Converter "propulsion_ice_methanol_cruise_25k_gt" {
 	PowerCapacity = Variable("cruise_25k_gt_propulsion_power_capacity")
 	Efficiency = Variable("propulsion_methanol_efficiency")
 
-	CAPEX = Forecast("propulsion_methanol_capex")
-	OPEX = Forecast("propulsion_methanol_opex")
+	Capex = Forecast("propulsion_methanol_capex")
+	Opex = Forecast("propulsion_methanol_opex")
 }

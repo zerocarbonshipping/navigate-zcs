@@ -4,6 +4,6 @@
 Technology "air_lubrication_roro_4000_ceu" {
 	set_energy_saving(PROPULSION, 0.05)
 	
-	CAPEX = 1.5e6
-	OPEX = 20e3
+	Capex = 1.5e6
+	Opex = 20e3
 }

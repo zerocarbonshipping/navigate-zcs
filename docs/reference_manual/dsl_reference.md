@@ -62,7 +62,7 @@ Attributes are assigned on nodes and general nodes. An assignment to an attribut
 Attribute = x
 ```
 
-Where `x` depends on the specific attribute. Attributes are written in upper camel case, e.g., `MinimumOfftakeDuration` and `CAPEX`. The syntax of the value assigned to the attribute depends on the specific attribute but the different options are listed below.
+Where `x` depends on the specific attribute. Attributes are written in upper camel case, e.g., `MinimumOfftakeDuration` and `Capex`. The syntax of the value assigned to the attribute depends on the specific attribute but the different options are listed below.
 
 **Float:**  
   ```python

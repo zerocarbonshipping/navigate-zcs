@@ -10,6 +10,6 @@ Converter "propulsion_ice_methanol_bulk_carrier_26k_dwt" {
 	MinimumLoad = Variable("propulsion_minimum_load_bulk_carrier")
 	Efficiency = Variable("propulsion_methanol_efficiency")
 
-	CAPEX = Forecast("propulsion_methanol_capex")
-	OPEX = Forecast("propulsion_methanol_opex")
+	Capex = Forecast("propulsion_methanol_capex")
+	Opex = Forecast("propulsion_methanol_opex")
 }

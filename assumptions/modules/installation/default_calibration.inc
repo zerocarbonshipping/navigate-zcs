@@ -10,13 +10,13 @@ Port "*" {
 # Each sensitivity is an odds ratio against a fixed reference change. For the cost-based choices
 # (lower-is-better levelized cost of transport) a value below 1 penalizes a 10% higher cost; for the
 # NPV-based choices (higher-is-better) a value above 1 rewards an NPV advantage equal to 5% of the
-# summed ship CAPEX. A value of 1 means no preference.
+# summed ship Capex. A value of 1 means no preference.
 Fleet "*" {
 	Inertia = 0.0
 	InterFuelSensitivity = 0.75         # a 10% higher cost gives 25% lower odds of a fuel type
 	IntraFuelSensitivity = 0.75         # a 10% higher cost gives 25% lower odds of a technology variant
-	FuelConversionSensitivity = 2       # an NPV advantage of 5% of ship CAPEX doubles the odds
-	TechnologySensitivity = 2           # an NPV advantage of 5% of ship CAPEX doubles the odds
+	FuelConversionSensitivity = 2       # an NPV advantage of 5% of ship Capex doubles the odds
+	TechnologySensitivity = 2           # an NPV advantage of 5% of ship Capex doubles the odds
 }
 
 # Producer decision-process calibration.

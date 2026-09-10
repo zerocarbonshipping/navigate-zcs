@@ -9,8 +9,8 @@ Converter "electrical_ice_ammonia_gas_carrier_100k_cbm" {
 	PowerCapacity = Variable("gas_carrier_100k_cbm_electrical_power_capacity")
 	Efficiency = Variable("electrical_ammonia_efficiency")
 
-	CAPEX = Forecast("electrical_ammonia_capex")
-	OPEX = Forecast("electrical_ammonia_opex")
+	Capex = Forecast("electrical_ammonia_capex")
+	Opex = Forecast("electrical_ammonia_opex")
 	
 	set_consumption_ttw(AMMONIA, "nitrous_oxide", Variable("electrical_ammonia_nitrous_oxide_release"))
 }
