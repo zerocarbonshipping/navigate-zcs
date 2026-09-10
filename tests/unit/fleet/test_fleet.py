@@ -20,10 +20,10 @@ from navigate.fleet.planning import (
     calculate_orderbook_newbuilds,
 )
 from navigate.fleet.technology_adoption import (
+    _reconcile_retrofit_technology_caps,
     _RetrofitProposal,
+    _transfer_retrofit_uptake,
     reconcile_newbuild_technology_caps,
-    reconcile_retrofit_technology_caps,
-    transfer_retrofit_uptake,
 )
 from navigate.fleet.utils import (
     calculate_increments,
@@ -292,14 +292,14 @@ class TestReconcileRetrofitTechnologyCaps:
         fleet = _make_fleet_for_retrofit(["A", "B"], {}, [np.array([10.])])
         proposals = [_proposal(fleet, 0, 0, 0, np.array([0.2, 0.3, 0.5]), 1.)]
         before = proposals[0].choices.copy()
-        reconcile_retrofit_technology_caps(fleet, proposals, time_step=YEAR, multipliers_total=100.)
+        _reconcile_retrofit_technology_caps(fleet, proposals, time_step=YEAR, multipliers_total=100.)
         np.testing.assert_array_almost_equal(proposals[0].choices, before)
 
     def test_cap_binds(self):
         # A capped at 0.05 (5/yr against y=100); proposed retrofits-to-A = (0.3+0.5)*10 = 8 ⇒ scale to 5.
         fleet = _make_fleet_for_retrofit(["A", "B"], {"A": 0.05, "B": 1.0}, [np.array([10.])])
         proposals = [_proposal(fleet, 0, 0, 0, np.array([0.2, 0.3, 0.5]), 1.)]
-        reconcile_retrofit_technology_caps(fleet, proposals, time_step=YEAR, multipliers_total=100.)
+        _reconcile_retrofit_technology_caps(fleet, proposals, time_step=YEAR, multipliers_total=100.)
         np.testing.assert_almost_equal(_retrofit_count(proposals, 0) * 10., 5.)
         np.testing.assert_almost_equal(np.sum(proposals[0].choices), 1.)  # still sums to 1
 
@@ -308,7 +308,7 @@ class TestReconcileRetrofitTechnologyCaps:
         # Proposed B = 0.5 * 10 = 5 → scale to 2 (factor 0.4); proposed A only on choices[1:] still.
         fleet = _make_fleet_for_retrofit(["A", "B"], {"A": 1.0, "B": 0.02}, [np.array([10.])])
         proposals = [_proposal(fleet, 0, 0, 0, np.array([0.2, 0.3, 0.5]), 1.)]
-        reconcile_retrofit_technology_caps(fleet, proposals, time_step=YEAR, multipliers_total=100.)
+        _reconcile_retrofit_technology_caps(fleet, proposals, time_step=YEAR, multipliers_total=100.)
         # B (sorted_idx=1) is at 2.
         np.testing.assert_almost_equal(_retrofit_count(proposals, 1) * 10., 2.)
 
@@ -320,7 +320,7 @@ class TestReconcileRetrofitTechnologyCaps:
             _proposal(fleet, 0, 0, 0, np.array([0.2, 0.3, 0.5]), 1.),
             _proposal(fleet, 0, 1, 0, np.array([0.2, 0.3, 0.5]), 1.),
         ]
-        reconcile_retrofit_technology_caps(fleet, proposals, time_step=YEAR, multipliers_total=100.)
+        _reconcile_retrofit_technology_caps(fleet, proposals, time_step=YEAR, multipliers_total=100.)
         # Aggregate A across both: 0.8*5/8*(4+6) = 5
         agg_a = (np.sum(proposals[0].choices[1:]) * 4. + np.sum(proposals[1].choices[1:]) * 6.)
         np.testing.assert_almost_equal(agg_a, 5.)
@@ -329,7 +329,7 @@ class TestReconcileRetrofitTechnologyCaps:
         # 5-year time_step with limit 0.05 ⇒ cap = 0.05 * 100 * 5 = 25.
         fleet = _make_fleet_for_retrofit(["A"], {"A": 0.05}, [np.array([100.])])
         proposals = [_proposal(fleet, 0, 0, 0, np.array([0.5, 0.5]), 1.)]  # 50 retrofits-to-A unconstrained
-        reconcile_retrofit_technology_caps(fleet, proposals, time_step=5.0 * YEAR, multipliers_total=100.)
+        _reconcile_retrofit_technology_caps(fleet, proposals, time_step=5.0 * YEAR, multipliers_total=100.)
         agg_a = np.sum(proposals[0].choices[1:]) * 100.
         np.testing.assert_almost_equal(agg_a, 25.)
 
@@ -337,7 +337,7 @@ class TestReconcileRetrofitTechnologyCaps:
         fleet = _make_fleet_for_retrofit(["A"], {"A": 0.05}, [np.array([10.])])
         proposals = [_proposal(fleet, 0, 0, 0, np.array([0.5, 0.5]), 1.)]
         before = proposals[0].choices.copy()
-        reconcile_retrofit_technology_caps(fleet, proposals, time_step=YEAR, multipliers_total=0.)
+        _reconcile_retrofit_technology_caps(fleet, proposals, time_step=YEAR, multipliers_total=0.)
         np.testing.assert_array_almost_equal(proposals[0].choices, before)
 
 
@@ -355,7 +355,7 @@ class TestReconcileRetrofitTechnologyCapsEligibility:
             _proposal(fleet, 0, 0, 0, np.array([0.2, 0.3, 0.5]), 0.5),
             _proposal(fleet, 0, 0, 1, np.array([0.2, 0.3, 0.5]), 0.5),
         ]
-        reconcile_retrofit_technology_caps(fleet, proposals, time_step=YEAR, multipliers_total=100.)
+        _reconcile_retrofit_technology_caps(fleet, proposals, time_step=YEAR, multipliers_total=100.)
         # Post-reconcile aggregate for B equals the cap.
         agg_b = (
             0.5 * 10. * float(np.sum(proposals[0].choices[2:]))   # package_idx=0 → k_start=2
@@ -370,7 +370,7 @@ class TestReconcileRetrofitTechnologyCapsEligibility:
             _proposal(fleet, 0, 0, 0, np.array([0.5, 0.5]), 1.0),  # eligible: contributes 10·1·0.5 = 5
             _proposal(fleet, 0, 0, 0, np.array([0.5, 0.5]), 0.0),  # ineligible: current=0
         ]
-        reconcile_retrofit_technology_caps(fleet, proposals, time_step=YEAR, multipliers_total=100.)
+        _reconcile_retrofit_technology_caps(fleet, proposals, time_step=YEAR, multipliers_total=100.)
         # Cap is exactly at the eligible aggregate, so neither proposal should be scaled.
         np.testing.assert_array_almost_equal(proposals[0].choices, np.array([0.5, 0.5]))
         np.testing.assert_array_almost_equal(proposals[1].choices, np.array([0.5, 0.5]))
@@ -382,7 +382,7 @@ class TestReconcileRetrofitTechnologyCapsEligibility:
         fleet.increments[0][0].package_uptake = np.array([0.4, 0.6, 0.])
         proposals = [_proposal(fleet, 0, 0, 0, np.array([0.2, 0.3, 0.5]), 0.4)]
         before = proposals[0].choices.copy()
-        reconcile_retrofit_technology_caps(fleet, proposals, time_step=YEAR, multipliers_total=100.)
+        _reconcile_retrofit_technology_caps(fleet, proposals, time_step=YEAR, multipliers_total=100.)
         np.testing.assert_array_almost_equal(proposals[0].choices, before)
 
     def test_transfer_matches_eligibility_weight(self):
@@ -394,7 +394,7 @@ class TestReconcileRetrofitTechnologyCapsEligibility:
         fleet.assets = [_make_vessel("v0")]
         fleet.profile = MagicMock()
         proposals = [_proposal(fleet, 0, 0, 0, np.array([0.2, 0.3, 0.5]), 0.4)]
-        transfer_retrofit_uptake(fleet, proposals, idx=0)
+        _transfer_retrofit_uptake(fleet, proposals, idx=0)
         # The profile setter is called once per (vessel, technology). Inspect args to find technology "A".
         calls = {c.args[2]: c.args[3] for c in fleet.profile.set_retrofit_technology_uptake.call_args_list}
         np.testing.assert_almost_equal(calls["A"], 0.32)

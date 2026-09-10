@@ -85,8 +85,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `get_technology_discount_rate` (folded into the per-vessel adoption
   basis), `collect_retrofit_proposals` and `apply_uptake_transition`
   (replaced by the module-internal `_propose_retrofits` and
-  `_apply_retrofits`), and `shares_to_package_mix` and
-  `calculate_packages_saving` (renamed module-internal with a `_` prefix),
+  `_apply_retrofits`), and `shares_to_package_mix`,
+  `calculate_packages_saving`, `reconcile_retrofit_technology_caps`, and
+  `transfer_retrofit_uptake` (renamed module-internal with a `_` prefix),
   all in `navigate/fleet/technology_adoption.py`. No callers outside the
   module remain.
 - **Breaking** for code importing navigate as a library: the `Report` and

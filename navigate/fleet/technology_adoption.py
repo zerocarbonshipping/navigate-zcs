@@ -9,9 +9,9 @@ package is the unit of choice. ``perform_technology_installation`` runs four pha
 and time-step:
 
 1. ``_propose_newbuild_uptake`` / ``_propose_retrofits`` — unconstrained MNL choices per vessel.
-2. ``reconcile_retrofit_technology_caps`` — scale the retrofit proposals against the caps.
+2. ``_reconcile_retrofit_technology_caps`` — scale the retrofit proposals against the caps.
 3. ``_apply_retrofits`` — mutate per-increment uptake and the carried charge.
-4. ``transfer_retrofit_uptake`` / ``transfer_technology_charter_rate`` — profile writes.
+4. ``_transfer_retrofit_uptake`` / ``transfer_technology_charter_rate`` — profile writes.
 
 The retrofit phases communicate through ``_RetrofitProposal`` objects. Newbuild uptake is
 reconciled later, in ``perform_fleet_evolution`` (``reconcile_newbuild_technology_caps``), once
@@ -106,10 +106,31 @@ class _RetrofitProposal:
 
     def first_adopting_step(self, technology_idx: int) -> int:
         """
-        First choice step whose target package contains the technology at `technology_idx`
-        (CAPEX-sorted order). May exceed the number of steps; callers guard.
+        First choice step whose target package contains the technology at `technology_idx`.
+        May exceed the number of steps; callers guard.
+
+        Parameters
+        ----------
+        technology_idx
+            Index of the technology in the CAPEX-sorted order.
         """
         return technology_idx - self.package_idx + 1
+
+    def cap_contribution(self, technology_idx: int) -> _CapContribution | None:
+        """
+        This proposal's contribution to the cap on the technology at `technology_idx`, or None
+        when none of its retrofit steps reaches that technology.
+
+        Parameters
+        ----------
+        technology_idx
+            Index of the technology in the CAPEX-sorted order.
+        """
+        start = self.first_adopting_step(technology_idx)
+        if not 0 < start < len(self.choices):
+            return None
+
+        return _CapContribution(self.choices, start, self.eligible_count)
 
 
 @dataclass
@@ -390,9 +411,9 @@ def perform_technology_installation(fleet: Fleet,
         fleet.newbuild_package_uptake[v] = _propose_newbuild_uptake(fleet, basis)
         proposals += _propose_retrofits(fleet, basis, time_step)
 
-    reconcile_retrofit_technology_caps(fleet, proposals, time_step, multipliers_total)
+    _reconcile_retrofit_technology_caps(fleet, proposals, time_step, multipliers_total)
     _apply_retrofits(proposals)
-    transfer_retrofit_uptake(fleet, proposals, idx)
+    _transfer_retrofit_uptake(fleet, proposals, idx)
 
     # transfer the fleet-average carried technology charge before the cargo
     # charter reads it later in the same timestep
@@ -527,10 +548,10 @@ def _propose_retrofits(fleet: Fleet,
     return proposals
 
 
-def reconcile_retrofit_technology_caps(fleet: Fleet,
-                                       proposals: list[_RetrofitProposal],
-                                       time_step: float,
-                                       multipliers_total: float) -> None:
+def _reconcile_retrofit_technology_caps(fleet: Fleet,
+                                        proposals: list[_RetrofitProposal],
+                                        time_step: float,
+                                        multipliers_total: float) -> None:
     """
     Scale per-proposal retrofit `choices` so that, for every technology, the aggregate count of
     retrofits adopting it this timestep does not exceed `limit · multipliers_total · time_step / YEAR`.
@@ -573,14 +594,9 @@ def reconcile_retrofit_technology_caps(fleet: Fleet,
 
         contributions = []
         for proposal in proposals:
-            if proposal.package_idx > i:
-                continue
-
-            k_start = proposal.first_adopting_step(i)
-            if k_start >= len(proposal.choices):
-                continue
-
-            contributions.append(_CapContribution(proposal.choices, k_start, proposal.eligible_count))
+            contribution = proposal.cap_contribution(i)
+            if contribution is not None:
+                contributions.append(contribution)
 
         _scale_tails_to_cap(contributions, cap)
 
@@ -709,9 +725,9 @@ def _apply_retrofits(proposals: list[_RetrofitProposal]) -> None:
             increment.technology_charter_rate += current * choices[step] * annual_costs[step]
 
 
-def transfer_retrofit_uptake(fleet: Fleet,
-                             proposals: list[_RetrofitProposal],
-                             idx: int) -> None:
+def _transfer_retrofit_uptake(fleet: Fleet,
+                              proposals: list[_RetrofitProposal],
+                              idx: int) -> None:
     """
     Aggregate the per-(vessel, technology) retrofit count from the (already reconciled and
     applied) proposals and write it to the profile as a fraction of that vessel's existing
