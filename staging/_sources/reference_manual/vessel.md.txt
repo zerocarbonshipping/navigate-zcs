@@ -28,8 +28,8 @@ Vessel "bulk_carrier_capesize_oil" {
 	
 	Lifetime = 25
 	CostOfCapital = Variable("cost_of_capital_vessel")
-	CAPEX = 50e6
-	OPEX = 2.4e6
+	Capex = 50e6
+	Opex = 2.4e6
 }
 ```
 
@@ -170,7 +170,7 @@ This attribute defines the lead time of the vessel in years. The lead time is on
 * **Minimum value**: 0
 * **Default**: 0
 
-### CAPEX
+### Capex
 
 This attribute sets the base CAPEX of building the vessel in USD.
 
@@ -182,7 +182,7 @@ This attribute sets the base CAPEX of building the vessel in USD.
 * **Minimum value**: 0
 * **Default**: 0
 
-### OPEX
+### Opex
 
 This attribute defines the base OPEX of maintaining the vessel, in USD per year.
 
