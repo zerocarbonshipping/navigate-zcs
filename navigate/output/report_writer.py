@@ -32,7 +32,8 @@ from navigate.util import (
 )
 
 if TYPE_CHECKING:
-    from navigate.core.nodes.report import NodeReport, Report
+    from navigate.core.node_report import NodeReport
+    from navigate.core.nodes.report import Report
     from navigate.simulation import SimulationManager
 
 logger = logging.getLogger(__name__)

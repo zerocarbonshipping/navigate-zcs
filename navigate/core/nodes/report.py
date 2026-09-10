@@ -10,22 +10,8 @@ manager. The Report node is not assigned on any other node.
 from navigate.core import assign_id
 from navigate.core.enum_ import FileFormatID, ReportReduceID
 from navigate.core.node import Node
+from navigate.core.node_report import NodeReport
 from navigate.core.node_type import REPORT
-from navigate.util import attribute_to_setter
-
-
-class NodeReport:
-    def __init__(self) -> None:
-
-        self.attributes: list[str] = []
-        self.getters: list[str] = []
-        self.reduce: list[ReportReduceID] = []
-
-    def add_property(self, attribute: str, reduce: ReportReduceID) -> None:
-        if attribute not in self.attributes:
-            self.attributes.append(attribute)
-            self.getters.append(attribute_to_setter(attribute, method='get'))
-            self.reduce.append(reduce)
 
 
 class Report(Node):
