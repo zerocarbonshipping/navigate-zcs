@@ -118,7 +118,7 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   per-sheet error containment; `Plot.generate_plots` is replaced by
   `navigate.output.plots.render.generate_plots`, a free function taking the
   plot node. `NodeReport` moves from `navigate.output.report_writer` to
-  `navigate.core.nodes.report`. The DSL surface and simulation results are
+  `navigate.core.node_report`. The DSL surface and simulation results are
   unchanged.
 - Internal simplification (no DSL or result changes): profile and expectation
   `initialize` methods build default-valued per-key storage through the

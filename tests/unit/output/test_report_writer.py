@@ -12,7 +12,8 @@ import openpyxl as xl
 
 from navigate.core.enum_ import ReportReduceID
 from navigate.core.node_registry import Nodes
-from navigate.core.nodes.report import NodeReport, Report
+from navigate.core.node_report import NodeReport
+from navigate.core.nodes.report import Report
 from navigate.core.nodes.vessel import Vessel
 from navigate.output import report_writer
 from navigate.output.report_writer import ROW_RESULT, _prepare_export, write_report
