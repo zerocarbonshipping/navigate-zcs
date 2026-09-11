@@ -90,7 +90,7 @@ def transfer_regulation_measure(alg: BunkerAlgorithm, properties: dict) -> None:
 def _normalize_by_measure(
     measure: RegulationMeasureID, value: float, total_measure: float
 ) -> float:
-    """Normalize a fleet aggregate by the pooled measure; ABSOLUTE values pass through."""
+    """Normalize a fleet aggregate by the pooled measure; ABSOLUTE passes through."""
     if measure == RegulationMeasureID.ABSOLUTE:
         return value
 

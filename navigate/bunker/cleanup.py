@@ -53,7 +53,7 @@ def remove_redundant_vessel(alg: BunkerAlgorithm, v: str) -> None:
 
 def remove_redundant_fuels_from_ports(alg: BunkerAlgorithm) -> None:
     """
-    Remove redundant bunker variables and availability/inertia constraints related to fuels in ports.
+    Remove redundant port-fuel bunker variables and availability/inertia constraints.
 
     Parameters
     ----------
@@ -132,7 +132,7 @@ def remove_model_attribute_and_dict_element(
     positions: tuple[int, ...] = (0,),
 ) -> None:
     """
-    Removes a variable or constraint from the LP model and deletes it from the dict it is stored in.
+    Removes a variable or constraint from the LP model and deletes it from its dict.
 
     Parameters
     ----------

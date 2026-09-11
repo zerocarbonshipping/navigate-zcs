@@ -29,24 +29,30 @@ def calculate_plant_production_expectations(
     plant: Plant, emissions: dict[str, Emission], timeline: np.ndarray, idx: int
 ) -> None:
     """
-    Calculates all properties related to the production of fuels from a given plant. Specifically, the levelized cost
-    of fuel, the average emission factor, and the amount of input (feedstock or process output) used.
+    Calculates all properties related to the production of fuels from a given plant.
+    Specifically, the levelized cost of fuel, the average emission factor, and the
+    amount of input (feedstock or process output) used.
 
-    The levelized cost is calculated by summing the CAPEX, fixed OPEX, and variable OPEX needed to construct and
-    operate the plant over its lifetime. Certain processes (e.g., electrolyzer stacks) may have lifetimes shorter
-    than the plant and consequently require replacement at later stages.
+    The levelized cost is calculated by summing the CAPEX, fixed OPEX, and variable OPEX
+    needed to construct and operate the plant over its lifetime. Certain processes
+    (e.g., electrolyzer stacks) may have lifetimes shorter than the plant and
+    consequently require replacement at later stages.
 
-    During the replacement, the model accounts for technology developments and thus the CAPEX, OPEX, energy demand,
-    etc., may be lower after replacement. Notice, that the conversion factor remains constant over the lifetime
-    of the plant. This is necessary to ensure consistent calculations for former and future use of feedstock.
+    During the replacement, the model accounts for technology developments and thus the
+    CAPEX, OPEX, energy demand, etc., may be lower after replacement. Notice, that the
+    conversion factor remains constant over the lifetime of the plant. This is necessary
+    to ensure consistent calculations for former and future use of feedstock.
 
-    We assume that the emissions of the first year of production is the value at which the plant will be certified.
-    This is a temporary simplification until TODO is implemented (requires reworking Producer node).
+    We assume that the emissions of the first year of production is the value at which
+    the plant will be certified. This is a temporary simplification until TODO is
+    implemented (requires reworking Producer node).
     # TODO:
-    # Unlike the cost which can be converted to a present value, the emissions must be tracked over the lifetime of the
-    # plant. If reductions in emissions happens e.g., due to decarbonization of other sectors via reduction in source or
-    # transport emissions, these reductions cannot be accounted for until they materialize. The logic here is that
-    # the emissions from the plant will be recertified every year to account for any potential reductions.
+    # Unlike the cost which can be converted to a present value, the emissions must be
+    # tracked over the lifetime of the plant. If reductions in emissions happens e.g.,
+    # due to decarbonization of other sectors via reduction in source or transport
+    # emissions, these reductions cannot be accounted for until they materialize. The
+    # logic here is that the emissions from the plant will be recertified every year to
+    # account for any potential reductions.
 
     Parameters
     ----------
@@ -73,7 +79,8 @@ def calculate_plant_production_expectations(
     prev_lifetime = None
     component = None
 
-    # TODO: Forward calculation can be removed once fuel market expectation is simplified
+    # TODO: Forward calculation can be removed once fuel market expectation is
+    # simplified
     for t, time in enumerate(timeline[idx:], start=idx):
         lead_time = plant.expectation.get_lead_time(t)
         lifetime = plant.expectation.get_lifetime(t)
@@ -129,17 +136,19 @@ def calculate_plant_production_expectations(
 
 def _calculate_unit_properties(component: Component, plant: Plant, idx: int) -> None:
     """
-    Aggregates time-dependent cost and emissions flows into unit metrics for the plant at a given time-step.
+    Aggregates cost and emissions flows into unit metrics for the plant at a time-step.
 
-    The function builds a production flow for the current time-step and computes (i) the levelized cost of
-    production using the plant's discount rate and (ii) the average well-to-tank (WTT) emission factor across
-    all emissions. Emissions are averaged over the same production flow to be consistent with the cost
-    aggregation and to mimic certification-style accounting over the operating period.
+    The function builds a production flow for the current time-step and computes (i) the
+    levelized cost of production using the plant's discount rate and (ii) the average
+    well-to-tank (WTT) emission factor across all emissions. Emissions are averaged over
+    the same production flow to be consistent with the cost aggregation and to mimic
+    certification-style accounting over the operating period.
 
     Parameters
     ----------
     component
-        The root component that holds cost and emissions flows accumulated during recursive traversal.
+        The root component that holds cost and emissions flows accumulated during
+        recursive traversal.
     plant
         Plant for which fuel production properties are being calculated.
     idx
@@ -176,10 +185,10 @@ def _calculate_unit_properties(component: Component, plant: Plant, idx: int) -> 
 
 def _calculate_plant_production(plant: Plant, timeline: np.ndarray, idx: int) -> None:
     """
-    Computes plant-level production primitives (lifetime, lead time, capacity, production) over future times.
+    Computes future production primitives (lifetime, lead time, capacity, production).
 
-    Capacity is derived from nameplate size (tons/day) and scaled to tons/year. Actual production accounts for
-    uptime.
+    Capacity is derived from nameplate size (tons/day) and scaled to tons/year. Actual
+    production accounts for uptime.
 
     Parameters
     ----------
@@ -222,23 +231,26 @@ def _calculate_recursive_process(
     idx: int,
 ) -> None:
     """
-    Recursively traverses the production tree to accumulate costs and emissions for processes and feedstocks.
+    Walk the production tree to accumulate process and feedstock costs and emissions.
 
     Starting from the top-level process, the routine:
     (1) Records the current conversion factor (mass input per mass fuel output).
     (2) Adds process-specific CAPEX/OPEX and WTT emissions.
-    (3) Adds energy-related costs and emissions depending on whether the source is standalone or connected.
+    (3) Adds energy-related costs and emissions depending on whether the source is
+        standalone or connected.
     (4) Adds transport-related costs and emissions for process outputs.
     (5) Iterates over each feedstock/conversion branch:
         • If a leaf feedstock, adds acquisition and transport costs/emissions.
         • If a nested process, continues recursion with the extended conversion.
 
-    The accumulated flows are stored in `component` and later transformed into unit metrics.
+    The accumulated flows are stored in `component` and later transformed into unit
+    metrics.
 
     Parameters
     ----------
     component
-        The root component that holds cost and emissions flows accumulated during recursive traversal.
+        The root component that holds cost and emissions flows accumulated during
+        recursive traversal.
     plant
         The plant providing region, source, and expectation context.
     process
@@ -344,11 +356,12 @@ def _initialize_process_component(
     idx: int,
 ) -> Component:
     """
-    Creates and initializes the aggregation `Component` for a given plant at a specific start time.
+    Creates and initializes the aggregation `Component` for a plant at a start time.
 
     The component is prepared with:
     • Flow containers sized to the plant's lead time and lifetime at the current index.
-    • Callable hooks linking region- and process-specific lookups used by downstream calculators.
+    • Callable hooks linking region- and process-specific lookups used by downstream
+      calculators.
     • Emission streams to ensure consistent accumulation during recursion.
 
     Parameters
@@ -360,7 +373,8 @@ def _initialize_process_component(
     emissions
         All emissions in the simulation.
     time_initial
-        Absolute time at which the plant component is assumed to be constructed or commissioned.
+        Absolute time at which the plant component is assumed to be constructed or
+        commissioned.
     idx
         Current time-step index in the simulation timeline.
 
@@ -394,16 +408,18 @@ def _calculate_process_cost(
     idx: int,
 ) -> None:
     """
-    Adds process-specific capital and fixed operating costs to the component's cost flow.
+    Adds process capital and fixed operating costs to the component's cost flow.
 
-    CAPEX/OPEX are evaluated via region lookups as functions of time and effective scale. Scale combines the
-    plant's size (tons/day) and the cumulative conversion factor so that intermediate-process sizing aligns with
-    fuel output requirements. Costs are added as fixed flows at construction/operation times.
+    CAPEX/OPEX are evaluated via region lookups as functions of time and effective
+    scale. Scale combines the plant's size (tons/day) and the cumulative conversion
+    factor so that intermediate-process sizing aligns with fuel output requirements.
+    Costs are added as fixed flows at construction/operation times.
 
     Parameters
     ----------
     component
-        The root component that holds cost and emissions flows accumulated during recursive traversal.
+        The root component that holds cost and emissions flows accumulated during
+        recursive traversal.
     plant
         The plant providing size expectations.
     process
@@ -444,14 +460,16 @@ def _calculate_process_emissions(
     """
     Adds process-related WTT emissions as fixed flows over the operating horizon.
 
-    Emission factors are retrieved per species for the given process and multiplied by production and the
-    current conversion factor. These are recorded as fixed WTT flows (constant with respect to consumption
-    volume within the step) for later aggregation into average emission factors.
+    Emission factors are retrieved per species for the given process and multiplied by
+    production and the current conversion factor. These are recorded as fixed WTT flows
+    (constant with respect to consumption volume within the step) for later aggregation
+    into average emission factors.
 
     Parameters
     ----------
     component
-        The root component that holds cost and emissions flows accumulated during recursive traversal.
+        The root component that holds cost and emissions flows accumulated during
+        recursive traversal.
     process
         The process whose emissions' factors are applied.
     emissions
@@ -484,16 +502,18 @@ def _calculate_energy_cost(
     conversion: float,
 ) -> None:
     """
-    Adds energy-related costs for powering the process, handling standalone vs. connected sources.
+    Adds energy costs for powering the process (standalone vs. connected sources).
 
-    For standalone sources, CAPEX and fixed OPEX are proportional to the process energy demand at construction
-    and operation times. For connected sources, energy demand is fixed at construction but unit energy price is
-    allowed to vary over time; costs are therefore added as variable OPEX with a time-varying price metric.
+    For standalone sources, CAPEX and fixed OPEX are proportional to the process energy
+    demand at construction and operation times. For connected sources, energy demand is
+    fixed at construction but unit energy price is allowed to vary over time; costs are
+    therefore added as variable OPEX with a time-varying price metric.
 
     Parameters
     ----------
     component
-        The root component that holds cost and emissions flows accumulated during recursive traversal.
+        The root component that holds cost and emissions flows accumulated during
+        recursive traversal.
     process
         The process whose energy demand profile is used.
     region
@@ -552,14 +572,16 @@ def _calculate_energy_emissions(
     """
     Adds energy-related WTT emissions for the process, respecting source dependency.
 
-    For standalone sources, emissions are treated as fixed flows tied to the energy consumed at construction
-    and operation times. For connected sources, emissions intensities may vary over time; emissions are therefore
-    added as variable WTT flows using the energy demand as the metric.
+    For standalone sources, emissions are treated as fixed flows tied to the energy
+    consumed at construction and operation times. For connected sources, emissions
+    intensities may vary over time; emissions are therefore added as variable WTT flows
+    using the energy demand as the metric.
 
     Parameters
     ----------
     component
-        The root component that holds cost and emissions flows accumulated during recursive traversal.
+        The root component that holds cost and emissions flows accumulated during
+        recursive traversal.
     process
         The process whose energy demand drives emissions.
     emissions
@@ -621,16 +643,18 @@ def _calculate_feedstock_cost(
     conversion: float,
 ) -> None:
     """
-    Adds variable OPEX for acquiring feedstock (or intermediate process output) consumed by the process.
+    Adds variable OPEX for feedstock (or intermediate output) consumed by the process.
 
-    The unit feedstock price is looked up per time and multiplied by annual production. A dummy metric equal to
-    the conversion factor is used to express that total cost scales with input mass per unit fuel, enabling
-    consistent treatment alongside other variable costs.
+    The unit feedstock price is looked up per time and multiplied by annual production.
+    A dummy metric equal to the conversion factor is used to express that total cost
+    scales with input mass per unit fuel, enabling consistent treatment alongside other
+    variable costs.
 
     Parameters
     ----------
     component
-        The root component that holds cost and emissions flows accumulated during recursive traversal.
+        The root component that holds cost and emissions flows accumulated during
+        recursive traversal.
     feedstock
         A `Feedstock` used as an input to the current process.
     region
@@ -660,13 +684,15 @@ def _calculate_feedstock_emissions(
     """
     Adds variable WTT emissions associated with acquiring and using a feedstock.
 
-    Emission factors are retrieved per emission for the feedstock and multiplied by annual production.
-    A dummy metric equal to the conversion factor scales emissions to the input mass required per unit fuel.
+    Emission factors are retrieved per emission for the feedstock and multiplied by
+    annual production. A dummy metric equal to the conversion factor scales emissions to
+    the input mass required per unit fuel.
 
     Parameters
     ----------
     component
-        The root component that holds cost and emissions flows accumulated during recursive traversal.
+        The root component that holds cost and emissions flows accumulated during
+        recursive traversal.
     feedstock
         The feedstock whose emission factors are applied.
     emissions
@@ -699,20 +725,23 @@ def _calculate_transport_cost(
     conversion: float,
 ) -> None:
     """
-    Adds variable OPEX for transporting feedstocks or process outputs, if a transport mode is configured.
+    Adds variable OPEX for transporting feedstocks or process outputs, if configured.
 
-    Transport cost is computed from distance, regional transport unit cost, and annual production. If no
-    transport is configured for the given input/output, the routine exits without modifying the component.
-    Costs scale with the conversion factor through a dummy metric to reflect mass moved per unit fuel.
+    Transport cost is computed from distance, regional transport unit cost, and annual
+    production. If no transport is configured for the given input/output, the routine
+    exits without modifying the component. Costs scale with the conversion factor
+    through a dummy metric to reflect mass moved per unit fuel.
 
     Parameters
     ----------
     component
-        The root component that holds cost and emissions flows accumulated during recursive traversal.
+        The root component that holds cost and emissions flows accumulated during
+        recursive traversal.
     plant
         The plant providing transport assignments and distance profiles.
     feed
-        A process (output from another process) or a feedstock being transported to the current process.
+        A process (output from another process) or a feedstock being transported to the
+        current process.
     region
         Pre-resolved region for this plant.
     production
@@ -749,21 +778,24 @@ def _calculate_transport_emissions(
     conversion: float,
 ) -> None:
     """
-    Adds variable WTT emissions from transport activities, if a transport mode is configured.
+    Adds variable WTT emissions from transport, if a transport mode is configured.
 
-    Emissions are determined by regional transport emission factors per distance, multiplied by the
-    distance traveled and annual production. When no transport assignment exists for the given input/output,
-    the routine performs no updates. A dummy metric equal to the conversion factor ensures scaling with
-    transported mass per unit fuel.
+    Emissions are determined by regional transport emission factors per distance,
+    multiplied by the distance traveled and annual production. When no transport
+    assignment exists for the given input/output, the routine performs no updates. A
+    dummy metric equal to the conversion factor ensures scaling with transported mass
+    per unit fuel.
 
     Parameters
     ----------
     component
-        The root component that holds cost and emissions flows accumulated during recursive traversal.
+        The root component that holds cost and emissions flows accumulated during
+        recursive traversal.
     plant
         The plant providing transport assignments and distance profiles.
     feed
-        A process (output from another process) or a feedstock being transported to the current process.
+        A process (output from another process) or a feedstock being transported to the
+        current process.
     emissions
         All emissions in the simulation.
     region

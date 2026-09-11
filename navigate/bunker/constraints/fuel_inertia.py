@@ -16,7 +16,7 @@ from navigate.util import calculate_inertia
 
 def update_fuel_inertia_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     r"""
-    Add the constraints enforcing a floor on bunkered fuel carried over from the previous time-step.
+    Add constraints enforcing a floor on bunkered fuel carried from the previous step.
 
     For each port q and usable fuel f the port may bunker (vessel index omitted):
 

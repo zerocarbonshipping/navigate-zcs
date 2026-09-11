@@ -24,7 +24,8 @@ def transfer_bunker(alg: BunkerAlgorithm) -> None:
         fleet_name: dict.fromkeys(alg.fuels, 0.0) for fleet_name in alg.fleets
     }
 
-    # precompute levy levels (independent of vessel/fuel) to avoid redundant getter calls
+    # precompute levy levels (independent of vessel/fuel) to avoid redundant getter
+    # calls
     levy_level_cache = {}
     if alg.scope == BunkerScopeID.EXISTING:
         for levies in alg.port_levies.values():

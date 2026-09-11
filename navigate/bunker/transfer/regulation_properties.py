@@ -40,7 +40,7 @@ def _get_adjusted_threshold(
 
 def calculate_regulation_emission_properties(alg: BunkerAlgorithm) -> dict:
     """
-    Calculates the emissions and the allowed emissions for a given regulation and ship/vessel.
+    Calculates emissions and allowed emissions for a given regulation and ship/vessel.
 
     After threshold adjustment the adjusted (achievable) threshold is used so that
     non-compliance and surplus are measured against the target the fleet actually

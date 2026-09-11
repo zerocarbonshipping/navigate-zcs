@@ -20,15 +20,17 @@ def calculate_plant_logistics_expectations(
     idx: int,
 ) -> None:
     """
-    Calculate the expected cost and WTT emissions of delivering each plant's fuel to each port.
+    Calculate the cost and WTT emissions of delivering each plant's fuel to each port.
 
-    The delivery cost and emissions are given by the transport mode and distance assigned per port on the
-    plant, combined with the per-distance rates of the plant's region.
+    The delivery cost and emissions are given by the transport mode and distance
+    assigned per port on the plant, combined with the per-distance rates of the plant's
+    region.
 
-    The delivery cost is production-levelized over the same window as the levelized cost of production:
-    the plant's construction lead time followed by its operational lifetime, anchored at the evaluation
-    time. Since the plant's annual production is constant over the operating window, it cancels from the
-    levelization ratio, leaving the per-year operating fraction as the leveling flow.
+    The delivery cost is production-levelized over the same window as the levelized cost
+    of production: the plant's construction lead time followed by its operational
+    lifetime, anchored at the evaluation time. Since the plant's annual production is
+    constant over the operating window, it cancels from the levelization ratio, leaving
+    the per-year operating fraction as the leveling flow.
 
     Parameters
     ----------

@@ -145,7 +145,8 @@ def _configure(preference):
             _logger.info("Gurobi solver backend selected by user preference.")
         else:
             _logger.warning(
-                "Gurobi preferred but not available -- falling back to HiGHS solver backend."
+                "Gurobi preferred but not available -- falling back to HiGHS solver "
+                "backend."
             )
 
     else:  # AUTOMATIC

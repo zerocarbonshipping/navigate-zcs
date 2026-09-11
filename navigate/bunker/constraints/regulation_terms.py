@@ -253,7 +253,7 @@ def get_regulation_vessel_rhs(
 
 def update_regulation_individual_rhs(alg: BunkerAlgorithm) -> None:
     """
-    Updates the right-hand side values for individual regulations specific to each vessel.
+    Updates right-hand side values for individual regulations specific to each vessel.
 
     Parameters
     ----------
