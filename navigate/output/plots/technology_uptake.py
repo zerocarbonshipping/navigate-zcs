@@ -96,8 +96,8 @@ def plot_technology_uptake(manager, directory):
             else:
                 uptake_nb[name] = [0.0 for _ in range(dateline.size)]
 
-            # Yearly retrofit share — fleet-weighted by existing multipliers, since each per-vessel
-            # entry is already `retrofit_count_v / multiplier_v` (a rate).
+            # Yearly retrofit share — fleet-weighted by existing multipliers, since each
+            # per-vessel entry is already `retrofit_count_v / multiplier_v` (a rate).
             if values_rf and weights:
                 uptake_rf[name] = [
                     np.average(

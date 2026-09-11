@@ -16,8 +16,9 @@ import math
 
 import numpy as np
 
-# ----------------------------------------------------------------------------------------------------------------------
-# Default colouring scheme - first 7 from Matlab default, next 10 from Matplotlib default
+# --------------------------------------------------------------------------------------
+# Default colouring scheme - first 7 from Matlab default, next 10 from
+# Matplotlib default
 DEFAULT_COLOURS = [
     np.array([0.0, 114.0, 189.0]) / 255.0,
     np.array([217.0, 83.0, 25.0]) / 255.0,

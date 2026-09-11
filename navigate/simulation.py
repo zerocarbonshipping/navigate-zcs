@@ -64,7 +64,7 @@ logger = logging.getLogger(__name__)
 class SimulationManager:
     def __init__(self):
 
-        # properties ---------------------------------------------------------------------------------------------------
+        # properties -------------------------------------------------------------------
         self.name = (
             "global"  # str, keys manager-level report sheets alongside node names
         )
@@ -74,27 +74,27 @@ class SimulationManager:
         self._idx = 0  # int, time-step index
 
         # simulation time/date line
-        self.timeline = None  # np.ndarray, all times at which the simulation will perform calculations, days
-        self.dateline = None  # np.ndarray, all dates at which the simulation will perform calculations,
+        self.timeline = None  # np.ndarray, simulation calculation times, days
+        self.dateline = None  # np.ndarray, simulation calculation dates
 
         # profile
         self.profile = ManagerProfile()
 
-        # bunker algorithm ---------------------------------------------------------------------------------------------
+        # bunker algorithm -------------------------------------------------------------
         self._bunker_existing = BunkerAlgorithm()
         self._bunker_expected = BunkerAlgorithm()
 
-        # parser -------------------------------------------------------------------------------------------------------
+        # parser -----------------------------------------------------------------------
         self.parser = Parser()
         self.nodes = self.parser.nodes
         self.general_nodes = self.parser.general_nodes
 
-        # code timing --------------------------------------------------------------------------------------------------
+        # code timing ------------------------------------------------------------------
         self._computational_time = None
 
     def read_deck(self, path: Path, args: argparse.Namespace) -> None:
         """
-        Read the simulation deck using the Parser. Must be called prior to the 'run' method.
+        Read the simulation deck using the Parser; must be called before 'run'.
 
         Parameters
         ----------
@@ -112,7 +112,7 @@ class SimulationManager:
 
     def run(self):
         """
-        Run the simulation as defined in the deck. This method handles the high-level flow of the simulation.
+        Run the simulation as defined in the deck, handling its high-level flow.
         """
         # check that necessary nodes are
         # defined as well as a timeline
@@ -137,9 +137,10 @@ class SimulationManager:
 
     def _initialize_timeline(self):
         """
-        All dates at which the simulation will perform calculations is known up front once the Parser has read
-        the input deck. This method initializes all time-related properties on the Manager required for calculations
-        throughout the simulation.
+        All dates at which the simulation will perform calculations is known up front
+        once the Parser has read the input deck. This method initializes all
+        time-related properties on the Manager required for calculations throughout the
+        simulation.
 
         """
         self.dateline = self.parser.dates
@@ -152,8 +153,8 @@ class SimulationManager:
 
     def _initialize_simulation(self):
         """
-        This method initializes the model based on the defined initial conditions.
-        The calculations performed overlap partially with those performed at each time-step.
+        This method initializes the model based on the defined initial conditions. The
+        calculations performed overlap partially with those performed at each time-step.
         """
         # log the start of the simulation
         # to the .log file
@@ -499,8 +500,8 @@ class SimulationManager:
         - delivering from the pipeline,
         - calculating feedstock gap.
 
-        Then the fuel/supply demand gap is calculated and producers are assigned a fair-share of the gap and their
-        pipeline is updated.
+        Then the fuel/supply demand gap is calculated and producers are assigned a
+        fair-share of the gap and their pipeline is updated.
         """
         start_time = timeit.default_timer()
 
@@ -931,7 +932,8 @@ class SimulationManager:
         plot_data.save()
 
     def _export_plots(self, plot_data):
-        # deferred so matplotlib only loads when plots are actually rendered (see also replot.py)
+        # deferred so matplotlib only loads when plots are actually rendered (see also
+        # replot.py)
         from navigate.output.plots.render import generate_plots
 
         for plot_node in self.nodes.plots.values():

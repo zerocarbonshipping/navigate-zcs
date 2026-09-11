@@ -78,7 +78,7 @@ def dates_to_years(dates):
 
 def decompose_dates(dates):
     """
-    Decompose a numpy date array into three arrays containing the years, months and days (integers).
+    Decompose a numpy date array into three arrays: years, months and days (integers).
 
     Parameters
     ----------
