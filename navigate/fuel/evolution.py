@@ -586,7 +586,8 @@ def calculate_feed_availability(producer: Producer, timeline, idx) -> None:
         # TODO: Remove if scrapping for negatives gets implemented
         if gap[0] < -TOLERANCE:
             logger.warning(
-                f"{producer}: {round(-gap[0])} tons/year more '{feed_name}' feed is being used than is available."
+                f"{producer}: {round(-gap[0])} tons/year more "
+                f"'{feed_name}' feed is being used than is available."
             )
 
             gap = 0.0
@@ -596,8 +597,8 @@ def calculate_feed_availability(producer: Producer, timeline, idx) -> None:
 
 def define_existing_pipeline(producer: Producer, timeline: np.ndarray) -> None:
     """
-    Define the initial number of plants of each plant type in the production pipeline, and derive
-    the initial uptake and development-constraint utilization from it.
+    Define the initial number of plants of each plant type in the production pipeline,
+    and derive the initial uptake and development-constraint utilization from it.
 
     Parameters
     ----------
@@ -704,7 +705,7 @@ def calculate_export_expectation(
     producer: Producer, timeline: np.ndarray, idx: int
 ) -> None:
     """
-    Calculate the expected export distribution of the producer over the remaining timeline.
+    Calculate the producer's expected export distribution over the remaining timeline.
 
     Parameters
     ----------
@@ -738,8 +739,8 @@ def calculate_export_expectation(
 
 def perform_progression(producer: Producer, timeline: np.ndarray, idx: int) -> None:
     """
-    Progress the existing production in time: decommissioning, pipeline delivery, and the
-    resulting feed availability.
+    Progress the existing production in time: decommissioning, pipeline delivery, and
+    the resulting feed availability.
 
     Parameters
     ----------

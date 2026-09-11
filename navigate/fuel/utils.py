@@ -22,9 +22,9 @@ def calculate_uptake_inter_metric(
     plant, demand, minimum_offtake_duration, timeline, idx
 ):
     """
-    Calculate the business case evaluation metric which is used to decide on a specific fuel pathway.
-    This is based on the expected future gap between supply and demand and the number of plants required
-    to satisfy that gap.
+    Calculate the business case evaluation metric which is used to decide on a specific
+    fuel pathway. This is based on the expected future gap between supply and demand and
+    the number of plants required to satisfy that gap.
 
     Parameters
     ----------
@@ -96,9 +96,9 @@ def calculate_uptake_inter_metric(
 
 def calculate_uptake_intra_metric(plant, export_distribution, idx):
     """
-    Calculate the business case evaluation metric which is used to decide on a specific plant after the fuel pathway
-    has been decided.
-    This is based on the average delivered levelized cost of fuel for a given plant.
+    Calculate the business case evaluation metric which is used to decide on a specific
+    plant after the fuel pathway has been decided. This is based on the average
+    delivered levelized cost of fuel for a given plant.
 
     Parameters
     ----------
@@ -151,15 +151,18 @@ def get_plant_evaluation_timeline(plant, timeline, idx):
 
 def calculate_constrained_shares(shares, maximums):
     """
-    This methods takes the optimal allocation from a discrete choice model and redistributes the shares between
-    the options if certain allocations are larger than their maximum allowed share.
+    This methods takes the optimal allocation from a discrete choice model and
+    redistributes the shares between the options if certain allocations are larger than
+    their maximum allowed share.
 
-    Notice that this method redistributes the surplus from constrained shares to the other shares proportionally to
-    the deficit of each share. Meaning the bigger the gap to the maximum the larger the fraction of the surplus it
-    receives.
+    Notice that this method redistributes the surplus from constrained shares to the
+    other shares proportionally to the deficit of each share. Meaning the bigger the gap
+    to the maximum the larger the fraction of the surplus it receives.
 
-    TODO: Is this desired or should it be a perfectly equal share between the buckets with deficit?
-    TODO: This probably requires an iterative algorithm to ensure redistribution does not break maximums.
+    TODO: Is this desired or should it be a perfectly equal share between the buckets
+    with deficit?
+    TODO: This probably requires an iterative algorithm to ensure redistribution does
+    not break maximums.
 
     Parameters
     ----------
@@ -171,7 +174,8 @@ def calculate_constrained_shares(shares, maximums):
     Returns
     -------
     tuple[np.ndarray, float]
-        Constrained uptake shares and the utilization share if the problem is over-constrained.
+        Constrained uptake shares and the utilization share if the problem is
+        over-constrained.
     """
     surplus = np.maximum(shares - maximums, 0.0)
     deficit = np.maximum(maximums - shares, 0.0)
@@ -195,7 +199,8 @@ def calculate_increment_production_interval(
     Parameters
     ----------
     production : float
-        Production that will enter at the delivery date (sum of all plants being delivered).
+        Production that will enter at the delivery date (sum of all plants being
+        delivered).
     delivery : float
         Time at which production was or will be delivered.
     decommission : float
@@ -353,5 +358,6 @@ def calculate_development_potential(
 
     # transfer the development potential per fuel
     for fuel_name in producer.fuels:
-        # TODO: can easily loop over export distribution to include shares going to ports
+        # TODO: can easily loop over export distribution to include shares going to
+        # ports
         producer.expectation.set_development_potential(fuel_name, potential[fuel_name])
