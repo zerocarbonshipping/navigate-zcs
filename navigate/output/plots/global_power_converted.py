@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 import matplotlib.patches as mpatches
 import numpy as np
 
@@ -27,14 +29,24 @@ def _plot_global_power_converted(manager, directory, cumulative=False):
     fig, ax = single_panel()
 
     converted_power = manager.profile.get_fuel_converted_power()
-    converted_power = {key: value for key, value in converted_power.items() if np.any(np.abs(value) > TOLERANCE)}
+    converted_power = {
+        key: value
+        for key, value in converted_power.items()
+        if np.any(np.abs(value) > TOLERANCE)
+    }
 
-    divisor, prefix = find_best_metric_prefix(np.amax(np.sum(list(converted_power.values()))), default=6)
-    converted_power = {key: divide_nonzero(power, divisor) for key, power in converted_power.items()}
-    unit = '{}W'.format(prefix)
+    divisor, prefix = find_best_metric_prefix(
+        np.amax(np.sum(list(converted_power.values()))), default=6
+    )
+    converted_power = {
+        key: divide_nonzero(power, divisor) for key, power in converted_power.items()
+    }
+    unit = f"{prefix}W"
 
     conversions_from = collapse_tuple_dict(converted_power, key1=True)
-    conversions_from = {key: -conversion for key, conversion in conversions_from.items()}
+    conversions_from = {
+        key: -conversion for key, conversion in conversions_from.items()
+    }
     conversions_to = collapse_tuple_dict(converted_power, key2=True)
 
     values_from, labels_from, colors_from = unpack_fuel_type_series(conversions_from)
@@ -50,33 +62,38 @@ def _plot_global_power_converted(manager, directory, cumulative=False):
         values_to = [v[1:] for v in values_to]
 
     # plot stacks
-    stack = plot_stack_with_lines(ax, dateline[1:], values_from, labels_from, colors_from)
-    stack.append(plot_stack_with_lines(ax, dateline[1:], values_to, labels_to, colors_to))
+    stack = plot_stack_with_lines(
+        ax, dateline[1:], values_from, labels_from, colors_from
+    )
+    stack.append(
+        plot_stack_with_lines(ax, dateline[1:], values_to, labels_to, colors_to)
+    )
 
     # create proxy artist for legend
     unique_labels = [*labels_from]
     unique_colors = [*colors_from]
 
     for label, color in zip(labels_to, colors_to):
-
         if label not in unique_labels:
-
             unique_labels.append(label)
             unique_colors.append(color)
 
     # plot zero line
-    ax.plot([dateline[1], dateline[-1]], [0., 0.], c='k', lw=2)
+    ax.plot([dateline[1], dateline[-1]], [0.0, 0.0], c="k", lw=2)
 
-    ax.set_ylabel('Converted power [{}]'.format(unit))
+    ax.set_ylabel(f"Converted power [{unit}]")
 
-    patches = [mpatches.Patch(color=color, label=label) for label, color in zip(unique_labels, unique_colors)]
+    patches = [
+        mpatches.Patch(color=color, label=label)
+        for label, color in zip(unique_labels, unique_colors)
+    ]
     legend = ax.legend(handles=patches, **LEGEND_OPTIONS)
 
     format_axes(ax, 1, dateline[1:], legend, y_lim=(None, None))
 
-    suffix = '_cumulative' if cumulative else ''
+    suffix = "_cumulative" if cumulative else ""
 
-    save_figure(fig, directory, 'global_power_converted{}.png'.format(suffix))
+    save_figure(fig, directory, f"global_power_converted{suffix}.png")
 
 
 def plot_global_power_converted_cumulative(manager, directory):

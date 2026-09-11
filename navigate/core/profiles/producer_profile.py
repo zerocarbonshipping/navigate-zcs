@@ -24,11 +24,17 @@ class ProducerProfile(_PlantAggregateProfile):
         self._maximum_development: np.ndarray = EMPTY_NAN
         self._development: np.ndarray = EMPTY_FLOAT
 
-        self._fair_share_fuel_fraction: dict[str, np.ndarray] = {}  # fraction of fair-share going to the specific producer
+        self._fair_share_fuel_fraction: dict[
+            str, np.ndarray
+        ] = {}  # fraction of fair-share going to the specific producer
 
-    def initialize(self, timeline: np.ndarray,
-                   feedstocks: dict[str, Feedstock], fuels: dict[str, Fuel],
-                   processes: dict[str, Process]) -> None:
+    def initialize(
+        self,
+        timeline: np.ndarray,
+        feedstocks: dict[str, Feedstock],
+        fuels: dict[str, Fuel],
+        processes: dict[str, Process],
+    ) -> None:
         """
 
         Parameters
@@ -42,7 +48,6 @@ class ProducerProfile(_PlantAggregateProfile):
         processes : dict[Process]
             All processes in the simulation.
         """
-
         self._initialize_base(timeline)
         self._initialize_fuel_base(fuels)
         self._initialize_fuel_producer(feedstocks, fuels, processes)
@@ -59,7 +64,9 @@ class ProducerProfile(_PlantAggregateProfile):
     def set_development(self, idx: int, development: float) -> None:
         self._development[idx] = development
 
-    def set_fair_share_fuel_fraction(self, idx: int, fuel_name: str, fair_share: float) -> None:
+    def set_fair_share_fuel_fraction(
+        self, idx: int, fuel_name: str, fair_share: float
+    ) -> None:
         self._fair_share_fuel_fraction[fuel_name][idx] = fair_share
 
     def get_maximum_development(self, idx: int | slice = np.s_[:]) -> np.ndarray:
@@ -68,13 +75,15 @@ class ProducerProfile(_PlantAggregateProfile):
     def get_development(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         return self._development[idx]
 
-    def get_cumulative_maximum_development(self, idx: int | slice = np.s_[:]) -> np.ndarray:
+    def get_cumulative_maximum_development(
+        self, idx: int | slice = np.s_[:]
+    ) -> np.ndarray:
         return self._to_cumulative(self._maximum_development[idx])
 
     def get_cumulative_development(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         return self._to_cumulative(self._development[idx])
 
     def get_fair_share_fuel_fraction(
-            self, fuel_name: str | None = None,
-            idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
+        self, fuel_name: str | None = None, idx: int | slice = np.s_[:]
+    ) -> np.ndarray | dict[str, np.ndarray]:
         return extract_from_dict(self._fair_share_fuel_fraction, fuel_name, idx)

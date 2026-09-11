@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 import numpy as np
 
 from navigate.output.plots._aggregate import merge_fuels_for_plot
@@ -25,31 +27,34 @@ def plot_fleet_fuel_consumed(manager, directory):
 
     # cumulate fuel spent over all fleets
     for ax, fleet in zip(axes, fleets.values()):
-
         fleet_profile = fleet.profile
         fuel_demand = fleet_profile.get_consumed_energy()
         shore_power = fleet_profile.get_shore_power_energy()
 
-        divisor, unit = get_best_unit_energy(np.amax(sum(list(fuel_demand.values())) + shore_power), default=9)
-        fuel_demand = {fuel_name: demand / divisor for fuel_name, demand in fuel_demand.items()}
+        divisor, unit = get_best_unit_energy(
+            np.amax(sum(list(fuel_demand.values())) + shore_power), default=9
+        )
+        fuel_demand = {
+            fuel_name: demand / divisor for fuel_name, demand in fuel_demand.items()
+        }
         shore_power_scaled = shore_power / divisor
 
         # merge into required fuels
         values, labels, colors = merge_fuels_for_plot(dateline, fuels, fuel_demand)
 
         # add shore power as separate layer
-        if np.any(shore_power_scaled > 0.):
+        if np.any(shore_power_scaled > 0.0):
             values.append(shore_power_scaled)
-            labels.append('Shore Power')
+            labels.append("Shore Power")
             colors.append(SHORE_POWER_COLOR)
 
         plot_stack_with_lines(ax, dateline, values, labels, colors)
 
-        ax.set_ylabel('Fuel consumed [{}]'.format(unit))
+        ax.set_ylabel(f"Fuel consumed [{unit}]")
         ax.set_title(extract_label(fleet, FLEET_LABEL))
 
         format_axes(ax, len(fleets), dateline)
 
     trim_axes(axes, len(fleets))
 
-    save_figure(fig, directory, 'fleet_fuel_consumed.png')
+    save_figure(fig, directory, "fleet_fuel_consumed.png")

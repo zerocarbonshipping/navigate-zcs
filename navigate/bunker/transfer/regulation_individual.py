@@ -20,10 +20,8 @@ def transfer_regulation_individual(alg: BunkerAlgorithm) -> None:
     alg
         The algorithm instance.
     """
-
     # transfer regulation solution
     for (r, v), remedial_factor in alg.remedial_factor_individual.items():
-
         regulation = alg.regulations[r]
         vessel = alg.vessels[v]
 
@@ -39,7 +37,6 @@ def transfer_regulation_individual(alg: BunkerAlgorithm) -> None:
         vessel_remediation = remedial_expenses / alg.multipliers[v]
 
         if alg.scope == BunkerScopeID.EXISTING:
-
             # transfer to regulation
             regulation.profile.add_remedial_units(remedial_units, alg.idx)
             regulation.profile.add_remedial_expenses(remedial_expenses, alg.idx)
@@ -49,10 +46,14 @@ def transfer_regulation_individual(alg: BunkerAlgorithm) -> None:
             vessel.profile.add_remedial_expenses(vessel_remediation, alg.idx)
 
         else:
-
             vessel.expectation.add_policy_expenses(alg.idx, vessel_remediation)
 
         # transfer adjusted thresholds if threshold adjustment is enabled
-        if (alg.scope == BunkerScopeID.EXISTING and regulation.allow_threshold_adjustment
-                and (r, v) in alg.adjusted_vessel_thresholds):
-            regulation.profile.set_adjusted_vessel_threshold(alg.idx, v, alg.adjusted_vessel_thresholds[(r, v)])
+        if (
+            alg.scope == BunkerScopeID.EXISTING
+            and regulation.allow_threshold_adjustment
+            and (r, v) in alg.adjusted_vessel_thresholds
+        ):
+            regulation.profile.set_adjusted_vessel_threshold(
+                alg.idx, v, alg.adjusted_vessel_thresholds[(r, v)]
+            )

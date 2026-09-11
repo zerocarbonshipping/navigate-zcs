@@ -33,7 +33,6 @@ def extract_times(vessel: Vessel, idx: int) -> tuple[list, list]:
     tuple[list, list]
         The time at sea and time in port for the vessel (days).
     """
-
     time_sea = vessel.expectation.get_time_sea(idx)
     time_port = vessel.expectation.get_time_port(idx)
 
@@ -42,7 +41,6 @@ def extract_times(vessel: Vessel, idx: int) -> tuple[list, list]:
 
     # group to a single cumulative leg
     if route_type == enum_.RouteTypeID.REGIONAL_TRIP:
-
         sailing_fractions = route.get_voyage_distribution(to_array=True)
         time_sea = np.multiply(sum(time_sea), sailing_fractions)
 
@@ -63,7 +61,6 @@ def get_converters(vessel: Vessel) -> dict[str, Converter]:
     dict[str, Converter]
         The propulsion, electrical, and heat converters keyed by name.
     """
-
     return {c.name: c for c in vessel.power_system.get_converters()}
 
 
@@ -81,7 +78,6 @@ def get_port_converters(vessel: Vessel) -> dict[str, Converter]:
     dict[str, Converter]
         The electrical and heat converters keyed by name.
     """
-
     power_system = vessel.power_system
     return {c.name: c for c in (power_system.electrical, power_system.heat)}
 
@@ -101,25 +97,27 @@ def initialize_converter_fuel_maps(alg: BunkerAlgorithm) -> None:
     alg
         The algorithm instance.
     """
-
     for fleet in alg.fleets.values():
-
         for vessel in fleet.vessels:
-
             v = vessel.name
             converters = get_converters(vessel)
             port_converters = get_port_converters(vessel)
 
             for c, converter in converters.items():
                 fuel_types = converter.get_fuel_types()
-                alg.fuels_per_converter[(v, c)] = {f: fuel for f, fuel in vessel.usable_fuels.items()
-                                                   if fuel.fuel_type in fuel_types}
+                alg.fuels_per_converter[(v, c)] = {
+                    f: fuel
+                    for f, fuel in vessel.usable_fuels.items()
+                    if fuel.fuel_type in fuel_types
+                }
 
             for f in vessel.usable_fuels:
-                alg.converters_per_fuel[(v, f)] = tuple(c for c in converters
-                                                        if f in alg.fuels_per_converter[(v, c)])
-                alg.port_converters_per_fuel[(v, f)] = tuple(c for c in port_converters
-                                                             if f in alg.fuels_per_converter[(v, c)])
+                alg.converters_per_fuel[(v, f)] = tuple(
+                    c for c in converters if f in alg.fuels_per_converter[(v, c)]
+                )
+                alg.port_converters_per_fuel[(v, f)] = tuple(
+                    c for c in port_converters if f in alg.fuels_per_converter[(v, c)]
+                )
 
 
 def get_port_name_to_indices(route: Route) -> dict[str, list[int]]:
@@ -136,5 +134,4 @@ def get_port_name_to_indices(route: Route) -> dict[str, list[int]]:
     dict[str, list[int]]
         A name maps to multiple indices when a route calls the same port more than once.
     """
-
     return define_index_map([port.name for port in route.ports])

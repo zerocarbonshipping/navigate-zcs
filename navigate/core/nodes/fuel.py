@@ -1,7 +1,15 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-from navigate.core import Scalar, as_scalar, assign_id, assign_value, command_assignment_to_dict
+from __future__ import annotations
+
+from navigate.core import (
+    Scalar,
+    as_scalar,
+    assign_id,
+    assign_value,
+    command_assignment_to_dict,
+)
 from navigate.core.assign import BOOL_ID
 from navigate.core.enum_ import FuelTypeID
 from navigate.core.node import Node
@@ -15,15 +23,15 @@ class Fuel(Node):
 
         # external variables -------------------------------------------------------------------------------------------
         # definition
-        self.fuel_type = None              # enum, fuel type ID
-        self.liquid_market = False         # bool, whether the fuel belongs to a liquid market
+        self.fuel_type = None  # enum, fuel type ID
+        self.liquid_market = False  # bool, whether the fuel belongs to a liquid market
 
         # physical properties
-        self.lower_heating_value = None    # float, lower heating value GJ/ton
-        self.mass_density = None           # float, mass density ton/m3 (equivalent to g/cm3)
+        self.lower_heating_value = None  # float, lower heating value GJ/ton
+        self.mass_density = None  # float, mass density ton/m3 (equivalent to g/cm3)
 
         # emissions
-        self.ttw = {}                      # dict, emission factor in ton of emission per ton of fuel
+        self.ttw = {}  # dict, emission factor in ton of emission per ton of fuel
 
     # external methods (DSL attributes) --------------------------------------------------------------------------------
     def set_fuel_type(self, fuel_type):
@@ -41,7 +49,6 @@ class Fuel(Node):
         fuel_type : str
             Type of fuel.
         """
-
         self.fuel_type = assign_id(fuel_type, FuelTypeID)
 
     def set_liquid_market(self, liquid_market):
@@ -61,7 +68,6 @@ class Fuel(Node):
         liquid_market : str
             Whether the fuel belongs to a liquid market.
         """
-
         self.liquid_market = assign_id(liquid_market, BOOL_ID)
 
     def set_lower_heating_value(self, lower_heating_value):
@@ -77,8 +83,9 @@ class Fuel(Node):
         lower_heating_value : float | NodeReference
             The lower heating value of the fuel in GJ/ton.
         """
-
-        self.lower_heating_value = assign_value(as_scalar(lower_heating_value), type_=VARIABLE, lower=0.)
+        self.lower_heating_value = assign_value(
+            as_scalar(lower_heating_value), type_=VARIABLE, lower=0.0
+        )
 
     def set_mass_density(self, mass_density):
         """
@@ -93,8 +100,9 @@ class Fuel(Node):
         mass_density : float | NodeReference
             The mass density of the fuel.
         """
-
-        self.mass_density = assign_value(as_scalar(mass_density), type_=VARIABLE, lower=0.)
+        self.mass_density = assign_value(
+            as_scalar(mass_density), type_=VARIABLE, lower=0.0
+        )
 
     # external methods (DSL commands) ----------------------------------------------------------------------------------
     def set_ttw(self, emission_name, ttw):
@@ -113,23 +121,30 @@ class Fuel(Node):
         ttw : float | NodeReference
             Ton of emissions per ton of fuel.
         """
-
-        command_assignment_to_dict(emission_name, ttw, self.ttw, type_=VARIABLE, lower=0.)
+        command_assignment_to_dict(
+            emission_name, ttw, self.ttw, type_=VARIABLE, lower=0.0
+        )
 
     # internal methods -------------------------------------------------------------------------------------------------
     def initialize(self):
         if self.fuel_type is None:
-            no_value_assigned_error(self, 'FuelType')
+            no_value_assigned_error(self, "FuelType")
 
-        if (self.lower_heating_value is None) or (self.lower_heating_value.get() == 0.):
-            raise ValueError("{}: Attribute 'LowerHeatingValue' must be defined and greater than zero.".format(self))
+        if (self.lower_heating_value is None) or (
+            self.lower_heating_value.get() == 0.0
+        ):
+            raise ValueError(
+                f"{self}: Attribute 'LowerHeatingValue' must be defined and greater than zero."
+            )
 
-        if (self.mass_density is None) or (self.mass_density.get() == 0.):
-            raise ValueError("{}: Attribute 'MassDensity' must be defined and greater than zero.".format(self))
+        if (self.mass_density is None) or (self.mass_density.get() == 0.0):
+            raise ValueError(
+                f"{self}: Attribute 'MassDensity' must be defined and greater than zero."
+            )
 
         for emission_name, ttw in self.ttw.items():
             if ttw is None:
-                self.ttw[emission_name] = Scalar(0.)
+                self.ttw[emission_name] = Scalar(0.0)
 
     def initialize_dependencies(self, emissions):
         """
@@ -140,6 +155,5 @@ class Fuel(Node):
         emissions : dict[str, Emission]
             All emissions in the simulation.
         """
-
         for emission_name in emissions:
             self.ttw.setdefault(emission_name, None)

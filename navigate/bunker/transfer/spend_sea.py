@@ -20,14 +20,12 @@ def transfer_spend_sea(alg: BunkerAlgorithm) -> None:
     alg
         The algorithm instance.
     """
-
     if not alg.scope == BunkerScopeID.EXISTING:
         return
 
     # transfer spend at sea solution
     for (v, c, f, _port_start, _port_end), spend_sea in alg.spend_sea.items():
-
-        if spend_sea.X < alg.options.solution_tolerance:
+        if alg.options.solution_tolerance > spend_sea.X:
             continue
 
         vessel = alg.vessels[v]

@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 import copy
 import logging
 import os
@@ -15,7 +17,12 @@ from navigate.core.general_nodes.bunker_options import BunkerOptions
 from navigate.core.node import Node
 from navigate.core.node_reference import WildcardNodeReference
 from navigate.core.node_registry import GeneralNodes, Nodes
-from navigate.exceptions import AttributeAssignmentError, CommandError, DeckFormatError, DeckKeywordError
+from navigate.exceptions import (
+    AttributeAssignmentError,
+    CommandError,
+    DeckFormatError,
+    DeckKeywordError,
+)
 from navigate.logging_ import log_time_step_breaker, print_preamble
 from navigate.parser._attributes import (
     check_general_node_attribute_is_allowed,
@@ -56,7 +63,11 @@ from navigate.parser._lark_parser import (
     string_to_date,
 )
 from navigate.parser._reachability import ROOT_TYPES, find_unreachable
-from navigate.parser._scan import NODE_REFERENCE_PATTERN, REFERENCE_SCAN_EXCLUDE, get_attributes
+from navigate.parser._scan import (
+    NODE_REFERENCE_PATTERN,
+    REFERENCE_SCAN_EXCLUDE,
+    get_attributes,
+)
 from navigate.util import (
     attribute_to_instance_name,
     attribute_to_setter,
@@ -73,7 +84,6 @@ logger = logging.getLogger(__name__)
 class Parser:
     def __init__(self):
         """Read and process Navigate input decks (.nav and .inc files)."""
-
         # nodes
         self.nodes = Nodes()
         self.general_nodes = GeneralNodes()
@@ -116,7 +126,8 @@ class Parser:
     # ══════════════════════════════════════════════════════════════════
 
     def read_deck(self, path: Path, data_dir: Path | None = None) -> None:
-        """Read and process the main .nav deck file.
+        """
+        Read and process the main .nav deck file.
 
         Parameters
         ----------
@@ -128,10 +139,10 @@ class Parser:
         path = Path(path).resolve()
 
         try:
-            with open(path, mode='r', encoding='utf8') as f:
+            with open(path, encoding="utf8") as f:
                 content = f.read()
         except FileNotFoundError:
-            raise FileNotFoundError("Unable to locate {}.".format(path))
+            raise FileNotFoundError(f"Unable to locate {path}.")
 
         self._deck_path = path
         self.deck_directory = str(path.parent)
@@ -146,7 +157,9 @@ class Parser:
             self._process_deck_block(block)
 
         if len(self._finished_sections) < 2:
-            raise DeckFormatError("Both a DEFINE and an EVENTS block must be defined in the deck.")
+            raise DeckFormatError(
+                "Both a DEFINE and an EVENTS block must be defined in the deck."
+            )
 
         self._initialize_general_nodes()
 
@@ -161,7 +174,8 @@ class Parser:
 
     @classmethod
     def parse_plot_nodes(cls, path, data_dir=None):
-        """Parse Plot nodes from a standalone include (.inc) file.
+        """
+        Parse Plot nodes from a standalone include (.inc) file.
 
         Used by ``--replot`` to plot from Plot node definitions supplied in an
         include file instead of those captured in the plot data.
@@ -179,11 +193,13 @@ class Parser:
             Parsed Plot nodes keyed by name.
         """
         parser = cls()
-        parser._define_internal_directories(data_dir=data_dir)   # no-op if data_dir is None
+        parser._define_internal_directories(
+            data_dir=data_dir
+        )  # no-op if data_dir is None
         parser._current_section = SimulationSectionID.DEFINE
         parser._read_include_file(str(path))
         for node in parser.nodes.plots.values():
-            parser._execute_node_commands(node)                  # runs queued add_plot(...) commands
+            parser._execute_node_commands(node)  # runs queued add_plot(...) commands
         return parser.nodes.plots
 
     def _process_deck_block(self, block):
@@ -193,7 +209,7 @@ class Parser:
         elif isinstance(block, EventsBlock):
             section = SimulationSectionID.EVENTS
         else:
-            raise DeckFormatError("Unknown deck block type: {}".format(type(block).__name__))
+            raise DeckFormatError(f"Unknown deck block type: {type(block).__name__}")
 
         self._begin_reading_section(section)
 
@@ -201,7 +217,9 @@ class Parser:
             self._current_deck_line = directive.source.line
 
             if isinstance(directive, IncludeDirective):
-                logger.debug(f"[{self._current_section.name}] Include \"{directive.path}\"")
+                logger.debug(
+                    f'[{self._current_section.name}] Include "{directive.path}"'
+                )
                 self._read_include_file(directive.path)
 
             elif isinstance(directive, LoadModuleDirective):
@@ -211,7 +229,8 @@ class Parser:
         self._end_reading_section()
 
     def progress_timeline(self):
-        """Progress the timeline to the next date and process events.
+        """
+        Progress the timeline to the next date and process events.
 
         Returns
         -------
@@ -223,8 +242,12 @@ class Parser:
         date, events = self._next_event()
 
         if (self._idx_date > 1) and (date is not None):
-            log_time_step_breaker(logger, self._idx_date - 1, date,
-                                  timedelta_to_days(date - self.dates[0]))
+            log_time_step_breaker(
+                logger,
+                self._idx_date - 1,
+                date,
+                timedelta_to_days(date - self.dates[0]),
+            )
 
         self._current_date = date
 
@@ -238,7 +261,8 @@ class Parser:
     # ── error formatting ──────────────────────────────────────────────
 
     def _error_prefix(self, source: SourceLocation = None, deck_line: int = None):
-        """Build an error prefix string from source location.
+        """
+        Build an error prefix string from source location.
 
         Parameters
         ----------
@@ -251,13 +275,13 @@ class Parser:
         dl = deck_line if deck_line is not None else self._current_deck_line
         parts = []
         if dl:
-            parts.append("Error in deck file, line {}".format(dl))
+            parts.append(f"Error in deck file, line {dl}")
         if source.file:
-            parts.append("include file '{}', line {}".format(source.file, source.line))
-        return ', '.join(parts) if parts else "Parser error"
+            parts.append(f"include file '{source.file}', line {source.line}")
+        return ", ".join(parts) if parts else "Parser error"
 
     def _deck_error_prefix(self):
-        return "Error in deck file, line {}".format(self._current_deck_line)
+        return f"Error in deck file, line {self._current_deck_line}"
 
     # ── internal directories ──────────────────────────────────────────
 
@@ -265,17 +289,20 @@ class Parser:
         self._exe_directory = os.path.dirname(os.path.abspath(__file__))
         if data_dir:
             data_dir = Path(data_dir).resolve()
-            self._user_default_directory = str(data_dir / 'defaults/user')
-            self._user_module_directory = str(data_dir / 'modules/user')
-            self._installation_default_directory = str(data_dir / 'defaults/installation')
-            self._installation_module_directory = str(data_dir / 'modules/installation')
+            self._user_default_directory = str(data_dir / "defaults/user")
+            self._user_module_directory = str(data_dir / "modules/user")
+            self._installation_default_directory = str(
+                data_dir / "defaults/installation"
+            )
+            self._installation_module_directory = str(data_dir / "modules/installation")
 
     # ══════════════════════════════════════════════════════════════════
     # Include / Import
     # ══════════════════════════════════════════════════════════════════
 
     def _read_include_file(self, path):
-        """Read, parse, and process an include file.
+        """
+        Read, parse, and process an include file.
 
         Parameters
         ----------
@@ -283,14 +310,15 @@ class Parser:
             Path of include file (relative to deck directory).
         """
         if not os.path.isabs(path):
-            path = os.path.join(self.deck_directory or '', path)
+            path = os.path.join(self.deck_directory or "", path)
 
         try:
-            with open(path, mode='r', encoding='utf8') as f:
+            with open(path, encoding="utf8") as f:
                 content = f.read()
         except FileNotFoundError:
-            raise FileNotFoundError(self._deck_error_prefix()
-                                    + ": Include file '{}' not found.".format(path))
+            raise FileNotFoundError(
+                self._deck_error_prefix() + f": Include file '{path}' not found."
+            )
 
         abs_path = os.path.abspath(path) if not os.path.isabs(path) else path
 
@@ -299,7 +327,8 @@ class Parser:
         self._process_statements(statements)
 
     def _load_module(self, directive):
-        """Load a module referenced in the deck file.
+        """
+        Load a module referenced in the deck file.
 
         Parameters
         ----------
@@ -307,22 +336,30 @@ class Parser:
             The parsed Load directive.
         """
         if not self._user_module_directory or not self._installation_module_directory:
-            raise DeckFormatError(self._deck_error_prefix()
-                                  + f": Module '{directive.name}' is requested but no assumptions "
-                                  "directory is specified. Use the -d flag or ASSUMPTIONS_DATA_DIR.")
+            raise DeckFormatError(
+                self._deck_error_prefix()
+                + f": Module '{directive.name}' is requested but no assumptions "
+                "directory is specified. Use the -d flag or ASSUMPTIONS_DATA_DIR."
+            )
 
         file_name = attribute_to_instance_name(directive.name)
 
         found = self._read_default_folder(file_name, self._user_module_directory)
         if found:
-            logger.debug("Module '{}' was retrieved from the User Module folder.".format(directive.name))
+            logger.debug(
+                f"Module '{directive.name}' was retrieved from the User Module folder."
+            )
             return
 
-        found = self._read_default_folder(file_name, self._installation_module_directory)
+        found = self._read_default_folder(
+            file_name, self._installation_module_directory
+        )
         if found:
-            logger.debug("Module '{}' was retrieved from the Installation Module folder.".format(directive.name))
+            logger.debug(
+                f"Module '{directive.name}' was retrieved from the Installation Module folder."
+            )
         else:
-            raise DeckKeywordError("No module with name '{}' was found.".format(directive.name))
+            raise DeckKeywordError(f"No module with name '{directive.name}' was found.")
 
     # ══════════════════════════════════════════════════════════════════
     # AST statement processing
@@ -331,7 +368,7 @@ class Parser:
     def _process_statements(self, statements):
         """Walk a list of AST statements from a parsed .inc file."""
         for statement in statements:
-            self._current_source = getattr(statement, 'source', self._current_source)
+            self._current_source = getattr(statement, "source", self._current_source)
 
             if isinstance(statement, StartTimeline):
                 self._start_timeline()
@@ -349,10 +386,10 @@ class Parser:
                 self._process_event_statement(statement)
 
     _EVENT_DISPATCH = {
-        GeneralNodeDeclaration: '_process_general_node_declaration',
-        NodeDeclaration: '_process_node_declaration',
-        ImportStatement: '_process_import_node',
-        CopyStatement: '_process_copy_node',
+        GeneralNodeDeclaration: "_process_general_node_declaration",
+        NodeDeclaration: "_process_node_declaration",
+        ImportStatement: "_process_import_node",
+        CopyStatement: "_process_copy_node",
     }
 
     def _process_event_statement(self, statement):
@@ -384,7 +421,7 @@ class Parser:
         self._current_source = event.source
 
         for statement in event.statements:
-            self._current_source = getattr(statement, 'source', self._current_source)
+            self._current_source = getattr(statement, "source", self._current_source)
             self._process_event_statement(statement)
 
         self._current_event = None
@@ -397,18 +434,29 @@ class Parser:
 
     def _check_section(self, section):
         if self._current_section is not None:
-            raise DeckFormatError(self._deck_error_prefix() + ": Unable to begin {} while reading {}."
-                                  .format(SECTION_NAME[section], SECTION_NAME[self._current_section]))
+            raise DeckFormatError(
+                self._deck_error_prefix()
+                + f": Unable to begin {SECTION_NAME[section]} while reading {SECTION_NAME[self._current_section]}."
+            )
 
         if section in self._finished_sections:
-            raise DeckFormatError(self._deck_error_prefix()
-                                  + ": Each section can only be defined once and must be read in the order {}."
-                                  .format(', '.join(SECTION_NAME.values())))
+            raise DeckFormatError(
+                self._deck_error_prefix()
+                + ": Each section can only be defined once and must be read in the order {}.".format(
+                    ", ".join(SECTION_NAME.values())
+                )
+            )
 
-        if section == SimulationSectionID.DEFINE and SimulationSectionID.EVENTS in self._finished_sections:
-            raise DeckFormatError(self._deck_error_prefix()
-                                  + ": Each section can only be defined once and must be read in the order {}."
-                                  .format(', '.join(SECTION_NAME.values())))
+        if (
+            section == SimulationSectionID.DEFINE
+            and SimulationSectionID.EVENTS in self._finished_sections
+        ):
+            raise DeckFormatError(
+                self._deck_error_prefix()
+                + ": Each section can only be defined once and must be read in the order {}.".format(
+                    ", ".join(SECTION_NAME.values())
+                )
+            )
 
     def _end_reading_section(self):
         if self._current_section is not None:
@@ -417,21 +465,27 @@ class Parser:
             self._reading_events = False
             self._place_in_queue = False
         else:
-            raise DeckFormatError(self._deck_error_prefix() + ": Unable to end section, no section is defined.")
+            raise DeckFormatError(
+                self._deck_error_prefix()
+                + ": Unable to end section, no section is defined."
+            )
 
     def _check_timeline_change(self):
         if self._reading_default:
-            raise DeckFormatError("Error while retrieving default, include file '{}', line {}"
-                                  .format(self._current_source.file, self._current_source.line)
-                                  + ": Unable to alter timeline while retrieving default nodes.")
+            raise DeckFormatError(
+                f"Error while retrieving default, include file '{self._current_source.file}', line {self._current_source.line}"
+                + ": Unable to alter timeline while retrieving default nodes."
+            )
 
     def _start_timeline(self):
         self._check_keyword(START)
         self._check_timeline_change()
 
         if self._current_date is not None:
-            raise DeckFormatError(self._error_prefix()
-                                  + ": Unable to start a new timeline while one is in progress.")
+            raise DeckFormatError(
+                self._error_prefix()
+                + ": Unable to start a new timeline while one is in progress."
+            )
 
         self._reading_events = True
         self._place_in_queue = True
@@ -450,8 +504,10 @@ class Parser:
         self._check_keyword(DATE)
         self._check_timeline_change()
 
-        date = string_to_date(statement.date_string,
-                              msg="Error in date definition: Must be in format dd-mm-yyyy or dd/mm/yyyy.")
+        date = string_to_date(
+            statement.date_string,
+            msg="Error in date definition: Must be in format dd-mm-yyyy or dd/mm/yyyy.",
+        )
         self._progress_is_chronological(date)
         self._assign_current_event(date)
 
@@ -472,15 +528,21 @@ class Parser:
         self._current_event = event
 
     def _progress_is_chronological(self, date):
-        if (self._current_date is not None) and (not isinstance(self._current_date, str)):
+        if (self._current_date is not None) and (
+            not isinstance(self._current_date, str)
+        ):
             if date <= self._current_date:
-                raise DeckFormatError(self._error_prefix()
-                                      + ": Dates must be ordered chronologically within individual include files.")
+                raise DeckFormatError(
+                    self._error_prefix()
+                    + ": Dates must be ordered chronologically within individual include files."
+                )
 
     def _replace_start_keyword(self):
         start_date = self.general_nodes.model_definition.start_date
 
-        self.dates = np.array([start_date if d == START else d for d in self.dates], dtype='datetime64[D]')
+        self.dates = np.array(
+            [start_date if d == START else d for d in self.dates], dtype="datetime64[D]"
+        )
         self.dates = np.unique(self.dates)
 
         if START in self._event_queue:
@@ -489,7 +551,10 @@ class Parser:
             else:
                 start_events = self._event_queue.pop(start_date)
 
-            self._event_queue[start_date] = [*self._event_queue.pop(START), *start_events]
+            self._event_queue[start_date] = [
+                *self._event_queue.pop(START),
+                *start_events,
+            ]
 
         else:
             if start_date not in self.dates:
@@ -503,15 +568,10 @@ class Parser:
         for date in self.dates:
             if date < start_date:
                 for event in self._event_queue.get(date, []):
-                    msg += "\t- NAV file, line {}, include file '{}', line {}: Date '{}' is before start date '{}'\n"\
-                        .format(event.deck_line,
-                                event.source.file,
-                                event.source.line,
-                                date,
-                                start_date)
+                    msg += f"\t- NAV file, line {event.deck_line}, include file '{event.source.file}', line {event.source.line}: Date '{date}' is before start date '{start_date}'\n"
 
         if msg:
-            msg = "Inconsistent timeline detected:\n{}All defined dates must be later than the start date.".format(msg)
+            msg = f"Inconsistent timeline detected:\n{msg}All defined dates must be later than the start date."
             raise DeckFormatError(msg)
 
     # ══════════════════════════════════════════════════════════════════
@@ -519,7 +579,8 @@ class Parser:
     # ══════════════════════════════════════════════════════════════════
 
     def _apply_assignment(self, nodes, item, node_type, is_general=False):
-        """Validate and apply an Assignment AST node to one or more nodes.
+        """
+        Validate and apply an Assignment AST node to one or more nodes.
 
         Parameters
         ----------
@@ -538,17 +599,23 @@ class Parser:
             attribute = item.attribute
             value = item.value
             if is_general:
-                check_general_node_attribute_is_allowed(node_type, attribute, self._current_section)
+                check_general_node_attribute_is_allowed(
+                    node_type, attribute, self._current_section
+                )
             else:
-                check_node_attribute_is_allowed(node_type, attribute, self._current_section)
+                check_node_attribute_is_allowed(
+                    node_type, attribute, self._current_section
+                )
             self._assign_node_reference_location(value)
 
         except DeckFormatError:
-            raise DeckFormatError(self._error_prefix()
-                                  + ": '{}' is not a valid assignment.".format(item.attribute))
+            raise DeckFormatError(
+                self._error_prefix()
+                + f": '{item.attribute}' is not a valid assignment."
+            )
 
         except AttributeAssignmentError as e:
-            raise AttributeAssignmentError(self._error_prefix() + ": {}.".format(str(e)))
+            raise AttributeAssignmentError(self._error_prefix() + f": {e!s}.")
 
         target_nodes = nodes if isinstance(nodes, list) else [nodes]
         for node in target_nodes:
@@ -556,8 +623,9 @@ class Parser:
                 getattr(node, attribute_to_setter(attribute))(value)
 
             except ValueError as e:
-                raise ValueError(self._error_prefix() + ": {} attribute '{}' {}."
-                                 .format(node, attribute, e))
+                raise ValueError(
+                    self._error_prefix() + f": {node} attribute '{attribute}' {e}."
+                )
 
     def _queue_command(self, nodes, item, node_type):
         """
@@ -572,7 +640,6 @@ class Parser:
         node_type : str
             Node type string for validation.
         """
-
         self._current_source = item.source
 
         try:
@@ -582,11 +649,11 @@ class Parser:
             self._assign_node_reference_location(inputs)
 
         except CommandError as e:
-            raise CommandError(self._error_prefix() + ": {}.".format(str(e)))
+            raise CommandError(self._error_prefix() + f": {e!s}.")
 
-        ref = CommandReference(command, inputs,
-                               source=item.source,
-                               deck_line=self._current_deck_line)
+        ref = CommandReference(
+            command, inputs, source=item.source, deck_line=self._current_deck_line
+        )
 
         target_nodes = nodes if isinstance(nodes, list) else [nodes]
         for node in target_nodes:
@@ -608,8 +675,10 @@ class Parser:
             elif item_type is Assignment:
                 self._apply_assignment(nodes, item, declaration.node_type)
             else:
-                raise DeckKeywordError(self._error_prefix(item.source)
-                                       + ": '{}' is not a valid keyword.".format(type(item).__name__))
+                raise DeckKeywordError(
+                    self._error_prefix(item.source)
+                    + f": '{type(item).__name__}' is not a valid keyword."
+                )
 
         for node in nodes:
             self._set_node(declaration.node_type, node)
@@ -622,24 +691,34 @@ class Parser:
         for item in declaration.body:
             item_type = type(item)
             if item_type is Command:
-                raise CommandError(self._error_prefix(item.source)
-                                   + ": '{}' does not support commands.".format(declaration.node_type))
+                raise CommandError(
+                    self._error_prefix(item.source)
+                    + f": '{declaration.node_type}' does not support commands."
+                )
             elif item_type is Assignment:
-                self._apply_assignment(general_node, item, declaration.node_type, is_general=True)
+                self._apply_assignment(
+                    general_node, item, declaration.node_type, is_general=True
+                )
             else:
-                raise DeckKeywordError(self._error_prefix(item.source)
-                                       + ": '{}' is not a valid keyword.".format(type(item).__name__))
+                raise DeckKeywordError(
+                    self._error_prefix(item.source)
+                    + f": '{type(item).__name__}' is not a valid keyword."
+                )
 
-        setattr(self.general_nodes, GENERAL_NODE_GROUP[declaration.node_type], general_node)
+        setattr(
+            self.general_nodes, GENERAL_NODE_GROUP[declaration.node_type], general_node
+        )
 
     def _process_copy_node(self, statement):
         """Process a CopyStatement AST node."""
-        self._check_allow_new_node('copy')
+        self._check_allow_new_node("copy")
         self._check_keyword(statement.node_type)
 
         if not NODE_ALLOW_COPY[statement.node_type]:
-            raise ValueError(self._error_prefix()
-                             + ": Unable to copy nodes of type '{}'.".format(statement.node_type))
+            raise ValueError(
+                self._error_prefix()
+                + f": Unable to copy nodes of type '{statement.node_type}'."
+            )
 
         self._check_node_name_is_available(statement.node_type, statement.copy_to)
 
@@ -647,8 +726,11 @@ class Parser:
 
         from_default = False
         if statement.copy_from not in group:
-            self._retrieve_node_from_default(statement.copy_from, statement.node_type,
-                                             reference_location=self._error_prefix())
+            self._retrieve_node_from_default(
+                statement.copy_from,
+                statement.node_type,
+                reference_location=self._error_prefix(),
+            )
             from_default = True
 
         copy_node = group[statement.copy_from]
@@ -665,14 +747,18 @@ class Parser:
 
     def _process_import_node(self, statement):
         """Process an ImportStatement AST node."""
-        self._check_allow_new_node('import')
+        self._check_allow_new_node("import")
         self._check_keyword(statement.node_type)
 
         if name_contains_wildcards(statement.name):
             self._read_import_node_wildcard(statement.node_type, statement.name)
         else:
             self._check_node_name_is_available(statement.node_type, statement.name)
-            self._retrieve_node_from_default(statement.name, statement.node_type, reference_location=self._error_prefix())
+            self._retrieve_node_from_default(
+                statement.name,
+                statement.node_type,
+                reference_location=self._error_prefix(),
+            )
 
     # ══════════════════════════════════════════════════════════════════
     # Node retrieval / creation
@@ -685,14 +771,15 @@ class Parser:
             regex = wildcard_to_regex(name)
             nodes = [node for key, node in group.items() if re.match(regex, key)]
             if not nodes:
-                raise DeckKeywordError("{}: No node of type '{}' matches the wildcard expression '{}'."
-                                       .format(self._error_prefix(), node_type, name))
+                raise DeckKeywordError(
+                    f"{self._error_prefix()}: No node of type '{node_type}' matches the wildcard expression '{name}'."
+                )
             return nodes
 
         if name in group:
             return [group[name]]
 
-        self._check_allow_new_node('define')
+        self._check_allow_new_node("define")
         self._check_node_name_is_available(node_type, name)
         return [define_new_node(node_type, name)]
 
@@ -706,8 +793,9 @@ class Parser:
 
     def _check_allow_new_node(self, action):
         if self._current_section != SimulationSectionID.DEFINE:
-            raise DeckKeywordError(self._error_prefix()
-                                   + ": Unable to {} new nodes outside DEFINE.".format(action))
+            raise DeckKeywordError(
+                self._error_prefix() + f": Unable to {action} new nodes outside DEFINE."
+            )
 
     def _set_node(self, node_type, node):
         getattr(self.nodes, NODE_GROUP[node_type])[node.name] = node
@@ -716,28 +804,34 @@ class Parser:
         if keyword in KEYWORD_SECTIONS:
             if self._current_section not in KEYWORD_SECTIONS[keyword]:
                 if self._reading_default:
-                    raise DeckKeywordError("Unable to reference {}(\"{}\") as it is not previously defined."
-                                           .format(keyword, name))
+                    raise DeckKeywordError(
+                        f'Unable to reference {keyword}("{name}") as it is not previously defined.'
+                    )
                 else:
-                    raise DeckKeywordError(self._error_prefix()
-                                           + ": '{}' is not an allowed keyword in section {}."
-                                           .format(keyword, SECTION_NAME[self._current_section]))
+                    raise DeckKeywordError(
+                        self._error_prefix()
+                        + f": '{keyword}' is not an allowed keyword in section {SECTION_NAME[self._current_section]}."
+                    )
         else:
-            raise DeckKeywordError(self._error_prefix()
-                                   + ": \n'{}' is not a recognized keyword. "
-                                     "Check the attributes and commands for spelling".format(keyword))
+            raise DeckKeywordError(
+                self._error_prefix() + f": \n'{keyword}' is not a recognized keyword. "
+                "Check the attributes and commands for spelling"
+            )
 
     def _check_node_name_is_available(self, node_type, name):
         if name in self._get_all_node_names():
-            raise ValueError(self._error_prefix()
-                             + ": Unable to add {}(\"{}\"), the name is already in use by a different node."
-                             .format(node_type, name))
+            raise ValueError(
+                self._error_prefix()
+                + f': Unable to add {node_type}("{name}"), the name is already in use by a different node.'
+            )
 
     def _read_import_node_wildcard(self, node_type, name_pattern):
         if not self._user_default_directory or not self._installation_default_directory:
-            raise DeckKeywordError(self._deck_error_prefix()
-                                   + ": Wildcard Import is requested but default directories are not specified. "
-                                   "Please specify the assumptions location with the -d flag or environment variable ")
+            raise DeckKeywordError(
+                self._deck_error_prefix()
+                + ": Wildcard Import is requested but default directories are not specified. "
+                "Please specify the assumptions location with the -d flag or environment variable "
+            )
 
         pattern = re.compile(wildcard_to_regex(name_pattern))
 
@@ -755,12 +849,15 @@ class Parser:
                     matched_names[basename] = directory
 
         if not matched_names:
-            raise DeckKeywordError("{}: No {} defaults matching '{}' found in user or installation folders."
-                                   .format(self._error_prefix(), node_type, name_pattern))
+            raise DeckKeywordError(
+                f"{self._error_prefix()}: No {node_type} defaults matching '{name_pattern}' found in user or installation folders."
+            )
 
         for name in sorted(matched_names):
             self._check_node_name_is_available(node_type, name)
-            self._retrieve_node_from_default(name, node_type, reference_location=self._error_prefix())
+            self._retrieve_node_from_default(
+                name, node_type, reference_location=self._error_prefix()
+            )
 
     # ══════════════════════════════════════════════════════════════════
     # Collection helpers
@@ -776,9 +873,13 @@ class Parser:
         ]
         missing = [label for collection, label in checks if len(collection) == 0]
         if missing:
-            msg = "".join("\t- No {} are defined.\n".format(m) if m != "timeline"
-                          else "\t- No timeline is defined.\n" for m in missing)
-            raise DeckKeywordError("Unable to run a simulation:\n{}".format(msg))
+            msg = "".join(
+                f"\t- No {m} are defined.\n"
+                if m != "timeline"
+                else "\t- No timeline is defined.\n"
+                for m in missing
+            )
+            raise DeckKeywordError(f"Unable to run a simulation:\n{msg}")
 
     def _get_all_nodes(self):
         return list(self.nodes.all_nodes())
@@ -792,7 +893,9 @@ class Parser:
 
     def _initialize_general_nodes(self):
         if self.general_nodes.model_definition is None:
-            raise DeckFormatError("Error in simulation: 'ModelDefinition' must be defined.")
+            raise DeckFormatError(
+                "Error in simulation: 'ModelDefinition' must be defined."
+            )
 
         self.general_nodes.model_definition.initialize()
 
@@ -802,7 +905,8 @@ class Parser:
         self.general_nodes.bunker_options.initialize()
 
     def _update_dependencies(self):
-        """Replace references, execute commands, initialize nodes.
+        """
+        Replace references, execute commands, initialize nodes.
 
         The sequence is: replace refs → replace tables → prune unreachable
         nodes (DEFINE pass only) → init dicts → execute commands → replace
@@ -835,8 +939,9 @@ class Parser:
 
     def _prune_unreachable_nodes(self):
         """Remove every node no chain of references connects to a root."""
-
-        unreachable = find_unreachable(self.nodes, self.general_nodes, self._event_queue)
+        unreachable = find_unreachable(
+            self.nodes, self.general_nodes, self._event_queue
+        )
 
         if not unreachable:
             return
@@ -856,9 +961,10 @@ class Parser:
             self._handle_unreachable(reported, dropped_statements)
 
         elif dropped_statements:
-
-            logger.warning("Dropped {} queued EVENTS statement(s) targeting node(s) removed after use "
-                           "as a Copy source; re-assign the copies instead.".format(dropped_statements))
+            logger.warning(
+                f"Dropped {dropped_statements} queued EVENTS statement(s) targeting node(s) removed after use "
+                "as a Copy source; re-assign the copies instead."
+            )
 
         # reported independently: a scrub changes a surviving node even when
         # the pruned target itself was a silently removed Copy source
@@ -866,7 +972,8 @@ class Parser:
             self._warn_scrubbed_references(scrubbed)
 
     def _handle_unreachable(self, reported: list, dropped_statements: int) -> None:
-        """Warn about the pruned nodes.
+        """
+        Warn about the pruned nodes.
 
         Detection stays separate from this action so pruning can be made
         fatal by raising ``DeckInsufficientError`` here instead.
@@ -878,21 +985,23 @@ class Parser:
         dropped_statements
             Number of queued EVENTS statements dropped with them.
         """
-
-        lines = "".join('\n\t- {}("{}")'.format(node_type, name) for node_type, name in reported)
+        lines = "".join(f'\n\t- {node_type}("{name}")' for node_type, name in reported)
 
         dropped = ""
         if dropped_statements:
-            dropped = ("\nAlso dropped {} queued EVENTS statement(s) targeting only removed nodes."
-                       .format(dropped_statements))
+            dropped = f"\nAlso dropped {dropped_statements} queued EVENTS statement(s) targeting only removed nodes."
 
-        logger.warning("Removed {} node(s) not reachable from any top-level node ({}) and consequently "
-                       "ignored during the simulation:{}{}"
-                       "\nAssign them to a parent node or remove them from the deck."
-                       .format(len(reported), ", ".join(ROOT_TYPES), lines, dropped))
+        logger.warning(
+            "Removed {} node(s) not reachable from any top-level node ({}) and consequently "
+            "ignored during the simulation:{}{}"
+            "\nAssign them to a parent node or remove them from the deck.".format(
+                len(reported), ", ".join(ROOT_TYPES), lines, dropped
+            )
+        )
 
     def _scrub_references_to_pruned(self) -> list:
-        """Remove every reference to a pruned node from the surviving nodes'
+        """
+        Remove every reference to a pruned node from the surviving nodes'
         list-valued attributes — the only shape holding references outside a
         restricted type's activation edges, pinned by the reference-site
         classification test. A surviving reference to a pruned node is by
@@ -907,14 +1016,17 @@ class Parser:
         """
 
         def is_pruned(element):
-            return (isinstance(element, (Node, NodeReference))
-                    and (element.type, element.name) in self._pruned_nodes)
+            return (
+                isinstance(element, (Node, NodeReference))
+                and (element.type, element.name) in self._pruned_nodes
+            )
 
         records = []
 
         for node in self._get_all_nodes():
-            for attribute_name, attribute in get_attributes(node, exclude=REFERENCE_SCAN_EXCLUDE):
-
+            for attribute_name, attribute in get_attributes(
+                node, exclude=REFERENCE_SCAN_EXCLUDE
+            ):
                 if not isinstance(attribute, list):
                     continue
 
@@ -929,7 +1041,8 @@ class Parser:
         return records
 
     def _warn_scrubbed_references(self, scrubbed: list) -> None:
-        """Warn about references to pruned nodes removed from surviving nodes.
+        """
+        Warn about references to pruned nodes removed from surviving nodes.
 
         Parameters
         ----------
@@ -937,17 +1050,24 @@ class Parser:
             (node, instance-attribute name, removed nodes) records from
             ``_scrub_references_to_pruned``.
         """
+        lines = [
+            "\n\t- {} {}: {}".format(
+                node,
+                instance_to_dsl_name(node.type, attribute_name),
+                ", ".join(map(str, removed)),
+            )
+            for node, attribute_name, removed in scrubbed
+        ]
 
-        lines = ['\n\t- {} {}: {}'.format(node, instance_to_dsl_name(node.type, attribute_name),
-                                          ", ".join(map(str, removed)))
-                 for node, attribute_name, removed in scrubbed]
-
-        logger.warning("Removed the reference(s) to pruned node(s) from {} attribute(s):{}"
-                       "\nAssign the removed node(s) to a parent node to keep them, or drop the "
-                       "stale reference(s) from the deck.".format(len(scrubbed), "".join(lines)))
+        logger.warning(
+            "Removed the reference(s) to pruned node(s) from {} attribute(s):{}"
+            "\nAssign the removed node(s) to a parent node to keep them, or drop the "
+            "stale reference(s) from the deck.".format(len(scrubbed), "".join(lines))
+        )
 
     def _drop_event_statements_targeting_pruned(self) -> int:
-        """Remove queued EVENTS statements that only target pruned nodes.
+        """
+        Remove queued EVENTS statements that only target pruned nodes.
 
         Executing such a statement would recreate the node from the default
         library or fail; a target name matching any surviving node keeps the
@@ -957,7 +1077,6 @@ class Parser:
         -------
         Number of statements dropped.
         """
-
         pruned_names_by_type = {}
         for node_type, name in self._pruned_nodes:
             pruned_names_by_type.setdefault(node_type, set()).add(name)
@@ -966,15 +1085,19 @@ class Parser:
 
         for events in self._event_queue.values():
             for event in events:
-                kept = [statement for statement in event.statements
-                        if not self._targets_only_pruned(statement, pruned_names_by_type)]
+                kept = [
+                    statement
+                    for statement in event.statements
+                    if not self._targets_only_pruned(statement, pruned_names_by_type)
+                ]
                 dropped += len(event.statements) - len(kept)
                 event.statements = kept
 
         return dropped
 
     def _targets_only_pruned(self, statement, pruned_names_by_type: dict) -> bool:
-        """Whether a queued statement's target names only pruned nodes.
+        """
+        Whether a queued statement's target names only pruned nodes.
 
         Parameters
         ----------
@@ -983,7 +1106,6 @@ class Parser:
         pruned_names_by_type
             Pruned node names grouped by node type.
         """
-
         if not isinstance(statement, NodeDeclaration):
             return False
 
@@ -992,7 +1114,9 @@ class Parser:
         if not matching_keys(statement.name, pruned_names):
             return False
 
-        return not matching_keys(statement.name, getattr(self.nodes, NODE_GROUP[statement.node_type]))
+        return not matching_keys(
+            statement.name, getattr(self.nodes, NODE_GROUP[statement.node_type])
+        )
 
     def _execute_commands(self):
         for node in self._get_all_nodes():
@@ -1007,27 +1131,31 @@ class Parser:
                 cmd_ref.execute(node)
 
             except CommandError as e:
-                raise CommandError(self._error_prefix() + ": {}.".format(str(e)))
+                raise CommandError(self._error_prefix() + f": {e!s}.")
 
             except TypeError as e:
-                raise CommandError(self._error_prefix() + ": {}.".format(str(e)))
+                raise CommandError(self._error_prefix() + f": {e!s}.")
 
             except KeyError as e:
                 hint = ""
                 key = e.args[0] if e.args else None
-                pruned = matching_keys(key, {name for _, name in self._pruned_nodes}) \
-                    if isinstance(key, str) else []
+                pruned = (
+                    matching_keys(key, {name for _, name in self._pruned_nodes})
+                    if isinstance(key, str)
+                    else []
+                )
                 if pruned:
-                    hint = (" Note: {} removed because unreachable from any top-level node."
-                            .format(", ".join("'{}'".format(name) for name in sorted(pruned))))
+                    hint = " Note: {} removed because unreachable from any top-level node.".format(
+                        ", ".join(f"'{name}'" for name in sorted(pruned))
+                    )
 
-                raise CommandError(self._error_prefix()
-                                   + ": '{}' attempts to reference non-existing name(s) {}.{}"
-                                   .format(cmd_ref.command, str(e), hint))
+                raise CommandError(
+                    self._error_prefix()
+                    + f": '{cmd_ref.command}' attempts to reference non-existing name(s) {e!s}.{hint}"
+                )
 
             except ValueError as e:
-                raise ValueError(self._error_prefix() + ": '{}' {}"
-                                 .format(cmd_ref.command, str(e)))
+                raise ValueError(self._error_prefix() + f": '{cmd_ref.command}' {e!s}")
 
         node.clear_command_references()
 
@@ -1038,7 +1166,7 @@ class Parser:
             try:
                 node.replace_reference_table(start_date)
             except ValueError as e:
-                raise ValueError("{}: {}".format(node, str(e)))
+                raise ValueError(f"{node}: {e!s}")
 
     def _initialize_nodes(self):
         for node in self._get_all_nodes():
@@ -1058,20 +1186,26 @@ class Parser:
             levy.initialize_dependencies(self.nodes.vessels)
 
         for plant in self.nodes.plants.values():
-            plant.initialize_dependencies(self.nodes.feedstocks, self.nodes.ports, self.nodes.processes)
+            plant.initialize_dependencies(
+                self.nodes.feedstocks, self.nodes.ports, self.nodes.processes
+            )
 
         for port in self.nodes.ports.values():
             port.initialize_dependencies(self.nodes.emissions, self.nodes.fuels)
 
         for producer in self.nodes.producers.values():
-            producer.initialize_dependencies(self.nodes.feedstocks, self.nodes.ports, self.nodes.processes)
+            producer.initialize_dependencies(
+                self.nodes.feedstocks, self.nodes.ports, self.nodes.processes
+            )
 
         for region in self.nodes.regions.values():
-            region.initialize_dependencies(self.nodes.emissions,
-                                           self.nodes.feedstocks,
-                                           self.nodes.processes,
-                                           self.nodes.sources,
-                                           self.nodes.transports)
+            region.initialize_dependencies(
+                self.nodes.emissions,
+                self.nodes.feedstocks,
+                self.nodes.processes,
+                self.nodes.sources,
+                self.nodes.transports,
+            )
 
         for regulation in self.nodes.regulations.values():
             regulation.initialize_dependencies(self.nodes.vessels)
@@ -1087,28 +1221,36 @@ class Parser:
         attributes = get_attributes(node, exclude=REFERENCE_SCAN_EXCLUDE)
 
         for attribute_name, attribute in attributes:
-            self._replace_references_on_attribute(node, attribute, attribute_name=attribute_name)
+            self._replace_references_on_attribute(
+                node, attribute, attribute_name=attribute_name
+            )
 
-    def _replace_references_on_attribute(self, node, attribute, attribute_name=None, container=None, index_or_key=None):
+    def _replace_references_on_attribute(
+        self, node, attribute, attribute_name=None, container=None, index_or_key=None
+    ):
         # kept in lockstep with _reachability._iter_references: a value shape
         # added here must be recognized there, or nodes referenced through
         # that shape are wrongly pruned
         if isinstance(attribute, WildcardNodeReference):
-
             if not isinstance(container, list):
-                raise DeckFormatError("Wildcard node references may only appear inside lists: {}"
-                                      .format(attribute))
+                raise DeckFormatError(
+                    f"Wildcard node references may only appear inside lists: {attribute}"
+                )
 
             matched = self._expand_wildcard_node_reference(attribute)
             # splice matched nodes into the list, replacing the wildcard entry
-            container[index_or_key:index_or_key + 1] = matched
+            container[index_or_key : index_or_key + 1] = matched
             return
 
         elif isinstance(attribute, NodeReference):
             actual_node, default = self._get_node_from_reference(attribute)
 
-        elif isinstance(attribute, Node) and isinstance(node, Node) and node.just_copied:
-            actual_node = getattr(self.nodes, NODE_GROUP[attribute.type])[attribute.name]
+        elif (
+            isinstance(attribute, Node) and isinstance(node, Node) and node.just_copied
+        ):
+            actual_node = getattr(self.nodes, NODE_GROUP[attribute.type])[
+                attribute.name
+            ]
             default = False
             del attribute
 
@@ -1118,23 +1260,30 @@ class Parser:
             while i < len(attribute):
                 element = attribute[i]
                 old_len = len(attribute)
-                self._replace_references_on_attribute(node, element, container=attribute, index_or_key=i)
+                self._replace_references_on_attribute(
+                    node, element, container=attribute, index_or_key=i
+                )
                 # if the list grew (wildcard splice), advance past the inserted items
                 i += 1 + (len(attribute) - old_len)
             return
 
         elif isinstance(attribute, dict):
             for key, element in attribute.items():
-                self._replace_references_on_attribute(node, element, container=attribute, index_or_key=key)
+                self._replace_references_on_attribute(
+                    node, element, container=attribute, index_or_key=key
+                )
             return
 
         elif isinstance(attribute, Expression):
             if not attribute.is_initialized():
                 attribute.initialize(node)
                 reference_strings = attribute.node_references
-                attribute.node_references = [self._read_node_reference(ref) for ref in reference_strings]
-                self._assign_node_reference_location(attribute.node_references,
-                                                     location=attribute.reference_location)
+                attribute.node_references = [
+                    self._read_node_reference(ref) for ref in reference_strings
+                ]
+                self._assign_node_reference_location(
+                    attribute.node_references, location=attribute.reference_location
+                )
                 attribute.check_consistency()
 
             self._replace_references_on_attribute(node, attribute.node_references)
@@ -1161,7 +1310,9 @@ class Parser:
             node = group[name]
             default = False
         else:
-            self._retrieve_node_from_default(name, node_type, reference_location=reference.reference_location)
+            self._retrieve_node_from_default(
+                name, node_type, reference_location=reference.reference_location
+            )
             node = group[name]
             default = True
 
@@ -1170,8 +1321,11 @@ class Parser:
 
         return node, default
 
-    def _expand_wildcard_node_reference(self, wildcard_ref: WildcardNodeReference) -> list[Node]:
-        """Expand a wildcard node reference into matching nodes.
+    def _expand_wildcard_node_reference(
+        self, wildcard_ref: WildcardNodeReference
+    ) -> list[Node]:
+        """
+        Expand a wildcard node reference into matching nodes.
 
         Parameters
         ----------
@@ -1182,7 +1336,6 @@ class Parser:
         -------
         Matched nodes from the registry.
         """
-
         node_type = wildcard_ref.type
         pattern = wildcard_ref.pattern
         group = getattr(self.nodes, NODE_GROUP[node_type])
@@ -1190,15 +1343,19 @@ class Parser:
         try:
             matched_names = retrieve_keys(pattern, group)
         except KeyError:
-            raise DeckFormatError("Wildcard '{}' did not match any {} nodes.".format(pattern, node_type))
+            raise DeckFormatError(
+                f"Wildcard '{pattern}' did not match any {node_type} nodes."
+            )
 
         return [group[name] for name in matched_names]
 
-    def _retrieve_node_from_default(self, name, node_type, reference_location=''):
+    def _retrieve_node_from_default(self, name, node_type, reference_location=""):
         if not self._user_default_directory or not self._installation_default_directory:
-            raise DeckKeywordError(self._deck_error_prefix()
-                                   + f": User or Installation Default '{name}' is requested but not specified. "
-                                   "Please specify the assumptions location with the -d flag or environment variable ")
+            raise DeckKeywordError(
+                self._deck_error_prefix()
+                + f": User or Installation Default '{name}' is requested but not specified. "
+                "Please specify the assumptions location with the -d flag or environment variable "
+            )
 
         self._reading_default = True
         try:
@@ -1207,26 +1364,37 @@ class Parser:
 
             if _user_default_name != name:
                 self._user_default_name = name
-                found = self._read_default_folder(name, os.path.join(self._user_default_directory, node_type))
+                found = self._read_default_folder(
+                    name, os.path.join(self._user_default_directory, node_type)
+                )
                 self._user_default_name = None
 
             if found:
-                logger.debug("{}(\"{}\") was retrieved from the User Default folder.".format(node_type, name))
+                logger.debug(
+                    f'{node_type}("{name}") was retrieved from the User Default folder.'
+                )
                 return
 
-            found = self._read_default_folder(name, os.path.join(self._installation_default_directory, node_type))
+            found = self._read_default_folder(
+                name, os.path.join(self._installation_default_directory, node_type)
+            )
 
             if found:
-                logger.debug("{}(\"{}\") was retrieved from the Installation Default folder.".format(node_type, name))
+                logger.debug(
+                    f'{node_type}("{name}") was retrieved from the Installation Default folder.'
+                )
             else:
-                raise DeckKeywordError("{0}: {1}(\"{2}\") is referenced but not found in"
-                                       " either the deck or the default location of {1}."
-                                       .format(reference_location, node_type, name))
+                raise DeckKeywordError(
+                    f'{reference_location}: {node_type}("{name}") is referenced but not found in'
+                    f" either the deck or the default location of {node_type}."
+                )
 
             group = getattr(self.nodes, NODE_GROUP[node_type])
             if name not in group:
-                raise DeckKeywordError("Error in import: A file with name '{}' was found, but not containing"
-                                       " a node with type '{}' and similar name.".format(name, node_type))
+                raise DeckKeywordError(
+                    f"Error in import: A file with name '{name}' was found, but not containing"
+                    f" a node with type '{node_type}' and similar name."
+                )
         finally:
             self._reading_default = False
 
@@ -1245,7 +1413,8 @@ class Parser:
 
     @staticmethod
     def _read_node_reference(assignment_str):
-        """Parse a node reference string like ``Vessel("name")``.
+        """
+        Parse a node reference string like ``Vessel("name")``.
 
         Parameters
         ----------
@@ -1261,14 +1430,17 @@ class Parser:
             node_type = match.group(1)
             name = match.group(3)
             if name_contains_wildcards(name):
-                raise DeckFormatError("Error in node reference: Must not contain wildcards.")
+                raise DeckFormatError(
+                    "Error in node reference: Must not contain wildcards."
+                )
             return NodeReference(node_type, name)
         else:
             raise DeckFormatError("Error in node reference assignment.")
 
     @staticmethod
     def _assign_node_reference_location(value, location=None):
-        """Tag NodeReferences in *value* with a source location string.
+        """
+        Tag NodeReferences in *value* with a source location string.
 
         Parameters
         ----------
@@ -1304,10 +1476,10 @@ def _get_files_in_directory(directory):
     list[str] :
         List of file names.
     """
-
-    ignored = frozenset({'.gitkeep'})
+    ignored = frozenset({".gitkeep"})
 
     return [
-        f for f in os.listdir(directory)
+        f
+        for f in os.listdir(directory)
         if os.path.isfile(os.path.join(directory, f)) and f not in ignored
     ]

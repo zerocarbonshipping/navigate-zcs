@@ -19,7 +19,9 @@ class _PlantAggregateProfile(_FuelProducerProfile):
 
         self._plant_tied_capital = self._default_array()
 
-    def add_plant_aggregate_profile(self, profile: _PlantAggregateProfile, idx: int | slice = np.s_[:]) -> None:
+    def add_plant_aggregate_profile(
+        self, profile: _PlantAggregateProfile, idx: int | slice = np.s_[:]
+    ) -> None:
         """
 
         Parameters
@@ -29,10 +31,11 @@ class _PlantAggregateProfile(_FuelProducerProfile):
         idx : int
             Time-step index.
         """
-
         self._plant_tied_capital[idx] += profile._plant_tied_capital[idx]
 
-    def add_plant_tied_capital(self, tied_capital: float, idx: int | slice = np.s_[:]) -> None:
+    def add_plant_tied_capital(
+        self, tied_capital: float, idx: int | slice = np.s_[:]
+    ) -> None:
         self._plant_tied_capital[idx] += tied_capital
 
     def get_plant_tied_capital(self, idx: int | slice = np.s_[:]) -> np.ndarray:

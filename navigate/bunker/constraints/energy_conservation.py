@@ -14,7 +14,9 @@ from navigate.bunker._build import get_constraint
 from navigate.core.enum_ import EnergyDemandTypeID
 
 
-def update_energy_conservation_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> None:
+def update_energy_conservation_constraints(
+    alg: BunkerAlgorithm, vessel: Vessel
+) -> None:
     r"""
     Add the constraints that converter fuel spend covers each energy demand.
 
@@ -38,7 +40,6 @@ def update_energy_conservation_constraints(alg: BunkerAlgorithm, vessel: Vessel)
     vessel
         Vessel for which constraints are updated.
     """
-
     v = vessel.name
     expectation = vessel.expectation
     power_system = vessel.power_system
@@ -50,36 +51,58 @@ def update_energy_conservation_constraints(alg: BunkerAlgorithm, vessel: Vessel)
     demands_port = expectation.get_energy_port(idx=alg.idx)
 
     # at sea all three demands are served
-    _update_sea_energy_conservation(alg, v, EnergyDemandTypeID.PROPULSION,
-                                    power_system.propulsion, demands_sea, leg_idx)
-    _update_sea_energy_conservation(alg, v, EnergyDemandTypeID.ELECTRICAL,
-                                    power_system.electrical, demands_sea, leg_idx)
-    _update_sea_energy_conservation(alg, v, EnergyDemandTypeID.HEAT,
-                                    power_system.heat, demands_sea, leg_idx)
+    _update_sea_energy_conservation(
+        alg,
+        v,
+        EnergyDemandTypeID.PROPULSION,
+        power_system.propulsion,
+        demands_sea,
+        leg_idx,
+    )
+    _update_sea_energy_conservation(
+        alg,
+        v,
+        EnergyDemandTypeID.ELECTRICAL,
+        power_system.electrical,
+        demands_sea,
+        leg_idx,
+    )
+    _update_sea_energy_conservation(
+        alg, v, EnergyDemandTypeID.HEAT, power_system.heat, demands_sea, leg_idx
+    )
 
     # in port there is no propulsion demand
-    _update_port_energy_conservation(alg, v, EnergyDemandTypeID.ELECTRICAL,
-                                     power_system.electrical, demands_port, port_idx)
+    _update_port_energy_conservation(
+        alg,
+        v,
+        EnergyDemandTypeID.ELECTRICAL,
+        power_system.electrical,
+        demands_port,
+        port_idx,
+    )
 
     # the shore-power variables join the electrical port rows created just above
     change_coefficient = alg.model.chgCoeff
     for p in port_idx:
-
         if (v, p) in alg.shore_power:
-            constraint = alg.energy_conservation_port[(v, p, EnergyDemandTypeID.ELECTRICAL)]
+            constraint = alg.energy_conservation_port[
+                (v, p, EnergyDemandTypeID.ELECTRICAL)
+            ]
             change_coefficient(constraint, alg.shore_power[v, p], 1.0)
 
-    _update_port_energy_conservation(alg, v, EnergyDemandTypeID.HEAT,
-                                     power_system.heat, demands_port, port_idx)
+    _update_port_energy_conservation(
+        alg, v, EnergyDemandTypeID.HEAT, power_system.heat, demands_port, port_idx
+    )
 
 
-def _update_sea_energy_conservation(alg: BunkerAlgorithm,
-                                    v: str,
-                                    energy_type: EnergyDemandTypeID,
-                                    converter: Converter,
-                                    demands: dict,
-                                    leg_idx: tuple
-                                    ) -> None:
+def _update_sea_energy_conservation(
+    alg: BunkerAlgorithm,
+    v: str,
+    energy_type: EnergyDemandTypeID,
+    converter: Converter,
+    demands: dict,
+    leg_idx: tuple,
+) -> None:
     """
     Create or update the sea energy-conservation rows of one energy demand.
 
@@ -98,7 +121,6 @@ def _update_sea_energy_conservation(alg: BunkerAlgorithm,
     leg_idx
         Leg indices of the vessel's route.
     """
-
     c = converter.name
     efficiency = converter.efficiency.get()
     demand = demands[energy_type]
@@ -108,23 +130,29 @@ def _update_sea_energy_conservation(alg: BunkerAlgorithm,
     change_coefficient = alg.model.chgCoeff
 
     for leg, (port_start, port_end) in enumerate(leg_idx):
-
         key = (v, port_start, port_end, energy_type)
 
-        constraint = get_constraint(alg, alg.energy_conservation_sea, key, "==", "energy_conservation_at_sea")
+        constraint = get_constraint(
+            alg, alg.energy_conservation_sea, key, "==", "energy_conservation_at_sea"
+        )
         constraint.rhs = demand[leg]
 
         for f in fuels:
-            change_coefficient(constraint, spend_sea[v, c, f, port_start, port_end], efficiency * effective_lhv[(v, c, f)])
+            change_coefficient(
+                constraint,
+                spend_sea[v, c, f, port_start, port_end],
+                efficiency * effective_lhv[(v, c, f)],
+            )
 
 
-def _update_port_energy_conservation(alg: BunkerAlgorithm,
-                                     v: str,
-                                     energy_type: EnergyDemandTypeID,
-                                     converter: Converter,
-                                     demands: dict,
-                                     port_idx: range
-                                     ) -> None:
+def _update_port_energy_conservation(
+    alg: BunkerAlgorithm,
+    v: str,
+    energy_type: EnergyDemandTypeID,
+    converter: Converter,
+    demands: dict,
+    port_idx: range,
+) -> None:
     """
     Create or update the port energy-conservation rows of one energy demand.
 
@@ -143,7 +171,6 @@ def _update_port_energy_conservation(alg: BunkerAlgorithm,
     port_idx
         Port indices of the vessel's route.
     """
-
     c = converter.name
     efficiency = converter.efficiency.get()
     demand = demands[energy_type]
@@ -153,11 +180,16 @@ def _update_port_energy_conservation(alg: BunkerAlgorithm,
     change_coefficient = alg.model.chgCoeff
 
     for p in port_idx:
-
         key = (v, p, energy_type)
 
-        constraint = get_constraint(alg, alg.energy_conservation_port, key, "==", "energy_conservation_in_port")
+        constraint = get_constraint(
+            alg, alg.energy_conservation_port, key, "==", "energy_conservation_in_port"
+        )
         constraint.rhs = demand[p]
 
         for f in fuels:
-            change_coefficient(constraint, spend_port[v, c, f, p], efficiency * effective_lhv[(v, c, f)])
+            change_coefficient(
+                constraint,
+                spend_port[v, c, f, p],
+                efficiency * effective_lhv[(v, c, f)],
+            )

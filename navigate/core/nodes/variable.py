@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 from navigate.core import assign_value
 from navigate.core.node import Node
 from navigate.core.node_type import VARIABLE
@@ -26,7 +28,7 @@ class Variable(Node, _Calculator):
     # internal methods -------------------------------------------------------------------------------------------------
     def initialize(self):
         if self._value is None:
-            no_value_assigned_error(self, 'Value')
+            no_value_assigned_error(self, "Value")
 
     def get(self, x=None, y=None):
         """
@@ -43,7 +45,6 @@ class Variable(Node, _Calculator):
         float :
             Response variable.
         """
-
         if isinstance(self._value, float):
             value = self._value
         else:

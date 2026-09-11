@@ -44,12 +44,13 @@ ROW_KEY = 3
 ROW_RESULT = 5
 
 
-def write_report(report: Report,
-                 manager: SimulationManager,
-                 deck_directory: str,
-                 deck_name: str,
-                 dateline: np.ndarray
-                 ) -> None:
+def write_report(
+    report: Report,
+    manager: SimulationManager,
+    deck_directory: str,
+    deck_name: str,
+    dateline: np.ndarray,
+) -> None:
     """
     Writes one report node's requested properties to an XLSX or CSV file. Failures are contained
     per layer: a failed sheet is logged and skipped so the remaining sheets still export, and a
@@ -71,7 +72,6 @@ def write_report(report: Report,
     dateline
         Dates of the simulation timeline.
     """
-
     report_name = report.name
     is_xlsx = report.file_format == FileFormatID.XLSX
 
@@ -79,30 +79,43 @@ def write_report(report: Report,
     csv_data = None if is_xlsx else {}
 
     sections = (
-        ('manager',     'Global',      {manager.name: manager},   report.manager_reports),
-        ('fleets',      'Fleets',      manager.nodes.fleets,      report.fleet_reports),
-        ('levies',      'Levies',      manager.nodes.levies,      report.levy_reports),
-        ('plants',      'Plants',      manager.nodes.plants,      report.plant_reports),
-        ('ports',       'Ports',       manager.nodes.ports,       report.port_reports),
-        ('producers',   'Producers',   manager.nodes.producers,   report.producer_reports),
-        ('regulations', 'Regulations', manager.nodes.regulations, report.regulation_reports),
-        ('vessels',     'Vessels',     manager.nodes.vessels,     report.vessel_reports),
+        ("manager", "Global", {manager.name: manager}, report.manager_reports),
+        ("fleets", "Fleets", manager.nodes.fleets, report.fleet_reports),
+        ("levies", "Levies", manager.nodes.levies, report.levy_reports),
+        ("plants", "Plants", manager.nodes.plants, report.plant_reports),
+        ("ports", "Ports", manager.nodes.ports, report.port_reports),
+        ("producers", "Producers", manager.nodes.producers, report.producer_reports),
+        (
+            "regulations",
+            "Regulations",
+            manager.nodes.regulations,
+            report.regulation_reports,
+        ),
+        ("vessels", "Vessels", manager.nodes.vessels, report.vessel_reports),
     )
 
     sheet_errors = 0
 
     for section_name, sheet_title, nodes, extraction_dict in sections:
-
         if not extraction_dict:
             continue
 
         try:
             if is_xlsx:
-                export_properties_xlsx(wb.create_sheet(title=sheet_title), nodes, extraction_dict, report_name)
+                export_properties_xlsx(
+                    wb.create_sheet(title=sheet_title),
+                    nodes,
+                    extraction_dict,
+                    report_name,
+                )
             else:
-                export_properties_csv(sheet_title, nodes, extraction_dict, report_name, csv_data)
+                export_properties_csv(
+                    sheet_title, nodes, extraction_dict, report_name, csv_data
+                )
         except Exception as e:
-            logger.error("Report '%s': Failed to export '%s': %s", report_name, section_name, e)
+            logger.error(
+                "Report '%s': Failed to export '%s': %s", report_name, section_name, e
+            )
             sheet_errors += 1
 
     try:
@@ -121,15 +134,18 @@ def write_report(report: Report,
         logger.error("Report '%s': Failed to save file: %s", report_name, e)
 
     if sheet_errors:
-        logger.warning("Report '%s': Completed with %d sheet error(s).", report_name, sheet_errors)
+        logger.warning(
+            "Report '%s': Completed with %d sheet error(s).", report_name, sheet_errors
+        )
 
 
-def write_xlsx_report(wb: xl.Workbook,
-                      directory: str,
-                      deck_name: str,
-                      report_name: str,
-                      dateline: np.ndarray
-                      ) -> None:
+def write_xlsx_report(
+    wb: xl.Workbook,
+    directory: str,
+    deck_name: str,
+    report_name: str,
+    dateline: np.ndarray,
+) -> None:
     """
     Saves the workbook, retrying with alternative filenames while the target file is locked.
 
@@ -146,13 +162,12 @@ def write_xlsx_report(wb: xl.Workbook,
     dateline
         Dates of the simulation timeline.
     """
-
-    base_path = os.path.join(directory, '{}_{}.xlsx'.format(deck_name, report_name))
+    base_path = os.path.join(directory, f"{deck_name}_{report_name}.xlsx")
 
     # delete default sheet if data has been
     # written, otherwise keep it to avoid error
     if len(wb.sheetnames) > 1:
-        del wb['Sheet']
+        del wb["Sheet"]
         _export_date_time(wb, dateline)
 
     # save file with retry logic for locked files
@@ -165,7 +180,7 @@ def write_xlsx_report(wb: xl.Workbook,
             if attempt > 0:
                 logger.warning(f"Saved report to alternative filename: {path}")
             break  # Success!
-        except IOError:
+        except OSError:
             if attempt < max_attempts - 1:
                 # Generate alternative filename
                 path = _get_alternative_path(base_path, attempt + 1)
@@ -175,12 +190,13 @@ def write_xlsx_report(wb: xl.Workbook,
                 raise
 
 
-def write_csv_report(csv_data: dict,
-                     directory: str,
-                     deck_name: str,
-                     report_name: str,
-                     dateline: np.ndarray
-                     ) -> None:
+def write_csv_report(
+    csv_data: dict,
+    directory: str,
+    deck_name: str,
+    report_name: str,
+    dateline: np.ndarray,
+) -> None:
     """
     Writes one CSV file per sheet, retrying with alternative filenames while the target file is locked.
 
@@ -197,44 +213,47 @@ def write_csv_report(csv_data: dict,
     dateline
         Dates of the simulation timeline.
     """
-
     timeline = dates_to_days(dateline)
 
     for sheet_name, sheet_data in csv_data.items():
-        base_path = os.path.join(directory, '{}_{}_{}.csv'.format(
-            deck_name, report_name, sheet_name))
+        base_path = os.path.join(
+            directory, f"{deck_name}_{report_name}_{sheet_name}.csv"
+        )
 
         path = base_path
         max_attempts = 100
 
         for attempt in range(max_attempts):
             try:
-                with open(path, 'w', newline='', encoding='utf-8') as f:
+                with open(path, "w", newline="", encoding="utf-8") as f:
                     writer = csv.writer(f)
 
                     # Write headers
-                    headers = ['Date', 'Time (days)'] + sheet_data['headers']
+                    headers = ["Date", "Time (days)"] + sheet_data["headers"]
                     writer.writerow(headers)
 
                     # Write data rows
                     for i, date in enumerate(dateline):
                         row = [
                             str(date),  # Convert numpy datetime to string
-                            timeline[i]
+                            timeline[i],
                         ]
                         # Extract value at index i from each column
-                        row.extend([
-                            col[i] if (hasattr(col, '__getitem__') and i < len(col))
-                            else col
-                            for col in sheet_data['columns']
-                        ])
+                        row.extend(
+                            [
+                                col[i]
+                                if (hasattr(col, "__getitem__") and i < len(col))
+                                else col
+                                for col in sheet_data["columns"]
+                            ]
+                        )
                         writer.writerow(row)
 
                 if attempt > 0:
                     logger.warning(f"Saved report to alternative filename: {path}")
                 break
 
-            except IOError:
+            except OSError:
                 if attempt < max_attempts - 1:
                     path = _get_alternative_path(base_path, attempt + 1)
                 else:
@@ -242,11 +261,12 @@ def write_csv_report(csv_data: dict,
                     raise
 
 
-def export_properties_xlsx(ws: Worksheet,
-                           nodes: dict[str, Node],
-                           extraction_dict: dict[str, NodeReport],
-                           report_name: str
-                           ) -> None:
+def export_properties_xlsx(
+    ws: Worksheet,
+    nodes: dict[str, Node],
+    extraction_dict: dict[str, NodeReport],
+    report_name: str,
+) -> None:
     """
     Writes the requested properties of the given nodes into a worksheet.
 
@@ -261,26 +281,27 @@ def export_properties_xlsx(ws: Worksheet,
     report_name
         Name of the Report node, used in log messages.
     """
-
     col = 3
 
     export = _prepare_export(nodes, extraction_dict, report_name, ws.title)
 
     for node_name, (attributes, getters, reductions) in export.items():
-
         node = nodes[node_name]
 
-        properties = dict(_extract_properties(node, attributes, getters, reductions, report_name))
+        properties = dict(
+            _extract_properties(node, attributes, getters, reductions, report_name)
+        )
 
         col = _export_node(ws, node, properties, col)
 
 
-def export_properties_csv(sheet_name: str,
-                          nodes: dict[str, Node],
-                          extraction_dict: dict[str, NodeReport],
-                          report_name: str,
-                          csv_data: dict
-                          ) -> None:
+def export_properties_csv(
+    sheet_name: str,
+    nodes: dict[str, Node],
+    extraction_dict: dict[str, NodeReport],
+    report_name: str,
+    csv_data: dict,
+) -> None:
     """
     Flattens the requested properties of the given nodes into csv_data under the sheet name.
 
@@ -297,29 +318,31 @@ def export_properties_csv(sheet_name: str,
     csv_data
         Per-sheet headers and columns, modified in-place.
     """
-
     export = _prepare_export(nodes, extraction_dict, report_name, sheet_name)
 
     headers = []
     columns = []
 
     for node_name, (attributes, getters, reductions) in export.items():
-
         node = nodes[node_name]
 
-        for attribute, property_ in _extract_properties(node, attributes, getters, reductions, report_name):
+        for attribute, property_ in _extract_properties(
+            node, attributes, getters, reductions, report_name
+        ):
             _flatten_to_csv(node_name, attribute, property_, headers, columns)
 
     # Store data for this sheet
     if headers:  # Only add if there's data
-        csv_data[sheet_name] = {'headers': headers, 'columns': columns}
+        csv_data[sheet_name] = {"headers": headers, "columns": columns}
 
 
-def _extract_properties(node: Node,
-                        attributes: list[str],
-                        getters: list[str],
-                        reductions: list[ReportReduceID],
-                        report_name: str):
+def _extract_properties(
+    node: Node,
+    attributes: list[str],
+    getters: list[str],
+    reductions: list[ReportReduceID],
+    report_name: str,
+):
     """
     Yields (attribute, property) pairs read from the node profile, with reductions applied.
 
@@ -336,30 +359,38 @@ def _extract_properties(node: Node,
     report_name
         Name of the Report node, used in log messages.
     """
-
     profile = node.profile
     node_name = node.name
 
     for attribute, getter, reduce in zip(attributes, getters, reductions):
-
         try:
             if hasattr(profile, getter):
-
                 property_ = getattr(profile, getter)()
 
             else:
-
-                logger.error("Report '%s': Skipping property '%s' for node '%s': not a valid property.",
-                             report_name, attribute, node_name)
+                logger.error(
+                    "Report '%s': Skipping property '%s' for node '%s': not a valid property.",
+                    report_name,
+                    attribute,
+                    node_name,
+                )
                 continue
 
             if isinstance(property_, dict):
-
-                key1 = True if (reduce == ReportReduceID.FIRST or reduce == ReportReduceID.BOTH) else False
-                key2 = True if (reduce == ReportReduceID.SECOND or reduce == ReportReduceID.BOTH) else False
+                key1 = (
+                    True
+                    if (reduce == ReportReduceID.FIRST or reduce == ReportReduceID.BOTH)
+                    else False
+                )
+                key2 = (
+                    True
+                    if (
+                        reduce == ReportReduceID.SECOND or reduce == ReportReduceID.BOTH
+                    )
+                    else False
+                )
 
                 if property_:
-
                     if is_single_dict(property_):
                         property_ = collapse_dict(property_, key=key1)
 
@@ -367,17 +398,20 @@ def _extract_properties(node: Node,
                         property_ = collapse_tuple_dict(property_, key1=key1, key2=key2)
 
             elif isinstance(property_, list):
-
                 if reduce != ReportReduceID.NONE:
                     property_ = np.add.reduce(property_)
 
             if property_ is not None:
-
                 yield attribute, property_
 
         except Exception as e:
-            logger.error("Report '%s': Skipping property '%s' for node '%s': %s",
-                         report_name, attribute, node_name, e)
+            logger.error(
+                "Report '%s': Skipping property '%s' for node '%s': %s",
+                report_name,
+                attribute,
+                node_name,
+                e,
+            )
             continue
 
 
@@ -400,27 +434,30 @@ def _get_alternative_path(base_path: str, counter: int) -> str:
     return f"{base} ({counter}){ext}"
 
 
-def _prepare_export(nodes: dict[str, Node],
-                    extraction_dict: dict[str, NodeReport],
-                    report_name: str,
-                    sheet_name: str
-                    ) -> dict:
+def _prepare_export(
+    nodes: dict[str, Node],
+    extraction_dict: dict[str, NodeReport],
+    report_name: str,
+    sheet_name: str,
+) -> dict:
 
     export = {}
 
     for key, report in extraction_dict.items():
-
         node_names = matching_keys(key, nodes)
 
         if not node_names:
-
-            logger.warning("Report '%s': property request '%s' on sheet '%s' does not match any node in the "
-                           "simulation; skipping.", report_name, key, sheet_name)
+            logger.warning(
+                "Report '%s': property request '%s' on sheet '%s' does not match any node in the "
+                "simulation; skipping.",
+                report_name,
+                key,
+                sheet_name,
+            )
 
             continue
 
         for node_name in node_names:
-
             if node_name not in export:
                 export[node_name] = ([], [], [])
 
@@ -438,8 +475,8 @@ def _export_date_time(wb: xl.Workbook, dateline: np.ndarray) -> None:
     for ws in wb.worksheets:
         ws.cell(row=ROW_NODE, column=1).value = "Date"
         ws.cell(row=ROW_NODE, column=2).value = "Time (days)"
-        _export_array(ws, '', dateline.astype(datetime), 1)
-        _export_array(ws, '', timeline, 2)
+        _export_array(ws, "", dateline.astype(datetime), 1)
+        _export_array(ws, "", timeline, 2)
 
 
 def _export_node(ws: Worksheet, node: Node, properties: dict, col: int) -> int:
@@ -458,10 +495,9 @@ def _export_node(ws: Worksheet, node: Node, properties: dict, col: int) -> int:
 def _write_properties(ws: Worksheet, properties: dict, col: int) -> int:
 
     for attribute, property_ in properties.items():
-
         try:
             if isinstance(property_, dict):
-                col = _export_dict(ws, attribute, property_,  col)
+                col = _export_dict(ws, attribute, property_, col)
 
             elif isinstance(property_, list):
                 col = _export_list(ws, attribute, property_, col)
@@ -470,7 +506,11 @@ def _write_properties(ws: Worksheet, properties: dict, col: int) -> int:
                 col = _export_array(ws, attribute, property_, col)
 
             else:
-                logger.error("Skipping attribute '%s': unsupported type %s.", attribute, type(property_))
+                logger.error(
+                    "Skipping attribute '%s': unsupported type %s.",
+                    attribute,
+                    type(property_),
+                )
                 continue
         except Exception as e:
             logger.error("Skipping attribute '%s': %s", attribute, e)
@@ -479,7 +519,9 @@ def _write_properties(ws: Worksheet, properties: dict, col: int) -> int:
     return col + 1
 
 
-def _export_dict(ws: Worksheet, attribute: str, property_: dict, col: int, nested_dict: bool = False) -> int:
+def _export_dict(
+    ws: Worksheet, attribute: str, property_: dict, col: int, nested_dict: bool = False
+) -> int:
     """
     Writes a dict property into worksheet columns, recursing into nested dicts.
 
@@ -500,12 +542,10 @@ def _export_dict(ws: Worksheet, attribute: str, property_: dict, col: int, neste
     -------
     The latest column index.
     """
-
     first_col = col
     offset = 1 if nested_dict else 0
 
     for key, value in property_.items():
-
         # for nested dicts
         initial_col = col
 
@@ -529,7 +569,9 @@ def _export_dict(ws: Worksheet, attribute: str, property_: dict, col: int, neste
             col = _export_array(ws, attribute, value, col)
 
             for k, key_ in enumerate(key):
-                ws.cell(row=ROW_KEY + k + offset, column=initial_col).value = _format_header(key_)
+                ws.cell(
+                    row=ROW_KEY + k + offset, column=initial_col
+                ).value = _format_header(key_)
 
     # duplicate attribute name across each column header
     last_col = col
@@ -549,8 +591,7 @@ def _export_list(ws: Worksheet, attribute: str, property_: list, col: int) -> in
     indexes = range(1, n + 1)
 
     for idx, value in zip(indexes, property_):
-
-        ws.cell(row=ROW_KEY, column=col).value = "Index {}".format(idx)
+        ws.cell(row=ROW_KEY, column=col).value = f"Index {idx}"
         col = _export_array(ws, attribute, value, col)
 
     # duplicate attribute name across each column header
@@ -562,7 +603,9 @@ def _export_list(ws: Worksheet, attribute: str, property_: list, col: int) -> in
     return last_col
 
 
-def _export_array(ws: Worksheet, attribute: str, property_: np.ndarray, col: int) -> int:
+def _export_array(
+    ws: Worksheet, attribute: str, property_: np.ndarray, col: int
+) -> int:
     if attribute:
         ws.cell(row=ROW_ATTR, column=col).value = _format_header(attribute)
 
@@ -586,7 +629,9 @@ def _format_header(header):
         return header
 
 
-def _flatten_to_csv(node_name: str, attribute: str, property_, headers: list, columns: list) -> None:
+def _flatten_to_csv(
+    node_name: str, attribute: str, property_, headers: list, columns: list
+) -> None:
     """
     Flatten a property structure into CSV headers and column data.
 
@@ -603,14 +648,13 @@ def _flatten_to_csv(node_name: str, attribute: str, property_, headers: list, co
     columns
         List to append column data to (modified in-place)
     """
-
     if isinstance(property_, dict):
         for key, value in property_.items():
             # Normalize key to tuple
             if not isinstance(key, tuple):
                 key = (key,)
 
-            key_str = '.'.join(str(_format_header(k)) for k in key)
+            key_str = ".".join(str(_format_header(k)) for k in key)
             header = f"{node_name}.{attribute}.{key_str}"
 
             if isinstance(value, dict):
@@ -618,7 +662,7 @@ def _flatten_to_csv(node_name: str, attribute: str, property_, headers: list, co
                 for sub_key, sub_value in value.items():
                     if not isinstance(sub_key, tuple):
                         sub_key = (sub_key,)
-                    sub_key_str = '.'.join(str(_format_header(k)) for k in sub_key)
+                    sub_key_str = ".".join(str(_format_header(k)) for k in sub_key)
                     nested_header = f"{header}.{sub_key_str}"
                     headers.append(nested_header)
                     columns.append(sub_value)
@@ -638,6 +682,10 @@ def _flatten_to_csv(node_name: str, attribute: str, property_, headers: list, co
         columns.append(property_)
 
     else:
-        logger.error("Skipping CSV attribute '%s' for node '%s': unsupported type %s.",
-                     attribute, node_name, type(property_))
+        logger.error(
+            "Skipping CSV attribute '%s' for node '%s': unsupported type %s.",
+            attribute,
+            node_name,
+            type(property_),
+        )
         return

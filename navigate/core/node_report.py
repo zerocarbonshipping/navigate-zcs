@@ -6,6 +6,8 @@ The per-node collection of report properties gathered by the Report node and con
 navigate.output.report_writer.
 """
 
+from __future__ import annotations
+
 from navigate.core.enum_ import ReportReduceID
 from navigate.util import attribute_to_setter
 
@@ -20,5 +22,5 @@ class NodeReport:
     def add_property(self, attribute: str, reduce: ReportReduceID) -> None:
         if attribute not in self.attributes:
             self.attributes.append(attribute)
-            self.getters.append(attribute_to_setter(attribute, method='get'))
+            self.getters.append(attribute_to_setter(attribute, method="get"))
             self.reduce.append(reduce)

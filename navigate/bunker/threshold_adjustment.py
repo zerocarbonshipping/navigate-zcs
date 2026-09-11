@@ -8,8 +8,12 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from navigate.bunker.bunker_algorithm import BunkerAlgorithm
 
-from navigate.bunker.constraints.regulation_flexibility import update_flexibility_regulation_threshold_constraints
-from navigate.bunker.constraints.regulation_individual import update_individual_regulation_threshold_constraints
+from navigate.bunker.constraints.regulation_flexibility import (
+    update_flexibility_regulation_threshold_constraints,
+)
+from navigate.bunker.constraints.regulation_individual import (
+    update_individual_regulation_threshold_constraints,
+)
 from navigate.bunker.constraints.regulation_terms import get_regulation_vessel_threshold
 from navigate.bunker.utils import get_converters
 from navigate.core.enum_ import RegulationMeasureID, RegulationSchemeID
@@ -43,10 +47,12 @@ def adjust_regulation_thresholds(alg: BunkerAlgorithm) -> bool:
     bool
         True if thresholds were adjusted and the LP needs to be re-solved, False otherwise.
     """
-
     # check if any active regulation requires threshold adjustment
-    adjustable_regulations = {r: reg for r, reg in alg.active_regulations.items()
-                              if reg.allow_threshold_adjustment}
+    adjustable_regulations = {
+        r: reg
+        for r, reg in alg.active_regulations.items()
+        if reg.allow_threshold_adjustment
+    }
 
     if not adjustable_regulations:
         return False
@@ -56,7 +62,6 @@ def adjust_regulation_thresholds(alg: BunkerAlgorithm) -> bool:
 
     # individual regulations
     for (r, v), remedial_factor in alg.remedial_factor_individual.items():
-
         if r not in adjustable_regulations:
             continue
 
@@ -65,16 +70,24 @@ def adjust_regulation_thresholds(alg: BunkerAlgorithm) -> bool:
             continue
 
         # compliant — store original threshold as adjusted
-        if remedial_factor.X <= 0.:
-            alg.adjusted_vessel_thresholds[(r, v)] = get_regulation_vessel_threshold(alg, regulation, v)
+        if remedial_factor.X <= 0.0:
+            alg.adjusted_vessel_thresholds[(r, v)] = get_regulation_vessel_threshold(
+                alg, regulation, v
+            )
             continue
 
         measure = regulation.measure
         emissions = alg.regulation_emission_terms[(r, v)].getValue()
-        energy = alg.regulation_energy_terms[(r, v)].getValue() if measure == RegulationMeasureID.INTENSITY else 0.
-        vessel_measure = alg.regulation_measure.get((r, v), 0.)
+        energy = (
+            alg.regulation_energy_terms[(r, v)].getValue()
+            if measure == RegulationMeasureID.INTENSITY
+            else 0.0
+        )
+        vessel_measure = alg.regulation_measure.get((r, v), 0.0)
 
-        adjusted_threshold = _compute_vessel_adjusted_threshold(measure, emissions, energy, vessel_measure)
+        adjusted_threshold = _compute_vessel_adjusted_threshold(
+            measure, emissions, energy, vessel_measure
+        )
         if measure == RegulationMeasureID.INTENSITY:
             has_intensity = True
 
@@ -83,7 +96,6 @@ def adjust_regulation_thresholds(alg: BunkerAlgorithm) -> bool:
 
     # flexible regulations
     for r, remedial_factor in alg.remedial_factor_flexibility.items():
-
         if r not in adjustable_regulations:
             continue
 
@@ -91,21 +103,25 @@ def adjust_regulation_thresholds(alg: BunkerAlgorithm) -> bool:
         if regulation.scheme != RegulationSchemeID.FLEXIBLE:
             continue
 
-        if remedial_factor.X <= 0.:
+        if remedial_factor.X <= 0.0:
             # compliant — nothing was adjusted: store the original per-vessel
             # thresholds and no fleet-level value, so downstream consumers fall
             # back to the per-vessel targets the initial build solved against
             alg.adjusted_vessel_thresholds.update(
-                {(r, v): get_regulation_vessel_threshold(alg, regulation, v)
-                 for v in alg.vessels if regulation.vessel_is_policed(v)})
+                {
+                    (r, v): get_regulation_vessel_threshold(alg, regulation, v)
+                    for v in alg.vessels
+                    if regulation.vessel_is_policed(v)
+                }
+            )
             continue
 
         measure = regulation.measure
 
         # compute fleet-level adjusted shared threshold from total emissions/energy
-        total_emissions = 0.
-        total_energy = 0.
-        total_measure = 0.
+        total_emissions = 0.0
+        total_energy = 0.0
+        total_measure = 0.0
         for v in alg.vessels:
             if not regulation.vessel_is_policed(v):
                 continue
@@ -118,22 +134,27 @@ def adjust_regulation_thresholds(alg: BunkerAlgorithm) -> bool:
                 energy = alg.regulation_energy_terms[(r, v)].getValue()
                 total_energy += energy * multiplier
                 has_intensity = True
-                vessel_measure = 0.
-            elif measure in (RegulationMeasureID.TRANSPORT, RegulationMeasureID.TRANSPORT_NOMINAL):
+                vessel_measure = 0.0
+            elif measure in (
+                RegulationMeasureID.TRANSPORT,
+                RegulationMeasureID.TRANSPORT_NOMINAL,
+            ):
                 vessel_measure = alg.regulation_measure[(r, v)]
                 total_measure += vessel_measure * multiplier
-                energy = 0.
+                energy = 0.0
             else:
-                energy = 0.
-                vessel_measure = 0.
+                energy = 0.0
+                vessel_measure = 0.0
 
             # store per-vessel adjusted threshold, reusing already-fetched values
             alg.adjusted_vessel_thresholds[(r, v)] = _compute_vessel_adjusted_threshold(
-                measure, emissions, energy, vessel_measure)
+                measure, emissions, energy, vessel_measure
+            )
 
         # compute fleet-level adjusted shared threshold (with tolerance)
         alg.adjusted_shared_thresholds[r] = _compute_vessel_adjusted_threshold(
-            measure, total_emissions, total_energy, total_measure)
+            measure, total_emissions, total_energy, total_measure
+        )
 
         needs_resolve = True
 
@@ -153,12 +174,12 @@ def adjust_regulation_thresholds(alg: BunkerAlgorithm) -> bool:
 
 
 def _compute_vessel_adjusted_threshold(measure, emissions, energy, measure_value):
-    """Compute the adjusted threshold for a vessel from its actual emissions.
+    """
+    Compute the adjusted threshold for a vessel from its actual emissions.
 
     A small relative tolerance is added so that the constraint remains
     non-binding after fair-share redistribution in the re-solve.
     """
-
     if measure == RegulationMeasureID.ABSOLUTE:
         actual = emissions
     elif measure == RegulationMeasureID.INTENSITY:
@@ -166,10 +187,12 @@ def _compute_vessel_adjusted_threshold(measure, emissions, energy, measure_value
     else:
         actual = divide_nonzero(emissions, measure_value)
 
-    return actual * (1. + _THRESHOLD_TOLERANCE)
+    return actual * (1.0 + _THRESHOLD_TOLERANCE)
 
 
-def _update_regulation_rhs_for_adjustment(alg: BunkerAlgorithm, adjustable_regulations: dict) -> None:
+def _update_regulation_rhs_for_adjustment(
+    alg: BunkerAlgorithm, adjustable_regulations: dict
+) -> None:
     """
     Update constraint RHS values for non-INTENSITY regulation threshold adjustments.
 
@@ -180,15 +203,12 @@ def _update_regulation_rhs_for_adjustment(alg: BunkerAlgorithm, adjustable_regul
     adjustable_regulations
         Dictionary of regulations that have threshold adjustment enabled.
     """
-
     for r, regulation in adjustable_regulations.items():
-
         measure = regulation.measure
         if measure == RegulationMeasureID.INTENSITY:
             continue
 
         if regulation.scheme == RegulationSchemeID.INDIVIDUAL:
-
             for v in alg.vessels:
                 key = (r, v)
                 if key not in alg.regulation_threshold_individual:
@@ -208,11 +228,10 @@ def _update_regulation_rhs_for_adjustment(alg: BunkerAlgorithm, adjustable_regul
                 alg.regulation_threshold_individual[key].RHS = new_rhs
 
         elif regulation.scheme == RegulationSchemeID.FLEXIBLE:
-
             if r not in alg.regulation_threshold_flexibility:
                 continue
 
-            total_rhs = 0.
+            total_rhs = 0.0
             for v in alg.vessels:
                 key = (r, v)
 
@@ -237,7 +256,9 @@ def _update_regulation_rhs_for_adjustment(alg: BunkerAlgorithm, adjustable_regul
             alg.regulation_threshold_flexibility[r].RHS = total_rhs
 
 
-def _rebuild_regulation_constraints_for_adjustment(alg: BunkerAlgorithm, adjustable_regulations: dict) -> None:
+def _rebuild_regulation_constraints_for_adjustment(
+    alg: BunkerAlgorithm, adjustable_regulations: dict
+) -> None:
     """
     Rebuild regulation constraints when INTENSITY regulations need threshold adjustment.
 
@@ -248,14 +269,12 @@ def _rebuild_regulation_constraints_for_adjustment(alg: BunkerAlgorithm, adjusta
     adjustable_regulations
         Dictionary of regulations that have threshold adjustment enabled.
     """
-
     # update non-INTENSITY constraints via RHS
     _update_regulation_rhs_for_adjustment(alg, adjustable_regulations)
 
     # for INTENSITY regulations, rebuild the regulation spend coefficients
     # by temporarily storing adjusted thresholds and recomputing coefficients
     for r, regulation in adjustable_regulations.items():
-
         if regulation.measure != RegulationMeasureID.INTENSITY:
             continue
 
@@ -264,8 +283,11 @@ def _rebuild_regulation_constraints_for_adjustment(alg: BunkerAlgorithm, adjusta
         # vessels are net payers, clean vessels net receivers). INDIVIDUAL schemes and
         # compliant FLEXIBLE schemes (no fleet-level adjusted value stored) are
         # calibrated to each vessel's own threshold.
-        shared_threshold = (alg.adjusted_shared_thresholds.get(r)
-                            if regulation.scheme == RegulationSchemeID.FLEXIBLE else None)
+        shared_threshold = (
+            alg.adjusted_shared_thresholds.get(r)
+            if regulation.scheme == RegulationSchemeID.FLEXIBLE
+            else None
+        )
 
         for v, vessel in alg.vessels.items():
             key = (r, v)
@@ -273,8 +295,11 @@ def _rebuild_regulation_constraints_for_adjustment(alg: BunkerAlgorithm, adjusta
             if key not in alg.adjusted_vessel_thresholds:
                 continue
 
-            adjusted_threshold = shared_threshold if shared_threshold is not None \
+            adjusted_threshold = (
+                shared_threshold
+                if shared_threshold is not None
                 else alg.adjusted_vessel_thresholds[key]
+            )
 
             # update the regulation spend coefficients with the adjusted threshold
             for c in get_converters(vessel):
@@ -283,15 +308,20 @@ def _rebuild_regulation_constraints_for_adjustment(alg: BunkerAlgorithm, adjusta
                     emission_factor = alg.regulation_emission_factor[coefficient_key]
                     effective_lhv = alg.effective_lhv[(v, c, f)]
                     alg.regulation_spend_coefficient[coefficient_key] = (
-                        emission_factor - adjusted_threshold / TON_TO_KG * effective_lhv)
+                        emission_factor - adjusted_threshold / TON_TO_KG * effective_lhv
+                    )
 
             # update shore power coefficients
             ports = vessel.route.ports
             for p, _port in enumerate(ports):
                 if (v, p, r) in alg.shore_power_regulation_coefficient:
-                    shore_power_emission_factor = alg.shore_power_regulation_emission_factor.get((v, p, r), 0.)
+                    shore_power_emission_factor = (
+                        alg.shore_power_regulation_emission_factor.get((v, p, r), 0.0)
+                    )
                     alg.shore_power_regulation_coefficient[(v, p, r)] = (
-                        shore_power_emission_factor - adjusted_threshold / TON_TO_KG * 1.0)
+                        shore_power_emission_factor
+                        - adjusted_threshold / TON_TO_KG * 1.0
+                    )
 
     # rebuild the regulation threshold constraints (which remove and re-add).
     # Each function rebuilds all constraints of that scheme type, so call at most once per scheme.

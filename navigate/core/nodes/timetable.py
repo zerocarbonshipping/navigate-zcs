@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 import logging
 
 import numpy as np
@@ -32,15 +34,19 @@ class Timetable(Node, _Table2D):
 
     def initialize(self) -> None:
         if self._table is None:
-            no_value_assigned_error(self, 'Table')
+            no_value_assigned_error(self, "Table")
 
         if self.extrapolate == ExtrapolateID.FLAT:
             if self._outside is None:
-                raise ValueError("{}: 'Outside' must be defined when 'Extrapolate' is set to FLAT.")
+                raise ValueError(
+                    "{}: 'Outside' must be defined when 'Extrapolate' is set to FLAT."
+                )
 
         else:
             if self._outside is not None:
-                logger.warning("{}: 'Outside' is defined, but ignored since 'Extrapolate' is set to LINEAR.")
+                logger.warning(
+                    "{}: 'Outside' is defined, but ignored since 'Extrapolate' is set to LINEAR."
+                )
 
     def get(self, x: float | None = None, y: float | None = None) -> float:
         if x is None:

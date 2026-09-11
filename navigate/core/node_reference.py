@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 import numpy as np
 
 from navigate.core.node_type import TypeCheckMixin
@@ -14,7 +16,7 @@ class NodeReference(TypeCheckMixin):
 
         # string indicating the file and line in
         # the deck where the node is referenced
-        self.reference_location = ''
+        self.reference_location = ""
 
         # this attribute is only relevant for calculators
         # they are set during the call to assign_value if
@@ -25,11 +27,12 @@ class NodeReference(TypeCheckMixin):
         self.internal_bounds = (lower, upper)
 
     def __repr__(self):
-        return "{}(\"{}\")".format(self.type, self.name)
+        return f'{self.type}("{self.name}")'
 
 
 class WildcardNodeReference(NodeReference):
-    """A node reference whose name contains glob wildcards (``*``, ``?``).
+    """
+    A node reference whose name contains glob wildcards (``*``, ``?``).
 
     Expanded into concrete nodes during reference resolution in the parser.
     May only appear inside list contexts; a ``WildcardNodeReference`` found

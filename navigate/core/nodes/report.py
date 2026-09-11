@@ -7,6 +7,8 @@ Excel/CSV writing is done by navigate.output.report_writer.write_report, driven 
 manager. The Report node is not assigned on any other node.
 """
 
+from __future__ import annotations
+
 from navigate.core import assign_id
 from navigate.core.enum_ import FileFormatID, ReportReduceID
 from navigate.core.node import Node
@@ -65,7 +67,7 @@ class Report(Node):
 
     # external methods (DSL commands) ----------------------------------------------------------------------------------
     def add_property(self, attribute, reduce=None):
-        self._add_property('global', self.manager_reports, attribute, reduce=reduce)
+        self._add_property("global", self.manager_reports, attribute, reduce=reduce)
 
     def add_fleet_property(self, fleet_name, attribute, reduce=None):
         self._add_property(fleet_name, self.fleet_reports, attribute, reduce=reduce)
@@ -80,10 +82,14 @@ class Report(Node):
         self._add_property(port_name, self.port_reports, attribute, reduce=reduce)
 
     def add_producer_property(self, producer_name, attribute, reduce=None):
-        self._add_property(producer_name, self.producer_reports, attribute, reduce=reduce)
+        self._add_property(
+            producer_name, self.producer_reports, attribute, reduce=reduce
+        )
 
     def add_regulation_property(self, regulation_name, attribute, reduce=None):
-        self._add_property(regulation_name, self.regulation_reports, attribute, reduce=reduce)
+        self._add_property(
+            regulation_name, self.regulation_reports, attribute, reduce=reduce
+        )
 
     def add_vessel_property(self, vessel_name, attribute, reduce=None):
         self._add_property(vessel_name, self.vessel_reports, attribute, reduce=reduce)

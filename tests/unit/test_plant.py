@@ -2,6 +2,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """Unit tests for the Plant node."""
+
+from __future__ import annotations
+
 import pytest
 
 from navigate.core.node_reference import NodeReference
@@ -12,51 +15,49 @@ from navigate.core.nodes.process import Process
 from navigate.core.nodes.region import Region
 from navigate.core.nodes.source import Source
 
-PORTS = {'port_a': None, 'port_b': None}
+PORTS = {"port_a": None, "port_b": None}
 
 
 def _make_plant() -> Plant:
-    plant = Plant('plant')
-    plant.fuel = Fuel('oil')
-    plant.process = Process('process')
-    plant.region = Region('region')
-    plant.source = Source('source')
-    plant.set_capacity(100.)
+    plant = Plant("plant")
+    plant.fuel = Fuel("oil")
+    plant.process = Process("process")
+    plant.region = Region("region")
+    plant.source = Source("source")
+    plant.set_capacity(100.0)
     plant.initialize_dependencies({}, PORTS, {})
     return plant
 
 
 class TestFuelTransport:
-
     def test_distance_without_transport_raises(self):
         plant = _make_plant()
-        plant.set_fuel_distance('port_a', 500.)
+        plant.set_fuel_distance("port_a", 500.0)
 
         with pytest.raises(ValueError, match="no transport is assigned"):
             plant.initialize()
 
     def test_transport_without_distance_defaults_to_zero(self):
         plant = _make_plant()
-        plant.set_fuel_transport('port_a', NodeReference(TRANSPORT, 'truck'))
+        plant.set_fuel_transport("port_a", NodeReference(TRANSPORT, "truck"))
         plant.initialize()
 
-        assert plant.fuel_distance['port_a'].get() == 0.
+        assert plant.fuel_distance["port_a"].get() == 0.0
 
     def test_wildcard_assigns_every_port(self):
         plant = _make_plant()
-        plant.set_fuel_transport('*', NodeReference(TRANSPORT, 'truck'))
-        plant.set_fuel_distance('*', 500.)
+        plant.set_fuel_transport("*", NodeReference(TRANSPORT, "truck"))
+        plant.set_fuel_distance("*", 500.0)
         plant.initialize()
 
         assert all(transport is not None for transport in plant.fuel_transport.values())
-        assert all(distance.get() == 500. for distance in plant.fuel_distance.values())
+        assert all(distance.get() == 500.0 for distance in plant.fuel_distance.values())
 
 
 class TestLiquidMarketGuard:
-
     def test_liquid_market_fuel_raises(self):
         plant = _make_plant()
-        plant.fuel.set_liquid_market('TRUE')
+        plant.fuel.set_liquid_market("TRUE")
 
         with pytest.raises(ValueError, match="belongs to a liquid market"):
             plant.initialize()

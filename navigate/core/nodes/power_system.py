@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 from navigate.core import assign_value
 from navigate.core.enum_ import EnergyDemandTypeID
 from navigate.core.node_type import CONVERTER, POWER_SYSTEM
@@ -15,9 +17,11 @@ class PowerSystem(_Machinery):
 
         # external variables -------------------------------------------------------------------------------------------
         # converters
-        self.propulsion = None   # Converter, main engine delivering propulsion power
-        self.electrical = None   # Converter, auxiliary engine delivering electrical power
-        self.heat = None         # Converter, boiler delivering heat
+        self.propulsion = None  # Converter, main engine delivering propulsion power
+        self.electrical = (
+            None  # Converter, auxiliary engine delivering electrical power
+        )
+        self.heat = None  # Converter, boiler delivering heat
 
     # external methods (DSL attributes) --------------------------------------------------------------------------------
     def set_propulsion(self, propulsion):
@@ -33,7 +37,6 @@ class PowerSystem(_Machinery):
         propulsion : NodeReference
             A converter used to satisfy the propulsion demand.
         """
-
         self.propulsion = assign_value(propulsion, scalar=False, type_=CONVERTER)
 
     def set_electrical(self, electrical):
@@ -49,7 +52,6 @@ class PowerSystem(_Machinery):
         electrical : NodeReference
             A converter used to satisfy the electrical demand.
         """
-
         self.electrical = assign_value(electrical, scalar=False, type_=CONVERTER)
 
     def set_heat(self, heat):
@@ -65,26 +67,27 @@ class PowerSystem(_Machinery):
         heat : NodeReference
             A converter used to satisfy the heat demand.
         """
-
         self.heat = assign_value(heat, scalar=False, type_=CONVERTER)
 
     # internal methods -------------------------------------------------------------------------------------------------
     def initialize(self):
 
         if not self.propulsion:
-            no_value_assigned_error(self, 'Propulsion')
+            no_value_assigned_error(self, "Propulsion")
 
         if not self.electrical:
-            no_value_assigned_error(self, 'Electrical')
+            no_value_assigned_error(self, "Electrical")
 
         if not self.heat:
-            no_value_assigned_error(self, 'Heat')
+            no_value_assigned_error(self, "Heat")
 
         # downstream code sums over the converters (installed power, cost, fuel demand); a shared one would double-count
         names = (self.propulsion.name, self.electrical.name, self.heat.name)
         if not list_is_unique(names):
-            raise ValueError("{}: 'Propulsion', 'Electrical' and 'Heat' must be three distinct"
-                             " converters, got {}.".format(self, names))
+            raise ValueError(
+                f"{self}: 'Propulsion', 'Electrical' and 'Heat' must be three distinct"
+                f" converters, got {names}."
+            )
 
         self._initialize_machinery()
 

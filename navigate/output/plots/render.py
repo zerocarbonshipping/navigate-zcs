@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 import logging
 import os
 import timeit
@@ -25,7 +27,11 @@ def generate_plots(plot, plot_data):
     plot_data : PlotData
         The plot data container with simulation state.
     """
-    directory = os.path.join(plot_data.deck_directory, plot.directory) if plot.directory else None
+    directory = (
+        os.path.join(plot_data.deck_directory, plot.directory)
+        if plot.directory
+        else None
+    )
     selected_plots = plot.selected_plots or None  # an empty set selects all plots
     render_plots(plot_data, directory=directory, selected_plots=selected_plots)
 
@@ -35,7 +41,7 @@ def render_plots(manager, directory=None, selected_plots=None):
     start = timeit.default_timer()
 
     if directory is None:
-        directory = os.path.join(manager.deck_directory, 'plots')
+        directory = os.path.join(manager.deck_directory, "plots")
 
     os.makedirs(directory, exist_ok=True)
 
@@ -59,17 +65,17 @@ def render_plots(manager, directory=None, selected_plots=None):
         except Exception as e:
             plot_errors += 1
             logger.error("Plot '%s' failed: %s", label, e)
-            plt.close('all')
+            plt.close("all")
 
     if plot_errors > 0:
         logger.warning("Plot generation completed with %d error(s).", plot_errors)
 
-    _print_elapsed_time(timeit.default_timer() - start, 'plots')
-    logger.info('Plots generated successfully.')
+    _print_elapsed_time(timeit.default_timer() - start, "plots")
+    logger.info("Plots generated successfully.")
 
 
 def _print_elapsed_time(elapsed, section):
-    minutes = floor(elapsed / 60.)
-    seconds = int(elapsed - minutes * 60.)
+    minutes = floor(elapsed / 60.0)
+    seconds = int(elapsed - minutes * 60.0)
 
-    print('Finished {}, elapsed time: {}m and {}s.'.format(section, minutes, seconds))
+    print(f"Finished {section}, elapsed time: {minutes}m and {seconds}s.")

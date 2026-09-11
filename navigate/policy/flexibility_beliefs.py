@@ -1,13 +1,17 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 import numpy as np
 
 from navigate.core.enum_ import RegulationSchemeID
 from navigate.util import derive_smoothing_alpha, update_belief_path
 
 
-def update_regulation_flexibility_beliefs(regulations: dict, vessels: dict, timeline: np.ndarray, idx: int) -> None:
+def update_regulation_flexibility_beliefs(
+    regulations: dict, vessels: dict, timeline: np.ndarray, idx: int
+) -> None:
     """
     Update the flexibility cost belief of every flexible regulation and apply the expected policy expenses.
 
@@ -31,9 +35,7 @@ def update_regulation_flexibility_beliefs(regulations: dict, vessels: dict, time
     idx
         Current outer time-step index.
     """
-
     for regulation in regulations.values():
-
         if regulation.scheme != RegulationSchemeID.FLEXIBLE:
             continue
 
@@ -47,9 +49,10 @@ def update_regulation_flexibility_beliefs(regulations: dict, vessels: dict, time
         update_belief_path(raw_cost, belief, alpha, idx)
 
         for vessel_name, vessel in vessels.items():
-
             if not regulation.vessel_is_policed(vessel_name):
                 continue
 
             net_units = expectation.get_vessel_net_flexibility_units(vessel_name)
-            vessel.expectation.add_policy_expenses_path(idx, net_units[idx:] * belief[idx:])
+            vessel.expectation.add_policy_expenses_path(
+                idx, net_units[idx:] * belief[idx:]
+            )

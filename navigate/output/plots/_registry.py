@@ -1,13 +1,16 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Single source of truth for which plots :func:`render_plots` renders.
+"""
+Single source of truth for which plots :func:`render_plots` renders.
 
 ``PLOTS`` is the ordered catalogue of every rendered plot. A plot's label
 (used by ``selected_plots`` and warnings) is its function name without the
 ``plot_`` prefix -- see :func:`plot_label` -- so there is no separate list of
 labels to keep in sync. To add a plot, import it and append it to ``PLOTS``.
 """
+
+from __future__ import annotations
 
 from navigate.output.plots.computational_performance import (
     plot_computational_performance,
@@ -35,24 +38,39 @@ from navigate.output.plots.fleet_trade import plot_fleet_trade
 from navigate.output.plots.fuel_supply_demand import plot_fuel_supply_demand
 from navigate.output.plots.fuel_type_supply_demand import plot_fuel_type_supply_demand
 from navigate.output.plots.global_emission_absolute import plot_global_emission_absolute
-from navigate.output.plots.global_emission_intensity import plot_global_emission_intensity
+from navigate.output.plots.global_emission_intensity import (
+    plot_global_emission_intensity,
+)
 from navigate.output.plots.global_energy_demand import plot_global_energy_demand
 from navigate.output.plots.global_energy_saving import plot_global_energy_saving
-from navigate.output.plots.global_expenses import plot_global_expenses, plot_global_expenses_cumulative
-from navigate.output.plots.global_feedstock_consumption import plot_global_feedstock_consumption
+from navigate.output.plots.global_expenses import (
+    plot_global_expenses,
+    plot_global_expenses_cumulative,
+)
+from navigate.output.plots.global_feedstock_consumption import (
+    plot_global_feedstock_consumption,
+)
 from navigate.output.plots.global_fuel_consumed import plot_global_fuel_consumed
 from navigate.output.plots.global_fuel_related_expenses import (
     plot_global_fuel_related_expenses,
     plot_global_fuel_related_expenses_cumulative,
 )
-from navigate.output.plots.global_fuel_type_consumed import plot_global_fuel_type_consumed
+from navigate.output.plots.global_fuel_type_consumed import (
+    plot_global_fuel_type_consumed,
+)
 from navigate.output.plots.global_installed_power import plot_global_installed_power
-from navigate.output.plots.global_installed_power_share import plot_global_installed_power_share
-from navigate.output.plots.global_power_converted import plot_global_power_converted_cumulative
+from navigate.output.plots.global_installed_power_share import (
+    plot_global_installed_power_share,
+)
+from navigate.output.plots.global_power_converted import (
+    plot_global_power_converted_cumulative,
+)
 from navigate.output.plots.global_shore_power_share import plot_global_shore_power_share
 from navigate.output.plots.global_tied_capital import plot_global_tied_capital
 from navigate.output.plots.plant_production_cost import plot_plant_production_cost
-from navigate.output.plots.plant_production_emissions import plot_plant_production_emissions
+from navigate.output.plots.plant_production_emissions import (
+    plot_plant_production_emissions,
+)
 from navigate.output.plots.port_bunker_price import plot_port_bunker_price
 from navigate.output.plots.port_bunker_supply import plot_port_bunker_supply
 from navigate.output.plots.producer_development import (
@@ -60,10 +78,14 @@ from navigate.output.plots.producer_development import (
     plot_producer_development_cumulative,
 )
 from navigate.output.plots.producer_fair_share import plot_producer_fair_share
-from navigate.output.plots.producer_feed_consumption import plot_producer_feed_consumption
+from navigate.output.plots.producer_feed_consumption import (
+    plot_producer_feed_consumption,
+)
 from navigate.output.plots.regulation_compliance import plot_regulation_compliance
 from navigate.output.plots.regulation_flexibility import plot_regulation_flexibility
-from navigate.output.plots.regulation_flexibility_cost import plot_regulation_flexibility_cost
+from navigate.output.plots.regulation_flexibility_cost import (
+    plot_regulation_flexibility_cost,
+)
 from navigate.output.plots.regulation_unit_trading import plot_regulation_unit_trading
 from navigate.output.plots.technology_uptake import plot_technology_uptake
 
@@ -123,7 +145,7 @@ PLOTS = [
 
 def plot_label(func):
     """Return a plot function's label (its name without the ``plot_`` prefix)."""
-    return func.__name__[len('plot_'):]
+    return func.__name__[len("plot_") :]
 
 
 PLOT_LABELS = frozenset(plot_label(f) for f in PLOTS)

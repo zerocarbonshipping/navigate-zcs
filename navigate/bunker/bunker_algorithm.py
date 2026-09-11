@@ -25,13 +25,25 @@ from navigate.bunker.coefficients import (
 )
 
 # constraints
-from navigate.bunker.constraints.bunkered_equals_spent import update_bunkered_equals_spent_constraint
-from navigate.bunker.constraints.energy_conservation import update_energy_conservation_constraints
-from navigate.bunker.constraints.mass_conservation import update_mass_conservation_constraints
-from navigate.bunker.constraints.mass_sufficient import update_mass_sufficient_constraints
+from navigate.bunker.constraints.bunkered_equals_spent import (
+    update_bunkered_equals_spent_constraint,
+)
+from navigate.bunker.constraints.energy_conservation import (
+    update_energy_conservation_constraints,
+)
+from navigate.bunker.constraints.mass_conservation import (
+    update_mass_conservation_constraints,
+)
+from navigate.bunker.constraints.mass_sufficient import (
+    update_mass_sufficient_constraints,
+)
 from navigate.bunker.constraints.pilot_fuel import update_pilot_fuel_constraints
-from navigate.bunker.constraints.regulation_flexibility import update_flexibility_regulation_threshold_constraints
-from navigate.bunker.constraints.regulation_individual import update_individual_regulation_threshold_constraints
+from navigate.bunker.constraints.regulation_flexibility import (
+    update_flexibility_regulation_threshold_constraints,
+)
+from navigate.bunker.constraints.regulation_individual import (
+    update_individual_regulation_threshold_constraints,
+)
 from navigate.bunker.constraints.regulation_terms import (
     update_regulation_flexibility_rhs,
     update_regulation_individual_rhs,
@@ -43,23 +55,35 @@ from navigate.bunker.fair_share import (
     perform_flexibility_unit_cost_evaluation,
     run_fair_share_solve,
 )
-from navigate.bunker.objectives import update_regulation_objectives, update_vessel_objectives
+from navigate.bunker.objectives import (
+    update_regulation_objectives,
+    update_vessel_objectives,
+)
 from navigate.bunker.threshold_adjustment import adjust_regulation_thresholds
 
 # transfer
 from navigate.bunker.transfer.bunker import transfer_bunker
 from navigate.bunker.transfer.dual_solution import transfer_dual_solution
-from navigate.bunker.transfer.regulation_flexibility import transfer_regulation_flexibility
-from navigate.bunker.transfer.regulation_individual import transfer_regulation_individual
+from navigate.bunker.transfer.regulation_flexibility import (
+    transfer_regulation_flexibility,
+)
+from navigate.bunker.transfer.regulation_individual import (
+    transfer_regulation_individual,
+)
 from navigate.bunker.transfer.regulation_measure import transfer_regulation_measure
-from navigate.bunker.transfer.regulation_properties import calculate_regulation_emission_properties
+from navigate.bunker.transfer.regulation_properties import (
+    calculate_regulation_emission_properties,
+)
 from navigate.bunker.transfer.shore_power import transfer_shore_power
 from navigate.bunker.transfer.spend_port import transfer_spend_port
 from navigate.bunker.transfer.spend_sea import transfer_spend_sea
 
 # variables and objectives
 from navigate.bunker.utils import initialize_converter_fuel_maps
-from navigate.bunker.variables import update_regulation_variables, update_vessel_variables
+from navigate.bunker.variables import (
+    update_regulation_variables,
+    update_vessel_variables,
+)
 from navigate.core.enum_ import BunkerScopeID
 from navigate.fleet.fuel_option import get_fuels_per_fuel_type
 from navigate.logging_ import log_fair_share_convergence
@@ -147,8 +171,12 @@ class BunkerAlgorithm:
         self.flexible_unit_cost: dict[str, float] = {}
 
         # adjusted thresholds (from threshold adjustment)
-        self.adjusted_vessel_thresholds: dict[tuple, float] = {}  # (r, v) -> adjusted threshold
-        self.adjusted_shared_thresholds: dict[str, float] = {}    # r -> adjusted shared threshold
+        self.adjusted_vessel_thresholds: dict[
+            tuple, float
+        ] = {}  # (r, v) -> adjusted threshold
+        self.adjusted_shared_thresholds: dict[
+            str, float
+        ] = {}  # r -> adjusted shared threshold
 
         # emission factors
         self.emission_factor: dict[tuple, float] = {}
@@ -198,9 +226,9 @@ class BunkerAlgorithm:
         self.fair_share_fuel: gp.tupledict | None = None
 
         # timing -------------------------------------------------------------------------------------------------------
-        self.build_time: float = 0.
-        self.solve_time: float = 0.
-        self.transfer_time: float = 0.
+        self.build_time: float = 0.0
+        self.solve_time: float = 0.0
+        self.transfer_time: float = 0.0
 
     # ==================================================================================================================
     # external methods
@@ -245,7 +273,6 @@ class BunkerAlgorithm:
         output_directory
             Directory for debug output files (typically the deck directory).
         """
-
         self.scope = scope
         self.options = options
         self.output_directory = output_directory
@@ -282,7 +309,6 @@ class BunkerAlgorithm:
         time_step
             Size of the current time-step, days.
         """
-
         self.build_time = timeit.default_timer()
         self.solve_time = 0
         self.transfer_time = 0
@@ -309,9 +335,7 @@ class BunkerAlgorithm:
         # loop over all vessels and add/update properties
         # if they are active and in the fleet
         for fleet in self.fleets.values():
-
             for vessel in fleet.vessels:
-
                 v = vessel.name
 
                 # during expected bunkering it is necessary to find a solution
@@ -325,8 +349,7 @@ class BunkerAlgorithm:
                 else:
                     multiplier = fleet.expectation.get_expected_multipliers(v, self.idx)
 
-                if multiplier > 0.:
-
+                if multiplier > 0.0:
                     # save for later use on global level
                     self.vessels[v] = vessel
                     self.multipliers[v] = multiplier
@@ -341,7 +364,6 @@ class BunkerAlgorithm:
                     self._update_vessel_constraints(vessel)
 
                 else:
-
                     # previously existing vessel that has now
                     # left the model due to zero multiplier.
                     # Notice this can only occur in existing
@@ -378,7 +400,9 @@ class BunkerAlgorithm:
         perform_flexibility_unit_cost_evaluation(self)
 
         if self.scope == BunkerScopeID.EXISTING:
-            log_fair_share_convergence(logger, self.fair_share_convergence_statistics, iterations, converged)
+            log_fair_share_convergence(
+                logger, self.fair_share_convergence_statistics, iterations, converged
+            )
 
         # the solve involves a lot of build time due to
         # the fair-share iterative algorithm. Solve time
@@ -398,7 +422,6 @@ class BunkerAlgorithm:
             port.expectation.reset_bunker_mass_expected()
 
         if self.scope == BunkerScopeID.EXISTING:
-
             for vessel in self.vessels.values():
                 vessel.expectation.reset_bunker_mass_existing()
 
@@ -433,7 +456,6 @@ class BunkerAlgorithm:
         Initialize the LP model as well as containers used for storing LP variables and constraints.
         This method is only called once, namely when the high-level initialization occurs.
         """
-
         # initialize LP model
         if self.scope == BunkerScopeID.EXISTING:
             model_name = "existing"
@@ -442,8 +464,10 @@ class BunkerAlgorithm:
 
         self.model = gp.Model(model_name)
 
-        self.model.Params.OutputFlag = 0   # suppress solver console output
-        self.model.Params.Method = self.options.solver_method.value  # using the integer value directly
+        self.model.Params.OutputFlag = 0  # suppress solver console output
+        self.model.Params.Method = (
+            self.options.solver_method.value
+        )  # using the integer value directly
         self.model.Params.Threads = self.options.threads
         self.model.Params.FeasibilityTol = self.options.solution_tolerance
         self.model.Params.OptimalityTol = self.options.solution_tolerance
@@ -476,7 +500,6 @@ class BunkerAlgorithm:
         Certain properties are dynamic and recalculated at every time-step. The containers holding these properties are
         reset to avoid the risk of values from previous time-steps remaining.
         """
-
         # reset policy coefficients
         self.regulation_vessel_threshold = {}
         self.regulation_emission_factor = {}
@@ -502,7 +525,9 @@ class BunkerAlgorithm:
         self.emission_factor = {}
 
         # pre-filter active policies
-        self.active_regulations = {r: reg for r, reg in self.regulations.items() if reg.is_active()}
+        self.active_regulations = {
+            r: reg for r, reg in self.regulations.items() if reg.is_active()
+        }
         self.port_levies = {}
         for port_name, port in self.ports.items():
             self.port_levies[port_name] = policies_affecting_port(port, self.levies)
@@ -516,14 +541,12 @@ class BunkerAlgorithm:
         vessel
             Vessel for which constraints are updated.
         """
-
         # add vessel technical constraints
         update_energy_conservation_constraints(self, vessel)
         update_pilot_fuel_constraints(self, vessel)
 
         # add mass conservation constraints
         if vessel.route.route_type == enum_.RouteTypeID.ROUND_TRIP:
-
             update_mass_conservation_constraints(self, vessel)
             update_mass_sufficient_constraints(self, vessel)
             update_tank_capacity_constraints(self, vessel)

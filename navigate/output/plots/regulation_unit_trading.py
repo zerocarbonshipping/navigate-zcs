@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 import numpy as np
 
 from navigate.core.enum_ import RegulationSchemeID
@@ -19,7 +21,6 @@ def plot_regulation_unit_trading(manager, directory):
     regulations = manager.nodes.regulations
 
     for regulation_name, regulation in regulations.items():
-
         if not regulation.scheme == RegulationSchemeID.FLEXIBLE:
             continue
 
@@ -31,20 +32,31 @@ def plot_regulation_unit_trading(manager, directory):
         surplus_units = regulation.profile.get_surplus_units()
 
         divisor, prefix = find_best_metric_prefix(
-            max(np.amax(non_compliance_units),
+            max(
+                np.amax(non_compliance_units),
                 np.amax(surplus_units),
                 np.amax(flexibility_units),
-                np.amax(remedial_units)),
-            symbol=False)
+                np.amax(remedial_units),
+            ),
+            symbol=False,
+        )
         non_compliance_units /= divisor
         surplus_units /= divisor
         flexibility_units /= divisor
         remedial_units /= divisor
 
-        unit = '{} units/year'.format(prefix)
+        unit = f"{prefix} units/year"
 
-        ax.plot(dateline, non_compliance_units, label='Non-compliance', color='k', lw=2.)
-        ax.plot(dateline, surplus_units, label='Surplus', color=CENTER_COLORS_GREEN[3], lw=2.)
+        ax.plot(
+            dateline, non_compliance_units, label="Non-compliance", color="k", lw=2.0
+        )
+        ax.plot(
+            dateline,
+            surplus_units,
+            label="Surplus",
+            color=CENTER_COLORS_GREEN[3],
+            lw=2.0,
+        )
 
         legend = ax.legend()
 
@@ -53,4 +65,4 @@ def plot_regulation_unit_trading(manager, directory):
         ax.grid(True, lw=0.3, alpha=0.5)
         format_axes(ax, 1, dateline, legend, y_lim=(None, None))
 
-        save_figure(fig, directory, 'regulation_unit_trading_{}.png'.format(regulation_name))
+        save_figure(fig, directory, f"regulation_unit_trading_{regulation_name}.png")

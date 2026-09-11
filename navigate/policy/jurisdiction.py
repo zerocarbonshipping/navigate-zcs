@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 import numpy as np
 
 from navigate.core.enum_ import RouteTypeID
@@ -11,7 +13,9 @@ def calculate_cargo_miles_in_policy_jurisdiction(regulation, vessel, time, idx):
     expectation = vessel.expectation
     cargo_miles = expectation.get_cargo_miles_per_leg(idx)
 
-    return _calculate_attribute_in_policy_jurisdiction(regulation, vessel, time, cargo_miles)
+    return _calculate_attribute_in_policy_jurisdiction(
+        regulation, vessel, time, cargo_miles
+    )
 
 
 def calculate_nominal_cargo_miles_in_policy_jurisdiction(regulation, vessel, time, idx):
@@ -19,10 +23,14 @@ def calculate_nominal_cargo_miles_in_policy_jurisdiction(regulation, vessel, tim
     expectation = vessel.expectation
     nominal_cargo_miles = expectation.get_cargo_miles_per_leg_nominal(idx)
 
-    return _calculate_attribute_in_policy_jurisdiction(regulation, vessel, time, nominal_cargo_miles)
+    return _calculate_attribute_in_policy_jurisdiction(
+        regulation, vessel, time, nominal_cargo_miles
+    )
 
 
-def leg_jurisdiction_fraction(port_i, port_e, jurisdiction, intra_fraction, inter_fraction, extra_fraction):
+def leg_jurisdiction_fraction(
+    port_i, port_e, jurisdiction, intra_fraction, inter_fraction, extra_fraction
+):
     """
     The regulated fraction of a leg from its ports' jurisdiction membership.
 
@@ -46,7 +54,6 @@ def leg_jurisdiction_fraction(port_i, port_e, jurisdiction, intra_fraction, inte
     float
         The fraction of the leg covered by the regulation.
     """
-
     if (port_i in jurisdiction) and (port_e in jurisdiction):
         return intra_fraction
 
@@ -56,7 +63,9 @@ def leg_jurisdiction_fraction(port_i, port_e, jurisdiction, intra_fraction, inte
     return extra_fraction
 
 
-def _calculate_attribute_in_policy_jurisdiction(regulation, vessel, times, attribute_sea):
+def _calculate_attribute_in_policy_jurisdiction(
+    regulation, vessel, times, attribute_sea
+):
     """
 
     Parameters
@@ -75,7 +84,6 @@ def _calculate_attribute_in_policy_jurisdiction(regulation, vessel, times, attri
     np.ndarray
         Energy used within the regulation jurisdiction.
     """
-
     jurisdiction = [port.name for port in regulation.jurisdiction]
 
     intra = regulation.intra_fraction.get(times)
@@ -89,18 +97,20 @@ def _calculate_attribute_in_policy_jurisdiction(regulation, vessel, times, attri
     leg_idx = route.get_leg_indices()
 
     if route.route_type != RouteTypeID.ROUND_TRIP:
-
         # calculate the energy per leg
         attribute_sea = np.add.reduce(attribute_sea)
         voyage_distribution = route.get_voyage_distribution()
-        attribute_sea = [attribute_sea * fraction for fraction in voyage_distribution.values()]
+        attribute_sea = [
+            attribute_sea * fraction for fraction in voyage_distribution.values()
+        ]
 
-    attribute = 0.
+    attribute = 0.0
 
     # sum attribute at sea
     for leg, (pi, pe) in enumerate(leg_idx):
-
-        fraction = leg_jurisdiction_fraction(ports[pi], ports[pe], jurisdiction, intra, inter, extra)
+        fraction = leg_jurisdiction_fraction(
+            ports[pi], ports[pe], jurisdiction, intra, inter, extra
+        )
         attribute += fraction * attribute_sea[leg]
 
     return attribute
@@ -122,11 +132,9 @@ def policies_affecting_port(port, policies):
     list[Regulation | Levy]
         List of policies affecting the port.
     """
-
     affected = []
 
     for policy in policies.values():
-
         if not policy.is_active():
             continue
 

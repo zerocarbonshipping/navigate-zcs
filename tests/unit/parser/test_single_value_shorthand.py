@@ -1,12 +1,15 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Single-value shorthand for list-typed node-reference attributes.
+"""
+Single-value shorthand for list-typed node-reference attributes.
 
 Verifies that setters wrapping their argument with ``as_list`` accept both
 ``Foo("name")`` and ``[Foo("name")]``, and that a bare ``WildcardNodeReference``
 is wrapped into a list so the parser's wildcard-expansion pass picks it up.
 """
+
+from __future__ import annotations
 
 import pytest
 
@@ -21,14 +24,29 @@ from navigate.parser.parser import Parser
 
 
 class TestSingleValueShorthand:
-
-    @pytest.mark.parametrize("node_type, make_node, setter, attribute", [
-        (PORT, lambda: Route("r"), "set_ports", "ports"),
-        (PORT, lambda: _Policy("p", REGULATION), "set_jurisdiction", "jurisdiction"),
-        (VESSEL, lambda: Fleet("f"), "set_vessels", "assets"),
-        (TECHNOLOGY, lambda: Fleet("f"), "set_technologies", "technologies"),
-    ], ids=["route_ports", "policy_jurisdiction", "fleet_vessels", "fleet_technologies"])
-    def test_setter_accepts_single_reference(self, node_type, make_node, setter, attribute):
+    @pytest.mark.parametrize(
+        "node_type, make_node, setter, attribute",
+        [
+            (PORT, lambda: Route("r"), "set_ports", "ports"),
+            (
+                PORT,
+                lambda: _Policy("p", REGULATION),
+                "set_jurisdiction",
+                "jurisdiction",
+            ),
+            (VESSEL, lambda: Fleet("f"), "set_vessels", "assets"),
+            (TECHNOLOGY, lambda: Fleet("f"), "set_technologies", "technologies"),
+        ],
+        ids=[
+            "route_ports",
+            "policy_jurisdiction",
+            "fleet_vessels",
+            "fleet_technologies",
+        ],
+    )
+    def test_setter_accepts_single_reference(
+        self, node_type, make_node, setter, attribute
+    ):
         ref = NodeReference(node_type, "name_a")
         node_single = make_node()
         node_list = make_node()

@@ -33,12 +33,13 @@ def _get_effective_lhv(converter: Converter, fuel: Fuel) -> float:
     float
         Effective lower heating value (GJ/ton fuel-in).
     """
-
     slip = converter.slip_fraction[fuel.fuel_type].get()
-    return (1. - slip) * fuel.lower_heating_value.get()
+    return (1.0 - slip) * fuel.lower_heating_value.get()
 
 
-def _calculate_emission_factor_ttw(converter: Converter, fuel: Fuel, emission: Emission) -> float:
+def _calculate_emission_factor_ttw(
+    converter: Converter, fuel: Fuel, emission: Emission
+) -> float:
     """
     Calculate the TTW emission factor for an emission from consuming a fuel in a specific converter.
     Should be multiplied by the amount of spent fuel in that converter.
@@ -62,17 +63,16 @@ def _calculate_emission_factor_ttw(converter: Converter, fuel: Fuel, emission: E
     float
         TTW emission factor (ton emission / ton fuel-in).
     """
-
     emission_name = emission.name
     fuel_type = fuel.fuel_type
 
     if fuel_type not in converter.get_fuel_types():
-        return 0.
+        return 0.0
 
     slip = converter.slip_fraction[fuel_type].get()
 
     # fuel-bound TTW emissions scale with burned fraction
-    emission_factor = (1. - slip) * fuel.ttw[emission_name].get()
+    emission_factor = (1.0 - slip) * fuel.ttw[emission_name].get()
 
     # consumption emissions per ton fuel-in, no slip scaling
     emission_factor += converter.consumption_ttw[(fuel_type, emission_name)].get()
@@ -97,7 +97,6 @@ def calculate_effective_lhv(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     vessel
         Vessel for which effective LHV values are computed.
     """
-
     v = vessel.name
 
     for c, converter in get_converters(vessel).items():
@@ -116,13 +115,14 @@ def calculate_emission_factors(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     vessel
         The vessel object for which emission factors are to be updated.
     """
-
     v = vessel.name
 
     for c, converter in get_converters(vessel).items():
         for f, fuel in alg.fuels_per_converter[(v, c)].items():
             for e, emission in alg.emissions.items():
-                alg.emission_factor[(v, c, f, e)] = _calculate_emission_factor_ttw(converter, fuel, emission)
+                alg.emission_factor[(v, c, f, e)] = _calculate_emission_factor_ttw(
+                    converter, fuel, emission
+                )
 
 
 def calculate_policy_coefficients(alg: BunkerAlgorithm, vessel: Vessel) -> None:
@@ -136,7 +136,6 @@ def calculate_policy_coefficients(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     vessel
         Vessel for which coefficients are calculated.
     """
-
     calculate_regulation_coefficients(alg, vessel)
     calculate_levy_coefficients(alg, vessel)
 
@@ -152,7 +151,6 @@ def calculate_regulation_coefficients(alg: BunkerAlgorithm, vessel: Vessel) -> N
     vessel
         Vessel for which coefficients are calculated.
     """
-
     v = vessel.name
 
     active_regulations = alg.active_regulations
@@ -163,24 +161,36 @@ def calculate_regulation_coefficients(alg: BunkerAlgorithm, vessel: Vessel) -> N
 
     # evaluate the vessel thresholds once per build; non-policed vessels carry
     # a threshold of zero (their emission terms never enter a constraint)
-    thresholds = {(r, v): (regulation.vessel_threshold[v].get(alg.time)
-                           if regulation.vessel_is_policed(v) else 0.)
-                  for r, regulation in active_regulations.items()}
+    thresholds = {
+        (r, v): (
+            regulation.vessel_threshold[v].get(alg.time)
+            if regulation.vessel_is_policed(v)
+            else 0.0
+        )
+        for r, regulation in active_regulations.items()
+    }
     alg.regulation_vessel_threshold.update(thresholds)
 
-    factors = {(v, c, f, r): (regulation.expectation.get_expected_coefficient((v, c, f), idx)
-                              if is_expected else
-                              regulation.expectation.get_existing_coefficient((v, c, f), idx))
-               for c in get_converters(vessel)
-               for f in fuels_per_converter[v, c]
-               for r, regulation in active_regulations.items()}
+    factors = {
+        (v, c, f, r): (
+            regulation.expectation.get_expected_coefficient((v, c, f), idx)
+            if is_expected
+            else regulation.expectation.get_existing_coefficient((v, c, f), idx)
+        )
+        for c in get_converters(vessel)
+        for f in fuels_per_converter[v, c]
+        for r, regulation in active_regulations.items()
+    }
 
-    coefficients = {(v, c, f, r):
-                    factor
-                    - (thresholds[(r, v)] / TON_TO_KG * effective_lhv[(v, c, f)]
-                       if active_regulations[r].measure == RegulationMeasureID.INTENSITY
-                       else 0.)
-                    for (v, c, f, r), factor in factors.items()}
+    coefficients = {
+        (v, c, f, r): factor
+        - (
+            thresholds[(r, v)] / TON_TO_KG * effective_lhv[(v, c, f)]
+            if active_regulations[r].measure == RegulationMeasureID.INTENSITY
+            else 0.0
+        )
+        for (v, c, f, r), factor in factors.items()
+    }
 
     alg.regulation_emission_factor.update(factors)
     alg.regulation_spend_coefficient.update(coefficients)
@@ -190,19 +200,21 @@ def calculate_regulation_coefficients(alg: BunkerAlgorithm, vessel: Vessel) -> N
     ports = route.ports
 
     for p, port in enumerate(ports):
-
         if (v, p) not in alg.shore_power:
             continue
 
         port_expectation = port.expectation
 
         for r, regulation in active_regulations.items():
-
-            shore_power_emission_factor = 0.
+            shore_power_emission_factor = 0.0
             for emission in regulation.emissions:
                 emission_name = emission.name
-                emission_factor = port_expectation.get_shore_power_emission_factor(emission_name, idx)
-                emission_factor *= regulation.expectation.get_global_warming_potential(emission_name)
+                emission_factor = port_expectation.get_shore_power_emission_factor(
+                    emission_name, idx
+                )
+                emission_factor *= regulation.expectation.get_global_warming_potential(
+                    emission_name
+                )
 
                 shore_power_emission_factor += emission_factor
 
@@ -210,9 +222,12 @@ def calculate_regulation_coefficients(alg: BunkerAlgorithm, vessel: Vessel) -> N
             shore_power_coefficient = shore_power_emission_factor - (
                 thresholds[(r, v)] / TON_TO_KG * 1.0
                 if regulation.measure == RegulationMeasureID.INTENSITY
-                else 0.)
+                else 0.0
+            )
 
-            alg.shore_power_regulation_emission_factor[(v, p, r)] = shore_power_emission_factor
+            alg.shore_power_regulation_emission_factor[(v, p, r)] = (
+                shore_power_emission_factor
+            )
             alg.shore_power_regulation_coefficient[(v, p, r)] = shore_power_coefficient
 
 
@@ -227,7 +242,6 @@ def calculate_levy_coefficients(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     vessel
         Vessel for which coefficients are calculated.
     """
-
     v = vessel.name
     ports = vessel.route.ports
     port_levies = alg.port_levies
@@ -235,17 +249,18 @@ def calculate_levy_coefficients(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     idx = alg.idx
     usable_fuels = vessel.usable_fuels
 
-    alg.cost_levy.update({(v, port.name, f, levy.name):
-
-                          levy.expectation.get_level(idx)
-
-                          * (levy.expectation.get_expected_coefficient((v, port.name, f), idx)
-                             if is_expected else
-                             levy.expectation.get_existing_coefficient((v, port.name, f), idx))
-
-                          for port in ports
-                          for levy in port_levies[port.name]
-                          for f in usable_fuels
-
-                          if port.is_bunkering_allowed(f)
-                          if levy.is_active() and levy.vessel_is_policed(v)})
+    alg.cost_levy.update(
+        {
+            (v, port.name, f, levy.name): levy.expectation.get_level(idx)
+            * (
+                levy.expectation.get_expected_coefficient((v, port.name, f), idx)
+                if is_expected
+                else levy.expectation.get_existing_coefficient((v, port.name, f), idx)
+            )
+            for port in ports
+            for levy in port_levies[port.name]
+            for f in usable_fuels
+            if port.is_bunkering_allowed(f)
+            if levy.is_active() and levy.vessel_is_policed(v)
+        }
+    )

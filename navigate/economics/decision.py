@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 import logging
 
 import numpy as np
@@ -15,7 +17,7 @@ logger = logging.getLogger(__name__)
 # reference value. The DSL exposes only the odds ratio; beta is derived from it here.
 _REFERENCE_INCREASE = 0.10
 _REFERENCE_ADVANTAGE = 0.05
-_LOG_REFERENCE_INCREASE = np.log(1. + _REFERENCE_INCREASE)
+_LOG_REFERENCE_INCREASE = np.log(1.0 + _REFERENCE_INCREASE)
 
 
 def calculate_asset_shares(
@@ -48,7 +50,6 @@ def calculate_asset_shares(
     -------
     Asset investment shares and a potential warning message.
     """
-
     beta = _beta_from_odds(odds, utility)
 
     if utility == UtilityID.LOWER_LOG_RATIO:
@@ -61,7 +62,7 @@ def calculate_asset_shares(
     if limits is not None:
         shares, limit_msg = _apply_limits(shares, limits)
         if limit_msg:
-            msg = '{}; {}'.format(msg, limit_msg) if msg else limit_msg
+            msg = f"{msg}; {limit_msg}" if msg else limit_msg
 
     return shares, msg
 
@@ -85,7 +86,6 @@ def _beta_from_odds(odds: float, utility: UtilityID) -> float:
     -------
     Sensitivity coefficient beta.
     """
-
     if utility == UtilityID.LOWER_LOG_RATIO:
         return -np.log(odds) / _LOG_REFERENCE_INCREASE
 
@@ -110,13 +110,14 @@ def softmax(utilities: np.ndarray) -> np.ndarray:
     -------
     Probability of choice per alternative.
     """
-
     utilities = np.asarray(utilities, dtype=np.float64)
     exp = np.exp(utilities - np.max(utilities))
     return exp / np.sum(exp)
 
 
-def _shares_lower_log_ratio(values: list | np.ndarray, beta: float) -> tuple[np.ndarray, str]:
+def _shares_lower_log_ratio(
+    values: list | np.ndarray, beta: float
+) -> tuple[np.ndarray, str]:
     """
     Shares for a lower-is-better metric via V_i = -beta * log(value_i / min_j value_j).
 
@@ -134,19 +135,22 @@ def _shares_lower_log_ratio(values: list | np.ndarray, beta: float) -> tuple[np.
     -------
     Shares per alternative and a potential warning message.
     """
-
     values = np.asarray(values, dtype=np.float64)
 
-    if np.any(values <= 0.):
-        msg = ("contains a non-positive value; the lower-is-better log-ratio utility is undefined, "
-               "so shares were split uniformly among the alternatives at the minimum value")
+    if np.any(values <= 0.0):
+        msg = (
+            "contains a non-positive value; the lower-is-better log-ratio utility is undefined, "
+            "so shares were split uniformly among the alternatives at the minimum value"
+        )
         return _uniform_at_min(values), msg
 
     utilities = -beta * np.log(values / np.min(values))
-    return softmax(utilities), ''
+    return softmax(utilities), ""
 
 
-def _shares_higher_log_ratio(values: list | np.ndarray, beta: float) -> tuple[np.ndarray, str]:
+def _shares_higher_log_ratio(
+    values: list | np.ndarray, beta: float
+) -> tuple[np.ndarray, str]:
     """
     Shares for a higher-is-better metric via V_i = beta * log(value_i / max_j value_j).
 
@@ -165,21 +169,22 @@ def _shares_higher_log_ratio(values: list | np.ndarray, beta: float) -> tuple[np
     -------
     Shares per alternative and a potential warning message.
     """
-
     values = np.asarray(values, dtype=np.float64)
     shares = np.zeros_like(values)
 
-    positive = values > 0.
+    positive = values > 0.0
     if not np.any(positive):
-        return shares, ''
+        return shares, ""
 
-    shares[positive] = softmax(beta * np.log(values[positive] / np.max(values[positive])))
-    return shares, ''
+    shares[positive] = softmax(
+        beta * np.log(values[positive] / np.max(values[positive]))
+    )
+    return shares, ""
 
 
-def _shares_signed_reference(values: list | np.ndarray,
-                             beta: float,
-                             reference: float | None) -> tuple[np.ndarray, str]:
+def _shares_signed_reference(
+    values: list | np.ndarray, beta: float, reference: float | None
+) -> tuple[np.ndarray, str]:
     """
     Shares for a signed metric scaled by a reference value via V_i = beta * value_i / reference.
 
@@ -199,14 +204,13 @@ def _shares_signed_reference(values: list | np.ndarray,
     -------
     Shares per alternative and a potential warning message.
     """
-
     values = np.asarray(values, dtype=np.float64)
 
-    if (reference is None) or (reference <= 0.):
+    if (reference is None) or (reference <= 0.0):
         msg = "has a non-positive reference value; shares were split uniformly"
         return np.ones_like(values) / values.size, msg
 
-    return softmax(beta * values / reference), ''
+    return softmax(beta * values / reference), ""
 
 
 def _uniform_at_min(values: np.ndarray) -> np.ndarray:
@@ -222,16 +226,17 @@ def _uniform_at_min(values: np.ndarray) -> np.ndarray:
     -------
     Shares per alternative.
     """
-
     shares = np.zeros_like(values)
 
     at_min = values == np.min(values)
-    shares[at_min] = 1. / np.count_nonzero(at_min)
+    shares[at_min] = 1.0 / np.count_nonzero(at_min)
 
     return shares
 
 
-def _apply_limits(shares: np.ndarray, limits: list | np.ndarray) -> tuple[np.ndarray, str]:
+def _apply_limits(
+    shares: np.ndarray, limits: list | np.ndarray
+) -> tuple[np.ndarray, str]:
     """
     Enforce per-option upper bounds on a share vector, rescaling any surplus proportionally.
 
@@ -246,21 +251,23 @@ def _apply_limits(shares: np.ndarray, limits: list | np.ndarray) -> tuple[np.nda
     -------
     Constrained shares and a warning message (empty when no warning).
     """
-
     limits = np.asarray(limits, dtype=np.float64)
     if limits.shape != shares.shape:
-        raise ValueError("'limits' length ({}) must match 'values' length ({})"
-                         .format(limits.size, shares.size))
+        raise ValueError(
+            f"'limits' length ({limits.size}) must match 'values' length ({shares.size})"
+        )
 
-    limits = np.clip(limits, 0., 1.)
+    limits = np.clip(limits, 0.0, 1.0)
 
-    msg = ''
+    msg = ""
 
     # infeasible: even saturating every option cannot reach a unit total.
     total_limit = float(np.sum(limits))
-    if total_limit < 1. - 1e-12:
-        msg = ("sum of limits ({:.4f}) is below 1; allocation is infeasible "
-               "and every option has been saturated to its limit".format(total_limit))
+    if total_limit < 1.0 - 1e-12:
+        msg = (
+            f"sum of limits ({total_limit:.4f}) is below 1; allocation is infeasible "
+            "and every option has been saturated to its limit"
+        )
         return limits.copy(), msg
 
     # no effective constraint.
@@ -289,7 +296,6 @@ def _redistribute_proportional(shares: np.ndarray, limits: np.ndarray) -> np.nda
     -------
     Constrained shares.
     """
-
     shares = np.array(shares, dtype=np.float64, copy=True)
     saturated = np.zeros_like(shares, dtype=bool)
 
@@ -305,24 +311,26 @@ def _redistribute_proportional(shares: np.ndarray, limits: np.ndarray) -> np.nda
         free_mask = ~saturated
         s_free = float(np.sum(shares[free_mask]))
 
-        if s_free <= 0.:
+        if s_free <= 0.0:
             break
 
-        factor = (1. - s_clip) / s_free
+        factor = (1.0 - s_clip) / s_free
         shares[free_mask] *= factor
 
     return shares
 
 
-def calculate_two_axis_uptake(group_keys: list,
-                              metrics_intra: list,
-                              metrics_inter: list,
-                              intra_utility: UtilityID,
-                              inter_utility: UtilityID,
-                              intra_odds: float,
-                              inter_odds: float,
-                              limits: list | np.ndarray | None = None,
-                              context: str = "") -> np.ndarray:
+def calculate_two_axis_uptake(
+    group_keys: list,
+    metrics_intra: list,
+    metrics_inter: list,
+    intra_utility: UtilityID,
+    inter_utility: UtilityID,
+    intra_odds: float,
+    inter_odds: float,
+    limits: list | np.ndarray | None = None,
+    context: str = "",
+) -> np.ndarray:
     """
     Calculate uptake shares using a two-axis discrete choice model.
 
@@ -360,7 +368,6 @@ def calculate_two_axis_uptake(group_keys: list,
     -------
     Uptake share per asset.
     """
-
     group_map = define_index_map(group_keys)
     unique_groups = list(group_map.keys())
     metrics_inter_arr = np.asarray(metrics_inter, dtype=np.float64)
@@ -370,22 +377,23 @@ def calculate_two_axis_uptake(group_keys: list,
     group_limits: list | None = [] if limits is not None else None
 
     for group in unique_groups:
-
         indices = group_map[group]
         metrics_1st = [metrics_intra[i] for i in indices]
 
         intra_limits = None
         if limits is not None:
-            group_cap = min(sum(limits[i] for i in indices), 1.)
-            if group_cap > 0.:
+            group_cap = min(sum(limits[i] for i in indices), 1.0)
+            if group_cap > 0.0:
                 intra_limits = [limits[i] / group_cap for i in indices]
             else:
                 # group hard-capped to zero by the inter-group limit; intra shares are
                 # irrelevant but the intra DCM still needs well-posed limits
-                intra_limits = [1. for _ in indices]
+                intra_limits = [1.0 for _ in indices]
             group_limits.append(group_cap)
 
-        shares, msg = calculate_asset_shares(metrics_1st, intra_utility, intra_odds, limits=intra_limits)
+        shares, msg = calculate_asset_shares(
+            metrics_1st, intra_utility, intra_odds, limits=intra_limits
+        )
 
         if msg:
             logger.warning("%s: intra-group '%s' %s", context, group, msg)
@@ -395,7 +403,9 @@ def calculate_two_axis_uptake(group_keys: list,
 
         metrics_2nd.append(np.dot(metrics_inter_arr[indices], shares))
 
-    group_shares, msg = calculate_asset_shares(metrics_2nd, inter_utility, inter_odds, limits=group_limits)
+    group_shares, msg = calculate_asset_shares(
+        metrics_2nd, inter_utility, inter_odds, limits=group_limits
+    )
 
     if msg:
         logger.warning("%s: inter-group %s", context, msg)

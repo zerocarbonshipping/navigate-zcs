@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 import numpy as np
 
 from navigate.core.nodes.converter import Converter
@@ -17,9 +19,9 @@ from navigate.economics.flows import (
 from navigate.economics.metric import calculate_net_present_value
 
 
-def calculate_vessel_charter_properties(vessel: Vessel,
-                                        timeline: np.ndarray,
-                                        idx: int) -> None:
+def calculate_vessel_charter_properties(
+    vessel: Vessel, timeline: np.ndarray, idx: int
+) -> None:
     """
     Calculates all properties related to the vessel asset charter at a given time-step.
 
@@ -38,14 +40,13 @@ def calculate_vessel_charter_properties(vessel: Vessel,
     idx
         Current time-step index in the simulation timeline.
     """
-
     time = timeline[idx]
 
     # initialize the component on
     # which cost flow is stored
-    component = _initialize_vessel_component(vessel=vessel,
-                                             machinery=None,
-                                             time_initial=time)
+    component = _initialize_vessel_component(
+        vessel=vessel, machinery=None, time_initial=time
+    )
 
     # calculate cost of the asset, including
     # base costs and all fixed equipment
@@ -60,9 +61,9 @@ def calculate_vessel_charter_properties(vessel: Vessel,
     _calculate_vessel_unit_properties(vessel, component, idx)
 
 
-def calculate_cargo_charter_properties(vessel: Vessel,
-                                       timeline: np.ndarray,
-                                       idx: int) -> None:
+def calculate_cargo_charter_properties(
+    vessel: Vessel, timeline: np.ndarray, idx: int
+) -> None:
     """
     Calculates cargo-owner-facing charter properties at a given time-step.
 
@@ -79,14 +80,13 @@ def calculate_cargo_charter_properties(vessel: Vessel,
     idx
         Current time-step index in the simulation timeline.
     """
-
     time = timeline[idx]
 
     # initialize the component on
     # which cost flow is stored
-    component = _initialize_vessel_component(vessel=vessel,
-                                             machinery=None,
-                                             time_initial=time)
+    component = _initialize_vessel_component(
+        vessel=vessel, machinery=None, time_initial=time
+    )
 
     # calculate the cost related to fuel
     # consumption, including bunker cost
@@ -99,9 +99,9 @@ def calculate_cargo_charter_properties(vessel: Vessel,
     _calculate_cargo_unit_properties(vessel, component, timeline, idx)
 
 
-def _calculate_vessel_unit_properties(vessel: Vessel,
-                                      component: Component,
-                                      idx: int) -> None:
+def _calculate_vessel_unit_properties(
+    vessel: Vessel, component: Component, idx: int
+) -> None:
     """
     Aggregates vessel asset cost flows into owner-facing charter metrics for a given time-step.
 
@@ -118,7 +118,6 @@ def _calculate_vessel_unit_properties(vessel: Vessel,
     idx
         Current time-step index in the simulation timeline.
     """
-
     # extract vessel investment properties
     time_initial = component.time_initial
     discount_rate = vessel.cost_of_capital.get(time_initial)
@@ -154,10 +153,9 @@ def _calculate_vessel_unit_properties(vessel: Vessel,
     vessel.profile.set_asset_charter_rate(idx, asset_charter_rate)
 
 
-def _calculate_cargo_unit_properties(vessel: Vessel,
-                                     component: Component,
-                                     timeline: np.ndarray,
-                                     idx: int) -> None:
+def _calculate_cargo_unit_properties(
+    vessel: Vessel, component: Component, timeline: np.ndarray, idx: int
+) -> None:
     """
     Aggregates fuel-related cost flows into operator- and cargo-owner-facing unit metrics for a given time-step.
 
@@ -178,7 +176,6 @@ def _calculate_cargo_unit_properties(vessel: Vessel,
     idx
         Current time-step index in the simulation timeline.
     """
-
     # extract vessel investment properties
     time_initial = component.time_initial
     discount_rate = vessel.cost_of_capital.get(time_initial)
@@ -213,9 +210,9 @@ def _calculate_cargo_unit_properties(vessel: Vessel,
     # calculate the cargo-delivery flow of the vessel
     cargo_miles = vessel.expectation.get_cargo_miles()
 
-    cargo_flow = build_cargo_flow(component=component,
-                                  cargo=cargo_miles,
-                                  timeline=timeline)
+    cargo_flow = build_cargo_flow(
+        component=component, cargo=cargo_miles, timeline=timeline
+    )
 
     cargo_npv = calculate_net_present_value(cargo_flow, discount_rate)
 
@@ -230,9 +227,11 @@ def _calculate_cargo_unit_properties(vessel: Vessel,
     vessel.profile.set_investment_freight_rate(idx, freight_rate)
 
 
-def _initialize_vessel_component(vessel: Vessel,
-                                 machinery: Converter | PowerSystem | Tank | None,
-                                 time_initial: float) -> Component:
+def _initialize_vessel_component(
+    vessel: Vessel,
+    machinery: Converter | PowerSystem | Tank | None,
+    time_initial: float,
+) -> Component:
     """
     Creates and initializes the aggregation `Component` for a given vessel at a specific start time.
 
@@ -254,7 +253,6 @@ def _initialize_vessel_component(vessel: Vessel,
     Component
         An initialized component ready to receive cost flows.
     """
-
     component = Component()
 
     # initialize containers
@@ -282,7 +280,6 @@ def _calculate_base_cost(vessel: Vessel, component: Component) -> None:
     component
         The root component that accumulates vessel cost flows.
     """
-
     capex = lambda time: vessel.capex.get(time)
     opex = lambda time: vessel.opex.get(time)
 
@@ -304,11 +301,10 @@ def _calculate_power_system_cost(vessel: Vessel, component: Component) -> None:
     component
         The root component that accumulates vessel cost flows.
     """
-
     power_system = vessel.power_system
-    subcomponent = _initialize_vessel_component(vessel=vessel,
-                                                machinery=power_system,
-                                                time_initial=component.time_initial)
+    subcomponent = _initialize_vessel_component(
+        vessel=vessel, machinery=power_system, time_initial=component.time_initial
+    )
 
     capex = lambda time: power_system.capex.get(time)
     opex = lambda time: power_system.opex.get(time)
@@ -332,11 +328,10 @@ def _calculate_converter_cost(vessel: Vessel, component: Component) -> None:
     component
         The root component that accumulates vessel cost flows.
     """
-
     for converter in vessel.power_system.get_converters():
-        subcomponent = _initialize_vessel_component(vessel=vessel,
-                                                    machinery=converter,
-                                                    time_initial=component.time_initial)
+        subcomponent = _initialize_vessel_component(
+            vessel=vessel, machinery=converter, time_initial=component.time_initial
+        )
 
         power = converter.power_capacity.get()
         capex = lambda time: converter.capex.get(time) * power
@@ -361,11 +356,10 @@ def _calculate_tank_cost(vessel: Vessel, component: Component) -> None:
     component
         The root component that accumulates vessel cost flows.
     """
-
     for tank in vessel.tanks:
-        subcomponent = _initialize_vessel_component(vessel=vessel,
-                                                    machinery=tank,
-                                                    time_initial=component.time_initial)
+        subcomponent = _initialize_vessel_component(
+            vessel=vessel, machinery=tank, time_initial=component.time_initial
+        )
 
         size = tank.size.get()
         capex = lambda time: tank.capex.get(time) * size
@@ -376,10 +370,9 @@ def _calculate_tank_cost(vessel: Vessel, component: Component) -> None:
         component.add_component(subcomponent)
 
 
-def _calculate_fuel_cost(vessel: Vessel,
-                         component: Component,
-                         timeline: np.ndarray,
-                         idx: int) -> None:
+def _calculate_fuel_cost(
+    vessel: Vessel, component: Component, timeline: np.ndarray, idx: int
+) -> None:
     """
     Adds fuel-related costs as variable OPEX into the component's cost flow for a given time-step.
 
@@ -398,11 +391,10 @@ def _calculate_fuel_cost(vessel: Vessel,
     idx
         Current time-step index in the simulation timeline.
     """
-
     _idx = np.s_[idx:]
     expenses = vessel.expectation.get_total_fuel_expenses(_idx)
 
-    metric = lambda time: 1.
+    metric = lambda time: 1.0
     cost = lambda time: np.interp(time, timeline[idx:], expenses)
 
     add_variable_opex(component=component, metric=metric, cost=cost)

@@ -25,7 +25,6 @@ def update_vessel_variables(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     vessel
         Vessel for which variables are updated.
     """
-
     v = vessel.name
     route = vessel.route
     ports = route.ports
@@ -46,7 +45,9 @@ def update_vessel_variables(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     for c in converters:
         for f in fuels_per_converter[v, c]:
             for port_start, port_end in leg_idx:
-                add_variable(alg, alg.spend_sea, (v, c, f, port_start, port_end), "spend_sea")
+                add_variable(
+                    alg, alg.spend_sea, (v, c, f, port_start, port_end), "spend_sea"
+                )
 
     # add spend in port variables (only for converters with port energy demand)
     for c in port_converters:
@@ -63,12 +64,13 @@ def update_vessel_variables(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     # add shore power variables
     vessel_capacity = vessel.expectation.get_shore_power_capacity(alg.idx)
 
-    if vessel_capacity > 0.:
+    if vessel_capacity > 0.0:
         for p, port in enumerate(ports):
+            connection_share = port.expectation.get_shore_power_connection_share(
+                alg.idx
+            )
 
-            connection_share = port.expectation.get_shore_power_connection_share(alg.idx)
-
-            if connection_share > 0.:
+            if connection_share > 0.0:
                 add_variable(alg, alg.shore_power, (v, p), "shore_power")
 
 
@@ -81,9 +83,12 @@ def update_regulation_variables(alg: BunkerAlgorithm) -> None:
     alg
         The algorithm instance.
     """
-
     for key in alg.regulation_rhs_individual:
-        add_variable(alg, alg.remedial_factor_individual, key, "remedial_factor_individual")
+        add_variable(
+            alg, alg.remedial_factor_individual, key, "remedial_factor_individual"
+        )
 
     for key in alg.regulation_total_rhs_flexibility:
-        add_variable(alg, alg.remedial_factor_flexibility, key, "remedial_factor_flexibility")
+        add_variable(
+            alg, alg.remedial_factor_flexibility, key, "remedial_factor_flexibility"
+        )

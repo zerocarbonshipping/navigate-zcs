@@ -24,9 +24,7 @@ def transfer_regulation_flexibility(alg: BunkerAlgorithm, properties: dict) -> N
     properties
         Pre-computed regulation emission properties.
     """
-
     for r, remedial_factor in alg.remedial_factor_flexibility.items():
-
         regulation = alg.regulations[r]
 
         # calculate the remedial units and expenses
@@ -41,7 +39,6 @@ def transfer_regulation_flexibility(alg: BunkerAlgorithm, properties: dict) -> N
         surplus_factor = {}
         surplus_units = {}
         for v in alg.vessels:
-
             if not regulation.vessel_is_policed(v):
                 continue
 
@@ -49,15 +46,19 @@ def transfer_regulation_flexibility(alg: BunkerAlgorithm, properties: dict) -> N
             vessel_emissions, vessel_measure, vessel_rhs = properties[(r, v)]
 
             # calculate the units associated with the factors
-            non_compliance_units[v] = max(vessel_emissions - vessel_rhs, 0.)
-            surplus_units[v] = max(vessel_rhs - vessel_emissions, 0.)
+            non_compliance_units[v] = max(vessel_emissions - vessel_rhs, 0.0)
+            surplus_units[v] = max(vessel_rhs - vessel_emissions, 0.0)
 
             # calculate the non-compliance and surplus factors
             non_compliance_factor[v] = non_compliance_units[v] / vessel_measure
             surplus_factor[v] = surplus_units[v] / vessel_measure
 
-        total_non_compliance_units = sum(unit * alg.multipliers[v] for v, unit in non_compliance_units.items())
-        total_surplus_units = sum(unit * alg.multipliers[v] for v, unit in surplus_units.items())
+        total_non_compliance_units = sum(
+            unit * alg.multipliers[v] for v, unit in non_compliance_units.items()
+        )
+        total_surplus_units = sum(
+            unit * alg.multipliers[v] for v, unit in surplus_units.items()
+        )
 
         # the flexibility units is the difference between
         # the non-compliance units and the remedial units
@@ -68,16 +69,20 @@ def transfer_regulation_flexibility(alg: BunkerAlgorithm, properties: dict) -> N
         # units rather than surplus unit. Clamping at zero
         # to avoid issues with numerical instability for
         # low multiplier vessels (jump-start fraciton)
-        remedial_scaling = min(1., divide_nonzero(total_remedial_units, total_non_compliance_units, default=1.))
+        remedial_scaling = min(
+            1.0,
+            divide_nonzero(
+                total_remedial_units, total_non_compliance_units, default=1.0
+            ),
+        )
 
         # the flexibility units are distributed by equal
         # fraction to all vessels with non-compliance
         remedial_units = {}
         flexibility_units = {}
         for v in non_compliance_factor:
-
             remedial_units[v] = non_compliance_units[v] * remedial_scaling
-            flexibility_units[v] = non_compliance_units[v] * (1. - remedial_scaling)
+            flexibility_units[v] = non_compliance_units[v] * (1.0 - remedial_scaling)
 
         # the flexibility units and surplus units may be at a disequilibrium
         # if the surplus generating fuels are so cheap (e.g., due to subsidies)
@@ -86,13 +91,17 @@ def transfer_regulation_flexibility(alg: BunkerAlgorithm, properties: dict) -> N
         # regulation target). Ensure flexibility units are non-negative which can
         # happen due to numerical instability leading to negative scaling issues
         flexibility_cost = alg.flexible_unit_cost[r]
-        if total_flexibility_units > 0. and total_surplus_units > total_flexibility_units:
-
+        if (
+            total_flexibility_units > 0.0
+            and total_surplus_units > total_flexibility_units
+        ):
             # linearly reduce the value of surplus units/cost of
             # flexible units. The linear scaling happens from the
             # threshold and down to the zero-line thus ignoring
             # the option of negative emissions.
-            scaling = divide_nonzero(total_flexibility_units, total_surplus_units, default=1.)
+            scaling = divide_nonzero(
+                total_flexibility_units, total_surplus_units, default=1.0
+            )
             flexibility_cost = flexibility_cost * scaling
 
         # calculate the total flexibility expenses and surplus revenue
@@ -100,7 +109,6 @@ def transfer_regulation_flexibility(alg: BunkerAlgorithm, properties: dict) -> N
         total_surplus_revenue = total_surplus_units * flexibility_cost
 
         if alg.scope == BunkerScopeID.EXISTING:
-
             # transfer remedial
             regulation.profile.add_remedial_units(total_remedial_units, alg.idx)
             regulation.profile.add_remedial_expenses(total_remedial_expenses, alg.idx)
@@ -108,7 +116,9 @@ def transfer_regulation_flexibility(alg: BunkerAlgorithm, properties: dict) -> N
             # transfer flexibility
             regulation.profile.set_flexibility_cost(alg.idx, flexibility_cost)
             regulation.profile.set_flexibility_units(alg.idx, total_flexibility_units)
-            regulation.profile.set_flexibility_expenses(alg.idx, total_flexibility_expenses)
+            regulation.profile.set_flexibility_expenses(
+                alg.idx, total_flexibility_expenses
+            )
 
             # transfer surplus
             regulation.profile.set_surplus_units(alg.idx, total_surplus_units)
@@ -118,13 +128,17 @@ def transfer_regulation_flexibility(alg: BunkerAlgorithm, properties: dict) -> N
             regulation.expectation.set_flexibility_cost(alg.idx, flexibility_cost)
 
         # transfer adjusted shared threshold if threshold adjustment is enabled
-        if (alg.scope == BunkerScopeID.EXISTING and regulation.allow_threshold_adjustment
-                and r in alg.adjusted_shared_thresholds):
-            regulation.profile.set_adjusted_shared_threshold(alg.idx, alg.adjusted_shared_thresholds[r])
+        if (
+            alg.scope == BunkerScopeID.EXISTING
+            and regulation.allow_threshold_adjustment
+            and r in alg.adjusted_shared_thresholds
+        ):
+            regulation.profile.set_adjusted_shared_threshold(
+                alg.idx, alg.adjusted_shared_thresholds[r]
+            )
 
         # transfer to vessels
         for v, vessel in alg.vessels.items():
-
             if not regulation.vessel_is_policed(v):
                 continue
 
@@ -132,7 +146,6 @@ def transfer_regulation_flexibility(alg: BunkerAlgorithm, properties: dict) -> N
             remedial_expenses = remedial_units[v] * remedial_cost
 
             if alg.scope == BunkerScopeID.EXISTING:
-
                 # calculate the vessel flexibility expenses and surplus revenue
                 flexibility_expenses = flexibility_units[v] * flexibility_cost
                 surplus_revenue = surplus_units[v] * flexibility_cost
@@ -143,7 +156,6 @@ def transfer_regulation_flexibility(alg: BunkerAlgorithm, properties: dict) -> N
                 vessel.profile.add_surplus_revenue(surplus_revenue, alg.idx)
 
             else:
-
                 vessel.expectation.add_policy_expenses(alg.idx, remedial_expenses)
 
                 # the expected flexibility expenses and surplus revenue are not applied
@@ -151,9 +163,16 @@ def transfer_regulation_flexibility(alg: BunkerAlgorithm, properties: dict) -> N
                 # the expenses are applied in the signal layer using the smoothed
                 # flexibility cost belief
                 net_units = flexibility_units[v] - surplus_units[v]
-                regulation.expectation.set_vessel_net_flexibility_units(alg.idx, v, net_units)
+                regulation.expectation.set_vessel_net_flexibility_units(
+                    alg.idx, v, net_units
+                )
 
             # transfer adjusted thresholds if threshold adjustment is enabled
-            if (alg.scope == BunkerScopeID.EXISTING and regulation.allow_threshold_adjustment
-                    and (r, v) in alg.adjusted_vessel_thresholds):
-                regulation.profile.set_adjusted_vessel_threshold(alg.idx, v, alg.adjusted_vessel_thresholds[(r, v)])
+            if (
+                alg.scope == BunkerScopeID.EXISTING
+                and regulation.allow_threshold_adjustment
+                and (r, v) in alg.adjusted_vessel_thresholds
+            ):
+                regulation.profile.set_adjusted_vessel_threshold(
+                    alg.idx, v, alg.adjusted_vessel_thresholds[(r, v)]
+                )

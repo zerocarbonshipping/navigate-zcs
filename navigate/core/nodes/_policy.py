@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 from navigate.core import (
     as_list,
     as_scalar,
@@ -24,26 +26,26 @@ class _Policy(Node):
 
         # external variables -------------------------------------------------------------------------------------------
         # active
-        self.active = None                 # bool, whether the regulation is active and known
+        self.active = None  # bool, whether the regulation is active and known
 
         # design
-        self.scheme = None                 # enum, ID of implementation scheme
-        self.jurisdiction = []             # list[Port], list of ports affected
+        self.scheme = None  # enum, ID of implementation scheme
+        self.jurisdiction = []  # list[Port], list of ports affected
 
         # emissions
-        self.emissions = []                        # list[Emission], specific emissions being regulated
-        self.fuels = []                            # list[Fuel], specific fuels being regulated
-        self.scope = None                          # enum, ID of emission scope
-        self.emissions_lifetime = None             # float, emissions lifetime in GWP calculations
-        self.include_slip = None                   # bool, whether to include slip in coefficients
+        self.emissions = []  # list[Emission], specific emissions being regulated
+        self.fuels = []  # list[Fuel], specific fuels being regulated
+        self.scope = None  # enum, ID of emission scope
+        self.emissions_lifetime = None  # float, emissions lifetime in GWP calculations
+        self.include_slip = None  # bool, whether to include slip in coefficients
 
         # vessels impacted by the policy
-        self.include_vessel = {}       # dict[vessel_name: bool], whether a vessel is impacted by the policy.
+        self.include_vessel = {}  # dict[vessel_name: bool], whether a vessel is impacted by the policy.
 
         # emission factors
-        self.global_warming_potential = {}     # dict[emission_name: float], policy specific GWP
-        self.fuel_wtt = {}     # dict[(fuel_name, emission_name): float], policy specified WTT emissions factor
-        self.fuel_ttw = {}     # dict[(fuel_name, emission_name): float], policy specified TTW emissions factor
+        self.global_warming_potential = {}  # dict[emission_name: float], policy specific GWP
+        self.fuel_wtt = {}  # dict[(fuel_name, emission_name): float], policy specified WTT emissions factor
+        self.fuel_ttw = {}  # dict[(fuel_name, emission_name): float], policy specified TTW emissions factor
 
         # internal variables -------------------------------------------------------------------------------------------
         self.in_jurisdiction_vessel = {}  # dict[vessel_name: bool], whether a vessel is outside the jurisdiction
@@ -61,7 +63,6 @@ class _Policy(Node):
         active : str
             Boolean flag.
         """
-
         self.active = assign_id(active, BOOL_ID)
 
     def set_jurisdiction(self, ports):
@@ -78,7 +79,6 @@ class _Policy(Node):
         ports : list[NodeReference]
             List of node references to ports.
         """
-
         self.jurisdiction = assign_list(as_list(ports), scalar=False, type_=PORT)
 
     def set_emissions(self, emissions):
@@ -96,8 +96,9 @@ class _Policy(Node):
         emissions : list[Emission]
             A list of node references to Emissions.
         """
-
-        self.emissions = assign_list(as_list(emissions), unique=True, scalar=False, type_=EMISSION)
+        self.emissions = assign_list(
+            as_list(emissions), unique=True, scalar=False, type_=EMISSION
+        )
 
     def set_fuels(self, fuels):
         """
@@ -114,7 +115,6 @@ class _Policy(Node):
         fuels : list[Emission]
             A list of node references to Fuels.
         """
-
         self.fuels = assign_list(as_list(fuels), unique=True, scalar=False, type_=FUEL)
 
     def set_scope(self, scope):
@@ -136,7 +136,6 @@ class _Policy(Node):
         scope : str
             Emission scope.
         """
-
         self.scope = assign_id(scope, PolicyScopeID)
 
     def set_include_slip(self, include_slip):
@@ -153,7 +152,6 @@ class _Policy(Node):
         include_slip : str
             Boolean flag.
         """
-
         self.include_slip = assign_id(include_slip, BOOL_ID)
 
     def set_emissions_lifetime(self, emissions_lifetime):
@@ -169,8 +167,9 @@ class _Policy(Node):
         emissions_lifetime : float | NodeReference
             Emissions lifetime used in GWP calculation.
         """
-
-        self.emissions_lifetime = assign_value(as_scalar(emissions_lifetime), type_=VARIABLE, lower=0.)
+        self.emissions_lifetime = assign_value(
+            as_scalar(emissions_lifetime), type_=VARIABLE, lower=0.0
+        )
 
     # external methods (DSL commands) ----------------------------------------------------------------------------------
     def set_include_vessel(self, vessel_name, include_vessel):
@@ -189,8 +188,9 @@ class _Policy(Node):
         include_vessel : float | NodeReference
             Whether the vessel is impacted by the policy.
         """
-
-        command_assignment_to_boolean_dict(vessel_name, include_vessel, self.include_vessel, allow_empty=True)
+        command_assignment_to_boolean_dict(
+            vessel_name, include_vessel, self.include_vessel, allow_empty=True
+        )
 
     def set_global_warming_potential(self, emission_name, global_warming_potential):
         """
@@ -210,11 +210,12 @@ class _Policy(Node):
         global_warming_potential : float | NodeReference
             Global warming potential in ton CO2eq/ton emission.
         """
-
-        command_assignment_to_dict(emission_name,
-                                   global_warming_potential,
-                                   self.global_warming_potential,
-                                   type_=(CURVE, VARIABLE))
+        command_assignment_to_dict(
+            emission_name,
+            global_warming_potential,
+            self.global_warming_potential,
+            type_=(CURVE, VARIABLE),
+        )
 
     def set_fuel_wtt(self, fuel_name, emission_name, emission_factor):
         """
@@ -236,11 +237,12 @@ class _Policy(Node):
         emission_factor : float | NodeReference
             WTT emission factor in ton emission/ton fuel.
         """
-
-        command_assignment_to_tuple_dict((fuel_name, emission_name),
-                                         emission_factor,
-                                         self.fuel_wtt,
-                                         type_=(FORECAST, VARIABLE))
+        command_assignment_to_tuple_dict(
+            (fuel_name, emission_name),
+            emission_factor,
+            self.fuel_wtt,
+            type_=(FORECAST, VARIABLE),
+        )
 
     def set_fuel_ttw(self, fuel_name, emission_name, emission_factor):
         """
@@ -262,23 +264,24 @@ class _Policy(Node):
         emission_factor : float | NodeReference
             TTW emission factor in ton emission/ton fuel.
         """
-
-        command_assignment_to_tuple_dict((fuel_name, emission_name),
-                                         emission_factor,
-                                         self.fuel_ttw,
-                                         type_=(FORECAST, VARIABLE))
+        command_assignment_to_tuple_dict(
+            (fuel_name, emission_name),
+            emission_factor,
+            self.fuel_ttw,
+            type_=(FORECAST, VARIABLE),
+        )
 
     # internal methods -------------------------------------------------------------------------------------------------
     def _initialize_policy(self):
 
         if not self.jurisdiction:
-            no_value_assigned_error(self, 'Jurisdiction')
+            no_value_assigned_error(self, "Jurisdiction")
 
         if not self.emissions:
-            no_value_assigned_error(self, 'Emissions')
+            no_value_assigned_error(self, "Emissions")
 
         if not self.fuels:
-            no_value_assigned_error(self, 'Fuels')
+            no_value_assigned_error(self, "Fuels")
 
         if self.active is None:
             self.active = True
@@ -314,19 +317,27 @@ class _Policy(Node):
         # derived from the current routes and jurisdiction, so recomputed unconditionally every pass
         jurisdiction = set(self.jurisdiction)
         for vessel_name, vessel in vessels.items():
-            self.in_jurisdiction_vessel[vessel_name] = not jurisdiction.isdisjoint(vessel.route.ports)
+            self.in_jurisdiction_vessel[vessel_name] = not jurisdiction.isdisjoint(
+                vessel.route.ports
+            )
 
-    def _calculate_policy_expectations(self, expectation, emissions, emissions_lifetime):
+    def _calculate_policy_expectations(
+        self, expectation, emissions, emissions_lifetime
+    ):
 
         if self.emissions_lifetime is not None:
             emissions_lifetime = self.emissions_lifetime.get()
 
-        for emissions_name, global_warming_potential in self.global_warming_potential.items():
-
+        for (
+            emissions_name,
+            global_warming_potential,
+        ) in self.global_warming_potential.items():
             if global_warming_potential is not None:
                 gwp = global_warming_potential.get()
             else:
-                gwp = emissions[emissions_name].global_warming_potential.get(emissions_lifetime)
+                gwp = emissions[emissions_name].global_warming_potential.get(
+                    emissions_lifetime
+                )
 
             expectation.set_global_warming_potential(emissions_name, gwp)
 
@@ -334,4 +345,7 @@ class _Policy(Node):
         return self.active
 
     def vessel_is_policed(self, vessel_name):
-        return self.include_vessel[vessel_name] and self.in_jurisdiction_vessel[vessel_name]
+        return (
+            self.include_vessel[vessel_name]
+            and self.in_jurisdiction_vessel[vessel_name]
+        )

@@ -1,7 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Attribute coverage tests: run simulations that touch every attribute and command.
+"""
+Attribute coverage tests: run simulations that touch every attribute and command.
 
 These tests verify that every attribute registered in _attributes.py and every
 command registered in _commands.py can be parsed and executed through the full
@@ -9,6 +10,9 @@ simulation pipeline.  The .nav/.inc files exercise both DEFINE (NAV) and EVENTS
 (EVENTS) sections so that SECTION_BOTH attributes are set at startup and updated at
 runtime.
 """
+
+from __future__ import annotations
+
 from pathlib import Path
 
 import pytest

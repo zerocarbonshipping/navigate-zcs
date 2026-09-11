@@ -1,13 +1,16 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Matplotlib figure and axes plumbing shared by the plot modules.
+"""
+Matplotlib figure and axes plumbing shared by the plot modules.
 
 Grid creation, stacked-area drawing, axis formatting, and figure saving.
 Font sizes and subplot layout come from
 :mod:`navigate.output.plots._illu_util`; save options from
 :mod:`navigate.output.plots._style`.
 """
+
+from __future__ import annotations
 
 import os
 
@@ -49,7 +52,7 @@ def plot_stack_with_lines(ax, x, values, labels, colors, alpha=0.8):
     stack = ax.stackplot(x, *values, labels=labels, colors=colors, alpha=alpha)
 
     # plot lines between the stacks (in reverse order)
-    cumulative = [np.add.reduce(values[:(i + 1)]) for i in range(len(values))]
+    cumulative = [np.add.reduce(values[: (i + 1)]) for i in range(len(values))]
 
     for value, color in zip(cumulative[::-1], colors[::-1]):
         ax.plot(x, value, color=color, lw=2)
@@ -57,7 +60,7 @@ def plot_stack_with_lines(ax, x, values, labels, colors, alpha=0.8):
     return stack
 
 
-def format_axes(ax, n, dateline=None, legend=None, y_lim=(0., None)):
+def format_axes(ax, n, dateline=None, legend=None, y_lim=(0.0, None)):
 
     # set limits
     if y_lim is not None:
@@ -75,7 +78,6 @@ def format_axes(ax, n, dateline=None, legend=None, y_lim=(0., None)):
 
     # format legend size
     if legend is not None:
-
         if n > 12:
             for patch in legend.get_patches():
                 patch.set_width(patch.get_width() * 0.8)
@@ -85,5 +87,5 @@ def format_axes(ax, n, dateline=None, legend=None, y_lim=(0., None)):
 def save_figure(fig, directory, filename):
     """Save *fig* to ``directory/filename`` with the standard options and close it."""
     path = os.path.join(directory, filename)
-    fig.savefig(path, bbox_inches='tight', **SAVE_OPTIONS)
+    fig.savefig(path, bbox_inches="tight", **SAVE_OPTIONS)
     plt.close(fig)

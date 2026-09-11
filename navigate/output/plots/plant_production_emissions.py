@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 import numpy as np
 
 from navigate.output.plots._colors import generate_color_dict
@@ -25,7 +27,6 @@ def plot_plant_production_emissions(manager, directory):
     colors = generate_color_dict(fuels, FUEL_COLOR)
 
     for region_name, region in regions.items():
-
         plants_region = [plant for plant in plants.values() if plant.region is region]
         plants_region = sorted(plants_region, key=lambda x: x.name)
         n = len(plants_region)
@@ -36,34 +37,52 @@ def plot_plant_production_emissions(manager, directory):
         fig, axes = subplot_grid(n)
 
         # track min/max
-        y_min = 0.
-        y_max = 0.
+        y_min = 0.0
+        y_max = 0.0
 
         for ax, plant in zip(axes, plants_region):
-
             fuel = plant.fuel
             fuel_name = fuel.name
             lhv = fuel.lower_heating_value.get()
 
-            ttw = 0.
+            ttw = 0.0
             for emission_name, emission in emissions.items():
-                ttw += fuel.ttw[emission_name].get() * emission.global_warming_potential.get(emissions_lifetime)
+                ttw += fuel.ttw[
+                    emission_name
+                ].get() * emission.global_warming_potential.get(emissions_lifetime)
 
             profile = plant.profile
-            investment = np.round((profile.get_total_equivalent_investment_wtt() + ttw) / lhv * 1e3, 5)
-            instantaneous = np.round((profile.get_total_equivalent_instantaneous_wtt() + ttw) / lhv * 1e3, 5)
+            investment = np.round(
+                (profile.get_total_equivalent_investment_wtt() + ttw) / lhv * 1e3, 5
+            )
+            instantaneous = np.round(
+                (profile.get_total_equivalent_instantaneous_wtt() + ttw) / lhv * 1e3, 5
+            )
 
             # update axes limits
-            investment_lim = np.where(np.isnan(investment), 0., investment)
-            instantaneous_lim = np.where(np.isnan(instantaneous), 0., instantaneous)
+            investment_lim = np.where(np.isnan(investment), 0.0, investment)
+            instantaneous_lim = np.where(np.isnan(instantaneous), 0.0, instantaneous)
             y_min = min(y_min, np.amin(investment_lim), np.amin(instantaneous_lim))
             y_max = max(y_max, np.amax(investment_lim), np.amax(instantaneous_lim))
 
-            ax.plot(dateline, investment, color=colors[fuel_name], label='Investment', lw=2.5, ls='--')
-            ax.plot(dateline, instantaneous, color=colors[fuel_name], label='Instantaneous', lw=2.5)
+            ax.plot(
+                dateline,
+                investment,
+                color=colors[fuel_name],
+                label="Investment",
+                lw=2.5,
+                ls="--",
+            )
+            ax.plot(
+                dateline,
+                instantaneous,
+                color=colors[fuel_name],
+                label="Instantaneous",
+                lw=2.5,
+            )
 
             ax.set_title(plant.name)
-            ax.set_ylabel('WTW [kgCO$_2$-eq/GJ]')
+            ax.set_ylabel("WTW [kgCO$_2$-eq/GJ]")
             legend = ax.legend()
             format_axes(ax, n, dateline, legend, y_lim=(None, None))
 
@@ -72,4 +91,4 @@ def plot_plant_production_emissions(manager, directory):
 
         trim_axes(axes, n)
 
-        save_figure(fig, directory, 'plant_production_emissions_{}.png'.format(region_name))
+        save_figure(fig, directory, f"plant_production_emissions_{region_name}.png")

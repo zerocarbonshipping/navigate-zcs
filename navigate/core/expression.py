@@ -10,6 +10,8 @@ literals, the operators ``+ - * / **``, and node-reference calls such as
 arbitrary code.
 """
 
+from __future__ import annotations
+
 import ast
 import operator
 import re
@@ -18,8 +20,8 @@ import numpy as np
 
 from navigate.core.wrap import as_list
 
-_REFERENCE_NAME = re.compile(r'([A-Z][a-z]+)+')
-_CAPITALIZED_NAME = re.compile(r'[A-Z][A-Za-z]*')
+_REFERENCE_NAME = re.compile(r"([A-Z][a-z]+)+")
+_CAPITALIZED_NAME = re.compile(r"[A-Z][A-Za-z]*")
 
 _BINARY_OPERATORS = {
     ast.Add: operator.add,
@@ -67,20 +69,26 @@ class _BinaryOperation:
         self.right = right
 
     def evaluate(self, node_references, x, y):
-        return self.operator(self.left.evaluate(node_references, x, y),
-                             self.right.evaluate(node_references, x, y))
+        return self.operator(
+            self.left.evaluate(node_references, x, y),
+            self.right.evaluate(node_references, x, y),
+        )
 
 
 class Expression:
     def __init__(self, expression):
 
-        self._expression = expression       # str, as written in deck
+        self._expression = expression  # str, as written in deck
         self._allowed_types = None
 
-        self._internal_expression = None    # evaluator tree built from the parsed expression
-        self._node = None                   # Node on which expression is assigned
-        self.node_references = []           # list[Node] referenced in the expression
-        self.reference_location = ''       # the file and line in the deck where the node is reference
+        self._internal_expression = (
+            None  # evaluator tree built from the parsed expression
+        )
+        self._node = None  # Node on which expression is assigned
+        self.node_references = []  # list[Node] referenced in the expression
+        self.reference_location = (
+            ""  # the file and line in the deck where the node is reference
+        )
         self.internal_bounds = (-np.inf, np.inf)
 
         self._node_initialize_finished = False
@@ -97,14 +105,14 @@ class Expression:
         node : Node
             Class Node on which the expression is assigned to an attribute.
         """
-
         self._node = node
 
         try:
-            tree = ast.parse(self._expression, mode='eval')
+            tree = ast.parse(self._expression, mode="eval")
         except SyntaxError as e:
-            raise ValueError("{}: Error in expression <{}>: {}."
-                             .format(self._node, self._expression, e.msg))
+            raise ValueError(
+                f"{self._node}: Error in expression <{self._expression}>: {e.msg}."
+            )
 
         self._internal_expression = self._build(tree.body)
 
@@ -122,18 +130,21 @@ class Expression:
             return self._build_reference(node_ast)
 
         if isinstance(node_ast, ast.Name) and _CAPITALIZED_NAME.fullmatch(node_ast.id):
-            raise NotImplementedError("{}: Expression '{}' is currently unable to support references to attributes."
-                                      .format(self._node, self._expression))
+            raise NotImplementedError(
+                f"{self._node}: Expression '{self._expression}' is currently unable to support references to attributes."
+            )
 
-        raise ValueError("{}: Error in expression <{}>: unsupported syntax '{}'."
-                         .format(self._node, self._expression, ast.unparse(node_ast)))
+        raise ValueError(
+            f"{self._node}: Error in expression <{self._expression}>: unsupported syntax '{ast.unparse(node_ast)}'."
+        )
 
     def _build_constant(self, node_ast):
         value = node_ast.value
 
         if type(value) not in (int, float):
-            raise ValueError("{}: Error in expression <{}>: only numeric literals are allowed, got {!r}."
-                             .format(self._node, self._expression, value))
+            raise ValueError(
+                f"{self._node}: Error in expression <{self._expression}>: only numeric literals are allowed, got {value!r}."
+            )
 
         # literals are evaluated as floats so that '**' overflows
         # instead of building arbitrarily large integers
@@ -143,42 +154,52 @@ class Expression:
         operator_ = _BINARY_OPERATORS.get(type(node_ast.op))
 
         if operator_ is None:
-            raise ValueError("{}: Error in expression <{}>: unsupported operator '{}'."
-                             .format(self._node, self._expression, type(node_ast.op).__name__))
+            raise ValueError(
+                f"{self._node}: Error in expression <{self._expression}>: unsupported operator '{type(node_ast.op).__name__}'."
+            )
 
-        return _BinaryOperation(operator_, self._build(node_ast.left), self._build(node_ast.right))
+        return _BinaryOperation(
+            operator_, self._build(node_ast.left), self._build(node_ast.right)
+        )
 
     def _build_unary_operation(self, node_ast):
         operator_ = _UNARY_OPERATORS.get(type(node_ast.op))
 
         if operator_ is None:
-            raise ValueError("{}: Error in expression <{}>: unsupported unary operator '{}'."
-                             .format(self._node, self._expression, type(node_ast.op).__name__))
+            raise ValueError(
+                f"{self._node}: Error in expression <{self._expression}>: unsupported unary operator '{type(node_ast.op).__name__}'."
+            )
 
         return _UnaryOperation(operator_, self._build(node_ast.operand))
 
     def _build_reference(self, node_ast):
-        if not isinstance(node_ast.func, ast.Name) or not _REFERENCE_NAME.fullmatch(node_ast.func.id):
-            raise ValueError("{}: Error in expression <{}>: '{}' is not a valid node reference."
-                             .format(self._node, self._expression, ast.unparse(node_ast)))
+        if not isinstance(node_ast.func, ast.Name) or not _REFERENCE_NAME.fullmatch(
+            node_ast.func.id
+        ):
+            raise ValueError(
+                f"{self._node}: Error in expression <{self._expression}>: '{ast.unparse(node_ast)}' is not a valid node reference."
+            )
 
         if node_ast.keywords or len(node_ast.args) != 1:
-            raise ValueError("{}: Error in expression <{}>: '{}' must take exactly one positional argument."
-                             .format(self._node, self._expression, ast.unparse(node_ast)))
+            raise ValueError(
+                f"{self._node}: Error in expression <{self._expression}>: '{ast.unparse(node_ast)}' must take exactly one positional argument."
+            )
 
         argument = node_ast.args[0]
 
         if not isinstance(argument, ast.Constant) or type(argument.value) is not str:
-            raise ValueError("{}: Error in expression <{}>: '{}' argument must be a string literal."
-                             .format(self._node, self._expression, ast.unparse(node_ast)))
+            raise ValueError(
+                f"{self._node}: Error in expression <{self._expression}>: '{ast.unparse(node_ast)}' argument must be a string literal."
+            )
 
         if '"' in argument.value:
-            raise ValueError("{}: Error in expression <{}>: node reference name must not contain a quote."
-                             .format(self._node, self._expression))
+            raise ValueError(
+                f"{self._node}: Error in expression <{self._expression}>: node reference name must not contain a quote."
+            )
 
         # node references are stored as canonical strings and changed
         # to actual NodeReference classes in the Parser later
-        self.node_references.append('{}("{}")'.format(node_ast.func.id, argument.value))
+        self.node_references.append(f'{node_ast.func.id}("{argument.value}")')
 
         return _Reference(len(self.node_references) - 1)
 
@@ -192,7 +213,6 @@ class Expression:
         -------
         Canonical reference strings, e.g. 'Forecast("name")'.
         """
-
         probe = Expression(self._expression)
 
         try:
@@ -216,7 +236,9 @@ class Expression:
         return value
 
     def set_allowed_types(self, allowed_types):
-        self._allowed_types = as_list(allowed_types) if allowed_types is not None else None
+        self._allowed_types = (
+            as_list(allowed_types) if allowed_types is not None else None
+        )
 
     def set_internal_bounds(self, lower, upper):
         self.internal_bounds = (lower, upper)
@@ -233,16 +255,19 @@ class Expression:
 
     def _check_node_reference(self, type_):
         if self._allowed_types is None:
-            raise ValueError("{}: Expression <{}> does not allow node references.".format(self._node, self._expression))
+            raise ValueError(
+                f"{self._node}: Expression <{self._expression}> does not allow node references."
+            )
 
         elif type_ not in self._allowed_types:
-            raise ValueError("{}: Expression <{}> references unacceptable type {}."
-                             .format(self._node, self._expression, type_))
+            raise ValueError(
+                f"{self._node}: Expression <{self._expression}> references unacceptable type {type_}."
+            )
 
 
 def _extract_node_type(node_reference):
     if isinstance(node_reference, str):
-        type_ = node_reference.split('(')[0]
+        type_ = node_reference.split("(")[0]
     else:
         type_ = node_reference.type
 

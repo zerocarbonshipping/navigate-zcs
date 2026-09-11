@@ -31,7 +31,6 @@ def update_vessel_objectives(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     vessel
         Vessel for which objective is updated.
     """
-
     v = vessel.name
     multiplier = alg.multipliers[v]
     ports = vessel.route.ports
@@ -39,19 +38,19 @@ def update_vessel_objectives(alg: BunkerAlgorithm, vessel: Vessel) -> None:
 
     # add bunkering costs
     for p, port in enumerate(ports):
-
         port_name = port.name
         levies = port_levies[port_name]
 
         for f, fuel in vessel.usable_fuels.items():
-
             if port.is_bunkering_allowed(f):
-
                 price = port.expectation.get_bunker_price(f, alg.idx)
 
                 # calculate the cost across all levies
-                cost_levy = sum(alg.cost_levy[(v, port_name, f, levy.name)]
-                                for levy in levies if levy.vessel_is_policed(v))
+                cost_levy = sum(
+                    alg.cost_levy[(v, port_name, f, levy.name)]
+                    for levy in levies
+                    if levy.vessel_is_policed(v)
+                )
 
                 # calculate the total price for fuel and levies
                 total_price = price + cost_levy
@@ -65,12 +64,12 @@ def update_vessel_objectives(alg: BunkerAlgorithm, vessel: Vessel) -> None:
                 # available supply, then log a warning
                 # as this is typically unintended
                 if (alg.scope == BunkerScopeID.EXISTING) and (total_price <= TOLERANCE):
-
                     supply = port.expectation.get_bunker_supply(f, alg.idx)
 
-                    if supply > 0.:
-                        logger.warning("The bunker price of {} for {} in {} is negative or zero ({})."
-                                       .format(fuel, vessel, port, round(total_price, 1)))
+                    if supply > 0.0:
+                        logger.warning(
+                            f"The bunker price of {fuel} for {vessel} in {port} is negative or zero ({round(total_price, 1)})."
+                        )
 
     # add shore power costs and bounds
     _, time_port = extract_times(vessel, alg.idx)
@@ -78,10 +77,11 @@ def update_vessel_objectives(alg: BunkerAlgorithm, vessel: Vessel) -> None:
 
     # electrical demand at each port for share-based upper bound
     demands_port = vessel.expectation.get_energy_port(idx=alg.idx)
-    electrical_demand = demands_port.get(enum_.EnergyDemandTypeID.ELECTRICAL, [0.] * len(ports))
+    electrical_demand = demands_port.get(
+        enum_.EnergyDemandTypeID.ELECTRICAL, [0.0] * len(ports)
+    )
 
     for p, port in enumerate(ports):
-
         key = (v, p)
 
         if key not in alg.shore_power:
@@ -109,16 +109,13 @@ def update_regulation_objectives(alg: BunkerAlgorithm) -> None:
     alg
         The algorithm instance.
     """
-
-    for (r, v) in alg.regulation_rhs_individual:
-
+    for r, v in alg.regulation_rhs_individual:
         key = (r, v)
         regulation = alg.regulations[r]
         remedial_cost = regulation.expectation.get_remedial_cost(alg.idx)
         alg.remedial_factor_individual[key].Obj = remedial_cost * alg.multipliers[v]
 
     for r in alg.regulation_total_rhs_flexibility:
-
         regulation = alg.regulations[r]
         remedial_cost = regulation.expectation.get_remedial_cost(alg.idx)
         alg.remedial_factor_flexibility[r].Obj = remedial_cost

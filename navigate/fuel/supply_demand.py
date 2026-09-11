@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 import numpy as np
 
 from navigate.util import add_dicts
@@ -22,29 +24,30 @@ def calculate_constrained_fair_share_fuel_demand(fuels, producers, gap, idx):
     idx : int
         Current time-step index.
     """
-
     # calculate the total potential of each fuel
-    total_potentials = {fuel_name: 0. for fuel_name in fuels}
+    total_potentials = dict.fromkeys(fuels, 0.0)
 
     for fuel_name in fuels:
-
         for producer in producers.values():
-
             if not producer.can_produce(fuel_name):
                 continue
 
-            total_potentials[fuel_name] += producer.expectation.get_development_potential(fuel_name)
+            total_potentials[fuel_name] += (
+                producer.expectation.get_development_potential(fuel_name)
+            )
 
     # calculate the fair-share out of the total potential
-    fair_share = {(producer_name, fuel_name): 0. for fuel_name in fuels for producer_name in producers}
+    fair_share = {
+        (producer_name, fuel_name): 0.0
+        for fuel_name in fuels
+        for producer_name in producers
+    }
 
     for fuel_name, total_potential in total_potentials.items():
-
-        if total_potential == 0.:
+        if total_potential == 0.0:
             continue
 
         for producer_name, producer in producers.items():
-
             if not producer.can_produce(fuel_name):
                 continue
 
@@ -73,16 +76,14 @@ def calculate_fuel_supply_demand_gap(fuels, supply, demand):
     dict[str, np.ndarray]
         The expected future gap between fuel supply and demand for each fuel pathway.
     """
-
     # calculate the expected supply-demand
     # gap between the fuels
     gap = {}
     for fuel_name, fuel in fuels.items():
-
         if fuel.liquid_market:
             continue
 
-        gap.setdefault(fuel_name, 0.)
+        gap.setdefault(fuel_name, 0.0)
 
         if fuel_name in demand:
             gap[fuel_name] += demand[fuel_name]
@@ -109,8 +110,12 @@ def calculate_expected_fuel_demand(fleets, idx):
     dict[str, np.ndarray]
         The sum of expected future fuel demand for all fuel pathways.
     """
-
-    return add_dicts(*(_calculate_expected_fleet_fuel_demand(fleet, idx) for fleet in fleets.values()))
+    return add_dicts(
+        *(
+            _calculate_expected_fleet_fuel_demand(fleet, idx)
+            for fleet in fleets.values()
+        )
+    )
 
 
 def calculate_expected_fuel_supply(producers, idx):
@@ -129,11 +134,15 @@ def calculate_expected_fuel_supply(producers, idx):
     dict[str, np.ndarray]
         The sum of expected future fuel supply for all fuel pathways.
     """
-
     if not producers:
         return {}
 
-    return add_dicts(*(_calculate_expected_producer_fuel_supply(producer, idx) for producer in producers.values()))
+    return add_dicts(
+        *(
+            _calculate_expected_producer_fuel_supply(producer, idx)
+            for producer in producers.values()
+        )
+    )
 
 
 def _assign_fair_share_of_gap(producers, fair_share, gap, idx):
@@ -151,14 +160,11 @@ def _assign_fair_share_of_gap(producers, fair_share, gap, idx):
     idx : int
         Current time-step index.
     """
-
     for producer_name, producer in producers.items():
-
         expectation = producer.expectation
         profile = producer.profile
 
         for fuel_name in gap:
-
             if not producer.can_produce(fuel_name):
                 continue
 
@@ -184,18 +190,16 @@ def _calculate_expected_producer_fuel_supply(producer, idx):
     dict[str, np.ndarray]
         The sum of expected future fuel production from the producer for each fuel pathway.
     """
-
     idx_ = np.s_[idx:]
 
     expectation = producer.expectation
     supply = {}
 
     for plant in producer.plants:
-
         plant_name = plant.name
         fuel_name = plant.fuel.name
 
-        supply.setdefault(fuel_name, 0.)
+        supply.setdefault(fuel_name, 0.0)
         supply[fuel_name] += expectation.get_guaranteed_production(plant_name, idx=idx_)
 
     return supply
@@ -221,5 +225,4 @@ def _calculate_expected_fleet_fuel_demand(fleet, idx):
     dict[str, np.ndarray]
         The sum of expected future fuel consumption from the fleet for each fuel pathway.
     """
-
     return fleet.expectation.get_fuel_demand(np.s_[idx:])

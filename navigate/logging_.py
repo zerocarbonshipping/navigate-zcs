@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 import logging
 import os
 import time as time_module
@@ -16,7 +18,7 @@ from navigate.core.unit import YEAR_TO_DAYS
 from navigate.util import TOLERANCE
 
 LOG_LEVELS = ["DEBUG", "INFO", "WARNING", "ERROR"]
-HLINE = '=' * 120
+HLINE = "=" * 120
 _COUNT_HANDLER = None
 _DEDUP_FILTER = None
 _LOG_FILE_NAME = None
@@ -26,7 +28,8 @@ _MAX_DIGEST_WARNINGS = 20
 
 
 class _DeduplicatingFilter(logging.Filter):
-    """Suppress duplicate WARNING+ messages in the file log.
+    """
+    Suppress duplicate WARNING+ messages in the file log.
 
     The first occurrence passes through; subsequent identical messages
     are counted but not written. INFO and DEBUG always pass.
@@ -53,7 +56,7 @@ class _DeduplicatingFilter(logging.Filter):
 
 def setup_logger(path: str, level=logging.INFO) -> logging.Logger:
 
-    filename = os.path.splitext(path)[0] + '.log'
+    filename = os.path.splitext(path)[0] + ".log"
     file_handler = logging.FileHandler(filename, mode="w")
 
     global _LOG_FILE_NAME
@@ -74,29 +77,33 @@ def setup_logger(path: str, level=logging.INFO) -> logging.Logger:
     # Dedup filter on file handler only; counting handler sees all records
     file_handler.addFilter(_DEDUP_FILTER)
 
-    logging.basicConfig(level=level,
-                        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-                        datefmt="%H:%M:%S",
-                        handlers=[file_handler, _COUNT_HANDLER],
-                        force=True)
+    logging.basicConfig(
+        level=level,
+        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+        datefmt="%H:%M:%S",
+        handlers=[file_handler, _COUNT_HANDLER],
+        force=True,
+    )
 
     return logging.getLogger()
 
 
 def print_preamble():
     try:
-        pkg_version = version('navigate-zcs')
+        pkg_version = version("navigate-zcs")
     except PackageNotFoundError:
-        pkg_version = 'Debug'
+        pkg_version = "Debug"
 
-    file = Path(__file__).parent / 'preamble.txt'
-    with open(file, 'r') as f:
+    file = Path(__file__).parent / "preamble.txt"
+    with open(file) as f:
         preamble = f.read()
     print(preamble.format(pkg_version))
 
 
 def log_time_step_breaker(logger, idx, date, time):
-    elapsed_time = time_module.perf_counter() - _WALL_START_TIME if _WALL_START_TIME else 0
+    elapsed_time = (
+        time_module.perf_counter() - _WALL_START_TIME if _WALL_START_TIME else 0
+    )
     msg = (
         f"Time-step: {idx}, current date: {date}. "
         f"{int(time)} days "
@@ -108,7 +115,7 @@ def log_time_step_breaker(logger, idx, date, time):
 
 
 def log_extrapolate_bounds(logger, node, x, a, b):
-    info = f' Value was {x}.' if x.size < 5 else ''
+    info = f" Value was {x}." if x.size < 5 else ""
     logger.warning(f"{node}: Extrapolating beyond table limits ({a}, {b}).{info}")
 
 
@@ -125,8 +132,10 @@ def log_model_post_process(logger):
 def log_fair_share_convergence(logger, statistics, iterations, converged) -> None:
     headers = ["Iter."] + list(statistics.keys())
     cols = list(statistics.values())
-    rows = [[i + 1] + [str(_round_for_display(cols[c][i])) for c in range(len(cols))]
-            for i in range(iterations)]
+    rows = [
+        [i + 1] + [str(_round_for_display(cols[c][i])) for c in range(len(cols))]
+        for i in range(iterations)
+    ]
 
     table = tabulate(rows, headers=headers, tablefmt="github", stralign="right")
 
@@ -140,22 +149,27 @@ def log_fair_share_convergence(logger, statistics, iterations, converged) -> Non
 
 
 def _wrap_in_hlines(msg):
-    return '\n' + HLINE + '\n' + msg + '\n' + HLINE + '\n'
+    return "\n" + HLINE + "\n" + msg + "\n" + HLINE + "\n"
 
 
 def get_log_counts() -> dict:
     if not _COUNT_HANDLER:
         return {}
-    return {lvl: _COUNT_HANDLER.counter.get(lvl, 0)
-            for lvl in set(LOG_LEVELS) | set(_COUNT_HANDLER.counter)}
+    return {
+        lvl: _COUNT_HANDLER.counter.get(lvl, 0)
+        for lvl in set(LOG_LEVELS) | set(_COUNT_HANDLER.counter)
+    }
 
 
 def log_summary() -> str:
     counts = get_log_counts()
 
-    rows = [[lvl, counts.get(lvl, 0)] for lvl in LOG_LEVELS
-            if lvl in counts] + [[lvl, counts[lvl]] for lvl in counts if lvl not in LOG_LEVELS]
-    table = tabulate(rows, headers=["Level", "Count"], tablefmt="github", stralign="right")
+    rows = [[lvl, counts.get(lvl, 0)] for lvl in LOG_LEVELS if lvl in counts] + [
+        [lvl, counts[lvl]] for lvl in counts if lvl not in LOG_LEVELS
+    ]
+    table = tabulate(
+        rows, headers=["Level", "Count"], tablefmt="github", stralign="right"
+    )
 
     summary = f"\nLog summary:\n{table}"
 
@@ -166,7 +180,7 @@ def log_summary() -> str:
         summary += f"\n\nUnique warnings ({n_unique} unique, {n_suppressed} duplicates suppressed):"
         for i, msg in enumerate(_DEDUP_FILTER.unique_warnings, 1):
             # Truncate long messages for the digest
-            short = (msg[:120] + '...') if len(msg) > 120 else msg
+            short = (msg[:120] + "...") if len(msg) > 120 else msg
             summary += f"\n  {i}. {short}"
         if n_unique > _MAX_DIGEST_WARNINGS:
             summary += f"\n  ... and {n_unique - _MAX_DIGEST_WARNINGS} more"
@@ -179,11 +193,10 @@ def print_warning_summary() -> None:
     Print the number of logged warnings to the console, pointing at the log
     file that setup_logger opened.
     """
-
     warnings = get_log_counts().get("WARNING", 0)
 
     if warnings and _LOG_FILE_NAME:
-        print("{} warning(s) logged - see '{}'.".format(warnings, _LOG_FILE_NAME))
+        print(f"{warnings} warning(s) logged - see '{_LOG_FILE_NAME}'.")
 
 
 def _round_for_display(x):
@@ -200,7 +213,6 @@ def _round_for_display(x):
     float | int
         Rounded value.
     """
-
     abs_x = abs(x)
 
     if abs_x <= TOLERANCE:

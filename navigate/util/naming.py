@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 import re
 
 
@@ -23,7 +25,6 @@ def retrieve_keys(key, allowed_keys, key_fn=None):
     list :
         List of all keys matching 'key' ('key' only if no wildcards)
     """
-
     if not isinstance(key, str):
         return [key]
 
@@ -68,14 +69,13 @@ def matching_keys(key, allowed_keys, key_fn=None):
     list :
         List of all keys matching 'key'; empty when nothing matches.
     """
-
     try:
         return retrieve_keys(key, allowed_keys, key_fn)
     except KeyError:
         return []
 
 
-def attribute_to_setter(attribute, method='set'):
+def attribute_to_setter(attribute, method="set"):
     """
     Converts attributes read by the Parser from the input deck in format:
         AbcdEfgh
@@ -102,8 +102,9 @@ def attribute_to_setter(attribute, method='set'):
     str :
         String which can be used to call a setter method of a Class using 'getattr()'.
     """
-
-    return method + ''.join('_' + word.lower() for word in re.findall(r'[A-Z][a-z]*', attribute))
+    return method + "".join(
+        "_" + word.lower() for word in re.findall(r"[A-Z][a-z]*", attribute)
+    )
 
 
 def attribute_to_instance_name(attribute):
@@ -121,8 +122,7 @@ def attribute_to_instance_name(attribute):
     str :
         The corresponding instance-attribute name.
     """
-
-    return attribute_to_setter(attribute, method='')[1:]
+    return attribute_to_setter(attribute, method="")[1:]
 
 
 def name_contains_wildcards(name):
@@ -146,8 +146,7 @@ def name_contains_wildcards(name):
     bool :
         Whether the name includes wildcards.
     """
-
-    return True if any([wildcard in name for wildcard in ('*', '?')]) else False
+    return True if any([wildcard in name for wildcard in ("*", "?")]) else False
 
 
 def wildcard_to_regex(word):
@@ -170,20 +169,18 @@ def wildcard_to_regex(word):
     str :
         Regular expression.
     """
-
-    expression = r'^'
+    expression = r"^"
 
     for char in word:
+        if char == "*":
+            expression += r".*"
 
-        if char == '*':
-            expression += r'.*'
-
-        elif char == '?':
-            expression += r'\w'
+        elif char == "?":
+            expression += r"\w"
 
         else:
             expression += char
 
-    expression += r'$'
+    expression += r"$"
 
     return expression

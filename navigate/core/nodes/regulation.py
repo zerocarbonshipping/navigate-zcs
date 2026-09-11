@@ -7,7 +7,13 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core import Scalar, as_scalar, assign_id, assign_value, command_assignment_to_dict
+from navigate.core import (
+    Scalar,
+    as_scalar,
+    assign_id,
+    assign_value,
+    command_assignment_to_dict,
+)
 from navigate.core.assign import BOOL_ID
 from navigate.core.enum_ import RegulationMeasureID, RegulationSchemeID
 from navigate.core.expectations import RegulationExpectation
@@ -25,23 +31,31 @@ class Regulation(_Policy):
         super().__init__(name, REGULATION)
 
         # external variables -------------------------------------------------------------------------------------------
-        self.measure = None            # enum, ID of emissions measure
+        self.measure = None  # enum, ID of emissions measure
 
-        self.intra_fraction = None     # float, fraction of emissions on intra travel accounted for
-        self.inter_fraction = None     # float, fraction of emissions on inter travel accounted for
-        self.extra_fraction = None     # float, fraction of emissions on extra travel accounted for
+        self.intra_fraction = (
+            None  # float, fraction of emissions on intra travel accounted for
+        )
+        self.inter_fraction = (
+            None  # float, fraction of emissions on inter travel accounted for
+        )
+        self.extra_fraction = (
+            None  # float, fraction of emissions on extra travel accounted for
+        )
 
         # remedial compliance
-        self.remedial_cost = None      # float, cost per remedial unit, USD/ton
+        self.remedial_cost = None  # float, cost per remedial unit, USD/ton
 
         # flexibility cost belief
-        self.flexibility_horizon = None  # float, belief horizon for the flexibility cost, years
+        self.flexibility_horizon = (
+            None  # float, belief horizon for the flexibility cost, years
+        )
 
         # threshold
-        self.vessel_threshold = {}     # dict[vessel_name: float], individual threshold per vessel
+        self.vessel_threshold = {}  # dict[vessel_name: float], individual threshold per vessel
 
         # capacity (measure specific)
-        self.vessel_capacity = {}      # dict[vessel_name: float], capacity per vessel if impact is vessel
+        self.vessel_capacity = {}  # dict[vessel_name: float], capacity per vessel if impact is vessel
 
         # threshold adjustment
         self.allow_threshold_adjustment = False  # bool, if True, bunker algorithm adjusts thresholds on non-compliance
@@ -68,7 +82,6 @@ class Regulation(_Policy):
         scheme : str
             Regulation scheme.
         """
-
         self.scheme = assign_id(scheme, RegulationSchemeID)
 
     def set_measure(self, measure):
@@ -92,7 +105,6 @@ class Regulation(_Policy):
         measure : str
             Emission measure.
         """
-
         self.measure = assign_id(measure, RegulationMeasureID)
 
     def set_intra_fraction(self, intra_fraction):
@@ -109,8 +121,9 @@ class Regulation(_Policy):
         intra_fraction : float | NodeReference
             Fraction of emissions counted during intra jurisdiction travel.
         """
-
-        self.intra_fraction = assign_value(as_scalar(intra_fraction), type_=(FORECAST, VARIABLE), lower=0., upper=1.)
+        self.intra_fraction = assign_value(
+            as_scalar(intra_fraction), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
+        )
 
     def set_inter_fraction(self, inter_fraction):
         """
@@ -127,8 +140,9 @@ class Regulation(_Policy):
         inter_fraction : float | NodeReference
             Fraction of emissions counted during inter jurisdiction travel.
         """
-
-        self.inter_fraction = assign_value(as_scalar(inter_fraction), type_=(FORECAST, VARIABLE), lower=0., upper=1.)
+        self.inter_fraction = assign_value(
+            as_scalar(inter_fraction), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
+        )
 
     def set_extra_fraction(self, extra_fraction):
         """
@@ -144,8 +158,9 @@ class Regulation(_Policy):
         extra_fraction : float | NodeReference
             Fraction of emissions counted during extra jurisdiction travel.
         """
-
-        self.extra_fraction = assign_value(as_scalar(extra_fraction), type_=(FORECAST, VARIABLE), lower=0., upper=1.)
+        self.extra_fraction = assign_value(
+            as_scalar(extra_fraction), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
+        )
 
     def set_remedial_cost(self, remedial_cost):
         """
@@ -161,8 +176,9 @@ class Regulation(_Policy):
         remedial_cost : float | NodeReference
             Cost of a remedial unit.
         """
-
-        self.remedial_cost = assign_value(as_scalar(remedial_cost), type_=(FORECAST, VARIABLE), lower=0.)
+        self.remedial_cost = assign_value(
+            as_scalar(remedial_cost), type_=(FORECAST, VARIABLE), lower=0.0
+        )
 
     def set_flexibility_horizon(self, flexibility_horizon):
         """
@@ -183,8 +199,9 @@ class Regulation(_Policy):
         flexibility_horizon : float | NodeReference
             Decision horizon for the flexibility cost belief, in years.
         """
-
-        self.flexibility_horizon = assign_value(as_scalar(flexibility_horizon), type_=(FORECAST, VARIABLE), lower=0.)
+        self.flexibility_horizon = assign_value(
+            as_scalar(flexibility_horizon), type_=(FORECAST, VARIABLE), lower=0.0
+        )
 
     # external methods (DSL commands) ----------------------------------------------------------------------------------
     def set_vessel_threshold(self, vessel_name, threshold):
@@ -212,8 +229,13 @@ class Regulation(_Policy):
         threshold : float | NodeReference
             Threshold for a vessel.
         """
-
-        command_assignment_to_dict(vessel_name, threshold, self.vessel_threshold, type_=(FORECAST, VARIABLE), lower=0.)
+        command_assignment_to_dict(
+            vessel_name,
+            threshold,
+            self.vessel_threshold,
+            type_=(FORECAST, VARIABLE),
+            lower=0.0,
+        )
 
     def set_vessel_capacity(self, vessel_name, capacity):
         """
@@ -233,8 +255,13 @@ class Regulation(_Policy):
         capacity : float | NodeReference
             Capacity of a vessel.
         """
-
-        command_assignment_to_dict(vessel_name, capacity, self.vessel_capacity, type_=(FORECAST, VARIABLE), lower=0.)
+        command_assignment_to_dict(
+            vessel_name,
+            capacity,
+            self.vessel_capacity,
+            type_=(FORECAST, VARIABLE),
+            lower=0.0,
+        )
 
     def set_allow_threshold_adjustment(self, allow_threshold_adjustment):
         """
@@ -253,7 +280,6 @@ class Regulation(_Policy):
         allow_threshold_adjustment : str
             Whether to allow threshold adjustment (TRUE/FALSE).
         """
-
         self.allow_threshold_adjustment = assign_id(allow_threshold_adjustment, BOOL_ID)
 
     # internal methods -------------------------------------------------------------------------------------------------
@@ -262,10 +288,10 @@ class Regulation(_Policy):
         self._initialize_policy()
 
         if self.scheme is None:
-            no_value_assigned_error(self, 'Scheme')
+            no_value_assigned_error(self, "Scheme")
 
         if self.measure is None:
-            no_value_assigned_error(self, 'Measure')
+            no_value_assigned_error(self, "Measure")
 
         if self.intra_fraction is None:
             self.intra_fraction = Scalar(1)
@@ -283,11 +309,11 @@ class Regulation(_Policy):
             self.flexibility_horizon = Scalar(3)
 
         for vessel_name, include_vessel in self.include_vessel.items():
-
             if include_vessel and (self.vessel_threshold[vessel_name] is None):
-
-                raise ValueError("{}: Vessel(\"{}\") is included in the regulation but"
-                                 " no vessel_threshold is defined.".format(self, vessel_name))
+                raise ValueError(
+                    f'{self}: Vessel("{vessel_name}") is included in the regulation but'
+                    " no vessel_threshold is defined."
+                )
 
     def initialize_dependencies(self, vessels):
         """
@@ -298,7 +324,6 @@ class Regulation(_Policy):
         vessels : dict[str, Vessel]
             All vessels in the simulation.
         """
-
         for vessel_name in vessels:
             self.vessel_threshold.setdefault(vessel_name, None)
             self.vessel_capacity.setdefault(vessel_name, None)
@@ -308,10 +333,14 @@ class Regulation(_Policy):
     def initialize_expectation(self, length: int, vessels: dict[str, Vessel]) -> None:
         self.expectation.initialize(length, [e.name for e in self.emissions], vessels)
 
-    def initialize_profile(self, timeline: np.ndarray, vessels: dict[str, Vessel]) -> None:
+    def initialize_profile(
+        self, timeline: np.ndarray, vessels: dict[str, Vessel]
+    ) -> None:
         self.profile.initialize(timeline, vessels)
 
-    def calculate_expectation(self, emissions, vessels, emissions_lifetime, timeline, idx):
+    def calculate_expectation(
+        self, emissions, vessels, emissions_lifetime, timeline, idx
+    ):
 
         if not self.active:
             return
@@ -320,18 +349,25 @@ class Regulation(_Policy):
 
         self.expectation.set_remedial_cost(idx, self.remedial_cost.get(times))
 
-        if self.measure in (RegulationMeasureID.TRANSPORT, RegulationMeasureID.TRANSPORT_NOMINAL):
-
+        if self.measure in (
+            RegulationMeasureID.TRANSPORT,
+            RegulationMeasureID.TRANSPORT_NOMINAL,
+        ):
             for vessel_name, capacity in self.vessel_capacity.items():
-
                 if capacity is not None:
-                    self.expectation.set_vessel_capacity(idx, vessel_name, capacity.get(times))
+                    self.expectation.set_vessel_capacity(
+                        idx, vessel_name, capacity.get(times)
+                    )
 
                 else:
                     nominal_capacity = vessels[vessel_name].nominal_capacity.get(times)
-                    self.expectation.set_vessel_capacity(idx, vessel_name, nominal_capacity)
+                    self.expectation.set_vessel_capacity(
+                        idx, vessel_name, nominal_capacity
+                    )
 
-        self._calculate_policy_expectations(self.expectation, emissions, emissions_lifetime)
+        self._calculate_policy_expectations(
+            self.expectation, emissions, emissions_lifetime
+        )
 
     def calculate_profile(self, idx):
 
@@ -341,6 +377,5 @@ class Regulation(_Policy):
         self.profile.set_remedial_cost(idx, self.remedial_cost.get())
 
         for vessel_name, threshold in self.vessel_threshold.items():
-
             if self.vessel_is_policed(vessel_name):
                 self.profile.set_vessel_threshold(idx, vessel_name, threshold.get())

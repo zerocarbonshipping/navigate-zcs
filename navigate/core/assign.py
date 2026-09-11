@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 import numpy as np
 
 from navigate.core.expression import Expression
@@ -8,13 +10,24 @@ from navigate.core.node import Node
 from navigate.core.node_reference import NodeReference
 from navigate.core.scalar import Scalar
 from navigate.core.wrap import as_scalar
-from navigate.util import ROUND_OFF, TOLERANCE, name_contains_wildcards, retrieve_keys, unique_list
+from navigate.util import (
+    ROUND_OFF,
+    TOLERANCE,
+    name_contains_wildcards,
+    retrieve_keys,
+    unique_list,
+)
 
-BOOL_ID = {'FALSE': False,
-           'TRUE': True}
+BOOL_ID = {"FALSE": False, "TRUE": True}
 
 
-def assign_integer(assignment, lower=-np.inf, upper=np.inf, inclusive_lower=True, inclusive_upper=True,):
+def assign_integer(
+    assignment,
+    lower=-np.inf,
+    upper=np.inf,
+    inclusive_lower=True,
+    inclusive_upper=True,
+):
     """
 
     Parameters
@@ -35,20 +48,33 @@ def assign_integer(assignment, lower=-np.inf, upper=np.inf, inclusive_lower=True
     int:
         Returns the passed assignment as integer (to allow error checking while assigning)
     """
-
-    _check_scalar(assignment, lower=lower, upper=upper, inclusive_lower=inclusive_lower, inclusive_upper=inclusive_upper)
+    _check_scalar(
+        assignment,
+        lower=lower,
+        upper=upper,
+        inclusive_lower=inclusive_lower,
+        inclusive_upper=inclusive_upper,
+    )
 
     value = int(assignment)
 
     if abs(value - assignment) >= TOLERANCE:
-        raise ValueError("only allows assignment of integers, but got {}".format(assignment))
+        raise ValueError(f"only allows assignment of integers, but got {assignment}")
 
     return value
 
 
-def assign_value(assignment, scalar=True, date=False, type_=None,
-                 lower=-np.inf, upper=np.inf, *,
-                 inclusive_lower=True, inclusive_upper=True):
+def assign_value(
+    assignment,
+    scalar=True,
+    date=False,
+    type_=None,
+    lower=-np.inf,
+    upper=np.inf,
+    *,
+    inclusive_lower=True,
+    inclusive_upper=True,
+):
     """
     Check whether the value (float or calculator) assigned to an attribute satisfy the requirements of that attribute.
     Only applicable to attributes requiring a single value, not lists.
@@ -83,9 +109,8 @@ def assign_value(assignment, scalar=True, date=False, type_=None,
     NodeReference | Scalar | float | Expression:
         Returns the passed assignment (to allow error checking while assigning)
     """
-
     if isinstance(assignment, (list, tuple)):
-        raise ValueError("{}, but got list".format(_failed_value_message(scalar, date, type_)))
+        raise ValueError(f"{_failed_value_message(scalar, date, type_)}, but got list")
 
     is_float = isinstance(assignment, (float, Scalar))
     is_date = isinstance(assignment, np.datetime64)
@@ -94,35 +119,43 @@ def assign_value(assignment, scalar=True, date=False, type_=None,
     type_is_list = isinstance(type_, (list, tuple))
 
     if is_float:
-
         if scalar:
-            _check_scalar(assignment, lower=lower, upper=upper,
-                          inclusive_lower=inclusive_lower, inclusive_upper=inclusive_upper)
+            _check_scalar(
+                assignment,
+                lower=lower,
+                upper=upper,
+                inclusive_lower=inclusive_lower,
+                inclusive_upper=inclusive_upper,
+            )
 
         else:
-            raise ValueError("{}, but got scalar".format(_failed_value_message(scalar, date, type_)))
+            raise ValueError(
+                f"{_failed_value_message(scalar, date, type_)}, but got scalar"
+            )
 
     elif is_date:
-
         if not date:
-            raise ValueError("{}, but got date".format(_failed_value_message(scalar, date, type_)))
+            raise ValueError(
+                f"{_failed_value_message(scalar, date, type_)}, but got date"
+            )
 
     elif is_expression:
-
         assignment.set_allowed_types(type_)
 
     elif is_node:
-
         if type_ is None:
             raise ValueError(_failed_value_message(scalar, date, type_))
 
         if type_is_list:
-
             if assignment.type not in type_:
-                raise ValueError("{}, but got {}".format(_failed_value_message(scalar, date, type_), assignment))
+                raise ValueError(
+                    f"{_failed_value_message(scalar, date, type_)}, but got {assignment}"
+                )
 
         elif not assignment.is_type(type_):
-            raise ValueError("{}, but got {}".format(_failed_value_message(scalar, date, type_), assignment))
+            raise ValueError(
+                f"{_failed_value_message(scalar, date, type_)}, but got {assignment}"
+            )
 
     # is a calculator or expression
     if (not is_float) and (not is_date):
@@ -132,8 +165,19 @@ def assign_value(assignment, scalar=True, date=False, type_=None,
     return assignment
 
 
-def assign_list(assignment, length=(), unique=False, scalar=True, date=False, type_=None,
-                lower=-np.inf, upper=np.inf, *, inclusive_lower=True, inclusive_upper=True):
+def assign_list(
+    assignment,
+    length=(),
+    unique=False,
+    scalar=True,
+    date=False,
+    type_=None,
+    lower=-np.inf,
+    upper=np.inf,
+    *,
+    inclusive_lower=True,
+    inclusive_upper=True,
+):
     """
     Check whether the value (float or calculator) assigned to an attribute satisfy the requirements of that attribute.
     Only applicable to attributes requiring a list of values.
@@ -169,15 +213,22 @@ def assign_list(assignment, length=(), unique=False, scalar=True, date=False, ty
     List[NodeReference | Scalar | float] :
         Returns the passed assignment (to allow error checking while assigning)
     """
-
     _check_list_length(assignment, length)
 
     if unique:
         _check_list_is_unique(assignment)
 
     for value in assignment:
-        assign_value(value, scalar, date, type_, lower, upper,
-                     inclusive_lower=inclusive_lower, inclusive_upper=inclusive_upper)
+        assign_value(
+            value,
+            scalar,
+            date,
+            type_,
+            lower,
+            upper,
+            inclusive_lower=inclusive_lower,
+            inclusive_upper=inclusive_upper,
+        )
 
     return assignment
 
@@ -201,16 +252,15 @@ def assign_id(assignment, id_enum):
     Enum
         Returns the passed assignment (to allow error checking while assigning).
     """
-
     try:
         return id_enum[assignment]
     except KeyError:
         if name_contains_wildcards(assignment):
             raise ValueError(
-                "does not accept ID '{}' — wildcards are not supported "
-                "for this command".format(assignment)
+                f"does not accept ID '{assignment}' — wildcards are not supported "
+                "for this command"
             )
-        raise ValueError("does not accept ID '{}'".format(assignment))
+        raise ValueError(f"does not accept ID '{assignment}'")
 
 
 def expand_id_wildcard(pattern: str, id_enum) -> list:
@@ -230,11 +280,12 @@ def expand_id_wildcard(pattern: str, id_enum) -> list:
     -------
     List of matching enum members.
     """
-
     try:
         return retrieve_keys(pattern, id_enum, key_fn=lambda m: m.name)
     except KeyError:
-        raise ValueError("wildcard '{}' did not match any member of {}".format(pattern, id_enum.__name__))
+        raise ValueError(
+            f"wildcard '{pattern}' did not match any member of {id_enum.__name__}"
+        )
 
 
 def assign_id_list(assignment, id_enum, length=()):
@@ -260,7 +311,6 @@ def assign_id_list(assignment, id_enum, length=()):
     List[Enum] :
         Returns the passed assignment (to allow error checking while assigning).
     """
-
     expanded = []
     for value in assignment:
         if name_contains_wildcards(value):
@@ -290,21 +340,31 @@ def assign_fraction_list(fractions):
     list[float]
         List of floats that at maximum sum to 1.
     """
-
     _check_fraction_list(fractions)
 
     normalized = False
     total = round(sum(fractions), ROUND_OFF)
 
-    if fractions and (total != 1.) and (total > 0.):
+    if fractions and (total != 1.0) and (total > 0.0):
         fractions[:] = [fraction / total for fraction in fractions]
         normalized = abs(total - 1) > 0.01
 
-    return assign_list(fractions, lower=0., upper=1.), normalized
+    return assign_list(fractions, lower=0.0, upper=1.0), normalized
 
 
-def command_assignment_to_dict(key, assignment, assignment_dict, scalar=True, date=False, type_=None,
-                               lower=-np.inf, upper=np.inf, *, inclusive_lower=True, inclusive_upper=True,):
+def command_assignment_to_dict(
+    key,
+    assignment,
+    assignment_dict,
+    scalar=True,
+    date=False,
+    type_=None,
+    lower=-np.inf,
+    upper=np.inf,
+    *,
+    inclusive_lower=True,
+    inclusive_upper=True,
+):
     """
 
     Parameters
@@ -330,15 +390,32 @@ def command_assignment_to_dict(key, assignment, assignment_dict, scalar=True, da
     inclusive_upper: bool = True
         Upper bound is inclusive.
     """
-
     for key_ in retrieve_keys(key, assignment_dict):
-        assignment_dict[key_] = assign_value(as_scalar(assignment), scalar, date, type_, lower, upper,
-                                             inclusive_lower=inclusive_lower, inclusive_upper=inclusive_upper)
+        assignment_dict[key_] = assign_value(
+            as_scalar(assignment),
+            scalar,
+            date,
+            type_,
+            lower,
+            upper,
+            inclusive_lower=inclusive_lower,
+            inclusive_upper=inclusive_upper,
+        )
 
 
-def command_assignment_to_tuple_dict(key, assignment, assignment_dict, scalar=True, date=False, type_=None,
-                                     lower=-np.inf, upper=np.inf, inclusive_lower=True, inclusive_upper=True,
-                                     symmetric=False):
+def command_assignment_to_tuple_dict(
+    key,
+    assignment,
+    assignment_dict,
+    scalar=True,
+    date=False,
+    type_=None,
+    lower=-np.inf,
+    upper=np.inf,
+    inclusive_lower=True,
+    inclusive_upper=True,
+    symmetric=False,
+):
     """
 
     Parameters
@@ -366,8 +443,10 @@ def command_assignment_to_tuple_dict(key, assignment, assignment_dict, scalar=Tr
     symmetric : bool
         Whether the dictionary is symmetric, i.e. (key1, key2) = (key2, key1).
     """
-
-    keys = [retrieve_keys(k, unique_list(keys)) for k, keys in zip(key, zip(*assignment_dict.keys()))]
+    keys = [
+        retrieve_keys(k, unique_list(keys))
+        for k, keys in zip(key, zip(*assignment_dict.keys()))
+    ]
 
     if not keys:
         raise KeyError(", ".join(key))
@@ -375,18 +454,26 @@ def command_assignment_to_tuple_dict(key, assignment, assignment_dict, scalar=Tr
     keys1, keys2 = keys
 
     for key1 in keys1:
-
         for key2 in keys2:
-
-            value = assign_value(as_scalar(assignment), scalar, date, type_, lower, upper,
-                                 inclusive_lower=inclusive_lower, inclusive_upper=inclusive_upper)
+            value = assign_value(
+                as_scalar(assignment),
+                scalar,
+                date,
+                type_,
+                lower,
+                upper,
+                inclusive_lower=inclusive_lower,
+                inclusive_upper=inclusive_upper,
+            )
             assignment_dict[(key1, key2)] = value
 
             if symmetric:
                 assignment_dict[(key2, key1)] = value
 
 
-def command_assignment_to_boolean_dict(key, assignment, assignment_dict, allow_empty=False):
+def command_assignment_to_boolean_dict(
+    key, assignment, assignment_dict, allow_empty=False
+):
     """
 
     Parameters
@@ -400,18 +487,15 @@ def command_assignment_to_boolean_dict(key, assignment, assignment_dict, allow_e
     allow_empty : bool
         Whether no matches are allowed for wildcards.
     """
-
     try:
         value = BOOL_ID[assignment]
     except KeyError:
-        raise KeyError("'{}' is not a valid boolean value.".format(assignment))
+        raise KeyError(f"'{assignment}' is not a valid boolean value.")
 
     try:
-
         names = retrieve_keys(key, assignment_dict)
 
     except KeyError:
-
         if allow_empty and name_contains_wildcards(key):
             # TODO logging.warning()
             return
@@ -440,30 +524,38 @@ def _failed_value_message(scalar, date, type_):
     str :
         Error message of a failed error check.
     """
-
     parts = []
 
     if scalar:
-        parts.append('scalars')
+        parts.append("scalars")
 
     if date:
-        parts.append('dates')
+        parts.append("dates")
 
     if type_ is not None:
         if isinstance(type_, str):
-            parts.append('nodes of type {}'.format(type_))
+            parts.append(f"nodes of type {type_}")
         else:
-            parts.append('nodes of type {} or {}'.format(', '.join(type_[:-1]), type_[-1]))
+            parts.append(
+                "nodes of type {} or {}".format(", ".join(type_[:-1]), type_[-1])
+            )
 
     if len(parts) <= 1:
-        joined = parts[0] if parts else ''
+        joined = parts[0] if parts else ""
     else:
-        joined = ', '.join(parts[:-1]) + ' and ' + parts[-1]
+        joined = ", ".join(parts[:-1]) + " and " + parts[-1]
 
     return "only allows assignment of " + joined
 
 
-def _check_scalar(assignment, lower=-np.inf, upper=np.inf, *, inclusive_lower=True, inclusive_upper=True):
+def _check_scalar(
+    assignment,
+    lower=-np.inf,
+    upper=np.inf,
+    *,
+    inclusive_lower=True,
+    inclusive_upper=True,
+):
     """
     Validate that a scalar value satisfies the given bounds.
 
@@ -485,7 +577,6 @@ def _check_scalar(assignment, lower=-np.inf, upper=np.inf, *, inclusive_lower=Tr
     ValueError
         If the assignment does not satisfy the bounds.
     """
-
     if isinstance(assignment, float):
         value = assignment
 
@@ -493,7 +584,7 @@ def _check_scalar(assignment, lower=-np.inf, upper=np.inf, *, inclusive_lower=Tr
         value = assignment.get()
 
     else:
-        raise ValueError("requires a scalar, but got {}".format(assignment))
+        raise ValueError(f"requires a scalar, but got {assignment}")
 
     if inclusive_lower:
         if value < lower:
@@ -513,21 +604,18 @@ def _check_scalar(assignment, lower=-np.inf, upper=np.inf, *, inclusive_lower=Tr
 def _check_list_length(assignment, length):
 
     if length:
-
         if isinstance(length, tuple):
-
             lower, upper = length
 
             if (lower is not None) and (len(assignment) < lower):
-                raise ValueError("List must contain more than {} values.".format(lower))
+                raise ValueError(f"List must contain more than {lower} values.")
 
             if (upper is not None) and (len(assignment) > upper):
-                raise ValueError("List must contain less than {} values.".format(upper))
+                raise ValueError(f"List must contain less than {upper} values.")
 
         else:
-
             if len(assignment) != length:
-                raise ValueError("List must contain exactly {} values.".format(length))
+                raise ValueError(f"List must contain exactly {length} values.")
 
 
 def _check_list_is_unique(assignment):
@@ -544,7 +632,7 @@ def _check_fraction_list(fractions):
     if not isinstance(fractions, list):
         raise ValueError("only allows assignment of lists")
 
-    if any(fraction < 0. for fraction in fractions):
+    if any(fraction < 0.0 for fraction in fractions):
         raise ValueError("does not allow negative values")
 
 
@@ -561,7 +649,6 @@ def _check_table_holder(assignment, lower=-np.inf, upper=np.inf):
     upper : float
         Upper bound.
     """
-
     # TODO: if Curve or Forecast add warning based on extrapolate if LINEAR and no bounds.
 
     addition = assignment.addition
@@ -571,7 +658,10 @@ def _check_table_holder(assignment, lower=-np.inf, upper=np.inf):
     table_limits = assignment.get_table_limits()
 
     # theoretical limits of the table
-    limits = [addition + multiplier * table_limits[0], addition + multiplier * table_limits[1]]
+    limits = [
+        addition + multiplier * table_limits[0],
+        addition + multiplier * table_limits[1],
+    ]
 
     # adjust for strict bounds
     if (bounds[0] is not None) and (bounds[0] > limits[0]):
@@ -582,12 +672,16 @@ def _check_table_holder(assignment, lower=-np.inf, upper=np.inf):
 
     # limits against attribute lower/upper bounds
     if limits[0] < lower:
-        raise ValueError('Node reference: {} has a minimum attainable'
-                         ' value({}) lower than the attribute minimum({}).'.format(assignment, limits[0], lower))
+        raise ValueError(
+            f"Node reference: {assignment} has a minimum attainable"
+            f" value({limits[0]}) lower than the attribute minimum({lower})."
+        )
 
     if limits[1] > upper:
-        raise ValueError('Node reference: {} has a maximum attainable'
-                         ' value({}) greater than the attribute maximum({}).'.format(assignment, limits[1], upper))
+        raise ValueError(
+            f"Node reference: {assignment} has a maximum attainable"
+            f" value({limits[1]}) greater than the attribute maximum({upper})."
+        )
 
 
 def _check_bounds(bounds):

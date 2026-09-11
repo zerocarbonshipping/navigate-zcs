@@ -20,17 +20,29 @@ class FleetExpectation(_Expectation):
     def __init__(self):
         super().__init__()
 
-        self._existing_multipliers: dict[str, np.ndarray] = {}     # dict[vessel_name: np.ndarray], number of existing vessels
-        self._newbuild_multipliers: dict[str, np.ndarray] = {}     # dict[vessel_name: np.ndarray], number of newbuild vessels
+        self._existing_multipliers: dict[
+            str, np.ndarray
+        ] = {}  # dict[vessel_name: np.ndarray], number of existing vessels
+        self._newbuild_multipliers: dict[
+            str, np.ndarray
+        ] = {}  # dict[vessel_name: np.ndarray], number of newbuild vessels
 
-        self._fuel_demand: dict[str, np.ndarray] = {}              # dict[fuel_name: np.ndarray], expected future fuel demand
+        self._fuel_demand: dict[
+            str, np.ndarray
+        ] = {}  # dict[fuel_name: np.ndarray], expected future fuel demand
 
-        self._fuel_type_demand: dict[FuelTypeID, float] = {}       # realized demand of the last completed time-step
-        self._fuel_type_supply: dict[FuelTypeID, float] = {}       # realized fair-share supply of the last completed time-step
+        self._fuel_type_demand: dict[
+            FuelTypeID, float
+        ] = {}  # realized demand of the last completed time-step
+        self._fuel_type_supply: dict[
+            FuelTypeID, float
+        ] = {}  # realized fair-share supply of the last completed time-step
 
         self._uptakes: np.ndarray = EMPTY_FLOAT
 
-    def initialize(self, length: int, vessel_names: list[str], fuels: dict[str, Fuel]) -> None:
+    def initialize(
+        self, length: int, vessel_names: list[str], fuels: dict[str, Fuel]
+    ) -> None:
         self._initialize_expectation(length)
 
         self._existing_multipliers = self._default_dict_array(vessel_names)
@@ -47,10 +59,14 @@ class FleetExpectation(_Expectation):
         self._reset_dict_float(self._fuel_type_demand)
         self._reset_dict_float(self._fuel_type_supply)
 
-    def set_existing_multipliers(self, idx: int, vessel_name: str, multipliers: np.ndarray) -> None:
+    def set_existing_multipliers(
+        self, idx: int, vessel_name: str, multipliers: np.ndarray
+    ) -> None:
         self._existing_multipliers[vessel_name][idx:] = multipliers
 
-    def set_newbuild_multipliers(self, idx: int, vessel_name: str, multipliers: np.ndarray) -> None:
+    def set_newbuild_multipliers(
+        self, idx: int, vessel_name: str, multipliers: np.ndarray
+    ) -> None:
         self._newbuild_multipliers[vessel_name][idx:] = multipliers
 
     def set_fuel_demand(self, idx: int, fuel_name: str, demand: float) -> None:
@@ -65,21 +81,32 @@ class FleetExpectation(_Expectation):
     def set_uptakes(self, idx: int, uptakes: np.ndarray) -> None:
         self._uptakes[:, idx] = uptakes
 
-    def get_existing_multipliers(self, vessel_name: str, idx: int | slice = np.s_[:]) -> np.ndarray:
+    def get_existing_multipliers(
+        self, vessel_name: str, idx: int | slice = np.s_[:]
+    ) -> np.ndarray:
         return self._existing_multipliers[vessel_name][idx]
 
-    def get_newbuild_multipliers(self, vessel_name: str, idx: int | slice = np.s_[:]) -> np.ndarray:
+    def get_newbuild_multipliers(
+        self, vessel_name: str, idx: int | slice = np.s_[:]
+    ) -> np.ndarray:
         return self._newbuild_multipliers[vessel_name][idx]
 
-    def get_expected_multipliers(self, vessel_name: str, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._existing_multipliers[vessel_name][idx] + self._newbuild_multipliers[vessel_name][idx]
+    def get_expected_multipliers(
+        self, vessel_name: str, idx: int | slice = np.s_[:]
+    ) -> np.ndarray:
+        return (
+            self._existing_multipliers[vessel_name][idx]
+            + self._newbuild_multipliers[vessel_name][idx]
+        )
 
     def get_total_existing_multipliers(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         return np.add.reduce(list(self._existing_multipliers.values()))[idx]
 
     def get_total_expected_multipliers(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return (np.add.reduce(list(self._existing_multipliers.values()))
-                + np.add.reduce(list(self._newbuild_multipliers.values())))[idx]
+        return (
+            np.add.reduce(list(self._existing_multipliers.values()))
+            + np.add.reduce(list(self._newbuild_multipliers.values()))
+        )[idx]
 
     def get_fuel_demand(self, idx: int | slice = np.s_[:]) -> dict[str, np.ndarray]:
         return slice_dict(self._fuel_demand, idx)
@@ -91,4 +118,4 @@ class FleetExpectation(_Expectation):
         return self._fuel_type_supply[fuel_type]
 
     def get_uptakes(self, idx: int) -> np.ndarray:
-        return self._uptakes[:, :(idx + 1)]
+        return self._uptakes[:, : (idx + 1)]

@@ -3,7 +3,8 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Iterable
+from collections.abc import Iterable
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -25,7 +26,9 @@ class RegulationExpectation(_PolicyExpectation):
 
         self._vessel_capacity: dict[str, np.ndarray] = {}
 
-    def initialize(self, length: int, emission_names: Iterable[str], vessels: dict[str, Vessel]) -> None:
+    def initialize(
+        self, length: int, emission_names: Iterable[str], vessels: dict[str, Vessel]
+    ) -> None:
         self._initialize_expectation(length)
         self._initialize_policy_expectation(emission_names)
 
@@ -37,21 +40,25 @@ class RegulationExpectation(_PolicyExpectation):
         self._vessel_capacity = self._default_dict_array(vessels)
 
     def reset_expected_bunkering(self) -> None:
-        self._flexibility_cost[:] = 0.
+        self._flexibility_cost[:] = 0.0
 
         for units in self._vessel_net_flexibility_units.values():
-            units[:] = 0.
+            units[:] = 0.0
 
     def set_flexibility_cost(self, idx: int, cost: float) -> None:
         self._flexibility_cost[idx] = cost
 
-    def set_vessel_net_flexibility_units(self, idx: int, vessel_name: str, units: float) -> None:
+    def set_vessel_net_flexibility_units(
+        self, idx: int, vessel_name: str, units: float
+    ) -> None:
         self._vessel_net_flexibility_units[vessel_name][idx] = units
 
     def set_remedial_cost(self, idx: int, cost: np.ndarray) -> None:
         self._remedial_cost[idx:] = cost
 
-    def set_vessel_capacity(self, idx: int, vessel_name: str, capacity: np.ndarray) -> None:
+    def set_vessel_capacity(
+        self, idx: int, vessel_name: str, capacity: np.ndarray
+    ) -> None:
         self._vessel_capacity[vessel_name][idx:] = capacity
 
     def get_flexibility_cost(self, idx: int | slice = np.s_[:]) -> float | np.ndarray:

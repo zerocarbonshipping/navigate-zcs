@@ -12,13 +12,20 @@ from scipy.optimize import minimize_scalar
 
 from navigate.core.enum_ import SpeedAlignmentID
 from navigate.core.nodes.vessel import Vessel
-from navigate.fleet.marginal_saving import calculate_marginal_speed_saving, get_smoothed_energy_duals_speed
+from navigate.fleet.marginal_saving import (
+    calculate_marginal_speed_saving,
+    get_smoothed_energy_duals_speed,
+)
 from navigate.fleet.operation import (
     calculate_operational_profile,
     transfer_operational_profile,
     transfer_operational_saving_to_vessels,
 )
-from navigate.fleet.power import calculate_speed_bounds, calculate_technical_speed_limits, loads_are_convex
+from navigate.fleet.power import (
+    calculate_speed_bounds,
+    calculate_technical_speed_limits,
+    loads_are_convex,
+)
 from navigate.fleet.utils import net_energy_from_raw
 from navigate.util import YEAR, to_numpy
 
@@ -31,19 +38,16 @@ logger = logging.getLogger(__name__)
 @dataclass
 class SpeedResult:
     vessel: Vessel
-    mu_ref: float = 0.
-    mu_optimal: float = 0.
+    mu_ref: float = 0.0
+    mu_optimal: float = 0.0
     deltas_ref: np.ndarray = field(default_factory=lambda: np.empty(0))
     speed_min: np.ndarray = field(default_factory=lambda: np.empty(0))
     speed_max: np.ndarray = field(default_factory=lambda: np.empty(0))
     distribution: np.ndarray = field(default_factory=lambda: np.empty(0))
-    maximum_change: float = 0.
+    maximum_change: float = 0.0
 
 
-def perform_speed_management(fleet: Fleet,
-                             time_step: float,
-                             idx: int
-                             ) -> None:
+def perform_speed_management(fleet: Fleet, time_step: float, idx: int) -> None:
     """
     Dynamically update the speed of each vessel in the fleet if speed management is allowed.
 
@@ -59,7 +63,6 @@ def perform_speed_management(fleet: Fleet,
     idx
         Current time-step index.
     """
-
     if not fleet.allow_speed_management:
         return
 
@@ -70,7 +73,9 @@ def perform_speed_management(fleet: Fleet,
     transfer_operational_saving_to_vessels(fleet)
 
     # phase 1: individual optimization
-    results = [_optimize_vessel_speed(vessel, maximum_change, idx) for vessel in fleet.vessels]
+    results = [
+        _optimize_vessel_speed(vessel, maximum_change, idx) for vessel in fleet.vessels
+    ]
 
     # anchor speed to reference if enabled
     if fleet.assume_reference_speed_optimal:
@@ -119,7 +124,6 @@ def _initialize_speed_anchor(result: SpeedResult) -> None:
     result
         SpeedResult from individual optimization.
     """
-
     speeds_reference = to_numpy(result.vessel.route.speeds)
     operations = calculate_operational_profile(result.vessel, speeds_reference)
     mu_route = float(np.average(speeds_reference, weights=operations.distribution))
@@ -142,17 +146,17 @@ def _shift_speed_to_anchor(result: SpeedResult) -> None:
     result
         SpeedResult from individual optimization.
     """
-
     expectation = result.vessel.expectation
     anchor_ref = expectation.get_speed_anchor_reference()
     anchor_opt = expectation.get_speed_anchor_optimal()
     result.mu_optimal = anchor_ref + (result.mu_optimal - anchor_opt)
 
 
-def _optimize_vessel_speed(vessel: Vessel,
-                           maximum_change: float,
-                           idx: int,
-                           ) -> SpeedResult:
+def _optimize_vessel_speed(
+    vessel: Vessel,
+    maximum_change: float,
+    idx: int,
+) -> SpeedResult:
     """
     Compute the individually optimal mean speed for a vessel.
 
@@ -174,10 +178,11 @@ def _optimize_vessel_speed(vessel: Vessel,
     SpeedResult
         Intermediate optimization result.
     """
-
     # calculate the reference deltas based
     # on the route's speed distribution
-    deltas_ref, distribution, speeds_reference = _calculate_reference_speed_deltas(vessel)
+    deltas_ref, distribution, speeds_reference = _calculate_reference_speed_deltas(
+        vessel
+    )
 
     expectation = vessel.expectation
 
@@ -203,8 +208,8 @@ def _optimize_vessel_speed(vessel: Vessel,
     # pre-compute operational saving factors outside the objective closure
     saving_fraction_sea = expectation.get_operational_saving_fraction_sea()
     saving_fraction_port = expectation.get_operational_saving_fraction_port()
-    factor_sea = {d: 1. - saving_fraction_sea[d] for d in saving_fraction_sea}
-    factor_port = {d: 1. - saving_fraction_port[d] for d in saving_fraction_port}
+    factor_sea = {d: 1.0 - saving_fraction_sea[d] for d in saving_fraction_sea}
+    factor_port = {d: 1.0 - saving_fraction_port[d] for d in saving_fraction_port}
 
     # smoothed scarcity duals are constant across objective evaluations,
     # so compute them once outside the closure
@@ -218,10 +223,14 @@ def _optimize_vessel_speed(vessel: Vessel,
 
         # apply operational savings (JIT, weather routing, etc.) to the
         # freshly computed energy before applying technology savings
-        energy_sea = {d: [e * factor_sea[d] for e in operations.energy_sea[d]]
-                      for d in operations.energy_sea}
-        energy_port = {d: [e * factor_port[d] for e in operations.energy_port[d]]
-                       for d in operations.energy_port}
+        energy_sea = {
+            d: [e * factor_sea[d] for e in operations.energy_sea[d]]
+            for d in operations.energy_sea
+        }
+        energy_port = {
+            d: [e * factor_port[d] for e in operations.energy_port[d]]
+            for d in operations.energy_port
+        }
 
         # the energy needs to account for the impact of the current
         # technology uptake since the comparison occurs relative to
@@ -233,21 +242,20 @@ def _optimize_vessel_speed(vessel: Vessel,
 
         # calculate the residual fuel cost after
         # accounting for the saved amount
-        fuel_saving = calculate_marginal_speed_saving(vessel,
-                                                      residual_energy_sea,
-                                                      residual_energy_port,
-                                                      idx,
-                                                      smoothed_duals=smoothed_duals)
+        fuel_saving = calculate_marginal_speed_saving(
+            vessel,
+            residual_energy_sea,
+            residual_energy_port,
+            idx,
+            smoothed_duals=smoothed_duals,
+        )
 
         fuel_cost = fuel_ref - fuel_saving
 
         return (fuel_cost + charter_rate) / operations.cargo_miles
 
     sol = minimize_scalar(
-        objective,
-        bounds=(mu_low, mu_high),
-        method="bounded",
-        options={"xatol": 0.1}
+        objective, bounds=(mu_low, mu_high), method="bounded", options={"xatol": 0.1}
     )
 
     mu_optimal = float(sol.x)
@@ -264,10 +272,7 @@ def _optimize_vessel_speed(vessel: Vessel,
     )
 
 
-def _finalize_vessel_speed(result: SpeedResult,
-                           mu_target: float,
-                           idx: int
-                           ) -> None:
+def _finalize_vessel_speed(result: SpeedResult, mu_target: float, idx: int) -> None:
     """
     Apply the target mean speed to a vessel, transfer the operational profile, and store results.
 
@@ -280,13 +285,16 @@ def _finalize_vessel_speed(result: SpeedResult,
     idx
         Current time-step index.
     """
-
     vessel = result.vessel
     mu_actual = _update_mean_speed(result.mu_ref, mu_target, result.maximum_change)
 
     # realized per-leg speeds at idx
-    speeds_actual = _mean_to_speeds(mu_actual, result.deltas_ref, result.speed_min, result.speed_max)
-    speeds_optimal = _mean_to_speeds(mu_target, result.deltas_ref, result.speed_min, result.speed_max)
+    speeds_actual = _mean_to_speeds(
+        mu_actual, result.deltas_ref, result.speed_min, result.speed_max
+    )
+    speeds_optimal = _mean_to_speeds(
+        mu_target, result.deltas_ref, result.speed_min, result.speed_max
+    )
 
     # transfer the updated operational
     # profile to expectations and profile
@@ -298,8 +306,12 @@ def _finalize_vessel_speed(result: SpeedResult,
     profile = vessel.profile
     profile.set_minimum_speed(idx, np.min(result.speed_min))
     profile.set_maximum_speed(idx, np.max(result.speed_max))
-    profile.set_actual_speed(idx, np.average(speeds_actual, weights=result.distribution))
-    profile.set_optimal_speed(idx, np.average(speeds_optimal, weights=result.distribution))
+    profile.set_actual_speed(
+        idx, np.average(speeds_actual, weights=result.distribution)
+    )
+    profile.set_optimal_speed(
+        idx, np.average(speeds_optimal, weights=result.distribution)
+    )
     profile.set_lowest_speed(idx, np.min(speeds_actual))
     profile.set_highest_speed(idx, np.max(speeds_actual))
 
@@ -309,10 +321,14 @@ def _finalize_vessel_speed(result: SpeedResult,
     # This will most likely be the case if the load functions are
     # convex. So, a warning is issued if they are not
     if not loads_are_convex(vessel):
-        logger.warning(f"{vessel}: Does not have convex load functions which may lead to suboptimal speed management results.")
+        logger.warning(
+            f"{vessel}: Does not have convex load functions which may lead to suboptimal speed management results."
+        )
 
 
-def _calculate_reference_speed_deltas(vessel: Vessel) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+def _calculate_reference_speed_deltas(
+    vessel: Vessel,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
     Calculate the reference speed deltas per leg based on the route's speed distribution.
 
@@ -330,7 +346,6 @@ def _calculate_reference_speed_deltas(vessel: Vessel) -> tuple[np.ndarray, np.nd
     tuple[np.ndarray, np.ndarray, np.ndarray]
         Speed deltas per leg, distribution of time spent at each leg, expected speeds at each leg.
     """
-
     speeds_reference = to_numpy(vessel.route.speeds)
 
     # calculate an operational profile in order to
@@ -343,11 +358,9 @@ def _calculate_reference_speed_deltas(vessel: Vessel) -> tuple[np.ndarray, np.nd
     return deltas, operations.distribution, speeds_reference
 
 
-def _mean_to_speeds(mu: float,
-                    deltas_ref: np.ndarray,
-                    speeds_min: np.ndarray,
-                    speeds_max: np.ndarray
-                    ) -> np.ndarray:
+def _mean_to_speeds(
+    mu: float, deltas_ref: np.ndarray, speeds_min: np.ndarray, speeds_max: np.ndarray
+) -> np.ndarray:
     """
     Convert the mean speed into a speed per leg based on the reference speed deltas.
     The speeds per leg adheres to the given minimum and maximum speeds.
@@ -368,7 +381,6 @@ def _mean_to_speeds(mu: float,
     np.ndarray
         Speed per leg.
     """
-
     return np.clip(mu + deltas_ref, speeds_min, speeds_max)
 
 

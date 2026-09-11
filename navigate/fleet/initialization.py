@@ -19,7 +19,11 @@ from navigate.fleet.technology_adoption import (
     transfer_technology_uptake,
     update_residual_energy_demand,
 )
-from navigate.fleet.utils import calculate_projected_multipliers, define_initial_split, define_initial_trade
+from navigate.fleet.utils import (
+    calculate_projected_multipliers,
+    define_initial_split,
+    define_initial_trade,
+)
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
@@ -39,7 +43,6 @@ def initialize_existing_fleet(fleet: Fleet, timeline: np.ndarray) -> None:
     timeline
         Simulation timeline.
     """
-
     for vessel in fleet.assets:
         vessel.set_fleet_assignment(fleet.name)
 
@@ -49,7 +52,9 @@ def initialize_existing_fleet(fleet: Fleet, timeline: np.ndarray) -> None:
     # build the technology packages and their cost flows; the cost flows
     # must exist before the initial technology uptake is seeded, since the
     # seeding levelizes them into the carried technology charter rate
-    fleet.technology_packages, fleet.package_to_technology_map = build_technology_packages(fleet.technologies)
+    fleet.technology_packages, fleet.package_to_technology_map = (
+        build_technology_packages(fleet.technologies)
+    )
     preprocess_packages(fleet.technology_packages, fleet.assets, timeline[idx])
 
     # existing fleet; the initial split must be defined before the
@@ -73,7 +78,9 @@ def initialize_existing_fleet(fleet: Fleet, timeline: np.ndarray) -> None:
     # which is used to calculate fair-share emissions
     # for fleet level and global regulations
     multipliers = sum(fleet.get_multipliers())
-    fleet.projected_multipliers = calculate_projected_multipliers(multipliers, fleet.trade)
+    fleet.projected_multipliers = calculate_projected_multipliers(
+        multipliers, fleet.trade
+    )
 
     # calculate the initial effect from technology
     update_residual_energy_demand(fleet, idx)

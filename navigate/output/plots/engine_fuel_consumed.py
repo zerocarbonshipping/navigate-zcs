@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 import numpy as np
 
 from navigate.output.plots._aggregate import (
@@ -28,19 +30,28 @@ def plot_engine_fuel_consumed(manager, directory):
     engine_fuel_consumed = manager.profile.get_converter_energy()
 
     for consumed in engine_fuel_consumed.values():
-        remove_below_threshold(consumed, 1.)
+        remove_below_threshold(consumed, 1.0)
 
-    engine_fuel_consumed = {fuel_type: consumed for fuel_type, consumed in engine_fuel_consumed.items() if consumed}
+    engine_fuel_consumed = {
+        fuel_type: consumed
+        for fuel_type, consumed in engine_fuel_consumed.items()
+        if consumed
+    }
 
-    max_ = max(np.amax(sum(list(consumed.values()))) for consumed in engine_fuel_consumed.values())
+    max_ = max(
+        np.amax(sum(list(consumed.values())))
+        for consumed in engine_fuel_consumed.values()
+    )
     divisor, unit = get_best_unit_energy(max_, default=9)
 
     fig, axes = subplot_grid(len(engine_fuel_consumed))
 
     for ax, fuel_type in zip(axes, engine_fuel_consumed):
-
         fuel_consumed = engine_fuel_consumed[fuel_type]
-        fuel_consumed = {fuel_name: consumed / divisor for fuel_name, consumed in fuel_consumed.items()}
+        fuel_consumed = {
+            fuel_name: consumed / divisor
+            for fuel_name, consumed in fuel_consumed.items()
+        }
 
         # merge into required fuels
         values, labels, colors = merge_fuels_for_plot(dateline, fuels, fuel_consumed)
@@ -51,11 +62,11 @@ def plot_engine_fuel_consumed(manager, directory):
 
             legend = ax.legend(stack[::-1], labels[::-1], **LEGEND_OPTIONS)
 
-        ax.set_ylabel('Fuel consumed [{}]'.format(unit))
+        ax.set_ylabel(f"Fuel consumed [{unit}]")
 
-        ax.set_title('{} vessels'.format(FUEL_TYPE_LABEL[fuel_type]))
+        ax.set_title(f"{FUEL_TYPE_LABEL[fuel_type]} vessels")
         format_axes(ax, len(engine_fuel_consumed), dateline, legend)
 
     trim_axes(axes, len(engine_fuel_consumed))
 
-    save_figure(fig, directory, 'engine_fuel_consumed.png')
+    save_figure(fig, directory, "engine_fuel_consumed.png")

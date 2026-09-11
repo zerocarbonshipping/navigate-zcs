@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 from navigate.core.assign import assign_value
 from navigate.core.general_nodes._general_node import _GeneralNode
 from navigate.exceptions import DeckKeywordError
@@ -29,7 +31,6 @@ class ModelDefinition(_GeneralNode):
         start_date : np.datetime64
             Assignment read from input deck.
         """
-
         self.start_date = assign_value(start_date, scalar=False, date=True)
 
     def set_emissions_lifetime(self, emissions_lifetime):
@@ -45,14 +46,15 @@ class ModelDefinition(_GeneralNode):
         emissions_lifetime : float
             Assignment read from input deck.
         """
-
-        self.emissions_lifetime = assign_value(emissions_lifetime, lower=0.)
+        self.emissions_lifetime = assign_value(emissions_lifetime, lower=0.0)
 
     # internal methods -------------------------------------------------------------------------------------------------
     def initialize(self):
 
         if self.start_date is None:
-            raise DeckKeywordError("Error in ModelDefinition: 'StartDate' must be defined.")
+            raise DeckKeywordError(
+                "Error in ModelDefinition: 'StartDate' must be defined."
+            )
 
         if self.emissions_lifetime is None:
-            self.emissions_lifetime = 100.
+            self.emissions_lifetime = 100.0

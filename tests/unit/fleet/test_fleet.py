@@ -2,6 +2,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """Unit tests for Fleet module-level helper functions."""
+
+from __future__ import annotations
+
 from unittest.mock import MagicMock
 
 import numpy as np
@@ -13,7 +16,11 @@ from navigate.core.increment import Increment
 from navigate.core.node_type import FLEET, VESSEL
 from navigate.core.nodes.fleet import Fleet
 from navigate.fleet import planning as fleet_planning
-from navigate.fleet.conversion import _ConversionCandidate, _ConversionProposal, reconcile_fuel_conversion_caps
+from navigate.fleet.conversion import (
+    _ConversionCandidate,
+    _ConversionProposal,
+    reconcile_fuel_conversion_caps,
+)
 from navigate.fleet.planning import (
     calculate_modelled_newbuilds,
     calculate_modelled_uptake,
@@ -52,18 +59,22 @@ def _make_vessel(name):
 # Module-level helper functions
 # ---------------------------------------------------------------------------
 
+
 class TestIsRetrofitCycle:
     """Test _is_retrofit_cycle standalone function."""
 
-    @pytest.mark.parametrize("age, frequency, dt, expected", [
-        (0.0, 5.0, 1.0, False),
-        (1.0, 5.0, 1.0, False),
-        (5.0, 5.0, 1.0, True),
-        (10.0, 5.0, 1.0, True),
-        (3.0, 5.0, 1.0, False),
-        # age == time_step means vessel just entered, should not retrofit
-        (1.0, 1.0, 1.0, False),
-    ])
+    @pytest.mark.parametrize(
+        "age, frequency, dt, expected",
+        [
+            (0.0, 5.0, 1.0, False),
+            (1.0, 5.0, 1.0, False),
+            (5.0, 5.0, 1.0, True),
+            (10.0, 5.0, 1.0, True),
+            (3.0, 5.0, 1.0, False),
+            # age == time_step means vessel just entered, should not retrofit
+            (1.0, 1.0, 1.0, False),
+        ],
+    )
     def test_cycle(self, age, frequency, dt, expected):
         assert is_retrofit_cycle(age, frequency, dt) is expected
 
@@ -71,11 +82,14 @@ class TestIsRetrofitCycle:
 class TestCalculateProjectedMultipliers:
     """Test _calculate_projected_multipliers."""
 
-    @pytest.mark.parametrize("multiplier, trade, expected", [
-        (50., [100., 100., 100.], [50., 50., 50.]),
-        (10., [100., 200.], [10., 20.]),
-        (20., [50.], [20.]),
-    ])
+    @pytest.mark.parametrize(
+        "multiplier, trade, expected",
+        [
+            (50.0, [100.0, 100.0, 100.0], [50.0, 50.0, 50.0]),
+            (10.0, [100.0, 200.0], [10.0, 20.0]),
+            (20.0, [50.0], [20.0]),
+        ],
+    )
     def test_scales_with_trade(self, multiplier, trade, expected):
         result = calculate_projected_multipliers(multiplier, np.array(trade))
         np.testing.assert_array_almost_equal(result, expected)
@@ -84,24 +98,32 @@ class TestCalculateProjectedMultipliers:
 class TestCalculateIncrements:
     """Test _calculate_increments."""
 
-    @pytest.mark.parametrize("uptakes, cargo_miles, trade_gap, expected", [
-        ([0.5, 0.5], [100., 100.], 1000., [5., 5.]),
-        ([1.0], [200.], 1000., [5.]),
-        ([0.5, 0.5], [100., 100.], 0., [0., 0.]),
-    ])
+    @pytest.mark.parametrize(
+        "uptakes, cargo_miles, trade_gap, expected",
+        [
+            ([0.5, 0.5], [100.0, 100.0], 1000.0, [5.0, 5.0]),
+            ([1.0], [200.0], 1000.0, [5.0]),
+            ([0.5, 0.5], [100.0, 100.0], 0.0, [0.0, 0.0]),
+        ],
+    )
     def test_increments(self, uptakes, cargo_miles, trade_gap, expected):
-        result = calculate_increments(np.array(uptakes), np.array(cargo_miles), trade_gap)
+        result = calculate_increments(
+            np.array(uptakes), np.array(cargo_miles), trade_gap
+        )
         np.testing.assert_array_almost_equal(result, expected)
 
 
 class TestGetRemainingLifetime:
     """Test _get_remaining_lifetime."""
 
-    @pytest.mark.parametrize("age, expected", [
-        (0.0, 24),
-        (24.0, 0),
-        (30.0, 0),
-    ])
+    @pytest.mark.parametrize(
+        "age, expected",
+        [
+            (0.0, 24),
+            (24.0, 0),
+            (30.0, 0),
+        ],
+    )
     def test_remaining(self, age, expected):
         vessel = _make_vessel("v")
         vessel.lifetime = Scalar(25)
@@ -111,20 +133,40 @@ class TestGetRemainingLifetime:
 class TestNetEnergyFromRaw:
     """Test net_energy_from_raw."""
 
-    @pytest.mark.parametrize("raw, sav, expected", [
-        ({EnergyDemandTypeID.PROPULSION: [100., 200.]},
-         {EnergyDemandTypeID.PROPULSION: [0., 0.]},
-         {EnergyDemandTypeID.PROPULSION: [100., 200.]}),
-        ({EnergyDemandTypeID.PROPULSION: [100., 200.]},
-         {EnergyDemandTypeID.PROPULSION: [0.5, 0.5]},
-         {EnergyDemandTypeID.PROPULSION: [50., 100.]}),
-        ({EnergyDemandTypeID.PROPULSION: [100.]},
-         {EnergyDemandTypeID.PROPULSION: [1.0]},
-         {EnergyDemandTypeID.PROPULSION: [0.]}),
-        ({EnergyDemandTypeID.PROPULSION: [100.], EnergyDemandTypeID.ELECTRICAL: [50.]},
-         {EnergyDemandTypeID.PROPULSION: [0.1], EnergyDemandTypeID.ELECTRICAL: [0.2]},
-         {EnergyDemandTypeID.PROPULSION: [90.], EnergyDemandTypeID.ELECTRICAL: [40.]}),
-    ])
+    @pytest.mark.parametrize(
+        "raw, sav, expected",
+        [
+            (
+                {EnergyDemandTypeID.PROPULSION: [100.0, 200.0]},
+                {EnergyDemandTypeID.PROPULSION: [0.0, 0.0]},
+                {EnergyDemandTypeID.PROPULSION: [100.0, 200.0]},
+            ),
+            (
+                {EnergyDemandTypeID.PROPULSION: [100.0, 200.0]},
+                {EnergyDemandTypeID.PROPULSION: [0.5, 0.5]},
+                {EnergyDemandTypeID.PROPULSION: [50.0, 100.0]},
+            ),
+            (
+                {EnergyDemandTypeID.PROPULSION: [100.0]},
+                {EnergyDemandTypeID.PROPULSION: [1.0]},
+                {EnergyDemandTypeID.PROPULSION: [0.0]},
+            ),
+            (
+                {
+                    EnergyDemandTypeID.PROPULSION: [100.0],
+                    EnergyDemandTypeID.ELECTRICAL: [50.0],
+                },
+                {
+                    EnergyDemandTypeID.PROPULSION: [0.1],
+                    EnergyDemandTypeID.ELECTRICAL: [0.2],
+                },
+                {
+                    EnergyDemandTypeID.PROPULSION: [90.0],
+                    EnergyDemandTypeID.ELECTRICAL: [40.0],
+                },
+            ),
+        ],
+    )
     def test_savings_applied_per_energy_type(self, raw, sav, expected):
         result = net_energy_from_raw(raw, sav)
         assert set(result) == set(expected)
@@ -135,6 +177,7 @@ class TestNetEnergyFromRaw:
 # ---------------------------------------------------------------------------
 # Technology cap reconciliation (per-year flow caps)
 # ---------------------------------------------------------------------------
+
 
 def _make_technology(name: str):
     t = MagicMock()
@@ -161,28 +204,53 @@ def _make_fleet_with_technologies(technology_names: list[str]) -> Fleet:
 # Fuel-conversion cap reconciliation
 # ---------------------------------------------------------------------------
 
-def _make_fleet_for_cap(pair_limits: dict[tuple[str, str], float] | None = None) -> Fleet:
+
+def _make_fleet_for_cap(
+    pair_limits: dict[tuple[str, str], float] | None = None,
+) -> Fleet:
     """
     Build a Fleet stub configured just for `reconcile_fuel_conversion_caps`. The cap is now a
     fraction-of-fleet-per-year per (from, to) pair; missing pairs default to Scalar(1.) (unlimited).
     """
     fleet = Fleet.__new__(Fleet)
-    fleet.fuel_conversion_limit = {pair: Scalar(limit) for pair, limit in (pair_limits or {}).items()}
+    fleet.fuel_conversion_limit = {
+        pair: Scalar(limit) for pair, limit in (pair_limits or {}).items()
+    }
     return fleet
 
 
-def _proposals(items: dict[tuple[str, int], dict[str, float]]) -> list[_ConversionProposal]:
-    """items maps (name_from, increment_idx) -> {name_to: count}; wraps into the proposal shape."""
-    return [_ConversionProposal(name_from, increment_idx, 0., 1.,
-                                {name_to: _ConversionCandidate(metric=0., limit=1., energy_per_vessel=0.,
-                                                               charge=0., window=0., count=count)
-                                 for name_to, count in conversions.items()})
-            for (name_from, increment_idx), conversions in items.items()]
+def _proposals(
+    items: dict[tuple[str, int], dict[str, float]],
+) -> list[_ConversionProposal]:
+    """Items maps (name_from, increment_idx) -> {name_to: count}; wraps into the proposal shape."""
+    return [
+        _ConversionProposal(
+            name_from,
+            increment_idx,
+            0.0,
+            1.0,
+            {
+                name_to: _ConversionCandidate(
+                    metric=0.0,
+                    limit=1.0,
+                    energy_per_vessel=0.0,
+                    charge=0.0,
+                    window=0.0,
+                    count=count,
+                )
+                for name_to, count in conversions.items()
+            },
+        )
+        for (name_from, increment_idx), conversions in items.items()
+    ]
 
 
 def _conv_total(proposals: list[_ConversionProposal], pair: tuple[str, str]) -> float:
-    return sum(proposal.candidates[pair[1]].count for proposal in proposals
-               if proposal.name_from == pair[0] and pair[1] in proposal.candidates)
+    return sum(
+        proposal.candidates[pair[1]].count
+        for proposal in proposals
+        if proposal.name_from == pair[0] and pair[1] in proposal.candidates
+    )
 
 
 class TestReconcileFuelConversionCaps:
@@ -190,66 +258,91 @@ class TestReconcileFuelConversionCaps:
 
     def test_no_pair_limit_no_op(self):
         # All limits at default 1.0 (100% of fleet/yr) ⇒ proposals untouched.
-        fleet = _make_fleet_for_cap(pair_limits={('x', 'y'): 1.0, ('x', 'z'): 1.0})
-        proposals = _proposals({('x', 0): {'y': 3., 'z': 2.}})
-        reconcile_fuel_conversion_caps(fleet, proposals, time_step=YEAR, existing_total=100.)
-        np.testing.assert_almost_equal(_conv_total(proposals, ('x', 'y')), 3.)
-        np.testing.assert_almost_equal(_conv_total(proposals, ('x', 'z')), 2.)
+        fleet = _make_fleet_for_cap(pair_limits={("x", "y"): 1.0, ("x", "z"): 1.0})
+        proposals = _proposals({("x", 0): {"y": 3.0, "z": 2.0}})
+        reconcile_fuel_conversion_caps(
+            fleet, proposals, time_step=YEAR, existing_total=100.0
+        )
+        np.testing.assert_almost_equal(_conv_total(proposals, ("x", "y")), 3.0)
+        np.testing.assert_almost_equal(_conv_total(proposals, ("x", "z")), 2.0)
 
     def test_pair_cap_binds(self):
         # 100 vessels, x→y limited to 0.05 ⇒ pair_cap = 5/yr. Proposed 8 → 5; x→z (limit 1.0) untouched.
-        fleet = _make_fleet_for_cap(pair_limits={('x', 'y'): 0.05, ('x', 'z'): 1.0})
-        proposals = _proposals({('x', 0): {'y': 8., 'z': 1.}})
-        reconcile_fuel_conversion_caps(fleet, proposals, time_step=YEAR, existing_total=100.)
-        np.testing.assert_almost_equal(_conv_total(proposals, ('x', 'y')), 5.)
-        np.testing.assert_almost_equal(_conv_total(proposals, ('x', 'z')), 1.)
+        fleet = _make_fleet_for_cap(pair_limits={("x", "y"): 0.05, ("x", "z"): 1.0})
+        proposals = _proposals({("x", 0): {"y": 8.0, "z": 1.0}})
+        reconcile_fuel_conversion_caps(
+            fleet, proposals, time_step=YEAR, existing_total=100.0
+        )
+        np.testing.assert_almost_equal(_conv_total(proposals, ("x", "y")), 5.0)
+        np.testing.assert_almost_equal(_conv_total(proposals, ("x", "z")), 1.0)
 
     def test_pair_caps_independent(self):
         # Per-pair caps are independent: each lane is checked in isolation, no global pool.
-        fleet = _make_fleet_for_cap(pair_limits={('x', 'y'): 0.04, ('x', 'z'): 0.03})
-        proposals = _proposals({('x', 0): {'y': 8., 'z': 9.}})
-        reconcile_fuel_conversion_caps(fleet, proposals, time_step=YEAR, existing_total=100.)
-        np.testing.assert_almost_equal(_conv_total(proposals, ('x', 'y')), 4.)
-        np.testing.assert_almost_equal(_conv_total(proposals, ('x', 'z')), 3.)
+        fleet = _make_fleet_for_cap(pair_limits={("x", "y"): 0.04, ("x", "z"): 0.03})
+        proposals = _proposals({("x", 0): {"y": 8.0, "z": 9.0}})
+        reconcile_fuel_conversion_caps(
+            fleet, proposals, time_step=YEAR, existing_total=100.0
+        )
+        np.testing.assert_almost_equal(_conv_total(proposals, ("x", "y")), 4.0)
+        np.testing.assert_almost_equal(_conv_total(proposals, ("x", "z")), 3.0)
 
     def test_pair_cap_aggregates_across_increments(self):
         # Same pair (x→y) appears in two different increments — pair-cap binds on the sum.
-        fleet = _make_fleet_for_cap(pair_limits={('x', 'y'): 0.05})
+        fleet = _make_fleet_for_cap(pair_limits={("x", "y"): 0.05})
         # Two increments of x→y: 4 and 6. Sum=10 > pair_cap=5 ⇒ scale 0.5 each.
-        proposals = _proposals({('x', 0): {'y': 4.}, ('x', 1): {'y': 6.}})
-        reconcile_fuel_conversion_caps(fleet, proposals, time_step=YEAR, existing_total=100.)
-        np.testing.assert_almost_equal(proposals[0].candidates['y'].count, 2.)
-        np.testing.assert_almost_equal(proposals[1].candidates['y'].count, 3.)
+        proposals = _proposals({("x", 0): {"y": 4.0}, ("x", 1): {"y": 6.0}})
+        reconcile_fuel_conversion_caps(
+            fleet, proposals, time_step=YEAR, existing_total=100.0
+        )
+        np.testing.assert_almost_equal(proposals[0].candidates["y"].count, 2.0)
+        np.testing.assert_almost_equal(proposals[1].candidates["y"].count, 3.0)
 
     def test_time_step_scales_budget(self):
         # 5-year time_step with pair_limit=0.1 ⇒ pair_cap = 0.5 × 100 = 50.
-        fleet = _make_fleet_for_cap(pair_limits={('x', 'y'): 0.1})
-        proposals = _proposals({('x', 0): {'y': 60.}})
-        reconcile_fuel_conversion_caps(fleet, proposals, time_step=5.0 * YEAR, existing_total=100.)
-        np.testing.assert_almost_equal(_conv_total(proposals, ('x', 'y')), 50.)
+        fleet = _make_fleet_for_cap(pair_limits={("x", "y"): 0.1})
+        proposals = _proposals({("x", 0): {"y": 60.0}})
+        reconcile_fuel_conversion_caps(
+            fleet, proposals, time_step=5.0 * YEAR, existing_total=100.0
+        )
+        np.testing.assert_almost_equal(_conv_total(proposals, ("x", "y")), 50.0)
 
     def test_zero_existing_no_op(self):
         # Empty fleet ⇒ early return, proposals untouched.
-        fleet = _make_fleet_for_cap(pair_limits={('x', 'y'): 0.1})
-        proposals = _proposals({('x', 0): {'y': 5.}})
-        reconcile_fuel_conversion_caps(fleet, proposals, time_step=YEAR, existing_total=0.)
-        np.testing.assert_almost_equal(proposals[0].candidates['y'].count, 5.)
+        fleet = _make_fleet_for_cap(pair_limits={("x", "y"): 0.1})
+        proposals = _proposals({("x", 0): {"y": 5.0}})
+        reconcile_fuel_conversion_caps(
+            fleet, proposals, time_step=YEAR, existing_total=0.0
+        )
+        np.testing.assert_almost_equal(proposals[0].candidates["y"].count, 5.0)
 
 
 # ---------------------------------------------------------------------------
 # Retrofit-technology cap reconciliation
 # ---------------------------------------------------------------------------
 
-def _make_fleet_for_retrofit(technology_names: list[str], retrofit_limits: dict[str, float],
-                             multiplier_increments: list[np.ndarray]) -> Fleet:
+
+def _make_fleet_for_retrofit(
+    technology_names: list[str],
+    retrofit_limits: dict[str, float],
+    multiplier_increments: list[np.ndarray],
+) -> Fleet:
     fleet = _make_fleet_with_technologies(technology_names)
-    fleet.retrofit_technology_limit = {n: Scalar(retrofit_limits.get(n, 1.0)) for n in technology_names}
+    fleet.retrofit_technology_limit = {
+        n: Scalar(retrofit_limits.get(n, 1.0)) for n in technology_names
+    }
     # Default: every increment fully at package 0 (current = 1.0 for package_idx=0 proposals). Tests
     # that exercise stratified vessels overwrite the package_uptake on a specific Increment directly.
     n_packages = len(technology_names) + 1
     fleet.increments = [
-        [Increment(multiplier=float(m), age=0., dt=1., package_uptake=_package_at_zero(n_packages))
-         for m in counts]
+        [
+            Increment(
+                multiplier=float(m),
+                age=0.0,
+                dt=1.0,
+                package_uptake=_package_at_zero(n_packages),
+            )
+            for m in counts
+        ]
         for counts in multiplier_increments
     ]
     return fleet
@@ -258,20 +351,32 @@ def _make_fleet_for_retrofit(technology_names: list[str], retrofit_limits: dict[
 def _package_at_zero(n_packages: int) -> np.ndarray:
     """Package-uptake vector with all mass at package 0 — i.e., no technology installed yet."""
     arr = np.zeros(n_packages)
-    arr[0] = 1.
+    arr[0] = 1.0
     return arr
 
 
-def _proposal(fleet: Fleet, vessel_idx: int, age_idx: int, package_idx: int,
-              choices: np.ndarray, current: float) -> _RetrofitProposal:
+def _proposal(
+    fleet: Fleet,
+    vessel_idx: int,
+    age_idx: int,
+    package_idx: int,
+    choices: np.ndarray,
+    current: float,
+) -> _RetrofitProposal:
     """Build a retrofit proposal with zero levelized annual costs per step."""
-    return _RetrofitProposal(vessel_idx, fleet.increments[vessel_idx][age_idx], package_idx,
-                             choices, current, np.zeros_like(choices))
+    return _RetrofitProposal(
+        vessel_idx,
+        fleet.increments[vessel_idx][age_idx],
+        package_idx,
+        choices,
+        current,
+        np.zeros_like(choices),
+    )
 
 
 def _retrofit_count(proposals: list, sorted_idx: int) -> float:
     """Sum the eligibility-weighted retrofit shares adding the technology at `sorted_idx` across proposals."""
-    total = 0.
+    total = 0.0
     for proposal in proposals:
         if proposal.package_idx > sorted_idx:
             continue
@@ -289,55 +394,80 @@ class TestReconcileRetrofitTechnologyCaps:
 
     def test_no_cap_no_op(self):
         # Defaults at 1.0/yr ⇒ proposals untouched.
-        fleet = _make_fleet_for_retrofit(["A", "B"], {}, [np.array([10.])])
-        proposals = [_proposal(fleet, 0, 0, 0, np.array([0.2, 0.3, 0.5]), 1.)]
+        fleet = _make_fleet_for_retrofit(["A", "B"], {}, [np.array([10.0])])
+        proposals = [_proposal(fleet, 0, 0, 0, np.array([0.2, 0.3, 0.5]), 1.0)]
         before = proposals[0].choices.copy()
-        _reconcile_retrofit_technology_caps(fleet, proposals, time_step=YEAR, multipliers_total=100.)
+        _reconcile_retrofit_technology_caps(
+            fleet, proposals, time_step=YEAR, multipliers_total=100.0
+        )
         np.testing.assert_array_almost_equal(proposals[0].choices, before)
 
     def test_cap_binds(self):
         # A capped at 0.05 (5/yr against y=100); proposed retrofits-to-A = (0.3+0.5)*10 = 8 ⇒ scale to 5.
-        fleet = _make_fleet_for_retrofit(["A", "B"], {"A": 0.05, "B": 1.0}, [np.array([10.])])
-        proposals = [_proposal(fleet, 0, 0, 0, np.array([0.2, 0.3, 0.5]), 1.)]
-        _reconcile_retrofit_technology_caps(fleet, proposals, time_step=YEAR, multipliers_total=100.)
-        np.testing.assert_almost_equal(_retrofit_count(proposals, 0) * 10., 5.)
-        np.testing.assert_almost_equal(np.sum(proposals[0].choices), 1.)  # still sums to 1
+        fleet = _make_fleet_for_retrofit(
+            ["A", "B"], {"A": 0.05, "B": 1.0}, [np.array([10.0])]
+        )
+        proposals = [_proposal(fleet, 0, 0, 0, np.array([0.2, 0.3, 0.5]), 1.0)]
+        _reconcile_retrofit_technology_caps(
+            fleet, proposals, time_step=YEAR, multipliers_total=100.0
+        )
+        np.testing.assert_almost_equal(_retrofit_count(proposals, 0) * 10.0, 5.0)
+        np.testing.assert_almost_equal(
+            np.sum(proposals[0].choices), 1.0
+        )  # still sums to 1
 
     def test_caps_independent(self):
         # B at index 1 capped at 0.02 (2/yr); A unconstrained.
         # Proposed B = 0.5 * 10 = 5 → scale to 2 (factor 0.4); proposed A only on choices[1:] still.
-        fleet = _make_fleet_for_retrofit(["A", "B"], {"A": 1.0, "B": 0.02}, [np.array([10.])])
-        proposals = [_proposal(fleet, 0, 0, 0, np.array([0.2, 0.3, 0.5]), 1.)]
-        _reconcile_retrofit_technology_caps(fleet, proposals, time_step=YEAR, multipliers_total=100.)
+        fleet = _make_fleet_for_retrofit(
+            ["A", "B"], {"A": 1.0, "B": 0.02}, [np.array([10.0])]
+        )
+        proposals = [_proposal(fleet, 0, 0, 0, np.array([0.2, 0.3, 0.5]), 1.0)]
+        _reconcile_retrofit_technology_caps(
+            fleet, proposals, time_step=YEAR, multipliers_total=100.0
+        )
         # B (sorted_idx=1) is at 2.
-        np.testing.assert_almost_equal(_retrofit_count(proposals, 1) * 10., 2.)
+        np.testing.assert_almost_equal(_retrofit_count(proposals, 1) * 10.0, 2.0)
 
     def test_aggregates_across_proposals(self):
         # Two proposals from package_idx=0 with multipliers 4 and 6; A cap 0.05 (5/yr).
         # Proposed A across proposals = 0.8*4 + 0.8*6 = 8 ⇒ each scaled by 5/8.
-        fleet = _make_fleet_for_retrofit(["A", "B"], {"A": 0.05}, [np.array([4., 6.])])
+        fleet = _make_fleet_for_retrofit(
+            ["A", "B"], {"A": 0.05}, [np.array([4.0, 6.0])]
+        )
         proposals = [
-            _proposal(fleet, 0, 0, 0, np.array([0.2, 0.3, 0.5]), 1.),
-            _proposal(fleet, 0, 1, 0, np.array([0.2, 0.3, 0.5]), 1.),
+            _proposal(fleet, 0, 0, 0, np.array([0.2, 0.3, 0.5]), 1.0),
+            _proposal(fleet, 0, 1, 0, np.array([0.2, 0.3, 0.5]), 1.0),
         ]
-        _reconcile_retrofit_technology_caps(fleet, proposals, time_step=YEAR, multipliers_total=100.)
+        _reconcile_retrofit_technology_caps(
+            fleet, proposals, time_step=YEAR, multipliers_total=100.0
+        )
         # Aggregate A across both: 0.8*5/8*(4+6) = 5
-        agg_a = (np.sum(proposals[0].choices[1:]) * 4. + np.sum(proposals[1].choices[1:]) * 6.)
-        np.testing.assert_almost_equal(agg_a, 5.)
+        agg_a = (
+            np.sum(proposals[0].choices[1:]) * 4.0
+            + np.sum(proposals[1].choices[1:]) * 6.0
+        )
+        np.testing.assert_almost_equal(agg_a, 5.0)
 
     def test_time_step_scales_budget(self):
         # 5-year time_step with limit 0.05 ⇒ cap = 0.05 * 100 * 5 = 25.
-        fleet = _make_fleet_for_retrofit(["A"], {"A": 0.05}, [np.array([100.])])
-        proposals = [_proposal(fleet, 0, 0, 0, np.array([0.5, 0.5]), 1.)]  # 50 retrofits-to-A unconstrained
-        _reconcile_retrofit_technology_caps(fleet, proposals, time_step=5.0 * YEAR, multipliers_total=100.)
-        agg_a = np.sum(proposals[0].choices[1:]) * 100.
-        np.testing.assert_almost_equal(agg_a, 25.)
+        fleet = _make_fleet_for_retrofit(["A"], {"A": 0.05}, [np.array([100.0])])
+        proposals = [
+            _proposal(fleet, 0, 0, 0, np.array([0.5, 0.5]), 1.0)
+        ]  # 50 retrofits-to-A unconstrained
+        _reconcile_retrofit_technology_caps(
+            fleet, proposals, time_step=5.0 * YEAR, multipliers_total=100.0
+        )
+        agg_a = np.sum(proposals[0].choices[1:]) * 100.0
+        np.testing.assert_almost_equal(agg_a, 25.0)
 
     def test_zero_multipliers_total_no_op(self):
-        fleet = _make_fleet_for_retrofit(["A"], {"A": 0.05}, [np.array([10.])])
-        proposals = [_proposal(fleet, 0, 0, 0, np.array([0.5, 0.5]), 1.)]
+        fleet = _make_fleet_for_retrofit(["A"], {"A": 0.05}, [np.array([10.0])])
+        proposals = [_proposal(fleet, 0, 0, 0, np.array([0.5, 0.5]), 1.0)]
         before = proposals[0].choices.copy()
-        _reconcile_retrofit_technology_caps(fleet, proposals, time_step=YEAR, multipliers_total=0.)
+        _reconcile_retrofit_technology_caps(
+            fleet, proposals, time_step=YEAR, multipliers_total=0.0
+        )
         np.testing.assert_array_almost_equal(proposals[0].choices, before)
 
 
@@ -349,28 +479,42 @@ class TestReconcileRetrofitTechnologyCapsEligibility:
         # choices. Cap on B (sorted_idx=1): package_idx=0 contributes 10·0.5·0.5 = 2.5; package_idx=1
         # contributes 10·0.5·0.8 = 4.0; aggregate = 6.5. With cap 0.05·100=5, scale = 5/6.5.
         # The buggy code (no `current` factor) would compute aggregate = 10·0.5 + 10·0.8 = 13, scale ≈ 5/13.
-        fleet = _make_fleet_for_retrofit(["A", "B"], {"A": 1.0, "B": 0.05}, [np.array([10.])])
-        fleet.increments[0][0].package_uptake = np.array([0.5, 0.5, 0.])
+        fleet = _make_fleet_for_retrofit(
+            ["A", "B"], {"A": 1.0, "B": 0.05}, [np.array([10.0])]
+        )
+        fleet.increments[0][0].package_uptake = np.array([0.5, 0.5, 0.0])
         proposals = [
             _proposal(fleet, 0, 0, 0, np.array([0.2, 0.3, 0.5]), 0.5),
             _proposal(fleet, 0, 0, 1, np.array([0.2, 0.3, 0.5]), 0.5),
         ]
-        _reconcile_retrofit_technology_caps(fleet, proposals, time_step=YEAR, multipliers_total=100.)
+        _reconcile_retrofit_technology_caps(
+            fleet, proposals, time_step=YEAR, multipliers_total=100.0
+        )
         # Post-reconcile aggregate for B equals the cap.
         agg_b = (
-            0.5 * 10. * float(np.sum(proposals[0].choices[2:]))   # package_idx=0 → k_start=2
-            + 0.5 * 10. * float(np.sum(proposals[1].choices[1:]))  # package_idx=1 → k_start=1
+            0.5
+            * 10.0
+            * float(np.sum(proposals[0].choices[2:]))  # package_idx=0 → k_start=2
+            + 0.5
+            * 10.0
+            * float(np.sum(proposals[1].choices[1:]))  # package_idx=1 → k_start=1
         )
-        np.testing.assert_almost_equal(agg_b, 5.)
+        np.testing.assert_almost_equal(agg_b, 5.0)
 
     def test_zero_current_proposal_excluded_from_aggregate(self):
         # A proposal with current = 0 must not consume cap budget.
-        fleet = _make_fleet_for_retrofit(["A"], {"A": 0.05}, [np.array([10.])])
+        fleet = _make_fleet_for_retrofit(["A"], {"A": 0.05}, [np.array([10.0])])
         proposals = [
-            _proposal(fleet, 0, 0, 0, np.array([0.5, 0.5]), 1.0),  # eligible: contributes 10·1·0.5 = 5
-            _proposal(fleet, 0, 0, 0, np.array([0.5, 0.5]), 0.0),  # ineligible: current=0
+            _proposal(
+                fleet, 0, 0, 0, np.array([0.5, 0.5]), 1.0
+            ),  # eligible: contributes 10·1·0.5 = 5
+            _proposal(
+                fleet, 0, 0, 0, np.array([0.5, 0.5]), 0.0
+            ),  # ineligible: current=0
         ]
-        _reconcile_retrofit_technology_caps(fleet, proposals, time_step=YEAR, multipliers_total=100.)
+        _reconcile_retrofit_technology_caps(
+            fleet, proposals, time_step=YEAR, multipliers_total=100.0
+        )
         # Cap is exactly at the eligible aggregate, so neither proposal should be scaled.
         np.testing.assert_array_almost_equal(proposals[0].choices, np.array([0.5, 0.5]))
         np.testing.assert_array_almost_equal(proposals[1].choices, np.array([0.5, 0.5]))
@@ -378,37 +522,51 @@ class TestReconcileRetrofitTechnologyCapsEligibility:
     def test_partial_current_aggregation(self):
         # Single proposal at package_idx=0 with current=0.4: only 4 vessels of the 10-multiplier are eligible.
         # Proposed retrofits-to-A = 0.4 · 10 · 0.8 = 3.2; cap 5/yr does not bind.
-        fleet = _make_fleet_for_retrofit(["A", "B"], {"A": 0.05}, [np.array([10.])])
-        fleet.increments[0][0].package_uptake = np.array([0.4, 0.6, 0.])
+        fleet = _make_fleet_for_retrofit(["A", "B"], {"A": 0.05}, [np.array([10.0])])
+        fleet.increments[0][0].package_uptake = np.array([0.4, 0.6, 0.0])
         proposals = [_proposal(fleet, 0, 0, 0, np.array([0.2, 0.3, 0.5]), 0.4)]
         before = proposals[0].choices.copy()
-        _reconcile_retrofit_technology_caps(fleet, proposals, time_step=YEAR, multipliers_total=100.)
+        _reconcile_retrofit_technology_caps(
+            fleet, proposals, time_step=YEAR, multipliers_total=100.0
+        )
         np.testing.assert_array_almost_equal(proposals[0].choices, before)
 
     def test_transfer_matches_eligibility_weight(self):
         # Reconciler and `_transfer_retrofit_uptake` must agree on the count of vessels retrofitting to
         # each technology. With current=0.4, multiplier=10, choices=[0.2,0.3,0.5]: count for A
         # (sorted_idx=0) = 10·0.4·(0.3+0.5) = 3.2; share-of-fleet = 3.2 / 10 = 0.32.
-        fleet = _make_fleet_for_retrofit(["A", "B"], {}, [np.array([10.])])
-        fleet.increments[0][0].package_uptake = np.array([0.4, 0.6, 0.])
+        fleet = _make_fleet_for_retrofit(["A", "B"], {}, [np.array([10.0])])
+        fleet.increments[0][0].package_uptake = np.array([0.4, 0.6, 0.0])
         fleet.assets = [_make_vessel("v0")]
         fleet.profile = MagicMock()
         proposals = [_proposal(fleet, 0, 0, 0, np.array([0.2, 0.3, 0.5]), 0.4)]
         _transfer_retrofit_uptake(fleet, proposals, idx=0)
         # The profile setter is called once per (vessel, technology). Inspect args to find technology "A".
-        calls = {c.args[2]: c.args[3] for c in fleet.profile.set_retrofit_technology_uptake.call_args_list}
+        calls = {
+            c.args[2]: c.args[3]
+            for c in fleet.profile.set_retrofit_technology_uptake.call_args_list
+        }
         np.testing.assert_almost_equal(calls["A"], 0.32)
-        np.testing.assert_almost_equal(calls["B"], 0.4 * 0.5)  # k_start=2, tail=0.5 → 0.4·10·0.5 / 10 = 0.2
+        np.testing.assert_almost_equal(
+            calls["B"], 0.4 * 0.5
+        )  # k_start=2, tail=0.5 → 0.4·10·0.5 / 10 = 0.2
 
 
 # ---------------------------------------------------------------------------
 # Newbuild-technology cap reconciliation
 # ---------------------------------------------------------------------------
 
-def _make_fleet_for_newbuild_technology(technology_names: list[str], newbuild_limits: dict[str, float],
-                                        newbuild_uptake: list[np.ndarray], n_vessels: int) -> Fleet:
+
+def _make_fleet_for_newbuild_technology(
+    technology_names: list[str],
+    newbuild_limits: dict[str, float],
+    newbuild_uptake: list[np.ndarray],
+    n_vessels: int,
+) -> Fleet:
     fleet = _make_fleet_with_technologies(technology_names)
-    fleet.newbuild_technology_limit = {n: Scalar(newbuild_limits.get(n, 1.0)) for n in technology_names}
+    fleet.newbuild_technology_limit = {
+        n: Scalar(newbuild_limits.get(n, 1.0)) for n in technology_names
+    }
     fleet.newbuild_package_uptake = newbuild_uptake
     fleet.assets = [_make_vessel(f"v{i}") for i in range(n_vessels)]
     fleet.profile = MagicMock()
@@ -420,59 +578,84 @@ class TestReconcileNewbuildTechnologyCaps:
 
     def test_no_cap_no_op(self):
         fleet = _make_fleet_for_newbuild_technology(
-            ["A", "B"], {}, [np.array([0.2, 0.3, 0.5])], n_vessels=1)
+            ["A", "B"], {}, [np.array([0.2, 0.3, 0.5])], n_vessels=1
+        )
         before = fleet.newbuild_package_uptake[0].copy()
-        reconcile_newbuild_technology_caps(fleet, np.array([10.]), time_step=YEAR, multipliers_total=100.)
+        reconcile_newbuild_technology_caps(
+            fleet, np.array([10.0]), time_step=YEAR, multipliers_total=100.0
+        )
         np.testing.assert_array_almost_equal(fleet.newbuild_package_uptake[0], before)
 
     def test_cap_binds(self):
         # A capped at 0.05 (5/yr against y=100); proposed installs-of-A = (0.3+0.5)*10 = 8 → scale to 5.
         fleet = _make_fleet_for_newbuild_technology(
-            ["A", "B"], {"A": 0.05, "B": 1.0}, [np.array([0.2, 0.3, 0.5])], n_vessels=1)
-        reconcile_newbuild_technology_caps(fleet, np.array([10.]), time_step=YEAR, multipliers_total=100.)
-        installs_a = float(np.sum(fleet.newbuild_package_uptake[0][1:])) * 10.
-        np.testing.assert_almost_equal(installs_a, 5.)
-        np.testing.assert_almost_equal(np.sum(fleet.newbuild_package_uptake[0]), 1.)
+            ["A", "B"], {"A": 0.05, "B": 1.0}, [np.array([0.2, 0.3, 0.5])], n_vessels=1
+        )
+        reconcile_newbuild_technology_caps(
+            fleet, np.array([10.0]), time_step=YEAR, multipliers_total=100.0
+        )
+        installs_a = float(np.sum(fleet.newbuild_package_uptake[0][1:])) * 10.0
+        np.testing.assert_almost_equal(installs_a, 5.0)
+        np.testing.assert_almost_equal(np.sum(fleet.newbuild_package_uptake[0]), 1.0)
 
     def test_caps_independent(self):
         # B at sorted_idx=1 capped at 0.02 (2/yr); A unconstrained.
         fleet = _make_fleet_for_newbuild_technology(
-            ["A", "B"], {"A": 1.0, "B": 0.02}, [np.array([0.2, 0.3, 0.5])], n_vessels=1)
-        reconcile_newbuild_technology_caps(fleet, np.array([10.]), time_step=YEAR, multipliers_total=100.)
-        installs_b = float(fleet.newbuild_package_uptake[0][2]) * 10.
-        np.testing.assert_almost_equal(installs_b, 2.)
+            ["A", "B"], {"A": 1.0, "B": 0.02}, [np.array([0.2, 0.3, 0.5])], n_vessels=1
+        )
+        reconcile_newbuild_technology_caps(
+            fleet, np.array([10.0]), time_step=YEAR, multipliers_total=100.0
+        )
+        installs_b = float(fleet.newbuild_package_uptake[0][2]) * 10.0
+        np.testing.assert_almost_equal(installs_b, 2.0)
 
     def test_aggregates_across_vessels(self):
         # Two vessel types, each with 5 newbuilds and same uptake. A cap 0.05 (5/yr).
         # Proposed A = 0.8*5 + 0.8*5 = 8 ⇒ each scaled by 5/8.
         fleet = _make_fleet_for_newbuild_technology(
-            ["A", "B"], {"A": 0.05},
-            [np.array([0.2, 0.3, 0.5]), np.array([0.2, 0.3, 0.5])], n_vessels=2)
-        reconcile_newbuild_technology_caps(fleet, np.array([5., 5.]), time_step=YEAR, multipliers_total=100.)
-        agg_a = (float(np.sum(fleet.newbuild_package_uptake[0][1:])) * 5.
-                 + float(np.sum(fleet.newbuild_package_uptake[1][1:])) * 5.)
-        np.testing.assert_almost_equal(agg_a, 5.)
+            ["A", "B"],
+            {"A": 0.05},
+            [np.array([0.2, 0.3, 0.5]), np.array([0.2, 0.3, 0.5])],
+            n_vessels=2,
+        )
+        reconcile_newbuild_technology_caps(
+            fleet, np.array([5.0, 5.0]), time_step=YEAR, multipliers_total=100.0
+        )
+        agg_a = (
+            float(np.sum(fleet.newbuild_package_uptake[0][1:])) * 5.0
+            + float(np.sum(fleet.newbuild_package_uptake[1][1:])) * 5.0
+        )
+        np.testing.assert_almost_equal(agg_a, 5.0)
 
     def test_zero_increments_no_contribution(self):
         # Vessel 0 has 0 newbuilds ⇒ doesn't contribute. Vessel 1 carries the binding.
         fleet = _make_fleet_for_newbuild_technology(
-            ["A"], {"A": 0.05},
-            [np.array([0.5, 0.5]), np.array([0.5, 0.5])], n_vessels=2)
-        reconcile_newbuild_technology_caps(fleet, np.array([0., 100.]), time_step=YEAR, multipliers_total=100.)
-        installs_a = float(fleet.newbuild_package_uptake[1][1]) * 100.
-        np.testing.assert_almost_equal(installs_a, 5.)
+            ["A"],
+            {"A": 0.05},
+            [np.array([0.5, 0.5]), np.array([0.5, 0.5])],
+            n_vessels=2,
+        )
+        reconcile_newbuild_technology_caps(
+            fleet, np.array([0.0, 100.0]), time_step=YEAR, multipliers_total=100.0
+        )
+        installs_a = float(fleet.newbuild_package_uptake[1][1]) * 100.0
+        np.testing.assert_almost_equal(installs_a, 5.0)
 
     def test_zero_multipliers_total_no_op(self):
         fleet = _make_fleet_for_newbuild_technology(
-            ["A"], {"A": 0.05}, [np.array([0.5, 0.5])], n_vessels=1)
+            ["A"], {"A": 0.05}, [np.array([0.5, 0.5])], n_vessels=1
+        )
         before = fleet.newbuild_package_uptake[0].copy()
-        reconcile_newbuild_technology_caps(fleet, np.array([10.]), time_step=YEAR, multipliers_total=0.)
+        reconcile_newbuild_technology_caps(
+            fleet, np.array([10.0]), time_step=YEAR, multipliers_total=0.0
+        )
         np.testing.assert_array_almost_equal(fleet.newbuild_package_uptake[0], before)
 
 
 # ---------------------------------------------------------------------------
 # Modelled-uptake cap projection (per-vessel cap_share → inter/intra DCM caps)
 # ---------------------------------------------------------------------------
+
 
 def _make_uniform_sensitivity() -> MagicMock:
     """Stub sensitivity with an odds ratio of 1 — beta is 0, giving equal raw shares before clipping."""
@@ -481,7 +664,9 @@ def _make_uniform_sensitivity() -> MagicMock:
     return s
 
 
-def _make_fleet_for_modelled_uptakes(fuel_types: list[str], freight_rates: list[float]) -> tuple[Fleet, list]:
+def _make_fleet_for_modelled_uptakes(
+    fuel_types: list[str], freight_rates: list[float]
+) -> tuple[Fleet, list]:
     """
     Build a Fleet and vessel list wired for `_calculate_modelled_uptakes`. Uses an odds ratio of 1 at
     both DCM levels so the unconstrained shares are 1/N, making cap effects directly observable.
@@ -509,7 +694,7 @@ class TestModelledUptakesCapProjection:
 
     def test_no_cap_baseline(self):
         # Uniform uptake with no caps: two same-fuel vessels get equal shares (0.5 each).
-        fleet, vessels = _make_fleet_for_modelled_uptakes(["x", "x"], [1., 1.])
+        fleet, vessels = _make_fleet_for_modelled_uptakes(["x", "x"], [1.0, 1.0])
         uptake = calculate_modelled_uptake(fleet, vessels, idx=0, cap_share=None)
         np.testing.assert_array_almost_equal(uptake, [0.5, 0.5])
 
@@ -519,8 +704,10 @@ class TestModelledUptakesCapProjection:
         # Inter-fuel: only one group, so it absorbs the full 1.0 — but it is capped at 0.8 on the group level,
         # so total uptake = group_cap * intra_share = 0.8 * 0.5 = 0.4 per vessel; combined = 0.8.
         # The old max-based code would produce combined ≤ 0.4.
-        fleet, vessels = _make_fleet_for_modelled_uptakes(["x", "x"], [1., 1.])
-        uptake = calculate_modelled_uptake(fleet, vessels, idx=0, cap_share=np.array([0.4, 0.4]))
+        fleet, vessels = _make_fleet_for_modelled_uptakes(["x", "x"], [1.0, 1.0])
+        uptake = calculate_modelled_uptake(
+            fleet, vessels, idx=0, cap_share=np.array([0.4, 0.4])
+        )
         assert uptake[0] <= 0.4 + 1e-9
         assert uptake[1] <= 0.4 + 1e-9
         np.testing.assert_almost_equal(uptake.sum(), 0.8)
@@ -528,8 +715,10 @@ class TestModelledUptakesCapProjection:
     def test_same_fuel_caps_asymmetric(self):
         # Caps [0.6, 0.2] ⇒ group cap = 0.8; intra limits = [0.75, 0.25]; clipped uniform shares [0.5, 0.5]
         # become [0.5, 0.25] then redistributed → [0.75, 0.25]. Final per-vessel: 0.6 and 0.2.
-        fleet, vessels = _make_fleet_for_modelled_uptakes(["x", "x"], [1., 1.])
-        uptake = calculate_modelled_uptake(fleet, vessels, idx=0, cap_share=np.array([0.6, 0.2]))
+        fleet, vessels = _make_fleet_for_modelled_uptakes(["x", "x"], [1.0, 1.0])
+        uptake = calculate_modelled_uptake(
+            fleet, vessels, idx=0, cap_share=np.array([0.6, 0.2])
+        )
         assert uptake[0] <= 0.6 + 1e-9
         assert uptake[1] <= 0.2 + 1e-9
         np.testing.assert_almost_equal(uptake.sum(), 0.8)
@@ -538,8 +727,10 @@ class TestModelledUptakesCapProjection:
         # Caps [0.7, 0.7]: sum = 1.4 ⇒ group cap clamped to 1.0. Intra limits [0.7, 0.7] (each ≥ 0.5 raw),
         # so unconstrained shares [0.5, 0.5] are unchanged. Inter-fuel cap 1.0 ⇒ fuel_share = 1.0.
         # Per-vessel = 0.5 each (≤ 0.7 cap respected); combined = 1.0.
-        fleet, vessels = _make_fleet_for_modelled_uptakes(["x", "x"], [1., 1.])
-        uptake = calculate_modelled_uptake(fleet, vessels, idx=0, cap_share=np.array([0.7, 0.7]))
+        fleet, vessels = _make_fleet_for_modelled_uptakes(["x", "x"], [1.0, 1.0])
+        uptake = calculate_modelled_uptake(
+            fleet, vessels, idx=0, cap_share=np.array([0.7, 0.7])
+        )
         assert uptake[0] <= 0.7 + 1e-9
         assert uptake[1] <= 0.7 + 1e-9
         np.testing.assert_almost_equal(uptake.sum(), 1.0)
@@ -547,18 +738,24 @@ class TestModelledUptakesCapProjection:
     def test_zero_cap_group_zeroed(self):
         # Two fuels: x has cap=0 (group hard-capped to 0), y has cap=1. Inter-fuel limits = [0., 1.],
         # so fuel_share = [0., 1.]. Per-vessel uptakes: [0, 1] (the y vessel gets the whole budget).
-        fleet, vessels = _make_fleet_for_modelled_uptakes(["x", "y"], [1., 1.])
-        uptake = calculate_modelled_uptake(fleet, vessels, idx=0, cap_share=np.array([0., 1.]))
-        np.testing.assert_almost_equal(uptake[0], 0.)
-        np.testing.assert_almost_equal(uptake[1], 1.)
+        fleet, vessels = _make_fleet_for_modelled_uptakes(["x", "y"], [1.0, 1.0])
+        uptake = calculate_modelled_uptake(
+            fleet, vessels, idx=0, cap_share=np.array([0.0, 1.0])
+        )
+        np.testing.assert_almost_equal(uptake[0], 0.0)
+        np.testing.assert_almost_equal(uptake[1], 1.0)
 
     def test_multi_group_mixed(self):
         # Fuels [x, x, y] with caps [0.3, 0.3, 0.2]. Group A (xx) cap = 0.6, group B (y) cap = 0.2.
         # Inter-fuel limits = [0.6, 0.2]; sum = 0.8 < 1 ⇒ infeasible at the inter level — apply_limits
         # clips fuel_shares to [0.6, 0.2] and the trade gap is partially unfilled (sum < 1). Per vessel:
         # group A internally splits 0.6 by intra limits [0.5, 0.5] → 0.3 each; group B → 0.2.
-        fleet, vessels = _make_fleet_for_modelled_uptakes(["x", "x", "y"], [1., 1., 1.])
-        uptake = calculate_modelled_uptake(fleet, vessels, idx=0, cap_share=np.array([0.3, 0.3, 0.2]))
+        fleet, vessels = _make_fleet_for_modelled_uptakes(
+            ["x", "x", "y"], [1.0, 1.0, 1.0]
+        )
+        uptake = calculate_modelled_uptake(
+            fleet, vessels, idx=0, cap_share=np.array([0.3, 0.3, 0.2])
+        )
         assert uptake[0] <= 0.3 + 1e-9
         assert uptake[1] <= 0.3 + 1e-9
         assert uptake[2] <= 0.2 + 1e-9
@@ -570,16 +767,19 @@ class TestModelledUptakesCapProjection:
 # Newbuild-limit enforcement
 # ---------------------------------------------------------------------------
 
-def _make_fleet_for_newbuilds(cargo_miles: list[float],
-                              orderbooks: list[float] | None = None,
-                              current_uptake: list[float] | None = None) -> Fleet:
+
+def _make_fleet_for_newbuilds(
+    cargo_miles: list[float],
+    orderbooks: list[float] | None = None,
+    current_uptake: list[float] | None = None,
+) -> Fleet:
     """
     Build a Fleet stub for `calculate_orderbook_newbuilds` / `calculate_modelled_newbuilds`.
     All vessels share one fuel type with uniform DCM sensitivities, so the modelled uptake
     is driven purely by `cap_share`. Orderbooks are plain floats (cumulative vessel counts).
     """
     n = len(cargo_miles)
-    fleet, vessels = _make_fleet_for_modelled_uptakes(["x"] * n, [1.] * n)
+    fleet, vessels = _make_fleet_for_modelled_uptakes(["x"] * n, [1.0] * n)
     fleet.assets = vessels
 
     for v, cm in zip(vessels, cargo_miles):
@@ -591,7 +791,9 @@ def _make_fleet_for_newbuilds(cargo_miles: list[float],
     fleet.orderbooks = list(orderbooks) if orderbooks is not None else []
     fleet.orders_delivered = np.zeros(n)
     fleet.orders_postponed = np.zeros(n)
-    fleet.current_uptake = np.array(current_uptake if current_uptake is not None else np.zeros(n))
+    fleet.current_uptake = np.array(
+        current_uptake if current_uptake is not None else np.zeros(n)
+    )
     fleet.profile = MagicMock()
 
     return fleet
@@ -615,44 +817,50 @@ class TestOrderbookNewbuildLimit:
 
     def test_unconstrained_cap_no_op(self):
         # trade gap (10 cm) exceeds the ordered trade (5 cm) and the cap is slack: full delivery
-        fleet = _make_fleet_for_newbuilds(cargo_miles=[1.], orderbooks=[5.])
+        fleet = _make_fleet_for_newbuilds(cargo_miles=[1.0], orderbooks=[5.0])
         delivery, capacity, cap_remaining = calculate_orderbook_newbuilds(
-            fleet, trade_gap=10., cap_count=np.array([100.]), idx=0)
-        np.testing.assert_almost_equal(delivery, [5.])
-        np.testing.assert_almost_equal(capacity, 5.)
-        np.testing.assert_almost_equal(cap_remaining, [95.])
-        np.testing.assert_almost_equal(fleet.orders_postponed, [0.])
+            fleet, trade_gap=10.0, cap_count=np.array([100.0]), idx=0
+        )
+        np.testing.assert_almost_equal(delivery, [5.0])
+        np.testing.assert_almost_equal(capacity, 5.0)
+        np.testing.assert_almost_equal(cap_remaining, [95.0])
+        np.testing.assert_almost_equal(fleet.orders_postponed, [0.0])
 
     def test_cap_binds_excess_postponed(self):
         # 5 vessels ordered but the cap allows 2: 2 delivered, 3 postponed, budget exhausted
-        fleet = _make_fleet_for_newbuilds(cargo_miles=[1.], orderbooks=[5.])
+        fleet = _make_fleet_for_newbuilds(cargo_miles=[1.0], orderbooks=[5.0])
         delivery, capacity, cap_remaining = calculate_orderbook_newbuilds(
-            fleet, trade_gap=10., cap_count=np.array([2.]), idx=0)
-        np.testing.assert_almost_equal(delivery, [2.])
-        np.testing.assert_almost_equal(capacity, 2.)
-        np.testing.assert_almost_equal(cap_remaining, [0.])
-        np.testing.assert_almost_equal(fleet.orders_delivered, [2.])
-        np.testing.assert_almost_equal(fleet.orders_postponed, [3.])
+            fleet, trade_gap=10.0, cap_count=np.array([2.0]), idx=0
+        )
+        np.testing.assert_almost_equal(delivery, [2.0])
+        np.testing.assert_almost_equal(capacity, 2.0)
+        np.testing.assert_almost_equal(cap_remaining, [0.0])
+        np.testing.assert_almost_equal(fleet.orders_delivered, [2.0])
+        np.testing.assert_almost_equal(fleet.orders_postponed, [3.0])
 
     def test_postponed_redelivery_respects_cap(self):
         # orders postponed by the cap in one step are still subject to the next step's cap
-        fleet = _make_fleet_for_newbuilds(cargo_miles=[1.], orderbooks=[5.])
-        calculate_orderbook_newbuilds(fleet, trade_gap=10., cap_count=np.array([2.]), idx=0)
+        fleet = _make_fleet_for_newbuilds(cargo_miles=[1.0], orderbooks=[5.0])
+        calculate_orderbook_newbuilds(
+            fleet, trade_gap=10.0, cap_count=np.array([2.0]), idx=0
+        )
         delivery, _, cap_remaining = calculate_orderbook_newbuilds(
-            fleet, trade_gap=10., cap_count=np.array([1.]), idx=1)
-        np.testing.assert_almost_equal(delivery, [1.])
-        np.testing.assert_almost_equal(cap_remaining, [0.])
-        np.testing.assert_almost_equal(fleet.orders_delivered, [3.])
-        np.testing.assert_almost_equal(fleet.orders_postponed, [2.])
+            fleet, trade_gap=10.0, cap_count=np.array([1.0]), idx=1
+        )
+        np.testing.assert_almost_equal(delivery, [1.0])
+        np.testing.assert_almost_equal(cap_remaining, [0.0])
+        np.testing.assert_almost_equal(fleet.orders_delivered, [3.0])
+        np.testing.assert_almost_equal(fleet.orders_postponed, [2.0])
 
     def test_cap_independent_per_vessel(self):
         # the cap is a per-vessel budget: v0 is capped, v1 is not
-        fleet = _make_fleet_for_newbuilds(cargo_miles=[1., 1.], orderbooks=[4., 3.])
+        fleet = _make_fleet_for_newbuilds(cargo_miles=[1.0, 1.0], orderbooks=[4.0, 3.0])
         delivery, _, cap_remaining = calculate_orderbook_newbuilds(
-            fleet, trade_gap=100., cap_count=np.array([1., 100.]), idx=0)
-        np.testing.assert_almost_equal(delivery, [1., 3.])
-        np.testing.assert_almost_equal(cap_remaining, [0., 97.])
-        np.testing.assert_almost_equal(fleet.orders_postponed, [3., 0.])
+            fleet, trade_gap=100.0, cap_count=np.array([1.0, 100.0]), idx=0
+        )
+        np.testing.assert_almost_equal(delivery, [1.0, 3.0])
+        np.testing.assert_almost_equal(cap_remaining, [0.0, 97.0])
+        np.testing.assert_almost_equal(fleet.orders_postponed, [3.0, 0.0])
 
 
 class TestModelledNewbuildLimit:
@@ -661,11 +869,12 @@ class TestModelledNewbuildLimit:
     def test_inertia_clipped_to_cap(self):
         # inertia alone demands 10 vessels (uptake 1 * trade_gap 10 / cm 1) but the cap allows 4;
         # the remaining budget is zero, so the modelled DCM receives cap_share 0 and adds nothing
-        fleet = _make_fleet_for_newbuilds(cargo_miles=[1.], current_uptake=[1.])
+        fleet = _make_fleet_for_newbuilds(cargo_miles=[1.0], current_uptake=[1.0])
         increments, capacity = calculate_modelled_newbuilds(
-            fleet, trade_gap=10., cap_count=np.array([4.]), idx=0)
-        np.testing.assert_almost_equal(increments, [4.])
-        np.testing.assert_almost_equal(capacity, 4.)
+            fleet, trade_gap=10.0, cap_count=np.array([4.0]), idx=0
+        )
+        np.testing.assert_almost_equal(increments, [4.0])
+        np.testing.assert_almost_equal(capacity, 4.0)
 
     def test_cap_share_derivation(self, monkeypatch):
         # cap_share[v] = min(remaining cap * cargo_miles / trade_gap, 1) after the inertia clip:
@@ -673,30 +882,41 @@ class TestModelledNewbuildLimit:
         # residual trade gap (7 cm / 2 cm-per-vessel), so its share clamps to 1
         captured = _spy_on_modelled_uptake(monkeypatch)
 
-        fleet = _make_fleet_for_newbuilds(cargo_miles=[1., 2.], current_uptake=[0.5, 0.])
-        calculate_modelled_newbuilds(fleet, trade_gap=10., cap_count=np.array([3., 4.]), idx=0)
-        np.testing.assert_almost_equal(captured["cap_share"], [0., 1.])
+        fleet = _make_fleet_for_newbuilds(
+            cargo_miles=[1.0, 2.0], current_uptake=[0.5, 0.0]
+        )
+        calculate_modelled_newbuilds(
+            fleet, trade_gap=10.0, cap_count=np.array([3.0, 4.0]), idx=0
+        )
+        np.testing.assert_almost_equal(captured["cap_share"], [0.0, 1.0])
 
     def test_cap_share_ones_when_trade_gap_filled(self, monkeypatch):
         # inertia fills the whole trade gap, so the count cap is moot and cap_share defaults to 1
         captured = _spy_on_modelled_uptake(monkeypatch)
 
-        fleet = _make_fleet_for_newbuilds(cargo_miles=[1.], current_uptake=[1.])
-        calculate_modelled_newbuilds(fleet, trade_gap=5., cap_count=np.array([10.]), idx=0)
-        np.testing.assert_almost_equal(captured["cap_share"], [1.])
+        fleet = _make_fleet_for_newbuilds(cargo_miles=[1.0], current_uptake=[1.0])
+        calculate_modelled_newbuilds(
+            fleet, trade_gap=5.0, cap_count=np.array([10.0]), idx=0
+        )
+        np.testing.assert_almost_equal(captured["cap_share"], [1.0])
 
     def test_budget_threading_across_stages(self):
         # mirrors perform_fleet_evolution: the orderbook consumes part of the shared budget and
         # its returned remainder caps the inertia + modelled stage, keeping totals within budget
-        fleet = _make_fleet_for_newbuilds(cargo_miles=[1.], orderbooks=[4.], current_uptake=[1.])
-        cap_count = np.array([5.])
+        fleet = _make_fleet_for_newbuilds(
+            cargo_miles=[1.0], orderbooks=[4.0], current_uptake=[1.0]
+        )
+        cap_count = np.array([5.0])
 
         delivery, capacity, cap_remaining = calculate_orderbook_newbuilds(
-            fleet, trade_gap=10., cap_count=cap_count, idx=0)
-        trade_gap = 10. - capacity
+            fleet, trade_gap=10.0, cap_count=cap_count, idx=0
+        )
+        trade_gap = 10.0 - capacity
 
-        increments, _ = calculate_modelled_newbuilds(fleet, trade_gap, cap_remaining, idx=0)
+        increments, _ = calculate_modelled_newbuilds(
+            fleet, trade_gap, cap_remaining, idx=0
+        )
 
-        np.testing.assert_almost_equal(delivery, [4.])
-        np.testing.assert_almost_equal(increments, [1.])
+        np.testing.assert_almost_equal(delivery, [4.0])
+        np.testing.assert_almost_equal(increments, [1.0])
         assert np.all(delivery + increments <= cap_count + 1e-9)

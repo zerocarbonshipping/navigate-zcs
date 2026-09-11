@@ -16,7 +16,12 @@ if TYPE_CHECKING:
 import navigate.bunker.solver as gp
 
 
-def add_variable(alg: BunkerAlgorithm, container: dict[tuple | str, gp.Var], key: tuple | str, name: str) -> None:
+def add_variable(
+    alg: BunkerAlgorithm,
+    container: dict[tuple | str, gp.Var],
+    key: tuple | str,
+    name: str,
+) -> None:
     """
     Add a continuous variable under a key, unless one already exists there.
 
@@ -32,15 +37,21 @@ def add_variable(alg: BunkerAlgorithm, container: dict[tuple | str, gp.Var], key
         Base name of the variable family; the key elements are appended
         underscore-separated to name a new variable.
     """
-
     if key in container:
         return
 
-    container[key] = alg.model.addVar(vtype=gp.GRB.CONTINUOUS, name=_full_name(name, key))
+    container[key] = alg.model.addVar(
+        vtype=gp.GRB.CONTINUOUS, name=_full_name(name, key)
+    )
 
 
-def get_constraint(alg: BunkerAlgorithm, container: dict[tuple, gp.Constr], key: tuple,
-                   sense: Literal["==", "<=", ">="], name: str) -> gp.Constr:
+def get_constraint(
+    alg: BunkerAlgorithm,
+    container: dict[tuple, gp.Constr],
+    key: tuple,
+    sense: Literal["==", "<=", ">="],
+    name: str,
+) -> gp.Constr:
     """
     Return the constraint stored under a key, creating an empty one if absent.
 
@@ -67,20 +78,19 @@ def get_constraint(alg: BunkerAlgorithm, container: dict[tuple, gp.Constr], key:
     -------
     The existing or newly created constraint.
     """
-
     if key in container:
         return container[key]
 
     full_name = _full_name(name, key)
 
     if sense == "==":
-        constraint = alg.model.addConstr(gp.LinExpr() == 0., name=full_name)
+        constraint = alg.model.addConstr(gp.LinExpr() == 0.0, name=full_name)
     elif sense == "<=":
-        constraint = alg.model.addConstr(gp.LinExpr() <= 0., name=full_name)
+        constraint = alg.model.addConstr(gp.LinExpr() <= 0.0, name=full_name)
     elif sense == ">=":
-        constraint = alg.model.addConstr(gp.LinExpr() >= 0., name=full_name)
+        constraint = alg.model.addConstr(gp.LinExpr() >= 0.0, name=full_name)
     else:
-        raise ValueError("Unknown constraint sense '{}'.".format(sense))
+        raise ValueError(f"Unknown constraint sense '{sense}'.")
 
     container[key] = constraint
     return constraint
@@ -102,7 +112,6 @@ def _full_name(name: str, key: tuple | str) -> str:
     -------
     The family name and key elements joined by underscores.
     """
-
     if not isinstance(key, tuple):
         key = (key,)
 

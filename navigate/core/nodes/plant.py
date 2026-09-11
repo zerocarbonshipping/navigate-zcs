@@ -10,7 +10,16 @@ import numpy as np
 from navigate.core import Scalar, as_scalar, assign_value, command_assignment_to_dict
 from navigate.core.expectations import PlantExpectation
 from navigate.core.node import Node
-from navigate.core.node_type import FORECAST, FUEL, PLANT, PROCESS, REGION, SOURCE, TRANSPORT, VARIABLE
+from navigate.core.node_type import (
+    FORECAST,
+    FUEL,
+    PLANT,
+    PROCESS,
+    REGION,
+    SOURCE,
+    TRANSPORT,
+    VARIABLE,
+)
 from navigate.core.profiles import PlantProfile
 from navigate.exceptions import no_value_assigned_error
 
@@ -26,23 +35,27 @@ class Plant(Node):
         super().__init__(name, PLANT)
 
         # external variables -------------------------------------------------------------------------------------------
-        self.fuel = None       # Fuel, the fuel being produced by the plant
-        self.process = None    # Process, the top-level production process used at the plant
-        self.region = None     # Region, region in which fuel is being produced.
-        self.source = None     # Source, source of energy to power the process.
+        self.fuel = None  # Fuel, the fuel being produced by the plant
+        self.process = (
+            None  # Process, the top-level production process used at the plant
+        )
+        self.region = None  # Region, region in which fuel is being produced.
+        self.source = None  # Source, source of energy to power the process.
 
-        self.capacity = None   # float, production of fuel in tons/day
-        self.uptime = None     # float, uptime of the plant in time/time
-        self.lifetime = None   # float, lifetime of the plant before decommissioning, years
+        self.capacity = None  # float, production of fuel in tons/day
+        self.uptime = None  # float, uptime of the plant in time/time
+        self.lifetime = (
+            None  # float, lifetime of the plant before decommissioning, years
+        )
         self.lead_time = None  # float, time from planning to production, years
 
         self.cost_of_capital = None  # float, cost of capital and discount rate
 
         self.feed_transport = {}  # dict[feedstock_name: Transport], transport mode for feedstock
-        self.feed_distance = {}   # dict[feedstock_name: float], distance transported, nautical miles
+        self.feed_distance = {}  # dict[feedstock_name: float], distance transported, nautical miles
 
         self.fuel_transport = {}  # dict[port_name: Transport], transport mode for delivering the produced fuel
-        self.fuel_distance = {}   # dict[port_name: float], distance to the port, nautical miles
+        self.fuel_distance = {}  # dict[port_name: float], distance to the port, nautical miles
 
         # internal variables -------------------------------------------------------------------------------------------
         self.expectation: PlantExpectation = PlantExpectation()
@@ -65,7 +78,6 @@ class Plant(Node):
         fuel : NodeReference
             A Fuel node.
         """
-
         self.fuel = assign_value(fuel, scalar=False, type_=FUEL)
 
     def set_process(self, process):
@@ -81,7 +93,6 @@ class Plant(Node):
         process : NodeReference
             A Process node.
         """
-
         self.process = assign_value(process, scalar=False, type_=PROCESS)
 
     def set_region(self, region):
@@ -97,7 +108,6 @@ class Plant(Node):
         region : NodeReference
             A Region node.
         """
-
         self.region = assign_value(region, scalar=False, type_=REGION)
 
     def set_source(self, source):
@@ -113,7 +123,6 @@ class Plant(Node):
         source : NodeReference
             A Source node.
         """
-
         self.source = assign_value(source, scalar=False, type_=SOURCE)
 
     def set_capacity(self, capacity):
@@ -130,9 +139,12 @@ class Plant(Node):
         capacity : float | NodeReference
             Production capacity of the plant in tons/day.
         """
-
-        self.capacity = assign_value(as_scalar(capacity), type_=(FORECAST, VARIABLE),
-                                     lower=0., inclusive_lower=False)
+        self.capacity = assign_value(
+            as_scalar(capacity),
+            type_=(FORECAST, VARIABLE),
+            lower=0.0,
+            inclusive_lower=False,
+        )
 
     def set_uptime(self, uptime):
         """
@@ -148,9 +160,13 @@ class Plant(Node):
         uptime : float | NodeReference
             Production uptime of the plant in time/time.
         """
-
-        self.uptime = assign_value(as_scalar(uptime), type_=(FORECAST, VARIABLE),
-                                   lower=0., upper=1., inclusive_lower=False)
+        self.uptime = assign_value(
+            as_scalar(uptime),
+            type_=(FORECAST, VARIABLE),
+            lower=0.0,
+            upper=1.0,
+            inclusive_lower=False,
+        )
 
     def set_lifetime(self, lifetime):
         """
@@ -167,9 +183,12 @@ class Plant(Node):
         lifetime : float | NodeReference
             Lifetime of the plant in years.
         """
-
-        self.lifetime = assign_value(as_scalar(lifetime), type_=(FORECAST, VARIABLE),
-                                     lower=0., inclusive_lower=False)
+        self.lifetime = assign_value(
+            as_scalar(lifetime),
+            type_=(FORECAST, VARIABLE),
+            lower=0.0,
+            inclusive_lower=False,
+        )
 
     def set_lead_time(self, lead_time):
         """
@@ -185,8 +204,9 @@ class Plant(Node):
         lead_time : float | NodeReference
             Construction lead time of the plant in years.
         """
-
-        self.lead_time = assign_value(as_scalar(lead_time), type_=(FORECAST, VARIABLE), lower=0.)
+        self.lead_time = assign_value(
+            as_scalar(lead_time), type_=(FORECAST, VARIABLE), lower=0.0
+        )
 
     def set_cost_of_capital(self, cost_of_capital):
         """
@@ -204,8 +224,9 @@ class Plant(Node):
         cost_of_capital : float | NodeReference
             Cost of capital.
         """
-
-        self.cost_of_capital = assign_value(as_scalar(cost_of_capital), type_=(FORECAST, VARIABLE), lower=0.)
+        self.cost_of_capital = assign_value(
+            as_scalar(cost_of_capital), type_=(FORECAST, VARIABLE), lower=0.0
+        )
 
     # external methods (DSL commands) ----------------------------------------------------------------------------------
     def set_feed_transport(self, feed_name, value):
@@ -224,8 +245,9 @@ class Plant(Node):
         value : NodeReference
             The transport mode used to transport the feedstock or process output.
         """
-
-        command_assignment_to_dict(feed_name, value, self.feed_transport, type_=TRANSPORT)
+        command_assignment_to_dict(
+            feed_name, value, self.feed_transport, type_=TRANSPORT
+        )
 
     def set_feed_distance(self, feed_name, value):
         """
@@ -244,12 +266,9 @@ class Plant(Node):
         value : float | NodeReference
             The distance of transport in nautical miles.
         """
-
-        command_assignment_to_dict(feed_name,
-                                   value,
-                                   self.feed_distance,
-                                   type_=(FORECAST, VARIABLE),
-                                   lower=0.)
+        command_assignment_to_dict(
+            feed_name, value, self.feed_distance, type_=(FORECAST, VARIABLE), lower=0.0
+        )
 
     def set_fuel_transport(self, port_name, value):
         """
@@ -269,8 +288,9 @@ class Plant(Node):
         value : NodeReference
             The transport mode used to deliver the produced fuel to the port.
         """
-
-        command_assignment_to_dict(port_name, value, self.fuel_transport, type_=TRANSPORT)
+        command_assignment_to_dict(
+            port_name, value, self.fuel_transport, type_=TRANSPORT
+        )
 
     def set_fuel_distance(self, port_name, value):
         """
@@ -288,34 +308,33 @@ class Plant(Node):
         value : float | NodeReference
             The distance of transport in nautical miles.
         """
-
-        command_assignment_to_dict(port_name,
-                                   value,
-                                   self.fuel_distance,
-                                   type_=(FORECAST, VARIABLE),
-                                   lower=0.)
+        command_assignment_to_dict(
+            port_name, value, self.fuel_distance, type_=(FORECAST, VARIABLE), lower=0.0
+        )
 
     # internal methods -------------------------------------------------------------------------------------------------
     def initialize(self):
 
         if self.fuel is None:
-            no_value_assigned_error(self, 'Fuel')
+            no_value_assigned_error(self, "Fuel")
 
         if self.process is None:
-            no_value_assigned_error(self, 'Process')
+            no_value_assigned_error(self, "Process")
 
         if self.region is None:
-            no_value_assigned_error(self, 'Region')
+            no_value_assigned_error(self, "Region")
 
         if self.source is None:
-            no_value_assigned_error(self, 'Source')
+            no_value_assigned_error(self, "Source")
 
         if self.capacity is None:
-            no_value_assigned_error(self, 'Capacity')
+            no_value_assigned_error(self, "Capacity")
 
         if self.fuel.liquid_market:
-            raise ValueError("{}: Unable to assign {} to attribute 'Fuel' as it belongs to a liquid market"
-                             " ('LiquidMarket = TRUE').".format(self, self.fuel))
+            raise ValueError(
+                f"{self}: Unable to assign {self.fuel} to attribute 'Fuel' as it belongs to a liquid market"
+                " ('LiquidMarket = TRUE')."
+            )
 
         if self.uptime is None:
             self.uptime = Scalar(1)
@@ -334,17 +353,16 @@ class Plant(Node):
 
     def _pair_transport_and_distance(self, transports, distances):
         """Require a transport wherever a distance is set, and default the distance to zero where it is not."""
-
         for name, transport in transports.items():
-
             distance = distances[name]
 
             if (transport is None) and (distance is not None):
-                raise ValueError("{}: Unable to assign a transport distance to '{}' as no transport is assigned."
-                                 .format(self, name))
+                raise ValueError(
+                    f"{self}: Unable to assign a transport distance to '{name}' as no transport is assigned."
+                )
 
             elif (transport is not None) and (distance is None):
-                distances[name] = Scalar(0.)
+                distances[name] = Scalar(0.0)
 
     def initialize_dependencies(self, feedstocks, ports, processes):
         """
@@ -359,7 +377,6 @@ class Plant(Node):
         processes : dict[str, Process]
             All processes in the simulation.
         """
-
         for feedstock_name in feedstocks:
             self.feed_transport.setdefault(feedstock_name, None)
             self.feed_distance.setdefault(feedstock_name, None)
@@ -372,20 +389,30 @@ class Plant(Node):
             self.fuel_transport.setdefault(port_name, None)
             self.fuel_distance.setdefault(port_name, None)
 
-    def initialize_expectation(self, length: int, emissions: dict[str, Emission],
-                               feedstocks: dict[str, Feedstock], ports: dict[str, Port],
-                               processes: dict[str, Process]) -> None:
+    def initialize_expectation(
+        self,
+        length: int,
+        emissions: dict[str, Emission],
+        feedstocks: dict[str, Feedstock],
+        ports: dict[str, Port],
+        processes: dict[str, Process],
+    ) -> None:
 
         self.expectation.initialize(length, emissions, feedstocks, ports, processes)
 
-    def initialize_profile(self, timeline: np.ndarray, emissions: dict[str, Emission],
-                           emissions_lifetime: float) -> None:
+    def initialize_profile(
+        self,
+        timeline: np.ndarray,
+        emissions: dict[str, Emission],
+        emissions_lifetime: float,
+    ) -> None:
 
         self.profile.initialize(timeline, self.fuel, emissions, emissions_lifetime)
 
     def set_producer_assignment(self, producer_name):
         if self.producer_assignment is not None:
-            raise ValueError("Producer(\"{}\"): {} is already assigned to a different producer, Producer(\"{}\")."
-                             .format(producer_name, self, self.producer_assignment))
+            raise ValueError(
+                f'Producer("{producer_name}"): {self} is already assigned to a different producer, Producer("{self.producer_assignment}").'
+            )
 
         self.producer_assignment = producer_name

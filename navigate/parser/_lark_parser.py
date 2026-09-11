@@ -1,7 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Lark-based parser for the Navigate DSL.
+"""
+Lark-based parser for the Navigate DSL.
 
 Provides the single source of truth for both .nav (deck) and .inc (include)
 file syntax.  The grammar lives in ``grammar.lark``; this module contains:
@@ -10,10 +11,13 @@ file syntax.  The grammar lives in ``grammar.lark``; this module contains:
 * ``NavTransformer`` — converts Lark parse-trees into AST nodes
 * ``parse_include_content()`` / ``parse_deck_content()`` — public API
 """
+
+from __future__ import annotations
+
 import re
 from dataclasses import dataclass, field
 from importlib.resources import files
-from typing import Any, List
+from typing import Any
 
 from lark import Lark, Transformer, v_args
 from lark.exceptions import UnexpectedCharacters, UnexpectedToken
@@ -162,7 +166,8 @@ class Command:
 # noinspection PyMethodMayBeStatic
 @v_args(meta=True)
 class NavTransformer(Transformer):
-    """Convert Lark parse trees to Navigate AST nodes.
+    """
+    Convert Lark parse trees to Navigate AST nodes.
 
     The ``file`` attribute is set before each transform call so that
     every produced ``SourceLocation`` carries the originating file path.
@@ -177,7 +182,7 @@ class NavTransformer(Transformer):
     def _check_one_statement_per_line(statements: list) -> None:
         seen_lines: dict = {}
         for statement in statements:
-            location = getattr(statement, 'source', None)
+            location = getattr(statement, "source", None)
             if location and location.line in seen_lines:
                 raise DeckFormatError(
                     f"Line {location.line}: Multiple statements on the same line. "
@@ -216,7 +221,9 @@ class NavTransformer(Transformer):
     def node_declaration(self, meta, items):
         body = list(items[2:])
         self._check_one_statement_per_line(body)
-        return NodeDeclaration(str(items[0]), str(items[1])[1:-1], body, source=self._loc(meta))
+        return NodeDeclaration(
+            str(items[0]), str(items[1])[1:-1], body, source=self._loc(meta)
+        )
 
     def general_node_declaration(self, meta, items):
         body = list(items[1:])
@@ -224,10 +231,17 @@ class NavTransformer(Transformer):
         return GeneralNodeDeclaration(str(items[0]), body, source=self._loc(meta))
 
     def copy_statement(self, meta, items):
-        return CopyStatement(str(items[0]), str(items[1])[1:-1], str(items[2])[1:-1], source=self._loc(meta))
+        return CopyStatement(
+            str(items[0]),
+            str(items[1])[1:-1],
+            str(items[2])[1:-1],
+            source=self._loc(meta),
+        )
 
     def import_statement(self, meta, items):
-        return ImportStatement(str(items[0]), str(items[1])[1:-1], source=self._loc(meta))
+        return ImportStatement(
+            str(items[0]), str(items[1])[1:-1], source=self._loc(meta)
+        )
 
     def date_statement(self, meta, items):
         return DateStatement(str(items[0])[1:-1], source=self._loc(meta))
@@ -252,7 +266,9 @@ class NavTransformer(Transformer):
         return list(items)
 
     def table_block(self, meta, items):
-        return Assignment("Table", TableData(parse_table_cells(str(items[0]))), source=self._loc(meta))
+        return Assignment(
+            "Table", TableData(parse_table_cells(str(items[0]))), source=self._loc(meta)
+        )
 
     # ── values ────────────────────────────────────────────────────
 
@@ -277,8 +293,10 @@ class NavTransformer(Transformer):
 
     def string_value(self, meta, items):
         s = str(items[0])[1:-1]
-        if re.match(r'^\d{2}([-/])\d{2}\1\d{4}$', s):
-            return string_to_date(s, msg="Error in date: Must be dd-mm-yyyy or dd/mm/yyyy.")
+        if re.match(r"^\d{2}([-/])\d{2}\1\d{4}$", s):
+            return string_to_date(
+                s, msg="Error in date: Must be dd-mm-yyyy or dd/mm/yyyy."
+            )
         return s
 
     def list_value(self, meta, items):
@@ -297,17 +315,41 @@ class NavTransformer(Transformer):
 
 _GRAMMAR_TEXT = (files("navigate.parser") / "grammar.lark").read_text(encoding="utf-8")
 
-_inc_parser = Lark(_GRAMMAR_TEXT, parser='lalr', propagate_positions=True, maybe_placeholders=False, start='start')
-_deck_parser = Lark(_GRAMMAR_TEXT, parser='lalr', propagate_positions=True, maybe_placeholders=False, start='deck')
+_inc_parser = Lark(
+    _GRAMMAR_TEXT,
+    parser="lalr",
+    propagate_positions=True,
+    maybe_placeholders=False,
+    start="start",
+)
+_deck_parser = Lark(
+    _GRAMMAR_TEXT,
+    parser="lalr",
+    propagate_positions=True,
+    maybe_placeholders=False,
+    start="deck",
+)
 
 _transformer = NavTransformer()
 
 _FRIENDLY = {
-    "NAME": "a name", "NODE_TYPE": "a node type", "TABLE_BLOCK": "a Table = [...] block",
-    "RBRACE": "'}'", "LBRACE": "'{'", "QUOTED_STRING": "a quoted string",
-    "SIGNED_NUMBER": "a number", "EXPRESSION": "an expression", "TEMPLATE": "a template",
-    "COMMA": "','", "RPAR": "')'", "LPAR": "'('", "EQUAL": "'='",
-    "LSQB": "'['", "RSQB": "']'", "COLON": "':'", "SEMICOLON": "';'",
+    "NAME": "a name",
+    "NODE_TYPE": "a node type",
+    "TABLE_BLOCK": "a Table = [...] block",
+    "RBRACE": "'}'",
+    "LBRACE": "'{'",
+    "QUOTED_STRING": "a quoted string",
+    "SIGNED_NUMBER": "a number",
+    "EXPRESSION": "an expression",
+    "TEMPLATE": "a template",
+    "COMMA": "','",
+    "RPAR": "')'",
+    "LPAR": "'('",
+    "EQUAL": "'='",
+    "LSQB": "'['",
+    "RSQB": "']'",
+    "COLON": "':'",
+    "SEMICOLON": "';'",
 }
 
 
@@ -317,16 +359,18 @@ def _format_parse_error(e, source: str, file: str) -> str:
     if file:
         parts.append(f"In file '{file}'")
     if isinstance(e, (UnexpectedToken, UnexpectedCharacters)):
-        line_no = getattr(e, 'line', 0)
-        col = getattr(e, 'column', 0)
+        line_no = getattr(e, "line", 0)
+        col = getattr(e, "column", 0)
         if 1 <= line_no <= len(lines):
             src_line = lines[line_no - 1]
-            parts.append(f"line {line_no}:\n\n  {line_no} | {src_line}\n  {' ' * len(str(line_no))} | {' ' * (col - 1)}^")
+            parts.append(
+                f"line {line_no}:\n\n  {line_no} | {src_line}\n  {' ' * len(str(line_no))} | {' ' * (col - 1)}^"
+            )
     if isinstance(e, UnexpectedToken):
         token = _FRIENDLY.get(e.token.type, repr(e.token.value))
         expected = [_FRIENDLY.get(x, x) for x in sorted(e.expected)]
         if len(expected) > 1:
-            exp_str = ', '.join(expected[:-1]) + ' or ' + expected[-1]
+            exp_str = ", ".join(expected[:-1]) + " or " + expected[-1]
         else:
             exp_str = expected[0]
         parts.append(f"\nUnexpected {token} — expected {exp_str}")
@@ -344,9 +388,9 @@ def _parse(parser, text: str, file: str):
     return _transformer.transform(tree)
 
 
-def parse_include_content(text: str, file: str = "") -> List:
+def parse_include_content(text: str, file: str = "") -> list:
     return _parse(_inc_parser, text, file)
 
 
-def parse_deck_content(text: str, file: str = "") -> List:
+def parse_deck_content(text: str, file: str = "") -> list:
     return _parse(_deck_parser, text, file)

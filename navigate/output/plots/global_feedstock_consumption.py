@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 import numpy as np
 
 from navigate.output.plots._colors import generate_color_dict
@@ -33,33 +35,37 @@ def plot_global_feedstock_consumption(manager, directory):
     colors = generate_color_dict(feedstocks, FEEDSTOCK_COLOR)
 
     for ax, feedstock_name in zip(axes, feedstocks):
-
         consumed = profile.get_feed_mass(feedstock_name)
         constraint = profile.get_feed_constraint(feedstock_name)
         constraint = np.where(constraint == np.inf, np.nan, constraint)
 
         if np.all(np.isnan(constraint)):
-            max_constraint = 0.
+            max_constraint = 0.0
         else:
             max_constraint = np.nanmax(constraint)
 
         maximum = max(np.nanmax(consumed), max_constraint)
         divisor, unit = get_best_unit_mass(maximum)
 
-        plot_stack_with_lines(ax, dateline,
-                              [divide_nonzero(consumed, divisor)],
-                              ['Consumed'],
-                              [colors[feedstock_name]],
-                              alpha=0.7)
+        plot_stack_with_lines(
+            ax,
+            dateline,
+            [divide_nonzero(consumed, divisor)],
+            ["Consumed"],
+            [colors[feedstock_name]],
+            alpha=0.7,
+        )
 
         if np.any(np.isfinite(constraint)):
-            ax.plot(dateline, divide_nonzero(constraint, divisor), 'k', label='Constraint')
+            ax.plot(
+                dateline, divide_nonzero(constraint, divisor), "k", label="Constraint"
+            )
 
-        ax.set_ylabel('Feedstock [{}]'.format(unit))
-        ax.set_title('{}'.format(extract_label(feedstocks[feedstock_name], FEEDSTOCK_LABEL)))
+        ax.set_ylabel(f"Feedstock [{unit}]")
+        ax.set_title(f"{extract_label(feedstocks[feedstock_name], FEEDSTOCK_LABEL)}")
         legend = ax.legend()
         format_axes(ax, len(feedstocks), dateline, legend)
 
     trim_axes(axes, len(feedstocks))
 
-    save_figure(fig, directory, 'global_feedstock_consumption.png')
+    save_figure(fig, directory, "global_feedstock_consumption.png")

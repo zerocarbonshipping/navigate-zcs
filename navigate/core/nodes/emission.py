@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 from navigate.core import Scalar, as_scalar, assign_id, assign_value
 from navigate.core.enum_ import FuelTypeID
 from navigate.core.node import Node
@@ -30,8 +32,9 @@ class Emission(Node):
         global_warming_potential : float | NodeReference
             The Global Warming Potential of the emission.
         """
-
-        self.global_warming_potential = assign_value(as_scalar(global_warming_potential), type_=(CURVE, VARIABLE), lower=0.)
+        self.global_warming_potential = assign_value(
+            as_scalar(global_warming_potential), type_=(CURVE, VARIABLE), lower=0.0
+        )
 
     def set_fuel_type(self, fuel_type):
         """
@@ -49,10 +52,9 @@ class Emission(Node):
         fuel_type : str
             The fuel type that produces this emission when slipping.
         """
-
         self.fuel_type = assign_id(fuel_type, FuelTypeID)
 
     # internal methods -------------------------------------------------------------------------------------------------
     def initialize(self):
         if self.global_warming_potential is None:
-            self.global_warming_potential = Scalar(0.)
+            self.global_warming_potential = Scalar(0.0)

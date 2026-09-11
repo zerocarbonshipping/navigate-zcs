@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 import itertools
 import logging
 
@@ -31,22 +33,22 @@ class Route(Node):
         super().__init__(name, ROUTE)
 
         # external variables -------------------------------------------------------------------------------------------
-        self.route_type = None             # int, route type ID
-        self.ports = []                    # list[Port], ports a vessel can bunker in
+        self.route_type = None  # int, route type ID
+        self.ports = []  # list[Port], ports a vessel can bunker in
 
         # time at sea/in port
-        self.port_durations = []           # list[float], duration spend in each port, days (round trip)
-        self.time_at_sea = None            # float, fraction of time spent at sea (regional trip)
-        self.port_calls = []               # list[float], number of times each port is called (regional trip)
+        self.port_durations = []  # list[float], duration spend in each port, days (round trip)
+        self.time_at_sea = None  # float, fraction of time spent at sea (regional trip)
+        self.port_calls = []  # list[float], number of times each port is called (regional trip)
 
         # conditions per leg
-        self.speeds = []                   # list[float], speed of the vessel, knots
-        self.capacity_utilizations = []    # list[float], cargo capacity utilization, fraction
-        self.distances = []                # list[float], distance per leg, nautical miles (round trip)
-        self.condition_distribution = []   # list[float], time at condition, fraction (regional trip)
+        self.speeds = []  # list[float], speed of the vessel, knots
+        self.capacity_utilizations = []  # list[float], cargo capacity utilization, fraction
+        self.distances = []  # list[float], distance per leg, nautical miles (round trip)
+        self.condition_distribution = []  # list[float], time at condition, fraction (regional trip)
 
         # regulation
-        self.voyage_distribution = {}      # dict[(port_name, port_name)], fraction of sea time spent between ports
+        self.voyage_distribution = {}  # dict[(port_name, port_name)], fraction of sea time spent between ports
 
     # external methods (DSL attributes) --------------------------------------------------------------------------------
     def set_route_type(self, route_type):
@@ -63,7 +65,6 @@ class Route(Node):
         route_type : str
             Assignment read from input deck.
         """
-
         self.route_type = assign_id(route_type, RouteTypeID)
 
     def set_ports(self, ports):
@@ -80,7 +81,6 @@ class Route(Node):
         ports : list[NodeReference]
             A list of NodeReference to a Port.
         """
-
         self.ports = assign_list(as_list(ports), scalar=False, type_=PORT)
 
     def set_port_durations(self, port_durations):
@@ -99,8 +99,9 @@ class Route(Node):
         port_durations : list[float | NodeReference]
             A list of floats or NodeReferences to a Forecast.
         """
-
-        self.port_durations = assign_list(as_scalar_list(port_durations), type_=(FORECAST, VARIABLE), lower=0.)
+        self.port_durations = assign_list(
+            as_scalar_list(port_durations), type_=(FORECAST, VARIABLE), lower=0.0
+        )
 
     def set_time_at_sea(self, time_at_sea):
         """
@@ -117,8 +118,9 @@ class Route(Node):
         time_at_sea : float
             Fraction of time spent at sea.
         """
-
-        self.time_at_sea = assign_value(as_scalar(time_at_sea), type_=(FORECAST, VARIABLE), lower=0., upper=1.)
+        self.time_at_sea = assign_value(
+            as_scalar(time_at_sea), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
+        )
 
     def set_port_calls(self, port_calls):
         """
@@ -136,8 +138,12 @@ class Route(Node):
         port_calls : list[float | NodeReference]
             A list of floats or NodeReferences to a Forecast.
         """
-
-        self.port_calls = assign_list(as_scalar_list(port_calls), type_=(FORECAST, VARIABLE), lower=0., inclusive_lower=False)
+        self.port_calls = assign_list(
+            as_scalar_list(port_calls),
+            type_=(FORECAST, VARIABLE),
+            lower=0.0,
+            inclusive_lower=False,
+        )
 
     def set_distances(self, distances):
         """
@@ -155,8 +161,9 @@ class Route(Node):
         distances : list[float]
             A list of floats.
         """
-
-        self.distances = assign_list(as_scalar_list(distances), lower=0., inclusive_lower=False)
+        self.distances = assign_list(
+            as_scalar_list(distances), lower=0.0, inclusive_lower=False
+        )
 
     def set_condition_distribution(self, condition_distribution):
         """
@@ -175,11 +182,14 @@ class Route(Node):
         condition_distribution : list[float]
             A list of floats.
         """
-
-        self.condition_distribution, normalized = assign_fraction_list(condition_distribution)
+        self.condition_distribution, normalized = assign_fraction_list(
+            condition_distribution
+        )
 
         if normalized:
-            logger.info("{}: 'ConditionDistribution' is normalized to 1 by equal fractions.".format(self))
+            logger.info(
+                f"{self}: 'ConditionDistribution' is normalized to 1 by equal fractions."
+            )
 
     def set_speeds(self, speeds):
         """
@@ -195,8 +205,12 @@ class Route(Node):
         speeds : list[float | NodeReference]
             A list of floats or NodeReferences to a Forecast.
         """
-
-        self.speeds = assign_list(as_scalar_list(speeds), type_=(FORECAST, VARIABLE), lower=0., inclusive_lower=False)
+        self.speeds = assign_list(
+            as_scalar_list(speeds),
+            type_=(FORECAST, VARIABLE),
+            lower=0.0,
+            inclusive_lower=False,
+        )
 
     def set_capacity_utilizations(self, capacity_utilizations):
         """
@@ -212,11 +226,12 @@ class Route(Node):
         capacity_utilizations : list[float | NodeReference]
             A list of floats or NodeReferences to a Forecast.
         """
-
-        self.capacity_utilizations = assign_list(as_scalar_list(capacity_utilizations),
-                                                 type_=(FORECAST, VARIABLE),
-                                                 lower=0.,
-                                                 upper=1.)
+        self.capacity_utilizations = assign_list(
+            as_scalar_list(capacity_utilizations),
+            type_=(FORECAST, VARIABLE),
+            lower=0.0,
+            upper=1.0,
+        )
 
     # external methods (DSL commands) ----------------------------------------------------------------------------------
     def set_voyage_distribution(self, port_name_from, port_name_to, fraction):
@@ -237,23 +252,28 @@ class Route(Node):
         fraction : float
             Fraction of total sailing time spent traveling from 'port_from' to 'port_to'.
         """
-
-        command_assignment_to_tuple_dict((port_name_from, port_name_to), fraction, self.voyage_distribution,
-                                         type_=VARIABLE, lower=0., upper=1.)
+        command_assignment_to_tuple_dict(
+            (port_name_from, port_name_to),
+            fraction,
+            self.voyage_distribution,
+            type_=VARIABLE,
+            lower=0.0,
+            upper=1.0,
+        )
 
     # internal methods -------------------------------------------------------------------------------------------------
     def initialize(self):
         if self.route_type is None:
-            no_value_assigned_error(self, 'RouteType')
+            no_value_assigned_error(self, "RouteType")
 
         if not self.ports:
-            no_value_assigned_error(self, 'Ports')
+            no_value_assigned_error(self, "Ports")
 
         if not self.speeds:
-            no_value_assigned_error(self, 'Speeds')
+            no_value_assigned_error(self, "Speeds")
 
         if not self.capacity_utilizations:
-            self.capacity_utilizations = as_scalar_list([1. for _ in self.speeds])
+            self.capacity_utilizations = as_scalar_list([1.0 for _ in self.speeds])
 
         if len(self.speeds) != len(self.capacity_utilizations):
             raise ValueError(
@@ -263,85 +283,103 @@ class Route(Node):
 
         # checking requirements that are route type specific
         if self.route_type == RouteTypeID.ROUND_TRIP:
-
             if not self.port_durations:
-                no_value_assigned_error(self, 'PortDurations')
+                no_value_assigned_error(self, "PortDurations")
 
             if not self.distances:
-                no_value_assigned_error(self, 'Distances')
+                no_value_assigned_error(self, "Distances")
 
             if len(self.distances) != len(self.speeds):
-                raise ValueError("{}: The length of 'Distances' ({}) and Speeds ({}) must correspond."
-                                 .format(self, len(self.distances), len(self.speeds)))
+                raise ValueError(
+                    f"{self}: The length of 'Distances' ({len(self.distances)}) and Speeds ({len(self.speeds)}) must correspond."
+                )
 
             if len(self.ports) < 2:
-                raise ValueError("{}: Must have a minimum of 2 ports assigned for a ROUND_TRIP, only {} were given."
-                                 .format(self, len(self.ports)))
+                raise ValueError(
+                    f"{self}: Must have a minimum of 2 ports assigned for a ROUND_TRIP, only {len(self.ports)} were given."
+                )
 
             # based on previous checks, distances is representative for all leg related lists
             if len(self.distances) != len(self.ports):
-                raise ValueError("{}: The length of 'Distances' ({}) and 'Ports' ({}) must correspond for a ROUND_TRIP."
-                                 .format(self, len(self.distances), len(self.ports)))
+                raise ValueError(
+                    f"{self}: The length of 'Distances' ({len(self.distances)}) and 'Ports' ({len(self.ports)}) must correspond for a ROUND_TRIP."
+                )
 
             if len(self.ports) != len(self.port_durations):
-                raise ValueError("{}: The length of 'Ports' ({}) and 'PortDurations' ({}) must correspond."
-                                 .format(self, len(self.ports), len(self.port_durations)))
+                raise ValueError(
+                    f"{self}: The length of 'Ports' ({len(self.ports)}) and 'PortDurations' ({len(self.port_durations)}) must correspond."
+                )
 
             # the same port may not be placed in sequence
             for p in range(len(self.ports) - 1):
                 if self.ports[p] is self.ports[p + 1]:
-                    raise ValueError("{}: Unable to place {} after itself in the sequence."
-                                     .format(self, self.ports[p]))
+                    raise ValueError(
+                        f"{self}: Unable to place {self.ports[p]} after itself in the sequence."
+                    )
 
             # the set is assumed periodical so check first/last are not in sequence
             if self.ports[0] is self.ports[-1]:
-                raise ValueError("{}: The set of ports is assumed to wrap around for a 'ROUND_TRIP', so {} cannot be"
-                                 " placed both first and last.".format(self, self.ports[0]))
+                raise ValueError(
+                    f"{self}: The set of ports is assumed to wrap around for a 'ROUND_TRIP', so {self.ports[0]} cannot be"
+                    " placed both first and last."
+                )
 
             if self.time_at_sea is not None:
-                logger.warning("{}: 'TimeAtSea' is assigned but is unused for a ROUND_TRIP.".format(self))
+                logger.warning(
+                    f"{self}: 'TimeAtSea' is assigned but is unused for a ROUND_TRIP."
+                )
 
             if self.port_calls:
-                logger.warning("{}: 'PortCalls' is assigned but is unused for a ROUND_TRIP.".format(self))
+                logger.warning(
+                    f"{self}: 'PortCalls' is assigned but is unused for a ROUND_TRIP."
+                )
 
             if self.condition_distribution:
-                logger.warning("{}: 'ConditionDistribution' is assigned but is unused for a ROUND_TRIP.".format(self))
+                logger.warning(
+                    f"{self}: 'ConditionDistribution' is assigned but is unused for a ROUND_TRIP."
+                )
 
         elif self.route_type == RouteTypeID.REGIONAL_TRIP:
-
             if self.time_at_sea is None:
-                no_value_assigned_error(self, 'TimeAtSea')
+                no_value_assigned_error(self, "TimeAtSea")
 
             if len(self.condition_distribution) != len(self.speeds):
-                raise ValueError("{}: The length of 'ConditionDistribution' ({}) and 'Speeds' ({}) must correspond."
-                                 .format(self, len(self.condition_distribution), len(self.speeds)))
+                raise ValueError(
+                    f"{self}: The length of 'ConditionDistribution' ({len(self.condition_distribution)}) and 'Speeds' ({len(self.speeds)}) must correspond."
+                )
 
             # all ports must be unique
             if len(self.ports) > len(unique_list(self.ports)):
-                raise ValueError("{}: All ports on a 'REGIONAL_TRIP' must be unique.".format(self))
+                raise ValueError(
+                    f"{self}: All ports on a 'REGIONAL_TRIP' must be unique."
+                )
 
             if not self.port_calls:
-                self.port_calls = as_scalar_list([1. for _ in self.ports])
+                self.port_calls = as_scalar_list([1.0 for _ in self.ports])
 
             if len(self.ports) != len(self.port_calls):
-                raise ValueError("{}: The length of 'Ports' ({}) and 'PortCalls' ({}) must correspond."
-                                 .format(self, len(self.ports), len(self.port_calls)))
+                raise ValueError(
+                    f"{self}: The length of 'Ports' ({len(self.ports)}) and 'PortCalls' ({len(self.port_calls)}) must correspond."
+                )
 
             if self.distances:
-                logger.warning("{}: 'Distances' is assigned but is unused for a REGIONAL_TRIP.".format(self))
+                logger.warning(
+                    f"{self}: 'Distances' is assigned but is unused for a REGIONAL_TRIP."
+                )
 
             if self.port_durations:
-                logger.warning("{}: 'PortDurations' is assigned but is unused for a REGIONAL_TRIP.".format(self))
+                logger.warning(
+                    f"{self}: 'PortDurations' is assigned but is unused for a REGIONAL_TRIP."
+                )
 
         for key, distribution in self.voyage_distribution.items():
             if distribution is None:
-                self.voyage_distribution[key] = Scalar(0.)
+                self.voyage_distribution[key] = Scalar(0.0)
 
     def initialize_dependencies(self):
         """
         Initialize dependent dictionaries to allow wildcarding during command calls.
         """
-
         names = [port.name for port in self.ports]
         for key in itertools.product(names, names):
             self.voyage_distribution.setdefault(key, None)
@@ -350,7 +388,9 @@ class Route(Node):
         fractions = normalize_fractional(self.voyage_distribution, None)
 
         if to_array:
-            return [fractions[(pi.name, pj.name)] for pj in self.ports for pi in self.ports]
+            return [
+                fractions[(pi.name, pj.name)] for pj in self.ports for pi in self.ports
+            ]
         else:
             return fractions
 
@@ -369,7 +409,6 @@ class Route(Node):
         Consecutive legs for a round trip, otherwise all port-to-port combinations (required for
         regulatory purposes).
         """
-
         if self.route_type == RouteTypeID.ROUND_TRIP:
             n_legs = self.get_number_of_legs()
             return tuple((i, (i + 1) % n_legs) for i in range(n_legs))

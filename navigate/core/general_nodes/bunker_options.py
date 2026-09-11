@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 from navigate.core import assign_id, assign_integer, assign_value
 from navigate.core.enum_ import SolverBackendID, SolverMethodID
 from navigate.core.general_nodes._general_node import _GeneralNode
@@ -11,14 +13,18 @@ class BunkerOptions(_GeneralNode):
         super().__init__()
 
         # external variables -------------------------------------------------------------------------------------------
-        self.solver = None                         # enum, solver backend (AUTOMATIC, GUROBI, HIGHS)
-        self.solver_method = None                  # enum, LP solver method
-        self.solution_tolerance = None             # float, the tolerance of the solution
-        self.threads = None                        # int, the number of threads used for LP solves
+        self.solver = None  # enum, solver backend (AUTOMATIC, GUROBI, HIGHS)
+        self.solver_method = None  # enum, LP solver method
+        self.solution_tolerance = None  # float, the tolerance of the solution
+        self.threads = None  # int, the number of threads used for LP solves
 
         # fair-share
-        self.fair_share_maximum_iterations = None      # int, maximum number of fair-share iterations
-        self.fair_share_tolerance = None               # float, the tolerance of the fair-share convergence
+        self.fair_share_maximum_iterations = (
+            None  # int, maximum number of fair-share iterations
+        )
+        self.fair_share_tolerance = (
+            None  # float, the tolerance of the fair-share convergence
+        )
 
     # external methods (DSL attributes) --------------------------------------------------------------------------------
     def set_solver(self, solver: str):
@@ -38,7 +44,6 @@ class BunkerOptions(_GeneralNode):
             GUROBI selects Gurobi (falls back to HiGHS if no license).
             HIGHS skips Gurobi and uses HiGHS directly.
         """
-
         self.solver = assign_id(solver, SolverBackendID)
 
     def set_solver_method(self, solver_method: str):
@@ -56,7 +61,6 @@ class BunkerOptions(_GeneralNode):
         solver_method
             LP solver method used by HiGHS to solve LP's in the bunker algorithm.
         """
-
         self.solver_method = assign_id(solver_method, SolverMethodID)
 
     def set_solution_tolerance(self, solution_tolerance: float):
@@ -74,8 +78,9 @@ class BunkerOptions(_GeneralNode):
         solution_tolerance
             Tolerance used when transferring the BunkerAlgorithm solutions to profiles.
         """
-
-        self.solution_tolerance = assign_value(solution_tolerance, lower=0, inclusive_lower=False)
+        self.solution_tolerance = assign_value(
+            solution_tolerance, lower=0, inclusive_lower=False
+        )
 
     def set_threads(self, threads: float):
         """
@@ -92,7 +97,6 @@ class BunkerOptions(_GeneralNode):
         threads
             Threads used by the LP solver in the bunker algorithm.
         """
-
         self.threads = assign_integer(threads, lower=0)
 
     def set_fair_share_maximum_iterations(self, fair_share_maximum_iterations: int):
@@ -108,8 +112,9 @@ class BunkerOptions(_GeneralNode):
         fair_share_maximum_iterations
             Maximum iterations allowed for the sequential LP of the bunker algorithm.
         """
-
-        self.fair_share_maximum_iterations = int(assign_value(fair_share_maximum_iterations, lower=1))
+        self.fair_share_maximum_iterations = int(
+            assign_value(fair_share_maximum_iterations, lower=1)
+        )
 
     def set_fair_share_tolerance(self, fair_share_tolerance: float):
         """
@@ -124,8 +129,9 @@ class BunkerOptions(_GeneralNode):
         fair_share_tolerance
             Tolerance used when checking convergence of fair-share bunker solution.
         """
-
-        self.fair_share_tolerance = assign_value(fair_share_tolerance, lower=0., inclusive_lower=False)
+        self.fair_share_tolerance = assign_value(
+            fair_share_tolerance, lower=0.0, inclusive_lower=False
+        )
 
     # internal methods -------------------------------------------------------------------------------------------------
     def initialize(self):

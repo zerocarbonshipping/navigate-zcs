@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 from navigate.core import assign_id
 from navigate.core.enum_ import SourceDependencyID
 from navigate.core.node import Node
@@ -30,10 +32,9 @@ class Source(Node):
         dependency : str
             Type of dependency.
         """
-
         self.dependency = assign_id(dependency, SourceDependencyID)
 
     # internal methods -------------------------------------------------------------------------------------------------
     def initialize(self):
         if self.dependency is None:
-            no_value_assigned_error(self, 'Dependency')
+            no_value_assigned_error(self, "Dependency")

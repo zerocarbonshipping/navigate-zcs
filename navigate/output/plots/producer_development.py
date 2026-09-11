@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 import numpy as np
 
 from navigate.output.plots._colors import CENTER_COLORS_GREEN
@@ -24,7 +26,6 @@ def _plot_producer_development(manager, directory, cumulative=False):
 
     # cumulate fuel spent over all fleets
     for ax, producer in zip(axes, producers.values()):
-
         profile = producer.profile
 
         if cumulative:
@@ -34,22 +35,28 @@ def _plot_producer_development(manager, directory, cumulative=False):
             development = profile.get_development()
             development_constraint = profile.get_maximum_development()
 
-        ax.plot(dateline, development, label='Planned', color=CENTER_COLORS_GREEN[3], lw=2.)
+        ax.plot(
+            dateline, development, label="Planned", color=CENTER_COLORS_GREEN[3], lw=2.0
+        )
 
         if np.any(np.isfinite(development_constraint)):
-            ax.plot(dateline, development_constraint, 'k--', label='Constraint', lw=2.)
+            ax.plot(dateline, development_constraint, "k--", label="Constraint", lw=2.0)
 
         legend = ax.legend(**LEGEND_OPTIONS)
         ax.set_title(producer.name)
 
         if cumulative:
-            ax.set_ylabel('Development [plants]')
+            ax.set_ylabel("Development [plants]")
         else:
-            ax.set_ylabel('Development [plants/year]')
+            ax.set_ylabel("Development [plants/year]")
 
         format_axes(ax, len(producers), dateline, legend=legend)
 
-    save_figure(fig, directory, 'producer_development{}.png'.format('_cumulative' if cumulative else ''))
+    save_figure(
+        fig,
+        directory,
+        "producer_development{}.png".format("_cumulative" if cumulative else ""),
+    )
 
 
 def plot_producer_development(manager, directory):

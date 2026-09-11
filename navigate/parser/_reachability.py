@@ -15,15 +15,32 @@ and in queued EVENTS statements; an EVENTS reference keeps a node alive
 only when the statement's target node is itself reachable.
 """
 
+from __future__ import annotations
+
 from navigate.core import Expression, NodeReference
 from navigate.core.node import Node
 from navigate.core.node_reference import WildcardNodeReference
 from navigate.core.node_registry import GeneralNodes, Nodes
-from navigate.core.node_type import EMISSION, FLEET, FUEL, LEVY, PLOT, PORT, PRODUCER, REGULATION, REPORT, ROUTE
+from navigate.core.node_type import (
+    EMISSION,
+    FLEET,
+    FUEL,
+    LEVY,
+    PLOT,
+    PORT,
+    PRODUCER,
+    REGULATION,
+    REPORT,
+    ROUTE,
+)
 from navigate.parser._commands import CommandReference
 from navigate.parser._keywords import GENERAL_NODE_GROUP, NODE_GROUP
 from navigate.parser._lark_parser import Assignment, Command, NodeDeclaration
-from navigate.parser._scan import NODE_REFERENCE_PATTERN, REFERENCE_SCAN_EXCLUDE, get_attributes
+from navigate.parser._scan import (
+    NODE_REFERENCE_PATTERN,
+    REFERENCE_SCAN_EXCLUDE,
+    get_attributes,
+)
 from navigate.util import matching_keys
 
 ROOT_TYPES = (EMISSION, FLEET, FUEL, LEVY, PLOT, PRODUCER, REGULATION, REPORT)
@@ -33,10 +50,12 @@ ROOT_GROUPS = tuple(NODE_GROUP[node_type] for node_type in ROOT_TYPES)
 # type; an entry is needed only where a non-activating reference kind exists:
 # a Levy/Regulation Jurisdiction filters routed ports and must not pull an
 # unrouted port into the fuel-supply aggregation
-ACTIVATION_EDGES = {PORT: ((ROUTE, 'ports'),)}
+ACTIVATION_EDGES = {PORT: ((ROUTE, "ports"),)}
 
 
-def find_unreachable(nodes: Nodes, general_nodes: GeneralNodes, event_queue: dict) -> list[tuple[str, str]]:
+def find_unreachable(
+    nodes: Nodes, general_nodes: GeneralNodes, event_queue: dict
+) -> list[tuple[str, str]]:
     """
     Find every declared node that no chain of references connects to a root.
 
@@ -54,14 +73,15 @@ def find_unreachable(nodes: Nodes, general_nodes: GeneralNodes, event_queue: dic
     Sorted (node type, node name) pairs of the unreachable nodes; empty when
     every node is reachable.
     """
-
     event_edges = _collect_event_edges(event_queue, nodes)
 
     # frontier of (node type, node name) keys whose references are unexpanded
     pending = set()
 
     for group_name in ROOT_GROUPS:
-        pending.update((node.type, node.name) for node in getattr(nodes, group_name).values())
+        pending.update(
+            (node.type, node.name) for node in getattr(nodes, group_name).values()
+        )
 
     # general nodes can neither be referenced nor targeted by events, so
     # their references are collected once up front; their attributes are not
@@ -72,7 +92,9 @@ def find_unreachable(nodes: Nodes, general_nodes: GeneralNodes, event_queue: dic
         if general_node is None:
             continue
 
-        for _, attribute in get_attributes(general_node, exclude=REFERENCE_SCAN_EXCLUDE):
+        for _, attribute in get_attributes(
+            general_node, exclude=REFERENCE_SCAN_EXCLUDE
+        ):
             pending.update(_activating_references(None, attribute, nodes))
 
     reachable = set()
@@ -90,15 +112,22 @@ def find_unreachable(nodes: Nodes, general_nodes: GeneralNodes, event_queue: dic
         if node is None:
             continue
 
-        for attribute_name, attribute in get_attributes(node, exclude=REFERENCE_SCAN_EXCLUDE):
-            pending.update(_activating_references((node_type, attribute_name), attribute, nodes))
+        for attribute_name, attribute in get_attributes(
+            node, exclude=REFERENCE_SCAN_EXCLUDE
+        ):
+            pending.update(
+                _activating_references((node_type, attribute_name), attribute, nodes)
+            )
 
         pending.update(event_edges.get((node_type, name), ()))
 
     unreachable = []
     for node_type, group_name in NODE_GROUP.items():
-        unreachable.extend((node_type, name) for name in getattr(nodes, group_name)
-                           if (node_type, name) not in reachable)
+        unreachable.extend(
+            (node_type, name)
+            for name in getattr(nodes, group_name)
+            if (node_type, name) not in reachable
+        )
 
     return sorted(unreachable)
 
@@ -122,7 +151,6 @@ def _activating_references(edge, value, nodes: Nodes):
     nodes
         The registry, used to expand wildcard references.
     """
-
     for node_type, name in _iter_references(value, nodes):
         edges = ACTIVATION_EDGES.get(node_type)
 
@@ -149,9 +177,10 @@ def _iter_references(value, nodes: Nodes):
     nodes
         The registry, used to expand wildcard references.
     """
-
     if isinstance(value, WildcardNodeReference):
-        for name in matching_keys(value.pattern, getattr(nodes, NODE_GROUP[value.type])):
+        for name in matching_keys(
+            value.pattern, getattr(nodes, NODE_GROUP[value.type])
+        ):
             yield value.type, name
 
     elif isinstance(value, (Node, NodeReference)):
@@ -194,17 +223,17 @@ def _collect_event_edges(event_queue: dict, nodes: Nodes) -> dict:
     (node type, node name) pairs. Target names absent from the registry are
     skipped; they resolve from the default library at event execution.
     """
-
     edges = {}
 
     for events in event_queue.values():
         for event in events:
             for statement in event.statements:
-
                 if not isinstance(statement, NodeDeclaration):
                     continue
 
-                target_names = matching_keys(statement.name, getattr(nodes, NODE_GROUP[statement.node_type]))
+                target_names = matching_keys(
+                    statement.name, getattr(nodes, NODE_GROUP[statement.node_type])
+                )
 
                 if not target_names:
                     continue
@@ -215,7 +244,9 @@ def _collect_event_edges(event_queue: dict, nodes: Nodes) -> dict:
                     continue
 
                 for target_name in target_names:
-                    edges.setdefault((statement.node_type, target_name), set()).update(references)
+                    edges.setdefault((statement.node_type, target_name), set()).update(
+                        references
+                    )
 
     return edges
 
@@ -235,7 +266,6 @@ def _statement_references(statement: NodeDeclaration, nodes: Nodes) -> set:
     -------
     The referenced (node type, node name) pairs.
     """
-
     references = set()
 
     # every activation edge is DEFINE-only (pinned by a unit test), so a

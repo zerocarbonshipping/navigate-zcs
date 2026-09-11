@@ -2,9 +2,17 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """Unit tests for wildcard support in core assign, util, and node references."""
+
+from __future__ import annotations
+
 import pytest
 
-from navigate.core.assign import assign_id_list, assign_list, assign_value, expand_id_wildcard
+from navigate.core.assign import (
+    assign_id_list,
+    assign_list,
+    assign_value,
+    expand_id_wildcard,
+)
 from navigate.core.enum_ import EnergyDemandTypeID, FuelTypeID
 from navigate.core.node_reference import WildcardNodeReference
 from navigate.core.node_type import FUEL, PORT
@@ -14,7 +22,6 @@ from navigate.util import matching_keys, retrieve_keys
 
 
 class TestExpandIdWildcard:
-
     def test_star_matches_all(self):
         result = expand_id_wildcard("*", FuelTypeID)
         assert set(result) == set(FuelTypeID)
@@ -40,8 +47,8 @@ class TestExpandIdWildcard:
 
 # ── assign_id_list with wildcards ─────────────────────────────────────────────
 
-class TestAssignIdListWildcard:
 
+class TestAssignIdListWildcard:
     def test_wildcard_in_list_expands(self):
         result = assign_id_list(["M*"], FuelTypeID)
         assert FuelTypeID.METHANE in result
@@ -64,8 +71,8 @@ class TestAssignIdListWildcard:
 
 # ── retrieve_keys with enum-keyed dicts ───────────────────────────────────────
 
-class TestRetrieveKeysEnum:
 
+class TestRetrieveKeysEnum:
     _key_fn = staticmethod(lambda k: k.name)
 
     def test_wildcard_matches_enum_names(self):
@@ -95,22 +102,25 @@ class TestRetrieveKeysEnum:
 
 # ── matching_keys ─────────────────────────────────────────────────────────────
 
-class TestMatchingKeys:
 
-    @pytest.mark.parametrize("pattern, keys, expected", [
-        ("a", {"a": 1, "b": 2}, {"a"}),
-        ("a*", {"a1": 1, "a2": 2, "b": 3}, {"a1", "a2"}),
-        ("z", {"a": 1}, set()),
-        ("z*", {"a": 1}, set()),
-    ])
+class TestMatchingKeys:
+    @pytest.mark.parametrize(
+        "pattern, keys, expected",
+        [
+            ("a", {"a": 1, "b": 2}, {"a"}),
+            ("a*", {"a1": 1, "a2": 2, "b": 3}, {"a1", "a2"}),
+            ("z", {"a": 1}, set()),
+            ("z*", {"a": 1}, set()),
+        ],
+    )
     def test_matches(self, pattern, keys, expected):
         assert set(matching_keys(pattern, keys)) == expected
 
 
 # ── assign_value / assign_list accept WildcardNodeReference ───────────────────
 
-class TestAssignValueWildcardNodeReference:
 
+class TestAssignValueWildcardNodeReference:
     def test_assign_value_accepts_matching_type(self):
         ref = WildcardNodeReference(FUEL, "*")
         result = assign_value(ref, scalar=False, type_=FUEL)
@@ -122,6 +132,9 @@ class TestAssignValueWildcardNodeReference:
             assign_value(ref, scalar=False, type_=PORT)
 
     def test_assign_list_accepts_wildcard_entries(self):
-        entries = [WildcardNodeReference(FUEL, "bio_*"), WildcardNodeReference(FUEL, "fossil_*")]
+        entries = [
+            WildcardNodeReference(FUEL, "bio_*"),
+            WildcardNodeReference(FUEL, "fossil_*"),
+        ]
         result = assign_list(entries, unique=True, scalar=False, type_=FUEL)
         assert result == entries

@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 import numpy as np
 
 
@@ -10,7 +12,7 @@ class Scalar:
         self._value = value
 
     def __repr__(self):
-        return f"Scalar({str(self._value)})"
+        return f"Scalar({self._value!s})"
 
     def get(self, x=None, y=None) -> float | np.ndarray:
         """
@@ -28,17 +30,14 @@ class Scalar:
         float
             Assigned scalar value.
         """
-
         # no need to check against y
         # as y can never be passed
         # without x and will always
         # have the same size
         if (x is not None) and isinstance(x, np.ndarray):
-
             return np.full_like(x, self._value)
 
         else:
-
             return self._value
 
     @staticmethod

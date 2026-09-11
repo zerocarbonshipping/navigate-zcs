@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 from navigate.core import as_list, as_scalar, assign_id_list, assign_value
 from navigate.core.enum_ import FuelTypeID
 from navigate.core.node_type import TANK, VARIABLE
@@ -13,8 +15,8 @@ class Tank(_Machinery):
         super().__init__(name, TANK)
 
         # external variables -------------------------------------------------------------------------------------------
-        self.fuel_types = None             # list, fuel type ID
-        self.size = None                   # float, tank size
+        self.fuel_types = None  # list, fuel type ID
+        self.size = None  # float, tank size
 
     # external methods (DSL attributes) --------------------------------------------------------------------------------
     def set_fuel_types(self, fuel_types):
@@ -32,14 +34,16 @@ class Tank(_Machinery):
         fuel_types : list[str]
             List of fuel types which can be stored in the tank.
         """
-
-        self.fuel_types = assign_id_list(as_list(fuel_types), FuelTypeID, length=(1, None))
+        self.fuel_types = assign_id_list(
+            as_list(fuel_types), FuelTypeID, length=(1, None)
+        )
 
     def set_size(self, size):
         """
         Set the volumetric size of the tank in cubic meter.
 
         Examples
+        --------
         - 8000
 
         Parameters
@@ -47,16 +51,15 @@ class Tank(_Machinery):
         size : float
             Volumetric size of the tank in cubic meter.
         """
-
-        self.size = assign_value(as_scalar(size), type_=VARIABLE, lower=0.)
+        self.size = assign_value(as_scalar(size), type_=VARIABLE, lower=0.0)
 
     # internal methods -------------------------------------------------------------------------------------------------
     def initialize(self):
         if self.fuel_types is None:
-            no_value_assigned_error(self, 'FuelTypes')
+            no_value_assigned_error(self, "FuelTypes")
 
         if self.size is None:
-            no_value_assigned_error(self, 'Size')
+            no_value_assigned_error(self, "Size")
 
         self._initialize_machinery()
 
