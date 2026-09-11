@@ -1,0 +1,49 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: Apache-2.0
+#
+# Shared ruff configuration, kept byte-identical across zerocarbonshipping
+# repositories; changes must land in all of them at once, so do not edit this
+# file in a single repository. Repository-specific settings (target-version,
+# first-party packages, per-file waivers and the legacy-file ratchet) live in
+# the .ruff.toml that extends this file.
+
+line-length = 88
+
+[format]
+docstring-code-format = true
+
+[lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "N",   # pep8-naming
+    "B",   # flake8-bugbear
+    "UP",  # pyupgrade
+    "C4",  # flake8-comprehensions
+    "SIM", # flake8-simplify
+    "RUF", # ruff-specific
+    "D",   # pydocstyle
+    "TC",  # flake8-type-checking
+    "SLF", # flake8-self
+    "NPY", # numpy-specific checks (deprecated aliases, legacy random API)
+    "ICN", # canonical import aliases (numpy as np, pandas as pd, ...)
+    "PGH", # bans blanket noqa/type-ignore; malformed mock assertions
+    "PT",  # pytest style and failure quality
+]
+extend-select = [
+    "D213", # multi-line docstring summaries start on the second line
+    "G001", # no str.format in logging calls - pass lazy % arguments
+    "G004", # no f-strings in logging calls - pass lazy % arguments
+]
+ignore = [
+    "E731", # lambda assignments are allowed
+    "D105", # magic methods need no docstring
+]
+
+[lint.pydocstyle]
+convention = "numpy"
+
+[lint.isort]
+required-imports = ["from __future__ import annotations"]

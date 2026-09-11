@@ -23,34 +23,11 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install lint tools
-        run: pip install flake8 flake8-bugbear pep8-naming isort
+      - name: Install package with dev dependencies
+        run: make pip-setup
 
-      - name: Run flake8
-        run: flake8 navigate tests
-
-      - name: Run isort
-        run: isort navigate tests --check-only --diff
-
-
-  reuse:
-    name: REUSE compliance
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: '3.12'
-
-      - name: Install REUSE tool
-        run: pip install reuse
-
-      - name: Check copyright and license metadata
-        run: reuse lint
+      - name: Run lint suite
+        run: make lint
 
 
   build:

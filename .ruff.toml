@@ -1,0 +1,28 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: Apache-2.0
+#
+# Repository-specific ruff settings, layered over the shared configuration in
+# ruff-shared.toml (kept identical across zerocarbonshipping repositories).
+
+extend = "ruff-shared.toml"
+target-version = "py312"
+
+[lint.isort]
+known-first-party = ["helpers"]
+
+[lint.per-file-ignores]
+"__init__.py" = ["F401"]
+# external solver APIs dictate the naming in the shims
+"navigate/bunker/solver.py" = ["N802", "N811", "N816"]
+"navigate/bunker/solver_highs.py" = ["N802", "N806"]
+"tests/unit/test_bunker_build.py" = ["N802"]
+# expectation, profile, and node lifecycle methods carry no docstrings; the
+# DSL setters on nodes do (see CODESTYLE.md, Navigate-specific conventions)
+"navigate/core/expectations/*" = ["D102"]
+"navigate/core/profiles/*" = ["D102"]
+"navigate/core/nodes/*" = ["D102"]
+# tests document themselves through their names
+"tests/*" = ["D1"]
+
+# >>> generated ratchet - entries may only be removed, never added >>>
+# <<< generated ratchet <<<

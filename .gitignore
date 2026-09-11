@@ -81,6 +81,9 @@ venv.bak/
 .dmypy.json
 dmypy.json
 
+# ruff
+.ruff_cache/
+
 # Local artifacts
 *.bak
 *.lp
