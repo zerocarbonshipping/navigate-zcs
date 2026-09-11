@@ -8,7 +8,7 @@ import re
 
 def retrieve_keys(key, allowed_keys, key_fn=None):
     """
-    Retrieve all keys from 'allowed_keys' which match the (potential) wildcard expression in key.
+    Retrieve all keys from 'allowed_keys' matching the (potential) wildcard in key.
 
     Parameters
     ----------

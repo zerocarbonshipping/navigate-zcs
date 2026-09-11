@@ -85,7 +85,8 @@ def merge_dicts(dict1, *dicts, in_place=False):
         for key, value in d.items():
             if key in out:
                 raise KeyError(
-                    f"Key {key} encountered in dict number {i} is present in multiple dicts."
+                    f"Key {key} encountered in dict number {i} is present in "
+                    f"multiple dicts."
                 )
 
             out[key] = value
@@ -95,7 +96,7 @@ def merge_dicts(dict1, *dicts, in_place=False):
 
 def add_dicts(dict1, *dicts, in_place=False):
     """
-    Merge dicts together, adding up the values if keys are duplicate across multiple dicts.
+    Merge dicts together, adding the values if keys are duplicate across multiple dicts.
 
     Parameters
     ----------
@@ -126,7 +127,7 @@ def add_dicts(dict1, *dicts, in_place=False):
 
 def multiply_dicts(dict1, *dicts, in_place=False):
     """
-    Merge dicts together, multiplying the values if keys are duplicate across multiple dicts.
+    Merge dicts, multiplying the values if keys are duplicate across multiple dicts.
 
     Parameters
     ----------
@@ -253,7 +254,8 @@ def extract_from_dict(result, key=None, idx=None, transform=lambda x: x):
     If key is given, returns a single (possibly sliced) value.
     If key is None, returns the whole dict.
 
-    If idx is not None and the return is a dict, values are sliced (when possible) then transformed.
+    If idx is not None and the return is a dict, values are sliced (when possible) then
+    transformed.
     """
     if not result:
         return result
@@ -304,7 +306,8 @@ def extract_from_tuple_dict(
     If only key2 is given, returns {key1: value} for matching (key1, key2).
     If neither is given, returns the whole dict.
 
-    If idx is not None and the return is a dict, values are sliced (when possible) then transformed.
+    If idx is not None and the return is a dict, values are sliced (when possible) then
+    transformed.
     """
     if not result:
         return result
@@ -376,8 +379,10 @@ def sum_tuple_dict_results(result, key1=None, key2=None, idx=None, n=None):
     Sums the results from a tuple dict.
 
     If both keys are given the value is returned directly.
-    If the first key is given, but not the second, it returns the sum of values for which the first key is included.
-    If the second key is given, but not the second, it returns the sum of values for which the second key is included.
+    If the first key is given, but not the second, it returns the sum of values for
+    which the first key is included.
+    If the second key is given, but not the second, it returns the sum of values for
+    which the second key is included.
     If no keys are given it returns the sum of the full dict.
 
     Parameters
@@ -428,8 +433,8 @@ def sum_tuple_dict_results(result, key1=None, key2=None, idx=None, n=None):
 
 def collapse_dict(result, key=False, idx=None, n=None):
     """
-    Combines extract_from_dict and sum_dict_results by collapsing all arrays over the undefined key
-    instead of creating a subdict.
+    Combines extract_from_dict and sum_dict_results by collapsing all arrays over the
+    undefined key instead of creating a subdict.
 
     Parameters
     ----------
@@ -458,8 +463,8 @@ def collapse_dict(result, key=False, idx=None, n=None):
 
 def collapse_tuple_dict(result, key1=False, key2=False, idx=None, n=None):
     """
-    Combines extract_from_tuple_dict and sum_tuple_dict_results by collapsing all arrays over the undefined key
-    instead of creating a subdict.
+    Combines extract_from_tuple_dict and sum_tuple_dict_results by collapsing all arrays
+    over the undefined key instead of creating a subdict.
 
     Parameters
     ----------

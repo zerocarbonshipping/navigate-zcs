@@ -49,7 +49,7 @@ class InfeasibleLPError(NavigateError):
 
 
 class PowerCapacityError(NavigateError):
-    """Raised if a vessel's energy demand exceeds what its installed converter power can deliver."""
+    """Raised if a vessel's energy demand exceeds installed converter power capacity."""
 
 
 class ConvergenceError(NavigateError):

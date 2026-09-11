@@ -215,7 +215,7 @@ def build_cargo_flow(
     component: Component, cargo: np.ndarray, timeline: np.ndarray
 ) -> np.ndarray:
     """
-    Expand a variable annual cargo-miles (cargo-miles/year) into a calendar-year flow vector.
+    Expand a variable annual cargo-miles (cargo-miles/year) into a calendar-year flow.
 
     Zeros are applied during construction lead time. The first operational year is
     automatically fractional via overlap between the operation window and the first
@@ -238,14 +238,15 @@ def build_cargo_flow(
 
 def add_capex_flow(component: Component, capex: Callable[[float], float]) -> None:
     """
-    Add initial CAPEX spread over the construction period and recurring CAPEX at the end of a component's lifetime.
+    Add initial CAPEX spread over construction and recurring CAPEX at lifetime end.
 
     Parameters
     ----------
     component
         Component for which CAPEX costs are added.
     capex
-        Callable returning CAPEX locked at the time of investment and recurring CAPEX at the end of the lifetime.
+        Callable returning CAPEX locked at the time of investment and recurring CAPEX at
+        the end of the lifetime.
     """
     _add_initial_capex_flow(component=component, capex=capex)
     _add_recurring_capex_flow(component=component, capex=capex, partial=True)
@@ -286,7 +287,8 @@ def add_variable_opex(
     metric
         Callable returning locked metric (e.g., tons/year) at anchor time (days).
     cost
-        Callable returning price as a function of absolute time (days). Vectorized over arrays of days.
+        Callable returning price as a function of absolute time (days). Vectorized over
+        arrays of days.
 
     Returns
     -------
@@ -302,14 +304,15 @@ def add_fixed_wtt(
     component: Component, wtt_callables: dict[str, Callable[[float], float]]
 ) -> None:
     """
-    Add fixed/locked WTT for multiple emissions in a single pass over staircase segments.
+    Add fixed/locked WTT for multiple emissions in one pass over staircase segments.
 
     Parameters
     ----------
     component
         Component for which WTT emissions are added.
     wtt_callables
-        Mapping of emission name to callable returning locked WTT factor at anchor time (days).
+        Mapping of emission name to callable returning locked WTT factor at anchor time
+        (days).
     """
     if not wtt_callables:
         return
@@ -368,8 +371,8 @@ def add_variable_wtt(
 
 def timeline_to_yearly(asset, idx, timeline):
     """
-    Define the appropriate dates (yearly) for which to calculate the cost-flow of a business case.
-    This is necessary in order to ensure all cost-flows are comparable.
+    Define the appropriate dates (yearly) for which to calculate the cost-flow of a
+    business case. This is necessary in order to ensure all cost-flows are comparable.
 
     Parameters
     ----------
@@ -398,8 +401,8 @@ def timeline_to_yearly(asset, idx, timeline):
 
 def get_age_flow(lead_time: float, lifetime: float) -> np.ndarray:
     """
-    Initialize a vector of ones with the necessary length for the yearly cost-flow of an asset.
-    This can be used to calculate age levelization.
+    Initialize a vector of ones with the necessary length for the yearly cost-flow of an
+    asset. This can be used to calculate age levelization.
 
     Parameters
     ----------
@@ -418,13 +421,14 @@ def get_age_flow(lead_time: float, lifetime: float) -> np.ndarray:
 
 def build_operating_age_flow(lead_time: float, lifetime: float) -> np.ndarray:
     """
-    Build the per-calendar-year operating fraction over the horizon `lead_time + lifetime`.
+    Build the per-calendar-year operating fraction over `lead_time + lifetime`.
 
-    The flow is zero during the construction lead time and one during operational years, with the
-    first and last partial years prorated by their overlap with the operating window. It mirrors
-    `Component.constant_overlap` and is the leveling basis for age-levelized charter rates, so that
-    cost is spread only over the years the asset actually operates (matching the cost and cargo-mile
-    flows, which are likewise zero during lead time).
+    The flow is zero during the construction lead time and one during operational years,
+    with the first and last partial years prorated by their overlap with the operating
+    window. It mirrors `Component.constant_overlap` and is the leveling basis for
+    age-levelized charter rates, so that cost is spread only over the years the asset
+    actually operates (matching the cost and cargo-mile flows, which are likewise zero
+    during lead time).
 
     Parameters
     ----------
@@ -436,7 +440,8 @@ def build_operating_age_flow(lead_time: float, lifetime: float) -> np.ndarray:
     Returns
     -------
     np.ndarray
-        Operating fraction per calendar-year bin over the horizon `lead_time + lifetime`.
+        Operating fraction per calendar-year bin over the horizon
+        `lead_time + lifetime`.
     """
     n = get_flow_size(lead_time, lifetime)
     year_starts = np.arange(n, dtype=float) * YEAR_TO_DAYS
@@ -450,11 +455,12 @@ def build_operating_flows(
     time_initial: float, lead_time: float, lifetime: float
 ) -> tuple[np.ndarray, np.ndarray]:
     """
-    Build the lead-aware operating-year grid and overlap fractions for an asset evaluated at a given time.
+    Build the lead-aware operating-year grid and overlap fractions at a given time.
 
-    The overlap is zero during the construction lead time and (prorated) one during operational years;
-    the year grid gives the absolute calendar time (days) of each bin, anchored at the evaluation time.
-    Both span `lead_time + lifetime` years so reconstructed cost, production, and age flows share one basis.
+    The overlap is zero during the construction lead time and (prorated) one during
+    operational years; the year grid gives the absolute calendar time (days) of each
+    bin, anchored at the evaluation time. Both span `lead_time + lifetime` years so
+    reconstructed cost, production, and age flows share one basis.
 
     Parameters
     ----------
@@ -478,7 +484,7 @@ def build_operating_flows(
 
 def get_flow_shape(lead_time: float, lifetime: float) -> tuple[int]:
     """
-    Get the shape of the vector required to store an asset's construction and lifetime operations in yearly increments.
+    Get the vector shape for an asset's construction and lifetime operations in years.
 
     Parameters
     ----------
@@ -497,9 +503,9 @@ def get_flow_shape(lead_time: float, lifetime: float) -> tuple[int]:
 
 def get_flow_size(lead_time: float, lifetime: float) -> int:
     """
-    Get the size of the vectors required to store an asset's lifetime operations in yearly increments.
-    The number of years used in the allocation of the flow is equal to the ceil of the lifetime to account for
-    lifetimes with decimals.
+    Get the size of the vectors required to store an asset's lifetime operations in
+    yearly increments. The number of years used in the allocation of the flow is equal
+    to the ceil of the lifetime to account for lifetimes with decimals.
 
     Parameters
     ----------
@@ -523,9 +529,10 @@ def _add_initial_capex_flow(
     Add initial CAPEX spread over the construction period.
 
     The full initial CAPEX is locked at the time of investment decision (`time_initial`)
-    and then distributed across the construction lead time into calendar-year bins.
-    This method only deposits into `component.capex_flow` and does not modify tied up capital.
-    Tied up capital for the initial CAPEX is handled separately via `_add_initial_tied_capital_flow`.
+    and then distributed across the construction lead time into calendar-year bins. This
+    method only deposits into `component.capex_flow` and does not modify tied up
+    capital. Tied up capital for the initial CAPEX is handled separately via
+    `_add_initial_tied_capital_flow`.
 
     Parameters
     ----------
@@ -580,19 +587,21 @@ def _add_recurring_capex_flow(
     installed at commencement. Each subsequent replacement interval is anchored at the
     replacement time (properties locked at `time_replace`).
 
-    Deposits replacement CAPEX into `component.capex_flow` at the appropriate calendar-year
-    bin and adds the corresponding tied up capital tranche using straight-line depreciation
-    from the replacement bin start, over the component lifetime locked at the replacement year.
+    Deposits replacement CAPEX into `component.capex_flow` at the appropriate
+    calendar-year bin and adds the corresponding tied up capital tranche using
+    straight-line depreciation from the replacement bin start, over the component
+    lifetime locked at the replacement year.
 
     Parameters
     ----------
     component
         Component for which recurring CAPEX costs are added.
     capex
-        Callable returning recurring CAPEX at the replacement time (days since start of simulation).
+        Callable returning recurring CAPEX at the replacement time (days since start of
+        simulation).
     partial
-        If True, scale the replacement CAPEX by the fraction of the next component lifetime
-        that fits within the remaining horizon.
+        If True, scale the replacement CAPEX by the fraction of the next component
+        lifetime that fits within the remaining horizon.
     """
     # recurring CAPEX only matters if the component
     # has a lifetime shorter than the asset lifetime
@@ -631,21 +640,22 @@ def _add_initial_tied_capital_flow(component: Component, delta: np.ndarray) -> N
     Add the tied capital depreciation for the initial CAPEX delta.
 
     Tied up capital is built from two parts:
-      1) Construction-in-Progress (CIP): cumulative initial CAPEX during construction bins
-         before commencement.
-      2) Straight-line depreciation from commencement (bin-start convention) with no residual
-         value, applied as two tranches:
-            - non-replaceable share: (1 - replace(time_initial)) depreciated over the full
-              remaining asset horizon
-            - replaceable share: replace(time_initial) depreciated over the component lifetime
-              locked at time_initial
+      1) Construction-in-Progress (CIP): cumulative initial CAPEX during construction
+         bins before commencement.
+      2) Straight-line depreciation from commencement (bin-start convention) with no
+         residual value, applied as two tranches:
+            - non-replaceable share: (1 - replace(time_initial)) depreciated over the
+              full remaining asset horizon
+            - replaceable share: replace(time_initial) depreciated over the component
+              lifetime locked at time_initial
 
     Parameters
     ----------
     component
         Component for which tied up capital is added.
     delta
-        Initial CAPEX deposits per calendar-year bin (typically produced by `_add_initial_capex_flow`).
+        Initial CAPEX deposits per calendar-year bin (typically produced by
+        `_add_initial_capex_flow`).
     """
     time_initial = component.time_initial
 
@@ -695,9 +705,9 @@ def _add_straight_line_depreciation(
     """
     Add straight-line depreciated tied up capital into a tied up capital flow vector.
 
-    Tied up capital is evaluated at the start of each calendar-year bin (bin-start convention).
-    No residual value is assumed; the tied up capital declines linearly from `basis` at
-    `year_flow[idx_start]` to zero after `years_total` years.
+    Tied up capital is evaluated at the start of each calendar-year bin (bin-start
+    convention). No residual value is assumed; the tied up capital declines linearly
+    from `basis` at `year_flow[idx_start]` to zero after `years_total` years.
 
     Parameters
     ----------
@@ -815,9 +825,10 @@ def _build_staircase_flow(
     component: Component, value: Callable[[float], float]
 ) -> np.ndarray:
     """
-    Build a piecewise-constant flow that locks at installation and then at every replacement.
-    The first operational calendar year is correctly handled via overlap; no special scaling
-    is required because overlaps already reflect fractional lead time.
+    Build a piecewise-constant flow that locks at installation and then at every
+    replacement. The first operational calendar year is correctly handled via overlap;
+    no special scaling is required because overlaps already reflect fractional lead
+    time.
 
     Parameters
     ----------
@@ -973,7 +984,7 @@ def _overlap_year_bins(times: float | np.ndarray, a: float, b: float) -> np.ndar
 
 def _initialize_flow(lead_time: float, lifetime: float) -> np.ndarray:
     """
-    Initialize a vector of zeros with the necessary length for the yearly cost-flow of an asset.
+    Initialize zeros with the necessary length for the yearly cost-flow of an asset.
 
     Parameters
     ----------
@@ -1036,8 +1047,9 @@ def expand_to_flow(lifetime, value):
 
 def correct_flow_residual(lifetime, *costs):
     """
-    If the lifetime of an asset is not an integer, then the cost in the last year which is only partial has to be
-    corrected to reflect the cost is only incurred in a fraction of that year.
+    If the lifetime of an asset is not an integer, then the cost in the last year which
+    is only partial has to be corrected to reflect the cost is only incurred in a
+    fraction of that year.
 
     Parameters
     ----------
