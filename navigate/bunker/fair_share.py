@@ -70,7 +70,8 @@ def run_fair_share_solve(alg: BunkerAlgorithm) -> tuple[int, bool]:
     Returns
     -------
     tuple[int, bool]
-        The number of fair-share iterations performed and whether the solution converged.
+        The number of fair-share iterations performed and whether the solution
+        converged.
     """
     initialize_fair_share_allocation(alg)
     update_fair_share_constraints(alg)
@@ -91,9 +92,9 @@ def run_fair_share_solve(alg: BunkerAlgorithm) -> tuple[int, bool]:
 
 def perform_flexibility_unit_cost_evaluation(alg: BunkerAlgorithm) -> None:
     """
-    The flexibility unit cost is given by the cost of carbon, whether that is defined by the price ceiling
-    (remedial unit cost) or the cheapest compliant fuel available at scale. This value is defined by the
-    shadow price of the threshold constraint.
+    The flexibility unit cost is given by the cost of carbon, whether that is defined by
+    the price ceiling (remedial unit cost) or the cheapest compliant fuel available at
+    scale. This value is defined by the shadow price of the threshold constraint.
 
     Parameters
     ----------
@@ -188,14 +189,16 @@ def update_fair_share_constraints(alg: BunkerAlgorithm) -> None:
 
 def update_fair_share_allocation(alg: BunkerAlgorithm) -> None:
     """
-    Updates the allocation of bunker fuel for each vessel at specific ports according to the
-    fair-share principle. Uses a two-pass approach:
+    Updates the allocation of bunker fuel for each vessel at specific ports according to
+    the fair-share principle. Uses a two-pass approach:
 
-    Pass 1: Classify each vessel-port-fuel as bounded (wants more fuel) or unbounded (has surplus),
-            and accumulate consumed supply by released vessels and total fair share of bounded vessels.
+    Pass 1: Classify each vessel-port-fuel as bounded (wants more fuel) or unbounded
+            (has surplus), and accumulate consumed supply by released vessels and total
+            fair share of bounded vessels.
 
-    Pass 2: For bounded vessels, distribute remaining supply (total supply minus consumed by released)
-            proportionally by fair share. For released vessels, tighten allocation to actual consumption.
+    Pass 2: For bounded vessels, distribute remaining supply (total supply minus
+            consumed by released) proportionally by fair share. For released vessels,
+            tighten allocation to actual consumption.
 
     Parameters
     ----------
@@ -207,10 +210,10 @@ def update_fair_share_allocation(alg: BunkerAlgorithm) -> None:
         v: get_port_name_to_indices(vessel.route) for v, vessel in alg.vessels.items()
     }
 
-    consumed_by_unbounded = {}  # (port_name, f), total consumed supply by unbounded vessels
-    bounded_fair_share = {}  # (port_name, f), sum of fair_share * multiplier for bounded vessels
+    consumed_by_unbounded = {}  # (port_name, f), consumed supply by unbounded vessels
+    bounded_fair_share = {}  # (port_name, f), sum of fair_share*multiplier, bounded
     is_bounded = {}  # (v, port_name, f), bool
-    previous_bunker = {}  # (v, port_name, f), float, previous consumption across port indices
+    previous_bunker = {}  # (v, port_name, f), float, consumption over port indices
 
     # ----- pass 1: classify and aggregate -----
     for v, port_name, f in alg.allocation_fuel:

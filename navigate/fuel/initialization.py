@@ -21,10 +21,12 @@ if TYPE_CHECKING:
 
 def initialize_existing_producer(producer: Producer, timeline: np.ndarray) -> None:
     """
-    Initialize the existing producer. This means discretizing the existing producer in time, by splitting the
-    initial number of plants into individual increments with varying age.
+    Initialize the existing producer. This means discretizing the existing producer in
+    time, by splitting the initial number of plants into individual increments with
+    varying age.
 
-    Must be called exactly once per producer: discretization appends to the increment stores.
+    Must be called exactly once per producer: discretization appends to the increment
+    stores.
 
     Parameters
     ----------

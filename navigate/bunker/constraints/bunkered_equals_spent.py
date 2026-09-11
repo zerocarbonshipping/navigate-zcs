@@ -20,7 +20,8 @@ def update_bunkered_equals_spent_constraint(
 
     For each usable fuel f (vessel index omitted):
 
-        \sum_{p} b_{p,f} = \sum_{c} \sum_{(i,e)} x_{c,f,i,e} + \sum_{c} \sum_{p} y_{c,f,p}
+        \sum_{p} b_{p,f} = \sum_{c} \sum_{(i,e)} x_{c,f,i,e}
+        + \sum_{c} \sum_{p} y_{c,f,p}
 
     where b is the fuel mass bunkered at port p, x the fuel mass spent by converter c
     at sea on leg (i, e), and y the fuel mass spent by converter c in port. Closes the

@@ -152,7 +152,8 @@ def _assign_fair_share_of_gap(producers, fair_share, gap, idx):
     Parameters
     ----------
     producers : dict[str, Producer]
-        Either all constrained producers or all unconstrained producers in the simulation.
+        Either all constrained producers or all unconstrained producers in the
+        simulation.
     fair_share : dict[(str, str), float]
         Fair-share of the supply/demand gap.
     gap : dict[str, np.ndarray]
@@ -176,7 +177,7 @@ def _assign_fair_share_of_gap(producers, fair_share, gap, idx):
 
 def _calculate_expected_producer_fuel_supply(producer, idx):
     """
-    Calculate the expected future supply of each fuel pathway across all plants of the producer.
+    Calculate the future supply of each fuel pathway across all plants of the producer.
 
     Parameters
     ----------
@@ -188,7 +189,8 @@ def _calculate_expected_producer_fuel_supply(producer, idx):
     Returns
     -------
     dict[str, np.ndarray]
-        The sum of expected future fuel production from the producer for each fuel pathway.
+        The sum of expected future fuel production from the producer for each fuel
+        pathway.
     """
     idx_ = np.s_[idx:]
 
@@ -207,11 +209,13 @@ def _calculate_expected_producer_fuel_supply(producer, idx):
 
 def _calculate_expected_fleet_fuel_demand(fleet, idx):
     """
-    Calculate the expected future demand of each fuel pathway across all vessel of a single fleet.
+    Calculate future demand of each fuel pathway across all vessel of a single fleet.
 
-    Notice that the demand is taken directly from the expected bunkering calculated previously in the time-step.
-    This means that it does not account for the newest fleet evolution but rather a time-lagged view on the expected
-    multipliers. This is necessary to ensure potential feedstock availability and bunker limits are satisfied.
+    Notice that the demand is taken directly from the expected bunkering calculated
+    previously in the time-step. This means that it does not account for the newest
+    fleet evolution but rather a time-lagged view on the expected multipliers. This is
+    necessary to ensure potential feedstock availability and bunker limits are
+    satisfied.
 
     Parameters
     ----------
@@ -223,6 +227,7 @@ def _calculate_expected_fleet_fuel_demand(fleet, idx):
     Returns
     -------
     dict[str, np.ndarray]
-        The sum of expected future fuel consumption from the fleet for each fuel pathway.
+        The sum of expected future fuel consumption from the fleet for each fuel
+        pathway.
     """
     return fleet.expectation.get_fuel_demand(np.s_[idx:])
