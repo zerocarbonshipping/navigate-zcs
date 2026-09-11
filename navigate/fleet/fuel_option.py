@@ -2,9 +2,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Determines the fuel options of a vessel from its power system and tanks: the representative fuel
-type, the usable fuel types, and the usable fuels, based on the simulation fuels grouped by fuel
-type.
+Determines the fuel options of a vessel from its power system and tanks: the
+representative fuel type, the usable fuel types, and the usable fuels, based on the
+simulation fuels grouped by fuel type.
 """
 
 from __future__ import annotations
@@ -47,16 +47,19 @@ def get_fuels_per_fuel_type(fuels: dict[str, Fuel]) -> dict[FuelTypeID, list[Fue
 
 def determine_fuel_type(vessel: Vessel) -> None:
     """
-    Determines the representative fuel type of a vessel based on the sum of power capacity for the main fuel types
-    across all converters in the power system. If multiple fuel types have the same power capacity, the one
-    with the largest tank is chosen.
+    Determines the representative fuel type of a vessel based on the sum of power
+    capacity for the main fuel types across all converters in the power system. If
+    multiple fuel types have the same power capacity, the one with the largest tank is
+    chosen.
 
-    TODO: The tank size should optimally be weighted by the LHV, but it might vary within a given fuel type
+    TODO: The tank size should optimally be weighted by the LHV, but it might vary
+    within a given fuel type
 
     Parameters
     ----------
     vessel
-        Vessel to determine the representative fuel type for; skipped if already set through the DSL.
+        Vessel to determine the representative fuel type for; skipped if already set
+        through the DSL.
     """
     if vessel.fuel_type is not None:
         return
@@ -131,8 +134,8 @@ def determine_fuel_type(vessel: Vessel) -> None:
 
 def determine_usable_fuel_types(vessel: Vessel) -> None:
     """
-    Determines the fuel types usable by a vessel as the union of tank and converter fuel types, after checking
-    that the tanks can store the fuels required by the converters.
+    Determines the fuel types usable by a vessel as the union of tank and converter fuel
+    types, after checking that the tanks can store the fuels required by the converters.
 
     Parameters
     ----------
@@ -174,7 +177,8 @@ def determine_usable_fuel_types(vessel: Vessel) -> None:
         else:
             if not any(fuel_type in tank_fuel_types for fuel_type in main_fuel_types):
                 raise ValueError(
-                    "{}: Missing a tank which can store fuel of type(s) {} for {}.".format(
+                    "{}: Missing a tank which can store fuel of type(s) {} for"
+                    " {}.".format(
                         vessel,
                         ", ".join(FuelTypeID(f).name for f in main_fuel_types),
                         converter,
@@ -206,5 +210,6 @@ def determine_usable_fuels(
     # check that the vessel can bunker
     if not vessel.usable_fuels:
         raise ValueError(
-            f"{vessel}: No overlap between the fuel types of the PowerSystem, Tanks and Fuels."
+            f"{vessel}: No overlap between the fuel types of the PowerSystem,"
+            " Tanks and Fuels."
         )
