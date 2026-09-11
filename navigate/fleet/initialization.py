@@ -31,10 +31,12 @@ if TYPE_CHECKING:
 
 def initialize_existing_fleet(fleet: Fleet, timeline: np.ndarray) -> None:
     """
-    Initialize the existing fleet. This means discretizing the existing fleet in time, by splitting the initial
-    number of vessels into individual increments with varying age.
+    Initialize the existing fleet. This means discretizing the existing fleet in time,
+    by splitting the initial number of vessels into individual increments with varying
+    age.
 
-    Must be called exactly once per fleet: discretization appends to the increment stores.
+    Must be called exactly once per fleet: discretization appends to the increment
+    stores.
 
     Parameters
     ----------
