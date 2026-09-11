@@ -12,11 +12,11 @@ class Process(Node):
     def __init__(self, name):
         super().__init__(name, PROCESS)
 
-        # external variables -------------------------------------------------------------------------------------------
-        self.feeds = []  # list[Feedstock | Process], feedstock or sub-process used in the process
-        self.conversions = []  # list[float], conversion factor for each process/feedstock
+        # external variables -----------------------------------------------------------
+        self.feeds = []  # list[Feedstock | Process], feedstock or sub-process input
+        self.conversions = []  # list[float], conversion factor per process/feedstock
 
-    # external methods (DSL attributes) --------------------------------------------------------------------------------
+    # external methods (DSL attributes) ------------------------------------------------
     def set_feeds(self, feeds):
         """
         Set the list of feedstocks or output from other processes used in the process.
@@ -52,10 +52,11 @@ class Process(Node):
             as_scalar_list(conversion), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
-    # internal methods -------------------------------------------------------------------------------------------------
+    # internal methods -----------------------------------------------------------------
     def initialize(self):
 
         if len(self.feeds) != len(self.conversions):
             raise ValueError(
-                f"The number of feeds ({len(self.feeds)}) and conversions ({len(self.conversions)}) must correspond."
+                f"The number of feeds ({len(self.feeds)}) and conversions"
+                f" ({len(self.conversions)}) must correspond."
             )

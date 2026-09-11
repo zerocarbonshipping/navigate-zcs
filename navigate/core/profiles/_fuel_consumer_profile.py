@@ -310,7 +310,8 @@ class _FuelConsumerProfile(_FuelBaseProfile):
         Parameters
         ----------
         emissions : np.ndarray | dict[np.ndarray]
-            Dict of emissions for each fuel. May be either a single dict (emissions collapsed) or a tuple dict.
+            Dict of emissions for each fuel. May be either a single dict (emissions
+            collapsed) or a tuple dict.
         idx : int
             Time-step index.
 

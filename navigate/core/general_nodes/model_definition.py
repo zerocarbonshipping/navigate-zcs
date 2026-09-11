@@ -12,14 +12,14 @@ class ModelDefinition(_GeneralNode):
     def __init__(self):
         super().__init__()
 
-        # external variables -------------------------------------------------------------------------------------------
+        # external variables -----------------------------------------------------------
         self.start_date = None
         self.emissions_lifetime = None
 
-    # external methods (DSL attributes) --------------------------------------------------------------------------------
+    # external methods (DSL attributes) ------------------------------------------------
     def set_start_date(self, start_date):
         """
-        Set the start date of the simulation in dd-mm-yyyy format (either hyphen or slash).
+        Set the start date of the simulation in dd-mm-yyyy format (hyphen or slash).
 
         Examples
         --------
@@ -35,7 +35,7 @@ class ModelDefinition(_GeneralNode):
 
     def set_emissions_lifetime(self, emissions_lifetime):
         """
-        Set the emission lifetime used to calculate the GWP value for calculation of CO2 equivalent emissions.
+        Set the emission lifetime used to calculate GWP for CO2 equivalent emissions.
 
         Examples
         --------
@@ -48,7 +48,7 @@ class ModelDefinition(_GeneralNode):
         """
         self.emissions_lifetime = assign_value(emissions_lifetime, lower=0.0)
 
-    # internal methods -------------------------------------------------------------------------------------------------
+    # internal methods -----------------------------------------------------------------
     def initialize(self):
 
         if self.start_date is None:

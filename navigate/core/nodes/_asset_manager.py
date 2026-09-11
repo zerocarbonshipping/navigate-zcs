@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-The _AssetManager node is the base class of the Fleet and Producer nodes. It is never assigned or
-instantiated directly through the DSL.
+The _AssetManager node is the base class of the Fleet and Producer nodes. It is never
+assigned or instantiated directly through the DSL.
 """
 
 from __future__ import annotations
@@ -31,7 +31,7 @@ class _AssetManager(Node):
     def __init__(self, name: str, type_: str) -> None:
         super().__init__(name, type_)
 
-        # external variables -------------------------------------------------------------------------------------------
+        # external variables -----------------------------------------------------------
         # shared decision attribute
         self.inertia: Scalar | None = None
 
@@ -41,25 +41,26 @@ class _AssetManager(Node):
         # asset types (vessels or plants)
         self.assets: list = []
 
-        # internal variables -------------------------------------------------------------------------------------------
+        # internal variables -----------------------------------------------------------
         # increment storage — one list of Increment per asset type
         self.increments: list[list[Increment]] = []
 
-        # every store registered here ages together in update_increment_ages; subclasses append
-        # their extra stores. Registration holds references: a registered store must never be
-        # rebound, only have its inner lists replaced.
+        # every store registered here ages together in update_increment_ages; subclasses
+        # append their extra stores. Registration holds references: a registered store
+        # must never be rebound, only have its inner lists replaced.
         self._increment_stores: list[list[list[Increment]]] = [self.increments]
 
         # dynamic variables
         self.current_uptake: np.ndarray = np.empty(0)
 
-    # external methods (DSL attributes) --------------------------------------------------------------------------------
+    # external methods (DSL attributes) ------------------------------------------------
     def set_inertia(self, inertia: float | NodeReference) -> None:
         """
         Set the inertia used in the uptake decision of newbuild assets.
 
-        The inertia is defined as the fraction of newbuilds that must follow the same asset type distribution as the
-        previous time-step. It is defined in fraction/year.
+        The inertia is defined as the fraction of newbuilds that must follow the same
+        asset type distribution as the previous time-step. It is defined in
+        fraction/year.
 
         Examples
         --------
@@ -79,9 +80,10 @@ class _AssetManager(Node):
         """
         Set the initial age distribution of each asset type.
 
-        The list must have a length corresponding to the number of asset types.
-        Each entry is either a Curve reference (where the Curve's x-values are ages in increasing order
-        and y-values are the corresponding fractions) or 0 for asset types with no custom distribution.
+        The list must have a length corresponding to the number of asset types. Each
+        entry is either a Curve reference (where the Curve's x-values are ages in
+        increasing order and y-values are the corresponding fractions) or 0 for asset
+        types with no custom distribution.
 
         Examples
         --------
@@ -96,7 +98,7 @@ class _AssetManager(Node):
             as_scalar_list(initial_age_distribution), type_=CURVE, lower=0.0
         )
 
-    # internal methods -------------------------------------------------------------------------------------------------
+    # internal methods -----------------------------------------------------------------
     # abstract interface that subclasses must provide
     def _get_initial_multiplier(self, index: int) -> float:
         """Return the total initial multiplier for asset type at *index*."""
@@ -142,8 +144,8 @@ class _AssetManager(Node):
 
     def _adjust_lifetime_for_age(self, lifetime: float) -> float:
         """
-        Hook for subclasses to adjust the perceived lifetime used in initial age discretization.
-        Fleet overrides this to account for fixed scrap rates.
+        Hook for subclasses to adjust the perceived lifetime used in initial age
+        discretization. Fleet overrides this to account for fixed scrap rates.
         """
         return lifetime
 
@@ -195,8 +197,8 @@ class _AssetManager(Node):
 
     def update_increment_ages(self, time_step: float) -> None:
         """
-        Update the ages of all registered increment stores with the progressed time since
-        the last time-step.
+        Update the ages of all registered increment stores with the progressed time
+        since the last time-step.
 
         Parameters
         ----------

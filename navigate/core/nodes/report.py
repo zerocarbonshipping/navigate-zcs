@@ -2,9 +2,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-The Report node collects which node properties to export at the end of a simulation; the actual
-Excel/CSV writing is done by navigate.output.report_writer.write_report, driven by the simulation
-manager. The Report node is not assigned on any other node.
+The Report node collects which node properties to export at the end of a simulation; the
+actual Excel/CSV writing is done by navigate.output.report_writer.write_report, driven
+by the simulation manager. The Report node is not assigned on any other node.
 """
 
 from __future__ import annotations
@@ -20,11 +20,11 @@ class Report(Node):
     def __init__(self, name):
         super().__init__(name, REPORT)
 
-        # external variables -------------------------------------------------------------------------------------------
+        # external variables -----------------------------------------------------------
         self.directory = None  # str, either relative to deck directory or absolute path
         self.file_format = FileFormatID.XLSX
 
-        # internal variables -------------------------------------------------------------------------------------------
+        # internal variables -----------------------------------------------------------
         self.manager_reports = {}
         self.fleet_reports = {}
         self.levy_reports = {}
@@ -34,11 +34,11 @@ class Report(Node):
         self.regulation_reports = {}
         self.vessel_reports = {}
 
-    # external methods (DSL attributes) --------------------------------------------------------------------------------
+    # external methods (DSL attributes) ------------------------------------------------
     def set_directory(self, directory):
         """
-        Set the directory for where to export the report. Can be either a relative or absolute path.
-        The directory will be created automatically if it doesn't exist.
+        Set the directory for where to export the report. Can be either a relative or
+        absolute path. The directory will be created automatically if it doesn't exist.
 
         Examples
         --------
@@ -65,7 +65,7 @@ class Report(Node):
         else:
             self.file_format = file_format
 
-    # external methods (DSL commands) ----------------------------------------------------------------------------------
+    # external methods (DSL commands) --------------------------------------------------
     def add_property(self, attribute, reduce=None):
         self._add_property("global", self.manager_reports, attribute, reduce=reduce)
 
@@ -94,7 +94,7 @@ class Report(Node):
     def add_vessel_property(self, vessel_name, attribute, reduce=None):
         self._add_property(vessel_name, self.vessel_reports, attribute, reduce=reduce)
 
-    # internal methods -------------------------------------------------------------------------------------------------
+    # internal methods -----------------------------------------------------------------
     @staticmethod
     def _add_property(node_name, assignment_dict, attribute, reduce=None):
 

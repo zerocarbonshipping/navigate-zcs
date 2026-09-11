@@ -23,7 +23,7 @@ class Timetable(Node, _Table2D):
         Node.__init__(self, name, TIMETABLE)
         _Table2D.__init__(self)
 
-        # internal variables -------------------------------------------------------------------------------------------
+        # internal variables -----------------------------------------------------------
         self.allow_dates_in_table = True
 
         # temporarily stored variables at current time-step
@@ -45,7 +45,8 @@ class Timetable(Node, _Table2D):
         else:
             if self._outside is not None:
                 logger.warning(
-                    "{}: 'Outside' is defined, but ignored since 'Extrapolate' is set to LINEAR."
+                    "{}: 'Outside' is defined, but ignored since 'Extrapolate' is set"
+                    " to LINEAR."
                 )
 
     def get(self, x: float | None = None, y: float | None = None) -> float:
