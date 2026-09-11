@@ -101,7 +101,7 @@ class TestUpdateMeanSpeed:
 
 
 class TestSpeedBounds:
-    """Verify calculate_speed_bounds returns (min(speed_min), max(speed_max)) with fallbacks."""
+    """calculate_speed_bounds returns (min(speed_min), max(speed_max)) with fallback."""
 
     @pytest.mark.parametrize(
         "speed_min, speed_max, speeds, expected",

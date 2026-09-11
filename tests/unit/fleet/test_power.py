@@ -170,7 +170,7 @@ class TestVerifyPowerCapacity:
         ],
     )
     def test_port_overload_errors_by_demand_type(self, demand_type, message):
-        """Port demand must fit the onboard converter; shore power gives no allowance."""
+        """Port demand must fit onboard converter; shore power gives no allowance."""
         energies_port = {ELECTRICAL: [0.0], HEAT: [0.0]}
         energies_port[demand_type] = [11.0 * 10.0 * MWD_TO_GJ]
         vessel = _make_vessel(energies_port=energies_port)
@@ -212,8 +212,8 @@ class TestExpectationHorizonBroadcast:
     """
     The expected-scope gating in SimulationManager._verify_power_capacity checks demands
     only at the current index; that is valid because a vessel-expectation write at idx
-    broadcasts over the whole remaining horizon, so every future expected-bunkering build
-    reads the same demands and times. This pins that contract.
+    broadcasts over the whole remaining horizon, so every future expected-bunkering
+    build reads the same demands and times. This pins that contract.
     """
 
     LENGTH = 6
@@ -255,7 +255,7 @@ class TestExpectationHorizonBroadcast:
 
 
 class TestSimulationGating:
-    """The driver only verifies vessels whose multiplier admits them into the LP scope."""
+    """The driver only verifies vessels whose multiplier admits them into LP scope."""
 
     @staticmethod
     def _make_manager(vessel, existing_multiplier, expected_multipliers):

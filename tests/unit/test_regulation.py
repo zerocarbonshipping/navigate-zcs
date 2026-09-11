@@ -35,7 +35,8 @@ def _make_regulation(scheme, measure, vessels=("v1", "v2")):
     ],
 )
 def test_initialize_raises_for_included_vessel_without_threshold(scheme, measure):
-    # the guard is scheme/measure-independent; these two combinations stand in for the full cross product
+    # the guard is scheme/measure-independent; these two combinations stand in for the
+    # full cross product
     regulation = _make_regulation(scheme, measure)
     regulation.set_vessel_threshold("v1", 10.0)
 

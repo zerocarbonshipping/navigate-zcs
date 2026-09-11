@@ -79,7 +79,7 @@ class TestCommandReferenceWildcard:
         assert call_log == [("METHANE", 0.03)]
 
     def test_none_domain_skips_expansion(self):
-        """set_consumption_ttw domain is (FuelTypeID, None) — second arg passes through."""
+        """set_consumption_ttw domain (FuelTypeID, None) — second arg passes through."""
         call_log = []
 
         class DummyNode:

@@ -62,7 +62,7 @@ DISCOUNT = 0.08
 
 
 def _charge_window_flow(window: float) -> np.ndarray:
-    """Operating-year flow the constant charge is recovered over: ones with a prorated final year."""
+    """Operating-year flow the charge recovers over: ones with a prorated final year."""
     flow = get_age_flow(lead_time=0.0, lifetime=window)
     correct_flow_residual(window, flow)
     return flow

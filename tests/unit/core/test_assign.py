@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Unit tests for ID validation in navigate.core.assign, shared by every set_* ID setter."""
+"""Tests for ID validation in navigate.core.assign, shared by every set_* ID setter."""
 
 from __future__ import annotations
 
