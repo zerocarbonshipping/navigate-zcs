@@ -4,16 +4,17 @@
 """
 Operational profile calculations for vessels on round-trip and regional routes.
 
-The round-trip route models discrete voyages with fixed per-leg distances and port durations,
-so annual totals follow directly from voyages per year. The regional route has no discrete
-voyages: it supplies an exogenous annual reference pattern (time at sea, sea-condition
-distribution, reference speeds, and port calls per year) describing operations absent speed
-management. From that pattern two scalars are derived, days_per_call (the port-side constraint
-of turnaround, congestion and waiting) and miles_between_calls (the trading-pattern geometry),
-which let speed management change speeds while port and sea time respond endogenously: higher
-speed raises sea miles per year, hence port calls per year, hence port time per year, which
-crowds out sea time and limits the throughput gain. This reproduces the round-trip feedback
-(port time as a binding activity constraint) within the aggregate regional representation.
+The round-trip route models discrete voyages with fixed per-leg distances and port
+durations, so annual totals follow directly from voyages per year. The regional route
+has no discrete voyages: it supplies an exogenous annual reference pattern (time at sea,
+sea-condition distribution, reference speeds, and port calls per year) describing
+operations absent speed management. From that pattern two scalars are derived,
+days_per_call (the port-side constraint of turnaround, congestion and waiting) and
+miles_between_calls (the trading-pattern geometry), which let speed management change
+speeds while port and sea time respond endogenously: higher speed raises sea miles per
+year, hence port calls per year, hence port time per year, which crowds out sea time and
+limits the throughput gain. This reproduces the round-trip feedback (port time as a
+binding activity constraint) within the aggregate regional representation.
 """
 
 from __future__ import annotations
@@ -84,11 +85,13 @@ def update_operational_profile(
         speeds = to_numpy(vessel.expectation.get_speeds(idx - 1))
 
     else:
-        # if the fleet does not allow speed management, use the reference speed from the route
+        # if the fleet does not allow speed management, use the reference speed from the
+        # route
         speeds = to_numpy(vessel.route.speeds)
 
-        # the reference speed may exceed the propulsion converter's maximum power capacity
-        # or fall below the minimum load required; if so, truncate it to the limits
+        # the reference speed may exceed the propulsion converter's maximum power
+        # capacity or fall below the minimum load required; if so, truncate it to the
+        # limits
         speeds_min, speeds_max = calculate_technical_speed_limits(vessel)
         speeds = np.clip(speeds, speeds_min, speeds_max)
 
@@ -101,8 +104,10 @@ def calculate_operational_profile(vessel: Vessel, speeds: np.ndarray) -> Operati
     Evaluate the operational profile for a vessel at given speeds.
 
     The calculation is route-type specific:
-      - ROUND_TRIP: derives voyages/year from voyage duration and scales to annual totals.
-      - REGIONAL: uses a reference operational pattern and applies endogenous sea/port split.
+      - ROUND_TRIP: derives voyages/year from voyage duration and scales to annual
+        totals.
+      - REGIONAL: uses a reference operational pattern and applies endogenous sea/port
+        split.
 
     Parameters
     ----------
@@ -175,7 +180,8 @@ def transfer_operational_profile(
     vessel.profile.set_raw_energy_sea(idx, total_energy_sea)
     vessel.profile.set_raw_energy_port(idx, total_energy_port)
 
-    # the reference speed must be calculated specifically in case speed management is activated
+    # the reference speed must be calculated specifically in case speed management is
+    # activated
     reference_speeds = to_numpy(vessel.route.speeds)
     reference_speed = np.average(reference_speeds, weights=operations.distribution)
     vessel.profile.set_reference_speed(idx, reference_speed)
@@ -186,7 +192,7 @@ def convert_to_regional_steps(
     energy_sea: dict[EnergyDemandTypeID, list[float | np.ndarray] | np.ndarray],
 ) -> dict[EnergyDemandTypeID, list[float | np.ndarray]]:
     """
-    Redistribute energy demand at sea into regional steps based on the voyage distribution.
+    Redistribute sea energy demand into regional steps based on the voyage distribution.
 
     Parameters
     ----------
@@ -220,7 +226,7 @@ def convert_to_regional_steps(
 
 def _calculate_trip(operations: Operations, vessel: Vessel) -> None:
     """
-    Compute annual sea/port time and annual distances for a route, storing results in Operations.
+    Compute annual sea/port time and distances for a route, storing them in Operations.
 
     The implementation depends on route type (round-trip vs regional).
 
@@ -245,9 +251,9 @@ def _calculate_round_trip(operations: Operations, route: Route) -> None:
     """
     Compute annualized operational profile for a round-trip route.
 
-    Per-voyage sea times are derived from distances and per-leg speeds, port times are taken
-    from port durations, and voyages/year is computed from total voyage duration. All
-    quantities are scaled to annual totals.
+    Per-voyage sea times are derived from distances and per-leg speeds, port times are
+    taken from port durations, and voyages/year is computed from total voyage duration.
+    All quantities are scaled to annual totals.
 
     Parameters
     ----------
@@ -284,8 +290,8 @@ def _calculate_regional_trip(operations: Operations, route: Route) -> None:
     """
     Calculate the annualized operational profile for a regional-trip route.
 
-    Enforces a 365-day annual time budget while letting the sea/port split respond endogenously
-    to speed; see the module docstring for the feedback mechanism.
+    Enforces a 365-day annual time budget while letting the sea/port split respond
+    endogenously to speed; see the module docstring for the feedback mechanism.
 
     Parameters
     ----------
@@ -302,7 +308,8 @@ def _calculate_regional_trip(operations: Operations, route: Route) -> None:
     miles_per_day = speed_mean * DAY_TO_HOURS
 
     # calculate the total time at sea as a function of the port time budget defined by
-    # the reference pattern: YEAR = sea_days + port_days = sea_days * (1 + port_days_per_sea_day)
+    # the reference pattern: YEAR = sea_days + port_days = sea_days * (1 +
+    # port_days_per_sea_day)
     port_days_per_sea_day = days_per_call / miles_between_calls * miles_per_day
     total_time_sea = YEAR / (1.0 + port_days_per_sea_day)
     time_at_sea = total_time_sea / YEAR
@@ -330,8 +337,9 @@ def _calculate_regional_reference(route: Route) -> tuple[float, float]:
     """
     Derive reference (absent speed management) scalars for a regional-trip route.
 
-    Returns the port-days per call and sea-miles between calls implied by the route's exogenous
-    reference pattern; see the module docstring for how these anchor the endogenous sea/port split.
+    Returns the port-days per call and sea-miles between calls implied by the route's
+    exogenous reference pattern; see the module docstring for how these anchor the
+    endogenous sea/port split.
 
     Parameters
     ----------
@@ -343,7 +351,8 @@ def _calculate_regional_reference(route: Route) -> tuple[float, float]:
     days_per_call
         Port days per call implied by reference time at sea and total port calls.
     miles_between_calls
-        Sea miles between calls implied by reference speeds, sea distribution and sea time.
+        Sea miles between calls implied by reference speeds, sea distribution and sea
+        time.
     """
     distribution = to_numpy(route.condition_distribution)
     speeds = to_numpy(route.speeds)

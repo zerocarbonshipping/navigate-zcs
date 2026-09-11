@@ -22,13 +22,13 @@ def calculate_residual_energy(
     dict[EnergyDemandTypeID, list[float | np.ndarray]],
 ]:
     """
-    Calculate the residual energy demand for a vessel during its operations at sea and in port.
+    Calculate the residual energy demand for a vessel at sea and in port.
 
-    This function computes the vessel's time-resolved residual energy demand by combining:
-    (i) raw operational energy demand, (ii) compound savings from efficiency technologies,
-    and (iii) external/alternative power contributions. It evaluates the operational profile
-    separately for sea and port phases, applies technology uptakes, and accounts for power
-    transfers across energy systems.
+    This function computes the vessel's time-resolved residual energy demand by
+    combining: (i) raw operational energy demand, (ii) compound savings from efficiency
+    technologies, and (iii) external/alternative power contributions. It evaluates the
+    operational profile separately for sea and port phases, applies technology uptakes,
+    and accounts for power transfers across energy systems.
 
     Internally, the function:
       1. Retrieves time axes and raw demands for sea and port phases.
@@ -36,17 +36,18 @@ def calculate_residual_energy(
          - energy savings (multiplicative efficiency across technologies)
          - installed/available external power (additive, weighted by uptakes)
       3. Iterates over each step (leg/port call) to produce residuals by energy type,
-         including cross-system transfers based on converter loads and technology-defined
-         power transfer characteristics.
+         including cross-system transfers based on converter loads and
+         technology-defined power transfer characteristics.
 
-    The result is two lists (sea, port), each containing a dictionary per step with residual
-    energy time series for the energy demand types present in that phase.
+    The result is two lists (sea, port), each containing a dictionary per step with
+    residual energy time series for the energy demand types present in that phase.
 
 
     Parameters
     ----------
     vessel
-        The vessel object providing operational expectations and power system properties.
+        The vessel object providing operational expectations and power
+        system properties.
     package
         Package containing precomputed savings, powers, and transfer curves.
     idx
@@ -84,17 +85,17 @@ def _iterate_legs_or_ports(
     Iterate over legs or ports and compute residual energy for each step.
 
     For each time step, the algorithm:
-      1. Converts compound external power to energy over the step duration and subtracts it
-         from the raw demand after applying compound savings.
-      2. Converts the resulting residual energy back to power to determine per-system loads
-         via the vessel's converters.
-      3. Applies cross-system power transfers between all available source/sink energy types,
-         integrates those transfers over the duration, and subtracts from the residuals
-         (non-negatively).
+      1. Converts compound external power to energy over the step duration and subtracts
+         it from the raw demand after applying compound savings.
+      2. Converts the resulting residual energy back to power to determine per-system
+         loads via the vessel's converters.
+      3. Applies cross-system power transfers between all available source/sink energy
+         types, integrates those transfers over the duration, and subtracts from the
+         residuals (non-negatively).
 
-    Only energy types present in the input raw demands for the given context (e.g., PROPULSION
-    is not present in port) contribute to step-level residuals and loads; transfers are applied
-    against the computed residuals accordingly.
+    Only energy types present in the input raw demands for the given context (e.g.,
+    PROPULSION is not present in port) contribute to step-level residuals and loads;
+    transfers are applied against the computed residuals accordingly.
 
 
     Parameters
