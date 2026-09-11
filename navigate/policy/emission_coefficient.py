@@ -30,9 +30,11 @@ def calculate_policy_emission_coefficients(
     idx: int,
 ) -> None:
     """
-    Calculate WTT and TTW emission factors for all combinations of regulations, levies, vessels, fuels and emissions.
-    The WTT and TTW emission factors can be used to calculate the overall emission factors which are used in the
-    calculation of the emission coefficients which are used to converter a ton of fuel to a ton of emissions.
+    Calculate WTT and TTW emission factors for all combinations of regulations, levies,
+    vessels, fuels and emissions. The WTT and TTW emission factors can be used to
+    calculate the overall emission factors which are used in the calculation of the
+    emission coefficients which are used to converter a ton of fuel to a ton of
+    emissions.
 
     Parameters
     ----------
@@ -72,7 +74,7 @@ def _assign_regulation_emission_factors(
     idx: int,
 ) -> None:
     """
-    Calculates and assigns the WTT and TTW emission factors related to a given regulation.
+    Calculates and assigns the WTT and TTW emission factors related to a regulation.
 
     Parameters
     ----------
@@ -298,8 +300,8 @@ def _calculate_regulation_emission_factor(
     idx: int,
 ) -> np.ndarray:
     """
-    Calculate the emission factor in ton emissions/ton fuels for a given emission used in the calculation of a
-    regulation emission coefficient.
+    Calculate the emission factor in ton emissions/ton fuels for a given emission used
+    in the calculation of a regulation emission coefficient.
 
     Parameters
     ----------
@@ -539,11 +541,11 @@ def _calculate_levy_emission_factor(
     idx: int,
 ) -> np.ndarray:
     """
-    Calculate the emission factor in ton emissions/ton fuels for a given emission used in the calculation of a
-    levy emission coefficient.
+    Calculate the emission factor in ton emissions/ton fuels for a given emission used
+    in the calculation of a levy emission coefficient.
 
-    This method takes input in the form of a single time-step index during the bunker algorithm
-    but also a slice of indices for calculation of the adjusted fuel TCO.
+    This method takes input in the form of a single time-step index during the bunker
+    algorithm but also a slice of indices for calculation of the adjusted fuel TCO.
 
     Parameters
     ----------
@@ -791,8 +793,8 @@ def _calculate_emission_factor(
     idx: int,
 ) -> np.ndarray:
     """
-    Generic method used for calculating the emission factor (from pre-defined WTT and TTW emission factors)
-    for both levies and regulations.
+    Generic method used for calculating the emission factor (from pre-defined WTT and
+    TTW emission factors) for both levies and regulations.
 
     Parameters
     ----------
@@ -836,7 +838,7 @@ def _apply_gwp(
     emission_factor: float | np.ndarray, policy: Levy | Regulation, emission: Emission
 ) -> float | np.ndarray:
     """
-    Convert an emission factor to CO2-equivalent units by multiplying with the policy's GWP.
+    Convert an emission factor to CO2-equivalent units using the policy's GWP.
 
     Parameters
     ----------

@@ -356,7 +356,8 @@ class Parser:
         )
         if found:
             logger.debug(
-                f"Module '{directive.name}' was retrieved from the Installation Module folder."
+                f"Module '{directive.name}' was retrieved from the Installation "
+                "Module folder."
             )
         else:
             raise DeckKeywordError(f"No module with name '{directive.name}' was found.")
@@ -436,15 +437,19 @@ class Parser:
         if self._current_section is not None:
             raise DeckFormatError(
                 self._deck_error_prefix()
-                + f": Unable to begin {SECTION_NAME[section]} while reading {SECTION_NAME[self._current_section]}."
+                + (
+                    f": Unable to begin {SECTION_NAME[section]} while reading "
+                    f"{SECTION_NAME[self._current_section]}."
+                )
             )
 
         if section in self._finished_sections:
             raise DeckFormatError(
                 self._deck_error_prefix()
-                + ": Each section can only be defined once and must be read in the order {}.".format(
-                    ", ".join(SECTION_NAME.values())
-                )
+                + (
+                    ": Each section can only be defined once and must be read in "
+                    "the order {}."
+                ).format(", ".join(SECTION_NAME.values()))
             )
 
         if (
@@ -453,9 +458,10 @@ class Parser:
         ):
             raise DeckFormatError(
                 self._deck_error_prefix()
-                + ": Each section can only be defined once and must be read in the order {}.".format(
-                    ", ".join(SECTION_NAME.values())
-                )
+                + (
+                    ": Each section can only be defined once and must be read in "
+                    "the order {}."
+                ).format(", ".join(SECTION_NAME.values()))
             )
 
     def _end_reading_section(self):
@@ -473,7 +479,8 @@ class Parser:
     def _check_timeline_change(self):
         if self._reading_default:
             raise DeckFormatError(
-                f"Error while retrieving default, include file '{self._current_source.file}', line {self._current_source.line}"
+                f"Error while retrieving default, include file "
+                f"'{self._current_source.file}', line {self._current_source.line}"
                 + ": Unable to alter timeline while retrieving default nodes."
             )
 
@@ -534,7 +541,8 @@ class Parser:
             if date <= self._current_date:
                 raise DeckFormatError(
                     self._error_prefix()
-                    + ": Dates must be ordered chronologically within individual include files."
+                    + ": Dates must be ordered chronologically within individual "
+                    "include files."
                 )
 
     def _replace_start_keyword(self):
@@ -568,10 +576,17 @@ class Parser:
         for date in self.dates:
             if date < start_date:
                 for event in self._event_queue.get(date, []):
-                    msg += f"\t- NAV file, line {event.deck_line}, include file '{event.source.file}', line {event.source.line}: Date '{date}' is before start date '{start_date}'\n"
+                    msg += (
+                        f"\t- NAV file, line {event.deck_line}, include file "
+                        f"'{event.source.file}', line {event.source.line}: Date "
+                        f"'{date}' is before start date '{start_date}'\n"
+                    )
 
         if msg:
-            msg = f"Inconsistent timeline detected:\n{msg}All defined dates must be later than the start date."
+            msg = (
+                f"Inconsistent timeline detected:\n{msg}All defined dates must be "
+                f"later than the start date."
+            )
             raise DeckFormatError(msg)
 
     # ══════════════════════════════════════════════════════════════════
@@ -772,7 +787,8 @@ class Parser:
             nodes = [node for key, node in group.items() if re.match(regex, key)]
             if not nodes:
                 raise DeckKeywordError(
-                    f"{self._error_prefix()}: No node of type '{node_type}' matches the wildcard expression '{name}'."
+                    f"{self._error_prefix()}: No node of type '{node_type}' matches "
+                    f"the wildcard expression '{name}'."
                 )
             return nodes
 
@@ -805,12 +821,14 @@ class Parser:
             if self._current_section not in KEYWORD_SECTIONS[keyword]:
                 if self._reading_default:
                     raise DeckKeywordError(
-                        f'Unable to reference {keyword}("{name}") as it is not previously defined.'
+                        f'Unable to reference {keyword}("{name}") as it is not '
+                        f"previously defined."
                     )
                 else:
                     raise DeckKeywordError(
                         self._error_prefix()
-                        + f": '{keyword}' is not an allowed keyword in section {SECTION_NAME[self._current_section]}."
+                        + f": '{keyword}' is not an allowed keyword in section "
+                        f"{SECTION_NAME[self._current_section]}."
                     )
         else:
             raise DeckKeywordError(
@@ -822,15 +840,17 @@ class Parser:
         if name in self._get_all_node_names():
             raise ValueError(
                 self._error_prefix()
-                + f': Unable to add {node_type}("{name}"), the name is already in use by a different node.'
+                + f': Unable to add {node_type}("{name}"), the name is already in use '
+                f"by a different node."
             )
 
     def _read_import_node_wildcard(self, node_type, name_pattern):
         if not self._user_default_directory or not self._installation_default_directory:
             raise DeckKeywordError(
                 self._deck_error_prefix()
-                + ": Wildcard Import is requested but default directories are not specified. "
-                "Please specify the assumptions location with the -d flag or environment variable "
+                + ": Wildcard Import is requested but default directories are not "
+                "specified. Please specify the assumptions location with the -d flag "
+                "or environment variable "
             )
 
         pattern = re.compile(wildcard_to_regex(name_pattern))
@@ -850,7 +870,8 @@ class Parser:
 
         if not matched_names:
             raise DeckKeywordError(
-                f"{self._error_prefix()}: No {node_type} defaults matching '{name_pattern}' found in user or installation folders."
+                f"{self._error_prefix()}: No {node_type} defaults matching "
+                f"'{name_pattern}' found in user or installation folders."
             )
 
         for name in sorted(matched_names):
@@ -962,7 +983,8 @@ class Parser:
 
         elif dropped_statements:
             logger.warning(
-                f"Dropped {dropped_statements} queued EVENTS statement(s) targeting node(s) removed after use "
+                f"Dropped {dropped_statements} queued EVENTS statement(s) targeting "
+                "node(s) removed after use "
                 "as a Copy source; re-assign the copies instead."
             )
 
@@ -989,11 +1011,14 @@ class Parser:
 
         dropped = ""
         if dropped_statements:
-            dropped = f"\nAlso dropped {dropped_statements} queued EVENTS statement(s) targeting only removed nodes."
+            dropped = (
+                f"\nAlso dropped {dropped_statements} queued EVENTS statement(s) "
+                f"targeting only removed nodes."
+            )
 
         logger.warning(
-            "Removed {} node(s) not reachable from any top-level node ({}) and consequently "
-            "ignored during the simulation:{}{}"
+            "Removed {} node(s) not reachable from any top-level node ({}) and "
+            "consequently ignored during the simulation:{}{}"
             "\nAssign them to a parent node or remove them from the deck.".format(
                 len(reported), ", ".join(ROOT_TYPES), lines, dropped
             )
@@ -1145,13 +1170,14 @@ class Parser:
                     else []
                 )
                 if pruned:
-                    hint = " Note: {} removed because unreachable from any top-level node.".format(
-                        ", ".join(f"'{name}'" for name in sorted(pruned))
-                    )
+                    hint = (
+                        " Note: {} removed because unreachable from any top-level node."
+                    ).format(", ".join(f"'{name}'" for name in sorted(pruned)))
 
                 raise CommandError(
                     self._error_prefix()
-                    + f": '{cmd_ref.command}' attempts to reference non-existing name(s) {e!s}.{hint}"
+                    + f": '{cmd_ref.command}' attempts to reference non-existing "
+                    f"name(s) {e!s}.{hint}"
                 )
 
             except ValueError as e:
@@ -1234,7 +1260,8 @@ class Parser:
         if isinstance(attribute, WildcardNodeReference):
             if not isinstance(container, list):
                 raise DeckFormatError(
-                    f"Wildcard node references may only appear inside lists: {attribute}"
+                    f"Wildcard node references may only appear inside lists: "
+                    f"{attribute}"
                 )
 
             matched = self._expand_wildcard_node_reference(attribute)
@@ -1353,8 +1380,9 @@ class Parser:
         if not self._user_default_directory or not self._installation_default_directory:
             raise DeckKeywordError(
                 self._deck_error_prefix()
-                + f": User or Installation Default '{name}' is requested but not specified. "
-                "Please specify the assumptions location with the -d flag or environment variable "
+                + f": User or Installation Default '{name}' is requested but not "
+                "specified. Please specify the assumptions location with the -d flag "
+                "or environment variable "
             )
 
         self._reading_default = True
@@ -1381,19 +1409,21 @@ class Parser:
 
             if found:
                 logger.debug(
-                    f'{node_type}("{name}") was retrieved from the Installation Default folder.'
+                    f'{node_type}("{name}") was retrieved from the Installation '
+                    f"Default folder."
                 )
             else:
                 raise DeckKeywordError(
-                    f'{reference_location}: {node_type}("{name}") is referenced but not found in'
-                    f" either the deck or the default location of {node_type}."
+                    f'{reference_location}: {node_type}("{name}") is referenced but '
+                    f"not found in either the deck or the default location of "
+                    f"{node_type}."
                 )
 
             group = getattr(self.nodes, NODE_GROUP[node_type])
             if name not in group:
                 raise DeckKeywordError(
-                    f"Error in import: A file with name '{name}' was found, but not containing"
-                    f" a node with type '{node_type}' and similar name."
+                    f"Error in import: A file with name '{name}' was found, but not "
+                    f"containing a node with type '{node_type}' and similar name."
                 )
         finally:
             self._reading_default = False

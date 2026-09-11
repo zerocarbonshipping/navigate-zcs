@@ -25,11 +25,13 @@ def calculate_vessel_charter_properties(
     """
     Calculates all properties related to the vessel asset charter at a given time-step.
 
-    The routine builds a unified cost flow for owning the vessel over its lifetime by aggregating base vessel
-    CAPEX and fixed OPEX with machinery CAPEX/OPEX for the power system, converters, and tanks. The resulting
-    cost flow is then converted into an asset charter NPV and an age-levelized annual charter rate. Technology
-    costs are deliberately excluded: they enter the cargo charter metrics as the fleet-average carried
-    technology charge, and the post-processed instantaneous freight rate reuses the asset charter NPV.
+    The routine builds a unified cost flow for owning the vessel over its lifetime by
+    aggregating base vessel CAPEX and fixed OPEX with machinery CAPEX/OPEX for the power
+    system, converters, and tanks. The resulting cost flow is then converted into an
+    asset charter NPV and an age-levelized annual charter rate. Technology costs are
+    deliberately excluded: they enter the cargo charter metrics as the fleet-average
+    carried technology charge, and the post-processed instantaneous freight rate reuses
+    the asset charter NPV.
 
     Parameters
     ----------
@@ -67,9 +69,10 @@ def calculate_cargo_charter_properties(
     """
     Calculates cargo-owner-facing charter properties at a given time-step.
 
-    The routine adds fuel-related costs (bunkers and policy costs, represented as variable OPEX) into a unified
-    cost flow and combines this with the already-computed asset charter NPV to obtain the total yearly cost NPV.
-    From this, it derives (i) a cargo charter rate per year and (ii) an investment freight rate per cargo-mile.
+    The routine adds fuel-related costs (bunkers and policy costs, represented as
+    variable OPEX) into a unified cost flow and combines this with the already-computed
+    asset charter NPV to obtain the total yearly cost NPV. From this, it derives (i) a
+    cargo charter rate per year and (ii) an investment freight rate per cargo-mile.
 
     Parameters
     ----------
@@ -103,18 +106,20 @@ def _calculate_vessel_unit_properties(
     vessel: Vessel, component: Component, idx: int
 ) -> None:
     """
-    Aggregates vessel asset cost flows into owner-facing charter metrics for a given time-step.
+    Aggregates vessel asset cost flows into owner-facing charter metrics per time-step.
 
     The function converts the aggregated CAPEX/OPEX cost flow into:
-    (i) an asset charter NPV and (ii) an age-levelized annual asset charter rate using the vessel lifetime and
-    discount rate. The results are stored on the vessel expectation and profile for later use.
+    (i) an asset charter NPV and (ii) an age-levelized annual asset charter rate using
+    the vessel lifetime and discount rate. The results are stored on the vessel
+    expectation and profile for later use.
 
     Parameters
     ----------
     vessel
         Vessel for which asset charter metrics are being calculated.
     component
-        The root component that holds cost flows accumulated during vessel cost aggregation.
+        The root component that holds cost flows accumulated during vessel cost
+        aggregation.
     idx
         Current time-step index in the simulation timeline.
     """
@@ -135,7 +140,8 @@ def _calculate_vessel_unit_properties(
     asset_charter_rate = asset_charter_npv / age_npv
 
     # summed CAPEX (hull, power system, converters, tanks) discounted to a single
-    # reference value used to non-dimensionalize technology and conversion investment NPVs
+    # reference value used to non-dimensionalize technology and conversion investment
+    # NPVs
     capex_npv = calculate_net_present_value(component.capex_flow, discount_rate)
 
     # the tied up capital is evaluated only after the
@@ -157,20 +163,22 @@ def _calculate_cargo_unit_properties(
     vessel: Vessel, component: Component, timeline: np.ndarray, idx: int
 ) -> None:
     """
-    Aggregates fuel-related cost flows into operator- and cargo-owner-facing unit metrics for a given time-step.
+    Aggregates fuel cost flows into operator and cargo-owner unit metrics per time-step.
 
-    Fuel costs are converted to NPV and combined with the vessel asset charter NPV and the fleet-average carried
-    technology charge (a constant yearly cost over the operating years, matching the fleet-average uptake the
-    fuel expenses reflect) to obtain a total cost NPV. The routine then computes:
-    (i) a cargo charter rate per year by dividing total cost NPV by the NPV of an age flow, and
-    (ii) a freight rate per cargo-mile by dividing total cost NPV by the NPV of a cargo-mile delivery flow.
+    Fuel costs are converted to NPV and combined with the vessel asset charter NPV and
+    the fleet-average carried technology charge (a constant yearly cost over the
+    operating years, matching the fleet-average uptake the fuel expenses reflect) to
+    obtain a total cost NPV. The routine then computes: (i) a cargo charter rate per
+    year by dividing total cost NPV by the NPV of an age flow, and (ii) a freight rate
+    per cargo-mile by dividing total cost NPV by the NPV of a cargo-mile delivery flow.
 
     Parameters
     ----------
     vessel
         Vessel for which cargo charter metrics are being calculated.
     component
-        The root component that holds fuel cost flows accumulated during the current time-step.
+        The root component that holds fuel cost flows accumulated during the current
+        time-step.
     timeline
         Simulation timeline in days since the start of simulation.
     idx
@@ -233,20 +241,23 @@ def _initialize_vessel_component(
     time_initial: float,
 ) -> Component:
     """
-    Creates and initializes the aggregation `Component` for a given vessel at a specific start time.
+    Creates and initializes the aggregation `Component` for a vessel at a start time.
 
     The component is prepared with:
     • Flow containers sized to the vessel lifetime (lead time assumed zero).
-    • Callable hooks linking machinery-specific lifetime/replacement lookups when a machinery object is provided.
+    • Callable hooks linking machinery-specific lifetime/replacement lookups when a
+      machinery object is provided.
 
     Parameters
     ----------
     vessel
         The vessel whose timing (lifetime) governs the flow horizon.
     machinery
-        _Machinery for which lifetime/replacement hooks should be initialized (optional).
+        _Machinery for which lifetime/replacement hooks should be initialized
+        (optional).
     time_initial
-        Absolute time at which the vessel component is assumed to be constructed or commissioned.
+        Absolute time at which the vessel component is assumed to be constructed or
+        commissioned.
 
     Returns
     -------
@@ -271,7 +282,8 @@ def _calculate_base_cost(vessel: Vessel, component: Component) -> None:
     """
     Adds base vessel capital and fixed operating costs to the component's cost flow.
 
-    CAPEX and fixed OPEX are retrieved from the vessel and added as fixed/locked flows over the vessel horizon.
+    CAPEX and fixed OPEX are retrieved from the vessel and added as fixed/locked flows
+    over the vessel horizon.
 
     Parameters
     ----------
@@ -291,8 +303,9 @@ def _calculate_power_system_cost(vessel: Vessel, component: Component) -> None:
     """
     Adds power-system capital and fixed operating costs to the vessel component.
 
-    A dedicated subcomponent is initialized for the power system to account for any distinct machinery lifetime and
-    replacement behavior. The subcomponent cost flow is then added to the parent vessel component.
+    A dedicated subcomponent is initialized for the power system to account for any
+    distinct machinery lifetime and replacement behavior. The subcomponent cost flow is
+    then added to the parent vessel component.
 
     Parameters
     ----------
@@ -318,8 +331,9 @@ def _calculate_converter_cost(vessel: Vessel, component: Component) -> None:
     """
     Adds converter capital and fixed operating costs to the vessel component.
 
-    For each converter in the vessel power system, a dedicated subcomponent is initialized to respect the converter's
-    lifetime/replacement behavior. CAPEX and OPEX are scaled by converter power capacity and aggregated into the parent.
+    For each converter in the vessel power system, a dedicated subcomponent is
+    initialized to respect the converter's lifetime/replacement behavior. CAPEX and OPEX
+    are scaled by converter power capacity and aggregated into the parent.
 
     Parameters
     ----------
@@ -346,8 +360,9 @@ def _calculate_tank_cost(vessel: Vessel, component: Component) -> None:
     """
     Adds tank capital and fixed operating costs to the vessel component.
 
-    For each tank installed on the vessel, a dedicated subcomponent is initialized to respect the tank's
-    lifetime/replacement behavior. CAPEX and OPEX are scaled by tank size and aggregated into the parent.
+    For each tank installed on the vessel, a dedicated subcomponent is initialized to
+    respect the tank's lifetime/replacement behavior. CAPEX and OPEX are scaled by tank
+    size and aggregated into the parent.
 
     Parameters
     ----------
@@ -374,11 +389,12 @@ def _calculate_fuel_cost(
     vessel: Vessel, component: Component, timeline: np.ndarray, idx: int
 ) -> None:
     """
-    Adds fuel-related costs as variable OPEX into the component's cost flow for a given time-step.
+    Adds fuel costs as variable OPEX into the component's cost flow for a time-step.
 
-    Fuel expenses are taken from the vessel expectation as an annual time series defined over the remaining simulation
-    timeline and interpolated onto the component year grid. A unit metric is used so that the variable OPEX equals the
-    interpolated expense series.
+    Fuel expenses are taken from the vessel expectation as an annual time series defined
+    over the remaining simulation timeline and interpolated onto the component year
+    grid. A unit metric is used so that the variable OPEX equals the interpolated
+    expense series.
 
     Parameters
     ----------

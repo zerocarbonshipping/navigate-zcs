@@ -18,7 +18,7 @@ class Forecast(Node, _Table1D):
         Node.__init__(self, name, FORECAST)
         _Table1D.__init__(self)
 
-        # internal variables -------------------------------------------------------------------------------------------
+        # internal variables -----------------------------------------------------------
         self.allow_dates_in_table = True
 
         # temporarily stored variables at current time-step

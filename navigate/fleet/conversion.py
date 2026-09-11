@@ -7,11 +7,12 @@ Fuel conversion of existing vessels from one vessel type to another.
 The evaluation runs in three phases per fleet and time-step:
 
 1. ``propose_fuel_conversions`` — pure: compute proposed conversion counts.
-2. ``reconcile_fuel_conversion_caps`` — scale the proposals against the per-pair flow caps.
+2. ``reconcile_fuel_conversion_caps`` — scale the proposals against the per-pair flow
+   caps.
 3. ``apply_fuel_conversions`` — mutate fleet state (multipliers, profile, expenses).
 
-The phases communicate through ``_ConversionProposal`` objects — one per (from-type, increment)
-cohort — each holding a ``_ConversionCandidate`` per destination type.
+The phases communicate through ``_ConversionProposal`` objects — one per (from-type,
+increment) cohort — each holding a ``_ConversionCandidate`` per destination type.
 """
 
 from __future__ import annotations
@@ -78,12 +79,12 @@ def perform_fuel_conversions(
     fleet: Fleet, idx: int, timeline: np.ndarray, time_step: float
 ) -> None:
     """
-    Evaluate the business case of performing a fuel conversion from one vessel type to another,
-    running the three phases described in the module docstring.
+    Evaluate the business case of performing a fuel conversion from one vessel type to
+    another, running the three phases described in the module docstring.
 
-    Notice that we do not account for the cost difference in future maintenance costs of the asset.
-    This is considered negligible compared to the cost of the conversion and difference in fuel costs and
-    therefore disregarded for simplicity.
+    Notice that we do not account for the cost difference in future maintenance costs of
+    the asset. This is considered negligible compared to the cost of the conversion and
+    difference in fuel costs and therefore disregarded for simplicity.
 
     Parameters
     ----------
@@ -114,33 +115,35 @@ def propose_fuel_conversions(
     fleet: Fleet, idx: int, time_step: float
 ) -> list[_ConversionProposal]:
     """
-    Walk the (from-type, eligible-increment, to-type) nest and produce proposed conversion counts.
+    Walk the (from-type, eligible-increment, to-type) nest to produce conversion counts.
 
-    Pure with respect to ``fleet`` (no state mutation). The local ``supply_excess`` working copy
-    is updated as proposals are gathered so the DCM's per-target supply cap remains realistic
-    across increments. The per-pair flow caps are NOT applied here — they are enforced in
-    ``reconcile_fuel_conversion_caps``.
+    Pure with respect to ``fleet`` (no state mutation). The local ``supply_excess``
+    working copy is updated as proposals are gathered so the DCM's per-target supply cap
+    remains realistic across increments. The per-pair flow caps are NOT applied here —
+    they are enforced in ``reconcile_fuel_conversion_caps``.
 
     Model choice — pre-cap supply debit and order dependence
     --------------------------------------------------------
-    ``supply_excess`` is debited at proposal time using the *uncapped* DCM share times the
-    increment count. ``reconcile_fuel_conversion_caps`` may later scale a pair's conversions
-    down to fit a binding per-pair flow cap, but the supply already encumbered in the working
-    ``supply_excess`` is not refunded, and proposals are not re-run after reconciliation. Two
-    consequences flow from this:
+    ``supply_excess`` is debited at proposal time using the *uncapped* DCM share times
+    the increment count. ``reconcile_fuel_conversion_caps`` may later scale a pair's
+    conversions down to fit a binding per-pair flow cap, but the supply already
+    encumbered in the working ``supply_excess`` is not refunded, and proposals are not
+    re-run after reconciliation. Two consequences flow from this:
 
-    * If an early (from-type, increment) pair proposes more conversions than its pair cap will
-      ultimately permit, it can fully consume the working target-fuel supply and prevent later
-      eligible pairs from being proposed at all. After reconciliation scales the early pair down,
-      some target-fuel supply remains unused that a fixed-point would have routed elsewhere.
-    * Because the walk iterates ``fleet.vessels`` and increments in order, the realised conversion
-      mix depends on that iteration order whenever caps bind on a shared target fuel.
+    * If an early (from-type, increment) pair proposes more conversions than its pair
+      cap will ultimately permit, it can fully consume the working target-fuel supply
+      and prevent later eligible pairs from being proposed at all. After reconciliation
+      scales the early pair down, some target-fuel supply remains unused that a
+      fixed-point would have routed elsewhere.
+    * Because the walk iterates ``fleet.vessels`` and increments in order, the realised
+      conversion mix depends on that iteration order whenever caps bind on a shared
+      target fuel.
 
-    This is intentional. Navigate models fuel conversion as a single forward pass per timestep,
-    consistent with the rest of the long-term decision logic, which has no inner fixed-point
-    loops. The DCM in this stage answers "given expected supply, do these vessels want to
-    convert?", and the per-pair flow cap is a hard ceiling layered on top of an already-completed
-    choice — not a constraint inside the choice.
+    This is intentional. Navigate models fuel conversion as a single forward pass per
+    timestep, consistent with the rest of the long-term decision logic, which has no
+    inner fixed-point loops. The DCM in this stage answers "given expected supply, do
+    these vessels want to convert?", and the per-pair flow cap is a hard ceiling layered
+    on top of an already-completed choice — not a constraint inside the choice.
 
     Parameters
     ----------
@@ -150,12 +153,13 @@ def propose_fuel_conversions(
         Current time-step index. Drives the energy/cost-flow lookups on each vessel's
         expectation.
     time_step
-        Current time-step size in dateline units; converted to years to evaluate retrofit cycles.
+        Current time-step size in dateline units; converted to years to evaluate
+        retrofit cycles.
 
     Returns
     -------
-    One ``_ConversionProposal`` per (from-type, increment) pair with a viable business case,
-    in walk order.
+    One ``_ConversionProposal`` per (from-type, increment) pair with a viable business
+    case, in walk order.
     """
     retrofit_frequency = fleet.retrofit_frequency.get()
     minimum_age = fleet.fuel_conversion_minimum_age.get()
@@ -163,8 +167,9 @@ def propose_fuel_conversions(
 
     vessels = {vessel.name: vessel for vessel in fleet.vessels}
 
-    # working copy holding the previous step's totals (the profile phase writes them after this
-    # runs) — updated as proposals are gathered so the DCM supply cap stays realistic
+    # working copy holding the previous step's totals (the profile phase writes them
+    # after this runs) — updated as proposals are gathered so the DCM supply cap stays
+    # realistic
     supply_excess = {
         fuel_type: fleet.expectation.get_fuel_type_supply(fuel_type)
         - fleet.expectation.get_fuel_type_demand(fuel_type)
@@ -179,8 +184,8 @@ def propose_fuel_conversions(
             continue
 
         # increments are walked youngest to oldest (index 0 is the oldest cohort); when
-        # target-fuel supply binds, younger cohorts with longer remaining lifetimes claim
-        # the working supply_excess first
+        # target-fuel supply binds, younger cohorts with longer remaining lifetimes
+        # claim the working supply_excess first
         increments = fleet.increments[v]
         for increment_idx in reversed(range(len(increments))):
             increment = increments[increment_idx]
@@ -223,7 +228,8 @@ def propose_fuel_conversions(
                 )
             )
 
-            # update working supply_excess so subsequent increments / from-types see the encumbrance
+            # update working supply_excess so subsequent increments / from-types see the
+            # encumbrance
             for name_to, candidate in candidates.items():
                 if not candidate.count:
                     continue
@@ -247,22 +253,23 @@ def reconcile_fuel_conversion_caps(
     """
     Enforce the per-pair flow cap on the proposals, in place.
 
-    ``set_fuel_conversion_limit("from", "to", l)`` caps the fraction of the total fleet allowed to
-    convert on a specific (from, to) lane per year:
+    ``set_fuel_conversion_limit("from", "to", l)`` caps the fraction of the total fleet
+    allowed to convert on a specific (from, to) lane per year:
     ``pair_cap[from, to] = l × time_step / YEAR × existing_total``.
 
-    The cap acts on aggregated conversion counts (not on per-increment shares). If a pair total
-    exceeds its cap, every increment of that pair is scaled to fit.
+    The cap acts on aggregated conversion counts (not on per-increment shares). If a
+    pair total exceeds its cap, every increment of that pair is scaled to fit.
 
     Parameters
     ----------
     fleet
         The fleet instance.
     proposals
-        Output of ``propose_fuel_conversions``. Mutated in place: per-pair conversion counts are
-        rescaled when the lane's cap binds.
+        Output of ``propose_fuel_conversions``. Mutated in place: per-pair conversion
+        counts are rescaled when the lane's cap binds.
     time_step
-        Current time-step size; used (with ``YEAR``) to convert per-year limits to per-step caps.
+        Current time-step size; used (with ``YEAR``) to convert per-year limits to
+        per-step caps.
     existing_total
         Sum of pre-newbuild fleet multipliers — the denominator for each pair's cap
         (``pair_cap = limit · time_step / YEAR · existing_total``).
@@ -299,23 +306,24 @@ def apply_fuel_conversions(
     fleet: Fleet, proposals: list[_ConversionProposal], idx: int, timeline: np.ndarray
 ) -> None:
     """
-    Apply finalised conversion counts: decrement from-side multipliers, insert on the to-side,
-    write the profile, and accumulate transition expenses. From-side decrements happen first
-    across all proposals, then to-side inserts, to avoid multi-stage conversions within the
-    same timestep.
+    Apply finalised conversion counts: decrement from-side multipliers, insert on the
+    to-side, write the profile, and accumulate transition expenses. From-side decrements
+    happen first across all proposals, then to-side inserts, to avoid multi-stage
+    conversions within the same timestep.
 
     Parameters
     ----------
     fleet
         The fleet instance.
     proposals
-        Output of ``propose_fuel_conversions`` after ``reconcile_fuel_conversion_caps`` has
-        rescaled it. Read-only here; mutates ``fleet`` instead.
+        Output of ``propose_fuel_conversions`` after ``reconcile_fuel_conversion_caps``
+        has rescaled it. Read-only here; mutates ``fleet`` instead.
     idx
-        Current time-step index, used for profile writes and the start of the expense window.
+        Current time-step index, used for profile writes and the start of the expense
+        window.
     timeline
-        Simulation timeline in dateline units; used to compute the years axis for expense
-        booking.
+        Simulation timeline in dateline units; used to compute the years axis for
+        expense booking.
     """
     indices = {vessel.name: i for i, vessel in enumerate(fleet.vessels)}
 
@@ -373,7 +381,7 @@ def _evaluate_increment(
     idx: int,
 ) -> dict[str, _ConversionCandidate]:
     """
-    Evaluate every destination type for one eligible increment and run the DCM on the result.
+    Evaluate every destination type for one eligible increment and run the DCM on it.
 
     Parameters
     ----------
@@ -396,8 +404,8 @@ def _evaluate_increment(
 
     Returns
     -------
-    Candidates keyed by destination name, with conversion counts filled in by the DCM; empty
-    when no destination qualifies (the DCM is not invoked).
+    Candidates keyed by destination name, with conversion counts filled in by the DCM;
+    empty when no destination qualifies (the DCM is not invoked).
     """
     candidates = {}
 
@@ -424,7 +432,8 @@ def _evaluate_increment(
     if not candidates:
         return candidates
 
-    # the BAU sentinel (metric=0., limit=1.) sits at index -1 of the DCM input and is dropped on return
+    # the BAU sentinel (metric=0., limit=1.) sits at index -1 of the DCM input and is
+    # dropped on return
     metrics = [candidate.metric for candidate in candidates.values()] + [0.0]
     limits = [candidate.limit for candidate in candidates.values()] + [1.0]
 
@@ -436,7 +445,8 @@ def _evaluate_increment(
         limits=limits,
     )
 
-    # store as conversion counts so reconciliation can scale per-pair without a re-multiply
+    # store as conversion counts so reconciliation can scale per-pair without a
+    # re-multiply
     for candidate, share in zip(candidates.values(), uptakes):
         candidate.count = share * multiplier
 
@@ -477,8 +487,8 @@ def _evaluate_candidate(
 
     Returns
     -------
-    The evaluated candidate with ``count`` left at zero, or None when the destination type has
-    no remaining lifetime or no fuel supply excess.
+    The evaluated candidate with ``count`` left at zero, or None when the destination
+    type has no remaining lifetime or no fuel supply excess.
     """
     remaining_lifetime_to = round(vessel_to.lifetime.get() - avg_age, ROUND_OFF)
     if remaining_lifetime_to <= 0.0:
@@ -567,13 +577,14 @@ def _book_conversion_expenses(
     expenses_ahead: np.ndarray, years_ahead: np.ndarray, candidate: _ConversionCandidate
 ) -> None:
     """
-    Book the levelized charge over the service window; the coverage prorates the final partial
-    year so the booked amounts match the levelization identity.
+    Book the levelized charge over the service window; the coverage prorates the final
+    partial year so the booked amounts match the levelization identity.
 
     Parameters
     ----------
     expenses_ahead
-        View of the fleet's fuel-conversion expenses from the conversion step onward; updated in place.
+        View of the fleet's fuel-conversion expenses from the conversion step onward;
+        updated in place.
     years_ahead
         Timeline in years from the conversion step onward.
     candidate
@@ -591,8 +602,8 @@ def _apply_to_side(
     """
     Insert converted vessels on the destination side.
 
-    Runs after every source-side decrement so a vessel converted in this timestep cannot be
-    converted again within it.
+    Runs after every source-side decrement so a vessel converted in this timestep cannot
+    be converted again within it.
 
     Parameters
     ----------
@@ -610,7 +621,8 @@ def _apply_to_side(
             if not candidate.count:
                 continue
 
-            # resolve the source increment per insert: earlier inserts may have shifted its list
+            # resolve the source increment per insert: earlier inserts may have shifted
+            # its list
             increment_from = fleet.increments[v_from][proposal.increment_idx]
             _insert_converted_increment(
                 fleet.increments[indices[name_to]],
@@ -629,14 +641,15 @@ def _insert_converted_increment(
     dt: float,
 ) -> None:
     """
-    Insert a converted-vessel increment into the destination's age-sorted increment list.
+    Insert a converted increment into the destination's age-sorted increment list.
 
     Parameters
     ----------
     increments_to
         Destination increment list, sorted oldest first; mutated in place.
     increment_from
-        Source increment providing the technology package and charter rate carried along.
+        Source increment providing the technology package and charter rate carried
+        along.
     count
         Number of vessels converted.
     age
@@ -650,9 +663,10 @@ def _insert_converted_increment(
     else:
         idx_to = 0
 
-    # the carried technology charter rate rides along unchanged; the amortization window and
-    # discount rate stay those of the source vessel type — the same simplification level as
-    # disregarding the maintenance cost difference (see perform_fuel_conversions)
+    # the carried technology charter rate rides along unchanged; the amortization window
+    # and discount rate stay those of the source vessel type — the same simplification
+    # level as disregarding the maintenance cost difference (see
+    # perform_fuel_conversions)
     increments_to.insert(
         idx_to,
         Increment(

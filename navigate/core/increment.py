@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-The asset increment data container. The _AssetManager node stores one list of increments per asset
-type and owns the shared logic that initializes and ages them.
+The asset increment data container. The _AssetManager node stores one list of
+increments per asset type and owns the shared logic that initializes and ages them.
 """
 
 from __future__ import annotations
@@ -30,4 +30,6 @@ class Increment:
     baseline: float | None = (
         None  # Fleet: reference multiplier for partial age-based scrapping
     )
-    technology_charter_rate: float = 0.0  # Fleet: levelized technology cost carried by the cohort, USD/year per vessel
+    technology_charter_rate: float = (
+        0.0  # Fleet: levelized technology cost carried by the cohort, USD/year/vessel
+    )

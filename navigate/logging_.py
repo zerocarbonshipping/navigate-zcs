@@ -177,7 +177,10 @@ def log_summary() -> str:
     if _DEDUP_FILTER and _DEDUP_FILTER.unique_warnings:
         n_unique = len(_DEDUP_FILTER.seen)
         n_suppressed = _DEDUP_FILTER.suppressed
-        summary += f"\n\nUnique warnings ({n_unique} unique, {n_suppressed} duplicates suppressed):"
+        summary += (
+            f"\n\nUnique warnings ({n_unique} unique, {n_suppressed} duplicates "
+            f"suppressed):"
+        )
         for i, msg in enumerate(_DEDUP_FILTER.unique_warnings, 1):
             # Truncate long messages for the digest
             short = (msg[:120] + "...") if len(msg) > 120 else msg

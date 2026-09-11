@@ -110,10 +110,10 @@ class VesselExpectation(_Expectation):
             EnergyDemandTypeID, list[np.ndarray]
         ] = {}
 
-        # per-leg, per-energy-type smoothed shadow-price beliefs (same shape as the raw pi
-        # dicts above). Tech-horizon belief is amortised over the decision horizon used by
-        # newbuild/retrofit NPVs; speed-horizon belief is faster, matched to the timescale of
-        # operational speed management.
+        # per-leg, per-energy-type smoothed shadow-price beliefs (same shape as the raw
+        # pi dicts above). Tech-horizon belief is amortised over the decision horizon
+        # used by newbuild/retrofit NPVs; speed-horizon belief is faster, matched to the
+        # timescale of operational speed management.
         self._belief_pi_sea_technology: dict[EnergyDemandTypeID, list[np.ndarray]] = {}
         self._belief_pi_port_technology: dict[
             EnergyDemandTypePortID, list[np.ndarray]

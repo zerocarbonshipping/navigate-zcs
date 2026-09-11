@@ -37,7 +37,7 @@ from navigate.exceptions import AttributeAssignmentError
 from navigate.parser._keywords import SECTION_BOTH, SECTION_DEFINE, SECTION_NAME
 from navigate.util import attribute_to_instance_name
 
-# high-level class attributes to multiple nodes ------------------------------------------------------------------------
+# high-level class attributes to multiple nodes ----------------------------------------
 _CALCULATOR_ATTRIBUTES = {
     "Addition": SECTION_BOTH,
     "Multiplier": SECTION_BOTH,
@@ -69,7 +69,7 @@ _POLICY_ATTRIBUTES = {
     "IncludeSlip": SECTION_BOTH,
 }
 
-# nodes ----------------------------------------------------------------------------------------------------------------
+# nodes --------------------------------------------------------------------------------
 _CONVERTER_ATTRIBUTES = {
     **_MACHINERY_ATTRIBUTES,
     "PowerCapacity": SECTION_DEFINE,
@@ -258,7 +258,7 @@ _VESSEL_ATTRIBUTES = {
     "CostOfCapital": SECTION_BOTH,
 }
 
-# general nodes --------------------------------------------------------------------------------------------------------
+# general nodes ------------------------------------------------------------------------
 _MODEL_DEFINITION_ATTRIBUTES = {
     "StartDate": SECTION_DEFINE,
     "EmissionsLifetime": SECTION_DEFINE,
@@ -273,7 +273,7 @@ _BUNKER_OPTIONS_ATTRIBUTES = {
     "FairShareTolerance": SECTION_DEFINE,
 }
 
-# assemble dicts -------------------------------------------------------------------------------------------------------
+# assemble dicts -----------------------------------------------------------------------
 NODE_ATTRIBUTE_SECTIONS = {
     CONVERTER: _CONVERTER_ATTRIBUTES,
     CURVE: _CURVE_ATTRIBUTES,
@@ -309,7 +309,7 @@ GENERAL_NODE_ATTRIBUTE_SECTIONS = {
 }
 
 
-# methods --------------------------------------------------------------------------------------------------------------
+# methods ------------------------------------------------------------------------------
 def instance_to_dsl_name(node_type, attribute_name):
     """
     Look up the DSL attribute that assigns a node instance attribute.
@@ -398,7 +398,8 @@ def check_general_node_attribute_is_allowed(type_, attribute_name, section):
 
         else:
             raise AttributeAssignmentError(
-                f"'{type_}' does not allow setting attribute '{attribute_name}' in '{SECTION_NAME[section]}'"
+                f"'{type_}' does not allow setting attribute '{attribute_name}' in "
+                f"'{SECTION_NAME[section]}'"
             )
 
     else:

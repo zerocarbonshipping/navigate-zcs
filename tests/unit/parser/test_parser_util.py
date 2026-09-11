@@ -179,7 +179,11 @@ class TestStatements:
 
     # ── multiple statements ────────────────────────────────────────
     def test_multiple_statements(self):
-        text = 'Vessel "a" { Lifetime = 25 }\nDate "01-01-2030"\nVessel "a" { Lifetime = 30 }'
+        text = (
+            'Vessel "a" { Lifetime = 25 }\n'
+            'Date "01-01-2030"\n'
+            'Vessel "a" { Lifetime = 30 }'
+        )
         assert len(parse_include_content(text)) == 3
 
     def test_empty_input(self):

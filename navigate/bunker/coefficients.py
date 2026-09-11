@@ -41,8 +41,9 @@ def _calculate_emission_factor_ttw(
     converter: Converter, fuel: Fuel, emission: Emission
 ) -> float:
     """
-    Calculate the TTW emission factor for an emission from consuming a fuel in a specific converter.
-    Should be multiplied by the amount of spent fuel in that converter.
+    Calculate the TTW emission factor for an emission from consuming a fuel in a
+    specific converter. Should be multiplied by the amount of spent fuel in that
+    converter.
 
     The emission factor accounts for slip:
     - Fuel-bound (TTW) emissions scale with burned fraction (1 - slip).

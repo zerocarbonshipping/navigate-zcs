@@ -49,10 +49,10 @@ class SpeedResult:
 
 def perform_speed_management(fleet: Fleet, time_step: float, idx: int) -> None:
     """
-    Dynamically update the speed of each vessel in the fleet if speed management is allowed.
+    Dynamically update each vessel's speed in the fleet if speed management is allowed.
 
-    Vessel speeds are first individually optimized and then aligned across vessels according to the
-    fleet's speed alignment method.
+    Vessel speeds are first individually optimized and then aligned across vessels
+    according to the fleet's speed alignment method.
 
     Parameters
     ----------
@@ -115,9 +115,9 @@ def _initialize_speed_anchor(result: SpeedResult) -> None:
     """
     Store the initial route reference speed and modelled optimal speed as anchors.
 
-    The route reference speed is used as the target for the first time-step (no change from
-    the reference). Both values are stored on the vessel expectation for use in subsequent
-    time-steps by :func:`_shift_speed_to_anchor`.
+    The route reference speed is used as the target for the first time-step (no change
+    from the reference). Both values are stored on the vessel expectation for use in
+    subsequent time-steps by :func:`_shift_speed_to_anchor`.
 
     Parameters
     ----------
@@ -138,8 +138,8 @@ def _shift_speed_to_anchor(result: SpeedResult) -> None:
     """
     Shift the optimal speed relative to the stored anchor values.
 
-    The adjusted target is: mu_ref_initial + (mu_optimal - mu_optimal_initial), so speed only
-    changes if the modelled optimum has shifted relative to its initial value.
+    The adjusted target is: mu_ref_initial + (mu_optimal - mu_optimal_initial), so speed
+    only changes if the modelled optimum has shifted relative to its initial value.
 
     Parameters
     ----------
@@ -160,9 +160,9 @@ def _optimize_vessel_speed(
     """
     Compute the individually optimal mean speed for a vessel.
 
-    The method calculates the speed that will yield the lowest freight-cost for the vessel, assuming that a lower
-    speed can be offset by chartering additional vessels and thus yielding an optimal freight-cost across a fleet,
-    not a single vessel.
+    The method calculates the speed that will yield the lowest freight-cost for the
+    vessel, assuming that a lower speed can be offset by chartering additional vessels
+    and thus yielding an optimal freight-cost across a fleet, not a single vessel.
 
     Parameters
     ----------
@@ -274,14 +274,15 @@ def _optimize_vessel_speed(
 
 def _finalize_vessel_speed(result: SpeedResult, mu_target: float, idx: int) -> None:
     """
-    Apply the target mean speed to a vessel, transfer the operational profile, and store results.
+    Apply the target mean speed to a vessel, transfer the profile, and store results.
 
     Parameters
     ----------
     result
         Intermediate optimization result from _optimize_vessel_speed.
     mu_target
-        Target mean speed to apply (may differ from the individual optimum due to alignment).
+        Target mean speed to apply (may differ from the individual optimum due to
+        alignment).
     idx
         Current time-step index.
     """
@@ -322,7 +323,8 @@ def _finalize_vessel_speed(result: SpeedResult, mu_target: float, idx: int) -> N
     # convex. So, a warning is issued if they are not
     if not loads_are_convex(vessel):
         logger.warning(
-            f"{vessel}: Does not have convex load functions which may lead to suboptimal speed management results."
+            f"{vessel}: Does not have convex load functions which may lead to "
+            "suboptimal speed management results."
         )
 
 
@@ -330,11 +332,13 @@ def _calculate_reference_speed_deltas(
     vessel: Vessel,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
-    Calculate the reference speed deltas per leg based on the route's speed distribution.
+    Calculate reference speed deltas per leg based on the route's speed distribution.
 
-    Notice that this can be different from the current speed per leg (as an output from the previous speed management
-    optimization) since speeds are truncated to the technical limits of the propulsion engine. The route's reference
-    speed distribution is used as the correct speed envelope because it best reflects the assumptions passed by the user.
+    Notice that this can be different from the current speed per leg (as an output from
+    the previous speed management optimization) since speeds are truncated to the
+    technical limits of the propulsion engine. The route's reference speed distribution
+    is used as the correct speed envelope because it best reflects the assumptions
+    passed by the user.
 
     Parameters
     ----------
@@ -344,7 +348,8 @@ def _calculate_reference_speed_deltas(
     Returns
     -------
     tuple[np.ndarray, np.ndarray, np.ndarray]
-        Speed deltas per leg, distribution of time spent at each leg, expected speeds at each leg.
+        Speed deltas per leg, distribution of time spent at each leg, expected speeds at
+        each leg.
     """
     speeds_reference = to_numpy(vessel.route.speeds)
 
@@ -386,8 +391,9 @@ def _mean_to_speeds(
 
 def _update_mean_speed(mu_ref: float, mu_target: float, maximum_change: float) -> float:
     """
-    Based on the current (reference) mean speed and the target mean speed, update the actual mean speed while
-    accounting for the maximum possible change in either direction.
+    Based on the current (reference) mean speed and the target mean speed, update the
+    actual mean speed while accounting for the maximum possible change in either
+    direction.
 
     Parameters
     ----------

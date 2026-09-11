@@ -33,7 +33,7 @@ class Technology(_Machinery):
     def __init__(self, name):
         super().__init__(name, TECHNOLOGY)
 
-        # external variables -------------------------------------------------------------------------------------------
+        # external variables -----------------------------------------------------------
         self.shore_power_capacity: Scalar | None = None
 
         # energy efficiency
@@ -51,7 +51,7 @@ class Technology(_Machinery):
             (src, dst): None for src in EnergyDemandTypeID for dst in EnergyDemandTypeID
         }
 
-    # external methods (DSL attributes) --------------------------------------------------------------------------------
+    # external methods (DSL attributes) ------------------------------------------------
     def set_shore_power_capacity(self, capacity):
         """
         Set the vessel-side shore power connection capacity in MW.
@@ -70,7 +70,7 @@ class Technology(_Machinery):
             as_scalar(capacity), type_=VARIABLE, lower=0.0
         )
 
-    # external methods (DSL commands) ----------------------------------------------------------------------------------
+    # external methods (DSL commands) --------------------------------------------------
     def set_energy_saving(self, energy_type: str, saving):
         """
 
@@ -121,7 +121,7 @@ class Technology(_Machinery):
             upper=1.0,
         )
 
-    # internal methods -------------------------------------------------------------------------------------------------
+    # internal methods -----------------------------------------------------------------
     def initialize(self):
         if self.shore_power_capacity is None:
             self.shore_power_capacity = Scalar(0.0)

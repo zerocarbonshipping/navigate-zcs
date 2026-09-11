@@ -37,7 +37,8 @@ def plot_engine_pilot_fuel_share(manager, directory):
         for fuel_type in relevant_fuel_types
     }
 
-    # find minimum pilot fuel. Assuming it is constant and similar for all converters. Too simplistic.
+    # find minimum pilot fuel. Assuming it is constant and similar for all
+    # converters. Too simplistic.
     minimum_share = dict.fromkeys(pilot_fuel_share, 0.0)
 
     for converter in converters.values():

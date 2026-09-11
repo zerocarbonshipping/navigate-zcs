@@ -166,8 +166,10 @@ def interpolate_tied_capital(tied_capital_flow: np.ndarray, age: float) -> float
 
 def get_increments_origin_index(years, current_year, ages):
     """
-    Find the time-step indexes at which a increments (vessel or plant) entered the simulation at 'age' years ago.
-    Notice here that if the entity was part of the initialization of the node index 0 is used.
+    Find the time-step indexes at which a increments (vessel or plant) entered the
+    simulation at 'age' years ago.
+    Notice here that if the entity was part of the initialization of the node index 0 is
+    used.
     This is the best available approximation as historical data is unavailable.
 
     years : np.ndarray
@@ -187,8 +189,10 @@ def get_increments_origin_index(years, current_year, ages):
 
 def get_increment_origin_index(years, current_year, age):
     """
-    Find the time-step index at which an increment (vessel or plant) entered the simulation at 'age' years ago.
-    Notice here that if the entity was part of the initialization of the node index 0 is used.
+    Find the time-step index at which an increment (vessel or plant) entered the
+    simulation at 'age' years ago.
+    Notice here that if the entity was part of the initialization of the node index 0 is
+    used.
     This is the best available approximation as historical data is unavailable.
 
     Parameters
@@ -340,15 +344,16 @@ def calculate_inertia(inertia, time_step):
 def calculate_compound_growth(initial, growth, timeline):
     """
     Calculates the continuous compound growth of a property.
-    The formula assumes that the growth is forward-looking, meaning that the growth at index t is applied over the
-    time-step from t to t+1.
+    The formula assumes that the growth is forward-looking, meaning that the growth at
+    index t is applied over the time-step from t to t+1.
 
     Parameters
     ----------
     initial : float
         Initial value.
     growth : np.ndarray
-        Instantaneous growth rate with values corresponding to the timeline, fraction/year
+        Instantaneous growth rate with values corresponding to the timeline,
+        fraction/year
     timeline : np.ndarray
         Timeline of the simulation.
 

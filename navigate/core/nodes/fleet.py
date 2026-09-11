@@ -57,7 +57,7 @@ class Fleet(_AssetManager):
     def __init__(self, name: str) -> None:
         super().__init__(name, FLEET)
 
-        # external variables -------------------------------------------------------------------------------------------
+        # external variables -----------------------------------------------------------
         self.trade_growth: ScalarLike = None  # Trade-growth of the fleet
         self.fixed_scrap_rate: ScalarLike = (
             None  # Fixed scrap rate to replace age based
@@ -144,7 +144,7 @@ class Fleet(_AssetManager):
             str, bool | None
         ] = {}  # Whether conversion is available
 
-        # internal variables -------------------------------------------------------------------------------------------
+        # internal variables -----------------------------------------------------------
         self.expectation: FleetExpectation = FleetExpectation()
         self.profile: FleetProfile = FleetProfile()
 
@@ -176,13 +176,14 @@ class Fleet(_AssetManager):
     # public domain name for the inherited assets list
     vessels = property(lambda self: self.assets)
 
-    # external methods (DSL attributes) --------------------------------------------------------------------------------
+    # external methods (DSL attributes) ------------------------------------------------
 
     def set_vessels(self, vessels: list[NodeReference]):
         """
         Set the list of vessel types that exists for the fleet.
 
-        The list of vessel types can be though of as a discretization of the fuel types and technologies of the fleet.
+        The list of vessel types can be though of as a discretization of the fuel types
+        and technologies of the fleet.
 
         Examples
         --------
@@ -200,7 +201,7 @@ class Fleet(_AssetManager):
 
     def set_memory(self, memory: float | NodeReference):
         """
-        Set the exponential decay of the memory of the fleet used in the expected uptake decision of newbuild vessels.
+        Set the memory's exponential decay used in the newbuild uptake decision.
 
         A high memory means that the expected uptake of newbuild vessels is more stable.
 
@@ -222,8 +223,9 @@ class Fleet(_AssetManager):
         """
         Set the fixed scrap rate of the fleet in fraction/year.
 
-        If the fixed scrap rate is set it overwrites the age-based scrapping functionality resulting in vessels
-        potentially being scrapped prior to their technical lifetime.
+        If the fixed scrap rate is set it overwrites the age-based scrapping
+        functionality resulting in vessels potentially being scrapped prior to their
+        technical lifetime.
 
         Examples
         --------
@@ -246,8 +248,9 @@ class Fleet(_AssetManager):
         """
         Set the flag for whether secondary scrapping is allowed.
 
-        Secondary scrapping occurs if a drop in trade is not offset by the amount of scrapped vessels.
-        If secondary scrapping is not allowed the actual capacity of the fleet may be higher than the projected trade.
+        Secondary scrapping occurs if a drop in trade is not offset by the amount of
+        scrapped vessels. If secondary scrapping is not allowed the actual capacity of
+        the fleet may be higher than the projected trade.
 
         Examples
         --------
@@ -325,8 +328,8 @@ class Fleet(_AssetManager):
         """
         Set the list of energy efficiency technologies that can be installed on vessels.
 
-        The list can contain any technologies that improve vessel performance through reduced energy consumption,
-        alternative power sources, or emissions reductions.
+        The list can contain any technologies that improve vessel performance through
+        reduced energy consumption, alternative power sources, or emissions reductions.
 
         Examples
         --------
@@ -344,11 +347,12 @@ class Fleet(_AssetManager):
 
     def set_intra_fuel_sensitivity(self, intra_fuel_sensitivity: float | NodeReference):
         """
-        Set the sensitivity of the within-fuel technology choice to levelized cost of transport (LCOT).
+        Set the within-fuel technology choice sensitivity to LCOT.
 
-        The value is an odds ratio: a technology variant whose LCOT is 10% higher receives this many
-        times the odds of an otherwise identical variant. For example 0.5 means a 10% higher LCOT
-        halves the odds, and 1 means no preference. LCOT is lower-is-better, so use a value below 1.
+        The value is an odds ratio: a technology variant whose LCOT is 10% higher
+        receives this many times the odds of an otherwise identical variant. For example
+        0.5 means a 10% higher LCOT halves the odds, and 1 means no preference. LCOT is
+        lower-is-better, so use a value below 1.
 
         Examples
         --------
@@ -369,11 +373,12 @@ class Fleet(_AssetManager):
 
     def set_inter_fuel_sensitivity(self, inter_fuel_sensitivity: float | NodeReference):
         """
-        Set the sensitivity of the fuel-type choice to levelized cost of transport (LCOT).
+        Set the fuel-type choice's sensitivity to levelized cost of transport (LCOT).
 
-        The value is an odds ratio: a fuel whose LCOT is 10% higher receives this many times the odds
-        of an otherwise identical fuel. For example 0.5 means a 10% higher LCOT halves the odds, and
-        1 means no preference. LCOT is lower-is-better, so use a value below 1.
+        The value is an odds ratio: a fuel whose LCOT is 10% higher receives this many
+        times the odds of an otherwise identical fuel. For example 0.5 means a 10%
+        higher LCOT halves the odds, and 1 means no preference. LCOT is lower-is-better,
+        so use a value below 1.
 
         Examples
         --------
@@ -396,10 +401,10 @@ class Fleet(_AssetManager):
         """
         Set the sensitivity of the energy-saving technology package choice to its NPV.
 
-        The value is an odds ratio: a package whose NPV advantage equals 5% of the ship CAPEX receives
-        this many times the odds of an otherwise identical package. For example 2 means such an
-        advantage doubles the odds, and 1 means no preference. NPV is higher-is-better, so use a value
-        above 1.
+        The value is an odds ratio: a package whose NPV advantage equals 5% of the ship
+        CAPEX receives this many times the odds of an otherwise identical package. For
+        example 2 means such an advantage doubles the odds, and 1 means no preference.
+        NPV is higher-is-better, so use a value above 1.
 
         Examples
         --------
@@ -422,9 +427,9 @@ class Fleet(_AssetManager):
         """
         Set the cost of capital used for evaluating technology investments.
 
-        The cost of capital represents the discount rate used to evaluate the net present value of technology
-        investments and retrofits. It reflects the opportunity cost of capital and the risk associated with
-        technology adoption.
+        The cost of capital represents the discount rate used to evaluate the net
+        present value of technology investments and retrofits. It reflects the
+        opportunity cost of capital and the risk associated with technology adoption.
 
         Examples
         --------
@@ -434,7 +439,8 @@ class Fleet(_AssetManager):
         Parameters
         ----------
         cost_of_capital
-            The cost of capital for technology investments as a fraction (e.g., 0.08 for 8%).
+            The cost of capital for technology investments as a fraction (e.g., 0.08 for
+            8%).
         """
         self.technology_cost_of_capital = assign_value(
             as_scalar(cost_of_capital), type_=(FORECAST, VARIABLE), lower=0.0
@@ -442,11 +448,11 @@ class Fleet(_AssetManager):
 
     def set_technology_horizon(self, technology_horizon: float | NodeReference):
         """
-        Set the decision horizon, in years, used to smooth the energy-scarcity belief that feeds technology
-        investment decisions.
+        Set the decision horizon, in years, used to smooth the energy-scarcity belief
+        that feeds technology investment decisions.
 
-        A longer horizon makes the belief respond more slowly to LP-dual updates, matching the longer
-        amortization timescale of technology decisions.
+        A longer horizon makes the belief respond more slowly to LP-dual updates,
+        matching the longer amortization timescale of technology decisions.
 
         Examples
         --------
@@ -464,10 +470,10 @@ class Fleet(_AssetManager):
 
     def set_speed_horizon(self, speed_horizon: float | NodeReference):
         """
-        Set the decision horizon, in years, used to smooth the energy-scarcity belief that feeds speed management.
+        Set the horizon, in years, of the energy-scarcity belief for speed management.
 
-        A shorter horizon makes the belief more reactive, suited to an operational decision that should
-        respond quickly to real tightness.
+        A shorter horizon makes the belief more reactive, suited to an operational
+        decision that should respond quickly to real tightness.
 
         Examples
         --------
@@ -485,8 +491,8 @@ class Fleet(_AssetManager):
 
     def set_retrofit_frequency(self, retrofit_frequency: float | NodeReference):
         """
-        Set the retrofit frequency, namely the intervals at which a vessel can retrofit technology or perform a
-        fuel conversion.
+        Set the retrofit frequency, namely the intervals at which a vessel can retrofit
+        technology or perform a fuel conversion.
 
         Examples
         --------
@@ -504,7 +510,7 @@ class Fleet(_AssetManager):
 
     def set_orderbooks(self, orderbooks: list[float | NodeReference]):
         """
-        Set the list of orderbooks used for determining the newbuild uptake from orderbooks.
+        Set the list of orderbooks used to determine newbuild uptake.
 
         The list must have the same length as the list of vessels.
         If the orderbook is a forecast it must be non-strictly increasing.
@@ -526,8 +532,9 @@ class Fleet(_AssetManager):
         """
         Set the flag for whether speed management is allowed.
 
-        Speed management dynamically optimizes the speed profile of each vessel type based on a cost optimal approach
-        between adding newbuilds to the model versus the change in fuel expenses.
+        Speed management dynamically optimizes the speed profile of each vessel type
+        based on a cost optimal approach between adding newbuilds to the model versus
+        the change in fuel expenses.
 
         Examples
         --------
@@ -543,7 +550,7 @@ class Fleet(_AssetManager):
 
     def set_maximum_speed_change(self, maximum_speed_change):
         """
-        Set the maximum speed change permissible per year during dynamic speed management.
+        Set the maximum speed change per year during dynamic speed management.
 
         Examples
         --------
@@ -563,8 +570,9 @@ class Fleet(_AssetManager):
         """
         Set the method used to align speed across vessel types within the fleet.
 
-        Speed alignment determines how the individually optimized speeds are reconciled across vessel types.
-        By default, each vessel type retains its own optimal speed (INDIVIDUAL).
+        Speed alignment determines how the individually optimized speeds are reconciled
+        across vessel types. By default, each vessel type retains its own optimal speed
+        (INDIVIDUAL).
 
         Examples
         --------
@@ -582,11 +590,12 @@ class Fleet(_AssetManager):
 
     def set_assume_reference_speed_optimal(self, assume_reference_speed_optimal: str):
         """
-        Set the flag for whether the reference speed is assumed to be the current market optimum.
+        Set whether the reference speed is assumed to be the current market optimum.
 
-        When enabled, the route reference speed is treated as the market optimum (accounting for effects not modelled)
-        and speed changes only occur relative to shifts in the modelled optimal speed. This prevents the model from
-        adjusting speed away from the reference due to unmodelled market effects.
+        When enabled, the route reference speed is treated as the market optimum
+        (accounting for effects not modelled) and speed changes only occur relative to
+        shifts in the modelled optimal speed. This prevents the model from adjusting
+        speed away from the reference due to unmodelled market effects.
 
         Examples
         --------
@@ -608,10 +617,11 @@ class Fleet(_AssetManager):
         """
         Set the sensitivity of the fuel-conversion choice to its NPV.
 
-        The value is an odds ratio: a conversion whose NPV advantage equals 5% of the ship CAPEX
-        receives this many times the odds of an otherwise identical conversion (the do-nothing option
-        has an NPV of zero). For example 2 means such an advantage doubles the odds, and 1 means no
-        preference. NPV is higher-is-better, so use a value above 1.
+        The value is an odds ratio: a conversion whose NPV advantage equals 5% of the
+        ship CAPEX receives this many times the odds of an otherwise identical
+        conversion (the do-nothing option has an NPV of zero). For example 2 means such
+        an advantage doubles the odds, and 1 means no preference. NPV is
+        higher-is-better, so use a value above 1.
 
         Examples
         --------
@@ -654,10 +664,11 @@ class Fleet(_AssetManager):
 
     def set_allow_technology_approximation(self, allow_technology_approximation: str):
         """
-        Set the flag for whether the fleet should approximate technology uptake based on an average impact on technology
-        uptake on other fleets which model it bottom-up.
+        Set the flag for whether the fleet should approximate technology uptake based on
+        an average impact on technology uptake on other fleets which model it bottom-up.
 
-        If there is no fleet which models the technology bottom-up, then the technology uptake is set to zero.
+        If there is no fleet which models the technology bottom-up, then the technology
+        uptake is set to zero.
 
         Examples
         --------
@@ -673,12 +684,12 @@ class Fleet(_AssetManager):
             allow_technology_approximation, BOOL_ID
         )
 
-    # external methods (DSL commands) ----------------------------------------------------------------------------------
+    # external methods (DSL commands) --------------------------------------------------
     def set_fuel_conversion_cost(
         self, vessel_name_from: str, vessel_name_to: str, fuel_conversion_cost: float
     ):
         """
-        Set the cost of performing a fuel conversion of a vessel from one type to another, in USD.
+        Set the cost of converting a vessel's fuel type from one to another, in USD.
 
         Examples
         --------
@@ -692,7 +703,8 @@ class Fleet(_AssetManager):
         vessel_name_to
             Name of vessel type being converted to.
         fuel_conversion_cost
-            Cost of performing a fuel conversion from vessel type 'vessel_name_from' to 'vessel_name_to'.
+            Cost of performing a fuel conversion from vessel type 'vessel_name_from' to
+            'vessel_name_to'.
         """
         command_assignment_to_tuple_dict(
             (vessel_name_from, vessel_name_to),
@@ -709,11 +721,11 @@ class Fleet(_AssetManager):
         fuel_conversion_limit: float | NodeReference,
     ):
         """
-        Set the per-pair cap on fuel conversions, as a fraction of the total fleet allowed to convert
-        from `vessel_name_from` to `vessel_name_to` per year.
+        Set the per-pair cap on fuel conversions, as a fraction of the total fleet
+        allowed to convert from `vessel_name_from` to `vessel_name_to` per year.
 
-        With 100 vessels and `set_fuel_conversion_limit("x", "y", 0.05)`, at most 5 vessels per year convert
-        from x to y. Default is 1.0 (effectively unlimited).
+        With 100 vessels and `set_fuel_conversion_limit("x", "y", 0.05)`, at most 5
+        vessels per year convert from x to y. Default is 1.0 (effectively unlimited).
 
         Examples
         --------
@@ -727,7 +739,8 @@ class Fleet(_AssetManager):
         vessel_name_to
             Name of vessel type being converted to.
         fuel_conversion_limit
-            Fraction in [0, 1] of the total fleet allowed to convert on this (from, to) pair per year.
+            Fraction in [0, 1] of the total fleet allowed to convert on this (from, to)
+            pair per year.
         """
         command_assignment_to_tuple_dict(
             (vessel_name_from, vessel_name_to),
@@ -740,11 +753,12 @@ class Fleet(_AssetManager):
 
     def set_allow_vessel(self, vessel_name: str, allow_vessel: str):
         """
-        Set a boolean flag for a given vessel from the list of vessels whether it is allowed or not.
+        Set a boolean flag for whether a given vessel is allowed or not.
 
-        If allow vessel is set to FALSE the vessel can neither enter the fleet as a newbuild nor be fuel converted to.
-        Any existing vessels in the fleet however are unaffected.
-        This flag supersedes both 'set_newbuild_available' and 'set_conversion_available'.
+        If allow vessel is set to FALSE the vessel can neither enter the fleet as a
+        newbuild nor be fuel converted to. Any existing vessels in the fleet however are
+        unaffected. This flag supersedes both 'set_newbuild_available' and
+        'set_conversion_available'.
 
         Examples
         --------
@@ -764,7 +778,7 @@ class Fleet(_AssetManager):
 
     def set_newbuild_available(self, vessel_name: str, newbuild_available: str):
         """
-        Set a boolean flag for a given vessel from the list of vessels whether it is allowed as a newbuild.
+        Set a boolean flag for whether a given vessel is allowed as a newbuild.
 
         If allow vessel is set to FALSE the vessel cannot enter the fleet as a newbuild.
 
@@ -786,9 +800,10 @@ class Fleet(_AssetManager):
 
     def set_conversion_available(self, vessel_name: str, conversion_available: str):
         """
-        Set a boolean flag for a given vessel from the list of vessels whether it is allowed to be converted to.
+        Set a boolean flag for whether a given vessel is allowed to be converted to.
 
-        If allow vessel is set to FALSE it is not possible to perform fuel conversions to vessels of that type.
+        If allow vessel is set to FALSE it is not possible to perform fuel conversions
+        to vessels of that type.
 
         Examples
         --------
@@ -844,10 +859,11 @@ class Fleet(_AssetManager):
 
     def set_newbuild_limit(self, vessel_name: str, limit: float | NodeReference):
         """
-        Set the maximum share of a single timestep's newbuild cargo-miles delivered by the given vessel type.
+        Set the maximum newbuild cargo-miles share deliverable by the given vessel type.
 
-        The limit is enforced across the orderbook, inertia, and modelled-uptake newbuild sources, so the
-        cumulative share across the three sources cannot exceed the configured value.
+        The limit is enforced across the orderbook, inertia, and modelled-uptake
+        newbuild sources, so the cumulative share across the three sources cannot exceed
+        the configured value.
 
         Examples
         --------
@@ -874,10 +890,10 @@ class Fleet(_AssetManager):
         self, technology_name: str, limit: float | NodeReference
     ):
         """
-        Set the maximum fraction of the existing fleet that can install the technology on newbuilds in one year.
+        Set the maximum fleet fraction installing the technology on newbuilds per year.
 
-        Cap is enforced as ``installs_A_per_year <= limit * y``, where ``y`` is the pre-newbuild total
-        multipliers of the fleet. Independent from the retrofit cap.
+        Cap is enforced as ``installs_A_per_year <= limit * y``, where ``y`` is the
+        pre-newbuild total multipliers of the fleet. Independent from the retrofit cap.
 
         Examples
         --------
@@ -904,10 +920,10 @@ class Fleet(_AssetManager):
         self, technology_name: str, limit: float | NodeReference
     ):
         """
-        Set the maximum fraction of the existing fleet that can retrofit to the technology in one year.
+        Set the maximum fleet fraction that can retrofit to the technology per year.
 
-        Cap is enforced as ``retrofits_A_per_year <= limit * y``, where ``y`` is the pre-newbuild total
-        multipliers of the fleet. Independent from the newbuild cap.
+        Cap is enforced as ``retrofits_A_per_year <= limit * y``, where ``y`` is the
+        pre-newbuild total multipliers of the fleet. Independent from the newbuild cap.
 
         Examples
         --------
@@ -932,9 +948,10 @@ class Fleet(_AssetManager):
 
     def set_operational_saving_sea(self, energy_type: str, saving):
         """
-        Set the fraction of energy saved at sea through operational measures (e.g., JIT arrival, weather routing).
+        Set the fraction of energy saved at sea through operational measures.
 
-        These represent zero-cost energy reductions that are not modeled through technology business cases.
+        Operational measures (e.g., JIT arrival, weather routing) represent zero-cost
+        energy reductions that are not modeled through technology business cases.
 
         Examples
         --------
@@ -962,7 +979,8 @@ class Fleet(_AssetManager):
         """
         Set the fraction of energy saved in port through operational measures.
 
-        These represent zero-cost energy reductions that are not modeled through technology business cases.
+        These represent zero-cost energy reductions that are not modeled through
+        technology business cases.
 
         Examples
         --------
@@ -986,7 +1004,7 @@ class Fleet(_AssetManager):
             upper=1.0,
         )
 
-    # internal methods -------------------------------------------------------------------------------------------------
+    # internal methods -----------------------------------------------------------------
     def initialize(self):
 
         if not self.assets:
@@ -1065,14 +1083,17 @@ class Fleet(_AssetManager):
 
         if self.initial_split and (len(self.assets) != len(self.initial_split)):
             raise ValueError(
-                f"{self}: The length of Vessel ({len(self.assets)}) and InitialSplit ({len(self.initial_split)}) must correspond."
+                f"{self}: The length of Vessel ({len(self.assets)}) and "
+                f"InitialSplit ({len(self.initial_split)}) must correspond."
             )
 
         if self._initial_age_distribution and (
             len(self.assets) != len(self._initial_age_distribution)
         ):
             raise ValueError(
-                f"{self}: The length of Vessel ({len(self.assets)}) and InitialAgeDistribution ({len(self._initial_age_distribution)}) must correspond."
+                f"{self}: The length of Vessel ({len(self.assets)}) and "
+                f"InitialAgeDistribution ({len(self._initial_age_distribution)}) "
+                "must correspond."
             )
 
         # check that orderbooks satisfy various requirements
@@ -1080,7 +1101,8 @@ class Fleet(_AssetManager):
             # check length between orderbooks and vessels correspond
             if len(self.assets) != len(self.orderbooks):
                 raise ValueError(
-                    f"{self}: The length of Vessel ({len(self.assets)}) and Orderbooks ({len(self.orderbooks)}) must correspond."
+                    f"{self}: The length of Vessel ({len(self.assets)}) and "
+                    f"Orderbooks ({len(self.orderbooks)}) must correspond."
                 )
 
             for orderbook in self.orderbooks:
@@ -1088,7 +1110,8 @@ class Fleet(_AssetManager):
                     # check that orderbooks are cumulative
                     if not is_non_strictly_increasing(orderbook.y):
                         raise ValueError(
-                            f"{self}: Orderbook ({orderbook}) is not non-strictly increasing."
+                            f"{self}: Orderbook ({orderbook}) is not "
+                            "non-strictly increasing."
                         )
 
                     # print a warning if the forecast allows extrapolation
@@ -1110,7 +1133,8 @@ class Fleet(_AssetManager):
             name = vessel.name
             # stays None when unset: a None cost marks the pair as not convertible
             self.fuel_conversion_cost.setdefault((name, name), None)
-            # placeholder self-pair so command_assignment_to_tuple_dict can validate cross-pair keys
+            # placeholder self-pair so command_assignment_to_tuple_dict can validate
+            # cross-pair keys
             self.fuel_conversion_limit.setdefault((name, name), None)
             self.allow_vessel.setdefault(name, None)
             self.newbuild_available.setdefault(name, None)
@@ -1118,7 +1142,8 @@ class Fleet(_AssetManager):
             self.newbuild_limit.setdefault(name, None)
 
             for tech in self.technologies:
-                # stays None when unset: technology adoption treats a missing curve as no initial share
+                # stays None when unset: technology adoption treats a missing curve
+                # as no initial share
                 self.initial_technology_share.setdefault((name, tech.name), None)
 
         for tech in self.technologies:

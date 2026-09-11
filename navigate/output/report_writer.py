@@ -2,9 +2,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Excel and CSV writing engine behind the Report node. The Report node collects which properties to
-extract per node type; write_report, driven by the simulation manager, resolves those requests
-against the node profiles and writes the workbook or CSV files.
+Excel and CSV writing engine behind the Report node. The Report node collects which
+properties to extract per node type; write_report, driven by the simulation manager,
+resolves those requests against the node profiles and writes the workbook or CSV files.
 """
 
 from __future__ import annotations
@@ -52,12 +52,12 @@ def write_report(
     dateline: np.ndarray,
 ) -> None:
     """
-    Writes one report node's requested properties to an XLSX or CSV file. Failures are contained
-    per layer: a failed sheet is logged and skipped so the remaining sheets still export, and a
-    failed save aborts only this report.
+    Writes one report node's requested properties to an XLSX or CSV file. Failures are
+    contained per layer: a failed sheet is logged and skipped so the remaining sheets
+    still export, and a failed save aborts only this report.
 
-    The manager exports under its node name 'global', which is what the key of Report.add_property
-    requests must match.
+    The manager exports under its node name 'global', which is what the key of
+    Report.add_property requests must match.
 
     Parameters
     ----------
@@ -147,7 +147,7 @@ def write_xlsx_report(
     dateline: np.ndarray,
 ) -> None:
     """
-    Saves the workbook, retrying with alternative filenames while the target file is locked.
+    Saves the workbook, retrying alternative filenames while the target file is locked.
 
     Parameters
     ----------
@@ -198,7 +198,7 @@ def write_csv_report(
     dateline: np.ndarray,
 ) -> None:
     """
-    Writes one CSV file per sheet, retrying with alternative filenames while the target file is locked.
+    Writes one CSV per sheet, retrying alternative filenames while the target is locked.
 
     Parameters
     ----------
@@ -303,7 +303,7 @@ def export_properties_csv(
     csv_data: dict,
 ) -> None:
     """
-    Flattens the requested properties of the given nodes into csv_data under the sheet name.
+    Flattens the requested properties of the nodes into csv_data under the sheet name.
 
     Parameters
     ----------
@@ -344,7 +344,7 @@ def _extract_properties(
     report_name: str,
 ):
     """
-    Yields (attribute, property) pairs read from the node profile, with reductions applied.
+    Yields (attribute, property) pairs from the node profile, with reductions applied.
 
     Parameters
     ----------
@@ -369,7 +369,8 @@ def _extract_properties(
 
             else:
                 logger.error(
-                    "Report '%s': Skipping property '%s' for node '%s': not a valid property.",
+                    "Report '%s': Skipping property '%s' for node '%s': not a valid "
+                    "property.",
                     report_name,
                     attribute,
                     node_name,
@@ -448,8 +449,8 @@ def _prepare_export(
 
         if not node_names:
             logger.warning(
-                "Report '%s': property request '%s' on sheet '%s' does not match any node in the "
-                "simulation; skipping.",
+                "Report '%s': property request '%s' on sheet '%s' does not match any "
+                "node in the simulation; skipping.",
                 report_name,
                 key,
                 sheet_name,
@@ -555,7 +556,9 @@ def _export_dict(
         # TODO: DUPLICATE LIKE ROW ATTR
         # if not nested_dict:
         #     for k, key_ in enumerate(key):
-        #         ws.cell(row=ROW_KEY + k + offset, column=col).value = _format_header(key_)
+        #         ws.cell(row=ROW_KEY + k + offset, column=col).value = (
+        #             _format_header(key_)
+        #         )
 
         if isinstance(value, dict):
             # in rare cases a dict may container another dict

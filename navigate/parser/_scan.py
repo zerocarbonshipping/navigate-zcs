@@ -32,7 +32,7 @@ REFERENCE_SCAN_EXCLUDE = (
 
 def get_attributes(instance: object, exclude: tuple = ()) -> Iterator[tuple[str, Any]]:
     """
-    Extracts all attributes from the supplied instance except built-in attributes and attributes listed in 'exclude'.
+    Extracts all attributes from the instance except built-ins and those in 'exclude'.
 
     The instance's attribute dict is snapshotted so callers may reassign
     attributes while iterating.

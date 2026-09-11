@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Unit tests for the node type attribute contract: every NODE_CLASS entry's instances carry that type."""
+"""Tests the node type contract: every NODE_CLASS entry's instances carry that type."""
 
 from __future__ import annotations
 

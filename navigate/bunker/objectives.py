@@ -68,7 +68,8 @@ def update_vessel_objectives(alg: BunkerAlgorithm, vessel: Vessel) -> None:
 
                     if supply > 0.0:
                         logger.warning(
-                            f"The bunker price of {fuel} for {vessel} in {port} is negative or zero ({round(total_price, 1)})."
+                            f"The bunker price of {fuel} for {vessel} in {port} "
+                            f"is negative or zero ({round(total_price, 1)})."
                         )
 
     # add shore power costs and bounds

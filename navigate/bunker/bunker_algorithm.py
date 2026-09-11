@@ -109,7 +109,7 @@ logger = logging.getLogger(__name__)
 class BunkerAlgorithm:
     def __init__(self) -> None:
 
-        # global attributes not linked to a specific vessel ------------------------------------------------------------
+        # global attributes not linked to a specific vessel ----------------------------
 
         # miscellaneous
         self.scope: BunkerScopeIDType | None = None
@@ -142,12 +142,12 @@ class BunkerAlgorithm:
         self.converters_per_fuel: dict[tuple, tuple] = {}
         self.port_converters_per_fuel: dict[tuple, tuple] = {}
 
-        # local attributes for a specific vessel -----------------------------------------------------------------------
+        # local attributes for a specific vessel ---------------------------------------
 
         # pre-computed effective LHV per (vessel, converter, fuel)
         self.effective_lhv: dict[tuple, float] = {}
 
-        # dynamic properties updated at every time-step ----------------------------------------------------------------
+        # dynamic properties updated at every time-step --------------------------------
 
         # policies
         self.active_regulations: dict[str, Regulation] = {}
@@ -181,7 +181,7 @@ class BunkerAlgorithm:
         # emission factors
         self.emission_factor: dict[tuple, float] = {}
 
-        # fair-share fuel properties -----------------------------------------------------------------------------------
+        # fair-share fuel properties ---------------------------------------------------
 
         self.previous_bunker: dict[tuple, float] = {}
         self.allocation_fuel: dict[tuple, float] = {}
@@ -192,7 +192,7 @@ class BunkerAlgorithm:
         self.fair_share_solution_new: np.ndarray | None = None
         self.fair_share_difference: np.ndarray | None = None
 
-        # primary model attributes -------------------------------------------------------------------------------------
+        # primary model attributes -----------------------------------------------------
 
         self.model: gp.Model | None = None
 
@@ -225,14 +225,14 @@ class BunkerAlgorithm:
         # fair-share constraints
         self.fair_share_fuel: gp.tupledict | None = None
 
-        # timing -------------------------------------------------------------------------------------------------------
+        # timing -----------------------------------------------------------------------
         self.build_time: float = 0.0
         self.solve_time: float = 0.0
         self.transfer_time: float = 0.0
 
-    # ==================================================================================================================
+    # ==================================================================================
     # external methods
-    # ==================================================================================================================
+    # ==================================================================================
     def initialize(
         self,
         emissions: dict[str, Emission],
@@ -295,8 +295,9 @@ class BunkerAlgorithm:
     def build(self, current_idx: int, idx: int, time: float, time_step: float) -> None:
         """
         Build the solver model for the specific time-step.
-        If this is the first time the method is called (during the initialization step) the model is built from scratch,
-        alternatively variables, objectives and constraints, are updated.
+        If this is the first time the method is called (during the initialization step)
+        the model is built from scratch, alternatively variables, objectives and
+        constraints, are updated.
 
         Parameters
         ----------
@@ -448,13 +449,14 @@ class BunkerAlgorithm:
         end = timeit.default_timer()
         self.transfer_time = end - start
 
-    # ==================================================================================================================
+    # ==================================================================================
     # internal methods
-    # ==================================================================================================================
+    # ==================================================================================
     def _initialize_model(self) -> None:
         """
-        Initialize the LP model as well as containers used for storing LP variables and constraints.
-        This method is only called once, namely when the high-level initialization occurs.
+        Initialize the LP model as well as containers used for storing LP variables and
+        constraints. This method is only called once, namely when the high-level
+        initialization occurs.
         """
         # initialize LP model
         if self.scope == BunkerScopeID.EXISTING:
@@ -497,8 +499,9 @@ class BunkerAlgorithm:
 
     def _reset_dynamic_properties(self) -> None:
         """
-        Certain properties are dynamic and recalculated at every time-step. The containers holding these properties are
-        reset to avoid the risk of values from previous time-steps remaining.
+        Certain properties are dynamic and recalculated at every time-step. The
+        containers holding these properties are reset to avoid the risk of values
+        from previous time-steps remaining.
         """
         # reset policy coefficients
         self.regulation_vessel_threshold = {}

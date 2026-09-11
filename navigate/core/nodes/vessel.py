@@ -42,7 +42,7 @@ class Vessel(Node):
     def __init__(self, name):
         super().__init__(name, VESSEL)
 
-        # external variables -------------------------------------------------------------------------------------------
+        # external variables -----------------------------------------------------------
         # power demand
         self.propulsion_load = None  # float, Curve or Surface, load in MW (at sea)
         self.electrical_load_at_sea = (
@@ -74,25 +74,26 @@ class Vessel(Node):
         # tag
         self.fuel_type = None  # int, ID of primary fuel type
 
-        # internal variables -------------------------------------------------------------------------------------------
+        # internal variables -----------------------------------------------------------
         self.expectation: VesselExpectation = VesselExpectation()
         self.profile: VesselProfile = VesselProfile()
 
         # convenience variables
-        self.usable_fuel_types = []  # list[FuelTypeID], list of fuel types usable in the power system of the vessel
-        self.usable_fuels = {}  # dict[Fuel], dictionary of fuels usable in the power system of the vessel
+        self.usable_fuel_types = []  # list[FuelTypeID], usable fuel types, power system
+        self.usable_fuels = {}  # dict[Fuel], fuels usable in the vessel's power system
 
         # cross-check variables
         self.fleet_assignment = None  # name of fleet vessel is assigned to
 
-    # external methods (DSL attributes) --------------------------------------------------------------------------------
+    # external methods (DSL attributes) ------------------------------------------------
     def set_propulsion_load(self, propulsion_load):
         """
-        Set the propulsion load in MW.
-        This is the power required to propel the vessel at a given speed and draft (cargo utilization used as proxy).
+        Set the propulsion load in MW. This is the power required to propel the vessel
+        at a given speed and draft (cargo utilization used as proxy).
 
-        If a Curve is assigned it should return power (MW) as a function of speed (knots).
-        If a Surface is assigned it should return power (MW) as a function of speed (knots) and cargo utilization (-).
+        If a Curve is assigned it should return power (MW) as a function of speed
+        (knots). If a Surface is assigned it should return power (MW) as a function of
+        speed (knots) and cargo utilization (-).
 
         Examples
         --------
@@ -111,11 +112,12 @@ class Vessel(Node):
 
     def set_electrical_load_at_sea(self, electrical_load_at_sea):
         """
-        Set the electrical load at sea in MW.
-        This is the power required to run auxiliary systems on the vessel at sea at a given speed and cargo utilization.
+        Set the electrical load at sea in MW. This is the power required to run
+        auxiliary systems on the vessel at sea at a given speed and cargo utilization.
 
-        If a Curve is assigned it should return power (MW) as a function of speed (knots).
-        If a Surface is assigned it should return power (MW) as a function of speed (knots) and cargo utilization (-).
+        If a Curve is assigned it should return power (MW) as a function of speed
+        (knots). If a Surface is assigned it should return power (MW) as a function of
+        speed (knots) and cargo utilization (-).
 
         Examples
         --------
@@ -154,11 +156,12 @@ class Vessel(Node):
 
     def set_heat_load_at_sea(self, heat_load_at_sea):
         """
-        Set the heat load at sea in MW.
-        This is the power required to produce heat on the vessel at sea at a given speed and cargo utilization.
+        Set the heat load at sea in MW. This is the power required to produce heat on
+        the vessel at sea at a given speed and cargo utilization.
 
-        If a Curve is assigned it should return power (MW) as a function of speed (knots).
-        If a Surface is assigned it should return power (MW) as a function of speed (knots) and cargo utilization (-).
+        If a Curve is assigned it should return power (MW) as a function of speed
+        (knots). If a Surface is assigned it should return power (MW) as a function of
+        speed (knots) and cargo utilization (-).
 
         Examples
         --------
@@ -197,7 +200,8 @@ class Vessel(Node):
         """
         Set the primary main fuel type of the vessel.
 
-        If not assigned, the value is defaulted during initialization based on the assigned PowerSystem.
+        If not assigned, the value is defaulted during initialization based on the
+        assigned PowerSystem.
 
         Examples
         --------
@@ -309,8 +313,8 @@ class Vessel(Node):
         """
         Set the lead time of the vessel in years.
 
-        The lead time is only used for the calculation of the levelized cost of a vessel (charter rate) and does
-        not impact the delivery of vessels.
+        The lead time is only used for the calculation of the levelized cost of a vessel
+        (charter rate) and does not impact the delivery of vessels.
 
         Examples
         --------
@@ -363,7 +367,8 @@ class Vessel(Node):
         """
         Set the cost of capital used in calculating the finance costs of the vessel.
 
-        Also used as the discount rate for net present cost calculations for investment decisions.
+        Also used as the discount rate for net present cost calculations for investment
+        decisions.
 
         Examples
         --------
@@ -379,7 +384,7 @@ class Vessel(Node):
             as_scalar(cost_of_capital), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
-    # internal methods -------------------------------------------------------------------------------------------------
+    # internal methods -----------------------------------------------------------------
     def initialize(self):
 
         if self.propulsion_load is None:
@@ -458,7 +463,8 @@ class Vessel(Node):
     def set_fleet_assignment(self, fleet_name):
         if self.fleet_assignment is not None:
             raise ValueError(
-                f'Fleet("{fleet_name}"): {self} is already assigned to a different fleet, Fleet("{self.fleet_assignment}").'
+                f'Fleet("{fleet_name}"): {self} is already assigned to a different'
+                f' fleet, Fleet("{self.fleet_assignment}").'
             )
 
         self.fleet_assignment = fleet_name

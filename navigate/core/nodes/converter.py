@@ -24,7 +24,7 @@ class Converter(_Machinery):
     def __init__(self, name):
         super().__init__(name, CONVERTER)
 
-        # external variables -------------------------------------------------------------------------------------------
+        # external variables -----------------------------------------------------------
         # power
         self.power_capacity = None  # float, power capacity of the Converter, MW
         self.minimum_load = None  # float, minimum load, fraction of power capacity
@@ -40,10 +40,10 @@ class Converter(_Machinery):
         )
 
         # emissions
-        self.consumption_ttw = {}  # dict of floats, emissions from consumption in the engine, ton/ton
-        self.slip_fraction = {}  # dict[FuelTypeID, Scalar], fraction of fuel mass escaping unburned
+        self.consumption_ttw = {}  # dict of floats, emissions from consumption, ton/ton
+        self.slip_fraction = {}  # dict[FuelTypeID, Scalar], fraction escaping unburned
 
-    # external methods (DSL attributes) --------------------------------------------------------------------------------
+    # external methods (DSL attributes) ------------------------------------------------
     def set_power_capacity(self, power_capacity):
         """
         Set the maximum power capacity of the converter.
@@ -139,7 +139,7 @@ class Converter(_Machinery):
 
     def set_efficiency(self, efficiency):
         """
-        Set the energy conversion efficiency from the potential energy in the fuel to the kinetic energy required.
+        Set the energy conversion efficiency from potential to required kinetic energy.
 
         Examples
         --------
@@ -155,10 +155,10 @@ class Converter(_Machinery):
             as_scalar(efficiency), type_=VARIABLE, lower=0.0, upper=1.0
         )
 
-    # external methods (DSL commands) ----------------------------------------------------------------------------------
+    # external methods (DSL commands) --------------------------------------------------
     def set_slip_fraction(self, fuel_type, value):
         """
-        Set the fraction of fuel mass that escapes unburned (slip) when using a specific fuel type.
+        Set the fraction of fuel mass escaping unburned (slip) for a specific fuel type.
 
         Examples
         --------
@@ -183,10 +183,11 @@ class Converter(_Machinery):
 
     def set_consumption_ttw(self, fuel_type, emission_name, value):
         """
-        Set a consumption related emission of a specific emission when using a specific fuel type in the converter.
+        Set a consumption related emission for a specific fuel type in the converter.
 
-        Notice that this number is given in the unit ton emission / ton fuel into the engine. I.e., if the engine
-        has slip (e.g., methane slip) then this number is already adjusted for this.
+        Notice that this number is given in the unit ton emission / ton fuel into the
+        engine. I.e., if the engine has slip (e.g., methane slip) then this number is
+        already adjusted for this.
 
         Examples
         --------
@@ -217,7 +218,7 @@ class Converter(_Machinery):
             key, value, self.consumption_ttw, type_=VARIABLE, lower=0.0
         )
 
-    # internal methods -------------------------------------------------------------------------------------------------
+    # internal methods -----------------------------------------------------------------
     def initialize(self):
 
         if self.power_capacity is None:
@@ -232,7 +233,8 @@ class Converter(_Machinery):
         if self.pilot_fuel_types:
             if not list_is_unique(self.main_fuel_types + self.pilot_fuel_types):
                 raise ValueError(
-                    f"{self}: All fuel types across 'MainFuelTypes' and 'PilotFuelTypes' must be unique."
+                    f"{self}: All fuel types across 'MainFuelTypes' and"
+                    " 'PilotFuelTypes' must be unique."
                 )
 
             if self.minimum_pilot_fuel is None:
@@ -255,7 +257,7 @@ class Converter(_Machinery):
 
     def initialize_dependencies(self, emissions):
         """
-        Seed the per-fuel-type dictionaries so `initialize` can default unassigned entries.
+        Seed per-fuel-type dictionaries so `initialize` can default unassigned entries.
 
         Parameters
         ----------

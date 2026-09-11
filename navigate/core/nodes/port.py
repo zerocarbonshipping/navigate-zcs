@@ -33,32 +33,32 @@ class Port(Node):
     def __init__(self, name):
         super().__init__(name, PORT)
 
-        # external variables -------------------------------------------------------------------------------------------
+        # external variables -----------------------------------------------------------
         # bunkering
-        self.bunkering_allowed = {}  # dict[bool], whether bunkering of a fuel is allowed
-        self.bunkering_limit = {}  # dict[float], maximum achievable bunkering of a fuel in the port, ton/year
-        self.bunkering_inertia = {}  # dict[float], fraction of bunkering of a fuel that must occur in next year
+        self.bunkering_allowed = {}  # dict[bool], whether bunkering is allowed
+        self.bunkering_limit = {}  # dict[float], max bunkering achievable, ton/year
+        self.bunkering_inertia = {}  # dict[float], bunkering fraction due next year
 
         # fuel handling
-        self.handling_cost = {}  # dict[float], costs related to storage and the service of bunkering, USD/ton
+        self.handling_cost = {}  # dict[float], storage/bunkering service cost, USD/ton
 
         # bunker overwrite
-        self.liquid_market_fuel = {}  # dict[bool], whether a fuel belongs to a liquid market
-        self.bunker_price_overwrite = {}  # dict[float], manual bunker price, overwrites production, USD/ton
-        self.bunker_wtt_overwrite = {}  # dict[float], manual bunker WTT, overwrites production, USD/ton
+        self.liquid_market_fuel = {}  # dict[bool], fuel belongs to a liquid market
+        self.bunker_price_overwrite = {}  # dict[float], manual bunker price, USD/ton
+        self.bunker_wtt_overwrite = {}  # dict[float], manual bunker WTT, USD/ton
 
         # shore power
         self.shore_power_cost: Scalar | None = (
             None  # USD/GJ (stored internally, input in USD/MWh)
         )
         self.shore_power_connection_share: Scalar | None = None  # fraction [0,1]
-        self.shore_power_emission_factor = {}  # dict[emission_name: Scalar], ton/GJ (internal)
+        self.shore_power_emission_factor = {}  # dict[emission: Scalar], stored ton/GJ
 
-        # internal variables -------------------------------------------------------------------------------------------
+        # internal variables -----------------------------------------------------------
         self.expectation: PortExpectation = PortExpectation()
         self.profile: PortProfile = PortProfile()
 
-    # external methods (DSL commands) ----------------------------------------------------------------------------------
+    # external methods (DSL commands) --------------------------------------------------
     def set_bunkering_allowed(self, fuel_name, value):
         """
         Set whether it is allowed to bunker a specific fuel in the port.
@@ -79,7 +79,7 @@ class Port(Node):
 
     def set_bunkering_limit(self, fuel_name, value):
         """
-        Set a limitation for the amount of fuel that can be bunkered in the port in tons/year.
+        Set a limit for the fuel that can be bunkered in the port, tons/year.
 
         Examples
         --------
@@ -105,8 +105,8 @@ class Port(Node):
         """
         Set the inertia of a fuel being bunkered in fraction/year.
 
-        The inertia refers to the fraction of the amount bunkered in the previous time-step that must at minimum be
-        bunkered in the current time-step.
+        The inertia refers to the fraction of the amount bunkered in the previous
+        time-step that must at minimum be bunkered in the current time-step.
 
         Examples
         --------
@@ -131,7 +131,7 @@ class Port(Node):
 
     def set_handling_cost(self, fuel_name, value):
         """
-        Set the costs related to storage and the service of bunkering of a specific fuel in the port in USD/ton.
+        Set the storage and bunkering service cost for a fuel in the port, USD/ton.
 
         Examples
         --------
@@ -143,7 +143,8 @@ class Port(Node):
         fuel_name : str
             The name of a fuel.
         value : float | NodeReference
-            The cost of storage and the service of bunkering a specific fuel in the port in USD/ton.
+            The cost of storage and the service of bunkering a specific fuel in the port
+            in USD/ton.
         """
         command_assignment_to_dict(
             fuel_name, value, self.handling_cost, type_=(FORECAST, VARIABLE), lower=0.0
@@ -153,7 +154,8 @@ class Port(Node):
         """
         Set an overwrite cost for a specific fuel in the port in USD/ton.
 
-        If an overwrite is set for a specific fuel, then the bottom-up calculation of production cost is ignored.
+        If an overwrite is set for a specific fuel, then the bottom-up calculation of
+        production cost is ignored.
 
         Examples
         --------
@@ -177,10 +179,10 @@ class Port(Node):
 
     def set_bunker_wtt_overwrite(self, fuel_name, emission_name, value):
         """
-        Set an overwrite WTT emissions for a specific fuel and emission in the port in ton emission/ton fuel.
+        Set an overwrite WTT emissions for a fuel/emission pair, ton emission/ton fuel.
 
-        If an overwrite is set for a specific fuel and emission, then the bottom-up calculation of production emissions
-        is ignored.
+        If an overwrite is set for a specific fuel and emission, then the bottom-up
+        calculation of production emissions is ignored.
 
         Examples
         --------
@@ -245,7 +247,7 @@ class Port(Node):
 
     def set_shore_power_emission_factor(self, emission_name, value):
         """
-        Set the WTW emission factor for shore power grid electricity in ton emission/MWh.
+        Set the WTW emission factor for shore power electricity, ton emission/MWh.
 
         Internally converted to ton/GJ.
 
@@ -269,7 +271,7 @@ class Port(Node):
             lower=0.0,
         )
 
-    # internal methods -------------------------------------------------------------------------------------------------
+    # internal methods -----------------------------------------------------------------
     def initialize(self):
 
         for fuel_name, allowed in self.bunkering_allowed.items():

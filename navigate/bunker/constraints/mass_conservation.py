@@ -18,7 +18,8 @@ def update_mass_conservation_constraints(alg: BunkerAlgorithm, vessel: Vessel) -
 
     For each usable fuel f and port p > 0 (vessel index omitted):
 
-        n m_{p,f} = n m_{p-1,f} + b_{p,f} - \sum_{c} x_{c,f,(p-1,p)} - \sum_{c} y_{c,f,p}
+        n m_{p,f} = n m_{p-1,f} + b_{p,f} - \sum_{c} x_{c,f,(p-1,p)}
+        - \sum_{c} y_{c,f,p}
 
     and for the first port n m_{0,f} = b_{0,f} - \sum_{c} y_{c,f,0}, i.e. the round
     trip starts and ends with empty tanks. Here m is the fuel mass in tank when

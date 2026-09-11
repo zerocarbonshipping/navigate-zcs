@@ -25,8 +25,8 @@ logger = logging.getLogger(__name__)
 
 def perform_primary_scrapping(fleet: Fleet, idx: int, time_step: float):
     """
-    Perform primary scrapping. This may either be based on the age distribution of the vessels and their lifetime
-    or a fixed yearly scrap rate.
+    Perform primary scrapping. This may either be based on the age distribution of the
+    vessels and their lifetime or a fixed yearly scrap rate.
 
     Parameters
     ----------
@@ -46,8 +46,8 @@ def perform_primary_scrapping(fleet: Fleet, idx: int, time_step: float):
 
 def perform_secondary_scrapping(fleet: Fleet, trade_gap: float, idx: int):
     """
-    Perform secondary scrapping. This occurs if there is too much tonnage in the fleet after primary scrapping
-    compared to the amount of trade required to be satisfied.
+    Perform secondary scrapping. This occurs if there is too much tonnage in the fleet
+    after primary scrapping compared to the amount of trade required to be satisfied.
 
     Parameters
     ----------
@@ -69,11 +69,13 @@ def perform_secondary_scrapping(fleet: Fleet, trade_gap: float, idx: int):
 
     trade = fleet.trade[idx]
     if trade > 0 and abs(trade_gap / trade) > 1e-3:
+        youngest_age_str = (
+            f"{round(youngest_age)} years" if youngest_age is not None else "undefined"
+        )
         logger.info(
-            f"{fleet}: Secondary scrapping of vessels to make up for an over capacity of "
-            f"{round(trade_gap)} cargo-miles. "
-            f"The youngest age of scrapping was "
-            f"{f'{round(youngest_age)} years' if youngest_age is not None else 'undefined'}."
+            f"{fleet}: Secondary scrapping of vessels to make up for an over capacity "
+            f"of {round(trade_gap)} cargo-miles. "
+            f"The youngest age of scrapping was {youngest_age_str}."
         )
 
     return scrapped_capacity
@@ -81,8 +83,8 @@ def perform_secondary_scrapping(fleet: Fleet, trade_gap: float, idx: int):
 
 def perform_age_based_scrapping(fleet: Fleet, idx: int):
     """
-    Perform scrapping based on the age of the vessels. This means that every increment which is greater than the
-    lifetime of the vessel is scrapped from the fleet.
+    Perform scrapping based on the age of the vessels. This means that every increment
+    which is greater than the lifetime of the vessel is scrapped from the fleet.
 
     Parameters
     ----------
@@ -143,9 +145,9 @@ def perform_age_based_scrapping(fleet: Fleet, idx: int):
 
 def perform_fixed_rate_scrapping(fleet: Fleet, time_step: float, idx: int):
     """
-    Perform scrapping based on a fixed rate. This means scrapping a user-defined amount of trade from the fleet.
-    The selection criteria for which vessels to scrap is based on age. This means that the oldest increments are
-    scrapped first.
+    Perform scrapping based on a fixed rate. This means scrapping a user-defined amount
+    of trade from the fleet. The selection criteria for which vessels to scrap is based
+    on age. This means that the oldest increments are scrapped first.
 
     Parameters
     ----------
@@ -185,8 +187,9 @@ def perform_fixed_rate_scrapping(fleet: Fleet, time_step: float, idx: int):
 
 def perform_fixed_trade_scrapping(fleet: Fleet, trade_gap: float, idx: int):
     """
-    Perform scrapping based on a fixed amount of trade. The selection criteria for which vessels to scrap is based
-    on age. This means that the oldest increments are scrapped first.
+    Perform scrapping based on a fixed amount of trade. The selection criteria for which
+    vessels to scrap is based on age. This means that the oldest increments are scrapped
+    first.
 
     Parameters
     ----------
@@ -308,9 +311,9 @@ def perform_fixed_trade_scrapping(fleet: Fleet, trade_gap: float, idx: int):
 
 def clean_up_multipliers(fleet: Fleet):
     """
-    The CPU time of the simulation is adversely affected by the number of increments per vessel type.
-    In order to reduce the CPU time, increments are merged if they are similar and/or removed if they
-    fall below a certain threshold.
+    The CPU time of the simulation is adversely affected by the number of increments per
+    vessel type. In order to reduce the CPU time, increments are merged if they are
+    similar and/or removed if they fall below a certain threshold.
     """
     # merge multipliers with same age and initial time-step entry size
     for v in range(len(fleet.assets)):
@@ -372,12 +375,12 @@ def calculate_evolution_expectation(
     Calculates the expected evolution of multipliers based on vessel scrapping,
     uptake patterns, and trade gaps within a given timeline.
 
-    This function computes future multiplier baselines for existing vessels by accounting
-    for expected vessel scrap rates. It calculates the trade gap between the required trade
-    demand and the expected deliveries, and fills the gap using expectations of future
-    vessel uptakes. The resulting multipliers (both for existing vessels and new builds)
-    are adjusted to account for operational constraints and are stored as part of the
-    expectation model.
+    This function computes future multiplier baselines for existing vessels by
+    accounting for expected vessel scrap rates. It calculates the trade gap between the
+    required trade demand and the expected deliveries, and fills the gap using
+    expectations of future vessel uptakes. The resulting multipliers (both for existing
+    vessels and new builds) are adjusted to account for operational constraints and are
+    stored as part of the expectation model.
 
     Parameters
     ----------
@@ -507,8 +510,9 @@ def perform_fleet_evolution(
     fleet: Fleet, timeline: np.ndarray, time_step: float, idx: int
 ) -> None:
     """
-    Evolve the fleet forward in time. This includes scrapping old vessels, performing fuel conversions,
-    delivering newbuilds from the orderbook and model newbuilds based on inertia and the discrete choice model.
+    Evolve the fleet forward in time. This includes scrapping old vessels, performing
+    fuel conversions, delivering newbuilds from the orderbook and model newbuilds based
+    on inertia and the discrete choice model.
 
     Parameters
     ----------
@@ -539,9 +543,9 @@ def perform_fleet_evolution(
     trade = fleet.trade[idx]
     trade_gap = trade - get_cargo_miles(fleet, idx)
 
-    # per-vessel newbuild count budget for this timestep, threaded across the three newbuild sources.
-    # Cap denominator is the pre-newbuild fleet count (proxy for yard capacity); time_step/YEAR scales
-    # the per-year limit to a per-step budget.
+    # per-vessel newbuild count budget for this timestep, threaded across the three
+    # newbuild sources. Cap denominator is the pre-newbuild fleet count (proxy for yard
+    # capacity); time_step/YEAR scales the per-year limit to a per-step budget.
     multipliers_total = float(sum(fleet.get_multipliers()))
     limit_share = np.array([fleet.newbuild_limit[v.name].get() for v in fleet.assets])
     cap_count = limit_share * multipliers_total * (time_step / YEAR)
@@ -573,8 +577,8 @@ def perform_fleet_evolution(
     # clean up multipliers for computational performance enhancement
     clean_up_multipliers(fleet)
 
-    # reconcile newbuild package shares against per-technology flow caps now that vessel-type
-    # counts are known
+    # reconcile newbuild package shares against per-technology flow caps now that
+    # vessel-type counts are known
     reconcile_newbuild_technology_caps(fleet, increments, time_step, multipliers_total)
 
     # add the newbuilds to the list of increments
@@ -593,7 +597,8 @@ def perform_fleet_evolution(
     # check that all the trade has been satisfied otherwise print a warning
     if trade > 0 and (trade_gap / trade) > 1e-3:
         logger.warning(
-            f"{fleet}: Model was only able to satisfy {round((1.0 - trade_gap / trade) * 100.0)}% of the expected trade."
+            f"{fleet}: Model was only able to satisfy "
+            f"{round((1.0 - trade_gap / trade) * 100.0)}% of the expected trade."
         )
 
     # calculate and assign current vessel uptake shares

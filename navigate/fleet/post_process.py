@@ -136,7 +136,9 @@ def _transfer_fuel_converted_power(fleet: Fleet) -> None:
 
         if abs(power_to - power_from) > TOLERANCE:
             logger.warning(
-                f"{fleet}: Fuel conversion occurred with different installed power {vessel_from} ({round(power_from, 1)}) to {vessel_to} ({round(power_to, 1)})."
+                f"{fleet}: Fuel conversion occurred with different installed power "
+                f"{vessel_from} ({round(power_from, 1)}) to "
+                f"{vessel_to} ({round(power_to, 1)})."
             )
 
         fleet.profile.add_fuel_converted_power(
@@ -262,7 +264,7 @@ def transfer_transport_work(fleet: Fleet) -> None:
 
 def post_process_investment_metric(fleets, timeline):
     """
-    As a post-processing of the simulation, the investment metric is calculated using the post-processed fuel costs.
+    Calculate the investment metric using the post-processed fuel costs.
 
     Parameters
     ----------
@@ -328,9 +330,9 @@ def _aggregate_fleet_freight_rate(fleet, timeline):
     Aggregate a fleet-level instantaneous freight rate (USD/cargo-mile).
 
     The fleet rate is the multiplier-weighted total achieved charter cost divided by the
-    multiplier-weighted cargo-miles delivered, making it the cargo-mile-consistent counterpart of the
-    per-vessel instantaneous freight rate. Only vessels with a positive multiplier and a calculated
-    cost at the time-step contribute.
+    multiplier-weighted cargo-miles delivered, making it the cargo-mile-consistent
+    counterpart of the per-vessel instantaneous freight rate. Only vessels with a
+    positive multiplier and a calculated cost at the time-step contribute.
 
     Parameters
     ----------
@@ -359,8 +361,8 @@ def _aggregate_fleet_freight_rate(fleet, timeline):
 
 def _calculate_total_vessel_operating_expenses(vessel, idx, timeline):
     """
-    Assigns the fuel, levy, regulation, and technology expenses for a vessel in the fleet at a given time
-    of the simulation.
+    Assigns the fuel, levy, regulation, and technology expenses for a vessel in the
+    fleet at a given time of the simulation.
 
     Parameters
     ----------
@@ -374,8 +376,9 @@ def _calculate_total_vessel_operating_expenses(vessel, idx, timeline):
     Returns
     -------
     tuple[np.ndarray, np.ndarray, np.ndarray] | None
-        The total operating cost flow, the operating-year grid (days), and the per-year operating
-        fraction (shared with the caller); None when the vessel lacks bunkering data over the horizon.
+        The total operating cost flow, the operating-year grid (days), and the per-year
+        operating fraction (shared with the caller); None when the vessel lacks
+        bunkering data over the horizon.
     """
     profile = vessel.profile
 
@@ -390,7 +393,8 @@ def _calculate_total_vessel_operating_expenses(vessel, idx, timeline):
 
     if not np.all(profile.is_in_fleet()[idx:idx_to]):
         logger.debug(
-            f"{vessel}: Unable to post-process fuel related costs at time {round(timeline[idx], 0)} days."
+            f"{vessel}: Unable to post-process fuel related costs at time "
+            f"{round(timeline[idx], 0)} days."
         )
 
         return None

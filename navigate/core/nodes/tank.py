@@ -14,11 +14,11 @@ class Tank(_Machinery):
     def __init__(self, name):
         super().__init__(name, TANK)
 
-        # external variables -------------------------------------------------------------------------------------------
+        # external variables -----------------------------------------------------------
         self.fuel_types = None  # list, fuel type ID
         self.size = None  # float, tank size
 
-    # external methods (DSL attributes) --------------------------------------------------------------------------------
+    # external methods (DSL attributes) ------------------------------------------------
     def set_fuel_types(self, fuel_types):
         """
         Set the fuel types that can be stored in the tank.
@@ -53,7 +53,7 @@ class Tank(_Machinery):
         """
         self.size = assign_value(as_scalar(size), type_=VARIABLE, lower=0.0)
 
-    # internal methods -------------------------------------------------------------------------------------------------
+    # internal methods -----------------------------------------------------------------
     def initialize(self):
         if self.fuel_types is None:
             no_value_assigned_error(self, "FuelTypes")

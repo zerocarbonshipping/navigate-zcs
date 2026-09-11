@@ -31,23 +31,23 @@ def _build_parser() -> argparse.ArgumentParser:
         "-p",
         "--profile",
         action="store_true",
-        help="Profile the computational performance of the simulation. Note that this suppresses"
-        " all output that is not directly related to the simulation.",
+        help="Profile the computational performance of the simulation. Note that this"
+        " suppresses all output that is not directly related to the simulation.",
     )
     parser.add_argument(
         "-s",
         "--suppress-plots",
         action="store_true",
-        help="Suppress the generation of plots at the end of the simulation. Note that Excel based"
-        " output reports will still be generated.",
+        help="Suppress the generation of plots at the end of the simulation. Note that"
+        " Excel based output reports will still be generated.",
     )
     parser.add_argument(
         "-l",
         "--log-level",
         default="INFO",
         choices=LOG_LEVELS,
-        help="Set the level of how much output is generated for the .log file. DEBUG also"
-        " prints the full traceback to the console if the run fails.",
+        help="Set the level of how much output is generated for the .log file. DEBUG"
+        " also prints the full traceback to the console if the run fails.",
     )
     parser.add_argument(
         "-d",
@@ -147,7 +147,7 @@ def _validate_file(
     parser: argparse.ArgumentParser, path: Path, *, kind: str, suffix: str
 ) -> None:
     """
-    Exit via parser.error() (exit code 2) unless `path` is an existing file with the given suffix.
+    Exit via parser.error() (code 2) unless `path` is an existing file with the suffix.
 
     Parameters
     ----------

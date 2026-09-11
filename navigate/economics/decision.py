@@ -12,9 +12,10 @@ from navigate.util import define_index_map
 
 logger = logging.getLogger(__name__)
 
-# reference changes baked into the odds-ratio calibration. The log-ratio cases state the odds for a
-# metric that is 10% higher; the signed case states the odds for an advantage equal to 5% of the
-# reference value. The DSL exposes only the odds ratio; beta is derived from it here.
+# reference changes baked into the odds-ratio calibration. The log-ratio cases state the
+# odds for a metric that is 10% higher; the signed case states the odds for an advantage
+# equal to 5% of the reference value. The DSL exposes only the odds ratio; beta is
+# derived from it here.
 _REFERENCE_INCREASE = 0.10
 _REFERENCE_ADVANTAGE = 0.05
 _LOG_REFERENCE_INCREASE = np.log(1.0 + _REFERENCE_INCREASE)
@@ -28,23 +29,27 @@ def calculate_asset_shares(
     limits: list | np.ndarray | None = None,
 ) -> tuple[np.ndarray, str]:
     """
-    Calculate the investment shares across alternatives from a case-specific dimensionless utility.
+    Calculate investment shares from a case-specific dimensionless utility.
 
-    Routes `values` through the `utility` transformation and returns softmax shares; `limits`, when
-    given, caps shares and rescales the surplus proportionally.
+    Routes `values` through the `utility` transformation and returns softmax shares;
+    `limits`, when given, caps shares and rescales the surplus proportionally.
 
     Parameters
     ----------
     values
-        Metric per alternative (LCOT, LCoF, expected demand, or NPV depending on `utility`).
+        Metric per alternative (LCOT, LCoF, expected demand, or NPV depending on
+        `utility`).
     utility
         Utility transformation to apply.
     odds
-        Odds ratio calibrating the sensitivity (e.g. 0.5 = a 10% higher metric gets half the odds).
+        Odds ratio calibrating the sensitivity (e.g. 0.5 = a 10% higher metric gets half
+        the odds).
     reference
-        Reference value for `SIGNED_REFERENCE` (e.g. ship CAPEX); ignored by the log-ratio utilities.
+        Reference value for `SIGNED_REFERENCE` (e.g. ship CAPEX); ignored by the
+        log-ratio utilities.
     limits
-        Optional per-option upper bound on share, each in [0, 1]. If None, no constraint is applied.
+        Optional per-option upper bound on share, each in [0, 1]. If None, no constraint
+        is applied.
 
     Returns
     -------
@@ -71,9 +76,10 @@ def _beta_from_odds(odds: float, utility: UtilityID) -> float:
     """
     Convert an interpretable odds ratio into the multinomial-logit sensitivity beta.
 
-    The reference change is fixed per utility kind: a 10% higher metric for the log-ratio cases and
-    an advantage equal to 5% of the reference value for the signed case. An odds ratio of 1 yields
-    beta = 0 (uniform shares); values on the wrong side of 1 yield beta < 0 (a perverse calibration).
+    The reference change is fixed per utility kind: a 10% higher metric for the
+    log-ratio cases and an advantage equal to 5% of the reference value for the signed
+    case. An odds ratio of 1 yields beta = 0 (uniform shares); values on the wrong side
+    of 1 yield beta < 0 (a perverse calibration).
 
     Parameters
     ----------
@@ -99,7 +105,8 @@ def softmax(utilities: np.ndarray) -> np.ndarray:
     """
     Numerically stable softmax over deterministic utilities.
 
-    Subtraction by the maximum value avoids exponential overflow while preserving the result.
+    Subtraction by the maximum value avoids exponential overflow while preserving the
+    result.
 
     Parameters
     ----------
@@ -121,8 +128,9 @@ def _shares_lower_log_ratio(
     """
     Shares for a lower-is-better metric via V_i = -beta * log(value_i / min_j value_j).
 
-    The log form requires strictly positive values. If any value is non-positive the form is
-    undefined, so shares are split uniformly among the alternatives tied at the minimum value.
+    The log form requires strictly positive values. If any value is non-positive the
+    form is undefined, so shares are split uniformly among the alternatives tied at the
+    minimum value.
 
     Parameters
     ----------
@@ -139,8 +147,9 @@ def _shares_lower_log_ratio(
 
     if np.any(values <= 0.0):
         msg = (
-            "contains a non-positive value; the lower-is-better log-ratio utility is undefined, "
-            "so shares were split uniformly among the alternatives at the minimum value"
+            "contains a non-positive value; the lower-is-better log-ratio utility is "
+            "undefined, so shares were split uniformly among the alternatives at the "
+            "minimum value"
         )
         return _uniform_at_min(values), msg
 
@@ -154,9 +163,9 @@ def _shares_higher_log_ratio(
     """
     Shares for a higher-is-better metric via V_i = beta * log(value_i / max_j value_j).
 
-    Alternatives with a value of zero receive zero share; the softmax is applied only to the
-    strictly-positive alternatives. If every value is zero, all shares are zero (the caller is
-    expected to short-circuit this case).
+    Alternatives with a value of zero receive zero share; the softmax is applied only to
+    the strictly-positive alternatives. If every value is zero, all shares are zero (the
+    caller is expected to short-circuit this case).
 
     Parameters
     ----------
@@ -186,10 +195,10 @@ def _shares_signed_reference(
     values: list | np.ndarray, beta: float, reference: float | None
 ) -> tuple[np.ndarray, str]:
     """
-    Shares for a signed metric scaled by a reference value via V_i = beta * value_i / reference.
+    Shares for a signed metric scaled by reference via V_i = beta * value_i / reference.
 
-    Handles positive, zero, or negative metrics (e.g. NPV). A non-positive reference makes the
-    scaling undefined, so shares are split uniformly.
+    Handles positive, zero, or negative metrics (e.g. NPV). A non-positive reference
+    makes the scaling undefined, so shares are split uniformly.
 
     Parameters
     ----------
@@ -215,7 +224,7 @@ def _shares_signed_reference(
 
 def _uniform_at_min(values: np.ndarray) -> np.ndarray:
     """
-    Assign uniform shares among the alternatives tied at the minimum value, zero elsewhere.
+    Assign uniform shares among alternatives tied at the minimum value, zero elsewhere.
 
     Parameters
     ----------
@@ -238,7 +247,7 @@ def _apply_limits(
     shares: np.ndarray, limits: list | np.ndarray
 ) -> tuple[np.ndarray, str]:
     """
-    Enforce per-option upper bounds on a share vector, rescaling any surplus proportionally.
+    Enforce per-option upper bounds on a share vector, rescaling surplus proportionally.
 
     Parameters
     ----------
@@ -254,7 +263,8 @@ def _apply_limits(
     limits = np.asarray(limits, dtype=np.float64)
     if limits.shape != shares.shape:
         raise ValueError(
-            f"'limits' length ({limits.size}) must match 'values' length ({shares.size})"
+            f"'limits' length ({limits.size}) must match 'values' length "
+            f"({shares.size})"
         )
 
     limits = np.clip(limits, 0.0, 1.0)
@@ -279,11 +289,12 @@ def _apply_limits(
 
 def _redistribute_proportional(shares: np.ndarray, limits: np.ndarray) -> np.ndarray:
     """
-    Iteratively clip shares that exceed their limit and rescale the remaining shares so the total stays at 1.
+    Clip shares exceeding their limit and rescale the rest so the total stays at 1.
 
-    Each pass: shares above their limit are clipped and frozen; the non-saturated shares are multiplied by
-    (1 - sum_clipped) / sum_free. Repeats up to `len(shares)` times since each pass freezes at least one
-    new option. Applied to the uniform vector this is exactly water-filling.
+    Each pass: shares above their limit are clipped and frozen; the non-saturated shares
+    are multiplied by (1 - sum_clipped) / sum_free. Repeats up to `len(shares)` times
+    since each pass freezes at least one new option. Applied to the uniform vector this
+    is exactly water-filling.
 
     Parameters
     ----------
@@ -334,14 +345,16 @@ def calculate_two_axis_uptake(
     """
     Calculate uptake shares using a two-axis discrete choice model.
 
-    Assets are grouped by *group_keys* (e.g. fuel type). Within each group, intra-group shares are
-    determined from *metrics_intra*. Across groups, inter-group shares are determined from the
-    intra-share-weighted *metrics_inter*. The final per-asset share is the product of the two.
+    Assets are grouped by *group_keys* (e.g. fuel type). Within each group, intra-group
+    shares are determined from *metrics_intra*. Across groups, inter-group shares are
+    determined from the intra-share-weighted *metrics_inter*. The final per-asset share
+    is the product of the two.
 
-    When *limits* is given, the per-asset bounds are projected onto the two axes: the inter-group
-    cap is the sum of the member caps (clamped to 1.0), so a group can absorb its members' joint
-    capacity, and the intra-group caps are normalized by the group cap so the composed bound
-    ``group_cap * intra_cap`` equals the per-asset limit.
+    When *limits* is given, the per-asset bounds are projected onto the two axes: the
+    inter-group cap is the sum of the member caps (clamped to 1.0), so a group can
+    absorb its members' joint capacity, and the intra-group caps are normalized by the
+    group cap so the composed bound ``group_cap * intra_cap`` equals the per-asset
+    limit.
 
     Parameters
     ----------
@@ -360,7 +373,8 @@ def calculate_two_axis_uptake(
     inter_odds
         Odds ratio calibrating the inter-group sensitivity.
     limits
-        Optional per-asset upper bound on the final share, each in [0, 1]. None disables limits.
+        Optional per-asset upper bound on the final share, each in [0, 1]. None disables
+        limits.
     context
         Optional string used as prefix in warning messages.
 
