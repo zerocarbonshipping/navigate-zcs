@@ -6,7 +6,7 @@ from __future__ import annotations
 from enum import Enum, auto
 
 
-# external enums -------------------------------------------------------------------------------------------------------
+# external enums -----------------------------------------------------------------------
 class SimulationSectionID(Enum):
     DEFINE = auto()
     EVENTS = auto()
@@ -34,7 +34,8 @@ class EnergyDemandTypeID(Enum):
     HEAT = auto()
 
 
-# iteration order feeds LP variable/constraint creation order, which must be deterministic across runs
+# iteration order feeds LP variable/constraint creation order, which must be
+# deterministic across runs
 EnergyDemandTypePortID = (EnergyDemandTypeID.ELECTRICAL, EnergyDemandTypeID.HEAT)
 
 
@@ -118,7 +119,7 @@ class SolverMethodID(Enum):
     NON_DETERMINISTIC = 3
 
 
-# internal enums -------------------------------------------------------------------------------------------------------
+# internal enums -----------------------------------------------------------------------
 class BunkerScopeID(Enum):
     EXPECTED = auto()
     EXISTING = auto()

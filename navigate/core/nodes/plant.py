@@ -34,7 +34,7 @@ class Plant(Node):
     def __init__(self, name):
         super().__init__(name, PLANT)
 
-        # external variables -------------------------------------------------------------------------------------------
+        # external variables -----------------------------------------------------------
         self.fuel = None  # Fuel, the fuel being produced by the plant
         self.process = (
             None  # Process, the top-level production process used at the plant
@@ -51,20 +51,20 @@ class Plant(Node):
 
         self.cost_of_capital = None  # float, cost of capital and discount rate
 
-        self.feed_transport = {}  # dict[feedstock_name: Transport], transport mode for feedstock
-        self.feed_distance = {}  # dict[feedstock_name: float], distance transported, nautical miles
+        self.feed_transport = {}  # dict[feedstock_name: Transport], transport mode
+        self.feed_distance = {}  # dict[feedstock_name: float], distance, nautical miles
 
-        self.fuel_transport = {}  # dict[port_name: Transport], transport mode for delivering the produced fuel
-        self.fuel_distance = {}  # dict[port_name: float], distance to the port, nautical miles
+        self.fuel_transport = {}  # dict[port_name: Transport], fuel transport mode
+        self.fuel_distance = {}  # dict[port_name: float], port distance, nautical miles
 
-        # internal variables -------------------------------------------------------------------------------------------
+        # internal variables -----------------------------------------------------------
         self.expectation: PlantExpectation = PlantExpectation()
         self.profile: PlantProfile = PlantProfile()
 
         # cross-check variables
         self.producer_assignment = None  # name of producer plant is assigned to
 
-    # external methods (DSL attributes) --------------------------------------------------------------------------------
+    # external methods (DSL attributes) ------------------------------------------------
     def set_fuel(self, fuel):
         """
         Set the fuel which is produced by the plant.
@@ -212,7 +212,8 @@ class Plant(Node):
         """
         Set the cost of capital used in calculating the finance costs of the plant.
 
-        Also used as the discount rate for levelized cost calculations for investment decisions.
+        Also used as the discount rate for levelized cost calculations for investment
+        decisions.
 
         Examples
         --------
@@ -228,10 +229,10 @@ class Plant(Node):
             as_scalar(cost_of_capital), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
-    # external methods (DSL commands) ----------------------------------------------------------------------------------
+    # external methods (DSL commands) --------------------------------------------------
     def set_feed_transport(self, feed_name, value):
         """
-        Set the transport mode used for transporting a specific feedstock or process output the plant.
+        Set the transport mode for delivering feedstock or process output to the plant.
 
         Examples
         --------
@@ -251,7 +252,7 @@ class Plant(Node):
 
     def set_feed_distance(self, feed_name, value):
         """
-        Set the distance a given feedstock or process output is transported to the plant in nautical miles.
+        Set the feedstock or process transport distance to the plant, nautical miles.
 
         Examples
         --------
@@ -274,8 +275,9 @@ class Plant(Node):
         """
         Set the transport mode used for delivering the produced fuel to a given port.
 
-        The cost and WTT emissions of the delivery are given by the transport rates of the plant's region,
-        see `Region.set_transport_cost` and `Region.set_transport_wtt`.
+        The cost and WTT emissions of the delivery are given by the transport rates of
+        the plant's region, see `Region.set_transport_cost` and
+        `Region.set_transport_wtt`.
 
         Examples
         --------
@@ -294,7 +296,7 @@ class Plant(Node):
 
     def set_fuel_distance(self, port_name, value):
         """
-        Set the distance the produced fuel is transported to a given port in nautical miles.
+        Set the distance the produced fuel is transported to a port, in nautical miles.
 
         Examples
         --------
@@ -312,7 +314,7 @@ class Plant(Node):
             port_name, value, self.fuel_distance, type_=(FORECAST, VARIABLE), lower=0.0
         )
 
-    # internal methods -------------------------------------------------------------------------------------------------
+    # internal methods -----------------------------------------------------------------
     def initialize(self):
 
         if self.fuel is None:
@@ -332,8 +334,8 @@ class Plant(Node):
 
         if self.fuel.liquid_market:
             raise ValueError(
-                f"{self}: Unable to assign {self.fuel} to attribute 'Fuel' as it belongs to a liquid market"
-                " ('LiquidMarket = TRUE')."
+                f"{self}: Unable to assign {self.fuel} to attribute 'Fuel' as it"
+                " belongs to a liquid market ('LiquidMarket = TRUE')."
             )
 
         if self.uptime is None:
@@ -352,13 +354,14 @@ class Plant(Node):
         self._pair_transport_and_distance(self.fuel_transport, self.fuel_distance)
 
     def _pair_transport_and_distance(self, transports, distances):
-        """Require a transport wherever a distance is set, and default the distance to zero where it is not."""
+        """Require a transport wherever distance is set; default to zero otherwise."""
         for name, transport in transports.items():
             distance = distances[name]
 
             if (transport is None) and (distance is not None):
                 raise ValueError(
-                    f"{self}: Unable to assign a transport distance to '{name}' as no transport is assigned."
+                    f"{self}: Unable to assign a transport distance to '{name}' as no"
+                    " transport is assigned."
                 )
 
             elif (transport is not None) and (distance is None):
@@ -412,7 +415,8 @@ class Plant(Node):
     def set_producer_assignment(self, producer_name):
         if self.producer_assignment is not None:
             raise ValueError(
-                f'Producer("{producer_name}"): {self} is already assigned to a different producer, Producer("{self.producer_assignment}").'
+                f'Producer("{producer_name}"): {self} is already assigned to a'
+                f' different producer, Producer("{self.producer_assignment}").'
             )
 
         self.producer_assignment = producer_name

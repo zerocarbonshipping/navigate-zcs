@@ -12,7 +12,7 @@ class BunkerOptions(_GeneralNode):
     def __init__(self):
         super().__init__()
 
-        # external variables -------------------------------------------------------------------------------------------
+        # external variables -----------------------------------------------------------
         self.solver = None  # enum, solver backend (AUTOMATIC, GUROBI, HIGHS)
         self.solver_method = None  # enum, LP solver method
         self.solution_tolerance = None  # float, the tolerance of the solution
@@ -26,7 +26,7 @@ class BunkerOptions(_GeneralNode):
             None  # float, the tolerance of the fair-share convergence
         )
 
-    # external methods (DSL attributes) --------------------------------------------------------------------------------
+    # external methods (DSL attributes) ------------------------------------------------
     def set_solver(self, solver: str):
         """
         Set the solver backend for the bunker algorithm.
@@ -67,7 +67,8 @@ class BunkerOptions(_GeneralNode):
         """
         Set the solution tolerance of the bunker algorithm.
 
-        This value has no impact on computational time. It is only used to avoid round-off errors in solution.
+        This value has no impact on computational time. It is only used to avoid
+        round-off errors in solution.
 
         Examples
         --------
@@ -101,7 +102,7 @@ class BunkerOptions(_GeneralNode):
 
     def set_fair_share_maximum_iterations(self, fair_share_maximum_iterations: int):
         """
-        Set the maximum iterations of the fair-share sequential LP of the bunker algorithm.
+        Set the maximum iterations of the bunker algorithm's fair-share sequential LP.
 
         Examples
         --------
@@ -133,7 +134,7 @@ class BunkerOptions(_GeneralNode):
             fair_share_tolerance, lower=0.0, inclusive_lower=False
         )
 
-    # internal methods -------------------------------------------------------------------------------------------------
+    # internal methods -----------------------------------------------------------------
     def initialize(self):
 
         if self.solver is None:

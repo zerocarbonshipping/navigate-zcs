@@ -37,7 +37,8 @@ class VesselProfile(_FuelConsumerProfile):
         self._lowest_speed: np.ndarray = EMPTY_NAN  # lowest actual speed, knots
         self._highest_speed: np.ndarray = EMPTY_NAN  # highest actual speed, knots
 
-        # investment signals (energy-weighted average of the smoothed energy-conservation duals, USD/GJ)
+        # investment signals (energy-weighted average of the smoothed
+        # energy-conservation duals, USD/GJ)
         self._investment_signal_technology: np.ndarray = (
             EMPTY_NAN  # technology-horizon belief
         )
