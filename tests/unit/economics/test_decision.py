@@ -146,7 +146,8 @@ class TestRedistributeProportional:
         shares = np.array([0.5, 0.1, 0.3, 0.1])  # sums to 1
         limits = np.array([0.2, 1.0, 1.0, 1.0])
         result = _redistribute_proportional(shares, limits)
-        # surplus 0.3 spread across [0.1, 0.3, 0.1] proportionally → factor 0.8/0.5 = 1.6
+        # surplus 0.3 spread across [0.1, 0.3, 0.1] proportionally
+        # → factor 0.8/0.5 = 1.6
         np.testing.assert_array_almost_equal(result, [0.2, 0.16, 0.48, 0.16])
         assert result.sum() == pytest.approx(1.0)
 
@@ -217,7 +218,8 @@ class TestTwoAxisUptake:
         assert uptake[0] > uptake[1]
 
     def test_limits_compose_to_per_asset_bound(self):
-        # equal metrics and odds of 1 give uniform shares, so every binding limit saturates:
+        # equal metrics and odds of 1 give uniform shares, so every binding limit
+        # saturates:
         # group 'a' caps at 0.2 + 0.3 and its members at exactly their per-asset bounds
         uptake = calculate_two_axis_uptake(
             ["a", "a", "b"],

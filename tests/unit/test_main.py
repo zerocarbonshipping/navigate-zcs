@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Tests for the CLI entry point: up-front path validation and top-level error handling."""
+"""Tests the CLI entry point: up-front path validation and top-level error handling."""
 
 from __future__ import annotations
 
