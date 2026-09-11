@@ -92,7 +92,7 @@ class Package:
         return len(self._technologies) > 0
 
     def precompute(self):
-        """Refresh compound savings, powers, and transfer curves from current technology state."""
+        """Refresh compound savings, powers, and transfer curves from technologies."""
         self._compound_savings.clear()
         self._compound_powers.clear()
         self._transfer_curves.clear()
@@ -149,7 +149,8 @@ def preprocess_packages(
     vessels
         Fleet vessels (used to determine maximum lifetime).
     time
-        Current simulation time (days since start), used as the investment decision time.
+        Current simulation time (days since start), used as the investment decision
+        time.
     """
     lifetime = int(np.ceil(max(v.lifetime.get() for v in vessels)))
 
@@ -218,7 +219,7 @@ def npv_for_retrofit_steps(
 def _incremental_cost_flow(
     packages: list[Package], pkg_idx: int, step: int, remaining: float
 ) -> np.ndarray:
-    """Cost flow of jumping from `pkg_idx` to `pkg_idx + step`, trimmed to the remaining lifetime."""
+    """Cost flow from `pkg_idx` to `pkg_idx + step`, trimmed to remaining lifetime."""
     inc_cost_flow = packages[pkg_idx + step].cost_flow - packages[pkg_idx].cost_flow
 
     return trim_flow_to_lifetime(inc_cost_flow, remaining)
@@ -228,10 +229,10 @@ def annual_costs_for_retrofit_steps(
     pkg_idx: int, packages: list[Package], remaining: float, discount_rate: float
 ) -> np.ndarray:
     """
-    Levelized USD/year charge per retrofit step, amortized over the remaining vessel lifetime.
+    Levelized USD/year charge per retrofit step, amortized over remaining lifetime.
 
-    Mirrors the incremental cost flows of ``npv_for_retrofit_steps``: entry ``step`` is the
-    constant yearly charge that recovers the cost of jumping from ``pkg_idx`` to
+    Mirrors the incremental cost flows of ``npv_for_retrofit_steps``: entry ``step`` is
+    the constant yearly charge that recovers the cost of jumping from ``pkg_idx`` to
     ``pkg_idx + step`` over the ``remaining`` years the vessel still serves.
 
     Parameters
@@ -264,16 +265,18 @@ def levelize_package_cost(
     cost_flow: np.ndarray, window: float, discount_rate: float
 ) -> float:
     """
-    Levelize a technology cost flow into a constant USD/year charge over a service window.
+    Levelize a technology cost flow into a USD/year charge over a service window.
 
-    The flow is trimmed to the window (with the last partial year prorated) and divided by the
-    NPV of the operating-year flow over the same window, so that discounting the constant charge
-    over the window at `discount_rate` reproduces the NPV of the trimmed cost flow exactly.
+    The flow is trimmed to the window (with the last partial year prorated) and divided
+    by the NPV of the operating-year flow over the same window, so that discounting the
+    constant charge over the window at `discount_rate` reproduces the NPV of the trimmed
+    cost flow exactly.
 
     Parameters
     ----------
     cost_flow
-        Yearly technology cost flow (CAPEX, OPEX, and replacements) from the install time.
+        Yearly technology cost flow (CAPEX, OPEX, and replacements) from the install
+        time.
     window
         Years the installation serves: the vessel lifetime for a newbuild install, the
         remaining vessel lifetime for a retrofit.
@@ -296,7 +299,7 @@ def levelize_package_cost(
 def _levelize_trimmed(
     trimmed: np.ndarray, window: float, discount_rate: float
 ) -> float:
-    """Levelize a cost flow already trimmed to `window` years into a constant USD/year charge."""
+    """Levelize a cost flow already trimmed to `window` years into a USD/year charge."""
     # the leveling flow prorates the final partial year to match the trimmed
     # cost flow, so the charge is recovered over `window` years rather than
     # the padded whole-year horizon

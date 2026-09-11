@@ -67,8 +67,9 @@ def calculate_projected_multipliers(
     multipliers: float, trade: np.ndarray
 ) -> np.ndarray:
     """
-    Calculate a naive projection of future number of multipliers. This method does not take into account that different
-     vessel types may have varying nominal capacity or cargo utilization.
+    Calculate a naive projection of future number of multipliers. This method does not
+    take into account that different vessel types may have varying nominal capacity or
+    cargo utilization.
 
     Parameters
     ----------
@@ -89,7 +90,7 @@ def calculate_increments(
     uptakes: np.ndarray, cargo_miles: np.ndarray, trade_gap: float
 ) -> np.ndarray:
     """
-    Calculate the number of multipliers with a given uptake share which satisfies the trade-gap.
+    Calculate the multiplier count at a given uptake share satisfying the trade-gap.
 
     Parameters
     ----------
@@ -163,8 +164,8 @@ def define_initial_split(fleet: Fleet) -> None:
 
 def define_initial_trade(fleet: Fleet, timeline: np.ndarray) -> None:
     """
-    Define the initial trade of the fleet and project it forward over the timeline by the
-    user-supplied growth rates.
+    Define the initial trade of the fleet and project it forward over the timeline by
+    the user-supplied growth rates.
 
     Parameters
     ----------

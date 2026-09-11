@@ -26,10 +26,11 @@ def calculate_orderbook_newbuilds(
     fleet: Fleet, trade_gap: float, cap_count: np.ndarray, idx: int
 ):
     """
-    Calculate the number of vessels for each vessel type that will enter the fleet based on the orderbook.
+    Calculate the number of vessels per type entering the fleet from the orderbook.
 
-    Vessels are deferred (kept in `orders_postponed`) when either the trade gap is smaller than the
-    orderbook demands, or when delivery would exceed the per-vessel newbuild-count budget `cap_count`.
+    Vessels are deferred (kept in `orders_postponed`) when either the trade gap is
+    smaller than the orderbook demands, or when delivery would exceed the per-vessel
+    newbuild-count budget `cap_count`.
 
     Parameters
     ----------
@@ -45,7 +46,8 @@ def calculate_orderbook_newbuilds(
 
     Returns
     -------
-    A vector of newbuild increments, the delivered capacity, and the cap_count reduced by what was delivered.
+    A vector of newbuild increments, the delivered capacity, and the cap_count reduced
+    by what was delivered.
     """
     # pre-allocate delivered newbuilds
     nv = len(fleet.assets)
@@ -184,7 +186,7 @@ def calculate_inertia_increments(
     cap_count: np.ndarray,
 ) -> tuple[np.ndarray, np.ndarray]:
     """
-    Calculate the newbuild increments being built due to inertia from the previous uptake.
+    Calculate the newbuild increments built due to inertia from the previous uptake.
 
     Parameters
     ----------
@@ -201,15 +203,16 @@ def calculate_inertia_increments(
 
     Returns
     -------
-    Inertia-based increments per vessel type and the newbuild budget remaining after them.
+    Inertia-based increments per vessel type and the newbuild budget remaining after
+    them.
     """
     # notice that the inertia related reduction
     # of trade-gap was accounted for previously
     # by reducing the uptake shares
     increments = calculate_increments(uptakes, cargo_miles, trade_gap)
 
-    # apply the per-vessel newbuild-limit cap on inertia (no redistribution: unused capacity
-    # rolls into the residual trade gap and is filled by the modelled DCM)
+    # apply the per-vessel newbuild-limit cap on inertia (no redistribution: unused
+    # capacity rolls into the residual trade gap and is filled by the modelled DCM)
     cap_count = cap_count.astype(np.float64).copy()
     over = increments > cap_count + TOLERANCE
     if np.any(over):
@@ -231,7 +234,7 @@ def calculate_modelled_newbuilds(
     fleet: Fleet, trade_gap: float, cap_count: np.ndarray, idx: int
 ):
     """
-    Calculate the number and type of vessels that will enter the fleet to satisfy a given trade gap.
+    Calculate the number and type of vessels that enter the fleet for a given trade gap.
 
     Parameters
     ----------
@@ -240,7 +243,8 @@ def calculate_modelled_newbuilds(
     trade_gap
         Gap in trade due to scrapping and market growth/decline
     cap_count
-        Per-vessel newbuild count budget remaining for this timestep (after the orderbook step).
+        Per-vessel newbuild count budget remaining for this timestep (after the
+        orderbook step).
     idx
         Current time-step index.
 
@@ -271,8 +275,9 @@ def calculate_modelled_newbuilds(
     # reduce the trade-gap by the new vessels
     trade_gap -= np.dot(inertia_increments, cargo_miles)
 
-    # convert remaining count cap to a fraction-of-trade-gap (cm) bound for the modelled DCM:
-    # cap_share[v] = cap_count_subset[v] · cargo_miles[v] / trade_gap, clamped to [0, 1]
+    # convert remaining count cap to a fraction-of-trade-gap (cm) bound for the modelled
+    # DCM: cap_share[v] = cap_count_subset[v] · cargo_miles[v] / trade_gap, clamped to
+    # [0, 1]
     if trade_gap > TOLERANCE:
         cap_share = np.minimum(cap_count_subset * cargo_miles / trade_gap, 1.0)
     else:
@@ -302,8 +307,8 @@ def calculate_modelled_uptake(
     fleet: Fleet, vessels: list[Vessel], idx: int, cap_share: np.ndarray | None = None
 ) -> np.ndarray:
     """
-    Calculate the relative uptake share of each vessel type using a two-axis discrete choice model
-    grouped by fuel type.
+    Calculate the relative uptake share of each vessel type using a two-axis discrete
+    choice model grouped by fuel type.
 
     Parameters
     ----------
@@ -314,8 +319,8 @@ def calculate_modelled_uptake(
     idx
         Time-step index.
     cap_share
-        Optional per-vessel upper bound on cm-share of `trade_gap` (each in [0, 1]), derived from a
-        vessel-count cap. Length matches `vessels`. None disables limits.
+        Optional per-vessel upper bound on cm-share of `trade_gap` (each in [0, 1]),
+        derived from a vessel-count cap. Length matches `vessels`. None disables limits.
 
     Returns
     -------
@@ -340,7 +345,7 @@ def calculate_modelled_uptake(
 
 def add_newbuilds(fleet: Fleet, increments: list[float], time_step: float):
     """
-    Add the newbuild increments to the multiple lists keeping track of multiplier increments.
+    Add the newbuild increments to the lists tracking multiplier increments.
 
     Parameters
     ----------

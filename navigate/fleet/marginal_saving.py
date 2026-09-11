@@ -80,21 +80,23 @@ def calculate_marginal_technology_saving(
     Calculate the marginal cost saving from installing a set of technologies.
 
     The saving is computed by evaluating the dual-variable contribution of changing the
-    vessel's energy requirements from the baseline to the residual energy after technology
-    impacts. The calculation aggregates savings at sea and in port.
+    vessel's energy requirements from the baseline to the residual energy after
+    technology impacts. The calculation aggregates savings at sea and in port.
 
-    The baseline energy requirement is defined as the raw energy requirement.
-    This is used because the do-nothing-case for installation of technology is defined with NPV=0.
-    If using the RHS of the energy conservation equation from the most recent solve of the expected bunker solution,
-    this would lead to negative savings for the the lower order technology packages which have lower savings
-    than the current average uptake.
+    The baseline energy requirement is defined as the raw energy requirement. This is
+    used because the do-nothing-case for installation of technology is defined with
+    NPV=0. If using the RHS of the energy conservation equation from the most recent
+    solve of the expected bunker solution, this would lead to negative savings for the
+    the lower order technology packages which have lower savings than the current
+    average uptake.
 
-    Notice that the use of raw energy as the baseline means that for technology packages with low savings potential
-    the evaluation may occur outside the optimal polytype and thus the shadow price may underestimate the impact.
+    Notice that the use of raw energy as the baseline means that for technology packages
+    with low savings potential the evaluation may occur outside the optimal polytype and
+    thus the shadow price may underestimate the impact.
 
     In debug mode, the function checks whether the residual energy falls outside the
-    polytope region where the shadow prices are valid, and logs the fraction of instances
-    that extrapolate.
+    polytope region where the shadow prices are valid, and logs the fraction of
+    instances that extrapolate.
 
     Parameters
     ----------
@@ -161,16 +163,17 @@ def calculate_marginal_speed_saving(
     Calculate the marginal cost saving from a speed change.
 
     The saving is computed by evaluating the dual-variable contribution of changing the
-    vessel's energy requirements from the baseline (used in the optimal polytype / bunker
-    solution) to the provided residual energy under the speed change. The calculation
-    aggregates savings at sea and in port.
+    vessel's energy requirements from the baseline (used in the optimal polytype /
+    bunker solution) to the provided residual energy under the speed change. The
+    calculation aggregates savings at sea and in port.
 
-    Notice that the `residual_energy_sea` and `residual_energy_port` must be corrected for the impact of current
-    technology uptake in order to match the baseline energy requirement.
+    Notice that the `residual_energy_sea` and `residual_energy_port` must be corrected
+    for the impact of current technology uptake in order to match the baseline energy
+    requirement.
 
     In debug mode, the function checks whether the residual energy falls outside the
-    polytope region where the shadow prices are valid, and logs the fraction of instances
-    that extrapolate.
+    polytope region where the shadow prices are valid, and logs the fraction of
+    instances that extrapolate.
 
     Parameters
     ----------
@@ -268,9 +271,9 @@ def _iterate_steps(
     """
     Accumulate dual-variable savings across all energy demand types and steps.
 
-    For each energy demand type and step, the saving is computed as the shadow price times
-    the reduction in energy requirement from baseline to residual. The contributions are
-    summed across all types and steps.
+    For each energy demand type and step, the saving is computed as the shadow price
+    times the reduction in energy requirement from baseline to residual. The
+    contributions are summed across all types and steps.
 
     Parameters
     ----------
@@ -279,7 +282,8 @@ def _iterate_steps(
     energies_baseline
         Baseline energy requirements per energy demand type and step.
     shadow_prices
-        Shadow prices for changing the energy requirement per energy demand type and step.
+        Shadow prices for changing the energy requirement per energy demand type and
+        step.
     idx
         Time-step indec.
 
@@ -308,17 +312,18 @@ def _calculate_dual_variable_saving(
     shadow_price: float | np.ndarray,
 ) -> float | np.ndarray:
     """
-    Calculate the cost saved by changing the energy from the baseline to the residual energy.
+    Calculate the cost saved by changing energy from the baseline to residual energy.
 
-    Notice that the saving can be negative in case the residual energy is higher than the baseline. This happens e.g.,
-    if speed is increased.
+    Notice that the saving can be negative in case the residual energy is higher than
+    the baseline. This happens e.g., if speed is increased.
 
     Parameters
     ----------
     energy_residual
         Residual energy after impact from changed speed or installation of technologies.
     energy_baseline
-        Energy required during call to `BunkerAlgorithm` and thus the reference energy for the optimal polytype.
+        Energy required during call to `BunkerAlgorithm` and thus the reference energy
+        for the optimal polytype.
     shadow_price
         Shadow price for changing the energy requirement.
 
@@ -338,17 +343,18 @@ def _check_heuristic_consistency(
     msg: str,
 ) -> None:
     """
-    Check how often residual energies fall outside the validity region of the shadow prices.
+    Check how often residual energies fall outside the shadow prices' validity region.
 
-    The vessel expectation provides lower and upper bounds (polytope bounds) within which
-    the shadow prices are considered valid. This function evaluates residual energies at sea
-    and in port against these bounds and returns the fraction of instances that lie outside
-    the bounds.
+    The vessel expectation provides lower and upper bounds (polytope bounds) within
+    which the shadow prices are considered valid. This function evaluates residual
+    energies at sea and in port against these bounds and returns the fraction of
+    instances that lie outside the bounds.
 
     Parameters
     ----------
     vessel
-        Vessel providing polytope lower/upper bounds for sea and port energy requirements.
+        Vessel providing polytope lower/upper bounds for sea and port energy
+        requirements.
     residual_energy_sea
         Residual energy requirements at sea per energy demand type and step.
     residual_energy_port
@@ -380,7 +386,8 @@ def _check_heuristic_consistency(
 
     if fraction > 0.0:
         logging.debug(
-            f"{vessel}: {msg} evaluation extrapolated outside polytype in : {fraction:.1%} of instances."
+            f"{vessel}: {msg} evaluation extrapolated outside polytype in : "
+            f"{fraction:.1%} of instances."
         )
 
 
@@ -393,9 +400,9 @@ def _check_polytopes(
     """
     Count how many residual-energy instances lie inside vs. outside polytope bounds.
 
-    For each energy demand type and step, the residual energy is compared to the provided
-    lower and upper bounds (with numerical tolerance). An instance is considered outside if
-    it is below the lower bound or at the upper bound.
+    For each energy demand type and step, the residual energy is compared to the
+    provided lower and upper bounds (with numerical tolerance). An instance is
+    considered outside if it is below the lower bound or at the upper bound.
 
     Parameters
     ----------
@@ -411,8 +418,8 @@ def _check_polytopes(
     Returns
     -------
     tuple[int, int]
-        A tuple `(total, outside)` where `total` is the number of evaluated instances and
-        `outside` is the number of instances outside the bounds.
+        A tuple `(total, outside)` where `total` is the number of evaluated instances
+        and `outside` is the number of instances outside the bounds.
     """
     inside = 0
     outside = 0
