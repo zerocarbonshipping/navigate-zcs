@@ -143,7 +143,8 @@ class TestNoIncentive:
         for name, saving in savings.items():
             drift = np.abs(saving - saving[0]).max()
             assert drift <= MAX_SAVING_DRIFT, (
-                f"Global {name} energy saving drifts {drift:.3f} from its initial value {saving[0]:.3f}"
+                f"Global {name} energy saving drifts {drift:.3f} from its initial "
+                f"value {saving[0]:.3f}"
             )
 
     def test_technology_uptake_stable(self, technology_uptake):
@@ -154,7 +155,8 @@ class TestNoIncentive:
         for name, uptake in technology_uptake.items():
             drift = np.abs(uptake - uptake[0]).max()
             assert drift <= MAX_UPTAKE_DRIFT, (
-                f"Uptake of '{name}' drifts {drift:.3f} from its initial value {uptake[0]:.3f}"
+                f"Uptake of '{name}' drifts {drift:.3f} from its initial value "
+                f"{uptake[0]:.3f}"
             )
 
     def test_speed_stable(self, fleet):

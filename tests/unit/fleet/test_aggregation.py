@@ -78,7 +78,8 @@ class TestFuelTypeTotals:
         fleet = _fleet(vessel)
         calculate_fleet_profile(fleet, fuels={}, timeline=np.arange(4.0) * YEAR, idx=1)
 
-        # per converter 2. spend energy x 4 vessels: c0 adds 8 oil, c1 splits its 8 as 6 oil + 2 pilot
+        # per converter 2. spend energy x 4 vessels: c0 adds 8 oil, c1 splits its 8 as 6
+        # oil + 2 pilot
         assert fleet.expectation.get_fuel_type_demand(FuelTypeID.OIL) == 14.0
         assert fleet.expectation.get_fuel_type_demand(FuelTypeID.METHANOL) == 2.0
         fleet.profile.add_fuel_type_demand.assert_any_call(FuelTypeID.OIL, 14.0, 1)
