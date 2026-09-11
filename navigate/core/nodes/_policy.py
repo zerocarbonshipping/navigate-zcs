@@ -24,7 +24,7 @@ class _Policy(Node):
     def __init__(self, name: str, type_: str) -> None:
         super().__init__(name, type_)
 
-        # external variables -------------------------------------------------------------------------------------------
+        # external variables -----------------------------------------------------------
         # active
         self.active = None  # bool, whether the regulation is active and known
 
@@ -40,23 +40,24 @@ class _Policy(Node):
         self.include_slip = None  # bool, whether to include slip in coefficients
 
         # vessels impacted by the policy
-        self.include_vessel = {}  # dict[vessel_name: bool], whether a vessel is impacted by the policy.
+        self.include_vessel = {}  # dict[vessel_name: bool], whether vessel is impacted
 
         # emission factors
-        self.global_warming_potential = {}  # dict[emission_name: float], policy specific GWP
-        self.fuel_wtt = {}  # dict[(fuel_name, emission_name): float], policy specified WTT emissions factor
-        self.fuel_ttw = {}  # dict[(fuel_name, emission_name): float], policy specified TTW emissions factor
+        self.global_warming_potential = {}  # dict[emission_name: float], policy GWP
+        self.fuel_wtt = {}  # dict[(fuel_name, emission_name): float], policy WTT factor
+        self.fuel_ttw = {}  # dict[(fuel_name, emission_name): float], policy TTW factor
 
-        # internal variables -------------------------------------------------------------------------------------------
-        self.in_jurisdiction_vessel = {}  # dict[vessel_name: bool], whether a vessel is outside the jurisdiction
+        # internal variables -----------------------------------------------------------
+        self.in_jurisdiction_vessel = {}  # dict[vessel_name: bool], not in jurisdiction
 
-    # external methods (DSL attributes) --------------------------------------------------------------------------------
+    # external methods (DSL attributes) ------------------------------------------------
     def set_active(self, active):
         """
         Set the flag for whether the policy is active.
 
-        If the policy is active it is included in the calculation of results as well as expectations.
-        If the policy is inactive it is ignored from all aspects of the simulation.
+        If the policy is active it is included in the calculation of results as well as
+        expectations. If the policy is inactive it is ignored from all aspects of the
+        simulation.
 
         Parameters
         ----------
@@ -140,7 +141,7 @@ class _Policy(Node):
 
     def set_include_slip(self, include_slip):
         """
-        Set the flag for whether emissions slip is included in the calculation of the emissions in the policy.
+        Set whether emissions slip is included in the policy's emissions calculation.
 
         Examples
         --------
@@ -171,7 +172,7 @@ class _Policy(Node):
             as_scalar(emissions_lifetime), type_=VARIABLE, lower=0.0
         )
 
-    # external methods (DSL commands) ----------------------------------------------------------------------------------
+    # external methods (DSL commands) --------------------------------------------------
     def set_include_vessel(self, vessel_name, include_vessel):
         """
         Set whether a specific vessel is impacted by the policy.
@@ -194,9 +195,10 @@ class _Policy(Node):
 
     def set_global_warming_potential(self, emission_name, global_warming_potential):
         """
-        Set the global warming potential used to translate tons of emissions into CO2-equivalent emissions.
+        Set the GWP used to translate tons of emissions into CO2-equivalent emissions.
 
-        If this value is not assigned the global warming potential assigned to the emission node is used instead.
+        If this value is not assigned the global warming potential assigned to the
+        emission node is used instead.
 
         Examples
         --------
@@ -219,9 +221,10 @@ class _Policy(Node):
 
     def set_fuel_wtt(self, fuel_name, emission_name, emission_factor):
         """
-        Set the WTT emission factor for a given fuel and emission to be used in the calculation of emissions.
+        Set the WTT emission factor for a given fuel and emission.
 
-        If this value is not assigned the production specific calculation of the WTT is used instead.
+        If this value is not assigned the production specific calculation of the WTT is
+        used instead.
 
         Examples
         --------
@@ -246,9 +249,10 @@ class _Policy(Node):
 
     def set_fuel_ttw(self, fuel_name, emission_name, emission_factor):
         """
-        Set the TTW emission factor for a given fuel and emission to be used in the calculation of emissions.
+        Set the TTW emission factor for a given fuel and emission.
 
-        If this value is not assigned the production specific calculation of the TTW is used instead.
+        If this value is not assigned the production specific calculation of the TTW is
+        used instead.
 
         Examples
         --------
@@ -271,7 +275,7 @@ class _Policy(Node):
             type_=(FORECAST, VARIABLE),
         )
 
-    # internal methods -------------------------------------------------------------------------------------------------
+    # internal methods -----------------------------------------------------------------
     def _initialize_policy(self):
 
         if not self.jurisdiction:
@@ -314,7 +318,8 @@ class _Policy(Node):
         for vessel_name in vessels:
             self.include_vessel.setdefault(vessel_name, None)
 
-        # derived from the current routes and jurisdiction, so recomputed unconditionally every pass
+        # derived from the current routes and jurisdiction, so recomputed
+        # unconditionally every pass
         jurisdiction = set(self.jurisdiction)
         for vessel_name, vessel in vessels.items():
             self.in_jurisdiction_vessel[vessel_name] = not jurisdiction.isdisjoint(

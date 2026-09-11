@@ -21,7 +21,7 @@ class Fuel(Node):
     def __init__(self, name):
         super().__init__(name, FUEL)
 
-        # external variables -------------------------------------------------------------------------------------------
+        # external variables -----------------------------------------------------------
         # definition
         self.fuel_type = None  # enum, fuel type ID
         self.liquid_market = False  # bool, whether the fuel belongs to a liquid market
@@ -33,7 +33,7 @@ class Fuel(Node):
         # emissions
         self.ttw = {}  # dict, emission factor in ton of emission per ton of fuel
 
-    # external methods (DSL attributes) --------------------------------------------------------------------------------
+    # external methods (DSL attributes) ------------------------------------------------
     def set_fuel_type(self, fuel_type):
         """
         Set the fuel type of the fuel.
@@ -55,8 +55,9 @@ class Fuel(Node):
         """
         Set the flag for whether the fuel belongs to a liquid market.
 
-        Fuels which belong to a liquid market cannot be modelled bottom-up via Plant and Producer nodes but require
-        manual assignment of supply, price, and WTT emissions at Port level.
+        Fuels which belong to a liquid market cannot be modelled bottom-up via Plant and
+        Producer nodes but require manual assignment of supply, price, and WTT emissions
+        at Port level.
 
         Examples
         --------
@@ -104,10 +105,10 @@ class Fuel(Node):
             as_scalar(mass_density), type_=VARIABLE, lower=0.0
         )
 
-    # external methods (DSL commands) ----------------------------------------------------------------------------------
+    # external methods (DSL commands) --------------------------------------------------
     def set_ttw(self, emission_name, ttw):
         """
-        Set the TTW emission factor during a stoichiometric process of fuel conversion to energy.
+        Set the TTW emission factor for the stoichiometric conversion of fuel to energy.
 
         Examples
         --------
@@ -125,7 +126,7 @@ class Fuel(Node):
             emission_name, ttw, self.ttw, type_=VARIABLE, lower=0.0
         )
 
-    # internal methods -------------------------------------------------------------------------------------------------
+    # internal methods -----------------------------------------------------------------
     def initialize(self):
         if self.fuel_type is None:
             no_value_assigned_error(self, "FuelType")
@@ -134,12 +135,14 @@ class Fuel(Node):
             self.lower_heating_value.get() == 0.0
         ):
             raise ValueError(
-                f"{self}: Attribute 'LowerHeatingValue' must be defined and greater than zero."
+                f"{self}: Attribute 'LowerHeatingValue' must be defined and greater"
+                " than zero."
             )
 
         if (self.mass_density is None) or (self.mass_density.get() == 0.0):
             raise ValueError(
-                f"{self}: Attribute 'MassDensity' must be defined and greater than zero."
+                f"{self}: Attribute 'MassDensity' must be defined and greater than"
+                " zero."
             )
 
         for emission_name, ttw in self.ttw.items():

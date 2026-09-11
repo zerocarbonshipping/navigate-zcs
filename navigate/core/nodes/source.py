@@ -14,10 +14,10 @@ class Source(Node):
     def __init__(self, name):
         super().__init__(name, SOURCE)
 
-        # external variables -------------------------------------------------------------------------------------------
+        # external variables -----------------------------------------------------------
         self.dependency = None  # enum, whether source is standalone or connected
 
-    # external methods (DSL attributes) --------------------------------------------------------------------------------
+    # external methods (DSL attributes) ------------------------------------------------
     def set_dependency(self, dependency):
         """
         Set the dependency of the source.
@@ -34,7 +34,7 @@ class Source(Node):
         """
         self.dependency = assign_id(dependency, SourceDependencyID)
 
-    # internal methods -------------------------------------------------------------------------------------------------
+    # internal methods -----------------------------------------------------------------
     def initialize(self):
         if self.dependency is None:
             no_value_assigned_error(self, "Dependency")

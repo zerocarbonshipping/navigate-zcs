@@ -24,13 +24,13 @@ class _Calculator:
 
     def __init__(self):
 
-        # external variables -------------------------------------------------------------------------------------------
+        # external variables -----------------------------------------------------------
         self.addition = 0.0
         self.multiplier = 1.0
         self.lower_bound = -np.inf
         self.upper_bound = np.inf
 
-        # internal variables -------------------------------------------------------------------------------------------
+        # internal variables -----------------------------------------------------------
         # extrapolation warning
         self._extrapolation_warned = False
 
@@ -43,7 +43,7 @@ class _Calculator:
         self._applied_lower_bound = -np.inf
         self._applied_upper_bound = np.inf
 
-    # external methods (DSL attributes) --------------------------------------------------------------------------------
+    # external methods (DSL attributes) ------------------------------------------------
     def set_addition(self, addition):
         """
         Set the addition of the calculator.
@@ -102,7 +102,7 @@ class _Calculator:
         # called here in case the upper bound is changed during time-stepping
         self._assign_applied_bounds()
 
-    # internal methods -------------------------------------------------------------------------------------------------
+    # internal methods -----------------------------------------------------------------
     @property
     def internal_bounds(self):
         """
@@ -192,9 +192,10 @@ class _Calculator:
     @staticmethod
     def _test_convexity(x, y):
         """
-        Test whether the piecewise linear function made up by the set (x, y) is a convex function.
+        Test whether the piecewise linear function made up by (x, y) is convex.
 
-        This test is only applicable to non-strictly increasing functions such as exponential functions.
+        This test is only applicable to non-strictly increasing functions such as
+        exponential functions.
 
         Parameters
         ----------

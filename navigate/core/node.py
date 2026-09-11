@@ -12,7 +12,7 @@ class Node(TypeCheckMixin):
 
         self.name = name  # str
 
-        # internal variables -------------------------------------------------------------------------------------------
+        # internal variables -----------------------------------------------------------
         self.allow_dates_in_table = False  # whether added tables can contain dates
         self.command_references = []  # CommandReference queue executed by the Parser
 

@@ -30,7 +30,7 @@ class Regulation(_Policy):
     def __init__(self, name):
         super().__init__(name, REGULATION)
 
-        # external variables -------------------------------------------------------------------------------------------
+        # external variables -----------------------------------------------------------
         self.measure = None  # enum, ID of emissions measure
 
         self.intra_fraction = (
@@ -52,25 +52,26 @@ class Regulation(_Policy):
         )
 
         # threshold
-        self.vessel_threshold = {}  # dict[vessel_name: float], individual threshold per vessel
+        self.vessel_threshold = {}  # dict[vessel_name: float], threshold per vessel
 
         # capacity (measure specific)
-        self.vessel_capacity = {}  # dict[vessel_name: float], capacity per vessel if impact is vessel
+        self.vessel_capacity = {}  # dict[vessel: float], capacity if impact is vessel
 
         # threshold adjustment
-        self.allow_threshold_adjustment = False  # bool, if True, bunker algorithm adjusts thresholds on non-compliance
+        self.allow_threshold_adjustment = False  # bool, adjust on non-compliance
 
-        # internal variables -------------------------------------------------------------------------------------------
+        # internal variables -----------------------------------------------------------
         self.expectation: RegulationExpectation = RegulationExpectation()
         self.profile: RegulationProfile = RegulationProfile()
 
-    # external methods (DSL attributes) --------------------------------------------------------------------------------
+    # external methods (DSL attributes) ------------------------------------------------
     def set_scheme(self, scheme):
         """
         Set the scheme of the regulation.
 
-        If 'INDIVIDUAL' then vessels cannot trade emission units with each other to comply.
-        If 'FLEXIBLE' then vessels can trade emission units with each other to comply.
+        If 'INDIVIDUAL' then vessels cannot trade emission units with each other to
+        comply. If 'FLEXIBLE' then vessels can trade emission units with each other to
+        comply.
 
         Examples
         --------
@@ -88,10 +89,10 @@ class Regulation(_Policy):
         """
         Set the emission measure of the regulation.
 
-        If 'ABSOLUTE' the absolute emissions in tons/year are targeted.
-        If 'INTENSITY' the emission intensity in g/MJ are targeted.
-        If 'TRANSPORT' the carbon intensity index in gCO2-eq/actual cargo-miles is targeted.
-        If 'TRANSPORT_NOMINAL' the carbon intensity index in gCO2-eq/nominal cargo-miles is targeted.
+        If 'ABSOLUTE' the absolute emissions in tons/year are targeted. If 'INTENSITY'
+        the emission intensity in g/MJ are targeted. If 'TRANSPORT' the carbon intensity
+        index in gCO2-eq/actual cargo-miles is targeted. If 'TRANSPORT_NOMINAL' the
+        carbon intensity index in gCO2-eq/nominal cargo-miles is targeted.
 
         Examples
         --------
@@ -182,12 +183,13 @@ class Regulation(_Policy):
 
     def set_flexibility_horizon(self, flexibility_horizon):
         """
-        Set the decision horizon, in years, used to smooth the belief of the flexibility cost that enters
-        the expected policy expenses of the policed vessels.
+        Set the decision horizon, in years, used to smooth the belief of the flexibility
+        cost that enters the expected policy expenses of the policed vessels.
 
-        A longer horizon makes the belief respond more slowly to changes in the flexibility cost between
-        outer time-steps, preventing small changes in future fuel availability from translating into
-        expectations of large flexibility-cost differences.
+        A longer horizon makes the belief respond more slowly to changes in the
+        flexibility cost between outer time-steps, preventing small changes in future
+        fuel availability from translating into expectations of large flexibility-cost
+        differences.
 
         Examples
         --------
@@ -203,19 +205,20 @@ class Regulation(_Policy):
             as_scalar(flexibility_horizon), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
-    # external methods (DSL commands) ----------------------------------------------------------------------------------
+    # external methods (DSL commands) --------------------------------------------------
     def set_vessel_threshold(self, vessel_name, threshold):
         """
         Set the threshold that a specific vessel must satisfy in the measure unit.
 
-        If 'ABSOLUTE' the threshold is on absolute emissions in tons/year.
-        If 'INTENSITY' the threshold is on emission intensity in g/MJ.
-        If 'TRANSPORT' the threshold is on carbon intensity index in gCO2-eq/actual cargo-miles.
-        If 'TRANSPORT_NOMINAL' the threshold is on carbon intensity index in gCO2-eq/nominal cargo-miles.
+        If 'ABSOLUTE' the threshold is on absolute emissions in tons/year. If
+        'INTENSITY' the threshold is on emission intensity in g/MJ. If 'TRANSPORT' the
+        threshold is on carbon intensity index in gCO2-eq/actual cargo-miles. If
+        'TRANSPORT_NOMINAL' the threshold is on carbon intensity index in
+        gCO2-eq/nominal cargo-miles.
 
-        Every vessel included in the regulation must have a threshold; use the wildcard "*" to assign the
-        same threshold to all vessels. If 'Scheme' is 'FLEXIBLE' the per-vessel thresholds pool into a
-        single fleet-level constraint.
+        Every vessel included in the regulation must have a threshold; use the wildcard
+        "*" to assign the same threshold to all vessels. If 'Scheme' is 'FLEXIBLE' the
+        per-vessel thresholds pool into a single fleet-level constraint.
 
         Examples
         --------
@@ -265,10 +268,11 @@ class Regulation(_Policy):
 
     def set_allow_threshold_adjustment(self, allow_threshold_adjustment):
         """
-        Set whether the regulation threshold should be automatically adjusted when the bunker algorithm
-        detects non-compliance. If enabled, the bunker algorithm will perform a multi-step solve where
-        it first solves normally, then adjusts the threshold to match achievable compliance levels,
-        and re-solves with the adjusted thresholds.
+        Set whether the regulation threshold should be automatically adjusted when the
+        bunker algorithm detects non-compliance. If enabled, the bunker algorithm will
+        perform a multi-step solve where it first solves normally, then adjusts the
+        threshold to match achievable compliance levels, and re-solves with the adjusted
+        thresholds.
 
         Examples
         --------
@@ -282,7 +286,7 @@ class Regulation(_Policy):
         """
         self.allow_threshold_adjustment = assign_id(allow_threshold_adjustment, BOOL_ID)
 
-    # internal methods -------------------------------------------------------------------------------------------------
+    # internal methods -----------------------------------------------------------------
     def initialize(self):
 
         self._initialize_policy()

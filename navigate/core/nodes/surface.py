@@ -33,7 +33,8 @@ class Surface(Node, _Table2D):
         else:
             if self._outside is not None:
                 logger.warning(
-                    "{}: 'Outside' is defined, but ignored since 'Extrapolate' is set to LINEAR."
+                    "{}: 'Outside' is defined, but ignored since 'Extrapolate' is set"
+                    " to LINEAR."
                 )
 
     def get(self, x: float, y: float) -> float:
