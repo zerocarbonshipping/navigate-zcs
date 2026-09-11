@@ -28,9 +28,9 @@ def replot(
                 f"No Plot nodes were found in the include file '{plot_inc}'."
             )
         raise PlotDataError(
-            "The plot data contains no plot configurations (the .nav deck that produced it "
-            "defined no Plot nodes). Provide a .inc file with one or more Plot nodes as an "
-            "additional argument to replot."
+            "The plot data contains no plot configurations (the .nav deck that "
+            "produced it defined no Plot nodes). Provide a .inc file with one or more "
+            "Plot nodes as an additional argument to replot."
         )
 
     deck_directory = plot_data.deck_directory

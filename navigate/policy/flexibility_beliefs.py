@@ -13,16 +13,17 @@ def update_regulation_flexibility_beliefs(
     regulations: dict, vessels: dict, timeline: np.ndarray, idx: int
 ) -> None:
     """
-    Update the flexibility cost belief of every flexible regulation and apply the expected policy expenses.
+    Update flexibility cost belief and apply expected expenses for flexible regulations.
 
-    The raw flexibility cost (the shadow price of the regulation threshold flexibility constraint) is
-    smoothed via exponential moving average, in place on the regulation expectation's belief array.
-    This prevents small changes in future fuel availability from translating into expectations of
-    large flexibility-cost differences.
+    The raw flexibility cost (the shadow price of the regulation threshold flexibility
+    constraint) is smoothed via exponential moving average, in place on the regulation
+    expectation's belief array. This prevents small changes in future fuel availability
+    from translating into expectations of large flexibility-cost differences.
 
-    The expected flexibility expenses of each policed vessel are then applied as the net flexibility
-    units (flexibility units minus surplus units, stored raw by the bunker transfer) valued at the
-    smoothed cost. Surplus revenue is implicitly valued at the same smoothed cost through the net units.
+    The expected flexibility expenses of each policed vessel are then applied as the net
+    flexibility units (flexibility units minus surplus units, stored raw by the bunker
+    transfer) valued at the smoothed cost. Surplus revenue is implicitly valued at the
+    same smoothed cost through the net units.
 
     Parameters
     ----------
