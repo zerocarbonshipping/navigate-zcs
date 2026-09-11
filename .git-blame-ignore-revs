@@ -1,0 +1,5 @@
+# Commits git blame should skip; activate with:
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# reformat the codebase with ruff
+05d2c6d145da280b93fc76f809d055e0e5b5a52e
