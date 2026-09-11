@@ -85,7 +85,7 @@ def _make_fuel_type_zeros(dateline):
 
 
 def unpack_fuel_type_series(values):
-    """Split a {FuelTypeID: array} dict into parallel (values, labels, colours) lists."""
+    """Split {FuelTypeID: array} dict into parallel (values, labels, colours) lists."""
     return (
         list(values.values()),
         [FUEL_TYPE_LABEL[ft] for ft in values],

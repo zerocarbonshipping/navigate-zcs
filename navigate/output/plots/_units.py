@@ -26,7 +26,8 @@ def find_best_metric_prefix(value, default=0, symbol=True):
     default : int
         Existing order of magnitude of value relative to base SI-unit.
     symbol : bool
-        If true return a symbol (k, M, etc.). If false return a word (million, billion, etc.)
+        If true return a symbol (k, M, etc.). If false return a word (million,
+        billion, etc.)
 
     Returns
     -------

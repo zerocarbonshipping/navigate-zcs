@@ -364,7 +364,8 @@ def _format_parse_error(e, source: str, file: str) -> str:
         if 1 <= line_no <= len(lines):
             src_line = lines[line_no - 1]
             parts.append(
-                f"line {line_no}:\n\n  {line_no} | {src_line}\n  {' ' * len(str(line_no))} | {' ' * (col - 1)}^"
+                f"line {line_no}:\n\n  {line_no} | {src_line}\n  "
+                f"{' ' * len(str(line_no))} | {' ' * (col - 1)}^"
             )
     if isinstance(e, UnexpectedToken):
         token = _FRIENDLY.get(e.token.type, repr(e.token.value))
