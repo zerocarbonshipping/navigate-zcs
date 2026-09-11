@@ -1,7 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Guardrail tests for the shared fuel label/colour/order tables.
+"""
+Guardrail tests for the shared fuel label/colour/order tables.
 
 The plot modules key off :data:`FUEL_TYPE_LABEL` / :data:`FUEL_TYPE_COLOR` (per
 fuel type) and :data:`FUEL_LABEL` / :data:`FUEL_COLOR` (per individual fuel), and
@@ -9,6 +10,9 @@ iterate the ordering tuples :data:`FUEL_TYPE_ORDER` / :data:`FUEL_ORDER`. These
 tests make sure the tables stay in sync -- e.g. a name in an ordering must have a
 label and a colour, else it silently drops out of (or crashes) a stacked plot.
 """
+
+from __future__ import annotations
+
 from navigate.output.plots._labels import (
     FUEL_COLOR,
     FUEL_LABEL,

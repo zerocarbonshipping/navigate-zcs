@@ -32,7 +32,6 @@ def update_mass_sufficient_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> 
     vessel
         Vessel for which constraints are updated.
     """
-
     v = vessel.name
     voyages = vessel.expectation.get_voyages(alg.idx)
     change_coefficient = alg.model.chgCoeff
@@ -43,14 +42,16 @@ def update_mass_sufficient_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> 
     leg_idx = vessel.route.get_leg_indices()
 
     for f in vessel.usable_fuels:
-
-        for (port_start, port_end) in leg_idx:
-
+        for port_start, port_end in leg_idx:
             key = (v, port_start, f)
 
-            constraint = get_constraint(alg, mass_sufficient, key, ">=", "mass_sufficient")
+            constraint = get_constraint(
+                alg, mass_sufficient, key, ">=", "mass_sufficient"
+            )
 
             change_coefficient(constraint, mass_tank[v, port_start, f], voyages)
 
             for c in converters_per_fuel[v, f]:
-                change_coefficient(constraint, spend_sea[v, c, f, port_start, port_end], -1.)
+                change_coefficient(
+                    constraint, spend_sea[v, c, f, port_start, port_end], -1.0
+                )

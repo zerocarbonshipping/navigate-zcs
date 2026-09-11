@@ -1,7 +1,12 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-from navigate.economics.decision import calculate_asset_shares, calculate_two_axis_uptake
+from __future__ import annotations
+
+from navigate.economics.decision import (
+    calculate_asset_shares,
+    calculate_two_axis_uptake,
+)
 from navigate.economics.flows import (
     Component,
     add_capex_flow,

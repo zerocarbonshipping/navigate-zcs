@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 from navigate.core import Scalar, as_scalar, assign_value
 from navigate.core.node import Node
 from navigate.core.node_type import FORECAST, VARIABLE
@@ -18,10 +20,12 @@ class _Machinery(Node):
         super().__init__(name, type_)
 
         # external variables -------------------------------------------------------------------------------------------
-        self.capex = None          # float, CAPEX for installation
-        self.opex = None           # float, OPEX for installation
-        self.lifetime = None       # float, lifetime of the installation
-        self.replacement = None    # float, fraction of CAPEX paid when replacing at end of lifetime
+        self.capex = None  # float, CAPEX for installation
+        self.opex = None  # float, OPEX for installation
+        self.lifetime = None  # float, lifetime of the installation
+        self.replacement = (
+            None  # float, fraction of CAPEX paid when replacing at end of lifetime
+        )
 
     # external methods (DSL attributes) --------------------------------------------------------------------------------
     def set_capex(self, capex):
@@ -38,8 +42,9 @@ class _Machinery(Node):
         capex : float | NodeReference
             CAPEX cost of installing the machinery.
         """
-
-        self.capex = assign_value(as_scalar(capex), type_=(FORECAST, VARIABLE), lower=0.)
+        self.capex = assign_value(
+            as_scalar(capex), type_=(FORECAST, VARIABLE), lower=0.0
+        )
 
     def set_opex(self, opex):
         """
@@ -55,8 +60,7 @@ class _Machinery(Node):
         opex : float | NodeReference
             OPEX cost per year of maintaining the machinery.
         """
-
-        self.opex = assign_value(as_scalar(opex), type_=(FORECAST, VARIABLE), lower=0.)
+        self.opex = assign_value(as_scalar(opex), type_=(FORECAST, VARIABLE), lower=0.0)
 
     def set_lifetime(self, lifetime):
         """
@@ -74,9 +78,12 @@ class _Machinery(Node):
         lifetime : float | NodeReference
             Lifetime of the machinery.
         """
-
-        self.lifetime = assign_value(as_scalar(lifetime), type_=(FORECAST, VARIABLE),
-                                     lower=0., inclusive_lower=False)
+        self.lifetime = assign_value(
+            as_scalar(lifetime),
+            type_=(FORECAST, VARIABLE),
+            lower=0.0,
+            inclusive_lower=False,
+        )
 
     def set_replacement(self, replacement):
         """
@@ -92,17 +99,18 @@ class _Machinery(Node):
         replacement : float | NodeReference
             Fraction of CAPEX for re-installing the machinery at end of lifetime.
         """
-
-        self.replacement = assign_value(as_scalar(replacement), type_=(FORECAST, VARIABLE), lower=0.)
+        self.replacement = assign_value(
+            as_scalar(replacement), type_=(FORECAST, VARIABLE), lower=0.0
+        )
 
     # internal methods -------------------------------------------------------------------------------------------------
     def _initialize_machinery(self):
 
         if self.capex is None:
-            self.capex = Scalar(0.)
+            self.capex = Scalar(0.0)
 
         if self.opex is None:
-            self.opex = Scalar(0.)
+            self.opex = Scalar(0.0)
 
         if self.replacement is None:
-            self.replacement = Scalar(1.)
+            self.replacement = Scalar(1.0)

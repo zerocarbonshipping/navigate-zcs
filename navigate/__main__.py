@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 import argparse
 import cProfile
 import logging
@@ -11,7 +13,12 @@ import traceback
 from pathlib import Path
 
 from navigate.exceptions import NavigateError
-from navigate.logging_ import LOG_LEVELS, log_summary, print_warning_summary, setup_logger
+from navigate.logging_ import (
+    LOG_LEVELS,
+    log_summary,
+    print_warning_summary,
+    setup_logger,
+)
 from navigate.output.replot import replot
 from navigate.simulation import SimulationManager
 
@@ -20,33 +27,66 @@ ASSUMPTIONS_ENV_VAR = "ASSUMPTIONS_DATA_DIR"
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="Navigate")
-    parser.add_argument("-p", "--profile", action="store_true",
-                        help="Profile the computational performance of the simulation. Note that this suppresses"
-                             " all output that is not directly related to the simulation.")
-    parser.add_argument("-s", "--suppress-plots", action="store_true",
-                        help="Suppress the generation of plots at the end of the simulation. Note that Excel based"
-                             " output reports will still be generated.")
-    parser.add_argument("-l", "--log-level", default="INFO", choices=LOG_LEVELS,
-                        help="Set the level of how much output is generated for the .log file. DEBUG also"
-                             " prints the full traceback to the console if the run fails.")
-    parser.add_argument("-d", "--data-dir", type=Path, metavar="DIR",
-                        default=os.environ.get(ASSUMPTIONS_ENV_VAR),
-                        help=f"Folder location for assumptions that may be imported. "
-                             f"Can also be set with the environment variable '{ASSUMPTIONS_ENV_VAR}'")
-    parser.add_argument("--solver", default=None, choices=["auto", "gurobi", "highs"],
-                        help="Solver backend: 'auto' tries Gurobi then falls back to HiGHS, "
-                             "'gurobi' prefers Gurobi (falls back to HiGHS if unlicensed), "
-                             "'highs' skips Gurobi and uses HiGHS directly. Default: auto.")
-    parser.add_argument("-r", "--replot", type=Path, metavar="PATH",
-                        help="Regenerate plots from previously exported plot data. "
-                             "Provide path to directory containing plot_data.pkl "
-                             "or to the file directly. Skips simulation. Optionally pass a "
-                             ".inc file with Plot node(s) as the trailing argument to use "
-                             "those instead of the plot nodes stored in the plot data.")
-    parser.add_argument("filename", type=Path, metavar="PATH", nargs="?", default=None,
-                        help="Path to the .nav simulation deck to run. When combined with "
-                             "--replot, an optional .inc file with Plot node(s) to use instead "
-                             "of the plot nodes stored in the plot data.")
+    parser.add_argument(
+        "-p",
+        "--profile",
+        action="store_true",
+        help="Profile the computational performance of the simulation. Note that this suppresses"
+        " all output that is not directly related to the simulation.",
+    )
+    parser.add_argument(
+        "-s",
+        "--suppress-plots",
+        action="store_true",
+        help="Suppress the generation of plots at the end of the simulation. Note that Excel based"
+        " output reports will still be generated.",
+    )
+    parser.add_argument(
+        "-l",
+        "--log-level",
+        default="INFO",
+        choices=LOG_LEVELS,
+        help="Set the level of how much output is generated for the .log file. DEBUG also"
+        " prints the full traceback to the console if the run fails.",
+    )
+    parser.add_argument(
+        "-d",
+        "--data-dir",
+        type=Path,
+        metavar="DIR",
+        default=os.environ.get(ASSUMPTIONS_ENV_VAR),
+        help=f"Folder location for assumptions that may be imported. "
+        f"Can also be set with the environment variable '{ASSUMPTIONS_ENV_VAR}'",
+    )
+    parser.add_argument(
+        "--solver",
+        default=None,
+        choices=["auto", "gurobi", "highs"],
+        help="Solver backend: 'auto' tries Gurobi then falls back to HiGHS, "
+        "'gurobi' prefers Gurobi (falls back to HiGHS if unlicensed), "
+        "'highs' skips Gurobi and uses HiGHS directly. Default: auto.",
+    )
+    parser.add_argument(
+        "-r",
+        "--replot",
+        type=Path,
+        metavar="PATH",
+        help="Regenerate plots from previously exported plot data. "
+        "Provide path to directory containing plot_data.pkl "
+        "or to the file directly. Skips simulation. Optionally pass a "
+        ".inc file with Plot node(s) as the trailing argument to use "
+        "those instead of the plot nodes stored in the plot data.",
+    )
+    parser.add_argument(
+        "filename",
+        type=Path,
+        metavar="PATH",
+        nargs="?",
+        default=None,
+        help="Path to the .nav simulation deck to run. When combined with "
+        "--replot, an optional .inc file with Plot node(s) to use instead "
+        "of the plot nodes stored in the plot data.",
+    )
     return parser
 
 
@@ -61,7 +101,9 @@ def main() -> int:
         print("Interrupted.", file=sys.stderr)
         return 130
     except (NavigateError, OSError) as exc:
-        _handle_error(exc, debug=(args.log_level == "DEBUG"), log_to_file=not args.replot)
+        _handle_error(
+            exc, debug=(args.log_level == "DEBUG"), log_to_file=not args.replot
+        )
         return 1
 
 
@@ -78,17 +120,20 @@ def _validate_args(parser: argparse.ArgumentParser, args: argparse.Namespace) ->
     args : argparse.Namespace
         Parsed CLI arguments.
     """
-
     if args.data_dir is not None and not args.data_dir.is_dir():
-        parser.error(f"assumptions data directory not found: '{args.data_dir}' "
-                     f"(set via -d/--data-dir or the {ASSUMPTIONS_ENV_VAR} environment variable)")
+        parser.error(
+            f"assumptions data directory not found: '{args.data_dir}' "
+            f"(set via -d/--data-dir or the {ASSUMPTIONS_ENV_VAR} environment variable)"
+        )
 
     if args.replot:
         if not args.replot.exists():
             parser.error(f"--replot path not found: '{args.replot}'")
 
         if args.filename is not None:
-            _validate_file(parser, args.filename, kind="plot include file", suffix=".inc")
+            _validate_file(
+                parser, args.filename, kind="plot include file", suffix=".inc"
+            )
 
         return
 
@@ -98,7 +143,9 @@ def _validate_args(parser: argparse.ArgumentParser, args: argparse.Namespace) ->
     _validate_file(parser, args.filename, kind="deck file", suffix=".nav")
 
 
-def _validate_file(parser: argparse.ArgumentParser, path: Path, *, kind: str, suffix: str) -> None:
+def _validate_file(
+    parser: argparse.ArgumentParser, path: Path, *, kind: str, suffix: str
+) -> None:
     """
     Exit via parser.error() (exit code 2) unless `path` is an existing file with the given suffix.
 
@@ -113,7 +160,6 @@ def _validate_file(parser: argparse.ArgumentParser, path: Path, *, kind: str, su
     suffix : str
         Required file extension, including the leading dot.
     """
-
     if not path.exists():
         parser.error(f"{kind} not found: '{path}'")
 
@@ -163,7 +209,6 @@ def _handle_error(exc: Exception, debug: bool, log_to_file: bool) -> None:
         Guarded further by hasHandlers() in case setup_logger itself failed
         before installing handlers.
     """
-
     if log_to_file and logging.getLogger().hasHandlers():
         logging.getLogger(__name__).error("Fatal error: %s", exc, exc_info=True)
 
@@ -178,7 +223,9 @@ def _run(path: Path, args: argparse.Namespace) -> SimulationManager:
     manager.read_deck(path, args)
     manager.run()
     logger = logging.getLogger(__name__)
-    logger.info(f"Simulation completed successfully in {manager.get_elapsed_time()} seconds.")
+    logger.info(
+        f"Simulation completed successfully in {manager.get_elapsed_time()} seconds."
+    )
     logger.info(log_summary())
 
     if not args.profile:

@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 from navigate.output.plots._colors import center_color_saturation
 from navigate.output.plots._figure import (
     format_axes,
@@ -15,7 +17,9 @@ def plot_producer_fair_share(manager, directory):
     dateline = manager.dateline
 
     fuels = manager.nodes.fuels
-    fuels = {fuel_name: fuel for fuel_name, fuel in fuels.items() if not fuel.liquid_market}
+    fuels = {
+        fuel_name: fuel for fuel_name, fuel in fuels.items() if not fuel.liquid_market
+    }
     producers = manager.nodes.producers
 
     if not producers:
@@ -26,22 +30,20 @@ def plot_producer_fair_share(manager, directory):
     fig, axes = subplot_grid(len(fuels))
 
     for ax, (fuel_name, fuel) in zip(axes, fuels.items()):
-
         added_lines = False
         for i, (producer_name, producer) in enumerate(producers.items()):
-
             if not producer.can_produce(fuel_name):
                 continue
 
             fair_share = producer.profile.get_fair_share_fuel_fraction(fuel_name)
 
             label = producer_name
-            ax.plot(dateline[1:], fair_share[1:], color=colors[i], label=label, lw=2.)
+            ax.plot(dateline[1:], fair_share[1:], color=colors[i], label=label, lw=2.0)
             added_lines = True
 
-        ax.set_ylim([0., 1.03])
+        ax.set_ylim([0.0, 1.03])
 
-        ax.set_ylabel('Fair-share [-]')
+        ax.set_ylabel("Fair-share [-]")
         ax.set_title(extract_label(fuel, FUEL_LABEL))
 
         legend = None
@@ -52,4 +54,4 @@ def plot_producer_fair_share(manager, directory):
 
     trim_axes(axes, len(fuels))
 
-    save_figure(fig, directory, 'producer_fair_share.png')
+    save_figure(fig, directory, "producer_fair_share.png")

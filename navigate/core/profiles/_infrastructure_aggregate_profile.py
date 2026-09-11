@@ -5,7 +5,9 @@ from __future__ import annotations
 
 import numpy as np
 
-from navigate.core.profiles._fuel_infrastructure_profile import _FuelInfrastructureProfile
+from navigate.core.profiles._fuel_infrastructure_profile import (
+    _FuelInfrastructureProfile,
+)
 
 
 class _InfrastructureAggregateProfile(_FuelInfrastructureProfile):
@@ -16,8 +18,8 @@ class _InfrastructureAggregateProfile(_FuelInfrastructureProfile):
         pass
 
     def add_infrastructure_aggregate_profile(
-            self, profile: _InfrastructureAggregateProfile,
-            idx: int | slice = np.s_[:]) -> None:
+        self, profile: _InfrastructureAggregateProfile, idx: int | slice = np.s_[:]
+    ) -> None:
         """
 
         Parameters

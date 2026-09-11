@@ -33,7 +33,6 @@ def initialize_existing_producer(producer: Producer, timeline: np.ndarray) -> No
     timeline
         Simulation timeline.
     """
-
     for plant in producer.assets:
         plant.set_producer_assignment(producer.name)
 
@@ -49,7 +48,9 @@ def initialize_existing_producer(producer: Producer, timeline: np.ndarray) -> No
     # and avoid round-off error issue when calculating
     # increment average properties
     for a in range(len(producer.increments)):
-        producer.increments[a] = [inc for inc in producer.increments[a] if inc.multiplier > 0.]
+        producer.increments[a] = [
+            inc for inc in producer.increments[a] if inc.multiplier > 0.0
+        ]
 
     # existing pipeline
     define_existing_pipeline(producer, timeline)

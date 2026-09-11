@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 import numpy as np
 
 from navigate.core.enum_ import FuelTypeID
@@ -29,7 +31,12 @@ def plot_fuel_type_supply_demand(manager, directory):
     fuels = manager.nodes.fuels
     profile = manager.profile
 
-    fuel_types = [FuelTypeID.OIL, FuelTypeID.METHANE, FuelTypeID.METHANOL, FuelTypeID.AMMONIA]
+    fuel_types = [
+        FuelTypeID.OIL,
+        FuelTypeID.METHANE,
+        FuelTypeID.METHANOL,
+        FuelTypeID.AMMONIA,
+    ]
     fuel_type_to_fuels = get_fuels_per_fuel_type(fuels)
 
     fig, axes = subplot_grid(len(fuel_types))  # , sharey=True)
@@ -43,10 +50,9 @@ def plot_fuel_type_supply_demand(manager, directory):
     all_constrained = {}
     all_fuel_supply = {}
 
-    maximum = 0.
+    maximum = 0.0
 
     for fuel_type in fuel_types:
-
         usable_fuels = fuel_type_to_fuels[fuel_type]
         fuel_spend = {}
         fuel_demand = profile.get_fuel_type_demand(fuel_type)
@@ -55,13 +61,10 @@ def plot_fuel_type_supply_demand(manager, directory):
         # calculate the total fuel supply and spend
         constrained = True
         for port in ports.values():
-
             port_profile = port.profile
 
             for fuel in usable_fuels:
-
                 if not fuel.liquid_market:
-
                     fuel_name = fuel.name
 
                     # add fuel supply
@@ -69,7 +72,6 @@ def plot_fuel_type_supply_demand(manager, directory):
                     constraint = port_profile.get_bunker_supply_mass(fuel_name)
 
                     if constraint is None:
-
                         if np.any(available):
                             constrained = False
                             break
@@ -78,7 +80,6 @@ def plot_fuel_type_supply_demand(manager, directory):
                     bunkering = port_profile.get_bunker_energy()
 
                     if fuel_name in bunkering:
-
                         if fuel_name in fuel_spend:
                             fuel_spend[fuel_name] += bunkering[fuel_name]
                         else:
@@ -110,13 +111,12 @@ def plot_fuel_type_supply_demand(manager, directory):
         all_constrained[fuel_type] = constrained
         all_fuel_supply[fuel_type] = fuel_supply
 
-    if maximum > 0.:
+    if maximum > 0.0:
         divisor, unit = get_best_unit_energy(maximum, default=9)
     else:
         return
 
     for ax, fuel_type in zip(axes, fuel_types):
-
         values = [value / divisor for value in all_values[fuel_type]]
         colors = all_colors[fuel_type]
         labels = all_labels[fuel_type]
@@ -124,29 +124,39 @@ def plot_fuel_type_supply_demand(manager, directory):
         fuel_demand = all_demand[fuel_type] / divisor
 
         constrained = all_constrained[fuel_type]
-        fuel_supply = all_fuel_supply[fuel_type] / divisor if constrained else np.zeros_like(fuel_demand)
+        fuel_supply = (
+            all_fuel_supply[fuel_type] / divisor
+            if constrained
+            else np.zeros_like(fuel_demand)
+        )
 
         patches = []
 
         if values:
-            stack = plot_stack_with_lines(ax, dateline, values, labels, colors, alpha=0.5)
+            stack = plot_stack_with_lines(
+                ax, dateline, values, labels, colors, alpha=0.5
+            )
             patches.extend(stack)
 
         # plot fuel demand
-        line_demand = ax.plot(dateline, fuel_demand, label='Demand', ls=(0, (5, 3)), color='r', lw=2)
+        line_demand = ax.plot(
+            dateline, fuel_demand, label="Demand", ls=(0, (5, 3)), color="r", lw=2
+        )
 
         patches.extend(line_demand)
-        leg_labels = [*labels, 'Demand']
+        leg_labels = [*labels, "Demand"]
 
         # if the model is unconstrained for this fuel type, then do not plot supply
         if constrained:
-            line_supply = ax.plot(dateline, fuel_supply, label='Supply', ls=(0, (5, 3)), color='b', lw=2)
+            line_supply = ax.plot(
+                dateline, fuel_supply, label="Supply", ls=(0, (5, 3)), color="b", lw=2
+            )
             patches.extend(line_supply)
-            leg_labels.append('Supply')
+            leg_labels.append("Supply")
 
-        ax.set_ylabel('Fuel [{}]'.format(unit))
+        ax.set_ylabel(f"Fuel [{unit}]")
         ax.set_title(FUEL_TYPE_LABEL[fuel_type])
         legend = ax.legend(patches, leg_labels, **LEGEND_OPTIONS)
         format_axes(ax, len(fuel_types), dateline, legend)
 
-    save_figure(fig, directory, 'fuel_type_supply_demand.png')
+    save_figure(fig, directory, "fuel_type_supply_demand.png")

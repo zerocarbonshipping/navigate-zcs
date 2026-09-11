@@ -43,9 +43,11 @@ values, so that the provenance of the model inputs stays traceable.
   refactors belong in separate pull requests.
 - Write a clear description: what the change does, why it is needed, and how
   it was verified.
-- Follow the existing code style (`flake8` configuration and
-  [`CODESTYLE.md`](CODESTYLE.md)). Match the conventions of the file you are
-  editing.
+- Follow the code style: `ruff` and `mypy` enforce the mechanical rules
+  (`make lint`), [`CODESTYLE.md`](CODESTYLE.md) carries the conventions the
+  tooling cannot check. Run
+  `git config blame.ignoreRevsFile .git-blame-ignore-revs` once so `git blame`
+  skips the whole-repo reformat commit.
 - Update documentation when behavior changes: the reference manual
   (`docs/reference_manual/`) for user-facing changes and docstrings for code changes.
 - Add an entry to `CHANGELOG.md` for user-visible changes. See the

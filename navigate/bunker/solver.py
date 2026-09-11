@@ -17,6 +17,8 @@ Usage:
     from navigate.bunker.solver import GRB
 """
 
+from __future__ import annotations
+
 import logging
 
 # ---------------------------------------------------------------------------
@@ -65,7 +67,6 @@ except Exception:
 # Gurobi backend (only if licensed)
 # ---------------------------------------------------------------------------
 if _GUROBI_AVAILABLE:
-
     _grb_GRB = _grb.GRB
     _grb_LinExpr = _grb.LinExpr
     _grb_Constr = _grb.Constr
@@ -112,7 +113,7 @@ if _GUROBI_AVAILABLE:
 # ---------------------------------------------------------------------------
 # Active backend selection
 # ---------------------------------------------------------------------------
-_active_backend = None          # "gurobi" or "highs", set by _configure()
+_active_backend = None  # "gurobi" or "highs", set by _configure()
 
 # Module-level names that consumers import.  Initialised by _configure().
 GRB = None

@@ -2,6 +2,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """Console summary of logged warnings."""
+
+from __future__ import annotations
+
 from collections import Counter
 
 from navigate import logging_
@@ -14,8 +17,10 @@ class _FakeCountHandler:
 
 
 def test_warning_count_printed(monkeypatch, capsys):
-    monkeypatch.setattr(logging_, '_COUNT_HANDLER', _FakeCountHandler(Counter({'WARNING': 2})))
-    monkeypatch.setattr(logging_, '_LOG_FILE_NAME', 'deck.log')
+    monkeypatch.setattr(
+        logging_, "_COUNT_HANDLER", _FakeCountHandler(Counter({"WARNING": 2}))
+    )
+    monkeypatch.setattr(logging_, "_LOG_FILE_NAME", "deck.log")
 
     print_warning_summary()
 
@@ -23,9 +28,9 @@ def test_warning_count_printed(monkeypatch, capsys):
 
 
 def test_no_warnings_prints_nothing(monkeypatch, capsys):
-    monkeypatch.setattr(logging_, '_COUNT_HANDLER', _FakeCountHandler(Counter()))
-    monkeypatch.setattr(logging_, '_LOG_FILE_NAME', 'deck.log')
+    monkeypatch.setattr(logging_, "_COUNT_HANDLER", _FakeCountHandler(Counter()))
+    monkeypatch.setattr(logging_, "_LOG_FILE_NAME", "deck.log")
 
     print_warning_summary()
 
-    assert capsys.readouterr().out == ''
+    assert capsys.readouterr().out == ""

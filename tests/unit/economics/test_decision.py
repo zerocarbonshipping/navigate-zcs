@@ -2,6 +2,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """Unit tests for navigate.economics.decision."""
+
+from __future__ import annotations
+
 import numpy as np
 import pytest
 
@@ -17,14 +20,13 @@ from navigate.economics.decision import (
 
 
 class TestSoftmax:
-
     def test_sums_to_one(self):
-        shares = softmax(np.array([1., 2., 3.]))
+        shares = softmax(np.array([1.0, 2.0, 3.0]))
         assert shares.sum() == pytest.approx(1.0)
         assert shares[2] > shares[1] > shares[0]
 
     def test_numerically_stable_for_large_values(self):
-        shares = softmax(np.array([1000., 1001., 1002.]))
+        shares = softmax(np.array([1000.0, 1001.0, 1002.0]))
         assert np.all(np.isfinite(shares))
         assert shares.sum() == pytest.approx(1.0)
 
@@ -34,17 +36,19 @@ class TestSoftmax:
 
 
 class TestBetaFromOdds:
-
-    @pytest.mark.parametrize('odds, utility, expected', [
-        # a 10% higher metric should halve the odds
-        (0.5, UtilityID.LOWER_LOG_RATIO, -np.log(0.5) / np.log(1.1)),
-        (2.0, UtilityID.HIGHER_LOG_RATIO, np.log(2.0) / np.log(1.1)),
-        (2.0, UtilityID.SIGNED_REFERENCE, np.log(2.0) / 0.05),
-    ])
+    @pytest.mark.parametrize(
+        "odds, utility, expected",
+        [
+            # a 10% higher metric should halve the odds
+            (0.5, UtilityID.LOWER_LOG_RATIO, -np.log(0.5) / np.log(1.1)),
+            (2.0, UtilityID.HIGHER_LOG_RATIO, np.log(2.0) / np.log(1.1)),
+            (2.0, UtilityID.SIGNED_REFERENCE, np.log(2.0) / 0.05),
+        ],
+    )
     def test_beta_from_odds(self, odds, utility, expected):
         beta = _beta_from_odds(odds, utility)
         assert beta == pytest.approx(expected)
-        assert beta > 0.
+        assert beta > 0.0
 
     def test_unit_odds_gives_zero_beta(self):
         for utility in UtilityID:
@@ -52,77 +56,95 @@ class TestBetaFromOdds:
 
 
 class TestLowerLogRatio:
-
     def test_ten_percent_higher_halves_odds(self):
         # the option 10% higher should get half the odds of the cheapest
-        shares, msg = calculate_asset_shares([10., 11.], UtilityID.LOWER_LOG_RATIO, 0.5)
-        np.testing.assert_array_almost_equal(shares, [2. / 3, 1. / 3])
+        shares, msg = calculate_asset_shares(
+            [10.0, 11.0], UtilityID.LOWER_LOG_RATIO, 0.5
+        )
+        np.testing.assert_array_almost_equal(shares, [2.0 / 3, 1.0 / 3])
         assert shares[1] / shares[0] == pytest.approx(0.5)
-        assert msg == ''
+        assert msg == ""
 
     def test_unit_odds_uniform(self):
-        shares, _ = calculate_asset_shares([10., 20., 30.], UtilityID.LOWER_LOG_RATIO, 1.0)
-        np.testing.assert_array_almost_equal(shares, [1. / 3, 1. / 3, 1. / 3])
+        shares, _ = calculate_asset_shares(
+            [10.0, 20.0, 30.0], UtilityID.LOWER_LOG_RATIO, 1.0
+        )
+        np.testing.assert_array_almost_equal(shares, [1.0 / 3, 1.0 / 3, 1.0 / 3])
 
     def test_nonpositive_falls_back_to_uniform_at_min(self):
-        shares, msg = calculate_asset_shares([0., 0., 3.], UtilityID.LOWER_LOG_RATIO, 0.5)
-        np.testing.assert_array_almost_equal(shares, [0.5, 0.5, 0.])
-        assert 'non-positive' in msg
+        shares, msg = calculate_asset_shares(
+            [0.0, 0.0, 3.0], UtilityID.LOWER_LOG_RATIO, 0.5
+        )
+        np.testing.assert_array_almost_equal(shares, [0.5, 0.5, 0.0])
+        assert "non-positive" in msg
 
     def test_negative_value_falls_back(self):
-        shares, msg = calculate_asset_shares([-1., 5., 3.], UtilityID.LOWER_LOG_RATIO, 0.5)
-        np.testing.assert_array_almost_equal(shares, [1., 0., 0.])
-        assert msg != ''
+        shares, msg = calculate_asset_shares(
+            [-1.0, 5.0, 3.0], UtilityID.LOWER_LOG_RATIO, 0.5
+        )
+        np.testing.assert_array_almost_equal(shares, [1.0, 0.0, 0.0])
+        assert msg != ""
 
 
 class TestHigherLogRatio:
-
     def test_ten_percent_higher_doubles_odds(self):
-        shares, msg = calculate_asset_shares([10., 11.], UtilityID.HIGHER_LOG_RATIO, 2.0)
-        np.testing.assert_array_almost_equal(shares, [1. / 3, 2. / 3])
+        shares, msg = calculate_asset_shares(
+            [10.0, 11.0], UtilityID.HIGHER_LOG_RATIO, 2.0
+        )
+        np.testing.assert_array_almost_equal(shares, [1.0 / 3, 2.0 / 3])
         assert shares[1] / shares[0] == pytest.approx(2.0)
-        assert msg == ''
+        assert msg == ""
 
     def test_zero_demand_gets_zero_share(self):
-        shares, _ = calculate_asset_shares([0., 10., 5.], UtilityID.HIGHER_LOG_RATIO, 2.0)
-        assert shares[0] == 0.
+        shares, _ = calculate_asset_shares(
+            [0.0, 10.0, 5.0], UtilityID.HIGHER_LOG_RATIO, 2.0
+        )
+        assert shares[0] == 0.0
         assert shares.sum() == pytest.approx(1.0)
 
     def test_all_zero_demand_returns_zeros(self):
-        shares, _ = calculate_asset_shares([0., 0., 0.], UtilityID.HIGHER_LOG_RATIO, 2.0)
-        np.testing.assert_array_almost_equal(shares, [0., 0., 0.])
+        shares, _ = calculate_asset_shares(
+            [0.0, 0.0, 0.0], UtilityID.HIGHER_LOG_RATIO, 2.0
+        )
+        np.testing.assert_array_almost_equal(shares, [0.0, 0.0, 0.0])
 
 
 class TestSignedReference:
-
     def test_advantage_of_five_percent_doubles_odds(self):
         # NPV advantage of 5 against a reference of 100 (i.e. 5%) should double the odds
-        shares, msg = calculate_asset_shares([0., 5.], UtilityID.SIGNED_REFERENCE, 2.0, reference=100.)
-        np.testing.assert_array_almost_equal(shares, [1. / 3, 2. / 3])
+        shares, msg = calculate_asset_shares(
+            [0.0, 5.0], UtilityID.SIGNED_REFERENCE, 2.0, reference=100.0
+        )
+        np.testing.assert_array_almost_equal(shares, [1.0 / 3, 2.0 / 3])
         assert shares[1] / shares[0] == pytest.approx(2.0)
-        assert msg == ''
+        assert msg == ""
 
     def test_handles_negative_npv(self):
-        shares, _ = calculate_asset_shares([-10., 0., 10.], UtilityID.SIGNED_REFERENCE, 2.0, reference=100.)
+        shares, _ = calculate_asset_shares(
+            [-10.0, 0.0, 10.0], UtilityID.SIGNED_REFERENCE, 2.0, reference=100.0
+        )
         assert shares[2] > shares[1] > shares[0]
         assert shares.sum() == pytest.approx(1.0)
 
     def test_nonpositive_reference_falls_back_to_uniform(self):
-        shares, msg = calculate_asset_shares([1., 2., 3.], UtilityID.SIGNED_REFERENCE, 2.0, reference=0.)
-        np.testing.assert_array_almost_equal(shares, [1. / 3, 1. / 3, 1. / 3])
-        assert 'reference' in msg
+        shares, msg = calculate_asset_shares(
+            [1.0, 2.0, 3.0], UtilityID.SIGNED_REFERENCE, 2.0, reference=0.0
+        )
+        np.testing.assert_array_almost_equal(shares, [1.0 / 3, 1.0 / 3, 1.0 / 3])
+        assert "reference" in msg
 
     def test_missing_reference_falls_back_to_uniform(self):
-        shares, msg = calculate_asset_shares([1., 2.], UtilityID.SIGNED_REFERENCE, 2.0)
+        shares, msg = calculate_asset_shares(
+            [1.0, 2.0], UtilityID.SIGNED_REFERENCE, 2.0
+        )
         np.testing.assert_array_almost_equal(shares, [0.5, 0.5])
-        assert msg != ''
+        assert msg != ""
 
 
 class TestRedistributeProportional:
-
     def test_user_example(self):
         shares = np.array([0.5, 0.1, 0.3, 0.1])  # sums to 1
-        limits = np.array([0.2, 1., 1., 1.])
+        limits = np.array([0.2, 1.0, 1.0, 1.0])
         result = _redistribute_proportional(shares, limits)
         # surplus 0.3 spread across [0.1, 0.3, 0.1] proportionally → factor 0.8/0.5 = 1.6
         np.testing.assert_array_almost_equal(result, [0.2, 0.16, 0.48, 0.16])
@@ -136,27 +158,29 @@ class TestRedistributeProportional:
 
     def test_cascading_saturation(self):
         shares = np.array([0.5, 0.4, 0.1])
-        limits = np.array([0.3, 0.3, 1.])
+        limits = np.array([0.3, 0.3, 1.0])
         result = _redistribute_proportional(shares, limits)
         np.testing.assert_array_almost_equal(result, [0.3, 0.3, 0.4])
 
     def test_zero_limit_zeros_option(self):
         shares = np.array([0.5, 0.3, 0.2])
-        limits = np.array([0., 1., 1.])
+        limits = np.array([0.0, 1.0, 1.0])
         result = _redistribute_proportional(shares, limits)
-        np.testing.assert_array_almost_equal(result, [0., 0.6, 0.4])
+        np.testing.assert_array_almost_equal(result, [0.0, 0.6, 0.4])
         assert result.sum() == pytest.approx(1.0)
 
 
 class TestApplyLimits:
-
     def test_limits_enforced_via_calculate_asset_shares(self):
         shares, msg = calculate_asset_shares(
-            [10., 20., 30.], UtilityID.LOWER_LOG_RATIO, 1.0, limits=[0.2, 1., 1.],
+            [10.0, 20.0, 30.0],
+            UtilityID.LOWER_LOG_RATIO,
+            1.0,
+            limits=[0.2, 1.0, 1.0],
         )
         # uniform start [1/3]*3, index 0 capped at 0.2, surplus rescaled across the rest
         np.testing.assert_array_almost_equal(shares, [0.2, 0.4, 0.4])
-        assert msg == ''
+        assert msg == ""
 
     def test_length_mismatch_raises(self):
         with pytest.raises(ValueError):
@@ -164,24 +188,29 @@ class TestApplyLimits:
 
     def test_infeasible_returns_saturated_with_warning(self):
         shares, msg = calculate_asset_shares(
-            [10., 20., 30.], UtilityID.LOWER_LOG_RATIO, 0.5, limits=[0.2, 0.2, 0.2],
+            [10.0, 20.0, 30.0],
+            UtilityID.LOWER_LOG_RATIO,
+            0.5,
+            limits=[0.2, 0.2, 0.2],
         )
         np.testing.assert_array_almost_equal(shares, [0.2, 0.2, 0.2])
-        assert 'infeasible' in msg
+        assert "infeasible" in msg
 
 
 class TestTwoAxisUptake:
-
     def test_grouped_shares_sum_to_one(self):
         # two fuel pathways: 'a' (two plants), 'b' (one plant)
-        group_keys = ['a', 'a', 'b']
-        metrics_intra = [100., 110., 100.]   # LCoF, lower is better
-        metrics_inter = [50., 50., 80.]      # expected demand, higher is better
+        group_keys = ["a", "a", "b"]
+        metrics_intra = [100.0, 110.0, 100.0]  # LCoF, lower is better
+        metrics_inter = [50.0, 50.0, 80.0]  # expected demand, higher is better
         uptake = calculate_two_axis_uptake(
-            group_keys, metrics_intra, metrics_inter,
+            group_keys,
+            metrics_intra,
+            metrics_inter,
             intra_utility=UtilityID.LOWER_LOG_RATIO,
             inter_utility=UtilityID.HIGHER_LOG_RATIO,
-            intra_odds=0.5, inter_odds=1.25,
+            intra_odds=0.5,
+            inter_odds=1.25,
         )
         assert uptake.sum() == pytest.approx(1.0)
         # within pathway 'a', the cheaper plant (index 0) gets more share
@@ -191,11 +220,14 @@ class TestTwoAxisUptake:
         # equal metrics and odds of 1 give uniform shares, so every binding limit saturates:
         # group 'a' caps at 0.2 + 0.3 and its members at exactly their per-asset bounds
         uptake = calculate_two_axis_uptake(
-            ['a', 'a', 'b'], [100., 100., 100.], [100., 100., 100.],
+            ["a", "a", "b"],
+            [100.0, 100.0, 100.0],
+            [100.0, 100.0, 100.0],
             intra_utility=UtilityID.LOWER_LOG_RATIO,
             inter_utility=UtilityID.LOWER_LOG_RATIO,
-            intra_odds=1., inter_odds=1.,
-            limits=[0.2, 0.3, 1.],
+            intra_odds=1.0,
+            inter_odds=1.0,
+            limits=[0.2, 0.3, 1.0],
         )
         assert uptake.sum() == pytest.approx(1.0)
         assert uptake[0] == pytest.approx(0.2)

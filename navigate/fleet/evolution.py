@@ -9,7 +9,11 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.fleet.aggregation import transfer_multipliers_to_profile
-from navigate.fleet.planning import add_newbuilds, calculate_modelled_newbuilds, calculate_orderbook_newbuilds
+from navigate.fleet.planning import (
+    add_newbuilds,
+    calculate_modelled_newbuilds,
+    calculate_orderbook_newbuilds,
+)
 from navigate.fleet.utils import extract_cargo_miles, get_cargo_miles
 from navigate.util import ROUND_OFF, TOLERANCE, YEAR, calculate_inertia, divide_nonzero
 
@@ -33,7 +37,6 @@ def perform_primary_scrapping(fleet: Fleet, idx: int, time_step: float):
     time_step
         Current time-step size.
     """
-
     # scrap vessels based on age or fixed rate
     if fleet.fixed_scrap_rate is None:
         perform_age_based_scrapping(fleet, idx)
@@ -60,15 +63,18 @@ def perform_secondary_scrapping(fleet: Fleet, trade_gap: float, idx: int):
     float
         Scrapped capacity.
     """
-
-    scrapped_capacity, youngest_age = perform_fixed_trade_scrapping(fleet, trade_gap, idx)
+    scrapped_capacity, youngest_age = perform_fixed_trade_scrapping(
+        fleet, trade_gap, idx
+    )
 
     trade = fleet.trade[idx]
     if trade > 0 and abs(trade_gap / trade) > 1e-3:
-        logger.info(f"{fleet}: Secondary scrapping of vessels to make up for an over capacity of "
-                    f"{round(trade_gap)} cargo-miles. "
-                    f"The youngest age of scrapping was "
-                    f"{f'{round(youngest_age)} years' if youngest_age is not None else 'undefined'}.")
+        logger.info(
+            f"{fleet}: Secondary scrapping of vessels to make up for an over capacity of "
+            f"{round(trade_gap)} cargo-miles. "
+            f"The youngest age of scrapping was "
+            f"{f'{round(youngest_age)} years' if youngest_age is not None else 'undefined'}."
+        )
 
     return scrapped_capacity
 
@@ -85,10 +91,8 @@ def perform_age_based_scrapping(fleet: Fleet, idx: int):
     idx
         Current time-step index.
     """
-
     for v, (vessel, incs) in enumerate(zip(fleet.assets, fleet.increments)):
-
-        scrapped_vessels = 0.
+        scrapped_vessels = 0.0
 
         # update ages
         lifetime = vessel.lifetime.get()
@@ -103,7 +107,6 @@ def perform_age_based_scrapping(fleet: Fleet, idx: int):
                 break  # increments are ordered oldest-first, so we can stop
 
         if scrap_count > 0:
-
             # remove the scrapped vessels from the lists
             fleet.increments[v] = incs[scrap_count:]
             incs = fleet.increments[v]
@@ -116,7 +119,6 @@ def perform_age_based_scrapping(fleet: Fleet, idx: int):
         # is older than the lifetime (based on an assumption of
         # vessels entering uniformly over a time-step)
         if incs and incs[0].baseline is not None:
-
             age_i = incs[0].age
             dt_i = incs[0].dt
 
@@ -129,7 +131,7 @@ def perform_age_based_scrapping(fleet: Fleet, idx: int):
                 # part of the increment may have been fuel converted
                 # so the scrapped number is truncated to ensure it
                 # does not surpass the actual remaining number of vessels
-                scrapping = max(scrapping, 0.)
+                scrapping = max(scrapping, 0.0)
 
                 scrapped_vessels += scrapping
 
@@ -154,7 +156,6 @@ def perform_fixed_rate_scrapping(fleet: Fleet, time_step: float, idx: int):
     idx
         Current time-step index.
     """
-
     # calculate the targeted scrap in trade
     scrap_rate = fleet.fixed_scrap_rate.get() * time_step / YEAR
     target_scrap = scrap_rate * get_cargo_miles(fleet, idx)
@@ -165,7 +166,6 @@ def perform_fixed_rate_scrapping(fleet: Fleet, time_step: float, idx: int):
     # ensure that all remaining increments have
     # an age lower than their technical lifetime
     for v, vessel in enumerate(fleet.assets):
-
         # if there are no increments, then skip
         if not fleet.increments[v]:
             continue
@@ -177,9 +177,10 @@ def perform_fixed_rate_scrapping(fleet: Fleet, time_step: float, idx: int):
         lifetime = np.round(vessel.lifetime.get(), ROUND_OFF)
 
         if oldest_age > lifetime:
-            raise ValueError("{}: The oldest increment from {} is older ({}"
-                             " years) than the allowed lifetime ({} years)."
-                             .format(fleet, vessel, oldest_age, lifetime))
+            raise ValueError(
+                f"{fleet}: The oldest increment from {vessel} is older ({oldest_age}"
+                f" years) than the allowed lifetime ({lifetime} years)."
+            )
 
 
 def perform_fixed_trade_scrapping(fleet: Fleet, trade_gap: float, idx: int):
@@ -200,7 +201,6 @@ def perform_fixed_trade_scrapping(fleet: Fleet, trade_gap: float, idx: int):
     -------
     Scrapped capacity and youngest age of all scrapped vessels.
     """
-
     # create two lists, one with all increment
     # ages across all vessels and a second with
     # the indices of increments with that age
@@ -208,11 +208,9 @@ def perform_fixed_trade_scrapping(fleet: Fleet, trade_gap: float, idx: int):
     age_to_group: dict[float, list] = {}
 
     for v in range(len(fleet.assets)):
-
         increment_ages = np.round([inc.age for inc in fleet.increments[v]], ROUND_OFF)
 
         for i, age in enumerate(increment_ages):
-
             index = (v, i)
 
             if age in age_to_group:
@@ -239,24 +237,23 @@ def perform_fixed_trade_scrapping(fleet: Fleet, trade_gap: float, idx: int):
 
     # scrap vessels until the trade gap is removed
     for i in sorted_indices:
-
         # extract the vessel/increment
         # indices that share an age
         group = grouped_indices[i]
 
         # calculate the total scrapping potential
         # across the increments from all vessel types
-        capacity = np.sum([fleet.increments[v][ii].multiplier * cargo_miles[v] for v, ii in group])
+        capacity = np.sum(
+            [fleet.increments[v][ii].multiplier * cargo_miles[v] for v, ii in group]
+        )
 
         if capacity >= trade_gap:
-
             # remove an equal fraction of trade
             # from each vessel type to reduce
             # the trade gap to zero
             scrap_fraction = trade_gap / capacity
 
             for v, ii in group:
-
                 # extract necessary parameters
                 age = fleet.increments[v][ii].age
                 dt = fleet.increments[v][ii].dt
@@ -272,18 +269,17 @@ def perform_fixed_trade_scrapping(fleet: Fleet, trade_gap: float, idx: int):
                 # Notice that this may cause an inconsistency
                 # if several time-steps are taken that are
                 # shorter than the increments time-step length
-                youngest_age = age + dt * (1. - scrap_fraction)
+                youngest_age = age + dt * (1.0 - scrap_fraction)
 
                 # transfer to profile
                 fleet.profile.add_scrap(fleet.assets[v].name, to_scrap, idx)
 
             # the trade-gap is per definition zero
-            trade_gap = 0.
+            trade_gap = 0.0
 
             break
 
         else:
-
             # the trade-gap is so large that the
             # entire increment must be scrapped
             # for all vessel types
@@ -300,7 +296,6 @@ def perform_fixed_trade_scrapping(fleet: Fleet, trade_gap: float, idx: int):
 
     # secondary scrapping for anything older than the youngest age
     for v, i in enumerate(youngest_index):
-
         if i > 0:
             fleet.increments[v] = fleet.increments[v][i:]
 
@@ -317,16 +312,13 @@ def clean_up_multipliers(fleet: Fleet):
     In order to reduce the CPU time, increments are merged if they are similar and/or removed if they
     fall below a certain threshold.
     """
-
     # merge multipliers with same age and initial time-step entry size
     for v in range(len(fleet.assets)):
-
         incs = fleet.increments[v]
         n = len(incs)
         available = [True] * n
 
         for i in range(n):
-
             if not available[i]:
                 continue
 
@@ -334,16 +326,21 @@ def clean_up_multipliers(fleet: Fleet):
             dt_i = incs[i].dt
 
             # find other increments with matching age and dt
-            matching = [j for j in range(n) if j != i and available[j]
-                        and incs[j].age == age_i and incs[j].dt == dt_i]
+            matching = [
+                j
+                for j in range(n)
+                if j != i
+                and available[j]
+                and incs[j].age == age_i
+                and incs[j].dt == dt_i
+            ]
 
             if matching:
-
                 # calculate the weighted average of technology package
                 # uptake and carried technology charter rate
                 merge_indices = matching + [i]
                 package_uptake = np.zeros_like(fleet.newbuild_package_uptake[v])
-                charter_rate = 0.
+                charter_rate = 0.0
 
                 for j in merge_indices:
                     package_uptake += incs[j].multiplier * incs[j].package_uptake
@@ -358,15 +355,19 @@ def clean_up_multipliers(fleet: Fleet):
 
                 # by setting to 0, multipliers will be removed later
                 for j in matching:
-                    incs[j].multiplier = 0.
+                    incs[j].multiplier = 0.0
                     available[j] = False
 
     # remove multipliers of insignificant size
     for v in range(len(fleet.assets)):
-        fleet.increments[v] = [inc for inc in fleet.increments[v] if inc.multiplier >= 1e-3]
+        fleet.increments[v] = [
+            inc for inc in fleet.increments[v] if inc.multiplier >= 1e-3
+        ]
 
 
-def calculate_evolution_expectation(fleet: Fleet, timeline: np.ndarray, idx: int) -> None:
+def calculate_evolution_expectation(
+    fleet: Fleet, timeline: np.ndarray, idx: int
+) -> None:
     """
     Calculates the expected evolution of multipliers based on vessel scrapping,
     uptake patterns, and trade gaps within a given timeline.
@@ -399,7 +400,6 @@ def calculate_evolution_expectation(fleet: Fleet, timeline: np.ndarray, idx: int
     # expected future scrapping from the
     # baseline to establish the future baseline
     for v, (vessel, incs) in enumerate(zip(fleet.assets, fleet.increments)):
-
         if not incs:
             continue
 
@@ -410,7 +410,7 @@ def calculate_evolution_expectation(fleet: Fleet, timeline: np.ndarray, idx: int
 
         # calculate cumulative scrap expectation
         cum_increments = np.cumsum(multipliers)
-        cum_increments = np.interp(future, (lifetime - ages), cum_increments, left=0.)
+        cum_increments = np.interp(future, (lifetime - ages), cum_increments, left=0.0)
 
         # start the baseline with
         # the current multiplier
@@ -438,7 +438,7 @@ def calculate_evolution_expectation(fleet: Fleet, timeline: np.ndarray, idx: int
     # compared to trade. In the case where
     # secondary scrapping is allowed this is
     # an overestimation.
-    gap = np.where(gap > 0., gap, 0.)
+    gap = np.where(gap > 0.0, gap, 0.0)
 
     # fill the gap based on an expectation that the
     # current uptake will continue. Ensure scaling
@@ -451,14 +451,16 @@ def calculate_evolution_expectation(fleet: Fleet, timeline: np.ndarray, idx: int
 
     uptakes = fleet.expectation.get_uptakes(idx)
     for i in range(idx + 1):
-        if np.all(uptakes[:, i] == 0.):
-            weights[i] = 0.
+        if np.all(uptakes[:, i] == 0.0):
+            weights[i] = 0.0
 
-    if np.any(weights) > 0.:
+    if np.any(weights) > 0.0:
         weighted_uptakes = np.sum(uptakes * weights[np.newaxis, :], axis=1)
         weighted_uptakes /= np.sum(weights)
     else:
-        weighted_uptakes = divide_nonzero(fleet.current_uptake, np.sum(fleet.current_uptake), default=1. / nv)
+        weighted_uptakes = divide_nonzero(
+            fleet.current_uptake, np.sum(fleet.current_uptake), default=1.0 / nv
+        )
 
     # calculate the expected trade
     # delivered per vessel type
@@ -483,9 +485,8 @@ def calculate_evolution_expectation(fleet: Fleet, timeline: np.ndarray, idx: int
     total_multipliers = np.sum(existing + newbuild, axis=0)
     jump_start = jump_start_rel * total_multipliers
     for v, vessel in enumerate(fleet.assets):
-
         if fleet.allow_vessel[vessel.name] and fleet.newbuild_available[vessel.name]:
-            non_existent = np.where(existing[v, :] + newbuild[v, :] == 0.)
+            non_existent = np.where(existing[v, :] + newbuild[v, :] == 0.0)
             newbuild[v, non_existent] = jump_start[non_existent]
 
     # the expected multipliers are then
@@ -502,7 +503,9 @@ def calculate_evolution_expectation(fleet: Fleet, timeline: np.ndarray, idx: int
         fleet.expectation.set_newbuild_multipliers(idx, vessel.name, newbuild[v, :])
 
 
-def perform_fleet_evolution(fleet: Fleet, timeline: np.ndarray, time_step: float, idx: int) -> None:
+def perform_fleet_evolution(
+    fleet: Fleet, timeline: np.ndarray, time_step: float, idx: int
+) -> None:
     """
     Evolve the fleet forward in time. This includes scrapping old vessels, performing fuel conversions,
     delivering newbuilds from the orderbook and model newbuilds based on inertia and the discrete choice model.
@@ -518,7 +521,6 @@ def perform_fleet_evolution(fleet: Fleet, timeline: np.ndarray, time_step: float
     idx
         Current time-step index.
     """
-
     from navigate.fleet.conversion import perform_fuel_conversions
     from navigate.fleet.technology_adoption import (
         reconcile_newbuild_technology_caps,
@@ -545,7 +547,9 @@ def perform_fleet_evolution(fleet: Fleet, timeline: np.ndarray, time_step: float
     cap_count = limit_share * multipliers_total * (time_step / YEAR)
 
     # handle order book
-    increments, delivered_capacity, cap_count = calculate_orderbook_newbuilds(fleet, trade_gap, cap_count, idx)
+    increments, delivered_capacity, cap_count = calculate_orderbook_newbuilds(
+        fleet, trade_gap, cap_count, idx
+    )
     trade_gap -= delivered_capacity
 
     # reduce the current uptake shares by
@@ -555,7 +559,9 @@ def perform_fleet_evolution(fleet: Fleet, timeline: np.ndarray, time_step: float
 
     if trade_gap > TOLERANCE:
         # calculate newbuilds entering the fleet
-        increments_model, delivered_capacity = calculate_modelled_newbuilds(fleet, trade_gap, cap_count, idx)
+        increments_model, delivered_capacity = calculate_modelled_newbuilds(
+            fleet, trade_gap, cap_count, idx
+        )
         increments += increments_model
         trade_gap -= delivered_capacity
 
@@ -586,13 +592,16 @@ def perform_fleet_evolution(fleet: Fleet, timeline: np.ndarray, time_step: float
 
     # check that all the trade has been satisfied otherwise print a warning
     if trade > 0 and (trade_gap / trade) > 1e-3:
-        logger.warning("{}: Model was only able to satisfy {}% of the expected trade."
-                       .format(fleet, round((1. - trade_gap / trade) * 100.)))
+        logger.warning(
+            f"{fleet}: Model was only able to satisfy {round((1.0 - trade_gap / trade) * 100.0)}% of the expected trade."
+        )
 
     # calculate and assign current vessel uptake shares
-    if np.sum(increments) > 0.:
+    if np.sum(increments) > 0.0:
         cargo_miles = extract_cargo_miles(fleet.assets, idx)
-        fleet.current_uptake = (increments * cargo_miles) / np.dot(increments, cargo_miles)
+        fleet.current_uptake = (increments * cargo_miles) / np.dot(
+            increments, cargo_miles
+        )
 
     # save the current uptake to expectations
     current_uptake = divide_nonzero(fleet.current_uptake, np.sum(fleet.current_uptake))

@@ -20,8 +20,9 @@ def transfer_bunker(alg: BunkerAlgorithm) -> None:
     alg
         The algorithm instance.
     """
-
-    fleet_demand = {fleet_name: {f: 0. for f in alg.fuels} for fleet_name in alg.fleets}
+    fleet_demand = {
+        fleet_name: dict.fromkeys(alg.fuels, 0.0) for fleet_name in alg.fleets
+    }
 
     # precompute levy levels (independent of vessel/fuel) to avoid redundant getter calls
     levy_level_cache = {}
@@ -34,8 +35,7 @@ def transfer_bunker(alg: BunkerAlgorithm) -> None:
 
     # transfer bunker solution
     for (v, p, f), bunker in alg.bunker.items():
-
-        if bunker.X < alg.options.solution_tolerance:
+        if alg.options.solution_tolerance > bunker.X:
             continue
 
         # extract relevant nodes
@@ -56,7 +56,6 @@ def transfer_bunker(alg: BunkerAlgorithm) -> None:
         port.expectation.add_bunker_mass_expected(f, bunker.X)
 
         if alg.scope == BunkerScopeID.EXISTING:
-
             # calculate fuel expenses
             fuel_expenses = port.expectation.get_bunker_price(f, alg.idx) * bunker.X
 
@@ -67,31 +66,31 @@ def transfer_bunker(alg: BunkerAlgorithm) -> None:
 
             # transfer to vessel profile
             vessel.profile.add_consumed_mass(f, bunker.X, idx=alg.idx)
-            vessel.profile.add_converter_mass(vessel.fuel_type, f, bunker.X, idx=alg.idx)
+            vessel.profile.add_converter_mass(
+                vessel.fuel_type, f, bunker.X, idx=alg.idx
+            )
             vessel.profile.add_fuel_expenses(f, fuel_expenses, alg.idx)
 
             # transfer to port profile
             port.profile.add_bunker_mass(f, alg.multipliers[v] * bunker.X, alg.idx)
 
         else:
-
             # calculate fuel expenses
             fuel_expenses = port.expectation.get_bunker_price(f, alg.idx) * bunker.X
-            vessel.expectation.add_total_energy(alg.idx,  fuel_energy)
+            vessel.expectation.add_total_energy(alg.idx, fuel_energy)
             vessel.expectation.add_fuel_expenses(alg.idx, fuel_expenses)
 
         # transfer emissions
         for emission_name in alg.emissions:
-
             if alg.scope == BunkerScopeID.EXISTING:
-
-                emission_factor = port.expectation.get_bunker_wtt(f, emission_name, alg.idx)
+                emission_factor = port.expectation.get_bunker_wtt(
+                    f, emission_name, alg.idx
+                )
                 wtt_emissions = emission_factor * bunker.X
                 vessel.profile.add_wtt(f, emission_name, wtt_emissions, idx=alg.idx)
 
         # transfer levy penalties and subsidies
         for levy in alg.port_levies[port_name]:
-
             if not levy.vessel_is_policed(v):
                 continue
 
@@ -103,12 +102,11 @@ def transfer_bunker(alg: BunkerAlgorithm) -> None:
 
                 # track per-vessel levy emission units (collected / level)
                 level = levy_level_cache[levy.name]
-                if level > 0.:
+                if level > 0.0:
                     vessel.profile.add_levy_units(levy.name, collected / level, alg.idx)
 
     # transfer the fleet fuel demand
     if alg.scope == BunkerScopeID.EXPECTED:
-
         for fleet_name, fleet in alg.fleets.items():
             for f, demand in fleet_demand[fleet_name].items():
                 fleet.expectation.set_fuel_demand(alg.idx, f, demand)

@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 import logging
 
 import numpy as np
@@ -15,9 +17,12 @@ from navigate.util import TOLERANCE
 logger = logging.getLogger(__name__)
 
 
-def get_smoothed_energy_duals_technology(vessel: Vessel
-                                         ) -> tuple[dict[EnergyDemandTypeID, list[np.ndarray]],
-                                                    dict[EnergyDemandTypePortID, list[np.ndarray]]]:
+def get_smoothed_energy_duals_technology(
+    vessel: Vessel,
+) -> tuple[
+    dict[EnergyDemandTypeID, list[np.ndarray]],
+    dict[EnergyDemandTypePortID, list[np.ndarray]],
+]:
     """
     Return per-leg shadow-price beliefs amortised over the technology horizon.
 
@@ -35,14 +40,19 @@ def get_smoothed_energy_duals_technology(vessel: Vessel
     Tuple of (smoothed_pi_sea, smoothed_pi_port) in the same dict/list/array
     structure as the raw duals.
     """
-
     expectation = vessel.expectation
-    return expectation.get_belief_pi_sea_technology(), expectation.get_belief_pi_port_technology()
+    return (
+        expectation.get_belief_pi_sea_technology(),
+        expectation.get_belief_pi_port_technology(),
+    )
 
 
-def get_smoothed_energy_duals_speed(vessel: Vessel
-                                    ) -> tuple[dict[EnergyDemandTypeID, list[np.ndarray]],
-                                               dict[EnergyDemandTypePortID, list[np.ndarray]]]:
+def get_smoothed_energy_duals_speed(
+    vessel: Vessel,
+) -> tuple[
+    dict[EnergyDemandTypeID, list[np.ndarray]],
+    dict[EnergyDemandTypePortID, list[np.ndarray]],
+]:
     """
     Return per-leg shadow-price beliefs amortised over the speed horizon.
 
@@ -59,15 +69,13 @@ def get_smoothed_energy_duals_speed(vessel: Vessel
     Tuple of (smoothed_pi_sea, smoothed_pi_port) in the same dict/list/array
     structure as the raw duals.
     """
-
     expectation = vessel.expectation
     return expectation.get_belief_pi_sea_speed(), expectation.get_belief_pi_port_speed()
 
 
-def calculate_marginal_technology_saving(vessel: Vessel,
-                                         package: Package,
-                                         idx: slice
-                                         ) -> float | np.ndarray:
+def calculate_marginal_technology_saving(
+    vessel: Vessel, package: Package, idx: slice
+) -> float | np.ndarray:
     """
     Calculate the marginal cost saving from installing a set of technologies.
 
@@ -102,12 +110,13 @@ def calculate_marginal_technology_saving(vessel: Vessel,
     np.ndarray
         The marginal cost saving per time in `timeline`.
     """
-
     # calculate the residual energy after installing
     # the technologies on a per-leg basis and convert
     # to regional steps to allow evaluation with
     # shadow prices given on a regoinal-steps basis
-    residual_energy_sea, residual_energy_port = calculate_residual_energy(vessel, package, idx)
+    residual_energy_sea, residual_energy_port = calculate_residual_energy(
+        vessel, package, idx
+    )
     residual_energy_sea = convert_to_regional_steps(vessel, residual_energy_sea)
 
     # use operational energy (prior to technology installation)
@@ -119,28 +128,35 @@ def calculate_marginal_technology_saving(vessel: Vessel,
 
     shadow_price_sea, shadow_price_port = get_smoothed_energy_duals_technology(vessel)
 
-    _check_heuristic_consistency(vessel,
-                                 residual_energy_sea,
-                                 residual_energy_port,
-                                 idx,
-                                 msg="Technology installation")
+    _check_heuristic_consistency(
+        vessel,
+        residual_energy_sea,
+        residual_energy_port,
+        idx,
+        msg="Technology installation",
+    )
 
-    return _calculate_marginal_saving(residual_energy_sea,
-                                      residual_energy_port,
-                                      baseline_energy_sea,
-                                      baseline_energy_port,
-                                      shadow_price_sea,
-                                      shadow_price_port,
-                                      idx)
+    return _calculate_marginal_saving(
+        residual_energy_sea,
+        residual_energy_port,
+        baseline_energy_sea,
+        baseline_energy_port,
+        shadow_price_sea,
+        shadow_price_port,
+        idx,
+    )
 
 
-def calculate_marginal_speed_saving(vessel: Vessel,
-                                    residual_energy_sea: dict[EnergyDemandTypeID, list[float | np.ndarray]],
-                                    residual_energy_port: dict[EnergyDemandTypeID, list[float | np.ndarray]],
-                                    idx: int,
-                                    smoothed_duals: tuple[dict[EnergyDemandTypeID, list[np.ndarray]],
-                                                          dict[EnergyDemandTypeID, list[np.ndarray]]],
-                                    ) -> float | np.ndarray:
+def calculate_marginal_speed_saving(
+    vessel: Vessel,
+    residual_energy_sea: dict[EnergyDemandTypeID, list[float | np.ndarray]],
+    residual_energy_port: dict[EnergyDemandTypeID, list[float | np.ndarray]],
+    idx: int,
+    smoothed_duals: tuple[
+        dict[EnergyDemandTypeID, list[np.ndarray]],
+        dict[EnergyDemandTypeID, list[np.ndarray]],
+    ],
+) -> float | np.ndarray:
     """
     Calculate the marginal cost saving from a speed change.
 
@@ -177,7 +193,6 @@ def calculate_marginal_speed_saving(vessel: Vessel,
     float
         The marginal cost saving.
     """
-
     residual_energy_sea = convert_to_regional_steps(vessel, residual_energy_sea)
 
     baseline_energy_sea = vessel.expectation.get_energy_conservation_rhs_sea()
@@ -185,29 +200,30 @@ def calculate_marginal_speed_saving(vessel: Vessel,
 
     shadow_price_sea, shadow_price_port = smoothed_duals
 
-    _check_heuristic_consistency(vessel,
-                                 residual_energy_sea,
-                                 residual_energy_port,
-                                 idx,
-                                 msg="Speed management")
+    _check_heuristic_consistency(
+        vessel, residual_energy_sea, residual_energy_port, idx, msg="Speed management"
+    )
 
-    return _calculate_marginal_saving(residual_energy_sea,
-                                      residual_energy_port,
-                                      baseline_energy_sea,
-                                      baseline_energy_port,
-                                      shadow_price_sea,
-                                      shadow_price_port,
-                                      idx)
+    return _calculate_marginal_saving(
+        residual_energy_sea,
+        residual_energy_port,
+        baseline_energy_sea,
+        baseline_energy_port,
+        shadow_price_sea,
+        shadow_price_port,
+        idx,
+    )
 
 
-def _calculate_marginal_saving(residual_energy_sea: dict[EnergyDemandTypeID, list[float | np.ndarray]],
-                               residual_energy_port: dict[EnergyDemandTypeID, list[float | np.ndarray]],
-                               baseline_energy_sea: dict[EnergyDemandTypeID, list[float | np.ndarray]],
-                               baseline_energy_port: dict[EnergyDemandTypeID, list[float | np.ndarray]],
-                               shadow_price_sea: dict[EnergyDemandTypeID, list[np.ndarray]],
-                               shadow_price_port: dict[EnergyDemandTypeID, list[np.ndarray]],
-                               idx: int | slice
-                               ) -> float | np.ndarray:
+def _calculate_marginal_saving(
+    residual_energy_sea: dict[EnergyDemandTypeID, list[float | np.ndarray]],
+    residual_energy_port: dict[EnergyDemandTypeID, list[float | np.ndarray]],
+    baseline_energy_sea: dict[EnergyDemandTypeID, list[float | np.ndarray]],
+    baseline_energy_port: dict[EnergyDemandTypeID, list[float | np.ndarray]],
+    shadow_price_sea: dict[EnergyDemandTypeID, list[np.ndarray]],
+    shadow_price_port: dict[EnergyDemandTypeID, list[np.ndarray]],
+    idx: int | slice,
+) -> float | np.ndarray:
     """
     Calculate total marginal saving by summing savings at sea and in port.
 
@@ -233,17 +249,22 @@ def _calculate_marginal_saving(residual_energy_sea: dict[EnergyDemandTypeID, lis
     float | np.ndarray
         Total marginal cost saving (sea + port).
     """
-
-    savings_sea = _iterate_steps(residual_energy_sea, baseline_energy_sea, shadow_price_sea, idx)
-    savings_port = _iterate_steps(residual_energy_port, baseline_energy_port, shadow_price_port, idx)
+    savings_sea = _iterate_steps(
+        residual_energy_sea, baseline_energy_sea, shadow_price_sea, idx
+    )
+    savings_port = _iterate_steps(
+        residual_energy_port, baseline_energy_port, shadow_price_port, idx
+    )
 
     return savings_sea + savings_port
 
 
-def _iterate_steps(energies_residual: dict[EnergyDemandTypeID, list[float | np.ndarray]],
-                   energies_baseline: dict[EnergyDemandTypeID, list[float | np.ndarray]],
-                   shadow_prices: dict[EnergyDemandTypeID, list[np.ndarray]],
-                   idx: int | slice) -> float | np.ndarray:
+def _iterate_steps(
+    energies_residual: dict[EnergyDemandTypeID, list[float | np.ndarray]],
+    energies_baseline: dict[EnergyDemandTypeID, list[float | np.ndarray]],
+    shadow_prices: dict[EnergyDemandTypeID, list[np.ndarray]],
+    idx: int | slice,
+) -> float | np.ndarray:
     """
     Accumulate dual-variable savings across all energy demand types and steps.
 
@@ -267,26 +288,25 @@ def _iterate_steps(energies_residual: dict[EnergyDemandTypeID, list[float | np.n
     float | np.ndarray
         Sum of dual-variable savings over all energy types and steps.
     """
-
-    savings = 0.
+    savings = 0.0
 
     for energy_id, energy_residual in energies_residual.items():
         for step, energy_residual_step in enumerate(energy_residual):
-
             energy_baseline_step = energies_baseline[energy_id][step][idx]
             shadow_price = shadow_prices[energy_id][step][idx]
 
-            savings += _calculate_dual_variable_saving(energy_residual_step,
-                                                       energy_baseline_step,
-                                                       shadow_price)
+            savings += _calculate_dual_variable_saving(
+                energy_residual_step, energy_baseline_step, shadow_price
+            )
 
     return savings
 
 
-def _calculate_dual_variable_saving(energy_residual: float | np.ndarray,
-                                    energy_baseline: float | np.ndarray,
-                                    shadow_price: float | np.ndarray
-                                    ) -> float | np.ndarray:
+def _calculate_dual_variable_saving(
+    energy_residual: float | np.ndarray,
+    energy_baseline: float | np.ndarray,
+    shadow_price: float | np.ndarray,
+) -> float | np.ndarray:
     """
     Calculate the cost saved by changing the energy from the baseline to the residual energy.
 
@@ -307,16 +327,16 @@ def _calculate_dual_variable_saving(energy_residual: float | np.ndarray,
     float | np.ndarray
         The cost saved.
     """
-
     return shadow_price * (energy_baseline - energy_residual)
 
 
-def _check_heuristic_consistency(vessel: Vessel,
-                                 residual_energy_sea: dict[EnergyDemandTypeID, list[float | np.ndarray]],
-                                 residual_energy_port: dict[EnergyDemandTypeID, list[float | np.ndarray]],
-                                 idx: int | slice,
-                                 msg: str
-                                 ) -> None:
+def _check_heuristic_consistency(
+    vessel: Vessel,
+    residual_energy_sea: dict[EnergyDemandTypeID, list[float | np.ndarray]],
+    residual_energy_port: dict[EnergyDemandTypeID, list[float | np.ndarray]],
+    idx: int | slice,
+    msg: str,
+) -> None:
     """
     Check how often residual energies fall outside the validity region of the shadow prices.
 
@@ -338,33 +358,38 @@ def _check_heuristic_consistency(vessel: Vessel,
     msg
         Additional information to log.
     """
-
     if logger.getEffectiveLevel() != logging.DEBUG:
         return
 
     energy_low = vessel.expectation.get_energy_conservation_sarhslow_sea()
     energy_high = vessel.expectation.get_energy_conservation_sarhsup_sea()
-    total_sea, outside_sea = _check_polytopes(residual_energy_sea, energy_low, energy_high, idx)
+    total_sea, outside_sea = _check_polytopes(
+        residual_energy_sea, energy_low, energy_high, idx
+    )
 
     energy_low = vessel.expectation.get_energy_conservation_sarhslow_port()
     energy_high = vessel.expectation.get_energy_conservation_sarhsup_port()
-    total_port, outside_port = _check_polytopes(residual_energy_port, energy_low, energy_high, idx)
+    total_port, outside_port = _check_polytopes(
+        residual_energy_port, energy_low, energy_high, idx
+    )
 
     total = total_sea + total_port
     outside = outside_sea + outside_port
 
     fraction = outside / total
 
-    if fraction > 0.:
+    if fraction > 0.0:
         logging.debug(
-            f"{vessel}: {msg} evaluation extrapolated outside polytype in : {fraction:.1%} of instances.")
+            f"{vessel}: {msg} evaluation extrapolated outside polytype in : {fraction:.1%} of instances."
+        )
 
 
-def _check_polytopes(energies_residual: dict[EnergyDemandTypeID, list[float | np.ndarray]],
-                     energies_low: dict[EnergyDemandTypeID, list[np.ndarray]],
-                     energies_high: dict[EnergyDemandTypeID, list[np.ndarray]],
-                     idx: int | slice,
-                     ) -> tuple[int, int]:
+def _check_polytopes(
+    energies_residual: dict[EnergyDemandTypeID, list[float | np.ndarray]],
+    energies_low: dict[EnergyDemandTypeID, list[np.ndarray]],
+    energies_high: dict[EnergyDemandTypeID, list[np.ndarray]],
+    idx: int | slice,
+) -> tuple[int, int]:
     """
     Count how many residual-energy instances lie inside vs. outside polytope bounds.
 
@@ -389,13 +414,11 @@ def _check_polytopes(energies_residual: dict[EnergyDemandTypeID, list[float | np
         A tuple `(total, outside)` where `total` is the number of evaluated instances and
         `outside` is the number of instances outside the bounds.
     """
-
     inside = 0
     outside = 0
 
     for energy_id, energy_residual in energies_residual.items():
         for step, _energy in enumerate(energy_residual):
-
             energy_low = energies_low[energy_id][step][idx]
             energy_high = energies_high[energy_id][step][idx]
 

@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 import numpy as np
 
 from navigate.core import Scalar
@@ -15,10 +17,11 @@ from navigate.exceptions import PowerCapacityError
 from navigate.util import TOLERANCE, to_numpy
 
 
-def calculate_speed_bounds(speeds_min: np.ndarray,
-                           speeds_max: np.ndarray,
-                           speeds: np.ndarray,
-                           ) -> tuple[float, float]:
+def calculate_speed_bounds(
+    speeds_min: np.ndarray,
+    speeds_max: np.ndarray,
+    speeds: np.ndarray,
+) -> tuple[float, float]:
     """
     Calculate the minimum and maximum mean speed achievable by a vessel based on its technical minimum and maximum.
 
@@ -36,7 +39,6 @@ def calculate_speed_bounds(speeds_min: np.ndarray,
     tuple[float, float]
         Minimum and maximum mean speed achievable by the vessel.
     """
-
     low = np.min(speeds_min)
     high = np.max(speeds_max)
 
@@ -63,19 +65,13 @@ def calculate_technical_speed_limits(vessel: Vessel) -> tuple[np.ndarray, np.nda
     tuple[np.ndarray, np.ndarray]
         Minimum speed per leg and maximum speed per leg.
     """
-
     load = vessel.propulsion_load
 
-    if isinstance(load, Scalar):
-        return -np.inf, np.inf
-
-    # must per definition either be Variable, Curve or Surface
-    elif load.is_variable():
+    if isinstance(load, Scalar) or load.is_variable():
         return -np.inf, np.inf
 
     # must per definition be Curve or Surface
     else:
-
         converter = vessel.power_system.propulsion
         power_maximum = converter.power_capacity.get()
         minimum_load = converter.minimum_load
@@ -130,7 +126,6 @@ def loads_are_convex(vessel: Vessel) -> bool:
     bool
         Whether all loads are based on a convex function.
     """
-
     propulsion = _load_is_convex(vessel.propulsion_load)
     electrical = _load_is_convex(vessel.electrical_load_at_sea)
     heat = _load_is_convex(vessel.heat_load_at_sea)
@@ -160,7 +155,6 @@ def verify_power_capacity(vessel: Vessel, idx: int) -> None:
     PowerCapacityError
         If any energy demand exceeds what the serving converter can deliver.
     """
-
     expectation = vessel.expectation
     power_system = vessel.power_system
 
@@ -177,22 +171,27 @@ def verify_power_capacity(vessel: Vessel, idx: int) -> None:
     violations = []
 
     for energies, times, step_label, demand_types in domains:
-
         for demand_type in demand_types:
             converter = power_system.get_converter_by_energy_type(demand_type)
-            violations += _find_capacity_violations(converter, demand_type, energies[demand_type], times, step_label)
+            violations += _find_capacity_violations(
+                converter, demand_type, energies[demand_type], times, step_label
+            )
 
     if violations:
-        raise PowerCapacityError("{}: energy demand exceeds installed converter power:\n{}"
-                                 .format(vessel, "\n".join(violations)))
+        raise PowerCapacityError(
+            "{}: energy demand exceeds installed converter power:\n{}".format(
+                vessel, "\n".join(violations)
+            )
+        )
 
 
-def _find_capacity_violations(converter: Converter,
-                              demand_type: EnergyDemandTypeID,
-                              energies: list[float],
-                              times: list[float],
-                              step_label: str
-                              ) -> list[str]:
+def _find_capacity_violations(
+    converter: Converter,
+    demand_type: EnergyDemandTypeID,
+    energies: list[float],
+    times: list[float],
+    step_label: str,
+) -> list[str]:
     """
     Compare one energy demand against a converter's deliverable energy per leg or port.
 
@@ -213,21 +212,19 @@ def _find_capacity_violations(converter: Converter,
     -------
     One message per step whose demand exceeds the deliverable energy.
     """
-
     power_capacity = converter.power_capacity.get()
     violations = []
 
     for step, (energy, time) in enumerate(zip(energies, times)):
-
         deliverable = power_capacity * time * MWD_TO_GJ
 
-        if energy - deliverable <= TOLERANCE * max(1., deliverable):
+        if energy - deliverable <= TOLERANCE * max(1.0, deliverable):
             continue
 
-        implied_power = energy / (time * MWD_TO_GJ) if time > 0. else float("inf")
-        violations.append("  {} demand on {} {} requires {:.2f} MW but {} has {:.2f} MW installed."
-                          .format(demand_type.name.lower(), step_label, step,
-                                  implied_power, converter, power_capacity))
+        implied_power = energy / (time * MWD_TO_GJ) if time > 0.0 else float("inf")
+        violations.append(
+            f"  {demand_type.name.lower()} demand on {step_label} {step} requires {implied_power:.2f} MW but {converter} has {power_capacity:.2f} MW installed."
+        )
 
     return violations
 
@@ -242,7 +239,9 @@ def _expand_speed_to_legs(vessel, speed: float | list[float]) -> np.ndarray:
     return a
 
 
-def _calculate_speed_extremum(vessel: Vessel, power: float, load: Curve | Surface) -> float | list[float]:
+def _calculate_speed_extremum(
+    vessel: Vessel, power: float, load: Curve | Surface
+) -> float | list[float]:
     """
     Calculate the speed at which a given minimum or maximum power is reached for a vessel.
 
@@ -260,7 +259,6 @@ def _calculate_speed_extremum(vessel: Vessel, power: float, load: Curve | Surfac
     float | list[float]
         The speed(s) at which the power is reached.
     """
-
     if load.is_surface():
         utilization = to_numpy(vessel.route.capacity_utilizations)
         speed = load.reverse_lookup(power, y=utilization, interpolate=True)
@@ -284,12 +282,7 @@ def _load_is_convex(load: Scalar | Variable | Curve | Surface) -> bool:
     bool
         Whether the load level is based on a convex function.
     """
-
-    if isinstance(load, Scalar):
-        return True
-
-    # must per definition either be Variable, Curve or Surface
-    elif load.is_variable():
+    if isinstance(load, Scalar) or load.is_variable():
         return True
 
     # must per definition be Curve or Surface

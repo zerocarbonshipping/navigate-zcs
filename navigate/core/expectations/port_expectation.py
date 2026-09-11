@@ -26,20 +26,36 @@ class PortExpectation(_Expectation):
         self._bunker_price_overwrite: dict[str, np.ndarray] = {}
         self._bunker_wtt_overwrite: dict[tuple[str, str], np.ndarray] = {}
 
-        self._bunker_supply: dict[str, np.ndarray] = {}   # expected future bunker supply, tons/year
-        self._bunker_price: dict[str, np.ndarray] = {}    # dict[fuel_name: np.ndarray], expected future bunker price, USD/ton
-        self._bunker_wtt: dict[tuple[str, str], np.ndarray] = {}      # expected future bunker WTT, ton/ton
+        self._bunker_supply: dict[
+            str, np.ndarray
+        ] = {}  # expected future bunker supply, tons/year
+        self._bunker_price: dict[
+            str, np.ndarray
+        ] = {}  # dict[fuel_name: np.ndarray], expected future bunker price, USD/ton
+        self._bunker_wtt: dict[
+            tuple[str, str], np.ndarray
+        ] = {}  # expected future bunker WTT, ton/ton
 
         # bunkering used for inertia
-        self._bunker_mass_expected: dict[str, float] = {}     # bunkered in previous nested time-step, tons
-        self._bunker_mass_existing: dict[str, float] = {}     # dict[fuel_name: float], bunkered in previous time-step, tons
+        self._bunker_mass_expected: dict[
+            str, float
+        ] = {}  # bunkered in previous nested time-step, tons
+        self._bunker_mass_existing: dict[
+            str, float
+        ] = {}  # dict[fuel_name: float], bunkered in previous time-step, tons
 
         # shore power
-        self._shore_power_cost: np.ndarray = EMPTY_FLOAT               # np.ndarray, USD/GJ
-        self._shore_power_connection_share: np.ndarray = EMPTY_FLOAT    # np.ndarray, fraction [0,1]
-        self._shore_power_emission_factor: dict[str, np.ndarray] = {}   # dict[emission_name: np.ndarray], ton/GJ
+        self._shore_power_cost: np.ndarray = EMPTY_FLOAT  # np.ndarray, USD/GJ
+        self._shore_power_connection_share: np.ndarray = (
+            EMPTY_FLOAT  # np.ndarray, fraction [0,1]
+        )
+        self._shore_power_emission_factor: dict[
+            str, np.ndarray
+        ] = {}  # dict[emission_name: np.ndarray], ton/GJ
 
-    def initialize(self, length: int, fuels: dict[str, Fuel], emissions: dict[str, Emission]) -> None:
+    def initialize(
+        self, length: int, fuels: dict[str, Fuel], emissions: dict[str, Emission]
+    ) -> None:
         self._initialize_expectation(length)
 
         self._handling_cost = self._default_dict_array(fuels)
@@ -47,7 +63,9 @@ class PortExpectation(_Expectation):
         self._bunkering_limit = self._default_dict_array(fuels, default=np.inf)
 
         self._bunker_price_overwrite = self._default_dict_array(fuels, default=np.nan)
-        self._bunker_wtt_overwrite = self._default_tuple_dict_array(fuels, emissions, default=np.nan)
+        self._bunker_wtt_overwrite = self._default_tuple_dict_array(
+            fuels, emissions, default=np.nan
+        )
 
         self._bunker_price = self._default_dict_array(fuels)
         self._bunker_wtt = self._default_tuple_dict_array(fuels, emissions)
@@ -72,25 +90,45 @@ class PortExpectation(_Expectation):
     def reset_bunker_mass_existing(self) -> None:
         self._reset_dict_float(self._bunker_mass_existing)
 
-    def set_handling_cost(self, idx: int, fuel_name: str, handling_cost: np.ndarray) -> None:
+    def set_handling_cost(
+        self, idx: int, fuel_name: str, handling_cost: np.ndarray
+    ) -> None:
         self._handling_cost[fuel_name][idx:] = handling_cost
 
-    def set_bunkering_limit(self, idx: int, fuel_name: str, bunkering_limit: np.ndarray) -> None:
+    def set_bunkering_limit(
+        self, idx: int, fuel_name: str, bunkering_limit: np.ndarray
+    ) -> None:
         self._bunkering_limit[fuel_name][idx:] = bunkering_limit
 
-    def set_bunker_price_overwrite(self, idx: int, fuel_name: str, bunker_price_overwrite: np.ndarray) -> None:
+    def set_bunker_price_overwrite(
+        self, idx: int, fuel_name: str, bunker_price_overwrite: np.ndarray
+    ) -> None:
         self._bunker_price_overwrite[fuel_name][idx:] = bunker_price_overwrite
 
-    def set_bunker_wtt_overwrite(self, idx: int, fuel_name: str, emission_name: str, bunker_wtt_overwrite: np.ndarray) -> None:
-        self._bunker_wtt_overwrite[(fuel_name, emission_name)][idx:] = bunker_wtt_overwrite
+    def set_bunker_wtt_overwrite(
+        self,
+        idx: int,
+        fuel_name: str,
+        emission_name: str,
+        bunker_wtt_overwrite: np.ndarray,
+    ) -> None:
+        self._bunker_wtt_overwrite[(fuel_name, emission_name)][idx:] = (
+            bunker_wtt_overwrite
+        )
 
-    def set_bunker_supply(self, idx: int, fuel_name: str, bunker_supply: np.ndarray) -> None:
+    def set_bunker_supply(
+        self, idx: int, fuel_name: str, bunker_supply: np.ndarray
+    ) -> None:
         self._bunker_supply[fuel_name][idx:] = bunker_supply
 
-    def set_bunker_price(self, idx: int, fuel_name: str, bunker_price: np.ndarray) -> None:
+    def set_bunker_price(
+        self, idx: int, fuel_name: str, bunker_price: np.ndarray
+    ) -> None:
         self._bunker_price[fuel_name][idx:] = bunker_price
 
-    def set_bunker_wtt(self, idx: int, fuel_name: str, emission_name: str, bunker_wtt: np.ndarray) -> None:
+    def set_bunker_wtt(
+        self, idx: int, fuel_name: str, emission_name: str, bunker_wtt: np.ndarray
+    ) -> None:
         self._bunker_wtt[(fuel_name, emission_name)][idx:] = bunker_wtt
 
     def add_bunker_mass_expected(self, fuel_name: str, fuel_mass: float) -> None:
@@ -99,25 +137,39 @@ class PortExpectation(_Expectation):
     def add_bunker_mass_existing(self, fuel_name: str, fuel_mass: float) -> None:
         self._bunker_mass_existing[fuel_name] += fuel_mass
 
-    def get_handling_cost(self, fuel_name: str, idx: int | slice = np.s_[:]) -> np.ndarray:
+    def get_handling_cost(
+        self, fuel_name: str, idx: int | slice = np.s_[:]
+    ) -> np.ndarray:
         return self._handling_cost[fuel_name][idx]
 
-    def get_bunkering_limit(self, fuel_name: str, idx: int | slice = np.s_[:]) -> np.ndarray:
+    def get_bunkering_limit(
+        self, fuel_name: str, idx: int | slice = np.s_[:]
+    ) -> np.ndarray:
         return self._bunkering_limit[fuel_name][idx]
 
-    def get_bunker_price_overwrite(self, fuel_name: str, idx: int | slice = np.s_[:]) -> np.ndarray:
+    def get_bunker_price_overwrite(
+        self, fuel_name: str, idx: int | slice = np.s_[:]
+    ) -> np.ndarray:
         return self._bunker_price_overwrite[fuel_name][idx]
 
-    def get_bunker_wtt_overwrite(self, fuel_name: str, emission_name: str, idx: int | slice = np.s_[:]) -> np.ndarray:
+    def get_bunker_wtt_overwrite(
+        self, fuel_name: str, emission_name: str, idx: int | slice = np.s_[:]
+    ) -> np.ndarray:
         return self._bunker_wtt_overwrite[(fuel_name, emission_name)][idx]
 
-    def get_bunker_supply(self, fuel_name: str, idx: int | slice = np.s_[:]) -> np.ndarray:
+    def get_bunker_supply(
+        self, fuel_name: str, idx: int | slice = np.s_[:]
+    ) -> np.ndarray:
         return self._bunker_supply[fuel_name][idx]
 
-    def get_bunker_price(self, fuel_name: str, idx: int | slice = np.s_[:]) -> np.ndarray:
+    def get_bunker_price(
+        self, fuel_name: str, idx: int | slice = np.s_[:]
+    ) -> np.ndarray:
         return self._bunker_price[fuel_name][idx]
 
-    def get_bunker_wtt(self, fuel_name: str, emission_name: str, idx: int | slice = np.s_[:]) -> np.ndarray:
+    def get_bunker_wtt(
+        self, fuel_name: str, emission_name: str, idx: int | slice = np.s_[:]
+    ) -> np.ndarray:
         return self._bunker_wtt[(fuel_name, emission_name)][idx]
 
     def get_bunker_mass_expected(self, fuel_name: str) -> float:
@@ -133,14 +185,20 @@ class PortExpectation(_Expectation):
     def set_shore_power_connection_share(self, idx: int, share: np.ndarray) -> None:
         self._shore_power_connection_share[idx:] = share
 
-    def set_shore_power_emission_factor(self, idx: int, emission_name: str, ef: np.ndarray) -> None:
+    def set_shore_power_emission_factor(
+        self, idx: int, emission_name: str, ef: np.ndarray
+    ) -> None:
         self._shore_power_emission_factor[emission_name][idx:] = ef
 
     def get_shore_power_cost(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         return self._shore_power_cost[idx]
 
-    def get_shore_power_connection_share(self, idx: int | slice = np.s_[:]) -> np.ndarray:
+    def get_shore_power_connection_share(
+        self, idx: int | slice = np.s_[:]
+    ) -> np.ndarray:
         return self._shore_power_connection_share[idx]
 
-    def get_shore_power_emission_factor(self, emission_name: str, idx: int | slice = np.s_[:]) -> np.ndarray:
+    def get_shore_power_emission_factor(
+        self, emission_name: str, idx: int | slice = np.s_[:]
+    ) -> np.ndarray:
         return self._shore_power_emission_factor[emission_name][idx]

@@ -2,6 +2,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
+from __future__ import annotations
+
+
 class _GeneralNode:
     def __repr__(self):
-        return "{}".format(type(self).__name__)
+        return f"{type(self).__name__}"

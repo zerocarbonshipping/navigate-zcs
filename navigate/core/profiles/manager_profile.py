@@ -8,7 +8,9 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.initial_values import EMPTY_FLOAT
-from navigate.core.profiles._infrastructure_aggregate_profile import _InfrastructureAggregateProfile
+from navigate.core.profiles._infrastructure_aggregate_profile import (
+    _InfrastructureAggregateProfile,
+)
 from navigate.core.profiles._plant_aggregate_profile import _PlantAggregateProfile
 from navigate.core.profiles._vessel_aggregate_profile import _VesselAggregateProfile
 
@@ -19,41 +21,67 @@ if TYPE_CHECKING:
     from navigate.core.nodes.process import Process
 
 
-class ManagerProfile(_VesselAggregateProfile, _PlantAggregateProfile, _InfrastructureAggregateProfile):
+class ManagerProfile(
+    _VesselAggregateProfile, _PlantAggregateProfile, _InfrastructureAggregateProfile
+):
     def __init__(self):
         _VesselAggregateProfile.__init__(self)
         _PlantAggregateProfile.__init__(self)
         _InfrastructureAggregateProfile.__init__(self)
 
         # computational time
-        self._total_time: np.ndarray = EMPTY_FLOAT                 # complete FT simulation time
-        self._expected_build_time: np.ndarray = EMPTY_FLOAT        # LP build time (part of FT)
-        self._expected_solve_time: np.ndarray = EMPTY_FLOAT        # LP solve time (part of FT)
-        self._expected_transfer_time: np.ndarray = EMPTY_FLOAT     # LP transfer time (part of FT)
-        self._speed_time: np.ndarray = EMPTY_FLOAT                 # speed management time (part of FT)
-        self._retrofit_time: np.ndarray = EMPTY_FLOAT              # EE retrofit time (part of FT)
-        self._fleet_evolution_time: np.ndarray = EMPTY_FLOAT       # fleet evolution time (part of FT)
-        self._producer_evolution_time: np.ndarray = EMPTY_FLOAT    # producer evolution time (part of FT)
-        self._existing_build_time: np.ndarray = EMPTY_FLOAT        # LP model build time (part of FT)
-        self._existing_solve_time: np.ndarray = EMPTY_FLOAT        # LP model solve time (part of FT)
-        self._existing_transfer_time: np.ndarray = EMPTY_FLOAT     # LP transfer time (part of FT)
-        self._temporal_time: np.ndarray = EMPTY_FLOAT              # temporal + expectations
-        self._vessel_time: np.ndarray = EMPTY_FLOAT                # vessel ops + charter
-        self._fuel_supply_time: np.ndarray = EMPTY_FLOAT           # fuel supply chain
-        self._policy_time: np.ndarray = EMPTY_FLOAT                # policy + regulation
-        self._fleet_state_time: np.ndarray = EMPTY_FLOAT           # age + evolution + tech
-        self._profile_agg_time: np.ndarray = EMPTY_FLOAT           # profile aggregation
-        self._overhead_time: np.ndarray = EMPTY_FLOAT              # init overhead
+        self._total_time: np.ndarray = EMPTY_FLOAT  # complete FT simulation time
+        self._expected_build_time: np.ndarray = (
+            EMPTY_FLOAT  # LP build time (part of FT)
+        )
+        self._expected_solve_time: np.ndarray = (
+            EMPTY_FLOAT  # LP solve time (part of FT)
+        )
+        self._expected_transfer_time: np.ndarray = (
+            EMPTY_FLOAT  # LP transfer time (part of FT)
+        )
+        self._speed_time: np.ndarray = EMPTY_FLOAT  # speed management time (part of FT)
+        self._retrofit_time: np.ndarray = EMPTY_FLOAT  # EE retrofit time (part of FT)
+        self._fleet_evolution_time: np.ndarray = (
+            EMPTY_FLOAT  # fleet evolution time (part of FT)
+        )
+        self._producer_evolution_time: np.ndarray = (
+            EMPTY_FLOAT  # producer evolution time (part of FT)
+        )
+        self._existing_build_time: np.ndarray = (
+            EMPTY_FLOAT  # LP model build time (part of FT)
+        )
+        self._existing_solve_time: np.ndarray = (
+            EMPTY_FLOAT  # LP model solve time (part of FT)
+        )
+        self._existing_transfer_time: np.ndarray = (
+            EMPTY_FLOAT  # LP transfer time (part of FT)
+        )
+        self._temporal_time: np.ndarray = EMPTY_FLOAT  # temporal + expectations
+        self._vessel_time: np.ndarray = EMPTY_FLOAT  # vessel ops + charter
+        self._fuel_supply_time: np.ndarray = EMPTY_FLOAT  # fuel supply chain
+        self._policy_time: np.ndarray = EMPTY_FLOAT  # policy + regulation
+        self._fleet_state_time: np.ndarray = EMPTY_FLOAT  # age + evolution + tech
+        self._profile_agg_time: np.ndarray = EMPTY_FLOAT  # profile aggregation
+        self._overhead_time: np.ndarray = EMPTY_FLOAT  # init overhead
 
-    def initialize(self, timeline: np.ndarray, emissions: dict[str, Emission],
-                   feedstocks: dict[str, Feedstock], fuels: dict[str, Fuel],
-                   processes: dict[str, Process],
-                   emissions_lifetime: float,
-                   regulation_names: list[str] = (), levy_names: list[str] = ()) -> None:
+    def initialize(
+        self,
+        timeline: np.ndarray,
+        emissions: dict[str, Emission],
+        feedstocks: dict[str, Feedstock],
+        fuels: dict[str, Fuel],
+        processes: dict[str, Process],
+        emissions_lifetime: float,
+        regulation_names: list[str] = (),
+        levy_names: list[str] = (),
+    ) -> None:
 
         self._initialize_base(timeline)
         self._initialize_fuel_base(fuels)
-        self._initialize_fuel_consumer(fuels, emissions, emissions_lifetime, regulation_names, levy_names)
+        self._initialize_fuel_consumer(
+            fuels, emissions, emissions_lifetime, regulation_names, levy_names
+        )
         self._initialize_fuel_producer(feedstocks, fuels, processes)
         self._initialize_fuel_infrastructure(fuels)
         self._initialize_vessel_aggregate()
@@ -89,7 +117,9 @@ class ManagerProfile(_VesselAggregateProfile, _PlantAggregateProfile, _Infrastru
     def add_expected_solve_time(self, time: float, idx: int | slice = np.s_[:]) -> None:
         self._expected_solve_time[idx] += time
 
-    def add_expected_transfer_time(self, time: float, idx: int | slice = np.s_[:]) -> None:
+    def add_expected_transfer_time(
+        self, time: float, idx: int | slice = np.s_[:]
+    ) -> None:
         self._expected_transfer_time[idx] += time
 
     def set_speed_time(self, idx: int, time: float) -> None:
@@ -98,10 +128,14 @@ class ManagerProfile(_VesselAggregateProfile, _PlantAggregateProfile, _Infrastru
     def set_retrofit_time(self, idx: int, time: float) -> None:
         self._retrofit_time[idx] = time
 
-    def add_fleet_evolution_time(self, time: float, idx: int | slice = np.s_[:]) -> None:
+    def add_fleet_evolution_time(
+        self, time: float, idx: int | slice = np.s_[:]
+    ) -> None:
         self._fleet_evolution_time[idx] += time
 
-    def add_producer_evolution_time(self, time: float, idx: int | slice = np.s_[:]) -> None:
+    def add_producer_evolution_time(
+        self, time: float, idx: int | slice = np.s_[:]
+    ) -> None:
         self._producer_evolution_time[idx] += time
 
     def set_existing_build_time(self, idx: int, time: float) -> None:

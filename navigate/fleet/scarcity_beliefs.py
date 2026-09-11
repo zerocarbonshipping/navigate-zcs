@@ -1,12 +1,16 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 import numpy as np
 
 from navigate.util import derive_smoothing_alpha, update_belief_path
 
 
-def update_vessel_scarcity_beliefs(fleets: dict, timeline: np.ndarray, idx: int) -> None:
+def update_vessel_scarcity_beliefs(
+    fleets: dict, timeline: np.ndarray, idx: int
+) -> None:
     """
     Update per-leg shadow-price beliefs for every vessel.
 
@@ -29,9 +33,7 @@ def update_vessel_scarcity_beliefs(fleets: dict, timeline: np.ndarray, idx: int)
     idx
         Current outer time-step index.
     """
-
     for fleet in fleets.values():
-
         tech_horizon = fleet.technology_horizon.get()
         speed_horizon = fleet.speed_horizon.get()
 
@@ -44,10 +46,21 @@ def update_vessel_scarcity_beliefs(fleets: dict, timeline: np.ndarray, idx: int)
             raw_pi_sea = expectation.get_energy_conservation_pi_sea()
             raw_pi_port = expectation.get_energy_conservation_pi_port()
 
-            _smooth_pi_dict(raw_pi_sea, expectation.get_belief_pi_sea_technology(), alpha_tech, idx)
-            _smooth_pi_dict(raw_pi_port, expectation.get_belief_pi_port_technology(), alpha_tech, idx)
-            _smooth_pi_dict(raw_pi_sea, expectation.get_belief_pi_sea_speed(), alpha_speed, idx)
-            _smooth_pi_dict(raw_pi_port, expectation.get_belief_pi_port_speed(), alpha_speed, idx)
+            _smooth_pi_dict(
+                raw_pi_sea, expectation.get_belief_pi_sea_technology(), alpha_tech, idx
+            )
+            _smooth_pi_dict(
+                raw_pi_port,
+                expectation.get_belief_pi_port_technology(),
+                alpha_tech,
+                idx,
+            )
+            _smooth_pi_dict(
+                raw_pi_sea, expectation.get_belief_pi_sea_speed(), alpha_speed, idx
+            )
+            _smooth_pi_dict(
+                raw_pi_port, expectation.get_belief_pi_port_speed(), alpha_speed, idx
+            )
 
 
 def record_investment_signals(fleets: dict, idx: int) -> None:
@@ -65,7 +78,6 @@ def record_investment_signals(fleets: dict, idx: int) -> None:
     idx
         Current outer time-step index.
     """
-
     for fleet in fleets.values():
         for vessel in fleet.vessels:
             expectation = vessel.expectation
@@ -73,24 +85,33 @@ def record_investment_signals(fleets: dict, idx: int) -> None:
             rhs_sea = expectation.get_energy_conservation_rhs_sea()
             rhs_port = expectation.get_energy_conservation_rhs_port()
 
-            signal_technology = _energy_weighted_signal(expectation.get_belief_pi_sea_technology(),
-                                                        expectation.get_belief_pi_port_technology(),
-                                                        rhs_sea, rhs_port, idx)
-            signal_speed = _energy_weighted_signal(expectation.get_belief_pi_sea_speed(),
-                                                   expectation.get_belief_pi_port_speed(),
-                                                   rhs_sea, rhs_port, idx)
+            signal_technology = _energy_weighted_signal(
+                expectation.get_belief_pi_sea_technology(),
+                expectation.get_belief_pi_port_technology(),
+                rhs_sea,
+                rhs_port,
+                idx,
+            )
+            signal_speed = _energy_weighted_signal(
+                expectation.get_belief_pi_sea_speed(),
+                expectation.get_belief_pi_port_speed(),
+                rhs_sea,
+                rhs_port,
+                idx,
+            )
 
             profile = vessel.profile
             profile.set_investment_signal_technology(idx, signal_technology)
             profile.set_investment_signal_speed(idx, signal_speed)
 
 
-def _energy_weighted_signal(belief_sea: dict,
-                            belief_port: dict,
-                            rhs_sea: dict,
-                            rhs_port: dict,
-                            idx: int,
-                            ) -> float:
+def _energy_weighted_signal(
+    belief_sea: dict,
+    belief_port: dict,
+    rhs_sea: dict,
+    rhs_port: dict,
+    idx: int,
+) -> float:
     """
     Collapse per-(energy-type, leg) belief duals into one energy-weighted scalar.
 
@@ -115,9 +136,8 @@ def _energy_weighted_signal(belief_sea: dict,
     -------
     Energy-weighted average dual at `idx`, or ``np.nan`` when there is no demand.
     """
-
-    weighted_sum = 0.
-    weight_total = 0.
+    weighted_sum = 0.0
+    weight_total = 0.0
 
     for belief_dict, rhs_dict in ((belief_sea, rhs_sea), (belief_port, rhs_port)):
         for energy_id, belief_legs in belief_dict.items():
@@ -127,17 +147,18 @@ def _energy_weighted_signal(belief_sea: dict,
                 weighted_sum += belief_leg[idx] * weight
                 weight_total += weight
 
-    if weight_total <= 0.:
+    if weight_total <= 0.0:
         return np.nan
 
     return weighted_sum / weight_total
 
 
-def _smooth_pi_dict(raw_dict: dict,
-                    belief_dict: dict,
-                    alpha: float,
-                    idx: int,
-                    ) -> None:
+def _smooth_pi_dict(
+    raw_dict: dict,
+    belief_dict: dict,
+    alpha: float,
+    idx: int,
+) -> None:
     """
     Apply per-leg EMA smoothing to every array in a pi dict, in place.
 
@@ -153,7 +174,6 @@ def _smooth_pi_dict(raw_dict: dict,
     idx
         Current outer time-step index. Only ``s >= idx`` are updated.
     """
-
     for energy_id, raw_legs in raw_dict.items():
         belief_legs = belief_dict[energy_id]
         for raw_leg, belief_leg in zip(raw_legs, belief_legs):

@@ -22,7 +22,6 @@ def remove_redundant_vessel(alg: BunkerAlgorithm, v: str) -> None:
     v
         Name of vessel being removed from the model.
     """
-
     # remove all non-model related attributes
     del alg.vessels[v]
     del alg.multipliers[v]
@@ -61,37 +60,29 @@ def remove_redundant_fuels_from_ports(alg: BunkerAlgorithm) -> None:
     alg
         The algorithm instance.
     """
-
     # remove vessel variables
-    for (v, p, f) in list(alg.bunker.keys()):
-
+    for v, p, f in list(alg.bunker.keys()):
         port = alg.vessels[v].route.ports[p]
 
         if not port.is_bunkering_allowed(f):
-
             # remove bunker variable
             if (v, p, f) in alg.bunker:
-
                 alg.model.remove(alg.bunker[v, p, f])
                 del alg.bunker[v, p, f]
 
     # remove vessel constraints
-    for (v, p, f) in list(alg.fuel_inertia.keys()):
-
+    for v, p, f in list(alg.fuel_inertia.keys()):
         # notice 'p' is the port name, not the port index
         port = alg.ports[p]
 
         if not port.is_bunkering_allowed(f):
-
             # remove fuel inertia constraint
             if (v, p, f) in alg.fuel_inertia:
-
                 alg.model.remove(alg.fuel_inertia[v, p, f])
                 del alg.fuel_inertia[v, p, f]
 
     # remove fair-share constraints
-    for (v, p, f) in list(alg.fair_share_fuel.keys()):
-
+    for v, p, f in list(alg.fair_share_fuel.keys()):
         # notice 'p' is the port name, not the port index
         port = alg.ports[p]
 
@@ -99,9 +90,7 @@ def remove_redundant_fuels_from_ports(alg: BunkerAlgorithm) -> None:
         supply = port.expectation.get_bunker_supply(f, alg.idx)
 
         if (not available) or (not np.isfinite(supply)):
-
             if (v, p, f) in alg.fair_share_fuel:
-
                 alg.model.remove(alg.fair_share_fuel[v, p, f])
                 del alg.fair_share_fuel[v, p, f]
 
@@ -115,11 +104,8 @@ def remove_redundant_regulations(alg: BunkerAlgorithm) -> None:
     alg
         The algorithm instance.
     """
-
     for key in list(alg.remedial_factor_individual.keys()):
-
         if key not in alg.regulation_rhs_individual:
-
             # remove variable
             alg.model.remove(alg.remedial_factor_individual[key])
             del alg.remedial_factor_individual[key]
@@ -129,9 +115,7 @@ def remove_redundant_regulations(alg: BunkerAlgorithm) -> None:
             del alg.regulation_threshold_individual[key]
 
     for key in list(alg.remedial_factor_flexibility.keys()):
-
         if key not in alg.regulation_total_rhs_flexibility:
-
             # remove variable
             alg.model.remove(alg.remedial_factor_flexibility[key])
             del alg.remedial_factor_flexibility[key]
@@ -142,7 +126,10 @@ def remove_redundant_regulations(alg: BunkerAlgorithm) -> None:
 
 
 def remove_model_attribute_and_dict_element(
-    alg: BunkerAlgorithm, to_remove: str | tuple, tuple_dict: dict, positions: tuple[int, ...] = (0,),
+    alg: BunkerAlgorithm,
+    to_remove: str | tuple,
+    tuple_dict: dict,
+    positions: tuple[int, ...] = (0,),
 ) -> None:
     """
     Removes a variable or constraint from the LP model and deletes it from the dict it is stored in.
@@ -158,13 +145,10 @@ def remove_model_attribute_and_dict_element(
     positions
         Positions in the tupledict keys that should match 'to_remove'.
     """
-
     if not isinstance(to_remove, tuple):
         to_remove = (to_remove,)
 
     for key, attribute in list(tuple_dict.items()):
-
         if all(to == key[position] for to, position in zip(to_remove, positions)):
-
             alg.model.remove(attribute)
             del tuple_dict[key]

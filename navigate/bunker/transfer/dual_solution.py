@@ -21,13 +21,16 @@ def transfer_dual_solution(alg: BunkerAlgorithm) -> None:
     alg
         The algorithm instance.
     """
-
     # only compute ranging for debug logging (expensive)
     # SARHSLow/SARHSUp are used in marginal_saving.py
     transfer_ranging = logger.getEffectiveLevel() <= logging.DEBUG
 
-    for (v, port_start, port_end, energy_id), constr in alg.energy_conservation_sea.items():
-
+    for (
+        v,
+        port_start,
+        port_end,
+        energy_id,
+    ), constr in alg.energy_conservation_sea.items():
         # convert a local leg-port pair index to the global leg idx
         vessel = alg.vessels[v]
         leg = vessel.route.local_to_global_leg_idx(port_start, port_end)
@@ -41,15 +44,20 @@ def transfer_dual_solution(alg: BunkerAlgorithm) -> None:
         # which the shadow price is valid is given per vessel
         rhs = constr.RHS
 
-        vessel.expectation.set_energy_conservation_pi_sea(alg.idx, energy_id, leg, shadow_price)
+        vessel.expectation.set_energy_conservation_pi_sea(
+            alg.idx, energy_id, leg, shadow_price
+        )
         vessel.expectation.set_energy_conservation_rhs_sea(alg.idx, energy_id, leg, rhs)
 
         if transfer_ranging:
-            vessel.expectation.set_energy_conservation_sarhslow_sea(alg.idx, energy_id, leg, constr.SARHSLow)
-            vessel.expectation.set_energy_conservation_sarhsup_sea(alg.idx, energy_id, leg, constr.SARHSUp)
+            vessel.expectation.set_energy_conservation_sarhslow_sea(
+                alg.idx, energy_id, leg, constr.SARHSLow
+            )
+            vessel.expectation.set_energy_conservation_sarhsup_sea(
+                alg.idx, energy_id, leg, constr.SARHSUp
+            )
 
     for (v, p, energy_id), constr in alg.energy_conservation_port.items():
-
         # the shadow price has been scaled with the number of vessels
         # in the objective function, so in order to get the impact
         # per vessel, it needs to be divided by the number of vessels
@@ -60,9 +68,15 @@ def transfer_dual_solution(alg: BunkerAlgorithm) -> None:
         rhs = constr.RHS
 
         vessel = alg.vessels[v]
-        vessel.expectation.set_energy_conservation_pi_port(alg.idx, energy_id, p, shadow_price)
+        vessel.expectation.set_energy_conservation_pi_port(
+            alg.idx, energy_id, p, shadow_price
+        )
         vessel.expectation.set_energy_conservation_rhs_port(alg.idx, energy_id, p, rhs)
 
         if transfer_ranging:
-            vessel.expectation.set_energy_conservation_sarhslow_port(alg.idx, energy_id, p, constr.SARHSLow)
-            vessel.expectation.set_energy_conservation_sarhsup_port(alg.idx, energy_id, p, constr.SARHSUp)
+            vessel.expectation.set_energy_conservation_sarhslow_port(
+                alg.idx, energy_id, p, constr.SARHSLow
+            )
+            vessel.expectation.set_energy_conservation_sarhsup_port(
+                alg.idx, energy_id, p, constr.SARHSUp
+            )

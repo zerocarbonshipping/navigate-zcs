@@ -13,6 +13,8 @@ Usage:
     from navigate.bunker.solver import GRB
 """
 
+from __future__ import annotations
+
 import highspy
 import numpy as np
 from highspy import HighsBasisStatus, HighsModelStatus
@@ -37,15 +39,16 @@ _SENSE_GE = ">="
 # IPM since it only changes bounds (neutralization). Basis extension is used to
 # warm-start IPM's crossover phase when the model grows.
 _METHOD_MAP = {
-    -1: "ipm",      # AUTOMATIC → hybrid IPM/simplex
-    3: "ipm",       # NON_DETERMINISTIC (interior point)
-    4: "ipm",       # DETERMINISTIC (concurrent in Gurobi → hybrid in HiGHS)
+    -1: "ipm",  # AUTOMATIC → hybrid IPM/simplex
+    3: "ipm",  # NON_DETERMINISTIC (interior point)
+    4: "ipm",  # DETERMINISTIC (concurrent in Gurobi → hybrid in HiGHS)
 }
 
 
 # ======================================================================================================================
 # GRB namespace (mirrors gurobipy.GRB constants)
 # ======================================================================================================================
+
 
 class _GRB:
     CONTINUOUS = CONTINUOUS
@@ -60,6 +63,7 @@ GRB = _GRB()
 # ======================================================================================================================
 # LinExpr
 # ======================================================================================================================
+
 
 class LinExpr:
     """
@@ -174,18 +178,20 @@ class LinExpr:
 # TempConstr
 # ======================================================================================================================
 
+
 class TempConstr:
     """Temporary constraint object created by comparison operators, passed to Model.addConstr()."""
 
     def __init__(self, lhs, sense, rhs):
-        self.lhs = lhs        # LinExpr
-        self.sense = sense     # "==", "<=", ">="
-        self.rhs = rhs         # float
+        self.lhs = lhs  # LinExpr
+        self.sense = sense  # "==", "<=", ">="
+        self.rhs = rhs  # float
 
 
 # ======================================================================================================================
 # Var
 # ======================================================================================================================
+
 
 class Var:
     """
@@ -195,8 +201,8 @@ class Var:
     """
 
     def __init__(self, model, col):
-        self._model = model    # Model instance (for accessing HiGHS and solution)
-        self._col = col        # column index in HiGHS
+        self._model = model  # Model instance (for accessing HiGHS and solution)
+        self._col = col  # column index in HiGHS
 
     # solution value ----------------------------------------------------------------------------------------------------
     @property
@@ -278,6 +284,7 @@ class Var:
 # Constr
 # ======================================================================================================================
 
+
 class Constr:
     """
     Wrapper around a HiGHS row (constraint).
@@ -288,7 +295,7 @@ class Constr:
     def __init__(self, model, row, sense, rhs_value, name=""):
         self._model = model
         self._row = row
-        self._sense = sense       # "==", "<=", ">="
+        self._sense = sense  # "==", "<=", ">="
         self._rhs_value = rhs_value
         self._name = name
 
@@ -336,6 +343,7 @@ class Constr:
 # ======================================================================================================================
 # Params
 # ======================================================================================================================
+
 
 class Params:
     """
@@ -409,6 +417,7 @@ class Params:
 # Model
 # ======================================================================================================================
 
+
 class Model:
     """
     HiGHS-backed LP model with a gurobipy-compatible interface.
@@ -426,16 +435,16 @@ class Model:
         self._num_rows = 0
 
         # Track constraint metadata
-        self._constr_names = []       # row index -> name
-        self._constr_objects = []     # row index -> Constr object
+        self._constr_names = []  # row index -> name
+        self._constr_objects = []  # row index -> Constr object
 
         # Track removed items (neutralized, not deleted)
         self._removed_cols = set()
         self._removed_rows = set()
 
         # Solution storage (populated after optimize())
-        self._col_values = None       # primal solution
-        self._row_duals = None        # dual values
+        self._col_values = None  # primal solution
+        self._row_duals = None  # dual values
 
         # Ranging (computed lazily after optimize())
         self._ranging_computed = False
@@ -587,7 +596,9 @@ class Model:
         elif isinstance(item, Constr):
             self._removed_rows.add(item._row)
             self._recycled_rows.append(item._row)
-            self._highs.changeRowBounds(item._row, -highspy.kHighsInf, highspy.kHighsInf)
+            self._highs.changeRowBounds(
+                item._row, -highspy.kHighsInf, highspy.kHighsInf
+            )
             self._pending_rhs.pop(item._row, None)
         else:
             raise TypeError(f"Cannot remove object of type {type(item)}")
@@ -730,8 +741,12 @@ class Model:
                 old_rows = len(basis.row_status)
                 if old_cols < self._num_cols or old_rows < self._num_rows:
                     ext = highspy.HighsBasis()
-                    ext.col_status = list(basis.col_status) + [HighsBasisStatus.kLower] * (self._num_cols - old_cols)
-                    ext.row_status = list(basis.row_status) + [HighsBasisStatus.kBasic] * (self._num_rows - old_rows)
+                    ext.col_status = list(basis.col_status) + [
+                        HighsBasisStatus.kLower
+                    ] * (self._num_cols - old_cols)
+                    ext.row_status = list(basis.row_status) + [
+                        HighsBasisStatus.kBasic
+                    ] * (self._num_rows - old_rows)
                     ext.valid = True
                     self._highs.setBasis(ext)
                 else:
@@ -784,8 +799,10 @@ class Model:
         if status == HighsModelStatus.kInfeasible:
             return INFEASIBLE
 
-        if status in (HighsModelStatus.kUnbounded,
-                      HighsModelStatus.kUnboundedOrInfeasible):
+        if status in (
+            HighsModelStatus.kUnbounded,
+            HighsModelStatus.kUnboundedOrInfeasible,
+        ):
             return INF_OR_UNBD
 
         # For other statuses (e.g. not set, error), treat as infeasible/unbounded
@@ -805,8 +822,8 @@ class Model:
             self._ranging_rhs_low = np.array(ranging_info.row_bound_dn.value_)
             self._ranging_rhs_up = np.array(ranging_info.row_bound_up.value_)
         except Exception:
-            self._ranging_rhs_low = np.full(self._num_rows, float('nan'))
-            self._ranging_rhs_up = np.full(self._num_rows, float('nan'))
+            self._ranging_rhs_low = np.full(self._num_rows, float("nan"))
+            self._ranging_rhs_up = np.full(self._num_rows, float("nan"))
 
         self._ranging_computed = True
 
@@ -822,12 +839,12 @@ class Model:
             iis_row_indices = set(iis.row_index_)
 
             for i in range(self._num_rows):
-                self._iis_row_flags[i] = (i in iis_row_indices)
+                self._iis_row_flags[i] = i in iis_row_indices
 
         except Exception:
             # Fallback: mark all non-removed constraints as potentially in IIS
             for i in range(self._num_rows):
-                self._iis_row_flags[i] = (i not in self._removed_rows)
+                self._iis_row_flags[i] = i not in self._removed_rows
 
     @property
     def IISConstr(self):
@@ -852,6 +869,7 @@ class Model:
 # ======================================================================================================================
 # tupledict (compatibility alias)
 # ======================================================================================================================
+
 
 def tupledict():
     """Return a plain dict. The code only uses standard dict operations on tupledict instances."""

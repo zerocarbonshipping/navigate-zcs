@@ -8,7 +8,7 @@ USE_CONDA := $(shell conda env list 2>/dev/null | grep -q "^$(ENV_NAME)[[:space:
 ifeq ($(USE_CONDA),1)
   RUN := conda run -n $(ENV_NAME)
 else
-  RUN := .venv/bin
+  RUN := env PATH=$(CURDIR)/.venv/bin:$(PATH)
 endif
 
 .PHONY: lint test-unit test-attribute test-guardrails test-all test-tutorials test-examples help setup conda-setup pip-setup docs docs-clean
@@ -37,9 +37,11 @@ pip-setup:  ## Create venv and install package with dev dependencies (no conda r
 	fi
 	@.venv/bin/pip install -q -e ".[dev]"
 
-lint:  ## Run flake8 and isort checks
-	$(RUN) flake8 navigate tests
-	$(RUN) isort navigate tests --check-only --diff
+lint:  ## Run ruff, mypy, and REUSE checks
+	$(RUN) ruff check navigate tests
+	$(RUN) ruff format --check navigate tests
+	$(RUN) mypy navigate
+	$(RUN) reuse lint
 
 test-unit:  ## Unit + contract tests
 	$(RUN) pytest tests/unit/ -v --tb=short

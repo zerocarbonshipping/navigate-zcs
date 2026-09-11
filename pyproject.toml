@@ -34,10 +34,9 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest",
-    "flake8",
-    "flake8-bugbear",
-    "pep8-naming",
-    "isort",
+    "ruff==0.16.5",
+    "mypy==2.3.1",
+    "reuse",
 ]
 gurobi = [
     "gurobipy",
@@ -72,10 +71,3 @@ markers = [
     "slow: marks tests as slow (> 30s)",
     "integration: marks large integration tests (> 5 min)",
 ]
-
-[tool.isort]
-profile = "black"
-line_length = 120
-# helpers lives at tests/helpers, one level below the repo root, so isort's
-# first-party auto-detection cannot see it
-known_first_party = ["helpers"]

@@ -13,11 +13,14 @@ from navigate.core.unit import MWD_TO_GJ
 from navigate.fleet.package import Package
 
 
-def calculate_residual_energy(vessel: Vessel,
-                              package: Package,
-                              idx: int | slice,
-                              ) -> tuple[dict[EnergyDemandTypeID, list[float | np.ndarray]],
-                                         dict[EnergyDemandTypeID, list[float | np.ndarray]]]:
+def calculate_residual_energy(
+    vessel: Vessel,
+    package: Package,
+    idx: int | slice,
+) -> tuple[
+    dict[EnergyDemandTypeID, list[float | np.ndarray]],
+    dict[EnergyDemandTypeID, list[float | np.ndarray]],
+]:
     """
     Calculate the residual energy demand for a vessel during its operations at sea and in port.
 
@@ -56,7 +59,6 @@ def calculate_residual_energy(vessel: Vessel,
           - Residual energy at sea: list of dictionaries keyed by energy demand type.
           - Residual energy in port: list of dictionaries keyed by energy demand type.
     """
-
     times_sea = vessel.expectation.get_time_sea(idx)
     times_port = vessel.expectation.get_time_port(idx)
     raw_demand_sea = vessel.expectation.get_operational_energy_sea(idx=idx)
@@ -65,24 +67,19 @@ def calculate_residual_energy(vessel: Vessel,
     if package.is_empty:
         return raw_demand_sea, raw_demand_port
 
-    energy_sea = _iterate_legs_or_ports(vessel,
-                                        package,
-                                        times_sea,
-                                        raw_demand_sea)
+    energy_sea = _iterate_legs_or_ports(vessel, package, times_sea, raw_demand_sea)
 
-    energy_port = _iterate_legs_or_ports(vessel,
-                                         package,
-                                         times_port,
-                                         raw_demand_port)
+    energy_port = _iterate_legs_or_ports(vessel, package, times_port, raw_demand_port)
 
     return energy_sea, energy_port
 
 
-def _iterate_legs_or_ports(vessel: Vessel,
-                           package: Package,
-                           durations: list[np.ndarray],
-                           raw_demands: dict[EnergyDemandTypeID, list[np.ndarray]],
-                           ) -> dict[EnergyDemandTypeID, list[float | np.ndarray]]:
+def _iterate_legs_or_ports(
+    vessel: Vessel,
+    package: Package,
+    durations: list[np.ndarray],
+    raw_demands: dict[EnergyDemandTypeID, list[np.ndarray]],
+) -> dict[EnergyDemandTypeID, list[float | np.ndarray]]:
     """
     Iterate over legs or ports and compute residual energy for each step.
 
@@ -115,43 +112,41 @@ def _iterate_legs_or_ports(vessel: Vessel,
     -------
         One entry per step: a dictionary mapping energy demand type to residual energy.
     """
-
     keys = list(raw_demands.keys())
     n_steps = len(durations)
     residual_energy_all = {energy_id: [] for energy_id in keys}
 
     for i in range(n_steps):
-
         residual_energy = {}
         loads = {}
         duration = durations[i]
 
         for energy_id in keys:
-
             raw_demand = raw_demands[energy_id][i]
             compound_saving = package.compound_savings[energy_id]
             compound_power = package.compound_powers[energy_id]
 
             energy_external = _power_to_energy(compound_power, duration)
-            residual_energy[energy_id] = _raw_to_residual_energy(raw_demand, compound_saving, energy_external)
+            residual_energy[energy_id] = _raw_to_residual_energy(
+                raw_demand, compound_saving, energy_external
+            )
 
             if not package.includes_transfer:
                 continue
 
             residual_power = _energy_to_power(residual_energy[energy_id], duration)
-            loads[energy_id] = _calculate_converter_load(vessel, energy_id, residual_power)
+            loads[energy_id] = _calculate_converter_load(
+                vessel, energy_id, residual_power
+            )
 
         if package.includes_transfer:
-
             for sink_energy_id in keys:
-
                 if sink_energy_id not in residual_energy:
                     continue
 
-                transfer_energy = 0.
+                transfer_energy = 0.0
 
                 for power_system_id in keys:
-
                     if power_system_id not in loads:
                         continue
 
@@ -160,10 +155,14 @@ def _iterate_legs_or_ports(vessel: Vessel,
                         continue
 
                     load = loads[power_system_id]
-                    transfer_power = _calculate_power_transfer(package.transfer_curves[pair], load)
+                    transfer_power = _calculate_power_transfer(
+                        package.transfer_curves[pair], load
+                    )
                     transfer_energy += _power_to_energy(transfer_power, duration)
 
-                residual_energy[sink_energy_id] = np.maximum(residual_energy[sink_energy_id] - transfer_energy, 0.)
+                residual_energy[sink_energy_id] = np.maximum(
+                    residual_energy[sink_energy_id] - transfer_energy, 0.0
+                )
 
         for energy_id in keys:
             residual_energy_all[energy_id].append(residual_energy[energy_id])
@@ -171,8 +170,9 @@ def _iterate_legs_or_ports(vessel: Vessel,
     return residual_energy_all
 
 
-def _calculate_power_transfer(curves: list[Curve | Scalar],
-                              load: np.ndarray) -> np.ndarray:
+def _calculate_power_transfer(
+    curves: list[Curve | Scalar], load: np.ndarray
+) -> np.ndarray:
     """
     Compute power transfer from pre-filtered non-zero curves.
 
@@ -191,34 +191,34 @@ def _calculate_power_transfer(curves: list[Curve | Scalar],
     np.ndarray
         Power transferred from source to sink for the given load.
     """
-
     powers = np.array([curve.get(load) for curve in curves])
     return np.sum(powers, axis=0, dtype=float)
 
 
-def _calculate_converter_load(vessel: Vessel,
-                              power_system_id: EnergyDemandTypeID,
-                              residual_power: np.ndarray) -> np.ndarray:
+def _calculate_converter_load(
+    vessel: Vessel, power_system_id: EnergyDemandTypeID, residual_power: np.ndarray
+) -> np.ndarray:
     """
     Convert residual power to per-converter load.
 
     Retrieves the converter capacity for the given energy system and normalizes the
     residual power by that capacity to obtain the converter load.
     """
-
     converter = vessel.power_system.get_converter_by_energy_type(power_system_id)
     capacity = converter.power_capacity.get()
     return residual_power / capacity
 
 
-def _raw_to_residual_energy(raw_energy: np.ndarray, saving: float, external_power: np.ndarray) -> np.ndarray:
+def _raw_to_residual_energy(
+    raw_energy: np.ndarray, saving: float, external_power: np.ndarray
+) -> np.ndarray:
     """
     Convert raw energy to residual energy after savings and external power.
 
     Applies the compound saving to the raw demand, subtracts external energy, and clamps
     the result to non-negative values.
     """
-    return np.maximum(raw_energy * (1. - saving) - external_power, 0.)
+    return np.maximum(raw_energy * (1.0 - saving) - external_power, 0.0)
 
 
 def _power_to_energy(power: float | np.ndarray, duration: np.ndarray) -> np.ndarray:

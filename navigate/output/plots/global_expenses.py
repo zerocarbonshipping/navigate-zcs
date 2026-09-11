@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 import numpy as np
 
 from navigate.output.plots._aggregate import to_cumulative
@@ -30,43 +32,45 @@ def _plot_global_expenses(manager, directory, cumulative=False):
     conversion_expenses = profile.get_fuel_conversion_expenses()
     technology_expenses = profile.get_technology_expenses()
     fuel_expenses = profile.get_total_fuel_expenses()
-    policy_expenses = profile.get_total_levy_expenses() + profile.get_regulation_expenses()
+    policy_expenses = (
+        profile.get_total_levy_expenses() + profile.get_regulation_expenses()
+    )
 
-    values = [vessel_expenses,
-              conversion_expenses,
-              technology_expenses,
-              fuel_expenses,
-              policy_expenses]
+    values = [
+        vessel_expenses,
+        conversion_expenses,
+        technology_expenses,
+        fuel_expenses,
+        policy_expenses,
+    ]
 
     if cumulative:
         values = [to_cumulative(dateline, v) for v in values]
 
     divisor, unit = get_best_unit_cost(np.amax(sum(values)), rate=not cumulative)
     values = [v / divisor for v in values]
-    labels = ['Vessel',
-              'Fuel conversion',
-              'Technology',
-              'Fuel',
-              'Policy']
-    colors = [CENTER_COLORS_BLUE[3],
-              CENTER_COLORS_BLUE[2],
-              CENTER_COLORS_RED[3],
-              CENTER_COLORS_GREEN[3],
-              CENTER_COLORS_YELLOW[3]]
+    labels = ["Vessel", "Fuel conversion", "Technology", "Fuel", "Policy"]
+    colors = [
+        CENTER_COLORS_BLUE[3],
+        CENTER_COLORS_BLUE[2],
+        CENTER_COLORS_RED[3],
+        CENTER_COLORS_GREEN[3],
+        CENTER_COLORS_YELLOW[3],
+    ]
 
     stack = plot_stack_with_lines(ax, dateline, values, labels, colors)
 
     if cumulative:
-        ax.set_ylabel('Cumulative expenses [{}]'.format(unit))
-        suffix = '_cumulative'
+        ax.set_ylabel(f"Cumulative expenses [{unit}]")
+        suffix = "_cumulative"
     else:
-        ax.set_ylabel('Expenses [{}]'.format(unit))
-        suffix = ''
+        ax.set_ylabel(f"Expenses [{unit}]")
+        suffix = ""
 
     legend = ax.legend(stack[::-1], labels[::-1], **LEGEND_OPTIONS)
     format_axes(ax, 1, dateline, legend)
 
-    save_figure(fig, directory, 'global_expenses{}.png'.format(suffix))
+    save_figure(fig, directory, f"global_expenses{suffix}.png")
 
 
 def plot_global_expenses(manager, directory):

@@ -36,7 +36,6 @@ def update_fuel_inertia_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> Non
     vessel
         Vessel for which constraints are updated.
     """
-
     if alg.idx == 0:
         return
 
@@ -50,7 +49,7 @@ def update_fuel_inertia_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> Non
     # does not have to match previous bunkering.
     demand_new = alg.vessels[v].expectation.get_total_demand(alg.idx)
     demand_old = alg.vessels[v].expectation.get_total_demand(alg.idx - 1)
-    energy_scaling = min(demand_new / demand_old, 1.)
+    energy_scaling = min(demand_new / demand_old, 1.0)
 
     # scale the inertia by the change in vessel
     # multipliers to mimic that only vessels
@@ -62,22 +61,22 @@ def update_fuel_inertia_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> Non
     else:
         previous_multiplier = fleet.expectation.get_expected_multipliers(v, alg.idx - 1)
 
-    multiplier_scaling = min(previous_multiplier / alg.multipliers[v], 1.)
+    multiplier_scaling = min(previous_multiplier / alg.multipliers[v], 1.0)
     change_coefficient = alg.model.chgCoeff
 
     for f in vessel.usable_fuels:
-
         for p, port in enumerate(ports):
-
             if not port.is_bunkering_allowed(f):
                 continue
 
             port_name = port.name
             key = (v, port_name, f)
 
-            constraint = get_constraint(alg, alg.fuel_inertia, key, ">=", "fuel_inertia")
+            constraint = get_constraint(
+                alg, alg.fuel_inertia, key, ">=", "fuel_inertia"
+            )
 
-            change_coefficient(constraint, alg.bunker[v, p, f], 1.)
+            change_coefficient(constraint, alg.bunker[v, p, f], 1.0)
 
             # update the rhs of the constraint with
             # the newest inertia and bunker value.
@@ -90,8 +89,7 @@ def update_fuel_inertia_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> Non
             else:
                 bunkering = vessel.expectation.get_bunker_mass_existing(port_name, f)
 
-            if bunkering > 0.:
-
+            if bunkering > 0.0:
                 inertia = port.bunkering_inertia[f].get(alg.time)
                 fuel_inertia = bunkering * calculate_inertia(inertia, alg.time_step)
                 fuel_inertia *= multiplier_scaling * energy_scaling
@@ -100,11 +98,10 @@ def update_fuel_inertia_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> Non
                 # model, the minimum required can at
                 # most equal the vessels fair-share
                 if key in alg.allocation_fuel:
-
                     if fuel_inertia > alg.allocation_fuel[key]:
                         fuel_inertia = alg.allocation_fuel[key]
 
             else:
-                fuel_inertia = 0.
+                fuel_inertia = 0.0
 
             constraint.rhs = fuel_inertia

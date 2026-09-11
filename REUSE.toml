@@ -6,6 +6,13 @@ SPDX-PackageName = "Navigate"
 SPDX-PackageSupplier = "Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping <navigate@zerocarbonshipping.com>"
 SPDX-PackageDownloadLocation = "https://github.com/zerocarbonshipping/navigate-zcs"
 
+# Extension-less git configuration; the REUSE tool cannot detect its comment
+# style.
+[[annotations]]
+path = ".git-blame-ignore-revs"
+SPDX-FileCopyrightText = "2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping"
+SPDX-License-Identifier = "Apache-2.0"
+
 # Empty placeholder files that keep directories tracked by git.
 [[annotations]]
 path = "**/.gitkeep"

@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 import numpy as np
 
 from navigate.economics.flows import get_age_flow
@@ -24,7 +26,6 @@ def calculate_age_levelized_cost(cost_flow, lifetime, discount_rate):
     float
         Yearly average net present cost.
     """
-
     time_steps = get_age_flow(lead_time=0, lifetime=lifetime)
     return calculate_levelized_cost(cost_flow, time_steps, discount_rate)
 
@@ -47,7 +48,6 @@ def calculate_levelized_cost(cost_flow, level_flow, discount_rate):
     float
         Levelized cost.
     """
-
     net_present_cost = calculate_net_present_value(cost_flow, discount_rate)
     net_present_level = calculate_net_present_value(level_flow, discount_rate)
 
@@ -70,7 +70,6 @@ def calculate_net_present_value(values, discount_rate):
     float
        The sum of discounted values.
     """
-
     return float(np.sum(_discount_values(values, discount_rate)))
 
 
@@ -90,5 +89,4 @@ def _discount_values(values, discount_rate):
     np.ndarray
         Discounted values.
     """
-
-    return values / ((1. + discount_rate) ** np.arange(len(values)))
+    return values / ((1.0 + discount_rate) ** np.arange(len(values)))

@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 import numpy as np
 
 from navigate.output.plots._aggregate import to_cumulative
@@ -57,28 +59,52 @@ def _plot_computational_performance(manager, directory, cumulative=False):
 
     labels = [
         # LP Expected
-        'Expected (build)', 'Expected (solve)', 'Expected (transfer)',
+        "Expected (build)",
+        "Expected (solve)",
+        "Expected (transfer)",
         # LP Existing
-        'Existing (build)', 'Existing (solve)', 'Existing (transfer)',
+        "Existing (build)",
+        "Existing (solve)",
+        "Existing (transfer)",
         # Fleet decisions
-        'Speed', 'Retrofit', 'Fleet evolution', 'Producer evolution',
+        "Speed",
+        "Retrofit",
+        "Fleet evolution",
+        "Producer evolution",
         # Setup / bookkeeping
-        'Temporal / expectations', 'Fleet state', 'Overhead',
+        "Temporal / expectations",
+        "Fleet state",
+        "Overhead",
         # Domain calculations
-        'Vessel operations', 'Fuel supply chain', 'Policy / regulation', 'Profile aggregation',
+        "Vessel operations",
+        "Fuel supply chain",
+        "Policy / regulation",
+        "Profile aggregation",
     ]
 
     colors = [
         # LP Expected -- blue shades (light to dark)
-        CENTER_COLORS_BLUE[2], CENTER_COLORS_BLUE[4], CENTER_COLORS_BLUE[6],
+        CENTER_COLORS_BLUE[2],
+        CENTER_COLORS_BLUE[4],
+        CENTER_COLORS_BLUE[6],
         # LP Existing -- green shades
-        CENTER_COLORS_GREEN[2], CENTER_COLORS_GREEN[4], CENTER_COLORS_GREEN[6],
+        CENTER_COLORS_GREEN[2],
+        CENTER_COLORS_GREEN[4],
+        CENTER_COLORS_GREEN[6],
         # Fleet decisions -- yellow shades
-        CENTER_COLORS_YELLOW[2], CENTER_COLORS_YELLOW[4], CENTER_COLORS_YELLOW[6], CENTER_COLORS_YELLOW[5],
+        CENTER_COLORS_YELLOW[2],
+        CENTER_COLORS_YELLOW[4],
+        CENTER_COLORS_YELLOW[6],
+        CENTER_COLORS_YELLOW[5],
         # Setup / bookkeeping -- grey shades
-        CENTER_COLORS_GREY[1], CENTER_COLORS_GREY[3], CENTER_COLORS_GREY[5],
+        CENTER_COLORS_GREY[1],
+        CENTER_COLORS_GREY[3],
+        CENTER_COLORS_GREY[5],
         # Domain calculations -- red shades
-        CENTER_COLORS_RED[1], CENTER_COLORS_RED[3], CENTER_COLORS_RED[5], CENTER_COLORS_RED[6],
+        CENTER_COLORS_RED[1],
+        CENTER_COLORS_RED[3],
+        CENTER_COLORS_RED[5],
+        CENTER_COLORS_RED[6],
     ]
 
     if cumulative:
@@ -89,20 +115,27 @@ def _plot_computational_performance(manager, directory, cumulative=False):
     # total time overlay
     total_cumulative = profile.get_total_time()
     if cumulative:
-        ax.plot(dateline, total_cumulative, label='Total', color='k', ls='--', lw=2.)
-        ax.set_ylabel('Cumulative computational time [s]')
-        suffix = '_cumulative'
+        ax.plot(dateline, total_cumulative, label="Total", color="k", ls="--", lw=2.0)
+        ax.set_ylabel("Cumulative computational time [s]")
+        suffix = "_cumulative"
     else:
-        total_per_step = np.diff(total_cumulative, prepend=0.)
-        ax.plot(dateline, total_per_step, label='Total (per step)', color='k', ls='--', lw=2.)
-        ax.set_ylabel('Computational time per step [s]')
-        suffix = ''
+        total_per_step = np.diff(total_cumulative, prepend=0.0)
+        ax.plot(
+            dateline,
+            total_per_step,
+            label="Total (per step)",
+            color="k",
+            ls="--",
+            lw=2.0,
+        )
+        ax.set_ylabel("Computational time per step [s]")
+        suffix = ""
 
     legend = ax.legend(stack[::-1], labels[::-1], ncol=2, **LEGEND_OPTIONS)
 
     format_axes(ax, 1, dateline, legend)
 
-    save_figure(fig, directory, 'computational_performance{}.png'.format(suffix))
+    save_figure(fig, directory, f"computational_performance{suffix}.png")
 
 
 def plot_computational_performance(manager, directory):

@@ -39,7 +39,6 @@ def perform_pipeline_planning(producer: Producer, timeline, time_step, idx):
     idx : int
         Current time-step index.
     """
-
     # calculate the increments being build due to inertia
     inertia_increments = calculate_inertia_increments(producer, time_step, idx)
 
@@ -48,7 +47,6 @@ def perform_pipeline_planning(producer: Producer, timeline, time_step, idx):
     demand = producer.expectation.get_fair_share_demand()
 
     for p, plant in enumerate(producer.assets):
-
         # calculate total added production
         # from inertia and subtract from
         # the demand of the fuel
@@ -63,14 +61,21 @@ def perform_pipeline_planning(producer: Producer, timeline, time_step, idx):
     export_distribution = producer.expectation.get_export_distribution(idx=idx)
 
     for _p, plant in enumerate(producer.assets):
-        calculate_uptake_inter_metric(plant, demand, producer.minimum_offtake_duration, timeline, idx)
+        calculate_uptake_inter_metric(
+            plant, demand, producer.minimum_offtake_duration, timeline, idx
+        )
         calculate_uptake_intra_metric(plant, export_distribution, idx)
 
     # extract the maximum number of newbuild
     # plants that may enter the pipeline
-    demand_multipliers = np.array([plant.expectation.get_demand_newbuilds()
-                                   if producer.allow_plant[plant.name] else 0.
-                                   for plant in producer.assets])
+    demand_multipliers = np.array(
+        [
+            plant.expectation.get_demand_newbuilds()
+            if producer.allow_plant[plant.name]
+            else 0.0
+            for plant in producer.assets
+        ]
+    )
 
     # calculate the modelled increments of each plant
     model_increments = np.zeros_like(inertia_increments)
@@ -79,27 +84,32 @@ def perform_pipeline_planning(producer: Producer, timeline, time_step, idx):
     # constrain the development by
     # the maximum increase fraction
     ramp_up = producer.maximum_ramp_up.get()
-    maximum_increase = min(producer.current_utilization + ramp_up, 1.)
+    maximum_increase = min(producer.current_utilization + ramp_up, 1.0)
     maximum_development *= maximum_increase
 
     # remove the already added inertia-based increments
     maximum_development -= np.sum(inertia_increments)
 
-    if maximum_development > 0.:
-
+    if maximum_development > 0.0:
         # calculate the optimal shares
         # based on investment metrics
         modelled_uptakes = calculate_modelled_uptake(producer)
 
         # calculate maximum possible share
         # based on demanded multipliers
-        demand_limits = np.array([min(multiplier / maximum_development, 1.) for multiplier in demand_multipliers])
+        demand_limits = np.array(
+            [
+                min(multiplier / maximum_development, 1.0)
+                for multiplier in demand_multipliers
+            ]
+        )
 
         # calculate the maximum allowable share
         # based on the available feed and
         # accounting for maximum plant demand
-        constrained_uptakes = calculate_constrained_uptakes(producer, modelled_uptakes,
-                                                            maximum_development, demand_limits, idx)
+        constrained_uptakes = calculate_constrained_uptakes(
+            producer, modelled_uptakes, maximum_development, demand_limits, idx
+        )
 
         # calculate the model increments
         model_increments = maximum_development * constrained_uptakes
@@ -109,14 +119,14 @@ def perform_pipeline_planning(producer: Producer, timeline, time_step, idx):
 
     # define the utilization for use in the next time-step
     producer.current_utilization = divide_nonzero(
-        np.sum(increments), producer.maximum_development.get() * time_step / YEAR)
+        np.sum(increments), producer.maximum_development.get() * time_step / YEAR
+    )
 
     # add increments to the pipeline
     dt = time_step / YEAR
 
     for p, plant in enumerate(producer.assets):
-
-        if increments[p] == 0.:
+        if increments[p] == 0.0:
             continue
 
         lead_time = plant.lead_time.get()
@@ -128,18 +138,20 @@ def perform_pipeline_planning(producer: Producer, timeline, time_step, idx):
 
         if len(pinc):
             ages = np.array([inc.age for inc in pinc])
-            i = int(np.searchsorted(-ages, -new_age, side='right'))
+            i = int(np.searchsorted(-ages, -new_age, side="right"))
         else:
             i = 0
 
-        pinc.insert(i, Increment(increments[p], new_age, dt, decided=0.))
+        pinc.insert(i, Increment(increments[p], new_age, dt, decided=0.0))
 
     # assign total development to profile
     total_increments = np.sum(increments)
     producer.profile.set_development(idx, total_increments)
 
     # set current uptake
-    producer.current_uptake = divide_nonzero(increments, total_increments, default=1. / increments.size)
+    producer.current_uptake = divide_nonzero(
+        increments, total_increments, default=1.0 / increments.size
+    )
 
 
 def calculate_inertia_increments(producer: Producer, time_step, idx):
@@ -160,7 +172,6 @@ def calculate_inertia_increments(producer: Producer, time_step, idx):
     np.ndarray
         Inertia-based increments per plant type.
     """
-
     # reduce the current uptake shares by the
     # inertia prior to calculating inertia
     # related newbuilds. This is done here
@@ -169,32 +180,47 @@ def calculate_inertia_increments(producer: Producer, time_step, idx):
 
     # adjust the current uptake to account for disallowed plants
     for p, plant in enumerate(producer.assets):
-
         if not producer.allow_plant[plant.name]:
-            producer.current_uptake[p] = 0.
+            producer.current_uptake[p] = 0.0
 
     # inertia only happens if the producer is development constrained
     increments = np.zeros((len(producer.assets),))
 
     # calculate the possible development capacity
     # accounting for the utilization from last year
-    maximum_development = producer.current_utilization * producer.maximum_development.get() * time_step / YEAR
+    maximum_development = (
+        producer.current_utilization
+        * producer.maximum_development.get()
+        * time_step
+        / YEAR
+    )
 
-    if maximum_development > 0.:
-
+    if maximum_development > 0.0:
         # extract the maximum number of newbuild
         # plants that may enter the pipeline
-        demand_multipliers = np.array([plant.expectation.get_demand_newbuilds()
-                                       if producer.allow_plant[plant.name] else 0.
-                                       for plant in producer.assets])
+        demand_multipliers = np.array(
+            [
+                plant.expectation.get_demand_newbuilds()
+                if producer.allow_plant[plant.name]
+                else 0.0
+                for plant in producer.assets
+            ]
+        )
 
         # calculate maximum possible share
         # based on demanded multipliers
-        demand_limits = np.array([min(multiplier / maximum_development, 1.) for multiplier in demand_multipliers])
+        demand_limits = np.array(
+            [
+                min(multiplier / maximum_development, 1.0)
+                for multiplier in demand_multipliers
+            ]
+        )
 
         # adjust the uptake shares to account for feed constraints
         uptake = producer.current_uptake
-        constrained_uptake = calculate_constrained_uptakes(producer, uptake, maximum_development, demand_limits, idx)
+        constrained_uptake = calculate_constrained_uptakes(
+            producer, uptake, maximum_development, demand_limits, idx
+        )
 
         # calculate the inertia-based increments
         increments = constrained_uptake * maximum_development
@@ -203,18 +229,18 @@ def calculate_inertia_increments(producer: Producer, time_step, idx):
         # from the inertia based increments
         # from the feed gap
         for feed_name, constraint in producer.feed_constraints.items():
-
             if constraint is None:
                 continue
 
-            added_consumption = 0.
+            added_consumption = 0.0
 
             for p, plant in enumerate(producer.assets):
-
                 plant_name = plant.name
 
                 # calculate the feed used per plant
-                consumption = producer.expectation.get_plant_feed_consumption(plant_name, feed_name)
+                consumption = producer.expectation.get_plant_feed_consumption(
+                    plant_name, feed_name
+                )
                 added_consumption += consumption * increments[p]
 
             original_gap = producer.expectation.get_feed_gap(feed_name, idx)
@@ -239,16 +265,17 @@ def calculate_modelled_uptake(producer: Producer) -> np.ndarray:
     np.ndarray
         Uptake shares per plant type.
     """
-
     # extract allowed plants and index map
     try:
-
-        index, plants = zip(*((i, plant) for i, plant in enumerate(producer.assets)
-                            if producer.allow_plant[plant.name]
-                            and plant.expectation.is_in_demand()))
+        index, plants = zip(
+            *(
+                (i, plant)
+                for i, plant in enumerate(producer.assets)
+                if producer.allow_plant[plant.name] and plant.expectation.is_in_demand()
+            )
+        )
 
     except ValueError:
-
         # if none of the plants are in demand, the zip
         # fails which means there should be no uptake
         return np.zeros((len(producer.assets),))
@@ -271,7 +298,7 @@ def calculate_modelled_uptake(producer: Producer) -> np.ndarray:
     )
 
     # pad the uptake shares back to the original length
-    uptake_padded = np.zeros((len(producer.assets)))
+    uptake_padded = np.zeros(len(producer.assets))
 
     for i, p in enumerate(index):
         uptake_padded[p] = uptake[i]
@@ -279,8 +306,9 @@ def calculate_modelled_uptake(producer: Producer) -> np.ndarray:
     return uptake_padded
 
 
-def calculate_constrained_uptakes(producer: Producer, uptakes, development, limits, idx,
-                                  additional_consumption=None):
+def calculate_constrained_uptakes(
+    producer: Producer, uptakes, development, limits, idx, additional_consumption=None
+):
     """
     Iteratively constrain uptake shares to respect feed availability.
 
@@ -304,7 +332,6 @@ def calculate_constrained_uptakes(producer: Producer, uptakes, development, limi
     np.ndarray
         Uptake-shares adhering to the feed constraint at the specified amount of development.
     """
-
     # TODO: make it assignable
     tolerance = 1e-3
 
@@ -313,13 +340,11 @@ def calculate_constrained_uptakes(producer: Producer, uptakes, development, limi
     converged = False
 
     while not converged:
-
         # calculate limits based on
         # the available feed
-        new_limits = calculate_feed_uptake_limit_iteration(producer, development,
-                                                           current_uptakes,
-                                                           idx,
-                                                           additional_consumption)
+        new_limits = calculate_feed_uptake_limit_iteration(
+            producer, development, current_uptakes, idx, additional_consumption
+        )
 
         # the feed uptake limits are not
         # allowed to be less restrictive than
@@ -343,8 +368,9 @@ def calculate_constrained_uptakes(producer: Producer, uptakes, development, limi
     return current_uptakes
 
 
-def calculate_feed_uptake_limit_iteration(producer: Producer, development, uptakes, idx,
-                                          additional_consumption=None):
+def calculate_feed_uptake_limit_iteration(
+    producer: Producer, development, uptakes, idx, additional_consumption=None
+):
     """
     Calculate feed-based uptake limits for a single iteration.
 
@@ -361,7 +387,6 @@ def calculate_feed_uptake_limit_iteration(producer: Producer, development, uptak
     additional_consumption : dict[str, float]
         Potential additional consumption at the given time-step index.
     """
-
     if additional_consumption is None:
         additional_consumption = {}
 
@@ -369,15 +394,13 @@ def calculate_feed_uptake_limit_iteration(producer: Producer, development, uptak
     total_spend = {}
 
     for feed_name, constraint in producer.feed_constraints.items():
-
         if constraint is None:
             continue
 
-        additional_consumption.setdefault(feed_name, 0.)
-        total_spend.setdefault(feed_name, 0.)
+        additional_consumption.setdefault(feed_name, 0.0)
+        total_spend.setdefault(feed_name, 0.0)
 
         for p, plant in enumerate(producer.assets):
-
             key = (plant.name, feed_name)
             consumption = producer.expectation.get_plant_feed_consumption(*key)
 
@@ -393,15 +416,16 @@ def calculate_feed_uptake_limit_iteration(producer: Producer, development, uptak
 
     # scale the possible spend per plant and feed
     for feed_name, spend in total_spend.items():
-
-        if not spend > 0.:
+        if not spend > 0.0:
             continue
 
-        gap = producer.expectation.get_feed_gap(feed_name, idx) - additional_consumption[feed_name]
-        scaling = max(gap / spend, 0.)
+        gap = (
+            producer.expectation.get_feed_gap(feed_name, idx)
+            - additional_consumption[feed_name]
+        )
+        scaling = max(gap / spend, 0.0)
 
         for _p, plant in enumerate(producer.assets):
-
             key = (plant.name, feed_name)
 
             if scaling == np.inf:
@@ -415,16 +439,16 @@ def calculate_feed_uptake_limit_iteration(producer: Producer, development, uptak
     # on that
     limits = np.ones_like(uptakes)
     for p, plant in enumerate(producer.assets):
-
         plant_name = plant.name
-        current_limit = 1.
+        current_limit = 1.0
 
         for feed_name in total_spend:
-
             key = (plant_name, feed_name)
-            consumption = producer.expectation.get_plant_feed_consumption(*key) * development
+            consumption = (
+                producer.expectation.get_plant_feed_consumption(*key) * development
+            )
 
-            if not consumption > 0.:
+            if not consumption > 0.0:
                 continue
 
             # back-calculate uptake with the scaled spend

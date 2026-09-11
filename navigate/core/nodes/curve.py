@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 from navigate.core.node import Node
 from navigate.core.node_type import CURVE
 from navigate.core.nodes._table1d import _Table1D, check_table1d_input
@@ -15,7 +17,7 @@ class Curve(Node, _Table1D):
 
     def initialize(self) -> None:
         if self._table is None:
-            no_value_assigned_error(self, 'Table')
+            no_value_assigned_error(self, "Table")
 
     def get(self, x: float, y: float | None = None) -> float:
         """

@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 import numpy as np
 
 from navigate.output.plots._colors import generate_color_dict
@@ -24,10 +26,9 @@ def plot_plant_production_cost(manager, directory):
 
     colors = generate_color_dict(fuels, FUEL_COLOR)
 
-    min_val = 0.
+    min_val = 0.0
 
     for region_name, region in regions.items():
-
         plants_region = [plant for plant in plants.values() if plant.region is region]
         plants_region = sorted(plants_region, key=lambda x: x.name)
         n = len(plants_region)
@@ -38,7 +39,6 @@ def plot_plant_production_cost(manager, directory):
         fig, axes = subplot_grid(n, sharey=True)
 
         for ax, plant in zip(axes, plants_region):
-
             fuel = plant.fuel
             fuel_name = fuel.name
             lhv = fuel.lower_heating_value.get()
@@ -49,18 +49,31 @@ def plot_plant_production_cost(manager, directory):
 
             min_val = min(min_val, np.amin(investment), np.amin(instantaneous))
 
-            ax.plot(dateline, investment, color=colors[fuel_name], label='Investment', lw=2.5, ls='--')
-            ax.plot(dateline, instantaneous, color=colors[fuel_name], label='Instantaneous', lw=2.5)
+            ax.plot(
+                dateline,
+                investment,
+                color=colors[fuel_name],
+                label="Investment",
+                lw=2.5,
+                ls="--",
+            )
+            ax.plot(
+                dateline,
+                instantaneous,
+                color=colors[fuel_name],
+                label="Instantaneous",
+                lw=2.5,
+            )
 
             ax.set_title(plant.name)
-            ax.set_ylabel('Levelized cost [USD/GJ]')
+            ax.set_ylabel("Levelized cost [USD/GJ]")
             legend = ax.legend()
             format_axes(ax, n, dateline, legend, y_lim=None)
 
-        if min_val >= 0.:
+        if min_val >= 0.0:
             for ax in axes:
-                ax.set_ylim([0., None])
+                ax.set_ylim([0.0, None])
 
         trim_axes(axes, n)
 
-        save_figure(fig, directory, 'plant_production_cost_{}.png'.format(region_name))
+        save_figure(fig, directory, f"plant_production_cost_{region_name}.png")

@@ -2,4 +2,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # classes
+from __future__ import annotations
+
 from navigate.parser.parser import Parser

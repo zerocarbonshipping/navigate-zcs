@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 from unittest.mock import MagicMock
 
 import numpy as np
@@ -32,22 +34,29 @@ def _emission(gwp: float = 1.0):
 
 def _make_vessel_profile(timeline, fuels, emissions):
     p = VesselProfile()
-    p.initialize(timeline=timeline, emissions=emissions, fuels=fuels,
-                 emissions_lifetime=100.)
+    p.initialize(
+        timeline=timeline, emissions=emissions, fuels=fuels, emissions_lifetime=100.0
+    )
     return p
 
 
 def _make_fleet_profile(timeline, fuels, emissions, vessel_names, technology_names=()):
     p = FleetProfile()
-    p.initialize(timeline=timeline, vessel_names=vessel_names,
-                 technology_names=list(technology_names), fuels=fuels,
-                 emissions=emissions, emissions_lifetime=100.)
+    p.initialize(
+        timeline=timeline,
+        vessel_names=vessel_names,
+        technology_names=list(technology_names),
+        fuels=fuels,
+        emissions=emissions,
+        emissions_lifetime=100.0,
+    )
     return p
 
 
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture
 def timeline():
@@ -68,6 +77,7 @@ def emissions():
 # Tests
 # ---------------------------------------------------------------------------
 
+
 class TestFleetAggregationConsistency:
     """Fleet-level totals == sum_v(vessel_total * multiplier_v)."""
 
@@ -80,12 +90,15 @@ class TestFleetAggregationConsistency:
         v2._wtt[("lsfo", "co2")][0] = 3.0
         v2._ttw[("lsfo", "co2")][0] = 4.0
 
-        fleet = _make_fleet_profile(timeline, fuels, emissions, vessel_names=["v1", "v2"])
+        fleet = _make_fleet_profile(
+            timeline, fuels, emissions, vessel_names=["v1", "v2"]
+        )
         fleet.add_fuel_consumer_profile(v1, multiplier=50.0, idx=0)
         fleet.add_fuel_consumer_profile(v2, multiplier=30.0, idx=0)
 
-        expected = (50.0 * v1.get_total_equivalent_wtw(0)
-                    + 30.0 * v2.get_total_equivalent_wtw(0))
+        expected = 50.0 * v1.get_total_equivalent_wtw(
+            0
+        ) + 30.0 * v2.get_total_equivalent_wtw(0)
         assert fleet.get_total_equivalent_wtw(0) == pytest.approx(expected)
         # closed-form: 50*(2+5) + 30*(3+4) = 560
         assert fleet.get_total_equivalent_wtw(0) == pytest.approx(560.0)
@@ -97,12 +110,15 @@ class TestFleetAggregationConsistency:
         v2 = _make_vessel_profile(timeline, fuels, emissions)
         v2._consumed_mass["lsfo"][0] = 250.0
 
-        fleet = _make_fleet_profile(timeline, fuels, emissions, vessel_names=["v1", "v2"])
+        fleet = _make_fleet_profile(
+            timeline, fuels, emissions, vessel_names=["v1", "v2"]
+        )
         fleet.add_fuel_consumer_profile(v1, multiplier=50.0, idx=0)
         fleet.add_fuel_consumer_profile(v2, multiplier=30.0, idx=0)
 
-        expected = (50.0 * v1.get_consumed_energy("lsfo", 0)
-                    + 30.0 * v2.get_consumed_energy("lsfo", 0))
+        expected = 50.0 * v1.get_consumed_energy(
+            "lsfo", 0
+        ) + 30.0 * v2.get_consumed_energy("lsfo", 0)
         assert fleet.get_consumed_energy("lsfo", 0) == pytest.approx(expected)
         # closed-form: (50*100 + 30*250) * lhv(41.2) = 12500 * 41.2
         assert fleet.get_consumed_energy("lsfo", 0) == pytest.approx(515_000.0)
@@ -126,8 +142,13 @@ class TestFleetTechnologyUptake:
 
     @pytest.fixture
     def fleet(self, timeline, fuels, emissions):
-        p = _make_fleet_profile(timeline, fuels, emissions,
-                                vessel_names=["v1", "v2"], technology_names=["tech"])
+        p = _make_fleet_profile(
+            timeline,
+            fuels,
+            emissions,
+            vessel_names=["v1", "v2"],
+            technology_names=["tech"],
+        )
         p._technology_uptake[("v1", "tech")][:] = [0.8, 0.5]
         p._technology_uptake[("v2", "tech")][:] = [0.4, 0.1]
         p._existing_vessels["v1"][:] = [3.0, 0.0]
@@ -147,7 +168,6 @@ class TestFleetTechnologyUptake:
 
 
 class TestScrapNewbuildAccumulation:
-
     def test_writers_accumulate_per_vessel(self, timeline, fuels, emissions):
         fleet = _make_fleet_profile(timeline, fuels, emissions, vessel_names=["a", "b"])
 
@@ -163,7 +183,6 @@ class TestScrapNewbuildAccumulation:
 
 
 class TestShorePowerAccounting:
-
     def _make_profile(self, timeline, fuels, emissions, shore=False):
         p = _make_vessel_profile(timeline, fuels, emissions)
         p.add_consumed_mass("lsfo", 10.0, 0)
@@ -185,10 +204,15 @@ class TestShorePowerAccounting:
         return self._make_profile(timeline, fuels, emissions, shore=True)
 
     def test_totals_include_shore_power(self, base, vessel):
-        assert vessel.get_total_consumed_energy(0) == pytest.approx(base.get_total_consumed_energy(0) + 50.0)
-        assert vessel.get_total_fuel_expenses(0) == pytest.approx(base.get_total_fuel_expenses(0) + 25.0)
+        assert vessel.get_total_consumed_energy(0) == pytest.approx(
+            base.get_total_consumed_energy(0) + 50.0
+        )
+        assert vessel.get_total_fuel_expenses(0) == pytest.approx(
+            base.get_total_fuel_expenses(0) + 25.0
+        )
         assert vessel.get_total_fuel_related_expenses(0) == pytest.approx(
-            base.get_total_fuel_related_expenses(0) + 25.0)
+            base.get_total_fuel_related_expenses(0) + 25.0
+        )
 
     def test_per_fuel_dicts_stay_fuel_only(self, vessel):
         assert set(vessel.get_consumed_energy()) == {"lsfo"}
@@ -203,12 +227,20 @@ class TestShorePowerAccounting:
 
     def test_intensity_variants_track_widened_total(self, vessel):
         # 9 ton -> g over (462 GJ -> MJ): 9e6 / 462e3
-        assert vessel.get_intensity_total_equivalent_wtw()[0] == pytest.approx(9.0e6 / 462.0e3)
+        assert vessel.get_intensity_total_equivalent_wtw()[0] == pytest.approx(
+            9.0e6 / 462.0e3
+        )
         # WTT/TTW numerators stay fuel-only over the shore-inclusive denominator
-        assert vessel.get_intensity_total_equivalent_wtt()[0] == pytest.approx(2.0e6 / 462.0e3)
-        assert vessel.get_intensity_total_equivalent_ttw()[0] == pytest.approx(3.0e6 / 462.0e3)
+        assert vessel.get_intensity_total_equivalent_wtt()[0] == pytest.approx(
+            2.0e6 / 462.0e3
+        )
+        assert vessel.get_intensity_total_equivalent_ttw()[0] == pytest.approx(
+            3.0e6 / 462.0e3
+        )
 
-    def test_propagates_via_fuel_consumer_merge(self, timeline, fuels, emissions, vessel):
+    def test_propagates_via_fuel_consumer_merge(
+        self, timeline, fuels, emissions, vessel
+    ):
         fleet = _make_fleet_profile(timeline, fuels, emissions, vessel_names=["v"])
         fleet.add_fuel_consumer_profile(vessel, 3.0, 0)
 
@@ -221,7 +253,9 @@ class TestShorePowerAccounting:
         assert fleet.get_total_consumed_energy(0) == pytest.approx(3.0 * 462.0)
         assert fleet.get_total_fuel_expenses(0) == pytest.approx(3.0 * 125.0)
 
-    def test_manager_merge_counts_shore_power_once(self, timeline, fuels, emissions, vessel):
+    def test_manager_merge_counts_shore_power_once(
+        self, timeline, fuels, emissions, vessel
+    ):
         fleet = _make_fleet_profile(timeline, fuels, emissions, vessel_names=["v"])
         fleet.add_fuel_consumer_profile(vessel, 1.0, 0)
 
@@ -266,8 +300,13 @@ class TestEnergyIntensitySaving:
         v_b._raw_energy_sea[EnergyDemandTypeID.PROPULSION][:] = [20.0, 20.0]
 
         fleet = _make_fleet_profile(timeline, fuels, emissions, vessel_names=["a", "b"])
-        stub = _FleetStub(fleet, cargo_miles_by_idx=[10.0 * 100.0 + 10.0 * 10.0,
-                                                     (1000.0 / 90.0) * 90.0 + 10.0 * 10.0])
+        stub = _FleetStub(
+            fleet,
+            cargo_miles_by_idx=[
+                10.0 * 100.0 + 10.0 * 10.0,
+                (1000.0 / 90.0) * 90.0 + 10.0 * 10.0,
+            ],
+        )
 
         fleet.add_fuel_consumer_profile(v_a, 10.0, 0)
         fleet.add_fuel_consumer_profile(v_b, 10.0, 0)
@@ -306,10 +345,18 @@ class TestEnergyIntensitySaving:
             manager.add_vessel_aggregate_profile(f)
 
         np.testing.assert_allclose(manager.get_baseline_energy(), [2000.0, 3000.0])
-        assert manager.get_speed_energy_intensity_saving(1) == pytest.approx(1.0 - 2600.0 / 3000.0)
-        assert manager.get_operational_energy_intensity_saving(1) == pytest.approx(1.0 - 2500.0 / 3000.0)
-        assert manager.get_technology_energy_intensity_saving(1) == pytest.approx(1.0 - 2410.0 / 2500.0)
-        assert manager.get_energy_intensity_saving(1) == pytest.approx(1.0 - 2410.0 / 3000.0)
+        assert manager.get_speed_energy_intensity_saving(1) == pytest.approx(
+            1.0 - 2600.0 / 3000.0
+        )
+        assert manager.get_operational_energy_intensity_saving(1) == pytest.approx(
+            1.0 - 2500.0 / 3000.0
+        )
+        assert manager.get_technology_energy_intensity_saving(1) == pytest.approx(
+            1.0 - 2410.0 / 2500.0
+        )
+        assert manager.get_energy_intensity_saving(1) == pytest.approx(
+            1.0 - 2410.0 / 3000.0
+        )
 
     def test_fleet_empty_at_start_has_no_baseline(self, timeline, fuels, emissions):
         # no year-0 intensity exists: baseline stays 0 and savings read 0,
@@ -324,10 +371,14 @@ class TestEnergyIntensitySaving:
         transfer_transport_work(stub)
 
         np.testing.assert_allclose(fleet.get_baseline_energy(), [0.0, 0.0])
-        np.testing.assert_allclose(fleet.get_speed_energy_intensity_saving(), [0.0, 0.0])
+        np.testing.assert_allclose(
+            fleet.get_speed_energy_intensity_saving(), [0.0, 0.0]
+        )
         np.testing.assert_allclose(fleet.get_energy_intensity_saving(), [0.0, 0.0])
 
-    def test_vessel_intensity_accounts_for_lost_transport_work(self, timeline, fuels, emissions):
+    def test_vessel_intensity_accounts_for_lost_transport_work(
+        self, timeline, fuels, emissions
+    ):
         # 10 % slower: energy falls cubically, cargo-miles linearly
         v = _make_vessel_profile(timeline, fuels, emissions)
         v._raw_energy_sea[EnergyDemandTypeID.PROPULSION][:] = [100.0, 72.9]
@@ -336,9 +387,13 @@ class TestEnergyIntensitySaving:
         v.set_cargo_miles(0, 100.0)
         v.set_cargo_miles(1, 90.0)
 
-        assert v.get_speed_energy_intensity_saving(1) == pytest.approx(1.0 - 0.729 / 0.9)
+        assert v.get_speed_energy_intensity_saving(1) == pytest.approx(
+            1.0 - 0.729 / 0.9
+        )
         assert v.get_speed_energy_saving(1) == pytest.approx(1.0 - 0.729)
-        assert v.get_technology_energy_intensity_saving(1) == pytest.approx(v.get_technology_energy_saving(1))
+        assert v.get_technology_energy_intensity_saving(1) == pytest.approx(
+            v.get_technology_energy_saving(1)
+        )
 
 
 def _vessel_with_speeds(timeline, fuels, emissions, name, **speeds):
@@ -346,7 +401,7 @@ def _vessel_with_speeds(timeline, fuels, emissions, name, **speeds):
     vessel.name = name
     vessel.profile = _make_vessel_profile(timeline, fuels, emissions)
     for speed_name, value in speeds.items():
-        getattr(vessel.profile, "set_{}_speed".format(speed_name))(0, value)
+        getattr(vessel.profile, f"set_{speed_name}_speed")(0, value)
     return vessel
 
 
@@ -366,20 +421,41 @@ class TestSpeedAggregation:
         #   actual = (2*11 + 3*8) / 5 = 9.2
         #   lowest = (2*7 + 3*5) / 5 = 5.8
         #   highest = (2*13 + 3*11) / 5 = 11.8
-        vessel_a = _vessel_with_speeds(timeline, fuels, emissions, "a", reference=10.,
-                                       minimum=8., maximum=12., actual=11., optimal=9.,
-                                       lowest=7., highest=13.)
-        vessel_b = _vessel_with_speeds(timeline, fuels, emissions, "b",
-                                       minimum=6., maximum=10., actual=8.,
-                                       lowest=5., highest=11.)
-        vessel_c = _vessel_with_speeds(timeline, fuels, emissions, "c", reference=14.,
-                                       maximum=100., actual=100.)
+        vessel_a = _vessel_with_speeds(
+            timeline,
+            fuels,
+            emissions,
+            "a",
+            reference=10.0,
+            minimum=8.0,
+            maximum=12.0,
+            actual=11.0,
+            optimal=9.0,
+            lowest=7.0,
+            highest=13.0,
+        )
+        vessel_b = _vessel_with_speeds(
+            timeline,
+            fuels,
+            emissions,
+            "b",
+            minimum=6.0,
+            maximum=10.0,
+            actual=8.0,
+            lowest=5.0,
+            highest=11.0,
+        )
+        vessel_c = _vessel_with_speeds(
+            timeline, fuels, emissions, "c", reference=14.0, maximum=100.0, actual=100.0
+        )
 
         fleet = MagicMock()
-        fleet.profile = _make_fleet_profile(timeline, fuels, emissions, vessel_names=["a", "b", "c"])
+        fleet.profile = _make_fleet_profile(
+            timeline, fuels, emissions, vessel_names=["a", "b", "c"]
+        )
         fleet.assets = [vessel_a, vessel_b, vessel_c]
 
-        for name, multiplier in (("a", 2.), ("b", 3.), ("c", 5.)):
+        for name, multiplier in (("a", 2.0), ("b", 3.0), ("c", 5.0)):
             fleet.profile.set_existing_vessels(0, name, multiplier)
 
         aggregate_speed_profile(fleet)

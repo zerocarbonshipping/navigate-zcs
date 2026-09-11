@@ -7,6 +7,8 @@ navigate.output.plots.render.generate_plots, driven by the simulation manager. T
 not assigned on any other node.
 """
 
+from __future__ import annotations
+
 from navigate.core.node import Node
 from navigate.core.node_type import PLOT
 

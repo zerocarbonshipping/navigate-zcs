@@ -17,7 +17,10 @@ from navigate.economics.flows import (
     expand_to_flow,
     trim_flow_to_lifetime,
 )
-from navigate.economics.metric import calculate_levelized_cost, calculate_net_present_value
+from navigate.economics.metric import (
+    calculate_levelized_cost,
+    calculate_net_present_value,
+)
 
 
 class Package:
@@ -39,8 +42,10 @@ class Package:
 
         self._compound_savings: dict[EnergyDemandTypeID, float] = {}
         self._compound_powers: dict[EnergyDemandTypeID, float] = {}
-        self._transfer_curves: dict[tuple[EnergyDemandTypeID, EnergyDemandTypeID], list[Curve | Scalar]] = {}
-        self._shore_power_capacity: float = 0.
+        self._transfer_curves: dict[
+            tuple[EnergyDemandTypeID, EnergyDemandTypeID], list[Curve | Scalar]
+        ] = {}
+        self._shore_power_capacity: float = 0.0
 
         self.cost_flow: np.ndarray | None = None
 
@@ -61,8 +66,9 @@ class Package:
         return self._compound_powers
 
     @property
-    def transfer_curves(self) -> dict[tuple[EnergyDemandTypeID, EnergyDemandTypeID],
-                                      list[Curve | Scalar]]:
+    def transfer_curves(
+        self,
+    ) -> dict[tuple[EnergyDemandTypeID, EnergyDemandTypeID], list[Curve | Scalar]]:
         return self._transfer_curves
 
     @property
@@ -87,7 +93,6 @@ class Package:
 
     def precompute(self):
         """Refresh compound savings, powers, and transfer curves from current technology state."""
-
         self._compound_savings.clear()
         self._compound_powers.clear()
         self._transfer_curves.clear()
@@ -98,24 +103,27 @@ class Package:
 
         # Compound savings: 1 - prod(1 - saving_i) per energy type
         for energy_id in EnergyDemandTypeID:
-            arr = np.array([t.energy_saving[energy_id].get() for t in self._technologies])
-            self._compound_savings[energy_id] = 1. - float(np.prod(1. - arr))
+            arr = np.array(
+                [t.energy_saving[energy_id].get() for t in self._technologies]
+            )
+            self._compound_savings[energy_id] = 1.0 - float(np.prod(1.0 - arr))
 
         # Compound powers: sum(power_i) per energy type
         for energy_id in EnergyDemandTypeID:
-            arr = np.array([t.external_power[energy_id].get() for t in self._technologies])
+            arr = np.array(
+                [t.external_power[energy_id].get() for t in self._technologies]
+            )
             self._compound_powers[energy_id] = float(np.sum(arr))
 
         # Transfer curves: collect only non-zero (source, destination) pairs
         for source in EnergyDemandTypeID:
             for destination in EnergyDemandTypeID:
-
                 curves: list[Curve | Scalar] = []
 
                 for tech in self._technologies:
                     obj = tech.power_transfer[(source, destination)]
 
-                    if isinstance(obj, Scalar) and obj.get() == 0.:
+                    if isinstance(obj, Scalar) and obj.get() == 0.0:
                         continue
 
                     curves.append(obj)
@@ -124,10 +132,9 @@ class Package:
                     self._transfer_curves[(source, destination)] = curves
 
 
-def preprocess_packages(packages: list[Package],
-                        vessels: list[Vessel],
-                        time: float
-                        ) -> None:
+def preprocess_packages(
+    packages: list[Package], vessels: list[Vessel], time: float
+) -> None:
     """
     Refresh all precomputed state on each Package and compute cost flows.
 
@@ -144,12 +151,11 @@ def preprocess_packages(packages: list[Package],
     time
         Current simulation time (days since start), used as the investment decision time.
     """
-
     lifetime = int(np.ceil(max(v.lifetime.get() for v in vessels)))
 
     # Empty-package component and cost
     empty_component = Component()
-    empty_component.initialize_flow(0., lifetime, time)
+    empty_component.initialize_flow(0.0, lifetime, time)
     packages[0].cost_flow = np.zeros(lifetime, dtype=float)
 
     last_package = packages[-1]
@@ -159,7 +165,7 @@ def preprocess_packages(packages: list[Package],
         tech_component = _build_technology_component(technology, lifetime, time)
 
         new_cumulative = Component()
-        new_cumulative.initialize_flow(0., lifetime, time)
+        new_cumulative.initialize_flow(0.0, lifetime, time)
         new_cumulative.add_component(cumulative_component)
         new_cumulative.add_component(tech_component)
         cumulative_component = new_cumulative
@@ -173,9 +179,9 @@ def preprocess_packages(packages: list[Package],
             pkg.precompute()
 
 
-def npv_for_newbuilds(packages_saving: list[np.ndarray],
-                      packages: list[Package],
-                      discount_rate: float):
+def npv_for_newbuilds(
+    packages_saving: list[np.ndarray], packages: list[Package], discount_rate: float
+):
 
     n_pkgs = len(packages_saving)
     npv = np.zeros(n_pkgs, dtype=float)
@@ -187,17 +193,19 @@ def npv_for_newbuilds(packages_saving: list[np.ndarray],
     return npv
 
 
-def npv_for_retrofit_steps(pkg_idx: int,
-                           package_savings: list[np.ndarray],
-                           packages: list[Package],
-                           remaining: float,
-                           discount_rate: float):
+def npv_for_retrofit_steps(
+    pkg_idx: int,
+    package_savings: list[np.ndarray],
+    packages: list[Package],
+    remaining: float,
+    discount_rate: float,
+):
 
     n_pkgs = len(package_savings)
     savings_flow = trim_flow_to_lifetime(package_savings[pkg_idx], remaining)
     max_steps = n_pkgs - pkg_idx
     npv = np.full(max_steps, -np.inf, dtype=float)
-    npv[0] = 0.
+    npv[0] = 0.0
 
     for step in range(1, max_steps):
         inc_cost_flow = _incremental_cost_flow(packages, pkg_idx, step, remaining)
@@ -207,21 +215,18 @@ def npv_for_retrofit_steps(pkg_idx: int,
     return npv
 
 
-def _incremental_cost_flow(packages: list[Package],
-                           pkg_idx: int,
-                           step: int,
-                           remaining: float) -> np.ndarray:
+def _incremental_cost_flow(
+    packages: list[Package], pkg_idx: int, step: int, remaining: float
+) -> np.ndarray:
     """Cost flow of jumping from `pkg_idx` to `pkg_idx + step`, trimmed to the remaining lifetime."""
-
     inc_cost_flow = packages[pkg_idx + step].cost_flow - packages[pkg_idx].cost_flow
 
     return trim_flow_to_lifetime(inc_cost_flow, remaining)
 
 
-def annual_costs_for_retrofit_steps(pkg_idx: int,
-                                    packages: list[Package],
-                                    remaining: float,
-                                    discount_rate: float) -> np.ndarray:
+def annual_costs_for_retrofit_steps(
+    pkg_idx: int, packages: list[Package], remaining: float, discount_rate: float
+) -> np.ndarray:
     """
     Levelized USD/year charge per retrofit step, amortized over the remaining vessel lifetime.
 
@@ -245,7 +250,6 @@ def annual_costs_for_retrofit_steps(pkg_idx: int,
     np.ndarray
         Constant yearly charge per retrofit step (0 for the stay option), USD/year.
     """
-
     max_steps = len(packages) - pkg_idx
     annual = np.zeros(max_steps, dtype=float)
 
@@ -256,9 +260,9 @@ def annual_costs_for_retrofit_steps(pkg_idx: int,
     return annual
 
 
-def levelize_package_cost(cost_flow: np.ndarray,
-                          window: float,
-                          discount_rate: float) -> float:
+def levelize_package_cost(
+    cost_flow: np.ndarray, window: float, discount_rate: float
+) -> float:
     """
     Levelize a technology cost flow into a constant USD/year charge over a service window.
 
@@ -281,29 +285,33 @@ def levelize_package_cost(cost_flow: np.ndarray,
     float
         Constant yearly charge in USD/year.
     """
+    if window <= 0.0:
+        return 0.0
 
-    if window <= 0.:
-        return 0.
+    return _levelize_trimmed(
+        trim_flow_to_lifetime(cost_flow, window), window, discount_rate
+    )
 
-    return _levelize_trimmed(trim_flow_to_lifetime(cost_flow, window), window, discount_rate)
 
-
-def _levelize_trimmed(trimmed: np.ndarray, window: float, discount_rate: float) -> float:
+def _levelize_trimmed(
+    trimmed: np.ndarray, window: float, discount_rate: float
+) -> float:
     """Levelize a cost flow already trimmed to `window` years into a constant USD/year charge."""
-
     # the leveling flow prorates the final partial year to match the trimmed
     # cost flow, so the charge is recovered over `window` years rather than
     # the padded whole-year horizon
-    level_flow = expand_to_flow(window, 1.)
+    level_flow = expand_to_flow(window, 1.0)
 
     return calculate_levelized_cost(trimmed, level_flow, discount_rate)
 
 
-def _build_technology_component(technology: Technology, vessel_lifetime: float, time_initial: float) -> Component:
+def _build_technology_component(
+    technology: Technology, vessel_lifetime: float, time_initial: float
+) -> Component:
 
     component = Component()
 
-    component.initialize_flow(0., vessel_lifetime, time_initial)
+    component.initialize_flow(0.0, vessel_lifetime, time_initial)
     component.initialize_machinery_component(technology)
 
     capex = lambda time: technology.capex.get(time)

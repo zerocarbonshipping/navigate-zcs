@@ -2,22 +2,25 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """Unit tests for Parser.parse_plot_nodes and the replot error handling (used by --replot)."""
+
+from __future__ import annotations
+
 import pytest
 
 import navigate.output.plot_data as plot_data_module
 from navigate.output import replot as replot_module
 from navigate.parser.parser import Parser
 
-PLOT_INC = '''
+PLOT_INC = """
 Plot "custom" {
     Directory = "./plots_custom/"
 
     add_plot("global_emission_absolute")
     add_plot("fleet_evolution")
 }
-'''
+"""
 
-MULTI_PLOT_INC = '''
+MULTI_PLOT_INC = """
 Plot "a" {
     Directory = "./a/"
     add_plot("global_emission_absolute")
@@ -28,7 +31,7 @@ Plot "b" {
     add_plot("fleet_evolution")
     add_plot("fleet_speed")
 }
-'''
+"""
 
 
 def _write_inc(tmp_path, content, name="plots.inc"):
@@ -38,14 +41,28 @@ def _write_inc(tmp_path, content, name="plots.inc"):
 
 
 class TestParsePlotNodes:
-
-    @pytest.mark.parametrize("content, expected", [
-        (PLOT_INC, {"custom": ("./plots_custom/", {"global_emission_absolute", "fleet_evolution"})}),
-        (MULTI_PLOT_INC, {
-            "a": ("./a/", {"global_emission_absolute"}),
-            "b": ("./b/", {"fleet_evolution", "fleet_speed"}),
-        }),
-    ], ids=["single_node", "multiple_nodes"])
+    @pytest.mark.parametrize(
+        "content, expected",
+        [
+            (
+                PLOT_INC,
+                {
+                    "custom": (
+                        "./plots_custom/",
+                        {"global_emission_absolute", "fleet_evolution"},
+                    )
+                },
+            ),
+            (
+                MULTI_PLOT_INC,
+                {
+                    "a": ("./a/", {"global_emission_absolute"}),
+                    "b": ("./b/", {"fleet_evolution", "fleet_speed"}),
+                },
+            ),
+        ],
+        ids=["single_node", "multiple_nodes"],
+    )
     def test_directory_and_selected_plots(self, tmp_path, content, expected):
         """Directory assignment and add_plot commands are both materialized."""
         nodes = Parser.parse_plot_nodes(_write_inc(tmp_path, content))
@@ -57,14 +74,16 @@ class TestParsePlotNodes:
 
 
 class TestReplotErrors:
-
     def test_raises_when_no_configs_and_no_include(self, monkeypatch):
         """A pkl with no stored plot configs and no include file is a clear error, not AttributeError."""
+
         class _Stub:
             plot_configs = []
             deck_directory = "."
 
-        monkeypatch.setattr(plot_data_module.PlotData, "load", classmethod(lambda cls, path: _Stub()))
+        monkeypatch.setattr(
+            plot_data_module.PlotData, "load", classmethod(lambda cls, path: _Stub())
+        )
 
         with pytest.raises(ValueError, match="no plot configurations"):
             replot_module.replot("dummy.pkl")
@@ -75,10 +94,14 @@ class TestReplotErrors:
 
         class _Stub:
             # non-empty on purpose: the include must take precedence over stored configs
-            plot_configs = [{"name": "stored", "directory": "./p/", "selected_plots": set()}]
+            plot_configs = [
+                {"name": "stored", "directory": "./p/", "selected_plots": set()}
+            ]
             deck_directory = str(tmp_path)
 
-        monkeypatch.setattr(plot_data_module.PlotData, "load", classmethod(lambda cls, path: _Stub()))
+        monkeypatch.setattr(
+            plot_data_module.PlotData, "load", classmethod(lambda cls, path: _Stub())
+        )
 
         with pytest.raises(ValueError, match="No Plot nodes were found"):
             replot_module.replot("dummy.pkl", plot_inc=empty_inc)

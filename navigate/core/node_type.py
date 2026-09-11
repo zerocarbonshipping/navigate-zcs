@@ -9,6 +9,8 @@ tables share a single vocabulary; general nodes carry no `type` and use
 theirs only as parser dispatch keys.
 """
 
+from __future__ import annotations
+
 CONVERTER = "Converter"
 CURVE = "Curve"
 EMISSION = "Emission"

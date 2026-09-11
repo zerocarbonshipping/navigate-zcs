@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 from navigate.core import (
     Scalar,
     as_list,
@@ -24,20 +26,22 @@ class Converter(_Machinery):
 
         # external variables -------------------------------------------------------------------------------------------
         # power
-        self.power_capacity = None         # float, power capacity of the Converter, MW
-        self.minimum_load = None           # float, minimum load, fraction of power capacity
+        self.power_capacity = None  # float, power capacity of the Converter, MW
+        self.minimum_load = None  # float, minimum load, fraction of power capacity
 
         # fuels
-        self.main_fuel_types = []          # list of int, IDs to fuel types
-        self.pilot_fuel_types = []         # list of int, IDs to fuel types
-        self.minimum_pilot_fuel = None     # list of floats, minimum pilot fuel fraction
+        self.main_fuel_types = []  # list of int, IDs to fuel types
+        self.pilot_fuel_types = []  # list of int, IDs to fuel types
+        self.minimum_pilot_fuel = None  # list of floats, minimum pilot fuel fraction
 
         # performance
-        self.efficiency = None             # float, conversion efficiency from potential to kinetic energy
+        self.efficiency = (
+            None  # float, conversion efficiency from potential to kinetic energy
+        )
 
         # emissions
-        self.consumption_ttw = {}          # dict of floats, emissions from consumption in the engine, ton/ton
-        self.slip_fraction = {}            # dict[FuelTypeID, Scalar], fraction of fuel mass escaping unburned
+        self.consumption_ttw = {}  # dict of floats, emissions from consumption in the engine, ton/ton
+        self.slip_fraction = {}  # dict[FuelTypeID, Scalar], fraction of fuel mass escaping unburned
 
     # external methods (DSL attributes) --------------------------------------------------------------------------------
     def set_power_capacity(self, power_capacity):
@@ -54,8 +58,9 @@ class Converter(_Machinery):
         power_capacity : float | NodeReference
             The maximum power capacity of the converter.
         """
-
-        self.power_capacity = assign_value(as_scalar(power_capacity), type_=VARIABLE, lower=0.)
+        self.power_capacity = assign_value(
+            as_scalar(power_capacity), type_=VARIABLE, lower=0.0
+        )
 
     def set_minimum_load(self, minimum_load):
         """
@@ -71,8 +76,9 @@ class Converter(_Machinery):
         minimum_load : float | NodeReference
             The minimum load as a fraction of power capacity.
         """
-
-        self.minimum_load = assign_value(as_scalar(minimum_load), type_=VARIABLE, lower=0., upper=1.)
+        self.minimum_load = assign_value(
+            as_scalar(minimum_load), type_=VARIABLE, lower=0.0, upper=1.0
+        )
 
     def set_main_fuel_types(self, main_fuel_types):
         """
@@ -88,8 +94,9 @@ class Converter(_Machinery):
         main_fuel_types : list[str]
             List of main fuel types of the converter.
         """
-
-        self.main_fuel_types = assign_id_list(as_list(main_fuel_types), FuelTypeID, length=(1, None))
+        self.main_fuel_types = assign_id_list(
+            as_list(main_fuel_types), FuelTypeID, length=(1, None)
+        )
 
     def set_pilot_fuel_types(self, pilot_fuel_types):
         """
@@ -105,8 +112,9 @@ class Converter(_Machinery):
         pilot_fuel_types : list[str]
             List of pilot fuel types of the converter.
         """
-
-        self.pilot_fuel_types = assign_id_list(as_list(pilot_fuel_types), FuelTypeID, length=(1, None))
+        self.pilot_fuel_types = assign_id_list(
+            as_list(pilot_fuel_types), FuelTypeID, length=(1, None)
+        )
 
     def set_minimum_pilot_fuel(self, minimum_pilot_fuel):
         """
@@ -122,8 +130,12 @@ class Converter(_Machinery):
         minimum_pilot_fuel : float | NodeReference
             Minimum pilot fuel fraction.
         """
-
-        self.minimum_pilot_fuel = assign_value(as_scalar(minimum_pilot_fuel), type_=(VARIABLE, FORECAST), lower=0., upper=1.)
+        self.minimum_pilot_fuel = assign_value(
+            as_scalar(minimum_pilot_fuel),
+            type_=(VARIABLE, FORECAST),
+            lower=0.0,
+            upper=1.0,
+        )
 
     def set_efficiency(self, efficiency):
         """
@@ -139,8 +151,9 @@ class Converter(_Machinery):
         efficiency : float | NodeReference
             The energy conversion efficiency.
         """
-
-        self.efficiency = assign_value(as_scalar(efficiency), type_=VARIABLE, lower=0., upper=1.)
+        self.efficiency = assign_value(
+            as_scalar(efficiency), type_=VARIABLE, lower=0.0, upper=1.0
+        )
 
     # external methods (DSL commands) ----------------------------------------------------------------------------------
     def set_slip_fraction(self, fuel_type, value):
@@ -159,13 +172,14 @@ class Converter(_Machinery):
         value : float | NodeReference
             Fraction of fuel mass escaping unburned.
         """
-
         id_ = assign_id(fuel_type, FuelTypeID)
 
         if id_ not in self.get_fuel_types():
             raise ValueError(f"received {fuel_type} which is not available for {self}.")
 
-        command_assignment_to_dict(id_, value, self.slip_fraction, type_=VARIABLE, lower=0., upper=1.)
+        command_assignment_to_dict(
+            id_, value, self.slip_fraction, type_=VARIABLE, lower=0.0, upper=1.0
+        )
 
     def set_consumption_ttw(self, fuel_type, emission_name, value):
         """
@@ -188,7 +202,6 @@ class Converter(_Machinery):
         value : float | NodeReference
             Ton of emission emitted per ton of fuel consumed.
         """
-
         id_ = assign_id(fuel_type, FuelTypeID)
 
         if id_ not in self.get_fuel_types():
@@ -200,31 +213,33 @@ class Converter(_Machinery):
         if key not in self.consumption_ttw:
             raise KeyError(f"{emission_name}")
 
-        command_assignment_to_tuple_dict(key, value, self.consumption_ttw, type_=VARIABLE, lower=0.)
+        command_assignment_to_tuple_dict(
+            key, value, self.consumption_ttw, type_=VARIABLE, lower=0.0
+        )
 
     # internal methods -------------------------------------------------------------------------------------------------
     def initialize(self):
 
         if self.power_capacity is None:
-            no_value_assigned_error(self, 'PowerCapacity')
+            no_value_assigned_error(self, "PowerCapacity")
 
         if not self.main_fuel_types:
-            no_value_assigned_error(self, 'MainFuelTypes')
+            no_value_assigned_error(self, "MainFuelTypes")
 
         if not list_is_unique(self.main_fuel_types):
-            raise ValueError("{}: All 'MainFuelTypes' must be unique.".format(self))
+            raise ValueError(f"{self}: All 'MainFuelTypes' must be unique.")
 
         if self.pilot_fuel_types:
-
             if not list_is_unique(self.main_fuel_types + self.pilot_fuel_types):
-                raise ValueError("{}: All fuel types across 'MainFuelTypes' and 'PilotFuelTypes' must be unique."
-                                 .format(self))
+                raise ValueError(
+                    f"{self}: All fuel types across 'MainFuelTypes' and 'PilotFuelTypes' must be unique."
+                )
 
             if self.minimum_pilot_fuel is None:
                 self.minimum_pilot_fuel = Scalar(0)
 
         if not self.efficiency:
-            no_value_assigned_error(self, 'Efficiency')
+            no_value_assigned_error(self, "Efficiency")
 
         self._initialize_machinery()
 
@@ -247,7 +262,6 @@ class Converter(_Machinery):
         emissions : dict[str, Emission]
             Dict of class Emission.
         """
-
         for fuel_type in self.get_fuel_types():
             self.slip_fraction.setdefault(fuel_type, None)
 

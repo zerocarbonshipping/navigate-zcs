@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 import numpy as np
 
 from navigate.core.nodes.emission import Emission
@@ -10,10 +12,13 @@ from navigate.economics.flows import build_operating_flows
 from navigate.economics.metric import calculate_levelized_cost
 
 
-def calculate_plant_logistics_expectations(plants: dict[str, Plant],
-                                           ports: dict[str, Port],
-                                           emissions: dict[str, Emission],
-                                           timeline: np.ndarray, idx: int) -> None:
+def calculate_plant_logistics_expectations(
+    plants: dict[str, Plant],
+    ports: dict[str, Port],
+    emissions: dict[str, Emission],
+    timeline: np.ndarray,
+    idx: int,
+) -> None:
     """
     Calculate the expected cost and WTT emissions of delivering each plant's fuel to each port.
 
@@ -38,7 +43,6 @@ def calculate_plant_logistics_expectations(plants: dict[str, Plant],
     idx
         Current time-step index in the simulation timeline.
     """
-
     times = timeline[idx:]
 
     # rate expectations are shared between every plant in the same region
@@ -47,15 +51,17 @@ def calculate_plant_logistics_expectations(plants: dict[str, Plant],
     wtt_rates = {}
 
     for plant in plants.values():
-
         region = plant.region
         fuel_name = plant.fuel.name
 
         # without a transport assignment no delivery cost
         # or emissions accrue: the expectation defaults are zero
-        deliveries = [(port_name, plant.fuel_transport[port_name])
-                      for port_name, port in ports.items()
-                      if port.is_bunkering_allowed(fuel_name) and plant.fuel_transport[port_name] is not None]
+        deliveries = [
+            (port_name, plant.fuel_transport[port_name])
+            for port_name, port in ports.items()
+            if port.is_bunkering_allowed(fuel_name)
+            and plant.fuel_transport[port_name] is not None
+        ]
 
         if not deliveries:
             continue
@@ -71,24 +77,36 @@ def calculate_plant_logistics_expectations(plants: dict[str, Plant],
             discount_rate = plant.cost_of_capital.get(time)
 
             for port_name, transport in deliveries:
-
                 key = (region.name, transport.name, t, lead_time, lifetime)
                 if key not in cost_rates:
-                    cost_rates[key] = region.transport_cost[transport.name].get(year_flow)
+                    cost_rates[key] = region.transport_cost[transport.name].get(
+                        year_flow
+                    )
 
-                cost_flow = cost_rates[key] * plant.fuel_distance[port_name].get(year_flow) * overlap
-                levelized_cost = calculate_levelized_cost(cost_flow, overlap, discount_rate)
-                plant.expectation.set_levelized_delivery_cost(t, port_name, levelized_cost)
+                cost_flow = (
+                    cost_rates[key]
+                    * plant.fuel_distance[port_name].get(year_flow)
+                    * overlap
+                )
+                levelized_cost = calculate_levelized_cost(
+                    cost_flow, overlap, discount_rate
+                )
+                plant.expectation.set_levelized_delivery_cost(
+                    t, port_name, levelized_cost
+                )
 
         # emissions are undiscounted and thus can
         # be assigned as instantaneous values
         for port_name, transport in deliveries:
-
             distance = plant.fuel_distance[port_name].get(times)
 
             for emission_name in emissions:
                 key = (region.name, transport.name, emission_name)
                 if key not in wtt_rates:
-                    wtt_rates[key] = region.transport_wtt[(transport.name, emission_name)].get(times)
+                    wtt_rates[key] = region.transport_wtt[
+                        (transport.name, emission_name)
+                    ].get(times)
 
-                plant.expectation.set_delivery_wtt(idx, port_name, emission_name, wtt_rates[key] * distance)
+                plant.expectation.set_delivery_wtt(
+                    idx, port_name, emission_name, wtt_rates[key] * distance
+                )

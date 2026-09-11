@@ -1,11 +1,14 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 from navigate.parser._lark_parser import SourceLocation
 
 
 class Event:
-    """A collection of AST statements associated with a timeline date.
+    """
+    A collection of AST statements associated with a timeline date.
 
     Parameters
     ----------

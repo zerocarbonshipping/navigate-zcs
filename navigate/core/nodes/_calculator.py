@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 import logging
 
 import numpy as np
@@ -10,16 +12,15 @@ from navigate.util import ROUND_OFF
 
 logger = logging.getLogger(__name__)
 
-BOUNDS_MAP = {'-INF': -np.inf,
-              'INF': np.inf}
+BOUNDS_MAP = {"-INF": -np.inf, "INF": np.inf}
 
 
 class _Calculator:
     def __init__(self):
 
         # external variables -------------------------------------------------------------------------------------------
-        self.addition = 0.
-        self.multiplier = 1.
+        self.addition = 0.0
+        self.multiplier = 1.0
         self.lower_bound = -np.inf
         self.upper_bound = np.inf
 
@@ -46,7 +47,6 @@ class _Calculator:
         addition : float
             Addition to the calculated value.
         """
-
         self.addition = assign_value(addition)
 
     def set_multiplier(self, multiplier):
@@ -58,7 +58,6 @@ class _Calculator:
         multiplier : float
             Multiplier of the calculated value.
         """
-
         self.multiplier = assign_value(multiplier)
 
     def set_lower_bound(self, lower_bound):
@@ -70,7 +69,6 @@ class _Calculator:
         lower_bound : float, str
             Lower bound of calculated value.
         """
-
         if isinstance(lower_bound, float):
             self.lower_bound = assign_value(lower_bound)
 
@@ -89,7 +87,6 @@ class _Calculator:
         upper_bound : float, str
             Upper bound of calculated value.
         """
-
         if isinstance(upper_bound, float):
             self.upper_bound = assign_value(upper_bound)
 
@@ -109,7 +106,6 @@ class _Calculator:
         reference : NodeReference
             Class NodeReference to a calculator.
         """
-
         lower, upper = reference.internal_bounds
         # reference.get_inclus...
         # if npt inclusive,
@@ -118,24 +114,24 @@ class _Calculator:
         # make exception.
 
         if lower > -np.inf:
-
             if self._internal_lower_bound == -np.inf:
                 self._internal_lower_bound = lower
 
             elif lower > self._internal_lower_bound:
-                logger.warning("{}: Internal lower bound tightened from {} to {}."
-                               .format(reference, self._internal_lower_bound, lower))
+                logger.warning(
+                    f"{reference}: Internal lower bound tightened from {self._internal_lower_bound} to {lower}."
+                )
 
                 self._internal_lower_bound = lower
 
         if upper < np.inf:
-
             if self._internal_upper_bound == np.inf:
                 self._internal_upper_bound = upper
 
             elif upper < self._internal_upper_bound:
-                logger.warning("{}: Internal upper bound tightened from {} to {}."
-                               .format(reference, self._internal_upper_bound, upper))
+                logger.warning(
+                    f"{reference}: Internal upper bound tightened from {self._internal_upper_bound} to {upper}."
+                )
 
                 self._internal_upper_bound = upper
 
@@ -152,7 +148,6 @@ class _Calculator:
         internal_lower_bound : float
             Internally applied lower bound.
         """
-
         self._internal_lower_bound = internal_lower_bound
 
     def set_internal_upper_bound(self, internal_upper_bound):
@@ -165,7 +160,6 @@ class _Calculator:
         internal_upper_bound : float
             Internally applied lower bound.
         """
-
         self._internal_upper_bound = internal_upper_bound
 
     def _truncate(self, value):
@@ -182,8 +176,9 @@ class _Calculator:
         float | np.ndarray :
             Truncated value.
         """
-
-        return np.maximum(np.minimum(value, self._applied_upper_bound), self._applied_lower_bound)
+        return np.maximum(
+            np.minimum(value, self._applied_upper_bound), self._applied_lower_bound
+        )
 
     def _assign_applied_bounds(self):
         """
@@ -193,9 +188,12 @@ class _Calculator:
         user-defined bounds with internal ones. It ensures the applied bounds take
         the minimum or maximum values based on the respective constraints.
         """
-
-        self._applied_lower_bound = np.maximum(self.lower_bound, self._internal_lower_bound)
-        self._applied_upper_bound = np.minimum(self.upper_bound, self._internal_upper_bound)
+        self._applied_lower_bound = np.maximum(
+            self.lower_bound, self._internal_lower_bound
+        )
+        self._applied_upper_bound = np.minimum(
+            self.upper_bound, self._internal_upper_bound
+        )
 
     @staticmethod
     def _test_convexity(x, y):
@@ -216,10 +214,9 @@ class _Calculator:
         bool
             Whether the piecewise linear function is convex.
         """
-
         if x.size < 3:
             return True
 
         dy_dx = (y[1:] - y[:-1]) / (x[1:] - x[:-1])
         d2y_d2x = (dy_dx[1:] - dy_dx[:-1]) / (x[2:] - x[1:-1])
-        return not np.any(np.round(d2y_d2x, ROUND_OFF) < 0.)
+        return not np.any(np.round(d2y_d2x, ROUND_OFF) < 0.0)

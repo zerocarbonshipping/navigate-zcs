@@ -43,21 +43,31 @@ class Producer(_AssetManager):
 
         # external variables -------------------------------------------------------------------------------------------
         # plant uptake
-        self.minimum_offtake_duration = None   # float, minimum duration of offtake agreements, years
-        self.fuel_demand_sensitivity = None    # float, odds ratio for pathway choice on expected demand
-        self.fuel_cost_sensitivity = None      # float, odds ratio for plant choice on LCoF
+        self.minimum_offtake_duration = (
+            None  # float, minimum duration of offtake agreements, years
+        )
+        self.fuel_demand_sensitivity = (
+            None  # float, odds ratio for pathway choice on expected demand
+        )
+        self.fuel_cost_sensitivity = None  # float, odds ratio for plant choice on LCoF
 
         # initial conditions
-        self._initial_capacity = []     # list[float], initial capacity per plant type, tons/day
+        self._initial_capacity = []  # list[float], initial capacity per plant type, tons/day
 
         # existing pipeline
-        self.existing_pipelines = {}   # dict[plant_name: Forecast]
+        self.existing_pipelines = {}  # dict[plant_name: Forecast]
 
         # constraints
-        self.maximum_development = None    # float, number of plants which can be built per year
-        self.feed_constraints = {}         # dict[float], amount of feed (process/feedstock) available for plants
-        self.jump_start_fraction = None    # float, fraction to jump-start supply/demand interaction
-        self.maximum_ramp_up = None        # float, maximum change in utilization of development, fraction/year
+        self.maximum_development = (
+            None  # float, number of plants which can be built per year
+        )
+        self.feed_constraints = {}  # dict[float], amount of feed (process/feedstock) available for plants
+        self.jump_start_fraction = (
+            None  # float, fraction to jump-start supply/demand interaction
+        )
+        self.maximum_ramp_up = (
+            None  # float, maximum change in utilization of development, fraction/year
+        )
 
         # export
         self.export_distribution = {}  # dict[port_name: float], fraction of production being exported to which port
@@ -74,10 +84,12 @@ class Producer(_AssetManager):
         self._increment_stores.append(self.pipeline)
 
         # static variables
-        self.fuels = {}                # dict[Fuel], store a list of possible production fuels for convenience
+        self.fuels = {}  # dict[Fuel], store a list of possible production fuels for convenience
 
         # dynamic variables
-        self.current_utilization = None    # float, current fraction of construction capacity utilized
+        self.current_utilization = (
+            None  # float, current fraction of construction capacity utilized
+        )
 
     # public domain name for the inherited assets list
     plants = property(lambda self: self.assets)
@@ -97,8 +109,9 @@ class Producer(_AssetManager):
         plants : list[NodeReference]
             The list of plants that can be built.
         """
-
-        self.assets = assign_list(as_list(plants), unique=True, scalar=False, type_=PLANT)
+        self.assets = assign_list(
+            as_list(plants), unique=True, scalar=False, type_=PLANT
+        )
 
     def set_minimum_offtake_duration(self, minimum_offtake_duration):
         """
@@ -114,8 +127,9 @@ class Producer(_AssetManager):
         minimum_offtake_duration : float | NodeReference
             The minimum offtake agreement for building new plants.
         """
-
-        self.minimum_offtake_duration = assign_value(as_scalar(minimum_offtake_duration), type_=(FORECAST, VARIABLE), lower=1.)
+        self.minimum_offtake_duration = assign_value(
+            as_scalar(minimum_offtake_duration), type_=(FORECAST, VARIABLE), lower=1.0
+        )
 
     def set_fuel_demand_sensitivity(self, fuel_demand_sensitivity):
         """
@@ -136,9 +150,12 @@ class Producer(_AssetManager):
         fuel_demand_sensitivity : float | NodeReference
             Odds ratio for a 10% higher expected demand in the between-pathway choice.
         """
-
-        self.fuel_demand_sensitivity = assign_value(as_scalar(fuel_demand_sensitivity), type_=(FORECAST, VARIABLE),
-                                                    lower=0., inclusive_lower=False)
+        self.fuel_demand_sensitivity = assign_value(
+            as_scalar(fuel_demand_sensitivity),
+            type_=(FORECAST, VARIABLE),
+            lower=0.0,
+            inclusive_lower=False,
+        )
 
     def set_fuel_cost_sensitivity(self, fuel_cost_sensitivity):
         """
@@ -158,9 +175,12 @@ class Producer(_AssetManager):
         fuel_cost_sensitivity : float | NodeReference
             Odds ratio for a 10% higher LCoF in the within-pathway plant choice.
         """
-
-        self.fuel_cost_sensitivity = assign_value(as_scalar(fuel_cost_sensitivity), type_=(FORECAST, VARIABLE),
-                                                  lower=0., inclusive_lower=False)
+        self.fuel_cost_sensitivity = assign_value(
+            as_scalar(fuel_cost_sensitivity),
+            type_=(FORECAST, VARIABLE),
+            lower=0.0,
+            inclusive_lower=False,
+        )
 
     def set_initial_capacity(self, initial_capacity):
         """
@@ -177,8 +197,9 @@ class Producer(_AssetManager):
         initial_capacity : list[float]
             List of initial production in tons/day.
         """
-
-        self._initial_capacity = assign_list(as_scalar_list(initial_capacity), type_=VARIABLE, lower=0.)
+        self._initial_capacity = assign_list(
+            as_scalar_list(initial_capacity), type_=VARIABLE, lower=0.0
+        )
 
     def set_maximum_development(self, maximum_development):
         """
@@ -194,8 +215,9 @@ class Producer(_AssetManager):
         maximum_development : float | NodeReference
             Maximum developments of plants per year.
         """
-
-        self.maximum_development = assign_value(as_scalar(maximum_development), type_=(FORECAST, VARIABLE), lower=0.)
+        self.maximum_development = assign_value(
+            as_scalar(maximum_development), type_=(FORECAST, VARIABLE), lower=0.0
+        )
 
     def set_maximum_ramp_up(self, maximum_ramp_up):
         """
@@ -211,8 +233,9 @@ class Producer(_AssetManager):
         maximum_ramp_up : float | NodeReference
             The maximum ramp-up for the utilization of the development constraint.
         """
-
-        self.maximum_ramp_up = assign_value(as_scalar(maximum_ramp_up), type_=(FORECAST, VARIABLE), lower=0., upper=1.)
+        self.maximum_ramp_up = assign_value(
+            as_scalar(maximum_ramp_up), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
+        )
 
     def set_jump_start_fraction(self, jump_start_fraction):
         """
@@ -231,8 +254,9 @@ class Producer(_AssetManager):
         jump_start_fraction : float | NodeReference
             The jump-start fraction for supply/demand interaction.
         """
-
-        self.jump_start_fraction = assign_value(jump_start_fraction, lower=0., upper=1.)
+        self.jump_start_fraction = assign_value(
+            jump_start_fraction, lower=0.0, upper=1.0
+        )
 
     # external methods (DSL commands) ----------------------------------------------------------------------------------
     def set_existing_pipeline(self, plant_name, existing_pipeline):
@@ -252,13 +276,14 @@ class Producer(_AssetManager):
         existing_pipeline : NodeReference
             Forecast of existing pipelines.
         """
-
-        command_assignment_to_dict(plant_name,
-                                   existing_pipeline,
-                                   self.existing_pipelines,
-                                   scalar=False,
-                                   type_=FORECAST,
-                                   lower=0.)
+        command_assignment_to_dict(
+            plant_name,
+            existing_pipeline,
+            self.existing_pipelines,
+            scalar=False,
+            type_=FORECAST,
+            lower=0.0,
+        )
 
     def set_allow_plant(self, plant_name, allow_plant):
         """
@@ -276,8 +301,9 @@ class Producer(_AssetManager):
         allow_plant : str
             Whether the plant is allowed or not.
         """
-
-        command_assignment_to_boolean_dict(plant_name, allow_plant, self.allow_plant, allow_empty=True)
+        command_assignment_to_boolean_dict(
+            plant_name, allow_plant, self.allow_plant, allow_empty=True
+        )
 
     def set_feed_constraint(self, feed_name, feed_constraint):
         """
@@ -295,12 +321,13 @@ class Producer(_AssetManager):
         feed_constraint : float | NodeReference
             The amount of feed available in tons/year.
         """
-
-        command_assignment_to_dict(feed_name,
-                                   feed_constraint,
-                                   self.feed_constraints,
-                                   type_=(FORECAST, VARIABLE),
-                                   lower=0.)
+        command_assignment_to_dict(
+            feed_name,
+            feed_constraint,
+            self.feed_constraints,
+            type_=(FORECAST, VARIABLE),
+            lower=0.0,
+        )
 
     def set_export_distribution(self, port_name, export_distribution):
         """
@@ -318,28 +345,29 @@ class Producer(_AssetManager):
         export_distribution : float | NodeReference
             The fraction of fuel production that is exported to the port.
         """
-
-        command_assignment_to_dict(port_name,
-                                   export_distribution,
-                                   self.export_distribution,
-                                   type_=(FORECAST, VARIABLE),
-                                   lower=0.,
-                                   upper=1.)
+        command_assignment_to_dict(
+            port_name,
+            export_distribution,
+            self.export_distribution,
+            type_=(FORECAST, VARIABLE),
+            lower=0.0,
+            upper=1.0,
+        )
 
     # internal methods -------------------------------------------------------------------------------------------------
     def initialize(self):
 
         if not self.assets:
-            no_value_assigned_error(self, 'Plants')
+            no_value_assigned_error(self, "Plants")
 
         if self.fuel_demand_sensitivity is None:
-            no_value_assigned_error(self, 'FuelDemandSensitivity')
+            no_value_assigned_error(self, "FuelDemandSensitivity")
 
         if self.fuel_cost_sensitivity is None:
-            no_value_assigned_error(self, 'FuelCostSensitivity')
+            no_value_assigned_error(self, "FuelCostSensitivity")
 
         if self.maximum_development is None:
-            no_value_assigned_error(self, 'MaximumDevelopment')
+            no_value_assigned_error(self, "MaximumDevelopment")
 
         if self.inertia is None:
             self.inertia = Scalar(0)
@@ -354,34 +382,40 @@ class Producer(_AssetManager):
             self.jump_start_fraction = 0.1
 
         if self._initial_capacity and (len(self.assets) != len(self._initial_capacity)):
-            raise ValueError("{}: The length of Plants ({}) and InitialCapacity ({}) must correspond."
-                             .format(self, len(self.assets), len(self._initial_capacity)))
+            raise ValueError(
+                f"{self}: The length of Plants ({len(self.assets)}) and InitialCapacity ({len(self._initial_capacity)}) must correspond."
+            )
 
-        if self._initial_age_distribution and (len(self.assets) != len(self._initial_age_distribution)):
-            raise ValueError("{}: The length of Plants ({}) and InitialAgeDistribution ({}) must correspond."
-                             .format(self, len(self.assets), len(self._initial_age_distribution)))
+        if self._initial_age_distribution and (
+            len(self.assets) != len(self._initial_age_distribution)
+        ):
+            raise ValueError(
+                f"{self}: The length of Plants ({len(self.assets)}) and InitialAgeDistribution ({len(self._initial_age_distribution)}) must correspond."
+            )
 
         # check that pipelines satisfy various requirements
         if self.existing_pipelines:
-
             for pipeline in self.existing_pipelines.values():
-
                 if pipeline is None:
                     continue
 
                 # check that pipelines are cumulative
                 if not is_non_strictly_increasing(pipeline.y):
-                    raise ValueError("{}: Pipeline ({}) is not non-strictly increasing.".format(self, pipeline))
+                    raise ValueError(
+                        f"{self}: Pipeline ({pipeline}) is not non-strictly increasing."
+                    )
 
                 # print a warning if the forecast allows extrapolation
                 if pipeline.extrapolate == ExtrapolateID.LINEAR:
-                    logger.warning("{}: Pipeline ({}) allows extrapolation and"
-                                   " may therefore continue past the last date.".format(self, pipeline))
+                    logger.warning(
+                        f"{self}: Pipeline ({pipeline}) allows extrapolation and"
+                        " may therefore continue past the last date."
+                    )
 
         # ensure consistent export distribution
         for port_name, export in self.export_distribution.items():
             if export is None:
-                self.export_distribution[port_name] = Scalar(0.)
+                self.export_distribution[port_name] = Scalar(0.0)
 
         for plant_name, allow in self.allow_plant.items():
             if allow is None:
@@ -400,7 +434,6 @@ class Producer(_AssetManager):
         processes : dict[str, Process]
             All processes in the simulation.
         """
-
         for feed_name in itertools.chain(feedstocks, processes):
             # stays None when unset: ProducerExpectation reads a missing constraint as unlimited
             self.feed_constraints.setdefault(feed_name, None)
@@ -414,16 +447,28 @@ class Producer(_AssetManager):
             # stays None when unset: a None entry means the plant has no committed pipeline
             self.existing_pipelines.setdefault(name, None)
 
-    def initialize_expectation(self, length: int, feedstocks: dict[str, Feedstock],
-                               fuels: dict[str, Fuel], ports: dict[str, Port],
-                               processes: dict[str, Process]) -> None:
+    def initialize_expectation(
+        self,
+        length: int,
+        feedstocks: dict[str, Feedstock],
+        fuels: dict[str, Fuel],
+        ports: dict[str, Port],
+        processes: dict[str, Process],
+    ) -> None:
 
         plant_names = [plant.name for plant in self.assets]
 
-        self.expectation.initialize(length, plant_names, feedstocks, fuels, ports, processes)
+        self.expectation.initialize(
+            length, plant_names, feedstocks, fuels, ports, processes
+        )
 
-    def initialize_profile(self, timeline: np.ndarray, feedstocks: dict[str, Feedstock],
-                           fuels: dict[str, Fuel], processes: dict[str, Process]) -> None:
+    def initialize_profile(
+        self,
+        timeline: np.ndarray,
+        feedstocks: dict[str, Feedstock],
+        fuels: dict[str, Fuel],
+        processes: dict[str, Process],
+    ) -> None:
 
         self.profile.initialize(timeline, feedstocks, fuels, processes)
 
@@ -431,13 +476,11 @@ class Producer(_AssetManager):
         """
         Define the initial capacity of each plant type.
         """
-
         if not self._initial_capacity:
-
             # if the initial capacity is not
             # supplied by the user, then assume
             # zero initial capacity
-            self._initial_capacity = [Scalar(0.) for _ in self.assets]
+            self._initial_capacity = [Scalar(0.0) for _ in self.assets]
 
     def define_initial_decided(self) -> None:
         """Set the decided field on each increment based on age + lead time."""
@@ -450,12 +493,12 @@ class Producer(_AssetManager):
 
     def _get_initial_multiplier(self, index: int) -> float:
         capacity = self.assets[index].capacity.get()
-        if capacity > 0.:
+        if capacity > 0.0:
             return self._initial_capacity[index].get() / capacity
         logger.warning(
-            "{}: Unable to initialize a capacity of tons/day from {} (plant {}) as the plant capacity is zero."
-            .format(self, self._initial_capacity[index].get(), self.assets[index]))
-        return 0.
+            f"{self}: Unable to initialize a capacity of tons/day from {self._initial_capacity[index].get()} (plant {self.assets[index]}) as the plant capacity is zero."
+        )
+        return 0.0
 
     def can_produce(self, fuel_name):
         return fuel_name in self.fuels

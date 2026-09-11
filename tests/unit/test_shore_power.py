@@ -2,6 +2,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """Unit tests for shore power: regulation integration, expected-scope transfer, and gate logic."""
+
+from __future__ import annotations
+
 from collections import defaultdict
 from unittest.mock import MagicMock
 
@@ -23,10 +26,14 @@ def _make_emission(name):
     return e
 
 
-def _make_port_expectation(shore_ef, shore_cost=0., connection_share=1.0, capacity=10.):
+def _make_port_expectation(
+    shore_ef, shore_cost=0.0, connection_share=1.0, capacity=10.0
+):
     """Create a mock port expectation with shore power attributes."""
     exp = MagicMock()
-    exp.get_shore_power_emission_factor = lambda emission_name, idx=None: shore_ef.get(emission_name, 0.)
+    exp.get_shore_power_emission_factor = lambda emission_name, idx=None: shore_ef.get(
+        emission_name, 0.0
+    )
     exp.get_shore_power_cost.return_value = shore_cost
     exp.get_shore_power_connection_share.return_value = connection_share
     return exp
@@ -42,10 +49,10 @@ def _make_regulation(name, measure, emissions, gwp=None):
 
     gwp = gwp or {}
     reg_exp = MagicMock()
-    reg_exp.get_global_warming_potential = lambda e: gwp.get(e, 1.)
+    reg_exp.get_global_warming_potential = lambda e: gwp.get(e, 1.0)
     reg.expectation = reg_exp
 
-    reg.vessel_threshold = defaultdict(lambda: Scalar(0.))
+    reg.vessel_threshold = defaultdict(lambda: Scalar(0.0))
 
     return reg
 
@@ -54,7 +61,7 @@ class TestShoreRegulationCoefficient:
     """Test shore power regulation emission factor and spend coefficient computation."""
 
     @staticmethod
-    def _run(measure, shore_ef, gwp=None, threshold=0., has_shore_power=True):
+    def _run(measure, shore_ef, gwp=None, threshold=0.0, has_shore_power=True):
         from navigate.bunker.bunker_algorithm import BunkerAlgorithm
 
         algo = BunkerAlgorithm()
@@ -102,41 +109,80 @@ class TestShoreRegulationCoefficient:
         [
             # ABSOLUTE: coefficient equals the emission factor, no threshold subtraction
             pytest.param(
-                RegulationMeasureID.ABSOLUTE, {"co2": 0.05}, None, 0., True, 0.05, 0.05,
+                RegulationMeasureID.ABSOLUTE,
+                {"co2": 0.05},
+                None,
+                0.0,
+                True,
+                0.05,
+                0.05,
                 id="absolute_equals_emission_factor",
             ),
             # INTENSITY: threshold / TON_TO_KG * 1.0 is subtracted from the emission factor
             pytest.param(
-                RegulationMeasureID.INTENSITY, {"co2": 0.05}, None, 10., True,
-                0.05, 0.05 - 10.0 / TON_TO_KG * 1.0,
+                RegulationMeasureID.INTENSITY,
+                {"co2": 0.05},
+                None,
+                10.0,
+                True,
+                0.05,
+                0.05 - 10.0 / TON_TO_KG * 1.0,
                 id="intensity_subtracts_threshold",
             ),
             # co2: 0.05 * 1.0 + ch4: 0.001 * 28.0 = 0.078
             pytest.param(
-                RegulationMeasureID.ABSOLUTE, {"co2": 0.05, "ch4": 0.001}, {"co2": 1.0, "ch4": 28.0}, 0., True,
-                0.05 * 1.0 + 0.001 * 28.0, None,
+                RegulationMeasureID.ABSOLUTE,
+                {"co2": 0.05, "ch4": 0.001},
+                {"co2": 1.0, "ch4": 28.0},
+                0.0,
+                True,
+                0.05 * 1.0 + 0.001 * 28.0,
+                None,
                 id="gwp_conversion_applied",
             ),
             # ports without a shore power variable get no regulation coefficient
             pytest.param(
-                RegulationMeasureID.ABSOLUTE, {"co2": 0.05}, None, 0., False, None, None,
+                RegulationMeasureID.ABSOLUTE,
+                {"co2": 0.05},
+                None,
+                0.0,
+                False,
+                None,
+                None,
                 id="no_shore_power_no_coefficient",
             ),
         ],
     )
     def test_regulation_coefficient(
-        self, measure, shore_ef, gwp, threshold, has_shore_power, expected_ef, expected_coeff,
+        self,
+        measure,
+        shore_ef,
+        gwp,
+        threshold,
+        has_shore_power,
+        expected_ef,
+        expected_coeff,
     ):
-        algo, key = self._run(measure, shore_ef, gwp=gwp, threshold=threshold, has_shore_power=has_shore_power)
+        algo, key = self._run(
+            measure,
+            shore_ef,
+            gwp=gwp,
+            threshold=threshold,
+            has_shore_power=has_shore_power,
+        )
 
         if not has_shore_power:
             assert key not in algo.shore_power_regulation_emission_factor
             assert key not in algo.shore_power_regulation_coefficient
             return
 
-        assert algo.shore_power_regulation_emission_factor[key] == pytest.approx(expected_ef)
+        assert algo.shore_power_regulation_emission_factor[key] == pytest.approx(
+            expected_ef
+        )
         if expected_coeff is not None:
-            assert algo.shore_power_regulation_coefficient[key] == pytest.approx(expected_coeff)
+            assert algo.shore_power_regulation_coefficient[key] == pytest.approx(
+                expected_coeff
+            )
 
 
 class TestShoreTransferExpected:

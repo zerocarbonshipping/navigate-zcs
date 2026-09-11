@@ -18,7 +18,9 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-def calculate_uptake_inter_metric(plant, demand, minimum_offtake_duration, timeline, idx):
+def calculate_uptake_inter_metric(
+    plant, demand, minimum_offtake_duration, timeline, idx
+):
     """
     Calculate the business case evaluation metric which is used to decide on a specific fuel pathway.
     This is based on the expected future gap between supply and demand and the number of plants required
@@ -37,7 +39,6 @@ def calculate_uptake_inter_metric(plant, demand, minimum_offtake_duration, timel
     idx : int
         Current time-step index.
     """
-
     expectation = plant.expectation
 
     # the discount rate of the plants are used
@@ -62,7 +63,7 @@ def calculate_uptake_inter_metric(plant, demand, minimum_offtake_duration, timel
     fuel = plant.fuel
     fuel_name = fuel.name
     lhv = fuel.lower_heating_value.get()
-    demand_int = np.interp(evaluation_timeline, timeline, demand[fuel_name], left=0.)
+    demand_int = np.interp(evaluation_timeline, timeline, demand[fuel_name], left=0.0)
 
     # calculate the maximum equivalent
     # multipliers over time
@@ -108,15 +109,13 @@ def calculate_uptake_intra_metric(plant, export_distribution, idx):
     idx : int
         Current time-step index.
     """
-
     expectation = plant.expectation
 
     # calculate the average exported levelized
     # delivery cost across ports
-    metric = 0.
+    metric = 0.0
 
     for port_name, export in export_distribution.items():
-
         lcof = expectation.get_levelized_delivered_cost(port_name, idx)
         metric += export * lcof
 
@@ -141,11 +140,13 @@ def get_plant_evaluation_timeline(plant, timeline, idx):
     np.ndarray
         Evaluation timeline.
     """
-
     lifetime = plant.lifetime.get()
     lead_time = plant.lead_time.get()
 
-    return np.arange(ceil(lead_time), ceil(lifetime + lead_time), dtype=np.float64) * YEAR + timeline[idx]
+    return (
+        np.arange(ceil(lead_time), ceil(lifetime + lead_time), dtype=np.float64) * YEAR
+        + timeline[idx]
+    )
 
 
 def calculate_constrained_shares(shares, maximums):
@@ -172,21 +173,22 @@ def calculate_constrained_shares(shares, maximums):
     tuple[np.ndarray, float]
         Constrained uptake shares and the utilization share if the problem is over-constrained.
     """
+    surplus = np.maximum(shares - maximums, 0.0)
+    deficit = np.maximum(maximums - shares, 0.0)
 
-    surplus = np.maximum(shares - maximums, 0.)
-    deficit = np.maximum(maximums - shares, 0.)
+    unutilized = max(1.0 - np.sum(maximums), 0.0)
 
-    unutilized = max(1. - np.sum(maximums), 0.)
+    fraction = min(divide_nonzero(np.sum(surplus), np.sum(deficit)), 1.0)
 
-    fraction = min(divide_nonzero(np.sum(surplus), np.sum(deficit)), 1.)
-
-    has_surplus = surplus > 0.
+    has_surplus = surplus > 0.0
     constrained_shares = np.where(has_surplus, maximums, shares + deficit * fraction)
 
-    return constrained_shares, 1. - unutilized
+    return constrained_shares, 1.0 - unutilized
 
 
-def calculate_increment_production_interval(production, delivery, decommission, time_step, times):
+def calculate_increment_production_interval(
+    production, delivery, decommission, time_step, times
+):
     """
     Calculate the production profile over time for a single increment.
 
@@ -208,7 +210,6 @@ def calculate_increment_production_interval(production, delivery, decommission, 
     np.ndarray
         The period over which production will be active and the amount of production.
     """
-
     # ignore small increments to avoid round-off issues
     tol = 1e-5
 
@@ -218,8 +219,7 @@ def calculate_increment_production_interval(production, delivery, decommission, 
     time_delivery = delivery - time_step
     delivery_period = time_step
 
-    if delivery <= 0.:
-
+    if delivery <= 0.0:
         # if delivery is negative it is because it is an existing
         # increment which has already been delivered and thus all
         # production is assigned at t=0
@@ -227,14 +227,12 @@ def calculate_increment_production_interval(production, delivery, decommission, 
         output[t_delivery] = production
 
     else:
-
         # the plants are delivered continuously over the
         # length of the time-step with the first being
         # delivered in 'delivery - time_step' time
         t_delivery = np.argmax(time_delivery < times)
 
         while delivery_period > tol:
-
             # respect end of simulation boundary
             if time_delivery >= end:
                 break
@@ -263,12 +261,10 @@ def calculate_increment_production_interval(production, delivery, decommission, 
     # never outside the timeline in which
     # case decommission does not happen
     if t_decom > t_delivery:
-
         time_decommission = decommission - time_step
         decommission_period = time_step
 
         while decommission_period > tol:
-
             # respect end of simulation boundary
             if time_decommission >= end:
                 break
@@ -292,7 +288,9 @@ def calculate_increment_production_interval(production, delivery, decommission, 
     return np.cumsum(output)
 
 
-def calculate_development_potential(producer: Producer, time_step: float, idx: int) -> None:
+def calculate_development_potential(
+    producer: Producer, time_step: float, idx: int
+) -> None:
     """
     Calculate the development potential of the producer per fuel type.
 
@@ -305,25 +303,23 @@ def calculate_development_potential(producer: Producer, time_step: float, idx: i
     idx
         Current time-step index.
     """
-
     # account for potential ramp-up constraints
     maximum_development = producer.maximum_development.get() * time_step / YEAR
     ramp_up = producer.maximum_ramp_up.get() * time_step / YEAR
-    utilization = min(producer.current_utilization + ramp_up, 1.)
+    utilization = min(producer.current_utilization + ramp_up, 1.0)
     maximum_development *= utilization
 
     # pre-allocate containers
-    potential = {fuel_name: 0. for fuel_name in producer.fuels}
+    potential = dict.fromkeys(producer.fuels, 0.0)
 
     for plant in producer.assets:
-
         plant_name = plant.name
         fuel_name = plant.fuel.name
         production = plant.expectation.get_production(idx)
 
         # if the plant has become disallowed
         # it is removed from consideration
-        uptake = 1. if producer.allow_plant[plant_name] else 0.
+        uptake = 1.0 if producer.allow_plant[plant_name] else 0.0
 
         # calculate the potential if no
         # feed constraints are included
@@ -336,13 +332,14 @@ def calculate_development_potential(producer: Producer, time_step: float, idx: i
         # plant potential in case a plant is
         # restricted by feed
         for feed_name, constraint in producer.feed_constraints.items():
-
             if constraint is None:
                 continue
 
-            mass = producer.expectation.get_plant_feed_consumption(plant_name, feed_name)
+            mass = producer.expectation.get_plant_feed_consumption(
+                plant_name, feed_name
+            )
 
-            if mass == 0.:
+            if mass == 0.0:
                 continue
 
             gap = producer.expectation.get_feed_gap(feed_name, idx)
@@ -356,6 +353,5 @@ def calculate_development_potential(producer: Producer, time_step: float, idx: i
 
     # transfer the development potential per fuel
     for fuel_name in producer.fuels:
-
         # TODO: can easily loop over export distribution to include shares going to ports
         producer.expectation.set_development_potential(fuel_name, potential[fuel_name])

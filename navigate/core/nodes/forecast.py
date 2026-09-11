@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 import numpy as np
 
 from navigate.core.node import Node
@@ -27,7 +29,7 @@ class Forecast(Node, _Table1D):
 
     def initialize(self) -> None:
         if self._table is None:
-            no_value_assigned_error(self, 'Table')
+            no_value_assigned_error(self, "Table")
 
     def get(self, x: float | None = None, y: float | None = None) -> float:
         """

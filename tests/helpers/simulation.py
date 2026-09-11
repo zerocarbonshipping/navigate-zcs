@@ -1,12 +1,16 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Shared helpers for test suites that run full simulations in-process.
+"""
+Shared helpers for test suites that run full simulations in-process.
 
 Used by tests/attribute (attribute coverage) and tests/guardrails (behavior
 guardrails); designed so a future regression suite can reuse the same runner
 and universal invariants without duplication.
 """
+
+from __future__ import annotations
+
 import argparse
 import os
 from pathlib import Path
@@ -37,7 +41,6 @@ def default_assumptions_dir() -> Path:
     -------
     Path to the assumptions directory.
     """
-
     env = os.environ.get(ASSUMPTIONS_ENV_VAR)
     if env:
         return Path(env)
@@ -54,7 +57,6 @@ def make_args(data_dir: Path | None = None) -> argparse.Namespace:
     data_dir
         Assumptions directory; resolved via default_assumptions_dir if None.
     """
-
     return argparse.Namespace(
         data_dir=data_dir or default_assumptions_dir(),
         suppress_plots=True,
@@ -81,7 +83,6 @@ def run_simulation(sim_dir: Path, data_dir: Path | None = None) -> SimulationMan
     -------
     The manager after a completed run, exposing profiles and nodes.
     """
-
     nav_file = sim_dir / f"{sim_dir.name}.nav"
     assert nav_file.exists(), f"Missing {nav_file}"
 
@@ -109,15 +110,15 @@ def assertable_end(manager: SimulationManager, producer: Producer) -> int:
     -------
     Exclusive end index, guaranteed within (0, len(timeline)].
     """
-
     timeline = manager.timeline
     lead_time = int(round(producer.assets[0].lead_time.get(timeline[0])))
     end = len(timeline) - lead_time
     # guard against vacuously-true assertions on empty (or, with negative
     # indices, silently wrong) windows when a horizon shrinks or a default
     # lead time grows
-    assert 0 < end <= len(timeline), \
+    assert 0 < end <= len(timeline), (
         f"Assertable window is empty: {len(timeline)} steps, lead time {lead_time}"
+    )
     return end
 
 
@@ -131,7 +132,6 @@ def check_invariants(manager: SimulationManager) -> None:
     manager
         Manager of a completed run.
     """
-
     dateline = manager.dateline
     timeline = manager.timeline
     assert dateline is not None
@@ -148,7 +148,9 @@ def check_invariants(manager: SimulationManager) -> None:
 
     for fuel_name, energy in manager.profile.get_consumed_energy().items():
         assert not np.any(np.isnan(energy)), f"NaN consumed energy for '{fuel_name}'"
-        assert not np.any(np.isinf(energy)), f"Infinite consumed energy for '{fuel_name}'"
+        assert not np.any(np.isinf(energy)), (
+            f"Infinite consumed energy for '{fuel_name}'"
+        )
         assert np.all(energy >= -1e-9), f"Negative consumed energy for '{fuel_name}'"
 
     # development is recorded per time step while MaximumDevelopment is a
@@ -160,7 +162,12 @@ def check_invariants(manager: SimulationManager) -> None:
     for producer_name, producer in manager.nodes.producers.items():
         development = producer.profile.get_development()
         maximum = producer.profile.get_maximum_development()
-        assert not np.any(np.isnan(development)), f"NaN development for '{producer_name}'"
-        assert np.all(development >= -1e-9), f"Negative development for '{producer_name}'"
-        assert np.all(development <= maximum * step_years * (1. + 1e-6) + 1e-9), \
+        assert not np.any(np.isnan(development)), (
+            f"NaN development for '{producer_name}'"
+        )
+        assert np.all(development >= -1e-9), (
+            f"Negative development for '{producer_name}'"
+        )
+        assert np.all(development <= maximum * step_years * (1.0 + 1e-6) + 1e-9), (
             f"Development exceeds MaximumDevelopment for '{producer_name}'"
+        )

@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 from navigate.output.plots._figure import (
     format_axes,
     save_figure,
@@ -21,10 +23,10 @@ def plot_global_emission_absolute(manager, directory):
     divisor, unit = get_best_unit_mass(wtw.max())
     wtw /= divisor
 
-    ax.plot(dateline, wtw, label='WTW', color='k')
+    ax.plot(dateline, wtw, label="WTW", color="k")
 
-    ax.set_ylabel('WTW CO$_2$-eq. [{}]'.format(unit))
+    ax.set_ylabel(f"WTW CO$_2$-eq. [{unit}]")
     legend = ax.legend(**LEGEND_OPTIONS)
     format_axes(ax, 1, dateline, legend)
 
-    save_figure(fig, directory, 'global_emission_absolute.png')
+    save_figure(fig, directory, "global_emission_absolute.png")

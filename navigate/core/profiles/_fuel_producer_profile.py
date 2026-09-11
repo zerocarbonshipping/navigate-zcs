@@ -26,16 +26,24 @@ class _FuelProducerProfile(_FuelBaseProfile):
         super().__init__()
 
         # current production
-        self._production_mass: dict[str, np.ndarray] = {}  # actual production, tons/year
+        self._production_mass: dict[
+            str, np.ndarray
+        ] = {}  # actual production, tons/year
 
         # feedstock
-        self._feed_mass: dict[str, np.ndarray] = {}       # feedstock for production, ton/year
+        self._feed_mass: dict[
+            str, np.ndarray
+        ] = {}  # feedstock for production, ton/year
 
         # constraints
         self._feed_constraint: dict[str, np.ndarray] = {}
 
-    def _initialize_fuel_producer(self, feedstocks: dict[str, Feedstock], fuels: dict[str, Fuel],
-                                  processes: dict[str, Process]) -> None:
+    def _initialize_fuel_producer(
+        self,
+        feedstocks: dict[str, Feedstock],
+        fuels: dict[str, Fuel],
+        processes: dict[str, Process],
+    ) -> None:
 
         self._production_mass = self._default_dict(fuels)
 
@@ -43,7 +51,9 @@ class _FuelProducerProfile(_FuelBaseProfile):
         self._feed_mass = self._default_dict(feed)
         self._feed_constraint = self._default_dict(feed, default=np.inf)
 
-    def add_fuel_producer_profile(self, profile: _FuelProducerProfile, idx: int | slice = np.s_[:]) -> None:
+    def add_fuel_producer_profile(
+        self, profile: _FuelProducerProfile, idx: int | slice = np.s_[:]
+    ) -> None:
         """
 
         Parameters
@@ -53,7 +63,6 @@ class _FuelProducerProfile(_FuelBaseProfile):
         idx : int
             Time-step index.
         """
-
         for key in self._production_mass:
             self._production_mass[key][idx] += profile._production_mass[key][idx]
 
@@ -63,26 +72,35 @@ class _FuelProducerProfile(_FuelBaseProfile):
         for key in self._feed_constraint:
             self._feed_constraint[key][idx] += profile._feed_constraint[key][idx]
 
-    def add_production_mass(self, fuel_name: str, mass: float, idx: int | slice = np.s_[:]) -> None:
+    def add_production_mass(
+        self, fuel_name: str, mass: float, idx: int | slice = np.s_[:]
+    ) -> None:
         self._production_mass[fuel_name][idx] += mass
 
-    def add_feed_mass(self, feed_name: str, mass: float, idx: int | slice = np.s_[:]) -> None:
+    def add_feed_mass(
+        self, feed_name: str, mass: float, idx: int | slice = np.s_[:]
+    ) -> None:
         self._feed_mass[feed_name][idx] += mass
 
     def set_feed_constraint(self, idx: int, feed_name: str, constraint: float) -> None:
         self._feed_constraint[feed_name][idx] = constraint
 
-    def get_production_energy(self, fuel_name: str | None = None,
-                              idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
+    def get_production_energy(
+        self, fuel_name: str | None = None, idx: int | slice = np.s_[:]
+    ) -> np.ndarray | dict[str, np.ndarray]:
         return self._fuel_mass_to_energy(self._production_mass, fuel_name, idx)
 
-    def get_production_type_energy(self, idx: int | slice = np.s_[:]) -> dict[FuelTypeID, np.ndarray]:
+    def get_production_type_energy(
+        self, idx: int | slice = np.s_[:]
+    ) -> dict[FuelTypeID, np.ndarray]:
         return self._fuel_type_mass_to_energy(self._production_mass, idx)
 
-    def get_feed_mass(self, feed_name: str | None = None,
-                      idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
+    def get_feed_mass(
+        self, feed_name: str | None = None, idx: int | slice = np.s_[:]
+    ) -> np.ndarray | dict[str, np.ndarray]:
         return extract_from_dict(self._feed_mass, feed_name, idx)
 
-    def get_feed_constraint(self, feedstock_name: str | None = None,
-                            idx: int | slice = np.s_[:]) -> np.ndarray | dict[str, np.ndarray]:
+    def get_feed_constraint(
+        self, feedstock_name: str | None = None, idx: int | slice = np.s_[:]
+    ) -> np.ndarray | dict[str, np.ndarray]:
         return extract_from_dict(self._feed_constraint, feedstock_name, idx)

@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 import numpy as np
 
 from navigate.output.plots._colors import (
@@ -28,7 +30,6 @@ def plot_technology_uptake(manager, directory):
     fleets = manager.nodes.fleets
 
     for fleet_name, fleet in fleets.items():
-
         profile = fleet.profile
 
         uptakes = profile.get_technology_uptake()
@@ -47,10 +48,13 @@ def plot_technology_uptake(manager, directory):
         technology_names = [technology.name for technology in fleet.technologies]
 
         for name in technology_names:
-
             # NOTE: underlying storage is still a tuple-dict; keep extraction logic
-            shares_nb = extract_from_tuple_dict(uptakes_nb, key2=name) if uptakes_nb else {}
-            shares_rf = extract_from_tuple_dict(uptakes_rf, key2=name) if uptakes_rf else {}
+            shares_nb = (
+                extract_from_tuple_dict(uptakes_nb, key2=name) if uptakes_nb else {}
+            )
+            shares_rf = (
+                extract_from_tuple_dict(uptakes_rf, key2=name) if uptakes_rf else {}
+            )
 
             values_nb = [
                 shares_nb[vessel.name]
@@ -82,7 +86,9 @@ def plot_technology_uptake(manager, directory):
             # Newbuild uptake (weighted if weights exist; otherwise simple average)
             if values_nb:
                 uptake_nb[name] = [
-                    np.average([v[i] for v in values_nb], weights=[w[i] for w in weights_nb])
+                    np.average(
+                        [v[i] for v in values_nb], weights=[w[i] for w in weights_nb]
+                    )
                     if (weights_nb and np.sum([w[i] for w in weights_nb]) > 0.0)
                     else np.average([v[i] for v in values_nb])
                     for i in range(dateline.size)
@@ -94,8 +100,11 @@ def plot_technology_uptake(manager, directory):
             # entry is already `retrofit_count_v / multiplier_v` (a rate).
             if values_rf and weights:
                 uptake_rf[name] = [
-                    np.average([v[i] for v in values_rf], weights=[w[i] for w in weights])
-                    if np.sum([w[i] for w in weights]) > 0.0 else 0.0
+                    np.average(
+                        [v[i] for v in values_rf], weights=[w[i] for w in weights]
+                    )
+                    if np.sum([w[i] for w in weights]) > 0.0
+                    else 0.0
                     for i in range(dateline.size)
                 ]
             else:
@@ -112,10 +121,21 @@ def plot_technology_uptake(manager, directory):
         retrofit_color = CENTER_COLORS_BLUE[4]
 
         for ax, name in zip(axes, uptake):
-
             ax.plot(dateline, uptake[name], color=fleet_color, label="Fleet", lw=2)
-            ax.plot(dateline[1:], uptake_nb[name][1:], color=newbuild_color, label="Newbuilds", lw=2)
-            ax.plot(dateline[1:], uptake_rf[name][1:], color=retrofit_color, label="Retrofits", lw=2)
+            ax.plot(
+                dateline[1:],
+                uptake_nb[name][1:],
+                color=newbuild_color,
+                label="Newbuilds",
+                lw=2,
+            )
+            ax.plot(
+                dateline[1:],
+                uptake_rf[name][1:],
+                color=retrofit_color,
+                label="Retrofits",
+                lw=2,
+            )
 
             ax.set_xlim([dateline[0], dateline[-1]])
             ax.set_ylim([0.0, 1.01])

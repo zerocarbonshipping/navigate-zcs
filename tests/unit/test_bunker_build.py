@@ -1,12 +1,16 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Unit tests for the LP get-or-create build helpers.
+"""
+Unit tests for the LP get-or-create build helpers.
 
 The stub model below is the only check on element names: the HiGHS backend
 discards the name passed to addVar, so an LP-level comparison cannot see
 variable-name drift.
 """
+
+from __future__ import annotations
+
 import pytest
 
 import navigate.bunker.solver as gp
@@ -42,7 +46,9 @@ def test_add_variable_creates_named_continuous_variable_under_key():
 
     add_variable(alg, container, ("vessel_a", 2, "ammonia"), "bunker")
 
-    assert alg.model.added_variables == [(gp.GRB.CONTINUOUS, "bunker_vessel_a_2_ammonia")]
+    assert alg.model.added_variables == [
+        (gp.GRB.CONTINUOUS, "bunker_vessel_a_2_ammonia")
+    ]
     assert list(container) == [("vessel_a", 2, "ammonia")]
 
 
@@ -63,7 +69,9 @@ def test_add_variable_scalar_key_is_single_name_element():
 
     add_variable(alg, container, "regulation_a", "remedial_factor_flexibility")
 
-    assert [name for _, name in alg.model.added_variables] == ["remedial_factor_flexibility_regulation_a"]
+    assert [name for _, name in alg.model.added_variables] == [
+        "remedial_factor_flexibility_regulation_a"
+    ]
     assert list(container) == ["regulation_a"]
 
 
@@ -71,20 +79,26 @@ def test_get_constraint_creates_named_constraint_under_key():
     alg = _StubAlgorithm()
     container = {}
 
-    constraint = get_constraint(alg, container, ("vessel_a", 2, "tank_b"), "<=", "tank_capacity")
+    constraint = get_constraint(
+        alg, container, ("vessel_a", 2, "tank_b"), "<=", "tank_capacity"
+    )
 
-    assert [name for _, name in alg.model.added_constraints] == ["tank_capacity_vessel_a_2_tank_b"]
+    assert [name for _, name in alg.model.added_constraints] == [
+        "tank_capacity_vessel_a_2_tank_b"
+    ]
     assert container[("vessel_a", 2, "tank_b")] is constraint
 
 
-@pytest.mark.skipif(gp.get_active_backend() != "highs", reason="inspects the HiGHS TempConstr")
+@pytest.mark.skipif(
+    gp.get_active_backend() != "highs", reason="inspects the HiGHS TempConstr"
+)
 @pytest.mark.parametrize("sense", ["==", "<=", ">="])
 def test_get_constraint_builds_row_with_requested_sense(sense):
     alg = _StubAlgorithm()
 
     get_constraint(alg, {}, ("vessel_a",), sense, "family")
 
-    (temp_constraint, _), = alg.model.added_constraints
+    ((temp_constraint, _),) = alg.model.added_constraints
     assert temp_constraint.sense == sense
 
 
@@ -93,7 +107,9 @@ def test_get_constraint_returns_existing_constraint():
     existing = object()
     container = {("vessel_a", 2, "tank_b"): existing}
 
-    constraint = get_constraint(alg, container, ("vessel_a", 2, "tank_b"), "<=", "tank_capacity")
+    constraint = get_constraint(
+        alg, container, ("vessel_a", 2, "tank_b"), "<=", "tank_capacity"
+    )
 
     assert constraint is existing
     assert not alg.model.added_constraints
@@ -136,7 +152,7 @@ class _StubRoute:
 
 class _StubVesselExpectation:
     def get_shore_power_capacity(self, idx):
-        return 0.
+        return 0.0
 
 
 class _StubVessel:
@@ -149,9 +165,10 @@ class _StubVessel:
 
 
 def test_update_vessel_variables_adds_mass_tank_per_port_and_fuel():
-    """No committed test deck assigns a ROUND_TRIP route, so the mass-tank keys
-    and names are pinned here rather than by an LP-level comparison."""
-
+    """
+    No committed test deck assigns a ROUND_TRIP route, so the mass-tank keys
+    and names are pinned here rather than by an LP-level comparison.
+    """
     alg = _StubAlgorithm()
     alg.idx = 0
     alg.bunker = {}
@@ -159,10 +176,16 @@ def test_update_vessel_variables_adds_mass_tank_per_port_and_fuel():
     alg.spend_port = {}
     alg.mass_tank = {}
     alg.shore_power = {}
-    alg.fuels_per_converter = {("vessel_a", "electrical_a"): {}, ("vessel_a", "heat_a"): {}}
+    alg.fuels_per_converter = {
+        ("vessel_a", "electrical_a"): {},
+        ("vessel_a", "heat_a"): {},
+    }
 
     update_vessel_variables(alg, _StubVessel())
 
     assert list(alg.mass_tank) == [("vessel_a", 0, "hfo"), ("vessel_a", 1, "hfo")]
-    assert [name for _, name in alg.model.added_variables] == ["mass_tank_vessel_a_0_hfo", "mass_tank_vessel_a_1_hfo"]
+    assert [name for _, name in alg.model.added_variables] == [
+        "mass_tank_vessel_a_0_hfo",
+        "mass_tank_vessel_a_1_hfo",
+    ]
     assert not (alg.bunker or alg.spend_sea or alg.spend_port or alg.shore_power)

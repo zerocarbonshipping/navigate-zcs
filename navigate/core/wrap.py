@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 from navigate.core.scalar import Scalar
 
 
@@ -21,7 +23,6 @@ def as_scalar(value):
     Scalar | NodeReference | Node
         Wrapped value.
     """
-
     if isinstance(value, float):
         return Scalar(value)
     else:
@@ -42,7 +43,6 @@ def as_scalar_list(values):
     list[Scalar | NodeReference | Node]
         List of wrapped values.
     """
-
     return [as_scalar(value) for value in as_list(values)]
 
 
@@ -62,7 +62,6 @@ def as_list(value):
     list
         A list containing the passed value or simply the value itself if already a list.
     """
-
     if isinstance(value, tuple):
         return list(value)
 

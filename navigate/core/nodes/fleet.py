@@ -54,57 +54,124 @@ type InputScalarLike = Scalar | Forecast | Variable
 
 
 class Fleet(_AssetManager):
-
     def __init__(self, name: str) -> None:
         super().__init__(name, FLEET)
 
         # external variables -------------------------------------------------------------------------------------------
-        self.trade_growth: ScalarLike = None                        # Trade-growth of the fleet
-        self.fixed_scrap_rate: ScalarLike = None                    # Fixed scrap rate to replace age based
-        self.allow_secondary_scrapping: bool = True                 # Whether to allow secondary scrapping
-        self.intra_fuel_sensitivity: ScalarLike = None              # Odds ratio for within-fuel tech choice (LCOT)
-        self.inter_fuel_sensitivity: ScalarLike = None              # Odds ratio for fuel-type choice (LCOT)
-        self.fuel_conversion_sensitivity: ScalarLike = None         # Odds ratio for fuel conversion (NPV)
-        self.memory: ScalarLike = None                              # Weight of historic uptake distributions used
-        self.initial_vessels: Scalar | Variable | None = None       # Initial number of vessels
-        self.allow_speed_management: bool = False                   # Whether to perform speed management
-        self.maximum_speed_change: ScalarLike = None                # Maximum change in speed per year, knots/year
-        self.speed_alignment: SpeedAlignmentID = SpeedAlignmentID.INDIVIDUAL  # How to align speed across vessels
-        self.assume_reference_speed_optimal: bool = False           # Whether to anchor speed changes to reference
-        self.retrofit_frequency: ScalarLike = None                  # Frequency at which retrofit can be done
-        self.technology_sensitivity: ScalarLike = None              # Odds ratio for technology packages (NPV)
-        self.technology_cost_of_capital: ScalarLike = None          # Cost of capital for technology
-        self.technology_horizon: ScalarLike = None                  # Belief horizon for tech decisions, years
-        self.speed_horizon: ScalarLike = None                       # Belief horizon for speed management, years
-        self.fuel_conversion_minimum_age: Scalar | None = None      # Minimum age of fuel conversions
-        self.allow_technology_approximation: bool = True            # Whether to allow technology approximation
-        self.initial_split: list[float] = []                        # Fraction of vessel type at start
-        self.initial_technology_share: dict[tuple[str, str], Curve | None] = {}  # (vessel, tech) -> Curve
-        self.orderbooks: list[Forecast] = []                        # Cumulative vessels by date
-        self.technologies: list[Technology] = []                    # Energy efficiency technologies
-        self.operational_saving_sea: dict[EnergyDemandTypeID, InputScalarLike] = {d: Scalar(0) for d in EnergyDemandTypeID}
-        self.operational_saving_port: dict[EnergyDemandTypeID, InputScalarLike] = {d: Scalar(0) for d in EnergyDemandTypePortID}
-        self.fuel_conversion_cost: dict[tuple[str, str], float | Forecast | None] = {}       # Fuel conversion costs
-        self.fuel_conversion_limit: dict[tuple[str, str], InputScalarLike | None] = {}       # Per-pair conversion cap
-        self.newbuild_limit: dict[str, InputScalarLike | None] = {}                 # Per-vessel newbuild share cap
-        self.newbuild_technology_limit: dict[str, InputScalarLike | None] = {}      # Per-tech newbuild install cap
-        self.retrofit_technology_limit: dict[str, InputScalarLike | None] = {}      # Per-tech retrofit cap
-        self.allow_vessel: dict[str, bool | None] = {}              # Whether a vessel is allowed
-        self.newbuild_available: dict[str, bool | None] = {}        # Whether newbuild is available
-        self.conversion_available: dict[str, bool | None] = {}      # Whether conversion is available
+        self.trade_growth: ScalarLike = None  # Trade-growth of the fleet
+        self.fixed_scrap_rate: ScalarLike = (
+            None  # Fixed scrap rate to replace age based
+        )
+        self.allow_secondary_scrapping: bool = (
+            True  # Whether to allow secondary scrapping
+        )
+        self.intra_fuel_sensitivity: ScalarLike = (
+            None  # Odds ratio for within-fuel tech choice (LCOT)
+        )
+        self.inter_fuel_sensitivity: ScalarLike = (
+            None  # Odds ratio for fuel-type choice (LCOT)
+        )
+        self.fuel_conversion_sensitivity: ScalarLike = (
+            None  # Odds ratio for fuel conversion (NPV)
+        )
+        self.memory: ScalarLike = None  # Weight of historic uptake distributions used
+        self.initial_vessels: Scalar | Variable | None = (
+            None  # Initial number of vessels
+        )
+        self.allow_speed_management: bool = False  # Whether to perform speed management
+        self.maximum_speed_change: ScalarLike = (
+            None  # Maximum change in speed per year, knots/year
+        )
+        self.speed_alignment: SpeedAlignmentID = (
+            SpeedAlignmentID.INDIVIDUAL
+        )  # How to align speed across vessels
+        self.assume_reference_speed_optimal: bool = (
+            False  # Whether to anchor speed changes to reference
+        )
+        self.retrofit_frequency: ScalarLike = (
+            None  # Frequency at which retrofit can be done
+        )
+        self.technology_sensitivity: ScalarLike = (
+            None  # Odds ratio for technology packages (NPV)
+        )
+        self.technology_cost_of_capital: ScalarLike = (
+            None  # Cost of capital for technology
+        )
+        self.technology_horizon: ScalarLike = (
+            None  # Belief horizon for tech decisions, years
+        )
+        self.speed_horizon: ScalarLike = (
+            None  # Belief horizon for speed management, years
+        )
+        self.fuel_conversion_minimum_age: Scalar | None = (
+            None  # Minimum age of fuel conversions
+        )
+        self.allow_technology_approximation: bool = (
+            True  # Whether to allow technology approximation
+        )
+        self.initial_split: list[float] = []  # Fraction of vessel type at start
+        self.initial_technology_share: dict[
+            tuple[str, str], Curve | None
+        ] = {}  # (vessel, tech) -> Curve
+        self.orderbooks: list[Forecast] = []  # Cumulative vessels by date
+        self.technologies: list[Technology] = []  # Energy efficiency technologies
+        self.operational_saving_sea: dict[EnergyDemandTypeID, InputScalarLike] = {
+            d: Scalar(0) for d in EnergyDemandTypeID
+        }
+        self.operational_saving_port: dict[EnergyDemandTypeID, InputScalarLike] = {
+            d: Scalar(0) for d in EnergyDemandTypePortID
+        }
+        self.fuel_conversion_cost: dict[
+            tuple[str, str], float | Forecast | None
+        ] = {}  # Fuel conversion costs
+        self.fuel_conversion_limit: dict[
+            tuple[str, str], InputScalarLike | None
+        ] = {}  # Per-pair conversion cap
+        self.newbuild_limit: dict[
+            str, InputScalarLike | None
+        ] = {}  # Per-vessel newbuild share cap
+        self.newbuild_technology_limit: dict[
+            str, InputScalarLike | None
+        ] = {}  # Per-tech newbuild install cap
+        self.retrofit_technology_limit: dict[
+            str, InputScalarLike | None
+        ] = {}  # Per-tech retrofit cap
+        self.allow_vessel: dict[str, bool | None] = {}  # Whether a vessel is allowed
+        self.newbuild_available: dict[
+            str, bool | None
+        ] = {}  # Whether newbuild is available
+        self.conversion_available: dict[
+            str, bool | None
+        ] = {}  # Whether conversion is available
 
         # internal variables -------------------------------------------------------------------------------------------
         self.expectation: FleetExpectation = FleetExpectation()
         self.profile: FleetProfile = FleetProfile()
 
-        self.projected_multipliers: NDArray[np.float64] | None = None       # Naive projection of future multipliers
-        self.fuel_conversion_expenses: NDArray[np.float64] | None = None    # Rolling costs of previous fuel conversions
-        self.trade: NDArray[np.float64] = np.ndarray(0)             # Trade by the fleet, cargo-miles
-        self.newbuild_package_uptake: list[NDArray[np.float64]] = []                # EE uptake on newbuilds
-        self.orders_delivered: NDArray[np.float64] = np.empty(0)    # Orders delivered per vessel type
-        self.orders_postponed: NDArray[np.float64] = np.empty(0)    # Orders postponed per vessel type
-        self.technology_packages: list[Package] = []                # Packages based on technology input
-        self.package_to_technology_map: dict[int, int] = {}         # Package index -> technology index
+        self.projected_multipliers: NDArray[np.float64] | None = (
+            None  # Naive projection of future multipliers
+        )
+        self.fuel_conversion_expenses: NDArray[np.float64] | None = (
+            None  # Rolling costs of previous fuel conversions
+        )
+        self.trade: NDArray[np.float64] = np.ndarray(
+            0
+        )  # Trade by the fleet, cargo-miles
+        self.newbuild_package_uptake: list[
+            NDArray[np.float64]
+        ] = []  # EE uptake on newbuilds
+        self.orders_delivered: NDArray[np.float64] = np.empty(
+            0
+        )  # Orders delivered per vessel type
+        self.orders_postponed: NDArray[np.float64] = np.empty(
+            0
+        )  # Orders postponed per vessel type
+        self.technology_packages: list[
+            Package
+        ] = []  # Packages based on technology input
+        self.package_to_technology_map: dict[
+            int, int
+        ] = {}  # Package index -> technology index
 
     # public domain name for the inherited assets list
     vessels = property(lambda self: self.assets)
@@ -127,8 +194,9 @@ class Fleet(_AssetManager):
         vessels
             The list of vessel types that exists for the fleet.
         """
-
-        self.assets = assign_list(as_list(vessels), unique=True, scalar=False, type_=VESSEL)
+        self.assets = assign_list(
+            as_list(vessels), unique=True, scalar=False, type_=VESSEL
+        )
 
     def set_memory(self, memory: float | NodeReference):
         """
@@ -146,8 +214,9 @@ class Fleet(_AssetManager):
         memory
             The newbuild vessel distribution memory.
         """
-
-        self.memory = assign_value(as_scalar(memory), type_=(FORECAST, VARIABLE), lower=0., upper=1.)
+        self.memory = assign_value(
+            as_scalar(memory), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
+        )
 
     def set_fixed_scrap_rate(self, fixed_scrap_rate: float | NodeReference):
         """
@@ -166,8 +235,12 @@ class Fleet(_AssetManager):
         fixed_scrap_rate
             The fixed scrap rate of the fleet in fraction/year.
         """
-
-        self.fixed_scrap_rate = assign_value(as_scalar(fixed_scrap_rate), type_=(FORECAST, VARIABLE), lower=0., upper=1.)
+        self.fixed_scrap_rate = assign_value(
+            as_scalar(fixed_scrap_rate),
+            type_=(FORECAST, VARIABLE),
+            lower=0.0,
+            upper=1.0,
+        )
 
     def set_allow_secondary_scrapping(self, allow_secondary_scrapping: str):
         """
@@ -186,7 +259,6 @@ class Fleet(_AssetManager):
         allow_secondary_scrapping
             Whether secondary scrapping is allowed or not.
         """
-
         self.allow_secondary_scrapping = assign_id(allow_secondary_scrapping, BOOL_ID)
 
     def set_trade_growth(self, trade_growth: float | NodeReference):
@@ -203,8 +275,9 @@ class Fleet(_AssetManager):
         trade_growth
             The trade-growth of the fleet in fraction/year.
         """
-
-        self.trade_growth = assign_value(as_scalar(trade_growth), type_=(FORECAST, VARIABLE))
+        self.trade_growth = assign_value(
+            as_scalar(trade_growth), type_=(FORECAST, VARIABLE)
+        )
 
     def set_initial_vessels(self, initial_vessels: float):
         """
@@ -221,9 +294,9 @@ class Fleet(_AssetManager):
         initial_vessels
             Initial number of vessels in the fleet.
         """
-
-        self.initial_vessels = assign_value(as_scalar(initial_vessels), type_=VARIABLE,
-                                            lower=0, inclusive_lower=False)
+        self.initial_vessels = assign_value(
+            as_scalar(initial_vessels), type_=VARIABLE, lower=0, inclusive_lower=False
+        )
 
     def set_initial_split(self, initial_split: list[float]):
         """
@@ -241,11 +314,12 @@ class Fleet(_AssetManager):
         initial_split
             Initial distribution of vessel types.
         """
-
         self.initial_split, normalized = assign_fraction_list(initial_split)
 
         if normalized:
-            logger.info("{}: 'InitialSplit' is normalized to 1 by equal fractions.".format(self))
+            logger.info(
+                f"{self}: 'InitialSplit' is normalized to 1 by equal fractions."
+            )
 
     def set_technologies(self, technologies: list[NodeReference]):
         """
@@ -264,8 +338,9 @@ class Fleet(_AssetManager):
         technologies
             The list of technologies that can be installed on vessels.
         """
-
-        self.technologies = assign_list(as_list(technologies), unique=True, scalar=False, type_=TECHNOLOGY)
+        self.technologies = assign_list(
+            as_list(technologies), unique=True, scalar=False, type_=TECHNOLOGY
+        )
 
     def set_intra_fuel_sensitivity(self, intra_fuel_sensitivity: float | NodeReference):
         """
@@ -285,9 +360,12 @@ class Fleet(_AssetManager):
         intra_fuel_sensitivity
             Odds ratio for a 10% higher LCOT in the within-fuel-type choice.
         """
-
         self.intra_fuel_sensitivity = assign_value(
-            as_scalar(intra_fuel_sensitivity), type_=(FORECAST, VARIABLE), lower=0., inclusive_lower=False)
+            as_scalar(intra_fuel_sensitivity),
+            type_=(FORECAST, VARIABLE),
+            lower=0.0,
+            inclusive_lower=False,
+        )
 
     def set_inter_fuel_sensitivity(self, inter_fuel_sensitivity: float | NodeReference):
         """
@@ -307,9 +385,12 @@ class Fleet(_AssetManager):
         inter_fuel_sensitivity
             Odds ratio for a 10% higher LCOT in the between-fuel-type choice.
         """
-
         self.inter_fuel_sensitivity = assign_value(
-            as_scalar(inter_fuel_sensitivity), type_=(FORECAST, VARIABLE), lower=0., inclusive_lower=False)
+            as_scalar(inter_fuel_sensitivity),
+            type_=(FORECAST, VARIABLE),
+            lower=0.0,
+            inclusive_lower=False,
+        )
 
     def set_technology_sensitivity(self, technology_sensitivity: float | NodeReference):
         """
@@ -330,9 +411,12 @@ class Fleet(_AssetManager):
         technology_sensitivity
             Odds ratio for an NPV advantage equal to 5% of ship CAPEX.
         """
-
         self.technology_sensitivity = assign_value(
-            as_scalar(technology_sensitivity), type_=(FORECAST, VARIABLE), lower=0., inclusive_lower=False)
+            as_scalar(technology_sensitivity),
+            type_=(FORECAST, VARIABLE),
+            lower=0.0,
+            inclusive_lower=False,
+        )
 
     def set_technology_cost_of_capital(self, cost_of_capital: float | NodeReference):
         """
@@ -352,8 +436,9 @@ class Fleet(_AssetManager):
         cost_of_capital
             The cost of capital for technology investments as a fraction (e.g., 0.08 for 8%).
         """
-
-        self.technology_cost_of_capital = assign_value(as_scalar(cost_of_capital), type_=(FORECAST, VARIABLE), lower=0.)
+        self.technology_cost_of_capital = assign_value(
+            as_scalar(cost_of_capital), type_=(FORECAST, VARIABLE), lower=0.0
+        )
 
     def set_technology_horizon(self, technology_horizon: float | NodeReference):
         """
@@ -373,8 +458,9 @@ class Fleet(_AssetManager):
         technology_horizon
             Decision horizon for technology beliefs, in years.
         """
-
-        self.technology_horizon = assign_value(as_scalar(technology_horizon), type_=(FORECAST, VARIABLE), lower=0.)
+        self.technology_horizon = assign_value(
+            as_scalar(technology_horizon), type_=(FORECAST, VARIABLE), lower=0.0
+        )
 
     def set_speed_horizon(self, speed_horizon: float | NodeReference):
         """
@@ -393,8 +479,9 @@ class Fleet(_AssetManager):
         speed_horizon
             Decision horizon for speed beliefs, in years.
         """
-
-        self.speed_horizon = assign_value(as_scalar(speed_horizon), type_=(FORECAST, VARIABLE), lower=0.)
+        self.speed_horizon = assign_value(
+            as_scalar(speed_horizon), type_=(FORECAST, VARIABLE), lower=0.0
+        )
 
     def set_retrofit_frequency(self, retrofit_frequency: float | NodeReference):
         """
@@ -411,8 +498,9 @@ class Fleet(_AssetManager):
         retrofit_frequency
             The retrofit frequency.
         """
-
-        self.retrofit_frequency = assign_value(as_scalar(retrofit_frequency), type_=(FORECAST, VARIABLE), lower=0.)
+        self.retrofit_frequency = assign_value(
+            as_scalar(retrofit_frequency), type_=(FORECAST, VARIABLE), lower=0.0
+        )
 
     def set_orderbooks(self, orderbooks: list[float | NodeReference]):
         """
@@ -430,8 +518,9 @@ class Fleet(_AssetManager):
         orderbooks
             List of orderbooks.
         """
-
-        self.orderbooks = assign_list(as_scalar_list(orderbooks), type_=(FORECAST, VARIABLE), lower=0.)
+        self.orderbooks = assign_list(
+            as_scalar_list(orderbooks), type_=(FORECAST, VARIABLE), lower=0.0
+        )
 
     def set_allow_speed_management(self, allow_speed_management: str):
         """
@@ -450,7 +539,6 @@ class Fleet(_AssetManager):
         allow_speed_management
             Whether speed management is allowed or not.
         """
-
         self.allow_speed_management = assign_id(allow_speed_management, BOOL_ID)
 
     def set_maximum_speed_change(self, maximum_speed_change):
@@ -467,8 +555,9 @@ class Fleet(_AssetManager):
         maximum_speed_change
             The maximum speed change permissible.
         """
-
-        self.maximum_speed_change = assign_value(as_scalar(maximum_speed_change), type_=(FORECAST, VARIABLE), lower=0.)
+        self.maximum_speed_change = assign_value(
+            as_scalar(maximum_speed_change), type_=(FORECAST, VARIABLE), lower=0.0
+        )
 
     def set_speed_alignment(self, speed_alignment: str):
         """
@@ -489,7 +578,6 @@ class Fleet(_AssetManager):
         speed_alignment
             The speed alignment method.
         """
-
         self.speed_alignment = assign_id(speed_alignment, SpeedAlignmentID)
 
     def set_assume_reference_speed_optimal(self, assume_reference_speed_optimal: str):
@@ -510,10 +598,13 @@ class Fleet(_AssetManager):
         assume_reference_speed_optimal
             Whether to assume the reference speed is the current market optimum.
         """
+        self.assume_reference_speed_optimal = assign_id(
+            assume_reference_speed_optimal, BOOL_ID
+        )
 
-        self.assume_reference_speed_optimal = assign_id(assume_reference_speed_optimal, BOOL_ID)
-
-    def set_fuel_conversion_sensitivity(self, fuel_conversion_sensitivity: float | NodeReference):
+    def set_fuel_conversion_sensitivity(
+        self, fuel_conversion_sensitivity: float | NodeReference
+    ):
         """
         Set the sensitivity of the fuel-conversion choice to its NPV.
 
@@ -532,11 +623,16 @@ class Fleet(_AssetManager):
         fuel_conversion_sensitivity
             Odds ratio for an NPV advantage equal to 5% of ship CAPEX.
         """
-
         self.fuel_conversion_sensitivity = assign_value(
-            as_scalar(fuel_conversion_sensitivity), type_=(FORECAST, VARIABLE), lower=0., inclusive_lower=False)
+            as_scalar(fuel_conversion_sensitivity),
+            type_=(FORECAST, VARIABLE),
+            lower=0.0,
+            inclusive_lower=False,
+        )
 
-    def set_fuel_conversion_minimum_age(self, fuel_conversion_minimum_age: float | NodeReference):
+    def set_fuel_conversion_minimum_age(
+        self, fuel_conversion_minimum_age: float | NodeReference
+    ):
         """
         Set the minimum age at which a vessel can perform a fuel conversion, in years.
 
@@ -550,9 +646,11 @@ class Fleet(_AssetManager):
         fuel_conversion_minimum_age
             Minimum age a which a vessel can perform a fuel conversion.
         """
-
-        self.fuel_conversion_minimum_age = assign_value(as_scalar(fuel_conversion_minimum_age),
-                                                        type_=(FORECAST, VARIABLE), lower=0.)
+        self.fuel_conversion_minimum_age = assign_value(
+            as_scalar(fuel_conversion_minimum_age),
+            type_=(FORECAST, VARIABLE),
+            lower=0.0,
+        )
 
     def set_allow_technology_approximation(self, allow_technology_approximation: str):
         """
@@ -571,11 +669,14 @@ class Fleet(_AssetManager):
         allow_technology_approximation
             Whether to allow technology approximation.
         """
-
-        self.allow_technology_approximation = assign_id(allow_technology_approximation, BOOL_ID)
+        self.allow_technology_approximation = assign_id(
+            allow_technology_approximation, BOOL_ID
+        )
 
     # external methods (DSL commands) ----------------------------------------------------------------------------------
-    def set_fuel_conversion_cost(self, vessel_name_from: str, vessel_name_to: str, fuel_conversion_cost: float):
+    def set_fuel_conversion_cost(
+        self, vessel_name_from: str, vessel_name_to: str, fuel_conversion_cost: float
+    ):
         """
         Set the cost of performing a fuel conversion of a vessel from one type to another, in USD.
 
@@ -593,12 +694,20 @@ class Fleet(_AssetManager):
         fuel_conversion_cost
             Cost of performing a fuel conversion from vessel type 'vessel_name_from' to 'vessel_name_to'.
         """
+        command_assignment_to_tuple_dict(
+            (vessel_name_from, vessel_name_to),
+            fuel_conversion_cost,
+            self.fuel_conversion_cost,
+            type_=(FORECAST, VARIABLE),
+            lower=0.0,
+        )
 
-        command_assignment_to_tuple_dict((vessel_name_from, vessel_name_to), fuel_conversion_cost,
-                                         self.fuel_conversion_cost, type_=(FORECAST, VARIABLE), lower=0.)
-
-    def set_fuel_conversion_limit(self, vessel_name_from: str, vessel_name_to: str,
-                                  fuel_conversion_limit: float | NodeReference):
+    def set_fuel_conversion_limit(
+        self,
+        vessel_name_from: str,
+        vessel_name_to: str,
+        fuel_conversion_limit: float | NodeReference,
+    ):
         """
         Set the per-pair cap on fuel conversions, as a fraction of the total fleet allowed to convert
         from `vessel_name_from` to `vessel_name_to` per year.
@@ -620,10 +729,14 @@ class Fleet(_AssetManager):
         fuel_conversion_limit
             Fraction in [0, 1] of the total fleet allowed to convert on this (from, to) pair per year.
         """
-
-        command_assignment_to_tuple_dict((vessel_name_from, vessel_name_to), fuel_conversion_limit,
-                                         self.fuel_conversion_limit, type_=(FORECAST, VARIABLE),
-                                         lower=0., upper=1.)
+        command_assignment_to_tuple_dict(
+            (vessel_name_from, vessel_name_to),
+            fuel_conversion_limit,
+            self.fuel_conversion_limit,
+            type_=(FORECAST, VARIABLE),
+            lower=0.0,
+            upper=1.0,
+        )
 
     def set_allow_vessel(self, vessel_name: str, allow_vessel: str):
         """
@@ -645,8 +758,9 @@ class Fleet(_AssetManager):
         allow_vessel
             Whether the vessel is allowed or not.
         """
-
-        command_assignment_to_boolean_dict(vessel_name, allow_vessel, self.allow_vessel, allow_empty=True)
+        command_assignment_to_boolean_dict(
+            vessel_name, allow_vessel, self.allow_vessel, allow_empty=True
+        )
 
     def set_newbuild_available(self, vessel_name: str, newbuild_available: str):
         """
@@ -666,8 +780,9 @@ class Fleet(_AssetManager):
         newbuild_available
             Whether the vessel is allowed or not.
         """
-
-        command_assignment_to_boolean_dict(vessel_name, newbuild_available, self.newbuild_available, allow_empty=True)
+        command_assignment_to_boolean_dict(
+            vessel_name, newbuild_available, self.newbuild_available, allow_empty=True
+        )
 
     def set_conversion_available(self, vessel_name: str, conversion_available: str):
         """
@@ -687,10 +802,16 @@ class Fleet(_AssetManager):
         conversion_available
             Whether the vessel is allowed or not.
         """
+        command_assignment_to_boolean_dict(
+            vessel_name,
+            conversion_available,
+            self.conversion_available,
+            allow_empty=True,
+        )
 
-        command_assignment_to_boolean_dict(vessel_name, conversion_available, self.conversion_available, allow_empty=True)
-
-    def set_initial_technology_share(self, vessel_name: str, technology_name: str, uptake_curve):
+    def set_initial_technology_share(
+        self, vessel_name: str, technology_name: str, uptake_curve
+    ):
         """
         Set the initial technology uptake as a function of vessel age.
 
@@ -711,10 +832,14 @@ class Fleet(_AssetManager):
         uptake_curve
             Curve with age on x-axis and uptake fraction on y-axis.
         """
-
         command_assignment_to_tuple_dict(
-            (vessel_name, technology_name), uptake_curve,
-            self.initial_technology_share, scalar=False, type_=CURVE, lower=0., upper=1.
+            (vessel_name, technology_name),
+            uptake_curve,
+            self.initial_technology_share,
+            scalar=False,
+            type_=CURVE,
+            lower=0.0,
+            upper=1.0,
         )
 
     def set_newbuild_limit(self, vessel_name: str, limit: float | NodeReference):
@@ -736,11 +861,18 @@ class Fleet(_AssetManager):
         limit
             Maximum share in [0, 1].
         """
+        command_assignment_to_dict(
+            vessel_name,
+            limit,
+            self.newbuild_limit,
+            type_=(FORECAST, VARIABLE),
+            lower=0.0,
+            upper=1.0,
+        )
 
-        command_assignment_to_dict(vessel_name, limit, self.newbuild_limit, type_=(FORECAST, VARIABLE),
-                                   lower=0., upper=1.)
-
-    def set_newbuild_technology_limit(self, technology_name: str, limit: float | NodeReference):
+    def set_newbuild_technology_limit(
+        self, technology_name: str, limit: float | NodeReference
+    ):
         """
         Set the maximum fraction of the existing fleet that can install the technology on newbuilds in one year.
 
@@ -759,11 +891,18 @@ class Fleet(_AssetManager):
         limit
             Maximum yearly install share in [0, 1].
         """
+        command_assignment_to_dict(
+            technology_name,
+            limit,
+            self.newbuild_technology_limit,
+            type_=(FORECAST, VARIABLE),
+            lower=0.0,
+            upper=1.0,
+        )
 
-        command_assignment_to_dict(technology_name, limit, self.newbuild_technology_limit,
-                                   type_=(FORECAST, VARIABLE), lower=0., upper=1.)
-
-    def set_retrofit_technology_limit(self, technology_name: str, limit: float | NodeReference):
+    def set_retrofit_technology_limit(
+        self, technology_name: str, limit: float | NodeReference
+    ):
         """
         Set the maximum fraction of the existing fleet that can retrofit to the technology in one year.
 
@@ -782,9 +921,14 @@ class Fleet(_AssetManager):
         limit
             Maximum yearly retrofit share in [0, 1].
         """
-
-        command_assignment_to_dict(technology_name, limit, self.retrofit_technology_limit,
-                                   type_=(FORECAST, VARIABLE), lower=0., upper=1.)
+        command_assignment_to_dict(
+            technology_name,
+            limit,
+            self.retrofit_technology_limit,
+            type_=(FORECAST, VARIABLE),
+            lower=0.0,
+            upper=1.0,
+        )
 
     def set_operational_saving_sea(self, energy_type: str, saving):
         """
@@ -804,10 +948,15 @@ class Fleet(_AssetManager):
         saving
             Fraction of energy saved.
         """
-
         id_ = assign_id(energy_type, EnergyDemandTypeID)
-        command_assignment_to_dict(id_, saving, self.operational_saving_sea, type_=(FORECAST, VARIABLE),
-                                   lower=0., upper=1.)
+        command_assignment_to_dict(
+            id_,
+            saving,
+            self.operational_saving_sea,
+            type_=(FORECAST, VARIABLE),
+            lower=0.0,
+            upper=1.0,
+        )
 
     def set_operational_saving_port(self, energy_type: str, saving):
         """
@@ -827,29 +976,34 @@ class Fleet(_AssetManager):
         saving
             Fraction of energy saved.
         """
-
         id_ = assign_id(energy_type, EnergyDemandTypeID)
-        command_assignment_to_dict(id_, saving, self.operational_saving_port, type_=(FORECAST, VARIABLE),
-                                   lower=0., upper=1.)
+        command_assignment_to_dict(
+            id_,
+            saving,
+            self.operational_saving_port,
+            type_=(FORECAST, VARIABLE),
+            lower=0.0,
+            upper=1.0,
+        )
 
     # internal methods -------------------------------------------------------------------------------------------------
     def initialize(self):
 
         if not self.assets:
-            no_value_assigned_error(self, 'Vessels')
+            no_value_assigned_error(self, "Vessels")
 
         if not self.initial_vessels:
-            no_value_assigned_error(self, 'InitialVessels')
+            no_value_assigned_error(self, "InitialVessels")
 
         if self.inter_fuel_sensitivity is None:
-            no_value_assigned_error(self, 'InterFuelSensitivity')
+            no_value_assigned_error(self, "InterFuelSensitivity")
 
         if self.intra_fuel_sensitivity is None:
-            no_value_assigned_error(self, 'IntraFuelSensitivity')
+            no_value_assigned_error(self, "IntraFuelSensitivity")
 
         if self.technologies:
             if self.technology_sensitivity is None:
-                no_value_assigned_error(self, 'TechnologySensitivity')
+                no_value_assigned_error(self, "TechnologySensitivity")
 
         if self.fuel_conversion_sensitivity is None:
             self.fuel_conversion_sensitivity = Scalar(2)
@@ -883,7 +1037,7 @@ class Fleet(_AssetManager):
 
         for key, limit in self.fuel_conversion_limit.items():
             if limit is None:
-                self.fuel_conversion_limit[key] = Scalar(1.)
+                self.fuel_conversion_limit[key] = Scalar(1.0)
 
         for name, allow in self.allow_vessel.items():
             if allow is None:
@@ -899,46 +1053,52 @@ class Fleet(_AssetManager):
 
         for name, limit in self.newbuild_limit.items():
             if limit is None:
-                self.newbuild_limit[name] = Scalar(1.)
+                self.newbuild_limit[name] = Scalar(1.0)
 
         for name, limit in self.newbuild_technology_limit.items():
             if limit is None:
-                self.newbuild_technology_limit[name] = Scalar(1.)
+                self.newbuild_technology_limit[name] = Scalar(1.0)
 
         for name, limit in self.retrofit_technology_limit.items():
             if limit is None:
-                self.retrofit_technology_limit[name] = Scalar(1.)
+                self.retrofit_technology_limit[name] = Scalar(1.0)
 
         if self.initial_split and (len(self.assets) != len(self.initial_split)):
-            raise ValueError("{}: The length of Vessel ({}) and InitialSplit ({}) must correspond."
-                             .format(self, len(self.assets), len(self.initial_split)))
+            raise ValueError(
+                f"{self}: The length of Vessel ({len(self.assets)}) and InitialSplit ({len(self.initial_split)}) must correspond."
+            )
 
-        if self._initial_age_distribution and (len(self.assets) != len(self._initial_age_distribution)):
-            raise ValueError("{}: The length of Vessel ({}) and InitialAgeDistribution ({}) must correspond."
-                             .format(self, len(self.assets), len(self._initial_age_distribution)))
+        if self._initial_age_distribution and (
+            len(self.assets) != len(self._initial_age_distribution)
+        ):
+            raise ValueError(
+                f"{self}: The length of Vessel ({len(self.assets)}) and InitialAgeDistribution ({len(self._initial_age_distribution)}) must correspond."
+            )
 
         # check that orderbooks satisfy various requirements
         if self.orderbooks:
             # check length between orderbooks and vessels correspond
             if len(self.assets) != len(self.orderbooks):
-                raise ValueError("{}: The length of Vessel ({}) and Orderbooks ({}) must correspond."
-                                 .format(self, len(self.assets), len(self.orderbooks)))
+                raise ValueError(
+                    f"{self}: The length of Vessel ({len(self.assets)}) and Orderbooks ({len(self.orderbooks)}) must correspond."
+                )
 
             for orderbook in self.orderbooks:
-
                 if isinstance(orderbook, Forecast):
-
                     # check that orderbooks are cumulative
                     if not is_non_strictly_increasing(orderbook.y):
-                        raise ValueError("{}: Orderbook ({}) is not non-strictly increasing.".format(self, orderbook))
+                        raise ValueError(
+                            f"{self}: Orderbook ({orderbook}) is not non-strictly increasing."
+                        )
 
                     # print a warning if the forecast allows extrapolation
                     if orderbook.extrapolate == ExtrapolateID.LINEAR:
-                        logger.warning("{}: Orderbook ({}) allows extrapolation and"
-                                       " may therefore continue past the last date.".format(self, orderbook))
+                        logger.warning(
+                            f"{self}: Orderbook ({orderbook}) allows extrapolation and"
+                            " may therefore continue past the last date."
+                        )
 
         if self.allow_speed_management:
-
             if self.maximum_speed_change is None:
                 self.maximum_speed_change = Scalar(np.inf)
 
@@ -946,7 +1106,6 @@ class Fleet(_AssetManager):
         """
         Initialize dependent dictionaries to allow wildcarding during command calls.
         """
-
         for vessel in self.assets:
             name = vessel.name
             # stays None when unset: a None cost marks the pair as not convertible
@@ -972,18 +1131,29 @@ class Fleet(_AssetManager):
 
         self.expectation.initialize(length, vessel_names, fuels)
 
-    def initialize_profile(self, timeline: np.ndarray,
-                           fuels: dict[str, Fuel],
-                           emissions: dict[str, Emission],
-                           emissions_lifetime: float,
-                           regulation_names: list[str] = (),
-                           levy_names: list[str] = ()) -> None:
+    def initialize_profile(
+        self,
+        timeline: np.ndarray,
+        fuels: dict[str, Fuel],
+        emissions: dict[str, Emission],
+        emissions_lifetime: float,
+        regulation_names: list[str] = (),
+        levy_names: list[str] = (),
+    ) -> None:
 
         vessel_names = [vessel.name for vessel in self.assets]
         technology_names = [technology.name for technology in self.technologies]
 
-        self.profile.initialize(timeline, vessel_names, technology_names, fuels, emissions, emissions_lifetime,
-                                regulation_names, levy_names)
+        self.profile.initialize(
+            timeline,
+            vessel_names,
+            technology_names,
+            fuels,
+            emissions,
+            emissions_lifetime,
+            regulation_names,
+            levy_names,
+        )
 
     # _AssetManager abstract interface
 
@@ -993,13 +1163,14 @@ class Fleet(_AssetManager):
     def _adjust_lifetime_for_age(self, lifetime: float) -> float:
         if self.fixed_scrap_rate is not None:
             scrap_rate = self.fixed_scrap_rate.get()
-            if scrap_rate > 0.:
-                lifetime = min(lifetime, 1. / scrap_rate)
+            if scrap_rate > 0.0:
+                lifetime = min(lifetime, 1.0 / scrap_rate)
         return lifetime
 
     def can_retrofit(self) -> bool:
         return bool(self.technologies)
 
     def can_fuel_convert(self) -> bool:
-        return (any(value is not None for value in self.fuel_conversion_cost.values())
-                and (self.fuel_conversion_sensitivity is not None))
+        return any(
+            value is not None for value in self.fuel_conversion_cost.values()
+        ) and (self.fuel_conversion_sensitivity is not None)

@@ -19,9 +19,15 @@ class Levy(_Policy):
         super().__init__(name, LEVY)
 
         # external variables -------------------------------------------------------------------------------------------
-        self.level = None              # dict[vessel_name: float], level of the levy, USD/ton emission
-        self.lower_threshold = None    # float, reference emissions factor between penalty and subsidy
-        self.upper_threshold = None    # float, upper cap on emission factor for penalty calculation
+        self.level = (
+            None  # dict[vessel_name: float], level of the levy, USD/ton emission
+        )
+        self.lower_threshold = (
+            None  # float, reference emissions factor between penalty and subsidy
+        )
+        self.upper_threshold = (
+            None  # float, upper cap on emission factor for penalty calculation
+        )
 
         # internal variables -------------------------------------------------------------------------------------------
         self.expectation: LevyExpectation = LevyExpectation()
@@ -47,7 +53,6 @@ class Levy(_Policy):
         scheme : str
             Levy scheme.
         """
-
         self.scheme = assign_id(scheme, LevySchemeID)
 
     def set_level(self, level):
@@ -64,8 +69,9 @@ class Levy(_Policy):
         level : float | NodeReference
             Cost/remuneration of the levy.
         """
-
-        self.level = assign_value(as_scalar(level), type_=(FORECAST, VARIABLE), lower=0.)
+        self.level = assign_value(
+            as_scalar(level), type_=(FORECAST, VARIABLE), lower=0.0
+        )
 
     def set_lower_threshold(self, lower_threshold):
         """
@@ -84,8 +90,9 @@ class Levy(_Policy):
         lower_threshold : float | NodeReference
             Lower emission factor threshold.
         """
-
-        self.lower_threshold = assign_value(as_scalar(lower_threshold), type_=(FORECAST, VARIABLE), lower=0.)
+        self.lower_threshold = assign_value(
+            as_scalar(lower_threshold), type_=(FORECAST, VARIABLE), lower=0.0
+        )
 
     def set_upper_threshold(self, upper_threshold):
         """
@@ -104,8 +111,9 @@ class Levy(_Policy):
         upper_threshold : float | NodeReference
             Upper emission factor threshold.
         """
-
-        self.upper_threshold = assign_value(as_scalar(upper_threshold), type_=(FORECAST, VARIABLE), lower=0.)
+        self.upper_threshold = assign_value(
+            as_scalar(upper_threshold), type_=(FORECAST, VARIABLE), lower=0.0
+        )
 
     # internal methods -------------------------------------------------------------------------------------------------
     def initialize(self):
@@ -113,7 +121,7 @@ class Levy(_Policy):
         self._initialize_policy()
 
         if self.scheme is None:
-            no_value_assigned_error(self, 'Scheme')
+            no_value_assigned_error(self, "Scheme")
 
         if self.lower_threshold is None:
             self.lower_threshold = Scalar(0)
@@ -122,7 +130,9 @@ class Levy(_Policy):
             upper = self.upper_threshold.get()
             lower = self.lower_threshold.get()
             if upper is not None and lower is not None and upper < lower:
-                raise ValueError("{}: 'UpperThreshold' must be >= 'LowerThreshold'.".format(self))
+                raise ValueError(
+                    f"{self}: 'UpperThreshold' must be >= 'LowerThreshold'."
+                )
 
         if self.level is None:
             self.level = Scalar(0)
@@ -136,7 +146,6 @@ class Levy(_Policy):
         vessels : dict[str, Vessel]
             All vessels in the simulation.
         """
-
         self._initialize_policy_dependencies(vessels)
 
     def initialize_expectation(self, length: int) -> None:
@@ -152,4 +161,6 @@ class Levy(_Policy):
 
         self.expectation.set_level(idx, self.level.get(timeline[idx:]))
 
-        self._calculate_policy_expectations(self.expectation, emissions, emissions_lifetime)
+        self._calculate_policy_expectations(
+            self.expectation, emissions, emissions_lifetime
+        )

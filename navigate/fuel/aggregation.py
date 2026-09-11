@@ -7,13 +7,20 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.util import YEAR, get_increment_origin_index, get_increments_origin_index, interpolate_tied_capital
+from navigate.util import (
+    YEAR,
+    get_increment_origin_index,
+    get_increments_origin_index,
+    interpolate_tied_capital,
+)
 
 if TYPE_CHECKING:
     from navigate.core.nodes.producer import Producer
 
 
-def calculate_producer_profile(producer: Producer, timeline: np.ndarray, idx: int) -> None:
+def calculate_producer_profile(
+    producer: Producer, timeline: np.ndarray, idx: int
+) -> None:
     """
     Calculate the producer profile for a given time step.
 
@@ -26,7 +33,6 @@ def calculate_producer_profile(producer: Producer, timeline: np.ndarray, idx: in
     idx
         Current time-step index.
     """
-
     years = timeline / YEAR
     today = years[idx]
 
@@ -48,15 +54,14 @@ def _transfer_feed_constraints(producer: Producer, idx: int) -> None:
     idx
         Current time-step index.
     """
-
     for feed_name, constraint in producer.feed_constraints.items():
-
         if constraint is not None:
-
             producer.profile.set_feed_constraint(idx, feed_name, constraint.get())
 
 
-def _transfer_production_and_feed_mass(producer: Producer, years: np.ndarray, today: float, idx: int) -> None:
+def _transfer_production_and_feed_mass(
+    producer: Producer, years: np.ndarray, today: float, idx: int
+) -> None:
     """
     Transfer the produced fuel mass and the consumed feed mass per plant,
     weighted by the increment multipliers.
@@ -72,9 +77,7 @@ def _transfer_production_and_feed_mass(producer: Producer, years: np.ndarray, to
     idx
         Current time-step index.
     """
-
     for p, plant in enumerate(producer.assets):
-
         incs = producer.increments[p]
         if not len(incs):
             continue
@@ -94,12 +97,13 @@ def _transfer_production_and_feed_mass(producer: Producer, years: np.ndarray, to
         conversions = expectation.get_feed_mass(idx=origins)
 
         for feed_name, conversion in conversions.items():
-
             feed_mass = np.sum(production_unit * conversion * multipliers)
             producer.profile.add_feed_mass(feed_name, feed_mass, idx)
 
 
-def _transfer_plant_tied_capital(producer: Producer, years: np.ndarray, today: float, idx: int) -> None:
+def _transfer_plant_tied_capital(
+    producer: Producer, years: np.ndarray, today: float, idx: int
+) -> None:
     """
     Transfer the remaining tied-up capital per plant increment.
 
@@ -114,12 +118,9 @@ def _transfer_plant_tied_capital(producer: Producer, years: np.ndarray, today: f
     idx
         Current time-step index.
     """
-
     for p, plant in enumerate(producer.assets):
-
         incs = producer.increments[p]
         for inc in incs:
-
             # find the cost profile corresponding to a plant entering
             # production at 'age' years ago. Notice here that if the
             # plant was part of the initial production, the cost profile

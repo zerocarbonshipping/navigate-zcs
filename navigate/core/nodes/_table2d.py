@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 import logging
 
 import numpy as np
@@ -36,7 +38,7 @@ class _Table2D(_Calculator):
 
     def __getstate__(self):
         state = self.__dict__.copy()
-        state['_table'] = None  # local closure is not picklable
+        state["_table"] = None  # local closure is not picklable
         return state
 
     def __setstate__(self, state):
@@ -91,13 +93,10 @@ class _Table2D(_Calculator):
         np.ndarray
             Interpolated or exact 'x' value corresponding to the given 'z' along a z-slice defined by 'y'.
         """
-
         x = []
 
         if interpolate:
-
             for yp in y:
-
                 # extract a z-slice for the given y
                 zp = self.calculate(self.x, yp)
 
@@ -109,9 +108,7 @@ class _Table2D(_Calculator):
                 x.append(np.interp(z, zp, self.x))
 
         else:
-
             for yp in y:
-
                 # extract a z-slice for the given y
                 zp = self.calculate(self.x, yp)
 
@@ -137,7 +134,9 @@ class _Table2D(_Calculator):
                     log_extrapolate_bounds(logger, self, y, *self._get_y_limits())
                 self._extrapolation_warned = True
             else:
-                logger.debug(f"{self}: Extrapolating beyond table limits (suppressed repeat).")
+                logger.debug(
+                    f"{self}: Extrapolating beyond table limits (suppressed repeat)."
+                )
 
     def _get_x_limits(self):
         return self.x[0], self.x[-1]
@@ -147,10 +146,10 @@ class _Table2D(_Calculator):
 
     def _get_interpolate_internal(self):
         if self._interpolate == Interpolate2DID.LINEAR:
-            return 'linear'
+            return "linear"
 
         elif self._interpolate == Interpolate2DID.NEAREST:
-            return 'nearest'
+            return "nearest"
 
     def _get_allow_extrapolate_internal(self):
         return True if self.extrapolate == ExtrapolateID.FALSE else False
@@ -170,7 +169,9 @@ class _Table2D(_Calculator):
         # if all linear paths in the x-direction
         # on the surface are convex, then it is
         # guaranteed to be convex in the x-direction
-        self._is_convex = np.all([self._test_convexity(x, z[:, i]) for i, _ in enumerate(y)])
+        self._is_convex = np.all(
+            [self._test_convexity(x, z[:, i]) for i, _ in enumerate(y)]
+        )
 
         method = self._get_interpolate_internal()
         bounds_error = self._get_allow_extrapolate_internal()
@@ -185,19 +186,27 @@ class _Table2D(_Calculator):
             if scalar_inputs:
                 # xi must be (npoints, ndim) for a single point -> (1, 2)
                 xi = np.array([[x_.item(), y_.item()]], dtype=float)
-                return interpn((x, y), z, xi,
-                               method=method,
-                               bounds_error=bounds_error,
-                               fill_value=fill_value)[0]  # -> np.float64
+                return interpn(
+                    (x, y),
+                    z,
+                    xi,
+                    method=method,
+                    bounds_error=bounds_error,
+                    fill_value=fill_value,
+                )[0]  # -> np.float64
 
             # For arrays (including scalar/array mix): broadcast + stack into (..., 2)
             xb, yb = np.broadcast_arrays(x_, y_)
             xi = np.stack([xb, yb], axis=-1)
 
-            return interpn((x, y), z, xi,
-                           method=method,
-                           bounds_error=bounds_error,
-                           fill_value=fill_value)
+            return interpn(
+                (x, y),
+                z,
+                xi,
+                method=method,
+                bounds_error=bounds_error,
+                fill_value=fill_value,
+            )
 
         self._table = interp
 
@@ -214,10 +223,10 @@ def check_table2d_input(x, y, z):
     z : np.ndarray
         Array of array with z-values.
     """
-
     if (x.size * y.size) != z.size:
-        raise ValueError("'z' ({}) must have a length equal to the product of 'x' ({}) and 'y' ({}) ."
-                         .format(z.size, x.size, y.size))
+        raise ValueError(
+            f"'z' ({z.size}) must have a length equal to the product of 'x' ({x.size}) and 'y' ({y.size}) ."
+        )
 
     if not is_strictly_increasing(x):
         raise ValueError("'x' must be strictly increasing.")

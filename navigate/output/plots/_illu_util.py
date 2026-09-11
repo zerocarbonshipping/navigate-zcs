@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 import math
 
 
@@ -19,7 +21,7 @@ def set_font_sizes(ax, font_size=12, legend_size=10):
     items += [ax.xaxis.get_offset_text(), ax.yaxis.get_offset_text()]
 
     # add z-axis texts if 3D
-    if ax.name == '3d':
+    if ax.name == "3d":
         items += [ax.zaxis.label, ax.zaxis.get_offset_text()]
 
     # tick labels
@@ -40,7 +42,6 @@ def trim_axes(axes, n):
     """
     Reduce *axs* to *N* Axes. All further Axes are removed from the figure.
     """
-
     for ax in axes[n:]:
         ax.remove()
 
@@ -59,22 +60,19 @@ def get_font_sizes(n):
     -------
 
     """
-
-    labels = 25.
-    legend = 25.
+    labels = 25.0
+    legend = 25.0
 
     if 1 <= n <= 6:
-
-        labels -= 1. * (n - 1)
-        legend -= 1. * (n - 1)
+        labels -= 1.0 * (n - 1)
+        legend -= 1.0 * (n - 1)
 
     elif n > 6:
-
-        labels -= 0.8333 * (n - 6) + 1. * (6 - 1)
-        legend -= 0.8333 * (n - 6) + 1. * (6 - 1)
+        labels -= 0.8333 * (n - 6) + 1.0 * (6 - 1)
+        legend -= 0.8333 * (n - 6) + 1.0 * (6 - 1)
 
     # anything below 7 is eligible
-    labels = max(labels, 7.)
-    legend = max(legend, 7.)
+    labels = max(labels, 7.0)
+    legend = max(legend, 7.0)
 
     return labels, legend

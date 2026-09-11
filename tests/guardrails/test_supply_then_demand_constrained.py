@@ -1,7 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Guardrail: supply-constrained, then demand-constrained scenario.
+"""
+Guardrail: supply-constrained, then demand-constrained scenario.
 
 Like supply_constrained, but the Producer's development limit is raised so
 supply catches up with demand roughly halfway through the simulation. After
@@ -10,12 +11,20 @@ slight surplus — continuously, not as an over/under-supply oscillation. The
 domain contract lives in
 simulations/supply_then_demand_constrained/BEHAVIOR.md.
 """
+
+from __future__ import annotations
+
 from pathlib import Path
 
 import numpy as np
 import pytest
 
-from helpers.simulation import EPS_DEVELOPMENT_REL, assertable_end, check_invariants, run_simulation
+from helpers.simulation import (
+    EPS_DEVELOPMENT_REL,
+    assertable_end,
+    check_invariants,
+    run_simulation,
+)
 
 SIMULATIONS_DIR = Path(__file__).resolve().parent / "simulations"
 
@@ -56,12 +65,15 @@ def producer(manager):
 
 @pytest.fixture(scope="module")
 def post_window(manager, producer):
-    """Post-catch-up steps, with the same tail exclusion as
-    supply_constrained (see BEHAVIOR.md, Known limitations)."""
+    """
+    Post-catch-up steps, with the same tail exclusion as
+    supply_constrained (see BEHAVIOR.md, Known limitations).
+    """
     end = assertable_end(manager, producer)
     # > +1 because test_surplus_band additionally skips the catch-up step
-    assert end > CATCHUP_STEP + 1, \
+    assert end > CATCHUP_STEP + 1, (
         "Post-catch-up window is empty — re-derive CATCHUP_STEP from a tuning run"
+    )
     return slice(CATCHUP_STEP, end)
 
 
@@ -73,7 +85,6 @@ def deliverable(producer):
 
 @pytest.mark.slow
 class TestSupplyThenDemandConstrained:
-
     def test_invariants(self, manager):
         check_invariants(manager)
 
@@ -81,28 +92,34 @@ class TestSupplyThenDemandConstrained:
         development = producer.profile.get_development()
         maximum = producer.profile.get_maximum_development()
 
-        assert np.all(np.abs(development[PRE_CATCHUP] - maximum[PRE_CATCHUP])
-                      <= EPS_DEVELOPMENT_REL * maximum[PRE_CATCHUP])
+        assert np.all(
+            np.abs(development[PRE_CATCHUP] - maximum[PRE_CATCHUP])
+            <= EPS_DEVELOPMENT_REL * maximum[PRE_CATCHUP]
+        )
 
     def test_leaves_constraint_after_catchup(self, producer, post_window):
         development = producer.profile.get_development()
         maximum = producer.profile.get_maximum_development()
 
-        assert np.all(development[post_window]
-                      < maximum[post_window] * (1. - EPS_DEVELOPMENT_REL))
+        assert np.all(
+            development[post_window]
+            < maximum[post_window] * (1.0 - EPS_DEVELOPMENT_REL)
+        )
 
     def test_demand_met_after_catchup(self, manager, post_window):
-        """Supply >= demand is not observable from consumption (the bunker LP
+        """
+        Supply >= demand is not observable from consumption (the bunker LP
         caps consumption at available supply): a squeeze shows up as the
         regulation buying remedial units instead — see BEHAVIOR.md. After
-        catch-up demand must be met, i.e. no remedial units."""
+        catch-up demand must be met, i.e. no remedial units.
+        """
         regulation = manager.nodes.regulations["intensity_regulation"]
         remedial = regulation.profile.get_remedial_units()
 
         # deck validity: before catch-up the scenario is supply-constrained,
         # so remedial units are strictly positive
         pre_catchup = remedial[PRE_CATCHUP]
-        assert np.all(pre_catchup > 0.)
+        assert np.all(pre_catchup > 0.0)
 
         assert np.all(remedial[post_window] <= EPS_REMEDIAL_REL * pre_catchup.max())
 

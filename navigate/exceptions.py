@@ -1,6 +1,9 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
+
 class NavigateError(Exception):
     """
     Base class for Navigate's domain-specific exceptions.
@@ -11,14 +14,13 @@ class NavigateError(Exception):
     message.
     """
 
-    def __init__(self, message=''):
+    def __init__(self, message=""):
         """
         Parameters
         ----------
         message : str
             Message passed to exception.
         """
-
         super().__init__(message)
 
 
@@ -74,8 +76,7 @@ def no_value_assigned_error(node, attribute_name):
     attribute_name : str
         Name of unassigned attribute.
     """
-
-    raise ValueError("{}: Attribute '{}' is unassigned.".format(node, attribute_name))
+    raise ValueError(f"{node}: Attribute '{attribute_name}' is unassigned.")
 
 
 def no_value_assigned_dict_error(node, attribute_name, key):
@@ -90,5 +91,4 @@ def no_value_assigned_dict_error(node, attribute_name, key):
     key : str
         Unassigned key to the dict.
     """
-
-    raise ValueError("{}: Attribute '{}' is unassigned for '{}'.".format(node, attribute_name, key))
+    raise ValueError(f"{node}: Attribute '{attribute_name}' is unassigned for '{key}'.")

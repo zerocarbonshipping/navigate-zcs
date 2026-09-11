@@ -71,8 +71,9 @@ class _AssetManager(Node):
         inertia
             The newbuild asset type inertia.
         """
-
-        self.inertia = assign_value(as_scalar(inertia), type_=(FORECAST, VARIABLE), lower=0., upper=1.)
+        self.inertia = assign_value(
+            as_scalar(inertia), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
+        )
 
     def set_initial_age_distribution(self, initial_age_distribution) -> None:
         """
@@ -91,8 +92,9 @@ class _AssetManager(Node):
         initial_age_distribution
             List of Curve references for the age distribution of each asset type.
         """
-
-        self._initial_age_distribution = assign_list(as_scalar_list(initial_age_distribution), type_=CURVE, lower=0.)
+        self._initial_age_distribution = assign_list(
+            as_scalar_list(initial_age_distribution), type_=CURVE, lower=0.0
+        )
 
     # internal methods -------------------------------------------------------------------------------------------------
     # abstract interface that subclasses must provide
@@ -106,32 +108,35 @@ class _AssetManager(Node):
         Define the age distribution of the existing assets and create
         empty Increment lists with ages and dt populated.
         """
-
         assets = self.assets
 
         for a, asset in enumerate(assets):
-
             increments: list[Increment] = []
 
-            if self._get_initial_multiplier(a) > 0.:
-
-                if self._initial_age_distribution and isinstance(self._initial_age_distribution[a], Node):
-
+            if self._get_initial_multiplier(a) > 0.0:
+                if self._initial_age_distribution and isinstance(
+                    self._initial_age_distribution[a], Node
+                ):
                     curve = self._initial_age_distribution[a]
                     ages = curve.x[::-1].copy()
 
                 else:
-
                     lifetime = asset.lifetime.get()
                     lifetime = self._adjust_lifetime_for_age(lifetime)
-                    ages = np.linspace(lifetime - 1., 0., int(lifetime))
+                    ages = np.linspace(lifetime - 1.0, 0.0, int(lifetime))
 
                 # It is assumed that the first multiplier
                 # increment was entered over a year
-                dts = np.insert(ages[:-1] - ages[1:], 0, 1.) if ages.size else np.array([], dtype=np.float64)
+                dts = (
+                    np.insert(ages[:-1] - ages[1:], 0, 1.0)
+                    if ages.size
+                    else np.array([], dtype=np.float64)
+                )
 
                 for i in range(ages.size):
-                    increments.append(Increment(multiplier=0., age=float(ages[i]), dt=float(dts[i])))
+                    increments.append(
+                        Increment(multiplier=0.0, age=float(ages[i]), dt=float(dts[i]))
+                    )
 
             self.increments.append(increments)
 
@@ -140,7 +145,6 @@ class _AssetManager(Node):
         Hook for subclasses to adjust the perceived lifetime used in initial age discretization.
         Fleet overrides this to account for fixed scrap rates.
         """
-
         return lifetime
 
     def define_initial_multipliers(self) -> None:
@@ -148,19 +152,17 @@ class _AssetManager(Node):
         Define the initial numbers of assets of each asset type by distributing
         the total multiplier across age-based increments.
         """
-
         assets = self.assets
 
         for a in range(len(assets)):
-
             multiplier = self._get_initial_multiplier(a)
             incs = self.increments[a]
             n = len(incs)
 
-            if multiplier > 0. and n > 0:
-
-                if self._initial_age_distribution and isinstance(self._initial_age_distribution[a], Node):
-
+            if multiplier > 0.0 and n > 0:
+                if self._initial_age_distribution and isinstance(
+                    self._initial_age_distribution[a], Node
+                ):
                     curve = self._initial_age_distribution[a]
                     fractions = curve.y[::-1]
 
@@ -168,7 +170,6 @@ class _AssetManager(Node):
                         inc.multiplier = multiplier * fractions[i]
 
                 else:
-
                     for inc in incs:
                         inc.multiplier = multiplier / n
 
@@ -186,7 +187,6 @@ class _AssetManager(Node):
         dt
             Time-step size in years.
         """
-
         for incs in increment_lists:
             for inc in incs:
                 inc.age += dt
@@ -203,7 +203,6 @@ class _AssetManager(Node):
         time_step
             Current time-step size.
         """
-
         dt = time_step / YEAR
         for store in self._increment_stores:
             self._age_increments(store, dt)

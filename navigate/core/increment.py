@@ -24,6 +24,10 @@ class Increment:
     age: float
     dt: float
     decided: float | None = None
-    package_uptake: np.ndarray | None = None  # Fleet: technology package uptake per increment
-    baseline: float | None = None  # Fleet: reference multiplier for partial age-based scrapping
-    technology_charter_rate: float = 0.  # Fleet: levelized technology cost carried by the cohort, USD/year per vessel
+    package_uptake: np.ndarray | None = (
+        None  # Fleet: technology package uptake per increment
+    )
+    baseline: float | None = (
+        None  # Fleet: reference multiplier for partial age-based scrapping
+    )
+    technology_charter_rate: float = 0.0  # Fleet: levelized technology cost carried by the cohort, USD/year per vessel

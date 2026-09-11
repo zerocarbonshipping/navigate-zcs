@@ -12,6 +12,14 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ### Changed
+- The lint toolchain is now `ruff` (formatting, linting, import sorting) and
+  `mypy` (type checking), replacing `flake8`/`isort`; `make lint` runs both
+  plus the REUSE check. The whole codebase was reformatted in a single
+  mechanical commit recorded in `.git-blame-ignore-revs` — run
+  `git config blame.ignoreRevsFile .git-blame-ignore-revs` once to keep
+  `git blame` useful across it. Pre-existing findings are grandfathered in
+  generated ratchet regions in `.ruff.toml` and `mypy.ini` that only ever
+  shrink; new code is checked in full.
 - **Breaking**: the DSL surface no longer contains uppercase acronym runs.
   The `CAPEX`/`OPEX` attributes are now `Capex`/`Opex` (Converter,
   PowerSystem, Tank, Technology, Vessel), and report properties end in
@@ -310,7 +318,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   or plot consumes fleet-level fuel-type supply.
 - **Breaking** for code importing navigate as a library: the remaining
   node-class getters are replaced by direct attribute access (CODESTYLE.md,
-  Class variables) — the keyed dict getters on `Region` (13, backing dicts
+  Classes and attributes) — the keyed dict getters on `Region` (13, backing
+  dicts
   now public), `Port` (4), `Plant` (2), `Technology` (3), `Fuel.get_TTW`,
   `Converter.get_slip_fraction`/`get_consumption_TTW`, and
   `Regulation.get_vessel_threshold` become direct dict indexing;
@@ -328,7 +337,7 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   returning zero.
 - **Breaking** for code importing navigate as a library: `Node.get_name()`/
   `get_type()` and `NodeReference.get_name()`/`get_type()` are replaced by
-  direct attribute access (CODESTYLE.md, Class variables) — `name` was
+  direct attribute access (CODESTYLE.md, Classes and attributes) — `name` was
   already public, and the internal `_type` is now public `type` on both
   classes. `get_command_references()` on `Node` and `_GeneralNode` is
   likewise replaced by a public `command_references` attribute
@@ -337,7 +346,7 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   below extends to this change.
 - **Breaking** for code importing navigate as a library: trivial getters on
   the helper classes are replaced by direct attribute access
-  (CODESTYLE.md, Class variables) — `SimulationManager.get_timeline`/
+  (CODESTYLE.md, Classes and attributes) — `SimulationManager.get_timeline`/
   `get_dateline`/`get_name` (now plain `timeline`/`dateline`/`name`, and
   `_parser` is now public `parser`), `Parser.get_model_definition`/
   `get_dates`/`get_deck_directory`/`get_deck_name` (now `dates`/

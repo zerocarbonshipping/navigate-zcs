@@ -2,6 +2,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """Unit tests for PowerSystem converter-uniqueness validation."""
+
+from __future__ import annotations
+
 from unittest.mock import MagicMock
 
 import pytest
@@ -15,8 +18,10 @@ def _mock_converter(name):
     return converter
 
 
-def _make_power_system(propulsion='main_engine', electrical='auxiliary_engine', heat='boiler'):
-    power_system = PowerSystem('ps')
+def _make_power_system(
+    propulsion="main_engine", electrical="auxiliary_engine", heat="boiler"
+):
+    power_system = PowerSystem("ps")
     power_system.propulsion = _mock_converter(propulsion)
     power_system.electrical = _mock_converter(electrical)
     power_system.heat = _mock_converter(heat)
@@ -24,7 +29,7 @@ def _make_power_system(propulsion='main_engine', electrical='auxiliary_engine', 
 
 
 def test_initialize_raises_for_shared_converter():
-    power_system = _make_power_system(electrical='shared', heat='shared')
+    power_system = _make_power_system(electrical="shared", heat="shared")
 
-    with pytest.raises(ValueError, match='distinct'):
+    with pytest.raises(ValueError, match="distinct"):
         power_system.initialize()

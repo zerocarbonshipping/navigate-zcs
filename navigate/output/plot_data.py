@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+from __future__ import annotations
+
 import copy
 import gzip
 import logging
@@ -10,7 +12,7 @@ import timeit
 
 logger = logging.getLogger(__name__)
 
-_STRIPPED_NODE_DICTS = ('plots', 'reports')
+_STRIPPED_NODE_DICTS = ("plots", "reports")
 
 
 class PlotData:
@@ -54,7 +56,11 @@ class PlotData:
         plot_data.general_nodes = manager.general_nodes
         plot_data.deck_directory = manager.parser.deck_directory
         plot_data.plot_configs = [
-            {"name": name, "directory": node.directory, "selected_plots": set(node.selected_plots)}
+            {
+                "name": name,
+                "directory": node.directory,
+                "selected_plots": set(node.selected_plots),
+            }
             for name, node in manager.nodes.plots.items()
         ]
         return plot_data
@@ -62,11 +68,11 @@ class PlotData:
     def __getstate__(self):
         """Strip node dicts not needed for plotting before pickling."""
         state = self.__dict__.copy()
-        if state.get('nodes') is not None:
-            nodes = copy.copy(state['nodes'])
+        if state.get("nodes") is not None:
+            nodes = copy.copy(state["nodes"])
             for attr in _STRIPPED_NODE_DICTS:
                 setattr(nodes, attr, {})
-            state['nodes'] = nodes
+            state["nodes"] = nodes
         return state
 
     def save(self, directory=None):
@@ -82,10 +88,10 @@ class PlotData:
             directory = self.deck_directory
 
         os.makedirs(directory, exist_ok=True)
-        path = os.path.join(directory, 'plot_data.pkl')
+        path = os.path.join(directory, "plot_data.pkl")
 
         start = timeit.default_timer()
-        with gzip.open(path, 'wb') as f:
+        with gzip.open(path, "wb") as f:
             pickle.dump(self, f, protocol=pickle.HIGHEST_PROTOCOL)
         elapsed = timeit.default_timer() - start
 
@@ -110,9 +116,9 @@ class PlotData:
             The deserialized PlotData instance.
         """
         if os.path.isdir(path):
-            path = os.path.join(path, 'plot_data.pkl')
+            path = os.path.join(path, "plot_data.pkl")
 
-        with gzip.open(path, 'rb') as f:
+        with gzip.open(path, "rb") as f:
             plot_data = pickle.load(f)
 
         logger.info(f"Loaded plot data from '{path}'")

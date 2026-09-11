@@ -12,7 +12,9 @@ if TYPE_CHECKING:
 from navigate.bunker._build import get_constraint
 
 
-def update_bunkered_equals_spent_constraint(alg: BunkerAlgorithm, vessel: Vessel) -> None:
+def update_bunkered_equals_spent_constraint(
+    alg: BunkerAlgorithm, vessel: Vessel
+) -> None:
     r"""
     Add the constraints that all fuel bunkered over the route is spent.
 
@@ -32,7 +34,6 @@ def update_bunkered_equals_spent_constraint(alg: BunkerAlgorithm, vessel: Vessel
     vessel
         Vessel for which constraints are updated.
     """
-
     v = vessel.name
     route = vessel.route
     converters_per_fuel = alg.converters_per_fuel
@@ -43,19 +44,22 @@ def update_bunkered_equals_spent_constraint(alg: BunkerAlgorithm, vessel: Vessel
     change_coefficient = alg.model.chgCoeff
 
     for f in vessel.usable_fuels:
-
         key = (v, f)
 
-        constraint = get_constraint(alg, alg.bunker_equals_spent, key, "==", "bunkered_equals_spent")
+        constraint = get_constraint(
+            alg, alg.bunker_equals_spent, key, "==", "bunkered_equals_spent"
+        )
 
         for p in port_idx:
             if (v, p, f) in alg.bunker:
-                change_coefficient(constraint, alg.bunker[v, p, f], 1.)
+                change_coefficient(constraint, alg.bunker[v, p, f], 1.0)
 
         for c in converters_per_fuel[v, f]:
             for port_start, port_end in leg_idx:
-                change_coefficient(constraint, alg.spend_sea[v, c, f, port_start, port_end], -1.)
+                change_coefficient(
+                    constraint, alg.spend_sea[v, c, f, port_start, port_end], -1.0
+                )
 
         for c in port_converters_per_fuel[v, f]:
             for p in port_idx:
-                change_coefficient(constraint, alg.spend_port[v, c, f, p], -1.)
+                change_coefficient(constraint, alg.spend_port[v, c, f, p], -1.0)
