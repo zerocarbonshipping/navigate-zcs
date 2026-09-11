@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Unit tests for shore power: regulation integration, expected-scope transfer, and gate logic."""
+"""Tests shore power: regulation integration, expected-scope transfer, gate logic."""
 
 from __future__ import annotations
 
@@ -105,7 +105,8 @@ class TestShoreRegulationCoefficient:
         return algo, (v, 0, r)
 
     @pytest.mark.parametrize(
-        "measure, shore_ef, gwp, threshold, has_shore_power, expected_ef, expected_coeff",
+        "measure, shore_ef, gwp, threshold, has_shore_power, "
+        "expected_ef, expected_coeff",
         [
             # ABSOLUTE: coefficient equals the emission factor, no threshold subtraction
             pytest.param(
@@ -118,7 +119,8 @@ class TestShoreRegulationCoefficient:
                 0.05,
                 id="absolute_equals_emission_factor",
             ),
-            # INTENSITY: threshold / TON_TO_KG * 1.0 is subtracted from the emission factor
+            # INTENSITY: threshold / TON_TO_KG * 1.0 is subtracted from the emission
+            # factor
             pytest.param(
                 RegulationMeasureID.INTENSITY,
                 {"co2": 0.05},
@@ -189,7 +191,7 @@ class TestShoreTransferExpected:
     """Test shore power transfer for expected scope."""
 
     def test_expected_scope_transfers_energy_and_cost(self):
-        """Expected scope should transfer shore power energy and cost to vessel expectation."""
+        """Expected scope transfers shore power energy/cost to vessel expectation."""
         from navigate.bunker.bunker_algorithm import BunkerAlgorithm
 
         algo = BunkerAlgorithm()
@@ -231,7 +233,7 @@ class TestShoreTransferExpected:
         vessel_exp.add_fuel_expenses.assert_called_once_with(5, 2500.0)
 
     def test_existing_scope_transfers_to_profile(self):
-        """Existing scope should transfer shore power to vessel profile (not expectation)."""
+        """Existing scope transfers shore power to vessel profile (not expectation)."""
         from navigate.bunker.bunker_algorithm import BunkerAlgorithm
 
         algo = BunkerAlgorithm()

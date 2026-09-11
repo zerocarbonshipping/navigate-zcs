@@ -56,7 +56,8 @@ def _make_technology(name: str, **kwargs) -> Technology:
         energy_saving : dict[EnergyDemandTypeID, float]
         external_power : dict[EnergyDemandTypeID, float]
         shore_power_capacity : float
-        power_transfer : dict[tuple[EnergyDemandTypeID, EnergyDemandTypeID], float | Curve]
+        power_transfer :
+            dict[tuple[EnergyDemandTypeID, EnergyDemandTypeID], float | Curve]
         capex : float
         opex : float
         lifetime : float
@@ -149,7 +150,7 @@ class TestCompoundSavings:
         assert pkg.compound_savings[HEAT] == pytest.approx(0.0)
 
     def test_diminishing_marginal_return(self):
-        """Second identical technology contributes less marginal saving than the first."""
+        """Second identical technology adds less marginal saving than the first."""
         s = 0.10
         t1 = _make_technology("t1", energy_saving={PROPULSION: s})
         t2 = _make_technology("t2", energy_saving={PROPULSION: s})
@@ -215,7 +216,8 @@ class TestResidualEnergy:
             ([100.0, 200.0, 300.0], 0.0, [0.0, 0.0, 0.0], [100.0, 200.0, 300.0]),
             ([100.0, 200.0], 0.20, [0.0, 0.0], [80.0, 160.0]),
             ([100.0], 0.0, [30.0], [70.0]),
-            # saving is applied first (multiplicative), then external is subtracted: 100 * 0.8 - 10 = 70
+            # saving is applied first (multiplicative), then external is subtracted:
+            # 100 * 0.8 - 10 = 70
             ([100.0], 0.20, [10.0], [70.0]),
             # external power exceeding post-saving demand → 0, not negative
             ([10.0], 0.0, [999.0], [0.0]),
@@ -267,7 +269,7 @@ class TestPowerEnergyConversion:
 
 
 class TestTransferCurves:
-    """Verify Package filters zero-transfer curves and _calculate_power_transfer sums."""
+    """Verify Package filters zero-transfer curves; _calculate_power_transfer sums."""
 
     def test_zero_transfer_filtered_out(self):
         """Technologies with no power transfer produce no transfer_curves entries."""
@@ -421,7 +423,7 @@ class TestCombinedResidualEnergy:
         assert result[PROPULSION][0] == pytest.approx(expected)
 
     def test_heat_residual_with_transfer(self, setup):
-        """Heat: no saving, no external, but 0.2 MW transferred from propulsion → 482.72 GJ."""
+        """Heat: no saving/external, 0.2 MW transferred from propulsion → 482.72 GJ."""
         vessel, pkg, durations, raw_demands = setup
         result = _iterate_legs_or_ports(vessel, pkg, durations, raw_demands)
 
