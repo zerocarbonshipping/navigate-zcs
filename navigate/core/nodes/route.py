@@ -32,25 +32,25 @@ class Route(Node):
     def __init__(self, name):
         super().__init__(name, ROUTE)
 
-        # external variables -------------------------------------------------------------------------------------------
+        # external variables -----------------------------------------------------------
         self.route_type = None  # int, route type ID
         self.ports = []  # list[Port], ports a vessel can bunker in
 
         # time at sea/in port
-        self.port_durations = []  # list[float], duration spend in each port, days (round trip)
+        self.port_durations = []  # list[float], duration per port, days (round trip)
         self.time_at_sea = None  # float, fraction of time spent at sea (regional trip)
-        self.port_calls = []  # list[float], number of times each port is called (regional trip)
+        self.port_calls = []  # list[float], times each port is called (regional trip)
 
         # conditions per leg
         self.speeds = []  # list[float], speed of the vessel, knots
-        self.capacity_utilizations = []  # list[float], cargo capacity utilization, fraction
-        self.distances = []  # list[float], distance per leg, nautical miles (round trip)
-        self.condition_distribution = []  # list[float], time at condition, fraction (regional trip)
+        self.capacity_utilizations = []  # list[float], capacity utilization, fraction
+        self.distances = []  # list[float], distance per leg, naut. miles (round trip)
+        self.condition_distribution = []  # list[float], time fraction (regional trip)
 
         # regulation
-        self.voyage_distribution = {}  # dict[(port_name, port_name)], fraction of sea time spent between ports
+        self.voyage_distribution = {}  # dict[(port, port)], sea-time fraction
 
-    # external methods (DSL attributes) --------------------------------------------------------------------------------
+    # external methods (DSL attributes) ------------------------------------------------
     def set_route_type(self, route_type):
         """
         Set the route type.
@@ -188,7 +188,8 @@ class Route(Node):
 
         if normalized:
             logger.info(
-                f"{self}: 'ConditionDistribution' is normalized to 1 by equal fractions."
+                f"{self}: 'ConditionDistribution' is normalized to 1 by equal"
+                " fractions."
             )
 
     def set_speeds(self, speeds):
@@ -233,10 +234,10 @@ class Route(Node):
             upper=1.0,
         )
 
-    # external methods (DSL commands) ----------------------------------------------------------------------------------
+    # external methods (DSL commands) --------------------------------------------------
     def set_voyage_distribution(self, port_name_from, port_name_to, fraction):
         """
-        Set the fraction of total sailing time spent traveling from 'port_from' to 'port_to'.
+        Set the fraction of sailing time spent traveling from 'port_from' to 'port_to'.
 
         Examples
         --------
@@ -250,7 +251,8 @@ class Route(Node):
         port_name_to : str
             Name of port to which vessel arrives.
         fraction : float
-            Fraction of total sailing time spent traveling from 'port_from' to 'port_to'.
+            Fraction of total sailing time spent traveling from 'port_from' to
+            'port_to'.
         """
         command_assignment_to_tuple_dict(
             (port_name_from, port_name_to),
@@ -261,7 +263,7 @@ class Route(Node):
             upper=1.0,
         )
 
-    # internal methods -------------------------------------------------------------------------------------------------
+    # internal methods -----------------------------------------------------------------
     def initialize(self):
         if self.route_type is None:
             no_value_assigned_error(self, "RouteType")
@@ -278,7 +280,8 @@ class Route(Node):
         if len(self.speeds) != len(self.capacity_utilizations):
             raise ValueError(
                 f"{self}: The length of 'Speeds' ({len(self.speeds)}) and "
-                f"'CapacityUtilizations' ({len(self.capacity_utilizations)}) must correspond."
+                f"'CapacityUtilizations' ({len(self.capacity_utilizations)}) must"
+                " correspond."
             )
 
         # checking requirements that are route type specific
@@ -291,36 +294,43 @@ class Route(Node):
 
             if len(self.distances) != len(self.speeds):
                 raise ValueError(
-                    f"{self}: The length of 'Distances' ({len(self.distances)}) and Speeds ({len(self.speeds)}) must correspond."
+                    f"{self}: The length of 'Distances' ({len(self.distances)}) and"
+                    f" Speeds ({len(self.speeds)}) must correspond."
                 )
 
             if len(self.ports) < 2:
                 raise ValueError(
-                    f"{self}: Must have a minimum of 2 ports assigned for a ROUND_TRIP, only {len(self.ports)} were given."
+                    f"{self}: Must have a minimum of 2 ports assigned for a ROUND_TRIP,"
+                    f" only {len(self.ports)} were given."
                 )
 
-            # based on previous checks, distances is representative for all leg related lists
+            # based on previous checks, distances is representative for all leg related
+            # lists
             if len(self.distances) != len(self.ports):
                 raise ValueError(
-                    f"{self}: The length of 'Distances' ({len(self.distances)}) and 'Ports' ({len(self.ports)}) must correspond for a ROUND_TRIP."
+                    f"{self}: The length of 'Distances' ({len(self.distances)}) and"
+                    f" 'Ports' ({len(self.ports)}) must correspond for a ROUND_TRIP."
                 )
 
             if len(self.ports) != len(self.port_durations):
                 raise ValueError(
-                    f"{self}: The length of 'Ports' ({len(self.ports)}) and 'PortDurations' ({len(self.port_durations)}) must correspond."
+                    f"{self}: The length of 'Ports' ({len(self.ports)}) and"
+                    f" 'PortDurations' ({len(self.port_durations)}) must correspond."
                 )
 
             # the same port may not be placed in sequence
             for p in range(len(self.ports) - 1):
                 if self.ports[p] is self.ports[p + 1]:
                     raise ValueError(
-                        f"{self}: Unable to place {self.ports[p]} after itself in the sequence."
+                        f"{self}: Unable to place {self.ports[p]} after itself in the"
+                        " sequence."
                     )
 
             # the set is assumed periodical so check first/last are not in sequence
             if self.ports[0] is self.ports[-1]:
                 raise ValueError(
-                    f"{self}: The set of ports is assumed to wrap around for a 'ROUND_TRIP', so {self.ports[0]} cannot be"
+                    f"{self}: The set of ports is assumed to wrap around for a"
+                    f" 'ROUND_TRIP', so {self.ports[0]} cannot be"
                     " placed both first and last."
                 )
 
@@ -336,7 +346,8 @@ class Route(Node):
 
             if self.condition_distribution:
                 logger.warning(
-                    f"{self}: 'ConditionDistribution' is assigned but is unused for a ROUND_TRIP."
+                    f"{self}: 'ConditionDistribution' is assigned but is unused for a"
+                    " ROUND_TRIP."
                 )
 
         elif self.route_type == RouteTypeID.REGIONAL_TRIP:
@@ -345,7 +356,9 @@ class Route(Node):
 
             if len(self.condition_distribution) != len(self.speeds):
                 raise ValueError(
-                    f"{self}: The length of 'ConditionDistribution' ({len(self.condition_distribution)}) and 'Speeds' ({len(self.speeds)}) must correspond."
+                    f"{self}: The length of 'ConditionDistribution'"
+                    f" ({len(self.condition_distribution)}) and 'Speeds'"
+                    f" ({len(self.speeds)}) must correspond."
                 )
 
             # all ports must be unique
@@ -359,17 +372,20 @@ class Route(Node):
 
             if len(self.ports) != len(self.port_calls):
                 raise ValueError(
-                    f"{self}: The length of 'Ports' ({len(self.ports)}) and 'PortCalls' ({len(self.port_calls)}) must correspond."
+                    f"{self}: The length of 'Ports' ({len(self.ports)}) and 'PortCalls'"
+                    f" ({len(self.port_calls)}) must correspond."
                 )
 
             if self.distances:
                 logger.warning(
-                    f"{self}: 'Distances' is assigned but is unused for a REGIONAL_TRIP."
+                    f"{self}: 'Distances' is assigned but is unused for a"
+                    " REGIONAL_TRIP."
                 )
 
             if self.port_durations:
                 logger.warning(
-                    f"{self}: 'PortDurations' is assigned but is unused for a REGIONAL_TRIP."
+                    f"{self}: 'PortDurations' is assigned but is unused for a"
+                    " REGIONAL_TRIP."
                 )
 
         for key, distribution in self.voyage_distribution.items():
@@ -406,8 +422,8 @@ class Route(Node):
 
         Returns
         -------
-        Consecutive legs for a round trip, otherwise all port-to-port combinations (required for
-        regulatory purposes).
+        Consecutive legs for a round trip, otherwise all port-to-port combinations
+        (required for regulatory purposes).
         """
         if self.route_type == RouteTypeID.ROUND_TRIP:
             n_legs = self.get_number_of_legs()

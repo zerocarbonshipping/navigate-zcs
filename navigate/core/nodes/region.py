@@ -16,29 +16,29 @@ class Region(Node):
     def __init__(self, name):
         super().__init__(name, REGION)
 
-        # external variables -------------------------------------------------------------------------------------------
+        # external variables -----------------------------------------------------------
         # process
-        self.process_capex = {}  # dict[process_name: float], CAPEX of a process, USD/ton
-        self.process_opex = {}  # dict[process_name: float], OPEX of a process, USD/ton/year
-        self.process_energy = {}  # dict[process_name: float], energy demand of a process, MWh/ton
-        self.process_lifetime = {}  # dict[process_name: float], lifetime of the process, years
-        self.process_replacement = {}  # dict[process_name: float], fraction of CAPEX repaid at EoL
-        self.process_wtt = {}  # dict[(process_name, emission_name): float], ton emission/ton fuel
+        self.process_capex = {}  # dict[process_name: float], process CAPEX, USD/ton
+        self.process_opex = {}  # dict[process_name: float], process OPEX, USD/ton/year
+        self.process_energy = {}  # dict[process: float], process energy demand, MWh/ton
+        self.process_lifetime = {}  # dict[process_name: float], process lifetime, years
+        self.process_replacement = {}  # dict[process: float], CAPEX share repaid at EoL
+        self.process_wtt = {}  # dict[(process, emission): float], ton emission/ton fuel
 
         # source
-        self.source_capex = {}  # dict[source_name: float], CAPEX of a source, USD/MWh (stand-alone)
-        self.source_opex = {}  # dict[source_name: float], OPEX of a source, USD/MWh/year (stand-alone)
-        self.source_wtt = {}  # dict[(source_name, emission_name): float], ton emission/MWh
+        self.source_capex = {}  # dict[source: float], CAPEX, USD/MWh (stand-alone)
+        self.source_opex = {}  # dict[source: float], OPEX, USD/MWh/year (stand-alone)
+        self.source_wtt = {}  # dict[(source, emission): float], ton emission/MWh
 
         # feedstock
-        self.feedstock_cost = {}  # dict[feedstock_name: float], cost of a feedstock, USD/ton
-        self.feedstock_wtt = {}  # dict[(feedstock_name, emission_name): float], ton emission/ton fuel
+        self.feedstock_cost = {}  # dict[feedstock_name: float], feedstock cost, USD/ton
+        self.feedstock_wtt = {}  # dict[(feedstock, emission): float], ton/ton fuel
 
         # transport
-        self.transport_cost = {}  # dict[transport_name: float], cost of a transport, USD/ton-nautical mile
-        self.transport_wtt = {}  # dict[(transport_name, emission_name): float], ton emission/ton-nautical mile
+        self.transport_cost = {}  # dict[transport: float], cost, USD/ton-naut mile
+        self.transport_wtt = {}  # dict[(transport, emission): float], ton/ton-naut mile
 
-    # external methods (DSL commands) ----------------------------------------------------------------------------------
+    # external methods (DSL commands) --------------------------------------------------
     def set_process_capex(self, process_name, value):
         """
         Set the CAPEX associated with a production process in USD/ton.
@@ -67,8 +67,8 @@ class Region(Node):
         """
         Set the OPEX associated with a production process in USD/ton/year.
 
-        Notice that OPEX allows negative values so that revenue from byproducts can be subtracted from the costs,
-        resulting in potentially negative OPEX.
+        Notice that OPEX allows negative values so that revenue from byproducts can be
+        subtracted from the costs, resulting in potentially negative OPEX.
 
         Examples
         --------
@@ -164,7 +164,7 @@ class Region(Node):
 
     def set_process_wtt(self, process_name, emission_name, value):
         """
-        Set the WTT emissions of a specific emission type emitted during a production process in ton emission/ton fuel.
+        Set the WTT emissions from a production process, ton emission/ton fuel.
 
         Examples
         --------
@@ -178,7 +178,8 @@ class Region(Node):
         emission_name : str
             The name of an emission.
         value : float | NodeReference
-            The amount of emissions emitted during the production in ton emissions/ton fuel.
+            The amount of emissions emitted during the production in ton emissions/ton
+            fuel.
         """
         command_assignment_to_tuple_dict(
             (process_name, emission_name),
@@ -229,7 +230,7 @@ class Region(Node):
 
     def set_source_wtt(self, source_name, emission_name, value):
         """
-        Set the WTT emissions of a specific emission type emitted by using a source in ton emission/MWh.
+        Set the WTT emissions of an emission type from using a source, ton emission/MWh.
 
         Examples
         --------
@@ -278,7 +279,7 @@ class Region(Node):
 
     def set_feedstock_wtt(self, feedstock_name, emission_name, value):
         """
-        Set the WTT emissions of a specific emission emitted by using a feedstock in ton emission/ton feedstock.
+        Set the WTT emissions from a feedstock, ton emission/ton feedstock.
 
         Examples
         --------
@@ -292,7 +293,8 @@ class Region(Node):
         emission_name : str
             The name of an emission.
         value : float | NodeReference
-            The amount of emissions emitted by using a feedstock in ton emission/ton feedstock.
+            The amount of emissions emitted by using a feedstock in ton emission/ton
+            feedstock.
         """
         command_assignment_to_tuple_dict(
             (feedstock_name, emission_name),
@@ -327,7 +329,7 @@ class Region(Node):
 
     def set_transport_wtt(self, transport_name, emission_name, value):
         """
-        Set the WTT emissions of a specific emission emitted by using a transport in ton emission/ton-nautical mile.
+        Set the WTT emissions from a transport, ton emission/ton-nautical mile.
 
         Examples
         --------
@@ -341,7 +343,8 @@ class Region(Node):
         emission_name : str
             The name of an emission.
         value : float | NodeReference
-            The amount of emissions emitted by using a transport in ton emission/ton-nautical mile.
+            The amount of emissions emitted by using a transport in ton
+            emission/ton-nautical mile.
         """
         command_assignment_to_tuple_dict(
             (transport_name, emission_name),
@@ -350,7 +353,7 @@ class Region(Node):
             type_=(FORECAST, VARIABLE),
         )
 
-    # internal methods -------------------------------------------------------------------------------------------------
+    # internal methods -----------------------------------------------------------------
     def initialize(self):
 
         for process_name, capex in self.process_capex.items():
@@ -424,7 +427,8 @@ class Region(Node):
             self.process_capex.setdefault(process_name, None)
             self.process_opex.setdefault(process_name, None)
             self.process_energy.setdefault(process_name, None)
-            # stays None when unset: Component.initialize_process_component branches on it
+            # stays None when unset: Component.initialize_process_component branches on
+            # it
             self.process_lifetime.setdefault(process_name, None)
             self.process_replacement.setdefault(process_name, None)
 

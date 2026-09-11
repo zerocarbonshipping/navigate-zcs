@@ -15,7 +15,7 @@ class PowerSystem(_Machinery):
     def __init__(self, name):
         super().__init__(name, POWER_SYSTEM)
 
-        # external variables -------------------------------------------------------------------------------------------
+        # external variables -----------------------------------------------------------
         # converters
         self.propulsion = None  # Converter, main engine delivering propulsion power
         self.electrical = (
@@ -23,7 +23,7 @@ class PowerSystem(_Machinery):
         )
         self.heat = None  # Converter, boiler delivering heat
 
-    # external methods (DSL attributes) --------------------------------------------------------------------------------
+    # external methods (DSL attributes) ------------------------------------------------
     def set_propulsion(self, propulsion):
         """
         Set the converter used to satisfy the propulsion demand.
@@ -69,7 +69,7 @@ class PowerSystem(_Machinery):
         """
         self.heat = assign_value(heat, scalar=False, type_=CONVERTER)
 
-    # internal methods -------------------------------------------------------------------------------------------------
+    # internal methods -----------------------------------------------------------------
     def initialize(self):
 
         if not self.propulsion:
@@ -81,7 +81,8 @@ class PowerSystem(_Machinery):
         if not self.heat:
             no_value_assigned_error(self, "Heat")
 
-        # downstream code sums over the converters (installed power, cost, fuel demand); a shared one would double-count
+        # downstream code sums over the converters (installed power, cost, fuel demand);
+        # a shared one would double-count
         names = (self.propulsion.name, self.electrical.name, self.heat.name)
         if not list_is_unique(names):
             raise ValueError(

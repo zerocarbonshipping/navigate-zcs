@@ -131,11 +131,13 @@ class Expression:
 
         if isinstance(node_ast, ast.Name) and _CAPITALIZED_NAME.fullmatch(node_ast.id):
             raise NotImplementedError(
-                f"{self._node}: Expression '{self._expression}' is currently unable to support references to attributes."
+                f"{self._node}: Expression '{self._expression}' is currently unable to"
+                " support references to attributes."
             )
 
         raise ValueError(
-            f"{self._node}: Error in expression <{self._expression}>: unsupported syntax '{ast.unparse(node_ast)}'."
+            f"{self._node}: Error in expression <{self._expression}>: unsupported"
+            f" syntax '{ast.unparse(node_ast)}'."
         )
 
     def _build_constant(self, node_ast):
@@ -143,7 +145,8 @@ class Expression:
 
         if type(value) not in (int, float):
             raise ValueError(
-                f"{self._node}: Error in expression <{self._expression}>: only numeric literals are allowed, got {value!r}."
+                f"{self._node}: Error in expression <{self._expression}>: only numeric"
+                f" literals are allowed, got {value!r}."
             )
 
         # literals are evaluated as floats so that '**' overflows
@@ -155,7 +158,8 @@ class Expression:
 
         if operator_ is None:
             raise ValueError(
-                f"{self._node}: Error in expression <{self._expression}>: unsupported operator '{type(node_ast.op).__name__}'."
+                f"{self._node}: Error in expression <{self._expression}>: unsupported"
+                f" operator '{type(node_ast.op).__name__}'."
             )
 
         return _BinaryOperation(
@@ -167,7 +171,8 @@ class Expression:
 
         if operator_ is None:
             raise ValueError(
-                f"{self._node}: Error in expression <{self._expression}>: unsupported unary operator '{type(node_ast.op).__name__}'."
+                f"{self._node}: Error in expression <{self._expression}>: unsupported"
+                f" unary operator '{type(node_ast.op).__name__}'."
             )
 
         return _UnaryOperation(operator_, self._build(node_ast.operand))
@@ -177,24 +182,28 @@ class Expression:
             node_ast.func.id
         ):
             raise ValueError(
-                f"{self._node}: Error in expression <{self._expression}>: '{ast.unparse(node_ast)}' is not a valid node reference."
+                f"{self._node}: Error in expression <{self._expression}>:"
+                f" '{ast.unparse(node_ast)}' is not a valid node reference."
             )
 
         if node_ast.keywords or len(node_ast.args) != 1:
             raise ValueError(
-                f"{self._node}: Error in expression <{self._expression}>: '{ast.unparse(node_ast)}' must take exactly one positional argument."
+                f"{self._node}: Error in expression <{self._expression}>:"
+                f" '{ast.unparse(node_ast)}' must take exactly one positional argument."
             )
 
         argument = node_ast.args[0]
 
         if not isinstance(argument, ast.Constant) or type(argument.value) is not str:
             raise ValueError(
-                f"{self._node}: Error in expression <{self._expression}>: '{ast.unparse(node_ast)}' argument must be a string literal."
+                f"{self._node}: Error in expression <{self._expression}>:"
+                f" '{ast.unparse(node_ast)}' argument must be a string literal."
             )
 
         if '"' in argument.value:
             raise ValueError(
-                f"{self._node}: Error in expression <{self._expression}>: node reference name must not contain a quote."
+                f"{self._node}: Error in expression <{self._expression}>: node"
+                " reference name must not contain a quote."
             )
 
         # node references are stored as canonical strings and changed
@@ -256,12 +265,14 @@ class Expression:
     def _check_node_reference(self, type_):
         if self._allowed_types is None:
             raise ValueError(
-                f"{self._node}: Expression <{self._expression}> does not allow node references."
+                f"{self._node}: Expression <{self._expression}> does not allow node"
+                " references."
             )
 
         elif type_ not in self._allowed_types:
             raise ValueError(
-                f"{self._node}: Expression <{self._expression}> references unacceptable type {type_}."
+                f"{self._node}: Expression <{self._expression}> references unacceptable"
+                f" type {type_}."
             )
 
 

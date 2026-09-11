@@ -13,11 +13,11 @@ class Emission(Node):
     def __init__(self, name):
         super().__init__(name, EMISSION)
 
-        # external variables -------------------------------------------------------------------------------------------
+        # external variables -----------------------------------------------------------
         self.global_warming_potential = None
         self.fuel_type = None
 
-    # external methods (DSL attributes) --------------------------------------------------------------------------------
+    # external methods (DSL attributes) ------------------------------------------------
     def set_global_warming_potential(self, global_warming_potential):
         """
         Set the Global Warming Potential (GWP) of the emission.
@@ -54,7 +54,7 @@ class Emission(Node):
         """
         self.fuel_type = assign_id(fuel_type, FuelTypeID)
 
-    # internal methods -------------------------------------------------------------------------------------------------
+    # internal methods -----------------------------------------------------------------
     def initialize(self):
         if self.global_warming_potential is None:
             self.global_warming_potential = Scalar(0.0)

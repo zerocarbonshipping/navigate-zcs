@@ -15,17 +15,17 @@ class Variable(Node, _Calculator):
         Node.__init__(self, name, VARIABLE)
         _Calculator.__init__(self)
 
-        # internal variables -------------------------------------------------------------------------------------------
+        # internal variables -----------------------------------------------------------
         self._value = None
 
     def __repr__(self):
         return str(self.get())
 
-    # external methods (DSL attributes) --------------------------------------------------------------------------------
+    # external methods (DSL attributes) ------------------------------------------------
     def set_value(self, value):
         self._value = assign_value(value)
 
-    # internal methods -------------------------------------------------------------------------------------------------
+    # internal methods -----------------------------------------------------------------
     def initialize(self):
         if self._value is None:
             no_value_assigned_error(self, "Value")

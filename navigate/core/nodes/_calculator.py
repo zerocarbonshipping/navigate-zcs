@@ -18,13 +18,13 @@ BOUNDS_MAP = {"-INF": -np.inf, "INF": np.inf}
 class _Calculator:
     def __init__(self):
 
-        # external variables -------------------------------------------------------------------------------------------
+        # external variables -----------------------------------------------------------
         self.addition = 0.0
         self.multiplier = 1.0
         self.lower_bound = -np.inf
         self.upper_bound = np.inf
 
-        # internal variables -------------------------------------------------------------------------------------------
+        # internal variables -----------------------------------------------------------
         # extrapolation warning
         self._extrapolation_warned = False
 
@@ -37,7 +37,7 @@ class _Calculator:
         self._applied_lower_bound = -np.inf
         self._applied_upper_bound = np.inf
 
-    # external methods (DSL attributes) --------------------------------------------------------------------------------
+    # external methods (DSL attributes) ------------------------------------------------
     def set_addition(self, addition):
         """
         Set the addition of the calculator.
@@ -96,7 +96,7 @@ class _Calculator:
         # called here in case the upper bound is changed during time-stepping
         self._assign_applied_bounds()
 
-    # internal methods -------------------------------------------------------------------------------------------------
+    # internal methods -----------------------------------------------------------------
     def transfer_internal_bounds(self, reference):
         """
         Update internal bounds if appropriate.
@@ -119,7 +119,8 @@ class _Calculator:
 
             elif lower > self._internal_lower_bound:
                 logger.warning(
-                    f"{reference}: Internal lower bound tightened from {self._internal_lower_bound} to {lower}."
+                    f"{reference}: Internal lower bound tightened from"
+                    f" {self._internal_lower_bound} to {lower}."
                 )
 
                 self._internal_lower_bound = lower
@@ -130,7 +131,8 @@ class _Calculator:
 
             elif upper < self._internal_upper_bound:
                 logger.warning(
-                    f"{reference}: Internal upper bound tightened from {self._internal_upper_bound} to {upper}."
+                    f"{reference}: Internal upper bound tightened from"
+                    f" {self._internal_upper_bound} to {upper}."
                 )
 
                 self._internal_upper_bound = upper
@@ -140,8 +142,9 @@ class _Calculator:
 
     def set_internal_lower_bound(self, internal_lower_bound):
         """
-        Set the internal lower bound of the calculator. This is not accessible through the deck, but is set by the
-        setter of Nodes and GeneralNodes which have a lower bound.
+        Set the internal lower bound of the calculator. This is not accessible through
+        the deck, but is set by the setter of Nodes and GeneralNodes which have a lower
+        bound.
 
         Parameters
         ----------
@@ -152,8 +155,9 @@ class _Calculator:
 
     def set_internal_upper_bound(self, internal_upper_bound):
         """
-        Set the internal upper bound of the calculator. This is not accessible through the deck, but is set by the
-        setter of Nodes and GeneralNodes which have an upper bound.
+        Set the internal upper bound of the calculator. This is not accessible through
+        the deck, but is set by the setter of Nodes and GeneralNodes which have an upper
+        bound.
 
         Parameters
         ----------
@@ -198,9 +202,10 @@ class _Calculator:
     @staticmethod
     def _test_convexity(x, y):
         """
-        Test whether the piecewise linear function made up by the set (x, y) is a convex function.
+        Test whether the piecewise linear function made up by (x, y) is convex.
 
-        This test is only applicable to non-strictly increasing functions such as exponential functions.
+        This test is only applicable to non-strictly increasing functions such as
+        exponential functions.
 
         Parameters
         ----------
