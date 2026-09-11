@@ -35,8 +35,9 @@ def optimize(alg: BunkerAlgorithm) -> None:
 
 def check_solution(alg: BunkerAlgorithm) -> None:
     """
-    Checks the solution of the LP model after a call to 'model.optimize'.
-    If the model is infeasible, the IIS is calculated and an LP file with the limiting constraints are exported.
+    Checks the solution of the LP model after a call to 'model.optimize'. If the model
+    is infeasible, the IIS is calculated and an LP file with the limiting constraints
+    are exported.
 
     Parameters
     ----------
@@ -73,6 +74,7 @@ def check_solution(alg: BunkerAlgorithm) -> None:
         )
 
     elif status == gp.GRB.INF_OR_UNBD:
-        # set the dual reduction parameter to 0 and reoptimize to get a more conclusive result
+        # set the dual reduction parameter to 0 and reoptimize to get a more conclusive
+        # result
         alg.model.Params.DualReductions = 0
         optimize(alg)

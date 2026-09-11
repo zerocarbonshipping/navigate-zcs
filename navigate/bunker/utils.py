@@ -66,7 +66,7 @@ def get_converters(vessel: Vessel) -> dict[str, Converter]:
 
 def get_port_converters(vessel: Vessel) -> dict[str, Converter]:
     """
-    The two converters that serve port energy demands (electrical and heat), keyed by name.
+    The two converters serving port energy demands (electrical and heat), keyed by name.
 
     Parameters
     ----------

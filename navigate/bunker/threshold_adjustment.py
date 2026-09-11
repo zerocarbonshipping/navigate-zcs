@@ -30,12 +30,13 @@ _THRESHOLD_TOLERANCE = 1e-4
 
 def adjust_regulation_thresholds(alg: BunkerAlgorithm) -> bool:
     """
-    Perform threshold adjustment for regulations that have the AllowThresholdAdjustment flag enabled.
+    Perform threshold adjustment for regulations with AllowThresholdAdjustment enabled.
 
-    After the initial solve, for any regulation with non-compliance (remedial factor > 0), compute
-    the adjusted threshold that would make the regulation compliant at the current cost/supply levels.
-    Updates the LP constraints with adjusted thresholds but does not re-solve — the caller is
-    responsible for running the fair-share solve loop again if this returns True.
+    After the initial solve, for any regulation with non-compliance (remedial factor >
+    0), compute the adjusted threshold that would make the regulation compliant at the
+    current cost/supply levels. Updates the LP constraints with adjusted thresholds but
+    does not re-solve — the caller is responsible for running the fair-share solve loop
+    again if this returns True.
 
     Parameters
     ----------
@@ -45,7 +46,8 @@ def adjust_regulation_thresholds(alg: BunkerAlgorithm) -> bool:
     Returns
     -------
     bool
-        True if thresholds were adjusted and the LP needs to be re-solved, False otherwise.
+        True if thresholds were adjusted and the LP needs to be re-solved, False
+        otherwise.
     """
     # check if any active regulation requires threshold adjustment
     adjustable_regulations = {
@@ -163,8 +165,8 @@ def adjust_regulation_thresholds(alg: BunkerAlgorithm) -> bool:
 
     # update LP constraints with adjusted thresholds
     if has_intensity:
-        # for INTENSITY regulations, the threshold is embedded in the constraint coefficients,
-        # so we need to rebuild coefficients and constraints
+        # for INTENSITY regulations, the threshold is embedded in the constraint
+        # coefficients, so we need to rebuild coefficients and constraints
         _rebuild_regulation_constraints_for_adjustment(alg, adjustable_regulations)
     else:
         # for non-INTENSITY regulations, we can simply update the constraint RHS
@@ -323,8 +325,9 @@ def _rebuild_regulation_constraints_for_adjustment(
                         - adjusted_threshold / TON_TO_KG * 1.0
                     )
 
-    # rebuild the regulation threshold constraints (which remove and re-add).
-    # Each function rebuilds all constraints of that scheme type, so call at most once per scheme.
+    # rebuild the regulation threshold constraints (which remove and re-add). Each
+    # function rebuilds all constraints of that scheme type, so call at most once per
+    # scheme.
     rebuild_individual = False
     rebuild_flexibility = False
     for _r, regulation in adjustable_regulations.items():
