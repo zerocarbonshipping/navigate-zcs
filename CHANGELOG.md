@@ -12,6 +12,7 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ### Changed
+- The minimum supported Python version is 3.13 (was 3.12).
 - The lint toolchain is now `ruff` (formatting, linting, import sorting) and
   `mypy` (type checking), replacing `flake8`/`isort`; `make lint` runs both
   plus the REUSE check. The whole codebase was reformatted in a single

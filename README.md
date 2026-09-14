@@ -22,16 +22,16 @@ Some simple example simulations can be found under `simulations/examples`
 
 ## Installation
 
-Navigate is built on Python version 3.12. You can download Navigate by cloning it to your local machine or by downloading one of the releases.
+Navigate is built on Python version 3.13. You can download Navigate by cloning it to your local machine or by downloading one of the releases.
 We recommend using an environment manager such as [conda](https://www.anaconda.com/docs/getting-started/miniconda) or [venv](https://docs.python.org/3/library/venv.html) to avoid conflicts with other packages and versions.
 
 ### Setting up an environment (optional but recommended)
 ```bash
 # Using venv (bundled with Python)
-python3.12 -m venv .venv
+python3.13 -m venv .venv
 source .venv/bin/activate
 # Using conda (https://www.anaconda.com/docs/getting-started/miniconda/install)
-conda create -n nav python=3.12 pip
+conda create -n nav python=3.13 pip
 conda activate nav
 ```
 
