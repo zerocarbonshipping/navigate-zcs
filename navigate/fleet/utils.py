@@ -54,7 +54,7 @@ def is_retrofit_cycle(
     age: float, retrofit_frequency: float, time_step: float, decimals: int = 2
 ) -> bool:
     """
-    Returns whether the vessel is in a retrofit cycle.
+    Return whether the vessel is in a retrofit cycle.
     """
     # check the increment is within a retrofit
     # frequency period and not at age 0

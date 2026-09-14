@@ -23,7 +23,7 @@ def calculate_vessel_charter_properties(
     vessel: Vessel, timeline: np.ndarray, idx: int
 ) -> None:
     """
-    Calculates all properties related to the vessel asset charter at a given time-step.
+    Calculate all properties related to the vessel asset charter at a given time-step.
 
     The routine builds a unified cost flow for owning the vessel over its lifetime by
     aggregating base vessel CAPEX and fixed OPEX with machinery CAPEX/OPEX for the power
@@ -67,7 +67,7 @@ def calculate_cargo_charter_properties(
     vessel: Vessel, timeline: np.ndarray, idx: int
 ) -> None:
     """
-    Calculates cargo-owner-facing charter properties at a given time-step.
+    Calculate cargo-owner-facing charter properties at a given time-step.
 
     The routine adds fuel-related costs (bunkers and policy costs, represented as
     variable OPEX) into a unified cost flow and combines this with the already-computed
@@ -106,7 +106,7 @@ def _calculate_vessel_unit_properties(
     vessel: Vessel, component: Component, idx: int
 ) -> None:
     """
-    Aggregates vessel asset cost flows into owner-facing charter metrics per time-step.
+    Aggregate vessel asset cost flows into owner-facing charter metrics per time-step.
 
     The function converts the aggregated CAPEX/OPEX cost flow into:
     (i) an asset charter NPV and (ii) an age-levelized annual asset charter rate using
@@ -163,7 +163,7 @@ def _calculate_cargo_unit_properties(
     vessel: Vessel, component: Component, timeline: np.ndarray, idx: int
 ) -> None:
     """
-    Aggregates fuel cost flows into operator and cargo-owner unit metrics per time-step.
+    Aggregate fuel cost flows into operator and cargo-owner unit metrics per time-step.
 
     Fuel costs are converted to NPV and combined with the vessel asset charter NPV and
     the fleet-average carried technology charge (a constant yearly cost over the
@@ -241,7 +241,7 @@ def _initialize_vessel_component(
     time_initial: float,
 ) -> Component:
     """
-    Creates and initializes the aggregation `Component` for a vessel at a start time.
+    Create and initialize the aggregation `Component` for a vessel at a start time.
 
     The component is prepared with:
     • Flow containers sized to the vessel lifetime (lead time assumed zero).
@@ -280,7 +280,7 @@ def _initialize_vessel_component(
 
 def _calculate_base_cost(vessel: Vessel, component: Component) -> None:
     """
-    Adds base vessel capital and fixed operating costs to the component's cost flow.
+    Add base vessel capital and fixed operating costs to the component's cost flow.
 
     CAPEX and fixed OPEX are retrieved from the vessel and added as fixed/locked flows
     over the vessel horizon.
@@ -301,7 +301,7 @@ def _calculate_base_cost(vessel: Vessel, component: Component) -> None:
 
 def _calculate_power_system_cost(vessel: Vessel, component: Component) -> None:
     """
-    Adds power-system capital and fixed operating costs to the vessel component.
+    Add power-system capital and fixed operating costs to the vessel component.
 
     A dedicated subcomponent is initialized for the power system to account for any
     distinct machinery lifetime and replacement behavior. The subcomponent cost flow is
@@ -329,7 +329,7 @@ def _calculate_power_system_cost(vessel: Vessel, component: Component) -> None:
 
 def _calculate_converter_cost(vessel: Vessel, component: Component) -> None:
     """
-    Adds converter capital and fixed operating costs to the vessel component.
+    Add converter capital and fixed operating costs to the vessel component.
 
     For each converter in the vessel power system, a dedicated subcomponent is
     initialized to respect the converter's lifetime/replacement behavior. CAPEX and OPEX
@@ -358,7 +358,7 @@ def _calculate_converter_cost(vessel: Vessel, component: Component) -> None:
 
 def _calculate_tank_cost(vessel: Vessel, component: Component) -> None:
     """
-    Adds tank capital and fixed operating costs to the vessel component.
+    Add tank capital and fixed operating costs to the vessel component.
 
     For each tank installed on the vessel, a dedicated subcomponent is initialized to
     respect the tank's lifetime/replacement behavior. CAPEX and OPEX are scaled by tank
@@ -389,7 +389,7 @@ def _calculate_fuel_cost(
     vessel: Vessel, component: Component, timeline: np.ndarray, idx: int
 ) -> None:
     """
-    Adds fuel costs as variable OPEX into the component's cost flow for a time-step.
+    Add fuel costs as variable OPEX into the component's cost flow for a time-step.
 
     Fuel expenses are taken from the vessel expectation as an annual time series defined
     over the remaining simulation timeline and interpolated onto the component year

@@ -56,7 +56,7 @@ def calculate_levelized_cost(cost_flow, level_flow, discount_rate):
 
 def calculate_net_present_value(values, discount_rate):
     """
-    Calculates the net present value of a property.
+    Calculate the net present value of a property.
 
     Parameters
     ----------

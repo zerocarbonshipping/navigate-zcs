@@ -153,7 +153,7 @@ class SimulationManager:
 
     def _initialize_simulation(self):
         """
-        This method initializes the model based on the defined initial conditions. The
+        Initialize the model based on the defined initial conditions. The
         calculations performed overlap partially with those performed at each time-step.
         """
         # log the start of the simulation
