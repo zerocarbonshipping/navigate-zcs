@@ -17,7 +17,7 @@ help:  ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
 		awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}'
 
-conda-setup:  ## Create conda env with Python 3.12 and install package in editable mode
+conda-setup:  ## Create conda env with Python 3.13 and install package in editable mode
 	@if ! command -v conda >/dev/null 2>&1; then \
 		echo "Error: conda is not installed or not on PATH."; \
 		exit 1; \
@@ -26,14 +26,14 @@ conda-setup:  ## Create conda env with Python 3.12 and install package in editab
 		echo "Updating existing '$(ENV_NAME)' environment..."; \
 	else \
 		echo "Creating '$(ENV_NAME)' environment..."; \
-		conda create -n $(ENV_NAME) -c conda-forge python=3.12 pip -y; \
+		conda create -n $(ENV_NAME) -c conda-forge python=3.13 pip -y; \
 	fi
 	@conda run -n $(ENV_NAME) pip install -e ".[dev]" --quiet
 
 pip-setup:  ## Create venv and install package with dev dependencies (no conda required). Preferred in web.
 	@if [ ! -d .venv ]; then \
 		echo "Creating virtual environment..."; \
-		python3.12 -m venv .venv; \
+		python3.13 -m venv .venv; \
 	fi
 	@.venv/bin/pip install -q -e ".[dev]"
 

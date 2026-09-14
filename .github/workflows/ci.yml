@@ -21,7 +21,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: '3.12'
+          python-version: '3.13'
 
       - name: Install package with dev dependencies
         run: make pip-setup
@@ -41,7 +41,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: '3.12'
+          python-version: '3.13'
 
       - name: Build package
         run: |
@@ -72,7 +72,7 @@ jobs:
         with:
           miniforge-version: latest
           activate-environment: nav
-          python-version: '3.12'
+          python-version: '3.13'
 
       - name: Download build artifacts
         uses: actions/download-artifact@v8
