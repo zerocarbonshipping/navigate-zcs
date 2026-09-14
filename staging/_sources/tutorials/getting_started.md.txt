@@ -10,7 +10,7 @@ Navigate can be run though a number of different editors, environments and IDEs 
 
 ## Prequisites:
 
-- Python 3.12
+- Python 3.13
 - Visual Studio Code 
 
 On windows, all of these programs can be downloaded without administrator privileges through the microsoft store.
