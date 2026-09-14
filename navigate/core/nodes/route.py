@@ -168,6 +168,7 @@ class Route(Node):
     def set_condition_distribution(self, condition_distribution):
         """
         Set the fraction of time spent on the various legs of the trip.
+
         The sum of the coefficients in the list must equal unity.
 
         Only applicable if 'RouteType' is REGIONAL_TRIP.

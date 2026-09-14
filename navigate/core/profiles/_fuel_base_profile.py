@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 
 class _FuelBaseProfile(_BaseProfile):
-    """This class is used exclusively for sub-classing."""
+    """Base class used exclusively for sub-classing."""
 
     def __init__(self):
         super().__init__()
@@ -30,6 +30,7 @@ class _FuelBaseProfile(_BaseProfile):
 
     def _initialize_fuel_base(self, fuels: dict[str, Fuel]) -> None:
         """
+        Initialize the fuel type and lower heating value lookups.
 
         Parameters
         ----------

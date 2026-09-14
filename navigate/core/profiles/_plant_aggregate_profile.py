@@ -23,6 +23,7 @@ class _PlantAggregateProfile(_FuelProducerProfile):
         self, profile: _PlantAggregateProfile, idx: int | slice = np.s_[:]
     ) -> None:
         """
+        Add another plant aggregate profile's values into this one.
 
         Parameters
         ----------

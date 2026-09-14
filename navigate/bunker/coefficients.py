@@ -41,9 +41,9 @@ def _calculate_emission_factor_ttw(
     converter: Converter, fuel: Fuel, emission: Emission
 ) -> float:
     """
-    Calculate the TTW emission factor for an emission from consuming a fuel in a
-    specific converter. Should be multiplied by the amount of spent fuel in that
-    converter.
+    Calculate the TTW emission factor for burning a fuel in a specific converter.
+
+    Should be multiplied by the amount of spent fuel in that converter.
 
     The emission factor accounts for slip:
     - Fuel-bound (TTW) emissions scale with burned fraction (1 - slip).
@@ -89,6 +89,7 @@ def _calculate_emission_factor_ttw(
 def calculate_effective_lhv(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     """
     Pre-compute the effective LHV of every converter-fuel combination of a vessel.
+
     The values are read repeatedly when building constraints and transferring results.
 
     Parameters

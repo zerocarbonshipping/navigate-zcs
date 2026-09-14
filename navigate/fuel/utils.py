@@ -22,9 +22,10 @@ def calculate_uptake_inter_metric(
     plant, demand, minimum_offtake_duration, timeline, idx
 ):
     """
-    Calculate the business case evaluation metric which is used to decide on a specific
-    fuel pathway. This is based on the expected future gap between supply and demand and
-    the number of plants required to satisfy that gap.
+    Calculate the business-case metric used to choose a fuel pathway.
+
+    This is based on the expected future gap between supply and demand and the number of
+    plants required to satisfy that gap.
 
     Parameters
     ----------
@@ -96,9 +97,9 @@ def calculate_uptake_inter_metric(
 
 def calculate_uptake_intra_metric(plant, export_distribution, idx):
     """
-    Calculate the business case evaluation metric which is used to decide on a specific
-    plant after the fuel pathway has been decided. This is based on the average
-    delivered levelized cost of fuel for a given plant.
+    Calculate the business-case metric used to choose a plant within a fuel pathway.
+
+    This is based on the average delivered levelized cost of fuel for a given plant.
 
     Parameters
     ----------
@@ -151,9 +152,10 @@ def get_plant_evaluation_timeline(plant, timeline, idx):
 
 def calculate_constrained_shares(shares, maximums):
     """
-    Take the optimal allocation from a discrete choice model and redistribute the
-    shares between the options if certain allocations are larger than their maximum
-    allowed share.
+    Redistribute discrete-choice shares that exceed their maximum allowed value.
+
+    Starts from the optimal allocation of a discrete choice model, redistributing shares
+    between options where an allocation exceeds its maximum allowed share.
 
     Notice that this method redistributes the surplus from constrained shares to the
     other shares proportionally to the deficit of each share. Meaning the bigger the gap

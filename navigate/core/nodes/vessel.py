@@ -88,8 +88,10 @@ class Vessel(Node):
     # external methods (DSL attributes) ------------------------------------------------
     def set_propulsion_load(self, propulsion_load):
         """
-        Set the propulsion load in MW. This is the power required to propel the vessel
-        at a given speed and draft (cargo utilization used as proxy).
+        Set the propulsion load, in MW.
+
+        This is the power required to propel the vessel at a given speed and draft
+        (cargo utilization used as proxy).
 
         If a Curve is assigned it should return power (MW) as a function of speed
         (knots). If a Surface is assigned it should return power (MW) as a function of
@@ -112,8 +114,10 @@ class Vessel(Node):
 
     def set_electrical_load_at_sea(self, electrical_load_at_sea):
         """
-        Set the electrical load at sea in MW. This is the power required to run
-        auxiliary systems on the vessel at sea at a given speed and cargo utilization.
+        Set the electrical load at sea, in MW.
+
+        This is the power required to run auxiliary systems on the vessel at sea at a
+        given speed and cargo utilization.
 
         If a Curve is assigned it should return power (MW) as a function of speed
         (knots). If a Surface is assigned it should return power (MW) as a function of
@@ -139,6 +143,7 @@ class Vessel(Node):
     def set_electrical_load_in_port(self, electrical_load_in_port):
         """
         Set the electrical load in port in MW.
+
         This is the power required to run auxiliary systems on the vessel in port.
 
         Examples
@@ -156,8 +161,10 @@ class Vessel(Node):
 
     def set_heat_load_at_sea(self, heat_load_at_sea):
         """
-        Set the heat load at sea in MW. This is the power required to produce heat on
-        the vessel at sea at a given speed and cargo utilization.
+        Set the heat load at sea, in MW.
+
+        This is the power required to produce heat on the vessel at sea at a given
+        speed and cargo utilization.
 
         If a Curve is assigned it should return power (MW) as a function of speed
         (knots). If a Surface is assigned it should return power (MW) as a function of
@@ -181,6 +188,7 @@ class Vessel(Node):
     def set_heat_load_in_port(self, heat_load_in_port):
         """
         Set the heating load in port in MW.
+
         This is the power required to produce heat on the vessel in port.
 
         Examples
@@ -451,6 +459,7 @@ class Vessel(Node):
 
     def calculate_profile(self, idx):
         """
+        Write the vessel lifetime and lead time to the profile at idx.
 
         Parameters
         ----------

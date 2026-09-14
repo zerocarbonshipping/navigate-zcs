@@ -16,6 +16,8 @@ class NavigateError(Exception):
 
     def __init__(self, message=""):
         """
+        Store the message presented by the top-level handler.
+
         Parameters
         ----------
         message : str
@@ -68,6 +70,7 @@ class PlotDataError(NavigateError, ValueError):
 
 def no_value_assigned_error(node, attribute_name):
     """
+    Raise a ValueError naming the node and its unassigned attribute.
 
     Parameters
     ----------
@@ -81,6 +84,7 @@ def no_value_assigned_error(node, attribute_name):
 
 def no_value_assigned_dict_error(node, attribute_name, key):
     """
+    Raise a ValueError naming the node, attribute, and unassigned key.
 
     Parameters
     ----------

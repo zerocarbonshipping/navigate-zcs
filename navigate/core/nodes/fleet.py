@@ -450,8 +450,9 @@ class Fleet(_AssetManager):
 
     def set_technology_horizon(self, technology_horizon: float | Node):
         """
-        Set the decision horizon, in years, used to smooth the energy-scarcity belief
-        that feeds technology investment decisions.
+        Set the decision horizon, in years, smoothing the energy-scarcity belief.
+
+        It feeds technology investment decisions.
 
         A longer horizon makes the belief respond more slowly to LP-dual updates,
         matching the longer amortization timescale of technology decisions.
@@ -493,8 +494,7 @@ class Fleet(_AssetManager):
 
     def set_retrofit_frequency(self, retrofit_frequency: float | Node):
         """
-        Set the retrofit frequency, namely the intervals at which a vessel can retrofit
-        technology or perform a fuel conversion.
+        Set how often a vessel can retrofit technology or perform a fuel conversion.
 
         Examples
         --------
@@ -666,8 +666,10 @@ class Fleet(_AssetManager):
 
     def set_allow_technology_approximation(self, allow_technology_approximation: str):
         """
-        Set the flag for whether the fleet should approximate technology uptake based on
-        an average impact on technology uptake on other fleets which model it bottom-up.
+        Set whether the fleet approximates technology uptake from other fleets.
+
+        The approximation uses the average technology-uptake impact from other fleets
+        that model it bottom-up.
 
         If there is no fleet which models the technology bottom-up, then the technology
         uptake is set to zero.
@@ -723,8 +725,7 @@ class Fleet(_AssetManager):
         fuel_conversion_limit: float | Node,
     ):
         """
-        Set the per-pair cap on fuel conversions, as a fraction of the total fleet
-        allowed to convert from `vessel_name_from` to `vessel_name_to` per year.
+        Set the per-pair cap on fuel conversions between two vessel types.
 
         With 100 vessels and `set_fuel_conversion_limit("x", "y", 0.05)`, at most 5
         vessels per year convert from x to y. Default is 1.0 (effectively unlimited).

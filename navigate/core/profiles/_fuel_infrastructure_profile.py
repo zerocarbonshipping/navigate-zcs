@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 
 class _FuelInfrastructureProfile(_FuelBaseProfile):
-    """This class is used exclusively for sub-classing."""
+    """Base class used exclusively for sub-classing."""
 
     def __init__(self):
         super().__init__()
@@ -45,6 +45,7 @@ class _FuelInfrastructureProfile(_FuelBaseProfile):
         self, profile: _FuelInfrastructureProfile, idx: int | slice = np.s_[:]
     ) -> None:
         """
+        Add another fuel infrastructure profile's values into this one.
 
         Parameters
         ----------

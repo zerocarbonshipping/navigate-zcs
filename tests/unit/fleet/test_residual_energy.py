@@ -484,8 +484,9 @@ class TestCombinedResidualEnergy:
 
 class TestPackagePickling:
     """
-    Packages are pickled through the fleet nodes in PlotData.save, so
-    preprocess_packages must leave only picklable state on them.
+    Packages are pickled through the fleet nodes in PlotData.save.
+
+    So preprocess_packages must leave only picklable state on them.
     """
 
     def test_preprocessed_packages_round_trip(self):

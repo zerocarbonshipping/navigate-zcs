@@ -2,8 +2,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-The _AssetManager node is the base class of the Fleet and Producer nodes. It is never
-assigned or instantiated directly through the DSL.
+Define _AssetManager, the base class of the Fleet and Producer nodes.
+
+It is never assigned or instantiated directly through the DSL.
 """
 
 from __future__ import annotations
@@ -18,10 +19,7 @@ from navigate.util import YEAR
 
 
 class _AssetManager(Node):
-    """
-    Base class for fleet-like and producer-like asset managers that track
-    increments of asset types over time using a discrete-choice investment model.
-    """
+    """Track asset-type increments via a discrete-choice investment model."""
 
     def __init__(self, name: str, type_: str) -> None:
         super().__init__(name, type_)
@@ -102,8 +100,9 @@ class _AssetManager(Node):
     # shared increment initialization
     def define_initial_age(self) -> None:
         """
-        Define the age distribution of the existing assets and create
-        empty Increment lists with ages and dt populated.
+        Define the age distribution of the existing assets.
+
+        Creates empty Increment lists with ages and dt populated.
         """
         assets = self.assets
 
@@ -140,14 +139,16 @@ class _AssetManager(Node):
     def _adjust_lifetime_for_age(self, lifetime: float) -> float:
         """
         Adjust the perceived lifetime used in initial age discretization.
+
         Subclass hook: Fleet overrides this to account for fixed scrap rates.
         """
         return lifetime
 
     def define_initial_multipliers(self) -> None:
         """
-        Define the initial numbers of assets of each asset type by distributing
-        the total multiplier across age-based increments.
+        Define the initial number of assets of each asset type.
+
+        Distributes the total multiplier across age-based increments.
         """
         assets = self.assets
 
@@ -192,8 +193,9 @@ class _AssetManager(Node):
 
     def update_increment_ages(self, time_step: float) -> None:
         """
-        Update the ages of all registered increment stores with the progressed time
-        since the last time-step.
+        Update the ages of all registered increment stores.
+
+        Ages advance by the time elapsed since the last time-step.
 
         Parameters
         ----------

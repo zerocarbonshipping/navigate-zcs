@@ -61,8 +61,9 @@ def retrieve_keys(key, allowed_keys, key_fn=None):
 
 def matching_keys(key, allowed_keys, key_fn=None):
     """
-    Retrieve the keys matching the (potential) wildcard expression in 'key',
-    with a key matching nothing returning an empty list instead of raising.
+    Retrieve the keys matching the wildcard expression in 'key'.
+
+    A key matching nothing returns an empty list instead of raising.
 
     Parameters
     ----------
@@ -106,9 +107,11 @@ def key_name(key):
 
 def attribute_to_setter(attribute, method="set"):
     """
-    Convert attributes read by the Parser from the input deck in format:
+    Convert a Parser-read attribute name to a setter method name.
+
+    The attribute is read from the input deck in format:
         AbcdEfgh
-    to internal setter method format:
+    and converted to internal setter method format:
         <method>_abcd_efgh
 
     Only capitalized words are kept: any character outside an [A-Z][a-z]* run
@@ -138,8 +141,10 @@ def attribute_to_setter(attribute, method="set"):
 
 def attribute_to_instance_name(attribute):
     """
-    Convert a DSL attribute name (e.g. 'LowerHeatingValue') to the snake_case
-    instance-attribute name its setter assigns (e.g. 'lower_heating_value').
+    Convert a DSL attribute name to its snake_case instance-attribute name.
+
+    E.g. 'LowerHeatingValue' becomes 'lower_heating_value', matching what its setter
+    assigns.
 
     Parameters
     ----------

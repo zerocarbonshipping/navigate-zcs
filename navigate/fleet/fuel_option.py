@@ -2,9 +2,10 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Determines the fuel options of a vessel from its power system and tanks: the
-representative fuel type, the usable fuel types, and the usable fuels, based on the
-simulation fuels grouped by fuel type.
+Determine the fuel options of a vessel from its power system and tanks.
+
+Covers the representative fuel type, the usable fuel types, and the usable
+fuels, based on the simulation fuels grouped by fuel type.
 """
 
 from __future__ import annotations
@@ -47,10 +48,11 @@ def get_fuels_per_fuel_type(fuels: dict[str, Fuel]) -> dict[FuelTypeID, list[Fue
 
 def determine_fuel_type(vessel: Vessel) -> None:
     """
-    Determine the representative fuel type of a vessel based on the sum of power
-    capacity for the main fuel types across all converters in the power system. If
-    multiple fuel types have the same power capacity, the one with the largest tank is
-    chosen.
+    Determine a vessel's representative fuel type.
+
+    Based on the sum of power capacity for the main fuel types across all
+    converters in the power system. If multiple fuel types have the same
+    power capacity, the one with the largest tank is chosen.
 
     TODO: The tank size should optimally be weighted by the LHV, but it might vary
     within a given fuel type
@@ -133,8 +135,10 @@ def determine_fuel_type(vessel: Vessel) -> None:
 
 def determine_usable_fuel_types(vessel: Vessel) -> None:
     """
-    Determine the fuel types usable by a vessel as the union of tank and converter fuel
-    types, after checking that the tanks can store the fuels required by the converters.
+    Determine a vessel's usable fuel types.
+
+    The usable types are the union of tank and converter fuel types, after
+    checking that the tanks can store the fuels required by the converters.
 
     Parameters
     ----------

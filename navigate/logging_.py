@@ -195,8 +195,9 @@ def log_summary() -> str:
 
 def print_warning_summary() -> None:
     """
-    Print the number of logged warnings to the console, pointing at the log
-    file that setup_logger opened.
+    Print the number of logged warnings to the console.
+
+    Points at the log file that setup_logger opened.
     """
     warnings = get_log_counts().get("WARNING", 0)
 

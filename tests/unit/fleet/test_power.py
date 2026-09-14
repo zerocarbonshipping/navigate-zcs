@@ -210,10 +210,12 @@ class TestVerifyPowerCapacity:
 
 class TestExpectationHorizonBroadcast:
     """
+    Pins the horizon-broadcast contract that expected-scope power gating relies on.
+
     The expected-scope gating in SimulationManager._verify_power_capacity checks demands
     only at the current index; that is valid because a vessel-expectation write at idx
     broadcasts over the whole remaining horizon, so every future expected-bunkering
-    build reads the same demands and times. This pins that contract.
+    build reads the same demands and times.
     """
 
     LENGTH = 6
@@ -302,8 +304,9 @@ class TestSimulationGating:
 
     def test_expected_gating_covers_the_remaining_horizon(self):
         """
-        A vessel entering only at a later forecast step is still verified: expected
-        bunkering builds one LP per future step, so the gate spans the horizon.
+        A vessel entering only at a later forecast step is still verified.
+
+        Expected bunkering builds one LP per future step, so the gate spans the horizon.
         """
         manager = self._make_manager(
             self._make_overloaded_vessel(),

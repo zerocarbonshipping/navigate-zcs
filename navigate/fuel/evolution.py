@@ -43,6 +43,7 @@ def _accumulate_weighted_cost(
 ) -> None:
     """
     Accumulate weighted production cost and emissions for a set of increments.
+
     Shared by the existing-plant and pipeline sections of the evolution expectation.
     """
     expectation = plant.expectation
@@ -92,8 +93,9 @@ def perform_decommissioning(producer: Producer) -> None:
 
 def calculate_evolution_expectation(producer: Producer, timeline, idx):
     """
-    Calculate the expected future evolution of production from existing plants,
-    pipeline, and newbuilds.
+    Calculate the expected future evolution of production.
+
+    Covers existing plants, the pipeline, and newbuilds.
 
     Parameters
     ----------
@@ -435,8 +437,9 @@ def perform_pipeline_delivery(producer: Producer) -> None:
 
 def calculate_feed_availability(producer: Producer, timeline, idx) -> None:
     """
-    Calculate the gap between feed used in current and pipeline production
-    and the available supply.
+    Calculate the gap between feed used and the available feed supply.
+
+    Feed used covers both current and pipeline production.
 
     Parameters
     ----------
@@ -599,8 +602,10 @@ def calculate_feed_availability(producer: Producer, timeline, idx) -> None:
 
 def define_existing_pipeline(producer: Producer, timeline: np.ndarray) -> None:
     """
-    Define the initial number of plants of each plant type in the production pipeline,
-    and derive the initial uptake and development-constraint utilization from it.
+    Define the initial number of plants of each type in the production pipeline.
+
+    Also derives the initial uptake and development-constraint utilization from the
+    pipeline counts.
 
     Parameters
     ----------
@@ -743,8 +748,9 @@ def calculate_export_expectation(
 
 def perform_progression(producer: Producer, timeline: np.ndarray, idx: int) -> None:
     """
-    Progress the existing production in time: decommissioning, pipeline delivery, and
-    the resulting feed availability.
+    Progress the existing production in time.
+
+    Covers decommissioning, pipeline delivery, and the resulting feed availability.
 
     Parameters
     ----------
@@ -773,8 +779,9 @@ def perform_planning(
     producer: Producer, timeline: np.ndarray, time_step: float, idx: int
 ) -> None:
     """
-    Plan new plants into the pipeline from the fuel supply/demand gap and refresh the
-    evolution expectation used to quantify the next gap.
+    Plan new plants into the pipeline from the fuel supply/demand gap.
+
+    Also refreshes the evolution expectation used to quantify the next gap.
 
     Parameters
     ----------
