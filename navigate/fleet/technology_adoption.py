@@ -29,11 +29,8 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 import numpy as np
-from numpy.typing import NDArray
 
 from navigate.core.enum_ import EnergyDemandTypeID, EnergyDemandTypePortID, UtilityID
-from navigate.core.nodes.technology import Technology
-from navigate.core.nodes.vessel import Vessel
 from navigate.economics.decision import calculate_asset_shares
 from navigate.economics.flows import timeline_to_yearly
 from navigate.fleet.marginal_saving import calculate_marginal_technology_saving
@@ -58,8 +55,12 @@ from navigate.fleet.utils import (
 from navigate.util import TOLERANCE, YEAR, divide_nonzero
 
 if TYPE_CHECKING:
+    from numpy.typing import NDArray
+
     from navigate.core.increment import Increment
     from navigate.core.nodes.fleet import Fleet
+    from navigate.core.nodes.technology import Technology
+    from navigate.core.nodes.vessel import Vessel
 
 logger = logging.getLogger(__name__)
 

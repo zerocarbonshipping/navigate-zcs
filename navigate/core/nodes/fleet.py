@@ -7,7 +7,6 @@ import logging
 from typing import TYPE_CHECKING
 
 import numpy as np
-from numpy.typing import NDArray
 
 from navigate.core import (
     NodeReference,
@@ -33,17 +32,19 @@ from navigate.core.enum_ import (
 from navigate.core.expectations import FleetExpectation
 from navigate.core.node_type import CURVE, FLEET, FORECAST, TECHNOLOGY, VARIABLE, VESSEL
 from navigate.core.nodes._asset_manager import _AssetManager
-from navigate.core.nodes.curve import Curve
-from navigate.core.nodes.emission import Emission
 from navigate.core.nodes.forecast import Forecast
-from navigate.core.nodes.fuel import Fuel
-from navigate.core.nodes.technology import Technology
 from navigate.core.nodes.variable import Variable
 from navigate.core.profiles import FleetProfile
 from navigate.exceptions import no_value_assigned_error
 from navigate.util import is_non_strictly_increasing
 
 if TYPE_CHECKING:
+    from numpy.typing import NDArray
+
+    from navigate.core.nodes.curve import Curve
+    from navigate.core.nodes.emission import Emission
+    from navigate.core.nodes.fuel import Fuel
+    from navigate.core.nodes.technology import Technology
     from navigate.fleet.package import Package
 
 logger = logging.getLogger(__name__)
@@ -1019,9 +1020,8 @@ class Fleet(_AssetManager):
         if self.intra_fuel_sensitivity is None:
             no_value_assigned_error(self, "IntraFuelSensitivity")
 
-        if self.technologies:
-            if self.technology_sensitivity is None:
-                no_value_assigned_error(self, "TechnologySensitivity")
+        if self.technologies and self.technology_sensitivity is None:
+            no_value_assigned_error(self, "TechnologySensitivity")
 
         if self.fuel_conversion_sensitivity is None:
             self.fuel_conversion_sensitivity = Scalar(2)
@@ -1121,14 +1121,11 @@ class Fleet(_AssetManager):
                             " may therefore continue past the last date."
                         )
 
-        if self.allow_speed_management:
-            if self.maximum_speed_change is None:
-                self.maximum_speed_change = Scalar(np.inf)
+        if self.allow_speed_management and self.maximum_speed_change is None:
+            self.maximum_speed_change = Scalar(np.inf)
 
     def initialize_dependencies(self):
-        """
-        Initialize dependent dictionaries to allow wildcarding during command calls.
-        """
+        """Initialize dependent dictionaries so command calls can use wildcards."""
         for vessel in self.assets:
             name = vessel.name
             # stays None when unset: a None cost marks the pair as not convertible

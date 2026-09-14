@@ -4,10 +4,12 @@
 from __future__ import annotations
 
 import itertools
-from collections.abc import Iterable
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
 
 
 class _Expectation:
@@ -42,10 +44,7 @@ class _Expectation:
         if default is None:
             return np.zeros(self.get_shape())
         else:
-            if isinstance(default, bool):
-                dtype = bool
-            else:
-                dtype = np.float64
+            dtype = bool if isinstance(default, bool) else np.float64
 
             return np.full(self.get_shape(), default, dtype=dtype)
 
@@ -57,10 +56,7 @@ class _Expectation:
         if default is None:
             return np.zeros(shape)
         else:
-            if isinstance(default, bool):
-                dtype = bool
-            else:
-                dtype = np.float64
+            dtype = bool if isinstance(default, bool) else np.float64
 
             return np.full(shape, default, dtype=dtype)
 

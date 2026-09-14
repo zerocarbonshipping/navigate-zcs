@@ -15,9 +15,7 @@ if TYPE_CHECKING:
 
 
 class _FuelInfrastructureProfile(_FuelBaseProfile):
-    """
-    This class is used exclusively for sub-classing.
-    """
+    """This class is used exclusively for sub-classing."""
 
     def __init__(self):
         super().__init__()

@@ -154,7 +154,7 @@ class _Table2D(_Calculator):
             return "nearest"
 
     def _get_allow_extrapolate_internal(self):
-        return True if self.extrapolate == ExtrapolateID.FALSE else False
+        return self.extrapolate == ExtrapolateID.FALSE
 
     def _get_extrapolate_internal(self):
         if self.extrapolate == ExtrapolateID.FLAT:

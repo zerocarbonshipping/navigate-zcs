@@ -13,7 +13,7 @@ from navigate.util import YEAR, calculate_compound_growth, calculate_inertia
 
 class TestCalculateInertia:
     @pytest.mark.parametrize(
-        "inertia, dt, expected",
+        ("inertia", "dt", "expected"),
         [
             # for a time-step of exactly one year, result equals the inertia parameter
             (0.8, YEAR, 0.8),

@@ -45,10 +45,7 @@ class Variable(Node, _Calculator):
         float :
             Response variable.
         """
-        if isinstance(self._value, float):
-            value = self._value
-        else:
-            # expression
-            value = self._value.get()
+        # a non-float value is an expression and must be evaluated
+        value = self._value if isinstance(self._value, float) else self._value.get()
 
         return self._truncate(self.multiplier * (value + self.addition))

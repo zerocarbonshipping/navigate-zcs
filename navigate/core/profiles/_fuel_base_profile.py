@@ -5,19 +5,17 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import numpy as np
-
 from navigate.core.enum_ import FuelTypeID
 from navigate.core.profiles._base_profile import _BaseProfile
 
 if TYPE_CHECKING:
+    import numpy as np
+
     from navigate.core.nodes.fuel import Fuel
 
 
 class _FuelBaseProfile(_BaseProfile):
-    """
-    This class is used exclusively for sub-classing.
-    """
+    """This class is used exclusively for sub-classing."""
 
     def __init__(self):
         super().__init__()

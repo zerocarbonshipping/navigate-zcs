@@ -3,11 +3,10 @@
 
 from __future__ import annotations
 
-import argparse
 import logging
 import math
 import timeit
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 from navigate.bunker import BunkerAlgorithm, calculate_fair_share_fuel_supply
 from navigate.core.enum_ import BunkerScopeID
@@ -57,6 +56,10 @@ from navigate.policy import (
     update_regulation_flexibility_beliefs,
 )
 from navigate.util import YEAR, dates_to_days, timedelta_to_days
+
+if TYPE_CHECKING:
+    import argparse
+    from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -111,9 +114,7 @@ class SimulationManager:
             self.general_nodes.bunker_options.set_solver(args.solver.upper())
 
     def run(self):
-        """
-        Run the simulation as defined in the deck, handling its high-level flow.
-        """
+        """Run the simulation as defined in the deck, handling its high-level flow."""
         # check that necessary nodes are
         # defined as well as a timeline
         self.parser.includes_necessary_information()
@@ -370,9 +371,7 @@ class SimulationManager:
         )
 
     def _pre_assign_temporal(self):
-        """
-        Precalculate forecasts and assign time to timetables.
-        """
+        """Precalculate forecasts and assign time to timetables."""
         for forecast in self.nodes.forecasts.values():
             forecast.precalculate(self._time)
 
@@ -380,9 +379,7 @@ class SimulationManager:
             timetable.set_current_time(self._time)
 
     def _calculate_expectations(self):
-        """
-        Precalculate certain expectations which are simulation bottlenecks
-        """
+        """Precalculate certain expectations which are simulation bottlenecks"""
         emissions_lifetime = self.general_nodes.model_definition.emissions_lifetime
 
         for levy in self.nodes.levies.values():

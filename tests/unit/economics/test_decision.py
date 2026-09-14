@@ -37,7 +37,7 @@ class TestSoftmax:
 
 class TestBetaFromOdds:
     @pytest.mark.parametrize(
-        "odds, utility, expected",
+        ("odds", "utility", "expected"),
         [
             # a 10% higher metric should halve the odds
             (0.5, UtilityID.LOWER_LOG_RATIO, -np.log(0.5) / np.log(1.1)),

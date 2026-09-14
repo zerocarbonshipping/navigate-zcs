@@ -255,7 +255,7 @@ def reconcile_fuel_conversion_caps(
 
     ``set_fuel_conversion_limit("from", "to", l)`` caps the fraction of the total fleet
     allowed to convert on a specific (from, to) lane per year:
-    ``pair_cap[from, to] = l × time_step / YEAR × existing_total``.
+    ``pair_cap[from, to] = l * time_step / YEAR * existing_total``.
 
     The cap acts on aggregated conversion counts (not on per-increment shares). If a
     pair total exceeds its cap, every increment of that pair is scaled to fit.

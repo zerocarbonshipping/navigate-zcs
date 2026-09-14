@@ -3,38 +3,41 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
 
-from navigate.core.general_nodes.bunker_options import BunkerOptions
-from navigate.core.general_nodes.model_definition import ModelDefinition
-from navigate.core.node import Node
-from navigate.core.nodes.converter import Converter
-from navigate.core.nodes.curve import Curve
-from navigate.core.nodes.emission import Emission
-from navigate.core.nodes.feedstock import Feedstock
-from navigate.core.nodes.fleet import Fleet
-from navigate.core.nodes.forecast import Forecast
-from navigate.core.nodes.fuel import Fuel
-from navigate.core.nodes.levy import Levy
-from navigate.core.nodes.plant import Plant
-from navigate.core.nodes.plot import Plot
-from navigate.core.nodes.port import Port
-from navigate.core.nodes.power_system import PowerSystem
-from navigate.core.nodes.process import Process
-from navigate.core.nodes.producer import Producer
-from navigate.core.nodes.region import Region
-from navigate.core.nodes.regulation import Regulation
-from navigate.core.nodes.report import Report
-from navigate.core.nodes.route import Route
-from navigate.core.nodes.source import Source
-from navigate.core.nodes.surface import Surface
-from navigate.core.nodes.tank import Tank
-from navigate.core.nodes.technology import Technology
-from navigate.core.nodes.timetable import Timetable
-from navigate.core.nodes.transport import Transport
-from navigate.core.nodes.variable import Variable
-from navigate.core.nodes.vessel import Vessel
+if TYPE_CHECKING:
+    from collections.abc import Iterable
+
+    from navigate.core.general_nodes.bunker_options import BunkerOptions
+    from navigate.core.general_nodes.model_definition import ModelDefinition
+    from navigate.core.node import Node
+    from navigate.core.nodes.converter import Converter
+    from navigate.core.nodes.curve import Curve
+    from navigate.core.nodes.emission import Emission
+    from navigate.core.nodes.feedstock import Feedstock
+    from navigate.core.nodes.fleet import Fleet
+    from navigate.core.nodes.forecast import Forecast
+    from navigate.core.nodes.fuel import Fuel
+    from navigate.core.nodes.levy import Levy
+    from navigate.core.nodes.plant import Plant
+    from navigate.core.nodes.plot import Plot
+    from navigate.core.nodes.port import Port
+    from navigate.core.nodes.power_system import PowerSystem
+    from navigate.core.nodes.process import Process
+    from navigate.core.nodes.producer import Producer
+    from navigate.core.nodes.region import Region
+    from navigate.core.nodes.regulation import Regulation
+    from navigate.core.nodes.report import Report
+    from navigate.core.nodes.route import Route
+    from navigate.core.nodes.source import Source
+    from navigate.core.nodes.surface import Surface
+    from navigate.core.nodes.tank import Tank
+    from navigate.core.nodes.technology import Technology
+    from navigate.core.nodes.timetable import Timetable
+    from navigate.core.nodes.transport import Transport
+    from navigate.core.nodes.variable import Variable
+    from navigate.core.nodes.vessel import Vessel
 
 
 @dataclass

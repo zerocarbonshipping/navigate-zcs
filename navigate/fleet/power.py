@@ -3,18 +3,22 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import numpy as np
 
 from navigate.core import Scalar
 from navigate.core.enum_ import EnergyDemandTypeID, EnergyDemandTypePortID
-from navigate.core.nodes.converter import Converter
-from navigate.core.nodes.curve import Curve
-from navigate.core.nodes.surface import Surface
-from navigate.core.nodes.variable import Variable
-from navigate.core.nodes.vessel import Vessel
 from navigate.core.unit import MWD_TO_GJ
 from navigate.exceptions import PowerCapacityError
 from navigate.util import TOLERANCE, to_numpy
+
+if TYPE_CHECKING:
+    from navigate.core.nodes.converter import Converter
+    from navigate.core.nodes.curve import Curve
+    from navigate.core.nodes.surface import Surface
+    from navigate.core.nodes.variable import Variable
+    from navigate.core.nodes.vessel import Vessel
 
 
 def calculate_speed_bounds(

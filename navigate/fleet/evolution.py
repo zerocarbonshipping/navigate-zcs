@@ -341,7 +341,7 @@ def clean_up_multipliers(fleet: Fleet):
             if matching:
                 # calculate the weighted average of technology package
                 # uptake and carried technology charter rate
-                merge_indices = matching + [i]
+                merge_indices = [*matching, i]
                 package_uptake = np.zeros_like(fleet.newbuild_package_uptake[v])
                 charter_rate = 0.0
 

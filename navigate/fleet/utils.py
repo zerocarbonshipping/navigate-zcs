@@ -6,14 +6,15 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import numpy as np
-from numpy.typing import NDArray
 
-from navigate.core.enum_ import EnergyDemandTypeID
-from navigate.core.nodes.vessel import Vessel
 from navigate.util import ROUND_OFF, calculate_compound_growth
 
 if TYPE_CHECKING:
+    from numpy.typing import NDArray
+
+    from navigate.core.enum_ import EnergyDemandTypeID
     from navigate.core.nodes.fleet import Fleet
+    from navigate.core.nodes.vessel import Vessel
 
 
 def extract_cargo_miles(
@@ -53,9 +54,7 @@ def get_cargo_miles(fleet: Fleet, idx: int) -> float:
 def is_retrofit_cycle(
     age: float, retrofit_frequency: float, time_step: float, decimals: int = 2
 ) -> bool:
-    """
-    Return whether the vessel is in a retrofit cycle.
-    """
+    """Return whether the vessel is in a retrofit cycle."""
     # check the increment is within a retrofit
     # frequency period and not at age 0
     age_ = round(age, decimals)

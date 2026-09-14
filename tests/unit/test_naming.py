@@ -11,7 +11,7 @@ from navigate.util import attribute_to_instance_name, attribute_to_setter
 
 
 @pytest.mark.parametrize(
-    "attribute, expected",
+    ("attribute", "expected"),
     [
         ("Extrapolate", "set_extrapolate"),
         ("LowerHeatingValue", "set_lower_heating_value"),
@@ -24,7 +24,7 @@ def test_attribute_to_setter(attribute, expected):
 
 
 @pytest.mark.parametrize(
-    "attribute, expected",
+    ("attribute", "expected"),
     [
         ("TotalEquivalentWtt", "get_total_equivalent_wtt"),
         ("CumulativeEquivalentTtw", "get_cumulative_equivalent_ttw"),
@@ -39,7 +39,7 @@ def test_attribute_to_getter(attribute, expected):
 
 
 @pytest.mark.parametrize(
-    "attribute, expected",
+    ("attribute", "expected"),
     [
         ("EmissionFactors", "emission_factors"),
         ("Jurisdiction", "jurisdiction"),

@@ -25,7 +25,7 @@ from navigate.parser.parser import Parser
 
 class TestSingleValueShorthand:
     @pytest.mark.parametrize(
-        "node_type, make_node, setter, attribute",
+        ("node_type", "make_node", "setter", "attribute"),
         [
             (PORT, lambda: Route("r"), "set_ports", "ports"),
             (
