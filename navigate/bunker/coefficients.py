@@ -107,7 +107,7 @@ def calculate_effective_lhv(alg: BunkerAlgorithm, vessel: Vessel) -> None:
 
 def calculate_emission_factors(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     """
-    Updates the emission factors for a given vessel.
+    Update the emission factors for a given vessel.
 
     Parameters
     ----------

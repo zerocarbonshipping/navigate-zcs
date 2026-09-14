@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 def get_fuels_per_fuel_type(fuels: dict[str, Fuel]) -> dict[FuelTypeID, list[Fuel]]:
     """
-    Creates a dict of all fuels available for bunkering for each fuel type.
+    Create a dict of all fuels available for bunkering for each fuel type.
 
     Parameters
     ----------
@@ -47,7 +47,7 @@ def get_fuels_per_fuel_type(fuels: dict[str, Fuel]) -> dict[FuelTypeID, list[Fue
 
 def determine_fuel_type(vessel: Vessel) -> None:
     """
-    Determines the representative fuel type of a vessel based on the sum of power
+    Determine the representative fuel type of a vessel based on the sum of power
     capacity for the main fuel types across all converters in the power system. If
     multiple fuel types have the same power capacity, the one with the largest tank is
     chosen.
@@ -134,7 +134,7 @@ def determine_fuel_type(vessel: Vessel) -> None:
 
 def determine_usable_fuel_types(vessel: Vessel) -> None:
     """
-    Determines the fuel types usable by a vessel as the union of tank and converter fuel
+    Determine the fuel types usable by a vessel as the union of tank and converter fuel
     types, after checking that the tanks can store the fuels required by the converters.
 
     Parameters
@@ -192,7 +192,7 @@ def determine_usable_fuels(
     vessel: Vessel, fuels_by_fuel_type: dict[FuelTypeID, list[Fuel]]
 ) -> None:
     """
-    Determines the fuels usable by a vessel from its usable fuel types.
+    Determine the fuels usable by a vessel from its usable fuel types.
 
     Parameters
     ----------

@@ -128,8 +128,9 @@ class _RetrofitProposal:
 
     def cap_contribution(self, technology_idx: int) -> _CapContribution | None:
         """
-        This proposal's contribution to the cap on the technology at `technology_idx`,
-        or None when none of its retrofit steps reaches that technology.
+        Return this proposal's contribution to the cap on the technology at
+        `technology_idx`, or None when none of its retrofit steps reaches that
+        technology.
 
         Parameters
         ----------

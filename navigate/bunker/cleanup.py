@@ -132,7 +132,7 @@ def remove_model_attribute_and_dict_element(
     positions: tuple[int, ...] = (0,),
 ) -> None:
     """
-    Removes a variable or constraint from the LP model and deletes it from its dict.
+    Remove a variable or constraint from the LP model and delete it from its dict.
 
     Parameters
     ----------

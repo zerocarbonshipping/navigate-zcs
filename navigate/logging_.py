@@ -204,7 +204,7 @@ def print_warning_summary() -> None:
 
 def _round_for_display(x):
     """
-    Rounds off a value to the appropriate decimals for visual display.
+    Round off a value to the appropriate decimals for visual display.
 
     Parameters
     ----------

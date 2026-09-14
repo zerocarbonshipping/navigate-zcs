@@ -418,7 +418,7 @@ class Route(Node):
 
     def get_leg_indices(self) -> tuple[tuple[int, int], ...]:
         """
-        The (origin, destination) port-index pairs of the legs on the route.
+        Return the (origin, destination) port-index pairs of the legs on the route.
 
         Returns
         -------
