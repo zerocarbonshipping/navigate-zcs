@@ -21,8 +21,9 @@ logger = logging.getLogger(__name__)
 
 def post_process_fleet_profile(fleets: dict[str, Fleet]) -> None:
     """
-    Fold the recorded per-step multipliers into the output-only fleet and
-    vessel profile fields as whole-timeline array operations. Must run before
+    Fold per-step multipliers into the output-only fleet and vessel profiles.
+
+    Runs as whole-timeline array operations. Must run before
     post_process_investment_metric, which reads the in-fleet flags, and
     before the fleet profiles are merged into the global profile.
 
@@ -59,8 +60,10 @@ def _transfer_in_fleet_flags(fleet: Fleet) -> None:
 
 def _transfer_fuel_consumer_profiles(fleet: Fleet) -> None:
     """
-    Accumulate the multiplier-weighted vessel consumer profiles (emissions,
-    energy, fuel expenses) onto the fleet profile.
+    Accumulate the multiplier-weighted vessel consumer profiles.
+
+    Covers emissions, energy, and fuel expenses, transferred onto the fleet
+    profile.
 
     Parameters
     ----------
@@ -228,12 +231,14 @@ def aggregate_speed_profile(fleet: Fleet) -> None:
 
 def transfer_transport_work(fleet: Fleet) -> None:
     """
-    Transfer the transport work performed and the counterfactual baseline
-    energy: what the year-0 raw energy intensity would require to perform
-    the transport work actually performed at each time step. A fleet with
-    no vessels at the first time step has no year-0 intensity to measure
-    against: its baseline stays 0 for the whole simulation, its intensity
-    savings read 0, and it contributes no baseline to aggregate savings.
+    Transfer the transport work performed and the counterfactual baseline energy.
+
+    The baseline energy is what the year-0 raw energy intensity would
+    require to perform the transport work actually performed at each time
+    step. A fleet with no vessels at the first time step has no year-0
+    intensity to measure against: its baseline stays 0 for the whole
+    simulation, its intensity savings read 0, and it contributes no
+    baseline to aggregate savings.
 
     Parameters
     ----------
@@ -365,8 +370,9 @@ def _aggregate_fleet_freight_rate(fleet, timeline):
 
 def _calculate_total_vessel_operating_expenses(vessel, idx, timeline):
     """
-    Assign the fuel, levy, regulation, and technology expenses for a vessel in the
-    fleet at a given time of the simulation.
+    Assign the fuel, levy, regulation, and technology expenses for a vessel.
+
+    The vessel belongs to the fleet at a given time of the simulation.
 
     Parameters
     ----------

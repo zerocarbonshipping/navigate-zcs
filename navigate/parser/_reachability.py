@@ -139,9 +139,11 @@ def find_unreachable(
 
 def _activating_references(edge, value, nodes: Nodes):
     """
-    Yield the references in a value that activate their target: every
-    reference to an unrestricted node type, and references to a type in
-    ACTIVATION_EDGES only when the value sits on one of its declared edges.
+    Yield the references in a value that activate their target.
+
+    Every reference to an unrestricted node type activates it; a reference to
+    a type in ACTIVATION_EDGES activates only when the value sits on one of
+    its declared edges.
 
     Parameters
     ----------
@@ -165,8 +167,9 @@ def _activating_references(edge, value, nodes: Nodes):
 
 def _iter_references(value, nodes: Nodes):
     """
-    Yield the (node type, node name) of every node reference in a value,
-    recursing containers the way the parser's reference walk does.
+    Yield the (node type, node name) of every node reference in a value.
+
+    Recurses containers the way the parser's reference walk does.
 
     The walks share their containers but read different leaves: the parser
     materializes every attribute value and command input when the deck is read
@@ -216,9 +219,10 @@ def _iter_references(value, nodes: Nodes):
 
 def _collect_event_edges(event_queue: dict, nodes: Nodes) -> dict:
     """
-    Collect the node references inside queued EVENTS statements as edges from
-    each statement's target node, so they keep a node alive only when the
-    target is itself reachable.
+    Collect the node references inside queued EVENTS statements as edges.
+
+    Each edge originates from the statement's target node, so it keeps a node
+    alive only when the target is itself reachable.
 
     Parameters
     ----------

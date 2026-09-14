@@ -21,6 +21,7 @@ class _InfrastructureAggregateProfile(_FuelInfrastructureProfile):
         self, profile: _InfrastructureAggregateProfile, idx: int | slice = np.s_[:]
     ) -> None:
         """
+        Add another infrastructure aggregate profile's values into this one.
 
         Parameters
         ----------

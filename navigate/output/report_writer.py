@@ -2,9 +2,11 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Excel and CSV writing engine behind the Report node. The Report node collects which
-properties to extract per node type; write_report, driven by the simulation manager,
-resolves those requests against the node profiles and writes the workbook or CSV files.
+Excel and CSV writing engine behind the Report node.
+
+The Report node collects which properties to extract per node type; write_report,
+driven by the simulation manager, resolves those requests against the node profiles
+and writes the workbook or CSV files.
 """
 
 from __future__ import annotations
@@ -53,9 +55,10 @@ def write_report(
     dateline: np.ndarray,
 ) -> None:
     """
-    Write one report node's requested properties to an XLSX or CSV file. Failures are
-    contained per layer: a failed sheet is logged and skipped so the remaining sheets
-    still export, and a failed save aborts only this report.
+    Write one report node's requested properties to an XLSX or CSV file.
+
+    Failures are contained per layer: a failed sheet is logged and skipped so the
+    remaining sheets still export, and a failed save aborts only this report.
 
     The manager exports under its node name 'global', which is what the key of
     Report.add_property requests must match.

@@ -82,8 +82,9 @@ class TestTruncateTransform:
 
 class TestBoundApplication:
     """
-    Applied bounds tighten: applied_lower = max(external, internal),
-    applied_upper = min(external, internal).
+    Applied bounds tighten to the tighter of the external and internal bounds.
+
+    applied_lower = max(external, internal), applied_upper = min(external, internal).
     Truncate then clamps: output = max(min(value, upper), lower).
     """
 
@@ -137,9 +138,11 @@ class TestBoundApplication:
 
 class TestInternalBoundsWarning:
     """
-    Tightening an already-finite internal bound warns, naming the node the way
-    the deck wrote it. The node is a Variable without a value, so this also
-    pins that a Variable renders as its name rather than its value.
+    Tightening an already-finite internal bound warns, naming the node.
+
+    The warning names the node the way the deck wrote it. The node is a
+    Variable without a value, so this also pins that a Variable renders as its
+    name rather than its value.
     """
 
     @pytest.mark.parametrize(

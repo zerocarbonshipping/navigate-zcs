@@ -2,8 +2,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-The per-node collection of report properties gathered by the Report node and consumed by
-navigate.output.report_writer.
+Collect per-node report properties gathered by the Report node.
+
+navigate.output.report_writer consumes them.
 """
 
 from __future__ import annotations

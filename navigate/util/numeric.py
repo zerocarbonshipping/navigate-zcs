@@ -146,8 +146,9 @@ def normalize_fractional(values, times):
 
 def interpolate_tied_capital(tied_capital_flow: np.ndarray, age: float) -> float:
     """
-    Interpolate the remaining tied-up capital of an increment at a given age
-    from its yearly tied-capital flow.
+    Interpolate an increment's remaining tied-up capital at a given age.
+
+    Uses its yearly tied-capital flow.
 
     Parameters
     ----------
@@ -166,11 +167,12 @@ def interpolate_tied_capital(tied_capital_flow: np.ndarray, age: float) -> float
 
 def get_increments_origin_index(years, current_year, ages):
     """
-    Find the time-step indexes at which a increments (vessel or plant) entered the
-    simulation at 'age' years ago.
-    Notice here that if the entity was part of the initialization of the node index 0 is
-    used.
-    This is the best available approximation as historical data is unavailable.
+    Find the time-step indexes at which increments entered the simulation.
+
+    Each increment (vessel or plant) is treated as having entered 'age' years before
+    current_year. Notice here that if the entity was part of the initialization of the
+    node index 0 is used. This is the best available approximation as historical data
+    is unavailable.
 
     years : np.ndarray
         Simulation timeline in years.
@@ -189,11 +191,12 @@ def get_increments_origin_index(years, current_year, ages):
 
 def get_increment_origin_index(years, current_year, age):
     """
-    Find the time-step index at which an increment (vessel or plant) entered the
-    simulation at 'age' years ago.
-    Notice here that if the entity was part of the initialization of the node index 0 is
-    used.
-    This is the best available approximation as historical data is unavailable.
+    Find the time-step index at which an increment entered the simulation.
+
+    The increment (vessel or plant) is treated as having entered 'age' years before
+    current_year. Notice here that if the entity was part of the initialization of the
+    node index 0 is used. This is the best available approximation as historical data
+    is unavailable.
 
     Parameters
     ----------
@@ -223,10 +226,6 @@ def find_nearest(array, values):
     ----------
     array
     values
-
-    Returns
-    -------
-
     """
     # make sure array is a numpy array
     array = np.array(array)
@@ -327,6 +326,7 @@ def derive_smoothing_alpha(
 
 def calculate_inertia(inertia, time_step):
     """
+    Calculate the fraction of previous time-steps' value(s) that should be continued.
 
     Parameters
     ----------
@@ -346,6 +346,7 @@ def calculate_inertia(inertia, time_step):
 def calculate_compound_growth(initial, growth, timeline):
     """
     Calculate the continuous compound growth of a property.
+
     The formula assumes that the growth is forward-looking, meaning that the growth at
     index t is applied over the time-step from t to t+1.
 

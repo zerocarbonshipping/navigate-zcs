@@ -67,6 +67,7 @@ def _calculate_attribute_in_policy_jurisdiction(
     regulation, vessel, times, attribute_sea
 ):
     """
+    Calculate the attribute value accumulated within the regulation jurisdiction.
 
     Parameters
     ----------

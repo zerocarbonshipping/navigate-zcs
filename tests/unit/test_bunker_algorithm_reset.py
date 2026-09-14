@@ -44,8 +44,9 @@ def test_reset_clears_every_dynamic_container():
 
 def test_reset_targets_only_declared_attributes():
     """
-    A reset assigning to a name absent from __init__ silently orphans the
-    real container (regression guard: regulation_emission_coefficient).
+    A reset assigning to a name absent from __init__ silently orphans the container.
+
+    This is a regression guard for regulation_emission_coefficient.
     """
     algo = BunkerAlgorithm()
     declared = set(vars(algo))

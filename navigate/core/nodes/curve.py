@@ -21,6 +21,8 @@ class Curve(Node, _Table1D):
 
     def get(self, x: float, y: float | None = None) -> float:
         """
+        Return the interpolated table value at x.
+
         Parameters
         ----------
         x

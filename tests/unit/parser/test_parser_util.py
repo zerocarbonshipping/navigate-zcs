@@ -459,8 +459,10 @@ class TestSyntaxErrors:
 
 class TestReferenceScanExclude:
     """
-    Every exclude entry must name a real node attribute, so stale entries
-    cannot accumulate silently in the reference-resolution scan.
+    Every exclude entry must name a real node attribute.
+
+    This keeps stale entries from accumulating silently in the reference-resolution
+    scan.
     """
 
     def test_entries_are_real_node_attributes(self):

@@ -12,6 +12,7 @@ YEAR = 365.25  # equivalent to 365.25 days
 
 def timedelta_to_days(delta):
     """
+    Convert a timedelta to days.
 
     Parameters
     ----------
@@ -21,13 +22,14 @@ def timedelta_to_days(delta):
     Returns
     -------
     np.ndarray :
-        Timedelta in years.
+        Timedelta in days.
     """
     return delta.astype(np.float64)
 
 
 def _timedelta_to_years(delta):
     """
+    Convert a timedelta to years.
 
     Parameters
     ----------

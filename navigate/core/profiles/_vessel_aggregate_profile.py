@@ -62,6 +62,7 @@ class _VesselAggregateProfile(_FuelConsumerProfile):
         self, profile: _VesselAggregateProfile, idx: int | slice = np.s_[:]
     ) -> None:
         """
+        Add another vessel aggregate profile's values into this one.
 
         Parameters
         ----------

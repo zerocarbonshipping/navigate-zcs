@@ -35,9 +35,10 @@ def optimize(alg: BunkerAlgorithm) -> None:
 
 def check_solution(alg: BunkerAlgorithm) -> None:
     """
-    Check the solution of the LP model after a call to 'model.optimize'. If the model
-    is infeasible, the IIS is calculated and an LP file with the limiting constraints
-    are exported.
+    Check the solution of the LP model after a call to 'model.optimize'.
+
+    If the model is infeasible, the IIS is calculated and an LP file with the limiting
+    constraints are exported.
 
     Parameters
     ----------

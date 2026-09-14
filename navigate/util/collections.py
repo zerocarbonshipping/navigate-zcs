@@ -254,6 +254,7 @@ def extract_from_dict_list(
     result: dict[Any, list[np.ndarray]], key: Any = None, idx: int | slice = np.s_[:]
 ) -> dict[Any, list[np.ndarray]] | list[np.ndarray]:
     """
+    Extract and slice arrays from a dict of lists of ndarrays.
 
     Parameters
     ----------
@@ -311,6 +312,7 @@ def extract_from_tuple_dict(
 
 def sum_dict_results(result, key=None, idx=None, n=None):
     """
+    Sum a dict's values, or return one key's value, optionally sliced by index.
 
     Parameters
     ----------
@@ -413,8 +415,9 @@ def sum_tuple_dict_results(result, key1=None, key2=None, idx=None, n=None):
 
 def collapse_dict(result, key=False, idx=None, n=None):
     """
-    Combine extract_from_dict and sum_dict_results by collapsing all arrays over the
-    undefined key instead of creating a subdict.
+    Combine extract_from_dict and sum_dict_results.
+
+    Collapses all arrays over the undefined key instead of creating a subdict.
 
     Parameters
     ----------
@@ -443,8 +446,9 @@ def collapse_dict(result, key=False, idx=None, n=None):
 
 def collapse_tuple_dict(result, key1=False, key2=False, idx=None, n=None):
     """
-    Combine extract_from_tuple_dict and sum_tuple_dict_results by collapsing all arrays
-    over the undefined key instead of creating a subdict.
+    Combine extract_from_tuple_dict and sum_tuple_dict_results.
+
+    Collapses all arrays over the undefined key instead of creating a subdict.
 
     Parameters
     ----------
@@ -489,6 +493,7 @@ def slice_list(
     result: list[np.ndarray], idx: int | slice = np.s_[:], transform=lambda x: x
 ) -> list[np.ndarray]:
     """
+    Slice and transform each array in a list.
 
     Parameters
     ----------
@@ -508,6 +513,7 @@ def slice_list(
 
 def slice_dict(result, idx=np.s_[:], transform=lambda x: x):
     """
+    Slice and transform each value in a dict.
 
     Parameters
     ----------

@@ -248,6 +248,7 @@ class BunkerAlgorithm:
     ) -> None:
         """
         Initialize a BunkerAlgorithm instance.
+
         The method is only called once, namely when the FT simulation is initialized.
 
         Parameters
@@ -295,6 +296,7 @@ class BunkerAlgorithm:
     def build(self, current_idx: int, idx: int, time: float, time_step: float) -> None:
         """
         Build the solver model for the specific time-step.
+
         If this is the first time the method is called (during the initialization step)
         the model is built from scratch, alternatively variables, objectives and
         constraints, are updated.
@@ -454,9 +456,10 @@ class BunkerAlgorithm:
     # ==================================================================================
     def _initialize_model(self) -> None:
         """
-        Initialize the LP model as well as containers used for storing LP variables and
-        constraints. This method is only called once, namely when the high-level
-        initialization occurs.
+        Initialize the LP model and its variable/constraint containers.
+
+        This method is only called once, namely when the high-level initialization
+        occurs.
         """
         # initialize LP model
         model_name = "existing" if self.scope == BunkerScopeID.EXISTING else "expected"
@@ -496,9 +499,9 @@ class BunkerAlgorithm:
 
     def _reset_dynamic_properties(self) -> None:
         """
-        Certain properties are dynamic and recalculated at every time-step. The
-        containers holding these properties are reset to avoid the risk of values
-        from previous time-steps remaining.
+        Reset containers holding properties recalculated every time-step.
+
+        This avoids the risk of values from previous time-steps remaining.
         """
         # reset policy coefficients
         self.regulation_vessel_threshold = {}

@@ -33,6 +33,8 @@ class Forecast(Node, _Table1D):
 
     def get(self, x: float | None = None, y: float | None = None) -> float:
         """
+        Return the forecast value: recalculated at ``x`` if given, else cached.
+
         Parameters
         ----------
         x
@@ -51,6 +53,8 @@ class Forecast(Node, _Table1D):
 
     def precalculate(self, time: float | np.ndarray) -> None:
         """
+        Precalculate and cache the forecast value at the given time.
+
         Parameters
         ----------
         time

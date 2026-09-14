@@ -2,9 +2,10 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-The Report node collects which node properties to export at the end of a simulation; the
-actual Excel/CSV writing is done by navigate.output.report_writer.write_report, driven
-by the simulation manager. The Report node is not assigned on any other node.
+Collect which node properties to export at the end of a simulation.
+
+The actual Excel/CSV writing is done by navigate.output.report_writer.write_report,
+driven by the simulation manager. The Report node is not assigned on any other node.
 """
 
 from __future__ import annotations
@@ -37,8 +38,10 @@ class Report(Node):
     # external methods (DSL attributes) ------------------------------------------------
     def set_directory(self, directory):
         """
-        Set the directory for where to export the report. Can be either a relative or
-        absolute path. The directory will be created automatically if it doesn't exist.
+        Set the directory for where to export the report.
+
+        Can be either a relative or absolute path. The directory will be created
+        automatically if it doesn't exist.
 
         Examples
         --------

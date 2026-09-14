@@ -63,8 +63,9 @@ def _transfer_production_and_feed_mass(
     producer: Producer, years: np.ndarray, today: float, idx: int
 ) -> None:
     """
-    Transfer the produced fuel mass and the consumed feed mass per plant,
-    weighted by the increment multipliers.
+    Transfer the produced fuel mass and consumed feed mass per plant.
+
+    Weighted by the increment multipliers.
 
     Parameters
     ----------

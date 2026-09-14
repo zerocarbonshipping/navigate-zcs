@@ -308,8 +308,9 @@ def calculate_modelled_uptake(
     fleet: Fleet, vessels: list[Vessel], idx: int, cap_share: np.ndarray | None = None
 ) -> np.ndarray:
     """
-    Calculate the relative uptake share of each vessel type using a two-axis discrete
-    choice model grouped by fuel type.
+    Calculate each vessel type's relative uptake share.
+
+    Uses a two-axis discrete choice model grouped by fuel type.
 
     Parameters
     ----------

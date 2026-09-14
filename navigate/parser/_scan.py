@@ -2,8 +2,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Shared machinery for scanning node instance attributes for node references,
-used by the parser's reference resolution and the reachability analysis.
+Shared machinery for scanning node instance attributes for node references.
+
+Used by the parser's reference resolution and the reachability analysis.
 """
 
 from __future__ import annotations

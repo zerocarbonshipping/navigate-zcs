@@ -2,8 +2,10 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Get-or-create helpers for the incremental build of the LP model: variables and
-constraints are added on first use and reused by the builders on later builds.
+Provide get-or-create helpers for the incremental LP model build.
+
+Variables and constraints are added on first use and reused by the builders on
+later builds.
 """
 
 from __future__ import annotations
@@ -98,8 +100,9 @@ def get_constraint(
 
 def _full_name(name: str, key: tuple | str) -> str:
     """
-    Name of an LP model element: the key elements appended underscore-separated
-    to the family name.
+    Return the name of an LP model element.
+
+    The key elements are appended underscore-separated to the family name.
 
     Parameters
     ----------

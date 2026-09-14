@@ -110,8 +110,9 @@ class Regulation(_Policy):
 
     def set_intra_fraction(self, intra_fraction):
         """
-        Set the fraction for how much of the emissions between two ports
-        inside (intra) the jurisdiction should be counted in the calculation.
+        Set the fraction of emissions counted for intra-jurisdiction travel.
+
+        Intra travel is between two ports inside the jurisdiction.
 
         Examples
         --------
@@ -128,9 +129,10 @@ class Regulation(_Policy):
 
     def set_inter_fraction(self, inter_fraction):
         """
-        Set the fraction for how much of the emissions between two ports
-        where one is in the jurisdiction and the other outside the
-        jurisdiction (inter) should be counted in the calculation.
+        Set the fraction of emissions counted for inter-jurisdiction travel.
+
+        Inter travel is between two ports where one is in the jurisdiction and the other
+        is outside it.
 
         Examples
         --------
@@ -147,8 +149,9 @@ class Regulation(_Policy):
 
     def set_extra_fraction(self, extra_fraction):
         """
-        Set the fraction for how much of the emissions between two ports
-        outside the jurisdiction (extra) should be counted in the calculation.
+        Set the fraction of emissions counted for extra-jurisdiction travel.
+
+        Extra travel is between two ports both outside the jurisdiction.
 
         Examples
         --------
@@ -183,8 +186,9 @@ class Regulation(_Policy):
 
     def set_flexibility_horizon(self, flexibility_horizon):
         """
-        Set the decision horizon, in years, used to smooth the belief of the flexibility
-        cost that enters the expected policy expenses of the policed vessels.
+        Set the decision horizon, in years, smoothing the flexibility-cost belief.
+
+        It enters the expected policy expenses of the policed vessels.
 
         A longer horizon makes the belief respond more slowly to changes in the
         flexibility cost between outer time-steps, preventing small changes in future
@@ -268,11 +272,11 @@ class Regulation(_Policy):
 
     def set_allow_threshold_adjustment(self, allow_threshold_adjustment):
         """
-        Set whether the regulation threshold should be automatically adjusted when the
-        bunker algorithm detects non-compliance. If enabled, the bunker algorithm will
-        perform a multi-step solve where it first solves normally, then adjusts the
-        threshold to match achievable compliance levels, and re-solves with the adjusted
-        thresholds.
+        Set whether the threshold is automatically adjusted on non-compliance.
+
+        If enabled, the bunker algorithm will perform a multi-step solve where it first
+        solves normally, then adjusts the threshold to match achievable compliance
+        levels, and re-solves with the adjusted thresholds.
 
         Examples
         --------

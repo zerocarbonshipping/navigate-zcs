@@ -36,6 +36,7 @@ class ProducerProfile(_PlantAggregateProfile):
         processes: dict[str, Process],
     ) -> None:
         """
+        Initialize the producer profile's storage arrays and lookups.
 
         Parameters
         ----------

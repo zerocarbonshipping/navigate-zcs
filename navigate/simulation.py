@@ -138,11 +138,10 @@ class SimulationManager:
 
     def _initialize_timeline(self):
         """
-        All dates at which the simulation will perform calculations is known up front
-        once the Parser has read the input deck. This method initializes all
-        time-related properties on the Manager required for calculations throughout the
-        simulation.
+        Initialize all time-related properties required throughout the simulation.
 
+        All dates at which the simulation will perform calculations are known up
+        front once the Parser has read the input deck.
         """
         self.dateline = self.parser.dates
         self.timeline = dates_to_days(self.dateline)
@@ -154,8 +153,10 @@ class SimulationManager:
 
     def _initialize_simulation(self):
         """
-        Initialize the model based on the defined initial conditions. The
-        calculations performed overlap partially with those performed at each time-step.
+        Initialize the model based on the defined initial conditions.
+
+        The calculations performed overlap partially with those performed at each
+        time-step.
         """
         # log the start of the simulation
         # to the .log file
@@ -379,7 +380,7 @@ class SimulationManager:
             timetable.set_current_time(self._time)
 
     def _calculate_expectations(self):
-        """Precalculate certain expectations which are simulation bottlenecks"""
+        """Precalculate certain expectations which are simulation bottlenecks."""
         emissions_lifetime = self.general_nodes.model_definition.emissions_lifetime
 
         for levy in self.nodes.levies.values():
@@ -492,7 +493,9 @@ class SimulationManager:
 
     def _perform_producer_evolution(self):
         """
-        As preparation each producer is progressed in time, namely:
+        Progress each producer in time and assign fair shares of the supply gap.
+
+        The preparation per producer consists of:
         - updating increment ages,
         - delivering from the pipeline,
         - calculating feedstock gap.
@@ -700,8 +703,9 @@ class SimulationManager:
 
     def _missing_technology_approximation(self):
         """
-        Estimate energy-efficiency uptake for fleets without retrofittable
-        technologies from the fleet-average savings of those that have them.
+        Estimate energy-efficiency uptake for fleets that cannot retrofit.
+
+        The estimate uses the fleet-average savings of the fleets that have them.
         """
         start_time = timeit.default_timer()
 

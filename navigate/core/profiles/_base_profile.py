@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 
 
 class _BaseProfile:
-    """This class is used exclusively for sub-classing."""
+    """Base class used exclusively for sub-classing."""
 
     def __init__(self):
 
