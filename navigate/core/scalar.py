@@ -39,7 +39,3 @@ class Scalar:
 
         else:
             return self._value
-
-    @staticmethod
-    def is_forecast():
-        return False

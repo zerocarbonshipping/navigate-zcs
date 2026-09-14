@@ -13,6 +13,14 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ### Changed
 - The minimum supported Python version is 3.13 (was 3.12).
+- **Breaking** for code importing navigate as a library: the `is_*()`
+  type-check methods on `TypeCheckMixin` are replaced by `TypeIs` guard
+  functions in `navigate.core.node_type` (`is_calculator`, `is_feedstock`,
+  `is_process`, `is_surface`, `is_variable`), so type checkers narrow node
+  types at call sites; the sixteen unused predicates and the unused
+  `Scalar.is_forecast()` are removed without replacement. The guards take a
+  `Node`; for a `NodeReference` use the `is_type()` method, which remains on
+  both classes.
 - The lint toolchain is now `ruff` (formatting, linting, import sorting) and
   `mypy` (type checking), replacing `flake8`/`isort`; `make lint` runs both
   plus the REUSE check. The whole codebase was reformatted in a single

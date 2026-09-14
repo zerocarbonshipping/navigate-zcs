@@ -66,8 +66,6 @@ judgment:
   the documentation renderer reads the docstring alone, and a bare
   description in the type position renders wrong.
 - State the unit wherever a parameter or return value has one.
-- Do not write one-line function docstrings: a function simple enough for one
-  line should be named well enough to need none.
 - Module docstrings are one line where one line fits, stating the purpose of
   the file; a module defining a class used across the codebase also says
   where the class is used.
