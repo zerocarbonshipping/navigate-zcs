@@ -43,7 +43,7 @@ def plot_port_bunker_supply(manager, directory):
 
         profile = port.profile
 
-        for ax, fuel_name in zip(axes, fuels):
+        for ax, fuel_name in zip(axes, fuels, strict=False):
             bunkered = profile.get_bunker_mass(fuel_name)
             supply = profile.get_bunker_supply_mass(fuel_name)
             limit = profile.get_bunkering_limit_mass(fuel_name)

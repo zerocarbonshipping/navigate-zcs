@@ -73,9 +73,11 @@ def perform_secondary_scrapping(fleet: Fleet, trade_gap: float, idx: int):
             f"{round(youngest_age)} years" if youngest_age is not None else "undefined"
         )
         logger.info(
-            f"{fleet}: Secondary scrapping of vessels to make up for an over capacity "
-            f"of {round(trade_gap)} cargo-miles. "
-            f"The youngest age of scrapping was {youngest_age_str}."
+            "%s: Secondary scrapping of vessels to make up for an over capacity of %s "
+            "cargo-miles. The youngest age of scrapping was %s.",
+            fleet,
+            round(trade_gap),
+            youngest_age_str,
         )
 
     return scrapped_capacity
@@ -93,7 +95,9 @@ def perform_age_based_scrapping(fleet: Fleet, idx: int):
     idx
         Current time-step index.
     """
-    for v, (vessel, incs) in enumerate(zip(fleet.assets, fleet.increments)):
+    for v, (vessel, incs) in enumerate(
+        zip(fleet.assets, fleet.increments, strict=True)
+    ):
         scrapped_vessels = 0.0
 
         # update ages
@@ -402,7 +406,9 @@ def calculate_evolution_expectation(
     # loop over vessel types and subtract
     # expected future scrapping from the
     # baseline to establish the future baseline
-    for v, (vessel, incs) in enumerate(zip(fleet.assets, fleet.increments)):
+    for v, (vessel, incs) in enumerate(
+        zip(fleet.assets, fleet.increments, strict=True)
+    ):
         if not incs:
             continue
 
@@ -597,8 +603,9 @@ def perform_fleet_evolution(
     # check that all the trade has been satisfied otherwise print a warning
     if trade > 0 and (trade_gap / trade) > 1e-3:
         logger.warning(
-            f"{fleet}: Model was only able to satisfy "
-            f"{round((1.0 - trade_gap / trade) * 100.0)}% of the expected trade."
+            "%s: Model was only able to satisfy %s%% of the expected trade.",
+            fleet,
+            round((1.0 - trade_gap / trade) * 100.0),
         )
 
     # calculate and assign current vessel uptake shares

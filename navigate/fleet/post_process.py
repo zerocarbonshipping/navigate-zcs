@@ -136,9 +136,13 @@ def _transfer_fuel_converted_power(fleet: Fleet) -> None:
 
         if abs(power_to - power_from) > TOLERANCE:
             logger.warning(
-                f"{fleet}: Fuel conversion occurred with different installed power "
-                f"{vessel_from} ({round(power_from, 1)}) to "
-                f"{vessel_to} ({round(power_to, 1)})."
+                "%s: Fuel conversion occurred with different installed power %s (%s) "
+                "to %s (%s).",
+                fleet,
+                vessel_from,
+                round(power_from, 1),
+                vessel_to,
+                round(power_to, 1),
             )
 
         fleet.profile.add_fuel_converted_power(
@@ -393,8 +397,9 @@ def _calculate_total_vessel_operating_expenses(vessel, idx, timeline):
 
     if not np.all(profile.is_in_fleet()[idx:idx_to]):
         logger.debug(
-            f"{vessel}: Unable to post-process fuel related costs at time "
-            f"{round(timeline[idx], 0)} days."
+            "%s: Unable to post-process fuel related costs at time %s days.",
+            vessel,
+            round(timeline[idx], 0),
         )
 
         return None

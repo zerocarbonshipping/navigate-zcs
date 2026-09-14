@@ -25,7 +25,7 @@ def _plot_producer_development(manager, directory, cumulative=False):
     fig, axes = subplot_grid(len(producers))
 
     # cumulate fuel spent over all fleets
-    for ax, producer in zip(axes, producers.values()):
+    for ax, producer in zip(axes, producers.values(), strict=False):
         profile = producer.profile
 
         if cumulative:

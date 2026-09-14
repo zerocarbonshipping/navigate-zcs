@@ -272,7 +272,8 @@ def calculate_modelled_uptake(producer: Producer) -> np.ndarray:
                 (i, plant)
                 for i, plant in enumerate(producer.assets)
                 if producer.allow_plant[plant.name] and plant.expectation.is_in_demand()
-            )
+            ),
+            strict=True,
         )
 
     except ValueError:

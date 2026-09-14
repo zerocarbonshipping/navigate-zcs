@@ -322,7 +322,7 @@ class Fleet(_AssetManager):
 
         if normalized:
             logger.info(
-                f"{self}: 'InitialSplit' is normalized to 1 by equal fractions."
+                "%s: 'InitialSplit' is normalized to 1 by equal fractions.", self
             )
 
     def set_technologies(self, technologies: list[NodeReference]):
@@ -1117,8 +1117,10 @@ class Fleet(_AssetManager):
                     # print a warning if the forecast allows extrapolation
                     if orderbook.extrapolate == ExtrapolateID.LINEAR:
                         logger.warning(
-                            f"{self}: Orderbook ({orderbook}) allows extrapolation and"
-                            " may therefore continue past the last date."
+                            "%s: Orderbook (%s) allows extrapolation and may therefore "
+                            "continue past the last date.",
+                            self,
+                            orderbook,
                         )
 
         if self.allow_speed_management and self.maximum_speed_change is None:

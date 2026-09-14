@@ -27,7 +27,7 @@ def plot_fleet_investment_metric(manager, directory):
 
         fig, axes = subplot_grid(len(vessels), sharey=True)
 
-        for ax, vessel in zip(axes, vessels):
+        for ax, vessel in zip(axes, vessels, strict=False):
             active = vessel.profile.is_active()
             expected = np.where(
                 active, vessel.profile.get_investment_freight_rate(), np.nan

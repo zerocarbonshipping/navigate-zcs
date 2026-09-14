@@ -142,7 +142,7 @@ def _energy_weighted_signal(
     for belief_dict, rhs_dict in ((belief_sea, rhs_sea), (belief_port, rhs_port)):
         for energy_id, belief_legs in belief_dict.items():
             rhs_legs = rhs_dict[energy_id]
-            for belief_leg, rhs_leg in zip(belief_legs, rhs_legs):
+            for belief_leg, rhs_leg in zip(belief_legs, rhs_legs, strict=True):
                 weight = rhs_leg[idx]
                 weighted_sum += belief_leg[idx] * weight
                 weight_total += weight
@@ -176,5 +176,5 @@ def _smooth_pi_dict(
     """
     for energy_id, raw_legs in raw_dict.items():
         belief_legs = belief_dict[energy_id]
-        for raw_leg, belief_leg in zip(raw_legs, belief_legs):
+        for raw_leg, belief_leg in zip(raw_legs, belief_legs, strict=True):
             update_belief_path(raw_leg, belief_leg, alpha, idx)

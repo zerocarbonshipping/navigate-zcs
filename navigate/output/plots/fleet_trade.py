@@ -42,7 +42,7 @@ def plot_fleet_trade(manager, directory):
     assumed_trades = [trade / divisor for trade in assumed_trades]
 
     for ax, fleet, fleet_trade, assumed_trade in zip(
-        axes, fleets.values(), fleet_trades, assumed_trades
+        axes, fleets.values(), fleet_trades, assumed_trades, strict=False
     ):
         # plot stacks
         stack = ax.stackplot(

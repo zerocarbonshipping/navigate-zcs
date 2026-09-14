@@ -323,8 +323,9 @@ def _finalize_vessel_speed(result: SpeedResult, mu_target: float, idx: int) -> N
     # convex. So, a warning is issued if they are not
     if not loads_are_convex(vessel):
         logger.warning(
-            f"{vessel}: Does not have convex load functions which may lead to "
-            "suboptimal speed management results."
+            "%s: Does not have convex load functions which may lead to suboptimal "
+            "speed management results.",
+            vessel,
         )
 
 

@@ -36,7 +36,7 @@ def plot_engine_age(manager, directory):
 
     y_max = max(np.nanmax(age) for age in weighted_avg_age.values())
 
-    for ax, fuel_type in zip(axes, weighted_avg_age):
+    for ax, fuel_type in zip(axes, weighted_avg_age, strict=False):
         age = weighted_avg_age[fuel_type]
         ax.plot(dateline, age, color=FUEL_TYPE_COLOR[fuel_type], lw=2.0)
         ax.set_ylabel("Average age [years]")
