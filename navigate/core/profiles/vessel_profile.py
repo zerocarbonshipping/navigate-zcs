@@ -69,6 +69,7 @@ class VesselProfile(_FuelConsumerProfile):
         levy_names: list[str] = (),
     ) -> None:
         """
+        Initialize the vessel profile's storage arrays and lookups.
 
         Parameters
         ----------

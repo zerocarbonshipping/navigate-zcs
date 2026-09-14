@@ -45,6 +45,7 @@ class PortProfile(_InfrastructureAggregateProfile):
         emissions_lifetime: float,
     ) -> None:
         """
+        Initialize the port profile's storage arrays and lookups.
 
         Parameters
         ----------

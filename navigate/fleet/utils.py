@@ -66,9 +66,10 @@ def calculate_projected_multipliers(
     multipliers: float, trade: np.ndarray
 ) -> np.ndarray:
     """
-    Calculate a naive projection of future number of multipliers. This method does not
-    take into account that different vessel types may have varying nominal capacity or
-    cargo utilization.
+    Calculate a naive projection of future number of multipliers.
+
+    This method does not take into account that different vessel types may
+    have varying nominal capacity or cargo utilization.
 
     Parameters
     ----------
@@ -109,6 +110,8 @@ def calculate_increments(
 
 def extract_investment_metrics(vessels: list[Vessel]) -> np.ndarray:
     """
+    Extract each vessel's investment metric.
+
     Parameters
     ----------
     vessels
@@ -163,8 +166,10 @@ def define_initial_split(fleet: Fleet) -> None:
 
 def define_initial_trade(fleet: Fleet, timeline: np.ndarray) -> None:
     """
-    Define the initial trade of the fleet and project it forward over the timeline by
-    the user-supplied growth rates.
+    Define the initial trade of the fleet.
+
+    Projects it forward over the timeline using the user-supplied growth
+    rates.
 
     Parameters
     ----------

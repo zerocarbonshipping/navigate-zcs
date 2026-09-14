@@ -79,8 +79,9 @@ def perform_fuel_conversions(
     fleet: Fleet, idx: int, timeline: np.ndarray, time_step: float
 ) -> None:
     """
-    Evaluate the business case of performing a fuel conversion from one vessel type to
-    another, running the three phases described in the module docstring.
+    Evaluate the business case of a fuel conversion from one vessel type to another.
+
+    Runs the three phases described in the module docstring.
 
     Notice that we do not account for the cost difference in future maintenance costs of
     the asset. This is considered negligible compared to the cost of the conversion and
@@ -306,10 +307,12 @@ def apply_fuel_conversions(
     fleet: Fleet, proposals: list[_ConversionProposal], idx: int, timeline: np.ndarray
 ) -> None:
     """
-    Apply finalised conversion counts: decrement from-side multipliers, insert on the
-    to-side, write the profile, and accumulate transition expenses. From-side decrements
-    happen first across all proposals, then to-side inserts, to avoid multi-stage
-    conversions within the same timestep.
+    Apply the finalised conversion counts to the fleet.
+
+    Decrements from-side multipliers, inserts on the to-side, writes the
+    profile, and accumulates transition expenses. From-side decrements
+    happen first across all proposals, then to-side inserts, to avoid
+    multi-stage conversions within the same timestep.
 
     Parameters
     ----------
@@ -577,8 +580,10 @@ def _book_conversion_expenses(
     expenses_ahead: np.ndarray, years_ahead: np.ndarray, candidate: _ConversionCandidate
 ) -> None:
     """
-    Book the levelized charge over the service window; the coverage prorates the final
-    partial year so the booked amounts match the levelization identity.
+    Book the levelized charge over the service window.
+
+    The coverage prorates the final partial year so the booked amounts match
+    the levelization identity.
 
     Parameters
     ----------

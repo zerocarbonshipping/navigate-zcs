@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
 
 class _FuelProducerProfile(_FuelBaseProfile):
-    """This class is used exclusively for sub-classing."""
+    """Base class used exclusively for sub-classing."""
 
     def __init__(self):
         super().__init__()
@@ -53,6 +53,7 @@ class _FuelProducerProfile(_FuelBaseProfile):
         self, profile: _FuelProducerProfile, idx: int | slice = np.s_[:]
     ) -> None:
         """
+        Add another fuel producer profile's values into this one.
 
         Parameters
         ----------

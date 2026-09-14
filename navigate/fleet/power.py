@@ -119,9 +119,10 @@ def calculate_technical_speed_limits(vessel: Vessel) -> tuple[np.ndarray, np.nda
 
 def loads_are_convex(vessel: Vessel) -> bool:
     """
-    Check whether all loads at sea are based on a convex function. This is necessary
-    since both the propulsion load, electrical load, and heat load at sea can depend on
-    the speed and capacity utilization
+    Check whether all loads at sea are based on a convex function.
+
+    This is necessary since both the propulsion load, electrical load, and
+    heat load at sea can depend on the speed and capacity utilization.
 
     Parameters
     ----------

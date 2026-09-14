@@ -1033,12 +1033,12 @@ class Parser:
 
     def _scrub_references_to_pruned(self) -> list:
         """
-        Remove every reference to a pruned node from the surviving nodes'
-        list-valued attributes — the only shape holding references outside a
-        restricted type's activation edges, pinned by the reference-site
-        classification test. A surviving reference to a pruned node is by
-        construction non-activating, so nothing load-bearing is removed, but
-        left in place it would hand consumers a node that never ran
+        Remove pruned-node references from list-valued attributes on surviving nodes.
+
+        This is the only shape holding references outside a restricted type's activation
+        edges, pinned by the reference-site classification test. A surviving reference
+        to a pruned node is by construction non-activating, so nothing load-bearing is
+        removed, but left in place it would hand consumers a node that never ran
         initialize().
 
         Returns
@@ -1506,8 +1506,9 @@ class Parser:
 
 def _get_files_in_directory(directory):
     """
-    Extract a list of all file names in the top level directory, excluding known
-    helper/placeholder files (e.g. ``.gitkeep``).
+    List file names in the top level directory, excluding helper/placeholder files.
+
+    For example, ``.gitkeep``.
 
     Parameters
     ----------

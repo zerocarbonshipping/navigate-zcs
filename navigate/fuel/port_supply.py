@@ -290,8 +290,10 @@ def _calculate_import_from_producers(
 
 def _calculate_export_normalization_factors(ports: dict[str, Port]) -> dict[str, float]:
     """
-    Calculate export-normalization factors for each fuel to ensure all fuels are fully
-    exported independent of whether it is allowed to bunker in certain ports.
+    Calculate each fuel's export-normalization factor.
+
+    Ensures all fuels are fully exported independent of whether it is allowed to
+    bunker in certain ports.
 
     Parameters
     ----------
@@ -327,10 +329,11 @@ def _align_export_with_bunkering_limits(
     idx: int | slice,
 ) -> None:
     """
-    Align exports with port bunkering limits: the bunkering of a certain fuel in a
-    given port may be limited by the port; in that case no more fuel than can be
-    bunkered should be exported to that port and the surplus distributed to the
-    other ports.
+    Align exports with port bunkering limits.
+
+    The bunkering of a certain fuel in a given port may be limited by the port; in that
+    case no more fuel than can be bunkered should be exported to that port and the
+    surplus distributed to the other ports.
 
     TODO: This method surely must break with the export distribution assigned on the
     producer. May be acceptable.
@@ -391,9 +394,10 @@ def _align_finite_export_with_bunkering_limits(
     mask: np.ndarray,
 ) -> None:
     """
-    Redistribute the finite-import case: trim each over-limit port to its bunkering
-    limit and spread the freed surplus across the under-limit ports in proportion to
-    their deficit.
+    Redistribute the finite-import case.
+
+    Trim each over-limit port to its bunkering limit and spread the freed surplus across
+    the under-limit ports in proportion to their deficit.
 
     Notice that this method breaks with the fractions assigned in the export
     distribution.

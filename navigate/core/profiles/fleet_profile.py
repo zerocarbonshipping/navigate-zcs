@@ -61,6 +61,8 @@ class FleetProfile(_VesselAggregateProfile):
         levy_names: list[str] = (),
     ) -> None:
         """
+        Initialize the fleet profile's storage arrays and lookups.
+
         Parameters
         ----------
         timeline :
@@ -244,8 +246,9 @@ class FleetProfile(_VesselAggregateProfile):
         self, technology_name: str | None = None, idx: int | slice = np.s_[:]
     ) -> np.ndarray | dict[str, np.ndarray]:
         """
-        Fleet-wide technology uptake: per-vessel uptake shares averaged with
-        the existing vessel counts as weights (0 where the fleet is empty).
+        Compute the fleet-wide technology uptake, weighted by vessel count.
+
+        It is the average of per-vessel uptake shares; 0 where the fleet is empty.
 
         Parameters
         ----------

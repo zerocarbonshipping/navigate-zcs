@@ -2,11 +2,12 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Restricted arithmetic expressions assigned to attributes and commands through
-the deck's ``<...>`` syntax. Expression bodies are parsed with the standard
-library ``ast`` module into a small internal tree that only supports numeric
-literals, the operators ``+ - * / **``, and node-reference calls such as
-``Forecast("name")`` — they are never passed to ``eval()`` and cannot execute
+Define restricted arithmetic expressions for deck attributes and commands.
+
+They are written using the deck's ``<...>`` syntax. Expression bodies are parsed
+with the standard library ``ast`` module into a small internal tree that only
+supports numeric literals, the operators ``+ - * / **``, and node-reference calls
+such as ``Forecast("name")`` — they are never passed to ``eval()`` and cannot execute
 arbitrary code.
 """
 
@@ -99,6 +100,7 @@ class Expression:
 
     def initialize(self, node):
         """
+        Parse the expression text and build the internal evaluation tree.
 
         Parameters
         ----------
@@ -214,8 +216,9 @@ class Expression:
 
     def reference_strings(self):
         """
-        Extract the node reference strings from the expression text without
-        touching this instance's state. A text that does not parse yields
+        Extract the node reference strings from the expression text.
+
+        Does not touch this instance's state. A text that does not parse yields
         none; the error surfaces when the expression is initialized for real.
 
         Returns

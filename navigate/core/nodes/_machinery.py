@@ -10,7 +10,8 @@ from navigate.core.node_type import FORECAST, VARIABLE
 
 class _Machinery(Node):
     """
-    Generic node used for the cost parameters of all pieces of machinery:
+    Provide a generic node for cost parameters shared by all machinery types.
+
     - PowerSystem
     - Converter
     - Technology

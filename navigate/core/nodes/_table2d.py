@@ -74,8 +74,9 @@ class _Table2D(_Calculator):
 
     def _reverse_lookup_x(self, y, z, interpolate=True):
         """
-        Perform a reverse lookup in the table defined by (xp, yp, zp), finding the
-        x-value which is closest to 'z'. along a z-slice defined by y.
+        Perform a reverse lookup in the table defined by (xp, yp, zp).
+
+        Finds the x-value closest to 'z' along a z-slice defined by y.
 
         This lookup is only applicable to strictly increasing functions such as
         exponential functions.
@@ -215,6 +216,7 @@ class _Table2D(_Calculator):
 
 def check_table2d_input(x, y, z):
     """
+    Validate the x, y, and z arrays used to build a 2D table.
 
     Parameters
     ----------

@@ -350,6 +350,7 @@ def _expand_inputs(command: str, inputs: list) -> Iterable[tuple]:
 # methods ------------------------------------------------------------------------------
 def check_node_command_is_allowed(node_type, command_name, section):
     """
+    Check whether a node type may use a command in a section.
 
     Parameters
     ----------

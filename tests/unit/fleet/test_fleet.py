@@ -209,9 +209,10 @@ def _make_fleet_for_cap(
     pair_limits: dict[tuple[str, str], float] | None = None,
 ) -> Fleet:
     """
-    Build a Fleet stub configured just for `reconcile_fuel_conversion_caps`. The cap is
-    now a fraction-of-fleet-per-year per (from, to) pair; missing pairs default to
-    Scalar(1.) (unlimited).
+    Build a Fleet stub configured just for `reconcile_fuel_conversion_caps`.
+
+    The cap is now a fraction-of-fleet-per-year per (from, to) pair; missing pairs
+    default to Scalar(1.) (unlimited).
     """
     fleet = Fleet.__new__(Fleet)
     fleet.fuel_conversion_limit = {
@@ -681,9 +682,10 @@ def _make_fleet_for_modelled_uptakes(
     fuel_types: list[str], freight_rates: list[float]
 ) -> tuple[Fleet, list]:
     """
-    Build a Fleet and vessel list wired for `_calculate_modelled_uptakes`. Uses an odds
-    ratio of 1 at both DCM levels so the unconstrained shares are 1/N, making cap
-    effects directly observable.
+    Build a Fleet and vessel list wired for `_calculate_modelled_uptakes`.
+
+    Uses an odds ratio of 1 at both DCM levels so the unconstrained shares are 1/N,
+    making cap effects directly observable.
     """
     fleet = Fleet.__new__(Fleet)
     fleet.type = FLEET
@@ -794,10 +796,12 @@ def _make_fleet_for_newbuilds(
     current_uptake: list[float] | None = None,
 ) -> Fleet:
     """
-    Build a Fleet stub for `calculate_orderbook_newbuilds` /
-    `calculate_modelled_newbuilds`. All vessels share one fuel type with uniform DCM
-    sensitivities, so the modelled uptake is driven purely by `cap_share`. Orderbooks
-    are plain floats (cumulative vessel counts).
+    Build a Fleet stub for the newbuild-calculation functions.
+
+    Covers `calculate_orderbook_newbuilds` and `calculate_modelled_newbuilds`. All
+    vessels share one fuel type with uniform DCM sensitivities, so the modelled uptake
+    is driven purely by `cap_share`. Orderbooks are plain floats (cumulative vessel
+    counts).
     """
     n = len(cargo_miles)
     fleet, vessels = _make_fleet_for_modelled_uptakes(["x"] * n, [1.0] * n)

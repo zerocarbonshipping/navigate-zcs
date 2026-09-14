@@ -25,8 +25,10 @@ logger = logging.getLogger(__name__)
 
 def perform_primary_scrapping(fleet: Fleet, idx: int, time_step: float):
     """
-    Perform primary scrapping. This may either be based on the age distribution of the
-    vessels and their lifetime or a fixed yearly scrap rate.
+    Perform primary scrapping.
+
+    This may either be based on the age distribution of the vessels and
+    their lifetime or a fixed yearly scrap rate.
 
     Parameters
     ----------
@@ -46,8 +48,10 @@ def perform_primary_scrapping(fleet: Fleet, idx: int, time_step: float):
 
 def perform_secondary_scrapping(fleet: Fleet, trade_gap: float, idx: int):
     """
-    Perform secondary scrapping. This occurs if there is too much tonnage in the fleet
-    after primary scrapping compared to the amount of trade required to be satisfied.
+    Perform secondary scrapping.
+
+    This occurs if there is too much tonnage in the fleet after primary
+    scrapping compared to the amount of trade required to be satisfied.
 
     Parameters
     ----------
@@ -85,8 +89,10 @@ def perform_secondary_scrapping(fleet: Fleet, trade_gap: float, idx: int):
 
 def perform_age_based_scrapping(fleet: Fleet, idx: int):
     """
-    Perform scrapping based on the age of the vessels. This means that every increment
-    which is greater than the lifetime of the vessel is scrapped from the fleet.
+    Perform scrapping based on the age of the vessels.
+
+    This means that every increment which is greater than the lifetime of
+    the vessel is scrapped from the fleet.
 
     Parameters
     ----------
@@ -149,9 +155,11 @@ def perform_age_based_scrapping(fleet: Fleet, idx: int):
 
 def perform_fixed_rate_scrapping(fleet: Fleet, time_step: float, idx: int):
     """
-    Perform scrapping based on a fixed rate. This means scrapping a user-defined amount
-    of trade from the fleet. The selection criteria for which vessels to scrap is based
-    on age. This means that the oldest increments are scrapped first.
+    Perform scrapping based on a fixed rate.
+
+    This means scrapping a user-defined amount of trade from the fleet. The
+    selection criteria for which vessels to scrap is based on age. This
+    means that the oldest increments are scrapped first.
 
     Parameters
     ----------
@@ -191,9 +199,10 @@ def perform_fixed_rate_scrapping(fleet: Fleet, time_step: float, idx: int):
 
 def perform_fixed_trade_scrapping(fleet: Fleet, trade_gap: float, idx: int):
     """
-    Perform scrapping based on a fixed amount of trade. The selection criteria for which
-    vessels to scrap is based on age. This means that the oldest increments are scrapped
-    first.
+    Perform scrapping based on a fixed amount of trade.
+
+    The selection criteria for which vessels to scrap is based on age. This
+    means that the oldest increments are scrapped first.
 
     Parameters
     ----------
@@ -315,9 +324,11 @@ def perform_fixed_trade_scrapping(fleet: Fleet, trade_gap: float, idx: int):
 
 def clean_up_multipliers(fleet: Fleet):
     """
-    Merge increments that are similar and/or remove those that fall below a certain
-    threshold. The CPU time of the simulation is adversely affected by the number of
-    increments per vessel type; this clean-up reduces it.
+    Merge and remove fleet increments.
+
+    Merge increments that are similar and/or remove those that fall below a
+    certain threshold. The CPU time of the simulation is adversely affected
+    by the number of increments per vessel type; this clean-up reduces it.
     """
     # merge multipliers with same age and initial time-step entry size
     for v in range(len(fleet.assets)):
@@ -376,8 +387,7 @@ def calculate_evolution_expectation(
     fleet: Fleet, timeline: np.ndarray, idx: int
 ) -> None:
     """
-    Calculate the expected evolution of multipliers based on vessel scrapping,
-    uptake patterns, and trade gaps within a given timeline.
+    Calculate the expected evolution of multipliers over the timeline.
 
     This function computes future multiplier baselines for existing vessels by
     accounting for expected vessel scrap rates. It calculates the trade gap between the
@@ -516,9 +526,11 @@ def perform_fleet_evolution(
     fleet: Fleet, timeline: np.ndarray, time_step: float, idx: int
 ) -> None:
     """
-    Evolve the fleet forward in time. This includes scrapping old vessels, performing
-    fuel conversions, delivering newbuilds from the orderbook and model newbuilds based
-    on inertia and the discrete choice model.
+    Evolve the fleet forward in time.
+
+    This includes scrapping old vessels, performing fuel conversions,
+    delivering newbuilds from the orderbook and model newbuilds based on
+    inertia and the discrete choice model.
 
     Parameters
     ----------

@@ -10,6 +10,7 @@ from navigate.util import add_dicts
 
 def calculate_constrained_fair_share_fuel_demand(fuels, producers, gap, idx):
     """
+    Assign each constrained producer a fair share of its fuels' supply gap.
 
     TODO: Can be improved with a regionality aspect
 

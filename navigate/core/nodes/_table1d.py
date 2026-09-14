@@ -181,6 +181,7 @@ class _Table1D(_Calculator):
 
 def check_table1d_input(x, y):
     """
+    Validate the x and y arrays used to build a 1D table.
 
     Parameters
     ----------

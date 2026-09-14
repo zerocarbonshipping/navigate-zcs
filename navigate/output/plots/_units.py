@@ -16,6 +16,7 @@ import math
 
 def find_best_metric_prefix(value, default=0, symbol=True):
     """
+    Return the divisor and metric prefix best matching the value's magnitude.
 
     Note: https://en.wikipedia.org/wiki/Metric_prefix
 
@@ -28,10 +29,6 @@ def find_best_metric_prefix(value, default=0, symbol=True):
     symbol : bool
         If true return a symbol (k, M, etc.). If false return a word (million,
         billion, etc.)
-
-    Returns
-    -------
-
     """
     value = abs(value)
     order = math.floor(math.log10(value)) + default if value > 0.0 else 1

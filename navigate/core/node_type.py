@@ -3,6 +3,7 @@
 
 """
 Node-type names: the DSL keywords that declare nodes in `.nav`/`.inc` files.
+
 For regular nodes the name is also the value stored in the node's `type`
 attribute (via `TypeCheckMixin`), so the `is_*` type guards and the parser's
 per-type tables share a single vocabulary; general nodes carry no `type` and

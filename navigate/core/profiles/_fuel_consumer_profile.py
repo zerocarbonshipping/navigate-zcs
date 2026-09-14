@@ -30,7 +30,7 @@ from navigate.util import (
 
 
 class _FuelConsumerProfile(_FuelBaseProfile):
-    """This class is used exclusively for sub-classing."""
+    """Base class used exclusively for sub-classing."""
 
     def __init__(self):
         super().__init__()
@@ -95,6 +95,7 @@ class _FuelConsumerProfile(_FuelBaseProfile):
         levy_names: list[str] = (),
     ) -> None:
         """
+        Initialize per-fuel and per-emission lookups for the fuel consumer profile.
 
         Parameters
         ----------
@@ -149,6 +150,7 @@ class _FuelConsumerProfile(_FuelBaseProfile):
         idx: int | slice = np.s_[:],
     ) -> None:
         """
+        Add another fuel consumer profile's values into this one.
 
         Parameters
         ----------
@@ -305,6 +307,7 @@ class _FuelConsumerProfile(_FuelBaseProfile):
         self, emissions: np.ndarray | dict, idx: int | slice
     ) -> np.ndarray | dict | None:
         """
+        Convert emissions into per-fuel emissions intensity.
 
         Parameters
         ----------

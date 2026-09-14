@@ -2,9 +2,10 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-The Plot node collects which plots to render and where; the rendering is done by
-navigate.output.plots.render.generate_plots, driven by the simulation manager. The Plot
-node is not assigned on any other node.
+Collect which plots to render and where.
+
+The rendering itself is done by navigate.output.plots.render.generate_plots, driven
+by the simulation manager. The Plot node is not assigned on any other node.
 """
 
 from __future__ import annotations

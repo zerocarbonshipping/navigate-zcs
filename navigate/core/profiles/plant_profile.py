@@ -46,6 +46,7 @@ class PlantProfile(_BaseProfile):
         emissions_lifetime: float,
     ) -> None:
         """
+        Initialize the plant profile's storage arrays and lookups.
 
         Parameters
         ----------

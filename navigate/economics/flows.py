@@ -370,8 +370,9 @@ def add_variable_wtt(
 
 def timeline_to_yearly(asset, idx, timeline):
     """
-    Define the appropriate dates (yearly) for which to calculate the cost-flow of a
-    business case. This is necessary in order to ensure all cost-flows are comparable.
+    Define the yearly dates used to calculate a business case's cost-flow.
+
+    This is necessary in order to ensure all cost-flows are comparable.
 
     Parameters
     ----------
@@ -400,8 +401,9 @@ def timeline_to_yearly(asset, idx, timeline):
 
 def get_age_flow(lead_time: float, lifetime: float) -> np.ndarray:
     """
-    Initialize a vector of ones with the necessary length for the yearly cost-flow of an
-    asset. This can be used to calculate age levelization.
+    Initialize a ones vector sized for an asset's yearly cost-flow.
+
+    This can be used to calculate age levelization.
 
     Parameters
     ----------
@@ -502,9 +504,10 @@ def get_flow_shape(lead_time: float, lifetime: float) -> tuple[int]:
 
 def get_flow_size(lead_time: float, lifetime: float) -> int:
     """
-    Get the size of the vectors required to store an asset's lifetime operations in
-    yearly increments. The number of years used in the allocation of the flow is equal
-    to the ceil of the lifetime to account for lifetimes with decimals.
+    Get the size of the vectors required to store an asset's lifetime operations.
+
+    The vectors use yearly increments; the number of years is equal to the ceil of
+    the lifetime, to account for lifetimes with decimals.
 
     Parameters
     ----------
@@ -739,8 +742,7 @@ def _add_straight_line_depreciation(
 
 def _compute_staircase_segments(component: Component) -> list[tuple[float, np.ndarray]]:
     """
-    Walk the replacement timeline and compute the normalized overlap
-    array for each segment.
+    Walk the replacement timeline and compute each segment's normalized overlap.
 
     Each segment represents one component lifetime interval. The returned
     list contains (anchor_time, normalized_overlap) pairs where anchor_time
@@ -787,8 +789,9 @@ def _compute_staircase_segments(component: Component) -> list[tuple[float, np.nd
 
 def _compute_replacement_times(component: Component) -> list[float]:
     """
-    Walk the replacement timeline and return the times at which
-    the component is replaced (excluding initial installation).
+    Walk the replacement timeline and return each replacement time.
+
+    Excludes the initial installation.
 
     Parameters
     ----------
@@ -824,10 +827,10 @@ def _build_staircase_flow(
     component: Component, value: Callable[[float], float]
 ) -> np.ndarray:
     """
-    Build a piecewise-constant flow that locks at installation and then at every
-    replacement. The first operational calendar year is correctly handled via overlap;
-    no special scaling is required because overlaps already reflect fractional lead
-    time.
+    Build a piecewise-constant flow, locked at installation and each replacement.
+
+    The first operational calendar year is correctly handled via overlap; no special
+    scaling is required because overlaps already reflect fractional lead time.
 
     Parameters
     ----------
@@ -1046,9 +1049,10 @@ def expand_to_flow(lifetime, value):
 
 def correct_flow_residual(lifetime, *costs):
     """
-    If the lifetime of an asset is not an integer, then the cost in the last year which
-    is only partial has to be corrected to reflect the cost is only incurred in a
-    fraction of that year.
+    Correct the last year's cost when an asset's lifetime is not an integer.
+
+    The last year is only partial, so its cost must be corrected to reflect that
+    only a fraction of that year is incurred.
 
     Parameters
     ----------
@@ -1065,8 +1069,10 @@ def correct_flow_residual(lifetime, *costs):
 
 def get_flow_residual(lifetime):
     """
-    Get the residual multiplier used to account for only partial
-    operation in the last year of the lifetime of an asset.
+    Get the residual multiplier for a partial final year of operation.
+
+    Used to account for only partial operation in the last year of an asset's
+    lifetime.
 
     Parameters
     ----------

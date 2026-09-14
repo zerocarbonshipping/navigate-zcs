@@ -32,6 +32,7 @@ class Variable(Node, _Calculator):
 
     def get(self, x=None, y=None):
         """
+        Return the variable value with the multiplier, addition, and truncation.
 
         Parameters
         ----------
