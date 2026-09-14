@@ -102,10 +102,11 @@ def run_simulation(sim_dir: Path, data_dir: Path | None = None) -> SimulationMan
 
 def clear_output_dir(output_dir: Path) -> None:
     """
-    Deletes a deck's report output directory before a run, so only that run's
-    files exist afterwards — stale files from earlier runs (including the
-    report writer's locked-file retry names) must never reach a consumer of
-    the output.
+    Delete a deck's report output directory before a run.
+
+    Only the coming run's files then exist: stale files from earlier runs
+    (including the report writer's locked-file retry names) must never reach
+    a consumer of the output.
 
     Parameters
     ----------
