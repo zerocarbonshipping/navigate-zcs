@@ -59,8 +59,10 @@ def perform_fair_share_iteration(alg: BunkerAlgorithm) -> bool:
 
 def run_fair_share_solve(alg: BunkerAlgorithm) -> tuple[int, bool]:
     """
-    Run the full fair-share solve loop: initialize, constrain, optimize,
-    then iterate until convergence or the maximum iteration limit.
+    Run the full fair-share solve loop.
+
+    Initialize, constrain, optimize, then iterate until convergence or the maximum
+    iteration limit.
 
     Parameters
     ----------
@@ -92,10 +94,11 @@ def run_fair_share_solve(alg: BunkerAlgorithm) -> tuple[int, bool]:
 
 def perform_flexibility_unit_cost_evaluation(alg: BunkerAlgorithm) -> None:
     """
-    Evaluate the flexibility unit cost as the shadow price of each regulation's
-    threshold constraint. The unit cost is the cost of carbon, whether that is
-    defined by the price ceiling (remedial unit cost) or the cheapest compliant
-    fuel available at scale.
+    Evaluate the flexibility unit cost as each regulation's threshold shadow price.
+
+    The unit cost is the cost of carbon, whether that is defined by the price
+    ceiling (remedial unit cost) or the cheapest compliant fuel available at
+    scale.
 
     Parameters
     ----------
@@ -190,8 +193,9 @@ def update_fair_share_constraints(alg: BunkerAlgorithm) -> None:
 
 def update_fair_share_allocation(alg: BunkerAlgorithm) -> None:
     """
-    Update the allocation of bunker fuel for each vessel at specific ports according to
-    the fair-share principle. Uses a two-pass approach:
+    Update each vessel's bunker fuel allocation by port using the fair-share principle.
+
+    Uses a two-pass approach:
 
     Pass 1: Classify each vessel-port-fuel as bounded (wants more fuel) or unbounded
             (has surplus), and accumulate consumed supply by released vessels and total

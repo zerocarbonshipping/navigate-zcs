@@ -336,6 +336,7 @@ def instance_to_dsl_name(node_type, attribute_name):
 
 def check_node_attribute_is_allowed(node_type, attribute_name, section):
     """
+    Check whether a node type may set an attribute in a section.
 
     Parameters
     ----------
@@ -373,6 +374,7 @@ def check_node_attribute_is_allowed(node_type, attribute_name, section):
 
 def check_general_node_attribute_is_allowed(type_, attribute_name, section):
     """
+    Check whether a general node type may set an attribute in a section.
 
     Parameters
     ----------

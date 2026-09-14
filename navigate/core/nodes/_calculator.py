@@ -146,9 +146,10 @@ class _Calculator:
 
     def set_internal_lower_bound(self, internal_lower_bound):
         """
-        Set the internal lower bound of the calculator. This is not accessible through
-        the deck, but is set by the setter of Nodes and GeneralNodes which have a lower
-        bound.
+        Set the internal lower bound of the calculator.
+
+        This is not accessible through the deck, but is set by the setter of Nodes and
+        GeneralNodes which have a lower bound.
 
         Parameters
         ----------
@@ -159,9 +160,10 @@ class _Calculator:
 
     def set_internal_upper_bound(self, internal_upper_bound):
         """
-        Set the internal upper bound of the calculator. This is not accessible through
-        the deck, but is set by the setter of Nodes and GeneralNodes which have an upper
-        bound.
+        Set the internal upper bound of the calculator.
+
+        This is not accessible through the deck, but is set by the setter of Nodes and
+        GeneralNodes which have an upper bound.
 
         Parameters
         ----------

@@ -2,8 +2,10 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-The asset increment data container. The _AssetManager node stores one list of
-increments per asset type and owns the shared logic that initializes and ages them.
+Define the asset increment data container.
+
+The _AssetManager node stores one list of increments per asset type and owns the
+shared logic that initializes and ages them.
 """
 
 from __future__ import annotations
@@ -18,8 +20,9 @@ if TYPE_CHECKING:
 @dataclass(slots=True)
 class Increment:
     """
-    A single asset increment representing one cohort of assets
-    (vessels or plants) that entered service at the same time.
+    Represent one cohort of assets that entered service at the same time.
+
+    Assets are vessels or plants.
     """
 
     multiplier: float

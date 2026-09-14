@@ -19,9 +19,10 @@ def _make_converter() -> Converter:
 
 class TestSlipFractionDefaults:
     """
-    slip_fraction must index for every fuel type after node setup: the
-    parser seeds the dict in initialize_dependencies before deck commands
-    assign values, and initialize defaults unassigned entries to zero.
+    slip_fraction must index for every fuel type after node setup.
+
+    The parser seeds the dict in initialize_dependencies before deck commands assign
+    values, and initialize defaults unassigned entries to zero.
     """
 
     def test_partial_assignment_defaults_other_fuel_types(self):

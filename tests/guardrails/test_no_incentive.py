@@ -54,10 +54,7 @@ def fleet(manager):
 
 @pytest.fixture(scope="module")
 def market_shares(fleet):
-    """
-    Fleet-wide market share series per fuel type (vessel counts, every
-    time step).
-    """
+    """Fleet-wide market share series per fuel type (vessel counts, every time step)."""
     fuel_types = {vessel.name: FuelTypeID(vessel.fuel_type) for vessel in fleet.vessels}
     existing = fleet.profile.get_existing_vessels()
 
@@ -75,8 +72,9 @@ def market_shares(fleet):
 @pytest.fixture(scope="module")
 def technology_uptake(fleet):
     """
-    Fleet-wide uptake series per technology (the 'Fleet' line of the
-    technology_uptake plot).
+    Fleet-wide uptake series per technology.
+
+    This is the 'Fleet' line of the technology_uptake plot.
     """
     assert fleet.technologies, "Deck validity: the fleet must carry technologies"
 
@@ -99,9 +97,10 @@ class TestNoIncentive:
 
     def test_supply_never_binding(self, manager):
         """
-        Deck validity: supply must be ample so the discrete choice model,
-        not a supply constraint, is what keeps the alternative-fuel shares
-        small (see BEHAVIOR.md, Mechanism isolated).
+        Deck validity: ample supply, so the discrete choice model drives fuel shares.
+
+        It is the choice model, not a supply constraint, that keeps the alternative-fuel
+        shares small (see BEHAVIOR.md, Mechanism isolated).
         """
         for name, producer in manager.nodes.producers.items():
             development = producer.profile.get_development()
@@ -126,9 +125,9 @@ class TestNoIncentive:
 
     def test_global_savings_stable(self, manager):
         """
-        The series of the global_energy_saving plot must all stay at their
-        initial values: with no incentive, nothing should drive additional
-        energy-saving effort.
+        The global_energy_saving series must all stay at their initial values.
+
+        With no incentive, nothing should drive additional energy-saving effort.
         """
         profile = manager.profile
         savings = {
@@ -149,8 +148,10 @@ class TestNoIncentive:
 
     def test_technology_uptake_stable(self, technology_uptake):
         """
-        Fleet-wide uptake of each efficiency technology must stay at its
-        initial value: with no incentive, no additional adoption.
+        Fleet-wide uptake of each technology must stay at its initial value.
+
+        These are the fleet's efficiency technologies; with no incentive, there is no
+        additional adoption.
         """
         for name, uptake in technology_uptake.items():
             drift = np.abs(uptake - uptake[0]).max()
@@ -161,9 +162,10 @@ class TestNoIncentive:
 
     def test_speed_stable(self, fleet):
         """
-        Fleet average speed must stay at its initial value: with no
-        incentive, no persistent speed-up or slow-down. The first step holds
-        no realized speed (NaN), so the baseline is the first computed step.
+        Fleet average speed must stay at its initial value.
+
+        With no incentive, there is no persistent speed-up or slow-down. The first step
+        holds no realized speed (NaN), so the baseline is the first computed step.
         """
         speed = fleet.profile.get_actual_speed()
 

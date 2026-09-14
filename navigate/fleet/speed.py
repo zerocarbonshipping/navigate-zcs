@@ -369,6 +369,7 @@ def _mean_to_speeds(
 ) -> np.ndarray:
     """
     Convert the mean speed into a speed per leg based on the reference speed deltas.
+
     The speeds per leg adheres to the given minimum and maximum speeds.
 
     Parameters
@@ -392,9 +393,9 @@ def _mean_to_speeds(
 
 def _update_mean_speed(mu_ref: float, mu_target: float, maximum_change: float) -> float:
     """
-    Based on the current (reference) mean speed and the target mean speed, update the
-    actual mean speed while accounting for the maximum possible change in either
-    direction.
+    Update the actual mean speed based on the reference and target mean speeds.
+
+    Accounts for the maximum possible change in either direction.
 
     Parameters
     ----------

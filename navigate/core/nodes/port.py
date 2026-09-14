@@ -403,6 +403,7 @@ class Port(Node):
 
     def is_bunkering_allowed(self, fuel_name):
         """
+        Return whether fuel can be bunkered at this port in the current time-step.
 
         Parameters
         ----------

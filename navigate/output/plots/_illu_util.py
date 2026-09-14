@@ -48,15 +48,12 @@ def trim_axes(axes, n):
 
 def get_font_sizes(n):
     """
+    Return (label, legend) font sizes scaled down with the number of axes.
 
     Parameters
     ----------
     n : int
         Number of axes on the figure.
-
-    Returns
-    -------
-
     """
     labels = 25.0
     legend = 25.0

@@ -252,8 +252,9 @@ def calculate_inertia_increments(producer: Producer, time_step, idx):
 
 def calculate_modelled_uptake(producer: Producer) -> np.ndarray:
     """
-    Calculate the relative uptake share of each plant type using a two-axis discrete
-    choice model grouped by fuel pathway.
+    Calculate each plant type's relative uptake share.
+
+    Uses a two-axis discrete choice model grouped by fuel pathway.
 
     Parameters
     ----------

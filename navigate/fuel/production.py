@@ -34,6 +34,7 @@ def calculate_plant_production_expectations(
 ) -> None:
     """
     Calculate all properties related to the production of fuels from a given plant.
+
     Specifically, the levelized cost of fuel, the average emission factor, and the
     amount of input (feedstock or process output) used.
 

@@ -29,6 +29,7 @@ def assign_integer(
     inclusive_upper=True,
 ):
     """
+    Validate an integer assignment against bounds and return it as int.
 
     Parameters
     ----------
@@ -77,9 +78,9 @@ def assign_value(
     inclusive_upper=True,
 ):
     """
-    Check whether the value (float or calculator) assigned to an attribute satisfy the
-    requirements of that attribute. Only applicable to attributes requiring a single
-    value, not lists.
+    Check whether a value assigned to an attribute satisfies its requirements.
+
+    Only applicable to attributes requiring a single value, not lists.
 
     The method assumes that if scalar=False, type_ must not be None (or an empty list).
     No check is made for this as it is an implementation requirement, not a user input
@@ -183,9 +184,9 @@ def assign_list(
     inclusive_upper=True,
 ):
     """
-    Check whether the value (float or calculator) assigned to an attribute satisfy the
-    requirements of that attribute. Only applicable to attributes requiring a list of
-    values.
+    Check whether a value assigned to an attribute satisfies its requirements.
+
+    Only applicable to attributes requiring a list of values.
 
     If the requirements are not satisfied a ValueError is raised. Note that this error
     is only a partial message designed to be caught at a higher level.
@@ -296,9 +297,10 @@ def expand_id_wildcard(pattern: str, id_enum) -> list:
 
 def assign_id_list(assignment, id_enum, length=()):
     """
-    Check whether the ID assigned to an attribute satisfy the requirements of that
-    attribute. Only applicable to attributes requiring a list of values. Supports
-    wildcard patterns which are expanded before the length check.
+    Check whether an assigned ID satisfies an attribute's requirements.
+
+    Only applicable to attributes requiring a list of values. Supports wildcard
+    patterns which are expanded before the length check.
 
     If the requirements are not satisfied a ValueError is raised. Note that this error
     is only a partial message designed to be caught at a higher level.
@@ -331,9 +333,10 @@ def assign_id_list(assignment, id_enum, length=()):
 
 def assign_fraction_list(fractions):
     """
-    Check whether the value (float or calculator) assigned to an attribute satisfy the
-    requirements of that attribute. Only applicable to attributes requiring a list of
-    values. Additionally, requires that the sum of values in the list sum to 1.
+    Check whether a value assigned to an attribute satisfies its requirements.
+
+    Only applicable to attributes requiring a list of values. Additionally, requires
+    that the sum of values in the list sum to 1.
 
     If the requirements are not satisfied a ValueError is raised. Note that this error
     is only a partial message designed to be caught at a higher level.
@@ -373,6 +376,7 @@ def command_assignment_to_dict(
     inclusive_upper=True,
 ):
     """
+    Assign a validated value to each dict entry matching a key pattern.
 
     Parameters
     ----------
@@ -424,6 +428,7 @@ def command_assignment_to_tuple_dict(
     symmetric=False,
 ):
     """
+    Assign a validated value to dict entries keyed by matching tuples.
 
     Parameters
     ----------
@@ -483,6 +488,7 @@ def command_assignment_to_boolean_dict(
     key, assignment, assignment_dict, allow_empty=False
 ):
     """
+    Assign a boolean value to dict keys matching a key pattern.
 
     Parameters
     ----------

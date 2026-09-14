@@ -66,8 +66,9 @@ def producer(manager):
 @pytest.fixture(scope="module")
 def post_window(manager, producer):
     """
-    Post-catch-up steps, with the same tail exclusion as
-    supply_constrained (see BEHAVIOR.md, Known limitations).
+    Post-catch-up steps, with the same tail exclusion as supply_constrained.
+
+    See BEHAVIOR.md, Known limitations.
     """
     end = assertable_end(manager, producer)
     # > +1 because test_surplus_band additionally skips the catch-up step
@@ -108,10 +109,11 @@ class TestSupplyThenDemandConstrained:
 
     def test_demand_met_after_catchup(self, manager, post_window):
         """
-        Supply >= demand is not observable from consumption (the bunker LP
-        caps consumption at available supply): a squeeze shows up as the
-        regulation buying remedial units instead — see BEHAVIOR.md. After
-        catch-up demand must be met, i.e. no remedial units.
+        Supply >= demand is not observable directly from consumption.
+
+        The bunker LP caps consumption at available supply, so a squeeze shows up as the
+        regulation buying remedial units instead — see BEHAVIOR.md. After catch-up,
+        demand must be met, i.e. no remedial units.
         """
         regulation = manager.nodes.regulations["intensity_regulation"]
         remedial = regulation.profile.get_remedial_units()

@@ -30,8 +30,10 @@ PROPULSION, ELECTRICAL, HEAT = (
 
 class Technology(_Machinery):
     """
-    A technology installable on vessels: an energy-efficiency device, an
-    alternative power source, or an emission-reduction measure.
+    Represent a technology installable on vessels.
+
+    It is an energy-efficiency device, an alternative power source, or an
+    emission-reduction measure.
     """
 
     def __init__(self, name):
@@ -77,15 +79,12 @@ class Technology(_Machinery):
     # external methods (DSL commands) --------------------------------------------------
     def set_energy_saving(self, energy_type: str, saving):
         """
+        Set the energy saving for the given energy demand type.
 
         Parameters
         ----------
         energy_type
         saving
-
-        Returns
-        -------
-
         """
         id_ = assign_id(energy_type, EnergyDemandTypeID)
         command_assignment_to_dict(
@@ -94,15 +93,12 @@ class Technology(_Machinery):
 
     def set_external_power(self, energy_type: str, power):
         """
+        Set the external power for the given energy demand type.
 
         Parameters
         ----------
         energy_type
         power
-
-        Returns
-        -------
-
         """
         id_ = assign_id(energy_type, EnergyDemandTypeID)
         command_assignment_to_dict(

@@ -37,8 +37,10 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 
 def default_assumptions_dir() -> Path:
     """
-    Resolve the assumptions directory like the CLI: environment variable
-    first, falling back to the repository checkout containing this test tree.
+    Resolve the assumptions directory the way the CLI does.
+
+    Checks the environment variable first, falling back to the repository checkout
+    containing this test tree.
 
     Returns
     -------
@@ -53,6 +55,7 @@ def default_assumptions_dir() -> Path:
 def make_args(data_dir: Path | None = None) -> argparse.Namespace:
     """
     Build the CLI argument namespace expected by SimulationManager.read_deck.
+
     'solver' is left as None so a deck's BunkerOptions.Solver setting wins.
 
     Parameters
@@ -98,9 +101,10 @@ def run_simulation(sim_dir: Path, data_dir: Path | None = None) -> SimulationMan
 
 def assertable_end(manager: SimulationManager, producer: Producer) -> int:
     """
-    Last time-step index (exclusive) at which producer development is
-    assertable: in the final LeadTime years the foresight window runs past
-    the simulation end and the producer under-builds by construction.
+    Last time-step index (exclusive) at which producer development is assertable.
+
+    In the final LeadTime years the foresight window runs past the simulation end and
+    the producer under-builds by construction.
 
     Parameters
     ----------
@@ -127,8 +131,7 @@ def assertable_end(manager: SimulationManager, producer: Producer) -> int:
 
 def check_invariants(manager: SimulationManager) -> None:
     """
-    Verify universal invariants that must hold for every completed
-    simulation.
+    Verify universal invariants that must hold for every completed simulation.
 
     Parameters
     ----------

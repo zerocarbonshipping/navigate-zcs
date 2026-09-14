@@ -194,7 +194,7 @@ def set_solver_preference(preference: SolverBackendID):
 
 
 def get_active_backend():
-    """Return ``\"gurobi\"`` or ``\"highs\"`` for the currently active backend."""
+    """Return ``"gurobi"`` or ``"highs"`` for the currently active backend."""
     return _active_backend
 
 

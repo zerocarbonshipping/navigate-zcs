@@ -80,8 +80,9 @@ class TestTruncateTransform:
 
 class TestBoundApplication:
     """
-    Applied bounds tighten: applied_lower = max(external, internal),
-    applied_upper = min(external, internal).
+    Applied bounds tighten to the tighter of the external and internal bounds.
+
+    applied_lower = max(external, internal), applied_upper = min(external, internal).
     Truncate then clamps: output = max(min(value, upper), lower).
     """
 
