@@ -311,9 +311,9 @@ def perform_fixed_trade_scrapping(fleet: Fleet, trade_gap: float, idx: int):
 
 def clean_up_multipliers(fleet: Fleet):
     """
-    The CPU time of the simulation is adversely affected by the number of increments per
-    vessel type. In order to reduce the CPU time, increments are merged if they are
-    similar and/or removed if they fall below a certain threshold.
+    Merge increments that are similar and/or remove those that fall below a certain
+    threshold. The CPU time of the simulation is adversely affected by the number of
+    increments per vessel type; this clean-up reduces it.
     """
     # merge multipliers with same age and initial time-step entry size
     for v in range(len(fleet.assets)):
@@ -372,7 +372,7 @@ def calculate_evolution_expectation(
     fleet: Fleet, timeline: np.ndarray, idx: int
 ) -> None:
     """
-    Calculates the expected evolution of multipliers based on vessel scrapping,
+    Calculate the expected evolution of multipliers based on vessel scrapping,
     uptake patterns, and trade gaps within a given timeline.
 
     This function computes future multiplier baselines for existing vessels by

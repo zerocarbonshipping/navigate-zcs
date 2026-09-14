@@ -247,7 +247,7 @@ class BunkerAlgorithm:
         output_directory: str | None = None,
     ) -> None:
         """
-        This method initializes an instance of BunkerAlgorithm.
+        Initialize a BunkerAlgorithm instance.
         The method is only called once, namely when the FT simulation is initialized.
 
         Parameters

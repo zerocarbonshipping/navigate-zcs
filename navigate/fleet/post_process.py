@@ -361,7 +361,7 @@ def _aggregate_fleet_freight_rate(fleet, timeline):
 
 def _calculate_total_vessel_operating_expenses(vessel, idx, timeline):
     """
-    Assigns the fuel, levy, regulation, and technology expenses for a vessel in the
+    Assign the fuel, levy, regulation, and technology expenses for a vessel in the
     fleet at a given time of the simulation.
 
     Parameters

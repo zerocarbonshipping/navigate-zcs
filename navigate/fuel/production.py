@@ -29,7 +29,7 @@ def calculate_plant_production_expectations(
     plant: Plant, emissions: dict[str, Emission], timeline: np.ndarray, idx: int
 ) -> None:
     """
-    Calculates all properties related to the production of fuels from a given plant.
+    Calculate all properties related to the production of fuels from a given plant.
     Specifically, the levelized cost of fuel, the average emission factor, and the
     amount of input (feedstock or process output) used.
 
@@ -136,7 +136,7 @@ def calculate_plant_production_expectations(
 
 def _calculate_unit_properties(component: Component, plant: Plant, idx: int) -> None:
     """
-    Aggregates cost and emissions flows into unit metrics for the plant at a time-step.
+    Aggregate cost and emissions flows into unit metrics for the plant at a time-step.
 
     The function builds a production flow for the current time-step and computes (i) the
     levelized cost of production using the plant's discount rate and (ii) the average
@@ -185,7 +185,7 @@ def _calculate_unit_properties(component: Component, plant: Plant, idx: int) -> 
 
 def _calculate_plant_production(plant: Plant, timeline: np.ndarray, idx: int) -> None:
     """
-    Computes future production primitives (lifetime, lead time, capacity, production).
+    Compute future production primitives (lifetime, lead time, capacity, production).
 
     Capacity is derived from nameplate size (tons/day) and scaled to tons/year. Actual
     production accounts for uptime.
@@ -356,7 +356,7 @@ def _initialize_process_component(
     idx: int,
 ) -> Component:
     """
-    Creates and initializes the aggregation `Component` for a plant at a start time.
+    Create and initialize the aggregation `Component` for a plant at a start time.
 
     The component is prepared with:
     • Flow containers sized to the plant's lead time and lifetime at the current index.
@@ -408,7 +408,7 @@ def _calculate_process_cost(
     idx: int,
 ) -> None:
     """
-    Adds process capital and fixed operating costs to the component's cost flow.
+    Add process capital and fixed operating costs to the component's cost flow.
 
     CAPEX/OPEX are evaluated via region lookups as functions of time and effective
     scale. Scale combines the plant's size (tons/day) and the cumulative conversion
@@ -458,7 +458,7 @@ def _calculate_process_emissions(
     conversion: float,
 ) -> None:
     """
-    Adds process-related WTT emissions as fixed flows over the operating horizon.
+    Add process-related WTT emissions as fixed flows over the operating horizon.
 
     Emission factors are retrieved per species for the given process and multiplied by
     production and the current conversion factor. These are recorded as fixed WTT flows
@@ -502,7 +502,7 @@ def _calculate_energy_cost(
     conversion: float,
 ) -> None:
     """
-    Adds energy costs for powering the process (standalone vs. connected sources).
+    Add energy costs for powering the process (standalone vs. connected sources).
 
     For standalone sources, CAPEX and fixed OPEX are proportional to the process energy
     demand at construction and operation times. For connected sources, energy demand is
@@ -570,7 +570,7 @@ def _calculate_energy_emissions(
     conversion: float,
 ) -> None:
     """
-    Adds energy-related WTT emissions for the process, respecting source dependency.
+    Add energy-related WTT emissions for the process, respecting source dependency.
 
     For standalone sources, emissions are treated as fixed flows tied to the energy
     consumed at construction and operation times. For connected sources, emissions
@@ -643,7 +643,7 @@ def _calculate_feedstock_cost(
     conversion: float,
 ) -> None:
     """
-    Adds variable OPEX for feedstock (or intermediate output) consumed by the process.
+    Add variable OPEX for feedstock (or intermediate output) consumed by the process.
 
     The unit feedstock price is looked up per time and multiplied by annual production.
     A dummy metric equal to the conversion factor is used to express that total cost
@@ -682,7 +682,7 @@ def _calculate_feedstock_emissions(
     conversion: float,
 ) -> None:
     """
-    Adds variable WTT emissions associated with acquiring and using a feedstock.
+    Add variable WTT emissions associated with acquiring and using a feedstock.
 
     Emission factors are retrieved per emission for the feedstock and multiplied by
     annual production. A dummy metric equal to the conversion factor scales emissions to
@@ -725,7 +725,7 @@ def _calculate_transport_cost(
     conversion: float,
 ) -> None:
     """
-    Adds variable OPEX for transporting feedstocks or process outputs, if configured.
+    Add variable OPEX for transporting feedstocks or process outputs, if configured.
 
     Transport cost is computed from distance, regional transport unit cost, and annual
     production. If no transport is configured for the given input/output, the routine
@@ -778,7 +778,7 @@ def _calculate_transport_emissions(
     conversion: float,
 ) -> None:
     """
-    Adds variable WTT emissions from transport, if a transport mode is configured.
+    Add variable WTT emissions from transport, if a transport mode is configured.
 
     Emissions are determined by regional transport emission factors per distance,
     multiplied by the distance traveled and annual production. When no transport

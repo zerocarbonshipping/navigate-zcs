@@ -44,7 +44,7 @@ def _timedelta_to_years(delta):
 
 def dates_to_days(dates):
     """
-    Converts a numpy date array to an array of days.
+    Convert a numpy date array to an array of days.
 
     Parameters
     ----------
@@ -61,7 +61,7 @@ def dates_to_days(dates):
 
 def dates_to_years(dates):
     """
-    Converts a numpy date array to an array of days.
+    Convert a numpy date array to an array of years.
 
     Parameters
     ----------
@@ -71,7 +71,7 @@ def dates_to_years(dates):
     Returns
     -------
     np.ndarray
-        Array of days in numpy float64 format.
+        Array of years in numpy float64 format.
     """
     return _timedelta_to_years(dates - dates[0])
 

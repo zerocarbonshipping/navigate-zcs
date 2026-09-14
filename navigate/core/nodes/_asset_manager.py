@@ -144,8 +144,8 @@ class _AssetManager(Node):
 
     def _adjust_lifetime_for_age(self, lifetime: float) -> float:
         """
-        Hook for subclasses to adjust the perceived lifetime used in initial age
-        discretization. Fleet overrides this to account for fixed scrap rates.
+        Adjust the perceived lifetime used in initial age discretization.
+        Subclass hook: Fleet overrides this to account for fixed scrap rates.
         """
         return lifetime
 
