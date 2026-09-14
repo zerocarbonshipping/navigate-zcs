@@ -98,7 +98,7 @@ class _StubVessel:
 
 
 def _make_vessel(**overrides) -> _StubVessel:
-    """A one-leg, one-port vessel with 10 MW converters at half load everywhere."""
+    """Build a one-leg, one-port vessel, 10 MW converters at half load everywhere."""
     half_load = 5.0 * 10.0 * MWD_TO_GJ
 
     defaults = dict(

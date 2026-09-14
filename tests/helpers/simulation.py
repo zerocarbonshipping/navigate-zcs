@@ -35,7 +35,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 
 def default_assumptions_dir() -> Path:
     """
-    Resolves the assumptions directory like the CLI: environment variable
+    Resolve the assumptions directory like the CLI: environment variable
     first, falling back to the repository checkout containing this test tree.
 
     Returns
@@ -50,7 +50,7 @@ def default_assumptions_dir() -> Path:
 
 def make_args(data_dir: Path | None = None) -> argparse.Namespace:
     """
-    Builds the CLI argument namespace expected by SimulationManager.read_deck.
+    Build the CLI argument namespace expected by SimulationManager.read_deck.
     'solver' is left as None so a deck's BunkerOptions.Solver setting wins.
 
     Parameters
@@ -71,7 +71,7 @@ def make_args(data_dir: Path | None = None) -> argparse.Namespace:
 
 def run_simulation(sim_dir: Path, data_dir: Path | None = None) -> SimulationManager:
     """
-    Parses and runs the deck '<sim_dir>/<sim_dir.name>.nav'.
+    Parse and run the deck '<sim_dir>/<sim_dir.name>.nav'.
 
     Parameters
     ----------
@@ -140,7 +140,7 @@ def assertable_end(manager: SimulationManager, producer: Producer) -> int:
 
 def check_invariants(manager: SimulationManager) -> None:
     """
-    Verifies universal invariants that must hold for every completed
+    Verify universal invariants that must hold for every completed
     simulation.
 
     Parameters

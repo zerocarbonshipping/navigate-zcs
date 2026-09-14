@@ -326,9 +326,10 @@ def _align_export_with_bunkering_limits(
     idx: int | slice,
 ) -> None:
     """
-    The bunkering of a certain fuel in given port may be limited by the port. In that
-    case no more fuel than can be bunkered should be exported to that port and the
-    surplus distributed to the other ports.
+    Align exports with port bunkering limits: the bunkering of a certain fuel in a
+    given port may be limited by the port; in that case no more fuel than can be
+    bunkered should be exported to that port and the surplus distributed to the
+    other ports.
 
     TODO: This method surely must break with the export distribution assigned on the
     producer. May be acceptable.

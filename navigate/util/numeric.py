@@ -72,7 +72,7 @@ def _to_value(scalar, x=None, y=None):
 
 def is_strictly_increasing(x):
     """
-    Testing by use of np.any as it is faster than np.all.
+    Test whether x is strictly increasing via np.any, which is faster than np.all.
 
     Parameters
     ----------
@@ -89,7 +89,7 @@ def is_strictly_increasing(x):
 
 def is_non_strictly_increasing(x):
     """
-    Testing by use of np.any as it is faster than np.all.
+    Test whether x is non-strictly increasing via np.any, which is faster than np.all.
 
     Parameters
     ----------
@@ -214,6 +214,8 @@ def get_increment_origin_index(years, current_year, age):
 
 def find_nearest(array, values):
     """
+    Find the index of the entry in 'array' nearest to each of 'values'.
+
     Reference: https://stackoverflow.com/questions/2566412/find-nearest-value-in-numpy-array
     Answer by "anthonybell".
 
@@ -343,7 +345,7 @@ def calculate_inertia(inertia, time_step):
 
 def calculate_compound_growth(initial, growth, timeline):
     """
-    Calculates the continuous compound growth of a property.
+    Calculate the continuous compound growth of a property.
     The formula assumes that the growth is forward-looking, meaning that the growth at
     index t is applied over the time-step from t to t+1.
 

@@ -376,7 +376,7 @@ def sum_dict_results(result, key=None, idx=None, n=None):
 
 def sum_tuple_dict_results(result, key1=None, key2=None, idx=None, n=None):
     """
-    Sums the results from a tuple dict.
+    Sum the results from a tuple dict.
 
     If both keys are given the value is returned directly.
     If the first key is given, but not the second, it returns the sum of values for
@@ -433,7 +433,7 @@ def sum_tuple_dict_results(result, key1=None, key2=None, idx=None, n=None):
 
 def collapse_dict(result, key=False, idx=None, n=None):
     """
-    Combines extract_from_dict and sum_dict_results by collapsing all arrays over the
+    Combine extract_from_dict and sum_dict_results by collapsing all arrays over the
     undefined key instead of creating a subdict.
 
     Parameters
@@ -463,7 +463,7 @@ def collapse_dict(result, key=False, idx=None, n=None):
 
 def collapse_tuple_dict(result, key1=False, key2=False, idx=None, n=None):
     """
-    Combines extract_from_tuple_dict and sum_tuple_dict_results by collapsing all arrays
+    Combine extract_from_tuple_dict and sum_tuple_dict_results by collapsing all arrays
     over the undefined key instead of creating a subdict.
 
     Parameters

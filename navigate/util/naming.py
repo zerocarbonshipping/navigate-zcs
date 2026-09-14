@@ -77,7 +77,7 @@ def matching_keys(key, allowed_keys, key_fn=None):
 
 def attribute_to_setter(attribute, method="set"):
     """
-    Converts attributes read by the Parser from the input deck in format:
+    Convert attributes read by the Parser from the input deck in format:
         AbcdEfgh
     to internal setter method format:
         <method>_abcd_efgh
@@ -109,7 +109,7 @@ def attribute_to_setter(attribute, method="set"):
 
 def attribute_to_instance_name(attribute):
     """
-    Converts a DSL attribute name (e.g. 'LowerHeatingValue') to the snake_case
+    Convert a DSL attribute name (e.g. 'LowerHeatingValue') to the snake_case
     instance-attribute name its setter assigns (e.g. 'lower_heating_value').
 
     Parameters
@@ -151,7 +151,7 @@ def name_contains_wildcards(name):
 
 def wildcard_to_regex(word):
     """
-    Converts a limited selection of Windows wildcards to a python regular expression.
+    Convert a limited selection of Windows wildcards to a python regular expression.
 
     Examples
     --------

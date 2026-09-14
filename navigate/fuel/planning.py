@@ -310,7 +310,7 @@ def calculate_constrained_uptakes(
     producer: Producer, uptakes, development, limits, idx, additional_consumption=None
 ):
     """
-    Iteratively constrain uptake shares to respect feed availability.
+    Constrain uptake shares iteratively to respect feed availability.
 
     Parameters
     ----------

@@ -32,7 +32,7 @@ def as_scalar(value):
 
 def as_scalar_list(values):
     """
-    Wraps all values in a list as Scalars if floats. See 'as_scalar' for details.
+    Wrap all values in a list as Scalars if floats. See 'as_scalar' for details.
 
     Parameters
     ----------

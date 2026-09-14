@@ -52,7 +52,7 @@ def write_report(
     dateline: np.ndarray,
 ) -> None:
     """
-    Writes one report node's requested properties to an XLSX or CSV file. Failures are
+    Write one report node's requested properties to an XLSX or CSV file. Failures are
     contained per layer: a failed sheet is logged and skipped so the remaining sheets
     still export, and a failed save aborts only this report.
 
@@ -147,7 +147,7 @@ def write_xlsx_report(
     dateline: np.ndarray,
 ) -> None:
     """
-    Saves the workbook, retrying alternative filenames while the target file is locked.
+    Save the workbook, retrying alternative filenames while the target file is locked.
 
     Parameters
     ----------
@@ -198,7 +198,7 @@ def write_csv_report(
     dateline: np.ndarray,
 ) -> None:
     """
-    Writes one CSV per sheet, retrying alternative filenames while the target is locked.
+    Write one CSV per sheet, retrying alternative filenames while the target is locked.
 
     Parameters
     ----------
@@ -268,7 +268,7 @@ def export_properties_xlsx(
     report_name: str,
 ) -> None:
     """
-    Writes the requested properties of the given nodes into a worksheet.
+    Write the requested properties of the given nodes into a worksheet.
 
     Parameters
     ----------
@@ -344,7 +344,7 @@ def _extract_properties(
     report_name: str,
 ):
     """
-    Yields (attribute, property) pairs from the node profile, with reductions applied.
+    Yield (attribute, property) pairs from the node profile, with reductions applied.
 
     Parameters
     ----------
@@ -524,7 +524,7 @@ def _export_dict(
     ws: Worksheet, attribute: str, property_: dict, col: int, nested_dict: bool = False
 ) -> int:
     """
-    Writes a dict property into worksheet columns, recursing into nested dicts.
+    Write a dict property into worksheet columns, recursing into nested dicts.
 
     Parameters
     ----------

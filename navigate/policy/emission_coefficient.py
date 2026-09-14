@@ -74,7 +74,7 @@ def _assign_regulation_emission_factors(
     idx: int,
 ) -> None:
     """
-    Calculates and assigns the WTT and TTW emission factors related to a regulation.
+    Calculate and assign the WTT and TTW emission factors related to a regulation.
 
     Parameters
     ----------
@@ -108,7 +108,7 @@ def _assign_regulation_wtt_factors(
     idx: int,
 ) -> None:
     """
-    Calculates and assigns the WTT emission factors related to a given regulation.
+    Calculate and assign the WTT emission factors related to a given regulation.
 
     Parameters
     ----------
@@ -176,7 +176,7 @@ def _assign_regulation_ttw_factors(
     regulation: Regulation, vessels: dict[str, Vessel], timeline: np.ndarray, idx: int
 ) -> None:
     """
-    Calculates and assigns the TTW emission factors related to a given regulation.
+    Calculate and assign the TTW emission factors related to a given regulation.
 
     Parameters
     ----------
@@ -243,7 +243,7 @@ def _assign_regulation_emission_coefficients(
     idx: int,
 ) -> None:
     """
-    Calculates and assigns the emission coefficients related to a given regulation.
+    Calculate and assign the emission coefficients related to a given regulation.
 
     Parameters
     ----------
@@ -343,7 +343,7 @@ def _assign_levy_emission_factors(
     idx: int,
 ) -> None:
     """
-    Calculates and assigns the WTT and TTW emission factors related to a given levy.
+    Calculate and assign the WTT and TTW emission factors related to a given levy.
 
     Parameters
     ----------
@@ -373,7 +373,7 @@ def _assign_levy_wtt_factors(
     levy: Levy, bunker_scope: BunkerScopeID, timeline: np.ndarray, idx: int
 ) -> None:
     """
-    Calculates and assigns the WTT emission factor related to a given levy.
+    Calculate and assign the WTT emission factor related to a given levy.
 
     Parameters
     ----------
@@ -427,7 +427,7 @@ def _assign_levy_ttw_factors(
     levy: Levy, vessels: dict[str, Vessel], timeline: np.ndarray, idx: int
 ) -> None:
     """
-    Calculates and assigns the TTW emission factors related to a given levy.
+    Calculate and assign the TTW emission factors related to a given levy.
 
     Parameters
     ----------
@@ -481,7 +481,7 @@ def _assign_levy_emission_coefficients(
     levy: Levy, vessels: dict[str, Vessel], bunker_scope: BunkerScopeID, idx: int
 ) -> None:
     """
-    Calculates and assigns the emission coefficients related to a given levy.
+    Calculate and assign the emission coefficients related to a given levy.
 
     Parameters
     ----------
@@ -793,8 +793,8 @@ def _calculate_emission_factor(
     idx: int,
 ) -> np.ndarray:
     """
-    Generic method used for calculating the emission factor (from pre-defined WTT and
-    TTW emission factors) for both levies and regulations.
+    Calculate the emission factor (from pre-defined WTT and TTW emission factors)
+    for both levies and regulations.
 
     Parameters
     ----------
