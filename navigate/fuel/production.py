@@ -6,6 +6,7 @@ from __future__ import annotations
 import numpy as np
 
 from navigate.core.enum_ import SourceDependencyID
+from navigate.core.node_type import is_feedstock, is_process
 from navigate.core.nodes.emission import Emission
 from navigate.core.nodes.feedstock import Feedstock
 from navigate.core.nodes.plant import Plant
@@ -287,7 +288,7 @@ def _calculate_recursive_process(
         # extend the recursive conversion factor
         conversion_feed = conversion * feed_conversion.get(component.time_initial)
 
-        if feed.is_feedstock():
+        if is_feedstock(feed):
             # if the feed is of type feedstock and not
             # a process, then the end of the recursive
             # tree is met in this direction
@@ -313,7 +314,7 @@ def _calculate_recursive_process(
                 component, plant, feed, emissions, region, production, conversion_feed
             )
 
-        elif feed.is_process():
+        elif is_process(feed):
             # if the feed is of type process,
             # continue traversing the recursive
             # process tree

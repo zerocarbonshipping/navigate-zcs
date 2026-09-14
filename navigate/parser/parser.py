@@ -17,6 +17,7 @@ from navigate.core.general_nodes.bunker_options import BunkerOptions
 from navigate.core.node import Node
 from navigate.core.node_reference import WildcardNodeReference
 from navigate.core.node_registry import GeneralNodes, Nodes
+from navigate.core.node_type import is_calculator
 from navigate.exceptions import (
     AttributeAssignmentError,
     CommandError,
@@ -1316,7 +1317,7 @@ class Parser:
             node = group[name]
             default = True
 
-        if node.is_calculator():
+        if is_calculator(node):
             node.transfer_internal_bounds(reference)
 
         return node, default

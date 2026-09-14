@@ -7,6 +7,7 @@ import numpy as np
 
 from navigate.core import Scalar
 from navigate.core.enum_ import EnergyDemandTypeID, EnergyDemandTypePortID
+from navigate.core.node_type import is_surface, is_variable
 from navigate.core.nodes.converter import Converter
 from navigate.core.nodes.curve import Curve
 from navigate.core.nodes.surface import Surface
@@ -67,7 +68,7 @@ def calculate_technical_speed_limits(vessel: Vessel) -> tuple[np.ndarray, np.nda
     """
     load = vessel.propulsion_load
 
-    if isinstance(load, Scalar) or load.is_variable():
+    if isinstance(load, Scalar) or is_variable(load):
         return -np.inf, np.inf
 
     # must per definition be Curve or Surface
@@ -259,7 +260,7 @@ def _calculate_speed_extremum(
     float | list[float]
         The speed(s) at which the power is reached.
     """
-    if load.is_surface():
+    if is_surface(load):
         utilization = to_numpy(vessel.route.capacity_utilizations)
         speed = load.reverse_lookup(power, y=utilization, interpolate=True)
     else:
@@ -282,7 +283,7 @@ def _load_is_convex(load: Scalar | Variable | Curve | Surface) -> bool:
     bool
         Whether the load level is based on a convex function.
     """
-    if isinstance(load, Scalar) or load.is_variable():
+    if isinstance(load, Scalar) or is_variable(load):
         return True
 
     # must per definition be Curve or Surface
