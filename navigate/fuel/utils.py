@@ -151,9 +151,9 @@ def get_plant_evaluation_timeline(plant, timeline, idx):
 
 def calculate_constrained_shares(shares, maximums):
     """
-    This methods takes the optimal allocation from a discrete choice model and
-    redistributes the shares between the options if certain allocations are larger than
-    their maximum allowed share.
+    Take the optimal allocation from a discrete choice model and redistribute the
+    shares between the options if certain allocations are larger than their maximum
+    allowed share.
 
     Notice that this method redistributes the surplus from constrained shares to the
     other shares proportionally to the deficit of each share. Meaning the bigger the gap

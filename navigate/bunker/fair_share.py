@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 def perform_fair_share_iteration(alg: BunkerAlgorithm) -> bool:
     """
-    Performs one iteration of the fair share algorithm.
+    Perform one iteration of the fair share algorithm.
 
     Parameters
     ----------
@@ -92,9 +92,10 @@ def run_fair_share_solve(alg: BunkerAlgorithm) -> tuple[int, bool]:
 
 def perform_flexibility_unit_cost_evaluation(alg: BunkerAlgorithm) -> None:
     """
-    The flexibility unit cost is given by the cost of carbon, whether that is defined by
-    the price ceiling (remedial unit cost) or the cheapest compliant fuel available at
-    scale. This value is defined by the shadow price of the threshold constraint.
+    Evaluate the flexibility unit cost as the shadow price of each regulation's
+    threshold constraint. The unit cost is the cost of carbon, whether that is
+    defined by the price ceiling (remedial unit cost) or the cheapest compliant
+    fuel available at scale.
 
     Parameters
     ----------
@@ -107,7 +108,7 @@ def perform_flexibility_unit_cost_evaluation(alg: BunkerAlgorithm) -> None:
 
 def initialize_fair_share_allocation(alg: BunkerAlgorithm) -> None:
     """
-    Initializes fair-share allocation variables and containers.
+    Initialize fair-share allocation variables and containers.
 
     Parameters
     ----------
@@ -168,7 +169,7 @@ def initialize_fair_share_allocation(alg: BunkerAlgorithm) -> None:
 
 def update_fair_share_constraints(alg: BunkerAlgorithm) -> None:
     """
-    Updates the constraints for fair-share allocation of resources.
+    Update the constraints for fair-share allocation of resources.
 
     Parameters
     ----------
@@ -189,7 +190,7 @@ def update_fair_share_constraints(alg: BunkerAlgorithm) -> None:
 
 def update_fair_share_allocation(alg: BunkerAlgorithm) -> None:
     """
-    Updates the allocation of bunker fuel for each vessel at specific ports according to
+    Update the allocation of bunker fuel for each vessel at specific ports according to
     the fair-share principle. Uses a two-pass approach:
 
     Pass 1: Classify each vessel-port-fuel as bounded (wants more fuel) or unbounded
@@ -307,7 +308,7 @@ def update_fair_share_allocation(alg: BunkerAlgorithm) -> None:
 
 def update_fair_share_solution(alg: BunkerAlgorithm) -> None:
     """
-    Updates the fair share solution values for the internal state.
+    Update the fair share solution values for the internal state.
 
     Parameters
     ----------

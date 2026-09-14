@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 def generate_plots(plot, plot_data):
     """
-    Renders the plots requested by one Plot node from exported plot data.
+    Render the plots requested by one Plot node from exported plot data.
 
     Parameters
     ----------

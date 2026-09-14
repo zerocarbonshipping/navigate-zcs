@@ -214,7 +214,7 @@ class Expression:
 
     def reference_strings(self):
         """
-        The node reference strings in the expression text, extracted without
+        Extract the node reference strings from the expression text without
         touching this instance's state. A text that does not parse yields
         none; the error surfaces when the expression is initialized for real.
 
