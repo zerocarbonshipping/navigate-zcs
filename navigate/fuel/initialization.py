@@ -7,8 +7,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import numpy as np
-
 from navigate.fuel.evolution import (
     calculate_evolution_expectation,
     calculate_feed_availability,
@@ -16,6 +14,8 @@ from navigate.fuel.evolution import (
 )
 
 if TYPE_CHECKING:
+    import numpy as np
+
     from navigate.core.nodes.producer import Producer
 
 

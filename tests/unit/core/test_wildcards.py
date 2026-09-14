@@ -37,7 +37,7 @@ class TestExpandIdWildcard:
         assert result == [FuelTypeID.OIL]
 
     def test_no_match_raises(self):
-        with pytest.raises(ValueError, match="wildcard.*did not match"):
+        with pytest.raises(ValueError, match=r"wildcard.*did not match"):
             expand_id_wildcard("Z*", FuelTypeID)
 
     def test_exact_name_matches_single(self):
@@ -105,7 +105,7 @@ class TestRetrieveKeysEnum:
 
 class TestMatchingKeys:
     @pytest.mark.parametrize(
-        "pattern, keys, expected",
+        ("pattern", "keys", "expected"),
         [
             ("a", {"a": 1, "b": 2}, {"a"}),
             ("a*", {"a1": 1, "a2": 2, "b": 3}, {"a1", "a2"}),

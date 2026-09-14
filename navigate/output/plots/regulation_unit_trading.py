@@ -21,7 +21,7 @@ def plot_regulation_unit_trading(manager, directory):
     regulations = manager.nodes.regulations
 
     for regulation_name, regulation in regulations.items():
-        if not regulation.scheme == RegulationSchemeID.FLEXIBLE:
+        if regulation.scheme != RegulationSchemeID.FLEXIBLE:
             continue
 
         fig, ax = single_panel()

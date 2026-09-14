@@ -4,15 +4,18 @@
 from __future__ import annotations
 
 import logging
+from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.enum_ import EnergyDemandTypeID, EnergyDemandTypePortID
-from navigate.core.nodes.vessel import Vessel
 from navigate.fleet.operation import convert_to_regional_steps
-from navigate.fleet.package import Package
 from navigate.fleet.residual_energy import calculate_residual_energy
 from navigate.util import TOLERANCE
+
+if TYPE_CHECKING:
+    from navigate.core.enum_ import EnergyDemandTypeID, EnergyDemandTypePortID
+    from navigate.core.nodes.vessel import Vessel
+    from navigate.fleet.package import Package
 
 logger = logging.getLogger(__name__)
 

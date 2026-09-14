@@ -3,13 +3,17 @@
 
 from __future__ import annotations
 
-import numpy as np
+from typing import TYPE_CHECKING
 
-from navigate.core.nodes.emission import Emission
-from navigate.core.nodes.plant import Plant
-from navigate.core.nodes.port import Port
 from navigate.economics.flows import build_operating_flows
 from navigate.economics.metric import calculate_levelized_cost
+
+if TYPE_CHECKING:
+    import numpy as np
+
+    from navigate.core.nodes.emission import Emission
+    from navigate.core.nodes.plant import Plant
+    from navigate.core.nodes.port import Port
 
 
 def calculate_plant_logistics_expectations(

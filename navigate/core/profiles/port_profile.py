@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -14,6 +13,8 @@ from navigate.core.profiles._infrastructure_aggregate_profile import (
 from navigate.util import extract_from_dict, extract_from_tuple_dict
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
 

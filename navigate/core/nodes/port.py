@@ -6,8 +6,6 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-import numpy as np
-
 from navigate.core import (
     Scalar,
     as_scalar,
@@ -23,6 +21,8 @@ from navigate.core.profiles import PortProfile
 from navigate.core.unit import MWH_TO_GJ
 
 if TYPE_CHECKING:
+    import numpy as np
+
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
 

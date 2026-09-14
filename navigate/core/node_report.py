@@ -8,8 +8,12 @@ navigate.output.report_writer.
 
 from __future__ import annotations
 
-from navigate.core.enum_ import ReportReduceID
+from typing import TYPE_CHECKING
+
 from navigate.util import attribute_to_setter
+
+if TYPE_CHECKING:
+    from navigate.core.enum_ import ReportReduceID
 
 
 class NodeReport:

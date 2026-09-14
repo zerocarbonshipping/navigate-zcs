@@ -4,9 +4,8 @@
 from __future__ import annotations
 
 import inspect
-from collections.abc import Iterable
-from enum import Enum
 from itertools import product
+from typing import TYPE_CHECKING
 
 from navigate.core.assign import expand_id_wildcard
 from navigate.core.enum_ import EnergyDemandTypeID, FuelTypeID
@@ -41,6 +40,10 @@ from navigate.core.node_type import (
 from navigate.exceptions import CommandError
 from navigate.parser._keywords import SECTION_BOTH, SECTION_DEFINE, SECTION_NAME
 from navigate.util import name_contains_wildcards
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
+    from enum import Enum
 
 # Per-command wildcard domains. Tuple indices correspond to the method's
 # string arguments (excluding self). ``None`` means the argument is a

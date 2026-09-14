@@ -13,11 +13,11 @@ import logging
 from typing import TYPE_CHECKING
 
 from navigate.core.enum_ import FuelTypeID
-from navigate.core.nodes.vessel import Vessel
 from navigate.util import unique_list
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fuel import Fuel
+    from navigate.core.nodes.vessel import Vessel
 
 logger = logging.getLogger(__name__)
 
@@ -161,18 +161,17 @@ def determine_usable_fuel_types(vessel: Vessel) -> None:
         pilot_fuel_types = converter.pilot_fuel_types
 
         if converter.is_dual_fuel():
-            if converter.minimum_pilot_fuel.get() > 0.0:
-                if not any(
-                    fuel_type in tank_fuel_types for fuel_type in pilot_fuel_types
-                ):
-                    raise ValueError(
-                        "{}: Missing a tank which can store fuel of"
-                        " type(s) {} required as pilot fuel for {}.".format(
-                            vessel,
-                            ", ".join(FuelTypeID(f).name for f in pilot_fuel_types),
-                            converter,
-                        )
+            if converter.minimum_pilot_fuel.get() > 0.0 and not any(
+                fuel_type in tank_fuel_types for fuel_type in pilot_fuel_types
+            ):
+                raise ValueError(
+                    "{}: Missing a tank which can store fuel of"
+                    " type(s) {} required as pilot fuel for {}.".format(
+                        vessel,
+                        ", ".join(FuelTypeID(f).name for f in pilot_fuel_types),
+                        converter,
                     )
+                )
 
         else:
             if not any(fuel_type in tank_fuel_types for fuel_type in main_fuel_types):

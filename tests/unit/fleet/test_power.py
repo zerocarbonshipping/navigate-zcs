@@ -101,24 +101,24 @@ def _make_vessel(**overrides) -> _StubVessel:
     """Build a one-leg, one-port vessel, 10 MW converters at half load everywhere."""
     half_load = 5.0 * 10.0 * MWD_TO_GJ
 
-    defaults = dict(
-        capacities={PROPULSION: 10.0, ELECTRICAL: 10.0, HEAT: 10.0},
-        energies_sea={
+    defaults = {
+        "capacities": {PROPULSION: 10.0, ELECTRICAL: 10.0, HEAT: 10.0},
+        "energies_sea": {
             PROPULSION: [half_load],
             ELECTRICAL: [half_load],
             HEAT: [half_load],
         },
-        times_sea=[10.0],
-        energies_port={ELECTRICAL: [half_load], HEAT: [half_load]},
-        times_port=[10.0],
-    )
+        "times_sea": [10.0],
+        "energies_port": {ELECTRICAL: [half_load], HEAT: [half_load]},
+        "times_port": [10.0],
+    }
     defaults.update(overrides)
     return _StubVessel(**defaults)
 
 
 class TestVerifyPowerCapacity:
     @pytest.mark.parametrize(
-        "load_factor, raises",
+        ("load_factor", "raises"),
         [
             # a load equal to the installed power is feasible, not a violation
             pytest.param(1.0, False, id="exactly_at_capacity"),
@@ -163,7 +163,7 @@ class TestVerifyPowerCapacity:
         assert "10.00 MW" in message
 
     @pytest.mark.parametrize(
-        "demand_type, message",
+        ("demand_type", "message"),
         [
             pytest.param(HEAT, "heat demand on port 0", id="heat"),
             pytest.param(ELECTRICAL, "electrical demand on port 0", id="electrical"),

@@ -105,8 +105,15 @@ class TestShoreRegulationCoefficient:
         return algo, (v, 0, r)
 
     @pytest.mark.parametrize(
-        "measure, shore_ef, gwp, threshold, has_shore_power, "
-        "expected_ef, expected_coeff",
+        (
+            "measure",
+            "shore_ef",
+            "gwp",
+            "threshold",
+            "has_shore_power",
+            "expected_ef",
+            "expected_coeff",
+        ),
         [
             # ABSOLUTE: coefficient equals the emission factor, no threshold subtraction
             pytest.param(

@@ -46,7 +46,7 @@ def _initialized(expression_text):
 
 class TestArithmetic:
     @pytest.mark.parametrize(
-        "text, expected",
+        ("text", "expected"),
         [
             ("3", 3.0),
             ("0.11", 0.11),
@@ -190,7 +190,7 @@ class TestRejectedSyntax:
         assert not (tmp_path / "marker").exists()
 
     @pytest.mark.parametrize(
-        "text, exception, match",
+        ("text", "exception", "match"),
         [
             ("open('f', 'w')", ValueError, "not a valid node reference"),
             ('Forecast("x").__class__', ValueError, "unsupported syntax"),

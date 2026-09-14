@@ -3,15 +3,9 @@
 
 from __future__ import annotations
 
-import numpy as np
+from typing import TYPE_CHECKING
 
 from navigate.core.enum_ import SourceDependencyID
-from navigate.core.nodes.emission import Emission
-from navigate.core.nodes.feedstock import Feedstock
-from navigate.core.nodes.plant import Plant
-from navigate.core.nodes.process import Process
-from navigate.core.nodes.region import Region
-from navigate.core.nodes.source import Source
 from navigate.economics.flows import (
     Component,
     add_capex_flow,
@@ -23,6 +17,16 @@ from navigate.economics.flows import (
 )
 from navigate.economics.metric import calculate_levelized_cost
 from navigate.util import YEAR
+
+if TYPE_CHECKING:
+    import numpy as np
+
+    from navigate.core.nodes.emission import Emission
+    from navigate.core.nodes.feedstock import Feedstock
+    from navigate.core.nodes.plant import Plant
+    from navigate.core.nodes.process import Process
+    from navigate.core.nodes.region import Region
+    from navigate.core.nodes.source import Source
 
 
 def calculate_plant_production_expectations(
