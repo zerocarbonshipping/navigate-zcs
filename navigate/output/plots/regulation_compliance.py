@@ -99,7 +99,7 @@ def plot_regulation_compliance(manager, directory):
             measured = compliance[name]
 
             # use adjusted threshold for compliance coloring if available
-            effective_threshold = adjusted[name] if name in adjusted else threshold
+            effective_threshold = adjusted.get(name, threshold)
 
             # split the measured values into compliant and in breach
             compliant = np.minimum(measured, effective_threshold)

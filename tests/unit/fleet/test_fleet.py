@@ -64,7 +64,7 @@ class TestIsRetrofitCycle:
     """Test _is_retrofit_cycle standalone function."""
 
     @pytest.mark.parametrize(
-        "age, frequency, dt, expected",
+        ("age", "frequency", "dt", "expected"),
         [
             (0.0, 5.0, 1.0, False),
             (1.0, 5.0, 1.0, False),
@@ -83,7 +83,7 @@ class TestCalculateProjectedMultipliers:
     """Test _calculate_projected_multipliers."""
 
     @pytest.mark.parametrize(
-        "multiplier, trade, expected",
+        ("multiplier", "trade", "expected"),
         [
             (50.0, [100.0, 100.0, 100.0], [50.0, 50.0, 50.0]),
             (10.0, [100.0, 200.0], [10.0, 20.0]),
@@ -99,7 +99,7 @@ class TestCalculateIncrements:
     """Test _calculate_increments."""
 
     @pytest.mark.parametrize(
-        "uptakes, cargo_miles, trade_gap, expected",
+        ("uptakes", "cargo_miles", "trade_gap", "expected"),
         [
             ([0.5, 0.5], [100.0, 100.0], 1000.0, [5.0, 5.0]),
             ([1.0], [200.0], 1000.0, [5.0]),
@@ -117,7 +117,7 @@ class TestGetRemainingLifetime:
     """Test _get_remaining_lifetime."""
 
     @pytest.mark.parametrize(
-        "age, expected",
+        ("age", "expected"),
         [
             (0.0, 24),
             (24.0, 0),
@@ -134,7 +134,7 @@ class TestNetEnergyFromRaw:
     """Test net_energy_from_raw."""
 
     @pytest.mark.parametrize(
-        "raw, sav, expected",
+        ("raw", "sav", "expected"),
         [
             (
                 {EnergyDemandTypeID.PROPULSION: [100.0, 200.0]},
@@ -302,7 +302,7 @@ class TestReconcileFuelConversionCaps:
         np.testing.assert_almost_equal(proposals[1].candidates["y"].count, 3.0)
 
     def test_time_step_scales_budget(self):
-        # 5-year time_step with pair_limit=0.1 ⇒ pair_cap = 0.5 × 100 = 50.
+        # 5-year time_step with pair_limit=0.1 ⇒ pair_cap = 0.5 * 100 = 50.
         fleet = _make_fleet_for_cap(pair_limits={("x", "y"): 0.1})
         proposals = _proposals({("x", 0): {"y": 60.0}})
         reconcile_fuel_conversion_caps(

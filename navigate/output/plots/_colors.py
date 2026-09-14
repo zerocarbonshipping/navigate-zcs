@@ -129,11 +129,7 @@ def center_color_saturation(n, shift=False):
     ]
 
     if n < 10:
-        if shift:
-            initial = 3
-
-        else:
-            initial = 2
+        initial = 3 if shift else 2
 
         step = 3
 
@@ -141,10 +137,7 @@ def center_color_saturation(n, shift=False):
             color_types = color_types[:n]
 
     elif 10 <= n < 15:
-        if shift:
-            initial = 1 + shift
-        else:
-            initial = 1
+        initial = 1 + shift if shift else 1
 
         step = 2
 

@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, KeysView
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -13,6 +12,8 @@ from navigate.core.initial_values import EMPTY_FLOAT
 from navigate.core.profiles._fuel_base_profile import _FuelBaseProfile
 
 if TYPE_CHECKING:
+    from collections.abc import Callable, KeysView
+
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
 
@@ -29,9 +30,7 @@ from navigate.util import (
 
 
 class _FuelConsumerProfile(_FuelBaseProfile):
-    """
-    This class is used exclusively for sub-classing.
-    """
+    """This class is used exclusively for sub-classing."""
 
     def __init__(self):
         super().__init__()

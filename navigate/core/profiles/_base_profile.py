@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 import itertools
-from collections.abc import Callable, Iterable
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -16,11 +16,12 @@ from navigate.util import (
     slice_dict,
 )
 
+if TYPE_CHECKING:
+    from collections.abc import Callable, Iterable
+
 
 class _BaseProfile:
-    """
-    This class is used exclusively for sub-classing.
-    """
+    """This class is used exclusively for sub-classing."""
 
     def __init__(self):
 
@@ -42,10 +43,7 @@ class _BaseProfile:
         if default is None:
             return np.zeros(self.get_shape(idx))
         else:
-            if isinstance(default, bool):
-                dtype = bool
-            else:
-                dtype = np.float64
+            dtype = bool if isinstance(default, bool) else np.float64
 
             return np.full(self.get_shape(idx), default, dtype=dtype)
 

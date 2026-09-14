@@ -19,6 +19,7 @@ Usage:
 
 from __future__ import annotations
 
+import contextlib
 import logging
 
 # ---------------------------------------------------------------------------
@@ -100,14 +101,10 @@ if _GUROBI_AVAILABLE:
             return [bool(c.IISConstr) for c in self.getConstrs()]
 
         def __del__(self):
-            try:
+            with contextlib.suppress(Exception):
                 super().__del__()
-            except Exception:
-                pass
-            try:
+            with contextlib.suppress(Exception):
                 self._gurobi_env.dispose()
-            except Exception:
-                pass
 
 
 # ---------------------------------------------------------------------------

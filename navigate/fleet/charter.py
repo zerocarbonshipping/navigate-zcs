@@ -3,12 +3,10 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import numpy as np
 
-from navigate.core.nodes.converter import Converter
-from navigate.core.nodes.power_system import PowerSystem
-from navigate.core.nodes.tank import Tank
-from navigate.core.nodes.vessel import Vessel
 from navigate.economics.flows import (
     Component,
     add_capex_flow,
@@ -17,6 +15,12 @@ from navigate.economics.flows import (
     build_cargo_flow,
 )
 from navigate.economics.metric import calculate_net_present_value
+
+if TYPE_CHECKING:
+    from navigate.core.nodes.converter import Converter
+    from navigate.core.nodes.power_system import PowerSystem
+    from navigate.core.nodes.tank import Tank
+    from navigate.core.nodes.vessel import Vessel
 
 
 def calculate_vessel_charter_properties(

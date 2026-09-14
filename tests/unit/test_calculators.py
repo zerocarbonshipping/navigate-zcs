@@ -51,7 +51,7 @@ class TestTruncateTransform:
     """Verify: output = truncate(multiplier * (table(x) + addition))."""
 
     @pytest.mark.parametrize(
-        "multiplier, addition, x, expected",
+        ("multiplier", "addition", "x", "expected"),
         [
             # default multiplier=1, addition=0 is the identity: table(2) = 4
             (1.0, 0.0, 2.0, 4.0),
@@ -104,7 +104,14 @@ class TestBoundApplication:
         np.testing.assert_array_almost_equal(result, [2.0, 5.0, 8.0])
 
     @pytest.mark.parametrize(
-        "lower_bound, upper_bound, internal_lower, internal_upper, x, expected",
+        (
+            "lower_bound",
+            "upper_bound",
+            "internal_lower",
+            "internal_upper",
+            "x",
+            "expected",
+        ),
         [
             # external lower bound alone clamps: at x=1, raw=1.0 → clamped to 5
             (5.0, np.inf, -np.inf, np.inf, 1.0, 5.0),
@@ -136,7 +143,7 @@ class TestInternalBoundsWarning:
     """
 
     @pytest.mark.parametrize(
-        "first, second, expected",
+        ("first", "second", "expected"),
         [
             (
                 (2.0, np.inf),
@@ -171,7 +178,7 @@ class TestConvexity:
     """_test_convexity checks d2y/dx2 >= 0 for piecewise-linear (x, y)."""
 
     @pytest.mark.parametrize(
-        "x, y, expected",
+        ("x", "y", "expected"),
         [
             # x^2 sampled at integers is convex
             (
@@ -307,7 +314,7 @@ class TestTable2DInterpolation:
     """Bilinear interpolation on z = x + y surface."""
 
     @pytest.mark.parametrize(
-        "x, y, expected",
+        ("x", "y", "expected"),
         [
             (1.0, 10.0, 11.0),
             (0.0, 0.0, 0.0),

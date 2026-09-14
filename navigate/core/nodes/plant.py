@@ -5,8 +5,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import numpy as np
-
 from navigate.core import Scalar, as_scalar, assign_value, command_assignment_to_dict
 from navigate.core.expectations import PlantExpectation
 from navigate.core.node import Node
@@ -24,6 +22,8 @@ from navigate.core.profiles import PlantProfile
 from navigate.exceptions import no_value_assigned_error
 
 if TYPE_CHECKING:
+    import numpy as np
+
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.feedstock import Feedstock
     from navigate.core.nodes.port import Port

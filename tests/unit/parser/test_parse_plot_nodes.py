@@ -5,6 +5,8 @@
 
 from __future__ import annotations
 
+from typing import ClassVar
+
 import pytest
 
 import navigate.output.plot_data as plot_data_module
@@ -42,7 +44,7 @@ def _write_inc(tmp_path, content, name="plots.inc"):
 
 class TestParsePlotNodes:
     @pytest.mark.parametrize(
-        "content, expected",
+        ("content", "expected"),
         [
             (
                 PLOT_INC,
@@ -78,7 +80,7 @@ class TestReplotErrors:
         """No stored plot configs, no include file: clear error, not AttributeError."""
 
         class _Stub:
-            plot_configs = []
+            plot_configs: ClassVar[list] = []
             deck_directory = "."
 
         monkeypatch.setattr(
@@ -94,7 +96,7 @@ class TestReplotErrors:
 
         class _Stub:
             # non-empty on purpose: the include must take precedence over stored configs
-            plot_configs = [
+            plot_configs: ClassVar[list] = [
                 {"name": "stored", "directory": "./p/", "selected_plots": set()}
             ]
             deck_directory = str(tmp_path)

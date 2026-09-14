@@ -76,10 +76,7 @@ def merge_dicts(dict1, *dicts, in_place=False):
     dict
         A single merged dict.
     """
-    if in_place:
-        out = dict1
-    else:
-        out = copy.deepcopy(dict1)
+    out = dict1 if in_place else copy.deepcopy(dict1)
 
     for i, d in enumerate(dicts):
         for key, value in d.items():
@@ -112,10 +109,7 @@ def add_dicts(dict1, *dicts, in_place=False):
     dict
         A single merged dict with the sum of overlapping keys.
     """
-    if in_place:
-        out = dict1
-    else:
-        out = copy.deepcopy(dict1)
+    out = dict1 if in_place else copy.deepcopy(dict1)
 
     for d in dicts:
         for key, value in d.items():
@@ -143,10 +137,7 @@ def multiply_dicts(dict1, *dicts, in_place=False):
     dict
         A single merged dict with the product of overlapping keys.
     """
-    if in_place:
-        out = dict1
-    else:
-        out = copy.deepcopy(dict1)
+    out = dict1 if in_place else copy.deepcopy(dict1)
 
     for d in dicts:
         for key, value in d.items():
@@ -174,10 +165,7 @@ def divide_dicts(dict1, *dicts, in_place=False):
     dict
         A single merged dict with the division of overlapping keys.
     """
-    if in_place:
-        out = dict1
-    else:
-        out = copy.deepcopy(dict1)
+    out = dict1 if in_place else copy.deepcopy(dict1)
 
     for d in dicts:
         for key, value in d.items():
@@ -207,11 +195,7 @@ def is_single_dict(dict_):
     if keys:
         representative = keys[0]
 
-        if isinstance(representative, tuple):
-            return False
-
-        else:
-            return True
+        return not isinstance(representative, tuple)
 
     return None
 
@@ -235,11 +219,7 @@ def is_tuple_dict(dict_):
         representative = keys[0]
 
         if isinstance(representative, tuple):
-            if len(representative) == 2:
-                return True
-
-            else:
-                return False
+            return len(representative) == 2
 
         else:
             return False

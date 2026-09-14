@@ -86,7 +86,7 @@ def _replot_include_wrong_extension(tmp_path, monkeypatch):
 
 class TestArgumentValidation:
     @pytest.mark.parametrize(
-        "build_argv, expected",
+        ("build_argv", "expected"),
         [
             pytest.param(_missing_deck, ["not found"], id="missing_deck"),
             pytest.param(_directory_as_deck, ["directory"], id="directory_as_deck"),

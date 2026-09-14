@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
 from math import floor
 from typing import TYPE_CHECKING
 
@@ -14,6 +13,8 @@ from navigate.core.unit import YEAR_TO_DAYS
 from navigate.util import ROUND_OFF, YEAR
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from navigate.core.nodes.converter import Converter
     from navigate.core.nodes.power_system import PowerSystem
     from navigate.core.nodes.region import Region
@@ -22,9 +23,7 @@ if TYPE_CHECKING:
 
 
 class Component:
-    """
-    Convenience struct for storing cost/WTT flows, time context, and callables.
-    """
+    """Convenience struct for storing cost/WTT flows, time context, and callables."""
 
     def __init__(self) -> None:
 
@@ -176,7 +175,7 @@ class Component:
         return self.capex_flow.size
 
     def has_lifetime(self) -> bool:
-        return True if self._lifetime is not None else False
+        return self._lifetime is not None
 
     def get_lifetime(self, time: float) -> float:
         return self._lifetime(time)
@@ -278,7 +277,7 @@ def add_variable_opex(
     cost: Callable[[np.ndarray], np.ndarray],
 ) -> None:
     """
-    Add variable cost (metric × price) into the unified cost flow.
+    Add variable cost (metric * price) into the unified cost flow.
 
     Parameters
     ----------
@@ -344,7 +343,7 @@ def add_variable_wtt(
     wtt_callables: dict[str, Callable[[np.ndarray], np.ndarray]],
 ) -> None:
     """
-    Add variable WTT (metric × factor) for multiple emissions.
+    Add variable WTT (metric * factor) for multiple emissions.
 
     Computes the staircase flow for the shared metric once, then multiplies
     by each emission's variable WTT factor.

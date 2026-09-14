@@ -53,7 +53,7 @@ def _val(text: str):
 # ═════════════════════════════════════════════════════════════════════════════════
 class TestStringToDate:
     @pytest.mark.parametrize(
-        "raw, expected",
+        ("raw", "expected"),
         [
             ("01-01-2020", np.datetime64("2020-01-01")),
             ("15/06/2030", np.datetime64("2030-06-15")),
@@ -167,7 +167,7 @@ class TestStatements:
 
     # ── statement type recognition ──────────────────────────────────
     @pytest.mark.parametrize(
-        "text, index, expected_type",
+        ("text", "index", "expected_type"),
         [
             ('Date "01-01-2025"', 0, DateStatement),
             ("Start\nEnd", 0, StartTimeline),
@@ -212,7 +212,7 @@ class TestStatements:
 # ═════════════════════════════════════════════════════════════════════════════════
 class TestValues:
     @pytest.mark.parametrize(
-        "source, check",
+        ("source", "check"),
         [
             ("Value = 25", lambda v: v == 25.0),
             ("Value = -0.5", lambda v: v == -0.5),
@@ -272,7 +272,7 @@ class TestValues:
 # ═════════════════════════════════════════════════════════════════════════════════
 class TestCommands:
     @pytest.mark.parametrize(
-        "source, expected_name, check_args",
+        ("source", "expected_name", "check_args"),
         [
             (
                 'set_bunkering_allowed("LSFO", TRUE)',
@@ -311,7 +311,7 @@ class TestTables:
         assert item.value.rows == [[2020.0, 0.5], [2030.0, 1.0]]
 
     @pytest.mark.parametrize(
-        "source, expected_rows",
+        ("source", "expected_rows"),
         [
             ("Table = [ 2020 0.5\n2030 1.0\n]", [[2020.0, 0.5], [2030.0, 1.0]]),
             (
@@ -353,7 +353,7 @@ class TestCasingRules:
 
     # ── digits in node types; attributes and commands accept any casing ──
     @pytest.mark.parametrize(
-        "source, extract, expected",
+        ("source", "extract", "expected"),
         [
             ('Vessel2 "v" { }', lambda s: s[0].node_type, "Vessel2"),
             (
@@ -392,7 +392,7 @@ class TestCasingRules:
 # ═════════════════════════════════════════════════════════════════════════════════
 class TestOneStatementPerLine:
     @pytest.mark.parametrize(
-        "parse_fn, source",
+        ("parse_fn", "source"),
         [
             (parse_include_content, 'Vessel "a" { } Vessel "b" { }'),
             (parse_include_content, 'Vessel "v" { A = 1 B = 2 }'),

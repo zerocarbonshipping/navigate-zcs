@@ -3,7 +3,10 @@
 
 from __future__ import annotations
 
-from navigate.parser._lark_parser import SourceLocation
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from navigate.parser._lark_parser import SourceLocation
 
 
 class Event:

@@ -9,6 +9,7 @@ import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
+from typing import ClassVar
 
 import numpy as np
 
@@ -281,7 +282,9 @@ class Parser:
 
     # ── error formatting ──────────────────────────────────────────────
 
-    def _error_prefix(self, source: SourceLocation = None, deck_line: int = None):
+    def _error_prefix(
+        self, source: SourceLocation | None = None, deck_line: int | None = None
+    ):
         """
         Build an error prefix string from source location.
 
@@ -407,7 +410,7 @@ class Parser:
             else:
                 self._process_event_statement(statement)
 
-    _EVENT_DISPATCH = {
+    _EVENT_DISPATCH: ClassVar[dict[type, str]] = {
         GeneralNodeDeclaration: "_process_general_node_declaration",
         NodeDeclaration: "_process_node_declaration",
         ImportStatement: "_process_import_node",
@@ -556,15 +559,16 @@ class Parser:
         self._current_event = event
 
     def _progress_is_chronological(self, date):
-        if (self._current_date is not None) and (
-            not isinstance(self._current_date, str)
+        if (
+            (self._current_date is not None)
+            and (not isinstance(self._current_date, str))
+            and date <= self._current_date
         ):
-            if date <= self._current_date:
-                raise DeckFormatError(
-                    self._error_prefix()
-                    + ": Dates must be ordered chronologically within individual "
-                    "include files."
-                )
+            raise DeckFormatError(
+                self._error_prefix()
+                + ": Dates must be ordered chronologically within individual "
+                "include files."
+            )
 
     def _replace_start_keyword(self):
         start_date = self.general_nodes.model_definition.start_date

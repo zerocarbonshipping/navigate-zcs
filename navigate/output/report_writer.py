@@ -18,10 +18,8 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 import openpyxl as xl
-from openpyxl.worksheet.worksheet import Worksheet
 
 from navigate.core.enum_ import FileFormatID, ReportReduceID
-from navigate.core.node import Node
 from navigate.util import (
     collapse_dict,
     collapse_tuple_dict,
@@ -32,6 +30,9 @@ from navigate.util import (
 )
 
 if TYPE_CHECKING:
+    from openpyxl.worksheet.worksheet import Worksheet
+
+    from navigate.core.node import Node
     from navigate.core.node_report import NodeReport
     from navigate.core.nodes.report import Report
     from navigate.simulation import SimulationManager
@@ -378,18 +379,8 @@ def _extract_properties(
                 continue
 
             if isinstance(property_, dict):
-                key1 = (
-                    True
-                    if (reduce == ReportReduceID.FIRST or reduce == ReportReduceID.BOTH)
-                    else False
-                )
-                key2 = (
-                    True
-                    if (
-                        reduce == ReportReduceID.SECOND or reduce == ReportReduceID.BOTH
-                    )
-                    else False
-                )
+                key1 = reduce in (ReportReduceID.FIRST, ReportReduceID.BOTH)
+                key2 = reduce in (ReportReduceID.SECOND, ReportReduceID.BOTH)
 
                 if property_:
                     if is_single_dict(property_):

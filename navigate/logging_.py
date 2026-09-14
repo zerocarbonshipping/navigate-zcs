@@ -130,7 +130,7 @@ def log_model_post_process(logger):
 
 
 def log_fair_share_convergence(logger, statistics, iterations, converged) -> None:
-    headers = ["Iter."] + list(statistics.keys())
+    headers = ["Iter.", *statistics.keys()]
     cols = list(statistics.values())
     rows = [
         [i + 1] + [str(_round_for_display(cols[c][i])) for c in range(len(cols))]
@@ -221,7 +221,7 @@ def _round_for_display(x):
     if abs_x <= TOLERANCE:
         return 0
 
-    significant = -int(floor(log10(abs_x)))
+    significant = -floor(log10(abs_x))
 
     if significant <= 0:
         return int(np.round(x, 0))

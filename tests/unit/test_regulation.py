@@ -28,7 +28,7 @@ def _make_regulation(scheme, measure, vessels=("v1", "v2")):
 
 
 @pytest.mark.parametrize(
-    "scheme, measure",
+    ("scheme", "measure"),
     [
         ("INDIVIDUAL", "ABSOLUTE"),
         ("FLEXIBLE", "TRANSPORT"),

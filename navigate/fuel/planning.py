@@ -356,7 +356,7 @@ def calculate_constrained_uptakes(
         # shares based on the maximum allowable
         # share of each plant related to the
         # supply/demand gap
-        new_uptakes, utilization = calculate_constrained_shares(uptakes, new_limits)
+        new_uptakes, _utilization = calculate_constrained_shares(uptakes, new_limits)
 
         # if there is no change in uptakes from
         # the previous iteration the algorithm

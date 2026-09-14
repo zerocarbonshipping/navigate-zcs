@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from navigate.core import (
     Scalar,
     as_scalar,
@@ -14,8 +16,10 @@ from navigate.core.assign import command_assignment_to_dict
 from navigate.core.enum_ import EnergyDemandTypeID
 from navigate.core.node_type import CURVE, TECHNOLOGY, VARIABLE
 from navigate.core.nodes._machinery import _Machinery
-from navigate.core.nodes.curve import Curve
-from navigate.core.nodes.variable import Variable
+
+if TYPE_CHECKING:
+    from navigate.core.nodes.curve import Curve
+    from navigate.core.nodes.variable import Variable
 
 PROPULSION, ELECTRICAL, HEAT = (
     EnergyDemandTypeID.PROPULSION,

@@ -97,9 +97,11 @@ def update_fuel_inertia_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> Non
                 # if fair-share is included in the
                 # model, the minimum required can at
                 # most equal the vessels fair-share
-                if key in alg.allocation_fuel:
-                    if fuel_inertia > alg.allocation_fuel[key]:
-                        fuel_inertia = alg.allocation_fuel[key]
+                if (
+                    key in alg.allocation_fuel
+                    and fuel_inertia > alg.allocation_fuel[key]
+                ):
+                    fuel_inertia = alg.allocation_fuel[key]
 
             else:
                 fuel_inertia = 0.0

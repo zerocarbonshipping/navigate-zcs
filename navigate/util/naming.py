@@ -175,7 +175,7 @@ def name_contains_wildcards(name):
     bool :
         Whether the name includes wildcards.
     """
-    return True if any([wildcard in name for wildcard in ("*", "?")]) else False
+    return any(wildcard in name for wildcard in ("*", "?"))
 
 
 def wildcard_to_regex(word):
