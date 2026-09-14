@@ -1,0 +1,39 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: Apache-2.0
+
+# ------------------------------------------------------------------------------
+# REGRESSION DECK: CARBON LEVY
+#
+# An oil/ammonia fleet under a ramping WTW carbon levy and no Regulation: the
+# levy is the only policy signal, penalizing fossil fuel oil per ton of CO2
+# and thereby steering bunkering and newbuild choices toward e-ammonia, whose
+# supply chain has ample development headroom. Exercises the Levy pathway
+# (navigate/core/nodes/levy.py and the levy terms in the bunker LP), which no
+# other committed deck activates.
+#
+# The golden baseline is the CSV output of the shared regression report; the
+# activation guards live in tests/regression/test_carbon_levy.py.
+# ------------------------------------------------------------------------------
+
+DEFINE {
+	Load DefaultModelDefinition
+
+	Include "../0_includes/options.inc"
+	Include "includes/fleet_oil_ammonia.inc"
+	Include "../0_includes/fleet_calibration.inc"
+	Include "includes/ports_oil_ammonia.inc"
+	Include "includes/fuel_supply_ammonia.inc"
+	Include "includes/levy_carbon.inc"
+	Include "../0_includes/report.inc"
+
+	Load DefaultEmission
+
+	# plots for manual deck inspection (run the deck without -s);
+	# tests suppress plot generation to stay fast
+	Load DefaultPlot
+	Load DebugPlot
+}
+
+EVENTS {
+	Load DefaultTimeStepYearly
+}

@@ -96,6 +96,10 @@ jobs:
         shell: bash -el {0}
         run: make test-attribute
 
+      - name: Run regression tests
+        shell: bash -el {0}
+        run: make test-regression
+
       - name: Run tutorials
         shell: bash -el {0}
         run: make test-tutorials

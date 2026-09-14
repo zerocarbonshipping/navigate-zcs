@@ -13,6 +13,9 @@ Where a check belongs:
 - Coverage of the DSL attribute/command surface → `tests/attribute`.
 - Domain-expected behavior of a full simulation → `tests/guardrails`
   (conventions: `tests/guardrails/README.md`).
+- "Did simulation results change when they shouldn't have?" →
+  `tests/regression` (golden baselines; conventions:
+  `tests/regression/README.md`).
 - "Shipped decks still parse and run" → `make test-tutorials` /
   `make test-examples` (exit-code smoke over the committed tutorial and
   example decks; never add assertions there).
