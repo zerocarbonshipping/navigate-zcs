@@ -13,7 +13,7 @@ from navigate.core.enum_ import FuelTypeID
 
 class TestAssignId:
     @pytest.mark.parametrize(
-        "assignment, id_enum, expected",
+        ("assignment", "id_enum", "expected"),
         [
             ("TRUE", BOOL_ID, True),
             ("FALSE", BOOL_ID, False),

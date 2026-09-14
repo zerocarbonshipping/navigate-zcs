@@ -700,7 +700,7 @@ def _check_bounds(bounds):
         raise ValueError("'Bounds' must contain exactly two values.")
 
     # TODO: does this work for np.inf?
-    if not all([isinstance(bound, float) for bound in bounds]):
+    if not all(isinstance(bound, float) for bound in bounds):
         raise ValueError("'Bounds' must contain scalars only.")
 
     if bounds[0] >= bounds[1]:

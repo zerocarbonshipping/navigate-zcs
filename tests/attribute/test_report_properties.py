@@ -76,7 +76,7 @@ def _deck_properties():
     ]
 
 
-@pytest.mark.parametrize("command, token", _deck_properties())
+@pytest.mark.parametrize(("command", "token"), _deck_properties())
 def test_deck_report_properties_resolve(command, token):
     profile_class = PROFILE_CLASSES[command]
     getter_name = attribute_to_setter(token, method="get")

@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-from collections.abc import KeysView
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -13,6 +12,8 @@ from navigate.core.initial_values import EMPTY_FLOAT
 from navigate.util import extract_from_dict, extract_from_tuple_dict
 
 if TYPE_CHECKING:
+    from collections.abc import KeysView
+
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.feedstock import Feedstock
     from navigate.core.nodes.port import Port

@@ -188,4 +188,7 @@ def test_update_vessel_variables_adds_mass_tank_per_port_and_fuel():
         "mass_tank_vessel_a_0_hfo",
         "mass_tank_vessel_a_1_hfo",
     ]
-    assert not (alg.bunker or alg.spend_sea or alg.spend_port or alg.shore_power)
+    assert not alg.bunker
+    assert not alg.spend_sea
+    assert not alg.spend_port
+    assert not alg.shore_power

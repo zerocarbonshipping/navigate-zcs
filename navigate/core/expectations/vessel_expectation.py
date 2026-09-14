@@ -694,7 +694,7 @@ class VesselExpectation(_Expectation):
                     self._energy_sea[energy_id], self._raw_energy_sea[energy_id]
                 )
             ]
-            for energy_id in self._energy_sea.keys()
+            for energy_id in self._energy_sea
         }
 
     def get_energy_saving_port(self, idx: int) -> dict[EnergyDemandTypeID, list]:
@@ -705,7 +705,7 @@ class VesselExpectation(_Expectation):
                     self._energy_port[energy_id], self._raw_energy_port[energy_id]
                 )
             ]
-            for energy_id in self._energy_port.keys()
+            for energy_id in self._energy_port
         }
 
     def get_operational_saving_sea(self, idx: int) -> dict[EnergyDemandTypeID, list]:
@@ -717,7 +717,7 @@ class VesselExpectation(_Expectation):
                     self._raw_energy_sea[energy_id],
                 )
             ]
-            for energy_id in self._operational_energy_sea.keys()
+            for energy_id in self._operational_energy_sea
         }
 
     def get_operational_saving_port(self, idx: int) -> dict[EnergyDemandTypeID, list]:
@@ -729,7 +729,7 @@ class VesselExpectation(_Expectation):
                     self._raw_energy_port[energy_id],
                 )
             ]
-            for energy_id in self._operational_energy_port.keys()
+            for energy_id in self._operational_energy_port
         }
 
     def get_energy_conservation_pi_sea(

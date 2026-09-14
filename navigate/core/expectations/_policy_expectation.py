@@ -3,11 +3,14 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable
-
-import numpy as np
+from typing import TYPE_CHECKING
 
 from navigate.core.expectations._expectation import _Expectation
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
+
+    import numpy as np
 
 
 class _PolicyExpectation(_Expectation):

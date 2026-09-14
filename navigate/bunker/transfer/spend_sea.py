@@ -20,7 +20,7 @@ def transfer_spend_sea(alg: BunkerAlgorithm) -> None:
     alg
         The algorithm instance.
     """
-    if not alg.scope == BunkerScopeID.EXISTING:
+    if alg.scope != BunkerScopeID.EXISTING:
         return
 
     # transfer spend at sea solution

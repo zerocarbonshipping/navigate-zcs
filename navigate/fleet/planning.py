@@ -40,7 +40,7 @@ def calculate_orderbook_newbuilds(
         The trade-gap of the fleet, in cargo-miles.
     cap_count
         Per-vessel newbuild count budget for this timestep
-        (fraction of pre-newbuild fleet × time_step/YEAR).
+        (fraction of pre-newbuild fleet * time_step/YEAR).
     idx
         Current time-step index.
 

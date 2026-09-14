@@ -5,8 +5,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import numpy as np
-
 from navigate.core import (
     Scalar,
     as_list,
@@ -28,14 +26,16 @@ from navigate.core.node_type import (
     VARIABLE,
     VESSEL,
 )
-from navigate.core.nodes.tank import Tank
 from navigate.core.profiles import VesselProfile
 from navigate.exceptions import no_value_assigned_error
 from navigate.util import to_numpy
 
 if TYPE_CHECKING:
+    import numpy as np
+
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
+    from navigate.core.nodes.tank import Tank
 
 
 class Vessel(Node):

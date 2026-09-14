@@ -3,13 +3,12 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import numpy as np
 
 from navigate.core import Scalar
 from navigate.core.enum_ import EnergyDemandTypeID
-from navigate.core.nodes.curve import Curve
-from navigate.core.nodes.technology import Technology
-from navigate.core.nodes.vessel import Vessel
 from navigate.economics.flows import (
     Component,
     add_capex_flow,
@@ -21,6 +20,11 @@ from navigate.economics.metric import (
     calculate_levelized_cost,
     calculate_net_present_value,
 )
+
+if TYPE_CHECKING:
+    from navigate.core.nodes.curve import Curve
+    from navigate.core.nodes.technology import Technology
+    from navigate.core.nodes.vessel import Vessel
 
 
 class Package:

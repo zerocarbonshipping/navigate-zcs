@@ -24,10 +24,10 @@ def plot_regulation_flexibility(manager, directory):
     vessels = manager.nodes.vessels
 
     for regulation_name, regulation in regulations.items():
-        if not regulation.measure == RegulationMeasureID.INTENSITY:
+        if regulation.measure != RegulationMeasureID.INTENSITY:
             continue
 
-        if not regulation.scheme == RegulationSchemeID.FLEXIBLE:
+        if regulation.scheme != RegulationSchemeID.FLEXIBLE:
             continue
 
         shared_threshold = regulation.profile.get_shared_threshold()
@@ -44,7 +44,7 @@ def plot_regulation_flexibility(manager, directory):
 
         measure = regulation.measure
         if measure == RegulationMeasureID.ABSOLUTE:
-            divisor, prefix = find_best_metric_prefix(
+            _divisor, prefix = find_best_metric_prefix(
                 np.amax(np.maximum(shared_threshold, shared_compliance))
             )
             unit = f"{prefix}ton/year"

@@ -9,8 +9,10 @@ increments per asset type and owns the shared logic that initializes and ages th
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
-import numpy as np
+if TYPE_CHECKING:
+    import numpy as np
 
 
 @dataclass(slots=True)

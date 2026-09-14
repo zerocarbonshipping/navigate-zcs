@@ -25,14 +25,14 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.enum_ import EnergyDemandTypeID, EnergyDemandTypePortID, RouteTypeID
-from navigate.core.nodes.route import Route
-from navigate.core.nodes.vessel import Vessel
 from navigate.core.unit import DAY_TO_HOURS, HOUR_TO_DAYS, MWD_TO_GJ
 from navigate.fleet.power import calculate_technical_speed_limits
 from navigate.util import YEAR, divide_nonzero, to_numpy
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
+    from navigate.core.nodes.route import Route
+    from navigate.core.nodes.vessel import Vessel
 
 
 @dataclass

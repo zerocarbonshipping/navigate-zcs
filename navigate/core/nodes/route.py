@@ -393,9 +393,7 @@ class Route(Node):
                 self.voyage_distribution[key] = Scalar(0.0)
 
     def initialize_dependencies(self):
-        """
-        Initialize dependent dictionaries to allow wildcarding during command calls.
-        """
+        """Initialize dependent dictionaries so command calls can use wildcards."""
         names = [port.name for port in self.ports]
         for key in itertools.product(names, names):
             self.voyage_distribution.setdefault(key, None)

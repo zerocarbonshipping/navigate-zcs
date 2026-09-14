@@ -5,8 +5,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import numpy as np
-
 from navigate.core import (
     Scalar,
     as_scalar,
@@ -23,6 +21,8 @@ from navigate.core.profiles import RegulationProfile
 from navigate.exceptions import no_value_assigned_error
 
 if TYPE_CHECKING:
+    import numpy as np
+
     from navigate.core.nodes.vessel import Vessel
 
 

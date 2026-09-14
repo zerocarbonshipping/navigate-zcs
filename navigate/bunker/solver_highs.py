@@ -15,6 +15,8 @@ Usage:
 
 from __future__ import annotations
 
+import contextlib
+
 import highspy
 import numpy as np
 from highspy import HighsBasisStatus, HighsModelStatus
@@ -347,9 +349,7 @@ class Constr:
 
 
 class Params:
-    """
-    Proxy for HiGHS solver options, using Gurobi parameter names.
-    """
+    """Proxy for HiGHS solver options, using Gurobi parameter names."""
 
     def __init__(self, highs):
         self._highs = highs
@@ -679,10 +679,8 @@ class Model:
             self._model_grew = True
             # Set recycled row to kBasic (matches addConstr behavior)
             if self._basis is not None:
-                try:
+                with contextlib.suppress(IndexError, AttributeError):
                     self._basis.row_status[row] = HighsBasisStatus.kBasic
-                except (IndexError, AttributeError):
-                    pass
 
         constr_obj = Constr(self, row, sense, adjusted_rhs, name)
         self._constr_names[row] = name
@@ -819,7 +817,7 @@ class Model:
             return
 
         try:
-            status, ranging_info = self._highs.getRanging()
+            _status, ranging_info = self._highs.getRanging()
 
             self._ranging_rhs_low = np.array(ranging_info.row_bound_dn.value_)
             self._ranging_rhs_up = np.array(ranging_info.row_bound_up.value_)
@@ -875,4 +873,4 @@ class Model:
 
 def tupledict():
     """Return a plain dict; the code only uses standard dict operations on tupledict."""
-    return dict()
+    return {}

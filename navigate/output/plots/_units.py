@@ -34,10 +34,7 @@ def find_best_metric_prefix(value, default=0, symbol=True):
 
     """
     value = abs(value)
-    if value > 0.0:
-        order = math.floor(math.log10(value)) + default
-    else:
-        order = 1
+    order = math.floor(math.log10(value)) + default if value > 0.0 else 1
 
     divisor = 1.0
     prefix_symbol = ""  #
@@ -83,10 +80,7 @@ def find_best_metric_prefix(value, default=0, symbol=True):
         prefix_symbol = "E"
         prefix_short = "quintillion"
 
-    if symbol:
-        prefix = prefix_symbol
-    else:
-        prefix = prefix_short
+    prefix = prefix_symbol if symbol else prefix_short
 
     return int(divisor / 10**default), prefix
 

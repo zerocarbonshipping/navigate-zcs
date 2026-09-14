@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import numpy as np
 
 from navigate.core.enum_ import (
@@ -11,9 +13,11 @@ from navigate.core.enum_ import (
     FuelTypeID,
     RouteTypeID,
 )
-from navigate.core.nodes.port import Port
-from navigate.core.nodes.vessel import Vessel
 from navigate.util import divide_nonzero
+
+if TYPE_CHECKING:
+    from navigate.core.nodes.port import Port
+    from navigate.core.nodes.vessel import Vessel
 
 
 def calculate_fair_share_fuel_supply(fleets, fuels, ports, idx, scope):
@@ -84,10 +88,7 @@ def _calculate_demand_based_fair_share_fuel_supply(fleets, ports, idx, scope):
         Fair-share of fuel type supply from each port for every vessel in the
         simulation.
     """
-    if scope == BunkerScopeID.EXISTING:
-        _idx = idx
-    else:
-        _idx = np.s_[idx:]
+    _idx = idx if scope == BunkerScopeID.EXISTING else np.s_[idx:]
 
     vessels = {
         vessel.name: vessel for fleet in fleets.values() for vessel in fleet.vessels
