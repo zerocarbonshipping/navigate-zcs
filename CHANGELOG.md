@@ -11,6 +11,14 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Added
+- A golden-baseline regression suite (`tests/regression`, `make
+  test-regression`, run in CI): small pinned-constant decks whose report CSV
+  output is compared exactly against committed baselines, so unintended
+  result changes fail with a structured per-cell diff and intended ones are
+  reviewed as a baseline git diff regenerated via `make regen-regression`.
+  Conventions in `tests/regression/README.md`.
+
 ### Changed
 - The minimum supported Python version is 3.13 (was 3.12).
 - **Breaking** for code importing navigate as a library: the `is_*()`

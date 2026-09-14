@@ -13,6 +13,13 @@ path = ".git-blame-ignore-revs"
 SPDX-FileCopyrightText = "2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping"
 SPDX-License-Identifier = "Apache-2.0"
 
+# Golden regression baselines are generated report output compared
+# byte-for-byte; a comment header would break the comparison.
+[[annotations]]
+path = "tests/regression/baselines/**"
+SPDX-FileCopyrightText = "2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping"
+SPDX-License-Identifier = "Apache-2.0"
+
 # Empty placeholder files that keep directories tracked by git.
 [[annotations]]
 path = "**/.gitkeep"

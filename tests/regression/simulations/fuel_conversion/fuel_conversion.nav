@@ -1,0 +1,38 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: Apache-2.0
+
+# ------------------------------------------------------------------------------
+# REGRESSION DECK: FUEL CONVERSION
+#
+# An oil-dominated container fleet with a cheap liquid-market alternative fuel
+# (LNG) and a pinned conversion lane: existing vessels convert oil -> methane
+# on their retrofit cycles (navigate/fleet/conversion.py). Methane newbuilds
+# are disabled, so conversion is the only channel into the methane vessel
+# type, and the destination type's discounting inputs are pinned nonzero and
+# different from the source's so the conversion NPV and its levelized expense
+# stay sensitive to discounting and operating-window changes.
+#
+# The golden baseline is the CSV output of the shared regression report; the
+# activation guards live in tests/regression/test_fuel_conversion.py.
+# ------------------------------------------------------------------------------
+
+DEFINE {
+	Load DefaultModelDefinition
+
+	Include "../0_includes/options.inc"
+	Include "includes/fleet_oil_methane.inc"
+	Include "../0_includes/fleet_calibration.inc"
+	Include "includes/ports_oil_methane.inc"
+	Include "../0_includes/report.inc"
+
+	Load DefaultEmission
+
+	# plots for manual deck inspection (run the deck without -s);
+	# tests suppress plot generation to stay fast
+	Load DefaultPlot
+	Load DebugPlot
+}
+
+EVENTS {
+	Load DefaultTimeStepYearly
+}

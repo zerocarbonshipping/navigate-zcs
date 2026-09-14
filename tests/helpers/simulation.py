@@ -4,15 +4,16 @@
 """
 Shared helpers for test suites that run full simulations in-process.
 
-Used by tests/attribute (attribute coverage) and tests/guardrails (behavior
-guardrails); designed so a future regression suite can reuse the same runner
-and universal invariants without duplication.
+Used by tests/attribute (attribute coverage), tests/guardrails (behavior
+guardrails), and tests/regression (golden baselines), so every suite runs
+decks through the same runner and universal invariants.
 """
 
 from __future__ import annotations
 
 import argparse
 import os
+import shutil
 from pathlib import Path
 
 import numpy as np
@@ -91,6 +92,21 @@ def run_simulation(sim_dir: Path, data_dir: Path | None = None) -> SimulationMan
     manager.run()
 
     return manager
+
+
+def clear_output_dir(output_dir: Path) -> None:
+    """
+    Deletes a deck's report output directory before a run, so only that run's
+    files exist afterwards — stale files from earlier runs (including the
+    report writer's locked-file retry names) must never reach a consumer of
+    the output.
+
+    Parameters
+    ----------
+    output_dir
+        The deck's report output directory.
+    """
+    shutil.rmtree(output_dir, ignore_errors=True)
 
 
 def assertable_end(manager: SimulationManager, producer: Producer) -> int:

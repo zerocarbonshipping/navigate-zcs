@@ -62,7 +62,10 @@ New code needs appropriate test coverage: `tests/README.md` says which suite
 a check belongs in and points to each suite's conventions. Changes that alter
 simulation results should explain the difference in the pull request
 description and must keep the behavior guardrails passing (`tests/guardrails`
-— see its `README.md` before touching thresholds).
+— see its `README.md` before touching thresholds); the regression baselines
+they move are regenerated only with `make regen-regression` and committed as
+their own commit, with the baseline diff as review material
+(`tests/regression/README.md`).
 
 ## Questions
 

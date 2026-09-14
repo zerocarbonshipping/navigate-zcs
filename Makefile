@@ -11,7 +11,7 @@ else
   RUN := env PATH=$(CURDIR)/.venv/bin:$(PATH)
 endif
 
-.PHONY: lint test-unit test-attribute test-guardrails test-all test-tutorials test-examples help setup conda-setup pip-setup docs docs-clean
+.PHONY: lint test-unit test-attribute test-guardrails test-regression regen-regression test-all test-tutorials test-examples help setup conda-setup pip-setup docs docs-clean
 
 help:  ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
@@ -54,10 +54,21 @@ test-attribute:  ## Attribute coverage tests
 test-guardrails:  ## Behavior guardrail tests
 	$(RUN) pytest tests/guardrails/ -v --tb=short --maxfail=0
 
+# --maxfail=0 as for guardrails: a failed activation guard must not mask the
+# golden diff behind it.
+test-regression:  ## Golden-baseline regression tests
+	$(RUN) pytest tests/regression/ -v --tb=short --maxfail=0
+
+# The one sanctioned way to update baselines (tests/regression/README.md);
+# -s so the per-file regeneration summary prints.
+regen-regression:  ## Regenerate golden baselines, then review the git diff
+	$(RUN) pytest tests/regression/ -v --tb=short --maxfail=0 -s --regen-baselines
+
 test-all:  ## Full test suite (all pytest suites + tutorials + examples)
 	$(MAKE) test-unit
 	$(MAKE) test-attribute
 	$(MAKE) test-guardrails
+	$(MAKE) test-regression
 	$(MAKE) test-tutorials
 	$(MAKE) test-examples
 
