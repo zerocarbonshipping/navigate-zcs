@@ -133,7 +133,7 @@ def net_energy_from_raw(
     out = {}
     for k, raw in raw_energies.items():
         sav = savings[k]
-        out[k] = [(1.0 - s) * e for e, s in zip(raw, sav)]
+        out[k] = [(1.0 - s) * e for e, s in zip(raw, sav, strict=True)]
     return out
 
 

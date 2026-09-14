@@ -112,7 +112,7 @@ class Expression:
         except SyntaxError as e:
             raise ValueError(
                 f"{self._node}: Error in expression <{self._expression}>: {e.msg}."
-            )
+            ) from None
 
         self._internal_expression = self._build(tree.body)
 

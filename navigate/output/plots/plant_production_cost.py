@@ -38,7 +38,7 @@ def plot_plant_production_cost(manager, directory):
 
         fig, axes = subplot_grid(n, sharey=True)
 
-        for ax, plant in zip(axes, plants_region):
+        for ax, plant in zip(axes, plants_region, strict=False):
             fuel = plant.fuel
             fuel_name = fuel.name
             lhv = fuel.lower_heating_value.get()

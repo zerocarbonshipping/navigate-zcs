@@ -120,7 +120,7 @@ def plot_technology_uptake(manager, directory):
         newbuild_color = CENTER_COLORS_GREEN[4]
         retrofit_color = CENTER_COLORS_BLUE[4]
 
-        for ax, name in zip(axes, uptake):
+        for ax, name in zip(axes, uptake, strict=False):
             ax.plot(dateline, uptake[name], color=fleet_color, label="Fleet", lw=2)
             ax.plot(
                 dateline[1:],

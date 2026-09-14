@@ -179,7 +179,7 @@ def write_xlsx_report(
         try:
             wb.save(path)
             if attempt > 0:
-                logger.warning(f"Saved report to alternative filename: {path}")
+                logger.warning("Saved report to alternative filename: %s", path)
             break  # Success!
         except OSError:
             if attempt < max_attempts - 1:
@@ -187,7 +187,7 @@ def write_xlsx_report(
                 path = _get_alternative_path(base_path, attempt + 1)
             else:
                 # Final attempt failed, re-raise the error
-                logger.error(f"Failed to save report after {max_attempts} attempts")
+                logger.error("Failed to save report after %s attempts", max_attempts)
                 raise
 
 
@@ -251,14 +251,16 @@ def write_csv_report(
                         writer.writerow(row)
 
                 if attempt > 0:
-                    logger.warning(f"Saved report to alternative filename: {path}")
+                    logger.warning("Saved report to alternative filename: %s", path)
                 break
 
             except OSError:
                 if attempt < max_attempts - 1:
                     path = _get_alternative_path(base_path, attempt + 1)
                 else:
-                    logger.error(f"Failed to save report after {max_attempts} attempts")
+                    logger.error(
+                        "Failed to save report after %s attempts", max_attempts
+                    )
                     raise
 
 
@@ -363,7 +365,7 @@ def _extract_properties(
     profile = node.profile
     node_name = node.name
 
-    for attribute, getter, reduce in zip(attributes, getters, reductions):
+    for attribute, getter, reduce in zip(attributes, getters, reductions, strict=True):
         try:
             if hasattr(profile, getter):
                 property_ = getattr(profile, getter)()
@@ -584,7 +586,7 @@ def _export_list(ws: Worksheet, attribute: str, property_: list, col: int) -> in
     n = len(property_)
     indexes = range(1, n + 1)
 
-    for idx, value in zip(indexes, property_):
+    for idx, value in zip(indexes, property_, strict=True):
         ws.cell(row=ROW_KEY, column=col).value = f"Index {idx}"
         col = _export_array(ws, attribute, value, col)
 

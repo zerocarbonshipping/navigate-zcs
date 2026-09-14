@@ -55,7 +55,9 @@ def plot_fleet_conversions_cumulative(manager, directory):
     fig, axes = subplot_grid(len(fuel_conversions))
 
     count = 0
-    for ax, (fleet_name, conversions) in zip(axes, fuel_conversions.items()):
+    for ax, (fleet_name, conversions) in zip(
+        axes, fuel_conversions.items(), strict=False
+    ):
         # used for trimming
         count += 1
 

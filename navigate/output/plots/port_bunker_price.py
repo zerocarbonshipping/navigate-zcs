@@ -43,7 +43,7 @@ def plot_port_bunker_price(manager, directory):
 
         min_value = 0.0
 
-        for ax, value, color, title in zip(axes, values, colors, titles):
+        for ax, value, color, title in zip(axes, values, colors, titles, strict=False):
             for i in range(len(value)):
                 ax.plot(dateline, value[i], color=color[i], lw=2.5)
                 min_value = min(min_value, np.amin(value[i]))

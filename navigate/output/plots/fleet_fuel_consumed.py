@@ -26,7 +26,7 @@ def plot_fleet_fuel_consumed(manager, directory):
     fig, axes = subplot_grid(len(fleets), sharex=True)
 
     # cumulate fuel spent over all fleets
-    for ax, fleet in zip(axes, fleets.values()):
+    for ax, fleet in zip(axes, fleets.values(), strict=False):
         fleet_profile = fleet.profile
         fuel_demand = fleet_profile.get_consumed_energy()
         shore_power = fleet_profile.get_shore_power_energy()

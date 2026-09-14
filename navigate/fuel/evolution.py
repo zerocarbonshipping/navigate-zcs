@@ -586,8 +586,10 @@ def calculate_feed_availability(producer: Producer, timeline, idx) -> None:
         # TODO: Remove if scrapping for negatives gets implemented
         if gap[0] < -TOLERANCE:
             logger.warning(
-                f"{producer}: {round(-gap[0])} tons/year more "
-                f"'{feed_name}' feed is being used than is available."
+                "%s: %s tons/year more '%s' feed is being used than is available.",
+                producer,
+                round(-gap[0]),
+                feed_name,
             )
 
             gap = 0.0
@@ -656,7 +658,9 @@ def define_existing_pipeline(producer: Producer, timeline: np.ndarray) -> None:
         # pipeline uses negative ages (not yet delivered)
         producer.pipeline[p] = [
             Increment(multiplier=m, age=-d, dt=t, decided=lead_time - d)
-            for m, d, t in zip(incremental_plants, incremental_delivery, incremental_dt)
+            for m, d, t in zip(
+                incremental_plants, incremental_delivery, incremental_dt, strict=True
+            )
         ]
 
         # assign to profile

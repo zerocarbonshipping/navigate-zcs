@@ -57,7 +57,7 @@ def plot_global_energy_saving(manager, directory):
         CENTER_COLORS_BLUE[4],
     ]
 
-    for ax, value, title, color in zip(axes, values, titles, colors):
+    for ax, value, title, color in zip(axes, values, titles, colors, strict=False):
         ax.plot(dateline, value, color=color, lw=5)
 
         ax.set_title(title)

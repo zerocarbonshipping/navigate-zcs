@@ -118,12 +118,11 @@ def determine_fuel_type(vessel: Vessel) -> None:
                 fuel_type = type_
 
         logger.info(
-            "{}: Has a power system with multiple main fuel types "
-            "({}) of equal power. {} was chosen as the primary.".format(
-                vessel,
-                ", ".join([FuelTypeID(f).name for f in power_fuel_type[max_power]]),
-                FuelTypeID(fuel_type).name,
-            )
+            "%s: Has a power system with multiple main fuel types (%s) of equal power. "
+            "%s was chosen as the primary.",
+            vessel,
+            ", ".join([FuelTypeID(f).name for f in power_fuel_type[max_power]]),
+            FuelTypeID(fuel_type).name,
         )
 
     else:

@@ -412,7 +412,7 @@ def calculate_two_axis_uptake(
         if msg:
             logger.warning("%s: intra-group '%s' %s", context, group, msg)
 
-        for i, share in zip(indices, shares):
+        for i, share in zip(indices, shares, strict=True):
             uptake[i] = share
 
         metrics_2nd.append(np.dot(metrics_inter_arr[indices], shares))

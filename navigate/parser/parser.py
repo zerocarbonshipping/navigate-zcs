@@ -164,7 +164,7 @@ class Parser:
             with open(path, encoding="utf8") as f:
                 content = f.read()
         except FileNotFoundError:
-            raise FileNotFoundError(f"Unable to locate {path}.")
+            raise FileNotFoundError(f"Unable to locate {path}.") from None
 
         self._deck_path = path
         self.deck_directory = str(path.parent)
@@ -240,12 +240,12 @@ class Parser:
 
             if isinstance(directive, IncludeDirective):
                 logger.debug(
-                    f'[{self._current_section.name}] Include "{directive.path}"'
+                    '[%s] Include "%s"', self._current_section.name, directive.path
                 )
                 self._read_include_file(directive.path)
 
             elif isinstance(directive, LoadModuleDirective):
-                logger.debug(f"[{self._current_section.name}] Load {directive.name}")
+                logger.debug("[%s] Load %s", self._current_section.name, directive.name)
                 self._load_module(directive)
 
         self._end_reading_section()
@@ -342,7 +342,7 @@ class Parser:
         except FileNotFoundError:
             raise FileNotFoundError(
                 self._deck_error_prefix() + f": Include file '{path}' not found."
-            )
+            ) from None
 
         abs_path = os.path.abspath(path) if not os.path.isabs(path) else path
 
@@ -371,7 +371,7 @@ class Parser:
         found = self._read_default_folder(file_name, self._user_module_directory)
         if found:
             logger.debug(
-                f"Module '{directive.name}' was retrieved from the User Module folder."
+                "Module '%s' was retrieved from the User Module folder.", directive.name
             )
             return
 
@@ -380,8 +380,8 @@ class Parser:
         )
         if found:
             logger.debug(
-                f"Module '{directive.name}' was retrieved from the Installation "
-                "Module folder."
+                "Module '%s' was retrieved from the Installation Module folder.",
+                directive.name,
             )
         else:
             raise DeckKeywordError(f"No module with name '{directive.name}' was found.")
@@ -455,7 +455,7 @@ class Parser:
     def _begin_reading_section(self, section):
         self._check_section(section)
         self._current_section = section
-        logger.debug(f"Reading section {self._current_section.name}")
+        logger.debug("Reading section %s", self._current_section.name)
 
     def _check_section(self, section):
         if self._current_section is not None:
@@ -650,10 +650,10 @@ class Parser:
             raise DeckFormatError(
                 self._error_prefix()
                 + f": '{item.attribute}' is not a valid assignment."
-            )
+            ) from None
 
         except AttributeAssignmentError as e:
-            raise AttributeAssignmentError(self._error_prefix() + f": {e!s}.")
+            raise AttributeAssignmentError(self._error_prefix() + f": {e!s}.") from None
 
         value = self._materialize(item.value)
 
@@ -665,7 +665,7 @@ class Parser:
             except ValueError as e:
                 raise ValueError(
                     self._error_prefix() + f": {node} attribute '{attribute}' {e}."
-                )
+                ) from None
 
     def _queue_command(self, nodes, item, node_type):
         """
@@ -687,7 +687,7 @@ class Parser:
             check_node_command_is_allowed(node_type, command, self._current_section)
 
         except CommandError as e:
-            raise CommandError(self._error_prefix() + f": {e!s}.")
+            raise CommandError(self._error_prefix() + f": {e!s}.") from None
 
         inputs = self._materialize(item.args)
         ref = CommandReference(
@@ -1020,9 +1020,9 @@ class Parser:
 
         elif dropped_statements:
             logger.warning(
-                f"Dropped {dropped_statements} queued EVENTS statement(s) targeting "
-                "node(s) removed after use "
-                "as a Copy source; re-assign the copies instead."
+                "Dropped %s queued EVENTS statement(s) targeting node(s) removed after "
+                "use as a Copy source; re-assign the copies instead.",
+                dropped_statements,
             )
 
         # reported independently: a scrub changes a surviving node even when
@@ -1054,11 +1054,13 @@ class Parser:
             )
 
         logger.warning(
-            "Removed {} node(s) not reachable from any top-level node ({}) and "
-            "consequently ignored during the simulation:{}{}"
-            "\nAssign them to a parent node or remove them from the deck.".format(
-                len(reported), ", ".join(ROOT_TYPES), lines, dropped
-            )
+            "Removed %s node(s) not reachable from any top-level node (%s) and "
+            "consequently ignored during the simulation:%s%s\nAssign them to a parent "
+            "node or remove them from the deck.",
+            len(reported),
+            ", ".join(ROOT_TYPES),
+            lines,
+            dropped,
         )
 
     def _scrub_references_to_pruned(self) -> list:
@@ -1122,9 +1124,11 @@ class Parser:
         ]
 
         logger.warning(
-            "Removed the reference(s) to pruned node(s) from {} attribute(s):{}"
-            "\nAssign the removed node(s) to a parent node to keep them, or drop the "
-            "stale reference(s) from the deck.".format(len(scrubbed), "".join(lines))
+            "Removed the reference(s) to pruned node(s) from %s "
+            "attribute(s):%s\nAssign the removed node(s) to a parent node to keep "
+            "them, or drop the stale reference(s) from the deck.",
+            len(scrubbed),
+            "".join(lines),
         )
 
     def _drop_event_statements_targeting_pruned(self) -> int:
@@ -1193,10 +1197,10 @@ class Parser:
                 cmd_ref.execute(node)
 
             except CommandError as e:
-                raise CommandError(self._error_prefix() + f": {e!s}.")
+                raise CommandError(self._error_prefix() + f": {e!s}.") from None
 
             except TypeError as e:
-                raise CommandError(self._error_prefix() + f": {e!s}.")
+                raise CommandError(self._error_prefix() + f": {e!s}.") from None
 
             except KeyError as e:
                 hint = ""
@@ -1215,10 +1219,12 @@ class Parser:
                     self._error_prefix()
                     + f": '{cmd_ref.command}' attempts to reference non-existing "
                     f"name(s) {e!s}.{hint}"
-                )
+                ) from None
 
             except ValueError as e:
-                raise ValueError(self._error_prefix() + f": '{cmd_ref.command}' {e!s}")
+                raise ValueError(
+                    self._error_prefix() + f": '{cmd_ref.command}' {e!s}"
+                ) from None
 
         node.clear_command_references()
 
@@ -1229,7 +1235,7 @@ class Parser:
             try:
                 node.replace_reference_table(start_date)
             except ValueError as e:
-                raise ValueError(f"{node}: {e!s}")
+                raise ValueError(f"{node}: {e!s}") from None
 
     def _initialize_nodes(self):
         for node in self._get_all_nodes():
@@ -1351,7 +1357,7 @@ class Parser:
         except KeyError:
             raise DeckFormatError(
                 f"Wildcard '{pattern}' did not match any {node_type} nodes."
-            )
+            ) from None
 
         return [group[name] for name in matched_names]
 
@@ -1395,8 +1401,10 @@ class Parser:
                 )
 
             logger.debug(
-                f'{node_type}("{name}") was retrieved from the {found_in} Default'
-                " folder."
+                '%s("%s") was retrieved from the %s Default folder.',
+                node_type,
+                name,
+                found_in,
             )
 
             group = getattr(self.nodes, NODE_GROUP[node_type])
