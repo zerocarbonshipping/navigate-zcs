@@ -35,7 +35,7 @@ def plot_fleet_speed_per_vessel(manager, directory):
 
     fig, axes = subplot_grid(len(relevant_fleets))
 
-    for ax, fleet in zip(axes, relevant_fleets.values()):
+    for ax, fleet in zip(axes, relevant_fleets.values(), strict=False):
         profile = fleet.profile
         minimum = profile.get_minimum_speed()
         maximum = profile.get_maximum_speed()

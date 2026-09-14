@@ -20,7 +20,7 @@ def plot_fleet_emission_absolute(manager, directory):
 
     fig, axes = subplot_grid(len(fleets))
 
-    for ax, fleet in zip(axes, fleets.values()):
+    for ax, fleet in zip(axes, fleets.values(), strict=False):
         profile = fleet.profile
         wtw = profile.get_total_equivalent_wtw()
 

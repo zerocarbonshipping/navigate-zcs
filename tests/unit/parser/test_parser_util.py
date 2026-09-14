@@ -78,7 +78,8 @@ class TestStringToDate:
         ids=["no_separator", "invalid_date"],
     )
     def test_rejects_invalid_input(self, raw):
-        with pytest.raises(ValueError):
+        # the message is empty by design: the caller passes msg= with deck context
+        with pytest.raises(ValueError, match=r"^$"):
             string_to_date(raw)
 
 

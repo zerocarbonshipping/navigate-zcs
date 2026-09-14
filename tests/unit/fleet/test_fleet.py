@@ -692,7 +692,7 @@ def _make_fleet_for_modelled_uptakes(
     fleet.intra_fuel_sensitivity = _make_uniform_sensitivity()
 
     vessels = []
-    for i, (fuel, rate) in enumerate(zip(fuel_types, freight_rates)):
+    for i, (fuel, rate) in enumerate(zip(fuel_types, freight_rates, strict=True)):
         v = _make_vessel(f"v{i}")
         v.fuel_type = fuel
         exp = MagicMock()
@@ -803,7 +803,7 @@ def _make_fleet_for_newbuilds(
     fleet, vessels = _make_fleet_for_modelled_uptakes(["x"] * n, [1.0] * n)
     fleet.assets = vessels
 
-    for v, cm in zip(vessels, cargo_miles):
+    for v, cm in zip(vessels, cargo_miles, strict=True):
         v.expectation.get_cargo_miles.return_value = cm
 
     names = [v.name for v in vessels]

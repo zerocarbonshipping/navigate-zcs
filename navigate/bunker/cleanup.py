@@ -147,6 +147,9 @@ def remove_model_attribute_and_dict_element(
         to_remove = (to_remove,)
 
     for key, attribute in list(tuple_dict.items()):
-        if all(to == key[position] for to, position in zip(to_remove, positions)):
+        if all(
+            to == key[position]
+            for to, position in zip(to_remove, positions, strict=True)
+        ):
             alg.model.remove(attribute)
             del tuple_dict[key]

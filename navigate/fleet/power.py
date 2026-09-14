@@ -221,7 +221,7 @@ def _find_capacity_violations(
     power_capacity = converter.power_capacity.get()
     violations = []
 
-    for step, (energy, time) in enumerate(zip(energies, times)):
+    for step, (energy, time) in enumerate(zip(energies, times, strict=True)):
         deliverable = power_capacity * time * MWD_TO_GJ
 
         if energy - deliverable <= TOLERANCE * max(1.0, deliverable):

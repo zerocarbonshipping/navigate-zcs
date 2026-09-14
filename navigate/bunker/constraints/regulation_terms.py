@@ -147,8 +147,10 @@ def calculate_regulation_emission_term(
     terms = port_terms + sea_terms + shore_power_terms
 
     if terms:
-        weights, variables = zip(*terms)
-        constraint_weights, emission_weights, energy_weights = zip(*weights)
+        weights, variables = zip(*terms, strict=True)
+        constraint_weights, emission_weights, energy_weights = zip(
+            *weights, strict=True
+        )
 
         constraints = gp.LinExpr(constraint_weights, variables)
         emissions = gp.LinExpr(emission_weights, variables)

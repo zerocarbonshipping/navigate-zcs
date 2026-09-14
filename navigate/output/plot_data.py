@@ -97,7 +97,7 @@ class PlotData:
 
         size_mb = os.path.getsize(path) / (1024 * 1024)
         logger.info(
-            f"Exported plot data to '{path}' ({size_mb:.1f} MB, {elapsed:.1f}s)"
+            "Exported plot data to '%s' (%.1f MB, %.1fs)", path, size_mb, elapsed
         )
 
     @classmethod
@@ -121,5 +121,5 @@ class PlotData:
         with gzip.open(path, "rb") as f:
             plot_data = pickle.load(f)
 
-        logger.info(f"Loaded plot data from '{path}'")
+        logger.info("Loaded plot data from '%s'", path)
         return plot_data

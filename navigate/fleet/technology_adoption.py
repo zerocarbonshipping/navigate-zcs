@@ -356,7 +356,9 @@ def _shares_to_package_mix(
             pkg_shares[p] = take
             remaining[idxs] -= take
 
-    truncated_techs = {name for name, val in zip(tech_names, remaining) if val > 0}
+    truncated_techs = {
+        name for name, val in zip(tech_names, remaining, strict=True) if val > 0
+    }
 
     # empty package gets whatever makes the total sum to 1
     pkg_shares[0] = 1.0 - pkg_shares[1:].sum()

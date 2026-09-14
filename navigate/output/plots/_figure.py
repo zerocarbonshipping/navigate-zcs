@@ -54,7 +54,7 @@ def plot_stack_with_lines(ax, x, values, labels, colors, alpha=0.8):
     # plot lines between the stacks (in reverse order)
     cumulative = [np.add.reduce(values[: (i + 1)]) for i in range(len(values))]
 
-    for value, color in zip(cumulative[::-1], colors[::-1]):
+    for value, color in zip(cumulative[::-1], colors[::-1], strict=True):
         ax.plot(x, value, color=color, lw=2)
 
     return stack

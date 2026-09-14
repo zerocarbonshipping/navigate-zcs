@@ -331,6 +331,19 @@ def _calculate_power_system_cost(vessel: Vessel, component: Component) -> None:
     component.add_component(subcomponent)
 
 
+def _scaled_cost_callables(machinery, scale: float) -> tuple:
+    """
+    Return (capex, opex) callables for the machinery, scaled by its capacity.
+
+    Binding machinery and scale as function parameters keeps each callable tied
+    to its own machinery when created inside a loop.
+    """
+    return (
+        lambda time: machinery.capex.get(time) * scale,
+        lambda time: machinery.opex.get(time) * scale,
+    )
+
+
 def _calculate_converter_cost(vessel: Vessel, component: Component) -> None:
     """
     Add converter capital and fixed operating costs to the vessel component.
@@ -351,9 +364,7 @@ def _calculate_converter_cost(vessel: Vessel, component: Component) -> None:
             vessel=vessel, machinery=converter, time_initial=component.time_initial
         )
 
-        power = converter.power_capacity.get()
-        capex = lambda time: converter.capex.get(time) * power
-        opex = lambda time: converter.opex.get(time) * power
+        capex, opex = _scaled_cost_callables(converter, converter.power_capacity.get())
 
         add_capex_flow(component=subcomponent, capex=capex)
         add_fixed_opex(component=subcomponent, value=opex)
@@ -380,9 +391,7 @@ def _calculate_tank_cost(vessel: Vessel, component: Component) -> None:
             vessel=vessel, machinery=tank, time_initial=component.time_initial
         )
 
-        size = tank.size.get()
-        capex = lambda time: tank.capex.get(time) * size
-        opex = lambda time: tank.opex.get(time) * size
+        capex, opex = _scaled_cost_callables(tank, tank.size.get())
 
         add_capex_flow(component=subcomponent, capex=capex)
         add_fixed_opex(component=subcomponent, value=opex)

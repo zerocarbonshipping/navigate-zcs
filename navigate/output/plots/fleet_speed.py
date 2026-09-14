@@ -34,7 +34,7 @@ def plot_fleet_speed(manager, directory):
 
     fig, axes = subplot_grid(len(relevant_fleets))
 
-    for ax, fleet in zip(axes, relevant_fleets.values()):
+    for ax, fleet in zip(axes, relevant_fleets.values(), strict=False):
         profile = fleet.profile
         reference = profile.get_reference_speed()
         minimum = profile.get_minimum_speed()

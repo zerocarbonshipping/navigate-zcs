@@ -184,7 +184,7 @@ class TestApplyLimits:
         assert msg == ""
 
     def test_length_mismatch_raises(self):
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="must match 'values' length"):
             _apply_limits(np.array([0.5, 0.5]), [0.5, 0.5, 0.5])
 
     def test_infeasible_returns_saturated_with_warning(self):

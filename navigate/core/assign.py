@@ -265,8 +265,8 @@ def assign_id(assignment, id_enum):
             raise ValueError(
                 f"does not accept ID '{assignment}' — wildcards are not supported "
                 "for this command"
-            )
-        raise ValueError(f"does not accept ID '{assignment}'")
+            ) from None
+        raise ValueError(f"does not accept ID '{assignment}'") from None
 
 
 def expand_id_wildcard(pattern: str, id_enum) -> list:
@@ -291,7 +291,7 @@ def expand_id_wildcard(pattern: str, id_enum) -> list:
     except KeyError:
         raise ValueError(
             f"wildcard '{pattern}' did not match any member of {id_enum.__name__}"
-        )
+        ) from None
 
 
 def assign_id_list(assignment, id_enum, length=()):
@@ -450,13 +450,14 @@ def command_assignment_to_tuple_dict(
     symmetric : bool
         Whether the dictionary is symmetric, i.e. (key1, key2) = (key2, key1).
     """
+    if not assignment_dict:
+        raise KeyError(", ".join(key))
+
+    columns = zip(*assignment_dict.keys(), strict=True)
     keys = [
         retrieve_keys(k, unique_list(keys))
-        for k, keys in zip(key, zip(*assignment_dict.keys()))
+        for k, keys in zip(key, columns, strict=True)
     ]
-
-    if not keys:
-        raise KeyError(", ".join(key))
 
     keys1, keys2 = keys
 
@@ -497,7 +498,7 @@ def command_assignment_to_boolean_dict(
     try:
         value = BOOL_ID[assignment]
     except KeyError:
-        raise KeyError(f"'{assignment}' is not a valid boolean value.")
+        raise KeyError(f"'{assignment}' is not a valid boolean value.") from None
 
     try:
         names = retrieve_keys(key, assignment_dict)
@@ -507,7 +508,7 @@ def command_assignment_to_boolean_dict(
             # TODO logging.warning()
             return
         else:
-            raise KeyError(key)
+            raise KeyError(key) from None
 
     for name in names:
         assignment_dict[name] = value

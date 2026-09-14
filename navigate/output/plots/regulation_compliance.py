@@ -92,7 +92,7 @@ def plot_regulation_compliance(manager, directory):
 
         fig, axes = subplot_grid(n, sharex=True)
 
-        for ax, (name, threshold) in zip(axes, thresholds.items()):
+        for ax, (name, threshold) in zip(axes, thresholds.items(), strict=False):
             if name not in compliance:
                 continue
 

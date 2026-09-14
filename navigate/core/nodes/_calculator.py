@@ -119,8 +119,10 @@ class _Calculator:
 
             elif lower > self._internal_lower_bound:
                 logger.warning(
-                    f"{reference}: Internal lower bound tightened from"
-                    f" {self._internal_lower_bound} to {lower}."
+                    "%s: Internal lower bound tightened from %s to %s.",
+                    reference,
+                    self._internal_lower_bound,
+                    lower,
                 )
 
                 self._internal_lower_bound = lower
@@ -131,8 +133,10 @@ class _Calculator:
 
             elif upper < self._internal_upper_bound:
                 logger.warning(
-                    f"{reference}: Internal upper bound tightened from"
-                    f" {self._internal_upper_bound} to {upper}."
+                    "%s: Internal upper bound tightened from %s to %s.",
+                    reference,
+                    self._internal_upper_bound,
+                    upper,
                 )
 
                 self._internal_upper_bound = upper

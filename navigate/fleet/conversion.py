@@ -446,8 +446,8 @@ def _evaluate_increment(
     )
 
     # store as conversion counts so reconciliation can scale per-pair without a
-    # re-multiply
-    for candidate, share in zip(candidates.values(), uptakes):
+    # re-multiply; strict=False drops the BAU sentinel's share
+    for candidate, share in zip(candidates.values(), uptakes, strict=False):
         candidate.count = share * multiplier
 
     return candidates

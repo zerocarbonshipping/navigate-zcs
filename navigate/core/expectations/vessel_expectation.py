@@ -691,7 +691,9 @@ class VesselExpectation(_Expectation):
             energy_id: [
                 1.0 - divide_nonzero(energy[idx], raw_energy[idx], default=1.0)
                 for (energy, raw_energy) in zip(
-                    self._energy_sea[energy_id], self._raw_energy_sea[energy_id]
+                    self._energy_sea[energy_id],
+                    self._raw_energy_sea[energy_id],
+                    strict=True,
                 )
             ]
             for energy_id in self._energy_sea
@@ -702,7 +704,9 @@ class VesselExpectation(_Expectation):
             energy_id: [
                 1.0 - divide_nonzero(energy[idx], raw_energy[idx], default=1.0)
                 for (energy, raw_energy) in zip(
-                    self._energy_port[energy_id], self._raw_energy_port[energy_id]
+                    self._energy_port[energy_id],
+                    self._raw_energy_port[energy_id],
+                    strict=True,
                 )
             ]
             for energy_id in self._energy_port
@@ -715,6 +719,7 @@ class VesselExpectation(_Expectation):
                 for (op, raw) in zip(
                     self._operational_energy_sea[energy_id],
                     self._raw_energy_sea[energy_id],
+                    strict=True,
                 )
             ]
             for energy_id in self._operational_energy_sea
@@ -727,6 +732,7 @@ class VesselExpectation(_Expectation):
                 for (op, raw) in zip(
                     self._operational_energy_port[energy_id],
                     self._raw_energy_port[energy_id],
+                    strict=True,
                 )
             ]
             for energy_id in self._operational_energy_port
