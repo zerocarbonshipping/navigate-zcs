@@ -108,6 +108,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `Scalar.is_forecast()` are removed without replacement. The guards take a
   `Node`; for a `WildcardNodeReference` use the `is_type()` method, which
   remains on it.
+- Deck errors surface as a single clean traceback (the internal exception
+  that triggered them is no longer chained), internal parallel-structure
+  mismatches in the calculation modules now raise instead of silently
+  truncating, and log messages are formatted lazily with unchanged text.
 - The lint toolchain is now `ruff` (formatting, linting, import sorting) and
   `mypy` (type checking), replacing `flake8`/`isort`; `make lint` runs both
   plus the REUSE check. The whole codebase was reformatted in a single

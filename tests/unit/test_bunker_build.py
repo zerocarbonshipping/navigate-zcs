@@ -118,7 +118,7 @@ def test_get_constraint_returns_existing_constraint():
 def test_get_constraint_rejects_unknown_sense():
     alg = _StubAlgorithm()
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Unknown constraint sense"):
         get_constraint(alg, {}, ("vessel_a",), "<", "tank_capacity")
 
 

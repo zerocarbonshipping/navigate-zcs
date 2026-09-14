@@ -413,8 +413,10 @@ class Producer(_AssetManager):
                 # print a warning if the forecast allows extrapolation
                 if pipeline.extrapolate == ExtrapolateID.LINEAR:
                     logger.warning(
-                        f"{self}: Pipeline ({pipeline}) allows extrapolation and"
-                        " may therefore continue past the last date."
+                        "%s: Pipeline (%s) allows extrapolation and may therefore "
+                        "continue past the last date.",
+                        self,
+                        pipeline,
                     )
 
         # ensure consistent export distribution
@@ -501,9 +503,11 @@ class Producer(_AssetManager):
         if capacity > 0.0:
             return self._initial_capacity[index].get() / capacity
         logger.warning(
-            f"{self}: Unable to initialize a capacity of tons/day from"
-            f" {self._initial_capacity[index].get()}"
-            f" (plant {self.assets[index]}) as the plant capacity is zero."
+            "%s: Unable to initialize a capacity of tons/day from %s (plant %s) as the "
+            "plant capacity is zero.",
+            self,
+            self._initial_capacity[index].get(),
+            self.assets[index],
         )
         return 0.0
 

@@ -188,8 +188,8 @@ class Route(Node):
 
         if rescaled:
             logger.info(
-                f"{self}: 'ConditionDistribution' is rescaled proportionally"
-                " to sum to 1."
+                "%s: 'ConditionDistribution' is rescaled proportionally to sum to 1.",
+                self,
             )
 
     def set_speeds(self, speeds):
@@ -336,18 +336,19 @@ class Route(Node):
 
             if self.time_at_sea is not None:
                 logger.warning(
-                    f"{self}: 'TimeAtSea' is assigned but is unused for a ROUND_TRIP."
+                    "%s: 'TimeAtSea' is assigned but is unused for a ROUND_TRIP.", self
                 )
 
             if self.port_calls:
                 logger.warning(
-                    f"{self}: 'PortCalls' is assigned but is unused for a ROUND_TRIP."
+                    "%s: 'PortCalls' is assigned but is unused for a ROUND_TRIP.", self
                 )
 
             if self.condition_distribution:
                 logger.warning(
-                    f"{self}: 'ConditionDistribution' is assigned but is unused for a"
-                    " ROUND_TRIP."
+                    "%s: 'ConditionDistribution' is assigned but is unused for a "
+                    "ROUND_TRIP.",
+                    self,
                 )
 
         elif self.route_type == RouteTypeID.REGIONAL_TRIP:
@@ -378,14 +379,15 @@ class Route(Node):
 
             if self.distances:
                 logger.warning(
-                    f"{self}: 'Distances' is assigned but is unused for a"
-                    " REGIONAL_TRIP."
+                    "%s: 'Distances' is assigned but is unused for a REGIONAL_TRIP.",
+                    self,
                 )
 
             if self.port_durations:
                 logger.warning(
-                    f"{self}: 'PortDurations' is assigned but is unused for a"
-                    " REGIONAL_TRIP."
+                    "%s: 'PortDurations' is assigned but is unused for a "
+                    "REGIONAL_TRIP.",
+                    self,
                 )
 
         for key, distribution in self.voyage_distribution.items():

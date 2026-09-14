@@ -190,9 +190,10 @@ def _calculate_import_from_producers(
             # the available production is inaccessible
             if export_normalization[f] == 0.0:
                 logger.debug(
-                    f'Fuel("{f}") is not allowed for bunkering in any port. Any'
-                    f" existing production from {plant} is inaccessible during"
-                    f" bunkering."
+                    'Fuel("%s") is not allowed for bunkering in any port. Any existing '
+                    "production from %s is inaccessible during bunkering.",
+                    f,
+                    plant,
                 )
 
                 continue

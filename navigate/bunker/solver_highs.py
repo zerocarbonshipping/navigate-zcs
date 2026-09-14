@@ -80,7 +80,7 @@ class LinExpr:
         # _terms: list of (coefficient, Var)
         # _constant: float
         if coefficients is not None and variables is not None:
-            self._terms = list(zip(coefficients, variables))
+            self._terms = list(zip(coefficients, variables, strict=True))
             self._constant = 0.0
         else:
             self._terms = []

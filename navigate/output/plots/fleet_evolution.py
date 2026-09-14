@@ -19,7 +19,7 @@ def plot_fleet_evolution(manager, directory):
 
     fig, axes = subplot_grid(len(fleets), sharex=True)
 
-    for ax, fleet in zip(axes, fleets.values()):
+    for ax, fleet in zip(axes, fleets.values(), strict=False):
         values, labels, colors, title = merge_fleet_evolution(dateline, fleet)
 
         plot_stack_with_lines(ax, dateline, values, labels, colors)

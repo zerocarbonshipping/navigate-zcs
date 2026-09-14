@@ -300,7 +300,7 @@ def _calculate_recursive_process(
     )
 
     # loop over the feedstocks used in the process
-    for feed, feed_conversion in zip(process.feeds, process.conversions):
+    for feed, feed_conversion in zip(process.feeds, process.conversions, strict=True):
         # extend the recursive conversion factor
         conversion_feed = conversion * feed_conversion.get(component.time_initial)
 

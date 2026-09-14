@@ -34,7 +34,7 @@ def plot_global_installed_power_share(manager, directory):
 
     fig, axes = subplot_grid(len(values), sharey=True)
 
-    for ax, value, label, color in zip(axes, values, labels, colors):
+    for ax, value, label, color in zip(axes, values, labels, colors, strict=False):
         ax.plot(dateline, value, color=color, lw=2.5)
 
         ax.set_title(label)

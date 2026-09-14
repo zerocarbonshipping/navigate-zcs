@@ -34,7 +34,7 @@ def plot_fuel_supply_demand(manager, directory):
 
     colors = generate_color_dict(fuels, FUEL_COLOR)
 
-    for ax, (fuel_name, fuel) in zip(axes, fuels.items()):
+    for ax, (fuel_name, fuel) in zip(axes, fuels.items(), strict=False):
         consumed = profile.get_consumed_energy(fuel_name)
 
         if not fuel.liquid_market:

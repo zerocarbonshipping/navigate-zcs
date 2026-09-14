@@ -115,7 +115,7 @@ class _Table1D(_Calculator):
                 self._extrapolation_warned = True
             else:
                 logger.debug(
-                    f"{self}: Extrapolating beyond table limits (suppressed repeat)."
+                    "%s: Extrapolating beyond table limits (suppressed repeat).", self
                 )
 
     def _get_x_limits(self):

@@ -55,7 +55,7 @@ def _plot_investment_signal_per_vessel(
 
     fig, axes = subplot_grid(len(relevant_fleets))
 
-    for ax, fleet in zip(axes, relevant_fleets.values()):
+    for ax, fleet in zip(axes, relevant_fleets.values(), strict=False):
         # plot the energy-weighted investment signal per vessel
         signals = []
         for vessel in fleet.vessels:

@@ -116,7 +116,9 @@ def log_time_step_breaker(logger, idx, date, time):
 
 def log_extrapolate_bounds(logger, node, x, a, b):
     info = f" Value was {x}." if x.size < 5 else ""
-    logger.warning(f"{node}: Extrapolating beyond table limits ({a}, {b}).{info}")
+    logger.warning(
+        "%s: Extrapolating beyond table limits (%s, %s).%s", node, a, b, info
+    )
 
 
 def log_start_of_simulation(logger, date):

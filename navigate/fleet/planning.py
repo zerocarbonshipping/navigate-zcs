@@ -258,7 +258,8 @@ def calculate_modelled_newbuilds(
             (i, vessel)
             for i, vessel in enumerate(fleet.assets)
             if fleet.allow_vessel[vessel.name] and fleet.newbuild_available[vessel.name]
-        )
+        ),
+        strict=True,
     )
 
     # make it a valid array index to numpy
