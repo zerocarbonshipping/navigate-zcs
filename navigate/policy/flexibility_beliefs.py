@@ -3,10 +3,13 @@
 
 from __future__ import annotations
 
-import numpy as np
+from typing import TYPE_CHECKING
 
 from navigate.core.enum_ import RegulationSchemeID
 from navigate.util import derive_smoothing_alpha, update_belief_path
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 def update_regulation_flexibility_beliefs(

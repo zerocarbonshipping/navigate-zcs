@@ -71,7 +71,7 @@ class _DummyNode:
 
 class TestCommandReference:
     @pytest.mark.parametrize(
-        "command, inputs, match",
+        ("command", "inputs", "match"),
         [
             ("two_required", [1], "requires 2 inputs"),
             ("one_required", [1, 2, 3], "takes up to 1 inputs"),

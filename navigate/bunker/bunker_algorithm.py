@@ -459,10 +459,7 @@ class BunkerAlgorithm:
         initialization occurs.
         """
         # initialize LP model
-        if self.scope == BunkerScopeID.EXISTING:
-            model_name = "existing"
-        else:
-            model_name = "expected"
+        model_name = "existing" if self.scope == BunkerScopeID.EXISTING else "expected"
 
         self.model = gp.Model(model_name)
 

@@ -18,7 +18,7 @@ from navigate.output.plots._units import (
 
 
 @pytest.mark.parametrize(
-    "value, divisor, prefix",
+    ("value", "divisor", "prefix"),
     [
         (0.0, 1, ""),
         (5.0, 1, ""),
@@ -51,7 +51,7 @@ def test_get_best_unit_rate_suffix():
 
 
 @pytest.mark.parametrize(
-    "func, kwargs, expected",
+    ("func", "kwargs", "expected"),
     [
         (get_best_unit_mass, {}, (1000000, "Mt/year")),
         (get_best_unit_mass, {"rate": False}, (1000000, "Mt")),

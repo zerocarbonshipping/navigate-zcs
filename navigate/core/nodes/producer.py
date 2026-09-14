@@ -7,8 +7,6 @@ import itertools
 import logging
 from typing import TYPE_CHECKING
 
-import numpy as np
-
 from navigate.core import (
     Scalar,
     as_list,
@@ -21,7 +19,6 @@ from navigate.core import (
 )
 from navigate.core.enum_ import ExtrapolateID
 from navigate.core.expectations import ProducerExpectation
-from navigate.core.increment import Increment
 from navigate.core.node_type import FORECAST, PLANT, PRODUCER, VARIABLE
 from navigate.core.nodes._asset_manager import _AssetManager
 from navigate.core.profiles import ProducerProfile
@@ -29,6 +26,9 @@ from navigate.exceptions import no_value_assigned_error
 from navigate.util import is_non_strictly_increasing
 
 if TYPE_CHECKING:
+    import numpy as np
+
+    from navigate.core.increment import Increment
     from navigate.core.nodes.feedstock import Feedstock
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.port import Port
@@ -480,9 +480,7 @@ class Producer(_AssetManager):
         self.profile.initialize(timeline, feedstocks, fuels, processes)
 
     def define_initial_capacity(self) -> None:
-        """
-        Define the initial capacity of each plant type.
-        """
+        """Define the initial capacity of each plant type."""
         if not self._initial_capacity:
             # if the initial capacity is not
             # supplied by the user, then assume

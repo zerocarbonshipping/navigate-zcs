@@ -50,10 +50,7 @@ def plot_port_bunker_supply(manager, directory):
 
             limit = np.where(np.isinf(limit), np.nan, limit)
 
-            if np.all(np.isnan(limit)):
-                max_limit = 0.0
-            else:
-                max_limit = np.nanmax(limit)
+            max_limit = 0.0 if np.all(np.isnan(limit)) else np.nanmax(limit)
 
             maximum = max(np.amax(bunkered), np.amax(supply), max_limit)
             divisor, unit = get_best_unit_mass(maximum)

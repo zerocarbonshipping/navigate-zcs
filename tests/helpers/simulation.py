@@ -15,13 +15,16 @@ import argparse
 import os
 import shutil
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import numpy as np
 
 from navigate.__main__ import ASSUMPTIONS_ENV_VAR
-from navigate.core.nodes.producer import Producer
 from navigate.simulation import SimulationManager
 from navigate.util import YEAR
+
+if TYPE_CHECKING:
+    from navigate.core.nodes.producer import Producer
 
 # Tolerance for comparing per-step producer development against the nominal
 # per-year MaximumDevelopment in decks with yearly time steps: leap years
@@ -127,7 +130,7 @@ def assertable_end(manager: SimulationManager, producer: Producer) -> int:
     Exclusive end index, guaranteed within (0, len(timeline)].
     """
     timeline = manager.timeline
-    lead_time = int(round(producer.assets[0].lead_time.get(timeline[0])))
+    lead_time = round(producer.assets[0].lead_time.get(timeline[0]))
     end = len(timeline) - lead_time
     # guard against vacuously-true assertions on empty (or, with negative
     # indices, silently wrong) windows when a horizon shrinks or a default

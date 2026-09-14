@@ -17,9 +17,10 @@ only when the statement's target node is itself reachable.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from navigate.core import Expression
 from navigate.core.node import Node
-from navigate.core.node_registry import GeneralNodes, Nodes
 from navigate.core.node_type import (
     EMISSION,
     FLEET,
@@ -43,6 +44,9 @@ from navigate.parser._scan import (
     parse_node_reference,
 )
 from navigate.util import matching_keys
+
+if TYPE_CHECKING:
+    from navigate.core.node_registry import GeneralNodes, Nodes
 
 ROOT_TYPES = (EMISSION, FLEET, FUEL, LEVY, PLOT, PRODUCER, REGULATION, REPORT)
 ROOT_GROUPS = tuple(NODE_GROUP[node_type] for node_type in ROOT_TYPES)

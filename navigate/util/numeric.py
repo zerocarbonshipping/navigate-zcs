@@ -122,7 +122,7 @@ def normalize_fractional(values, times):
     """
     n = len(values)
 
-    if isinstance(values, list) or isinstance(values, tuple):
+    if isinstance(values, (list, tuple)):
         _values = to_numpy(values, x=times)
 
         total = np.round(np.sum(_values, axis=0), ROUND_OFF)

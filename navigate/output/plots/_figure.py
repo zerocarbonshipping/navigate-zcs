@@ -77,11 +77,10 @@ def format_axes(ax, n, dateline=None, legend=None, y_lim=(0.0, None)):
     set_font_sizes(ax, *get_font_sizes(n))
 
     # format legend size
-    if legend is not None:
-        if n > 12:
-            for patch in legend.get_patches():
-                patch.set_width(patch.get_width() * 0.8)
-                patch.set_height(patch.get_height() * 0.8)
+    if legend is not None and n > 12:
+        for patch in legend.get_patches():
+            patch.set_width(patch.get_width() * 0.8)
+            patch.set_height(patch.get_height() * 0.8)
 
 
 def save_figure(fig, directory, filename):

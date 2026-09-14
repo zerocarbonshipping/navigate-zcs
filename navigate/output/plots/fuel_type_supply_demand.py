@@ -71,10 +71,9 @@ def plot_fuel_type_supply_demand(manager, directory):
                     available = port_profile.get_bunkering_allowed(fuel_name)
                     constraint = port_profile.get_bunker_supply_mass(fuel_name)
 
-                    if constraint is None:
-                        if np.any(available):
-                            constrained = False
-                            break
+                    if constraint is None and np.any(available):
+                        constrained = False
+                        break
 
                     # add fuel spend
                     bunkering = port_profile.get_bunker_energy()

@@ -9,8 +9,10 @@ used by the parser's reference resolution and the reachability analysis.
 from __future__ import annotations
 
 import re
-from collections.abc import Iterator
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 # a node reference in canonical deck form, e.g. Vessel("name");
 # group 1 is the node type and group 3 the node name
