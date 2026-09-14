@@ -19,7 +19,7 @@ def plot_fleet_changes(manager, directory):
 
     fig, axes = subplot_grid(len(fleets))
 
-    for ax, fleet in zip(axes, fleets.values()):
+    for ax, fleet in zip(axes, fleets.values(), strict=False):
         scraps, scrap_labels, scrap_colors, title = merge_fleet_changes(
             dateline, fleet, scrap=True
         )
@@ -37,7 +37,7 @@ def plot_fleet_changes(manager, directory):
         unique_labels = [*scrap_labels]
         unique_colors = [*scrap_colors]
 
-        for label, color in zip(build_labels, build_colors):
+        for label, color in zip(build_labels, build_colors, strict=True):
             if label not in unique_labels:
                 unique_labels.append(label)
                 unique_colors.append(color)

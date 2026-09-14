@@ -56,7 +56,9 @@ def plot_producer_feed_consumption(manager, directory):
 
         fig, axes = subplot_grid(len(results))
 
-        for ax, (feed_name, (consumed, constraint)) in zip(axes, results.items()):
+        for ax, (feed_name, (consumed, constraint)) in zip(
+            axes, results.items(), strict=False
+        ):
             max_constraint = np.nanmax(constraint)
 
             maximum = max(np.nanmax(consumed), max_constraint)

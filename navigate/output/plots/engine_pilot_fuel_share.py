@@ -54,7 +54,7 @@ def plot_engine_pilot_fuel_share(manager, directory):
 
     fig, axes = subplot_grid(len(pilot_fuel_share))
 
-    for ax, fuel_type in zip(axes, relevant_fuel_types):
+    for ax, fuel_type in zip(axes, relevant_fuel_types, strict=False):
         share = pilot_fuel_share[fuel_type] * 100.0
         minimum = np.full_like(
             dateline, minimum_share[fuel_type] * 100.0, dtype=np.float64

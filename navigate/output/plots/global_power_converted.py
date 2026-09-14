@@ -73,7 +73,7 @@ def _plot_global_power_converted(manager, directory, cumulative=False):
     unique_labels = [*labels_from]
     unique_colors = [*colors_from]
 
-    for label, color in zip(labels_to, colors_to):
+    for label, color in zip(labels_to, colors_to, strict=True):
         if label not in unique_labels:
             unique_labels.append(label)
             unique_colors.append(color)
@@ -85,7 +85,7 @@ def _plot_global_power_converted(manager, directory, cumulative=False):
 
     patches = [
         mpatches.Patch(color=color, label=label)
-        for label, color in zip(unique_labels, unique_colors)
+        for label, color in zip(unique_labels, unique_colors, strict=True)
     ]
     legend = ax.legend(handles=patches, **LEGEND_OPTIONS)
 

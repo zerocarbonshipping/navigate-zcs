@@ -40,7 +40,7 @@ def plot_plant_production_emissions(manager, directory):
         y_min = 0.0
         y_max = 0.0
 
-        for ax, plant in zip(axes, plants_region):
+        for ax, plant in zip(axes, plants_region, strict=False):
             fuel = plant.fuel
             fuel_name = fuel.name
             lhv = fuel.lower_heating_value.get()

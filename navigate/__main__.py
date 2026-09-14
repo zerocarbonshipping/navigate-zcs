@@ -224,7 +224,7 @@ def _run(path: Path, args: argparse.Namespace) -> SimulationManager:
     manager.run()
     logger = logging.getLogger(__name__)
     logger.info(
-        f"Simulation completed successfully in {manager.get_elapsed_time()} seconds."
+        "Simulation completed successfully in %s seconds.", manager.get_elapsed_time()
     )
     logger.info(log_summary())
 

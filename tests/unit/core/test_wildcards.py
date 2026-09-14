@@ -128,7 +128,7 @@ class TestAssignValueWildcardNodeReference:
 
     def test_assign_value_rejects_mismatched_type(self):
         ref = WildcardNodeReference(FUEL, "*")
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="nodes of type"):
             assign_value(ref, scalar=False, type_=PORT)
 
     def test_assign_list_accepts_wildcard_entries(self):

@@ -29,7 +29,7 @@ def plot_producer_fair_share(manager, directory):
 
     fig, axes = subplot_grid(len(fuels))
 
-    for ax, (fuel_name, fuel) in zip(axes, fuels.items()):
+    for ax, (fuel_name, fuel) in zip(axes, fuels.items(), strict=False):
         added_lines = False
         for i, (producer_name, producer) in enumerate(producers.items()):
             if not producer.can_produce(fuel_name):

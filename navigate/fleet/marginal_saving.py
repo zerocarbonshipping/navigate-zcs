@@ -389,8 +389,10 @@ def _check_heuristic_consistency(
 
     if fraction > 0.0:
         logging.debug(
-            f"{vessel}: {msg} evaluation extrapolated outside polytype in : "
-            f"{fraction:.1%} of instances."
+            "%s: %s evaluation extrapolated outside polytype in : %.1f%% of instances.",
+            vessel,
+            msg,
+            fraction * 100,
         )
 
 

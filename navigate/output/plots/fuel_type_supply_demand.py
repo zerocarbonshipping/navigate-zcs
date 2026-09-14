@@ -115,7 +115,7 @@ def plot_fuel_type_supply_demand(manager, directory):
     else:
         return
 
-    for ax, fuel_type in zip(axes, fuel_types):
+    for ax, fuel_type in zip(axes, fuel_types, strict=False):
         values = [value / divisor for value in all_values[fuel_type]]
         colors = all_colors[fuel_type]
         labels = all_labels[fuel_type]
