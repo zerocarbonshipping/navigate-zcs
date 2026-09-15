@@ -26,7 +26,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   live in the new `navigate.util.arrays`. **Breaking** for code importing
   navigate as a library: the unused `no_value_assigned_dict_error` helper is
   removed, `normalize_fractional` accepts only dicts (its list/tuple form had
-  no callers), and keyword-visible helper parameters have clearer names:
+  no callers), `is_single_dict`/`is_tuple_dict` return False (was None) for
+  empty dicts, and keyword-visible helper parameters have clearer names:
   `divide_nonzero(numerator, denominator, ...)` (was `a`, `b`),
   `to_numpy(..., length=...)` (was `n`), and `is_strictly_increasing(values)`
   / `is_non_strictly_increasing(values)` (was `x`).

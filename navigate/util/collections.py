@@ -231,9 +231,9 @@ def divide_dicts[K](
     return merged
 
 
-def is_single_dict[K](dict_: Mapping[K, object]) -> bool | None:
+def is_single_dict[K](dict_: Mapping[K, object]) -> bool:
     """
-    Check whether a dict is a single dict.
+    Check whether a dict is a single dict (keyed by non-tuple keys).
 
     Parameters
     ----------
@@ -242,23 +242,19 @@ def is_single_dict[K](dict_: Mapping[K, object]) -> bool | None:
 
     Returns
     -------
-    bool | None
-        Whether the dict is a single dict; None for an empty dict, whose kind
-        cannot be determined.
+    bool
+        Whether the first key is a non-tuple; False for an empty dict.
     """
-    keys = list(dict_.keys())
+    if not dict_:
+        return False
 
-    if keys:
-        representative = keys[0]
-
-        return not isinstance(representative, tuple)
-
-    return None
+    representative = next(iter(dict_))
+    return not isinstance(representative, tuple)
 
 
-def is_tuple_dict[K](dict_: Mapping[K, object]) -> bool | None:
+def is_tuple_dict[K](dict_: Mapping[K, object]) -> bool:
     """
-    Check whether a dict is a tuple dict.
+    Check whether a dict is a tuple dict (keyed by two-element tuples).
 
     Parameters
     ----------
@@ -267,22 +263,14 @@ def is_tuple_dict[K](dict_: Mapping[K, object]) -> bool | None:
 
     Returns
     -------
-    bool | None
-        Whether the dict is a tuple dict; None for an empty dict, whose kind
-        cannot be determined.
+    bool
+        Whether the first key is a two-element tuple; False for an empty dict.
     """
-    keys = list(dict_.keys())
+    if not dict_:
+        return False
 
-    if keys:
-        representative = keys[0]
-
-        if isinstance(representative, tuple):
-            return len(representative) == 2
-
-        else:
-            return False
-
-    return None
+    representative = next(iter(dict_))
+    return isinstance(representative, tuple) and len(representative) == 2
 
 
 def extract_from_dict[K](
