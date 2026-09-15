@@ -351,9 +351,9 @@ def collapse_tuple_dict[K1: Hashable, K2: Hashable](
     key1: bool = False,
     key2: bool = False,
 ) -> (
-    FloatArray
-    | dict[K1, FloatArray]
-    | dict[K2, FloatArray]
+    FloatLike
+    | dict[K1, FloatLike]
+    | dict[K2, FloatLike]
     | dict[tuple[K1, K2], FloatLike]
 ):
     """
@@ -374,20 +374,30 @@ def collapse_tuple_dict[K1: Hashable, K2: Hashable](
 
     Returns
     -------
-    FloatArray | dict
+    dict | FloatLike
         Desired form of result from tuple dict; dicts are keyed by the
         uncollapsed key part(s).
     """
     if key1 and key2:
-        return _sum_over_tuple_key(result)
+        return sum_dict_results(result)
 
     if key1:
         primary_keys = unique_list([key for (key, _) in result])
-        return {key: _sum_over_tuple_key(result, key1=key) for key in primary_keys}
+        return {
+            key: sum_dict_results(
+                {k2: value for (k1, k2), value in result.items() if k1 == key}
+            )
+            for key in primary_keys
+        }
 
     if key2:
         secondary_keys = unique_list([key for (_, key) in result])
-        return {key: _sum_over_tuple_key(result, key2=key) for key in secondary_keys}
+        return {
+            key: sum_dict_results(
+                {k1: value for (k1, k2), value in result.items() if k2 == key}
+            )
+            for key in secondary_keys
+        }
 
     # returned as-is; only the static value type widens
     return cast("dict[tuple[K1, K2], FloatLike]", result)
@@ -435,25 +445,6 @@ def slice_dict[K](
         Sliced result.
     """
     return {key: value[idx] for key, value in result.items()}
-
-
-def _sum_over_tuple_key[K1, K2](
-    result: dict[tuple[K1, K2], FloatArray],
-    key1: K1 | None = None,
-    key2: K2 | None = None,
-) -> FloatArray:
-    if key1 is not None:
-        arrays = [value for (k1, _), value in result.items() if k1 == key1]
-    elif key2 is not None:
-        arrays = [value for (_, k2), value in result.items() if k2 == key2]
-    else:
-        arrays = list(result.values())
-
-    if not arrays:
-        raise ValueError("Dict is empty.")
-
-    summed: FloatArray = np.add.reduce(arrays)
-    return summed
 
 
 def _resolve_dict[K](
