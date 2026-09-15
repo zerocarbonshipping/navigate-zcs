@@ -1,48 +1,59 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Wildcard matching and mapping of deck-facing attribute tokens to method names."""
+
 from __future__ import annotations
 
 import re
+from typing import TYPE_CHECKING, cast
+
+if TYPE_CHECKING:
+    from collections.abc import Callable, Iterable
 
 
-def retrieve_keys(key, allowed_keys, key_fn=None):
+def retrieve_keys[K](
+    key: str | K,
+    allowed_keys: Iterable[K],
+    key_fn: Callable[[K], str] | None = None,
+) -> list[K]:
     """
     Retrieve all keys from 'allowed_keys' matching the (potential) wildcard in key.
 
     Parameters
     ----------
-    key : str | int | Enum
-        Name of node, possibly including wildcards.
-    allowed_keys : tuple | dict | Enum
+    key
+        Name of node, possibly including wildcards; a non-string key is
+        returned as-is without matching.
+    allowed_keys
         Collection of allowable keys.
-    key_fn : callable, optional
+    key_fn
         Function to extract a string name from each key for matching.
         When ``None``, keys are used directly.
 
     Returns
     -------
-    list :
-        List of all keys matching 'key' ('key' only if no wildcards)
+    list[K]
+        List of all keys matching 'key' ('key' only if no wildcards).
     """
     if not isinstance(key, str):
         return [key]
 
-    # Fast path: exact lookup when no wildcards are present.
+    if key_fn is None:
+        # without a key extractor the keys are themselves the match strings
+        key_fn = cast("Callable[[K], str]", lambda allowed_key: allowed_key)
+
+    # fast path: exact lookup when no wildcards are present
     if not name_contains_wildcards(key):
         for allowed_key in allowed_keys:
-            match_name = key_fn(allowed_key) if key_fn else allowed_key
-            if match_name == key:
+            if key_fn(allowed_key) == key:
                 return [allowed_key]
         raise KeyError(key)
 
     regex = re.compile(wildcard_to_regex(key))
-    keys = []
-
-    for allowed_key in allowed_keys:
-        match_name = key_fn(allowed_key) if key_fn else allowed_key
-        if regex.match(match_name):
-            keys.append(allowed_key)
+    keys = [
+        allowed_key for allowed_key in allowed_keys if regex.match(key_fn(allowed_key))
+    ]
 
     if not keys:
         raise KeyError(key)
@@ -50,7 +61,11 @@ def retrieve_keys(key, allowed_keys, key_fn=None):
     return keys
 
 
-def matching_keys(key, allowed_keys, key_fn=None):
+def matching_keys[K](
+    key: str | K,
+    allowed_keys: Iterable[K],
+    key_fn: Callable[[K], str] | None = None,
+) -> list[K]:
     """
     Retrieve the keys matching the wildcard expression in 'key'.
 
@@ -58,16 +73,17 @@ def matching_keys(key, allowed_keys, key_fn=None):
 
     Parameters
     ----------
-    key : str | int | Enum
-        Name of node, possibly including wildcards.
-    allowed_keys : tuple | dict | Enum
+    key
+        Name of node, possibly including wildcards; a non-string key is
+        returned as-is without matching.
+    allowed_keys
         Collection of allowable keys.
-    key_fn : callable, optional
+    key_fn
         Function to extract a string name from each key for matching.
 
     Returns
     -------
-    list :
+    list[K]
         List of all keys matching 'key'; empty when nothing matches.
     """
     try:
@@ -76,7 +92,7 @@ def matching_keys(key, allowed_keys, key_fn=None):
         return []
 
 
-def attribute_to_setter(attribute, method="set"):
+def attribute_to_setter(attribute: str, method: str = "set") -> str:
     """
     Convert a Parser-read attribute name to a setter method name.
 
@@ -95,14 +111,14 @@ def attribute_to_setter(attribute, method="set"):
 
     Parameters
     ----------
-    attribute : str
+    attribute
         String read as the left-hand side of an assignment statement in the input deck.
-    method : str
+    method
         Prefix to the function, usually either 'set' or 'get'.
 
     Returns
     -------
-    str :
+    str
         String which can be used to call a setter method of a Class using 'getattr()'.
     """
     return method + "".join(
@@ -110,7 +126,7 @@ def attribute_to_setter(attribute, method="set"):
     )
 
 
-def attribute_to_instance_name(attribute):
+def attribute_to_instance_name(attribute: str) -> str:
     """
     Convert a DSL attribute name to its snake_case instance-attribute name.
 
@@ -119,20 +135,20 @@ def attribute_to_instance_name(attribute):
 
     Parameters
     ----------
-    attribute : str
+    attribute
         String read as the left-hand side of an assignment statement in the input deck.
 
     Returns
     -------
-    str :
+    str
         The corresponding instance-attribute name.
     """
     return attribute_to_setter(attribute, method="")[1:]
 
 
-def name_contains_wildcards(name):
+def name_contains_wildcards(name: str) -> bool:
     """
-    Test whether a node name include wildcard characters.
+    Test whether a node name includes wildcard characters.
 
     Examples
     --------
@@ -140,21 +156,20 @@ def name_contains_wildcards(name):
     - Na?e
     - Name#
 
-
     Parameters
     ----------
-    name : str
+    name
         Name used to access a specific node.
 
     Returns
     -------
-    bool :
+    bool
         Whether the name includes wildcards.
     """
     return any(wildcard in name for wildcard in ("*", "?"))
 
 
-def wildcard_to_regex(word):
+def wildcard_to_regex(word: str) -> str:
     """
     Convert a limited selection of Windows wildcards to a python regular expression.
 
@@ -166,12 +181,12 @@ def wildcard_to_regex(word):
 
     Parameters
     ----------
-    word : str
+    word
         Word possibly containing wildcards.
 
     Returns
     -------
-    str :
+    str
         Regular expression.
     """
     expression = r"^"
