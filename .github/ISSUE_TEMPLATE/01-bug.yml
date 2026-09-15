@@ -1,0 +1,38 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: Apache-2.0
+
+name: Bug report
+description: Wrong results, errors, or failures
+labels: ["bug"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Expected vs. actual behavior, and why it matters.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Reproduction or evidence
+      description: >
+        Commands and a minimal deck that reproduce it, the error output, or
+        the reasoning that shows the defect.
+    validations:
+      required: true
+  - type: textarea
+    id: location
+    attributes:
+      label: Location
+      description: "If known: `path/to/file.py:LINE` and symbol names."
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Navigate version or commit.
+  - type: textarea
+    id: resolution
+    attributes:
+      label: Proposed resolution
+      description: If you have one — the remedy and the test that should cover it.
