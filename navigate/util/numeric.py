@@ -1,150 +1,201 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Numeric helpers: safe division, normalization, index lookup, growth, smoothing."""
+
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, Protocol, cast, overload
+
 import numpy as np
+import numpy.typing as npt
 
 from navigate.util.dates import YEAR
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
+
+    from navigate.util.arrays import FloatArray, FloatLike, IntArray
 
 ROUND_OFF = 5  # decimals
 TOLERANCE = 10 ** (-ROUND_OFF)
 
 
-def divide_nonzero(a, b, default=0.0):
+class _SupportsGet(Protocol):
+    """Calculator duck type: anything evaluated through a two-argument .get."""
+
+    def get(self, x: FloatLike | None, y: FloatLike | None, /) -> FloatLike: ...
+
+
+def divide_nonzero(
+    numerator: npt.ArrayLike, denominator: npt.ArrayLike, default: float = 0.0
+) -> FloatArray:
     """
-    Divide 'a' with 'b' where b>0, leaving defaults elsewhere.
+    Divide the numerator by the denominator where it is positive, defaults elsewhere.
 
     Parameters
     ----------
-    a : np.ndarray | float
-        Numerator.
-    b : np.ndarray | float
-        Denominator.
-    default : float
-        Default value in case b is zero.
+    numerator
+        Numerator, scalar or array.
+    denominator
+        Denominator, scalar or array.
+    default
+        Value used where the denominator is not positive.
 
     Returns
     -------
-    float | np.ndarray
-        Result after division.
+    FloatArray
+        Quotients with the broadcast shape of the inputs (0-d for scalar inputs).
     """
-    a = np.asarray(a)
-    b = np.asarray(b)
+    numerator = np.asarray(numerator)
+    denominator = np.asarray(denominator)
 
-    if np.isscalar(b):
-        if b > 0.0:
-            return a / b
-        # b <= 0: return default with shape of a
-        if np.isscalar(a):
-            return default
-        out = np.empty_like(a, dtype=np.result_type(a, b))
-        out.fill(default)
-        return out
-
-    # Allocate output with the BROADCASTED shape (not a.shape, not b.shape)
-    dtype = np.result_type(a, b)
-    shape = np.broadcast(a, b).shape
+    # allocate the broadcast shape of both inputs so it fits np.divide's out=
+    dtype = np.result_type(numerator, denominator)
+    shape = np.broadcast(numerator, denominator).shape
 
     if default == 0.0:
-        out = np.zeros(shape, dtype=dtype)
+        quotients = np.zeros(shape, dtype=dtype)
     else:
-        out = np.empty(shape, dtype=dtype)
-        out.fill(default)
+        quotients = np.empty(shape, dtype=dtype)
+        quotients.fill(default)
 
-    # where must also broadcast; b > 0 broadcasts fine
-    np.divide(a, b, out=out, where=(b > 0.0))
-    return out
+    # entries excluded by where= keep the prefilled default
+    np.divide(numerator, denominator, out=quotients, where=(denominator > 0.0))
+    return quotients
 
 
-def to_numpy(scalars, x=None, y=None, n=None):
-    values = np.array([_to_value(s, x, y) for s in scalars])
+def to_numpy(
+    scalars: Iterable[float | _SupportsGet],
+    x: FloatLike | None = None,
+    y: FloatLike | None = None,
+    length: int | None = None,
+) -> FloatArray:
+    """
+    Evaluate a collection of floats and/or calculators into a numpy array.
 
-    if n is not None:
-        values = np.array([np.full(n, v) for v in values])
+    Parameters
+    ----------
+    scalars
+        Floats and/or calculator nodes to evaluate.
+    x
+        First argument passed to the calculators' get.
+    y
+        Second argument passed to the calculators' get.
+    length
+        When given, each evaluated value is tiled to this length, producing a
+        2-D array with one row per scalar.
+
+    Returns
+    -------
+    FloatArray
+        Evaluated values.
+    """
+    values = np.array([_to_value(scalar, x, y) for scalar in scalars])
+
+    if length is not None:
+        values = np.array([np.full(length, value) for value in values])
 
     return values
 
 
-def _to_value(scalar, x=None, y=None):
+def _to_value(
+    scalar: float | _SupportsGet,
+    x: FloatLike | None = None,
+    y: FloatLike | None = None,
+) -> FloatLike:
     return scalar if isinstance(scalar, float) else scalar.get(x, y)
 
 
-def is_strictly_increasing(x):
+def is_strictly_increasing(values: FloatArray) -> bool:
     """
-    Test whether x is strictly increasing via np.any, which is faster than np.all.
+    Test whether values are strictly increasing via np.any, which is faster than np.all.
 
     Parameters
     ----------
-    x : np.ndarray
+    values
         Vector.
 
     Returns
     -------
     bool
-        Whether 'x' is strictly increasing.
+        Whether 'values' is strictly increasing.
     """
-    return not np.any(np.diff(x) <= 0)
+    return not np.any(np.diff(values) <= 0)
 
 
-def is_non_strictly_increasing(x):
+def is_non_strictly_increasing(values: FloatArray) -> bool:
     """
-    Test whether x is non-strictly increasing via np.any, which is faster than np.all.
+    Test whether values are non-strictly increasing via np.any, faster than np.all.
 
     Parameters
     ----------
-    x : np.ndarray
+    values
         Vector.
 
     Returns
     -------
     bool
-        Whether 'x' is non-strictly increasing.
+        Whether 'values' is non-strictly increasing.
     """
-    return not np.any(np.diff(x) < 0)
+    return not np.any(np.diff(values) < 0)
 
 
-def normalize_fractional(values, times):
+@overload
+def normalize_fractional(
+    values: list[float | _SupportsGet] | tuple[float | _SupportsGet, ...],
+    times: FloatLike | None,
+) -> FloatArray: ...
+@overload
+def normalize_fractional[K](
+    values: dict[K, float | _SupportsGet], times: FloatLike | None
+) -> dict[K, FloatArray]: ...
+def normalize_fractional[K](
+    values: list[float | _SupportsGet]
+    | tuple[float | _SupportsGet, ...]
+    | dict[K, float | _SupportsGet],
+    times: FloatLike | None,
+) -> FloatArray | dict[K, FloatArray]:
     """
-    Ensure values sum to unity and return a normalized container otherwise.
+    Normalize fractional values to sum to unity, splitting equally at zero total.
 
     Parameters
     ----------
-    values : list | tuple | dict
+    values
         Container with floats and/or calculator nodes.
-    times : float | np.ndarray
+    times
         Times to pass to potential calculator nodes.
 
     Returns
     -------
-    np.ndarray | dict[float | np.ndarray]
-        Normalized version of values.
+    FloatArray | dict[K, FloatArray]
+        Normalized version of values, mirroring the container kind.
     """
-    n = len(values)
+    count = len(values)
 
     if isinstance(values, (list, tuple)):
-        _values = to_numpy(values, x=times)
+        evaluated = to_numpy(values, x=times)
+        total = np.round(np.sum(evaluated, axis=0), ROUND_OFF)
 
-        total = np.round(np.sum(_values, axis=0), ROUND_OFF)
+        return np.array(
+            [divide_nonzero(value, total, default=1.0 / count) for value in evaluated]
+        )
 
-        out = np.array([divide_nonzero(v, total, default=1.0 / n) for v in _values])
+    if isinstance(values, dict):
+        evaluated_by_key = {
+            key: _to_value(value, x=times) for key, value in values.items()
+        }
+        total = np.round(np.sum(list(evaluated_by_key.values()), axis=0), ROUND_OFF)
 
-    elif isinstance(values, dict):
-        _values = {key: _to_value(value, x=times) for key, value in values.items()}
-        total = np.round(np.sum(list(_values.values()), axis=0), ROUND_OFF)
-
-        out = {
-            key: divide_nonzero(value, total, default=1.0 / n)
-            for key, value in _values.items()
+        return {
+            key: divide_nonzero(value, total, default=1.0 / count)
+            for key, value in evaluated_by_key.items()
         }
 
-    else:
-        raise ValueError("'Values' must be either a list, tuple, or a dict.")
-
-    return out
+    raise ValueError("'Values' must be either a list, tuple, or a dict.")
 
 
-def interpolate_tied_capital(tied_capital_flow: np.ndarray, age: float) -> float:
+def interpolate_tied_capital(tied_capital_flow: FloatArray, age: float) -> float:
     """
     Interpolate an increment's remaining tied-up capital at a given age.
 
@@ -159,37 +210,44 @@ def interpolate_tied_capital(tied_capital_flow: np.ndarray, age: float) -> float
 
     Returns
     -------
-    Remaining tied-up capital at the given age.
+    float
+        Remaining tied-up capital at the given age.
     """
     time_flow = np.arange(0, tied_capital_flow.size) * YEAR
     return np.interp(age * YEAR, time_flow, tied_capital_flow)
 
 
-def get_increments_origin_index(years, current_year, ages):
+def get_increments_origin_index(
+    years: FloatArray, current_year: float, ages: FloatArray
+) -> IntArray:
     """
     Find the time-step indexes at which increments entered the simulation.
 
-    Each increment (vessel or plant) is treated as having entered 'age' years before
+    Each increment (vessel or plant) is treated as having entered 'ages' years before
     current_year. Notice here that if the entity was part of the initialization of the
     node index 0 is used. This is the best available approximation as historical data
     is unavailable.
 
-    years : np.ndarray
+    Parameters
+    ----------
+    years
         Simulation timeline in years.
-    current_year : float
+    current_year
         The current year (years[idx]).
-    age : float
-        The age of the increment.
+    ages
+        The ages of the increments.
 
     Returns
     -------
-    np.ndarray
+    IntArray
         Time-step indexes at which increments were added to the simulation.
     """
     return find_nearest(years, (current_year - ages)[::-1])[::-1]
 
 
-def get_increment_origin_index(years, current_year, age):
+def get_increment_origin_index(
+    years: FloatArray, current_year: float, age: float
+) -> np.signedinteger:
     """
     Find the time-step index at which an increment entered the simulation.
 
@@ -200,22 +258,28 @@ def get_increment_origin_index(years, current_year, age):
 
     Parameters
     ----------
-    years : np.ndarray
+    years
         Simulation timeline in years.
-    current_year : float
+    current_year
         The current year (years[idx]).
-    age : float
+    age
         The age of the increment.
 
     Returns
     -------
-    int
+    np.signedinteger
         Time-step index at which an increment was added to the simulation.
     """
     return find_nearest(years, current_year - age)
 
 
-def find_nearest(array, values):
+@overload
+def find_nearest(array: npt.ArrayLike, values: float) -> np.signedinteger: ...
+@overload
+def find_nearest(array: npt.ArrayLike, values: FloatArray) -> IntArray: ...
+def find_nearest(
+    array: npt.ArrayLike, values: FloatLike
+) -> np.signedinteger | IntArray:
     """
     Find the index of the entry in 'array' nearest to each of 'values'.
 
@@ -225,15 +289,20 @@ def find_nearest(array, values):
     Parameters
     ----------
     array
+        Values to search, assumed sorted ascending.
     values
+        Query value or values.
+
+    Returns
+    -------
+    np.signedinteger | IntArray
+        Indexes of the nearest entries, mirroring the arrayness of 'values'.
     """
-    # make sure array is a numpy array
     array = np.array(array)
 
-    # get insert positions
     idxs = np.searchsorted(array, values, side="left")
 
-    # find indexes where previous index is closer
+    # find indexes where the previous index is closer
     prev_idx_is_less = (idxs == len(array)) | (
         np.fabs(values - array[np.maximum(idxs - 1, 0)])
         < np.fabs(values - array[np.minimum(idxs, len(array) - 1)])
@@ -242,13 +311,15 @@ def find_nearest(array, values):
     if isinstance(values, float):
         idxs -= 1 if prev_idx_is_less else 0
     else:
+        # searchsorted mirrors the arrayness of 'values': array in, array out
+        idxs = cast("IntArray", idxs)
         idxs[prev_idx_is_less] -= 1
 
     return idxs
 
 
 def update_belief_path(
-    raw_path: np.ndarray, belief: np.ndarray, alpha: float | np.ndarray, idx: int
+    raw_path: FloatArray, belief: FloatArray, alpha: FloatLike, idx: int
 ) -> None:
     """
     Calendar-date belief update for a single per-leg path.
@@ -291,7 +362,7 @@ def update_belief_path(
 def derive_smoothing_alpha(
     idx: int,
     decision_horizon_years: float,
-    timeline: np.ndarray,
+    timeline: FloatArray,
 ) -> float:
     """
     Derive the EMA smoothing parameter from the decision horizon.
@@ -311,39 +382,43 @@ def derive_smoothing_alpha(
 
     Returns
     -------
-    Smoothing parameter.
+    float
+        Smoothing parameter.
     """
     horizon_idx = timeline.size - 1
     if idx > horizon_idx:
         return 1.0
 
-    outer_step_years = (timeline[idx] - timeline[idx - 1]) / YEAR
+    outer_step_years: float = (timeline[idx] - timeline[idx - 1]) / YEAR
     if outer_step_years <= 0.0:
         return 1.0
 
     return 1.0 / (1.0 + decision_horizon_years / outer_step_years)
 
 
-def calculate_inertia(inertia, time_step):
+def calculate_inertia(inertia: float, time_step: float) -> float:
     """
     Calculate the fraction of previous time-steps' value(s) that should be continued.
 
     Parameters
     ----------
-    inertia : float
+    inertia
         Inertia, fraction/year.
-    time_step : float
-        Current time-step size.
+    time_step
+        Current time-step size, days.
 
     Returns
     -------
     float
         Fraction of previous time-steps value(s) that should be continued.
     """
-    return inertia ** (time_step / YEAR)
+    fraction: float = inertia ** (time_step / YEAR)
+    return fraction
 
 
-def calculate_compound_growth(initial, growth, timeline):
+def calculate_compound_growth(
+    initial: float, growth: FloatArray, timeline: FloatArray
+) -> FloatArray:
     """
     Calculate the continuous compound growth of a property.
 
@@ -352,24 +427,23 @@ def calculate_compound_growth(initial, growth, timeline):
 
     Parameters
     ----------
-    initial : float
+    initial
         Initial value.
-    growth : np.ndarray
+    growth
         Instantaneous growth rate with values corresponding to the timeline,
-        fraction/year
-    timeline : np.ndarray
+        fraction/year.
+    timeline
         Timeline of the simulation.
 
     Returns
     -------
-    np.ndarray
+    FloatArray
         Resulting compounded growth.
     """
-    # calculate the continuous compound growth
     continuous_growth = np.log(1.0 + growth)
     compound_growth = np.cumsum(continuous_growth[:-1] * np.diff(timeline) / YEAR)
 
-    value = np.full_like(timeline, initial)
-    value[1:] *= np.exp(compound_growth)
+    values = np.full_like(timeline, initial)
+    values[1:] *= np.exp(compound_growth)
 
-    return value
+    return values
