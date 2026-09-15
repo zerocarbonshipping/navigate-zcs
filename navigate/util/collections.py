@@ -5,7 +5,6 @@
 
 from __future__ import annotations
 
-import copy
 from typing import TYPE_CHECKING, cast
 
 import numpy as np
@@ -98,62 +97,52 @@ def define_index_map[T: Hashable](objects: Sequence[T]) -> dict[T, list[int]]:
     return index_map
 
 
-def add_dicts[K](
-    dict1: dict[K, FloatLike],
-    *dicts: dict[K, FloatLike],
-) -> dict[K, FloatLike]:
+def add_dicts[K](*dicts: dict[K, FloatLike]) -> dict[K, FloatLike]:
     """
     Merge dicts together, adding the values if keys are duplicate across multiple dicts.
 
     Parameters
     ----------
-    dict1
-        Primary dict.
     dicts
         A number of dicts with similar or unique keys.
 
     Returns
     -------
     dict[K, FloatLike]
-        A single merged dict with the sum of overlapping keys.
+        A single merged dict with the sum of overlapping keys; the values
+        never alias the inputs.
     """
-    merged = copy.deepcopy(dict1)
+    total: dict[K, FloatLike] = {}
 
     for other in dicts:
         for key, value in other.items():
-            merged.setdefault(key, 0.0)
-            merged[key] += value
+            total[key] = total.get(key, 0.0) + value
 
-    return merged
+    return total
 
 
-def multiply_dicts[K](
-    dict1: dict[K, FloatLike],
-    *dicts: dict[K, FloatLike],
-) -> dict[K, FloatLike]:
+def multiply_dicts[K](*dicts: dict[K, FloatLike]) -> dict[K, FloatLike]:
     """
     Merge dicts, multiplying the values if keys are duplicate across multiple dicts.
 
     Parameters
     ----------
-    dict1
-        Primary dict.
     dicts
         A number of dicts with similar or unique keys.
 
     Returns
     -------
     dict[K, FloatLike]
-        A single merged dict with the product of overlapping keys.
+        A single merged dict with the product of overlapping keys; the values
+        never alias the inputs.
     """
-    merged = copy.deepcopy(dict1)
+    total: dict[K, FloatLike] = {}
 
     for other in dicts:
         for key, value in other.items():
-            merged.setdefault(key, 1.0)
-            merged[key] *= value
+            total[key] = total.get(key, 1.0) * value
 
-    return merged
+    return total
 
 
 def is_single_dict[K](dict_: Mapping[K, object]) -> bool:
