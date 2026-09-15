@@ -24,13 +24,22 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - `navigate.util` and `navigate.exceptions` are fully type-annotated and
   type-checked; shared numpy array aliases (`FloatArray`, `BoolArray`, …)
   live in the new `navigate.util.arrays`. **Breaking** for code importing
-  navigate as a library: the unused `no_value_assigned_dict_error` helper is
-  removed, `normalize_fractional` accepts only dicts (its list/tuple form had
-  no callers), `is_single_dict`/`is_tuple_dict` return False (was None) for
-  empty dicts, and keyword-visible helper parameters have clearer names:
-  `divide_nonzero(numerator, denominator, ...)` (was `a`, `b`),
-  `to_numpy(..., length=...)` (was `n`), and `is_strictly_increasing(values)`
-  / `is_non_strictly_increasing(values)` (was `x`).
+  navigate as a library — the helpers keep only their exercised surface:
+  the caller-less `no_value_assigned_dict_error`, `merge_dicts`,
+  `divide_dicts`, `collapse_dict`, `decompose_dates`, and the `DAY`/`MONTH`
+  constants are removed, as are the never-passed parameters `in_place`
+  (dict arithmetic), `transform` (`extract_from_dict`, `slice_list`,
+  `slice_dict`), `x`/`y`/`length` (`to_numpy`), `times`
+  (`normalize_fractional`) and `key`/`n` (`sum_dict_results`);
+  `sum_tuple_dict_results` is now a private helper of `collapse_tuple_dict`.
+  `normalize_fractional` accepts only dicts (its list/tuple form had no
+  callers), `is_single_dict`/`is_tuple_dict` return False (was None) for
+  empty dicts, `add_dicts`/`multiply_dicts` rebuild their result instead of
+  deep-copying the first argument (values unchanged and still never aliasing
+  the inputs), and keyword-visible helper parameters have clearer names:
+  `divide_nonzero(numerator, denominator, ...)` (was `a`, `b`) and
+  `is_strictly_increasing(values)` / `is_non_strictly_increasing(values)`
+  (was `x`).
 - **Breaking** for code importing navigate as a library: the `is_*()`
   type-check methods on `TypeCheckMixin` are replaced by `TypeIs` guard
   functions in `navigate.core.node_type` (`is_calculator`, `is_feedstock`,
@@ -76,6 +85,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   log, so a run whose results they affect could look clean on the console.
 
 ### Fixed
+- Computing the expected fleet fuel demand no longer raises a `TypeError`
+  when a simulation defines no fleets (`add_dicts` with no arguments returns
+  an empty dict).
 - The reference manual documented two port report properties under names that
   never resolved (`BunkerEquivalentWTT`, `BunkerTotalEquivalentWTT`); the
   working names are `EquivalentBunkerWtt` and `TotalEquivalentBunkerWtt`.
@@ -504,8 +516,7 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `vessel/`, `route/`, `investment/` and `illustrations/` packages are
   removed; `util.py` is split into a `util/` package (`collections`,
   `numeric`, `dates`, `naming`) and the shared constants (`TOLERANCE`,
-  `ROUND_OFF`, `DAY`, `MONTH`, `YEAR`) move from `navigate.core.misc` into
-  it. Most `navigate.util` names are re-exported unchanged, but
+  `ROUND_OFF`, `YEAR`) move from `navigate.core.misc` into it. Most `navigate.util` names are re-exported unchanged, but
   `round_for_display`, `get_attributes`, `get_files_in_directory` and
   `print_elapsed_time` became private helpers of their single consumers and
   the unused `average` is deleted. Breaking for
