@@ -1,0 +1,29 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: Apache-2.0
+
+name: Maintenance
+description: Refactoring, tests, typing, or tooling debt
+labels: ["maintenance"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: The structural debt and the maintainability cost it carries.
+    validations:
+      required: true
+  - type: textarea
+    id: location
+    attributes:
+      label: Location
+      description: "`path/to/file.py:LINE` and symbol names."
+  - type: textarea
+    id: resolution
+    attributes:
+      label: Proposed resolution
+      description: The remedy and the test that should cover it.
+  - type: textarea
+    id: verification
+    attributes:
+      label: Verification
+      description: How to show the change is behavior-preserving — suites to run and the expected baseline.

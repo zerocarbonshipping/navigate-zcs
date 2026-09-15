@@ -1,0 +1,31 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: Apache-2.0
+
+name: Performance
+description: Runtime or memory problems
+labels: ["performance"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What is slow or memory-heavy, and in which scenario.
+    validations:
+      required: true
+  - type: textarea
+    id: measurement
+    attributes:
+      label: Measurement
+      description: Timing, profile, or memory numbers — or the asymptotic argument.
+    validations:
+      required: true
+  - type: textarea
+    id: location
+    attributes:
+      label: Location
+      description: "If known: `path/to/file.py:LINE` and symbol names."
+  - type: textarea
+    id: resolution
+    attributes:
+      label: Proposed resolution
+      description: The remedy, and the benchmark to re-run to confirm it.
