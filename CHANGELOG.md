@@ -26,12 +26,12 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   live in the new `navigate.util.arrays`. **Breaking** for code importing
   navigate as a library — the helpers keep only their exercised surface:
   the caller-less `no_value_assigned_dict_error`, `merge_dicts`,
-  `divide_dicts`, `collapse_dict`, `decompose_dates`, and the `DAY`/`MONTH`
-  constants are removed, as are the never-passed parameters `in_place`
-  (dict arithmetic), `transform` (`extract_from_dict`, `slice_list`,
-  `slice_dict`), `x`/`y`/`length` (`to_numpy`), `times`
-  (`normalize_fractional`) and `key`/`n` (`sum_dict_results`);
-  `sum_tuple_dict_results` is now a private helper of `collapse_tuple_dict`.
+  `divide_dicts`, `collapse_dict`, `sum_tuple_dict_results` (its summations
+  are covered by `collapse_tuple_dict`), `decompose_dates`, and the
+  `DAY`/`MONTH` constants are removed, as are the never-passed parameters
+  `in_place` (dict arithmetic), `transform` (`extract_from_dict`,
+  `slice_list`, `slice_dict`), `x`/`y`/`length` (`to_numpy`), `times`
+  (`normalize_fractional`) and `key`/`n` (`sum_dict_results`).
   `normalize_fractional` accepts only dicts (its list/tuple form had no
   callers), `is_single_dict`/`is_tuple_dict` return False (was None) for
   empty dicts, `add_dicts`/`multiply_dicts` rebuild their result instead of
