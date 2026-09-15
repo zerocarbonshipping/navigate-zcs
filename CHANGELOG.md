@@ -39,7 +39,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   the inputs), and keyword-visible helper parameters have clearer names:
   `divide_nonzero(numerator, denominator, ...)` (was `a`, `b`) and
   `is_strictly_increasing(values)` / `is_non_strictly_increasing(values)`
-  (was `x`).
+  (was `x`). `retrieve_keys`/`matching_keys` no longer take a `key_fn`
+  extractor — enum wildcard expansion matches member names inside
+  `expand_id_wildcard`.
 - **Breaking** for code importing navigate as a library: the `is_*()`
   type-check methods on `TypeCheckMixin` are replaced by `TypeIs` guard
   functions in `navigate.core.node_type` (`is_calculator`, `is_feedstock`,

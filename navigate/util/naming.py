@@ -9,14 +9,10 @@ import re
 from typing import TYPE_CHECKING, cast
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Iterable
+    from collections.abc import Iterable
 
 
-def retrieve_keys[K](
-    key: str | K,
-    allowed_keys: Iterable[K],
-    key_fn: Callable[[K], str] | None = None,
-) -> list[K]:
+def retrieve_keys[K](key: str | K, allowed_keys: Iterable[K]) -> list[K]:
     """
     Retrieve all keys from 'allowed_keys' matching the (potential) wildcard in key.
 
@@ -26,10 +22,7 @@ def retrieve_keys[K](
         Name of node, possibly including wildcards; a non-string key is
         returned as-is without matching.
     allowed_keys
-        Collection of allowable keys.
-    key_fn
-        Function to extract a string name from each key for matching.
-        When ``None``, keys are used directly.
+        Collection of allowable keys; strings whenever 'key' is a string.
 
     Returns
     -------
@@ -39,20 +32,20 @@ def retrieve_keys[K](
     if not isinstance(key, str):
         return [key]
 
-    if key_fn is None:
-        # without a key extractor the keys are themselves the match strings
-        key_fn = cast("Callable[[K], str]", lambda allowed_key: allowed_key)
-
     # fast path: exact lookup when no wildcards are present
     if not name_contains_wildcards(key):
         for allowed_key in allowed_keys:
-            if key_fn(allowed_key) == key:
+            if allowed_key == key:
                 return [allowed_key]
         raise KeyError(key)
 
     regex = re.compile(wildcard_to_regex(key))
+    # a string key is only matched against string keys; non-string keys
+    # take the early return above
     keys = [
-        allowed_key for allowed_key in allowed_keys if regex.match(key_fn(allowed_key))
+        allowed_key
+        for allowed_key in allowed_keys
+        if regex.match(cast("str", allowed_key))
     ]
 
     if not keys:
@@ -61,11 +54,7 @@ def retrieve_keys[K](
     return keys
 
 
-def matching_keys[K](
-    key: str | K,
-    allowed_keys: Iterable[K],
-    key_fn: Callable[[K], str] | None = None,
-) -> list[K]:
+def matching_keys[K](key: str | K, allowed_keys: Iterable[K]) -> list[K]:
     """
     Retrieve the keys matching the wildcard expression in 'key'.
 
@@ -77,9 +66,7 @@ def matching_keys[K](
         Name of node, possibly including wildcards; a non-string key is
         returned as-is without matching.
     allowed_keys
-        Collection of allowable keys.
-    key_fn
-        Function to extract a string name from each key for matching.
+        Collection of allowable keys; strings whenever 'key' is a string.
 
     Returns
     -------
@@ -87,7 +74,7 @@ def matching_keys[K](
         List of all keys matching 'key'; empty when nothing matches.
     """
     try:
-        return retrieve_keys(key, allowed_keys, key_fn)
+        return retrieve_keys(key, allowed_keys)
     except KeyError:
         return []
 
