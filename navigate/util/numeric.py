@@ -209,8 +209,9 @@ def find_nearest(
         np.fabs(values - array[np.maximum(idxs - 1, 0)])
         < np.fabs(values - array[np.minimum(idxs, len(array) - 1)])
     )
+    idxs -= prev_idx_is_less
 
-    nearest: np.signedinteger | IntArray = idxs - prev_idx_is_less
+    nearest: np.signedinteger | IntArray = idxs
     return nearest
 
 

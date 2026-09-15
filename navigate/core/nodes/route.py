@@ -400,9 +400,7 @@ class Route(Node):
 
         # values only change through commands, and initialize re-runs after
         # every event read, so the normalized fractions can be cached here
-        self._voyage_fractions = _normalize_voyage_distribution(
-            self.voyage_distribution
-        )
+        self._voyage_fractions = self._normalize_voyage_distribution()
 
     def initialize_dependencies(self):
         """Initialize dependent dictionaries so command calls can use wildcards."""
@@ -459,28 +457,28 @@ class Route(Node):
         else:
             return self.get_number_of_ports() ** 2
 
+    def _normalize_voyage_distribution(self):
+        """
+        Normalize the voyage fractions to sum to unity, splitting equally at zero total.
+
+        The values are always calculators (assignment wraps numbers in Scalar),
+        evaluated without arguments.
+        """
+        count = len(self.voyage_distribution)
+
+        evaluated = {
+            key: value.get(None, None)
+            for key, value in self.voyage_distribution.items()
+        }
+        total = np.round(np.sum(list(evaluated.values()), axis=0), ROUND_OFF)
+
+        return {
+            key: divide_nonzero(value, total, default=1.0 / count)
+            for key, value in evaluated.items()
+        }
+
     def get_number_of_port_calls(self):
         if self.route_type == RouteTypeID.ROUND_TRIP:
             return np.ones((self.get_number_of_ports(),))
         else:
             return to_numpy(self.port_calls)
-
-
-def _normalize_voyage_distribution(voyage_distribution):
-    """
-    Normalize the voyage fractions to sum to unity, splitting equally at zero total.
-
-    The values are always calculators (assignment wraps numbers in Scalar),
-    evaluated without arguments.
-    """
-    count = len(voyage_distribution)
-
-    evaluated = {
-        key: value.get(None, None) for key, value in voyage_distribution.items()
-    }
-    total = np.round(np.sum(list(evaluated.values()), axis=0), ROUND_OFF)
-
-    return {
-        key: divide_nonzero(value, total, default=1.0 / count)
-        for key, value in evaluated.items()
-    }
