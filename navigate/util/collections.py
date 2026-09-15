@@ -90,12 +90,12 @@ def define_index_map[T: Hashable](objects: Sequence[T]) -> dict[T, list[int]]:
     dict[T, list[int]]
         Indexes of each unique object, in first-occurrence order.
     """
-    unique_objects = unique_list(objects)
-    count = len(objects)
-    return {
-        object_: [index for index in range(count) if object_ == objects[index]]
-        for object_ in unique_objects
-    }
+    index_map: dict[T, list[int]] = {}
+
+    for index, object_ in enumerate(objects):
+        index_map.setdefault(object_, []).append(index)
+
+    return index_map
 
 
 def add_dicts[K](
@@ -479,12 +479,10 @@ def _resolve_dict[K](
 
 
 def _slice_value(value: FloatLike, idx: int | slice | None) -> FloatLike:
-    if idx is None:
+    # unchecked callers pass scalar kinds beyond the declared float; only
+    # arrays are sliceable, everything else passes through untouched
+    if idx is None or not isinstance(value, np.ndarray):
         return value
-
-    if np.isscalar(value) or isinstance(value, (float, int, np.number)):
-        # unchecked callers pass scalar kinds beyond the declared float
-        return cast("FloatLike", value)
 
     sliced: FloatLike = value[idx]
     return sliced

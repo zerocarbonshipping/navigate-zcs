@@ -56,12 +56,7 @@ def divide_nonzero(
     # allocate the broadcast shape of both inputs so it fits np.divide's out=
     dtype = np.result_type(numerator, denominator)
     shape = np.broadcast(numerator, denominator).shape
-
-    if default == 0.0:
-        quotients = np.zeros(shape, dtype=dtype)
-    else:
-        quotients = np.empty(shape, dtype=dtype)
-        quotients.fill(default)
+    quotients = np.full(shape, default, dtype=dtype)
 
     # entries excluded by where= keep the prefilled default
     np.divide(numerator, denominator, out=quotients, where=(denominator > 0.0))
@@ -91,7 +86,7 @@ def _to_value(scalar: _FloatOrCalculator) -> FloatLike:
 
 def is_strictly_increasing(values: FloatArray) -> bool:
     """
-    Test whether values are strictly increasing via np.any, which is faster than np.all.
+    Test whether values are strictly increasing.
 
     Parameters
     ----------
@@ -108,7 +103,7 @@ def is_strictly_increasing(values: FloatArray) -> bool:
 
 def is_non_strictly_increasing(values: FloatArray) -> bool:
     """
-    Test whether values are non-strictly increasing via np.any, faster than np.all.
+    Test whether values are non-strictly increasing.
 
     Parameters
     ----------
@@ -197,7 +192,7 @@ def get_increments_origin_index(
     IntArray
         Time-step indexes at which increments were added to the simulation.
     """
-    return find_nearest(years, (current_year - ages)[::-1])[::-1]
+    return find_nearest(years, current_year - ages)
 
 
 def get_increment_origin_index(

@@ -154,7 +154,6 @@ def name_contains_wildcards(name: str) -> bool:
     --------
     - Na*
     - Na?e
-    - Name#
 
     Parameters
     ----------
@@ -189,18 +188,5 @@ def wildcard_to_regex(word: str) -> str:
     str
         Regular expression.
     """
-    expression = r"^"
-
-    for char in word:
-        if char == "*":
-            expression += r".*"
-
-        elif char == "?":
-            expression += r"\w"
-
-        else:
-            expression += char
-
-    expression += r"$"
-
-    return expression
+    replacements = {"*": r".*", "?": r"\w"}
+    return "^" + "".join(replacements.get(char, char) for char in word) + "$"
