@@ -36,6 +36,8 @@ dev = [
     "pytest",
     "ruff==0.16.5",
     "mypy==2.3.1",
+    # numpy ships its own stubs, so the checked version must not drift
+    "numpy==2.5.3",
     "reuse",
 ]
 gurobi = [
