@@ -13,6 +13,7 @@ from navigate.util import (
     calculate_compound_growth,
     calculate_inertia,
     find_nearest,
+    get_increment_origin_index,
     interpolate_yearly_flow,
 )
 
@@ -66,6 +67,19 @@ class TestFindNearest:
 
     def test_zero_dimensional_query(self):
         assert find_nearest(self._array, np.array(9.0)) == 1
+
+
+class TestGetIncrementOriginIndex:
+    _years = np.array([2020.0, 2021.0, 2022.0])
+
+    def test_scalar_age(self):
+        assert get_increment_origin_index(self._years, 2022.0, 1.2) == 1
+
+    def test_array_ages_clamp_to_start(self):
+        origins = get_increment_origin_index(
+            self._years, 2022.0, np.array([0.0, 1.0, 5.0])
+        )
+        np.testing.assert_array_equal(origins, [2, 1, 0])
 
 
 class TestInterpolateYearlyFlow:
