@@ -23,7 +23,7 @@ from navigate.core.enum_ import RouteTypeID
 from navigate.core.node import Node
 from navigate.core.node_type import FORECAST, PORT, ROUTE, VARIABLE
 from navigate.exceptions import no_value_assigned_error
-from navigate.util import normalize_fractional, to_numpy, unique_list
+from navigate.util import ROUND_OFF, divide_nonzero, to_numpy, unique_list
 
 logger = logging.getLogger(__name__)
 
@@ -49,6 +49,9 @@ class Route(Node):
 
         # regulation
         self.voyage_distribution = {}  # dict[(port, port)], sea-time fraction
+
+        # internal variables -----------------------------------------------------------
+        self._voyage_fractions = {}  # dict[(port, port)], normalized in initialize
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_route_type(self, route_type):
@@ -395,6 +398,12 @@ class Route(Node):
             if distribution is None:
                 self.voyage_distribution[key] = Scalar(0.0)
 
+        # values only change through commands, and initialize re-runs after
+        # every event read, so the normalized fractions can be cached here
+        self._voyage_fractions = _normalize_voyage_distribution(
+            self.voyage_distribution
+        )
+
     def initialize_dependencies(self):
         """Initialize dependent dictionaries so command calls can use wildcards."""
         names = [port.name for port in self.ports]
@@ -402,14 +411,19 @@ class Route(Node):
             self.voyage_distribution.setdefault(key, None)
 
     def get_voyage_distribution(self, to_array=False):
-        fractions = normalize_fractional(self.voyage_distribution)
+        """
+        Get the normalized voyage distribution, cached at (re-)initialization.
 
+        The returned mapping is shared between calls; treat it as read-only.
+        """
         if to_array:
             return [
-                fractions[(pi.name, pj.name)] for pj in self.ports for pi in self.ports
+                self._voyage_fractions[(pi.name, pj.name)]
+                for pj in self.ports
+                for pi in self.ports
             ]
         else:
-            return fractions
+            return self._voyage_fractions
 
     def get_number_of_legs(self):
         return len(self.speeds)
@@ -450,3 +464,23 @@ class Route(Node):
             return np.ones((self.get_number_of_ports(),))
         else:
             return to_numpy(self.port_calls)
+
+
+def _normalize_voyage_distribution(voyage_distribution):
+    """
+    Normalize the voyage fractions to sum to unity, splitting equally at zero total.
+
+    The values are always calculators (assignment wraps numbers in Scalar),
+    evaluated without arguments.
+    """
+    count = len(voyage_distribution)
+
+    evaluated = {
+        key: value.get(None, None) for key, value in voyage_distribution.items()
+    }
+    total = np.round(np.sum(list(evaluated.values()), axis=0), ROUND_OFF)
+
+    return {
+        key: divide_nonzero(value, total, default=1.0 / count)
+        for key, value in evaluated.items()
+    }

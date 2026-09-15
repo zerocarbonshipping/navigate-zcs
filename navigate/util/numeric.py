@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Numeric helpers: safe division, normalization, index lookup, growth, smoothing."""
+"""Numeric helpers: safe division, index lookup, growth, smoothing."""
 
 from __future__ import annotations
 
@@ -116,33 +116,6 @@ def is_non_strictly_increasing(values: FloatArray) -> bool:
         Whether 'values' is non-strictly increasing.
     """
     return not np.any(np.diff(values) < 0)
-
-
-def normalize_fractional[K](
-    values: dict[K, _FloatOrCalculator],
-) -> dict[K, FloatArray]:
-    """
-    Normalize fractional values to sum to unity, splitting equally at zero total.
-
-    Parameters
-    ----------
-    values
-        Dict of floats and/or calculator nodes.
-
-    Returns
-    -------
-    dict[K, FloatArray]
-        Normalized version of values.
-    """
-    count = len(values)
-
-    evaluated = {key: _to_value(value) for key, value in values.items()}
-    total = np.round(np.sum(list(evaluated.values()), axis=0), ROUND_OFF)
-
-    return {
-        key: divide_nonzero(value, total, default=1.0 / count)
-        for key, value in evaluated.items()
-    }
 
 
 def interpolate_yearly_flow(yearly_flow: FloatArray, age: float) -> float:

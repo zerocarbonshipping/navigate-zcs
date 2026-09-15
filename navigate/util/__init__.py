@@ -56,7 +56,6 @@ from navigate.util.numeric import (
     interpolate_yearly_flow,
     is_non_strictly_increasing,
     is_strictly_increasing,
-    normalize_fractional,
     to_numpy,
     update_belief_path,
 )
