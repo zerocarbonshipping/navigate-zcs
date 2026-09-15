@@ -145,26 +145,24 @@ def normalize_fractional[K](
     }
 
 
-def interpolate_tied_capital(tied_capital_flow: FloatArray, age: float) -> float:
+def interpolate_yearly_flow(yearly_flow: FloatArray, age: float) -> float:
     """
-    Interpolate an increment's remaining tied-up capital at a given age.
-
-    Uses its yearly tied-capital flow.
+    Interpolate a per-year flow at a fractional age in years.
 
     Parameters
     ----------
-    tied_capital_flow
-        Remaining tied-up capital per year over the increment's life.
+    yearly_flow
+        Flow values at whole years 0, 1, 2, ...
     age
-        Age of the increment in years.
+        Query age in years; clamped to the flow's ends.
 
     Returns
     -------
     float
-        Remaining tied-up capital at the given age.
+        Flow value interpolated at the given age.
     """
-    time_flow = np.arange(0, tied_capital_flow.size) * YEAR
-    return np.interp(age * YEAR, time_flow, tied_capital_flow)
+    time_flow = np.arange(0, yearly_flow.size) * YEAR
+    return np.interp(age * YEAR, time_flow, yearly_flow)
 
 
 def get_increments_origin_index(

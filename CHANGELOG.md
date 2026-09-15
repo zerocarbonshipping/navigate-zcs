@@ -37,9 +37,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   empty dicts, `add_dicts`/`multiply_dicts` rebuild their result instead of
   deep-copying the first argument (values unchanged and still never aliasing
   the inputs), and keyword-visible helper parameters have clearer names:
-  `divide_nonzero(numerator, denominator, ...)` (was `a`, `b`) and
+  `divide_nonzero(numerator, denominator, ...)` (was `a`, `b`),
   `is_strictly_increasing(values)` / `is_non_strictly_increasing(values)`
-  (was `x`). `retrieve_keys`/`matching_keys` no longer take a `key_fn`
+  (was `x`), and `interpolate_yearly_flow(yearly_flow, age)` (was
+  `interpolate_tied_capital` — nothing in it is tied-capital-specific). `retrieve_keys`/`matching_keys` no longer take a `key_fn`
   extractor — enum wildcard expansion matches member names inside
   `expand_id_wildcard`.
 - **Breaking** for code importing navigate as a library: the `is_*()`

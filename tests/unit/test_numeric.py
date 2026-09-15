@@ -1,14 +1,19 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Unit tests for navigate.util.numeric — inertia and compound growth calculations."""
+"""Unit tests for navigate.util.numeric — inertia, growth, interpolation, lookup."""
 
 from __future__ import annotations
 
 import numpy as np
 import pytest
 
-from navigate.util import YEAR, calculate_compound_growth, calculate_inertia
+from navigate.util import (
+    YEAR,
+    calculate_compound_growth,
+    calculate_inertia,
+    interpolate_yearly_flow,
+)
 
 
 class TestCalculateInertia:
@@ -30,6 +35,22 @@ class TestCalculateInertia:
     )
     def test_inertia(self, inertia, dt, expected):
         assert calculate_inertia(inertia, dt) == pytest.approx(expected)
+
+
+class TestInterpolateYearlyFlow:
+    _flow = np.array([100.0, 80.0, 60.0])
+
+    def test_exact_year_hit(self):
+        assert interpolate_yearly_flow(self._flow, 1.0) == pytest.approx(80.0)
+
+    def test_interior_fractional_age(self):
+        assert interpolate_yearly_flow(self._flow, 0.5) == pytest.approx(90.0)
+
+    def test_age_zero(self):
+        assert interpolate_yearly_flow(self._flow, 0.0) == pytest.approx(100.0)
+
+    def test_age_beyond_last_year_clamps(self):
+        assert interpolate_yearly_flow(self._flow, 10.0) == pytest.approx(60.0)
 
 
 class TestCalculateCompoundGrowth:

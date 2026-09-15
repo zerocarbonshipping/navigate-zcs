@@ -9,7 +9,7 @@ import numpy as np
 
 from navigate.core.enum_ import FuelTypeID
 from navigate.fleet.utils import get_total_power_capacity
-from navigate.util import YEAR, get_increment_origin_index, interpolate_tied_capital
+from navigate.util import YEAR, get_increment_origin_index, interpolate_yearly_flow
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
@@ -78,7 +78,7 @@ def _transfer_increment_expenses(fleet: Fleet, timeline: np.ndarray, idx: int) -
 
             # calculate remaining tied up capital
             tied_capital_flow = vessel.expectation.get_tied_capital(origin)
-            tied_capital = interpolate_tied_capital(tied_capital_flow, inc.age)
+            tied_capital = interpolate_yearly_flow(tied_capital_flow, inc.age)
 
             fleet.profile.add_vessel_expenses(cost * inc.multiplier, idx)
             fleet.profile.add_vessel_tied_capital(tied_capital * inc.multiplier, idx)

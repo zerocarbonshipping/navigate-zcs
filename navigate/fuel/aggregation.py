@@ -11,7 +11,7 @@ from navigate.util import (
     YEAR,
     get_increment_origin_index,
     get_increments_origin_index,
-    interpolate_tied_capital,
+    interpolate_yearly_flow,
 )
 
 if TYPE_CHECKING:
@@ -131,6 +131,6 @@ def _transfer_plant_tied_capital(
 
             # calculate remaining tied up capital
             tied_capital_flow = plant.expectation.get_tied_capital(origin)
-            tied_capital = interpolate_tied_capital(tied_capital_flow, inc.age)
+            tied_capital = interpolate_yearly_flow(tied_capital_flow, inc.age)
 
             producer.profile.add_plant_tied_capital(tied_capital * inc.multiplier, idx)
