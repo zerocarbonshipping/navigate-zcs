@@ -21,6 +21,14 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ### Changed
 - The minimum supported Python version is 3.13 (was 3.12).
+- `navigate.util` and `navigate.exceptions` are fully type-annotated and
+  type-checked; shared numpy array aliases (`FloatArray`, `BoolArray`, …)
+  live in the new `navigate.util.arrays`. **Breaking** for code importing
+  navigate as a library: the unused `no_value_assigned_dict_error` helper is
+  removed, and keyword-visible helper parameters have clearer names:
+  `divide_nonzero(numerator, denominator, ...)` (was `a`, `b`),
+  `to_numpy(..., length=...)` (was `n`), and `is_strictly_increasing(values)`
+  / `is_non_strictly_increasing(values)` (was `x`).
 - **Breaking** for code importing navigate as a library: the `is_*()`
   type-check methods on `TypeCheckMixin` are replaced by `TypeIs` guard
   functions in `navigate.core.node_type` (`is_calculator`, `is_feedstock`,
