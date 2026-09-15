@@ -10,7 +10,6 @@ import numpy as np
 from navigate.util import (
     YEAR,
     get_increment_origin_index,
-    get_increments_origin_index,
     interpolate_yearly_flow,
 )
 
@@ -89,7 +88,7 @@ def _transfer_production_and_feed_mass(
         decided = np.array([inc.decided for inc in incs])
         multipliers = np.array([inc.multiplier for inc in incs])
 
-        origins = get_increments_origin_index(years, today, decided)
+        origins = get_increment_origin_index(years, today, decided)
         production_unit = expectation.get_production(origins)
         production = np.sum(production_unit * multipliers)
 

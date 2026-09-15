@@ -12,6 +12,7 @@ from navigate.util import (
     YEAR,
     calculate_compound_growth,
     calculate_inertia,
+    find_nearest,
     interpolate_yearly_flow,
 )
 
@@ -35,6 +36,36 @@ class TestCalculateInertia:
     )
     def test_inertia(self, inertia, dt, expected):
         assert calculate_inertia(inertia, dt) == pytest.approx(expected)
+
+
+class TestFindNearest:
+    _array = np.array([0.0, 10.0, 20.0])
+
+    def test_scalar_query(self):
+        assert find_nearest(self._array, 9.0) == 1
+
+    def test_array_query(self):
+        result = find_nearest(self._array, np.array([-5.0, 9.0, 25.0]))
+        np.testing.assert_array_equal(result, [0, 1, 2])
+
+    def test_below_first_clamps_to_zero(self):
+        assert find_nearest(self._array, -100.0) == 0
+
+    def test_past_last_clamps_to_last(self):
+        assert find_nearest(self._array, 100.0) == 2
+
+    def test_equidistant_tie_picks_right_neighbor(self):
+        assert find_nearest(self._array, 5.0) == 1
+
+    # query kinds the pre-unification scalar/array branch crashed on
+    def test_int_query(self):
+        assert find_nearest(self._array, 9) == 1
+
+    def test_float32_query(self):
+        assert find_nearest(self._array, np.float32(9.0)) == 1
+
+    def test_zero_dimensional_query(self):
+        assert find_nearest(self._array, np.array(9.0)) == 1
 
 
 class TestInterpolateYearlyFlow:

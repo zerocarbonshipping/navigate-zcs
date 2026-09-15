@@ -5,7 +5,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Protocol, cast, overload
+from typing import TYPE_CHECKING, Protocol, overload
 
 import numpy as np
 import numpy.typing as npt
@@ -165,44 +165,24 @@ def interpolate_yearly_flow(yearly_flow: FloatArray, age: float) -> float:
     return np.interp(age * YEAR, time_flow, yearly_flow)
 
 
-def get_increments_origin_index(
-    years: FloatArray, current_year: float, ages: FloatArray
-) -> IntArray:
-    """
-    Find the time-step indexes at which increments entered the simulation.
-
-    Each increment (vessel or plant) is treated as having entered 'ages' years before
-    current_year. Notice here that if the entity was part of the initialization of the
-    node index 0 is used. This is the best available approximation as historical data
-    is unavailable.
-
-    Parameters
-    ----------
-    years
-        Simulation timeline in years.
-    current_year
-        The current year (years[idx]).
-    ages
-        The ages of the increments.
-
-    Returns
-    -------
-    IntArray
-        Time-step indexes at which increments were added to the simulation.
-    """
-    return find_nearest(years, current_year - ages)
-
-
+@overload
 def get_increment_origin_index(
     years: FloatArray, current_year: float, age: float
-) -> np.signedinteger:
+) -> np.signedinteger: ...
+@overload
+def get_increment_origin_index(
+    years: FloatArray, current_year: float, age: FloatArray
+) -> IntArray: ...
+def get_increment_origin_index(
+    years: FloatArray, current_year: float, age: FloatLike
+) -> np.signedinteger | IntArray:
     """
-    Find the time-step index at which an increment entered the simulation.
+    Find the time-step index(es) at which increments entered the simulation.
 
-    The increment (vessel or plant) is treated as having entered 'age' years before
-    current_year. Notice here that if the entity was part of the initialization of the
-    node index 0 is used. This is the best available approximation as historical data
-    is unavailable.
+    Each increment (vessel or plant) is treated as having entered 'age' years
+    before current_year. An entity present at the initialization of the node
+    gets index 0 — the best available approximation, as historical data is
+    unavailable.
 
     Parameters
     ----------
@@ -211,12 +191,12 @@ def get_increment_origin_index(
     current_year
         The current year (years[idx]).
     age
-        The age of the increment.
+        Age(s) of the increment(s) in years.
 
     Returns
     -------
-    np.signedinteger
-        Time-step index at which an increment was added to the simulation.
+    np.signedinteger | IntArray
+        Time-step index(es), mirroring the scalar- or arrayness of 'age'.
     """
     return find_nearest(years, current_year - age)
 
@@ -246,24 +226,19 @@ def find_nearest(
     np.signedinteger | IntArray
         Indexes of the nearest entries, mirroring the arrayness of 'values'.
     """
-    array = np.array(array)
+    array = np.asarray(array)
 
     idxs = np.searchsorted(array, values, side="left")
 
-    # find indexes where the previous index is closer
+    # where the previous entry is closer, or the query fell past the end,
+    # step one index back; booleans subtract as 0/1 for scalars and arrays
     prev_idx_is_less = (idxs == len(array)) | (
         np.fabs(values - array[np.maximum(idxs - 1, 0)])
         < np.fabs(values - array[np.minimum(idxs, len(array) - 1)])
     )
 
-    if isinstance(values, float):
-        idxs -= 1 if prev_idx_is_less else 0
-    else:
-        # searchsorted mirrors the arrayness of 'values': array in, array out
-        idxs = cast("IntArray", idxs)
-        idxs[prev_idx_is_less] -= 1
-
-    return idxs
+    nearest: np.signedinteger | IntArray = idxs - prev_idx_is_less
+    return nearest
 
 
 def update_belief_path(
