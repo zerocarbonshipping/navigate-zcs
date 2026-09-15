@@ -22,9 +22,9 @@ TOLERANCE = 10 ** (-ROUND_OFF)
 
 
 class _SupportsGet(Protocol):
-    """Calculator duck type: anything evaluated through a two-argument .get."""
+    """Calculator duck type: anything this module evaluates via .get(None, None)."""
 
-    def get(self, x: FloatLike | None, y: FloatLike | None, /) -> FloatLike: ...
+    def get(self, x: None, y: None, /) -> FloatLike: ...
 
 
 type _FloatOrCalculator = float | _SupportsGet
@@ -68,12 +68,7 @@ def divide_nonzero(
     return quotients
 
 
-def to_numpy(
-    scalars: Iterable[_FloatOrCalculator],
-    x: FloatLike | None = None,
-    y: FloatLike | None = None,
-    length: int | None = None,
-) -> FloatArray:
+def to_numpy(scalars: Iterable[_FloatOrCalculator]) -> FloatArray:
     """
     Evaluate a collection of floats and/or calculators into a numpy array.
 
@@ -81,33 +76,17 @@ def to_numpy(
     ----------
     scalars
         Floats and/or calculator nodes to evaluate.
-    x
-        First argument passed to the calculators' get.
-    y
-        Second argument passed to the calculators' get.
-    length
-        When given, each evaluated value is tiled to this length, producing a
-        2-D array with one row per scalar.
 
     Returns
     -------
     FloatArray
         Evaluated values.
     """
-    values = np.array([_to_value(scalar, x, y) for scalar in scalars])
-
-    if length is not None:
-        values = np.array([np.full(length, value) for value in values])
-
-    return values
+    return np.array([_to_value(scalar) for scalar in scalars])
 
 
-def _to_value(
-    scalar: _FloatOrCalculator,
-    x: FloatLike | None = None,
-    y: FloatLike | None = None,
-) -> FloatLike:
-    return scalar if isinstance(scalar, float) else scalar.get(x, y)
+def _to_value(scalar: _FloatOrCalculator) -> FloatLike:
+    return scalar if isinstance(scalar, float) else scalar.get(None, None)
 
 
 def is_strictly_increasing(values: FloatArray) -> bool:
@@ -145,7 +124,7 @@ def is_non_strictly_increasing(values: FloatArray) -> bool:
 
 
 def normalize_fractional[K](
-    values: dict[K, _FloatOrCalculator], times: FloatLike | None
+    values: dict[K, _FloatOrCalculator],
 ) -> dict[K, FloatArray]:
     """
     Normalize fractional values to sum to unity, splitting equally at zero total.
@@ -154,8 +133,6 @@ def normalize_fractional[K](
     ----------
     values
         Dict of floats and/or calculator nodes.
-    times
-        Times to pass to potential calculator nodes.
 
     Returns
     -------
@@ -164,7 +141,7 @@ def normalize_fractional[K](
     """
     count = len(values)
 
-    evaluated = {key: _to_value(value, x=times) for key, value in values.items()}
+    evaluated = {key: _to_value(value) for key, value in values.items()}
     total = np.round(np.sum(list(evaluated.values()), axis=0), ROUND_OFF)
 
     return {
@@ -297,7 +274,7 @@ def find_nearest(
 
 
 def update_belief_path(
-    raw_path: FloatArray, belief: FloatArray, alpha: FloatLike, idx: int
+    raw_path: FloatArray, belief: FloatArray, alpha: float, idx: int
 ) -> None:
     """
     Calendar-date belief update for a single per-leg path.

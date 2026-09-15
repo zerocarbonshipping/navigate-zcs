@@ -14,14 +14,10 @@ if TYPE_CHECKING:
         DateArray,
         FloatArray,
         FloatLike,
-        IntArray,
         TimedeltaArray,
     )
 
-# calendar durations in days
-DAY = 1.0
-MONTH = 30.4375  # 365.25 / 12
-YEAR = 365.25
+YEAR = 365.25  # calendar year in days
 
 
 @overload
@@ -96,24 +92,3 @@ def dates_to_years(dates: DateArray) -> FloatArray:
     """
     deltas: TimedeltaArray = dates - dates[0]
     return _timedelta_to_years(deltas)
-
-
-def decompose_dates(dates: DateArray) -> tuple[IntArray, IntArray, IntArray]:
-    """
-    Decompose a numpy date array into three arrays: years, months and days (integers).
-
-    Parameters
-    ----------
-    dates
-        Array of dates in numpy datetime64[D] format.
-
-    Returns
-    -------
-    tuple[IntArray, IntArray, IntArray]
-        Arrays containing years, months and days as integers.
-    """
-    years = dates.astype("datetime64[Y]").astype(int) + 1970
-    months = dates.astype("datetime64[M]").astype(int) % 12 + 1
-    days = (dates - dates.astype("datetime64[M]")).astype(int) + 1
-
-    return years, months, days

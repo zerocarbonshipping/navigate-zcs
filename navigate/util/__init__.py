@@ -15,10 +15,8 @@ from navigate.util.arrays import (
 )
 from navigate.util.collections import (
     add_dicts,
-    collapse_dict,
     collapse_tuple_dict,
     define_index_map,
-    divide_dicts,
     extract_from_dict,
     extract_from_dict_list,
     extract_from_tuple_dict,
@@ -26,21 +24,16 @@ from navigate.util.collections import (
     is_tuple_dict,
     list_intersection,
     list_is_unique,
-    merge_dicts,
     multiply_dicts,
     slice_dict,
     slice_list,
     sum_dict_results,
-    sum_tuple_dict_results,
     unique_list,
 )
 from navigate.util.dates import (
-    DAY,
-    MONTH,
     YEAR,
     dates_to_days,
     dates_to_years,
-    decompose_dates,
     timedelta_to_days,
 )
 from navigate.util.naming import (

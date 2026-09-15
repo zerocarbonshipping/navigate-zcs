@@ -402,7 +402,7 @@ class Route(Node):
             self.voyage_distribution.setdefault(key, None)
 
     def get_voyage_distribution(self, to_array=False):
-        fractions = normalize_fractional(self.voyage_distribution, None)
+        fractions = normalize_fractional(self.voyage_distribution)
 
         if to_array:
             return [
