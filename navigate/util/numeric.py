@@ -27,6 +27,9 @@ class _SupportsGet(Protocol):
     def get(self, x: FloatLike | None, y: FloatLike | None, /) -> FloatLike: ...
 
 
+type _FloatOrCalculator = float | _SupportsGet
+
+
 def divide_nonzero(
     numerator: npt.ArrayLike, denominator: npt.ArrayLike, default: float = 0.0
 ) -> FloatArray:
@@ -66,7 +69,7 @@ def divide_nonzero(
 
 
 def to_numpy(
-    scalars: Iterable[float | _SupportsGet],
+    scalars: Iterable[_FloatOrCalculator],
     x: FloatLike | None = None,
     y: FloatLike | None = None,
     length: int | None = None,
@@ -100,7 +103,7 @@ def to_numpy(
 
 
 def _to_value(
-    scalar: float | _SupportsGet,
+    scalar: _FloatOrCalculator,
     x: FloatLike | None = None,
     y: FloatLike | None = None,
 ) -> FloatLike:
@@ -141,58 +144,33 @@ def is_non_strictly_increasing(values: FloatArray) -> bool:
     return not np.any(np.diff(values) < 0)
 
 
-@overload
-def normalize_fractional(
-    values: list[float | _SupportsGet] | tuple[float | _SupportsGet, ...],
-    times: FloatLike | None,
-) -> FloatArray: ...
-@overload
 def normalize_fractional[K](
-    values: dict[K, float | _SupportsGet], times: FloatLike | None
-) -> dict[K, FloatArray]: ...
-def normalize_fractional[K](
-    values: list[float | _SupportsGet]
-    | tuple[float | _SupportsGet, ...]
-    | dict[K, float | _SupportsGet],
-    times: FloatLike | None,
-) -> FloatArray | dict[K, FloatArray]:
+    values: dict[K, _FloatOrCalculator], times: FloatLike | None
+) -> dict[K, FloatArray]:
     """
     Normalize fractional values to sum to unity, splitting equally at zero total.
 
     Parameters
     ----------
     values
-        Container with floats and/or calculator nodes.
+        Dict of floats and/or calculator nodes.
     times
         Times to pass to potential calculator nodes.
 
     Returns
     -------
-    FloatArray | dict[K, FloatArray]
-        Normalized version of values, mirroring the container kind.
+    dict[K, FloatArray]
+        Normalized version of values.
     """
     count = len(values)
 
-    if isinstance(values, (list, tuple)):
-        evaluated = to_numpy(values, x=times)
-        total = np.round(np.sum(evaluated, axis=0), ROUND_OFF)
+    evaluated = {key: _to_value(value, x=times) for key, value in values.items()}
+    total = np.round(np.sum(list(evaluated.values()), axis=0), ROUND_OFF)
 
-        return np.array(
-            [divide_nonzero(value, total, default=1.0 / count) for value in evaluated]
-        )
-
-    if isinstance(values, dict):
-        evaluated_by_key = {
-            key: _to_value(value, x=times) for key, value in values.items()
-        }
-        total = np.round(np.sum(list(evaluated_by_key.values()), axis=0), ROUND_OFF)
-
-        return {
-            key: divide_nonzero(value, total, default=1.0 / count)
-            for key, value in evaluated_by_key.items()
-        }
-
-    raise ValueError("'Values' must be either a list, tuple, or a dict.")
+    return {
+        key: divide_nonzero(value, total, default=1.0 / count)
+        for key, value in evaluated.items()
+    }
 
 
 def interpolate_tied_capital(tied_capital_flow: FloatArray, age: float) -> float:

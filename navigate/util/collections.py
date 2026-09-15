@@ -98,7 +98,7 @@ def define_index_map[T: Hashable](objects: Sequence[T]) -> dict[T, list[int]]:
     }
 
 
-def merge_dicts[K: Hashable, V](
+def merge_dicts[K, V](
     dict1: dict[K, V], *dicts: dict[K, V], in_place: bool = False
 ) -> dict[K, V]:
     """
@@ -133,7 +133,7 @@ def merge_dicts[K: Hashable, V](
     return merged
 
 
-def add_dicts[K: Hashable](
+def add_dicts[K](
     dict1: dict[K, FloatLike],
     *dicts: dict[K, FloatLike],
     in_place: bool = False,
@@ -165,7 +165,7 @@ def add_dicts[K: Hashable](
     return merged
 
 
-def multiply_dicts[K: Hashable](
+def multiply_dicts[K](
     dict1: dict[K, FloatLike],
     *dicts: dict[K, FloatLike],
     in_place: bool = False,
@@ -197,7 +197,7 @@ def multiply_dicts[K: Hashable](
     return merged
 
 
-def divide_dicts[K: Hashable](
+def divide_dicts[K](
     dict1: dict[K, FloatLike],
     *dicts: dict[K, FloatLike],
     in_place: bool = False,
@@ -231,7 +231,7 @@ def divide_dicts[K: Hashable](
     return merged
 
 
-def is_single_dict[K: Hashable](dict_: Mapping[K, object]) -> bool | None:
+def is_single_dict[K](dict_: Mapping[K, object]) -> bool | None:
     """
     Check whether a dict is a single dict.
 
@@ -256,7 +256,7 @@ def is_single_dict[K: Hashable](dict_: Mapping[K, object]) -> bool | None:
     return None
 
 
-def is_tuple_dict[K: Hashable](dict_: Mapping[K, object]) -> bool | None:
+def is_tuple_dict[K](dict_: Mapping[K, object]) -> bool | None:
     """
     Check whether a dict is a tuple dict.
 
@@ -285,7 +285,7 @@ def is_tuple_dict[K: Hashable](dict_: Mapping[K, object]) -> bool | None:
     return None
 
 
-def extract_from_dict[K: Hashable](
+def extract_from_dict[K](
     result: dict[K, FloatLike],
     key: K | None = None,
     idx: int | slice | None = None,
@@ -326,7 +326,7 @@ def extract_from_dict[K: Hashable](
     return _resolve_dict(result, idx, transform)
 
 
-def extract_from_dict_list[K: Hashable](
+def extract_from_dict_list[K](
     result: dict[K, list[FloatArray]],
     key: K | None = None,
     idx: int | slice = np.s_[:],
@@ -354,7 +354,7 @@ def extract_from_dict_list[K: Hashable](
         return {k: [array[idx] for array in v] for k, v in result.items()}
 
 
-def extract_from_tuple_dict[K1: Hashable, K2: Hashable](
+def extract_from_tuple_dict[K1, K2](
     result: dict[tuple[K1, K2], FloatLike],
     key1: K1 | None = None,
     key2: K2 | None = None,
@@ -364,8 +364,7 @@ def extract_from_tuple_dict[K1: Hashable, K2: Hashable](
     dict[tuple[K1, K2], FloatLike]
     | dict[K1, FloatLike]
     | dict[K2, FloatLike]
-    | float
-    | FloatArray
+    | FloatLike
 ):
     """
     Extract results from a tuple-keyed dict: dict[tuple[K1, K2], FloatLike].
@@ -415,7 +414,7 @@ def extract_from_tuple_dict[K1: Hashable, K2: Hashable](
     return _resolve_dict(result, idx, transform)
 
 
-def sum_dict_results[K: Hashable](
+def sum_dict_results[K](
     result: dict[K, FloatArray],
     key: K | None = None,
     idx: int | None = None,
@@ -468,7 +467,7 @@ def sum_dict_results[K: Hashable](
     return summed
 
 
-def sum_tuple_dict_results[K1: Hashable, K2: Hashable](
+def sum_tuple_dict_results[K1, K2](
     result: dict[tuple[K1, K2], FloatArray],
     key1: K1 | None = None,
     key2: K2 | None = None,
@@ -527,12 +526,12 @@ def sum_tuple_dict_results[K1: Hashable, K2: Hashable](
     return summed
 
 
-def collapse_dict[K: Hashable](
+def collapse_dict[K](
     result: dict[K, FloatArray],
     key: bool = False,
     idx: int | None = None,
     n: int | None = None,
-) -> FloatLike | dict[K, FloatArray] | dict[K, FloatLike]:
+) -> FloatLike | dict[K, FloatLike]:
     """
     Combine extract_from_dict and sum_dict_results.
 
@@ -560,7 +559,8 @@ def collapse_dict[K: Hashable](
     if idx is not None:
         return slice_dict(result, idx=idx)
 
-    return result
+    # returned as-is; only the static value type widens
+    return cast("dict[K, FloatLike]", result)
 
 
 def collapse_tuple_dict[K1: Hashable, K2: Hashable](
@@ -570,11 +570,9 @@ def collapse_tuple_dict[K1: Hashable, K2: Hashable](
     idx: int | None = None,
     n: int | None = None,
 ) -> (
-    float
-    | FloatArray
+    FloatLike
     | dict[K1, FloatLike]
     | dict[K2, FloatLike]
-    | dict[tuple[K1, K2], FloatArray]
     | dict[tuple[K1, K2], FloatLike]
 ):
     """
@@ -621,7 +619,8 @@ def collapse_tuple_dict[K1: Hashable, K2: Hashable](
     if idx is not None:
         return slice_dict(result, idx)
 
-    return result
+    # returned as-is; only the static value type widens
+    return cast("dict[tuple[K1, K2], FloatLike]", result)
 
 
 def slice_list(
@@ -649,7 +648,7 @@ def slice_list(
     return [transform(value[idx]) for value in result]
 
 
-def slice_dict[K: Hashable](
+def slice_dict[K](
     result: dict[K, FloatArray],
     idx: int | slice = np.s_[:],
     transform: Callable[[FloatLike], FloatLike] = lambda x: x,
@@ -674,7 +673,7 @@ def slice_dict[K: Hashable](
     return {key: transform(value[idx]) for key, value in result.items()}
 
 
-def _resolve_dict[K: Hashable](
+def _resolve_dict[K](
     result: dict[K, FloatLike],
     idx: int | slice | None,
     transform: Callable[[FloatLike], FloatLike],
