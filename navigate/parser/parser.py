@@ -1358,17 +1358,23 @@ class Parser:
                 "Please specify the assumptions location with the -d flag or environment variable "
             )
 
+        # a default file can pull another default of its own, through an Import
+        # or a Copy whose source is not yet registered, and when that inner read
+        # returns the outer one still owns the state it set
+        reading_default = self._reading_default
         self._reading_default = True
         try:
             found = False
-            _user_default_name = self._user_default_name
+            user_default_name = self._user_default_name
 
-            if _user_default_name != name:
+            if user_default_name != name:
                 self._user_default_name = name
-                found = self._read_default_folder(
-                    name, os.path.join(self._user_default_directory, node_type)
-                )
-                self._user_default_name = None
+                try:
+                    found = self._read_default_folder(
+                        name, os.path.join(self._user_default_directory, node_type)
+                    )
+                finally:
+                    self._user_default_name = user_default_name
 
             if found:
                 logger.debug(
@@ -1397,7 +1403,7 @@ class Parser:
                     f" a node with type '{node_type}' and similar name."
                 )
         finally:
-            self._reading_default = False
+            self._reading_default = reading_default
 
     def _read_default_folder(self, name, directory):
         file_names = _get_files_in_directory(directory)

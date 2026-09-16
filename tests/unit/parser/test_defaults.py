@@ -40,6 +40,8 @@ DEFAULT = _variable(Value=3.0)
 # a library node whose multiplier makes an unintended pull visible as 30.0
 DECOY = _variable(Value=3.0, Multiplier=10.0)
 OVERLAY = 'Import Variable "v"\n' + _variable(Multiplier=2.0)
+# the same overlay, behind a pull of an unrelated library node
+OVERLAY_AFTER_IMPORT = 'Import Variable "y"\n' + OVERLAY
 COMMAND_HOST = """
 Emission "co2" { }
 
@@ -139,6 +141,18 @@ class TestDefaultPrecedence:
         # of re-entering the user file: 2.0 * 3.0
         parser = _read_deck(
             tmp_path, HOST, user={"v": OVERLAY}, installation={"v": DEFAULT}
+        )
+
+        assert parser.nodes.variables["v"].get() == 6.0
+
+    def test_overlay_survives_an_import_of_another_library_node(self, tmp_path):
+        # pulling y must not cost the user file its own overlay route: the
+        # self-Import still reaches the installation v, so 2.0 * 3.0 again
+        parser = _read_deck(
+            tmp_path,
+            HOST,
+            user={"v": OVERLAY_AFTER_IMPORT},
+            installation={"v": DEFAULT, "y": _variable("y", Value=1.0)},
         )
 
         assert parser.nodes.variables["v"].get() == 6.0
