@@ -23,7 +23,7 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - The minimum supported Python version is 3.13 (was 3.12).
 - `navigate.util` and `navigate.exceptions` are fully type-annotated and
   type-checked; shared numpy array aliases (`FloatArray`, `BoolArray`, …)
-  live in the new `navigate.util.arrays`. **Breaking** for code importing
+  live in the new `navigate.util.types_`. **Breaking** for code importing
   navigate as a library — the helpers keep only their exercised surface:
   the caller-less `no_value_assigned_dict_error`, `merge_dicts`,
   `divide_dicts`, `collapse_dict`, `sum_tuple_dict_results` (its summations

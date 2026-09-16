@@ -5,7 +5,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Protocol, overload
+from typing import TYPE_CHECKING, overload
 
 import numpy as np
 import numpy.typing as npt
@@ -15,19 +15,15 @@ from navigate.util.dates import YEAR
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
-    from navigate.util.arrays import FloatArray, FloatLike, IntArray
+    from navigate.util.types_ import (
+        FloatArray,
+        FloatLike,
+        IntArray,
+        _FloatOrCalculator,
+    )
 
 ROUND_OFF = 5  # decimals
 TOLERANCE = 10 ** (-ROUND_OFF)
-
-
-class _SupportsGet(Protocol):
-    """Calculator duck type: anything this module evaluates via .get(None, None)."""
-
-    def get(self, x: None, y: None, /) -> FloatLike: ...
-
-
-type _FloatOrCalculator = float | _SupportsGet
 
 
 def divide_nonzero(

@@ -19,7 +19,7 @@ if TYPE_CHECKING:
         Sequence,
     )
 
-    from navigate.util.arrays import FloatArray, FloatLike
+    from navigate.util.types_ import FloatArray, FloatLike
 
 
 def unique_list[T: Hashable](items: Iterable[T]) -> list[T]:

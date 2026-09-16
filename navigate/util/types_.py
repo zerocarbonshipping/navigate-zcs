@@ -1,9 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Shared aliases for annotating numpy arrays by element kind."""
+"""Internal type vocabulary: numpy array aliases and the calculator duck type."""
 
 from __future__ import annotations
+
+from typing import Protocol
 
 import numpy as np
 import numpy.typing as npt
@@ -19,3 +21,12 @@ type IntArray = npt.NDArray[np.signedinteger]
 
 type DateArray = npt.NDArray[np.datetime64]
 type TimedeltaArray = npt.NDArray[np.timedelta64]
+
+
+class _SupportsGet(Protocol):
+    """Calculator duck type: anything evaluated via .get(None, None)."""
+
+    def get(self, x: None, y: None, /) -> FloatLike: ...
+
+
+type _FloatOrCalculator = float | _SupportsGet

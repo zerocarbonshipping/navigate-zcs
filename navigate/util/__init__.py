@@ -1,18 +1,10 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Domain-agnostic helpers: array aliases, collections, dates, naming, numerics."""
+"""Domain-agnostic helpers: collections, dates, naming, numerics, internal types."""
 
 from __future__ import annotations
 
-from navigate.util.arrays import (
-    BoolArray,
-    DateArray,
-    FloatArray,
-    FloatLike,
-    IntArray,
-    TimedeltaArray,
-)
 from navigate.util.collections import (
     add_dicts,
     collapse_tuple_dict,
@@ -58,4 +50,12 @@ from navigate.util.numeric import (
     is_strictly_increasing,
     to_numpy,
     update_belief_path,
+)
+from navigate.util.types_ import (
+    BoolArray,
+    DateArray,
+    FloatArray,
+    FloatLike,
+    IntArray,
+    TimedeltaArray,
 )

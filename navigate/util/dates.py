@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, overload
 import numpy as np
 
 if TYPE_CHECKING:
-    from navigate.util.arrays import (
+    from navigate.util.types_ import (
         DateArray,
         FloatArray,
         FloatLike,
