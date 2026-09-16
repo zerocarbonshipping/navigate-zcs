@@ -11,7 +11,6 @@ import numpy as np
 from navigate.core.initial_values import EMPTY_FLOAT
 from navigate.util import (
     add_dicts,
-    divide_dicts,
     multiply_dicts,
     slice_dict,
 )
@@ -131,18 +130,6 @@ class _BaseProfile:
             return result[key][idx] * mult_dict[key]
         else:
             return multiply_dicts(slice_dict(result, idx), mult_dict)
-
-    @staticmethod
-    def _extract_divide_dict(
-        result: dict[str, np.ndarray],
-        div_dict: dict[str, float],
-        key: str | None = None,
-        idx: int | slice = np.s_[:],
-    ) -> np.ndarray | dict[str, np.ndarray]:
-        if key is not None:
-            return result[key][idx] / div_dict[key]
-        else:
-            return divide_dicts(slice_dict(result, idx), div_dict)
 
     @staticmethod
     def _extract_method_dict(

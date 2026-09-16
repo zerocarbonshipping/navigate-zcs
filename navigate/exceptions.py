@@ -1,7 +1,14 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Navigate's exception hierarchy, raised across the package and caught by the CLI."""
+
 from __future__ import annotations
+
+from typing import TYPE_CHECKING, NoReturn
+
+if TYPE_CHECKING:
+    from navigate.core.node import Node
 
 
 class NavigateError(Exception):
@@ -12,17 +19,14 @@ class NavigateError(Exception):
     package inherit from this common base so the top-level CLI handler in
     ``navigate.__main__`` can catch them as one group and present a friendly
     message.
+
+    Parameters
+    ----------
+    message
+        Message presented by the top-level handler.
     """
 
-    def __init__(self, message=""):
-        """
-        Store the message presented by the top-level handler.
-
-        Parameters
-        ----------
-        message : str
-            Message passed to exception.
-        """
+    def __init__(self, message: str = "") -> None:
         super().__init__(message)
 
 
@@ -68,31 +72,15 @@ class PlotDataError(NavigateError, ValueError):
     """
 
 
-def no_value_assigned_error(node, attribute_name):
+def no_value_assigned_error(node: Node, attribute_name: str) -> NoReturn:
     """
     Raise a ValueError naming the node and its unassigned attribute.
 
     Parameters
     ----------
-    node : Node
-        Class node.
-    attribute_name : str
-        Name of unassigned attribute.
+    node
+        Node whose attribute is unassigned.
+    attribute_name
+        Name of the unassigned attribute.
     """
     raise ValueError(f"{node}: Attribute '{attribute_name}' is unassigned.")
-
-
-def no_value_assigned_dict_error(node, attribute_name, key):
-    """
-    Raise a ValueError naming the node, attribute, and unassigned key.
-
-    Parameters
-    ----------
-    node : Node
-        Class node.
-    attribute_name : str
-        Name of unassigned attribute.
-    key : str
-        Unassigned key to the dict.
-    """
-    raise ValueError(f"{node}: Attribute '{attribute_name}' is unassigned for '{key}'.")

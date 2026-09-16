@@ -286,8 +286,6 @@ def expand_id_wildcard(pattern: str, id_enum) -> list:
     """
     Expand a wildcard pattern against an enum's member names.
 
-    Delegates to :func:`retrieve_keys` which handles Enum-keyed collections.
-
     Parameters
     ----------
     pattern
@@ -300,11 +298,13 @@ def expand_id_wildcard(pattern: str, id_enum) -> list:
     List of matching enum members.
     """
     try:
-        return retrieve_keys(pattern, id_enum, key_fn=lambda m: m.name)
+        names = retrieve_keys(pattern, [member.name for member in id_enum])
     except KeyError:
         raise ValueError(
             f"wildcard '{pattern}' did not match any member of {id_enum.__name__}"
         ) from None
+
+    return [id_enum[name] for name in names]
 
 
 def assign_id_list(assignment, id_enum, length=()):
