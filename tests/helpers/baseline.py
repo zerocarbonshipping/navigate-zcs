@@ -29,6 +29,18 @@ if TYPE_CHECKING:
 
     from navigate.simulation import SimulationManager
 
+# runner-noise floor, opted into per deck (the comparison default stays exact).
+# Pinning the solver backend fixes neither its thread count nor the CPU dispatch
+# in its float kernels, so an LP with non-unique optima can resolve ties
+# differently from one machine to the next: nonzero cells drift by a few parts
+# in 1e14, and degenerate ties move between adjacent year bins, which lifts
+# exact-zero cells to ~1e-11. rtol covers the first regime at ~18x headroom over
+# the worst drift observed; atol is the only guard on the second, and on the
+# exact-zero cells that encode a gated-off pathway, where 1e-9 is inert in every
+# unit the report carries - vessels, MW, USD and dimensionless fractions.
+RUNNER_NOISE_RTOL = 1e-12
+RUNNER_NOISE_ATOL = 1e-9
+
 # The report writer dodges a locked target file by writing to "<name> (1).csv"
 # instead of failing; such a file must never be compared or become a baseline.
 _RETRY_NAME = re.compile(r" \(\d+\)\.csv$")
@@ -81,7 +93,7 @@ class ComparisonResult:
     cells_compared: int = 0
 
     def ok(self) -> bool:
-        """Whether the run matches the baseline exactly (no diffs of any kind)."""
+        """Whether the run matches the baseline within tolerance (no diffs at all)."""
         return not (
             self.value_diffs
             or any(getattr(self, name) for name, _ in _STRUCTURAL_FIELDS)
