@@ -19,6 +19,10 @@ type BoolArray = npt.NDArray[np.bool_]
 # signedinteger accepts
 type IntArray = npt.NDArray[np.signedinteger]
 
+# index kinds the collection helpers accept: Python and numpy scalar
+# positions, slices, and fancy-index arrays
+type Index = int | np.signedinteger | slice | IntArray
+
 type DateArray = npt.NDArray[np.datetime64]
 type TimedeltaArray = npt.NDArray[np.timedelta64]
 

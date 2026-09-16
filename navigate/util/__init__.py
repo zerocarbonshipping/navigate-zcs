@@ -56,6 +56,7 @@ from navigate.util.types_ import (
     DateArray,
     FloatArray,
     FloatLike,
+    Index,
     IntArray,
     TimedeltaArray,
 )

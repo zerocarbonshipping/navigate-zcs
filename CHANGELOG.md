@@ -47,6 +47,13 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `expand_id_wildcard` — and `get_increments_origin_index` folds into
   `get_increment_origin_index`, which takes a scalar age or an array of
   ages.
+  `extract_from_dict`/`extract_from_dict_list` carry overloads keyed on
+  `key is None` (a given key yields the sliced value, no key the whole
+  dict), their `idx` accepts the full set of index kinds — the new
+  `Index` alias (`int | np.signedinteger | slice | IntArray`) — and
+  `extract_from_dict`'s `idx=None` arm is replaced by a full-slice
+  default (identical values; non-empty whole-dict extraction no longer
+  aliases the backing dict).
 - **Breaking** for code importing navigate as a library: the `is_*()`
   type-check methods on `TypeCheckMixin` are replaced by `TypeIs` guard
   functions in `navigate.core.node_type` (`is_calculator`, `is_feedstock`,

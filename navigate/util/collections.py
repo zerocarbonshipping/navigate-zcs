@@ -5,7 +5,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, cast, overload
 
 import numpy as np
 
@@ -19,7 +19,7 @@ if TYPE_CHECKING:
         Sequence,
     )
 
-    from navigate.util.types_ import FloatArray, FloatLike
+    from navigate.util.types_ import FloatArray, FloatLike, Index
 
 
 def unique_list[T: Hashable](items: Iterable[T]) -> list[T]:
@@ -187,18 +187,24 @@ def is_tuple_dict[K](dict_: Mapping[K, object]) -> bool:
     return isinstance(representative, tuple) and len(representative) == 2
 
 
+@overload
+def extract_from_dict[K](
+    result: dict[K, FloatLike], key: None = None, idx: Index = ...
+) -> dict[K, FloatLike]: ...
+@overload
+def extract_from_dict[K](
+    result: dict[K, FloatLike], key: K, idx: Index = ...
+) -> FloatLike: ...
 def extract_from_dict[K](
     result: dict[K, FloatLike],
     key: K | None = None,
-    idx: int | slice | None = None,
+    idx: Index = np.s_[:],
 ) -> dict[K, FloatLike] | FloatLike:
     """
     Extract results from a plain dict: dict[K, FloatLike].
 
-    If key is given, returns a single (possibly sliced) value.
-    If key is None, returns the whole dict.
-
-    If idx is not None and the return is a dict, values are sliced (when possible).
+    If key is given, returns the sliced value at key.
+    If key is None, returns the whole dict with each value sliced (when possible).
 
     Parameters
     ----------
@@ -207,12 +213,12 @@ def extract_from_dict[K](
     key
         Key.
     idx
-        Time-step index or slice.
+        Time-step index(es) or slice; defaults to the full slice.
 
     Returns
     -------
     dict[K, FloatLike] | FloatLike
-        Desired form of result from dict.
+        Desired form of result from dict, mirroring whether key is given.
     """
     if not result:
         return result
@@ -223,11 +229,19 @@ def extract_from_dict[K](
     return _resolve_dict(result, idx)
 
 
+@overload
+def extract_from_dict_list[K](
+    result: dict[K, list[FloatArray]], key: None = None, idx: Index = ...
+) -> dict[K, list[FloatLike]]: ...
+@overload
+def extract_from_dict_list[K](
+    result: dict[K, list[FloatArray]], key: K, idx: Index = ...
+) -> list[FloatLike]: ...
 def extract_from_dict_list[K](
     result: dict[K, list[FloatArray]],
     key: K | None = None,
-    idx: int | slice = np.s_[:],
-) -> dict[K, list[FloatArray]] | list[FloatArray]:
+    idx: Index = np.s_[:],
+) -> dict[K, list[FloatLike]] | list[FloatLike]:
     """
     Extract and slice arrays from a dict of lists of ndarrays.
 
@@ -238,24 +252,27 @@ def extract_from_dict_list[K](
     key
         Key.
     idx
-        Time-step index.
+        Time-step index(es) or slice; defaults to the full slice.
 
     Returns
     -------
-    dict[K, list[FloatArray]] | list[FloatArray]
-        Desired form of result from dict with sliced arrays.
+    dict[K, list[FloatLike]] | list[FloatLike]
+        Desired form of result from dict with sliced arrays, mirroring
+        whether key is given.
     """
     if key is not None:
-        return [array[idx] for array in result[key]]
-    else:
-        return {k: [array[idx] for array in v] for k, v in result.items()}
+        return slice_list(result[key], idx)
+
+    return {k: slice_list(v, idx) for k, v in result.items()}
 
 
+# deliberately not overloaded: four return shapes keyed on two optional
+# parameters, and no caller passes a statically known key pair
 def extract_from_tuple_dict[K1, K2](
     result: dict[tuple[K1, K2], FloatLike],
     key1: K1 | None = None,
     key2: K2 | None = None,
-    idx: int | slice | None = None,
+    idx: Index | None = None,
     transform: Callable[[FloatLike], FloatLike] = lambda x: x,
 ) -> (
     dict[tuple[K1, K2], FloatLike]
@@ -283,7 +300,7 @@ def extract_from_tuple_dict[K1, K2](
     key2
         Second key.
     idx
-        Time-step index or slice.
+        Time-step index(es) or slice.
     transform
         Transform of the extracted values.
 
@@ -313,7 +330,7 @@ def extract_from_tuple_dict[K1, K2](
 
 def sum_dict_results[K](
     result: dict[K, FloatArray],
-    idx: int | slice | None = None,
+    idx: Index | None = None,
 ) -> FloatLike:
     """
     Sum a dict's values, optionally sliced by index first.
@@ -323,7 +340,7 @@ def sum_dict_results[K](
     result
         Profile result given as a dict of arrays.
     idx
-        Time-step index or slice.
+        Time-step index(es) or slice.
 
     Returns
     -------
@@ -405,7 +422,7 @@ def collapse_tuple_dict[K1: Hashable, K2: Hashable](
 
 def slice_list(
     result: list[FloatArray],
-    idx: int | slice = np.s_[:],
+    idx: Index = np.s_[:],
 ) -> list[FloatLike]:
     """
     Slice each array in a list.
@@ -415,7 +432,7 @@ def slice_list(
     result
         Result to be sliced.
     idx
-        Specific index or slice object.
+        Time-step index(es) or slice.
 
     Returns
     -------
@@ -427,7 +444,7 @@ def slice_list(
 
 def slice_dict[K](
     result: dict[K, FloatArray],
-    idx: int | slice = np.s_[:],
+    idx: Index = np.s_[:],
 ) -> dict[K, FloatLike]:
     """
     Slice each value in a dict.
@@ -437,7 +454,7 @@ def slice_dict[K](
     result
         Result to be sliced.
     idx
-        Specific index or slice object.
+        Time-step index(es) or slice.
 
     Returns
     -------
@@ -449,7 +466,7 @@ def slice_dict[K](
 
 def _resolve_dict[K](
     result: dict[K, FloatLike],
-    idx: int | slice | None,
+    idx: Index | None,
     transform: Callable[[FloatLike], FloatLike] = lambda x: x,
 ) -> dict[K, FloatLike]:
     if idx is None:
@@ -458,7 +475,7 @@ def _resolve_dict[K](
     return {key: transform(_slice_value(value, idx)) for key, value in result.items()}
 
 
-def _slice_value(value: FloatLike, idx: int | slice | None) -> FloatLike:
+def _slice_value(value: FloatLike, idx: Index | None) -> FloatLike:
     # unchecked callers pass scalar kinds beyond the declared float; only
     # arrays are sliceable, everything else passes through untouched
     if idx is None or not isinstance(value, np.ndarray):
