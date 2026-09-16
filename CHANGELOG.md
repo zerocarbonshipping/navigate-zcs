@@ -115,6 +115,13 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   spanning the plant lifetime, so even a constant per-ton rate did not
   levelize to itself and the delivery cost drifted with the remaining
   horizon. Results change for any deck assigning `FuelTransport` on a plant.
+- A user default file that pulls another library node before importing its own
+  name now still overlays the installation node of that name. The parser
+  cleared its default-reading state after the nested pull instead of restoring
+  it, so the user file re-entered itself and the parse failed with "the name is
+  already in use"; the overlay idiom held only when the self-`Import` came
+  first. The same state also decides which error a default file containing a
+  timeline statement reports.
 
 ### Changed
 - Internal reorganization (no DSL or result changes): the retrofit flow of
