@@ -34,14 +34,22 @@ activation guards prove it fired.
 
 ## Comparison policy
 
-Comparison is exact (`rtol = atol = 0`): the model is deterministic on a
-fixed solver backend, and the report CSVs carry full float precision. A
-tolerance or column exclusion (exact header tokens, no wildcards) may only be
-introduced per deck, next to a comment recording the evidence (e.g. a CI diff
-on another platform) — never globally, and never to make a change pass.
-Failures are structured: the
-report names files, columns, dates, and per-cell deviations sorted by
-magnitude.
+Comparison defaults to exact (`rtol = atol = 0`), and a new deck starts
+there. Both committed decks opt into the shared runner-noise floor
+(`RUNNER_NOISE_RTOL`/`RUNNER_NOISE_ATOL` in `tests/helpers/baseline.py`, where
+the evidence for the values lives): pinning the solver fixes neither its
+thread count nor the CPU dispatch in its float kernels, so an LP with
+non-unique optima can resolve ties differently from one machine to the next.
+As of 2026-09-16 that is observed, not theoretical — one GitHub runner
+diverged on a commit whose rerun, with the same image and pinned packages,
+matched: nonzero cells at relative deviations up to 5.5e-14, exact-zero cells
+up to 4.8e-11 as degenerate ties moved between adjacent year bins.
+
+A tolerance or column exclusion (exact header tokens, no wildcards) is opted
+into per deck and carries recorded evidence where its values are defined —
+never a comparison default, and never widened to make a change pass. Failures
+are structured: the report names files, columns, dates, and per-cell
+deviations sorted by magnitude.
 
 ## Regenerating baselines
 
@@ -62,6 +70,9 @@ Triage of a red suite:
   expected. A renamed node shows up as a missing plus an extra column.
 - A column-reorder-only git diff after regeneration is benign; comparison
   matches columns by name.
+- Regeneration ignores the tolerance, so a regenerated diff can still show a
+  cell flipping between zero and ~1e-13 in an adjacent year bin: that is the
+  runner noise the floor absorbs, not a result change.
 
 ## Deck rules
 

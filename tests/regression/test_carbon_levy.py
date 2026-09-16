@@ -20,7 +20,11 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from helpers.baseline import regen_or_compare
+from helpers.baseline import (
+    RUNNER_NOISE_ATOL,
+    RUNNER_NOISE_RTOL,
+    regen_or_compare,
+)
 from helpers.simulation import check_invariants, clear_output_dir, run_simulation
 
 DECK_DIR = Path(__file__).resolve().parent / "simulations" / "carbon_levy"
@@ -74,4 +78,6 @@ class TestCarbonLevy:
             DECK_DIR / "output",
             regen=regen_baselines_flag,
             check_activation=check_activation,
+            rtol=RUNNER_NOISE_RTOL,
+            atol=RUNNER_NOISE_ATOL,
         )
