@@ -135,9 +135,6 @@ def calculate_expected_fuel_supply(producers, idx):
     dict[str, np.ndarray]
         The sum of expected future fuel supply for all fuel pathways.
     """
-    if not producers:
-        return {}
-
     return add_dicts(
         *(
             _calculate_expected_producer_fuel_supply(producer, idx)

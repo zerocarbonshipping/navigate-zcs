@@ -100,6 +100,39 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   its `just_copied` attribute, which existed only to drive that re-binding.
   Simulation results are unchanged.
 - The minimum supported Python version is 3.13 (was 3.12).
+- `navigate.util` and `navigate.exceptions` are fully type-annotated and
+  type-checked; shared numpy array aliases (`FloatArray`, `BoolArray`, …)
+  live in the new `navigate.util.types_`. **Breaking** for code importing
+  navigate as a library — the helpers keep only their exercised surface:
+  the caller-less `no_value_assigned_dict_error`, `merge_dicts`,
+  `divide_dicts`, `collapse_dict`, `sum_tuple_dict_results` (its summations
+  are covered by `collapse_tuple_dict`), `normalize_fractional` (`Route`
+  normalizes its voyage distribution at (re-)initialization instead of per
+  getter call, with identical values), `decompose_dates`, and the
+  `DAY`/`MONTH` constants are removed, as are the never-passed parameters
+  `in_place` (dict arithmetic), `transform` (`extract_from_dict`,
+  `slice_list`, `slice_dict`), `x`/`y`/`length` (`to_numpy`), and `key`/`n`
+  (`sum_dict_results`).
+  `is_single_dict`/`is_tuple_dict` return False (was None) for
+  empty dicts, `add_dicts`/`multiply_dicts` rebuild their result instead of
+  deep-copying the first argument (values unchanged and still never aliasing
+  the inputs), and keyword-visible helper parameters have clearer names:
+  `divide_nonzero(numerator, denominator, ...)` (was `a`, `b`),
+  `is_strictly_increasing(values)` / `is_non_strictly_increasing(values)`
+  (was `x`), and `interpolate_yearly_flow(yearly_flow, age)` (was
+  `interpolate_tied_capital` — nothing in it is tied-capital-specific).
+  `retrieve_keys`/`matching_keys` no longer take a `key_fn` extractor —
+  enum wildcard expansion matches member names inside
+  `expand_id_wildcard` — and `get_increments_origin_index` folds into
+  `get_increment_origin_index`, which takes a scalar age or an array of
+  ages.
+  `extract_from_dict`/`extract_from_dict_list` carry overloads keyed on
+  `key is None` (a given key yields the sliced value, no key the whole
+  dict), their `idx` accepts the full set of index kinds — the new
+  `Index` alias (`int | np.signedinteger | slice | IntArray`) — and
+  `extract_from_dict`'s `idx=None` arm is replaced by a full-slice
+  default (identical values; non-empty whole-dict extraction no longer
+  aliases the backing dict).
 - **Breaking** for code importing navigate as a library: the `is_*()`
   type-check methods on `TypeCheckMixin` are replaced by `TypeIs` guard
   functions in `navigate.core.node_type` (`is_calculator`, `is_feedstock`,
@@ -164,6 +197,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   way the deck wrote it, like every other node. It previously printed the
   node's value instead, and failed with `AttributeError` while no value was
   assigned — which is exactly when the missing-value error needs the name.
+- Computing the expected fleet fuel demand no longer raises a `TypeError`
+  when a simulation defines no fleets (`add_dicts` with no arguments returns
+  an empty dict).
 - The reference manual documented two port report properties under names that
   never resolved (`BunkerEquivalentWTT`, `BunkerTotalEquivalentWTT`); the
   working names are `EquivalentBunkerWtt` and `TotalEquivalentBunkerWtt`.
@@ -645,8 +681,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `vessel/`, `route/`, `investment/` and `illustrations/` packages are
   removed; `util.py` is split into a `util/` package (`collections`,
   `numeric`, `dates`, `naming`) and the shared constants (`TOLERANCE`,
-  `ROUND_OFF`, `DAY`, `MONTH`, `YEAR`) move from `navigate.core.misc` into
-  it. Most `navigate.util` names are re-exported unchanged, but
+  `ROUND_OFF`, `YEAR`) move from `navigate.core.misc` into it. Most
+  `navigate.util` names are re-exported unchanged, but
   `round_for_display`, `get_attributes`, `get_files_in_directory` and
   `print_elapsed_time` became private helpers of their single consumers and
   the unused `average` is deleted. Breaking for

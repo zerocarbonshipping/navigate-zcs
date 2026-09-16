@@ -13,7 +13,7 @@ from navigate.core.assign import (
     assign_value,
     expand_id_wildcard,
 )
-from navigate.core.enum_ import EnergyDemandTypeID, FuelTypeID
+from navigate.core.enum_ import FuelTypeID
 from navigate.core.node_type import FUEL, PORT
 from navigate.core.wildcard import WildcardNodeReference
 from navigate.util import matching_keys, retrieve_keys
@@ -69,26 +69,13 @@ class TestAssignIdListWildcard:
         assert result == [FuelTypeID.HYDROGEN]
 
 
-# ── retrieve_keys with enum-keyed dicts ───────────────────────────────────────
+# ── retrieve_keys ─────────────────────────────────────────────────────────────
 
 
-class TestRetrieveKeysEnum:
-    _key_fn = staticmethod(lambda k: k.name)
-
-    def test_wildcard_matches_enum_names(self):
-        d = {FuelTypeID.METHANE: 1, FuelTypeID.METHANOL: 2, FuelTypeID.OIL: 3}
-        result = retrieve_keys("M*", d, key_fn=self._key_fn)
-        assert set(result) == {FuelTypeID.METHANE, FuelTypeID.METHANOL}
-
-    def test_exact_enum_name_matches(self):
-        d = {FuelTypeID.OIL: 1, FuelTypeID.AMMONIA: 2}
-        result = retrieve_keys("OIL", d, key_fn=self._key_fn)
-        assert result == [FuelTypeID.OIL]
-
+class TestRetrieveKeys:
     def test_no_match_raises(self):
-        d = {FuelTypeID.OIL: 1}
         with pytest.raises(KeyError):
-            retrieve_keys("Z*", d, key_fn=self._key_fn)
+            retrieve_keys("Z*", {"OIL": 1})
 
     def test_non_string_key_passthrough(self):
         result = retrieve_keys(FuelTypeID.OIL, {FuelTypeID.OIL: 1})
@@ -106,13 +93,8 @@ class TestRetrieveKeysEnum:
         # The key is named, not carried: a KeyError renders its argument with
         # 'repr', so the member itself would reach the deck error as
         # '<FuelTypeID.OIL: 1>'
-        with pytest.raises(KeyError, match="^'OIL'$"):
+        with pytest.raises(KeyError, match=r"^'OIL'$"):
             retrieve_keys(FuelTypeID.OIL, allowed_keys)
-
-    def test_star_matches_all_enum_keys(self):
-        d = {e: i for i, e in enumerate(EnergyDemandTypeID)}
-        result = retrieve_keys("*", d, key_fn=self._key_fn)
-        assert set(result) == set(EnergyDemandTypeID)
 
 
 # ── matching_keys ─────────────────────────────────────────────────────────────

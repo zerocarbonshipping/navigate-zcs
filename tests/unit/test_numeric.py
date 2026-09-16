@@ -1,14 +1,21 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Unit tests for navigate.util.numeric — inertia and compound growth calculations."""
+"""Unit tests for navigate.util.numeric — inertia, growth, interpolation, lookup."""
 
 from __future__ import annotations
 
 import numpy as np
 import pytest
 
-from navigate.util import YEAR, calculate_compound_growth, calculate_inertia
+from navigate.util import (
+    YEAR,
+    calculate_compound_growth,
+    calculate_inertia,
+    find_nearest,
+    get_increment_origin_index,
+    interpolate_yearly_flow,
+)
 
 
 class TestCalculateInertia:
@@ -30,6 +37,65 @@ class TestCalculateInertia:
     )
     def test_inertia(self, inertia, dt, expected):
         assert calculate_inertia(inertia, dt) == pytest.approx(expected)
+
+
+class TestFindNearest:
+    _array = np.array([0.0, 10.0, 20.0])
+
+    def test_scalar_query(self):
+        assert find_nearest(self._array, 9.0) == 1
+
+    def test_array_query(self):
+        result = find_nearest(self._array, np.array([-5.0, 9.0, 25.0]))
+        np.testing.assert_array_equal(result, [0, 1, 2])
+
+    def test_below_first_clamps_to_zero(self):
+        assert find_nearest(self._array, -100.0) == 0
+
+    def test_past_last_clamps_to_last(self):
+        assert find_nearest(self._array, 100.0) == 2
+
+    def test_equidistant_tie_picks_right_neighbor(self):
+        assert find_nearest(self._array, 5.0) == 1
+
+    # query kinds the pre-unification scalar/array branch crashed on
+    def test_int_query(self):
+        assert find_nearest(self._array, 9) == 1
+
+    def test_float32_query(self):
+        assert find_nearest(self._array, np.float32(9.0)) == 1
+
+    def test_zero_dimensional_query(self):
+        assert find_nearest(self._array, np.array(9.0)) == 1
+
+
+class TestGetIncrementOriginIndex:
+    _years = np.array([2020.0, 2021.0, 2022.0])
+
+    def test_scalar_age(self):
+        assert get_increment_origin_index(self._years, 2022.0, 1.2) == 1
+
+    def test_array_ages_clamp_to_start(self):
+        origins = get_increment_origin_index(
+            self._years, 2022.0, np.array([0.0, 1.0, 5.0])
+        )
+        np.testing.assert_array_equal(origins, [2, 1, 0])
+
+
+class TestInterpolateYearlyFlow:
+    _flow = np.array([100.0, 80.0, 60.0])
+
+    def test_exact_year_hit(self):
+        assert interpolate_yearly_flow(self._flow, 1.0) == pytest.approx(80.0)
+
+    def test_interior_fractional_age(self):
+        assert interpolate_yearly_flow(self._flow, 0.5) == pytest.approx(90.0)
+
+    def test_age_zero(self):
+        assert interpolate_yearly_flow(self._flow, 0.0) == pytest.approx(100.0)
+
+    def test_age_beyond_last_year_clamps(self):
+        assert interpolate_yearly_flow(self._flow, 10.0) == pytest.approx(60.0)
 
 
 class TestCalculateCompoundGrowth:

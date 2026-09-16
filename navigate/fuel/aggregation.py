@@ -10,8 +10,7 @@ import numpy as np
 from navigate.util import (
     YEAR,
     get_increment_origin_index,
-    get_increments_origin_index,
-    interpolate_tied_capital,
+    interpolate_yearly_flow,
 )
 
 if TYPE_CHECKING:
@@ -89,7 +88,7 @@ def _transfer_production_and_feed_mass(
         decided = np.array([inc.decided for inc in incs])
         multipliers = np.array([inc.multiplier for inc in incs])
 
-        origins = get_increments_origin_index(years, today, decided)
+        origins = get_increment_origin_index(years, today, decided)
         production_unit = expectation.get_production(origins)
         production = np.sum(production_unit * multipliers)
 
@@ -131,6 +130,6 @@ def _transfer_plant_tied_capital(
 
             # calculate remaining tied up capital
             tied_capital_flow = plant.expectation.get_tied_capital(origin)
-            tied_capital = interpolate_tied_capital(tied_capital_flow, inc.age)
+            tied_capital = interpolate_yearly_flow(tied_capital_flow, inc.age)
 
             producer.profile.add_plant_tied_capital(tied_capital * inc.multiplier, idx)

@@ -23,12 +23,12 @@ import openpyxl as xl
 
 from navigate.core.enum_ import FileFormatID, ReportReduceID
 from navigate.util import (
-    collapse_dict,
     collapse_tuple_dict,
     dates_to_days,
     is_single_dict,
     is_tuple_dict,
     matching_keys,
+    sum_dict_results,
 )
 
 if TYPE_CHECKING:
@@ -389,7 +389,8 @@ def _extract_properties(
 
                 if property_:
                     if is_single_dict(property_):
-                        property_ = collapse_dict(property_, key=key1)
+                        if key1:
+                            property_ = sum_dict_results(property_)
 
                     elif is_tuple_dict(property_):
                         property_ = collapse_tuple_dict(property_, key1=key1, key2=key2)
