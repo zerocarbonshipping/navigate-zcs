@@ -27,15 +27,16 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   A name not yet declared is a node from that moment on, filled when its
   declaration is read or, failing that, pulled from the default library where
   the reference walk used to swap it in — same order, same pulls, same
-  registry and results. A reference's bounds reach the calculator when the
-  assignment is read, so a reference re-assigned later in `DEFINE` leaves them
-  behind, as one re-assigned in `EVENTS` always did. `assign_value` and
-  `assign_list` therefore accept a
-  `Node` or a `WildcardNodeReference` and reject a `NodeReference`;
-  `Expression.node_references` holds nodes as soon as the parser initializes
-  the expression; and `NodeReference` loses `reference_location`,
-  `internal_bounds` and `set_internal_bounds`, which nothing writes any more —
-  the calculator nodes expose the bounds they hold as `internal_bounds`.
+  registry, and the same results on every committed deck. `assign_value` and
+  `assign_list` accept a `Node` or a `WildcardNodeReference` and reject a
+  `NodeReference`; `Expression.node_references` holds nodes as soon as the
+  parser initializes the expression; and `NodeReference` loses
+  `reference_location`, `internal_bounds` and `set_internal_bounds`, which
+  nothing writes any more — the calculator nodes expose the bounds they hold
+  as `internal_bounds`. The one delta: a reference's bounds reach the
+  calculator when the assignment is read, so a reference re-assigned later in
+  `DEFINE` leaves them behind, as one re-assigned across time steps in
+  `EVENTS` always did.
 - **Breaking** for code importing navigate as a library: the calculator nodes
   (`Curve`, `Forecast`, `Surface`, `Timetable`, `Variable`) take the bounds an
   attribute imposes on them as two floats, `set_internal_bounds(lower, upper)`,

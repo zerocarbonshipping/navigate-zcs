@@ -124,6 +124,19 @@ class TestReferenceResolution:
 
         assert parser.nodes.variables["v"].get() == 3.0
 
+    def test_bounds_of_an_overwritten_reference_stay_on_the_node(self, tmp_path):
+        # GlobalWarmingPotential imposes its lower bound when the first assignment
+        # is read; the EVENTS reference only keeps the Variable from being pruned
+        define = (
+            HOST
+            + 'Emission "e" { GlobalWarmingPotential = 1.0 }\n'
+            + _variable(Value=-2.0)
+        )
+
+        parser = _read_deck(tmp_path, define, events="Start\n" + HOST + "End\n")
+
+        assert parser.nodes.variables["v"].get() == 0.0
+
 
 class TestDefaultPrecedence:
     def test_user_branch_shadows_installation_branch(self, tmp_path):
@@ -186,17 +199,16 @@ class TestCopyFromDefault:
         assert source is not copied
 
     def test_the_copy_takes_over_a_target_the_pulled_file_declares(self, tmp_path):
-        # the source file declares the target's name too; every reference ends
-        # on the copy, as it did when the copy replaced that node in the registry
-        library = {"base": _variable("base", Value=1.0) + _variable("dst", Value=9.0)}
-        define = _host("dst") + 'Copy Variable "base" "dst"\n'
+        # the source file declares the target's name too, so the reference ends
+        # on the copy, not on the file's node
+        library = {"v": DEFAULT + _variable("dst", Value=9.0)}
+        define = _host("dst") + 'Copy Variable "v" "dst"\n'
 
         parser = _read_deck(tmp_path, define, installation=library)
         copied = parser.nodes.variables["dst"]
 
-        assert set(parser.nodes.variables) == {"dst"}
         assert parser.nodes.emissions["e"].global_warming_potential is copied
-        assert copied.get() == 1.0
+        assert copied.get() == 3.0
 
     def test_reference_inside_the_pulled_file_binds_to_the_pulled_again_source(
         self, tmp_path

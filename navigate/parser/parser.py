@@ -764,13 +764,15 @@ class Parser:
         new_node = copy.deepcopy(source, memo)
         new_node.name = statement.copy_to
 
-        placeholder = self._adopt(statement.node_type, statement.copy_to)
-        if placeholder is None:
-            # the pulled file may declare the target's name itself; the copy
-            # takes that node over, so every holder of it sees the copy
-            placeholder = group.get(statement.copy_to)
-        if placeholder is not None:
-            new_node = _transplant(placeholder, new_node)
+        existing = self._adopt(statement.node_type, statement.copy_to)
+        if existing is None:
+            # a declaration inside the pulled file may have adopted the
+            # placeholder and registered it under the target's name; the copy
+            # takes that node over, as it replaced it in the registry before,
+            # so every holder sees the copy
+            existing = group.get(statement.copy_to)
+        if existing is not None:
+            new_node = _transplant(existing, new_node)
 
         if from_default:
             del group[statement.copy_from]
@@ -1429,8 +1431,8 @@ class Parser:
         """
         Return the deferred node a declaration of ``(node_type, name)`` fills.
 
-        ``None`` when no reference preceded the declaration, or while the name
-        is provisional.
+        ``None`` when no reference preceded the declaration, when a declaration
+        adopted it already, or while the name is provisional.
         """
         key = (node_type, name)
 
@@ -1535,32 +1537,32 @@ def _get_files_in_directory(directory):
     ]
 
 
-def _transplant(placeholder, copied):
+def _transplant(node, copied):
     """
-    Move a copy's state into the placeholder that earlier references point at.
+    Move a copy's state into the node already held under the copy's name.
 
-    The state carries the source's internal bounds, so the bounds those
-    references imposed on the placeholder are merged back afterwards. They are
-    all a placeholder accumulates: ``assign_value`` is the only writer a
-    reference site reaches before the declaration.
+    Every attribute is declared in ``__init__``, so the update replaces the
+    node's whole state — a placeholder's, or the declaration a pulled file gave
+    it. The bounds references imposed on the node are the one thing to keep:
+    they are merged back after the update, which brought the source's.
 
     Parameters
     ----------
-    placeholder : Node
-        The deferred node of the copy's name.
+    node : Node
+        The node earlier references, or the pulled file, put under the name.
     copied : Node
         The freshly copied node, discarded afterwards.
 
     Returns
     -------
     Node
-        The placeholder.
+        The node, now carrying the copy's state.
     """
-    bounds = placeholder.internal_bounds if is_calculator(placeholder) else None
+    bounds = node.internal_bounds if is_calculator(node) else None
 
-    placeholder.__dict__.update(copied.__dict__)
+    node.__dict__.update(copied.__dict__)
 
     if bounds is not None:
-        placeholder.set_internal_bounds(*bounds)
+        node.set_internal_bounds(*bounds)
 
-    return placeholder
+    return node
