@@ -681,9 +681,6 @@ class Parser:
                     + f": '{type(item).__name__}' is not a valid keyword."
                 )
 
-        for node in nodes:
-            self._set_node(declaration.node_type, node)
-
     def _process_general_node_declaration(self, declaration):
         """Process a GeneralNodeDeclaration AST node."""
         self._check_keyword(declaration.node_type)
@@ -786,7 +783,8 @@ class Parser:
 
         self._check_allow_new_node("define")
         self._check_node_name_is_available(node_type, name)
-        return [define_new_node(node_type, name)]
+        node = group[name] = define_new_node(node_type, name)
+        return [node]
 
     def _retrieve_general_node(self, type_: str):
         field = GENERAL_NODE_GROUP[type_]
@@ -801,9 +799,6 @@ class Parser:
             raise DeckKeywordError(
                 self._error_prefix() + f": Unable to {action} new nodes outside DEFINE."
             )
-
-    def _set_node(self, node_type, node):
-        getattr(self.nodes, NODE_GROUP[node_type])[node.name] = node
 
     def _check_keyword(self, keyword, name=None):
         if keyword in KEYWORD_SECTIONS:
