@@ -765,6 +765,10 @@ class Parser:
         new_node.name = statement.copy_to
 
         placeholder = self._adopt(statement.node_type, statement.copy_to)
+        if placeholder is None:
+            # the pulled file may declare the target's name itself; the copy
+            # takes that node over, so every holder of it sees the copy
+            placeholder = group.get(statement.copy_to)
         if placeholder is not None:
             new_node = _transplant(placeholder, new_node)
 

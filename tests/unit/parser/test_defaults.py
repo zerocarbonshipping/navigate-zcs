@@ -185,6 +185,19 @@ class TestCopyFromDefault:
         assert parser.nodes.emissions["e2"].global_warming_potential is copied
         assert source is not copied
 
+    def test_the_copy_takes_over_a_target_the_pulled_file_declares(self, tmp_path):
+        # the source file declares the target's name too; every reference ends
+        # on the copy, as it did when the copy replaced that node in the registry
+        library = {"base": _variable("base", Value=1.0) + _variable("dst", Value=9.0)}
+        define = _host("dst") + 'Copy Variable "base" "dst"\n'
+
+        parser = _read_deck(tmp_path, define, installation=library)
+        copied = parser.nodes.variables["dst"]
+
+        assert set(parser.nodes.variables) == {"dst"}
+        assert parser.nodes.emissions["e"].global_warming_potential is copied
+        assert copied.get() == 1.0
+
     def test_reference_inside_the_pulled_file_binds_to_the_pulled_again_source(
         self, tmp_path
     ):

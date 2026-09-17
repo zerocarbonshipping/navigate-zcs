@@ -27,7 +27,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   A name not yet declared is a node from that moment on, filled when its
   declaration is read or, failing that, pulled from the default library where
   the reference walk used to swap it in — same order, same pulls, same
-  registry and results. `assign_value` and `assign_list` therefore accept a
+  registry and results. A reference's bounds reach the calculator when the
+  assignment is read, so a reference re-assigned later in `DEFINE` leaves them
+  behind, as one re-assigned in `EVENTS` always did. `assign_value` and
+  `assign_list` therefore accept a
   `Node` or a `WildcardNodeReference` and reject a `NodeReference`;
   `Expression.node_references` holds nodes as soon as the parser initializes
   the expression; and `NodeReference` loses `reference_location`,
