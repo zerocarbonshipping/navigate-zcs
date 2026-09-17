@@ -260,12 +260,8 @@ class TestUnresolvableReference:
 
     @pytest.mark.parametrize(
         "define",
-        [
-            'Import Variable "v"\n',
-            'Import Variable "v*"\n',
-            'Copy Variable "v" "dst"\n',
-        ],
-        ids=["import", "wildcard_import", "copy"],
+        ['Import Variable "v"\n', 'Copy Variable "v" "dst"\n'],
+        ids=["import", "copy"],
     )
     def test_import_and_copy_reject_a_user_file_without_the_node(
         self, tmp_path, define

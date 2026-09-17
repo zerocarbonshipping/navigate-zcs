@@ -14,7 +14,7 @@ from __future__ import annotations
 import pytest
 
 from navigate.core.enum_ import SimulationSectionID
-from navigate.core.node_type import EMISSION, FUEL
+from navigate.core.node_type import EMISSION
 from navigate.core.nodes.emission import Emission
 from navigate.parser._lark_parser import CopyStatement
 from navigate.parser.parser import Parser
@@ -102,7 +102,7 @@ def test_the_copy_target_keeps_the_bounds_imposed_before_its_declaration(tmp_pat
 
 
 def test_a_copy_target_without_a_calculator_adopts_its_placeholder():
-    # a Fleet is a top-level node, so the Emission it references is never pruned
+    # a node without bounds to merge back is adopted all the same
     parser = Parser()
     parser._current_section = SimulationSectionID.DEFINE
     placeholder = parser._node(EMISSION, "dst", location="")
@@ -117,26 +117,26 @@ def test_a_copy_target_without_a_calculator_adopts_its_placeholder():
 
 
 @pytest.mark.parametrize(
-    ("define", "node_type", "group", "read"),
+    ("define", "group", "read"),
     [
         (
-            ATTRIBUTE_HOST,
-            EMISSION,
+            ATTRIBUTE_HOST + 'Copy Emission "src" "dst"\n',
             "emissions",
             lambda node: node.global_warming_potential,
         ),
-        (CONTAINER_HOST, FUEL, "fuels", lambda node: node.ttw["co2"]),
+        (
+            CONTAINER_HOST + 'Copy Fuel "src" "dst"\n',
+            "fuels",
+            lambda node: node.ttw["co2"],
+        ),
     ],
     ids=["attribute", "container"],
 )
-def test_the_copy_shares_a_resolved_reference(tmp_path, define, node_type, group, read):
+def test_the_copy_shares_a_reference_declared_before_the_copy(
+    tmp_path, define, group, read
+):
     parser = _read_deck(tmp_path, define)
     shared = parser.nodes.variables["w"]
-    # the reference walk has run, so the source holds the node itself; that is
-    # the state the copy has to share
+
     assert read(getattr(parser.nodes, group)["src"]) is shared
-
-    parser._current_section = SimulationSectionID.DEFINE
-    parser._process_copy_node(CopyStatement(node_type, "src", "dst"))
-
     assert read(getattr(parser.nodes, group)["dst"]) is shared

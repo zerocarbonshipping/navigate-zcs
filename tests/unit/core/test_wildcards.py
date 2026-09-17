@@ -123,7 +123,8 @@ class TestMatchingKeys:
 class TestAssignValueWildcardNodeReference:
     def test_assign_value_accepts_matching_type(self):
         ref = WildcardNodeReference(FUEL, "*")
-        result = assign_value(ref, scalar=False, type_=FUEL)
+        # the attribute's bounds have no node to land on yet
+        result = assign_value(ref, scalar=False, type_=FUEL, lower=0.0)
         assert result is ref
 
     def test_assign_value_rejects_mismatched_type(self):

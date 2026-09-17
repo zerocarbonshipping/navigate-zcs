@@ -169,7 +169,8 @@ def assign_value(
             f"{_failed_value_message(scalar, date, type_)}, but got {assignment}"
         )
 
-    # only a calculator has bounds to tighten, and a wildcard's matches get none
+    # only a calculator has bounds to tighten; is_calculator reads the type tag,
+    # which a wildcard of a calculator type carries too, and its matches get none
     if is_expression or (is_node and is_calculator(assignment)):
         assignment.set_internal_bounds(lower, upper)
 

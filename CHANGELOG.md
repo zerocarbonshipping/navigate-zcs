@@ -31,7 +31,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `Node` or a `WildcardNodeReference` and reject a `NodeReference`;
   `Expression.node_references` holds nodes as soon as the parser initializes
   the expression; and `NodeReference` loses `reference_location`,
-  `internal_bounds` and `set_internal_bounds`, which nothing writes any more.
+  `internal_bounds` and `set_internal_bounds`, which nothing writes any more —
+  the calculator nodes expose the bounds they hold as `internal_bounds`.
 - **Breaking** for code importing navigate as a library: the calculator nodes
   (`Curve`, `Forecast`, `Surface`, `Timetable`, `Variable`) take the bounds an
   attribute imposes on them as two floats, `set_internal_bounds(lower, upper)`,

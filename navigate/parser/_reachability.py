@@ -163,17 +163,17 @@ def _iter_references(value, nodes: Nodes):
     Yield the (node type, node name) of every node reference in a value,
     recursing containers the way the parser's reference walk does.
 
-    The two walks share their containers but read different leaves: the
-    parser materializes every attribute value and command input when the deck
-    is read (Parser._materialize), so Parser._replace_references_on_attribute
-    sees nodes and wildcards only, while this one also scans the parsed AST of
-    queued EVENTS bodies, where a reference is still a NodeReference token. A
-    container shape added to one must be recognized by the other, or nodes
-    referenced through it are wrongly pruned. The whole yield is attributed to
-    the one attribute the
-    value sits under, so a reference nested anywhere inside — Expression
-    strings included — activates a restricted type only when that attribute
-    is one of its declared edges.
+    The walks share their containers but read different leaves: the parser
+    materializes every attribute value and command input when the deck is read
+    (Parser._materialize, which recurses lists only — the grammar's one
+    container value), so Parser._replace_references_on_attribute sees nodes
+    and wildcards only, while this one also scans the parsed AST of queued
+    EVENTS bodies, where a reference is still a NodeReference token. A
+    container shape added to one walk must be recognized by the others, or
+    nodes referenced through it are wrongly pruned. The whole yield is
+    attributed to the one attribute the value sits under, so a reference
+    nested anywhere inside — Expression strings included — activates a
+    restricted type only when that attribute is one of its declared edges.
 
     Parameters
     ----------

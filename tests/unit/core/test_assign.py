@@ -208,13 +208,6 @@ class TestAssignValue:
         ):
             assign_value(Curve("c"), type_=(FORECAST, VARIABLE))
 
-    def test_calculator_node_receives_the_attribute_bounds(self):
-        variable = Variable("v")
-
-        assign_value(variable, type_=VARIABLE, lower=0.0)
-
-        assert variable.internal_bounds == (0.0, np.inf)
-
     @pytest.mark.parametrize(
         ("assignment", "arguments", "message"),
         [
@@ -242,11 +235,17 @@ class TestAssignValue:
         ):
             assign_value(table, type_=(FORECAST, VARIABLE))
 
-    def test_expression_receives_the_attribute_bounds(self):
-        expression = Expression('1 + Forecast("x")')
-        assign_value(expression, scalar=False, type_=FORECAST, lower=0.0, upper=5.0)
+    @pytest.mark.parametrize(
+        "assignment",
+        [Expression('1 + Forecast("x")'), Variable("v")],
+        ids=["expression", "calculator_node"],
+    )
+    def test_bounded_values_receive_the_attribute_bounds(self, assignment):
+        assign_value(
+            assignment, scalar=False, type_=(FORECAST, VARIABLE), lower=0.0, upper=5.0
+        )
 
-        assert expression.internal_bounds == (0.0, 5.0)
+        assert assignment.internal_bounds == (0.0, 5.0)
 
 
 # ── assign_list ───────────────────────────────────────────────────────────────

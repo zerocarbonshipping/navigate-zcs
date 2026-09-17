@@ -749,9 +749,7 @@ class Parser:
             self._provisional.append(source_key)
             try:
                 self._retrieve_node_from_default(
-                    statement.copy_from,
-                    statement.node_type,
-                    reference_location=self._error_prefix(),
+                    statement.node_type, statement.copy_from, self._error_prefix()
                 )
             finally:
                 self._provisional.remove(source_key)
@@ -787,9 +785,7 @@ class Parser:
         else:
             self._check_node_name_is_available(statement.node_type, statement.name)
             self._retrieve_node_from_default(
-                statement.name,
-                statement.node_type,
-                reference_location=self._error_prefix(),
+                statement.node_type, statement.name, self._error_prefix()
             )
 
     # ══════════════════════════════════════════════════════════════════
@@ -890,9 +886,7 @@ class Parser:
 
         for name in sorted(matched_names):
             self._check_node_name_is_available(node_type, name)
-            self._retrieve_node_from_default(
-                name, node_type, reference_location=self._error_prefix()
-            )
+            self._retrieve_node_from_default(node_type, name, self._error_prefix())
 
     # ══════════════════════════════════════════════════════════════════
     # Collection helpers
@@ -1266,7 +1260,7 @@ class Parser:
         if isinstance(attribute, Node):
             entry = self._deferred.get((attribute.type, attribute.name))
             if entry is not None:
-                self._pull_deferred(attribute, entry.location)
+                self._pull_deferred(entry)
 
         elif isinstance(attribute, list):
             # iterate by index because a wildcard splice grows the list
@@ -1324,7 +1318,7 @@ class Parser:
 
         return [group[name] for name in matched_names]
 
-    def _retrieve_node_from_default(self, name, node_type, reference_location=""):
+    def _retrieve_node_from_default(self, node_type, name, location):
         if not self._user_default_directory or not self._installation_default_directory:
             raise DeckKeywordError(
                 self._deck_error_prefix()
@@ -1358,7 +1352,7 @@ class Parser:
 
             if found_in is None:
                 raise DeckKeywordError(
-                    f'{reference_location}: {node_type}("{name}") is referenced but not found in'
+                    f'{location}: {node_type}("{name}") is referenced but not found in'
                     f" either the deck or the default location of {node_type}."
                 )
 
@@ -1369,7 +1363,7 @@ class Parser:
             group = getattr(self.nodes, NODE_GROUP[node_type])
             if name not in group:
                 raise DeckKeywordError(
-                    f"{reference_location}: A file with name '{name}' was found, but not"
+                    f"{location}: A file with name '{name}' was found, but not"
                     f" containing a node with type '{node_type}' and similar name."
                 )
         finally:
@@ -1459,6 +1453,7 @@ class Parser:
         -------
         The value with nodes in place of references.
         """
+        # a wildcard still subclasses NodeReference, so its arm comes first
         if isinstance(value, WildcardNodeReference):
             return value
 
@@ -1475,20 +1470,17 @@ class Parser:
 
         return value
 
-    def _pull_deferred(self, node, location):
+    def _pull_deferred(self, entry):
         """
         Fill a node no declaration provided from the default library.
 
         Parameters
         ----------
-        node : Node
-            The deferred node.
-        location : str
-            Error prefix of the line that referenced it.
+        entry : _Deferred
+            The deferred node and the location of the line that referenced it.
         """
-        self._retrieve_node_from_default(
-            node.name, node.type, reference_location=location
-        )
+        node = entry.node
+        self._retrieve_node_from_default(node.type, node.name, entry.location)
         self._replace_references_on_node(node)
 
     def _read_node_reference(self, reference_string, location):
@@ -1544,7 +1536,9 @@ def _transplant(placeholder, copied):
     Move a copy's state into the placeholder that earlier references point at.
 
     The state carries the source's internal bounds, so the bounds those
-    references imposed on the placeholder are merged back afterwards.
+    references imposed on the placeholder are merged back afterwards. They are
+    all a placeholder accumulates: ``assign_value`` is the only writer a
+    reference site reaches before the declaration.
 
     Parameters
     ----------

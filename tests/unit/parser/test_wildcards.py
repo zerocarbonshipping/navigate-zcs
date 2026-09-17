@@ -116,6 +116,13 @@ class TestWildcardNodeReferenceExpansion:
             parser.nodes.fuels[name] = Fuel(name)
         return parser
 
+    @staticmethod
+    def _make_parser_with_ports(*names):
+        parser = Parser()
+        for name in names:
+            parser.nodes.ports[name] = Port(name)
+        return parser
+
     def test_expand_star_returns_all_nodes_of_type(self):
         parser = self._make_parser_with_fuels("fuel_a", "fuel_b", "fuel_c")
         matched = parser._expand_wildcard_node_reference(
@@ -138,10 +145,7 @@ class TestWildcardNodeReferenceExpansion:
             )
 
     def test_list_splice_preserves_surrounding_entries(self):
-        parser = Parser()
-        parser.nodes.ports["port_a"] = Port("port_a")
-        parser.nodes.ports["port_b"] = Port("port_b")
-        parser.nodes.ports["other"] = Port("other")
+        parser = self._make_parser_with_ports("port_a", "port_b", "other")
 
         marker_before = "BEFORE"
         marker_after = "AFTER"
@@ -169,9 +173,7 @@ class TestWildcardNodeReferenceExpansion:
 
     def test_bare_wildcard_handed_to_a_setter_expands(self):
         # the setter wraps a bare Foo("*") into a list, so it expands like [Foo("*")]
-        parser = Parser()
-        parser.nodes.ports["port_a"] = Port("port_a")
-        parser.nodes.ports["port_b"] = Port("port_b")
+        parser = self._make_parser_with_ports("port_a", "port_b")
 
         route = Route("r")
         route.set_ports(WildcardNodeReference("Port", "*"))
