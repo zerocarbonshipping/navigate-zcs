@@ -93,6 +93,11 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - The error for a node found in neither the deck nor the default library
   names the deck line and include file of the reference; it opened with a
   bare colon before.
+- A default file found by name that does not yield the requested node is
+  rejected with an error naming the deck location of the reference, from the
+  user branch as well. The user branch previously passed unchecked: a
+  reference to the node then failed with a bare `KeyError`, and an `Import`
+  of it silently imported nothing.
 - A reference whose type is not a node type, such as `Foo("x")`, is reported
   as a deck error at its line. It previously surfaced as an attribute type
   mismatch or, written as a command argument, as an unhandled `KeyError`.

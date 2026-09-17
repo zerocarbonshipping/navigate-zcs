@@ -192,19 +192,41 @@ class TestUnresolvableReference:
             _read_deck(tmp_path, HOST)
 
     @pytest.mark.parametrize(
-        "content",
-        [_variable("w", Value=1.0), 'Emission "v" { }\n'],
-        ids=["wrong_name", "wrong_type"],
+        "library",
+        [
+            {"installation": {"v": _variable("w", Value=1.0)}},
+            {"installation": {"v": 'Emission "v" { }\n'}},
+            {"user": {"v": _variable("w", Value=1.0)}},
+            # a user file found by name ends the search, so the installation
+            # file is no fallback
+            {"user": {"v": _variable("w", Value=1.0)}, "installation": {"v": DEFAULT}},
+        ],
+        ids=["wrong_name", "wrong_type", "user_branch", "user_over_installation"],
     )
-    def test_file_without_the_requested_node_is_rejected(self, tmp_path, content):
+    def test_file_without_the_requested_node_is_rejected(self, tmp_path, library):
         with pytest.raises(
             DeckKeywordError,
             match=(
-                r"A file with name 'v' was found, but not containing a node with "
-                r"type 'Variable'"
+                r"include file '.*define\.inc', line \d+: A file with name 'v' was "
+                r"found, but not containing a node with type 'Variable'"
             ),
         ):
-            _read_deck(tmp_path, HOST, installation={"v": content})
+            _read_deck(tmp_path, HOST, **library)
+
+    @pytest.mark.parametrize(
+        "define",
+        [
+            'Import Variable "v"\n',
+            'Import Variable "v*"\n',
+            'Copy Variable "v" "dst"\n',
+        ],
+        ids=["import", "wildcard_import", "copy"],
+    )
+    def test_import_and_copy_reject_a_user_file_without_the_node(
+        self, tmp_path, define
+    ):
+        with pytest.raises(DeckKeywordError, match=r"A file with name 'v' was found"):
+            _read_deck(tmp_path, define, user={"v": _variable("w", Value=1.0)})
 
     def test_reference_without_an_assumptions_directory_is_rejected(self, tmp_path):
         with pytest.raises(

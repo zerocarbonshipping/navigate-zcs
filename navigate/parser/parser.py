@@ -1338,43 +1338,39 @@ class Parser:
         reading_default = self._reading_default
         self._reading_default = True
         try:
-            found = False
+            found_in = None
             user_default_name = self._user_default_name
 
             if user_default_name != name:
                 self._user_default_name = name
                 try:
-                    found = self._read_default_folder(
+                    if self._read_default_folder(
                         name, os.path.join(self._user_default_directory, node_type)
-                    )
+                    ):
+                        found_in = "User"
                 finally:
                     self._user_default_name = user_default_name
 
-            if found:
-                logger.debug(
-                    f'{node_type}("{name}") was retrieved from the User Default folder.'
-                )
-                return
-
-            found = self._read_default_folder(
+            if found_in is None and self._read_default_folder(
                 name, os.path.join(self._installation_default_directory, node_type)
-            )
+            ):
+                found_in = "Installation"
 
-            if found:
-                logger.debug(
-                    f'{node_type}("{name}") was retrieved from the Installation Default folder.'
-                )
-            else:
+            if found_in is None:
                 raise DeckKeywordError(
                     f'{reference_location}: {node_type}("{name}") is referenced but not found in'
                     f" either the deck or the default location of {node_type}."
                 )
 
+            logger.debug(
+                f'{node_type}("{name}") was retrieved from the {found_in} Default folder.'
+            )
+
             group = getattr(self.nodes, NODE_GROUP[node_type])
             if name not in group:
                 raise DeckKeywordError(
-                    f"Error in import: A file with name '{name}' was found, but not containing"
-                    f" a node with type '{node_type}' and similar name."
+                    f"{reference_location}: A file with name '{name}' was found, but not"
+                    f" containing a node with type '{node_type}' and similar name."
                 )
         finally:
             self._reading_default = reading_default
