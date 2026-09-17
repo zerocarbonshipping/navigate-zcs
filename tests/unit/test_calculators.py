@@ -130,8 +130,8 @@ class TestBoundApplication:
 class TestInternalBoundsWarning:
     """
     Tightening an already-finite internal bound warns, naming the node the way
-    the deck wrote it. A Variable renders through get(), so its own repr is its
-    value, or an AttributeError while no value is assigned.
+    the deck wrote it. The node is a Variable without a value, so this also
+    pins that a Variable renders as its name rather than its value.
     """
 
     @pytest.mark.parametrize(
