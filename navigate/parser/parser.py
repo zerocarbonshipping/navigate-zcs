@@ -735,7 +735,12 @@ class Parser:
             from_default = True
 
         copy_node = group[statement.copy_from]
-        new_node = copy.deepcopy(copy_node)
+        # the memo makes deepcopy return the registry node for everything the
+        # source reaches; the source must stay out of it or deepcopy returns
+        # the source itself
+        memo = {id(node): node for node in self.nodes.all_nodes()}
+        del memo[id(copy_node)]
+        new_node = copy.deepcopy(copy_node, memo)
         new_node.name = statement.copy_to
         new_node.just_copied = True
 
