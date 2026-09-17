@@ -26,6 +26,9 @@ known-first-party = ["helpers"]
 # a Copy source holds a resolved node only when the Copy sits in a default file
 # pulled mid-resolution, so the contract is stated against the statement handler
 "tests/unit/parser/test_copy.py" = ["SLF001"]
+# the one attribute accepting its own node type sits deep in the producer
+# chain, so the self-reference is stated against the declaration handler
+"tests/unit/parser/test_declaration.py" = ["SLF001"]
 
 # >>> generated ratchet - entries may only be removed, never added >>>
 [lint.extend-per-file-ignores]

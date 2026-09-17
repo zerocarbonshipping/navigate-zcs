@@ -167,9 +167,15 @@ class TestCopyFromDefault:
         assert set(parser.nodes.variables) == {"dst"}
         assert parser.nodes.variables["dst"].get() == 3.0
 
-    def test_separate_reference_pulls_the_source_again(self, tmp_path):
-        define = 'Copy Variable "v" "dst"\n' + _host("v") + _host("dst", emission="e2")
-
+    @pytest.mark.parametrize(
+        "define",
+        [
+            'Copy Variable "v" "dst"\n' + _host("v") + _host("dst", emission="e2"),
+            _host("v") + 'Copy Variable "v" "dst"\n' + _host("dst", emission="e2"),
+        ],
+        ids=["reference_after_copy", "reference_before_copy"],
+    )
+    def test_separate_reference_pulls_the_source_again(self, tmp_path, define):
         parser = _read_deck(tmp_path, define, installation={"v": DEFAULT})
         source = parser.nodes.variables["v"]
         copied = parser.nodes.variables["dst"]
@@ -179,17 +185,56 @@ class TestCopyFromDefault:
         assert parser.nodes.emissions["e2"].global_warming_potential is copied
         assert source is not copied
 
+    def test_reference_inside_the_pulled_file_binds_to_the_pulled_again_source(
+        self, tmp_path
+    ):
+        # the file's own Emission references the source that the copy discards
+        library = {"v": DEFAULT + _host("v", emission="inner")}
+        define = 'Copy Variable "v" "dst"\n' + _host("dst", emission="e2")
+
+        parser = _read_deck(tmp_path, define, installation=library)
+
+        assert set(parser.nodes.variables) == {"v", "dst"}
+        assert (
+            parser.nodes.emissions["inner"].global_warming_potential
+            is parser.nodes.variables["v"]
+        )
+
 
 class TestUnresolvableReference:
-    def test_missing_default_names_the_type_and_name(self, tmp_path):
+    @pytest.mark.parametrize(
+        "define",
+        [HOST, 'Emission "e" { GlobalWarmingPotential = <2 * Variable("v")> }\n'],
+        ids=["reference", "expression"],
+    )
+    def test_missing_default_names_the_type_name_and_location(self, tmp_path, define):
         with pytest.raises(
             DeckKeywordError,
             match=(
+                r"include file '.*define\.inc', line \d+: "
                 r'Variable\("v"\) is referenced but not found in either the deck '
                 r"or the default location of Variable"
             ),
         ):
-            _read_deck(tmp_path, HOST)
+            _read_deck(tmp_path, define)
+
+    @pytest.mark.parametrize(
+        "define",
+        [
+            'Emission "e" { GlobalWarmingPotential = Foo("x") }\n',
+            COMMAND_HOST.replace('Variable("v")', 'Foo("x")'),
+        ],
+        ids=["attribute", "command_argument"],
+    )
+    def test_unknown_reference_type_is_a_located_deck_error(self, tmp_path, define):
+        with pytest.raises(
+            DeckKeywordError,
+            match=(
+                r"include file '.*define\.inc', line \d+: "
+                r"'Foo' is not a recognized node type"
+            ),
+        ):
+            _read_deck(tmp_path, define)
 
     @pytest.mark.parametrize(
         "library",

@@ -29,6 +29,7 @@ from navigate.core.assign import (
 )
 from navigate.core.enum_ import FuelTypeID
 from navigate.core.expression import Expression
+from navigate.core.node_reference import WildcardNodeReference
 from navigate.core.node_type import FORECAST, FUEL, VARIABLE
 from navigate.core.nodes._calculator import BOUNDS_MAP
 from navigate.core.nodes.curve import Curve
@@ -207,6 +208,13 @@ class TestAssignValue:
         ):
             assign_value(Curve("c"), type_=(FORECAST, VARIABLE))
 
+    def test_calculator_node_receives_the_attribute_bounds(self):
+        variable = Variable("v")
+
+        assign_value(variable, type_=VARIABLE, lower=0.0)
+
+        assert variable.internal_bounds == (0.0, np.inf)
+
     @pytest.mark.parametrize(
         ("assignment", "arguments", "message"),
         [
@@ -261,8 +269,12 @@ class TestAssignList:
     def test_default_length_skips_the_check(self):
         assert assign_list([1.0, 2.0], length=()) == [1.0, 2.0]
 
-    def test_duplicate_references_rejected(self):
-        entries = [Fuel("oil"), Fuel("oil")]
+    @pytest.mark.parametrize(
+        "entries",
+        [[Fuel("oil"), Fuel("oil")], [WildcardNodeReference(FUEL, "*")] * 2],
+        ids=["nodes", "wildcards"],
+    )
+    def test_duplicate_references_rejected(self, entries):
         with pytest.raises(ValueError, match=r"requires all entries .* to be unique"):
             assign_list(entries, unique=True, scalar=False, type_=FUEL)
 
