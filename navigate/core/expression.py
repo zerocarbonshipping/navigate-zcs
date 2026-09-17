@@ -197,8 +197,8 @@ class Expression:
                 f"{self._node}: Error in expression <{self._expression}>: node reference name must not contain a quote."
             )
 
-        # node references are stored as canonical strings and changed
-        # to actual NodeReference classes in the Parser later
+        # node references are stored as canonical strings; the Parser swaps in
+        # the nodes they name when it initializes the expression
         self.node_references.append(f'{node_ast.func.id}("{argument.value}")')
 
         return _Reference(len(self.node_references) - 1)

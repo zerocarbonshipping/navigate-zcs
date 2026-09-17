@@ -10,6 +10,7 @@ import pytest
 from navigate.core.node_reference import WildcardNodeReference
 from navigate.core.nodes.fuel import Fuel
 from navigate.core.nodes.port import Port
+from navigate.core.nodes.route import Route
 from navigate.exceptions import DeckFormatError
 from navigate.parser._commands import CommandReference
 from navigate.parser._lark_parser import SourceLocation
@@ -115,6 +116,13 @@ class TestWildcardNodeReferenceExpansion:
             parser.nodes.fuels[name] = Fuel(name)
         return parser
 
+    @staticmethod
+    def _make_parser_with_ports(*names):
+        parser = Parser()
+        for name in names:
+            parser.nodes.ports[name] = Port(name)
+        return parser
+
     def test_expand_star_returns_all_nodes_of_type(self):
         parser = self._make_parser_with_fuels("fuel_a", "fuel_b", "fuel_c")
         matched = parser._expand_wildcard_node_reference(
@@ -136,19 +144,8 @@ class TestWildcardNodeReferenceExpansion:
                 WildcardNodeReference("Fuel", "missing_*")
             )
 
-    def test_list_splice_replaces_wildcard_with_concrete_nodes(self):
-        parser = self._make_parser_with_fuels("fuel_a", "fuel_b")
-        container = [WildcardNodeReference("Fuel", "*")]
-        parser._replace_references_on_attribute(
-            node=None, attribute=container[0], container=container, index_or_key=0
-        )
-        assert {n.name for n in container} == {"fuel_a", "fuel_b"}
-
     def test_list_splice_preserves_surrounding_entries(self):
-        parser = Parser()
-        parser.nodes.ports["port_a"] = Port("port_a")
-        parser.nodes.ports["port_b"] = Port("port_b")
-        parser.nodes.ports["other"] = Port("other")
+        parser = self._make_parser_with_ports("port_a", "port_b", "other")
 
         marker_before = "BEFORE"
         marker_after = "AFTER"
@@ -172,6 +169,15 @@ class TestWildcardNodeReferenceExpansion:
             DeckFormatError,
             match="Wildcard node references may only appear inside lists",
         ):
-            parser._replace_references_on_attribute(
-                node=None, attribute=wildcard, container=None, index_or_key=None
-            )
+            parser._replace_references_on_attribute(node=None, attribute=wildcard)
+
+    def test_bare_wildcard_handed_to_a_setter_expands(self):
+        # the setter wraps a bare Foo("*") into a list, so it expands like [Foo("*")]
+        parser = self._make_parser_with_ports("port_a", "port_b")
+
+        route = Route("r")
+        route.set_ports(WildcardNodeReference("Port", "*"))
+
+        parser._replace_references_on_attribute(route, route.ports)
+
+        assert {p.name for p in route.ports} == {"port_a", "port_b"}

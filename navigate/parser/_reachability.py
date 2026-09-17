@@ -37,9 +37,9 @@ from navigate.parser._commands import CommandReference
 from navigate.parser._keywords import GENERAL_NODE_GROUP, NODE_GROUP
 from navigate.parser._lark_parser import Assignment, Command, NodeDeclaration
 from navigate.parser._scan import (
-    NODE_REFERENCE_PATTERN,
     REFERENCE_SCAN_EXCLUDE,
     get_attributes,
+    parse_node_reference,
 )
 from navigate.util import matching_keys
 
@@ -161,14 +161,19 @@ def _activating_references(edge, value, nodes: Nodes):
 def _iter_references(value, nodes: Nodes):
     """
     Yield the (node type, node name) of every node reference in a value,
-    recursing containers the way the parser's reference resolution does.
+    recursing containers the way the parser's reference walk does.
 
-    Kept in lockstep with Parser._replace_references_on_attribute: a value
-    shape added there must be recognized here, or nodes referenced through
-    that shape are wrongly pruned. The whole yield is attributed to the one
-    attribute the value sits under, so a reference nested anywhere inside —
-    Expression strings included — activates a restricted type only when that
-    attribute is one of its declared edges.
+    The walks share their containers but read different leaves: the parser
+    materializes every attribute value and command input when the deck is read
+    (Parser._materialize, which recurses lists only — the grammar's one
+    container value), so Parser._replace_references_on_attribute sees nodes
+    and wildcards only, while this one also scans the parsed AST of queued
+    EVENTS bodies, where a reference is still a NodeReference token. A
+    container shape added to one walk must be recognized by the others, or
+    nodes referenced through it are wrongly pruned. The whole yield is
+    attributed to the one attribute the value sits under, so a reference
+    nested anywhere inside — Expression strings included — activates a
+    restricted type only when that attribute is one of its declared edges.
 
     Parameters
     ----------
@@ -196,9 +201,9 @@ def _iter_references(value, nodes: Nodes):
 
     elif isinstance(value, Expression):
         for reference_string in value.reference_strings():
-            match = NODE_REFERENCE_PATTERN.match(reference_string)
-            if match is not None and match.group(1) in NODE_GROUP:
-                yield match.group(1), match.group(3)
+            reference = parse_node_reference(reference_string)
+            if reference is not None and reference[0] in NODE_GROUP:
+                yield reference
 
     elif isinstance(value, CommandReference):
         yield from _iter_references(value.inputs, nodes)
@@ -221,7 +226,8 @@ def _collect_event_edges(event_queue: dict, nodes: Nodes) -> dict:
     -------
     (target type, target name) mapped to the set of referenced
     (node type, node name) pairs. Target names absent from the registry are
-    skipped; they resolve from the default library at event execution.
+    skipped; executing such a statement raises, since EVENTS cannot declare
+    nodes.
     """
     edges = {}
 

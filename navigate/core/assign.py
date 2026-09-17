@@ -7,13 +7,15 @@ import numpy as np
 
 from navigate.core.expression import Expression
 from navigate.core.node import Node
-from navigate.core.node_reference import NodeReference
+from navigate.core.node_reference import WildcardNodeReference
+from navigate.core.node_type import is_calculator
 from navigate.core.scalar import Scalar
 from navigate.core.table_data import TableData
 from navigate.core.wrap import as_scalar
 from navigate.util import (
     ROUND_OFF,
     TOLERANCE,
+    list_is_unique,
     name_contains_wildcards,
     retrieve_keys,
     unique_list,
@@ -88,7 +90,7 @@ def assign_value(
 
     Parameters
     ----------
-    assignment : Node | NodeReference | Scalar | float | Expression
+    assignment : Node | WildcardNodeReference | Scalar | float | Expression
         The value passed to the setter.
     scalar : bool
         Whether the setter accepts scalars.
@@ -107,7 +109,7 @@ def assign_value(
 
     Returns
     -------
-    NodeReference | Scalar | float | Expression:
+    Node | WildcardNodeReference | Scalar | float | Expression:
         Returns the passed assignment (to allow error checking while assigning)
     """
     if isinstance(assignment, (list, tuple)):
@@ -119,7 +121,8 @@ def assign_value(
     is_float = isinstance(assignment, (float, Scalar))
     is_date = isinstance(assignment, np.datetime64)
     is_expression = isinstance(assignment, Expression)
-    is_node = isinstance(assignment, (Node, NodeReference))
+    is_node = isinstance(assignment, Node)
+    is_wildcard = isinstance(assignment, WildcardNodeReference)
     type_is_list = isinstance(type_, (list, tuple))
 
     if is_float:
@@ -146,7 +149,7 @@ def assign_value(
     elif is_expression:
         assignment.set_allowed_types(type_)
 
-    elif is_node:
+    elif is_node or is_wildcard:
         if type_ is None:
             raise ValueError(_failed_value_message(scalar, date, type_))
 
@@ -166,7 +169,9 @@ def assign_value(
             f"{_failed_value_message(scalar, date, type_)}, but got {assignment}"
         )
 
-    if is_expression or is_node:
+    # only a calculator has bounds to tighten; is_calculator reads the type tag,
+    # which a wildcard of a calculator type carries too, and its matches get none
+    if is_expression or (is_node and is_calculator(assignment)):
         assignment.set_internal_bounds(lower, upper)
 
     return assignment
@@ -194,7 +199,7 @@ def assign_list(
 
     Parameters
     ----------
-    assignment : list[NodeReference | Scalar | float]
+    assignment : list[Node | WildcardNodeReference | Scalar | float]
         List of values passed to the setter.
     length : int | tuple[int, int]
         Exact length the list should have or lower and upper bound. If empty, no check is made.
@@ -217,7 +222,7 @@ def assign_list(
 
     Returns
     -------
-    List[NodeReference | Scalar | float] :
+    List[Node | WildcardNodeReference | Scalar | float] :
         Returns the passed assignment (to allow error checking while assigning)
     """
     _check_list_length(assignment, length)
@@ -626,13 +631,13 @@ def _check_list_length(assignment, length):
 
 
 def _check_list_is_unique(assignment):
-    seen = set()
-    for entry in assignment:
-        if isinstance(entry, NodeReference):
-            name = entry.name
-            if name in seen:
-                raise ValueError("requires all entries in the list to be unique")
-            seen.add(name)
+    names = [
+        entry.name
+        for entry in assignment
+        if isinstance(entry, (Node, WildcardNodeReference))
+    ]
+    if not list_is_unique(names):
+        raise ValueError("requires all entries in the list to be unique")
 
 
 def _check_fraction_list(fractions):

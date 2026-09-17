@@ -124,6 +124,19 @@ class TestReferenceResolution:
 
         assert parser.nodes.variables["v"].get() == 3.0
 
+    def test_bounds_of_an_overwritten_reference_stay_on_the_node(self, tmp_path):
+        # GlobalWarmingPotential imposes its lower bound when the first assignment
+        # is read; the EVENTS reference only keeps the Variable from being pruned
+        define = (
+            HOST
+            + 'Emission "e" { GlobalWarmingPotential = 1.0 }\n'
+            + _variable(Value=-2.0)
+        )
+
+        parser = _read_deck(tmp_path, define, events="Start\n" + HOST + "End\n")
+
+        assert parser.nodes.variables["v"].get() == 0.0
+
 
 class TestDefaultPrecedence:
     def test_user_branch_shadows_installation_branch(self, tmp_path):
@@ -167,9 +180,15 @@ class TestCopyFromDefault:
         assert set(parser.nodes.variables) == {"dst"}
         assert parser.nodes.variables["dst"].get() == 3.0
 
-    def test_separate_reference_pulls_the_source_again(self, tmp_path):
-        define = 'Copy Variable "v" "dst"\n' + _host("v") + _host("dst", emission="e2")
-
+    @pytest.mark.parametrize(
+        "define",
+        [
+            'Copy Variable "v" "dst"\n' + _host("v") + _host("dst", emission="e2"),
+            _host("v") + 'Copy Variable "v" "dst"\n' + _host("dst", emission="e2"),
+        ],
+        ids=["reference_after_copy", "reference_before_copy"],
+    )
+    def test_separate_reference_pulls_the_source_again(self, tmp_path, define):
         parser = _read_deck(tmp_path, define, installation={"v": DEFAULT})
         source = parser.nodes.variables["v"]
         copied = parser.nodes.variables["dst"]
@@ -179,32 +198,101 @@ class TestCopyFromDefault:
         assert parser.nodes.emissions["e2"].global_warming_potential is copied
         assert source is not copied
 
+    def test_the_copy_takes_over_a_target_the_pulled_file_declares(self, tmp_path):
+        # the source file declares the target's name too, so the reference ends
+        # on the copy, not on the file's node
+        library = {"v": DEFAULT + _variable("dst", Value=9.0)}
+        define = _host("dst") + 'Copy Variable "v" "dst"\n'
+
+        parser = _read_deck(tmp_path, define, installation=library)
+        copied = parser.nodes.variables["dst"]
+
+        assert parser.nodes.emissions["e"].global_warming_potential is copied
+        assert copied.get() == 3.0
+
+    def test_reference_inside_the_pulled_file_binds_to_the_pulled_again_source(
+        self, tmp_path
+    ):
+        # the file's own Emission references the source that the copy discards
+        library = {"v": DEFAULT + _host("v", emission="inner")}
+        define = 'Copy Variable "v" "dst"\n' + _host("dst", emission="e2")
+
+        parser = _read_deck(tmp_path, define, installation=library)
+
+        assert set(parser.nodes.variables) == {"v", "dst"}
+        assert (
+            parser.nodes.emissions["inner"].global_warming_potential
+            is parser.nodes.variables["v"]
+        )
+
 
 class TestUnresolvableReference:
-    def test_missing_default_names_the_type_and_name(self, tmp_path):
+    @pytest.mark.parametrize(
+        "define",
+        [HOST, 'Emission "e" { GlobalWarmingPotential = <2 * Variable("v")> }\n'],
+        ids=["reference", "expression"],
+    )
+    def test_missing_default_names_the_type_name_and_location(self, tmp_path, define):
         with pytest.raises(
             DeckKeywordError,
             match=(
+                r"include file '.*define\.inc', line \d+: "
                 r'Variable\("v"\) is referenced but not found in either the deck '
                 r"or the default location of Variable"
             ),
         ):
-            _read_deck(tmp_path, HOST)
+            _read_deck(tmp_path, define)
 
     @pytest.mark.parametrize(
-        "content",
-        [_variable("w", Value=1.0), 'Emission "v" { }\n'],
-        ids=["wrong_name", "wrong_type"],
+        "define",
+        [
+            'Emission "e" { GlobalWarmingPotential = Foo("x") }\n',
+            COMMAND_HOST.replace('Variable("v")', 'Foo("x")'),
+        ],
+        ids=["attribute", "command_argument"],
     )
-    def test_file_without_the_requested_node_is_rejected(self, tmp_path, content):
+    def test_unknown_reference_type_is_a_located_deck_error(self, tmp_path, define):
         with pytest.raises(
             DeckKeywordError,
             match=(
-                r"A file with name 'v' was found, but not containing a node with "
-                r"type 'Variable'"
+                r"include file '.*define\.inc', line \d+: "
+                r"'Foo' is not a recognized node type"
             ),
         ):
-            _read_deck(tmp_path, HOST, installation={"v": content})
+            _read_deck(tmp_path, define)
+
+    @pytest.mark.parametrize(
+        "library",
+        [
+            {"installation": {"v": _variable("w", Value=1.0)}},
+            {"installation": {"v": 'Emission "v" { }\n'}},
+            {"user": {"v": _variable("w", Value=1.0)}},
+            # a user file found by name ends the search, so the installation
+            # file is no fallback
+            {"user": {"v": _variable("w", Value=1.0)}, "installation": {"v": DEFAULT}},
+        ],
+        ids=["wrong_name", "wrong_type", "user_branch", "user_over_installation"],
+    )
+    def test_file_without_the_requested_node_is_rejected(self, tmp_path, library):
+        with pytest.raises(
+            DeckKeywordError,
+            match=(
+                r"include file '.*define\.inc', line \d+: A file with name 'v' was "
+                r"found, but not containing a node with type 'Variable'"
+            ),
+        ):
+            _read_deck(tmp_path, HOST, **library)
+
+    @pytest.mark.parametrize(
+        "define",
+        ['Import Variable "v"\n', 'Copy Variable "v" "dst"\n'],
+        ids=["import", "copy"],
+    )
+    def test_import_and_copy_reject_a_user_file_without_the_node(
+        self, tmp_path, define
+    ):
+        with pytest.raises(DeckKeywordError, match=r"A file with name 'v' was found"):
+            _read_deck(tmp_path, define, user={"v": _variable("w", Value=1.0)})
 
     def test_reference_without_an_assumptions_directory_is_rejected(self, tmp_path):
         with pytest.raises(
