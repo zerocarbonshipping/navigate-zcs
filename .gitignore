@@ -98,6 +98,7 @@ dmypy.json
 /simulations/**/plots*/
 /simulations/examples/**/*.png
 /simulations/examples/**/*.pkl
+/simulations/examples/**/*.csv
 /simulations/examples/**/*.xlsx
 
 /simulations/scenarios/**/*.png
@@ -113,6 +114,7 @@ dmypy.json
 /tutorials/**/*.png
 /tutorials/**/*.pkl
 /tutorials/**/*.prt
+/tutorials/**/*.csv
 /tutorials/**/*.xlsx
 !/tutorials/_static/**
 
