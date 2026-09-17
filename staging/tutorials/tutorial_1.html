@@ -695,7 +695,8 @@ Set the Speeds of the vessel, given in knots, at each leg of the journey (here: 
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>navigate<span class="w"> </span>tutorial_1.nav
 </pre></div>
 </div>
-<p>You should have received the error message below.</p>
+<p>You should have received the error message below, prefixed with the deck line
+and the include-file line of the <code class="docutils literal notranslate"><span class="pre">Port(&quot;port&quot;)</span></code> reference.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Port</span><span class="p">(</span><span class="s2">"port"</span><span class="p">)</span> <span class="ow">is</span> <span class="n">referenced</span> <span class="n">but</span> <span class="ow">not</span> <span class="n">found</span> <span class="ow">in</span> <span class="n">either</span> <span class="n">the</span> <span class="n">deck</span> <span class="ow">or</span> <span class="n">the</span> <span class="n">default</span> <span class="n">location</span> <span class="n">of</span> <span class="n">Port</span><span class="o">.</span>
 </pre></div>
 </div>
@@ -716,7 +717,7 @@ Navigate builds on various underlying assumptions. Amongst these assumptions for
 </pre></div>
 </div>
 <ol class="arabic simple" start="2">
-<li><p>Run navigate again after saving. <code class="docutils literal notranslate"><span class="pre">navigate</span> <span class="pre">tutorial_1.nav</span></code>. You should recieve the following error:</p></li>
+<li><p>Run navigate again after saving. <code class="docutils literal notranslate"><span class="pre">navigate</span> <span class="pre">tutorial_1.nav</span></code>. You should receive the following error, prefixed with the location of the <code class="docutils literal notranslate"><span class="pre">Fuel(&quot;heavy_fuel_oil&quot;)</span></code> reference:</p></li>
 </ol>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Fuel</span><span class="p">(</span><span class="s2">"heavy_fuel_oil"</span><span class="p">)</span> <span class="ow">is</span> <span class="n">referenced</span> <span class="n">but</span> <span class="ow">not</span> <span class="n">found</span> <span class="ow">in</span> <span class="n">either</span> <span class="n">the</span> <span class="n">deck</span> <span class="ow">or</span> <span class="n">the</span> <span class="n">default</span> <span class="n">location</span> <span class="n">of</span> <span class="n">Fuel</span><span class="o">.</span>
 </pre></div>

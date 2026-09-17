@@ -291,7 +291,8 @@ Save the file, open the terminal and run the command:
 navigate tutorial_1.nav
 ```
 
-You should have received the error message below.
+You should have received the error message below, prefixed with the deck line
+and the include-file line of the `Port("port")` reference.
 
 ```
 Port("port") is referenced but not found in either the deck or the default location of Port.
@@ -313,7 +314,7 @@ Port "port" {
 }
 ```
 
-2. Run navigate again after saving. `navigate tutorial_1.nav`. You should recieve the following error:
+2. Run navigate again after saving. `navigate tutorial_1.nav`. You should receive the following error, prefixed with the location of the `Fuel("heavy_fuel_oil")` reference:
 
 ```
 Fuel("heavy_fuel_oil") is referenced but not found in either the deck or the default location of Fuel.
