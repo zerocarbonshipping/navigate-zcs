@@ -8,7 +8,6 @@ import logging
 import numpy as np
 
 from navigate.core import assign_id, assign_value
-from navigate.core.node import Node
 from navigate.util import ROUND_OFF
 
 logger = logging.getLogger(__name__)
@@ -20,8 +19,7 @@ class _Calculator:
     """
     Bounded, scaled value evaluation for the calculator nodes.
 
-    Every concrete calculator also inherits `Node`, directly or through
-    `_Table1D`/`_Table2D`, which is what lets the bound warnings name the node.
+    Mixed into `Node` subclasses only, so the bound warnings can name the node.
     """
 
     def __init__(self):
@@ -124,10 +122,8 @@ class _Calculator:
                 self._internal_lower_bound = lower
 
             elif lower > self._internal_lower_bound:
-                # a Variable renders as its value, so the node is named through
-                # Node's repr rather than its own
                 logger.warning(
-                    f"{Node.__repr__(self)}: Internal lower bound tightened "
+                    f"{self}: Internal lower bound tightened "
                     f"from {self._internal_lower_bound} to {lower}."
                 )
 
@@ -139,7 +135,7 @@ class _Calculator:
 
             elif upper < self._internal_upper_bound:
                 logger.warning(
-                    f"{Node.__repr__(self)}: Internal upper bound tightened "
+                    f"{self}: Internal upper bound tightened "
                     f"from {self._internal_upper_bound} to {upper}."
                 )
 

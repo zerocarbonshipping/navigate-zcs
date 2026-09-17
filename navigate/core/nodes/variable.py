@@ -18,9 +18,6 @@ class Variable(Node, _Calculator):
         # internal variables -------------------------------------------------------------------------------------------
         self._value = None
 
-    def __repr__(self):
-        return str(self.get())
-
     # external methods (DSL attributes) --------------------------------------------------------------------------------
     def set_value(self, value):
         self._value = assign_value(value)

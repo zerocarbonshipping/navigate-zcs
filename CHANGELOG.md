@@ -81,6 +81,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   log, so a run whose results they affect could look clean on the console.
 
 ### Fixed
+- An error naming a `Variable` node identifies it as `Variable("name")`, the
+  way the deck wrote it, like every other node. It previously printed the
+  node's value instead, and failed with `AttributeError` while no value was
+  assigned — which is exactly when the missing-value error needs the name.
 - The reference manual documented two port report properties under names that
   never resolved (`BunkerEquivalentWTT`, `BunkerTotalEquivalentWTT`); the
   working names are `EquivalentBunkerWtt` and `TotalEquivalentBunkerWtt`.
