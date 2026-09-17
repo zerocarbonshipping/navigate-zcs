@@ -26,7 +26,6 @@ REFERENCE_SCAN_EXCLUDE = (
     "expectation",
     "profile",
     "_table",
-    "just_copied",
 )
 
 
