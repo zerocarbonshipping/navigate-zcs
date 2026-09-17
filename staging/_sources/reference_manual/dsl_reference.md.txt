@@ -277,6 +277,7 @@ Copy NodeType "node_copy_from" "node_copy_to"
 ```
 
 After copying any reassignment of attributes done to `"node_copy_from"` will not be reflected in `"node_copy_to"` as they are now two separate nodes.
+Only the copied node itself is duplicated: the nodes it references are shared, so a reassignment to one of those is seen by both.
 
 If the node being copied from does not already exist in the simulation then it is removed after the import and only the node of the name "node_copy_to" remains.
 This can be used to import nodes with a different name than default name.

@@ -694,7 +694,8 @@ SPDX-License-Identifier: CC-BY-4.0
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Copy</span> <span class="n">NodeType</span> <span class="s2">"node_copy_from"</span> <span class="s2">"node_copy_to"</span>
 </pre></div>
 </div>
-<p>After copying any reassignment of attributes done to <code class="docutils literal notranslate"><span class="pre">&quot;node_copy_from&quot;</span></code> will not be reflected in <code class="docutils literal notranslate"><span class="pre">&quot;node_copy_to&quot;</span></code> as they are now two separate nodes.</p>
+<p>After copying any reassignment of attributes done to <code class="docutils literal notranslate"><span class="pre">&quot;node_copy_from&quot;</span></code> will not be reflected in <code class="docutils literal notranslate"><span class="pre">&quot;node_copy_to&quot;</span></code> as they are now two separate nodes.
+Only the copied node itself is duplicated: the nodes it references are shared, so a reassignment to one of those is seen by both.</p>
 <p>If the node being copied from does not already exist in the simulation then it is removed after the import and only the node of the name “node_copy_to” remains.
 This can be used to import nodes with a different name than default name.</p>
 </section>
