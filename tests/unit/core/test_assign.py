@@ -29,9 +29,12 @@ from navigate.core.assign import (
 )
 from navigate.core.enum_ import FuelTypeID
 from navigate.core.expression import Expression
-from navigate.core.node_reference import NodeReference
-from navigate.core.node_type import CURVE, FORECAST, FUEL, VARIABLE
+from navigate.core.node_type import FORECAST, FUEL, VARIABLE
 from navigate.core.nodes._calculator import BOUNDS_MAP
+from navigate.core.nodes.curve import Curve
+from navigate.core.nodes.forecast import Forecast
+from navigate.core.nodes.fuel import Fuel
+from navigate.core.nodes.variable import Variable
 from navigate.core.scalar import Scalar
 from navigate.core.table_data import TableData
 
@@ -186,23 +189,23 @@ class TestAssignValue:
 
     def test_node_without_allowed_types_rejected(self):
         with pytest.raises(ValueError, match="only allows assignment of "):
-            assign_value(NodeReference(FORECAST, "f"), scalar=False, type_=None)
+            assign_value(Forecast("f"), scalar=False, type_=None)
 
     @pytest.mark.parametrize(
-        "node_type",
-        [FORECAST, VARIABLE],
+        "node_class",
+        [Forecast, Variable],
         ids=["first_member", "last_member"],
     )
-    def test_tuple_type_accepts_any_member(self, node_type):
+    def test_tuple_type_accepts_any_member(self, node_class):
         # the shape the Vessel and machinery OPEX setters pass
-        reference = NodeReference(node_type, "n")
-        assert assign_value(reference, type_=(FORECAST, VARIABLE)) is not None
+        node = node_class("n")
+        assert assign_value(node, type_=(FORECAST, VARIABLE)) is not None
 
     def test_tuple_type_rejects_non_member(self):
         with pytest.raises(
             ValueError, match="nodes of type Forecast or Variable, but got Curve"
         ):
-            assign_value(NodeReference(CURVE, "c"), type_=(FORECAST, VARIABLE))
+            assign_value(Curve("c"), type_=(FORECAST, VARIABLE))
 
     @pytest.mark.parametrize(
         ("assignment", "arguments", "message"),
@@ -259,13 +262,13 @@ class TestAssignList:
         assert assign_list([1.0, 2.0], length=()) == [1.0, 2.0]
 
     def test_duplicate_references_rejected(self):
-        entries = [NodeReference(FUEL, "oil"), NodeReference(FUEL, "oil")]
+        entries = [Fuel("oil"), Fuel("oil")]
         with pytest.raises(ValueError, match=r"requires all entries .* to be unique"):
             assign_list(entries, unique=True, scalar=False, type_=FUEL)
 
     def test_uniqueness_ignores_floats(self):
-        # _check_list_is_unique only inspects NodeReference entries, so
-        # unique=True is a no-op for a list of numbers
+        # _check_list_is_unique only inspects node entries, so unique=True is a
+        # no-op for a list of numbers
         assert assign_list([1.0, 1.0], unique=True) == [1.0, 1.0]
 
 

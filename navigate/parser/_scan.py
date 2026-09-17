@@ -14,7 +14,27 @@ from typing import Any
 
 # a node reference in canonical deck form, e.g. Vessel("name");
 # group 1 is the node type and group 3 the node name
-NODE_REFERENCE_PATTERN = re.compile(r'^\s*(([A-Z][a-z]+)+)\(\s*"([^"]+)"\s*\)\s*$')
+_NODE_REFERENCE_PATTERN = re.compile(r'^\s*(([A-Z][a-z]+)+)\(\s*"([^"]+)"\s*\)\s*$')
+
+
+def parse_node_reference(reference_string: str) -> tuple[str, str] | None:
+    """
+    Split a canonical node reference string into its node type and name.
+
+    Parameters
+    ----------
+    reference_string
+        Text such as ``Vessel("name")``.
+
+    Returns
+    -------
+    ``(node type, node name)``, or ``None`` when the text is not a reference.
+    """
+    match = _NODE_REFERENCE_PATTERN.match(reference_string)
+    if match is None:
+        return None
+    return match.group(1), match.group(3)
+
 
 # node attributes that can never hold node references, skipped when the parser
 # scans instance attributes to resolve references; every entry must name a real

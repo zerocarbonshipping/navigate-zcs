@@ -7,6 +7,7 @@ import copy
 import logging
 import os
 import re
+from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
@@ -65,9 +66,9 @@ from navigate.parser._lark_parser import (
 )
 from navigate.parser._reachability import ROOT_TYPES, find_unreachable
 from navigate.parser._scan import (
-    NODE_REFERENCE_PATTERN,
     REFERENCE_SCAN_EXCLUDE,
     get_attributes,
+    parse_node_reference,
 )
 from navigate.util import (
     attribute_to_instance_name,
@@ -80,6 +81,16 @@ from navigate.util import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class _Deferred:
+    """A node a reference named before any declaration provided it."""
+
+    node: Node
+    # the error prefix of the referencing line, for when neither a declaration
+    # nor a default file turns up
+    location: str
 
 
 class Parser:
@@ -113,6 +124,14 @@ class Parser:
         self._pruned_nodes = set()
         self._copy_source_names = set()
         self._user_default_name = None
+
+        # nodes a reference named before their declaration, keyed by (type,
+        # name); kept out of the registry until a declaration adopts them
+        self._deferred: dict[tuple[str, str], _Deferred] = {}
+        # (type, name) of the from_default Copy sources whose pulls are in
+        # progress, one entry per pull: they leave the registry after the
+        # copy, so nothing may bind to them
+        self._provisional: list[tuple[str, str]] = []
 
         # section flags
         self._current_section = None
@@ -595,10 +614,9 @@ class Parser:
             Whether this is a general node (uses different validation).
         """
         self._current_source = item.source
+        attribute = item.attribute
 
         try:
-            attribute = item.attribute
-            value = item.value
             if is_general:
                 check_general_node_attribute_is_allowed(
                     node_type, attribute, self._current_section
@@ -607,7 +625,6 @@ class Parser:
                 check_node_attribute_is_allowed(
                     node_type, attribute, self._current_section
                 )
-            self._assign_node_reference_location(value)
 
         except DeckFormatError:
             raise DeckFormatError(
@@ -617,6 +634,8 @@ class Parser:
 
         except AttributeAssignmentError as e:
             raise AttributeAssignmentError(self._error_prefix() + f": {e!s}.")
+
+        value = self._materialize(item.value)
 
         target_nodes = nodes if isinstance(nodes, list) else [nodes]
         for node in target_nodes:
@@ -642,16 +661,15 @@ class Parser:
             Node type string for validation.
         """
         self._current_source = item.source
+        command = item.name
 
         try:
-            command = item.name
-            inputs = item.args
             check_node_command_is_allowed(node_type, command, self._current_section)
-            self._assign_node_reference_location(inputs)
 
         except CommandError as e:
             raise CommandError(self._error_prefix() + f": {e!s}.")
 
+        inputs = self._materialize(item.args)
         ref = CommandReference(
             command, inputs, source=item.source, deck_line=self._current_deck_line
         )
@@ -721,29 +739,41 @@ class Parser:
         self._check_node_name_is_available(statement.node_type, statement.copy_to)
 
         group = getattr(self.nodes, NODE_GROUP[statement.node_type])
+        source_key = (statement.node_type, statement.copy_from)
 
-        from_default = False
-        if statement.copy_from not in group:
-            self._retrieve_node_from_default(
-                statement.copy_from,
-                statement.node_type,
-                reference_location=self._error_prefix(),
-            )
-            from_default = True
+        from_default = statement.copy_from not in group
+        if from_default:
+            # the source leaves the registry again after the copy, so nothing
+            # read during its pull may bind to it: references defer instead,
+            # and its declaration adopts no placeholder
+            self._provisional.append(source_key)
+            try:
+                self._retrieve_node_from_default(
+                    statement.copy_from,
+                    statement.node_type,
+                    reference_location=self._error_prefix(),
+                )
+            finally:
+                self._provisional.remove(source_key)
 
-        copy_node = group[statement.copy_from]
-        # the memo makes deepcopy return the registry node for everything the
-        # source reaches; the source must stay out of it or deepcopy returns
-        # the source itself
+        source = group[statement.copy_from]
+        # the memo makes deepcopy return the registry node, or the deferred
+        # placeholder, for everything the source reaches; the source must stay
+        # out of it or deepcopy returns the source itself
         memo = {id(node): node for node in self.nodes.all_nodes()}
-        del memo[id(copy_node)]
-        new_node = copy.deepcopy(copy_node, memo)
+        memo.update((id(entry.node), entry.node) for entry in self._deferred.values())
+        del memo[id(source)]
+        new_node = copy.deepcopy(source, memo)
         new_node.name = statement.copy_to
+
+        placeholder = self._adopt(statement.node_type, statement.copy_to)
+        if placeholder is not None:
+            new_node = _transplant(placeholder, new_node)
 
         if from_default:
             del group[statement.copy_from]
         else:
-            self._copy_source_names.add((statement.node_type, statement.copy_from))
+            self._copy_source_names.add(source_key)
 
         group[statement.copy_to] = new_node
 
@@ -783,7 +813,12 @@ class Parser:
 
         self._check_allow_new_node("define")
         self._check_node_name_is_available(node_type, name)
-        node = group[name] = define_new_node(node_type, name)
+        node = self._adopt(node_type, name)
+        if node is None:
+            node = define_new_node(node_type, name)
+        # registered before the body is read, so a reference in the body to
+        # the node itself binds to it
+        group[name] = node
         return [node]
 
     def _retrieve_general_node(self, type_: str):
@@ -1014,7 +1049,7 @@ class Parser:
 
         def is_pruned(element):
             return (
-                isinstance(element, (Node, NodeReference))
+                isinstance(element, Node)
                 and (element.type, element.name) in self._pruned_nodes
             )
 
@@ -1215,99 +1250,51 @@ class Parser:
             self._replace_references_on_node(node)
 
     def _replace_references_on_node(self, node):
-        attributes = get_attributes(node, exclude=REFERENCE_SCAN_EXCLUDE)
+        for _, attribute in get_attributes(node, exclude=REFERENCE_SCAN_EXCLUDE):
+            self._replace_references_on_attribute(node, attribute)
 
-        for attribute_name, attribute in attributes:
-            self._replace_references_on_attribute(
-                node, attribute, attribute_name=attribute_name
+    def _replace_references_on_attribute(self, node, attribute):
+        # the container shapes stay in lockstep with
+        # _reachability._iter_references, which states how the two walks differ
+        if isinstance(attribute, WildcardNodeReference):
+            # the list arm expands wildcards, so one reaching the dispatch sits
+            # outside a list
+            raise DeckFormatError(
+                f"Wildcard node references may only appear inside lists: {attribute}"
             )
 
-    def _replace_references_on_attribute(
-        self, node, attribute, attribute_name=None, container=None, index_or_key=None
-    ):
-        # kept in lockstep with _reachability._iter_references: a value shape
-        # added here must be recognized there, or nodes referenced through
-        # that shape are wrongly pruned
-        if isinstance(attribute, WildcardNodeReference):
-            if not isinstance(container, list):
-                raise DeckFormatError(
-                    f"Wildcard node references may only appear inside lists: {attribute}"
-                )
-
-            matched = self._expand_wildcard_node_reference(attribute)
-            # splice matched nodes into the list, replacing the wildcard entry
-            container[index_or_key : index_or_key + 1] = matched
-            return
-
-        elif isinstance(attribute, NodeReference):
-            actual_node, default = self._get_node_from_reference(attribute)
+        if isinstance(attribute, Node):
+            entry = self._deferred.get((attribute.type, attribute.name))
+            if entry is not None:
+                self._pull_deferred(attribute, entry.location)
 
         elif isinstance(attribute, list):
-            # iterate by index because wildcard expansion can grow the list
+            # iterate by index because a wildcard splice grows the list
             i = 0
             while i < len(attribute):
                 element = attribute[i]
-                old_len = len(attribute)
-                self._replace_references_on_attribute(
-                    node, element, container=attribute, index_or_key=i
-                )
-                # if the list grew (wildcard splice), advance past the inserted items
-                i += 1 + (len(attribute) - old_len)
-            return
+                if isinstance(element, WildcardNodeReference):
+                    matched = self._expand_wildcard_node_reference(element)
+                    attribute[i : i + 1] = matched
+                    i += len(matched)
+                else:
+                    self._replace_references_on_attribute(node, element)
+                    i += 1
 
         elif isinstance(attribute, dict):
-            for key, element in attribute.items():
-                self._replace_references_on_attribute(
-                    node, element, container=attribute, index_or_key=key
-                )
-            return
+            for element in attribute.values():
+                self._replace_references_on_attribute(node, element)
 
         elif isinstance(attribute, Expression):
             if not attribute.is_initialized():
                 attribute.initialize(node)
-                reference_strings = attribute.node_references
                 attribute.node_references = [
-                    self._read_node_reference(ref) for ref in reference_strings
+                    self._read_node_reference(reference, attribute.reference_location)
+                    for reference in attribute.node_references
                 ]
-                self._assign_node_reference_location(
-                    attribute.node_references, location=attribute.reference_location
-                )
                 attribute.check_consistency()
 
             self._replace_references_on_attribute(node, attribute.node_references)
-            return
-
-        else:
-            return
-
-        if attribute_name is not None:
-            setattr(node, attribute_name, actual_node)
-        elif index_or_key is not None:
-            container[index_or_key] = actual_node
-
-        if default:
-            self._replace_references_on_node(actual_node)
-
-    def _get_node_from_reference(self, reference):
-        name = reference.name
-        node_type = reference.type
-
-        group = getattr(self.nodes, NODE_GROUP[node_type])
-
-        if name in group:
-            node = group[name]
-            default = False
-        else:
-            self._retrieve_node_from_default(
-                name, node_type, reference_location=reference.reference_location
-            )
-            node = group[name]
-            default = True
-
-        if is_calculator(node):
-            node.set_internal_bounds(*reference.internal_bounds)
-
-        return node, default
 
     def _expand_wildcard_node_reference(
         self, wildcard_ref: WildcardNodeReference
@@ -1403,56 +1390,133 @@ class Parser:
 
         return False
 
-    # ── reference location helpers ────────────────────────────────────
+    # ── node references ───────────────────────────────────────────────
 
-    @staticmethod
-    def _read_node_reference(assignment_str):
+    def _node(self, node_type, name, location):
         """
-        Parse a node reference string like ``Vessel("name")``.
+        Return the node a ``Type("name")`` reference names.
+
+        A declared node is the registry object. An undeclared one is
+        constructed here and kept in ``_deferred`` — outside the registry, so
+        declaration order, pruning and wildcard matching see declared nodes
+        only — until its declaration adopts it or the reference walk pulls it
+        from the default library.
 
         Parameters
         ----------
-        assignment_str : str
-            Raw reference string from an Expression.
+        node_type : str
+            The reference's node type.
+        name : str
+            The referenced node name.
+        location : str
+            Error prefix of the referencing line, reported if neither a
+            declaration nor a default file provides the node.
+        """
+        if node_type not in NODE_GROUP:
+            raise DeckKeywordError(
+                f"{location}: '{node_type}' is not a recognized node type."
+            )
+
+        key = (node_type, name)
+
+        if key not in self._provisional:
+            node = getattr(self.nodes, NODE_GROUP[node_type]).get(name)
+            if node is not None:
+                return node
+
+        entry = self._deferred.get(key)
+        if entry is None:
+            entry = _Deferred(define_new_node(node_type, name), location)
+            self._deferred[key] = entry
+
+        return entry.node
+
+    def _adopt(self, node_type, name):
+        """
+        Return the deferred node a declaration of ``(node_type, name)`` fills.
+
+        ``None`` when no reference preceded the declaration, or while the name
+        is provisional.
+        """
+        key = (node_type, name)
+
+        if key in self._provisional:
+            return None
+
+        entry = self._deferred.pop(key, None)
+        return None if entry is None else entry.node
+
+    def _materialize(self, value):
+        """
+        Replace every node reference in a parsed value with the node it names.
+
+        A wildcard stays as written: it expands against the finished registry
+        in the reference walk, and only inside a list.
+
+        Parameters
+        ----------
+        value
+            A parsed assignment value or command argument, read at the current
+            source location.
 
         Returns
         -------
-        NodeReference
+        The value with nodes in place of references.
         """
-        match = NODE_REFERENCE_PATTERN.match(assignment_str)
-        if match:
-            node_type = match.group(1)
-            name = match.group(3)
-            if name_contains_wildcards(name):
-                raise DeckFormatError(
-                    "Error in node reference: Must not contain wildcards."
-                )
-            return NodeReference(node_type, name)
-        else:
-            raise DeckFormatError("Error in node reference assignment.")
+        if isinstance(value, WildcardNodeReference):
+            return value
 
-    @staticmethod
-    def _assign_node_reference_location(value, location=None):
+        if isinstance(value, NodeReference):
+            return self._node(value.type, value.name, self._error_prefix())
+
+        if isinstance(value, list):
+            return [self._materialize(element) for element in value]
+
+        if isinstance(value, Expression):
+            # its references materialize when the walk initializes it, so the
+            # location travels with the expression
+            value.reference_location = self._error_prefix()
+
+        return value
+
+    def _pull_deferred(self, node, location):
         """
-        Tag NodeReferences in *value* with a source location string.
+        Fill a node no declaration provided from the default library.
 
         Parameters
         ----------
-        value : NodeReference | list | Expression | Any
-            The parsed value that may contain node references.
-        location : str, optional
-            Override location string.  When ``None`` the caller's
-            ``_error_prefix()`` is used (not available here as static).
+        node : Node
+            The deferred node.
+        location : str
+            Error prefix of the line that referenced it.
         """
-        if isinstance(value, (NodeReference, WildcardNodeReference)):
-            if location is not None:
-                value.reference_location = location
-        elif isinstance(value, list):
-            for element in value:
-                Parser._assign_node_reference_location(element, location)
-        elif isinstance(value, Expression):
-            if location is not None:
-                value.reference_location = location
+        self._retrieve_node_from_default(
+            node.name, node.type, reference_location=location
+        )
+        self._replace_references_on_node(node)
+
+    def _read_node_reference(self, reference_string, location):
+        """
+        Return the node an Expression's canonical reference string names.
+
+        Parameters
+        ----------
+        reference_string : str
+            A reference in canonical form, e.g. ``Forecast("name")``.
+        location : str
+            Error prefix of the expression's line.
+        """
+        reference = parse_node_reference(reference_string)
+        if reference is None:
+            raise DeckFormatError(f"{location}: Error in node reference assignment.")
+
+        node_type, name = reference
+        if name_contains_wildcards(name):
+            raise DeckFormatError(
+                f"{location}: Error in node reference: Must not contain wildcards."
+            )
+
+        return self._node(node_type, name, location)
 
 
 def _get_files_in_directory(directory):
@@ -1477,3 +1541,32 @@ def _get_files_in_directory(directory):
         for f in os.listdir(directory)
         if os.path.isfile(os.path.join(directory, f)) and f not in ignored
     ]
+
+
+def _transplant(placeholder, copied):
+    """
+    Move a copy's state into the placeholder that earlier references point at.
+
+    The state carries the source's internal bounds, so the bounds those
+    references imposed on the placeholder are merged back afterwards.
+
+    Parameters
+    ----------
+    placeholder : Node
+        The deferred node of the copy's name.
+    copied : Node
+        The freshly copied node, discarded afterwards.
+
+    Returns
+    -------
+    Node
+        The placeholder.
+    """
+    bounds = placeholder.internal_bounds if is_calculator(placeholder) else None
+
+    placeholder.__dict__.update(copied.__dict__)
+
+    if bounds is not None:
+        placeholder.set_internal_bounds(*bounds)
+
+    return placeholder

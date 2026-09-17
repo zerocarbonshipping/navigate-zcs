@@ -9,11 +9,10 @@ import numpy as np
 import pytest
 
 from navigate.core import Scalar
-from navigate.core.node_reference import NodeReference
-from navigate.core.node_type import TRANSPORT
 from navigate.core.nodes.fuel import Fuel
 from navigate.core.nodes.plant import Plant
 from navigate.core.nodes.region import Region
+from navigate.core.nodes.transport import Transport
 from navigate.core.unit import YEAR_TO_DAYS
 from navigate.fuel.logistics import calculate_plant_logistics_expectations
 
@@ -87,7 +86,7 @@ class TestCalculatePlantLogisticsExpectations:
         ports = {"port_a": _StubPort(bunkering_allowed=bunkering_allowed)}
         plant = _make_plant(ports)
         if set_transport:
-            plant.set_fuel_transport("port_a", NodeReference(TRANSPORT, "truck"))
+            plant.set_fuel_transport("port_a", Transport("truck"))
             plant.set_fuel_distance("port_a", DISTANCE)
 
         calculate_plant_logistics_expectations(
@@ -104,7 +103,7 @@ class TestCalculatePlantLogisticsExpectations:
         # every step, independent of lead time, lifetime, and discounting
         ports = {"port_a": _StubPort(bunkering_allowed=True)}
         plant = _make_plant(ports)
-        plant.set_fuel_transport("port_a", NodeReference(TRANSPORT, "truck"))
+        plant.set_fuel_transport("port_a", Transport("truck"))
         plant.set_fuel_distance("port_a", DISTANCE)
 
         calculate_plant_logistics_expectations(
@@ -133,7 +132,7 @@ class TestCalculatePlantLogisticsExpectations:
         plant = _make_plant(
             ports, cost_rate=rate, lead_time=2.0, lifetime=3.0, discount_rate=0.0
         )
-        plant.set_fuel_transport("port_a", NodeReference(TRANSPORT, "truck"))
+        plant.set_fuel_transport("port_a", Transport("truck"))
         plant.set_fuel_distance("port_a", DISTANCE)
 
         calculate_plant_logistics_expectations(
@@ -157,7 +156,7 @@ class TestCalculatePlantLogisticsExpectations:
             ports, cost_rate=rate, lead_time=2.0, lifetime=3.0, discount_rate=0.0
         )
         plant.expectation.set_lead_time(1, 3.0)
-        plant.set_fuel_transport("port_a", NodeReference(TRANSPORT, "truck"))
+        plant.set_fuel_transport("port_a", Transport("truck"))
         plant.set_fuel_distance("port_a", DISTANCE)
 
         calculate_plant_logistics_expectations(
@@ -173,7 +172,7 @@ class TestCalculatePlantLogisticsExpectations:
         ports = {"port_a": _StubPort(bunkering_allowed=True)}
         near, far = _make_plant(ports), _make_plant(ports)
         for plant, distance in ((near, DISTANCE), (far, 2 * DISTANCE)):
-            plant.set_fuel_transport("port_a", NodeReference(TRANSPORT, "truck"))
+            plant.set_fuel_transport("port_a", Transport("truck"))
             plant.set_fuel_distance("port_a", distance)
 
         calculate_plant_logistics_expectations(

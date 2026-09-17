@@ -21,6 +21,17 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `tests/regression/README.md`.
 
 ### Changed
+- **Breaking** for code importing navigate as a library: the parser resolves
+  every `Type("name")` a deck writes when it reads the assignment or command,
+  so node setters receive the referenced node itself, never a `NodeReference`.
+  A name not yet declared is a node from that moment on, filled when its
+  declaration is read or, failing that, pulled from the default library where
+  the reference walk used to swap it in — same order, same pulls, same
+  registry and results. `assign_value` and `assign_list` therefore accept a
+  `Node` or a `WildcardNodeReference` and reject a `NodeReference`;
+  `Expression.node_references` holds nodes as soon as the parser initializes
+  the expression; and `NodeReference` loses `reference_location`,
+  `internal_bounds` and `set_internal_bounds`, which nothing writes any more.
 - **Breaking** for code importing navigate as a library: the calculator nodes
   (`Curve`, `Forecast`, `Surface`, `Timetable`, `Variable`) take the bounds an
   attribute imposes on them as two floats, `set_internal_bounds(lower, upper)`,
@@ -28,10 +39,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   reference the parser was resolving. The merge is unchanged — the tightest
   bound offered by any referencing attribute wins — and so are the warnings it
   logs and the simulation results. The two floats are also the shape
-  `assign_value` passes, so handing an already-built calculator node to a
-  bounded attribute from Python now tightens that node's bounds instead of
-  raising `AttributeError`; the parser hands setters node references, never
-  resolved nodes, so no deck behaves differently. The write-only
+  `assign_value` passes, so a calculator node handed to a bounded attribute
+  tightens its own bounds directly. The write-only
   `set_internal_lower_bound`/`set_internal_upper_bound`, which nothing called,
   are removed without replacement.
 - **Breaking** for code importing navigate as a library: a `Copy` statement
@@ -81,6 +90,12 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   log, so a run whose results they affect could look clean on the console.
 
 ### Fixed
+- The error for a node found in neither the deck nor the default library
+  names the deck line and include file of the reference; it opened with a
+  bare colon before.
+- A reference whose type is not a node type, such as `Foo("x")`, is reported
+  as a deck error at its line. It previously surfaced as an attribute type
+  mismatch or, written as a command argument, as an unhandled `KeyError`.
 - An error naming a `Variable` node identifies it as `Variable("name")`, the
   way the deck wrote it, like every other node. It previously printed the
   node's value instead, and failed with `AttributeError` while no value was

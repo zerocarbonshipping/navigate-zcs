@@ -7,13 +7,12 @@ from __future__ import annotations
 
 import pytest
 
-from navigate.core.node_reference import NodeReference
-from navigate.core.node_type import TRANSPORT
 from navigate.core.nodes.fuel import Fuel
 from navigate.core.nodes.plant import Plant
 from navigate.core.nodes.process import Process
 from navigate.core.nodes.region import Region
 from navigate.core.nodes.source import Source
+from navigate.core.nodes.transport import Transport
 
 PORTS = {"port_a": None, "port_b": None}
 
@@ -39,14 +38,14 @@ class TestFuelTransport:
 
     def test_transport_without_distance_defaults_to_zero(self):
         plant = _make_plant()
-        plant.set_fuel_transport("port_a", NodeReference(TRANSPORT, "truck"))
+        plant.set_fuel_transport("port_a", Transport("truck"))
         plant.initialize()
 
         assert plant.fuel_distance["port_a"].get() == 0.0
 
     def test_wildcard_assigns_every_port(self):
         plant = _make_plant()
-        plant.set_fuel_transport("*", NodeReference(TRANSPORT, "truck"))
+        plant.set_fuel_transport("*", Transport("truck"))
         plant.set_fuel_distance("*", 500.0)
         plant.initialize()
 

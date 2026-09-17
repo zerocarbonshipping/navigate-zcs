@@ -103,6 +103,18 @@ class _Calculator:
         self._assign_applied_bounds()
 
     # internal methods -------------------------------------------------------------------------------------------------
+    @property
+    def internal_bounds(self):
+        """
+        The tightest bounds any referencing attribute has imposed so far.
+
+        Returns
+        -------
+        tuple[float, float]
+            Lower and upper internal bound.
+        """
+        return self._internal_lower_bound, self._internal_upper_bound
+
     def set_internal_bounds(self, lower, upper):
         """
         Tighten the internal bounds of the calculator.
