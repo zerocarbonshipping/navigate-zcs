@@ -735,9 +735,13 @@ class Parser:
             from_default = True
 
         copy_node = group[statement.copy_from]
-        new_node = copy.deepcopy(copy_node)
+        # the memo makes deepcopy return the registry node for everything the
+        # source reaches; the source must stay out of it or deepcopy returns
+        # the source itself
+        memo = {id(node): node for node in self.nodes.all_nodes()}
+        del memo[id(copy_node)]
+        new_node = copy.deepcopy(copy_node, memo)
         new_node.name = statement.copy_to
-        new_node.just_copied = True
 
         if from_default:
             del group[statement.copy_from]
@@ -932,9 +936,6 @@ class Parser:
         self._replace_temporary_tables()
 
         self._initialize_nodes()
-
-        for node in self._get_all_nodes():
-            node.just_copied = False
 
         self._reading_events = False
 
@@ -1245,15 +1246,6 @@ class Parser:
 
         elif isinstance(attribute, NodeReference):
             actual_node, default = self._get_node_from_reference(attribute)
-
-        elif (
-            isinstance(attribute, Node) and isinstance(node, Node) and node.just_copied
-        ):
-            actual_node = getattr(self.nodes, NODE_GROUP[attribute.type])[
-                attribute.name
-            ]
-            default = False
-            del attribute
 
         elif isinstance(attribute, list):
             # iterate by index because wildcard expansion can grow the list

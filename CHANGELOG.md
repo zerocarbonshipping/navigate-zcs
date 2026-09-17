@@ -21,6 +21,11 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `tests/regression/README.md`.
 
 ### Changed
+- **Breaking** for code importing navigate as a library: a `Copy` statement
+  duplicates only the named node, and the nodes it references are shared with
+  the source instead of being cloned and re-bound afterwards. `Node` loses
+  its `just_copied` attribute, which existed only to drive that re-binding.
+  Simulation results are unchanged.
 - The minimum supported Python version is 3.13 (was 3.12).
 - **Breaking** for code importing navigate as a library: the `is_*()`
   type-check methods on `TypeCheckMixin` are replaced by `TypeIs` guard
