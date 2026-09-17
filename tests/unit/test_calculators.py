@@ -123,9 +123,7 @@ class TestBoundApplication:
         t = _make_table1d()
         t.set_lower_bound(lower_bound)
         t.set_upper_bound(upper_bound)
-        t.set_internal_lower_bound(internal_lower)
-        t.set_internal_upper_bound(internal_upper)
-        t._assign_applied_bounds()
+        t.set_internal_bounds(internal_lower, internal_upper)
         assert t.calculate(x) == pytest.approx(expected)
 
 

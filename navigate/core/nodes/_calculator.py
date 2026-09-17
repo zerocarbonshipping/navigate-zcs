@@ -148,30 +148,6 @@ class _Calculator:
         # called here in case internal bounds are set after the lower/upper bound
         self._assign_applied_bounds()
 
-    def set_internal_lower_bound(self, internal_lower_bound):
-        """
-        Set the internal lower bound of the calculator. This is not accessible through the deck, but is set by the
-        setter of Nodes and GeneralNodes which have a lower bound.
-
-        Parameters
-        ----------
-        internal_lower_bound : float
-            Internally applied lower bound.
-        """
-        self._internal_lower_bound = internal_lower_bound
-
-    def set_internal_upper_bound(self, internal_upper_bound):
-        """
-        Set the internal upper bound of the calculator. This is not accessible through the deck, but is set by the
-        setter of Nodes and GeneralNodes which have an upper bound.
-
-        Parameters
-        ----------
-        internal_upper_bound : float
-            Internally applied lower bound.
-        """
-        self._internal_upper_bound = internal_upper_bound
-
     def _truncate(self, value):
         """
         Truncate a calculated value.

@@ -31,7 +31,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `assign_value` passes, so handing an already-built calculator node to a
   bounded attribute from Python now tightens that node's bounds instead of
   raising `AttributeError`; the parser hands setters node references, never
-  resolved nodes, so no deck behaves differently.
+  resolved nodes, so no deck behaves differently. The write-only
+  `set_internal_lower_bound`/`set_internal_upper_bound`, which nothing called,
+  are removed without replacement.
 - **Breaking** for code importing navigate as a library: a `Copy` statement
   duplicates only the named node, and the nodes it references are shared with
   the source instead of being cloned and re-bound afterwards. `Node` loses
