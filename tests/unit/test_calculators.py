@@ -7,6 +7,7 @@ Mathematical stability tests for the calculator pipeline.
 Tests verify the correctness of:
   - Addition/multiplier transforms: output = truncate(multiplier * (table(x) + addition))
   - Bound application: internal vs external bounds widen the envelope
+  - Internal-bound tightening: the warning names the node it tightens
   - Convexity detection on piecewise-linear functions
   - _Table1D interpolation with transforms, reverse lookup, pickle round-trip
   - _Table2D bilinear interpolation, reverse lookup, convexity, pickle round-trip
@@ -15,6 +16,7 @@ Tests verify the correctness of:
 
 from __future__ import annotations
 
+import logging
 import pickle
 
 import numpy as np
@@ -125,6 +127,40 @@ class TestBoundApplication:
         t.set_internal_upper_bound(internal_upper)
         t._assign_applied_bounds()
         assert t.calculate(x) == pytest.approx(expected)
+
+
+class TestInternalBoundsWarning:
+    """
+    Tightening an already-finite internal bound warns, naming the node the way
+    the deck wrote it. A Variable renders through get(), so its own repr is its
+    value, or an AttributeError while no value is assigned.
+    """
+
+    @pytest.mark.parametrize(
+        "first, second, expected",
+        [
+            (
+                (2.0, np.inf),
+                (3.0, np.inf),
+                'Variable("test"): Internal lower bound tightened from 2.0 to 3.0.',
+            ),
+            (
+                (-np.inf, 8.0),
+                (-np.inf, 5.0),
+                'Variable("test"): Internal upper bound tightened from 8.0 to 5.0.',
+            ),
+        ],
+    )
+    def test_tightening_warning_names_the_node(self, first, second, expected, caplog):
+        from navigate.core.nodes.variable import Variable
+
+        v = Variable("test")
+        v.set_internal_bounds(*first)
+
+        with caplog.at_level(logging.WARNING):
+            v.set_internal_bounds(*second)
+
+        assert [record.getMessage() for record in caplog.records] == [expected]
 
 
 # ---------------------------------------------------------------------------

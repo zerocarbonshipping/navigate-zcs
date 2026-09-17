@@ -1310,7 +1310,7 @@ class Parser:
             default = True
 
         if is_calculator(node):
-            node.transfer_internal_bounds(reference)
+            node.set_internal_bounds(*reference.internal_bounds)
 
         return node, default
 

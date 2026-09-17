@@ -8,6 +8,7 @@ import logging
 import numpy as np
 
 from navigate.core import assign_id, assign_value
+from navigate.core.node import Node
 from navigate.util import ROUND_OFF
 
 logger = logging.getLogger(__name__)
@@ -16,6 +17,13 @@ BOUNDS_MAP = {"-INF": -np.inf, "INF": np.inf}
 
 
 class _Calculator:
+    """
+    Bounded, scaled value evaluation for the calculator nodes.
+
+    Every concrete calculator also inherits `Node`, directly or through
+    `_Table1D`/`_Table2D`, which is what lets the bound warnings name the node.
+    """
+
     def __init__(self):
 
         # external variables -------------------------------------------------------------------------------------------
@@ -97,29 +105,30 @@ class _Calculator:
         self._assign_applied_bounds()
 
     # internal methods -------------------------------------------------------------------------------------------------
-    def transfer_internal_bounds(self, reference):
+    def set_internal_bounds(self, lower, upper):
         """
-        Update internal bounds if appropriate.
+        Tighten the internal bounds of the calculator.
+
+        Every attribute referencing the calculator offers its own bounds, so the
+        tightest offer across all of them wins and a looser one is ignored.
 
         Parameters
         ----------
-        reference : NodeReference
-            Class NodeReference to a calculator.
+        lower : float
+            Internally applied lower bound.
+        upper : float
+            Internally applied upper bound.
         """
-        lower, upper = reference.internal_bounds
-        # reference.get_inclus...
-        # if npt inclusive,
-        # Then the actual node has to be tighter
-        # then the node itsself needs to have an applied lower/upper bound that is
-        # make exception.
-
         if lower > -np.inf:
             if self._internal_lower_bound == -np.inf:
                 self._internal_lower_bound = lower
 
             elif lower > self._internal_lower_bound:
+                # a Variable renders as its value, so the node is named through
+                # Node's repr rather than its own
                 logger.warning(
-                    f"{reference}: Internal lower bound tightened from {self._internal_lower_bound} to {lower}."
+                    f"{Node.__repr__(self)}: Internal lower bound tightened "
+                    f"from {self._internal_lower_bound} to {lower}."
                 )
 
                 self._internal_lower_bound = lower
@@ -130,7 +139,8 @@ class _Calculator:
 
             elif upper < self._internal_upper_bound:
                 logger.warning(
-                    f"{reference}: Internal upper bound tightened from {self._internal_upper_bound} to {upper}."
+                    f"{Node.__repr__(self)}: Internal upper bound tightened "
+                    f"from {self._internal_upper_bound} to {upper}."
                 )
 
                 self._internal_upper_bound = upper

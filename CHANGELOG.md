@@ -21,6 +21,17 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `tests/regression/README.md`.
 
 ### Changed
+- **Breaking** for code importing navigate as a library: the calculator nodes
+  (`Curve`, `Forecast`, `Surface`, `Timetable`, `Variable`) take the bounds an
+  attribute imposes on them as two floats, `set_internal_bounds(lower, upper)`,
+  replacing `transfer_internal_bounds(reference)`, which read them off the node
+  reference the parser was resolving. The merge is unchanged — the tightest
+  bound offered by any referencing attribute wins — and so are the warnings it
+  logs and the simulation results. The two floats are also the shape
+  `assign_value` passes, so handing an already-built calculator node to a
+  bounded attribute from Python now tightens that node's bounds instead of
+  raising `AttributeError`; the parser hands setters node references, never
+  resolved nodes, so no deck behaves differently.
 - **Breaking** for code importing navigate as a library: a `Copy` statement
   duplicates only the named node, and the nodes it references are shared with
   the source instead of being cloned and re-bound afterwards. `Node` loses
