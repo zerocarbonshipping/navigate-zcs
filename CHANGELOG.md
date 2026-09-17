@@ -122,6 +122,13 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   already in use"; the overlay idiom held only when the self-`Import` came
   first. The same state also decides which error a default file containing a
   timeline statement reports.
+- A value whose kind an attribute does not accept now fails with the
+  attribute's allowed-types message, located to the deck line like every other
+  assignment error. An enum token or a stray word where a scalar or node
+  reference belongs (`Capex = FLAT`), or a table body pasted into a value slot,
+  previously fell through every accepted kind into an internal bounds call and
+  died as an `AttributeError`, with no indication of where in the deck. A table
+  is named by kind, as a list already was, rather than echoed row by row.
 
 ### Changed
 - Internal reorganization (no DSL or result changes): the retrofit flow of

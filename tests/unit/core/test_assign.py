@@ -28,10 +28,12 @@ from navigate.core.assign import (
     command_assignment_to_tuple_dict,
 )
 from navigate.core.enum_ import FuelTypeID
+from navigate.core.expression import Expression
 from navigate.core.node_reference import NodeReference
 from navigate.core.node_type import CURVE, FORECAST, FUEL, VARIABLE
 from navigate.core.nodes._calculator import BOUNDS_MAP
 from navigate.core.scalar import Scalar
+from navigate.core.table_data import TableData
 
 DATE = np.datetime64("2024-01-01", "D")
 
@@ -201,6 +203,39 @@ class TestAssignValue:
             ValueError, match="nodes of type Forecast or Variable, but got Curve"
         ):
             assign_value(NodeReference(CURVE, "c"), type_=(FORECAST, VARIABLE))
+
+    @pytest.mark.parametrize(
+        ("assignment", "arguments", "message"),
+        [
+            ("FLAT", {}, "only allows assignment of scalars, but got FLAT"),
+            ("FLAT", {"type_": FORECAST}, "nodes of type Forecast, but got FLAT"),
+            (3, {}, "only allows assignment of scalars, but got 3"),
+            (True, {}, "only allows assignment of scalars, but got True"),
+            (None, {}, "only allows assignment of scalars, but got None"),
+        ],
+        ids=["token", "token_with_allowed_types", "int", "bool", "none"],
+    )
+    def test_unrecognized_value_rejected(self, assignment, arguments, message):
+        # a typo such as 'Capex = FLAT' arrives as a str, and an int or a bool
+        # is deliberately left unwrapped by as_scalar (test_wrap.py), so this
+        # is the boundary that has to refuse all of them
+        with pytest.raises(ValueError, match=message):
+            assign_value(assignment, **arguments)
+
+    def test_table_is_rejected_by_kind(self):
+        # a pasted table body is named like a list, not echoed row by row
+        table = TableData(rows=[[2020.0, 1e6], [2030.0, 2e6]])
+        with pytest.raises(
+            ValueError,
+            match="scalars and nodes of type Forecast or Variable, but got table",
+        ):
+            assign_value(table, type_=(FORECAST, VARIABLE))
+
+    def test_expression_receives_the_attribute_bounds(self):
+        expression = Expression('1 + Forecast("x")')
+        assign_value(expression, scalar=False, type_=FORECAST, lower=0.0, upper=5.0)
+
+        assert expression.internal_bounds == (0.0, 5.0)
 
 
 # ── assign_list ───────────────────────────────────────────────────────────────

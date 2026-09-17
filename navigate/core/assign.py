@@ -9,6 +9,7 @@ from navigate.core.expression import Expression
 from navigate.core.node import Node
 from navigate.core.node_reference import NodeReference
 from navigate.core.scalar import Scalar
+from navigate.core.table_data import TableData
 from navigate.core.wrap import as_scalar
 from navigate.util import (
     ROUND_OFF,
@@ -112,6 +113,9 @@ def assign_value(
     if isinstance(assignment, (list, tuple)):
         raise ValueError(f"{_failed_value_message(scalar, date, type_)}, but got list")
 
+    if isinstance(assignment, TableData):
+        raise ValueError(f"{_failed_value_message(scalar, date, type_)}, but got table")
+
     is_float = isinstance(assignment, (float, Scalar))
     is_date = isinstance(assignment, np.datetime64)
     is_expression = isinstance(assignment, Expression)
@@ -157,9 +161,12 @@ def assign_value(
                 f"{_failed_value_message(scalar, date, type_)}, but got {assignment}"
             )
 
-    # is a calculator or expression
-    if (not is_float) and (not is_date):
-        # Assignment.set_inclusive_bounds
+    else:
+        raise ValueError(
+            f"{_failed_value_message(scalar, date, type_)}, but got {assignment}"
+        )
+
+    if is_expression or is_node:
         assignment.set_internal_bounds(lower, upper)
 
     return assignment
