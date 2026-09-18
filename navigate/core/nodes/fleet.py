@@ -44,7 +44,7 @@ from navigate.util import is_non_strictly_increasing
 
 if TYPE_CHECKING:
     from navigate.core.node import Node
-    from navigate.core.node_reference import WildcardNodeReference
+    from navigate.core.wildcard import WildcardNodeReference
     from navigate.fleet.package import Package
 
 logger = logging.getLogger(__name__)

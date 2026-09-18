@@ -21,6 +21,14 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `tests/regression/README.md`.
 
 ### Changed
+- **Breaking** for code importing navigate as a library: the two reference
+  classes are split along the line the parser already draws between them.
+  `NodeReference` is a parser-internal token and moves to
+  `navigate.parser._node_reference`, out of the `navigate.core` namespace; it
+  is now a frozen dataclass of `type` and `name`, so it compares by value and
+  carries no `is_type()`. `WildcardNodeReference` stays a public `core` value
+  — `assign_value` and `assign_list` accept one — and moves to
+  `navigate.core.wildcard`, no longer subclassing `NodeReference`.
 - **Breaking** for code importing navigate as a library: the parser resolves
   every `Type("name")` a deck writes when it reads the assignment or command,
   so node setters receive the referenced node itself, never a `NodeReference`.
@@ -60,8 +68,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `is_process`, `is_surface`, `is_variable`), so type checkers narrow node
   types at call sites; the sixteen unused predicates and the unused
   `Scalar.is_forecast()` are removed without replacement. The guards take a
-  `Node`; for a `NodeReference` use the `is_type()` method, which remains on
-  both classes.
+  `Node`; for a `WildcardNodeReference` use the `is_type()` method, which
+  remains on it.
 - The lint toolchain is now `ruff` (formatting, linting, import sorting) and
   `mypy` (type checking), replacing `flake8`/`isort`; `make lint` runs both
   plus the REUSE check. The whole codebase was reformatted in a single

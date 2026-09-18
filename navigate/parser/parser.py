@@ -12,13 +12,13 @@ from pathlib import Path
 
 import numpy as np
 
-from navigate.core import Expression, NodeReference
+from navigate.core import Expression
 from navigate.core.enum_ import SimulationSectionID
 from navigate.core.general_nodes.bunker_options import BunkerOptions
 from navigate.core.node import Node
-from navigate.core.node_reference import WildcardNodeReference
 from navigate.core.node_registry import GeneralNodes, Nodes
 from navigate.core.node_type import is_calculator
+from navigate.core.wildcard import WildcardNodeReference
 from navigate.exceptions import (
     AttributeAssignmentError,
     CommandError,
@@ -64,6 +64,7 @@ from navigate.parser._lark_parser import (
     parse_include_content,
     string_to_date,
 )
+from navigate.parser._node_reference import NodeReference
 from navigate.parser._reachability import ROOT_TYPES, find_unreachable
 from navigate.parser._scan import (
     REFERENCE_SCAN_EXCLUDE,
@@ -1459,7 +1460,6 @@ class Parser:
         -------
         The value with nodes in place of references.
         """
-        # a wildcard still subclasses NodeReference, so its arm comes first
         if isinstance(value, WildcardNodeReference):
             return value
 

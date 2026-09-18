@@ -14,8 +14,8 @@ from navigate.core.assign import (
     expand_id_wildcard,
 )
 from navigate.core.enum_ import EnergyDemandTypeID, FuelTypeID
-from navigate.core.node_reference import WildcardNodeReference
 from navigate.core.node_type import FUEL, PORT
+from navigate.core.wildcard import WildcardNodeReference
 from navigate.util import matching_keys, retrieve_keys
 
 # ── expand_id_wildcard ────────────────────────────────────────────────────────
