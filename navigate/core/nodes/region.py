@@ -52,7 +52,7 @@ class Region(Node):
         ----------
         process_name : str
             The name of a process.
-        value : float | NodeReference
+        value : float | Node
             The CAPEX cost of the process in USD/ton.
         """
         command_assignment_to_dict(
@@ -79,7 +79,7 @@ class Region(Node):
         ----------
         process_name : str
             The name of a process.
-        value : float | NodeReference
+        value : float | Node
             The OPEX cost of the process in USD/ton/year.
         """
         command_assignment_to_dict(
@@ -102,7 +102,7 @@ class Region(Node):
         ----------
         process_name : str
             The name of a process.
-        value : float | NodeReference
+        value : float | Node
             The energy demand of the process in MWh/ton.
         """
         command_assignment_to_dict(
@@ -126,7 +126,7 @@ class Region(Node):
         ----------
         process_name : str
             The name of a process.
-        value : float | NodeReference
+        value : float | Node
             The lifetime of the process in years.
         """
         command_assignment_to_dict(
@@ -150,7 +150,7 @@ class Region(Node):
         ----------
         process_name : str
             The name of a process.
-        value : float | NodeReference
+        value : float | Node
             The replacement fraction of the CAPEX repaid at EoL (end of lifetime).
         """
         command_assignment_to_dict(
@@ -177,7 +177,7 @@ class Region(Node):
             The name of a process.
         emission_name : str
             The name of an emission.
-        value : float | NodeReference
+        value : float | Node
             The amount of emissions emitted during the production in ton emissions/ton fuel.
         """
         command_assignment_to_tuple_dict(
@@ -200,7 +200,7 @@ class Region(Node):
         ----------
         source_name : str
             The name of a source.
-        value : float | NodeReference
+        value : float | Node
             The CAPEX cost of the source in USD/MWh.
         """
         command_assignment_to_dict(
@@ -220,7 +220,7 @@ class Region(Node):
         ----------
         source_name : str
             The name of a source.
-        value : float | NodeReference
+        value : float | Node
             The OPEX cost of the source in USD/MWh/year.
         """
         command_assignment_to_dict(
@@ -242,7 +242,7 @@ class Region(Node):
             The name of a source.
         emission_name : str
             The name of an emission.
-        value : float | NodeReference
+        value : float | Node
             The amount of emissions emitted by using a source in ton emission/MWh.
         """
         command_assignment_to_tuple_dict(
@@ -265,7 +265,7 @@ class Region(Node):
         ----------
         feedstock_name : str
             The name of a feedstock.
-        value : float | NodeReference
+        value : float | Node
             The cost of a feedstock in USD/ton.
         """
         command_assignment_to_dict(
@@ -291,7 +291,7 @@ class Region(Node):
             The name of a feedstock.
         emission_name : str
             The name of an emission.
-        value : float | NodeReference
+        value : float | Node
             The amount of emissions emitted by using a feedstock in ton emission/ton feedstock.
         """
         command_assignment_to_tuple_dict(
@@ -314,7 +314,7 @@ class Region(Node):
         ----------
         transport_name : str
             The name of a transport.
-        value : float | NodeReference
+        value : float | Node
             The cost of the transport in USD/MWh.
         """
         command_assignment_to_dict(
@@ -340,7 +340,7 @@ class Region(Node):
             The name of a transport.
         emission_name : str
             The name of an emission.
-        value : float | NodeReference
+        value : float | Node
             The amount of emissions emitted by using a transport in ton emission/ton-nautical mile.
         """
         command_assignment_to_tuple_dict(

@@ -10,7 +10,6 @@ import numpy as np
 from numpy.typing import NDArray
 
 from navigate.core import (
-    NodeReference,
     Scalar,
     as_list,
     as_scalar,
@@ -44,6 +43,8 @@ from navigate.exceptions import no_value_assigned_error
 from navigate.util import is_non_strictly_increasing
 
 if TYPE_CHECKING:
+    from navigate.core.node import Node
+    from navigate.core.node_reference import WildcardNodeReference
     from navigate.fleet.package import Package
 
 logger = logging.getLogger(__name__)
@@ -178,7 +179,7 @@ class Fleet(_AssetManager):
 
     # external methods (DSL attributes) --------------------------------------------------------------------------------
 
-    def set_vessels(self, vessels: list[NodeReference]):
+    def set_vessels(self, vessels: list[Node | WildcardNodeReference]):
         """
         Set the list of vessel types that exists for the fleet.
 
@@ -198,7 +199,7 @@ class Fleet(_AssetManager):
             as_list(vessels), unique=True, scalar=False, type_=VESSEL
         )
 
-    def set_memory(self, memory: float | NodeReference):
+    def set_memory(self, memory: float | Node):
         """
         Set the exponential decay of the memory of the fleet used in the expected uptake decision of newbuild vessels.
 
@@ -218,7 +219,7 @@ class Fleet(_AssetManager):
             as_scalar(memory), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
         )
 
-    def set_fixed_scrap_rate(self, fixed_scrap_rate: float | NodeReference):
+    def set_fixed_scrap_rate(self, fixed_scrap_rate: float | Node):
         """
         Set the fixed scrap rate of the fleet in fraction/year.
 
@@ -261,7 +262,7 @@ class Fleet(_AssetManager):
         """
         self.allow_secondary_scrapping = assign_id(allow_secondary_scrapping, BOOL_ID)
 
-    def set_trade_growth(self, trade_growth: float | NodeReference):
+    def set_trade_growth(self, trade_growth: float | Node):
         """
         Set trade-growth of the fleet, fraction/year.
 
@@ -321,7 +322,7 @@ class Fleet(_AssetManager):
                 f"{self}: 'InitialSplit' is normalized to 1 by equal fractions."
             )
 
-    def set_technologies(self, technologies: list[NodeReference]):
+    def set_technologies(self, technologies: list[Node | WildcardNodeReference]):
         """
         Set the list of energy efficiency technologies that can be installed on vessels.
 
@@ -342,7 +343,7 @@ class Fleet(_AssetManager):
             as_list(technologies), unique=True, scalar=False, type_=TECHNOLOGY
         )
 
-    def set_intra_fuel_sensitivity(self, intra_fuel_sensitivity: float | NodeReference):
+    def set_intra_fuel_sensitivity(self, intra_fuel_sensitivity: float | Node):
         """
         Set the sensitivity of the within-fuel technology choice to levelized cost of transport (LCOT).
 
@@ -367,7 +368,7 @@ class Fleet(_AssetManager):
             inclusive_lower=False,
         )
 
-    def set_inter_fuel_sensitivity(self, inter_fuel_sensitivity: float | NodeReference):
+    def set_inter_fuel_sensitivity(self, inter_fuel_sensitivity: float | Node):
         """
         Set the sensitivity of the fuel-type choice to levelized cost of transport (LCOT).
 
@@ -392,7 +393,7 @@ class Fleet(_AssetManager):
             inclusive_lower=False,
         )
 
-    def set_technology_sensitivity(self, technology_sensitivity: float | NodeReference):
+    def set_technology_sensitivity(self, technology_sensitivity: float | Node):
         """
         Set the sensitivity of the energy-saving technology package choice to its NPV.
 
@@ -418,7 +419,7 @@ class Fleet(_AssetManager):
             inclusive_lower=False,
         )
 
-    def set_technology_cost_of_capital(self, cost_of_capital: float | NodeReference):
+    def set_technology_cost_of_capital(self, cost_of_capital: float | Node):
         """
         Set the cost of capital used for evaluating technology investments.
 
@@ -440,7 +441,7 @@ class Fleet(_AssetManager):
             as_scalar(cost_of_capital), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
-    def set_technology_horizon(self, technology_horizon: float | NodeReference):
+    def set_technology_horizon(self, technology_horizon: float | Node):
         """
         Set the decision horizon, in years, used to smooth the energy-scarcity belief that feeds technology
         investment decisions.
@@ -462,7 +463,7 @@ class Fleet(_AssetManager):
             as_scalar(technology_horizon), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
-    def set_speed_horizon(self, speed_horizon: float | NodeReference):
+    def set_speed_horizon(self, speed_horizon: float | Node):
         """
         Set the decision horizon, in years, used to smooth the energy-scarcity belief that feeds speed management.
 
@@ -483,7 +484,7 @@ class Fleet(_AssetManager):
             as_scalar(speed_horizon), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
-    def set_retrofit_frequency(self, retrofit_frequency: float | NodeReference):
+    def set_retrofit_frequency(self, retrofit_frequency: float | Node):
         """
         Set the retrofit frequency, namely the intervals at which a vessel can retrofit technology or perform a
         fuel conversion.
@@ -502,7 +503,7 @@ class Fleet(_AssetManager):
             as_scalar(retrofit_frequency), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
-    def set_orderbooks(self, orderbooks: list[float | NodeReference]):
+    def set_orderbooks(self, orderbooks: list[float | Node]):
         """
         Set the list of orderbooks used for determining the newbuild uptake from orderbooks.
 
@@ -603,7 +604,7 @@ class Fleet(_AssetManager):
         )
 
     def set_fuel_conversion_sensitivity(
-        self, fuel_conversion_sensitivity: float | NodeReference
+        self, fuel_conversion_sensitivity: float | Node
     ):
         """
         Set the sensitivity of the fuel-conversion choice to its NPV.
@@ -631,7 +632,7 @@ class Fleet(_AssetManager):
         )
 
     def set_fuel_conversion_minimum_age(
-        self, fuel_conversion_minimum_age: float | NodeReference
+        self, fuel_conversion_minimum_age: float | Node
     ):
         """
         Set the minimum age at which a vessel can perform a fuel conversion, in years.
@@ -706,7 +707,7 @@ class Fleet(_AssetManager):
         self,
         vessel_name_from: str,
         vessel_name_to: str,
-        fuel_conversion_limit: float | NodeReference,
+        fuel_conversion_limit: float | Node,
     ):
         """
         Set the per-pair cap on fuel conversions, as a fraction of the total fleet allowed to convert
@@ -842,7 +843,7 @@ class Fleet(_AssetManager):
             upper=1.0,
         )
 
-    def set_newbuild_limit(self, vessel_name: str, limit: float | NodeReference):
+    def set_newbuild_limit(self, vessel_name: str, limit: float | Node):
         """
         Set the maximum share of a single timestep's newbuild cargo-miles delivered by the given vessel type.
 
@@ -870,9 +871,7 @@ class Fleet(_AssetManager):
             upper=1.0,
         )
 
-    def set_newbuild_technology_limit(
-        self, technology_name: str, limit: float | NodeReference
-    ):
+    def set_newbuild_technology_limit(self, technology_name: str, limit: float | Node):
         """
         Set the maximum fraction of the existing fleet that can install the technology on newbuilds in one year.
 
@@ -900,9 +899,7 @@ class Fleet(_AssetManager):
             upper=1.0,
         )
 
-    def set_retrofit_technology_limit(
-        self, technology_name: str, limit: float | NodeReference
-    ):
+    def set_retrofit_technology_limit(self, technology_name: str, limit: float | Node):
         """
         Set the maximum fraction of the existing fleet that can retrofit to the technology in one year.
 

@@ -63,7 +63,7 @@ class Technology(_Machinery):
 
         Parameters
         ----------
-        capacity : float | NodeReference
+        capacity : float | Node
             Vessel-side shore power connection rating in MW.
         """
         self.shore_power_capacity = assign_value(

@@ -76,8 +76,8 @@ class _Policy(Node):
 
         Parameters
         ----------
-        ports : list[NodeReference]
-            List of node references to ports.
+        ports : list[Node | WildcardNodeReference]
+            List of Port nodes.
         """
         self.jurisdiction = assign_list(as_list(ports), scalar=False, type_=PORT)
 
@@ -94,7 +94,7 @@ class _Policy(Node):
         Parameters
         ----------
         emissions : list[Emission]
-            A list of node references to Emissions.
+            A list of Emission nodes.
         """
         self.emissions = assign_list(
             as_list(emissions), unique=True, scalar=False, type_=EMISSION
@@ -112,8 +112,8 @@ class _Policy(Node):
 
         Parameters
         ----------
-        fuels : list[Emission]
-            A list of node references to Fuels.
+        fuels : list[Fuel]
+            A list of Fuel nodes.
         """
         self.fuels = assign_list(as_list(fuels), unique=True, scalar=False, type_=FUEL)
 
@@ -164,7 +164,7 @@ class _Policy(Node):
 
         Parameters
         ----------
-        emissions_lifetime : float | NodeReference
+        emissions_lifetime : float | Node
             Emissions lifetime used in GWP calculation.
         """
         self.emissions_lifetime = assign_value(
@@ -185,7 +185,7 @@ class _Policy(Node):
         ----------
         vessel_name : str
             Name of vessel.
-        include_vessel : float | NodeReference
+        include_vessel : float | Node
             Whether the vessel is impacted by the policy.
         """
         command_assignment_to_boolean_dict(
@@ -207,7 +207,7 @@ class _Policy(Node):
         ----------
         emission_name : str
             Name of emission for which the global warming potential is assigned.
-        global_warming_potential : float | NodeReference
+        global_warming_potential : float | Node
             Global warming potential in ton CO2eq/ton emission.
         """
         command_assignment_to_dict(
@@ -234,7 +234,7 @@ class _Policy(Node):
             Name of fuel for which the emission factor is assigned.
         emission_name : str
             Name of emission for which the emission factor is assigned.
-        emission_factor : float | NodeReference
+        emission_factor : float | Node
             WTT emission factor in ton emission/ton fuel.
         """
         command_assignment_to_tuple_dict(
@@ -261,7 +261,7 @@ class _Policy(Node):
             Name of fuel for which the emission factor is assigned.
         emission_name : str
             Name of emission for which the emission factor is assigned.
-        emission_factor : float | NodeReference
+        emission_factor : float | Node
             TTW emission factor in ton emission/ton fuel.
         """
         command_assignment_to_tuple_dict(

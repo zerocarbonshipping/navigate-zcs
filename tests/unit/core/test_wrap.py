@@ -8,8 +8,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from navigate.core.node_reference import NodeReference
-from navigate.core.node_type import FUEL
+from navigate.core.nodes.fuel import Fuel
 from navigate.core.scalar import Scalar
 from navigate.core.wrap import as_list, as_scalar, as_scalar_list
 
@@ -72,7 +71,7 @@ class TestAsScalarList:
         assert [scalar.get() for scalar in result] == [1.0, 2.0]
 
     def test_only_floats_are_wrapped(self):
-        result = as_scalar_list([1.0, NodeReference(FUEL, "oil")])
+        result = as_scalar_list([1.0, Fuel("oil")])
 
         assert isinstance(result[0], Scalar)
         assert not isinstance(result[1], Scalar)

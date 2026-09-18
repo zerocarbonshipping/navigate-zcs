@@ -80,7 +80,7 @@ class Fuel(Node):
 
         Parameters
         ----------
-        lower_heating_value : float | NodeReference
+        lower_heating_value : float | Node
             The lower heating value of the fuel in GJ/ton.
         """
         self.lower_heating_value = assign_value(
@@ -97,7 +97,7 @@ class Fuel(Node):
 
         Parameters
         ----------
-        mass_density : float | NodeReference
+        mass_density : float | Node
             The mass density of the fuel.
         """
         self.mass_density = assign_value(
@@ -118,7 +118,7 @@ class Fuel(Node):
         ----------
         emission_name : str
             Name of emission emitted.
-        ttw : float | NodeReference
+        ttw : float | Node
             Ton of emissions per ton of fuel.
         """
         command_assignment_to_dict(

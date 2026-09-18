@@ -106,7 +106,7 @@ class Producer(_AssetManager):
 
         Parameters
         ----------
-        plants : list[NodeReference]
+        plants : list[Node | WildcardNodeReference]
             The list of plants that can be built.
         """
         self.assets = assign_list(
@@ -124,7 +124,7 @@ class Producer(_AssetManager):
 
         Parameters
         ----------
-        minimum_offtake_duration : float | NodeReference
+        minimum_offtake_duration : float | Node
             The minimum offtake agreement for building new plants.
         """
         self.minimum_offtake_duration = assign_value(
@@ -147,7 +147,7 @@ class Producer(_AssetManager):
 
         Parameters
         ----------
-        fuel_demand_sensitivity : float | NodeReference
+        fuel_demand_sensitivity : float | Node
             Odds ratio for a 10% higher expected demand in the between-pathway choice.
         """
         self.fuel_demand_sensitivity = assign_value(
@@ -172,7 +172,7 @@ class Producer(_AssetManager):
 
         Parameters
         ----------
-        fuel_cost_sensitivity : float | NodeReference
+        fuel_cost_sensitivity : float | Node
             Odds ratio for a 10% higher LCoF in the within-pathway plant choice.
         """
         self.fuel_cost_sensitivity = assign_value(
@@ -212,7 +212,7 @@ class Producer(_AssetManager):
 
         Parameters
         ----------
-        maximum_development : float | NodeReference
+        maximum_development : float | Node
             Maximum developments of plants per year.
         """
         self.maximum_development = assign_value(
@@ -230,7 +230,7 @@ class Producer(_AssetManager):
 
         Parameters
         ----------
-        maximum_ramp_up : float | NodeReference
+        maximum_ramp_up : float | Node
             The maximum ramp-up for the utilization of the development constraint.
         """
         self.maximum_ramp_up = assign_value(
@@ -251,7 +251,7 @@ class Producer(_AssetManager):
 
         Parameters
         ----------
-        jump_start_fraction : float | NodeReference
+        jump_start_fraction : float | Node
             The jump-start fraction for supply/demand interaction.
         """
         self.jump_start_fraction = assign_value(
@@ -273,7 +273,7 @@ class Producer(_AssetManager):
         ----------
         plant_name: str
             Name of plant for which pipeline is being assigned.
-        existing_pipeline : NodeReference
+        existing_pipeline : Node
             Forecast of existing pipelines.
         """
         command_assignment_to_dict(
@@ -318,7 +318,7 @@ class Producer(_AssetManager):
         ----------
         feed_name : str
             The name of a feedstock or a process.
-        feed_constraint : float | NodeReference
+        feed_constraint : float | Node
             The amount of feed available in tons/year.
         """
         command_assignment_to_dict(
@@ -342,7 +342,7 @@ class Producer(_AssetManager):
         ----------
         port_name : str
             The name of a port.
-        export_distribution : float | NodeReference
+        export_distribution : float | Node
             The fraction of fuel production that is exported to the port.
         """
         command_assignment_to_dict(

@@ -222,7 +222,7 @@ class Vessel(Node):
 
         Parameters
         ----------
-        power_system : NodeReference
+        power_system : Node
             The powersystem used to convert fuel to energy.
         """
         self.power_system = assign_value(power_system, scalar=False, type_=POWER_SYSTEM)
@@ -238,8 +238,8 @@ class Vessel(Node):
 
         Parameters
         ----------
-        tanks : list[NodeReference]
-            List of node references to tanks.
+        tanks : list[Node | WildcardNodeReference]
+            List of Tank nodes.
         """
         self.tanks = assign_list(as_list(tanks), unique=True, scalar=False, type_=TANK)
 
@@ -253,7 +253,7 @@ class Vessel(Node):
 
         Parameters
         ----------
-        route : NodeReference
+        route : Node
             The route the vessel is sailing on.
         """
         self.route = assign_value(route, scalar=False, type_=ROUTE)
@@ -276,7 +276,7 @@ class Vessel(Node):
 
         Parameters
         ----------
-        nominal_capacity : float | NodeReference
+        nominal_capacity : float | Node
             The nominal cargo carrying capacity of the vessel.
         """
         self.nominal_capacity = assign_value(
@@ -295,7 +295,7 @@ class Vessel(Node):
 
         Parameters
         ----------
-        lifetime : float | NodeReference
+        lifetime : float | Node
             Lifetime of the vessel in years.
         """
         self.lifetime = assign_value(
@@ -318,7 +318,7 @@ class Vessel(Node):
 
         Parameters
         ----------
-        lead_time : float | NodeReference
+        lead_time : float | Node
             Lead time of the vessel in years.
         """
         self.lead_time = assign_value(
@@ -336,7 +336,7 @@ class Vessel(Node):
 
         Parameters
         ----------
-        capex : float | NodeReference
+        capex : float | Node
             The base CAPEX of building the vessel in USD.
         """
         self.capex = assign_value(
@@ -354,7 +354,7 @@ class Vessel(Node):
 
         Parameters
         ----------
-        opex : float | NodeReference
+        opex : float | Node
             The base OPEX of maintaining the vessel in USD/year.
         """
         self.opex = assign_value(as_scalar(opex), type_=(FORECAST, VARIABLE), lower=0.0)
@@ -372,7 +372,7 @@ class Vessel(Node):
 
         Parameters
         ----------
-        cost_of_capital : float | NodeReference
+        cost_of_capital : float | Node
             Cost of capital.
         """
         self.cost_of_capital = assign_value(

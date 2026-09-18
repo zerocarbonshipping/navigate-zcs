@@ -8,19 +8,19 @@ from navigate.core.scalar import Scalar
 
 def as_scalar(value):
     """
-    Wrap a value in a Scalar class if it is a float, otherwise return the NodeReference or Node as is.
+    Wrap a value in a Scalar class if it is a float, otherwise return the Node as is.
 
     The wrapping is necessary as Scalar provides a getter which takes two arguments, similar to all calculator nodes.
     This is convenient when an attribute can be defined as either a float or a calculator node.
 
     Parameters
     ----------
-    value : float | NodeReference | Node
+    value : float | Node
         Value to wrap in a Scalar if it is a float.
 
     Returns
     -------
-    Scalar | NodeReference | Node
+    Scalar | Node
         Wrapped value.
     """
     if isinstance(value, float):
@@ -35,12 +35,12 @@ def as_scalar_list(values):
 
     Parameters
     ----------
-    values : Generator[float | NodeReference | Node]
+    values : Generator[float | Node]
         List of values to wrap in a Scalar if they are floats.
 
     Returns
     -------
-    list[Scalar | NodeReference | Node]
+    list[Scalar | Node]
         List of wrapped values.
     """
     return [as_scalar(value) for value in as_list(values)]
@@ -55,7 +55,7 @@ def as_list(value):
 
     Parameters
     ----------
-    value : list | float | NodeReference | Node
+    value : list | float | Node | WildcardNodeReference
 
     Returns
     -------
