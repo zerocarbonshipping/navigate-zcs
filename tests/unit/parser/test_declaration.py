@@ -12,9 +12,9 @@ no declaration ever fills.
 from __future__ import annotations
 
 from navigate.core.enum_ import SimulationSectionID
-from navigate.core.node_reference import NodeReference
 from navigate.core.node_type import PROCESS
 from navigate.parser._lark_parser import Assignment, NodeDeclaration
+from navigate.parser._node_reference import NodeReference
 from navigate.parser.parser import Parser
 
 

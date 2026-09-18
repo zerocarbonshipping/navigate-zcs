@@ -29,7 +29,6 @@ from navigate.core.assign import (
 )
 from navigate.core.enum_ import FuelTypeID
 from navigate.core.expression import Expression
-from navigate.core.node_reference import WildcardNodeReference
 from navigate.core.node_type import FORECAST, FUEL, VARIABLE
 from navigate.core.nodes._calculator import BOUNDS_MAP
 from navigate.core.nodes.curve import Curve
@@ -38,6 +37,7 @@ from navigate.core.nodes.fuel import Fuel
 from navigate.core.nodes.variable import Variable
 from navigate.core.scalar import Scalar
 from navigate.core.table_data import TableData
+from navigate.core.wildcard import WildcardNodeReference
 
 DATE = np.datetime64("2024-01-01", "D")
 

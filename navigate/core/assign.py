@@ -7,10 +7,10 @@ import numpy as np
 
 from navigate.core.expression import Expression
 from navigate.core.node import Node
-from navigate.core.node_reference import WildcardNodeReference
 from navigate.core.node_type import is_calculator
 from navigate.core.scalar import Scalar
 from navigate.core.table_data import TableData
+from navigate.core.wildcard import WildcardNodeReference
 from navigate.core.wrap import as_scalar
 from navigate.util import (
     ROUND_OFF,

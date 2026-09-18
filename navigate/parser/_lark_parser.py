@@ -22,10 +22,11 @@ from typing import Any
 from lark import Lark, Transformer, v_args
 from lark.exceptions import UnexpectedCharacters, UnexpectedToken
 
-from navigate.core import Expression, NodeReference
-from navigate.core.node_reference import WildcardNodeReference
+from navigate.core import Expression
 from navigate.core.table_data import TableData, parse_table_cells, string_to_date
+from navigate.core.wildcard import WildcardNodeReference
 from navigate.exceptions import DeckFormatError
+from navigate.parser._node_reference import NodeReference
 from navigate.util import name_contains_wildcards
 
 

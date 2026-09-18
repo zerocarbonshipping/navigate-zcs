@@ -7,10 +7,10 @@ from __future__ import annotations
 
 import pytest
 
-from navigate.core.node_reference import WildcardNodeReference
 from navigate.core.nodes.fuel import Fuel
 from navigate.core.nodes.port import Port
 from navigate.core.nodes.route import Route
+from navigate.core.wildcard import WildcardNodeReference
 from navigate.exceptions import DeckFormatError
 from navigate.parser._commands import CommandReference
 from navigate.parser._lark_parser import SourceLocation

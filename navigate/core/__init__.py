@@ -16,6 +16,5 @@ from navigate.core.assign import (
     expand_id_wildcard,
 )
 from navigate.core.expression import Expression
-from navigate.core.node_reference import NodeReference
 from navigate.core.scalar import Scalar
 from navigate.core.wrap import as_list, as_scalar, as_scalar_list

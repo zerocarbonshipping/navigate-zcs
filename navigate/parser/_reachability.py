@@ -17,9 +17,8 @@ only when the statement's target node is itself reachable.
 
 from __future__ import annotations
 
-from navigate.core import Expression, NodeReference
+from navigate.core import Expression
 from navigate.core.node import Node
-from navigate.core.node_reference import WildcardNodeReference
 from navigate.core.node_registry import GeneralNodes, Nodes
 from navigate.core.node_type import (
     EMISSION,
@@ -33,9 +32,11 @@ from navigate.core.node_type import (
     REPORT,
     ROUTE,
 )
+from navigate.core.wildcard import WildcardNodeReference
 from navigate.parser._commands import CommandReference
 from navigate.parser._keywords import GENERAL_NODE_GROUP, NODE_GROUP
 from navigate.parser._lark_parser import Assignment, Command, NodeDeclaration
+from navigate.parser._node_reference import NodeReference
 from navigate.parser._scan import (
     REFERENCE_SCAN_EXCLUDE,
     get_attributes,
