@@ -66,7 +66,7 @@ class Levy(_Policy):
 
         Parameters
         ----------
-        level : float | NodeReference
+        level : float | Node
             Cost/remuneration of the levy.
         """
         self.level = assign_value(
@@ -87,7 +87,7 @@ class Levy(_Policy):
 
         Parameters
         ----------
-        lower_threshold : float | NodeReference
+        lower_threshold : float | Node
             Lower emission factor threshold.
         """
         self.lower_threshold = assign_value(
@@ -108,7 +108,7 @@ class Levy(_Policy):
 
         Parameters
         ----------
-        upper_threshold : float | NodeReference
+        upper_threshold : float | Node
             Upper emission factor threshold.
         """
         self.upper_threshold = assign_value(

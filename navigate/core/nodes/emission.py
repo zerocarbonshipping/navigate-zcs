@@ -29,7 +29,7 @@ class Emission(Node):
 
         Parameters
         ----------
-        global_warming_potential : float | NodeReference
+        global_warming_potential : float | Node
             The Global Warming Potential of the emission.
         """
         self.global_warming_potential = assign_value(

@@ -34,7 +34,7 @@ class PowerSystem(_Machinery):
 
         Parameters
         ----------
-        propulsion : NodeReference
+        propulsion : Node
             A converter used to satisfy the propulsion demand.
         """
         self.propulsion = assign_value(propulsion, scalar=False, type_=CONVERTER)
@@ -49,7 +49,7 @@ class PowerSystem(_Machinery):
 
         Parameters
         ----------
-        electrical : NodeReference
+        electrical : Node
             A converter used to satisfy the electrical demand.
         """
         self.electrical = assign_value(electrical, scalar=False, type_=CONVERTER)
@@ -64,7 +64,7 @@ class PowerSystem(_Machinery):
 
         Parameters
         ----------
-        heat : NodeReference
+        heat : Node
             A converter used to satisfy the heat demand.
         """
         self.heat = assign_value(heat, scalar=False, type_=CONVERTER)

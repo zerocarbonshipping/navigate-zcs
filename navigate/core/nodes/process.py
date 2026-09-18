@@ -28,7 +28,7 @@ class Process(Node):
 
         Parameters
         ----------
-        feeds : list[NodeReference]
+        feeds : list[Node | WildcardNodeReference]
             A list of feedstock and/or process.
         """
         self.feeds = assign_list(
@@ -45,7 +45,7 @@ class Process(Node):
 
         Parameters
         ----------
-        conversion : list[float | NodeReference]
+        conversion : list[float | Node]
             A list of conversion factors in tons of feed per tons of fuel.
         """
         self.conversions = assign_list(

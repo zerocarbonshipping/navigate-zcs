@@ -55,7 +55,7 @@ class Converter(_Machinery):
 
         Parameters
         ----------
-        power_capacity : float | NodeReference
+        power_capacity : float | Node
             The maximum power capacity of the converter.
         """
         self.power_capacity = assign_value(
@@ -73,7 +73,7 @@ class Converter(_Machinery):
 
         Parameters
         ----------
-        minimum_load : float | NodeReference
+        minimum_load : float | Node
             The minimum load as a fraction of power capacity.
         """
         self.minimum_load = assign_value(
@@ -127,7 +127,7 @@ class Converter(_Machinery):
 
         Parameters
         ----------
-        minimum_pilot_fuel : float | NodeReference
+        minimum_pilot_fuel : float | Node
             Minimum pilot fuel fraction.
         """
         self.minimum_pilot_fuel = assign_value(
@@ -148,7 +148,7 @@ class Converter(_Machinery):
 
         Parameters
         ----------
-        efficiency : float | NodeReference
+        efficiency : float | Node
             The energy conversion efficiency.
         """
         self.efficiency = assign_value(
@@ -169,7 +169,7 @@ class Converter(_Machinery):
         ----------
         fuel_type : str
             Type of fuel which has slip when used.
-        value : float | NodeReference
+        value : float | Node
             Fraction of fuel mass escaping unburned.
         """
         id_ = assign_id(fuel_type, FuelTypeID)
@@ -199,7 +199,7 @@ class Converter(_Machinery):
             Type of fuel which has a consumption related emission when used.
         emission_name : str
             Name of emission emitted as particles.
-        value : float | NodeReference
+        value : float | Node
             Ton of emission emitted per ton of fuel consumed.
         """
         id_ = assign_id(fuel_type, FuelTypeID)

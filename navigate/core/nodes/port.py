@@ -90,7 +90,7 @@ class Port(Node):
         ----------
         fuel_name : str
             The name of a fuel.
-        value : float | NodeReference
+        value : float | Node
             The amount of fuel available for bunkering in tons/year.
         """
         command_assignment_to_dict(
@@ -117,7 +117,7 @@ class Port(Node):
         ----------
         fuel_name : str
             The name of a fuel.
-        value : float | NodeReference
+        value : float | Node
             The inertia of the bunkering of the fuel.
         """
         command_assignment_to_dict(
@@ -142,7 +142,7 @@ class Port(Node):
         ----------
         fuel_name : str
             The name of a fuel.
-        value : float | NodeReference
+        value : float | Node
             The cost of storage and the service of bunkering a specific fuel in the port in USD/ton.
         """
         command_assignment_to_dict(
@@ -164,7 +164,7 @@ class Port(Node):
         ----------
         fuel_name : str
             The name of a fuel.
-        value : float | NodeReference
+        value : float | Node
             The overwrite price of a specific fuel in the port in USD/ton.
         """
         command_assignment_to_dict(
@@ -193,7 +193,7 @@ class Port(Node):
             The name of a fuel.
         emission_name : str
             The name of an emission.
-        value : float | NodeReference
+        value : float | Node
             The overwrite price of a specific fuel in the port in USD/ton.
         """
         command_assignment_to_tuple_dict(
@@ -216,7 +216,7 @@ class Port(Node):
 
         Parameters
         ----------
-        value : float | NodeReference
+        value : float | Node
             Shore power cost in USD/MWh.
         """
         self.shore_power_cost = assign_value(
@@ -236,7 +236,7 @@ class Port(Node):
 
         Parameters
         ----------
-        value : float | NodeReference
+        value : float | Node
             Fraction of port time with shore power connection [0, 1].
         """
         self.shore_power_connection_share = assign_value(
@@ -258,7 +258,7 @@ class Port(Node):
         ----------
         emission_name : str
             Name of the emission.
-        value : float | NodeReference
+        value : float | Node
             Emission factor in ton emission/MWh.
         """
         command_assignment_to_dict(

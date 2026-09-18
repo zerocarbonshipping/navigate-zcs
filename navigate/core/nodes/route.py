@@ -78,8 +78,8 @@ class Route(Node):
 
         Parameters
         ----------
-        ports : list[NodeReference]
-            A list of NodeReference to a Port.
+        ports : list[Node | WildcardNodeReference]
+            A list of Port nodes.
         """
         self.ports = assign_list(as_list(ports), scalar=False, type_=PORT)
 
@@ -96,8 +96,8 @@ class Route(Node):
 
         Parameters
         ----------
-        port_durations : list[float | NodeReference]
-            A list of floats or NodeReferences to a Forecast.
+        port_durations : list[float | Node]
+            A list of floats or Forecast nodes.
         """
         self.port_durations = assign_list(
             as_scalar_list(port_durations), type_=(FORECAST, VARIABLE), lower=0.0
@@ -135,8 +135,8 @@ class Route(Node):
 
         Parameters
         ----------
-        port_calls : list[float | NodeReference]
-            A list of floats or NodeReferences to a Forecast.
+        port_calls : list[float | Node]
+            A list of floats or Forecast nodes.
         """
         self.port_calls = assign_list(
             as_scalar_list(port_calls),
@@ -202,8 +202,8 @@ class Route(Node):
 
         Parameters
         ----------
-        speeds : list[float | NodeReference]
-            A list of floats or NodeReferences to a Forecast.
+        speeds : list[float | Node]
+            A list of floats or Forecast nodes.
         """
         self.speeds = assign_list(
             as_scalar_list(speeds),
@@ -223,8 +223,8 @@ class Route(Node):
 
         Parameters
         ----------
-        capacity_utilizations : list[float | NodeReference]
-            A list of floats or NodeReferences to a Forecast.
+        capacity_utilizations : list[float | Node]
+            A list of floats or Forecast nodes.
         """
         self.capacity_utilizations = assign_list(
             as_scalar_list(capacity_utilizations),

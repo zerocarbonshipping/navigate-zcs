@@ -75,7 +75,7 @@ class Plant(Node):
 
         Parameters
         ----------
-        fuel : NodeReference
+        fuel : Node
             A Fuel node.
         """
         self.fuel = assign_value(fuel, scalar=False, type_=FUEL)
@@ -90,7 +90,7 @@ class Plant(Node):
 
         Parameters
         ----------
-        process : NodeReference
+        process : Node
             A Process node.
         """
         self.process = assign_value(process, scalar=False, type_=PROCESS)
@@ -105,7 +105,7 @@ class Plant(Node):
 
         Parameters
         ----------
-        region : NodeReference
+        region : Node
             A Region node.
         """
         self.region = assign_value(region, scalar=False, type_=REGION)
@@ -120,7 +120,7 @@ class Plant(Node):
 
         Parameters
         ----------
-        source : NodeReference
+        source : Node
             A Source node.
         """
         self.source = assign_value(source, scalar=False, type_=SOURCE)
@@ -136,7 +136,7 @@ class Plant(Node):
 
         Parameters
         ----------
-        capacity : float | NodeReference
+        capacity : float | Node
             Production capacity of the plant in tons/day.
         """
         self.capacity = assign_value(
@@ -157,7 +157,7 @@ class Plant(Node):
 
         Parameters
         ----------
-        uptime : float | NodeReference
+        uptime : float | Node
             Production uptime of the plant in time/time.
         """
         self.uptime = assign_value(
@@ -180,7 +180,7 @@ class Plant(Node):
 
         Parameters
         ----------
-        lifetime : float | NodeReference
+        lifetime : float | Node
             Lifetime of the plant in years.
         """
         self.lifetime = assign_value(
@@ -201,7 +201,7 @@ class Plant(Node):
 
         Parameters
         ----------
-        lead_time : float | NodeReference
+        lead_time : float | Node
             Construction lead time of the plant in years.
         """
         self.lead_time = assign_value(
@@ -221,7 +221,7 @@ class Plant(Node):
 
         Parameters
         ----------
-        cost_of_capital : float | NodeReference
+        cost_of_capital : float | Node
             Cost of capital.
         """
         self.cost_of_capital = assign_value(
@@ -242,7 +242,7 @@ class Plant(Node):
         ----------
         feed_name : str
             The name of a feedstock or process.
-        value : NodeReference
+        value : Node
             The transport mode used to transport the feedstock or process output.
         """
         command_assignment_to_dict(
@@ -263,7 +263,7 @@ class Plant(Node):
         ----------
         feed_name : str
             The name of a feedstock or process.
-        value : float | NodeReference
+        value : float | Node
             The distance of transport in nautical miles.
         """
         command_assignment_to_dict(
@@ -285,7 +285,7 @@ class Plant(Node):
         ----------
         port_name : str
             The name of a port.
-        value : NodeReference
+        value : Node
             The transport mode used to deliver the produced fuel to the port.
         """
         command_assignment_to_dict(
@@ -305,7 +305,7 @@ class Plant(Node):
         ----------
         port_name : str
             The name of a port.
-        value : float | NodeReference
+        value : float | Node
             The distance of transport in nautical miles.
         """
         command_assignment_to_dict(

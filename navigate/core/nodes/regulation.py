@@ -118,7 +118,7 @@ class Regulation(_Policy):
 
         Parameters
         ----------
-        intra_fraction : float | NodeReference
+        intra_fraction : float | Node
             Fraction of emissions counted during intra jurisdiction travel.
         """
         self.intra_fraction = assign_value(
@@ -137,7 +137,7 @@ class Regulation(_Policy):
 
         Parameters
         ----------
-        inter_fraction : float | NodeReference
+        inter_fraction : float | Node
             Fraction of emissions counted during inter jurisdiction travel.
         """
         self.inter_fraction = assign_value(
@@ -155,7 +155,7 @@ class Regulation(_Policy):
 
         Parameters
         ----------
-        extra_fraction : float | NodeReference
+        extra_fraction : float | Node
             Fraction of emissions counted during extra jurisdiction travel.
         """
         self.extra_fraction = assign_value(
@@ -173,7 +173,7 @@ class Regulation(_Policy):
 
         Parameters
         ----------
-        remedial_cost : float | NodeReference
+        remedial_cost : float | Node
             Cost of a remedial unit.
         """
         self.remedial_cost = assign_value(
@@ -196,7 +196,7 @@ class Regulation(_Policy):
 
         Parameters
         ----------
-        flexibility_horizon : float | NodeReference
+        flexibility_horizon : float | Node
             Decision horizon for the flexibility cost belief, in years.
         """
         self.flexibility_horizon = assign_value(
@@ -226,7 +226,7 @@ class Regulation(_Policy):
         ----------
         vessel_name : str
             Name of vessel for which the threshold is assigned.
-        threshold : float | NodeReference
+        threshold : float | Node
             Threshold for a vessel.
         """
         command_assignment_to_dict(
@@ -252,7 +252,7 @@ class Regulation(_Policy):
         ----------
         vessel_name : str
             Name of vessel for which the capacity is assigned.
-        capacity : float | NodeReference
+        capacity : float | Node
             Capacity of a vessel.
         """
         command_assignment_to_dict(

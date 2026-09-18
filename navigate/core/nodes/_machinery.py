@@ -39,7 +39,7 @@ class _Machinery(Node):
 
         Parameters
         ----------
-        capex : float | NodeReference
+        capex : float | Node
             CAPEX cost of installing the machinery.
         """
         self.capex = assign_value(
@@ -57,7 +57,7 @@ class _Machinery(Node):
 
         Parameters
         ----------
-        opex : float | NodeReference
+        opex : float | Node
             OPEX cost per year of maintaining the machinery.
         """
         self.opex = assign_value(as_scalar(opex), type_=(FORECAST, VARIABLE), lower=0.0)
@@ -75,7 +75,7 @@ class _Machinery(Node):
 
         Parameters
         ----------
-        lifetime : float | NodeReference
+        lifetime : float | Node
             Lifetime of the machinery.
         """
         self.lifetime = assign_value(
@@ -96,7 +96,7 @@ class _Machinery(Node):
 
         Parameters
         ----------
-        replacement : float | NodeReference
+        replacement : float | Node
             Fraction of CAPEX for re-installing the machinery at end of lifetime.
         """
         self.replacement = assign_value(
