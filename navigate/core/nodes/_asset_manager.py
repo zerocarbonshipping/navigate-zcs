@@ -8,8 +8,6 @@ instantiated directly through the DSL.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 import numpy as np
 
 from navigate.core import Scalar, as_scalar, as_scalar_list, assign_list, assign_value
@@ -17,9 +15,6 @@ from navigate.core.increment import Increment
 from navigate.core.node import Node
 from navigate.core.node_type import CURVE, FORECAST, VARIABLE
 from navigate.util import YEAR
-
-if TYPE_CHECKING:
-    from navigate.core import NodeReference
 
 
 class _AssetManager(Node):
@@ -54,7 +49,7 @@ class _AssetManager(Node):
         self.current_uptake: np.ndarray = np.empty(0)
 
     # external methods (DSL attributes) --------------------------------------------------------------------------------
-    def set_inertia(self, inertia: float | NodeReference) -> None:
+    def set_inertia(self, inertia: float | Node) -> None:
         """
         Set the inertia used in the uptake decision of newbuild assets.
 
