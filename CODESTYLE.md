@@ -153,6 +153,9 @@ The formatter owns spacing within statements; blank lines are yours:
   (`navigate/core/profiles/`) use getters/adders/setters deliberately: the
   indirection separates dynamic state and output from user input and temporary
   results.
+- Profile getters take no parameters and return the whole timeline array or
+  the whole dict; callers index the result. The signature is enforced by
+  `tests/unit/core/test_profile_getters.py`.
 - Calculator classes (`Curve`, `Forecast`, `Surface`, `Timetable`, `Variable`)
   and wrappers (`Scalar`) are read through `.get`, which may take a variable
   number of inputs and can return defaults or pre-computed values.
