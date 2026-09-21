@@ -23,9 +23,10 @@ def plot_global_energy_saving(manager, directory):
     fig, axes = subplot_grid(6, sharey=True)
 
     profile = manager.profile
-    propulsion_saving = profile.get_saving(EnergyDemandTypeID.PROPULSION) * 100.0
-    electrical_saving = profile.get_saving(EnergyDemandTypeID.ELECTRICAL) * 100.0
-    heat_saving = profile.get_saving(EnergyDemandTypeID.HEAT) * 100.0
+    saving = profile.get_saving()
+    propulsion_saving = saving[EnergyDemandTypeID.PROPULSION] * 100.0
+    electrical_saving = saving[EnergyDemandTypeID.ELECTRICAL] * 100.0
+    heat_saving = saving[EnergyDemandTypeID.HEAT] * 100.0
     technology_saving = profile.get_technology_energy_intensity_saving() * 100.0
     operational_saving = profile.get_operational_energy_intensity_saving() * 100.0
     total_saving = profile.get_energy_intensity_saving() * 100.0

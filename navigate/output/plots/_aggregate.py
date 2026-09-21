@@ -72,7 +72,7 @@ def merge_fleet_evolution(dateline, fleet):
         fleet,
         FLEET_LABEL,
         items_fn=lambda f: f.vessels,
-        value_fn=lambda profile, vessel: profile.get_existing_vessels(vessel.name),
+        series_fn=lambda profile: profile.get_existing_vessels(),
         fuel_type_fn=lambda vessel: vessel.fuel_type,
         threshold=1.0,
         normalize=False,
@@ -98,7 +98,7 @@ def _merge_by_fuel_type(
     entity,
     label_dict,
     items_fn,
-    value_fn,
+    series_fn,
     fuel_type_fn,
     threshold,
     normalize=True,
@@ -106,19 +106,20 @@ def _merge_by_fuel_type(
     """
     Accumulate per-item series into a fuel-type-keyed stack.
 
-    Shared by merge_fleet_evolution and merge_fleet_changes.
+    Shared by merge_fleet_evolution and merge_fleet_changes. series_fn reads the
+    {item name: series} dict off the entity's profile once for all items.
     Flows (newbuilds / scrap / decommissions) are normalized to a per-year rate; stocks
     (existing vessels) pass normalize=False. Negligible fuel types are dropped and the
     result is the (values, labels, colours, title) tuple the plot modules stack.
     """
-    profile = entity.profile
+    series = series_fn(entity.profile)
     values = _make_fuel_type_zeros(dateline)
 
     for item in items_fn(entity):
-        values[fuel_type_fn(item)] += value_fn(profile, item)
+        values[fuel_type_fn(item)] += series[item.name]
 
-    # normalize the owned accumulators: value_fn results may be views of
-    # profile storage and must not be mutated
+    # normalize the owned accumulators: the series are profile storage and
+    # must not be mutated
     if normalize:
         time_steps = np.diff(dates_to_days(dateline)) / YEAR
         for value in values.values():
@@ -135,16 +136,18 @@ def _merge_by_fuel_type(
 def merge_fleet_changes(dateline, fleet, scrap=True):
 
     if scrap:
-        value_fn = lambda profile, vessel: -profile.get_scrap(vessel.name)
+        series_fn = lambda profile: {
+            name: -scrapped for name, scrapped in profile.get_scrap().items()
+        }
     else:
-        value_fn = lambda profile, vessel: profile.get_newbuilds(vessel.name)
+        series_fn = lambda profile: profile.get_newbuilds()
 
     return _merge_by_fuel_type(
         dateline,
         fleet,
         FLEET_LABEL,
         items_fn=lambda f: f.vessels,
-        value_fn=value_fn,
+        series_fn=series_fn,
         fuel_type_fn=lambda vessel: vessel.fuel_type,
         threshold=TOLERANCE,
     )

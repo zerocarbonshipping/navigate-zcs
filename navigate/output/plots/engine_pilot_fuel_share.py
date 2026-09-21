@@ -26,13 +26,12 @@ def plot_engine_pilot_fuel_share(manager, directory):
 
     relevant_fuel_types = [FuelTypeID.METHANE, FuelTypeID.METHANOL, FuelTypeID.AMMONIA]
 
-    pilot_fuel_share = {
-        fuel_type: manager.profile.get_pilot_fuel_share(fuel_type)
-        for fuel_type in relevant_fuel_types
-    }
+    fleet_pilot_fuel_share = manager.profile.get_pilot_fuel_share()
     pilot_fuel_share = {
         fuel_type: np.where(
-            pilot_fuel_share[fuel_type] > 0.0, pilot_fuel_share[fuel_type], np.nan
+            fleet_pilot_fuel_share[fuel_type] > 0.0,
+            fleet_pilot_fuel_share[fuel_type],
+            np.nan,
         )
         for fuel_type in relevant_fuel_types
     }

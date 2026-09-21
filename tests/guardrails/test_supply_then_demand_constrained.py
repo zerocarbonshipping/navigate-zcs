@@ -81,7 +81,7 @@ def post_window(manager, producer):
 @pytest.fixture(scope="module")
 def deliverable(producer):
     """Deliverable e-ammonia supply: capacity x uptime per plant increment."""
-    return producer.profile.get_production_energy(FUEL)
+    return producer.profile.get_production_energy()[FUEL]
 
 
 @pytest.mark.slow
@@ -126,7 +126,7 @@ class TestSupplyThenDemandConstrained:
         assert np.all(remedial[post_window] <= EPS_REMEDIAL_REL * pre_catchup.max())
 
     def test_surplus_band(self, manager, deliverable, post_window):
-        consumption = manager.profile.get_consumed_energy(FUEL)
+        consumption = manager.profile.get_consumed_energy()[FUEL]
         total = manager.profile.get_total_consumed_energy()
 
         # the catch-up step itself is transitional: the surplus builds up

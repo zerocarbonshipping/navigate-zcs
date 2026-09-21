@@ -130,10 +130,11 @@ class TestNoIncentive:
         With no incentive, nothing should drive additional energy-saving effort.
         """
         profile = manager.profile
+        saving = profile.get_saving()
         savings = {
-            "propulsion": profile.get_saving(EnergyDemandTypeID.PROPULSION),
-            "electrical": profile.get_saving(EnergyDemandTypeID.ELECTRICAL),
-            "heat": profile.get_saving(EnergyDemandTypeID.HEAT),
+            "propulsion": saving[EnergyDemandTypeID.PROPULSION],
+            "electrical": saving[EnergyDemandTypeID.ELECTRICAL],
+            "heat": saving[EnergyDemandTypeID.HEAT],
             "technology": profile.get_technology_energy_intensity_saving(),
             "operational": profile.get_operational_energy_intensity_saving(),
             "total": profile.get_energy_intensity_saving(),

@@ -40,10 +40,12 @@ def plot_producer_feed_consumption(manager, directory):
     for producer_name, producer in producers.items():
         results = {}
         profile = producer.profile
+        feed_mass = profile.get_feed_mass()
+        feed_constraint = profile.get_feed_constraint()
 
         for feed_name in feeds:
-            consumed = profile.get_feed_mass(feed_name)
-            constraint = profile.get_feed_constraint(feed_name)
+            consumed = feed_mass[feed_name]
+            constraint = feed_constraint[feed_name]
             constraint = np.where(constraint == np.inf, np.nan, constraint)
 
             if np.all(np.isnan(constraint)):
