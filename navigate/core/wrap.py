@@ -35,8 +35,8 @@ def as_scalar_list(values):
 
     Parameters
     ----------
-    values : Generator[float | Node]
-        List of values to wrap in a Scalar if they are floats.
+    values : list[float | Node] | tuple[float | Node, ...] | float | Node
+        Values to wrap in a Scalar if they are floats.
 
     Returns
     -------

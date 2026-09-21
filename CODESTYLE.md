@@ -159,9 +159,10 @@ The formatter owns spacing within statements; blank lines are yours:
 
 ### Boundary modules
 
-- `isinstance` is confined to input validation in `navigate/core/`
-  (`assign.py`, `expression.py`, `table_data.py`), to `navigate/parser/`,
-  `navigate/output/`, and the solver shims.
+- `isinstance` is confined to input validation and value-shape dispatch in
+  `navigate/core/` (`assign.py`, `expression.py`, `scalar.py`,
+  `table_data.py`, `wrap.py`), to `navigate/parser/`, `navigate/output/`, and
+  the solver shims.
 - Dynamic attribute access (`hasattr`/`getattr`/`setattr`) is confined to
   `navigate/parser/` (DSL dispatch) and `navigate/output/`.
 - Dictionaries keyed by nodes or enum members are prepopulated at

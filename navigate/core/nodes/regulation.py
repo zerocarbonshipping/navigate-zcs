@@ -10,11 +10,11 @@ import numpy as np
 from navigate.core import (
     Scalar,
     as_scalar,
+    assign_boolean,
     assign_id,
     assign_value,
     command_assignment_to_dict,
 )
-from navigate.core.assign import BOOL_ID
 from navigate.core.enum_ import RegulationMeasureID, RegulationSchemeID
 from navigate.core.expectations import RegulationExpectation
 from navigate.core.node_type import FORECAST, REGULATION, VARIABLE
@@ -280,7 +280,7 @@ class Regulation(_Policy):
         allow_threshold_adjustment : str
             Whether to allow threshold adjustment (TRUE/FALSE).
         """
-        self.allow_threshold_adjustment = assign_id(allow_threshold_adjustment, BOOL_ID)
+        self.allow_threshold_adjustment = assign_boolean(allow_threshold_adjustment)
 
     # internal methods -------------------------------------------------------------------------------------------------
     def initialize(self):

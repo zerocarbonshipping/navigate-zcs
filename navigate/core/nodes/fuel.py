@@ -6,11 +6,11 @@ from __future__ import annotations
 from navigate.core import (
     Scalar,
     as_scalar,
+    assign_boolean,
     assign_id,
     assign_value,
     command_assignment_to_dict,
 )
-from navigate.core.assign import BOOL_ID
 from navigate.core.enum_ import FuelTypeID
 from navigate.core.node import Node
 from navigate.core.node_type import FUEL, VARIABLE
@@ -68,7 +68,7 @@ class Fuel(Node):
         liquid_market : str
             Whether the fuel belongs to a liquid market.
         """
-        self.liquid_market = assign_id(liquid_market, BOOL_ID)
+        self.liquid_market = assign_boolean(liquid_market)
 
     def set_lower_heating_value(self, lower_heating_value):
         """

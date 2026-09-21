@@ -36,6 +36,7 @@ from navigate.util.dates import (
 from navigate.util.naming import (
     attribute_to_instance_name,
     attribute_to_setter,
+    key_name,
     matching_keys,
     name_contains_wildcards,
     retrieve_keys,

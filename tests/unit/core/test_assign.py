@@ -16,8 +16,8 @@ import numpy as np
 import pytest
 
 from navigate.core.assign import (
-    BOOL_ID,
     _check_scalar,
+    assign_boolean,
     assign_fraction_list,
     assign_id,
     assign_integer,
@@ -49,8 +49,6 @@ class TestAssignId:
     @pytest.mark.parametrize(
         ("assignment", "id_enum", "expected"),
         [
-            ("TRUE", BOOL_ID, True),
-            ("FALSE", BOOL_ID, False),
             ("OIL", FuelTypeID, FuelTypeID.OIL),
             ("-INF", BOUNDS_MAP, -np.inf),
             ("INF", BOUNDS_MAP, np.inf),
@@ -61,8 +59,8 @@ class TestAssignId:
 
     @pytest.mark.parametrize(
         "id_enum",
-        [BOOL_ID, FuelTypeID, BOUNDS_MAP],
-        ids=["bool_map", "enum", "bounds_map"],
+        [FuelTypeID, BOUNDS_MAP],
+        ids=["enum", "bounds_map"],
     )
     def test_unknown_id_raises(self, id_enum):
         with pytest.raises(ValueError, match="does not accept ID"):
@@ -71,6 +69,31 @@ class TestAssignId:
     def test_wildcard_raises_dedicated_message(self):
         with pytest.raises(ValueError, match="wildcards are not supported"):
             assign_id("M*", FuelTypeID)
+
+
+# ── assign_boolean ────────────────────────────────────────────────────────────
+
+
+class TestAssignBoolean:
+    @pytest.mark.parametrize(
+        ("assignment", "expected"),
+        [("TRUE", True), ("FALSE", False)],
+    )
+    def test_keyword_lookup(self, assignment, expected):
+        assert assign_boolean(assignment) is expected
+
+    @pytest.mark.parametrize(
+        "assignment",
+        ["MAYBE", "true", ""],
+        ids=["unknown", "wrong_case", "empty"],
+    )
+    def test_other_token_rejected_as_a_value_error(self, assignment):
+        # a ValueError is what the parser turns into a deck-located message; a
+        # KeyError would be reported as a missing name instead
+        with pytest.raises(
+            ValueError, match="only allows assignment of TRUE or FALSE, but got"
+        ):
+            assign_boolean(assignment)
 
 
 # ── _check_scalar ─────────────────────────────────────────────────────────────
@@ -137,16 +160,32 @@ class TestAssignInteger:
         assert result == expected
         assert isinstance(result, int)
 
-    def test_fractional_value_rejected(self):
+    @pytest.mark.parametrize(
+        ("assignment", "expected"),
+        [(3.000001, 3), (2.999999, 3), (-2.999999, -3), (-3.000001, -3)],
+        ids=["above", "below", "negative_above", "negative_below"],
+    )
+    def test_tolerance_is_symmetric(self, assignment, expected):
+        # TOLERANCE (1e-5) forgives a deck value written just off a whole
+        # number, and forgives it equally on either side of that number
+        assert assign_integer(assignment) == expected
+
+    @pytest.mark.parametrize(
+        "assignment",
+        [2.5, 2.99, 3.01],
+        ids=["half", "below_outside_tolerance", "above_outside_tolerance"],
+    )
+    def test_fractional_value_rejected(self, assignment):
         with pytest.raises(ValueError, match="only allows assignment of integers"):
-            assign_integer(2.5)
+            assign_integer(assignment)
 
     def test_int_argument_rejected(self):
-        # the DSL only ever produces floats; _check_scalar guards the boundary
-        with pytest.raises(ValueError, match="requires a scalar"):
+        # the DSL only ever produces floats; _check_scalar guards the boundary,
+        # naming the kind it got rather than echoing a value that reads as one
+        with pytest.raises(ValueError, match="requires a scalar, but got integer"):
             assign_integer(3)
 
-    def test_bounds_checked_before_truncation(self):
+    def test_bounds_checked_before_rounding(self):
         with pytest.raises(ValueError, match=r"must be ≥ 1\.0"):
             assign_integer(0.0, lower=1.0)
 
@@ -188,9 +227,14 @@ class TestAssignValue:
         with pytest.raises(ValueError, match="but got list"):
             assign_value(assignment)
 
-    def test_node_without_allowed_types_rejected(self):
-        with pytest.raises(ValueError, match="only allows assignment of "):
-            assign_value(Forecast("f"), scalar=False, type_=None)
+    def test_node_rejected_when_no_type_is_allowed(self):
+        # the shape of every scalar-only setter; a setter allowing no kind at
+        # all is an implementation error and is not a configuration under test
+        with pytest.raises(
+            ValueError,
+            match=r'only allows assignment of scalars, but got Forecast\("f"\)',
+        ):
+            assign_value(Forecast("f"))
 
     @pytest.mark.parametrize(
         "node_class",
@@ -213,8 +257,8 @@ class TestAssignValue:
         [
             ("FLAT", {}, "only allows assignment of scalars, but got FLAT"),
             ("FLAT", {"type_": FORECAST}, "nodes of type Forecast, but got FLAT"),
-            (3, {}, "only allows assignment of scalars, but got 3"),
-            (True, {}, "only allows assignment of scalars, but got True"),
+            (3, {}, "only allows assignment of scalars, but got integer"),
+            (True, {}, "only allows assignment of scalars, but got boolean"),
             (None, {}, "only allows assignment of scalars, but got None"),
         ],
         ids=["token", "token_with_allowed_types", "int", "bool", "none"],
@@ -222,7 +266,9 @@ class TestAssignValue:
     def test_unrecognized_value_rejected(self, assignment, arguments, message):
         # a typo such as 'Capex = FLAT' arrives as a str, and an int or a bool
         # is deliberately left unwrapped by as_scalar (test_wrap.py), so this
-        # is the boundary that has to refuse all of them
+        # is the boundary that has to refuse all of them. An int is named by
+        # its kind, never echoed: 'but got 3' under 'only allows scalars'
+        # contradicts itself for anyone who has not read as_scalar
         with pytest.raises(ValueError, match=message):
             assign_value(assignment, **arguments)
 
@@ -256,8 +302,8 @@ class TestAssignList:
         ("assignment", "length", "message"),
         [
             ([1.0, 2.0], 3, "must contain exactly 3 values"),
-            ([1.0], (2, None), "must contain more than 2 values"),
-            ([1.0, 2.0, 3.0], (None, 2), "must contain less than 2 values"),
+            ([1.0], (2, None), "must contain at least 2 values"),
+            ([1.0, 2.0, 3.0], (None, 2), "must contain at most 2 values"),
         ],
         ids=["exact", "lower_bound", "upper_bound"],
     )
@@ -390,9 +436,19 @@ class TestCommandAssignmentToTupleDict:
         with pytest.raises(KeyError, match="missing"):
             command_assignment_to_tuple_dict(("missing", "x"), 1.0, {("a", "x"): None})
 
-    def test_empty_dict_raises_with_the_joined_key(self):
-        with pytest.raises(KeyError, match="a, b"):
-            command_assignment_to_tuple_dict(("a", "b"), 1.0, {})
+    @pytest.mark.parametrize(
+        ("key", "match"),
+        [
+            (("a", "b"), "a, b"),
+            ((FuelTypeID.OIL, FuelTypeID.AMMONIA), "OIL, AMMONIA"),
+        ],
+        ids=["names", "enum_members"],
+    )
+    def test_empty_dict_raises_with_the_joined_key(self, key, match):
+        # the dict is empty when a dependent dict was never seeded, so the key
+        # has nothing to match; enum keys are named, not str.join-ed
+        with pytest.raises(KeyError, match=match):
+            command_assignment_to_tuple_dict(key, 1.0, {})
 
     def test_bounds_forwarded(self):
         with pytest.raises(ValueError, match=r"must be ≤ 1\.0"):
@@ -415,8 +471,8 @@ class TestCommandAssignmentToBooleanDict:
 
         assert assignment_dict["oil"] is expected
 
-    def test_invalid_value_raises(self):
-        with pytest.raises(KeyError, match="is not a valid boolean value"):
+    def test_invalid_value_raises_before_the_key_is_looked_up(self):
+        with pytest.raises(ValueError, match="only allows assignment of TRUE or FALSE"):
             command_assignment_to_boolean_dict("oil", "MAYBE", {"oil": None})
 
     def test_unmatched_wildcard_is_silent_when_allowed(self):
