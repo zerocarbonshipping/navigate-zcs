@@ -678,7 +678,7 @@ Examples of fleets are handymax bulk carriers and LR1 tankers.</p>
 <h3>InitialSplit<a class="headerlink" href="#initialsplit" title="Link to this heading">#</a></h3>
 <p>This attribute sets the initial distribution of vessel types in the fleet.</p>
 <p>The list must have the same length as the list of vessels.</p>
-<p>The list must sum to 1. If not, the list is normalized by equal fractions.</p>
+<p>The list must sum to 1. If not, the list is rescaled proportionally.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: List of <code class="docutils literal notranslate"><span class="pre">floats</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
@@ -1017,7 +1017,7 @@ Examples of fleets are handymax bulk carriers and LR1 tankers.</p>
 <p>This command sets the fraction of energy saved in port through operational measures that are not modeled through technology business cases.</p>
 <p>The operational saving is applied as an intermediate step between the raw energy demand and the technology-adjusted energy demand.</p>
 <ul class="simple">
-<li><p><strong>Primary key type</strong>: <a class="reference internal" href="appendix_ids.html#energydemandtypeid"><span class="std std-ref">EnergyDemandTypeID</span></a></p></li>
+<li><p><strong>Primary key type</strong>: <a class="reference internal" href="appendix_ids.html#energydemandtypeid"><span class="std std-ref">EnergyDemandTypeID</span></a>, restricted to the demands a vessel has in port: <code class="docutils literal notranslate"><span class="pre">ELECTRICAL</span></code> and <code class="docutils literal notranslate"><span class="pre">HEAT</span></code></p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
