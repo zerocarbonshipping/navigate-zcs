@@ -15,6 +15,7 @@ from navigate.util import TOLERANCE, divide_nonzero
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
+    from navigate.util.types_ import FloatArray
 
 logger = logging.getLogger(__name__)
 
@@ -334,38 +335,47 @@ def post_process_investment_metric(fleets, timeline):
         _aggregate_fleet_freight_rate(fleet, timeline)
 
 
-def _aggregate_fleet_freight_rate(fleet, timeline):
+def _aggregate_fleet_freight_rate(fleet: Fleet, timeline: FloatArray) -> None:
     """
     Aggregate a fleet-level instantaneous freight rate (USD/cargo-mile).
 
     The fleet rate is the multiplier-weighted total achieved charter cost divided by the
     multiplier-weighted cargo-miles delivered, making it the cargo-mile-consistent
-    counterpart of the per-vessel instantaneous freight rate. Only vessels with a
-    positive multiplier and a calculated cost at the time-step contribute.
+    counterpart of the per-vessel instantaneous freight rate. A vessel contributes at
+    every time-step where its cost is calculated unless its multiplier is zero or
+    negative; the rate is NaN wherever the weighted cargo-miles are not positive.
 
     Parameters
     ----------
-    fleet : Fleet
+    fleet
         Fleet whose vessels are aggregated.
-    timeline : np.ndarray
+    timeline
         Full timeline of the simulation.
     """
-    for idx in range(timeline.size):
-        cost_weighted = 0.0
-        cargo_weighted = 0.0
+    multipliers = fleet.profile.get_existing_vessels()
+    cost_weighted = np.zeros(timeline.size)
+    cargo_weighted = np.zeros(timeline.size)
 
-        for vessel in fleet.vessels:
-            multiplier = fleet.profile.get_existing_vessels(vessel.name, idx)
-            if multiplier <= 0.0 or not vessel.profile.cost_is_calculated(idx):
-                continue
+    # one ordered `+=` per vessel over the time axis, so each step's sums receive
+    # their float64 additions in one fixed vessel order: stacking the vessels and
+    # reducing over that axis may reorder the additions and drift in the last
+    # bit, breaking bit-for-bit comparison of runs
+    for vessel in fleet.vessels:
+        multiplier = multipliers[vessel.name]
 
-            cost_weighted += multiplier * vessel.profile.get_cargo_charter_rate(idx)
-            cargo_weighted += multiplier * vessel.expectation.get_cargo_miles(idx)
+        # a NaN multiplier stays active so it surfaces in the rate instead of
+        # being dropped silently
+        active = ~(multiplier <= 0.0) & vessel.profile.cost_is_calculated()
+        cost_weighted += np.where(
+            active, multiplier * vessel.profile.get_cargo_charter_rate(), 0.0
+        )
+        cargo_weighted += np.where(
+            active, multiplier * vessel.expectation.get_cargo_miles(), 0.0
+        )
 
-        if cargo_weighted > 0.0:
-            fleet.profile.set_instantaneous_freight_rate(
-                idx, cost_weighted / cargo_weighted
-            )
+    fleet.profile.set_instantaneous_freight_rate(
+        np.s_[:], divide_nonzero(cost_weighted, cargo_weighted, default=np.nan)
+    )
 
 
 def _calculate_total_vessel_operating_expenses(vessel, idx, timeline):
