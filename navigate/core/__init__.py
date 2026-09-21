@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from navigate.core.assign import (
     assign_boolean,
+    assign_bound,
     assign_fraction_list,
     assign_id,
     assign_id_list,

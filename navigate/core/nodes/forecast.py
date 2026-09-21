@@ -8,7 +8,7 @@ import numpy as np
 from navigate.core.node import Node
 from navigate.core.node_type import FORECAST
 from navigate.core.nodes._table1d import _Table1D, check_table1d_input
-from navigate.core.table_data import TableData, build_table_1d
+from navigate.core.table_data import TableData, build_table_1d_dated
 from navigate.exceptions import no_value_assigned_error
 from navigate.util import timedelta_to_days
 
@@ -59,7 +59,7 @@ class Forecast(Node, _Table1D):
         self._current_value = self.calculate(time)
 
     def set_table(self, table: TableData) -> None:
-        x, y = build_table_1d(table, allow_date=True)
+        x, y = build_table_1d_dated(table)
         self._temporary_table = (x, y)
 
     def replace_reference_table(self, reference: np.datetime64) -> None:

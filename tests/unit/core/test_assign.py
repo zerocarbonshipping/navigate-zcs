@@ -18,6 +18,7 @@ import pytest
 from navigate.core.assign import (
     _check_scalar,
     assign_boolean,
+    assign_bound,
     assign_fraction_list,
     assign_id,
     assign_integer,
@@ -30,7 +31,6 @@ from navigate.core.assign import (
 from navigate.core.enum_ import FuelTypeID
 from navigate.core.expression import Expression
 from navigate.core.node_type import FORECAST, FUEL, VARIABLE
-from navigate.core.nodes._calculator import BOUNDS_MAP
 from navigate.core.nodes.curve import Curve
 from navigate.core.nodes.forecast import Forecast
 from navigate.core.nodes.fuel import Fuel
@@ -46,29 +46,60 @@ DATE = np.datetime64("2024-01-01", "D")
 
 
 class TestAssignId:
-    @pytest.mark.parametrize(
-        ("assignment", "id_enum", "expected"),
-        [
-            ("OIL", FuelTypeID, FuelTypeID.OIL),
-            ("-INF", BOUNDS_MAP, -np.inf),
-            ("INF", BOUNDS_MAP, np.inf),
-        ],
-    )
-    def test_member_lookup(self, assignment, id_enum, expected):
-        assert assign_id(assignment, id_enum) == expected
+    def test_member_lookup(self):
+        assert assign_id("OIL", FuelTypeID) is FuelTypeID.OIL
 
-    @pytest.mark.parametrize(
-        "id_enum",
-        [FuelTypeID, BOUNDS_MAP],
-        ids=["enum", "bounds_map"],
-    )
-    def test_unknown_id_raises(self, id_enum):
+    def test_unknown_id_raises(self):
         with pytest.raises(ValueError, match="does not accept ID"):
-            assign_id("MAYBE", id_enum)
+            assign_id("MAYBE", FuelTypeID)
 
     def test_wildcard_raises_dedicated_message(self):
         with pytest.raises(ValueError, match="wildcards are not supported"):
             assign_id("M*", FuelTypeID)
+
+
+# ── assign_bound ──────────────────────────────────────────────────────────────
+
+
+class TestAssignBound:
+    @pytest.mark.parametrize(
+        ("assignment", "expected"),
+        [("-INF", -np.inf), ("INF", np.inf)],
+    )
+    def test_keyword_lookup(self, assignment, expected):
+        assert assign_bound(assignment) == expected
+
+    @pytest.mark.parametrize(
+        "assignment",
+        ["MAYBE", "inf", ""],
+        ids=["unknown", "wrong_case", "empty"],
+    )
+    def test_other_token_rejected_as_a_value_error(self, assignment):
+        # a ValueError is what the parser turns into a deck-located message; a
+        # KeyError would be reported as a missing name instead
+        with pytest.raises(
+            ValueError,
+            match="only allows assignment of scalars, -INF or INF, but got",
+        ):
+            assign_bound(assignment)
+
+    @pytest.mark.parametrize("assignment", [-2.0, 0.0, 1e30])
+    def test_scalar_returned(self, assignment):
+        assert assign_bound(assignment) == assignment
+
+    @pytest.mark.parametrize(
+        "assignment",
+        [3, True, [1.0, 2.0], TableData(rows=[[1.0, 2.0]]), DATE, Curve("c")],
+        ids=["integer", "boolean", "list", "table", "date", "node"],
+    )
+    def test_non_scalar_rejected_as_a_value_error(self, assignment):
+        # the bound setters route everything that is not a float here, and an
+        # unhashable value must not escape the keyword lookup as a TypeError
+        with pytest.raises(
+            ValueError,
+            match="only allows assignment of scalars, -INF or INF, but got",
+        ):
+            assign_bound(assignment)
 
 
 # ── assign_boolean ────────────────────────────────────────────────────────────
@@ -312,7 +343,7 @@ class TestAssignList:
             assign_list(assignment, length=length)
 
     def test_default_length_skips_the_check(self):
-        assert assign_list([1.0, 2.0], length=()) == [1.0, 2.0]
+        assert assign_list([1.0, 2.0], length=None) == [1.0, 2.0]
 
     @pytest.mark.parametrize(
         "entries",
@@ -334,23 +365,31 @@ class TestAssignList:
 
 class TestAssignFractionList:
     def test_unit_sum_is_untouched(self):
-        fractions, normalized = assign_fraction_list([0.25, 0.75])
+        fractions, rescaled = assign_fraction_list([0.25, 0.75])
 
         assert fractions == pytest.approx([0.25, 0.75])
-        assert normalized is False
+        assert rescaled is False
 
     def test_rescaled_and_flagged_beyond_one_percent(self):
-        fractions, normalized = assign_fraction_list([0.4, 0.4])
+        fractions, rescaled = assign_fraction_list([0.4, 0.4])
 
         assert fractions == pytest.approx([0.5, 0.5])
-        assert normalized is True
+        assert rescaled is True
 
     def test_rescaled_silently_within_one_percent(self):
         # the flag gates the caller's log line, not the rescaling itself
-        fractions, normalized = assign_fraction_list([0.5, 0.505])
+        fractions, rescaled = assign_fraction_list([0.5, 0.505])
 
         assert sum(fractions) == pytest.approx(1.0)
-        assert normalized is False
+        assert rescaled is False
+
+    def test_the_passed_list_is_left_alone(self):
+        # the setters assign the returned list, so rescaling must not reach
+        # the list the parser still holds
+        passed = [0.4, 0.4]
+        assign_fraction_list(passed)
+
+        assert passed == pytest.approx([0.4, 0.4])
 
     @pytest.mark.parametrize(
         ("fractions", "expected"),
@@ -359,10 +398,10 @@ class TestAssignFractionList:
     )
     def test_nothing_to_rescale(self, fractions, expected):
         # a zero total cannot be scaled to one, so the values stand as written
-        result, normalized = assign_fraction_list(fractions)
+        result, rescaled = assign_fraction_list(fractions)
 
         assert result == expected
-        assert normalized is False
+        assert rescaled is False
 
     def test_negative_rejected(self):
         with pytest.raises(ValueError, match="does not allow negative values"):
@@ -423,14 +462,6 @@ class TestCommandAssignmentToTupleDict:
         assert isinstance(assignment_dict[("a", "x")], Scalar)
         assert isinstance(assignment_dict[("b", "x")], Scalar)
         assert assignment_dict[("a", "y")] is None
-
-    def test_symmetric_writes_the_transposed_key(self):
-        assignment_dict = {("a", "b"): None}
-        command_assignment_to_tuple_dict(
-            ("a", "b"), 1.0, assignment_dict, symmetric=True
-        )
-
-        assert assignment_dict[("b", "a")] is assignment_dict[("a", "b")]
 
     def test_unmatched_key_raises(self):
         with pytest.raises(KeyError, match="missing"):

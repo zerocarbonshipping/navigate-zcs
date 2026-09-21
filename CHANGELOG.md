@@ -21,6 +21,44 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `tests/regression/README.md`.
 
 ### Changed
+- **Breaking** for code importing navigate as a library: `assign_fraction_list`
+  returns the rescaled fractions instead of also rescaling the list it was
+  handed, and its second return value is named for the rescale it reports.
+  Both setters that call it already assigned the returned list, so no deck
+  result moves.
+- A wildcard node declaration whose `InitialSplit` or `ConditionDistribution`
+  needs rescaling logs the rescale once per matched node. The parser hands one
+  list to every node it matched, so the in-place rescale left all but the
+  first with a list already summing to 1 and only the first reported it. The
+  fractions themselves are unchanged.
+- **Breaking** for code importing navigate as a library: `Scalar` requires the
+  value it answers with, so `Scalar()` no longer constructs.
+- **Breaking** for code importing navigate as a library: the `-INF`/`INF`
+  keywords move out of `assign_id` into a new `assign_bound`, which owns the
+  whole bound contract — a scalar or one of the keywords — as `assign_boolean`
+  already owns `TRUE`/`FALSE`. The calculator nodes' public `BOUNDS_MAP` is
+  gone with them, and `assign_id` takes an enum class and returns one of its
+  members.
+- **Breaking** for code importing navigate as a library:
+  `build_table_1d`/`build_table_2d` lose `allow_date` to
+  `build_table_1d_dated`/`build_table_2d_dated`, so the undated pair returns
+  float arrays only while the dated pair still returns float arrays for a
+  numeric table.
+- **Breaking** for code importing navigate as a library:
+  `command_assignment_to_tuple_dict` loses its `symmetric` flag, which nothing
+  assigned.
+- A bound the deck writes is reported against its own line: an unaccepted one
+  reads `only allows assignment of scalars, -INF or INF, but got X` rather
+  than `does not accept ID 'X'`, which named neither the keywords nor the
+  number the setter also takes, and a list or a table now reads as that
+  message instead of dying as a `TypeError` no deck line could be attached to.
+- The assignment boundary's annotations carry the shapes it validates instead
+  of a wide union: `assign_value` and `assign_list` are generic over what they
+  are handed, so a setter no longer inherits `Node | WildcardNodeReference |
+  Scalar | float | Expression`; `as_scalar` pairs a wrapping overload with a
+  passthrough; and the three `command_assignment_to_*` helpers are generic
+  over their dictionary's key type. No runtime behavior changes, and neither
+  does spelling "no length check" as `length=None` rather than `length=()`.
 - **Breaking** for code importing navigate as a library: the two reference
   classes are split along the line the parser already draws between them.
   `NodeReference` is a parser-internal token and moves to

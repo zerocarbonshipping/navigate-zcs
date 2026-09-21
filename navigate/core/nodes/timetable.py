@@ -11,7 +11,7 @@ from navigate.core.enum_ import ExtrapolateID
 from navigate.core.node import Node
 from navigate.core.node_type import TIMETABLE
 from navigate.core.nodes._table2d import _Table2D, check_table2d_input
-from navigate.core.table_data import TableData, build_table_2d
+from navigate.core.table_data import TableData, build_table_2d_dated
 from navigate.exceptions import no_value_assigned_error
 from navigate.util import timedelta_to_days
 
@@ -57,7 +57,7 @@ class Timetable(Node, _Table2D):
         self._current_time = time
 
     def set_table(self, table: TableData) -> None:
-        x, y, z = build_table_2d(table, allow_date=True)
+        x, y, z = build_table_2d_dated(table)
         self._temporary_table = (x, y, z)
 
     def replace_reference_table(self, reference: np.datetime64) -> None:
