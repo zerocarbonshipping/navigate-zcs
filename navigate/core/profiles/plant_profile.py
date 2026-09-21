@@ -9,11 +9,12 @@ import numpy as np
 
 from navigate.core.initial_values import EMPTY_NAN
 from navigate.core.profiles._base_profile import _BaseProfile
-from navigate.util import divide_nonzero
+from navigate.util import divide_nonzero, multiply_dicts
 
 if TYPE_CHECKING:
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
+    from navigate.util.types_ import FloatArray
 
 
 class PlantProfile(_BaseProfile):
@@ -81,18 +82,14 @@ class PlantProfile(_BaseProfile):
         # so dividing by 10^3
         return divide_nonzero(emission, (energy / 1e3))
 
-    def _get_intensity_equivalent(
-        self,
-        data: dict[str, np.ndarray],
-        emission_name: str | None = None,
-        idx: int | slice = np.s_[:],
-    ) -> np.ndarray | dict[str, np.ndarray]:
-        if emission_name is not None:
-            equivalent = self._extract_multiply_dict(
-                data, self._global_warming_potential, key=emission_name, idx=idx
-            )
-            return self._convert_to_intensity(equivalent, self._lower_heating_value)
-        return {key: self._get_intensity_equivalent(data, key, idx) for key in data}
+    def _intensity_equivalent(
+        self, wtt: dict[str, FloatArray]
+    ) -> dict[str, FloatArray]:
+        equivalent = multiply_dicts(wtt, self._global_warming_potential)
+        return {
+            emission_name: self._convert_to_intensity(value, self._lower_heating_value)
+            for emission_name, value in equivalent.items()
+        }
 
     def set_investment_cost(self, idx: int, investment_cost: float) -> None:
         self._investment_cost[idx] = investment_cost
@@ -139,10 +136,8 @@ class PlantProfile(_BaseProfile):
     ) -> np.ndarray:
         return self._get_total_method(self.get_equivalent_investment_wtt, idx)
 
-    def get_intensity_equivalent_investment_wtt(
-        self, emission_name: str | None = None, idx: int | slice = np.s_[:]
-    ) -> np.ndarray | dict[str, np.ndarray]:
-        return self._get_intensity_equivalent(self._investment_wtt, emission_name, idx)
+    def get_intensity_equivalent_investment_wtt(self) -> dict[str, FloatArray]:
+        return self._intensity_equivalent(self._investment_wtt)
 
     def get_intensity_total_equivalent_investment_wtt(
         self, idx: int | slice = np.s_[:]
@@ -164,12 +159,8 @@ class PlantProfile(_BaseProfile):
     ) -> np.ndarray:
         return self._get_total_method(self.get_equivalent_instantaneous_wtt, idx)
 
-    def get_intensity_equivalent_instantaneous_wtt(
-        self, emission_name: str | None = None, idx: int | slice = np.s_[:]
-    ) -> np.ndarray | dict[str, np.ndarray]:
-        return self._get_intensity_equivalent(
-            self._instantaneous_wtt, emission_name, idx
-        )
+    def get_intensity_equivalent_instantaneous_wtt(self) -> dict[str, FloatArray]:
+        return self._intensity_equivalent(self._instantaneous_wtt)
 
     def get_intensity_total_equivalent_instantaneous_wtt(
         self, idx: int | slice = np.s_[:]

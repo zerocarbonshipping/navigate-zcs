@@ -13,7 +13,7 @@ from navigate.core.profiles._vessel_aggregate_profile import _VesselAggregatePro
 if TYPE_CHECKING:
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
-    from navigate.util.types_ import FloatLike
+    from navigate.util.types_ import FloatArray, FloatLike
 
 from navigate.util import divide_nonzero, extract_from_dict, extract_from_tuple_dict
 
@@ -243,43 +243,27 @@ class FleetProfile(_VesselAggregateProfile):
             self._technology_uptake, vessel_name, technology_name, idx
         )
 
-    def get_fleet_technology_uptake(
-        self, technology_name: str | None = None, idx: int | slice = np.s_[:]
-    ) -> np.ndarray | dict[str, np.ndarray]:
+    def get_fleet_technology_uptake(self) -> dict[str, FloatArray]:
         """
         Compute the fleet-wide technology uptake, weighted by vessel count.
 
         It is the average of per-vessel uptake shares; 0 where the fleet is empty.
-
-        Parameters
-        ----------
-        technology_name
-            Technology to extract; all technologies as a dict when None.
-        idx
-            Time-step index or slice.
         """
-        if technology_name is None:
-            technology_names = dict.fromkeys(
-                name for _, name in self._technology_uptake
+        shares: dict[str, dict[str, FloatArray]] = {}
+        for (vessel_name, technology_name), uptake in self._technology_uptake.items():
+            shares.setdefault(technology_name, {})[vessel_name] = uptake
+
+        fleet_uptake: dict[str, FloatArray] = {}
+        for technology_name, vessel_shares in shares.items():
+            values = np.array(list(vessel_shares.values()))
+            weights = np.array(
+                [self._existing_vessels[vessel_name] for vessel_name in vessel_shares]
             )
-            return {
-                name: self.get_fleet_technology_uptake(name, idx)
-                for name in technology_names
-            }
+            fleet_uptake[technology_name] = divide_nonzero(
+                (values * weights).sum(axis=0), weights.sum(axis=0)
+            )
 
-        shares = extract_from_tuple_dict(
-            self._technology_uptake, key2=technology_name, idx=idx
-        )
-        if not shares:
-            # no vessels carry the technology: zero uptake, timeline-shaped
-            return np.zeros_like(self._trade[idx])
-
-        values = np.array([shares[vessel_name] for vessel_name in shares])
-        weights = np.array(
-            [self._existing_vessels[vessel_name][idx] for vessel_name in shares]
-        )
-
-        return divide_nonzero((values * weights).sum(axis=0), weights.sum(axis=0))
+        return fleet_uptake
 
     def get_newbuild_technology_uptake(
         self,

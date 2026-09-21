@@ -71,3 +71,14 @@ class _BaseProfile:
         # an empty dict sums to 0.0 rather than raising: a fuel- or policy-free
         # model produces one
         return np.add.reduce(list(values.values()))
+
+    @staticmethod
+    def _equivalent(
+        emissions: dict[tuple[str, str], FloatArray],
+        global_warming_potential: dict[str, float],
+    ) -> dict[tuple[str, str], FloatArray]:
+        return {
+            (fuel_name, emission_name): emission
+            * global_warming_potential[emission_name]
+            for (fuel_name, emission_name), emission in emissions.items()
+        }

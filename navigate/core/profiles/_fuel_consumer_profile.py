@@ -16,6 +16,7 @@ if TYPE_CHECKING:
 
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
+    from navigate.util.types_ import FloatArray
 
 from navigate.util import (
     add_dicts,
@@ -235,34 +236,6 @@ class _FuelConsumerProfile(_FuelBaseProfile):
                 profile._shore_power_emission[key][idx] * multiplier
             )
 
-    def _get_equivalent(
-        self,
-        data: dict[tuple[str, str], np.ndarray],
-        fuel_name: str | None = None,
-        emission_name: str | None = None,
-        idx: int | slice = np.s_[:],
-    ) -> np.ndarray | dict[tuple[str, str], np.ndarray]:
-
-        if emission_name is not None:
-            return extract_from_tuple_dict(
-                data,
-                key1=fuel_name,
-                key2=emission_name,
-                idx=idx,
-                transform=lambda x: x * self._global_warming_potential[emission_name],
-            )
-
-        if fuel_name is not None:
-            return {
-                (fuel_name, en): self._get_equivalent(data, fuel_name, en, idx)
-                for en in self._get_emissions()
-            }
-
-        return {
-            key: self._get_equivalent(data, *key, idx)
-            for key in self._get_fuel_emissions()
-        }
-
     def _to_intensity(
         self,
         method: Callable,
@@ -347,12 +320,10 @@ class _FuelConsumerProfile(_FuelBaseProfile):
         # so dividing by 10^3
         return divide_nonzero(emission, (energy / 1e3))
 
-    def _converter_fuel_type_share(
-        self, fuel_type: FuelTypeID, idx: int | slice = np.s_[:]
-    ) -> np.ndarray:
+    def _converter_fuel_type_share(self, fuel_type: FuelTypeID) -> FloatArray:
         # TODO: may not work when using multiple main fuel types
 
-        energy = self.get_converter_energy(fuel_type, idx)
+        energy = self._fuel_mass_to_energy(self._converter_mass[fuel_type])
         main_fuel = np.sum(
             [
                 e
@@ -605,23 +576,17 @@ class _FuelConsumerProfile(_FuelBaseProfile):
             + self._shore_power_energy[idx]
         )
 
-    def get_converter_energy(
-        self, fuel_type: FuelTypeID | None = None, idx: int | slice = np.s_[:]
-    ) -> np.ndarray | dict[str, np.ndarray]:
-        return self._extract_multiply_nested_dict(
-            self._converter_mass, self._lower_heating_value, fuel_type, idx
-        )
+    def get_converter_energy(self) -> dict[FuelTypeID, dict[str, FloatArray]]:
+        return {
+            fuel_type: self._fuel_mass_to_energy(mass)
+            for fuel_type, mass in self._converter_mass.items()
+        }
 
-    def get_pilot_fuel_share(
-        self, fuel_type: FuelTypeID | None = None, idx: int | slice = np.s_[:]
-    ) -> np.ndarray | dict[str, np.ndarray]:
-        if fuel_type is not None:
-            return 1.0 - self._converter_fuel_type_share(fuel_type, idx)
-        else:
-            return {
-                fuel_type: self.get_pilot_fuel_share(fuel_type, idx)
-                for fuel_type in FuelTypeID
-            }
+    def get_pilot_fuel_share(self) -> dict[FuelTypeID, FloatArray]:
+        return {
+            fuel_type: 1.0 - self._converter_fuel_type_share(fuel_type)
+            for fuel_type in self._converter_mass
+        }
 
     def get_shore_power_energy(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         return self._shore_power_energy[idx]
@@ -721,13 +686,8 @@ class _FuelConsumerProfile(_FuelBaseProfile):
     def get_cumulative_total_fuel_related_expenses(self) -> np.ndarray:
         return self._to_cumulative(self.get_total_fuel_related_expenses())
 
-    def get_equivalent_wtt(
-        self,
-        fuel_name: str | None = None,
-        emission_name: str | None = None,
-        idx: int | slice = np.s_[:],
-    ) -> np.ndarray | dict[tuple[str, str], np.ndarray]:
-        return self._get_equivalent(self._wtt, fuel_name, emission_name, idx)
+    def get_equivalent_wtt(self) -> dict[tuple[str, str], FloatArray]:
+        return self._equivalent(self._wtt, self._global_warming_potential)
 
     def get_total_equivalent_wtt(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         return self._get_total_method(self.get_equivalent_wtt, idx)
@@ -757,13 +717,8 @@ class _FuelConsumerProfile(_FuelBaseProfile):
     ) -> np.ndarray:
         return self._to_intensity(self.get_total_equivalent_wtt, idx=idx)
 
-    def get_equivalent_ttw(
-        self,
-        fuel_name: str | None = None,
-        emission_name: str | None = None,
-        idx: int | slice = np.s_[:],
-    ) -> np.ndarray | dict[tuple[str, str], np.ndarray]:
-        return self._get_equivalent(self._ttw, fuel_name, emission_name, idx)
+    def get_equivalent_ttw(self) -> dict[tuple[str, str], FloatArray]:
+        return self._equivalent(self._ttw, self._global_warming_potential)
 
     def get_total_equivalent_ttw(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         return self._get_total_method(self.get_equivalent_ttw, idx)
@@ -793,14 +748,9 @@ class _FuelConsumerProfile(_FuelBaseProfile):
     ) -> np.ndarray:
         return self._to_intensity(self.get_total_equivalent_ttw, idx=idx)
 
-    def get_equivalent_wtw(
-        self,
-        fuel_name: str | None = None,
-        emission_name: str | None = None,
-        idx: int | slice = np.s_[:],
-    ) -> np.ndarray | dict[tuple[str, str], np.ndarray]:
-        return self._get_equivalent(
-            add_dicts(self._wtt, self._ttw), fuel_name, emission_name, idx
+    def get_equivalent_wtw(self) -> dict[tuple[str, str], FloatArray]:
+        return self._equivalent(
+            add_dicts(self._wtt, self._ttw), self._global_warming_potential
         )
 
     def get_total_equivalent_wtw(self, idx: int | slice = np.s_[:]) -> np.ndarray:
