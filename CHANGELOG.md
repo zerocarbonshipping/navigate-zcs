@@ -779,6 +779,14 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - The fleet profile stores scrap and newbuilds as single per-vessel
   aggregates instead of per-source arrays (value-identical; the evolution
   code still computes the sources separately).
+- **Breaking** for code importing navigate as a library: `Expression` carries
+  the deck text it was written as in `text`, the node references it parses in
+  `reference_strings`, and the nodes the parser resolves those to in
+  `node_references` — one attribute no longer holds both — and the references
+  of an arbitrary expression text are read through the module-level
+  `parse_reference_strings`, replacing the `reference_strings()` probe.
+  Evaluating an expression before it is initialized raises `RuntimeError`.
+  `navigate.core.expression` is fully type-annotated and type-checked.
 
 ### Added
 - Vessel-level energy-intensity savings (`SpeedEnergyIntensitySaving`,
