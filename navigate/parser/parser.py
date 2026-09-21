@@ -1327,7 +1327,7 @@ class Parser:
                 attribute.initialize(node)
                 attribute.node_references = [
                     self._read_node_reference(reference, attribute.reference_location)
-                    for reference in attribute.node_references
+                    for reference in attribute.reference_strings
                 ]
                 attribute.check_consistency()
 

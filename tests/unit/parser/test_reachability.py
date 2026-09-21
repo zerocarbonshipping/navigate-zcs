@@ -190,7 +190,7 @@ class TestFindUnreachable:
 
         assert find_unreachable(nodes, GeneralNodes(), event_queue) == []
 
-    def test_events_expression_references_found_by_probe(self):
+    def test_events_expression_references_found_without_initializing(self):
         nodes = self._fleet_chain()
         nodes.forecasts["a"] = Forecast("a")
         nodes.forecasts["b"] = Forecast("b")

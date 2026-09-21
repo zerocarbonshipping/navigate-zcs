@@ -16,15 +16,35 @@ from __future__ import annotations
 import ast
 import operator
 import re
+from typing import TYPE_CHECKING, NoReturn, Protocol, overload
 
 import numpy as np
 
 from navigate.core.wrap import as_list
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from navigate.core.node import Node
+    from navigate.core.node_type import AcceptedTypes
+    from navigate.util.types_ import FloatArray, FloatLike
+
+type _UnaryOperator = Callable[[FloatLike], FloatLike]
+type _BinaryOperator = Callable[[FloatLike, FloatLike], FloatLike]
+
 _REFERENCE_NAME = re.compile(r"([A-Z][a-z]+)+")
 _CAPITALIZED_NAME = re.compile(r"[A-Z][A-Za-z]*")
 
-_BINARY_OPERATORS = {
+
+def _positive(value: FloatLike) -> FloatLike:
+    return +value
+
+
+def _negative(value: FloatLike) -> FloatLike:
+    return -value
+
+
+_BINARY_OPERATORS: dict[type[ast.operator], _BinaryOperator] = {
     ast.Add: operator.add,
     ast.Sub: operator.sub,
     ast.Mult: operator.mul,
@@ -32,93 +52,134 @@ _BINARY_OPERATORS = {
     ast.Pow: operator.pow,
 }
 
-_UNARY_OPERATORS = {
-    ast.UAdd: operator.pos,
-    ast.USub: operator.neg,
+_UNARY_OPERATORS: dict[type[ast.unaryop], _UnaryOperator] = {
+    ast.UAdd: _positive,
+    ast.USub: _negative,
 }
 
 
-class _Constant:
-    def __init__(self, value):
-        self.value = value
+class _ReferencedNode(Protocol):
+    """Duck type of a referenced node: the expression reads it through its getter."""
 
-    def evaluate(self, node_references, x, y):
+    def get(self, x: FloatLike | None, y: FloatLike | None) -> FloatLike: ...
+
+
+type _References = list[_ReferencedNode]
+
+
+class _Evaluable(Protocol):
+    """Node of the evaluator tree an expression body compiles to."""
+
+    def evaluate(
+        self, node_references: _References, x: FloatLike | None, y: FloatLike | None
+    ) -> FloatLike: ...
+
+
+class _Unparsed:
+    """Tree of an expression that has not been initialized."""
+
+    def evaluate(
+        self, node_references: _References, x: FloatLike | None, y: FloatLike | None
+    ) -> NoReturn:
+        raise RuntimeError("Expression evaluated before it was initialized.")
+
+
+class _Constant:
+    """Numeric literal."""
+
+    def __init__(self, value: float) -> None:
+
+        self.value: float = value  # the numeric literal
+
+    def evaluate(
+        self, node_references: _References, x: FloatLike | None, y: FloatLike | None
+    ) -> FloatLike:
         return self.value
 
 
 class _Reference:
-    def __init__(self, index):
-        self.index = index
+    """Reference to a node, evaluated through the node's getter."""
 
-    def evaluate(self, node_references, x, y):
+    def __init__(self, index: int) -> None:
+
+        self.index: int = index  # position in the expression's references
+
+    def evaluate(
+        self, node_references: _References, x: FloatLike | None, y: FloatLike | None
+    ) -> FloatLike:
         return node_references[self.index].get(x, y)
 
 
 class _UnaryOperation:
-    def __init__(self, operator_, operand):
-        self.operator = operator_
-        self.operand = operand
+    """Operator applied to a single operand."""
 
-    def evaluate(self, node_references, x, y):
+    def __init__(self, operator_: _UnaryOperator, operand: _Evaluable) -> None:
+
+        self.operator: _UnaryOperator = operator_  # the arithmetic operation
+        self.operand: _Evaluable = operand  # subtree the operator is applied to
+
+    def evaluate(
+        self, node_references: _References, x: FloatLike | None, y: FloatLike | None
+    ) -> FloatLike:
         return self.operator(self.operand.evaluate(node_references, x, y))
 
 
 class _BinaryOperation:
-    def __init__(self, operator_, left, right):
-        self.operator = operator_
-        self.left = left
-        self.right = right
+    """Operator applied to two operands."""
 
-    def evaluate(self, node_references, x, y):
+    def __init__(
+        self, operator_: _BinaryOperator, left: _Evaluable, right: _Evaluable
+    ) -> None:
+
+        self.operator: _BinaryOperator = operator_  # the arithmetic operation
+        self.left: _Evaluable = left  # subtree on the left of the operator
+        self.right: _Evaluable = right  # subtree on the right of the operator
+
+    def evaluate(
+        self, node_references: _References, x: FloatLike | None, y: FloatLike | None
+    ) -> FloatLike:
         return self.operator(
             self.left.evaluate(node_references, x, y),
             self.right.evaluate(node_references, x, y),
         )
 
 
-class Expression:
-    def __init__(self, expression):
+class _Builder:
+    """
+    Compile an expression body into an evaluator tree and its reference strings.
 
-        self._expression = expression  # str, as written in deck
-        self._allowed_types = None
+    Parameters
+    ----------
+    text
+        Expression body, as written in the deck.
+    owner
+        Node the expression is assigned to, named in the error messages; None
+        where the caller discards them.
+    """
 
-        self._internal_expression = (
-            None  # evaluator tree built from the parsed expression
-        )
-        self._node = None  # Node on which expression is assigned
-        self.node_references = []  # list[Node] referenced in the expression
-        self.reference_location = (
-            ""  # the file and line in the deck where the node is reference
-        )
-        self.internal_bounds = (-np.inf, np.inf)
+    def __init__(self, text: str, owner: Node | None) -> None:
 
-        self._node_initialize_finished = False
-        self._attribute_initialization_finished = False
+        self._text: str = text  # expression body, as written in the deck
+        self._owner: Node | None = owner  # node the expression is assigned to
+        self.reference_strings: list[str] = []  # references, in order of appearance
 
-    def __repr__(self):
-        return self._expression
-
-    def initialize(self, node):
+    def build(self) -> tuple[_Evaluable, list[str]]:
         """
-        Parse the expression text and build the internal evaluation tree.
+        Build the evaluator tree.
 
-        Parameters
-        ----------
-        node : Node
-            Class Node on which the expression is assigned to an attribute.
+        Returns
+        -------
+        tuple[_Evaluable, list[str]]
+            The tree and the canonical reference strings it indexes into.
         """
-        self._node = node
-
         try:
-            tree = ast.parse(self._expression, mode="eval")
+            tree = ast.parse(self._text, mode="eval")
         except SyntaxError as e:
-            raise ValueError(
-                f"{self._node}: Error in expression <{self._expression}>: {e.msg}."
-            ) from None
+            raise self._error(f"{e.msg}.") from None
 
-        self._internal_expression = self._build(tree.body)
+        return self._build(tree.body), self.reference_strings
 
-    def _build(self, node_ast):
+    def _build(self, node_ast: ast.expr) -> _Evaluable:
         if isinstance(node_ast, ast.Constant):
             return self._build_constant(node_ast)
 
@@ -133,156 +194,223 @@ class Expression:
 
         if isinstance(node_ast, ast.Name) and _CAPITALIZED_NAME.fullmatch(node_ast.id):
             raise NotImplementedError(
-                f"{self._node}: Expression '{self._expression}' is currently unable to"
-                " support references to attributes."
+                f"{self._owner}: Expression '{self._text}' is currently unable"
+                " to support references to attributes."
             )
 
-        raise ValueError(
-            f"{self._node}: Error in expression <{self._expression}>: unsupported"
-            f" syntax '{ast.unparse(node_ast)}'."
-        )
+        raise self._error(f"unsupported syntax '{ast.unparse(node_ast)}'.")
 
-    def _build_constant(self, node_ast):
+    def _build_constant(self, node_ast: ast.Constant) -> _Constant:
         value = node_ast.value
 
-        if type(value) not in (int, float):
-            raise ValueError(
-                f"{self._node}: Error in expression <{self._expression}>: only numeric"
-                f" literals are allowed, got {value!r}."
-            )
+        # bools are ints to Python, but a deck writing 'True' does not mean a number
+        if not isinstance(value, (int, float)) or isinstance(value, bool):
+            raise self._error(f"only numeric literals are allowed, got {value!r}.")
 
         # literals are evaluated as floats so that '**' overflows
         # instead of building arbitrarily large integers
         return _Constant(float(value))
 
-    def _build_binary_operation(self, node_ast):
+    def _build_binary_operation(self, node_ast: ast.BinOp) -> _BinaryOperation:
         operator_ = _BINARY_OPERATORS.get(type(node_ast.op))
 
         if operator_ is None:
-            raise ValueError(
-                f"{self._node}: Error in expression <{self._expression}>: unsupported"
-                f" operator '{type(node_ast.op).__name__}'."
-            )
+            raise self._error(f"unsupported operator '{type(node_ast.op).__name__}'.")
 
         return _BinaryOperation(
             operator_, self._build(node_ast.left), self._build(node_ast.right)
         )
 
-    def _build_unary_operation(self, node_ast):
+    def _build_unary_operation(self, node_ast: ast.UnaryOp) -> _UnaryOperation:
         operator_ = _UNARY_OPERATORS.get(type(node_ast.op))
 
         if operator_ is None:
-            raise ValueError(
-                f"{self._node}: Error in expression <{self._expression}>: unsupported"
-                f" unary operator '{type(node_ast.op).__name__}'."
+            raise self._error(
+                f"unsupported unary operator '{type(node_ast.op).__name__}'."
             )
 
         return _UnaryOperation(operator_, self._build(node_ast.operand))
 
-    def _build_reference(self, node_ast):
+    def _build_reference(self, node_ast: ast.Call) -> _Reference:
         if not isinstance(node_ast.func, ast.Name) or not _REFERENCE_NAME.fullmatch(
             node_ast.func.id
         ):
-            raise ValueError(
-                f"{self._node}: Error in expression <{self._expression}>:"
-                f" '{ast.unparse(node_ast)}' is not a valid node reference."
+            raise self._error(
+                f"'{ast.unparse(node_ast)}' is not a valid node reference."
             )
 
         if node_ast.keywords or len(node_ast.args) != 1:
-            raise ValueError(
-                f"{self._node}: Error in expression <{self._expression}>:"
-                f" '{ast.unparse(node_ast)}' must take exactly one positional argument."
+            raise self._error(
+                f"'{ast.unparse(node_ast)}' must take exactly one positional argument."
             )
 
         argument = node_ast.args[0]
 
         if not isinstance(argument, ast.Constant) or type(argument.value) is not str:
-            raise ValueError(
-                f"{self._node}: Error in expression <{self._expression}>:"
-                f" '{ast.unparse(node_ast)}' argument must be a string literal."
+            raise self._error(
+                f"'{ast.unparse(node_ast)}' argument must be a string literal."
             )
 
         if '"' in argument.value:
-            raise ValueError(
-                f"{self._node}: Error in expression <{self._expression}>: node"
-                " reference name must not contain a quote."
-            )
+            raise self._error("node reference name must not contain a quote.")
 
-        # node references are stored as canonical strings; the Parser swaps in
-        # the nodes they name when it initializes the expression
-        self.node_references.append(f'{node_ast.func.id}("{argument.value}")')
+        # canonical spelling, whatever quoting and spacing the deck used
+        self.reference_strings.append(f'{node_ast.func.id}("{argument.value}")')
 
-        return _Reference(len(self.node_references) - 1)
+        return _Reference(len(self.reference_strings) - 1)
 
-    def reference_strings(self):
+    def _error(self, detail: str) -> ValueError:
+        return ValueError(
+            f"{self._owner}: Error in expression <{self._text}>: {detail}"
+        )
+
+
+class Expression:
+    """
+    Restricted arithmetic expression assigned to a deck attribute or command.
+
+    Parameters
+    ----------
+    text
+        Expression body, as written in the deck between its ``<`` and ``>``.
+    """
+
+    def __init__(self, text: str) -> None:
+
+        self.text: str = text  # expression body, as written in the deck
+        self.reference_strings: list[str] = []  # references, in order of appearance
+        # the resolved references, one per reference string and in that order
+        self.node_references: _References = []
+        self.reference_location: str = ""  # deck file and line it is read from
+        self.internal_bounds: tuple[float, float] = (-np.inf, np.inf)  # clip range
+
+        self._tree: _Evaluable = _Unparsed()  # evaluator tree built from the text
+        self._node: Node | None = None  # node the expression is assigned to
+        self._allowed_types: list[str] | None = None  # node types the attribute accepts
+
+    def __repr__(self) -> str:
+        return self.text
+
+    def initialize(self, node: Node) -> None:
         """
-        Extract the node reference strings from the expression text.
+        Parse the expression text and build the internal evaluation tree.
 
-        Does not touch this instance's state. A text that does not parse yields
-        none; the error surfaces when the expression is initialized for real.
+        Parameters
+        ----------
+        node
+            Node the expression is assigned to.
+        """
+        self._node = node
+        self._tree, self.reference_strings = _Builder(self.text, node).build()
+
+    @overload
+    def get(self, x: FloatArray, y: FloatLike | None = None) -> FloatArray: ...
+
+    @overload
+    def get(self, x: float | None = None, y: FloatLike | None = None) -> FloatLike: ...
+
+    def get(self, x: FloatLike | None = None, y: FloatLike | None = None) -> FloatLike:
+        """
+        Evaluate the expression.
+
+        Parameters
+        ----------
+        x
+            First input variable passed on to the getters of referenced nodes.
+        y
+            Second input variable passed on to the getters of referenced nodes.
 
         Returns
         -------
-        Canonical reference strings, e.g. 'Forecast("name")'.
+        float or FloatArray
+            Expression value, clipped to the internal bounds and broadcast to
+            the shape of the input.
         """
-        probe = Expression(self._expression)
-
-        try:
-            probe.initialize(None)
-        except (ValueError, NotImplementedError):
-            return []
-
-        return probe.node_references
-
-    def get(self, x=None, y=None):
-        value = self._internal_expression.evaluate(self.node_references, x, y)
-        value = np.clip(value, *self.internal_bounds)
+        evaluated = self._tree.evaluate(self.node_references, x, y)
+        value = np.clip(evaluated, *self.internal_bounds)
 
         # resize to same shape as the input
         if isinstance(value, float):
             if isinstance(x, np.ndarray):
-                value = np.full_like(x, value)
-            elif isinstance(y, np.ndarray):
-                value = np.full_like(y, value)
+                return np.full_like(x, value)
+
+            if isinstance(y, np.ndarray):
+                return np.full_like(y, value)
 
         return value
 
-    def set_allowed_types(self, allowed_types):
+    def set_allowed_types(self, allowed_types: AcceptedTypes) -> None:
+        """
+        Set the node types the attribute holding the expression accepts.
+
+        Parameters
+        ----------
+        allowed_types
+            Accepted node types; None where the attribute accepts no reference.
+        """
         self._allowed_types = (
             as_list(allowed_types) if allowed_types is not None else None
         )
 
-    def set_internal_bounds(self, lower, upper):
+    def set_internal_bounds(self, lower: float, upper: float) -> None:
+        """
+        Set the range every evaluated value is clipped to.
+
+        Parameters
+        ----------
+        lower
+            Lower bound.
+        upper
+            Upper bound.
+        """
         self.internal_bounds = (lower, upper)
 
-    def is_initialized(self):
-        return self._internal_expression is not None
+    def is_initialized(self) -> bool:
+        """Check whether the expression text has been parsed."""
+        return not isinstance(self._tree, _Unparsed)
 
-    def check_consistency(self):
-        # check that the attribute to which the expression
-        # is assigned allows the kind of node reference
-        # that is being used in the expression
-        for node_reference in self.node_references:
-            self._check_node_reference(_extract_node_type(node_reference))
+    def check_consistency(self) -> None:
+        """Check that the attribute accepts the node types the expression references."""
+        if not self.reference_strings:
+            return
 
-    def _check_node_reference(self, type_):
         if self._allowed_types is None:
             raise ValueError(
-                f"{self._node}: Expression <{self._expression}> does not allow node"
+                f"{self._node}: Expression <{self.text}> does not allow node"
                 " references."
             )
 
-        elif type_ not in self._allowed_types:
-            raise ValueError(
-                f"{self._node}: Expression <{self._expression}> references unacceptable"
-                f" type {type_}."
-            )
+        # the type word of a reference string is the referenced node's own type
+        for reference_string in self.reference_strings:
+            type_ = reference_string.split("(")[0]
+
+            if type_ not in self._allowed_types:
+                raise ValueError(
+                    f"{self._node}: Expression <{self.text}> references unacceptable"
+                    f" type {type_}."
+                )
 
 
-def _extract_node_type(node_reference):
-    if isinstance(node_reference, str):
-        type_ = node_reference.split("(")[0]
-    else:
-        type_ = node_reference.type
+def parse_reference_strings(text: str) -> list[str]:
+    """
+    Extract the node reference strings from an expression text.
 
-    return type_
+    A text that does not parse yields none; the error surfaces when the
+    expression carrying it is initialized for real.
+
+    Parameters
+    ----------
+    text
+        Expression body, as written in the deck.
+
+    Returns
+    -------
+    list[str]
+        Canonical reference strings, e.g. 'Forecast("name")'.
+    """
+    try:
+        _, reference_strings = _Builder(text, None).build()
+    except (ValueError, NotImplementedError):
+        return []
+
+    return reference_strings

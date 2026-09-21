@@ -19,7 +19,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from navigate.core import Expression
+from navigate.core.expression import Expression, parse_reference_strings
 from navigate.core.node import Node
 from navigate.core.node_type import (
     EMISSION,
@@ -208,7 +208,7 @@ def _iter_references(value, nodes: Nodes):
             yield from _iter_references(element, nodes)
 
     elif isinstance(value, Expression):
-        for reference_string in value.reference_strings():
+        for reference_string in parse_reference_strings(value.text):
             reference = parse_node_reference(reference_string)
             if reference is not None and reference[0] in NODE_GROUP:
                 yield reference
