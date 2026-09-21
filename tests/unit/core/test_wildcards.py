@@ -94,6 +94,21 @@ class TestRetrieveKeysEnum:
         result = retrieve_keys(FuelTypeID.OIL, {FuelTypeID.OIL: 1})
         assert result == [FuelTypeID.OIL]
 
+    @pytest.mark.parametrize(
+        "allowed_keys",
+        [{FuelTypeID.AMMONIA: 1}, (FuelTypeID.AMMONIA,), {}],
+        ids=["dict", "tuple", "empty"],
+    )
+    def test_absent_non_string_key_raises(self, allowed_keys):
+        # returning the key unchecked let a command write an entry outside the
+        # prepopulated set, where nothing reads it (CODESTYLE: dictionaries
+        # keyed by nodes or enum members are prepopulated at initialization).
+        # The key is named, not carried: a KeyError renders its argument with
+        # 'repr', so the member itself would reach the deck error as
+        # '<FuelTypeID.OIL: 1>'
+        with pytest.raises(KeyError, match="^'OIL'$"):
+            retrieve_keys(FuelTypeID.OIL, allowed_keys)
+
     def test_star_matches_all_enum_keys(self):
         d = {e: i for i, e in enumerate(EnergyDemandTypeID)}
         result = retrieve_keys("*", d, key_fn=self._key_fn)

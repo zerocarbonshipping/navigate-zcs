@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import re
+from enum import Enum
 
 
 def retrieve_keys(key, allowed_keys, key_fn=None):
@@ -24,8 +25,16 @@ def retrieve_keys(key, allowed_keys, key_fn=None):
     -------
     list :
         List of all keys matching 'key' ('key' only if no wildcards)
+
+    Raises
+    ------
+    KeyError
+        If no allowed key matches 'key'.
     """
     if not isinstance(key, str):
+        if key not in allowed_keys:
+            raise KeyError(key_name(key))
+
         return [key]
 
     # Fast path: exact lookup when no wildcards are present.
@@ -73,6 +82,26 @@ def matching_keys(key, allowed_keys, key_fn=None):
         return retrieve_keys(key, allowed_keys, key_fn)
     except KeyError:
         return []
+
+
+def key_name(key):
+    """
+    Name a dictionary key the way a deck writes it.
+
+    Enum members are named so that an error carrying the key reads as the deck
+    wrote it; a KeyError renders its argument with 'repr'.
+
+    Parameters
+    ----------
+    key : str | int | Enum
+        Key of a dictionary keyed by node names or enum members.
+
+    Returns
+    -------
+    str :
+        Name of an enum member, the key itself otherwise.
+    """
+    return key.name if isinstance(key, Enum) else str(key)
 
 
 def attribute_to_setter(attribute, method="set"):

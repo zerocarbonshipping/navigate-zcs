@@ -14,6 +14,7 @@ from navigate.core import (
     as_list,
     as_scalar,
     as_scalar_list,
+    assign_boolean,
     assign_fraction_list,
     assign_id,
     assign_list,
@@ -22,7 +23,6 @@ from navigate.core import (
     command_assignment_to_dict,
     command_assignment_to_tuple_dict,
 )
-from navigate.core.assign import BOOL_ID
 from navigate.core.enum_ import (
     EnergyDemandTypeID,
     EnergyDemandTypePortID,
@@ -260,7 +260,7 @@ class Fleet(_AssetManager):
         allow_secondary_scrapping
             Whether secondary scrapping is allowed or not.
         """
-        self.allow_secondary_scrapping = assign_id(allow_secondary_scrapping, BOOL_ID)
+        self.allow_secondary_scrapping = assign_boolean(allow_secondary_scrapping)
 
     def set_trade_growth(self, trade_growth: float | Node):
         """
@@ -304,7 +304,7 @@ class Fleet(_AssetManager):
         Set the initial distribution of vessel types in the fleet.
 
         The list must have the same length as the list of vessels.
-        The list must sum to unity. If not, the list is normalized by equal fractions.
+        The list must sum to unity. If not, the list is rescaled proportionally.
 
         Examples
         --------
@@ -319,7 +319,7 @@ class Fleet(_AssetManager):
 
         if normalized:
             logger.info(
-                f"{self}: 'InitialSplit' is normalized to 1 by equal fractions."
+                f"{self}: 'InitialSplit' is rescaled proportionally to sum to 1."
             )
 
     def set_technologies(self, technologies: list[Node | WildcardNodeReference]):
@@ -540,7 +540,7 @@ class Fleet(_AssetManager):
         allow_speed_management
             Whether speed management is allowed or not.
         """
-        self.allow_speed_management = assign_id(allow_speed_management, BOOL_ID)
+        self.allow_speed_management = assign_boolean(allow_speed_management)
 
     def set_maximum_speed_change(self, maximum_speed_change):
         """
@@ -599,8 +599,8 @@ class Fleet(_AssetManager):
         assume_reference_speed_optimal
             Whether to assume the reference speed is the current market optimum.
         """
-        self.assume_reference_speed_optimal = assign_id(
-            assume_reference_speed_optimal, BOOL_ID
+        self.assume_reference_speed_optimal = assign_boolean(
+            assume_reference_speed_optimal
         )
 
     def set_fuel_conversion_sensitivity(
@@ -670,8 +670,8 @@ class Fleet(_AssetManager):
         allow_technology_approximation
             Whether to allow technology approximation.
         """
-        self.allow_technology_approximation = assign_id(
-            allow_technology_approximation, BOOL_ID
+        self.allow_technology_approximation = assign_boolean(
+            allow_technology_approximation
         )
 
     # external methods (DSL commands) ----------------------------------------------------------------------------------

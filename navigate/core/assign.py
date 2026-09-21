@@ -15,13 +15,26 @@ from navigate.core.wrap import as_scalar
 from navigate.util import (
     ROUND_OFF,
     TOLERANCE,
+    key_name,
     list_is_unique,
     name_contains_wildcards,
     retrieve_keys,
     unique_list,
 )
 
-BOOL_ID = {"FALSE": False, "TRUE": True}
+_BOOL_ID = {"FALSE": False, "TRUE": True}
+
+# kind words for the values a setter can be handed; a value of no kind listed
+# here is echoed in the error instead, as its own text is what identifies it.
+# 'bool' precedes 'int' because it is a subclass of it, and the first match wins
+_VALUE_KINDS = (
+    ((list, tuple), "list"),
+    (TableData, "table"),
+    ((float, Scalar), "scalar"),
+    (np.datetime64, "date"),
+    (bool, "boolean"),
+    (int, "integer"),
+)
 
 
 def assign_integer(
@@ -59,7 +72,7 @@ def assign_integer(
         inclusive_upper=inclusive_upper,
     )
 
-    value = int(assignment)
+    value = round(assignment)
 
     if abs(value - assignment) >= TOLERANCE:
         raise ValueError(f"only allows assignment of integers, but got {assignment}")
@@ -112,12 +125,6 @@ def assign_value(
     Node | WildcardNodeReference | Scalar | float | Expression:
         Returns the passed assignment (to allow error checking while assigning)
     """
-    if isinstance(assignment, (list, tuple)):
-        raise ValueError(f"{_failed_value_message(scalar, date, type_)}, but got list")
-
-    if isinstance(assignment, TableData):
-        raise ValueError(f"{_failed_value_message(scalar, date, type_)}, but got table")
-
     is_float = isinstance(assignment, (float, Scalar))
     is_date = isinstance(assignment, np.datetime64)
     is_expression = isinstance(assignment, Expression)
@@ -125,49 +132,28 @@ def assign_value(
     is_wildcard = isinstance(assignment, WildcardNodeReference)
     type_is_list = isinstance(type_, (list, tuple))
 
-    if is_float:
-        if scalar:
-            _check_scalar(
-                assignment,
-                lower=lower,
-                upper=upper,
-                inclusive_lower=inclusive_lower,
-                inclusive_upper=inclusive_upper,
-            )
+    float_allowed = is_float and scalar
+    date_allowed = is_date and date
+    reference_allowed = (
+        (is_node or is_wildcard)
+        and (type_ is not None)
+        and (assignment.type in type_ if type_is_list else assignment.is_type(type_))
+    )
 
-        else:
-            raise ValueError(
-                f"{_failed_value_message(scalar, date, type_)}, but got scalar"
-            )
-
-    elif is_date:
-        if not date:
-            raise ValueError(
-                f"{_failed_value_message(scalar, date, type_)}, but got date"
-            )
+    if float_allowed:
+        _check_scalar(
+            assignment,
+            lower=lower,
+            upper=upper,
+            inclusive_lower=inclusive_lower,
+            inclusive_upper=inclusive_upper,
+        )
 
     elif is_expression:
         assignment.set_allowed_types(type_)
 
-    elif is_node or is_wildcard:
-        if type_ is None:
-            raise ValueError(_failed_value_message(scalar, date, type_))
-
-        if type_is_list:
-            if assignment.type not in type_:
-                raise ValueError(
-                    f"{_failed_value_message(scalar, date, type_)}, but got {assignment}"
-                )
-
-        elif not assignment.is_type(type_):
-            raise ValueError(
-                f"{_failed_value_message(scalar, date, type_)}, but got {assignment}"
-            )
-
-    else:
-        raise ValueError(
-            f"{_failed_value_message(scalar, date, type_)}, but got {assignment}"
-        )
+    elif not (date_allowed or reference_allowed):
+        raise ValueError(_failed_value_message(assignment, scalar, date, type_))
 
     # only a calculator has bounds to tighten; is_calculator reads the type tag,
     # which a wildcard of a calculator type carries too, and its matches get none
@@ -243,6 +229,31 @@ def assign_list(
         )
 
     return assignment
+
+
+def assign_boolean(assignment):
+    """
+    Check whether the value assigned to a boolean attribute is a boolean keyword.
+
+    If the requirements are not satisfied a ValueError is raised. Note that this error is only a partial message
+    designed to be caught at a higher level.
+
+    Parameters
+    ----------
+    assignment : str
+        Value passed to the setter.
+
+    Returns
+    -------
+    bool
+        Value of the keyword.
+    """
+    try:
+        return _BOOL_ID[assignment]
+    except KeyError:
+        raise ValueError(
+            f"only allows assignment of TRUE or FALSE, but got {assignment}"
+        )
 
 
 def assign_id(assignment, id_enum):
@@ -424,6 +435,7 @@ def command_assignment_to_tuple_dict(
     type_=None,
     lower=-np.inf,
     upper=np.inf,
+    *,
     inclusive_lower=True,
     inclusive_upper=True,
     symmetric=False,
@@ -461,7 +473,7 @@ def command_assignment_to_tuple_dict(
     ]
 
     if not keys:
-        raise KeyError(", ".join(key))
+        raise KeyError(", ".join(key_name(k) for k in key))
 
     keys1, keys2 = keys
 
@@ -499,10 +511,7 @@ def command_assignment_to_boolean_dict(
     allow_empty : bool
         Whether no matches are allowed for wildcards.
     """
-    try:
-        value = BOOL_ID[assignment]
-    except KeyError:
-        raise KeyError(f"'{assignment}' is not a valid boolean value.")
+    value = assign_boolean(assignment)
 
     try:
         names = retrieve_keys(key, assignment_dict)
@@ -518,12 +527,14 @@ def command_assignment_to_boolean_dict(
         assignment_dict[name] = value
 
 
-def _failed_value_message(scalar, date, type_):
+def _failed_value_message(assignment, scalar, date, type_):
     """
-    Build an error message describing which assignment types are allowed.
+    Build the error message for a value an attribute does not accept.
 
     Parameters
     ----------
+    assignment : Any
+        The value passed to the setter.
     scalar : bool
         Whether the setter accepts scalars.
     date : bool
@@ -536,28 +547,51 @@ def _failed_value_message(scalar, date, type_):
     str :
         Error message of a failed error check.
     """
-    parts = []
+    allowed = []
 
     if scalar:
-        parts.append("scalars")
+        allowed.append("scalars")
 
     if date:
-        parts.append("dates")
+        allowed.append("dates")
 
     if type_ is not None:
         if isinstance(type_, str):
-            parts.append(f"nodes of type {type_}")
+            allowed.append(f"nodes of type {type_}")
         else:
-            parts.append(
+            allowed.append(
                 "nodes of type {} or {}".format(", ".join(type_[:-1]), type_[-1])
             )
 
-    if len(parts) <= 1:
-        joined = parts[0] if parts else ""
+    # a setter that accepts no kind at all is an implementation error rather
+    # than a deck error, so an empty 'allowed' is not handled (see assign_value)
+    if len(allowed) == 1:
+        joined = allowed[0]
     else:
-        joined = ", ".join(parts[:-1]) + " and " + parts[-1]
+        joined = ", ".join(allowed[:-1]) + " and " + allowed[-1]
 
-    return "only allows assignment of " + joined
+    return f"only allows assignment of {joined}, but got {_value_kind(assignment)}"
+
+
+def _value_kind(assignment):
+    """
+    Name the kind of a value, or echo the value when it has no listed kind.
+
+    Parameters
+    ----------
+    assignment : Any
+        The value passed to the setter.
+
+    Returns
+    -------
+    str :
+        Kind word of the value, or the value itself.
+    """
+    for types, kind in _VALUE_KINDS:
+        if isinstance(assignment, types):
+            return kind
+
+    return str(assignment)
 
 
 def _check_scalar(
@@ -596,7 +630,7 @@ def _check_scalar(
         value = assignment.get()
 
     else:
-        raise ValueError(f"requires a scalar, but got {assignment}")
+        raise ValueError(f"requires a scalar, but got {_value_kind(assignment)}")
 
     if inclusive_lower:
         if value < lower:
@@ -620,10 +654,10 @@ def _check_list_length(assignment, length):
             lower, upper = length
 
             if (lower is not None) and (len(assignment) < lower):
-                raise ValueError(f"List must contain more than {lower} values.")
+                raise ValueError(f"List must contain at least {lower} values.")
 
             if (upper is not None) and (len(assignment) > upper):
-                raise ValueError(f"List must contain less than {upper} values.")
+                raise ValueError(f"List must contain at most {upper} values.")
 
         else:
             if len(assignment) != length:

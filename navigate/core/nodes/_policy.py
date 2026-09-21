@@ -6,6 +6,7 @@ from __future__ import annotations
 from navigate.core import (
     as_list,
     as_scalar,
+    assign_boolean,
     assign_id,
     assign_list,
     assign_value,
@@ -13,7 +14,6 @@ from navigate.core import (
     command_assignment_to_dict,
     command_assignment_to_tuple_dict,
 )
-from navigate.core.assign import BOOL_ID
 from navigate.core.enum_ import PolicyScopeID
 from navigate.core.node import Node
 from navigate.core.node_type import CURVE, EMISSION, FORECAST, FUEL, PORT, VARIABLE
@@ -63,7 +63,7 @@ class _Policy(Node):
         active : str
             Boolean flag.
         """
-        self.active = assign_id(active, BOOL_ID)
+        self.active = assign_boolean(active)
 
     def set_jurisdiction(self, ports):
         """
@@ -152,7 +152,7 @@ class _Policy(Node):
         include_slip : str
             Boolean flag.
         """
-        self.include_slip = assign_id(include_slip, BOOL_ID)
+        self.include_slip = assign_boolean(include_slip)
 
     def set_emissions_lifetime(self, emissions_lifetime):
         """

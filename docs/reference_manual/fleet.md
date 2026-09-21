@@ -187,7 +187,7 @@ This attribute sets the initial distribution of vessel types in the fleet.
 
 The list must have the same length as the list of vessels.
 
-The list must sum to 1. If not, the list is normalized by equal fractions.
+The list must sum to 1. If not, the list is rescaled proportionally.
 
 * **Data type**: List of `floats`
 * **Example values**:
@@ -465,7 +465,7 @@ This command sets the fraction of energy saved in port through operational measu
 
 The operational saving is applied as an intermediate step between the raw energy demand and the technology-adjusted energy demand.
 
-* **Primary key type**: [EnergyDemandTypeID](appendix_ids.md#energydemandtypeid)
+* **Primary key type**: [EnergyDemandTypeID](appendix_ids.md#energydemandtypeid), restricted to the demands a vessel has in port: `ELECTRICAL` and `HEAT`
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
   + `ELECTRICAL, 0.05`

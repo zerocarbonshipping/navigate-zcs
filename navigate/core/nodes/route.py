@@ -188,7 +188,7 @@ class Route(Node):
 
         if normalized:
             logger.info(
-                f"{self}: 'ConditionDistribution' is normalized to 1 by equal fractions."
+                f"{self}: 'ConditionDistribution' is rescaled proportionally to sum to 1."
             )
 
     def set_speeds(self, speeds):

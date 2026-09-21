@@ -114,6 +114,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - A reference whose type is not a node type, such as `Foo("x")`, is reported
   as a deck error at its line. It previously surfaced as an attribute type
   mismatch or, written as a command argument, as an unhandled `KeyError`.
+- `InitialSplit` and `ConditionDistribution` report the rescale they perform on
+  a list that does not sum to 1. Both console messages, and `InitialSplit`'s
+  reference-manual entry, said the list was "normalized to 1 by equal
+  fractions", where the rescale is proportional.
 - An error naming a `Variable` node identifies it as `Variable("name")`, the
   way the deck wrote it, like every other node. It previously printed the
   node's value instead, and failed with `AttributeError` while no value was
@@ -184,6 +188,32 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   previously fell through every accepted kind into an internal bounds call and
   died as an `AttributeError`, with no indication of where in the deck. A table
   is named by kind, as a list already was, rather than echoed row by row.
+- An attribute error naming a value it does not accept always names the value,
+  by kind where the value has one: an `int` or a `bool` reaching a scalar
+  attribute reads `only allows assignment of scalars, but got integer` instead
+  of the self-contradicting `but got 3`, and a node reference reaching an
+  attribute that takes no node is named where the value was omitted entirely.
+  A stray token, a node the attribute does not accept and `None` are echoed,
+  as their own text is what identifies them.
+- An integer attribute accepts a value written just off a whole number equally
+  on either side of it: `2.999999` is 3, where truncation toward zero
+  previously rejected it while accepting `3.000001`.
+- A list length violation reads "at least"/"at most" for a bounded length,
+  which is what the bound means; it said "more than"/"less than" for a length
+  equal to the bound, which the check accepts.
+- An invalid boolean keyword in a command (`set_allow_vessel("name", MAYBE)`,
+  and likewise `set_newbuild_available`, `set_conversion_available`,
+  `set_include_vessel`, `set_bunkering_allowed` and `set_allow_plant`) fails as
+  an assignment error located to the deck line, instead of being reported as a
+  reference to a non-existing name. The same keyword written as an attribute
+  (`AllowSpeedManagement = MAYBE`) already failed at its deck line, and now
+  names the keywords it accepts: `only allows assignment of TRUE or FALSE, but
+  got MAYBE`, where it read `does not accept ID 'MAYBE'`.
+- A command key that is an enum member must be one the attribute's dictionary
+  was prepopulated with. `set_operational_saving_port(PROPULSION, 0.1)`
+  silently created an entry for a demand type that is not in port (the command
+  covers electrical and heat, as its reference-manual page now states), which
+  nothing then read; it is now a deck error. No committed deck assigns it.
 
 ### Changed
 - Internal reorganization (no DSL or result changes): the retrofit flow of
