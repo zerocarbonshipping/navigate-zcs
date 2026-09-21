@@ -3,15 +3,18 @@
 
 from __future__ import annotations
 
+from enum import Enum
+from typing import TYPE_CHECKING
+
 import numpy as np
 
 from navigate.core.expression import Expression
 from navigate.core.node import Node
-from navigate.core.node_type import is_calculator
+from navigate.core.node_type import AcceptedTypes, is_calculator
 from navigate.core.scalar import Scalar
 from navigate.core.table_data import TableData
 from navigate.core.wildcard import WildcardNodeReference
-from navigate.core.wrap import as_scalar
+from navigate.core.wrap import Assignment, WrappedAssignment, as_scalar
 from navigate.util import (
     ROUND_OFF,
     TOLERANCE,
@@ -22,7 +25,14 @@ from navigate.util import (
     unique_list,
 )
 
+if TYPE_CHECKING:
+    from collections.abc import Sequence, Sized
+
 _BOOL_ID = {"FALSE": False, "TRUE": True}
+_BOUND_ID = {"-INF": -np.inf, "INF": np.inf}
+
+# an exact length, or a lower and an upper bound either of which may be open
+type ListLength = int | tuple[int | None, int | None] | None
 
 # kind words for the values a setter can be handed; a value of no kind listed
 # here is echoed in the error instead, as its own text is what identifies it.
@@ -38,25 +48,25 @@ _VALUE_KINDS = (
 
 
 def assign_integer(
-    assignment,
-    lower=-np.inf,
-    upper=np.inf,
-    inclusive_lower=True,
-    inclusive_upper=True,
-):
+    assignment: float,
+    lower: float = -np.inf,
+    upper: float = np.inf,
+    inclusive_lower: bool = True,
+    inclusive_upper: bool = True,
+) -> int:
     """
 
     Parameters
     ----------
-    assignment : float
+    assignment
         The value passed to the setter.
-    lower : float
+    lower
         Lower bound.
-    upper : float
+    upper
         Upper bound.
-    inclusive_lower : bool, default=True
+    inclusive_lower
         Lower bound is inclusive.
-    inclusive_upper : bool, default=True
+    inclusive_upper
         Upper bound is inclusive.
 
     Returns
@@ -80,17 +90,17 @@ def assign_integer(
     return value
 
 
-def assign_value(
-    assignment,
-    scalar=True,
-    date=False,
-    type_=None,
-    lower=-np.inf,
-    upper=np.inf,
+def assign_value[T: Assignment](
+    assignment: T,
+    scalar: bool = True,
+    date: bool = False,
+    type_: AcceptedTypes = None,
+    lower: float = -np.inf,
+    upper: float = np.inf,
     *,
-    inclusive_lower=True,
-    inclusive_upper=True,
-):
+    inclusive_lower: bool = True,
+    inclusive_upper: bool = True,
+) -> T:
     """
     Check whether the value (float or calculator) assigned to an attribute satisfy the requirements of that attribute.
     Only applicable to attributes requiring a single value, not lists.
@@ -103,27 +113,27 @@ def assign_value(
 
     Parameters
     ----------
-    assignment : Node | WildcardNodeReference | Scalar | float | Expression
+    assignment
         The value passed to the setter.
-    scalar : bool
+    scalar
         Whether the setter accepts scalars.
-    date : bool
+    date
         Whether the setter accepts dates.
-    type_ : str | tuple[str]
+    type_
         Type(s) of Node that attribute allows.
-    lower : float
+    lower
         Lower bound.
-    upper : float
+    upper
         Upper bound.
-    inclusive_lower : bool, default=True
+    inclusive_lower
         Lower bound is inclusive.
-    inclusive_upper : bool, default=True
+    inclusive_upper
         Upper bound is inclusive.
 
     Returns
     -------
-    Node | WildcardNodeReference | Scalar | float | Expression:
-        Returns the passed assignment (to allow error checking while assigning)
+    Assignment
+        The value that was passed, so a setter assigns what it validated.
     """
     is_float = isinstance(assignment, (float, Scalar))
     is_date = isinstance(assignment, np.datetime64)
@@ -163,19 +173,19 @@ def assign_value(
     return assignment
 
 
-def assign_list(
-    assignment,
-    length=(),
-    unique=False,
-    scalar=True,
-    date=False,
-    type_=None,
-    lower=-np.inf,
-    upper=np.inf,
+def assign_list[T: Assignment](
+    assignment: list[T],
+    length: ListLength = None,
+    unique: bool = False,
+    scalar: bool = True,
+    date: bool = False,
+    type_: AcceptedTypes = None,
+    lower: float = -np.inf,
+    upper: float = np.inf,
     *,
-    inclusive_lower=True,
-    inclusive_upper=True,
-):
+    inclusive_lower: bool = True,
+    inclusive_upper: bool = True,
+) -> list[T]:
     """
     Check whether the value (float or calculator) assigned to an attribute satisfy the requirements of that attribute.
     Only applicable to attributes requiring a list of values.
@@ -185,31 +195,32 @@ def assign_list(
 
     Parameters
     ----------
-    assignment : list[Node | WildcardNodeReference | Scalar | float]
+    assignment
         List of values passed to the setter.
-    length : int | tuple[int, int]
-        Exact length the list should have or lower and upper bound. If empty, no check is made.
-    unique : bool
+    length
+        Exact length the list should have or lower and upper bound. Any falsy
+        length makes no check, ``0`` as well as ``None``.
+    unique
         Whether all entries in the list must be unique.
-    scalar : bool
+    scalar
         Whether the setter accepts scalars.
-    date : bool
+    date
         Whether the setter accepts dates.
-    type_ : str | tuple[str]
+    type_
         Type(s) of Node that attribute allows.
-    lower : float
+    lower
         Lower bound.
-    upper : float
+    upper
         Upper bound.
-    inclusive_lower: bool = True
+    inclusive_lower
         Lower bound is inclusive.
-    inclusive_upper: bool = True
+    inclusive_upper
         Upper bound is inclusive.
 
     Returns
     -------
-    List[Node | WildcardNodeReference | Scalar | float] :
-        Returns the passed assignment (to allow error checking while assigning)
+    list[Assignment]
+        The list that was passed, so a setter assigns what it validated.
     """
     _check_list_length(assignment, length)
 
@@ -231,7 +242,7 @@ def assign_list(
     return assignment
 
 
-def assign_boolean(assignment):
+def assign_boolean(assignment: str) -> bool:
     """
     Check whether the value assigned to a boolean attribute is a boolean keyword.
 
@@ -240,7 +251,7 @@ def assign_boolean(assignment):
 
     Parameters
     ----------
-    assignment : str
+    assignment
         Value passed to the setter.
 
     Returns
@@ -251,12 +262,39 @@ def assign_boolean(assignment):
     try:
         return _BOOL_ID[assignment]
     except KeyError:
-        raise ValueError(
-            f"only allows assignment of TRUE or FALSE, but got {assignment}"
-        )
+        raise ValueError(_only_allows("TRUE or FALSE", assignment))
 
 
-def assign_id(assignment, id_enum):
+def assign_bound(assignment: object) -> float:
+    """
+    Check whether the value assigned to a bound attribute is a scalar or an infinity keyword.
+
+    If the requirements are not satisfied a ValueError is raised. Note that this error is only a partial message
+    designed to be caught at a higher level.
+
+    Parameters
+    ----------
+    assignment
+        Value passed to the setter.
+
+    Returns
+    -------
+    float
+        The scalar itself, or the value of the keyword.
+    """
+    if isinstance(assignment, float):
+        return assign_value(assignment)
+
+    try:
+        return _BOUND_ID[assignment]
+
+    # a list or a table reaches the lookup as an unhashable key, and the
+    # TypeError that raises carries no deck line for the parser to report
+    except (KeyError, TypeError):
+        raise ValueError(_only_allows("scalars, -INF or INF", assignment))
+
+
+def assign_id[E: Enum](assignment: str, id_enum: type[E]) -> E:
     """
     Check whether the ID assigned to an attribute satisfy the requirements of that attribute.
 
@@ -265,9 +303,9 @@ def assign_id(assignment, id_enum):
 
     Parameters
     ----------
-    assignment : str
+    assignment
         Value passed to the setter.
-    id_enum : Enum
+    id_enum
         Enumerator.
 
     Returns
@@ -286,7 +324,7 @@ def assign_id(assignment, id_enum):
         raise ValueError(f"does not accept ID '{assignment}'")
 
 
-def expand_id_wildcard(pattern: str, id_enum) -> list:
+def expand_id_wildcard[E: Enum](pattern: str, id_enum: type[E]) -> list[E]:
     """
     Expand a wildcard pattern against an enum's member names.
 
@@ -311,7 +349,11 @@ def expand_id_wildcard(pattern: str, id_enum) -> list:
         )
 
 
-def assign_id_list(assignment, id_enum, length=()):
+def assign_id_list[E: Enum](
+    assignment: list[str],
+    id_enum: type[E],
+    length: ListLength = None,
+) -> list[E]:
     """
     Check whether the ID assigned to an attribute satisfy the requirements of that attribute.
     Only applicable to attributes requiring a list of values. Supports wildcard patterns
@@ -322,16 +364,17 @@ def assign_id_list(assignment, id_enum, length=()):
 
     Parameters
     ----------
-    assignment : list[str]
+    assignment
         List of values passed to the setter.
-    id_enum : Enum
+    id_enum
         Enumerator.
-    length : int | tuple[int, int]
-        Exact length the list should have or lower and upper bound. If empty, no check is made.
+    length
+        Exact length the list should have or lower and upper bound. Any falsy
+        length makes no check, ``0`` as well as ``None``.
 
     Returns
     -------
-    List[Enum] :
+    list[Enum] :
         Returns the passed assignment (to allow error checking while assigning).
     """
     expanded = []
@@ -375,97 +418,100 @@ def assign_fraction_list(fractions):
     return assign_list(fractions, lower=0.0, upper=1.0), normalized
 
 
-def command_assignment_to_dict(
-    key,
-    assignment,
-    assignment_dict,
-    scalar=True,
-    date=False,
-    type_=None,
-    lower=-np.inf,
-    upper=np.inf,
+def command_assignment_to_dict[K: str | Enum](
+    key: K | str,
+    assignment: Assignment,
+    assignment_dict: dict[K, WrappedAssignment | None],
+    scalar: bool = True,
+    date: bool = False,
+    type_: AcceptedTypes = None,
+    lower: float = -np.inf,
+    upper: float = np.inf,
     *,
-    inclusive_lower=True,
-    inclusive_upper=True,
-):
+    inclusive_lower: bool = True,
+    inclusive_upper: bool = True,
+) -> None:
     """
 
     Parameters
     ----------
-    key : str | Enum
+    key
         Name of node, possibly including wildcards.
-    assignment : Any
+    assignment
         Assignment to dict.
-    assignment_dict : dict
+    assignment_dict
         The dictionary being assigned to.
-    scalar : bool
+    scalar
         Whether the setter accepts scalars.
-    date : bool
+    date
         Whether the setter accepts dates.
-    type_ : str or tuple[str]
+    type_
         Type(s) of Node that attribute allows.
-    lower : float
+    lower
         Lower bound.
-    upper : float
+    upper
         Upper bound.
-    inclusive_lower: bool = True
+    inclusive_lower
         Lower bound is inclusive.
-    inclusive_upper: bool = True
+    inclusive_upper
         Upper bound is inclusive.
     """
-    for key_ in retrieve_keys(key, assignment_dict):
-        assignment_dict[key_] = assign_value(
-            as_scalar(assignment),
-            scalar,
-            date,
-            type_,
-            lower,
-            upper,
-            inclusive_lower=inclusive_lower,
-            inclusive_upper=inclusive_upper,
-        )
+    keys = retrieve_keys(key, assignment_dict)
+
+    # every matched key holds the same object: a Scalar answers a getter and
+    # carries no per-key state, and a node or an expression was always shared
+    value = assign_value(
+        as_scalar(assignment),
+        scalar,
+        date,
+        type_,
+        lower,
+        upper,
+        inclusive_lower=inclusive_lower,
+        inclusive_upper=inclusive_upper,
+    )
+
+    for key_ in keys:
+        assignment_dict[key_] = value
 
 
-def command_assignment_to_tuple_dict(
-    key,
-    assignment,
-    assignment_dict,
-    scalar=True,
-    date=False,
-    type_=None,
-    lower=-np.inf,
-    upper=np.inf,
+def command_assignment_to_tuple_dict[K1: str | Enum, K2: str | Enum](
+    key: tuple[K1 | str, K2 | str],
+    assignment: Assignment,
+    assignment_dict: dict[tuple[K1, K2], WrappedAssignment | None],
+    scalar: bool = True,
+    date: bool = False,
+    type_: AcceptedTypes = None,
+    lower: float = -np.inf,
+    upper: float = np.inf,
     *,
-    inclusive_lower=True,
-    inclusive_upper=True,
-    symmetric=False,
-):
+    inclusive_lower: bool = True,
+    inclusive_upper: bool = True,
+) -> None:
     """
 
     Parameters
     ----------
-    key : tuple[str, str] | tuple[Enum, Enum]
+    key
         Tuple of node names, possibly including wildcards.
-    assignment : Any
+    assignment
         Assignment to dict.
-    assignment_dict : dict
+    assignment_dict
         The dictionary being assigned to.
-    scalar : bool
+    scalar
         Whether the setter accepts scalars.
-    date : bool
+    date
         Whether the setter accepts dates.
-    type_ : str or tuple[str]
+    type_
         Type(s) of Node that attribute allows.
-    lower : float
+    lower
         Lower bound.
-    upper : float
+    upper
         Upper bound.
-    inclusive_lower: bool = True
+    inclusive_lower
         Lower bound is inclusive.
-    inclusive_upper: bool = True
+    inclusive_upper
         Upper bound is inclusive.
-    symmetric : bool
-        Whether the dictionary is symmetric, i.e. (key1, key2) = (key2, key1).
     """
     keys = [
         retrieve_keys(k, unique_list(keys))
@@ -476,39 +522,39 @@ def command_assignment_to_tuple_dict(
         raise KeyError(", ".join(key_name(k) for k in key))
 
     keys1, keys2 = keys
+    value = assign_value(
+        as_scalar(assignment),
+        scalar,
+        date,
+        type_,
+        lower,
+        upper,
+        inclusive_lower=inclusive_lower,
+        inclusive_upper=inclusive_upper,
+    )
 
     for key1 in keys1:
         for key2 in keys2:
-            value = assign_value(
-                as_scalar(assignment),
-                scalar,
-                date,
-                type_,
-                lower,
-                upper,
-                inclusive_lower=inclusive_lower,
-                inclusive_upper=inclusive_upper,
-            )
             assignment_dict[(key1, key2)] = value
 
-            if symmetric:
-                assignment_dict[(key2, key1)] = value
 
-
-def command_assignment_to_boolean_dict(
-    key, assignment, assignment_dict, allow_empty=False
-):
+def command_assignment_to_boolean_dict[K: str | Enum](
+    key: K | str,
+    assignment: str,
+    assignment_dict: dict[K, bool],
+    allow_empty: bool = False,
+) -> None:
     """
 
     Parameters
     ----------
-    key : str
+    key
         Key to assignment_dict. May include wildcards.
-    assignment : str
+    assignment
         Boolean value TRUE or FALSE.
-    assignment_dict : dict[str, bool]
+    assignment_dict
         Dict to assign the boolean value to.
-    allow_empty : bool
+    allow_empty
         Whether no matches are allowed for wildcards.
     """
     value = assign_boolean(assignment)
@@ -527,19 +573,21 @@ def command_assignment_to_boolean_dict(
         assignment_dict[name] = value
 
 
-def _failed_value_message(assignment, scalar, date, type_):
+def _failed_value_message(
+    assignment: object, scalar: bool, date: bool, type_: AcceptedTypes
+) -> str:
     """
     Build the error message for a value an attribute does not accept.
 
     Parameters
     ----------
-    assignment : Any
+    assignment
         The value passed to the setter.
-    scalar : bool
+    scalar
         Whether the setter accepts scalars.
-    date : bool
+    date
         Whether the setter accepts dates.
-    type_ : str or tuple[str]
+    type_
         Type(s) of Node that attribute allows.
 
     Returns
@@ -547,6 +595,9 @@ def _failed_value_message(assignment, scalar, date, type_):
     str :
         Error message of a failed error check.
     """
+    # a setter accepting no kind at all, and an empty 'type_', are
+    # implementation errors rather than deck errors, so neither the empty
+    # 'allowed' nor the empty subscript below is handled (see assign_value)
     allowed = []
 
     if scalar:
@@ -563,23 +614,40 @@ def _failed_value_message(assignment, scalar, date, type_):
                 "nodes of type {} or {}".format(", ".join(type_[:-1]), type_[-1])
             )
 
-    # a setter that accepts no kind at all is an implementation error rather
-    # than a deck error, so an empty 'allowed' is not handled (see assign_value)
     if len(allowed) == 1:
         joined = allowed[0]
     else:
         joined = ", ".join(allowed[:-1]) + " and " + allowed[-1]
 
-    return f"only allows assignment of {joined}, but got {_value_kind(assignment)}"
+    return _only_allows(joined, assignment)
 
 
-def _value_kind(assignment):
+def _only_allows(allowed: str, assignment: object) -> str:
+    """
+    Spell the sentence every rejected value is reported with.
+
+    Parameters
+    ----------
+    allowed
+        What the setter accepts, already joined into one phrase.
+    assignment
+        The value passed to the setter.
+
+    Returns
+    -------
+    str :
+        Error message of a failed error check.
+    """
+    return f"only allows assignment of {allowed}, but got {_value_kind(assignment)}"
+
+
+def _value_kind(assignment: object) -> str:
     """
     Name the kind of a value, or echo the value when it has no listed kind.
 
     Parameters
     ----------
-    assignment : Any
+    assignment
         The value passed to the setter.
 
     Returns
@@ -595,27 +663,27 @@ def _value_kind(assignment):
 
 
 def _check_scalar(
-    assignment,
-    lower=-np.inf,
-    upper=np.inf,
+    assignment: object,
+    lower: float = -np.inf,
+    upper: float = np.inf,
     *,
-    inclusive_lower=True,
-    inclusive_upper=True,
-):
+    inclusive_lower: bool = True,
+    inclusive_upper: bool = True,
+) -> None:
     """
     Validate that a scalar value satisfies the given bounds.
 
     Parameters
     ----------
-    assignment : Scalar or float
-        Float being assigned.
-    lower : float
+    assignment
+        Value being assigned, rejected unless it is a float or a Scalar.
+    lower
         Lower bound.
-    upper : float
+    upper
         Upper bound.
-    inclusive_lower : bool, default=True
+    inclusive_lower
         If True, allow value == lower. If False, require value > lower.
-    inclusive_upper : bool, default=True
+    inclusive_upper
         If True, allow value == upper. If False, require value < upper.
 
     Raises
@@ -647,8 +715,18 @@ def _check_scalar(
             raise ValueError(f"must be < {upper}, but got {value}")
 
 
-def _check_list_length(assignment, length):
+def _check_list_length(assignment: Sized, length: ListLength) -> None:
+    """
+    Validate a list's length against an exact length or a lower and upper bound.
 
+    Parameters
+    ----------
+    assignment
+        The list whose length is checked.
+    length
+        Exact length, or lower and upper bound. Any falsy length makes no
+        check, ``0`` as well as ``None``.
+    """
     if length:
         if isinstance(length, tuple):
             lower, upper = length
@@ -664,7 +742,7 @@ def _check_list_length(assignment, length):
                 raise ValueError(f"List must contain exactly {length} values.")
 
 
-def _check_list_is_unique(assignment):
+def _check_list_is_unique(assignment: Sequence[Assignment]) -> None:
     names = [
         entry.name
         for entry in assignment
@@ -674,7 +752,7 @@ def _check_list_is_unique(assignment):
         raise ValueError("requires all entries in the list to be unique")
 
 
-def _check_fraction_list(fractions):
+def _check_fraction_list(fractions: object) -> None:
     if not isinstance(fractions, list):
         raise ValueError("only allows assignment of lists")
 

@@ -7,11 +7,20 @@ import numpy as np
 
 
 class Scalar:
-    def __init__(self, value=None):
+    """
+    A float wrapped in the two-argument getter every calculator node answers.
 
-        self._value = value
+    Parameters
+    ----------
+    value
+        The number the scalar answers with.
+    """
 
-    def __repr__(self):
+    def __init__(self, value: float) -> None:
+
+        self._value: float = value
+
+    def __repr__(self) -> str:
         return f"Scalar({self._value!s})"
 
     def get(self, x=None, y=None) -> float | np.ndarray:

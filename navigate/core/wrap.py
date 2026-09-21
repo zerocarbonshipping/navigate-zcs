@@ -3,24 +3,68 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, overload
+
 from navigate.core.scalar import Scalar
 
+if TYPE_CHECKING:
+    import numpy as np
 
-def as_scalar(value):
+    from navigate.core.expression import Expression
+    from navigate.core.node import Node
+    from navigate.core.wildcard import WildcardNodeReference
+
+# these two aliases are the contract for typed callers, not a claim about what
+# reaches the boundary at runtime: the parser is untyped, so it hands every
+# deck value in as 'Any' and a deck can name any shape the grammar accepts -
+# a bare string, a list, a TableData. That is why the helpers in 'assign' keep
+# runtime reject arms that a reader of the annotations alone would take for
+# dead code, and why their validators take 'object' rather than a narrow type.
+
+# a value that already answers a getter, and a date, pass the wrappers
+# untouched; only a bare float needs wrapping
+type WrappedAssignment = (
+    Scalar | Node | WildcardNodeReference | Expression | np.datetime64
+)
+
+# everything a setter may be handed for a single-valued attribute
+type Assignment = float | WrappedAssignment
+
+
+# 'int' and 'bool' are not instances of 'float', so they pass through
+# unwrapped; the numeric tower would otherwise type them as Scalar
+@overload
+def as_scalar(value: bool) -> bool: ...
+
+
+@overload
+def as_scalar(value: int) -> int: ...
+
+
+@overload
+def as_scalar(value: float) -> Scalar: ...
+
+
+@overload
+def as_scalar[T: WrappedAssignment](value: T) -> T: ...
+
+
+def as_scalar(value: Assignment) -> Assignment:
     """
-    Wrap a value in a Scalar class if it is a float, otherwise return the Node as is.
+    Wrap a value in a Scalar class if it is a float, otherwise return the value as is.
 
-    The wrapping is necessary as Scalar provides a getter which takes two arguments, similar to all calculator nodes.
-    This is convenient when an attribute can be defined as either a float or a calculator node.
+    The wrapping is necessary as Scalar provides a getter which takes two
+    arguments, similar to all calculator nodes. This is convenient when an
+    attribute can be defined as either a float or a calculator node.
 
     Parameters
     ----------
-    value : float | Node
+    value
         Value to wrap in a Scalar if it is a float.
 
     Returns
     -------
-    Scalar | Node
+    Assignment
         Wrapped value.
     """
     if isinstance(value, float):
@@ -29,33 +73,41 @@ def as_scalar(value):
         return value
 
 
-def as_scalar_list(values):
+def as_scalar_list(
+    values: Assignment | list[Assignment] | tuple[Assignment, ...],
+) -> list[WrappedAssignment]:
     """
-    Wraps all values in a list as Scalars if they are floats. See 'as_scalar' for further documentation.
+    Wrap all values in a list as Scalars if they are floats.
+
+    See 'as_scalar' for further documentation.
 
     Parameters
     ----------
-    values : list[float | Node] | tuple[float | Node, ...] | float | Node
+    values
         Values to wrap in a Scalar if they are floats.
 
     Returns
     -------
-    list[Scalar | Node]
+    list[WrappedAssignment]
         List of wrapped values.
     """
-    return [as_scalar(value) for value in as_list(values)]
+    assignments: list[Assignment] = as_list(values)
+
+    return [as_scalar(value) for value in assignments]
 
 
-def as_list(value):
+def as_list[T](value: T | list[T] | tuple[T, ...]) -> list[T]:
     """
     Wrap a value in a list if it is not already a list.
 
-    This is a convenient method when an attribute requires a list, but the list has no defined length.
-    It allows the user to pass the assignment without the '[' and ']' around the value.
+    This is a convenient method when an attribute requires a list, but the
+    list has no defined length. It allows the user to pass the assignment
+    without the '[' and ']' around the value.
 
     Parameters
     ----------
-    value : list | float | Node | WildcardNodeReference
+    value
+        Value that may or may not already be a list.
 
     Returns
     -------

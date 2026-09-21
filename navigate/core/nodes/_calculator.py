@@ -7,12 +7,10 @@ import logging
 
 import numpy as np
 
-from navigate.core import assign_id, assign_value
+from navigate.core import assign_bound, assign_value
 from navigate.util import ROUND_OFF
 
 logger = logging.getLogger(__name__)
-
-BOUNDS_MAP = {"-INF": -np.inf, "INF": np.inf}
 
 
 class _Calculator:
@@ -75,11 +73,7 @@ class _Calculator:
         lower_bound : float, str
             Lower bound of calculated value.
         """
-        if isinstance(lower_bound, float):
-            self.lower_bound = assign_value(lower_bound)
-
-        else:
-            self.lower_bound = assign_id(lower_bound, BOUNDS_MAP)
+        self.lower_bound = assign_bound(lower_bound)
 
         # called here in case the lower bound is changed during time-stepping
         self._assign_applied_bounds()
@@ -93,11 +87,7 @@ class _Calculator:
         upper_bound : float, str
             Upper bound of calculated value.
         """
-        if isinstance(upper_bound, float):
-            self.upper_bound = assign_value(upper_bound)
-
-        else:
-            self.upper_bound = assign_id(upper_bound, BOUNDS_MAP)
+        self.upper_bound = assign_bound(upper_bound)
 
         # called here in case the upper bound is changed during time-stepping
         self._assign_applied_bounds()
