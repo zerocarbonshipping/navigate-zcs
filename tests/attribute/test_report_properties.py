@@ -87,13 +87,9 @@ def test_deck_report_properties_resolve(command, token):
     )
 
     parameters = list(
-        inspect.signature(getattr(profile_class, getter_name)).parameters.values()
+        inspect.signature(getattr(profile_class, getter_name)).parameters
     )[1:]
-    assert all(
-        p.default is not inspect.Parameter.empty
-        or p.kind in (inspect.Parameter.VAR_POSITIONAL, inspect.Parameter.VAR_KEYWORD)
-        for p in parameters
-    ), (
+    assert not parameters, (
         f"'{token}' resolves to {profile_class.__name__}.{getter_name}, "
         f"which the report writer cannot call without arguments"
     )
