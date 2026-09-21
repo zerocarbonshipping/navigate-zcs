@@ -170,8 +170,8 @@ A surface is a two-dimensional curve and has the syntax:
 ```python
 Surface "node_name" {
     Table = [
-        # x-axis (top line)
-        # y-axis (first in rows)
+        # y-axis (header row)
+        # x-axis (first cell of every subsequent row)
         0 1 2
         0 0 1 2
         10 3 4 12
@@ -180,7 +180,7 @@ Surface "node_name" {
 }
 ```
 
-Here, the first line is the x-axis and is defined by `nx` entries corresponding to the number of points along the x-axis. Every subsequent row is defined by `nx+1` entries, with the first value being the y-axis value and all subsequent values corresponding to the interior values for that y-value and all x-values. The number of points along the y-axis, `ny`, is given by the number of lines in the table (excluding the first).
+Here, the header row is the y-axis and is defined by `ny` entries corresponding to the number of points along the y-axis. Every subsequent row is defined by `ny+1` entries, with the first value being the x-axis value and all subsequent values the z-values for that x-value and all y-values. The number of points along the x-axis, `nx`, is given by the number of rows below the header.
 
 ### Timetable
 
@@ -189,8 +189,8 @@ A timetable is a two-dimensional mixture of a curve and a forecast and has the s
 ```python
 Timetable "node_name" {
     Table = [
-        # x-axis (top line)
-        # y-axis (first in rows)
+        # y-axis (header row)
+        # x-axis (first cell of every subsequent row)
         0 1 2
         "01-01-2024" 0 1 2
         "01-01-2030" 3 4 12
@@ -199,7 +199,7 @@ Timetable "node_name" {
 }
 ```
 
-Similar to the forecast, a timetable may be defined by floats in the y-axis, which are interpreted as "days since start of simulation."
+Similar to the forecast, the x-axis of a timetable may be defined by floats rather than dates.
 
 ## Expressions
 
@@ -291,7 +291,7 @@ Navigate accepts glob-style wildcards in node names and identifiers, letting a s
 
 A pattern may be the bare wildcard `"*"` (matches every value) or a partial pattern that combines wildcards with literal characters, e.g. `"bio_*"`, `"port_?"`, or `"*_2030"`. Wildcards are written inside the quoted node name; for enum identifiers in commands they are written inline without quotes (e.g. `M*`).
 
-Wildcards are resolved at the point of use against the set of registered nodes, the relevant enum members, the existing keys of a target dictionary, or the file names in the default-node folders — depending on the construct. The expanded pattern must match at least one value; otherwise an error is raised.
+Wildcards are resolved at the point of use against the set of registered nodes, every member of the enum an argument is typed against, the existing keys of a target dictionary, or the file names in the default-node folders — depending on the construct. The expanded pattern must match at least one value; otherwise an error is raised.
 
 The following constructs accept wildcards:
 
@@ -299,7 +299,7 @@ The following constructs accept wildcards:
 
 * **Commands with string arguments.** Wildcards in a command's string key(s) expand against the existing entries of the dictionary the command writes to. For example, `set_initial_technology_share("*", "hull_painting", Curve("..."))` applies the assignment to every existing vessel key, and `set_fuel_conversion_cost("*ice_oil*", "*ice_methanol*", 13.4e6)` matches every from/to vessel pair whose names contain the substrings.
 
-* **Commands with enum arguments.** Wildcards in an enum-typed argument (written inline, without quotes) expand against the enum's member names. For example, `set_slip_fraction(M*, 0.03)` applies the assignment to both the `METHANE` and `METHANOL` members of `FuelTypeID`.
+* **Commands with enum arguments.** Wildcards in an enum-typed argument (written inline, without quotes) expand against the member names of the whole enum class the argument is typed against. For example, `set_slip_fraction(M*, 0.03)` applies the assignment to both the `METHANE` and `METHANOL` members of `FuelTypeID`.
 
 * **Import statements.** Wildcards in an `Import` directive match the file names of `.inc` files in the user and installation default folders. For example, `Import Converter "electrical_ice_methane_*"` imports every default Converter whose file name begins with `electrical_ice_methane_`.
 

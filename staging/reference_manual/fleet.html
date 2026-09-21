@@ -678,7 +678,7 @@ Examples of fleets are handymax bulk carriers and LR1 tankers.</p>
 <h3>InitialSplit<a class="headerlink" href="#initialsplit" title="Link to this heading">#</a></h3>
 <p>This attribute sets the initial distribution of vessel types in the fleet.</p>
 <p>The list must have the same length as the list of vessels.</p>
-<p>The list must sum to 1. If not, the list is rescaled proportionally.</p>
+<p>The list should sum to 1; a positive total other than 1 is rescaled proportionally, and a deviation of more than 1% is logged at <code class="docutils literal notranslate"><span class="pre">INFO</span></code>. A list summing to 0 is accepted unchanged.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: List of <code class="docutils literal notranslate"><span class="pre">floats</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
