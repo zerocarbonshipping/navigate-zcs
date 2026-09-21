@@ -290,16 +290,21 @@ class _Policy(Node):
 
     def _initialize_policy_dependencies(self, vessels):
 
+        # Every (fuel, emission) pair must carry a key, so that a factor the deck
+        # did not supply reads as None and the model derives it instead. The keys
+        # must not overwrite a factor the deck did supply: setdefault, not
+        # assignment. A key is still created for every pair because wildcard
+        # expansion resolves against the keys already in the dictionary.
         for fuel in self.fuels:
             fuel_name = fuel.get_name()
 
             for emission in self.emissions:
                 key = (fuel_name, emission.get_name())
-                self.fuel_WTT[key] = None
-                self.fuel_TTW[key] = None
+                self.fuel_WTT.setdefault(key, None)
+                self.fuel_TTW.setdefault(key, None)
 
         for emission in self.emissions:
-            self.global_warming_potential[emission.get_name()] = None
+            self.global_warming_potential.setdefault(emission.get_name(), None)
 
         for vessel_name in vessels:
             if vessel_name not in self.include_vessel:
