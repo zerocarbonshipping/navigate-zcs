@@ -171,6 +171,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   conversion warning is logged once per vessel pair instead of once per
   affected time step, and the fleet reference speed at a step where the
   fleet has no vessels is NaN (previously an undefined division).
+- `FleetProfile.set_instantaneous_freight_rate` accepts a slice and an array
+  like the other fleet timeline setters, and the fleet-level instantaneous
+  freight rate is aggregated in one whole-timeline array operation instead of
+  once per time-step. Outputs are bit-identical.
 
 ### Added
 - The console prints the number of logged warnings at the end of a run,

@@ -13,6 +13,7 @@ from navigate.core.profiles._vessel_aggregate_profile import _VesselAggregatePro
 if TYPE_CHECKING:
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
+    from navigate.util.types_ import FloatLike
 
 from navigate.util import divide_nonzero, extract_from_dict, extract_from_tuple_dict
 
@@ -197,7 +198,7 @@ class FleetProfile(_VesselAggregateProfile):
         self._highest_speed[idx] = highest_speed
 
     def set_instantaneous_freight_rate(
-        self, idx: int, instantaneous_freight_rate: float
+        self, idx: int | slice, instantaneous_freight_rate: FloatLike
     ) -> None:
         self._instantaneous_freight_rate[idx] = instantaneous_freight_rate
 
