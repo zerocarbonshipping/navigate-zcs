@@ -252,6 +252,19 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   silently created an entry for a demand type that is not in port (the command
   covers electrical and heat, as its reference-manual page now states), which
   nothing then read; it is now a deck error. No committed deck assigns it.
+- The DSL reference names the axes of a Surface and a Timetable table the way
+  they are read: the header row is the y-axis, and the first cell of every
+  subsequent row is the x-axis. It had them the other way round, so a table
+  written from the manual came out transposed, and the note on a timetable's
+  float axis named the wrong axis for the dates it replaces.
+- The DSL reference states that a wildcard in an enum-typed command argument
+  expands over every member of the enum class, not over the subset of members
+  the command accepts.
+- `ConditionDistribution`'s reference-manual entry states the proportional
+  rescale of a list whose positive total is not 1, which it required to sum to
+  1 exactly; both it and `InitialSplit`'s entry name the 1% deviation above
+  which the rescale is logged, and that a list summing to 0 is accepted
+  unchanged.
 
 ### Changed
 - Internal reorganization (no DSL or result changes): the retrofit flow of

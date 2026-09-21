@@ -187,7 +187,7 @@ This attribute sets the initial distribution of vessel types in the fleet.
 
 The list must have the same length as the list of vessels.
 
-The list must sum to 1. If not, the list is rescaled proportionally.
+The list should sum to 1; a positive total other than 1 is rescaled proportionally, and a deviation of more than 1% is logged at `INFO`. A list summing to 0 is accepted unchanged.
 
 * **Data type**: List of `floats`
 * **Example values**:

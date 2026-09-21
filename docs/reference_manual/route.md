@@ -122,7 +122,7 @@ This attribute sets the distance of the various legs of the trip in nautical mil
 
 ### ConditionDistribution 
 
-This attribute sets the fraction of time spent on the various legs of the trip. The sum of the coefficients in the list must equal 1. This is only applicable if 'RouteType' is REGIONAL\_TRIP. Refer to the section ‘Conditions’.
+This attribute sets the fraction of time spent on the various legs of the trip. The list should sum to 1; a positive total other than 1 is rescaled proportionally, and a deviation of more than 1% is logged at `INFO`. A list summing to 0 is accepted unchanged. This is only applicable if 'RouteType' is REGIONAL\_TRIP. Refer to the section ‘Conditions’.
 
 * **Data type**: List of `Floats`
 * **Example values**:
