@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from navigate.core.nodes.fuel import Fuel
     from navigate.util.types_ import FloatArray, FloatLike
 
-from navigate.util import divide_nonzero, extract_from_dict, extract_from_tuple_dict
+from navigate.util import divide_nonzero
 
 
 class FleetProfile(_VesselAggregateProfile):
@@ -202,46 +202,26 @@ class FleetProfile(_VesselAggregateProfile):
     ) -> None:
         self._instantaneous_freight_rate[idx] = instantaneous_freight_rate
 
-    def get_trade(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._trade[idx]
+    def get_trade(self) -> FloatArray:
+        return self._trade
 
-    def get_cargo_miles(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._cargo_miles[idx]
+    def get_cargo_miles(self) -> FloatArray:
+        return self._cargo_miles
 
-    def get_existing_vessels(
-        self, vessel_name: str | None = None, idx: int | slice = np.s_[:]
-    ) -> np.ndarray | dict[str, np.ndarray]:
-        return extract_from_dict(self._existing_vessels, vessel_name, idx)
+    def get_existing_vessels(self) -> dict[str, FloatArray]:
+        return dict(self._existing_vessels)
 
-    def get_scrap(
-        self, vessel_name: str | None = None, idx: int | slice = np.s_[:]
-    ) -> np.ndarray | dict[str, np.ndarray]:
-        return extract_from_dict(self._scrap, vessel_name, idx)
+    def get_scrap(self) -> dict[str, FloatArray]:
+        return dict(self._scrap)
 
-    def get_newbuilds(
-        self, vessel_name: str | None = None, idx: int | slice = np.s_[:]
-    ) -> np.ndarray | dict[str, np.ndarray]:
-        return extract_from_dict(self._newbuilds, vessel_name, idx)
+    def get_newbuilds(self) -> dict[str, FloatArray]:
+        return dict(self._newbuilds)
 
-    def get_fuel_conversions(
-        self,
-        vessel_name_from: str | None = None,
-        vessel_name_to: str | None = None,
-        idx: int | slice = np.s_[:],
-    ) -> np.ndarray | dict[tuple[str, str], np.ndarray]:
-        return extract_from_tuple_dict(
-            self._fuel_conversions, vessel_name_from, vessel_name_to, idx
-        )
+    def get_fuel_conversions(self) -> dict[tuple[str, str], FloatArray]:
+        return dict(self._fuel_conversions)
 
-    def get_technology_uptake(
-        self,
-        vessel_name: str | None = None,
-        technology_name: str | None = None,
-        idx: int | slice = np.s_[:],
-    ) -> np.ndarray | dict[tuple[str, str], np.ndarray]:
-        return extract_from_tuple_dict(
-            self._technology_uptake, vessel_name, technology_name, idx
-        )
+    def get_technology_uptake(self) -> dict[tuple[str, str], FloatArray]:
+        return dict(self._technology_uptake)
 
     def get_fleet_technology_uptake(self) -> dict[str, FloatArray]:
         """
@@ -265,46 +245,32 @@ class FleetProfile(_VesselAggregateProfile):
 
         return fleet_uptake
 
-    def get_newbuild_technology_uptake(
-        self,
-        vessel_name: str | None = None,
-        technology_name: str | None = None,
-        idx: int | slice = np.s_[:],
-    ) -> np.ndarray | dict[tuple[str, str], np.ndarray]:
-        return extract_from_tuple_dict(
-            self._newbuild_technology_uptake, vessel_name, technology_name, idx
-        )
+    def get_newbuild_technology_uptake(self) -> dict[tuple[str, str], FloatArray]:
+        return dict(self._newbuild_technology_uptake)
 
-    def get_retrofit_technology_uptake(
-        self,
-        vessel_name: str | None = None,
-        technology_name: str | None = None,
-        idx: int | slice = np.s_[:],
-    ) -> np.ndarray | dict[tuple[str, str], np.ndarray]:
-        return extract_from_tuple_dict(
-            self._retrofit_technology_uptake, vessel_name, technology_name, idx
-        )
+    def get_retrofit_technology_uptake(self) -> dict[tuple[str, str], FloatArray]:
+        return dict(self._retrofit_technology_uptake)
 
-    def get_reference_speed(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._reference_speed[idx]
+    def get_reference_speed(self) -> FloatArray:
+        return self._reference_speed
 
-    def get_minimum_speed(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._minimum_speed[idx]
+    def get_minimum_speed(self) -> FloatArray:
+        return self._minimum_speed
 
-    def get_maximum_speed(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._maximum_speed[idx]
+    def get_maximum_speed(self) -> FloatArray:
+        return self._maximum_speed
 
-    def get_actual_speed(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._actual_speed[idx]
+    def get_actual_speed(self) -> FloatArray:
+        return self._actual_speed
 
-    def get_optimal_speed(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._optimal_speed[idx]
+    def get_optimal_speed(self) -> FloatArray:
+        return self._optimal_speed
 
-    def get_lowest_speed(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._lowest_speed[idx]
+    def get_lowest_speed(self) -> FloatArray:
+        return self._lowest_speed
 
-    def get_highest_speed(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._highest_speed[idx]
+    def get_highest_speed(self) -> FloatArray:
+        return self._highest_speed
 
-    def get_instantaneous_freight_rate(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._instantaneous_freight_rate[idx]
+    def get_instantaneous_freight_rate(self) -> FloatArray:
+        return self._instantaneous_freight_rate

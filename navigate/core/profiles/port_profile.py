@@ -10,12 +10,11 @@ import numpy as np
 from navigate.core.profiles._infrastructure_aggregate_profile import (
     _InfrastructureAggregateProfile,
 )
-from navigate.util import extract_from_dict, extract_from_tuple_dict
 
 if TYPE_CHECKING:
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
-    from navigate.util.types_ import FloatArray
+    from navigate.util.types_ import BoolArray, FloatArray
 
 
 class PortProfile(_InfrastructureAggregateProfile):
@@ -98,15 +97,11 @@ class PortProfile(_InfrastructureAggregateProfile):
     def set_bunkering_allowed(self, idx: int, fuel_name: str, available: bool) -> None:
         self._bunkering_allowed[fuel_name][idx] = available
 
-    def get_bunkering_allowed(
-        self, fuel_name: str | None = None, idx: int | slice = np.s_[:]
-    ) -> np.ndarray | dict[str, np.ndarray]:
-        return extract_from_dict(self._bunkering_allowed, fuel_name, idx)
+    def get_bunkering_allowed(self) -> dict[str, BoolArray]:
+        return dict(self._bunkering_allowed)
 
-    def get_bunker_price(
-        self, fuel_name: str | None = None, idx: int | slice = np.s_[:]
-    ) -> np.ndarray | dict[str, np.ndarray]:
-        return extract_from_dict(self._bunker_price, fuel_name, idx)
+    def get_bunker_price(self) -> dict[str, FloatArray]:
+        return dict(self._bunker_price)
 
     def get_bunker_intensity_price(self) -> dict[str, FloatArray]:
         return {
@@ -114,23 +109,14 @@ class PortProfile(_InfrastructureAggregateProfile):
             for fuel_name, price in self._bunker_price.items()
         }
 
-    def get_bunker_wtt(
-        self,
-        fuel_name: str | None = None,
-        emission_name: str | None = None,
-        idx: int | slice = np.s_[:],
-    ) -> np.ndarray | dict[tuple[str, str], np.ndarray]:
-        return extract_from_tuple_dict(
-            self._bunker_wtt, key1=fuel_name, key2=emission_name, idx=idx
-        )
+    def get_bunker_wtt(self) -> dict[tuple[str, str], FloatArray]:
+        return dict(self._bunker_wtt)
 
     def get_equivalent_bunker_wtt(self) -> dict[tuple[str, str], FloatArray]:
         return self._equivalent(self._bunker_wtt, self._global_warming_potential)
 
-    def get_total_equivalent_bunker_wtt(
-        self, idx: int | slice = np.s_[:]
-    ) -> np.ndarray:
-        return self._get_total_method(self.get_equivalent_bunker_wtt, idx)
+    def get_total_equivalent_bunker_wtt(self) -> FloatArray:
+        return self._sum_values(self.get_equivalent_bunker_wtt())
 
     def get_bunker_intensity_wtt(self) -> dict[tuple[str, str], FloatArray]:
         return self._to_intensity(self._bunker_wtt)

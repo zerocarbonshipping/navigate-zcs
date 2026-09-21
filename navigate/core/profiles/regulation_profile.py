@@ -9,10 +9,10 @@ import numpy as np
 
 from navigate.core.initial_values import EMPTY_FLOAT, EMPTY_NAN
 from navigate.core.profiles._base_profile import _BaseProfile
-from navigate.util import extract_from_dict
 
 if TYPE_CHECKING:
     from navigate.core.nodes.vessel import Vessel
+    from navigate.util.types_ import FloatArray
 
 
 class RegulationProfile(_BaseProfile):
@@ -133,16 +133,14 @@ class RegulationProfile(_BaseProfile):
     ) -> None:
         self._adjusted_vessel_threshold[vessel_name][idx] = threshold
 
-    def get_adjusted_vessel_threshold(
-        self, vessel_name: str | None = None, idx: int | slice = np.s_[:]
-    ) -> np.ndarray | dict[str, np.ndarray]:
-        return extract_from_dict(self._adjusted_vessel_threshold, vessel_name, idx)
+    def get_adjusted_vessel_threshold(self) -> dict[str, FloatArray]:
+        return dict(self._adjusted_vessel_threshold)
 
     def set_adjusted_shared_threshold(self, idx: int, threshold: float) -> None:
         self._adjusted_shared_threshold[idx] = threshold
 
-    def get_adjusted_shared_threshold(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._adjusted_shared_threshold[idx]
+    def get_adjusted_shared_threshold(self) -> FloatArray:
+        return self._adjusted_shared_threshold
 
     def set_vessel_allowance(
         self, idx: int, vessel_name: str, vessel_allowance: float
@@ -186,61 +184,53 @@ class RegulationProfile(_BaseProfile):
     ) -> None:
         self._remedial_expenses[idx] += expenses
 
-    def get_remedial_cost(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._remedial_cost[idx]
+    def get_remedial_cost(self) -> FloatArray:
+        return self._remedial_cost
 
-    def get_flexibility_cost(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._flexibility_cost[idx]
+    def get_flexibility_cost(self) -> FloatArray:
+        return self._flexibility_cost
 
-    def get_vessel_threshold(
-        self, vessel_name: str | None = None, idx: int | slice = np.s_[:]
-    ) -> np.ndarray | dict[str, np.ndarray]:
-        return extract_from_dict(self._vessel_threshold, vessel_name, idx)
+    def get_vessel_threshold(self) -> dict[str, FloatArray]:
+        return dict(self._vessel_threshold)
 
-    def get_shared_threshold(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._shared_threshold[idx]
+    def get_shared_threshold(self) -> FloatArray:
+        return self._shared_threshold
 
-    def get_vessel_allowance(
-        self, vessel_name: str | None = None, idx: int | slice = np.s_[:]
-    ) -> np.ndarray | dict[str, np.ndarray]:
-        return extract_from_dict(self._vessel_allowance, vessel_name, idx)
+    def get_vessel_allowance(self) -> dict[str, FloatArray]:
+        return dict(self._vessel_allowance)
 
-    def get_shared_allowance(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._shared_allowance[idx]
+    def get_shared_allowance(self) -> FloatArray:
+        return self._shared_allowance
 
-    def get_vessel_compliance(
-        self, vessel_name: str | None = None, idx: int | slice = np.s_[:]
-    ) -> np.ndarray | dict[str, np.ndarray]:
-        return extract_from_dict(self._vessel_compliance, vessel_name, idx)
+    def get_vessel_compliance(self) -> dict[str, FloatArray]:
+        return dict(self._vessel_compliance)
 
-    def get_shared_compliance(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._shared_compliance[idx]
+    def get_shared_compliance(self) -> FloatArray:
+        return self._shared_compliance
 
-    def get_vessel_units(
-        self, vessel_name: str | None = None, idx: int | slice = np.s_[:]
-    ) -> np.ndarray | dict[str, np.ndarray]:
-        return extract_from_dict(self._vessel_units, vessel_name, idx)
+    def get_vessel_units(self) -> dict[str, FloatArray]:
+        return dict(self._vessel_units)
 
-    def get_shared_units(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._shared_units[idx]
+    def get_shared_units(self) -> FloatArray:
+        return self._shared_units
 
-    def get_surplus_units(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._surplus_units[idx]
+    def get_surplus_units(self) -> FloatArray:
+        return self._surplus_units
 
-    def get_flexibility_units(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._flexibility_units[idx]
+    def get_flexibility_units(self) -> FloatArray:
+        return self._flexibility_units
 
-    def get_remedial_units(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._remedial_units[idx]
+    def get_remedial_units(self) -> FloatArray:
+        return self._remedial_units
 
-    def get_non_compliance_units(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._flexibility_units[idx] + self._remedial_units[idx]
+    def get_non_compliance_units(self) -> FloatArray:
+        return self._flexibility_units + self._remedial_units
 
-    def get_surplus_revenue(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._surplus_revenue[idx]
+    def get_surplus_revenue(self) -> FloatArray:
+        return self._surplus_revenue
 
-    def get_flexibility_expenses(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._flexibility_expenses[idx]
+    def get_flexibility_expenses(self) -> FloatArray:
+        return self._flexibility_expenses
 
-    def get_remedial_expenses(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._remedial_expenses[idx]
+    def get_remedial_expenses(self) -> FloatArray:
+        return self._remedial_expenses

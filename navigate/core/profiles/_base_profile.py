@@ -9,11 +9,12 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.initial_values import EMPTY_FLOAT
+from navigate.util import divide_nonzero
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
-    from navigate.util.types_ import BoolArray, FloatArray
+    from navigate.util.types_ import BoolArray, FloatArray, FloatLike
 
 
 class _BaseProfile:
@@ -82,3 +83,9 @@ class _BaseProfile:
             * global_warming_potential[emission_name]
             for (fuel_name, emission_name), emission in emissions.items()
         }
+
+    @staticmethod
+    def _convert_to_intensity(emission: FloatArray, energy: FloatLike) -> FloatArray:
+        # emissions are converted from ton to g (10^6) and energy from GJ to
+        # MJ (10^3), so dividing by 10^3
+        return divide_nonzero(emission, energy / 1e3)
