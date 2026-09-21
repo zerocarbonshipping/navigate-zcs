@@ -182,11 +182,11 @@ class Route(Node):
         condition_distribution : list[float]
             A list of floats.
         """
-        self.condition_distribution, normalized = assign_fraction_list(
+        self.condition_distribution, rescaled = assign_fraction_list(
             condition_distribution
         )
 
-        if normalized:
+        if rescaled:
             logger.info(
                 f"{self}: 'ConditionDistribution' is rescaled proportionally to sum to 1."
             )

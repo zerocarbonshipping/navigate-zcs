@@ -388,11 +388,14 @@ def assign_id_list[E: Enum](
     return expanded
 
 
-def assign_fraction_list(fractions):
+def assign_fraction_list(fractions: list[float]) -> tuple[list[float], bool]:
     """
     Check whether the value (float or calculator) assigned to an attribute satisfy the requirements of that attribute.
     Only applicable to attributes requiring a list of values.
     Additionally, requires that the sum of values in the list sum to 1.
+
+    A list summing to anything else is rescaled proportionally, and the flag
+    says whether the deviation was large enough for the setter to report it.
 
     If the requirements are not satisfied a ValueError is raised. Note that this error is only a partial message
     designed to be caught at a higher level.
@@ -400,22 +403,24 @@ def assign_fraction_list(fractions):
     Parameters
     ----------
     fractions
+        List of fractions passed to the setter.
 
     Returns
     -------
-    list[float]
-        List of floats that at maximum sum to 1.
+    tuple[list[float], bool]
+        The fractions, rescaled to sum to 1, and whether they were rescaled by
+        more than one percent.
     """
     _check_fraction_list(fractions)
 
-    normalized = False
+    rescaled = False
     total = round(sum(fractions), ROUND_OFF)
 
     if fractions and (total != 1.0) and (total > 0.0):
-        fractions[:] = [fraction / total for fraction in fractions]
-        normalized = abs(total - 1) > 0.01
+        fractions = [fraction / total for fraction in fractions]
+        rescaled = abs(total - 1) > 0.01
 
-    return assign_list(fractions, lower=0.0, upper=1.0), normalized
+    return assign_list(fractions, lower=0.0, upper=1.0), rescaled
 
 
 def command_assignment_to_dict[K: str | Enum](

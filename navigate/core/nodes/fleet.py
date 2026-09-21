@@ -315,9 +315,9 @@ class Fleet(_AssetManager):
         initial_split
             Initial distribution of vessel types.
         """
-        self.initial_split, normalized = assign_fraction_list(initial_split)
+        self.initial_split, rescaled = assign_fraction_list(initial_split)
 
-        if normalized:
+        if rescaled:
             logger.info(
                 f"{self}: 'InitialSplit' is rescaled proportionally to sum to 1."
             )

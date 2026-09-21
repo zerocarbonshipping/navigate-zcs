@@ -21,6 +21,16 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `tests/regression/README.md`.
 
 ### Changed
+- **Breaking** for code importing navigate as a library: `assign_fraction_list`
+  returns the rescaled fractions instead of also rescaling the list it was
+  handed, and its second return value is named for the rescale it reports.
+  Both setters that call it already assigned the returned list, so no deck
+  result moves.
+- A wildcard node declaration whose `InitialSplit` or `ConditionDistribution`
+  needs rescaling logs the rescale once per matched node. The parser hands one
+  list to every node it matched, so the in-place rescale left all but the
+  first with a list already summing to 1 and only the first reported it. The
+  fractions themselves are unchanged.
 - **Breaking** for code importing navigate as a library: `Scalar` requires the
   value it answers with, so `Scalar()` no longer constructs.
 - **Breaking** for code importing navigate as a library: the `-INF`/`INF`

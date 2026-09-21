@@ -365,23 +365,31 @@ class TestAssignList:
 
 class TestAssignFractionList:
     def test_unit_sum_is_untouched(self):
-        fractions, normalized = assign_fraction_list([0.25, 0.75])
+        fractions, rescaled = assign_fraction_list([0.25, 0.75])
 
         assert fractions == pytest.approx([0.25, 0.75])
-        assert normalized is False
+        assert rescaled is False
 
     def test_rescaled_and_flagged_beyond_one_percent(self):
-        fractions, normalized = assign_fraction_list([0.4, 0.4])
+        fractions, rescaled = assign_fraction_list([0.4, 0.4])
 
         assert fractions == pytest.approx([0.5, 0.5])
-        assert normalized is True
+        assert rescaled is True
 
     def test_rescaled_silently_within_one_percent(self):
         # the flag gates the caller's log line, not the rescaling itself
-        fractions, normalized = assign_fraction_list([0.5, 0.505])
+        fractions, rescaled = assign_fraction_list([0.5, 0.505])
 
         assert sum(fractions) == pytest.approx(1.0)
-        assert normalized is False
+        assert rescaled is False
+
+    def test_the_passed_list_is_left_alone(self):
+        # the setters assign the returned list, so rescaling must not reach
+        # the list the parser still holds
+        passed = [0.4, 0.4]
+        assign_fraction_list(passed)
+
+        assert passed == pytest.approx([0.4, 0.4])
 
     @pytest.mark.parametrize(
         ("fractions", "expected"),
@@ -390,10 +398,10 @@ class TestAssignFractionList:
     )
     def test_nothing_to_rescale(self, fractions, expected):
         # a zero total cannot be scaled to one, so the values stand as written
-        result, normalized = assign_fraction_list(fractions)
+        result, rescaled = assign_fraction_list(fractions)
 
         assert result == expected
-        assert normalized is False
+        assert rescaled is False
 
     def test_negative_rejected(self):
         with pytest.raises(ValueError, match="does not allow negative values"):
