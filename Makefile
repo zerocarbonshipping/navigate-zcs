@@ -3,12 +3,16 @@
 
 ENV_NAME := nav
 
-# Prefer conda if the env exists, otherwise fall back to .venv
-USE_CONDA := $(shell conda env list 2>/dev/null | grep -q "^$(ENV_NAME)[[:space:]]" && echo 1)
-ifeq ($(USE_CONDA),1)
+# A local .venv wins over the conda env: the conda env carries one editable
+# install pointing at one checkout, so a second git worktree would otherwise
+# import the primary checkout's source. Without a local .venv, use conda if the
+# env exists, else the .venv path anyway.
+ifneq ($(wildcard $(CURDIR)/.venv/bin/python),)
+  RUN := env PATH="$(CURDIR)/.venv/bin:$(PATH)"
+else ifeq ($(shell conda env list 2>/dev/null | grep -q "^$(ENV_NAME)[[:space:]]" && echo 1),1)
   RUN := conda run -n $(ENV_NAME)
 else
-  RUN := env PATH=$(CURDIR)/.venv/bin:$(PATH)
+  RUN := env PATH="$(CURDIR)/.venv/bin:$(PATH)"
 endif
 
 .PHONY: lint test-unit test-attribute test-guardrails test-regression regen-regression test-all test-tutorials test-examples help setup conda-setup pip-setup docs docs-clean

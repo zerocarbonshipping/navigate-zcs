@@ -21,6 +21,11 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `tests/regression/README.md`.
 
 ### Changed
+- `make` runs its targets through a local `.venv` when one exists and only
+  otherwise through the `nav` conda env, so a git worktree runs its own
+  source tree instead of the checkout the conda env's editable install
+  points at. The `PATH` it builds is quoted, so the `.venv` path also works
+  on WSL where Windows entries with spaces are inherited.
 - **Breaking** for code importing navigate as a library: `assign_fraction_list`
   returns the rescaled fractions instead of also rescaling the list it was
   handed, and its second return value is named for the rescale it reports.
