@@ -124,35 +124,19 @@ The formatter owns spacing within statements; blank lines are yours:
 
 ## Navigate-specific conventions
 
-### Nodes and the DSL
+Conventions local to one area live in the `AGENTS.md` beside that code
+(`navigate/core/nodes/`, `navigate/parser/`, `navigate/bunker/`,
+`navigate/output/plots/`, `tests/`). This section holds the repository-wide
+exceptions the shared rules above refer to.
 
-- Any variable on a `Node` or `_GeneralNode` subclass exposed via the DSL needs
-  a setter (e.g. `set_propulsion_load` on the `Vessel` node).
-- DSL setters are public-facing API and always carry a docstring; the node
-  lifecycle methods (`initialize`, `initialize_dependencies`,
-  `calculate_expectation`, `calculate_profile`) need none — the docstring
-  check is waived for `navigate/core/nodes/` to allow this.
-- All Python identifiers, including DSL command names, are pure snake_case
-  with acronyms lowercased (`set_fuel_wtt`, `capex`). Deck-facing attribute
-  tokens keep their DSL casing (`CAPEX`, `TotalEquivalentWTT`) and are mapped
-  to method names by `attribute_to_setter` (`navigate/util/naming.py`).
-  ALL_CAPS is reserved for enum keyword values (`AMMONIA`, `FLAT`) and
-  module-level constants.
-- Node classes order their methods: `__init__`, DSL setters, `initialize*`
-  lifecycle, `calculate_*`, getters last.
-- Nodes are parser-constructed, so node class docstrings stay one line (their
-  inputs are DSL attributes, documented in the DSL reference). The
-  caller-instantiated classes - `Scalar` and the calculators - document
-  constructor parameters in the class docstring per the shared rule.
+### Sanctioned getters and setters
 
-### Dynamic state and results
-
-- Dynamic cross-module results go through `node.expectation` / `node.profile`,
-  never through plain attributes.
-- The expectation classes (`navigate/core/expectations/`) and profile classes
-  (`navigate/core/profiles/`) use getters/adders/setters deliberately: the
+- `node.expectation` and `node.profile` (`navigate/core/expectations/`,
+  `navigate/core/profiles/`) use getters, adders and setters deliberately: the
   indirection separates dynamic state and output from user input and temporary
-  results.
+  results. Their getter shapes are enforced by
+  `tests/unit/core/test_profile_getters.py` and
+  `tests/unit/core/test_expectation_getters.py`.
 - Calculator classes (`Curve`, `Forecast`, `Surface`, `Timetable`, `Variable`)
   and wrappers (`Scalar`) are read through `.get`, which may take a variable
   number of inputs and can return defaults or pre-computed values.
@@ -161,8 +145,9 @@ The formatter owns spacing within statements; blank lines are yours:
 
 - `isinstance` is confined to input validation and value-shape dispatch in
   `navigate/core/` (`assign.py`, `expression.py`, `scalar.py`,
-  `table_data.py`, `wrap.py`), to `navigate/parser/`, `navigate/output/`, and
-  the solver shims.
+  `table_data.py`, `wrap.py`), to `navigate/parser/`, `navigate/output/`, the
+  solver shims, and the type-dispatch helpers in `navigate/util/`, where
+  dispatch on the input kind is the helper's contract.
 - Dynamic attribute access (`hasattr`/`getattr`/`setattr`) is confined to
   `navigate/parser/` (DSL dispatch) and `navigate/output/`.
 - Dictionaries keyed by nodes or enum members are prepopulated at

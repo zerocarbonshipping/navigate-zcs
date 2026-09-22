@@ -20,7 +20,8 @@ behavior are documented in `docs/reference_manual/`.
   validation, expressions, tables), the node classes (`core/nodes/`, one per
   DSL keyword), singleton general nodes, `expectations/` (cross-module
   dynamic state) and `profiles/` (end-of-run output containers).
-- `parser/` — reads `.nav`/`.inc` decks into nodes (Lark grammar).
+- `parser/` — reads `.nav`/`.inc` decks into nodes (Lark grammar) and drives
+  the timeline.
 - `fleet/` — the shipowner domain: voyage physics and energy demand,
   valuation (charter rates, technology packages, marginal-saving heuristics)
   and the speed, technology, fuel-conversion and newbuild/scrap decisions.
@@ -37,6 +38,30 @@ behavior are documented in `docs/reference_manual/`.
 - `logging_.py` — run logging; `exceptions.py` — the `NavigateError`
   hierarchy; `__main__.py` — the CLI.
 
+## Core abstractions
+
+- A **node** (`core/node.py`) is a deck entity: a name, a type string that is
+  also the DSL keyword, and the `set_*` methods the deck may call. All nodes
+  live in one registry (`core/node_registry.py`) that the simulation and the
+  bunkering LP both hold.
+- Each node owns an **expectation** and a **profile**. The expectation
+  (`core/expectations/`) is forward-looking scratch state within one time
+  step, indexed from now over a planning horizon and recomputed each step.
+  The profile (`core/profiles/`) is the append-only record over the whole
+  timeline that reports and plots read.
+- An **increment** (`core/increment.py`) is a cohort of assets — vessels or
+  plants — that entered service together; fleets and producers age and
+  retire their stock as lists of increments.
+- The **time loop** is driven by the parser: the deck's `EVENTS` are replayed
+  date by date, and `SimulationManager._perform_time_step` sequences the
+  domain calls for each date. The bunkering LP runs twice per step: the
+  `EXPECTED` pass produces the expectations and shadow prices that
+  investment, speed and conversion decisions react to; the `EXISTING` pass
+  settles the step.
+- Modules exchange results by **mutating nodes in place**: a domain function
+  takes node dictionaries and a time index and writes expectations or
+  profiles. There is no return-value plumbing between packages.
+
 ## Layering
 
 ```
@@ -46,7 +71,7 @@ economics   → core, util
 policy      → core, util
 fleet, fuel → core, economics, util
 bunker      → core, policy, util (+ fleet.fuel_option)
-output      → core, util
+output      → core, util (+ fleet.fuel_option)
 simulation  → everything
 ```
 
@@ -58,7 +83,8 @@ imports `core.unit`
 ([#22](https://github.com/zerocarbonshipping/navigate-zcs/issues/22)).
 `tests/unit/test_layering.py` enforces that `core/` imports nothing from
 `navigate` at runtime beyond `core/`, `util/`, `exceptions.py`, and
-`logging_.py`.
+`logging_.py`; the sibling rule for the domain packages is not yet enforced
+([#185](https://github.com/zerocarbonshipping/navigate-zcs/issues/185)).
 
 ## Data-flow invariants
 
@@ -73,6 +99,22 @@ imports `core.unit`
 - Direct attribute access (`node.some_input.get()`) is reserved for
   DSL-defined inputs.
 
+## DSL surface
+
+The grammar (`parser/grammar.lark`) is generic; what a deck may say about a
+node is defined in four places that move together:
+
+- the node's `set_*` method in `core/nodes/`, whose docstring documents the
+  attribute for users;
+- the allow-list tables in `parser/` (`_attributes.py`, `_commands.py`);
+- the node's page in `docs/reference_manual/`, hand-written with one heading
+  per attribute and command;
+- the editor highlighting bundles in `syntax/`.
+
+`tests/attribute/` checks that the first two agree by running a deck that
+exercises every registered name; nothing checks the manual page
+([#184](https://github.com/zerocarbonshipping/navigate-zcs/issues/184)).
+
 ## Naming conventions
 
 - `fleet/` and `fuel/` mirror each other deliberately (`initialization.py`,
@@ -80,5 +122,7 @@ imports `core.unit`
   same role in each domain.
 - A leading underscore on a module or class means package-private; anything
   used across package boundaries carries a public name.
-- Each package's `__init__.py` re-exports its externally consumed entry
-  points — read it first to learn the package's API.
+- A package's `__init__.py` re-exports its externally consumed entry points —
+  read it first to learn the package's API. `core/nodes/` and
+  `core/general_nodes/` are the exception: their `__init__.py` is empty so
+  that importing one node class does not load them all.

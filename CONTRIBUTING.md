@@ -17,8 +17,9 @@ pull request against the `dev` branch.
    `make pip-setup` (venv + pip).
 3. Create a branch from `dev` for your change.
 4. Verify your setup by running `make lint` and `make test-unit`.
-5. Skim [ARCHITECTURE.md](ARCHITECTURE.md) for the package map and the
-   data-flow invariants contributions must respect.
+5. Start from [AGENTS.md](AGENTS.md): it says where the architecture,
+   conventions and test suites are described, and an `AGENTS.md` beside the
+   code holds the conventions of that area.
 
 ## What to contribute
 
@@ -76,4 +77,4 @@ the model, open an issue and we will get back to you.
 
 ### Note on AI Tools
 
-The use of Generative AI and related tools is neither encouraged nor discouraged. However, you are responsible for the quality of your own contributions, and we kindly ask that you do not clutter the repository with code or inputs you do not fully understand.
+The use of Generative AI and related tools is neither encouraged nor discouraged. The `AGENTS.md` files are written for coding agents as much as for people, so point your tools at them. You remain responsible for the quality of your own contributions, and we kindly ask that you do not clutter the repository with code or inputs you do not fully understand.

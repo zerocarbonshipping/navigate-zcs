@@ -12,6 +12,13 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ### Added
+- `AGENTS.md` at the repository root and beside `navigate/core/nodes/`,
+  `navigate/parser/`, `navigate/bunker/`, `navigate/output/plots/` and
+  `tests/`: the entry point to where the architecture, conventions and test
+  suites are described, written for coding agents as much as for people.
+  `ARCHITECTURE.md` gains the core abstractions and the DSL surface;
+  `CODESTYLE.md` keeps only repository-wide rules, with per-area conventions
+  moved beside the code.
 - A golden-baseline regression suite (`tests/regression`, `make
   test-regression`, run in CI): small pinned-constant decks whose report CSV
   output is compared against committed baselines within a documented
