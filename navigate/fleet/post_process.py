@@ -54,9 +54,10 @@ def _transfer_in_fleet_flags(fleet: Fleet) -> None:
     fleet
         Fleet instance.
     """
+    existing_vessels = fleet.profile.get_existing_vessels()
+
     for vessel in fleet.assets:
-        in_fleet = fleet.profile.get_existing_vessels(vessel.name) > 0.0
-        vessel.profile.set_in_fleet(np.s_[:], in_fleet)
+        vessel.profile.set_in_fleet(np.s_[:], existing_vessels[vessel.name] > 0.0)
 
 
 def _transfer_fuel_consumer_profiles(fleet: Fleet) -> None:
@@ -71,9 +72,12 @@ def _transfer_fuel_consumer_profiles(fleet: Fleet) -> None:
     fleet
         Fleet instance.
     """
+    existing_vessels = fleet.profile.get_existing_vessels()
+
     for vessel in fleet.assets:
-        multipliers = fleet.profile.get_existing_vessels(vessel.name)
-        fleet.profile.add_fuel_consumer_profile(vessel.profile, multipliers)
+        fleet.profile.add_fuel_consumer_profile(
+            vessel.profile, existing_vessels[vessel.name]
+        )
 
 
 def _transfer_fuel_conversion_expenses(fleet: Fleet) -> None:
@@ -97,19 +101,21 @@ def _transfer_power_totals(fleet: Fleet) -> None:
     fleet
         Fleet instance.
     """
+    existing_vessels = fleet.profile.get_existing_vessels()
+    newbuilds = fleet.profile.get_newbuilds()
+    scrap = fleet.profile.get_scrap()
+
     for vessel in fleet.assets:
         vessel_name = vessel.name
         power = get_total_power_capacity(vessel)
 
         fleet.profile.add_installed_power(
-            vessel.fuel_type, power * fleet.profile.get_existing_vessels(vessel_name)
+            vessel.fuel_type, power * existing_vessels[vessel_name]
         )
         fleet.profile.add_newbuild_power(
-            vessel.fuel_type, power * fleet.profile.get_newbuilds(vessel_name)
+            vessel.fuel_type, power * newbuilds[vessel_name]
         )
-        fleet.profile.add_scrapped_power(
-            vessel.fuel_type, power * fleet.profile.get_scrap(vessel_name)
-        )
+        fleet.profile.add_scrapped_power(vessel.fuel_type, power * scrap[vessel_name])
 
 
 def _transfer_fuel_converted_power(fleet: Fleet) -> None:
@@ -182,9 +188,11 @@ def aggregate_speed_profile(fleet: Fleet) -> None:
     reference_multiplier = np.zeros(size)
     other_multiplier = np.zeros(size)
 
+    multipliers = profile.get_existing_vessels()
+
     for vessel in fleet.assets:
         vessel_profile = vessel.profile
-        multiplier = profile.get_existing_vessels(vessel.name)
+        multiplier = multipliers[vessel.name]
 
         reference = vessel_profile.get_reference_speed()
         minimum = vessel_profile.get_minimum_speed()
@@ -246,10 +254,9 @@ def transfer_transport_work(fleet: Fleet) -> None:
     fleet
         Fleet instance.
     """
+    existing_vessels = fleet.profile.get_existing_vessels()
     multipliers = np.ascontiguousarray(
-        np.array(
-            [fleet.profile.get_existing_vessels(vessel.name) for vessel in fleet.assets]
-        ).T
+        np.array([existing_vessels[vessel.name] for vessel in fleet.assets]).T
     )
     vessel_cargo_miles = np.ascontiguousarray(
         np.array([vessel.expectation.get_cargo_miles() for vessel in fleet.assets]).T
@@ -268,7 +275,7 @@ def transfer_transport_work(fleet: Fleet) -> None:
     fleet.profile.set_cargo_miles(np.s_[:], cargo_miles)
 
     growth = divide_nonzero(cargo_miles, cargo_miles[0], default=1.0)
-    baseline = fleet.profile.get_raw_energy(idx=0) * growth
+    baseline = fleet.profile.get_raw_energy()[0] * growth
     fleet.profile.set_baseline_energy(np.s_[:], baseline)
 
 
@@ -405,8 +412,8 @@ def _calculate_total_vessel_operating_expenses(vessel, idx, timeline):
     # the cost requires bunkering knowledge over the construction lead time
     # plus the operational lifetime. If a vessel has become inactive it will
     # not have been part of the bunkering algorithm and so lacks the data.
-    lifetime = profile.get_lifetime(idx)
-    lead_time = profile.get_lead_time(idx)
+    lifetime = profile.get_lifetime()[idx]
+    lead_time = profile.get_lead_time()[idx]
     idx_to = min(
         timeline.size, idx + get_flow_size(lead_time=lead_time, lifetime=lifetime)
     )

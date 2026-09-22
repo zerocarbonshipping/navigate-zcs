@@ -19,6 +19,7 @@ from navigate.output.plots._figure import (
 )
 from navigate.output.plots._style import LEGEND_OPTIONS
 from navigate.output.plots._units import get_best_unit_energy
+from navigate.util import add_dicts
 
 
 def plot_global_energy_demand(manager, directory):
@@ -27,9 +28,10 @@ def plot_global_energy_demand(manager, directory):
     fig, ax = single_panel()
 
     profile = manager.profile
-    propulsion = profile.get_energy(EnergyDemandTypeID.PROPULSION).copy()
-    electrical = profile.get_energy(EnergyDemandTypeID.ELECTRICAL).copy()
-    heat = profile.get_energy(EnergyDemandTypeID.HEAT).copy()
+    energies = add_dicts(profile.get_energy_sea(), profile.get_energy_port())
+    propulsion = energies[EnergyDemandTypeID.PROPULSION]
+    electrical = energies[EnergyDemandTypeID.ELECTRICAL]
+    heat = energies[EnergyDemandTypeID.HEAT]
 
     divisor, unit = get_best_unit_energy(
         np.amax(propulsion + electrical + heat), default=9

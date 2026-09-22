@@ -40,6 +40,8 @@ def plot_technology_uptake(manager, directory):
             continue
 
         multipliers = profile.get_existing_vessels()
+        newbuilds = profile.get_newbuilds()
+        fleet_uptake = profile.get_fleet_technology_uptake()
 
         uptake = {}
         uptake_nb = {}
@@ -75,13 +77,13 @@ def plot_technology_uptake(manager, directory):
                 if vessel.name in shares_rf
             ]
             weights_nb = [
-                profile.get_newbuilds(vessel.name)
+                newbuilds[vessel.name]
                 for vessel in fleet.vessels
                 if vessel.name in shares_nb
             ]
 
             # Fleet-wide weighted uptake (existing fleet)
-            uptake[name] = profile.get_fleet_technology_uptake(name)
+            uptake[name] = fleet_uptake[name]
 
             # Newbuild uptake (weighted if weights exist; otherwise simple average)
             if values_nb:

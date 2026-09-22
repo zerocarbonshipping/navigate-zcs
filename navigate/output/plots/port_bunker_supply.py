@@ -42,11 +42,14 @@ def plot_port_bunker_supply(manager, directory):
         fig, axes = subplot_grid(len(fuels))
 
         profile = port.profile
+        bunker_mass = profile.get_bunker_mass()
+        bunker_supply_mass = profile.get_bunker_supply_mass()
+        bunkering_limit_mass = profile.get_bunkering_limit_mass()
 
         for ax, fuel_name in zip(axes, fuels, strict=False):
-            bunkered = profile.get_bunker_mass(fuel_name)
-            supply = profile.get_bunker_supply_mass(fuel_name)
-            limit = profile.get_bunkering_limit_mass(fuel_name)
+            bunkered = bunker_mass[fuel_name]
+            supply = bunker_supply_mass[fuel_name]
+            limit = bunkering_limit_mass[fuel_name]
 
             limit = np.where(np.isinf(limit), np.nan, limit)
 

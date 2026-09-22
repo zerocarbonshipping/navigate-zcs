@@ -48,7 +48,7 @@ def manager():
 def check_activation(manager):
     """Deck validity: conversions occur and stay discounting-sensitive."""
     fleet = manager.nodes.fleets["container_15000_teu"]
-    conversions = fleet.profile.get_fuel_conversions(VESSEL_OIL, VESSEL_METHANE)
+    conversions = fleet.profile.get_fuel_conversions()[(VESSEL_OIL, VESSEL_METHANE)]
 
     assert conversions.sum() > MINIMUM_CONVERTED_VESSELS, (
         "No meaningful oil -> methane conversion occurred: the deck no longer "

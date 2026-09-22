@@ -8,10 +8,10 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.profiles._fuel_base_profile import _FuelBaseProfile
-from navigate.util import extract_from_dict
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fuel import Fuel
+    from navigate.util.types_ import FloatArray
 
 
 class _FuelInfrastructureProfile(_FuelBaseProfile):
@@ -76,32 +76,20 @@ class _FuelInfrastructureProfile(_FuelBaseProfile):
     def set_bunker_supply_mass(self, idx: int, fuel_name: str, supply: float) -> None:
         self._bunker_supply_mass[fuel_name][idx] = supply
 
-    def get_bunker_mass(
-        self, fuel_name: str | None = None, idx: int | slice = np.s_[:]
-    ) -> np.ndarray | dict[str, np.ndarray]:
-        return extract_from_dict(self._bunker_mass, fuel_name, idx)
+    def get_bunker_mass(self) -> dict[str, FloatArray]:
+        return dict(self._bunker_mass)
 
-    def get_bunker_energy(
-        self, fuel_name: str | None = None, idx: int | slice = np.s_[:]
-    ) -> np.ndarray | dict[str, np.ndarray]:
-        return self._fuel_mass_to_energy(self._bunker_mass, fuel_name, idx)
+    def get_bunker_energy(self) -> dict[str, FloatArray]:
+        return self._fuel_mass_to_energy(self._bunker_mass)
 
-    def get_bunker_supply_mass(
-        self, fuel_name: str | None = None, idx: int | slice = np.s_[:]
-    ) -> np.ndarray | dict[str, np.ndarray]:
-        return extract_from_dict(self._bunker_supply_mass, fuel_name, idx)
+    def get_bunker_supply_mass(self) -> dict[str, FloatArray]:
+        return dict(self._bunker_supply_mass)
 
-    def get_bunker_supply_energy(
-        self, fuel_name: str | None = None, idx: int | slice = np.s_[:]
-    ) -> np.ndarray | dict[str, np.ndarray]:
-        return self._fuel_mass_to_energy(self._bunker_supply_mass, fuel_name, idx)
+    def get_bunker_supply_energy(self) -> dict[str, FloatArray]:
+        return self._fuel_mass_to_energy(self._bunker_supply_mass)
 
-    def get_bunkering_limit_mass(
-        self, fuel_name: str | None = None, idx: int | slice = np.s_[:]
-    ) -> np.ndarray | dict[str, np.ndarray]:
-        return extract_from_dict(self._bunkering_limit_mass, fuel_name, idx)
+    def get_bunkering_limit_mass(self) -> dict[str, FloatArray]:
+        return dict(self._bunkering_limit_mass)
 
-    def get_bunkering_limit_energy(
-        self, fuel_name: str | None = None, idx: int | slice = np.s_[:]
-    ) -> np.ndarray | dict[str, np.ndarray]:
-        return self._fuel_mass_to_energy(self._bunkering_limit_mass, fuel_name, idx)
+    def get_bunkering_limit_energy(self) -> dict[str, FloatArray]:
+        return self._fuel_mass_to_energy(self._bunkering_limit_mass)

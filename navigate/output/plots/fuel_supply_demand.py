@@ -34,11 +34,14 @@ def plot_fuel_supply_demand(manager, directory):
 
     colors = generate_color_dict(fuels, FUEL_COLOR)
 
+    consumed_energy = profile.get_consumed_energy()
+    production_energy = profile.get_production_energy()
+
     for ax, (fuel_name, fuel) in zip(axes, fuels.items(), strict=False):
-        consumed = profile.get_consumed_energy(fuel_name)
+        consumed = consumed_energy[fuel_name]
 
         if not fuel.liquid_market:
-            production = profile.get_production_energy(fuel_name)
+            production = production_energy[fuel_name]
         else:
             production = np.zeros_like(consumed)
 

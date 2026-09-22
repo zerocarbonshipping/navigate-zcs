@@ -175,6 +175,19 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   like the other fleet timeline setters, and the fleet-level instantaneous
   freight rate is aggregated in one whole-timeline array operation instead of
   once per time-step. Outputs are bit-identical.
+- **Breaking** for code importing navigate as a library: every public getter
+  on the profile classes in `navigate.core.profiles` takes no arguments and
+  returns the whole timeline array, or the whole dict keyed as the storage
+  is (tuple-keyed getters by the `(key1, key2)` pair), so callers index the
+  result; `get_length` and `get_shape` are gone. The totals (`get_energy`,
+  `get_raw_energy`, `get_operational_energy`, every `get_total_*`) keep
+  their meaning, and the emission intensity getters divide by the total
+  consumed energy on every path. `get_saving`, `get_remedial_units` and
+  `get_levy_units` lose their mandatory key and therefore resolve as report
+  properties. Report and plot output is bit-identical; the one behavioural
+  difference is `FleetProfile.get_fleet_technology_uptake`, whose dict has
+  no entry for a technology no vessel carries where the keyed call returned
+  a zero series.
 
 ### Added
 - The console prints the number of logged warnings at the end of a run,

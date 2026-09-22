@@ -3,10 +3,15 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import numpy as np
 
 from navigate.core.initial_values import EMPTY_FLOAT
 from navigate.core.profiles._fuel_producer_profile import _FuelProducerProfile
+
+if TYPE_CHECKING:
+    from navigate.util.types_ import FloatArray
 
 
 class _PlantAggregateProfile(_FuelProducerProfile):
@@ -39,5 +44,5 @@ class _PlantAggregateProfile(_FuelProducerProfile):
     ) -> None:
         self._plant_tied_capital[idx] += tied_capital
 
-    def get_plant_tied_capital(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._plant_tied_capital[idx]
+    def get_plant_tied_capital(self) -> FloatArray:
+        return self._plant_tied_capital
