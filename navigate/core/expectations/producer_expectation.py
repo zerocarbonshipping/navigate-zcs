@@ -154,21 +154,6 @@ class ProducerExpectation(_Expectation):
     def get_fair_share_demand(self) -> dict[str, np.ndarray]:
         return self._fair_share_demand
 
-    def get_existing_production(
-        self, plant_name: str, idx: int | slice = np.s_[:]
-    ) -> np.ndarray:
-        return self._existing_production[plant_name][idx]
-
-    def get_pipeline_production(
-        self, plant_name: str, idx: int | slice = np.s_[:]
-    ) -> np.ndarray:
-        return self._pipeline_production[plant_name][idx]
-
-    def get_newbuild_production(
-        self, plant_name: str, idx: int | slice = np.s_[:]
-    ) -> np.ndarray:
-        return self._newbuild_production[plant_name][idx]
-
     def get_guaranteed_production(
         self, plant_name: str, idx: int | slice = np.s_[:]
     ) -> np.ndarray:

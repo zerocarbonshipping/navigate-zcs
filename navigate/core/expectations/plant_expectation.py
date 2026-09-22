@@ -179,9 +179,6 @@ class PlantExpectation(_Expectation):
     def get_size(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         return self._size[idx]
 
-    def get_capacity(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._capacity[idx]
-
     def get_production(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         return self._production[idx]
 

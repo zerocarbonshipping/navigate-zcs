@@ -191,7 +191,7 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - **Breaking** for code importing navigate as a library: the getters on the
   expectation classes in `navigate.core.expectations` lose their never-passed
   parameters, so each returns one concrete type instead of a key-switched
-  union — `energy_type_id` from the nine vessel energy getters, `port_name`
+  union — `energy_type_id` from the eight vessel energy getters, `port_name`
   from `ProducerExpectation.get_export_distribution`, and `idx` from
   `RegulationExpectation.get_flexibility_cost`, which returns the whole
   timeline array. `_Expectation.get_length` is gone, and `get_shape` names
@@ -698,6 +698,22 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `as_equal_installments` (`navigate/economics/flows.py`). The approximate
   capital-recovery annualization they implemented is replaced by exact
   levelization in the conversion expense booking; nothing else called them.
+- **Breaking** for code importing navigate as a library: 17 expectation
+  readers with no call site in the package or the tests —
+  `PlantExpectation.get_capacity`;
+  `ProducerExpectation.get_existing_production`/`get_pipeline_production`/
+  `get_newbuild_production`;
+  `FleetExpectation.get_newbuild_multipliers`/`get_total_existing_multipliers`/
+  `get_total_expected_multipliers`;
+  `PortExpectation.get_bunker_mass_expected`/`get_bunker_mass_existing` (the
+  same-named `VesselExpectation` pair the fuel-inertia constraint calls stays);
+  and `VesselExpectation.get_distances`/`get_raw_energy_per_leg`/
+  `get_raw_energy_per_port`/`get_operational_energy_per_leg`/
+  `get_operational_energy_per_port`/`get_operational_saving_sea`/
+  `get_operational_saving_port`/`get_regional_raw_energy_sea`. Unlike profile
+  getters, expectation getters are never dispatched by name from a report or
+  plot property, so no deck reaches one. The state behind them is still
+  written and unchanged.
 
 ### Changed
 - Internal simplification (no DSL or result changes): `BunkerAlgorithm` no
