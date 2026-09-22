@@ -126,9 +126,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `expand_id_wildcard` — and `get_increments_origin_index` folds into
   `get_increment_origin_index`, which takes a scalar age or an array of
   ages.
-  `extract_from_dict`/`extract_from_dict_list` carry overloads keyed on
-  `key is None` (a given key yields the sliced value, no key the whole
-  dict), their `idx` accepts the full set of index kinds — the new
+  `extract_from_dict` carries overloads keyed on `key is None` (a given
+  key yields the sliced value, no key the whole dict), the extraction and
+  slicing helpers' `idx` accepts the full set of index kinds — the new
   `Index` alias (`int | np.signedinteger | slice | IntArray`) — and
   `extract_from_dict`'s `idx=None` arm is replaced by a full-slice
   default (identical values; non-empty whole-dict extraction no longer
@@ -188,6 +188,17 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   difference is `FleetProfile.get_fleet_technology_uptake`, whose dict has
   no entry for a technology no vessel carries where the keyed call returned
   a zero series.
+- **Breaking** for code importing navigate as a library: the getters on the
+  expectation classes in `navigate.core.expectations` lose their never-passed
+  parameters, so each returns one concrete type instead of a key-switched
+  union — `energy_type_id` from the nine vessel energy getters, `port_name`
+  from `ProducerExpectation.get_export_distribution`, and `idx` from
+  `RegulationExpectation.get_flexibility_cost`, which returns the whole
+  timeline array. `_Expectation.get_length` is gone, and `get_shape` names
+  its argument for the `start` step it sizes from. In `navigate.util`,
+  `extract_from_dict_list` loses the same key parameter and is renamed
+  `slice_dict_list`, beside the `slice_list` and `slice_dict` it joins.
+  Results are unchanged.
 
 ### Added
 - The console prints the number of logged warnings at the end of a run,

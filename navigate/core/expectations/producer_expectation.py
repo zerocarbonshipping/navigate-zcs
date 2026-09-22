@@ -8,13 +8,14 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.expectations._expectation import _Expectation
-from navigate.util import extract_from_dict
+from navigate.util import slice_dict
 
 if TYPE_CHECKING:
     from navigate.core.nodes.feedstock import Feedstock
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.port import Port
     from navigate.core.nodes.process import Process
+    from navigate.util.types_ import FloatLike, Index
 
 
 class ProducerExpectation(_Expectation):
@@ -132,10 +133,8 @@ class ProducerExpectation(_Expectation):
     ) -> None:
         self._newbuild_production[plant_name][idx:] = production
 
-    def get_export_distribution(
-        self, port_name: str | None = None, idx: int | slice = np.s_[:]
-    ) -> np.ndarray | dict[str, np.ndarray]:
-        return extract_from_dict(self._export_distribution, port_name, idx)
+    def get_export_distribution(self, idx: Index = np.s_[:]) -> dict[str, FloatLike]:
+        return slice_dict(self._export_distribution, idx)
 
     def get_plant_feed_consumption(self, plant_name: str, feed_name: str) -> float:
         return self._plant_feed_consumption[(plant_name, feed_name)]

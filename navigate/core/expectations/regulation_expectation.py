@@ -5,15 +5,16 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import numpy as np
-
 from navigate.core.expectations._policy_expectation import _PolicyExpectation
 from navigate.core.initial_values import EMPTY_FLOAT
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
+    import numpy as np
+
     from navigate.core.nodes.vessel import Vessel
+    from navigate.util.types_ import FloatArray
 
 
 class RegulationExpectation(_PolicyExpectation):
@@ -62,8 +63,8 @@ class RegulationExpectation(_PolicyExpectation):
     ) -> None:
         self._vessel_capacity[vessel_name][idx:] = capacity
 
-    def get_flexibility_cost(self, idx: int | slice = np.s_[:]) -> float | np.ndarray:
-        return self._flexibility_cost[idx]
+    def get_flexibility_cost(self) -> FloatArray:
+        return self._flexibility_cost
 
     def get_belief_flexibility_cost(self) -> np.ndarray:
         return self._belief_flexibility_cost

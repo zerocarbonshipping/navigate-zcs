@@ -12,9 +12,9 @@ from navigate.util import (
     add_dicts,
     collapse_tuple_dict,
     extract_from_dict,
-    extract_from_dict_list,
     extract_from_tuple_dict,
     multiply_dicts,
+    slice_dict_list,
     sum_dict_results,
 )
 
@@ -185,22 +185,22 @@ class TestExtractFromTupleDict:
         assert extract_from_tuple_dict({}, idx=0) == {}
 
 
-class TestExtractFromDictList:
+class TestSliceDictList:
     @pytest.fixture
     def result(self):
         return {"a": [np.array([1.0, 2.0]), np.array([3.0, 4.0])]}
 
-    def test_key_and_index(self, result):
-        assert extract_from_dict_list(result, "a", 1) == [2.0, 4.0]
+    def test_scalar_index_gives_a_dict_of_floats(self, result):
+        assert slice_dict_list(result, 0) == {"a": [1.0, 3.0]}
 
-    def test_key_and_slice(self, result):
-        arrays = extract_from_dict_list(result, "a", np.s_[1:])
-        np.testing.assert_array_equal(arrays, [[2.0], [4.0]])
-
-    def test_key_and_fancy_index(self, result):
-        arrays = extract_from_dict_list(result, "a", np.array([1, 0]))
-        np.testing.assert_array_equal(arrays, [[2.0, 1.0], [4.0, 3.0]])
-
-    def test_whole_dict_sliced(self, result):
-        sliced = extract_from_dict_list(result, idx=0)
-        assert sliced == {"a": [1.0, 3.0]}
+    @pytest.mark.parametrize(
+        ("args", "expected"),
+        [
+            ((np.s_[1:],), [[2.0], [4.0]]),
+            ((np.array([1, 0]),), [[2.0, 1.0], [4.0, 3.0]]),
+            ((), [[1.0, 2.0], [3.0, 4.0]]),
+        ],
+        ids=["slice", "fancy_index", "no_index_slices_the_whole_timeline"],
+    )
+    def test_index_kinds(self, result, args, expected):
+        np.testing.assert_array_equal(slice_dict_list(result, *args)["a"], expected)
