@@ -10,16 +10,12 @@ import numpy as np
 from navigate.core.enum_ import EnergyDemandTypeID, EnergyDemandTypePortID
 from navigate.core.expectations._expectation import _Expectation
 from navigate.core.initial_values import EMPTY_FLOAT
-from navigate.util import (
-    divide_nonzero,
-    extract_from_dict_list,
-    extract_from_tuple_dict,
-    slice_list,
-)
+from navigate.util import divide_nonzero, slice_dict_list, slice_list
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.route import Route
+    from navigate.util.types_ import FloatLike, Index
 
 
 class VesselExpectation(_Expectation):
@@ -115,11 +111,9 @@ class VesselExpectation(_Expectation):
         # used by newbuild/retrofit NPVs; speed-horizon belief is faster, matched to the
         # timescale of operational speed management.
         self._belief_pi_sea_technology: dict[EnergyDemandTypeID, list[np.ndarray]] = {}
-        self._belief_pi_port_technology: dict[
-            EnergyDemandTypePortID, list[np.ndarray]
-        ] = {}
+        self._belief_pi_port_technology: dict[EnergyDemandTypeID, list[np.ndarray]] = {}
         self._belief_pi_sea_speed: dict[EnergyDemandTypeID, list[np.ndarray]] = {}
-        self._belief_pi_port_speed: dict[EnergyDemandTypePortID, list[np.ndarray]] = {}
+        self._belief_pi_port_speed: dict[EnergyDemandTypeID, list[np.ndarray]] = {}
 
         # bunkering/spend
         self._bunker_mass_expected: dict[
@@ -561,9 +555,6 @@ class VesselExpectation(_Expectation):
     def get_speeds(self, idx: int | slice = np.s_[:]) -> list[np.ndarray]:
         return slice_list(self._speeds, idx)
 
-    def get_distances(self, idx: int | slice = np.s_[:]) -> list[np.ndarray]:
-        return slice_list(self._distances, idx)
-
     def get_time_sea(self, idx: int | slice) -> list[np.ndarray]:
         return slice_list(self._time_sea, idx)
 
@@ -571,108 +562,44 @@ class VesselExpectation(_Expectation):
         return slice_list(self._time_port, idx)
 
     def get_raw_energy_sea(
-        self,
-        energy_type_id: EnergyDemandTypeID | None = None,
-        idx: int | slice = np.s_[:],
-    ) -> dict[EnergyDemandTypeID, list] | list:
-        return extract_from_dict_list(self._raw_energy_sea, energy_type_id, idx)
+        self, idx: Index = np.s_[:]
+    ) -> dict[EnergyDemandTypeID, list[FloatLike]]:
+        return slice_dict_list(self._raw_energy_sea, idx)
 
     def get_raw_energy_port(
-        self,
-        energy_type_id: EnergyDemandTypeID | None = None,
-        idx: int | slice = np.s_[:],
-    ) -> dict[EnergyDemandTypeID, list] | list:
-        return extract_from_dict_list(self._raw_energy_port, energy_type_id, idx)
-
-    def get_raw_energy_per_leg(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return np.sum(
-            [np.array(slice_list(legs, idx)) for legs in self._raw_energy_sea.values()],
-            axis=0,
-        )
-
-    def get_raw_energy_per_port(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return np.sum(
-            [
-                np.array(slice_list(ports, idx))
-                for ports in self._raw_energy_port.values()
-            ],
-            axis=0,
-        )
+        self, idx: Index = np.s_[:]
+    ) -> dict[EnergyDemandTypeID, list[FloatLike]]:
+        return slice_dict_list(self._raw_energy_port, idx)
 
     def get_operational_energy_sea(
-        self,
-        energy_type_id: EnergyDemandTypeID | None = None,
-        idx: int | slice = np.s_[:],
-    ) -> dict[EnergyDemandTypeID, list] | list:
-        return extract_from_dict_list(self._operational_energy_sea, energy_type_id, idx)
+        self, idx: Index = np.s_[:]
+    ) -> dict[EnergyDemandTypeID, list[FloatLike]]:
+        return slice_dict_list(self._operational_energy_sea, idx)
 
     def get_operational_energy_port(
-        self,
-        energy_type_id: EnergyDemandTypeID | None = None,
-        idx: int | slice = np.s_[:],
-    ) -> dict[EnergyDemandTypeID, list] | list:
-        return extract_from_dict_list(
-            self._operational_energy_port, energy_type_id, idx
-        )
-
-    def get_operational_energy_per_leg(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return np.sum(
-            [
-                np.array(slice_list(legs, idx))
-                for legs in self._operational_energy_sea.values()
-            ],
-            axis=0,
-        )
-
-    def get_operational_energy_per_port(
-        self, idx: int | slice = np.s_[:]
-    ) -> np.ndarray:
-        return np.sum(
-            [
-                np.array(slice_list(ports, idx))
-                for ports in self._operational_energy_port.values()
-            ],
-            axis=0,
-        )
+        self, idx: Index = np.s_[:]
+    ) -> dict[EnergyDemandTypeID, list[FloatLike]]:
+        return slice_dict_list(self._operational_energy_port, idx)
 
     def get_energy_sea(
-        self,
-        energy_type_id: EnergyDemandTypeID | None = None,
-        idx: int | slice = np.s_[:],
-    ) -> dict[EnergyDemandTypeID, list] | list:
-        return extract_from_dict_list(self._energy_sea, energy_type_id, idx)
+        self, idx: Index = np.s_[:]
+    ) -> dict[EnergyDemandTypeID, list[FloatLike]]:
+        return slice_dict_list(self._energy_sea, idx)
 
     def get_energy_port(
-        self,
-        energy_type_id: EnergyDemandTypeID | None = None,
-        idx: int | slice = np.s_[:],
-    ) -> dict[EnergyDemandTypeID, list] | list:
-        return extract_from_dict_list(self._energy_port, energy_type_id, idx)
-
-    def get_regional_raw_energy_sea(
-        self,
-        energy_type_id: EnergyDemandTypeID | None = None,
-        idx: int | slice = np.s_[:],
-    ) -> dict[EnergyDemandTypeID, list] | list:
-        return extract_from_dict_list(
-            self._regional_raw_energy_sea, energy_type_id, idx
-        )
+        self, idx: Index = np.s_[:]
+    ) -> dict[EnergyDemandTypeID, list[FloatLike]]:
+        return slice_dict_list(self._energy_port, idx)
 
     def get_regional_operational_energy_sea(
-        self,
-        energy_type_id: EnergyDemandTypeID | None = None,
-        idx: int | slice = np.s_[:],
-    ) -> dict[EnergyDemandTypeID, list] | list:
-        return extract_from_dict_list(
-            self._regional_operational_energy_sea, energy_type_id, idx
-        )
+        self, idx: Index = np.s_[:]
+    ) -> dict[EnergyDemandTypeID, list[FloatLike]]:
+        return slice_dict_list(self._regional_operational_energy_sea, idx)
 
     def get_regional_energy_sea(
-        self,
-        energy_type_id: EnergyDemandTypeID | None = None,
-        idx: int | slice = np.s_[:],
-    ) -> dict[EnergyDemandTypeID, list] | list:
-        return extract_from_dict_list(self._regional_energy_sea, energy_type_id, idx)
+        self, idx: Index = np.s_[:]
+    ) -> dict[EnergyDemandTypeID, list[FloatLike]]:
+        return slice_dict_list(self._regional_energy_sea, idx)
 
     def get_total_demand(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         energy_sea = self.get_energy_sea(idx=idx)
@@ -710,32 +637,6 @@ class VesselExpectation(_Expectation):
                 )
             ]
             for energy_id in self._energy_port
-        }
-
-    def get_operational_saving_sea(self, idx: int) -> dict[EnergyDemandTypeID, list]:
-        return {
-            energy_id: [
-                1.0 - divide_nonzero(op[idx], raw[idx], default=1.0)
-                for (op, raw) in zip(
-                    self._operational_energy_sea[energy_id],
-                    self._raw_energy_sea[energy_id],
-                    strict=True,
-                )
-            ]
-            for energy_id in self._operational_energy_sea
-        }
-
-    def get_operational_saving_port(self, idx: int) -> dict[EnergyDemandTypeID, list]:
-        return {
-            energy_id: [
-                1.0 - divide_nonzero(op[idx], raw[idx], default=1.0)
-                for (op, raw) in zip(
-                    self._operational_energy_port[energy_id],
-                    self._raw_energy_port[energy_id],
-                    strict=True,
-                )
-            ]
-            for energy_id in self._operational_energy_port
         }
 
     def get_energy_conservation_pi_sea(
@@ -785,7 +686,7 @@ class VesselExpectation(_Expectation):
 
     def get_belief_pi_port_technology(
         self,
-    ) -> dict[EnergyDemandTypePortID, list[np.ndarray]]:
+    ) -> dict[EnergyDemandTypeID, list[np.ndarray]]:
         return self._belief_pi_port_technology
 
     def get_belief_pi_sea_speed(self) -> dict[EnergyDemandTypeID, list[np.ndarray]]:
@@ -793,7 +694,7 @@ class VesselExpectation(_Expectation):
 
     def get_belief_pi_port_speed(
         self,
-    ) -> dict[EnergyDemandTypePortID, list[np.ndarray]]:
+    ) -> dict[EnergyDemandTypeID, list[np.ndarray]]:
         return self._belief_pi_port_speed
 
     def get_bunker_mass_expected(self, port_name: str, fuel_name: str) -> float:
@@ -808,22 +709,16 @@ class VesselExpectation(_Expectation):
         else:
             return 0.0
 
-    def get_fair_share_fuel_existing(
-        self, port_name: str | None = None, fuel_name: str | None = None
-    ) -> float | dict[tuple[str, str], float]:
-        return extract_from_tuple_dict(
-            self._fair_share_fuel_existing, port_name, fuel_name
-        )
+    def get_fair_share_fuel_existing(self, port_name: str, fuel_name: str) -> float:
+        return self._fair_share_fuel_existing[(port_name, fuel_name)]
+
+    def get_fair_share_fuels_existing(self) -> dict[tuple[str, str], float]:
+        return self._fair_share_fuel_existing
 
     def get_fair_share_fuel_expected(
-        self,
-        port_name: str | None = None,
-        fuel_name: str | None = None,
-        idx: int | slice = np.s_[:],
-    ) -> np.ndarray | dict[tuple[str, str], np.ndarray]:
-        return extract_from_tuple_dict(
-            self._fair_share_fuel_expected, port_name, fuel_name, idx=idx
-        )
+        self, port_name: str, fuel_name: str, idx: Index = np.s_[:]
+    ) -> FloatLike:
+        return self._fair_share_fuel_expected[(port_name, fuel_name)][idx]
 
     def get_total_energy(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         return self._total_energy[idx]

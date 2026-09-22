@@ -229,43 +229,6 @@ def extract_from_dict[K](
     return _resolve_dict(result, idx)
 
 
-@overload
-def extract_from_dict_list[K](
-    result: dict[K, list[FloatArray]], key: None = None, idx: Index = ...
-) -> dict[K, list[FloatLike]]: ...
-@overload
-def extract_from_dict_list[K](
-    result: dict[K, list[FloatArray]], key: K, idx: Index = ...
-) -> list[FloatLike]: ...
-def extract_from_dict_list[K](
-    result: dict[K, list[FloatArray]],
-    key: K | None = None,
-    idx: Index = np.s_[:],
-) -> dict[K, list[FloatLike]] | list[FloatLike]:
-    """
-    Extract and slice arrays from a dict of lists of ndarrays.
-
-    Parameters
-    ----------
-    result
-        Profile result given as a dict containing lists of ndarrays.
-    key
-        Key.
-    idx
-        Time-step index(es) or slice; defaults to the full slice.
-
-    Returns
-    -------
-    dict[K, list[FloatLike]] | list[FloatLike]
-        Desired form of result from dict with sliced arrays, mirroring
-        whether key is given.
-    """
-    if key is not None:
-        return slice_list(result[key], idx)
-
-    return {k: slice_list(v, idx) for k, v in result.items()}
-
-
 # deliberately not overloaded: four return shapes keyed on two optional
 # parameters, and no caller passes a statically known key pair
 def extract_from_tuple_dict[K1, K2](
@@ -462,6 +425,28 @@ def slice_dict[K](
         Sliced result.
     """
     return {key: value[idx] for key, value in result.items()}
+
+
+def slice_dict_list[K](
+    result: dict[K, list[FloatArray]],
+    idx: Index = np.s_[:],
+) -> dict[K, list[FloatLike]]:
+    """
+    Slice each array in each list of a dict of lists.
+
+    Parameters
+    ----------
+    result
+        Result to be sliced.
+    idx
+        Time-step index(es) or slice.
+
+    Returns
+    -------
+    dict[K, list[FloatLike]]
+        Sliced result.
+    """
+    return {key: slice_list(value, idx) for key, value in result.items()}
 
 
 def _resolve_dict[K](

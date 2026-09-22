@@ -172,12 +172,6 @@ class PortExpectation(_Expectation):
     ) -> np.ndarray:
         return self._bunker_wtt[(fuel_name, emission_name)][idx]
 
-    def get_bunker_mass_expected(self, fuel_name: str) -> float:
-        return self._bunker_mass_expected[fuel_name]
-
-    def get_bunker_mass_existing(self, fuel_name: str) -> float:
-        return self._bunker_mass_existing[fuel_name]
-
     # shore power
     def set_shore_power_cost(self, idx: int, cost: np.ndarray) -> None:
         self._shore_power_cost[idx:] = cost

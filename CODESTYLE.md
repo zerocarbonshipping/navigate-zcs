@@ -156,6 +156,11 @@ The formatter owns spacing within statements; blank lines are yours:
 - Profile getters take no parameters and return the whole timeline array or
   the whole dict; callers index the result. The signature is enforced by
   `tests/unit/core/test_profile_getters.py`.
+- Expectation getters never switch between reading one key and reading the
+  whole storage: a key is mandatory, and a whole-storage read is a separate
+  getter, taking the plural name where a keyed getter holds the singular. A
+  `None` default is what spells the switch, and
+  `tests/unit/core/test_expectation_getters.py` rejects it.
 - Calculator classes (`Curve`, `Forecast`, `Surface`, `Timetable`, `Variable`)
   and wrappers (`Scalar`) are read through `.get`, which may take a variable
   number of inputs and can return defaults or pre-computed values.

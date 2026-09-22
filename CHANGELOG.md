@@ -126,9 +126,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `expand_id_wildcard` — and `get_increments_origin_index` folds into
   `get_increment_origin_index`, which takes a scalar age or an array of
   ages.
-  `extract_from_dict`/`extract_from_dict_list` carry overloads keyed on
-  `key is None` (a given key yields the sliced value, no key the whole
-  dict), their `idx` accepts the full set of index kinds — the new
+  `extract_from_dict` carries overloads keyed on `key is None` (a given
+  key yields the sliced value, no key the whole dict), the extraction and
+  slicing helpers' `idx` accepts the full set of index kinds — the new
   `Index` alias (`int | np.signedinteger | slice | IntArray`) — and
   `extract_from_dict`'s `idx=None` arm is replaced by a full-slice
   default (identical values; non-empty whole-dict extraction no longer
@@ -188,6 +188,31 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   difference is `FleetProfile.get_fleet_technology_uptake`, whose dict has
   no entry for a technology no vessel carries where the keyed call returned
   a zero series.
+- **Breaking** for code importing navigate as a library: the getters on the
+  expectation classes in `navigate.core.expectations` lose their never-passed
+  parameters, so each returns one concrete type instead of a key-switched
+  union — `energy_type_id` from the eight vessel energy getters, `port_name`
+  from `ProducerExpectation.get_export_distribution`, and `idx` from
+  `RegulationExpectation.get_flexibility_cost`, which returns the whole
+  timeline array. `_Expectation.get_length` is gone, and `get_shape` names
+  its argument for the `start` step it sizes from. In `navigate.util`,
+  `extract_from_dict_list` loses the same key parameter and is renamed
+  `slice_dict_list`, beside the `slice_list` and `slice_dict` it joins.
+  Results are unchanged.
+- **Breaking** for code importing navigate as a library: every key on an
+  expectation getter is mandatory. `PlantExpectation`'s
+  `get_levelized_delivery_cost`, `get_production_wtt`,
+  `get_expected_production_wtt`, `get_delivery_wtt` and
+  `VesselExpectation.get_fair_share_fuel_expected` index their storage
+  directly, and the two getters that served both one key and the whole dict
+  split by name: `PlantExpectation.get_feed_mass(feed_name, idx)` beside the
+  new `get_feed_masses(idx)`, and
+  `VesselExpectation.get_fair_share_fuel_existing(port_name, fuel_name)`
+  beside the new `get_fair_share_fuels_existing()`. A keyed read of an empty
+  storage now raises `KeyError` rather than yielding an empty dict; a key
+  missing from a populated storage always raised one. The storages are
+  prepopulated at initialization over the same collections their callers
+  iterate, so no run reaches either case and results are unchanged.
 
 ### Added
 - The console prints the number of logged warnings at the end of a run,
@@ -673,6 +698,22 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `as_equal_installments` (`navigate/economics/flows.py`). The approximate
   capital-recovery annualization they implemented is replaced by exact
   levelization in the conversion expense booking; nothing else called them.
+- **Breaking** for code importing navigate as a library: 17 expectation
+  readers with no call site in the package or the tests —
+  `PlantExpectation.get_capacity`;
+  `ProducerExpectation.get_existing_production`/`get_pipeline_production`/
+  `get_newbuild_production`;
+  `FleetExpectation.get_newbuild_multipliers`/`get_total_existing_multipliers`/
+  `get_total_expected_multipliers`;
+  `PortExpectation.get_bunker_mass_expected`/`get_bunker_mass_existing` (the
+  same-named `VesselExpectation` pair the fuel-inertia constraint calls stays);
+  and `VesselExpectation.get_distances`/`get_raw_energy_per_leg`/
+  `get_raw_energy_per_port`/`get_operational_energy_per_leg`/
+  `get_operational_energy_per_port`/`get_operational_saving_sea`/
+  `get_operational_saving_port`/`get_regional_raw_energy_sea`. Unlike profile
+  getters, expectation getters are never dispatched by name from a report or
+  plot property, so no deck reaches one. The state behind them is still
+  written and unchanged.
 
 ### Changed
 - Internal simplification (no DSL or result changes): `BunkerAlgorithm` no

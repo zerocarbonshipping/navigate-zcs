@@ -88,7 +88,7 @@ class TestFuelTypeTotals:
     def test_supply_accumulates_fair_share(self):
         vessel = _vessel()
         vessel.power_system.get_converters.return_value = []
-        vessel.expectation.get_fair_share_fuel_existing.return_value = {
+        vessel.expectation.get_fair_share_fuels_existing.return_value = {
             ("p0", "lng"): 0.5,
             ("p1", "lng"): 0.25,
         }

@@ -196,7 +196,7 @@ def _gather_fuel_type_supply(fleet: Fleet, fuels: dict[str, Fuel], idx: int) -> 
         if multiplier == 0.0:
             continue
 
-        fair_shares = vessel.expectation.get_fair_share_fuel_existing()
+        fair_shares = vessel.expectation.get_fair_share_fuels_existing()
 
         ports = vessel.route.ports
 

@@ -62,11 +62,11 @@ class _StubExpectation:
         assert idx == IDX
         return self._times_port
 
-    def get_energy_sea(self, energy_type_id=None, idx=None) -> dict:
+    def get_energy_sea(self, idx: int) -> dict:
         assert idx == IDX
         return self._energies_sea
 
-    def get_energy_port(self, energy_type_id=None, idx=None) -> dict:
+    def get_energy_port(self, idx: int) -> dict:
         assert idx == IDX
         return self._energies_port
 

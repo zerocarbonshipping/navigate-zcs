@@ -20,14 +20,8 @@ class _Expectation:
     def _initialize_expectation(self, length: int) -> None:
         self._length = length
 
-    def get_length(self, idx: int | None = None) -> int:
-        if idx is None:
-            return self._length
-        else:
-            return self._length - idx
-
-    def get_shape(self, idx: int | None = None) -> tuple[int, ...]:
-        return (self.get_length(idx),)
+    def get_shape(self, start: int = 0) -> tuple[int]:
+        return (self._length - start,)
 
     def _allocate_list(self) -> list[None]:
         return [None for _ in range(self._length)]
