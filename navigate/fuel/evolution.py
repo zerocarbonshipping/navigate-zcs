@@ -334,7 +334,7 @@ def calculate_evolution_expectation(producer: Producer, timeline, idx):
             # update the additional feed consumption
             # dict to account for what has been added as
             # new production
-            conversions = expectation.get_feed_mass(idx=idx + t)
+            conversions = expectation.get_feed_masses(idx + t)
             for feed_name, conversion in conversions.items():
                 # the feed gap moves everything forward by
                 # 'lead_time' duration to look at the gap of what
@@ -521,7 +521,7 @@ def calculate_feed_availability(producer: Producer, timeline, idx) -> None:
         expectation = plant.expectation
         origins = get_increment_origin_index(years, today, existing_decided)
         production = expectation.get_production(origins)
-        conversions = expectation.get_feed_mass(idx=origins)
+        conversions = expectation.get_feed_masses(origins)
 
         for feed_name, conversion in conversions.items():
             feed_mass = np.sum(production * conversion * existing_increments)
@@ -540,7 +540,7 @@ def calculate_feed_availability(producer: Producer, timeline, idx) -> None:
 
         origins = get_increment_origin_index(years, today, decided)
         production = expectation.get_production(origins)
-        conversions = expectation.get_feed_mass(idx=origins)
+        conversions = expectation.get_feed_masses(origins)
 
         for feed_name, conversion in conversions.items():
             feed_mass = np.sum(production * conversion * multipliers)

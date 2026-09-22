@@ -10,12 +10,7 @@ import numpy as np
 from navigate.core.enum_ import EnergyDemandTypeID, EnergyDemandTypePortID
 from navigate.core.expectations._expectation import _Expectation
 from navigate.core.initial_values import EMPTY_FLOAT
-from navigate.util import (
-    divide_nonzero,
-    extract_from_tuple_dict,
-    slice_dict_list,
-    slice_list,
-)
+from navigate.util import divide_nonzero, slice_dict_list, slice_list
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fuel import Fuel
@@ -783,22 +778,16 @@ class VesselExpectation(_Expectation):
         else:
             return 0.0
 
-    def get_fair_share_fuel_existing(
-        self, port_name: str | None = None, fuel_name: str | None = None
-    ) -> float | dict[tuple[str, str], float]:
-        return extract_from_tuple_dict(
-            self._fair_share_fuel_existing, port_name, fuel_name
-        )
+    def get_fair_share_fuel_existing(self, port_name: str, fuel_name: str) -> float:
+        return self._fair_share_fuel_existing[(port_name, fuel_name)]
+
+    def get_fair_share_fuels_existing(self) -> dict[tuple[str, str], float]:
+        return self._fair_share_fuel_existing
 
     def get_fair_share_fuel_expected(
-        self,
-        port_name: str | None = None,
-        fuel_name: str | None = None,
-        idx: int | slice = np.s_[:],
-    ) -> np.ndarray | dict[tuple[str, str], np.ndarray]:
-        return extract_from_tuple_dict(
-            self._fair_share_fuel_expected, port_name, fuel_name, idx=idx
-        )
+        self, port_name: str, fuel_name: str, idx: Index = np.s_[:]
+    ) -> FloatLike:
+        return self._fair_share_fuel_expected[(port_name, fuel_name)][idx]
 
     def get_total_energy(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         return self._total_energy[idx]

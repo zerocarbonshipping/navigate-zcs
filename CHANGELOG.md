@@ -199,6 +199,20 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `extract_from_dict_list` loses the same key parameter and is renamed
   `slice_dict_list`, beside the `slice_list` and `slice_dict` it joins.
   Results are unchanged.
+- **Breaking** for code importing navigate as a library: every key on an
+  expectation getter is mandatory. `PlantExpectation`'s
+  `get_levelized_delivery_cost`, `get_production_wtt`,
+  `get_expected_production_wtt`, `get_delivery_wtt` and
+  `VesselExpectation.get_fair_share_fuel_expected` index their storage
+  directly, and the two getters that served both one key and the whole dict
+  split by name: `PlantExpectation.get_feed_mass(feed_name, idx)` beside the
+  new `get_feed_masses(idx)`, and
+  `VesselExpectation.get_fair_share_fuel_existing(port_name, fuel_name)`
+  beside the new `get_fair_share_fuels_existing()`. A keyed read of an empty
+  storage now raises `KeyError` rather than yielding an empty dict; a key
+  missing from a populated storage always raised one. The storages are
+  prepopulated at initialization over the same collections their callers
+  iterate, so no run reaches either case and results are unchanged.
 
 ### Added
 - The console prints the number of logged warnings at the end of a run,

@@ -94,7 +94,7 @@ def _transfer_production_and_feed_mass(
 
         producer.profile.add_production_mass(fuel_name, production, idx)
 
-        conversions = expectation.get_feed_mass(idx=origins)
+        conversions = expectation.get_feed_masses(origins)
 
         for feed_name, conversion in conversions.items():
             feed_mass = np.sum(production_unit * conversion * multipliers)
