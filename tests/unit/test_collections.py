@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Unit tests for navigate.util.collections — dict arithmetic, extraction, summation."""
+"""Unit tests for navigate.util.collections — dict arithmetic, summation, slicing."""
 
 from __future__ import annotations
 
@@ -11,7 +11,6 @@ import pytest
 from navigate.util import (
     add_dicts,
     collapse_tuple_dict,
-    extract_from_dict,
     multiply_dicts,
     slice_dict,
     slice_dict_list,
@@ -121,36 +120,6 @@ class TestCollapseTupleDict:
     def test_collapse_both(self, result):
         collapsed = collapse_tuple_dict(result, key1=True, key2=True)
         np.testing.assert_array_equal(collapsed, [111.0, 222.0])
-
-
-class TestExtractFromDict:
-    def test_key_and_index(self):
-        assert extract_from_dict({"a": np.array([1.0, 2.0])}, "a", 1) == 2.0
-
-    def test_scalar_value_passes_through_the_index(self):
-        assert extract_from_dict({"a": 2.0}, "a", 0) == 2.0
-
-    def test_whole_dict_sliced(self):
-        result = extract_from_dict({"a": np.array([1.0, 2.0])}, idx=0)
-        assert result == {"a": 1.0}
-
-    def test_whole_dict_fancy_index(self):
-        source = {"a": np.array([1.0, 2.0, 3.0])}
-        result = extract_from_dict(source, idx=np.array([2, 0]))
-        np.testing.assert_array_equal(result["a"], [3.0, 1.0])
-
-    def test_whole_dict_does_not_alias_the_input(self):
-        source = {"a": np.array([1.0, 2.0])}
-        assert extract_from_dict(source) is not source
-
-    def test_numpy_scalar_index(self):
-        assert extract_from_dict({"a": np.array([1.0, 2.0])}, "a", np.int64(1)) == 2.0
-
-    def test_fancy_index_returns_a_copy(self):
-        value = np.array([1.0, 2.0, 3.0])
-        result = extract_from_dict({"a": value}, "a", np.array([2, 0]))
-        np.testing.assert_array_equal(result, [3.0, 1.0])
-        assert not np.shares_memory(result, value)
 
 
 class TestSliceList:

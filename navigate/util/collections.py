@@ -1,11 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""List and dict helpers, including extraction and slicing of profile results."""
+"""List and dict helpers, including summation and slicing of profile results."""
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, cast, overload
+from typing import TYPE_CHECKING, cast
 
 import numpy as np
 
@@ -186,48 +186,6 @@ def is_tuple_dict[K](dict_: Mapping[K, object]) -> bool:
     return isinstance(representative, tuple) and len(representative) == 2
 
 
-@overload
-def extract_from_dict[K](
-    result: dict[K, FloatLike], key: None = None, idx: Index = ...
-) -> dict[K, FloatLike]: ...
-@overload
-def extract_from_dict[K](
-    result: dict[K, FloatLike], key: K, idx: Index = ...
-) -> FloatLike: ...
-def extract_from_dict[K](
-    result: dict[K, FloatLike],
-    key: K | None = None,
-    idx: Index = np.s_[:],
-) -> dict[K, FloatLike] | FloatLike:
-    """
-    Extract results from a plain dict: dict[K, FloatLike].
-
-    If key is given, returns the sliced value at key.
-    If key is None, returns the whole dict with each value sliced (when possible).
-
-    Parameters
-    ----------
-    result
-        Profile result given as a plain dict.
-    key
-        Key.
-    idx
-        Time-step index(es) or slice; defaults to the full slice.
-
-    Returns
-    -------
-    dict[K, FloatLike] | FloatLike
-        Desired form of result from dict, mirroring whether key is given.
-    """
-    if not result:
-        return result
-
-    if key is not None:
-        return _slice_value(result[key], idx)
-
-    return _resolve_dict(result, idx)
-
-
 def sum_dict_results[K](
     result: dict[K, FloatArray],
     idx: Index | None = None,
@@ -386,23 +344,3 @@ def slice_dict_list[K](
         Sliced result.
     """
     return {key: slice_list(value, idx) for key, value in result.items()}
-
-
-def _resolve_dict[K](
-    result: dict[K, FloatLike],
-    idx: Index | None,
-) -> dict[K, FloatLike]:
-    if idx is None:
-        return result
-
-    return {key: _slice_value(value, idx) for key, value in result.items()}
-
-
-def _slice_value(value: FloatLike, idx: Index | None) -> FloatLike:
-    # unchecked callers pass scalar kinds beyond the declared float; only
-    # arrays are sliceable, everything else passes through untouched
-    if idx is None or not isinstance(value, np.ndarray):
-        return value
-
-    sliced: FloatLike = value[idx]
-    return sliced

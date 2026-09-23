@@ -9,7 +9,6 @@ from navigate.util.collections import (
     add_dicts,
     collapse_tuple_dict,
     define_index_map,
-    extract_from_dict,
     is_single_dict,
     is_tuple_dict,
     list_intersection,
