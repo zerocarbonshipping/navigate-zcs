@@ -9,7 +9,11 @@ from enum import Enum
 from itertools import product
 
 from navigate.core.assign import expand_id_wildcard
-from navigate.core.enum_ import EnergyDemandTypeID, FuelTypeID
+from navigate.core.enum_ import (
+    EnergyDemandTypeID,
+    EnergyDemandTypePortID,
+    FuelTypeID,
+)
 from navigate.core.node_type import (
     CONVERTER,
     CURVE,
@@ -42,15 +46,17 @@ from navigate.exceptions import CommandError
 from navigate.parser._keywords import SECTION_BOTH, SECTION_DEFINE, SECTION_NAME
 from navigate.util import name_contains_wildcards
 
-# Per-command wildcard domains. Tuple indices correspond to the method's
-# string arguments (excluding self). ``None`` means the argument is a
-# node name — wildcards are passed through for downstream matching.
-# Commands not listed here have no enum arguments.
-_WILDCARD_DOMAINS: dict[str, tuple[type[Enum], ...]] = {
+# per-command wildcard domains. tuple indices correspond to the method's
+# string arguments (excluding self), and an argument beyond the end of the
+# tuple is a node name, whose wildcards are matched downstream. a domain
+# holds the members the command accepts for that argument: the enum class
+# where the target attribute holds every member, a tuple of members where
+# it holds a subset. commands not listed here have no enum arguments.
+_WILDCARD_DOMAINS: dict[str, tuple[type[Enum] | tuple[Enum, ...], ...]] = {
     "set_slip_fraction": (FuelTypeID,),
     "set_consumption_ttw": (FuelTypeID,),
     "set_operational_saving_sea": (EnergyDemandTypeID,),
-    "set_operational_saving_port": (EnergyDemandTypeID,),
+    "set_operational_saving_port": (EnergyDemandTypePortID,),
     "set_energy_saving": (EnergyDemandTypeID,),
     "set_external_power": (EnergyDemandTypeID,),
     "set_power_transfer": (EnergyDemandTypeID, EnergyDemandTypeID),
@@ -335,9 +341,9 @@ def _expand_inputs(command: str, inputs: list) -> Iterable[tuple]:
 
     arg_options = []
     for i, inp in enumerate(inputs):
-        enum_cls = domains[i] if i < len(domains) else None
-        if enum_cls and isinstance(inp, str) and name_contains_wildcards(inp):
-            arg_options.append([m.name for m in expand_id_wildcard(inp, enum_cls)])
+        domain = domains[i] if i < len(domains) else None
+        if domain and isinstance(inp, str) and name_contains_wildcards(inp):
+            arg_options.append([m.name for m in expand_id_wildcard(inp, domain)])
         else:
             arg_options.append([inp])
 
