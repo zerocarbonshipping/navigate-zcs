@@ -68,14 +68,6 @@ venv.bak/
 .vscode/
 .idea/
 
-# Agent config folders
-.claude/
-**/.claude/
-.cursor/
-.aider*
-.windsurf/
-.continue/
-
 # mypy
 .mypy_cache/
 .dmypy.json
