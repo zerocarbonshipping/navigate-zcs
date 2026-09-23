@@ -164,6 +164,24 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   which the page also used in its example, and
   `FlexibilityMaximumIterations`, `FlexibilityToleranceX` and
   `FlexibilityToleranceY` on `BunkerOptions`.
+- The report-property appendix of the reference manual documents the properties
+  a report can carry. Thirty-four documented tokens resolved to no profile
+  getter, and seventy-six resolvable properties, over forty-six distinct tokens,
+  had no row under a command that exposes them. The twenty-two `*Demand*` rows
+  are gone: a fuel consumer stores its demand as dicts keyed by energy demand
+  type, which `RawEnergy*`, `OperationalEnergy*` and `Energy*` export as one
+  column per type. `PropulsionSaving`, `ElectricalSaving` and `HeatSaving` are
+  gone with no replacement — they name a getter the report writer cannot call.
+  `CumulativeScrappedPopwer`, `VesselTreshold`, `ConverterFuelEnergy`,
+  `DevelopmentConstraint`, `CumulativeDevelopmentConstraint`, `OtherTime`,
+  `IntendedUnits` and `AchievedUnits` are spelled `CumulativeScrappedPower`,
+  `VesselThreshold`, `ConverterEnergy`, `MaximumDevelopment`,
+  `CumulativeMaximumDevelopment`, `OverheadTime`, `SharedAllowance` and
+  `SharedUnits`, and `EvolutionTime` splits into `FleetEvolutionTime` and
+  `ProducerEvolutionTime`. The appendix gains the rows it was missing, among
+  them the per-phase timers, `CargoMiles`, `BaselineEnergy`,
+  `WeightedAverageAge`, the speed extremes, `BunkeringAllowed`, the plant
+  intensity costs and the regulation allowance and unit properties.
 - `set_bunkering_cost` is no longer accepted on a `Port`. The command was
   registered but implemented nowhere, so a deck writing it passed the parser's
   allow-list and then died with an `AttributeError`; it is now rejected at its
