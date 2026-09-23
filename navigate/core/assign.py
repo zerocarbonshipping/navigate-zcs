@@ -333,6 +333,39 @@ def assign_id[E: Enum](assignment: object, id_enum: type[E]) -> E:
         raise ValueError(f"does not accept ID '{assignment}'")
 
 
+def assign_member[E: Enum](assignment: object, members: tuple[E, ...]) -> E:
+    """
+    Check whether the ID assigned to an attribute is one the attribute accepts.
+
+    The sibling of :func:`assign_id` for an attribute holding a subset of an
+    enum: ``assign_id`` subscripts the enum class, which a tuple of members
+    cannot answer, and would accept every member the class has.
+
+    If the requirements are not satisfied a ValueError is raised. Note that this error is only a partial message
+    designed to be caught at a higher level.
+
+    Parameters
+    ----------
+    assignment
+        Value passed to the setter.
+    members
+        The enum members the attribute accepts.
+
+    Returns
+    -------
+    Enum
+        Returns the passed assignment (to allow error checking while assigning).
+    """
+    if not isinstance(assignment, str):
+        raise ValueError(_only_allows("IDs", assignment))
+
+    for member in members:
+        if member.name == assignment:
+            return member
+
+    raise ValueError(_only_allows(_member_names(members), assignment))
+
+
 def expand_id_wildcard[E: Enum](
     pattern: str, domain: type[E] | tuple[E, ...]
 ) -> list[E]:
@@ -358,8 +391,9 @@ def expand_id_wildcard[E: Enum](
     try:
         return retrieve_keys(pattern, members, key_fn=lambda m: m.name)
     except KeyError:
-        names = ", ".join(member.name for member in members)
-        raise ValueError(f"wildcard '{pattern}' did not match any of {names}")
+        raise ValueError(
+            f"wildcard '{pattern}' did not match any of {_member_names(members)}"
+        )
 
 
 def assign_id_list[E: Enum](
@@ -657,6 +691,23 @@ def _only_allows(allowed: str, assignment: object) -> str:
         Error message of a failed error check.
     """
     return f"only allows assignment of {allowed}, but got {_value_kind(assignment)}"
+
+
+def _member_names(members: tuple[Enum, ...]) -> str:
+    """
+    Spell the members a setter accepts, so both its spellings name the same set.
+
+    Parameters
+    ----------
+    members
+        The enum members the setter accepts.
+
+    Returns
+    -------
+    str :
+        The member names, in the order the setter accepts them.
+    """
+    return ", ".join(member.name for member in members)
 
 
 def _value_kind(assignment: object) -> str:

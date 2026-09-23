@@ -167,6 +167,11 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   at fault. Each of the three died as a `TypeError` that no deck line could be
   attached to. The `does not accept ID 'X'` message an unknown token produces
   is unchanged.
+- `set_operational_saving_port(PROPULSION, 0.1)` is rejected as an energy
+  demand the command does not accept, `only allows assignment of ELECTRICAL,
+  HEAT, but got PROPULSION`, naming the same two demands the wildcard spelling
+  names. It read as `attempts to reference non-existing name(s) 'PROPULSION'`,
+  the sentence written for a reference to a node that no deck declares.
 - `set_operational_saving_port(*, 0.1)` sets the energy demands a vessel has
   in port, `ELECTRICAL` and `HEAT`. The wildcard previously expanded over
   every `EnergyDemandTypeID` member and so also reached `PROPULSION`, which
