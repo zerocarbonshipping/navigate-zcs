@@ -242,7 +242,7 @@ def assign_list[T: Assignment](
     return assignment
 
 
-def assign_boolean(assignment: str) -> bool:
+def assign_boolean(assignment: object) -> bool:
     """
     Check whether the value assigned to a boolean attribute is a boolean keyword.
 
@@ -261,7 +261,10 @@ def assign_boolean(assignment: str) -> bool:
     """
     try:
         return _BOOL_ID[assignment]
-    except KeyError:
+
+    # a list or a table reaches the lookup as an unhashable key, and the
+    # TypeError that raises carries no deck line for the parser to report
+    except (KeyError, TypeError):
         raise ValueError(_only_allows("TRUE or FALSE", assignment))
 
 
@@ -294,7 +297,7 @@ def assign_bound(assignment: object) -> float:
         raise ValueError(_only_allows("scalars, -INF or INF", assignment))
 
 
-def assign_id[E: Enum](assignment: str, id_enum: type[E]) -> E:
+def assign_id[E: Enum](assignment: object, id_enum: type[E]) -> E:
     """
     Check whether the ID assigned to an attribute satisfy the requirements of that attribute.
 
@@ -315,7 +318,13 @@ def assign_id[E: Enum](assignment: str, id_enum: type[E]) -> E:
     """
     try:
         return id_enum[assignment]
-    except KeyError:
+
+    # a list or a table reaches the lookup as an unhashable key, and the
+    # wildcard test below only reads a string
+    except (KeyError, TypeError):
+        if not isinstance(assignment, str):
+            raise ValueError(_only_allows("IDs", assignment))
+
         if name_contains_wildcards(assignment):
             raise ValueError(
                 f"does not accept ID '{assignment}' — wildcards are not supported "
@@ -354,7 +363,7 @@ def expand_id_wildcard[E: Enum](
 
 
 def assign_id_list[E: Enum](
-    assignment: list[str],
+    assignment: list[object],
     id_enum: type[E],
     length: ListLength = None,
 ) -> list[E]:
@@ -383,7 +392,7 @@ def assign_id_list[E: Enum](
     """
     expanded = []
     for value in assignment:
-        if name_contains_wildcards(value):
+        if isinstance(value, str) and name_contains_wildcards(value):
             expanded.extend(expand_id_wildcard(value, id_enum))
         else:
             expanded.append(assign_id(value, id_enum))

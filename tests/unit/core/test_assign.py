@@ -21,6 +21,7 @@ from navigate.core.assign import (
     assign_bound,
     assign_fraction_list,
     assign_id,
+    assign_id_list,
     assign_integer,
     assign_list,
     assign_value,
@@ -56,6 +57,47 @@ class TestAssignId:
     def test_wildcard_raises_dedicated_message(self):
         with pytest.raises(ValueError, match="wildcards are not supported"):
             assign_id("M*", FuelTypeID)
+
+    @pytest.mark.parametrize(
+        ("assignment", "kind"),
+        [
+            ([1.0, 2.0], "list"),
+            (TableData(rows=[[1.0, 2.0]]), "table"),
+            (DATE, "date"),
+            (Curve("c"), r'Curve\("c"\)'),
+        ],
+        ids=["list", "table", "date", "node"],
+    )
+    def test_non_string_rejected_as_a_value_error(self, assignment, kind):
+        # every ID setter hands the raw deck value here, and an unhashable one
+        # must not escape the enum lookup as a TypeError, which carries no deck
+        # line for the parser to report
+        with pytest.raises(
+            ValueError, match=f"only allows assignment of IDs, but got {kind}"
+        ):
+            assign_id(assignment, FuelTypeID)
+
+
+# ── assign_id_list ────────────────────────────────────────────────────────────
+
+
+class TestAssignIdList:
+    @pytest.mark.parametrize(
+        ("element", "kind"),
+        [
+            (1.0, "scalar"),
+            ([1.0, 2.0], "list"),
+            (TableData(rows=[[1.0, 2.0]]), "table"),
+        ],
+        ids=["float", "list", "table"],
+    )
+    def test_non_string_element_rejected_as_a_value_error(self, element, kind):
+        # name_contains_wildcards takes a str; a non-string element must fall
+        # through to assign_id instead of raising a TypeError there first
+        with pytest.raises(
+            ValueError, match=f"only allows assignment of IDs, but got {kind}"
+        ):
+            assign_id_list([element], FuelTypeID)
 
 
 # ── assign_bound ──────────────────────────────────────────────────────────────
@@ -123,6 +165,26 @@ class TestAssignBoolean:
         # KeyError would be reported as a missing name instead
         with pytest.raises(
             ValueError, match="only allows assignment of TRUE or FALSE, but got"
+        ):
+            assign_boolean(assignment)
+
+    @pytest.mark.parametrize(
+        ("assignment", "kind"),
+        [
+            ([1.0, 2.0], "list"),
+            (TableData(rows=[[1.0, 2.0]]), "table"),
+            (DATE, "date"),
+            (Curve("c"), r'Curve\("c"\)'),
+        ],
+        ids=["list", "table", "date", "node"],
+    )
+    def test_non_keyword_value_rejected_as_a_value_error(self, assignment, kind):
+        # the boolean setters hand the raw deck value here, and an unhashable
+        # one must not escape the keyword lookup as a TypeError, which carries
+        # no deck line for the parser to report
+        with pytest.raises(
+            ValueError,
+            match=f"only allows assignment of TRUE or FALSE, but got {kind}",
         ):
             assign_boolean(assignment)
 
