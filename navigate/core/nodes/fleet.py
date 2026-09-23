@@ -18,6 +18,7 @@ from navigate.core import (
     assign_fraction_list,
     assign_id,
     assign_list,
+    assign_member,
     assign_value,
     command_assignment_to_boolean_dict,
     command_assignment_to_dict,
@@ -973,7 +974,7 @@ class Fleet(_AssetManager):
         saving
             Fraction of energy saved.
         """
-        id_ = assign_id(energy_type, EnergyDemandTypeID)
+        id_ = assign_member(energy_type, EnergyDemandTypePortID)
         command_assignment_to_dict(
             id_,
             saving,

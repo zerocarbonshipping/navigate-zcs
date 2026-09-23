@@ -149,6 +149,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   log, so a run whose results they affect could look clean on the console.
 
 ### Fixed
+- A value the model rejects — an attribute's or a command's — prints the
+  located one-line error and exits 1, as a deck naming an attribute no node
+  has already did. The sentence was the same, but arrived as the last line of
+  a Python traceback.
 - A non-number in an `InitialSplit` or `ConditionDistribution` list is
   rejected against its deck line, naming the kind that was written, as
   `only allows assignment of plain numbers, but got Curve("c")`. The
@@ -163,6 +167,25 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   at fault. Each of the three died as a `TypeError` that no deck line could be
   attached to. The `does not accept ID 'X'` message an unknown token produces
   is unchanged.
+- A whole-number fraction list is accepted whatever it sums to. Only a list
+  the rescale happened to divide reached the attribute as fractions, so
+  `Route.set_condition_distribution([1])` — the single-leg value its docstring
+  and the Route reference page give as the example — along with `[1, 0]`,
+  `[0, 0]` and, `bool` subclassing `int`, `[True, False]`, failed as
+  `only allows assignment of scalars, but got integer`, a rule the attribute
+  does not have, while `[1, 1]` passed. The same held for
+  `Fleet.set_initial_split`. Only a Python caller could reach this, and no
+  deck moves: the DSL grammar reads every number as a float, so the example
+  written in a deck has always arrived as `[1.0]`.
+- `set_operational_saving_port` names the energy demands it accepts whenever
+  it rejects one: both `PROPULSION`, a member the attribute does not hold, and
+  an unknown token such as `BOGUS` now read `only allows assignment of
+  ELECTRICAL, HEAT, but got X`, the same two demands the wildcard spelling
+  names. `PROPULSION` read as `attempts to reference non-existing name(s)
+  'PROPULSION'`, the sentence written for a reference to a node that no deck
+  declares, and `BOGUS` as `does not accept ID 'BOGUS'`. This is the one
+  command whose unknown-token message differs from its siblings', which name
+  no set and still read `does not accept ID 'X'`.
 - `set_operational_saving_port(*, 0.1)` sets the energy demands a vessel has
   in port, `ELECTRICAL` and `HEAT`. The wildcard previously expanded over
   every `EnergyDemandTypeID` member and so also reached `PROPULSION`, which

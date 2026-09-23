@@ -644,7 +644,7 @@ class Parser:
                 getattr(node, attribute_to_setter(attribute))(value)
 
             except ValueError as e:
-                raise ValueError(
+                raise AttributeAssignmentError(
                     self._error_prefix() + f": {node} attribute '{attribute}' {e}."
                 )
 
@@ -1188,7 +1188,9 @@ class Parser:
                 )
 
             except ValueError as e:
-                raise ValueError(self._error_prefix() + f": '{cmd_ref.command}' {e!s}")
+                raise CommandError(
+                    self._error_prefix() + f": '{cmd_ref.command}' {e!s}"
+                )
 
         node.clear_command_references()
 
@@ -1199,7 +1201,7 @@ class Parser:
             try:
                 node.replace_reference_table(start_date)
             except ValueError as e:
-                raise ValueError(f"{node}: {e!s}")
+                raise AttributeAssignmentError(f"{node}: {e!s}")
 
     def _initialize_nodes(self):
         for node in self._get_all_nodes():
