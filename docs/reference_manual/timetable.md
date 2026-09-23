@@ -32,6 +32,13 @@ Timetable "methanol_synthesis_capex" {
 
 ## Attributes
 
+### Table
+
+This attribute sets the table of x-, y- and z-values that the timetable interpolates in, where the x-values are dates or days since the start of the simulation. Both the x-values and the y-values must be strictly increasing, and the number of z-values must equal the number of x-values times the number of y-values. The syntax is described under [Assigning tables](dsl_reference.md#timetable).
+
+* **Data type**: `Table`
+* **Default**: None. Must be defined by the user.
+
 ### Addition
 
 Sets an addition that is added on the z-values. The addition occurs according to the formula

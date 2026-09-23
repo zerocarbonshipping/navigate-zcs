@@ -114,7 +114,6 @@ _PLOT_COMMANDS = {"add_plot": SECTION_DEFINE}
 
 _PORT_COMMANDS = {
     "set_bunkering_allowed": SECTION_BOTH,
-    "set_bunkering_cost": SECTION_BOTH,
     "set_bunkering_limit": SECTION_BOTH,
     "set_bunkering_inertia": SECTION_BOTH,
     "set_handling_cost": SECTION_BOTH,

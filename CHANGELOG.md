@@ -12,6 +12,12 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ### Added
+- An attribute-suite check that every registered DSL attribute and command has a
+  heading on its node's reference-manual page, that every heading there names a
+  registered one, and that the report-property appendix and the profile getters
+  cover each other in both directions. The manual is hand-written with no
+  autodoc, so its drift from the parser tables and from what a report can
+  actually extract was previously found by readers rather than by CI.
 - A golden-baseline regression suite (`tests/regression`, `make
   test-regression`, run in CI): small pinned-constant decks whose report CSV
   output is compared against committed baselines within a documented
@@ -149,6 +155,40 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   log, so a run whose results they affect could look clean on the console.
 
 ### Fixed
+- The reference manual documents the DSL surface the parser accepts. Twelve
+  registered names had no entry — `Table` on `Curve`, `Forecast`, `Surface` and
+  `Timetable`, `FuelType` on `Emission`, `ShorePowerCost` and
+  `ShorePowerConnectionShare` on `Port`, `FlexibilityHorizon` and
+  `AllowThresholdAdjustment` on `Regulation`,
+  `set_shore_power_emission_factor` on `Port`, `set_export_distribution` on
+  `Producer`, and `add_producer_property` on `Report` — and five entries named
+  attributes no node has: `WindUtilization` and `SolarUtilization` on `Port`,
+  which the page also used in its example, and
+  `FlexibilityMaximumIterations`, `FlexibilityToleranceX` and
+  `FlexibilityToleranceY` on `BunkerOptions`.
+- The report-property appendix of the reference manual documents the properties
+  a report can carry. Thirty-four documented tokens resolved to no profile
+  getter, and seventy-six resolvable properties, over forty-six distinct tokens,
+  had no row under a command that exposes them. The twenty-two `*Demand*` rows
+  are gone: a fuel consumer stores its demand as dicts keyed by energy demand
+  type, which `RawEnergy*`, `OperationalEnergy*` and `Energy*` export as one
+  column per type. `PropulsionSaving`, `ElectricalSaving` and `HeatSaving` are
+  gone with no replacement — they name a getter the report writer cannot call.
+  `CumulativeScrappedPopwer`, `VesselTreshold`, `ConverterFuelEnergy`,
+  `DevelopmentConstraint`, `CumulativeDevelopmentConstraint`, `OtherTime`,
+  `IntendedUnits` and `AchievedUnits` are spelled `CumulativeScrappedPower`,
+  `VesselThreshold`, `ConverterEnergy`, `MaximumDevelopment`,
+  `CumulativeMaximumDevelopment`, `OverheadTime`, `SharedAllowance` and
+  `SharedUnits`, and `EvolutionTime` splits into `FleetEvolutionTime` and
+  `ProducerEvolutionTime`. The appendix gains the rows it was missing, among
+  them the per-phase timers, `CargoMiles`, `BaselineEnergy`,
+  `WeightedAverageAge`, the speed extremes, `BunkeringAllowed`, the plant
+  intensity costs and the regulation allowance and unit properties.
+- `set_bunkering_cost` is no longer accepted on a `Port`. The command was
+  registered but implemented nowhere, so a deck writing it passed the parser's
+  allow-list and then died with an `AttributeError`; it is now rejected at its
+  deck line like any other unknown command. Use `set_handling_cost` for the
+  cost of bunkering a fuel in a port.
 - A value the model rejects — an attribute's or a command's — prints the
   located one-line error and exits 1, as a deck naming an attribute no node
   has already did. The sentence was the same, but arrived as the last line of

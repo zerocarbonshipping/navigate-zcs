@@ -74,30 +74,3 @@ This attribute sets the fair-share tolerance of the bunker algorithm. The fair s
 * **Example value**: `1e-2`
 * **Minimum value**: 0
 * **Default**: 1e-2
-
-### FlexibilityMaximumIterations
-
-This attribute sets the maximum iterations for the bisection search algorithm that calculates the flexibility compliance unit value of flexible regulations.
-
-* **Data type**: `Integer`
-* Example value: `10`
-* **Minimum value**: 1
-* **Default**: 10
-
-### FlexibilityToleranceX
-
-This attribute sets the tolerance for the convergence of the bisection search algorithm that calculates the flexibility compliance unit value of a flexible regulation. The tolerance determines when the change in the estimate is sufficiently small to be considered converged. Setting this to zero is not recommended due to potential numerical instability issues.
-
-* **Data type**: `Float`
-* **Example value**: `0.1`
-* **Minimum value**: 0
-* **Default**: 1
-
-### FlexibilityToleranceY
-
-This attribute sets the tolerance for the comparison of objective function values in the bisection search algorithm that calculates the flexibility compliance unit value of a flexible regulation. The tolerance determines when the change in the estimate is sufficiently small to be considered converged. Setting this to zero is not recommended due to potential numerical instability issues.
-
-* **Data type**: `Float`
-* **Example value**: `0.1`
-* **Minimum value**: 0
-* **Default**: 1

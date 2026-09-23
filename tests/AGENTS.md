@@ -15,8 +15,13 @@ helpers in `tests/helpers/`, and each simulating suite's decks under its own
   independently of the implementation → `tests/unit` (conventions:
   `tests/unit/README.md`).
 - Coverage of the DSL attribute/command surface → `tests/attribute` (no
-  README; conventions: the module docstrings of `test_attribute_coverage.py`
-  and `test_report_properties.py`).
+  README; conventions: the module docstrings of `test_attribute_coverage.py`,
+  `test_report_properties.py`, `test_reference_manual_coverage.py` and
+  `test_report_property_docs.py`). The third of these maps a node type to its
+  manual page, so a new page under `docs/reference_manual/` that describes no
+  node is listed in `tests/helpers/reference_manual.py`; the fourth reads the
+  report-property appendix of `report.md`, which carries no headings, from the
+  sentence that leads each table in.
 - "Did simulation results change when they shouldn't have?" →
   `tests/regression` (golden baselines; conventions:
   `tests/regression/README.md`).
