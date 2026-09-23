@@ -62,7 +62,6 @@ def transfer_bunker(alg: BunkerAlgorithm) -> None:
             # transfer bunkered values for
             # future inertia calculations
             vessel.expectation.add_bunker_mass_existing(port_name, f, bunker.X)
-            port.expectation.add_bunker_mass_existing(f, bunker.X)
 
             # transfer to vessel profile
             vessel.profile.add_consumed_mass(f, bunker.X, idx=alg.idx)

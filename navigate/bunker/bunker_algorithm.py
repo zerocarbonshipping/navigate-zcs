@@ -425,9 +425,6 @@ class BunkerAlgorithm:
             for vessel in self.vessels.values():
                 vessel.expectation.reset_bunker_mass_existing()
 
-            for port in self.ports.values():
-                port.expectation.reset_bunker_mass_existing()
-
         # transfer vessel solutions
         transfer_bunker(self)
         transfer_spend_sea(self)
