@@ -19,14 +19,9 @@ from navigate.core.nodes.emission import Emission
 from navigate.parser._lark_parser import CopyStatement
 from navigate.parser.parser import Parser
 
-MODEL_DEFINITION = """
-ModelDefinition {
-    StartDate = "01-01-2026"
-}
-"""
 SHARED = 'Variable "w" { Value = 0.5 }\n'
 # an Emission is a top-level node, so the Variable it references survives the
-# unreachable-node prune
+# unreachable-node prune (see the conftest module docstring)
 ATTRIBUTE_SRC = 'Emission "src" { GlobalWarmingPotential = Variable("w") }\n'
 ATTRIBUTE_HOST = SHARED + ATTRIBUTE_SRC
 CONTAINER_HOST = (
@@ -41,17 +36,6 @@ Fuel "src" {
 }
 """
 )
-
-
-def _read_deck(tmp_path, define):
-    (tmp_path / "define.inc").write_text(MODEL_DEFINITION + define)
-    deck = tmp_path / "deck.nav"
-    deck.write_text('DEFINE { Include "define.inc" }\nEVENTS { }\n')
-
-    parser = Parser()
-    # no assumptions tree: any unintended pull from the default library fails
-    parser.read_deck(deck, data_dir=tmp_path / "data")
-    return parser
 
 
 @pytest.mark.parametrize(
@@ -69,25 +53,27 @@ def _read_deck(tmp_path, define):
     ],
     ids=["single", "chain"],
 )
-def test_each_copy_is_a_new_node_and_the_source_keeps_its_name(tmp_path, define, names):
-    parser = _read_deck(tmp_path, define)
+def test_each_copy_is_a_new_node_and_the_source_keeps_its_name(
+    read_deck, define, names
+):
+    parser = read_deck(define)
     nodes = [parser.nodes.emissions[name] for name in names]
 
     assert len({id(node) for node in nodes}) == len(names)
     assert "".join(node.name for node in nodes) == names
 
 
-def test_the_copy_shares_a_reference_declared_after_the_copy(tmp_path):
+def test_the_copy_shares_a_reference_declared_after_the_copy(read_deck):
     define = ATTRIBUTE_SRC + 'Copy Emission "src" "dst"\n' + SHARED
 
-    parser = _read_deck(tmp_path, define)
+    parser = read_deck(define)
     shared = parser.nodes.variables["w"]
 
     assert parser.nodes.emissions["src"].global_warming_potential is shared
     assert parser.nodes.emissions["dst"].global_warming_potential is shared
 
 
-def test_the_copy_target_keeps_the_bounds_imposed_before_its_declaration(tmp_path):
+def test_the_copy_target_keeps_the_bounds_imposed_before_its_declaration(read_deck):
     # GlobalWarmingPotential allows no negative value, so the bound the reference
     # imposed on "v" clips the -2.0 the copy brings along
     define = (
@@ -96,7 +82,7 @@ def test_the_copy_target_keeps_the_bounds_imposed_before_its_declaration(tmp_pat
         'Copy Variable "base" "v"\n'
     )
 
-    parser = _read_deck(tmp_path, define)
+    parser = read_deck(define)
 
     assert parser.nodes.variables["v"].get() == 0.0
 
@@ -133,9 +119,9 @@ def test_a_copy_target_without_a_calculator_adopts_its_placeholder():
     ids=["attribute", "container"],
 )
 def test_the_copy_shares_a_reference_declared_before_the_copy(
-    tmp_path, define, group, read
+    read_deck, define, group, read
 ):
-    parser = _read_deck(tmp_path, define)
+    parser = read_deck(define)
     shared = parser.nodes.variables["w"]
 
     assert read(getattr(parser.nodes, group)["src"]) is shared
