@@ -22,10 +22,11 @@ observed need. -->
 - `CODESTYLE.md` — conventions tooling cannot check
 - `CONTRIBUTING.md` — how a change gets in: issue first for large features,
   PR expectations, assumption provenance
-- `tests/README.md` — which suite a check belongs in, then the suite READMEs
+- `tests/README.md` — which suite a check belongs in, what each suite
+  answers, then the suite READMEs
 - `docs/reference_manual/` — the DSL and model behaviour as users see it;
   hand-written, no autodoc
-- `CHANGELOG.md` — Keep a Changelog, `[Unreleased]`, **Breaking** marker
+- `CHANGELOG.md` — Keep a Changelog, `[Unreleased]`; user-facing changes only
 - `make help` — the target list
 
 ## Layout
@@ -50,17 +51,13 @@ observed need. -->
 - `make` runs tools from the checkout's own `.venv` when present, so each
   checkout, worktrees included, gets its own setup
 - Solvers: HiGHS bundled and default; Gurobi an optional extra needing a
-  commercial licence; test decks pin HiGHS
+  commercial licence
 - Every deck run needs `-d ./assumptions` or `ASSUMPTIONS_DATA_DIR`
 - `make lint` = `ruff check`, `ruff format --check`, `mypy navigate`,
   `reuse lint`
-- Test targets and what each answers: `test-unit`, `test-attribute` (full
-  simulation, slow), `test-guardrails` (domain behaviour, seconds),
-  `test-regression` (golden CSV), `test-tutorials` / `test-examples`
-  (exit-code smoke), `test-all`; pytest's `-x` is overridden on purpose for
-  guardrails and regression
-- `make regen-regression` — the only way to update baselines; own commit;
-  the diff is review material
+- Test targets: `test-unit`, `test-attribute`, `test-guardrails`,
+  `test-regression`, `test-tutorials`, `test-examples`, `test-all`; what
+  each suite answers, its runtime and its conventions live under `tests/`
 - `make docs`
 - CI on every PR: Lint, Build package, Run tests (unit, attribute,
   regression, tutorials, examples); guardrails are not in CI, run them
@@ -68,8 +65,9 @@ observed need. -->
 
 ## Rules for every change
 
-- Branch from `dev`, PR targets `dev`; `main` is release-only; squash
-  merged, so the PR title becomes the commit subject: an imperative
+- Pull requests never target `main`, the release branch; the base is `dev`
+  or the integration branch of the larger effort the work belongs to;
+  squash merged, so the PR title becomes the commit subject: an imperative
   sentence with no prefix
 - Licence header on every new file: Apache-2.0 for code, tests and tooling;
   CC-BY-4.0 for decks, assumptions, docs and figures; `REUSE.toml` when the
@@ -80,10 +78,9 @@ observed need. -->
   file never gets an entry
 - No lint or type suppressions in code (`noqa`, `type: ignore`); the
   configuration is the arbiter
-- Baselines are never hand-edited; guardrail assertions are never edited to
-  pass (`tests/regression/README.md`, `tests/guardrails/README.md`)
-- `CHANGELOG.md` entry under `[Unreleased]` for user-visible changes;
-  **Breaking** for library-API changes
+- `CHANGELOG.md` entry for user-facing changes only: deck behaviour,
+  results, CLI, output; Navigate is not a library, so changes to what
+  Python code can import are not user-facing
 - Assumption value changes carry references or a justification
 
 ## What a change touches
@@ -93,7 +90,9 @@ observed need. -->
   → attribute coverage test; the first two are checked against each other,
   the manual is not
 - A change that moves results: explain the difference in the PR; guardrails
-  pass locally; baselines regenerated in their own commit
+  pass locally; baselines regenerated with `make regen-regression` in their
+  own commit, never hand-edited; guardrail assertions are never edited to
+  pass
 - A new non-trivial calculation: a unit test with an independent oracle
   (`tests/unit/README.md`)
 - A user-visible behaviour change: reference manual, docstrings, CHANGELOG
