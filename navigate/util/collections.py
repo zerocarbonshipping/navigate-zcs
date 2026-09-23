@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""List and dict helpers, including summation and slicing of profile results."""
+"""List and dict helpers, including arithmetic and slicing of profile results."""
 
 from __future__ import annotations
 

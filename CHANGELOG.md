@@ -754,9 +754,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   The `transform` parameter of the internal `_resolve_dict` goes with it.
 - **Breaking** for code importing navigate as a library: `extract_from_dict`
   (`navigate/util/collections.py`, re-exported from `navigate.util`), which
-  had no call site left in the package. Callers that sliced a whole dict
-  reach for `slice_dict` instead; the only arm it does not cover is the
-  pass-through of a non-array value, which nothing asked for. The internal
+  had no call site left in the package. Library callers that sliced a whole
+  dict should reach for `slice_dict`, which differs only in indexing every
+  value rather than passing a non-array through untouched. The internal
   `_resolve_dict` and `_slice_value`, reachable from nowhere else, go with it.
 
 ### Fixed
