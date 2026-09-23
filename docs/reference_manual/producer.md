@@ -186,14 +186,16 @@ This command sets a static constraint for the amount of feed (feedstock or proce
 
 ### set\_export\_distribution
 
-This command sets the fraction of the fuel production of the producer that is exported to a given port.
+This command sets the relative weight with which the fuel production of the producer is exported to a given port.
+
+The weights of all ports are normalized to sum to one in every time-step, so a weight is a share of the production only when the weights assigned across the ports already sum to one. Assigning `0.5` to one of three ports therefore exports the entire production to that port, not half of it. If no port carries a positive weight, the production is split equally across all ports.
 
 * **Primary key type**: String (Port name)
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
   + `"port_name", 0.2`
   + `"port_name", Forecast("name")`
-* **Unit**: Fraction
+* **Unit**: Relative weight
 * **Minimum value**: 0
 * **Maximum value**: 1
-* **Default**: 0
+* **Default**: 0, which leaves the production split equally across all ports when no port is weighted.

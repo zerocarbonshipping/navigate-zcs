@@ -331,7 +331,12 @@ class Producer(_AssetManager):
 
     def set_export_distribution(self, port_name, export_distribution):
         """
-        Set the fraction of fuel production that is exported to a given port.
+        Set the relative weight with which the fuel production is exported to a given port.
+
+        The weights of all ports are normalized to sum to one in every time-step, so a weight is
+        a share of the production only when the weights assigned across the ports already sum to
+        one. If no port carries a positive weight, the production is split equally across all
+        ports.
 
         Examples
         --------
@@ -343,7 +348,7 @@ class Producer(_AssetManager):
         port_name : str
             The name of a port.
         export_distribution : float | Node
-            The fraction of fuel production that is exported to the port.
+            The relative weight of the port in the export of the fuel production.
         """
         command_assignment_to_dict(
             port_name,
