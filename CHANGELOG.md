@@ -21,6 +21,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `tests/regression/README.md`.
 
 ### Changed
+- **Breaking** for code importing navigate as a library: `expand_id_wildcard`'s
+  second parameter is named `domain` and takes an enum class or a tuple of its
+  members.
 - `make` runs its targets through a local `.venv` when one exists and only
   otherwise through the `nav` conda env, so a git worktree runs its own
   source tree instead of the checkout the conda env's editable install
@@ -146,6 +149,11 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   log, so a run whose results they affect could look clean on the console.
 
 ### Fixed
+- `set_operational_saving_port(*, 0.1)` sets the energy demands a vessel has
+  in port, `ELECTRICAL` and `HEAT`. The wildcard previously expanded over
+  every `EnergyDemandTypeID` member and so also reached `PROPULSION`, which
+  the attribute does not hold, failing the command with the message written
+  for a reference to a node that no deck declares.
 - The error for a node found in neither the deck nor the default library
   names the deck line and include file of the reference; it opened with a
   bare colon before.

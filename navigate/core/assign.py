@@ -324,9 +324,11 @@ def assign_id[E: Enum](assignment: str, id_enum: type[E]) -> E:
         raise ValueError(f"does not accept ID '{assignment}'")
 
 
-def expand_id_wildcard[E: Enum](pattern: str, id_enum: type[E]) -> list[E]:
+def expand_id_wildcard[E: Enum](
+    pattern: str, domain: type[E] | tuple[E, ...]
+) -> list[E]:
     """
-    Expand a wildcard pattern against an enum's member names.
+    Expand a wildcard pattern against the member names of a domain.
 
     Delegates to :func:`retrieve_keys` which handles Enum-keyed collections.
 
@@ -334,19 +336,21 @@ def expand_id_wildcard[E: Enum](pattern: str, id_enum: type[E]) -> list[E]:
     ----------
     pattern
         Glob-style pattern (e.g. ``"M*"``), matched against each member's ``.name``.
-    id_enum
-        Enum class to match against.
+    domain
+        Enum class, or tuple of its members, the pattern may match.
 
     Returns
     -------
-    List of matching enum members.
+    list[Enum]
+        Matching enum members.
     """
+    members = tuple(domain)
+
     try:
-        return retrieve_keys(pattern, id_enum, key_fn=lambda m: m.name)
+        return retrieve_keys(pattern, members, key_fn=lambda m: m.name)
     except KeyError:
-        raise ValueError(
-            f"wildcard '{pattern}' did not match any member of {id_enum.__name__}"
-        )
+        names = ", ".join(member.name for member in members)
+        raise ValueError(f"wildcard '{pattern}' did not match any of {names}")
 
 
 def assign_id_list[E: Enum](

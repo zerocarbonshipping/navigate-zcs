@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import pytest
 
+from navigate.core.nodes.fleet import Fleet
 from navigate.core.nodes.fuel import Fuel
 from navigate.core.nodes.port import Port
 from navigate.core.nodes.route import Route
@@ -79,8 +80,8 @@ class TestCommandReferenceWildcard:
 
         assert call_log == [("METHANE", 0.03)]
 
-    def test_none_domain_skips_expansion(self):
-        """set_consumption_ttw domain is (FuelTypeID, None) — second arg passes through."""
+    def test_argument_beyond_the_domain_skips_expansion(self):
+        """set_consumption_ttw registers one domain; its emission arg is untouched."""
         call_log = []
 
         class DummyNode:
@@ -103,6 +104,20 @@ class TestCommandReferenceWildcard:
         assert "METHANOL" in fuel_types
         assert all(c[1] == "co2_*" for c in call_log)
         assert all(c[2] == 0.5 for c in call_log)
+
+    def test_subset_domain_expands_to_the_members_the_attribute_holds(self):
+        """set_operational_saving_port accepts the in-port demands only."""
+        fleet = Fleet("fleet")
+        ref = CommandReference(
+            "set_operational_saving_port",
+            ["*", 0.1],
+            source=SourceLocation("test.inc", 1),
+        )
+        ref.execute(fleet)
+
+        saving = fleet.operational_saving_port
+        assert {demand.name for demand in saving} == {"ELECTRICAL", "HEAT"}
+        assert all(value.get() == 0.1 for value in saving.values())
 
 
 # ── In-list WildcardNodeReference expansion via Parser ────────────────────────
