@@ -820,7 +820,9 @@ class SimulationManager:
             levy.initialize_profile(timeline)
 
         for plant in self.nodes.plants.values():
-            plant.initialize_profile(timeline, self.nodes.emissions, emissions_lifetime)
+            plant.initialize_profile(
+                timeline, self.nodes.emissions, self.nodes.fuels, emissions_lifetime
+            )
 
         for port in self.nodes.ports.values():
             port.initialize_profile(

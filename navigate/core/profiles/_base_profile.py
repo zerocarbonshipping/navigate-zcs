@@ -74,17 +74,6 @@ class _BaseProfile:
         return np.add.reduce(list(values.values()))
 
     @staticmethod
-    def _equivalent(
-        emissions: dict[tuple[str, str], FloatArray],
-        global_warming_potential: dict[str, float],
-    ) -> dict[tuple[str, str], FloatArray]:
-        return {
-            (fuel_name, emission_name): emission
-            * global_warming_potential[emission_name]
-            for (fuel_name, emission_name), emission in emissions.items()
-        }
-
-    @staticmethod
     def _convert_to_intensity(emission: FloatArray, energy: FloatLike) -> FloatArray:
         # emissions are converted from ton to g (10^6) and energy from GJ to
         # MJ (10^3), so dividing by 10^3

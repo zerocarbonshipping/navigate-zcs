@@ -9,7 +9,7 @@ import numpy as np
 
 from navigate.core.enum_ import EnergyDemandTypeID, EnergyDemandTypePortID, FuelTypeID
 from navigate.core.initial_values import EMPTY_FLOAT
-from navigate.core.profiles._fuel_base_profile import _FuelBaseProfile
+from navigate.core.profiles._fuel_emission_profile import _FuelEmissionProfile
 
 if TYPE_CHECKING:
     from navigate.core.nodes.emission import Emission
@@ -19,14 +19,11 @@ if TYPE_CHECKING:
 from navigate.util import add_dicts, divide_nonzero, multiply_dicts
 
 
-class _FuelConsumerProfile(_FuelBaseProfile):
+class _FuelConsumerProfile(_FuelEmissionProfile):
     """Base class used exclusively for sub-classing."""
 
     def __init__(self):
         super().__init__()
-
-        # constants
-        self._global_warming_potential: dict[str, float] = {}
 
         # raw energy demand
         self._raw_energy_sea: dict[EnergyDemandTypeID, np.ndarray] = {}  # GJ/year
@@ -80,7 +77,6 @@ class _FuelConsumerProfile(_FuelBaseProfile):
         self,
         fuels: dict[str, Fuel],
         emissions: dict[str, Emission],
-        emissions_lifetime: float,
         regulation_names: list[str] = (),
         levy_names: list[str] = (),
     ) -> None:
@@ -93,18 +89,11 @@ class _FuelConsumerProfile(_FuelBaseProfile):
             All fuels in the simulation.
         emissions :
             All emissions in the simulation.
-        emissions_lifetime :
-            Emissions lifetime used for calculating GWP.
         regulation_names :
             Names of all regulations in the simulation.
         levy_names :
             Names of all levies in the simulation.
         """
-        for emission_name, emission in emissions.items():
-            self._global_warming_potential[emission_name] = (
-                emission.global_warming_potential.get(emissions_lifetime)
-            )
-
         self._raw_energy_sea = self._default_dict(EnergyDemandTypeID)
         self._raw_energy_port = self._default_dict(EnergyDemandTypePortID)
 
@@ -513,7 +502,7 @@ class _FuelConsumerProfile(_FuelBaseProfile):
         return self._to_cumulative(self.get_total_fuel_related_expenses())
 
     def get_equivalent_wtt(self) -> dict[tuple[str, str], FloatArray]:
-        return self._equivalent(self._wtt, self._global_warming_potential)
+        return self._equivalent(self._wtt)
 
     def get_total_equivalent_wtt(self) -> FloatArray:
         return self._sum_values(self.get_equivalent_wtt())
@@ -531,7 +520,7 @@ class _FuelConsumerProfile(_FuelBaseProfile):
         return self._to_total_intensity(self.get_total_equivalent_wtt())
 
     def get_equivalent_ttw(self) -> dict[tuple[str, str], FloatArray]:
-        return self._equivalent(self._ttw, self._global_warming_potential)
+        return self._equivalent(self._ttw)
 
     def get_total_equivalent_ttw(self) -> FloatArray:
         return self._sum_values(self.get_equivalent_ttw())
@@ -549,9 +538,7 @@ class _FuelConsumerProfile(_FuelBaseProfile):
         return self._to_total_intensity(self.get_total_equivalent_ttw())
 
     def get_equivalent_wtw(self) -> dict[tuple[str, str], FloatArray]:
-        return self._equivalent(
-            add_dicts(self._wtt, self._ttw), self._global_warming_potential
-        )
+        return self._equivalent(add_dicts(self._wtt, self._ttw))
 
     def get_total_equivalent_wtw(self) -> FloatArray:
         # shore power emissions are a WTW lump with no (fuel, emission) attribution,

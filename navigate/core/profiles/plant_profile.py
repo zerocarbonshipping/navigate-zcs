@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.initial_values import EMPTY_NAN
-from navigate.core.profiles._base_profile import _BaseProfile
+from navigate.core.profiles._fuel_emission_profile import _FuelEmissionProfile
 from navigate.util import multiply_dicts
 
 if TYPE_CHECKING:
@@ -17,13 +17,12 @@ if TYPE_CHECKING:
     from navigate.util.types_ import FloatArray
 
 
-class PlantProfile(_BaseProfile):
+class PlantProfile(_FuelEmissionProfile):
     def __init__(self):
         super().__init__()
 
         # constants
-        self._global_warming_potential: dict[str, float] = {}
-        self._lower_heating_value: float = 0.0  # lower heating value of fuel
+        self._fuel_name: str = ""  # name of the fuel the plant produces
 
         # costs
         self._investment_cost: np.ndarray = (
@@ -42,8 +41,9 @@ class PlantProfile(_BaseProfile):
     def initialize(
         self,
         timeline: np.ndarray,
-        fuel: Fuel,
         emissions: dict[str, Emission],
+        fuels: dict[str, Fuel],
+        fuel_name: str,
         emissions_lifetime: float,
     ) -> None:
         """
@@ -53,14 +53,18 @@ class PlantProfile(_BaseProfile):
         ----------
         timeline : np.ndarray
             Simulation timeline in years.
-        fuel : Fuel
-            The fuel produced by the plant.
         emissions : dict[Emission]
             All emissions in the simulation.
+        fuels : dict[Fuel]
+            All fuels in the simulation.
+        fuel_name : str
+            Name of the fuel produced by the plant.
         emissions_lifetime : float
             GWP lifetime.
         """
         self._initialize_base(timeline)
+        self._initialize_fuel_base(fuels)
+        self._initialize_fuel_emission(emissions, emissions_lifetime)
 
         self._investment_cost = self._default_array(default=np.nan)
         self._instantaneous_cost = self._default_array(default=np.nan)
@@ -68,19 +72,16 @@ class PlantProfile(_BaseProfile):
         self._investment_wtt = self._default_dict(emissions, default=np.nan)
         self._instantaneous_wtt = self._default_dict(emissions, default=np.nan)
 
-        self._lower_heating_value = fuel.lower_heating_value.get()
-
-        for emission_name, emission in emissions.items():
-            self._global_warming_potential[emission_name] = (
-                emission.global_warming_potential.get(emissions_lifetime)
-            )
+        self._fuel_name = fuel_name
 
     def _intensity_equivalent(
         self, wtt: dict[str, FloatArray]
     ) -> dict[str, FloatArray]:
         equivalent = multiply_dicts(wtt, self._global_warming_potential)
         return {
-            emission_name: self._convert_to_intensity(value, self._lower_heating_value)
+            emission_name: self._convert_to_intensity(
+                value, self._lower_heating_value[self._fuel_name]
+            )
             for emission_name, value in equivalent.items()
         }
 
@@ -104,10 +105,10 @@ class PlantProfile(_BaseProfile):
         return self._investment_cost
 
     def get_investment_intensity_cost(self) -> FloatArray:
-        return self._investment_cost / self._lower_heating_value
+        return self._investment_cost / self._lower_heating_value[self._fuel_name]
 
     def get_instantaneous_intensity_cost(self) -> FloatArray:
-        return self._instantaneous_cost / self._lower_heating_value
+        return self._instantaneous_cost / self._lower_heating_value[self._fuel_name]
 
     def get_instantaneous_cost(self) -> FloatArray:
         return self._instantaneous_cost

@@ -26,6 +26,7 @@ if TYPE_CHECKING:
 
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.feedstock import Feedstock
+    from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.port import Port
     from navigate.core.nodes.process import Process
 
@@ -407,10 +408,13 @@ class Plant(Node):
         self,
         timeline: np.ndarray,
         emissions: dict[str, Emission],
+        fuels: dict[str, Fuel],
         emissions_lifetime: float,
     ) -> None:
 
-        self.profile.initialize(timeline, self.fuel, emissions, emissions_lifetime)
+        self.profile.initialize(
+            timeline, emissions, fuels, self.fuel.name, emissions_lifetime
+        )
 
     def set_producer_assignment(self, producer_name):
         if self.producer_assignment is not None:
