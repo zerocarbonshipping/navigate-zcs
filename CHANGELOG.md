@@ -149,6 +149,22 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   log, so a run whose results they affect could look clean on the console.
 
 ### Fixed
+- The reference manual documents the DSL surface the parser accepts. Thirteen
+  registered names had no entry — `Table` on `Curve`, `Forecast`, `Surface` and
+  `Timetable`, `FuelType` on `Emission`, `ShorePowerCost` and
+  `ShorePowerConnectionShare` on `Port`, `FlexibilityHorizon` and
+  `AllowThresholdAdjustment` on `Regulation`,
+  `set_shore_power_emission_factor` on `Port`, `set_export_distribution` on
+  `Producer`, and `add_producer_property` on `Report` — and five entries named
+  attributes no node has: `WindUtilization` and `SolarUtilization` on `Port`,
+  which the page also used in its example, and
+  `FlexibilityMaximumIterations`, `FlexibilityToleranceX` and
+  `FlexibilityToleranceY` on `BunkerOptions`.
+- `set_bunkering_cost` is no longer accepted on a `Port`. The command was
+  registered but implemented nowhere, so a deck writing it passed the parser's
+  allow-list and then died with an `AttributeError`; it is now rejected at its
+  deck line like any other unknown command. Use `set_handling_cost` for the
+  cost of bunkering a fuel in a port.
 - A value the model rejects — an attribute's or a command's — prints the
   located one-line error and exits 1, as a deck naming an attribute no node
   has already did. The sentence was the same, but arrived as the last line of

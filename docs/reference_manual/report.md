@@ -107,6 +107,16 @@ The parameters are:
 * Attribute: All allowed attributes are listed in the [Report Properties](#appendix---report-node-properties) section.
 * Reduce: Reduction axis; see [ReportReduceID](appendix_ids.md#reportreduceid). Default: None (no reduction).
 
+### add\_producer\_property
+
+This command adds a specified property of a producer to the report.
+
+The parameters are:
+
+* Key: Producer name
+* Attribute: All allowed attributes are listed in the [Report Properties](#appendix---report-node-properties) section.
+* Reduce: Reduction axis; see [ReportReduceID](appendix_ids.md#reportreduceid). Default: None (no reduction).
+
 ## Appendix - Report Node Properties
 
 The properties are applicable for the following commands:

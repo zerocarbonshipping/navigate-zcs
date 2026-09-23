@@ -183,3 +183,17 @@ This command sets a static constraint for the amount of feed (feedstock or proce
 * **Unit**: tons / year
 * **Minimum value**: 0
 * **Default**: INF
+
+### set\_export\_distribution
+
+This command sets the fraction of the fuel production of the producer that is exported to a given port.
+
+* **Primary key type**: String (Port name)
+* **Data type**: `Float`, `Forecast`, `Variable`
+* **Example values**:
+  + `"port_name", 0.2`
+  + `"port_name", Forecast("name")`
+* **Unit**: Fraction
+* **Minimum value**: 0
+* **Maximum value**: 1
+* **Default**: 0

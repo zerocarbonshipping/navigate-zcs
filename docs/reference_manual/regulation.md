@@ -172,6 +172,27 @@ This attribute sets the level of the regulation being paid or received dependent
 * **Minimum value**: 0
 * **Default**: 0
 
+### FlexibilityHorizon
+
+This attribute sets the decision horizon, in years, used to smooth the belief of the flexibility cost that enters the expected policy expenses of the policed vessels.
+
+A longer horizon makes the belief respond more slowly to changes in the flexibility cost between outer time-steps, preventing small changes in future fuel availability from translating into expectations of large flexibility-cost differences.
+
+* **Data type**: `Float`, `Forecast`, `Variable`
+* **Example values**:
+  + `3.0`
+  + `Forecast("name")`
+* **Unit**: Years
+* **Minimum value**: 0
+* **Default**: 3
+
+### AllowThresholdAdjustment
+
+This attribute sets whether the regulation threshold is automatically adjusted when the bunker algorithm detects non-compliance. If enabled, the bunker algorithm performs a multi-step solve where it first solves normally, then adjusts the threshold to match achievable compliance levels, and re-solves with the adjusted thresholds.
+
+* **Data type**: `Boolean`
+* **Default**: FALSE
+
 ## Commands
 
 ### set\_global\_warming\_potential
