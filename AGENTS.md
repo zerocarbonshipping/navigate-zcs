@@ -24,8 +24,9 @@ observed need. -->
   PR expectations, assumption provenance
 - `tests/README.md` — which suite a check belongs in, what each suite
   answers, then the suite READMEs
-- `docs/reference_manual/` — the DSL and model behaviour as users see it;
-  hand-written, no autodoc
+- `docs/` — the user manual, published; `reference_manual/` is the DSL and
+  model behaviour as users see it, hand-written, no autodoc; codebase
+  internals never go there, they belong in the root files and folder READMEs
 - `CHANGELOG.md` — Keep a Changelog, `[Unreleased]`; user-facing changes only
 - `make help` — the target list
 
@@ -52,7 +53,8 @@ observed need. -->
   checkout, worktrees included, gets its own setup
 - Solvers: HiGHS bundled and default; Gurobi an optional extra needing a
   commercial licence
-- Every deck run needs `-d ./assumptions` or `ASSUMPTIONS_DATA_DIR`
+- Run a deck: `navigate <deck>.nav -d ./assumptions -s` (`-s` skips the
+  plots); `ASSUMPTIONS_DATA_DIR` replaces `-d`
 - `make lint` = `ruff check`, `ruff format --check`, `mypy navigate`,
   `reuse lint`
 - Test targets: `test-unit`, `test-attribute`, `test-guardrails`,
