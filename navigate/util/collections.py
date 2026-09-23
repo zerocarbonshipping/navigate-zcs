@@ -337,26 +337,28 @@ def collapse_tuple_dict[K1: Hashable, K2: Hashable](
     | dict[tuple[K1, K2], FloatLike]
 ):
     """
-    Sum a tuple dict over its collapsed key part(s).
+    Sum a tuple dict over the key part its flags do not keep.
 
-    Collapsing both parts sums everything into a single value; collapsing one
-    part returns a dict keyed by the other; collapsing neither returns the
-    dict as-is.
+    One flag keys the result by that part and sums over the other; both
+    flags sum every entry into a single array; neither returns the dict
+    as-is.
 
     Parameters
     ----------
     result
         Profile result given as a tuple dict.
     key1
-        Whether to collapse the dict over the primary keys.
+        Whether to key the result by the primary keys, summing over the
+        secondary keys.
     key2
-        Whether to collapse the dict over the secondary keys.
+        Whether to key the result by the secondary keys, summing over the
+        primary keys.
 
     Returns
     -------
     dict | FloatLike
-        Desired form of result from tuple dict; dicts are keyed by the
-        uncollapsed key part(s).
+        Desired form of result from tuple dict; dicts are keyed by the kept
+        key part.
     """
     if key1 and key2:
         return sum_dict_results(result)
