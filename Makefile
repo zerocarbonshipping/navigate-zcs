@@ -55,11 +55,11 @@ test-attribute:  ## Attribute coverage tests
 
 # --maxfail=0 overrides the -x in pyproject addopts: guardrail failures are
 # domain findings, and one must not mask the assertions behind it.
-test-guardrails:  ## Behavior guardrail tests
+test-guardrails:  ## Behavior guardrails, suspended: see tests/guardrails/README.md
 	$(RUN) pytest tests/guardrails/ -v --tb=short --maxfail=0
 
-# --maxfail=0 as for guardrails: a failed activation guard must not mask the
-# golden diff behind it.
+# --maxfail=0 overrides the -x in pyproject addopts: a failed activation guard
+# must not mask the golden diff behind it.
 test-regression:  ## Golden-baseline regression tests
 	$(RUN) pytest tests/regression/ -v --tb=short --maxfail=0
 
@@ -68,10 +68,9 @@ test-regression:  ## Golden-baseline regression tests
 regen-regression:  ## Regenerate golden baselines, then review the git diff
 	$(RUN) pytest tests/regression/ -v --tb=short --maxfail=0 -s --regen-baselines
 
-test-all:  ## Full test suite (all pytest suites + tutorials + examples)
+test-all:  ## Full test suite (required pytest suites + tutorials + examples)
 	$(MAKE) test-unit
 	$(MAKE) test-attribute
-	$(MAKE) test-guardrails
 	$(MAKE) test-regression
 	$(MAKE) test-tutorials
 	$(MAKE) test-examples

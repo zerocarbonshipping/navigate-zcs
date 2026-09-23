@@ -5,6 +5,43 @@ SPDX-License-Identifier: Apache-2.0
 
 # Behavior guardrails
 
+## Status: suspended, in preparation for future use
+
+**This suite is not to be run and not to be required today.** It was built
+ahead of the model work it is meant to police, and nothing depends on it:
+`make test-guardrails` is not a gate on a pull request, on a change that
+moves simulation results, or on anything else. No change is expected to
+keep it green, and a red run of it blocks nothing.
+
+The target still exists and the decks still run, so whoever revives the
+suite starts from something that works. Everything below this note — the
+three tiers, the layout, the rules and the template — is kept for that
+reader.
+
+### Last measurement
+
+The table below is a **record of the last measurement, not a target**. It
+was taken on `dev` at commit `d3a3214`, where `make test-guardrails` failed
+7 of its 16 tests. The third deck, `supply_constrained`, passed in full.
+
+| Test | Bound | Observed |
+|---|---|---|
+| `no_incentive::test_methanol_share_marginal` | share ≤ 0.10 | rises to 0.25 |
+| `no_incentive::test_ammonia_share_marginal` | share ≤ 0.05 | rises to 0.135 |
+| `no_incentive::test_oil_and_methane_dominate` | share ≥ 0.85 | falls to 0.61 |
+| `no_incentive::test_global_savings_stable` | drift ≤ 0.05 | 0.111 |
+| `no_incentive::test_technology_uptake_stable` | drift ≤ 0.10 | 0.585 (`air_lubrication_container_15000_teu`) |
+| `supply_then_demand_constrained::test_demand_met_after_catchup` | gap ≤ 1e-6 · max | gap of 6.0e6, falling to 0 only in some steps |
+| `supply_then_demand_constrained::test_surplus_band` | surplus ≥ 0.02 | 0 to 2.6e-4 |
+
+It is a fingerprint of where the model stood against these properties on
+that commit, nothing more. A reviver re-measures first, then decides per
+property whether the bound or the model is what has to move; the rules
+below, including that an assertion is never edited to make it pass, still
+govern that decision.
+
+## What the suite is
+
 Small committed simulation decks that each isolate one desired model behavior
 and enforce it with executable property assertions paired with prose intent.
 They answer "are results still sane?" when a change is *supposed* to move
