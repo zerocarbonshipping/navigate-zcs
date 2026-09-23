@@ -12,6 +12,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ### Added
+- An attribute-suite check that every registered DSL attribute and command has a
+  heading on its node's reference-manual page, and that every heading there names
+  a registered one. The manual is hand-written with no autodoc, so its drift from
+  the parser tables was previously found by readers rather than by CI.
 - A golden-baseline regression suite (`tests/regression`, `make
   test-regression`, run in CI): small pinned-constant decks whose report CSV
   output is compared against committed baselines within a documented
@@ -149,7 +153,7 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   log, so a run whose results they affect could look clean on the console.
 
 ### Fixed
-- The reference manual documents the DSL surface the parser accepts. Thirteen
+- The reference manual documents the DSL surface the parser accepts. Twelve
   registered names had no entry — `Table` on `Curve`, `Forecast`, `Surface` and
   `Timetable`, `FuelType` on `Emission`, `ShorePowerCost` and
   `ShorePowerConnectionShare` on `Port`, `FlexibilityHorizon` and
