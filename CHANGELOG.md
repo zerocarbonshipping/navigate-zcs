@@ -19,6 +19,32 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   per-cell diff and intended ones are reviewed as a baseline git diff
   regenerated via `make regen-regression`. Conventions in
   `tests/regression/README.md`.
+- The console prints the number of logged warnings at the end of a run,
+  pointing at the `.log` file. Warnings were previously visible only in the
+  log, so a run whose results they affect could look clean on the console.
+- Vessel-level energy-intensity savings (`SpeedEnergyIntensitySaving`,
+  `OperationalEnergyIntensitySaving`, `TechnologyEnergyIntensitySaving`,
+  `EnergyIntensitySaving` on `add_vessel_property`): per-cargo-mile
+  counterparts of the absolute vessel-energy savings, accounting for the
+  transport work lost when a vessel slows down. The technology variant
+  equals its absolute counterpart, since cargo-miles cancel in that ratio.
+  Vessel and fleet profiles store the transport work performed
+  (cargo-miles) to support them.
+- Report properties `ShorePowerEnergy`, `ShorePowerExpenses`, and
+  `ShorePowerEmission`, available at vessel, fleet, and global level.
+- Behavior guardrail test suite (`tests/guardrails/`): committed decks that
+  each isolate one desired model behavior, enforced by property assertions
+  paired with intent prose (`BEHAVIOR.md` per deck); run via
+  `make test-guardrails`. Initial decks: `no_incentive`,
+  `supply_constrained`, `supply_then_demand_constrained`.
+- `FleetProfile.get_fleet_technology_uptake`: fleet-wide technology uptake
+  (existing-vessel-weighted), shared by the technology_uptake plot and the
+  guardrail tests.
+- `navigate.economics.flows.trim_flow_to_lifetime`: trims a yearly flow to a
+  possibly fractional number of years on a copy, prorating the final year.
+  Shared by the technology-retrofit and fuel-conversion business cases
+  (previously a package-private helper and the legacy
+  `get_remaining_cost_flow`).
 
 ### Changed
 - **Breaking** for code importing navigate as a library: `assign_fraction_list`
@@ -213,142 +239,6 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   missing from a populated storage always raised one. The storages are
   prepopulated at initialization over the same collections their callers
   iterate, so no run reaches either case and results are unchanged.
-
-### Added
-- The console prints the number of logged warnings at the end of a run,
-  pointing at the `.log` file. Warnings were previously visible only in the
-  log, so a run whose results they affect could look clean on the console.
-
-### Fixed
-- The error for a node found in neither the deck nor the default library
-  names the deck line and include file of the reference; it opened with a
-  bare colon before.
-- A default file found by name that does not yield the requested node is
-  rejected with an error naming the deck location of the reference, from the
-  user branch as well. The user branch previously passed unchecked: a
-  reference to the node then failed with a bare `KeyError`, and an `Import`
-  of it silently imported nothing.
-- A reference whose type is not a node type, such as `Foo("x")`, is reported
-  as a deck error at its line. It previously surfaced as an attribute type
-  mismatch or, written as a command argument, as an unhandled `KeyError`.
-- `InitialSplit` and `ConditionDistribution` report the rescale they perform on
-  a list that does not sum to 1. Both console messages, and `InitialSplit`'s
-  reference-manual entry, said the list was "normalized to 1 by equal
-  fractions", where the rescale is proportional.
-- An error naming a `Variable` node identifies it as `Variable("name")`, the
-  way the deck wrote it, like every other node. It previously printed the
-  node's value instead, and failed with `AttributeError` while no value was
-  assigned — which is exactly when the missing-value error needs the name.
-- Computing the expected fleet fuel demand no longer raises a `TypeError`
-  when a simulation defines no fleets (`add_dicts` with no arguments returns
-  an empty dict).
-- The reference manual documented two port report properties under names that
-  never resolved (`BunkerEquivalentWTT`, `BunkerTotalEquivalentWTT`); the
-  working names are `EquivalentBunkerWtt` and `TotalEquivalentBunkerWtt`.
-- `set_initial_technology_share` values built from expressions (e.g.
-  `<0.5 * Curve("uptake")>`) are honored; the seeding previously accepted
-  only direct node references and silently ignored anything else, so
-  expression-valued shares left the fleet without initial technology.
-- `Levy`/`Regulation` values assigned through `set_fuel_wtt`, `set_fuel_ttw`,
-  and `set_global_warming_potential` now survive timeline progression. The
-  per-time-step dependency pass unconditionally re-seeded these dictionaries
-  to `None`, so the overrides applied only until the first time step and then
-  silently fell back to the `Emission` nodes' values. Results change for any
-  deck using these commands, including `simulations/examples/example_1`
-  (CII and EU-ETS overrides).
-- The regulation spend coefficient, shore-power regulation coefficient, and
-  regulation measure containers of the bunker algorithm are now reset at
-  every time-step like the other dynamic policy coefficients; the reset
-  previously targeted an unused attribute, so entries of vessels that left
-  the fleet could leak into later time-steps.
-- LP variable and constraint creation order for in-port energy demands is now
-  deterministic across runs: the electrical/heat demand set is an ordered
-  tuple instead of a `set`, whose iteration order varied between interpreter
-  processes. The LP itself was unaffected, but row/column order could select
-  a different (equally valid) optimal basis in degenerate solves, making
-  order-sensitive outputs such as dual values vary run-to-run.
-- The `Converter` reference-manual page and docstrings no longer show
-  `Forecast` references for `MinimumLoad`, `Efficiency`, and
-  `set_consumption_ttw`: the code accepts only floats and `Variable`
-  references there, and the documented `Forecast("name")` assignment raises
-  a `ValueError`. `PowerCapacity` gains the opposite correction — it accepts
-  `Variable` references but was documented as `Float` only.
-- Fuel-conversion expenses are booked on the elapsed-years axis. The
-  installment schedule was previously anchored at time-step indices, which on
-  calendar-date timelines (365/366-day years against the 365.25-day model
-  year) dropped or distorted the conversion-year installment.
-- Trimming a fuel-cost flow to an increment's remaining lifetime in the
-  conversion business case no longer prorates the shared flow in place;
-  repeated trims could double-prorate a year when two increments' horizons
-  rounded to the same length (reachable only with sub-year time steps — no
-  committed deck is affected). The float-fuzz rounding that guarded this
-  trim now sits in the shared `get_flow_size`/`get_flow_residual`
-  primitives, so every flow-sizing caller quantizes lifetimes at the same
-  5-decimal precision.
-- The expected fuel-delivery cost from plant to port is production-levelized
-  over the same window as the levelized cost of production: rates and
-  distance are sampled over the plant's operating years (construction lead
-  time excluded, re-anchored at every forward step) and levelized against
-  the discounted production flow. It was previously age-levelized with the
-  cost flow spanning the remaining simulation timeline but the leveling flow
-  spanning the plant lifetime, so even a constant per-ton rate did not
-  levelize to itself and the delivery cost drifted with the remaining
-  horizon. Results change for any deck assigning `FuelTransport` on a plant.
-- A user default file that pulls another library node before importing its own
-  name now still overlays the installation node of that name. The parser
-  cleared its default-reading state after the nested pull instead of restoring
-  it, so the user file re-entered itself and the parse failed with "the name is
-  already in use"; the overlay idiom held only when the self-`Import` came
-  first. The same state also decides which error a default file containing a
-  timeline statement reports.
-- A value whose kind an attribute does not accept now fails with the
-  attribute's allowed-types message, located to the deck line like every other
-  assignment error. An enum token or a stray word where a scalar or node
-  reference belongs (`Capex = FLAT`), or a table body pasted into a value slot,
-  previously fell through every accepted kind into an internal bounds call and
-  died as an `AttributeError`, with no indication of where in the deck. A table
-  is named by kind, as a list already was, rather than echoed row by row.
-- An attribute error naming a value it does not accept always names the value,
-  by kind where the value has one: an `int` or a `bool` reaching a scalar
-  attribute reads `only allows assignment of scalars, but got integer` instead
-  of the self-contradicting `but got 3`, and a node reference reaching an
-  attribute that takes no node is named where the value was omitted entirely.
-  A stray token, a node the attribute does not accept and `None` are echoed,
-  as their own text is what identifies them.
-- An integer attribute accepts a value written just off a whole number equally
-  on either side of it: `2.999999` is 3, where truncation toward zero
-  previously rejected it while accepting `3.000001`.
-- A list length violation reads "at least"/"at most" for a bounded length,
-  which is what the bound means; it said "more than"/"less than" for a length
-  equal to the bound, which the check accepts.
-- An invalid boolean keyword in a command (`set_allow_vessel("name", MAYBE)`,
-  and likewise `set_newbuild_available`, `set_conversion_available`,
-  `set_include_vessel`, `set_bunkering_allowed` and `set_allow_plant`) fails as
-  an assignment error located to the deck line, instead of being reported as a
-  reference to a non-existing name. The same keyword written as an attribute
-  (`AllowSpeedManagement = MAYBE`) already failed at its deck line, and now
-  names the keywords it accepts: `only allows assignment of TRUE or FALSE, but
-  got MAYBE`, where it read `does not accept ID 'MAYBE'`.
-- A command key that is an enum member must be one the attribute's dictionary
-  was prepopulated with. `set_operational_saving_port(PROPULSION, 0.1)`
-  silently created an entry for a demand type that is not in port (the command
-  covers electrical and heat, as its reference-manual page now states), which
-  nothing then read; it is now a deck error. No committed deck assigns it.
-- The DSL reference names the axes of a Surface and a Timetable table the way
-  they are read: the header row is the y-axis, and the first cell of every
-  subsequent row is the x-axis. It had them the other way round, so a table
-  written from the manual came out transposed, and the note on a timetable's
-  float axis named the wrong axis for the dates it replaces.
-- The DSL reference states that a wildcard in an enum-typed command argument
-  expands over every member of the enum class, not over the subset of members
-  the command accepts.
-- `ConditionDistribution`'s reference-manual entry states the proportional
-  rescale of a list whose positive total is not 1, which it required to sum to
-  1 exactly; both it and `InitialSplit`'s entry name the 1% deviation above
-  which the rescale is logged, and that a list summing to 0 is accepted
-  unchanged.
-
-### Changed
 - Internal reorganization (no DSL or result changes): the retrofit flow of
   `navigate/fleet/technology_adoption.py` communicates through
   `_RetrofitProposal`/`_AdoptionBasis` dataclasses instead of an anonymous
@@ -542,6 +432,135 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `intra_limit`/`inter_limit` parameters are replaced by one per-asset
   `limits` parameter projected onto both axes. Simulation results are
   unchanged.
+- Internal simplification (no DSL or result changes): `BunkerAlgorithm` no
+  longer mirrors per-vessel node data in scratch containers (converters,
+  usable fuels, converter fuels, port/leg indices, efficiencies, port-name
+  indices) — the LP builders and transfers read the vessel nodes directly,
+  via shared helpers in `navigate/bunker/utils.py`; only the effective-LHV
+  values remain pre-computed. Leg-index enumeration is now
+  `Route.get_leg_indices()`, also replacing the duplicate in
+  `navigate/policy/jurisdiction.py`. `navigate/bunker/vessel_setup.py` →
+  `coefficients.py`: the module now computes only LP coefficients
+  (effective LHV, emission factors, regulation and levy coefficients).
+- Internal reorganization (no DSL or result changes): the remaining
+  top-level modules regroup into two domain packages over shared layers.
+  `navigate/fleet/` merges `vessel/`, `route/` operation and speed, and
+  `vessel/fleet/`; `navigate/fuel/` absorbs `fuel/producer/` and
+  `route/import_export.py` (renamed `port_supply.py`);
+  `navigate/economics/` is the generic cash-flow/metric/discrete-choice
+  toolkit formerly `investment/`; `illustrations/` becomes
+  `navigate/output/plots/`; `output/logger.py` becomes top-level
+  `logging_.py`; `manager.py` becomes `simulation.py`;
+  `vessel/fair_share_fuel.py` becomes `bunker/supply_allocation.py`. The
+  `vessel/`, `route/`, `investment/` and `illustrations/` packages are
+  removed; `util.py` is split into a `util/` package (`collections`,
+  `numeric`, `dates`, `naming`) and the shared constants (`TOLERANCE`,
+  `ROUND_OFF`, `YEAR`) move from `navigate.core.misc` into it. Most
+  `navigate.util` names are re-exported unchanged, but
+  `round_for_display`, `get_attributes`, `get_files_in_directory` and
+  `print_elapsed_time` became private helpers of their single consumers and
+  the unused `average` is deleted. Breaking for
+  code importing navigate as a library. Regulation flexibility-cost belief
+  smoothing lives in `navigate/policy/flexibility_beliefs.py` (the belief
+  itself is regulation-owned state; vessels only receive the derived
+  expenses), separate from the vessel scarcity beliefs in
+  `navigate/fleet/scarcity_beliefs.py`, and the missing-technology
+  approximation moves from the simulation loop into
+  `navigate/fleet/technology_adoption.py`.
+  As with the
+  previous reorganization, `plot_data.pkl` files saved by earlier versions
+  cannot be loaded with `--replot` by this version — replot old results
+  with the version that produced them.
+- Internal reorganization (no DSL or result changes): `navigate/core/misc.py`
+  is dissolved — the `EMPTY_*` sentinel arrays move to
+  `navigate/core/initial_values.py`, and `SECTION_*`, `BOOL_ID` and
+  `BOUNDS_MAP` move into their consumers (`parser/_keywords.py`,
+  `core/assign.py`, `core/nodes/_calculator.py`). `navigate/core/time_.py`
+  is likewise dissolved: `calculate_inertia` and `calculate_compound_growth`
+  join the shared numeric helpers in `navigate/util/numeric.py` and are
+  re-exported from `navigate.util` instead of `navigate.core`. The root
+  `Node` base class moves from `navigate/core/nodes/node.py` to
+  `navigate/core/node.py`, beside `node_reference.py` and
+  `node_registry.py` — every non-underscored file in `core/nodes/` is now
+  a DSL keyword.
+- Internal renames for descriptive module names (no DSL or result
+  changes): in `navigate/fleet/`, `beliefs.py` → `scarcity_beliefs.py`,
+  `heuristic.py` → `marginal_saving.py`, `saving.py` →
+  `residual_energy.py` and `technology.py` → `technology_adoption.py`
+  (dropping the node-file/domain-module same-name convention, which had
+  no other instance); `navigate/policy/coefficient.py` →
+  `emission_coefficient.py`; in `navigate/bunker/`, `helpers.py` →
+  `utils.py` (matching the `fleet`/`fuel` convention),
+  `constraints/regulation_helpers.py` → `regulation_terms.py`, and the
+  `transfer/regulations_*.py` trio → `regulation_*.py`, singularizing
+  their `transfer_regulations_*` functions with them.
+- Internal reorganization (no DSL or result changes): calculation logic
+  moved out of the node classes into sibling modules; all node classes
+  moved into `navigate/core/nodes/` and all general-node classes into
+  `navigate/core/general_nodes/`, with package-private bases
+  underscore-prefixed in module and class name (`_GeneralNode`, `_Machinery`,
+  `_Policy`, `_Calculator`, `_Table1D`, `_Table2D`, `_AssetManager`) and the
+  cross-package foundational types (`Node`, `Increment`, `TableData`)
+  public; the `navigate/asset/` and `navigate/calculator/` packages are
+  removed. Because pickled objects reference their defining
+  module, `plot_data.pkl` files saved by earlier versions cannot be loaded
+  with `--replot` by this version — replot old results with the version
+  that produced them.
+- Technology CAPEX/OPEX now enters the vessel cost metrics. Every install
+  event (newbuild bundle, retrofit, seeded initial uptake) is levelized at
+  the vessel cost of capital over the window it serves — the full lifetime
+  for newbuilds and initial uptake, the remaining lifetime for retrofits —
+  and carried on the age cohort as a constant USD/year charge. The
+  fleet-average carried charge is added to the investment freight rate and
+  cargo charter rate (matching the fleet-average uptake the fuel expenses
+  reflect) and, as a realized yearly series, to the post-processed
+  instantaneous freight rate. The asset charter rate and CAPEX NPV remain
+  hull-and-machinery only. Adoption decisions are unchanged (still
+  discounted at `TechnologyCostOfCapital`). Newbuild vessel choice shifts
+  accordingly, since the freight rate is its decision metric. The
+  never-populated `TechnologyNewbuildExpenses`/`TechnologyRetrofitExpenses`
+  report properties (and their cumulatives) are replaced by a live
+  `TechnologyExpenses`/`CumulativeTechnologyExpenses` pair — the
+  multiplier-weighted carried charge, the levelized analogue of
+  `VesselExpenses` — which now also feeds `VesselRelatedExpenses`,
+  `Expenses`, and a single Technology band in the `global_expenses` plot.
+- **Breaking**: the fleet- and global-level energy-saving metrics are
+  redefined as energy-intensity savings against a counterfactual baseline —
+  the energy the year-0 raw intensity (year-0 speed, no operational measures,
+  no technologies) would require to perform the transport work actually
+  performed. This replaces the vessel-count-weighted average of per-vessel
+  intensities scaled by initial trade, which under-weighted the vessel types
+  performing most of the transport work and froze cross-fleet weights at
+  year-0 trade. The `add_property`/`add_fleet_property` report properties
+  `OperationalEnergySaving`, `TechnologyEnergySaving`, and `EnergySaving`
+  become `OperationalEnergyIntensitySaving`, `TechnologyEnergyIntensitySaving`,
+  and `EnergyIntensitySaving` (the old names remain valid on
+  `add_vessel_property`, where they are absolute vessel-energy savings), and
+  `SpeedEnergyIntensitySaving` is newly exposed. The `fleet_energy_saving`
+  and `global_energy_saving` plots show the redefined metrics.
+- The investment post-processing and fleet aggregation read vessel
+  cargo-miles from the expectation instead of the profile (value-identical).
+- Shore power is now part of the fuel-consumer accounting: its energy is
+  included in `TotalConsumedEnergy`, its cost in `TotalFuelExpenses` (and
+  transitively the fuel-related expense totals, the expense plots, and the
+  investment post-processing cash flows), and its emissions in the
+  `TotalEquivalentWTW` family. The three shore power series propagate from
+  vessel to fleet to global level, so the WTW emission plots and the new
+  fleet/global-level report properties include shore power. The WTT/TTW
+  intensity totals keep fuel-only numerators over the shore-inclusive energy
+  denominator, since shore power has no well-to-tank or tank-to-wake
+  component.
+- The fleet profile stores scrap and newbuilds as single per-vessel
+  aggregates instead of per-source arrays (value-identical; the evolution
+  code still computes the sources separately).
+- **Breaking** for code importing navigate as a library: `Expression` carries
+  the deck text it was written as in `text`, the node references it parses in
+  `reference_strings`, and the nodes the parser resolves those to in
+  `node_references` — one attribute no longer holds both — and the references
+  of an arbitrary expression text are read through the module-level
+  `parse_reference_strings`, replacing the `reference_strings()` probe.
+  Evaluating an expression before it is initialized raises `RuntimeError`.
+  `navigate.core.expression` is fully type-annotated and type-checked.
 
 ### Removed
 - **Breaking** for input decks: the `BunkerLogistics` general node is
@@ -715,161 +734,134 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   plot property, so no deck reaches one. The state behind them is still
   written and unchanged.
 
-### Changed
-- Internal simplification (no DSL or result changes): `BunkerAlgorithm` no
-  longer mirrors per-vessel node data in scratch containers (converters,
-  usable fuels, converter fuels, port/leg indices, efficiencies, port-name
-  indices) — the LP builders and transfers read the vessel nodes directly,
-  via shared helpers in `navigate/bunker/utils.py`; only the effective-LHV
-  values remain pre-computed. Leg-index enumeration is now
-  `Route.get_leg_indices()`, also replacing the duplicate in
-  `navigate/policy/jurisdiction.py`. `navigate/bunker/vessel_setup.py` →
-  `coefficients.py`: the module now computes only LP coefficients
-  (effective LHV, emission factors, regulation and levy coefficients).
-- Internal reorganization (no DSL or result changes): the remaining
-  top-level modules regroup into two domain packages over shared layers.
-  `navigate/fleet/` merges `vessel/`, `route/` operation and speed, and
-  `vessel/fleet/`; `navigate/fuel/` absorbs `fuel/producer/` and
-  `route/import_export.py` (renamed `port_supply.py`);
-  `navigate/economics/` is the generic cash-flow/metric/discrete-choice
-  toolkit formerly `investment/`; `illustrations/` becomes
-  `navigate/output/plots/`; `output/logger.py` becomes top-level
-  `logging_.py`; `manager.py` becomes `simulation.py`;
-  `vessel/fair_share_fuel.py` becomes `bunker/supply_allocation.py`. The
-  `vessel/`, `route/`, `investment/` and `illustrations/` packages are
-  removed; `util.py` is split into a `util/` package (`collections`,
-  `numeric`, `dates`, `naming`) and the shared constants (`TOLERANCE`,
-  `ROUND_OFF`, `YEAR`) move from `navigate.core.misc` into it. Most
-  `navigate.util` names are re-exported unchanged, but
-  `round_for_display`, `get_attributes`, `get_files_in_directory` and
-  `print_elapsed_time` became private helpers of their single consumers and
-  the unused `average` is deleted. Breaking for
-  code importing navigate as a library. Regulation flexibility-cost belief
-  smoothing lives in `navigate/policy/flexibility_beliefs.py` (the belief
-  itself is regulation-owned state; vessels only receive the derived
-  expenses), separate from the vessel scarcity beliefs in
-  `navigate/fleet/scarcity_beliefs.py`, and the missing-technology
-  approximation moves from the simulation loop into
-  `navigate/fleet/technology_adoption.py`.
-  As with the
-  previous reorganization, `plot_data.pkl` files saved by earlier versions
-  cannot be loaded with `--replot` by this version — replot old results
-  with the version that produced them.
-- Internal reorganization (no DSL or result changes): `navigate/core/misc.py`
-  is dissolved — the `EMPTY_*` sentinel arrays move to
-  `navigate/core/initial_values.py`, and `SECTION_*`, `BOOL_ID` and
-  `BOUNDS_MAP` move into their consumers (`parser/_keywords.py`,
-  `core/assign.py`, `core/nodes/_calculator.py`). `navigate/core/time_.py`
-  is likewise dissolved: `calculate_inertia` and `calculate_compound_growth`
-  join the shared numeric helpers in `navigate/util/numeric.py` and are
-  re-exported from `navigate.util` instead of `navigate.core`. The root
-  `Node` base class moves from `navigate/core/nodes/node.py` to
-  `navigate/core/node.py`, beside `node_reference.py` and
-  `node_registry.py` — every non-underscored file in `core/nodes/` is now
-  a DSL keyword.
-- Internal renames for descriptive module names (no DSL or result
-  changes): in `navigate/fleet/`, `beliefs.py` → `scarcity_beliefs.py`,
-  `heuristic.py` → `marginal_saving.py`, `saving.py` →
-  `residual_energy.py` and `technology.py` → `technology_adoption.py`
-  (dropping the node-file/domain-module same-name convention, which had
-  no other instance); `navigate/policy/coefficient.py` →
-  `emission_coefficient.py`; in `navigate/bunker/`, `helpers.py` →
-  `utils.py` (matching the `fleet`/`fuel` convention),
-  `constraints/regulation_helpers.py` → `regulation_terms.py`, and the
-  `transfer/regulations_*.py` trio → `regulation_*.py`, singularizing
-  their `transfer_regulations_*` functions with them.
-- Internal reorganization (no DSL or result changes): calculation logic
-  moved out of the node classes into sibling modules; all node classes
-  moved into `navigate/core/nodes/` and all general-node classes into
-  `navigate/core/general_nodes/`, with package-private bases
-  underscore-prefixed in module and class name (`_GeneralNode`, `_Machinery`,
-  `_Policy`, `_Calculator`, `_Table1D`, `_Table2D`, `_AssetManager`) and the
-  cross-package foundational types (`Node`, `Increment`, `TableData`)
-  public; the `navigate/asset/` and `navigate/calculator/` packages are
-  removed. Because pickled objects reference their defining
-  module, `plot_data.pkl` files saved by earlier versions cannot be loaded
-  with `--replot` by this version — replot old results with the version
-  that produced them.
-- Technology CAPEX/OPEX now enters the vessel cost metrics. Every install
-  event (newbuild bundle, retrofit, seeded initial uptake) is levelized at
-  the vessel cost of capital over the window it serves — the full lifetime
-  for newbuilds and initial uptake, the remaining lifetime for retrofits —
-  and carried on the age cohort as a constant USD/year charge. The
-  fleet-average carried charge is added to the investment freight rate and
-  cargo charter rate (matching the fleet-average uptake the fuel expenses
-  reflect) and, as a realized yearly series, to the post-processed
-  instantaneous freight rate. The asset charter rate and CAPEX NPV remain
-  hull-and-machinery only. Adoption decisions are unchanged (still
-  discounted at `TechnologyCostOfCapital`). Newbuild vessel choice shifts
-  accordingly, since the freight rate is its decision metric. The
-  never-populated `TechnologyNewbuildExpenses`/`TechnologyRetrofitExpenses`
-  report properties (and their cumulatives) are replaced by a live
-  `TechnologyExpenses`/`CumulativeTechnologyExpenses` pair — the
-  multiplier-weighted carried charge, the levelized analogue of
-  `VesselExpenses` — which now also feeds `VesselRelatedExpenses`,
-  `Expenses`, and a single Technology band in the `global_expenses` plot.
-- **Breaking**: the fleet- and global-level energy-saving metrics are
-  redefined as energy-intensity savings against a counterfactual baseline —
-  the energy the year-0 raw intensity (year-0 speed, no operational measures,
-  no technologies) would require to perform the transport work actually
-  performed. This replaces the vessel-count-weighted average of per-vessel
-  intensities scaled by initial trade, which under-weighted the vessel types
-  performing most of the transport work and froze cross-fleet weights at
-  year-0 trade. The `add_property`/`add_fleet_property` report properties
-  `OperationalEnergySaving`, `TechnologyEnergySaving`, and `EnergySaving`
-  become `OperationalEnergyIntensitySaving`, `TechnologyEnergyIntensitySaving`,
-  and `EnergyIntensitySaving` (the old names remain valid on
-  `add_vessel_property`, where they are absolute vessel-energy savings), and
-  `SpeedEnergyIntensitySaving` is newly exposed. The `fleet_energy_saving`
-  and `global_energy_saving` plots show the redefined metrics.
-- The investment post-processing and fleet aggregation read vessel
-  cargo-miles from the expectation instead of the profile (value-identical).
-- Shore power is now part of the fuel-consumer accounting: its energy is
-  included in `TotalConsumedEnergy`, its cost in `TotalFuelExpenses` (and
-  transitively the fuel-related expense totals, the expense plots, and the
-  investment post-processing cash flows), and its emissions in the
-  `TotalEquivalentWTW` family. The three shore power series propagate from
-  vessel to fleet to global level, so the WTW emission plots and the new
-  fleet/global-level report properties include shore power. The WTT/TTW
-  intensity totals keep fuel-only numerators over the shore-inclusive energy
-  denominator, since shore power has no well-to-tank or tank-to-wake
-  component.
-- The fleet profile stores scrap and newbuilds as single per-vessel
-  aggregates instead of per-source arrays (value-identical; the evolution
-  code still computes the sources separately).
-- **Breaking** for code importing navigate as a library: `Expression` carries
-  the deck text it was written as in `text`, the node references it parses in
-  `reference_strings`, and the nodes the parser resolves those to in
-  `node_references` — one attribute no longer holds both — and the references
-  of an arbitrary expression text are read through the module-level
-  `parse_reference_strings`, replacing the `reference_strings()` probe.
-  Evaluating an expression before it is initialized raises `RuntimeError`.
-  `navigate.core.expression` is fully type-annotated and type-checked.
-
-### Added
-- Vessel-level energy-intensity savings (`SpeedEnergyIntensitySaving`,
-  `OperationalEnergyIntensitySaving`, `TechnologyEnergyIntensitySaving`,
-  `EnergyIntensitySaving` on `add_vessel_property`): per-cargo-mile
-  counterparts of the absolute vessel-energy savings, accounting for the
-  transport work lost when a vessel slows down. The technology variant
-  equals its absolute counterpart, since cargo-miles cancel in that ratio.
-  Vessel and fleet profiles store the transport work performed
-  (cargo-miles) to support them.
-- Report properties `ShorePowerEnergy`, `ShorePowerExpenses`, and
-  `ShorePowerEmission`, available at vessel, fleet, and global level.
-- Behavior guardrail test suite (`tests/guardrails/`): committed decks that
-  each isolate one desired model behavior, enforced by property assertions
-  paired with intent prose (`BEHAVIOR.md` per deck); run via
-  `make test-guardrails`. Initial decks: `no_incentive`,
-  `supply_constrained`, `supply_then_demand_constrained`.
-- `FleetProfile.get_fleet_technology_uptake`: fleet-wide technology uptake
-  (existing-vessel-weighted), shared by the technology_uptake plot and the
-  guardrail tests.
-- `navigate.economics.flows.trim_flow_to_lifetime`: trims a yearly flow to a
-  possibly fractional number of years on a copy, prorating the final year.
-  Shared by the technology-retrofit and fuel-conversion business cases
-  (previously a package-private helper and the legacy
-  `get_remaining_cost_flow`).
+### Fixed
+- The error for a node found in neither the deck nor the default library
+  names the deck line and include file of the reference; it opened with a
+  bare colon before.
+- A default file found by name that does not yield the requested node is
+  rejected with an error naming the deck location of the reference, from the
+  user branch as well. The user branch previously passed unchecked: a
+  reference to the node then failed with a bare `KeyError`, and an `Import`
+  of it silently imported nothing.
+- A reference whose type is not a node type, such as `Foo("x")`, is reported
+  as a deck error at its line. It previously surfaced as an attribute type
+  mismatch or, written as a command argument, as an unhandled `KeyError`.
+- `InitialSplit` and `ConditionDistribution` report the rescale they perform on
+  a list that does not sum to 1. Both console messages, and `InitialSplit`'s
+  reference-manual entry, said the list was "normalized to 1 by equal
+  fractions", where the rescale is proportional.
+- An error naming a `Variable` node identifies it as `Variable("name")`, the
+  way the deck wrote it, like every other node. It previously printed the
+  node's value instead, and failed with `AttributeError` while no value was
+  assigned — which is exactly when the missing-value error needs the name.
+- Computing the expected fleet fuel demand no longer raises a `TypeError`
+  when a simulation defines no fleets (`add_dicts` with no arguments returns
+  an empty dict).
+- The reference manual documented two port report properties under names that
+  never resolved (`BunkerEquivalentWTT`, `BunkerTotalEquivalentWTT`); the
+  working names are `EquivalentBunkerWtt` and `TotalEquivalentBunkerWtt`.
+- `set_initial_technology_share` values built from expressions (e.g.
+  `<0.5 * Curve("uptake")>`) are honored; the seeding previously accepted
+  only direct node references and silently ignored anything else, so
+  expression-valued shares left the fleet without initial technology.
+- `Levy`/`Regulation` values assigned through `set_fuel_wtt`, `set_fuel_ttw`,
+  and `set_global_warming_potential` now survive timeline progression. The
+  per-time-step dependency pass unconditionally re-seeded these dictionaries
+  to `None`, so the overrides applied only until the first time step and then
+  silently fell back to the `Emission` nodes' values. Results change for any
+  deck using these commands, including `simulations/examples/example_1`
+  (CII and EU-ETS overrides).
+- The regulation spend coefficient, shore-power regulation coefficient, and
+  regulation measure containers of the bunker algorithm are now reset at
+  every time-step like the other dynamic policy coefficients; the reset
+  previously targeted an unused attribute, so entries of vessels that left
+  the fleet could leak into later time-steps.
+- LP variable and constraint creation order for in-port energy demands is now
+  deterministic across runs: the electrical/heat demand set is an ordered
+  tuple instead of a `set`, whose iteration order varied between interpreter
+  processes. The LP itself was unaffected, but row/column order could select
+  a different (equally valid) optimal basis in degenerate solves, making
+  order-sensitive outputs such as dual values vary run-to-run.
+- The `Converter` reference-manual page and docstrings no longer show
+  `Forecast` references for `MinimumLoad`, `Efficiency`, and
+  `set_consumption_ttw`: the code accepts only floats and `Variable`
+  references there, and the documented `Forecast("name")` assignment raises
+  a `ValueError`. `PowerCapacity` gains the opposite correction — it accepts
+  `Variable` references but was documented as `Float` only.
+- Fuel-conversion expenses are booked on the elapsed-years axis. The
+  installment schedule was previously anchored at time-step indices, which on
+  calendar-date timelines (365/366-day years against the 365.25-day model
+  year) dropped or distorted the conversion-year installment.
+- Trimming a fuel-cost flow to an increment's remaining lifetime in the
+  conversion business case no longer prorates the shared flow in place;
+  repeated trims could double-prorate a year when two increments' horizons
+  rounded to the same length (reachable only with sub-year time steps — no
+  committed deck is affected). The float-fuzz rounding that guarded this
+  trim now sits in the shared `get_flow_size`/`get_flow_residual`
+  primitives, so every flow-sizing caller quantizes lifetimes at the same
+  5-decimal precision.
+- The expected fuel-delivery cost from plant to port is production-levelized
+  over the same window as the levelized cost of production: rates and
+  distance are sampled over the plant's operating years (construction lead
+  time excluded, re-anchored at every forward step) and levelized against
+  the discounted production flow. It was previously age-levelized with the
+  cost flow spanning the remaining simulation timeline but the leveling flow
+  spanning the plant lifetime, so even a constant per-ton rate did not
+  levelize to itself and the delivery cost drifted with the remaining
+  horizon. Results change for any deck assigning `FuelTransport` on a plant.
+- A user default file that pulls another library node before importing its own
+  name now still overlays the installation node of that name. The parser
+  cleared its default-reading state after the nested pull instead of restoring
+  it, so the user file re-entered itself and the parse failed with "the name is
+  already in use"; the overlay idiom held only when the self-`Import` came
+  first. The same state also decides which error a default file containing a
+  timeline statement reports.
+- A value whose kind an attribute does not accept now fails with the
+  attribute's allowed-types message, located to the deck line like every other
+  assignment error. An enum token or a stray word where a scalar or node
+  reference belongs (`Capex = FLAT`), or a table body pasted into a value slot,
+  previously fell through every accepted kind into an internal bounds call and
+  died as an `AttributeError`, with no indication of where in the deck. A table
+  is named by kind, as a list already was, rather than echoed row by row.
+- An attribute error naming a value it does not accept always names the value,
+  by kind where the value has one: an `int` or a `bool` reaching a scalar
+  attribute reads `only allows assignment of scalars, but got integer` instead
+  of the self-contradicting `but got 3`, and a node reference reaching an
+  attribute that takes no node is named where the value was omitted entirely.
+  A stray token, a node the attribute does not accept and `None` are echoed,
+  as their own text is what identifies them.
+- An integer attribute accepts a value written just off a whole number equally
+  on either side of it: `2.999999` is 3, where truncation toward zero
+  previously rejected it while accepting `3.000001`.
+- A list length violation reads "at least"/"at most" for a bounded length,
+  which is what the bound means; it said "more than"/"less than" for a length
+  equal to the bound, which the check accepts.
+- An invalid boolean keyword in a command (`set_allow_vessel("name", MAYBE)`,
+  and likewise `set_newbuild_available`, `set_conversion_available`,
+  `set_include_vessel`, `set_bunkering_allowed` and `set_allow_plant`) fails as
+  an assignment error located to the deck line, instead of being reported as a
+  reference to a non-existing name. The same keyword written as an attribute
+  (`AllowSpeedManagement = MAYBE`) already failed at its deck line, and now
+  names the keywords it accepts: `only allows assignment of TRUE or FALSE, but
+  got MAYBE`, where it read `does not accept ID 'MAYBE'`.
+- A command key that is an enum member must be one the attribute's dictionary
+  was prepopulated with. `set_operational_saving_port(PROPULSION, 0.1)`
+  silently created an entry for a demand type that is not in port (the command
+  covers electrical and heat, as its reference-manual page now states), which
+  nothing then read; it is now a deck error. No committed deck assigns it.
+- The DSL reference names the axes of a Surface and a Timetable table the way
+  they are read: the header row is the y-axis, and the first cell of every
+  subsequent row is the x-axis. It had them the other way round, so a table
+  written from the manual came out transposed, and the note on a timetable's
+  float axis named the wrong axis for the dates it replaces.
+- The DSL reference states that a wildcard in an enum-typed command argument
+  expands over every member of the enum class, not over the subset of members
+  the command accepts.
+- `ConditionDistribution`'s reference-manual entry states the proportional
+  rescale of a list whose positive total is not 1, which it required to sum to
+  1 exactly; both it and `InitialSplit`'s entry name the 1% deviation above
+  which the rescale is logged, and that a list summing to 0 is accepted
+  unchanged.
 
 ## [1.0.0] - 2026-07-16
 
