@@ -6,7 +6,7 @@ SPDX-License-Identifier: Apache-2.0
 # Unit tests
 
 Fast, isolated tests of a single function or class. For which suite a check
-belongs to, see `tests/README.md`.
+belongs to, see `tests/AGENTS.md`.
 
 ## What earns a unit test
 

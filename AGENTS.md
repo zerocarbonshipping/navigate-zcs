@@ -23,8 +23,9 @@ every change. The detail lives in the files it points to.
 - `CONTRIBUTING.md` — how a change gets in: an issue first for large
   features, what a pull request must carry, provenance for assumption
   changes.
-- `tests/README.md` — which suite a check belongs in and what each suite
-  answers; the suite READMEs carry their conventions.
+- `tests/AGENTS.md` — which suite a check belongs in, the rules every test
+  change follows, and what a test change touches. Read it before changing
+  anything under `tests/`.
 - `docs/` — the user manual, published as the documentation site.
   `docs/reference_manual/` describes the DSL and the model behaviour as
   users see it; it is written by hand, nothing generates it. Codebase
