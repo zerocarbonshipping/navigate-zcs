@@ -149,6 +149,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   log, so a run whose results they affect could look clean on the console.
 
 ### Fixed
+- A value the model rejects — an attribute's or a command's — prints the
+  located one-line error and exits 1, as a deck naming an attribute no node
+  has already did. The sentence was the same, but arrived as the last line of
+  a Python traceback.
 - A non-number in an `InitialSplit` or `ConditionDistribution` list is
   rejected against its deck line, naming the kind that was written, as
   `only allows assignment of plain numbers, but got Curve("c")`. The
