@@ -13,9 +13,11 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ### Added
 - An attribute-suite check that every registered DSL attribute and command has a
-  heading on its node's reference-manual page, and that every heading there names
-  a registered one. The manual is hand-written with no autodoc, so its drift from
-  the parser tables was previously found by readers rather than by CI.
+  heading on its node's reference-manual page, that every heading there names a
+  registered one, and that the report-property appendix and the profile getters
+  cover each other in both directions. The manual is hand-written with no
+  autodoc, so its drift from the parser tables and from what a report can
+  actually extract was previously found by readers rather than by CI.
 - A golden-baseline regression suite (`tests/regression`, `make
   test-regression`, run in CI): small pinned-constant decks whose report CSV
   output is compared against committed baselines within a documented
