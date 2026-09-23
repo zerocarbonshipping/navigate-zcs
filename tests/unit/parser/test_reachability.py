@@ -362,23 +362,20 @@ End
 """
 
 
-def _write_deck(tmp_path, define_extra="", events_content=EVENTS_BASE):
-    (tmp_path / "define.inc").write_text(DEFINE_BASE + define_extra)
-    (tmp_path / "events.inc").write_text(events_content)
+@pytest.fixture
+def read_fleet_deck(read_deck):
+    """Read a fleet deck against the shipped assumptions library."""
 
-    deck = tmp_path / "deck.nav"
-    deck.write_text(
-        'DEFINE { Include "./define.inc" }\nEVENTS { Include "./events.inc" }\n'
-    )
-    return deck
+    def read(define_extra="", events_content=EVENTS_BASE, parser=None):
+        return read_deck(
+            define_extra,
+            define_base=DEFINE_BASE,
+            events=events_content,
+            data_dir=default_assumptions_dir(),
+            parser=parser,
+        )
 
-
-def _read_deck(tmp_path, define_extra="", events_content=EVENTS_BASE, parser=None):
-    deck = _write_deck(tmp_path, define_extra, events_content)
-
-    parser = parser or Parser()
-    parser.read_deck(deck, data_dir=default_assumptions_dir())
-    return parser
+    return read
 
 
 GHOST_VESSEL = """
@@ -430,11 +427,11 @@ Port "ghost_port" {
 
 
 class TestPruneUnreachableNodes:
-    def test_ghost_pruned_in_place_with_single_warning(self, tmp_path, caplog):
+    def test_ghost_pruned_in_place_with_single_warning(self, read_fleet_deck, caplog):
         # the ghost has no Route, so its initialize() would raise if it ran;
         # a successful read_deck pins that pruned nodes are never initialized
         with caplog.at_level(logging.WARNING):
-            parser = _read_deck(tmp_path, define_extra=GHOST_VESSEL)
+            parser = read_fleet_deck(define_extra=GHOST_VESSEL)
 
         warnings = [record for record in caplog.records if "Removed" in record.message]
 
@@ -442,10 +439,12 @@ class TestPruneUnreachableNodes:
         assert 'Vessel("ghost")' in warnings[0].message
         assert set(parser.nodes.vessels) == {"vessel"}
 
-    def test_ghost_chain_pruned_and_dicts_seeded_without_ghosts(self, tmp_path, caplog):
+    def test_ghost_chain_pruned_and_dicts_seeded_without_ghosts(
+        self, read_fleet_deck, caplog
+    ):
         define_extra = GHOST_VESSEL + LEVY_STAR + GHOST_ROUTE
         with caplog.at_level(logging.WARNING):
-            parser = _read_deck(tmp_path, define_extra=define_extra)
+            parser = read_fleet_deck(define_extra=define_extra)
 
         assert set(parser.nodes.routes) == {"route"}
         assert set(parser.nodes.ports) == {"port"}
@@ -454,7 +453,7 @@ class TestPruneUnreachableNodes:
         levy = parser.nodes.levies["levy"]
         assert set(levy.include_vessel) == {"vessel"}
 
-    def test_events_statement_targeting_ghost_dropped(self, tmp_path, caplog):
+    def test_events_statement_targeting_ghost_dropped(self, read_fleet_deck, caplog):
         events_content = """
 Start
 Date "01-01-2026"
@@ -467,8 +466,8 @@ Vessel "*" {
 End
 """
         with caplog.at_level(logging.WARNING):
-            parser = _read_deck(
-                tmp_path, define_extra=GHOST_VESSEL, events_content=events_content
+            parser = read_fleet_deck(
+                define_extra=GHOST_VESSEL, events_content=events_content
             )
 
         statements = [
@@ -487,7 +486,7 @@ End
         assert "*" in targets
         assert "dropped 1 queued EVENTS statement(s)" in caplog.text
 
-    def test_copy_source_pruned_silently(self, tmp_path, caplog):
+    def test_copy_source_pruned_silently(self, read_fleet_deck, caplog):
         define_extra = """
 Tank "tank_template" {
     FuelTypes = OIL
@@ -497,7 +496,7 @@ Tank "tank_template" {
 Copy Tank "tank_template" "tank_copy"
 """
         with caplog.at_level(logging.WARNING):
-            parser = _read_deck(tmp_path, define_extra=define_extra)
+            parser = read_fleet_deck(define_extra=define_extra)
 
         assert "tank_template" not in parser.nodes.tanks
         assert "tank_copy" not in parser.nodes.tanks
@@ -505,7 +504,7 @@ Copy Tank "tank_template" "tank_copy"
         assert "tank_template" not in caplog.text
 
     def test_events_statement_on_copy_source_dropped_with_notice(
-        self, tmp_path, caplog
+        self, read_fleet_deck, caplog
     ):
         define_extra = """
 Tank "tank_template" {
@@ -539,14 +538,12 @@ Tank "tank_template" {
 End
 """
         with caplog.at_level(logging.WARNING):
-            _read_deck(
-                tmp_path, define_extra=define_extra, events_content=events_content
-            )
+            read_fleet_deck(define_extra=define_extra, events_content=events_content)
 
         assert "Removed" not in caplog.text
         assert "Dropped 1 queued EVENTS statement(s)" in caplog.text
 
-    def test_prune_runs_exactly_once(self, tmp_path, monkeypatch):
+    def test_prune_runs_exactly_once(self, read_fleet_deck, monkeypatch):
         calls = []
         original = Parser._prune_unreachable_nodes
 
@@ -556,30 +553,30 @@ End
 
         monkeypatch.setattr(Parser, "_prune_unreachable_nodes", counted)
 
-        parser = _read_deck(tmp_path)
+        parser = read_fleet_deck()
         parser.progress_timeline()
         parser.progress_timeline()
 
         assert len(calls) == 1
 
-    def test_registry_dicts_pruned_in_place(self, tmp_path):
+    def test_registry_dicts_pruned_in_place(self, read_fleet_deck):
         # SimulationManager aliases parser.nodes before read_deck runs, so
         # the prune must keep the dataclass and its dicts identical objects
         parser = Parser()
         vessels_group = parser.nodes.vessels
 
-        _read_deck(tmp_path, define_extra=GHOST_VESSEL, parser=parser)
+        read_fleet_deck(define_extra=GHOST_VESSEL, parser=parser)
 
         assert parser.nodes.vessels is vessels_group
         assert "ghost" not in vessels_group
         assert "vessel" in vessels_group
 
-    def test_command_naming_pruned_node_errors_with_hint(self, tmp_path):
+    def test_command_naming_pruned_node_errors_with_hint(self, read_fleet_deck):
         define_extra = GHOST_VESSEL + LEVY_GHOST
         with pytest.raises(CommandError, match="unreachable from any top-level node"):
-            _read_deck(tmp_path, define_extra=define_extra)
+            read_fleet_deck(define_extra=define_extra)
 
-    def test_jurisdiction_only_port_pruned_and_scrubbed(self, tmp_path, caplog):
+    def test_jurisdiction_only_port_pruned_and_scrubbed(self, read_fleet_deck, caplog):
         define_extra = (
             LEVY_DECK.format(
                 name="levy", jurisdiction='[Port("port"), Port("jur_port")]', extra=""
@@ -588,7 +585,7 @@ End
         )
 
         with caplog.at_level(logging.WARNING):
-            parser = _read_deck(tmp_path, define_extra=define_extra)
+            parser = read_fleet_deck(define_extra=define_extra)
 
         assert set(parser.nodes.ports) == {"port"}
         assert [port.name for port in parser.nodes.levies["levy"].jurisdiction] == [
@@ -597,7 +594,7 @@ End
         assert 'Levy("levy") Jurisdiction: Port("jur_port")' in caplog.text
 
     def test_empty_jurisdiction_after_scrub_errors_at_initialize(
-        self, tmp_path, caplog
+        self, read_fleet_deck, caplog
     ):
         define_extra = (
             LEVY_DECK.format(name="levy", jurisdiction='[Port("jur_port")]', extra="")
@@ -608,11 +605,13 @@ End
             caplog.at_level(logging.WARNING),
             pytest.raises(ValueError, match="Attribute 'Jurisdiction' is unassigned"),
         ):
-            _read_deck(tmp_path, define_extra=define_extra)
+            read_fleet_deck(define_extra=define_extra)
 
         assert 'Levy("levy") Jurisdiction: Port("jur_port")' in caplog.text
 
-    def test_wildcard_jurisdiction_scrubbed_to_surviving_ports(self, tmp_path, caplog):
+    def test_wildcard_jurisdiction_scrubbed_to_surviving_ports(
+        self, read_fleet_deck, caplog
+    ):
         # the wildcard expands before the prune, so the pruned ghost port
         # lands in the jurisdiction list and must be scrubbed back out
         define_extra = (
@@ -621,14 +620,14 @@ End
         )
 
         with caplog.at_level(logging.WARNING):
-            parser = _read_deck(tmp_path, define_extra=define_extra)
+            parser = read_fleet_deck(define_extra=define_extra)
 
         assert set(parser.nodes.ports) == {"port"}
         assert [port.name for port in parser.nodes.levies["levy"].jurisdiction] == [
             "port"
         ]
 
-    def test_copy_source_port_scrub_still_warned(self, tmp_path, caplog):
+    def test_copy_source_port_scrub_still_warned(self, read_fleet_deck, caplog):
         define_extra = (
             LEVY_DECK.format(
                 name="levy",
@@ -666,14 +665,16 @@ Fleet "fleet_copy" {
 """
         )
         with caplog.at_level(logging.WARNING):
-            parser = _read_deck(tmp_path, define_extra=define_extra)
+            parser = read_fleet_deck(define_extra=define_extra)
 
         assert "port_template" not in parser.nodes.ports
         assert "port_copy" in parser.nodes.ports
         assert "not reachable" not in caplog.text
         assert 'Levy("levy") Jurisdiction: Port("port_template")' in caplog.text
 
-    def test_shared_pruned_port_scrubbed_from_all_policies(self, tmp_path, caplog):
+    def test_shared_pruned_port_scrubbed_from_all_policies(
+        self, read_fleet_deck, caplog
+    ):
         jurisdiction = '[Port("port"), Port("jur_port")]'
         define_extra = (
             LEVY_DECK.format(name="levy", jurisdiction=jurisdiction, extra="")
@@ -682,7 +683,7 @@ Fleet "fleet_copy" {
         )
 
         with caplog.at_level(logging.WARNING):
-            parser = _read_deck(tmp_path, define_extra=define_extra)
+            parser = read_fleet_deck(define_extra=define_extra)
 
         for name in ("levy", "levy_two"):
             assert [port.name for port in parser.nodes.levies[name].jurisdiction] == [
