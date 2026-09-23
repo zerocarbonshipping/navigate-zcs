@@ -149,6 +149,12 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   log, so a run whose results they affect could look clean on the console.
 
 ### Fixed
+- A non-number in an `InitialSplit` or `ConditionDistribution` list is
+  rejected against its deck line, naming the kind that was written, as
+  `only allows assignment of plain numbers, but got Curve("c")`. The
+  entries were checked for a negative sign before their kind, so
+  anything that does not compare against a number escaped as an
+  unlocated `TypeError`.
 - A boolean or an ID attribute reports whatever kind of value a deck wrote
   against its own line: `Active = [1.0]` reads as `only allows assignment of
   TRUE or FALSE, but got list`, `FuelType = [1.0]` as `only allows assignment
