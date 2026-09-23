@@ -37,9 +37,6 @@ class PortExpectation(_Expectation):
         ] = {}  # expected future bunker WTT, ton/ton
 
         # bunkering used for inertia
-        self._bunker_mass_expected: dict[
-            str, float
-        ] = {}  # bunkered in previous nested time-step, tons
         self._bunker_mass_existing: dict[
             str, float
         ] = {}  # dict[fuel_name: float], bunkered in previous time-step, tons
@@ -70,7 +67,6 @@ class PortExpectation(_Expectation):
         self._bunker_price = self._default_dict_array(fuels)
         self._bunker_wtt = self._default_tuple_dict_array(fuels, emissions)
 
-        self._bunker_mass_expected = self._default_dict_float(fuels)
         self._bunker_mass_existing = self._default_dict_float(fuels)
 
         # shore power
@@ -83,9 +79,6 @@ class PortExpectation(_Expectation):
                 self._bunker_supply[fuel_name] = self._default_array(default=np.inf)
             else:
                 self._bunker_supply[fuel_name] = self._default_array()
-
-    def reset_bunker_mass_expected(self) -> None:
-        self._reset_dict_float(self._bunker_mass_expected)
 
     def reset_bunker_mass_existing(self) -> None:
         self._reset_dict_float(self._bunker_mass_existing)
@@ -130,9 +123,6 @@ class PortExpectation(_Expectation):
         self, idx: int, fuel_name: str, emission_name: str, bunker_wtt: np.ndarray
     ) -> None:
         self._bunker_wtt[(fuel_name, emission_name)][idx:] = bunker_wtt
-
-    def add_bunker_mass_expected(self, fuel_name: str, fuel_mass: float) -> None:
-        self._bunker_mass_expected[fuel_name] += fuel_mass
 
     def add_bunker_mass_existing(self, fuel_name: str, fuel_mass: float) -> None:
         self._bunker_mass_existing[fuel_name] += fuel_mass

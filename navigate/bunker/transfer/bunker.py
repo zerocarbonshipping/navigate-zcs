@@ -54,7 +54,6 @@ def transfer_bunker(alg: BunkerAlgorithm) -> None:
         # transfer bunkered values for
         # future inertia calculations
         vessel.expectation.add_bunker_mass_expected(port_name, f, bunker.X)
-        port.expectation.add_bunker_mass_expected(f, bunker.X)
 
         if alg.scope == BunkerScopeID.EXISTING:
             # calculate fuel expenses
