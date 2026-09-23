@@ -149,6 +149,14 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   log, so a run whose results they affect could look clean on the console.
 
 ### Fixed
+- A boolean or an ID attribute reports whatever kind of value a deck wrote
+  against its own line: `Active = [1.0]` reads as `only allows assignment of
+  TRUE or FALSE, but got list`, `FuelType = [1.0]` as `only allows assignment
+  of IDs, but got list`, and `FuelTypes = [1.0]` — a list-valued ID attribute
+  such as a `Tank`'s or a `Converter`'s — as the same sentence for the element
+  at fault. Each of the three died as a `TypeError` that no deck line could be
+  attached to. The `does not accept ID 'X'` message an unknown token produces
+  is unchanged.
 - `set_operational_saving_port(*, 0.1)` sets the energy demands a vessel has
   in port, `ELECTRICAL` and `HEAT`. The wildcard previously expanded over
   every `EnergyDemandTypeID` member and so also reached `PROPULSION`, which
