@@ -76,7 +76,9 @@ def section_headings(node_type: str, section: str) -> set[str]:
     Collect the DSL names a node page documents under one of its sections.
 
     A page that carries no such section contributes nothing, which is how the
-    manual spells a node type whose registry is empty.
+    manual spells a node type whose registry is empty. Fenced code blocks are
+    skipped: the manual's examples are DSL snippets, where a line may open with
+    the comment character.
 
     Parameters
     ----------
@@ -89,18 +91,50 @@ def section_headings(node_type: str, section: str) -> set[str]:
     -------
     set[str] :
         The normalised level-three headings inside that section.
-    """
-    headings = set()
-    current_section = None
 
-    for line in page_for(node_type).read_text().splitlines():
+    Raises
+    ------
+    ValueError
+        If the page opens the section more than once, or documents one name
+        twice inside it. Either would otherwise vanish into the set.
+    """
+    page = page_for(node_type)
+    headings: set[str] = set()
+    current_section = None
+    section_seen = False
+    in_fence = False
+
+    for line in page.read_text().splitlines():
+        if line.lstrip().startswith("```"):
+            in_fence = not in_fence
+            continue
+
+        if in_fence:
+            continue
+
         if line.startswith("## "):
             current_section = line[3:].strip()
+
+            if current_section == section:
+                if section_seen:
+                    raise ValueError(
+                        f"{page.name} opens '## {section}' more than once, so its"
+                        " headings read as one section"
+                    )
+
+                section_seen = True
 
         elif line.startswith("### ") and current_section == section:
             name = normalise_heading(line[4:])
 
-            if name is not None:
-                headings.add(name)
+            if name is None:
+                continue
+
+            if name in headings:
+                raise ValueError(
+                    f"{page.name} documents '{name}' twice under '## {section}'"
+                )
+
+            headings.add(name)
 
     return headings

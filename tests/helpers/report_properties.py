@@ -47,7 +47,11 @@ assert set(PROFILE_CLASSES) == set(_REPORT_COMMANDS)
 # is sized to rather than a result, so no report property names them
 PLUMBING_GETTERS = {name for name in vars(_BaseProfile) if name.startswith("get_")}
 
-assert sorted(PLUMBING_GETTERS) == ["get_length", "get_shape"]
+assert sorted(PLUMBING_GETTERS) == ["get_length", "get_shape"], (
+    "_BaseProfile's public getters changed: add the new one here only if it describes"
+    " the timeline a profile is sized to, and otherwise expect a report property to"
+    " name it"
+)
 
 
 def is_argument_free(function: Callable[..., object]) -> bool:
