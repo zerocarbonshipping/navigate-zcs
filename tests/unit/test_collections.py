@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Unit tests for navigate.util.collections — dict arithmetic, extraction, summation."""
+"""Unit tests for navigate.util.collections — dict arithmetic, summation, slicing."""
 
 from __future__ import annotations
 
@@ -11,9 +11,10 @@ import pytest
 from navigate.util import (
     add_dicts,
     collapse_tuple_dict,
-    extract_from_dict,
     multiply_dicts,
+    slice_dict,
     slice_dict_list,
+    slice_list,
     sum_dict_results,
 )
 
@@ -121,34 +122,59 @@ class TestCollapseTupleDict:
         np.testing.assert_array_equal(collapsed, [111.0, 222.0])
 
 
-class TestExtractFromDict:
-    def test_key_and_index(self):
-        assert extract_from_dict({"a": np.array([1.0, 2.0])}, "a", 1) == 2.0
+class TestSliceList:
+    @pytest.fixture
+    def result(self):
+        return [np.array([1.0, 2.0, 3.0]), np.array([4.0, 5.0, 6.0])]
 
-    def test_scalar_value_passes_through_the_index(self):
-        assert extract_from_dict({"a": 2.0}, "a", 0) == 2.0
+    def test_scalar_index_gives_a_list_of_floats(self, result):
+        assert slice_list(result, 0) == [1.0, 4.0]
 
-    def test_whole_dict_sliced(self):
-        result = extract_from_dict({"a": np.array([1.0, 2.0])}, idx=0)
-        assert result == {"a": 1.0}
+    @pytest.mark.parametrize(
+        ("args", "expected"),
+        [
+            ((np.s_[1:],), [[2.0, 3.0], [5.0, 6.0]]),
+            ((np.array([2, 0]),), [[3.0, 1.0], [6.0, 4.0]]),
+            ((), [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]),
+        ],
+        ids=["slice", "fancy_index", "no_index_slices_the_whole_timeline"],
+    )
+    def test_index_kinds(self, result, args, expected):
+        np.testing.assert_array_equal(slice_list(result, *args), expected)
 
-    def test_whole_dict_fancy_index(self):
-        source = {"a": np.array([1.0, 2.0, 3.0])}
-        result = extract_from_dict(source, idx=np.array([2, 0]))
-        np.testing.assert_array_equal(result["a"], [3.0, 1.0])
 
-    def test_whole_dict_does_not_alias_the_input(self):
-        source = {"a": np.array([1.0, 2.0])}
-        assert extract_from_dict(source) is not source
+class TestSliceDict:
+    @pytest.fixture
+    def result(self):
+        return {"a": np.array([1.0, 2.0, 3.0])}
 
-    def test_numpy_scalar_index(self):
-        assert extract_from_dict({"a": np.array([1.0, 2.0])}, "a", np.int64(1)) == 2.0
+    def test_scalar_index_gives_a_dict_of_floats(self, result):
+        assert slice_dict(result, 0) == {"a": 1.0}
 
-    def test_fancy_index_returns_a_copy(self):
-        value = np.array([1.0, 2.0, 3.0])
-        result = extract_from_dict({"a": value}, "a", np.array([2, 0]))
-        np.testing.assert_array_equal(result, [3.0, 1.0])
-        assert not np.shares_memory(result, value)
+    @pytest.mark.parametrize(
+        ("args", "expected"),
+        [
+            ((np.s_[1:],), [2.0, 3.0]),
+            ((np.array([2, 0]),), [3.0, 1.0]),
+            ((np.int64(1),), 2.0),
+            ((), [1.0, 2.0, 3.0]),
+        ],
+        ids=[
+            "slice",
+            "fancy_index",
+            "numpy_scalar_index",
+            "no_index_slices_the_whole_timeline",
+        ],
+    )
+    def test_index_kinds(self, result, args, expected):
+        np.testing.assert_array_equal(slice_dict(result, *args)["a"], expected)
+
+    def test_fancy_index_returns_a_copy(self, result):
+        sliced = slice_dict(result, np.array([2, 0]))
+        assert not np.shares_memory(sliced["a"], result["a"])
+
+    def test_whole_dict_is_not_the_input_object(self, result):
+        assert slice_dict(result) is not result
 
 
 class TestSliceDictList:

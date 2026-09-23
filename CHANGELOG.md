@@ -752,6 +752,12 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   needs with a comprehension; the both-keys arm, the whole-dict arm, the
   `idx` parameter and the never-passed `transform` parameter had no caller.
   The `transform` parameter of the internal `_resolve_dict` goes with it.
+- **Breaking** for code importing navigate as a library: `extract_from_dict`
+  (`navigate/util/collections.py`, re-exported from `navigate.util`), which
+  had no call site left in the package. Library callers that sliced a whole
+  dict should reach for `slice_dict`, which differs only in indexing every
+  value rather than passing a non-array through untouched. The internal
+  `_resolve_dict` and `_slice_value`, reachable from nowhere else, go with it.
 
 ### Fixed
 - The error for a node found in neither the deck nor the default library
