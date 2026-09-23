@@ -71,7 +71,6 @@ class VesselExpectation(_Expectation):
         self._energy_sea: dict[EnergyDemandTypeID, list[np.ndarray]] = {}
         self._energy_port: dict[EnergyDemandTypeID, list[np.ndarray]] = {}
 
-        self._regional_raw_energy_sea: dict[EnergyDemandTypeID, list[np.ndarray]] = {}
         self._regional_operational_energy_sea: dict[
             EnergyDemandTypeID, list[np.ndarray]
         ] = {}
@@ -202,9 +201,6 @@ class VesselExpectation(_Expectation):
         self._energy_sea = self._default_dict_list_array(EnergyDemandTypeID, n_leg)
         self._energy_port = self._default_dict_list_array(
             EnergyDemandTypePortID, n_port
-        )
-        self._regional_raw_energy_sea = self._default_dict_list_array(
-            EnergyDemandTypeID, n_leg_regional
         )
         self._regional_operational_energy_sea = self._default_dict_list_array(
             EnergyDemandTypeID, n_leg_regional
@@ -398,13 +394,6 @@ class VesselExpectation(_Expectation):
         for key, values in energy_port.items():
             for leg, value in enumerate(values):
                 self._energy_port[key][leg][idx:] = value
-
-    def set_regional_raw_energy_sea(
-        self, idx: int, regional_energy_port: dict[EnergyDemandTypeID, list]
-    ) -> None:
-        for key, values in regional_energy_port.items():
-            for leg, value in enumerate(values):
-                self._regional_raw_energy_sea[key][leg][idx:] = value
 
     def set_regional_operational_energy_sea(
         self, idx: int, regional_operational_energy_sea: dict[EnergyDemandTypeID, list]
