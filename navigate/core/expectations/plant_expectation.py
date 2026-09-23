@@ -33,7 +33,6 @@ class PlantExpectation(_Expectation):
 
         # production
         self._size: np.ndarray = EMPTY_FLOAT  # tons/day (for CAPEX/OPEX scaling)
-        self._capacity: np.ndarray = EMPTY_FLOAT  # tons/year
         self._production: np.ndarray = EMPTY_FLOAT  # tons/year (incl. uptime)
 
         # feed
@@ -83,7 +82,6 @@ class PlantExpectation(_Expectation):
         self._lead_time = self._default_array()
 
         self._size = self._default_array()
-        self._capacity = self._default_array()
         self._production = self._default_array()
 
         self._feed_mass = self._default_dict_array({**feedstocks, **processes})
@@ -118,9 +116,6 @@ class PlantExpectation(_Expectation):
 
     def set_size(self, idx: int, size: np.ndarray) -> None:
         self._size[idx:] = size
-
-    def set_capacity(self, idx: int, capacity: np.ndarray) -> None:
-        self._capacity[idx:] = capacity
 
     def set_production(self, idx: int, production: np.ndarray) -> None:
         self._production[idx:] = production
