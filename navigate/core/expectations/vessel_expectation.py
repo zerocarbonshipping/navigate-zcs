@@ -49,9 +49,6 @@ class VesselExpectation(_Expectation):
         self._speeds: list[
             np.ndarray
         ] = []  # list[leg_idx: float], expected speed per leg, knots
-        self._distances: list[
-            np.ndarray
-        ] = []  # list[leg_idx: float] expected distances per leg, nautical miles
 
         # durations
         self._time_sea: list[
@@ -74,7 +71,6 @@ class VesselExpectation(_Expectation):
         self._energy_sea: dict[EnergyDemandTypeID, list[np.ndarray]] = {}
         self._energy_port: dict[EnergyDemandTypeID, list[np.ndarray]] = {}
 
-        self._regional_raw_energy_sea: dict[EnergyDemandTypeID, list[np.ndarray]] = {}
         self._regional_operational_energy_sea: dict[
             EnergyDemandTypeID, list[np.ndarray]
         ] = {}
@@ -157,9 +153,7 @@ class VesselExpectation(_Expectation):
         self._technology_charter_rate: np.ndarray = (
             EMPTY_FLOAT  # fleet-average technology charge, USD/year
         )
-        self._tied_capital: list[
-            np.ndarray | None
-        ] = []  # list[time_step: np.ndarray], USD
+        self._tied_capital: list[np.ndarray] = []  # yearly flow from commencement, USD
 
     def initialize(self, length: int, route: Route, fuels: dict[str, Fuel]) -> None:
         self._initialize_expectation(length)
@@ -182,7 +176,6 @@ class VesselExpectation(_Expectation):
         self._speed_anchor_reference = self._default_float(default=np.nan)
         self._speed_anchor_optimal = self._default_float(default=np.nan)
         self._speeds = self._default_list_array(n_leg)
-        self._distances = self._default_list_array(n_leg)
 
         # durations
         self._time_sea = self._default_list_array(n_leg)
@@ -208,9 +201,6 @@ class VesselExpectation(_Expectation):
         self._energy_sea = self._default_dict_list_array(EnergyDemandTypeID, n_leg)
         self._energy_port = self._default_dict_list_array(
             EnergyDemandTypePortID, n_port
-        )
-        self._regional_raw_energy_sea = self._default_dict_list_array(
-            EnergyDemandTypeID, n_leg_regional
         )
         self._regional_operational_energy_sea = self._default_dict_list_array(
             EnergyDemandTypeID, n_leg_regional
@@ -288,7 +278,7 @@ class VesselExpectation(_Expectation):
         self._asset_charter_rate = self._default_array()
         self._freight_rate = self._default_array()
         self._technology_charter_rate = self._default_array()
-        self._tied_capital = self._allocate_list()
+        self._tied_capital = self._default_list_array(self._length)
 
     def reset_expected_bunkering(self) -> None:
         self._total_energy = self._default_array()
@@ -338,10 +328,6 @@ class VesselExpectation(_Expectation):
     def set_speeds(self, idx: int, speeds: list) -> None:
         for i, speed in enumerate(speeds):
             self._speeds[i][idx] = speed
-
-    def set_distances(self, idx: int, distances: list) -> None:
-        for i, distance in enumerate(distances):
-            self._distances[i][idx:] = distance
 
     def set_time_sea(self, idx: int, time_sea: list) -> None:
         for i, time in enumerate(time_sea):
@@ -408,13 +394,6 @@ class VesselExpectation(_Expectation):
         for key, values in energy_port.items():
             for leg, value in enumerate(values):
                 self._energy_port[key][leg][idx:] = value
-
-    def set_regional_raw_energy_sea(
-        self, idx: int, regional_energy_port: dict[EnergyDemandTypeID, list]
-    ) -> None:
-        for key, values in regional_energy_port.items():
-            for leg, value in enumerate(values):
-                self._regional_raw_energy_sea[key][leg][idx:] = value
 
     def set_regional_operational_energy_sea(
         self, idx: int, regional_operational_energy_sea: dict[EnergyDemandTypeID, list]
@@ -744,5 +723,5 @@ class VesselExpectation(_Expectation):
     def get_technology_charter_rate(self, idx: int) -> float:
         return self._technology_charter_rate[idx]
 
-    def get_tied_capital(self, idx: int) -> np.ndarray | None:
+    def get_tied_capital(self, idx: int) -> np.ndarray:
         return self._tied_capital[idx]

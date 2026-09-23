@@ -33,7 +33,6 @@ class PlantExpectation(_Expectation):
 
         # production
         self._size: np.ndarray = EMPTY_FLOAT  # tons/day (for CAPEX/OPEX scaling)
-        self._capacity: np.ndarray = EMPTY_FLOAT  # tons/year
         self._production: np.ndarray = EMPTY_FLOAT  # tons/year (incl. uptime)
 
         # feed
@@ -48,9 +47,7 @@ class PlantExpectation(_Expectation):
         ] = {}  # levelized cost of delivery, USD/ton
 
         # capital
-        self._tied_capital: list[
-            np.ndarray | None
-        ] = []  # list[time_step: np.ndarray], USD
+        self._tied_capital: list[np.ndarray] = []  # yearly flow from commencement, USD
 
         # emissions
         self._production_wtt: dict[
@@ -85,7 +82,6 @@ class PlantExpectation(_Expectation):
         self._lead_time = self._default_array()
 
         self._size = self._default_array()
-        self._capacity = self._default_array()
         self._production = self._default_array()
 
         self._feed_mass = self._default_dict_array({**feedstocks, **processes})
@@ -93,7 +89,7 @@ class PlantExpectation(_Expectation):
         self._levelized_production_cost = self._default_array()
         self._levelized_delivery_cost = self._default_dict_array(ports)
 
-        self._tied_capital = self._allocate_list()
+        self._tied_capital = self._default_list_array(self._length)
 
         self._production_wtt = self._default_dict_array(emissions)
         self._delivery_wtt = self._default_tuple_dict_array(ports, emissions)
@@ -120,9 +116,6 @@ class PlantExpectation(_Expectation):
 
     def set_size(self, idx: int, size: np.ndarray) -> None:
         self._size[idx:] = size
-
-    def set_capacity(self, idx: int, capacity: np.ndarray) -> None:
-        self._capacity[idx:] = capacity
 
     def set_production(self, idx: int, production: np.ndarray) -> None:
         self._production[idx:] = production

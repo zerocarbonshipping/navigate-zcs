@@ -191,7 +191,7 @@ def _calculate_unit_properties(component: Component, plant: Plant, idx: int) -> 
 
 def _calculate_plant_production(plant: Plant, timeline: np.ndarray, idx: int) -> None:
     """
-    Compute future production primitives (lifetime, lead time, capacity, production).
+    Compute future production primitives (lifetime, lead time, size, production).
 
     Capacity is derived from nameplate size (tons/day) and scaled to tons/year. Actual
     production accounts for uptime.
@@ -224,7 +224,6 @@ def _calculate_plant_production(plant: Plant, timeline: np.ndarray, idx: int) ->
     plant.expectation.set_lifetime(idx, lifetime)
     plant.expectation.set_lead_time(idx, lead_time)
     plant.expectation.set_size(idx, size)
-    plant.expectation.set_capacity(idx, capacity)
     plant.expectation.set_production(idx, production)
 
 

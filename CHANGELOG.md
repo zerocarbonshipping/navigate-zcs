@@ -758,6 +758,20 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   dict should reach for `slice_dict`, which differs only in indexing every
   value rather than passing a non-array through untouched. The internal
   `_resolve_dict` and `_slice_value`, reachable from nowhere else, go with it.
+- **Breaking** for code importing navigate as a library: the five expectation
+  storages left write-only when their unread getters were removed, along with
+  the setters and adders that fed them — `PlantExpectation.set_capacity`,
+  `VesselExpectation.set_distances`/`set_regional_raw_energy_sea`, and
+  `PortExpectation.reset_bunker_mass_expected`/`add_bunker_mass_expected`/
+  `reset_bunker_mass_existing`/`add_bunker_mass_existing`. Their call sites go
+  with them: the annual plant capacity stays the local that production is
+  computed from, the per-leg distances stay on the operations record the
+  cargo-mile calculation reads, and the regional raw sea energy loses its
+  `convert_to_regional_steps` conversion (the function itself is shared and
+  stays). The same-named `VesselExpectation` bunker-mass members,
+  keyed by port and fuel and read by the fuel-inertia constraint, are
+  untouched, as are `Plant.set_capacity` and `Route.set_distances` on the DSL
+  nodes. No deck result moves.
 
 ### Fixed
 - The error for a node found in neither the deck nor the default library
@@ -887,6 +901,14 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   1 exactly; both it and `InitialSplit`'s entry name the 1% deviation above
   which the rescale is logged, and that a list summing to 0 is accepted
   unchanged.
+- The tied-capital expectation store of plants and vessels is zero-initialized
+  like its sibling list storages, and both `get_tied_capital` getters declare
+  the `np.ndarray` they now always return. An unwritten slot previously held
+  `None`, reachable through an `InitialAgeDistribution` whose curve starts at a
+  negative age: that read one index past the current time step, where the plant
+  store already returned a real array and the charter rate zero, while the
+  vessel store raised an `AttributeError`. Such an increment now contributes
+  zero tied capital. No committed deck is affected.
 
 ## [1.0.0] - 2026-07-16
 

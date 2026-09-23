@@ -23,9 +23,6 @@ class _Expectation:
     def get_shape(self, start: int = 0) -> tuple[int]:
         return (self._length - start,)
 
-    def _allocate_list(self) -> list[None]:
-        return [None for _ in range(self._length)]
-
     def _default_float(self, default: float | None = None) -> float:
 
         if default is None:

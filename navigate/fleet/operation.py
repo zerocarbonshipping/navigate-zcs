@@ -148,12 +148,8 @@ def transfer_operational_profile(
     idx
         Simulation index at which the results are stored.
     """
-    # convert leg-based energy to regional-energy at sea
-    regional_energy_sea = convert_to_regional_steps(vessel, operations.energy_sea)
-
     # transfer expectations
     vessel.expectation.set_voyages(idx, operations.voyages)
-    vessel.expectation.set_distances(idx, operations.distances)
     vessel.expectation.set_speeds(idx, operations.speeds)
     vessel.expectation.set_time_sea(idx, operations.times_sea)
     vessel.expectation.set_time_port(idx, operations.times_port)
@@ -164,7 +160,6 @@ def transfer_operational_profile(
     )
     vessel.expectation.set_raw_energy_sea(idx, operations.energy_sea)
     vessel.expectation.set_raw_energy_port(idx, operations.energy_port)
-    vessel.expectation.set_regional_raw_energy_sea(idx, regional_energy_sea)
 
     # calculate the total energy across legs for transfer to output
     total_energy_sea = {
