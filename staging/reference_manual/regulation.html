@@ -669,6 +669,31 @@ jurisdiction (inter) should be counted in the calculation.</p>
 <li><p><strong>Default</strong>: 0</p></li>
 </ul>
 </section>
+<section id="flexibilityhorizon">
+<h3>FlexibilityHorizon<a class="headerlink" href="#flexibilityhorizon" title="Link to this heading">#</a></h3>
+<p>This attribute sets the decision horizon, in years, used to smooth the belief of the flexibility cost that enters the expected policy expenses of the policed vessels.</p>
+<p>A longer horizon makes the belief respond more slowly to changes in the flexibility cost between outer time-steps, preventing small changes in future fuel availability from translating into expectations of large flexibility-cost differences.</p>
+<ul class="simple">
+<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
+<li><p><strong>Example values</strong>:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">3.0</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Forecast(&quot;name&quot;)</span></code></p></li>
+</ul>
+</li>
+<li><p><strong>Unit</strong>: Years</p></li>
+<li><p><strong>Minimum value</strong>: 0</p></li>
+<li><p><strong>Default</strong>: 3</p></li>
+</ul>
+</section>
+<section id="allowthresholdadjustment">
+<h3>AllowThresholdAdjustment<a class="headerlink" href="#allowthresholdadjustment" title="Link to this heading">#</a></h3>
+<p>This attribute sets whether the regulation threshold is automatically adjusted when the bunker algorithm detects non-compliance. If enabled, the bunker algorithm performs a multi-step solve where it first solves normally, then adjusts the threshold to match achievable compliance levels, and re-solves with the adjusted thresholds.</p>
+<ul class="simple">
+<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Boolean</span></code></p></li>
+<li><p><strong>Default</strong>: FALSE</p></li>
+</ul>
+</section>
 </section>
 <section id="commands">
 <h2>Commands<a class="headerlink" href="#commands" title="Link to this heading">#</a></h2>
@@ -836,6 +861,8 @@ jurisdiction (inter) should be counted in the calculation.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#interfraction">InterFraction</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#extrafraction">ExtraFraction</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#remedialcost">RemedialCost</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#flexibilityhorizon">FlexibilityHorizon</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#allowthresholdadjustment">AllowThresholdAdjustment</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#commands">Commands</a><ul class="pst-show_toc_level nav section-nav flex-column">

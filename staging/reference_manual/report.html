@@ -571,6 +571,16 @@ of results both on a node basis and on a global basis.</p>
 <li><p>Reduce: Reduction axis; see <a class="reference internal" href="appendix_ids.html#reportreduceid"><span class="std std-ref">ReportReduceID</span></a>. Default: None (no reduction).</p></li>
 </ul>
 </section>
+<section id="add-producer-property">
+<h3>add_producer_property<a class="headerlink" href="#add-producer-property" title="Link to this heading">#</a></h3>
+<p>This command adds a specified property of a producer to the report.</p>
+<p>The parameters are:</p>
+<ul class="simple">
+<li><p>Key: Producer name</p></li>
+<li><p>Attribute: All allowed attributes are listed in the <a class="reference internal" href="#appendix-report-node-properties">Report Properties</a> section.</p></li>
+<li><p>Reduce: Reduction axis; see <a class="reference internal" href="appendix_ids.html#reportreduceid"><span class="std std-ref">ReportReduceID</span></a>. Default: None (no reduction).</p></li>
+</ul>
+</section>
 </section>
 <section id="appendix-report-node-properties">
 <h2>Appendix - Report Node Properties<a class="headerlink" href="#appendix-report-node-properties" title="Link to this heading">#</a></h2>
@@ -588,275 +598,231 @@ of results both on a node basis and on a global basis.</p>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>RawPropulsionDemandSea</p></td>
+<tr class="row-even"><td><p>RawEnergySea</p></td>
 <td><p>GJ/year</p></td>
-<td><p>The energy demand for propulsion when at sea excluding technologies.</p></td>
+<td><p>The energy demand at sea before operational measures and technologies, one column per energy demand type.</p></td>
 </tr>
-<tr class="row-odd"><td><p>RawElectricalDemandSea</p></td>
+<tr class="row-odd"><td><p>RawEnergyPort</p></td>
 <td><p>GJ/year</p></td>
-<td><p>The energy demand for electricity when at sea excluding technologies.</p></td>
+<td><p>The energy demand in port before operational measures and technologies, one column per energy demand type in port (electrical and heat).</p></td>
 </tr>
-<tr class="row-even"><td><p>RawHeatDemandSea</p></td>
+<tr class="row-even"><td><p>RawEnergy</p></td>
 <td><p>GJ/year</p></td>
-<td><p>The energy demand for heat when at sea excluding technologies.</p></td>
+<td><p>The total energy demand at sea and in port before operational measures and technologies.</p></td>
 </tr>
-<tr class="row-odd"><td><p>RawElectricalDemandPort</p></td>
+<tr class="row-odd"><td><p>OperationalEnergySea</p></td>
 <td><p>GJ/year</p></td>
-<td><p>The energy demand for electricity when in port excluding technologies.</p></td>
+<td><p>The energy demand at sea after operational measures and before technologies, one column per energy demand type.</p></td>
 </tr>
-<tr class="row-even"><td><p>RawHeatDemandPort</p></td>
+<tr class="row-even"><td><p>OperationalEnergyPort</p></td>
 <td><p>GJ/year</p></td>
-<td><p>The energy demand for heat when in port excluding technologies.</p></td>
+<td><p>The energy demand in port after operational measures and before technologies, one column per energy demand type in port (electrical and heat).</p></td>
 </tr>
-<tr class="row-odd"><td><p>RawPropulsionDemand</p></td>
+<tr class="row-odd"><td><p>OperationalEnergy</p></td>
 <td><p>GJ/year</p></td>
-<td><p>The energy demand for propulsion excluding technologies.</p></td>
+<td><p>The total energy demand at sea and in port after operational measures and before technologies.</p></td>
 </tr>
-<tr class="row-even"><td><p>RawElectricalDemand</p></td>
+<tr class="row-even"><td><p>EnergySea</p></td>
 <td><p>GJ/year</p></td>
-<td><p>The energy demand for electricity excluding technologies.</p></td>
+<td><p>The energy demand at sea after operational measures and technologies, one column per energy demand type.</p></td>
 </tr>
-<tr class="row-odd"><td><p>RawHeatDemand</p></td>
+<tr class="row-odd"><td><p>EnergyPort</p></td>
 <td><p>GJ/year</p></td>
-<td><p>The energy demand for heat excluding technologies.</p></td>
+<td><p>The energy demand in port after operational measures and technologies, one column per energy demand type in port (electrical and heat).</p></td>
 </tr>
-<tr class="row-even"><td><p>RawDemandSea</p></td>
+<tr class="row-even"><td><p>Energy</p></td>
 <td><p>GJ/year</p></td>
-<td><p>The energy demand for everything at sea excluding technologies.</p></td>
+<td><p>The total energy demand at sea and in port after operational measures and technologies.</p></td>
 </tr>
-<tr class="row-odd"><td><p>RawDemandPort</p></td>
+<tr class="row-odd"><td><p>TotalEnergyPort</p></td>
 <td><p>GJ/year</p></td>
-<td><p>The energy demand for everything in port excluding technologies.</p></td>
+<td><p>The total energy demand in port across demand types.</p></td>
 </tr>
-<tr class="row-even"><td><p>RawDemand</p></td>
+<tr class="row-even"><td><p>BaselineEnergy</p></td>
 <td><p>GJ/year</p></td>
-<td><p>The total energy demand excluding technologies.</p></td>
+<td><p>The year-0 raw energy intensity applied to the transport work actually performed.</p></td>
 </tr>
-<tr class="row-odd"><td><p>PropulsionDemandSea</p></td>
-<td><p>GJ/year</p></td>
-<td><p>The energy demand for propulsion when at sea.</p></td>
-</tr>
-<tr class="row-even"><td><p>ElectricalDemandSea</p></td>
-<td><p>GJ/year</p></td>
-<td><p>The energy demand for electricity when at sea.</p></td>
-</tr>
-<tr class="row-odd"><td><p>HeatDemandSea</p></td>
-<td><p>GJ/year</p></td>
-<td><p>The energy demand for heat when at sea.</p></td>
-</tr>
-<tr class="row-even"><td><p>ElectricalDemandPort</p></td>
-<td><p>GJ/year</p></td>
-<td><p>The energy demand for electricity when in port.</p></td>
-</tr>
-<tr class="row-odd"><td><p>HeatDemandPort</p></td>
-<td><p>GJ/year</p></td>
-<td><p>The energy demand for heat when in port.</p></td>
-</tr>
-<tr class="row-even"><td><p>PropulsionDemand</p></td>
-<td><p>GJ/year</p></td>
-<td><p>The energy demand for propulsion.</p></td>
-</tr>
-<tr class="row-odd"><td><p>ElectricalDemand</p></td>
-<td><p>GJ/year</p></td>
-<td><p>The energy demand for electrical.</p></td>
-</tr>
-<tr class="row-even"><td><p>HeatDemand</p></td>
-<td><p>GJ/year</p></td>
-<td><p>The energy demand for heat.</p></td>
-</tr>
-<tr class="row-odd"><td><p>DemandSea</p></td>
-<td><p>GJ/year</p></td>
-<td><p>The energy demand at sea.</p></td>
-</tr>
-<tr class="row-even"><td><p>DemandPort</p></td>
-<td><p>GJ/year</p></td>
-<td><p>The energy demand in port.</p></td>
-</tr>
-<tr class="row-odd"><td><p>Demand</p></td>
-<td><p>GJ/year</p></td>
-<td><p>The energy demand.</p></td>
-</tr>
-<tr class="row-even"><td><p>ConsumedEnergy</p></td>
+<tr class="row-odd"><td><p>ConsumedEnergy</p></td>
 <td><p>GJ/year</p></td>
 <td><p>Fuel consumed in energy for all fuels.</p></td>
 </tr>
-<tr class="row-odd"><td><p>FuelTypeEnergy</p></td>
+<tr class="row-even"><td><p>FuelTypeEnergy</p></td>
 <td><p>GJ/year</p></td>
 <td><p>Fuel consumed in energy, aggregated by fuel type.</p></td>
 </tr>
-<tr class="row-even"><td><p>TotalConsumedEnergy</p></td>
+<tr class="row-odd"><td><p>TotalConsumedEnergy</p></td>
 <td><p>GJ/year</p></td>
 <td><p>Total consumed energy across all fuels plus shore power.</p></td>
 </tr>
-<tr class="row-odd"><td><p>ShorePowerEnergy</p></td>
+<tr class="row-even"><td><p>ShorePowerEnergy</p></td>
 <td><p>GJ/year</p></td>
 <td><p>Shore power energy supplied.</p></td>
 </tr>
-<tr class="row-even"><td><p>ConverterFuelEnergy</p></td>
+<tr class="row-odd"><td><p>ConverterEnergy</p></td>
 <td><p>GJ/year</p></td>
 <td><p>Fuel consumed in energy in vessels of a fuel type across fuels per fuel type.</p></td>
 </tr>
-<tr class="row-odd"><td><p>PilotFuelShare</p></td>
+<tr class="row-even"><td><p>PilotFuelShare</p></td>
 <td><p>Ton/ton</p></td>
 <td><p>The fraction of total fuel spent which is pilot fuel for each vessel fuel type.</p></td>
 </tr>
-<tr class="row-even"><td><p>EquivalentWtt</p></td>
+<tr class="row-odd"><td><p>EquivalentWtt</p></td>
 <td><p>Ton CO<sub>2</sub>-eq./year</p></td>
 <td><p>Emitted well-to-tank emissions per fuel and emission.</p></td>
 </tr>
-<tr class="row-odd"><td><p>TotalEquivalentWtt</p></td>
+<tr class="row-even"><td><p>TotalEquivalentWtt</p></td>
 <td><p>Ton CO<sub>2</sub>-eq./year</p></td>
 <td><p>Total emitted well-to-tank emissions.</p></td>
 </tr>
-<tr class="row-even"><td><p>EquivalentTtw</p></td>
+<tr class="row-odd"><td><p>EquivalentTtw</p></td>
 <td><p>Ton CO<sub>2</sub>-eq./year</p></td>
 <td><p>Emitted Tank-to-wake emissions per fuel and emission.</p></td>
 </tr>
-<tr class="row-odd"><td><p>TotalEquivalentTtw</p></td>
+<tr class="row-even"><td><p>TotalEquivalentTtw</p></td>
 <td><p>Ton CO<sub>2</sub>-eq./year</p></td>
 <td><p>Total emitted tank-to-wake emissions.</p></td>
 </tr>
-<tr class="row-even"><td><p>EquivalentWtw</p></td>
+<tr class="row-odd"><td><p>EquivalentWtw</p></td>
 <td><p>Ton CO<sub>2</sub>-eq./year</p></td>
 <td><p>Emitted well-to-wake emissions per fuel and emission.</p></td>
 </tr>
-<tr class="row-odd"><td><p>TotalEquivalentWtw</p></td>
+<tr class="row-even"><td><p>TotalEquivalentWtw</p></td>
 <td><p>Ton CO<sub>2</sub>-eq./year</p></td>
 <td><p>Total emitted well-to-wake emissions across all fuels plus shore power.</p></td>
 </tr>
-<tr class="row-even"><td><p>ShorePowerEmission</p></td>
+<tr class="row-odd"><td><p>ShorePowerEmission</p></td>
 <td><p>Ton/year</p></td>
 <td><p>Shore power emission per emission (well-to-wake lump, no WTT/TTW split).</p></td>
 </tr>
-<tr class="row-odd"><td><p>CumulativeEquivalentWtt</p></td>
+<tr class="row-even"><td><p>CumulativeEquivalentWtt</p></td>
 <td><p>Ton CO<sub>2</sub>-eq.</p></td>
 <td><p>Cumulative emitted well-to-tank emissions per fuel and emission.</p></td>
 </tr>
-<tr class="row-even"><td><p>CumulativeTotalEquivalentWtt</p></td>
+<tr class="row-odd"><td><p>CumulativeTotalEquivalentWtt</p></td>
 <td><p>Ton CO<sub>2</sub>-eq.</p></td>
 <td><p>Cumulative total emitted well-to-tank emissions.</p></td>
 </tr>
-<tr class="row-odd"><td><p>CumulativeEquivalentTtw</p></td>
+<tr class="row-even"><td><p>CumulativeEquivalentTtw</p></td>
 <td><p>Ton CO<sub>2</sub>-eq.</p></td>
 <td><p>Cumulative emitted tank-to-wake emissions per fuel and emission.</p></td>
 </tr>
-<tr class="row-even"><td><p>CumulativeTotalEquivalentTtw</p></td>
+<tr class="row-odd"><td><p>CumulativeTotalEquivalentTtw</p></td>
 <td><p>Ton CO<sub>2</sub>-eq.</p></td>
 <td><p>Cumulative total emitted tank-to-wake emissions.</p></td>
 </tr>
-<tr class="row-odd"><td><p>CumulativeEquivalentWtw</p></td>
+<tr class="row-even"><td><p>CumulativeEquivalentWtw</p></td>
 <td><p>Ton CO<sub>2</sub>-eq.</p></td>
 <td><p>Cumulative emitted well-to-wake emissions per fuel and emission.</p></td>
 </tr>
-<tr class="row-even"><td><p>CumulativeTotalEquivalentWtw</p></td>
+<tr class="row-odd"><td><p>CumulativeTotalEquivalentWtw</p></td>
 <td><p>Ton CO<sub>2</sub>-eq.</p></td>
 <td><p>Cumulative total emitted well-to-wake emissions, including shore power.</p></td>
 </tr>
-<tr class="row-odd"><td><p>IntensityEquivalentWtt</p></td>
+<tr class="row-even"><td><p>IntensityEquivalentWtt</p></td>
 <td><p>Kg CO<sub>2</sub>-eq./GJ</p></td>
 <td><p>Emitted well-to-tank emissions per energy per fuel and emission.</p></td>
 </tr>
-<tr class="row-even"><td><p>IntensityTotalEquivalentWtt</p></td>
+<tr class="row-odd"><td><p>IntensityTotalEquivalentWtt</p></td>
 <td><p>Kg CO<sub>2</sub>-eq./GJ</p></td>
 <td><p>Total emitted well-to-tank emissions per total consumed energy (including shore power).</p></td>
 </tr>
-<tr class="row-odd"><td><p>IntensityEquivalentTtw</p></td>
+<tr class="row-even"><td><p>IntensityEquivalentTtw</p></td>
 <td><p>Kg CO<sub>2</sub>-eq./GJ</p></td>
 <td><p>Emitted tank-to-wake emissions per energy per fuel and emission.</p></td>
 </tr>
-<tr class="row-even"><td><p>IntensityTotalEquivalentTtw</p></td>
+<tr class="row-odd"><td><p>IntensityTotalEquivalentTtw</p></td>
 <td><p>Kg CO<sub>2</sub>-eq./GJ</p></td>
 <td><p>Total emitted tank-to-wake emissions per total consumed energy (including shore power).</p></td>
 </tr>
-<tr class="row-odd"><td><p>IntensityEquivalentWtw</p></td>
+<tr class="row-even"><td><p>IntensityEquivalentWtw</p></td>
 <td><p>Kg CO<sub>2</sub>-eq./GJ</p></td>
 <td><p>Emitted well-to-wake emissions per energy per fuel and emission.</p></td>
 </tr>
-<tr class="row-even"><td><p>IntensityTotalEquivalentWtw</p></td>
+<tr class="row-odd"><td><p>IntensityTotalEquivalentWtw</p></td>
 <td><p>Kg CO<sub>2</sub>-eq./GJ</p></td>
 <td><p>Total emitted well-to-wake emissions per energy, including shore power.</p></td>
 </tr>
-<tr class="row-odd"><td><p>FuelExpenses</p></td>
+<tr class="row-even"><td><p>FuelExpenses</p></td>
 <td><p>USD/year</p></td>
 <td><p>Fuel expenses per fuel.</p></td>
 </tr>
-<tr class="row-even"><td><p>LevyExpenses</p></td>
+<tr class="row-odd"><td><p>LevyExpenses</p></td>
 <td><p>USD/year</p></td>
 <td><p>Levy expenses per fuel.</p></td>
 </tr>
-<tr class="row-odd"><td><p>FuelRelatedExpenses</p></td>
+<tr class="row-even"><td><p>FuelRelatedExpenses</p></td>
 <td><p>USD/year</p></td>
 <td><p>Fuel related expenses (fuel and levy) per fuel.</p></td>
 </tr>
-<tr class="row-even"><td><p>RemedialExpenses</p></td>
+<tr class="row-odd"><td><p>RemedialExpenses</p></td>
 <td><p>USD/year</p></td>
 <td><p>Remedial expenses due to non-compliance with regulations.</p></td>
 </tr>
-<tr class="row-odd"><td><p>FlexibilityExpenses</p></td>
+<tr class="row-even"><td><p>FlexibilityExpenses</p></td>
 <td><p>USD/year</p></td>
 <td><p>Flexibility expenses due to non-compliance with regulations.</p></td>
 </tr>
-<tr class="row-even"><td><p>SurplusRevenue</p></td>
+<tr class="row-odd"><td><p>SurplusRevenue</p></td>
 <td><p>USD/year</p></td>
 <td><p>Surplus revenue due to over-compliance with regulations.</p></td>
 </tr>
-<tr class="row-odd"><td><p>RegulationExpenses</p></td>
+<tr class="row-even"><td><p>RegulationExpenses</p></td>
 <td><p>USD/year</p></td>
 <td><p>Remedial and flexibility expenses subtracted by surplus revenue from regulations.</p></td>
 </tr>
-<tr class="row-even"><td><p>TotalFuelExpenses</p></td>
+<tr class="row-odd"><td><p>TotalFuelExpenses</p></td>
 <td><p>USD/year</p></td>
 <td><p>Total fuel expenses across all fuels plus shore power.</p></td>
 </tr>
-<tr class="row-odd"><td><p>ShorePowerExpenses</p></td>
+<tr class="row-even"><td><p>ShorePowerExpenses</p></td>
 <td><p>USD/year</p></td>
 <td><p>Shore power purchase cost.</p></td>
 </tr>
-<tr class="row-even"><td><p>TotalLevyExpenses</p></td>
+<tr class="row-odd"><td><p>TotalLevyExpenses</p></td>
 <td><p>USD/year</p></td>
 <td><p>Total levy expenses across all fuels.</p></td>
 </tr>
-<tr class="row-odd"><td><p>TotalFuelRelatedExpenses</p></td>
+<tr class="row-even"><td><p>TotalFuelRelatedExpenses</p></td>
 <td><p>USD/year</p></td>
 <td><p>Total fuel related expenses (fuel expenses including shore power, plus levy expenses).</p></td>
 </tr>
-<tr class="row-even"><td><p>CumulativeFuelExpenses</p></td>
+<tr class="row-odd"><td><p>CumulativeFuelExpenses</p></td>
 <td><p>USD</p></td>
 <td><p>Cumulative fuel expenses per fuel.</p></td>
 </tr>
-<tr class="row-odd"><td><p>CumulativeLevyExpenses</p></td>
+<tr class="row-even"><td><p>CumulativeLevyExpenses</p></td>
 <td><p>USD</p></td>
 <td><p>Cumulative levy expenses per fuel.</p></td>
 </tr>
-<tr class="row-even"><td><p>CumulativeFuelRelatedExpenses</p></td>
+<tr class="row-odd"><td><p>CumulativeFuelRelatedExpenses</p></td>
 <td><p>USD</p></td>
 <td><p>Cumulative fuel related expenses (fuel and levy) per fuel</p></td>
 </tr>
-<tr class="row-odd"><td><p>CumulativeRemedialExpenses</p></td>
+<tr class="row-even"><td><p>CumulativeRemedialExpenses</p></td>
 <td><p>USD</p></td>
 <td><p>Cumulative remedial expenses due to non-compliance with regulations.</p></td>
 </tr>
-<tr class="row-even"><td><p>CumulativeFlexibilityExpenses</p></td>
+<tr class="row-odd"><td><p>CumulativeFlexibilityExpenses</p></td>
 <td><p>USD</p></td>
 <td><p>Cumulative flexibility expenses due to non-compliance with regulations.</p></td>
 </tr>
-<tr class="row-odd"><td><p>CumulativeSurplusRevenue</p></td>
+<tr class="row-even"><td><p>CumulativeSurplusRevenue</p></td>
 <td><p>USD</p></td>
 <td><p>Cumulative surplus revenue due to over-compliance with regulations.</p></td>
 </tr>
-<tr class="row-even"><td><p>CumulativeRegulationExpenses</p></td>
+<tr class="row-odd"><td><p>CumulativeRegulationExpenses</p></td>
 <td><p>USD</p></td>
 <td><p>Cumulative remedial and flexibility expenses subtracted by surplus revenue from regulations.</p></td>
 </tr>
-<tr class="row-odd"><td><p>CumulativeTotalFuelExpenses</p></td>
+<tr class="row-even"><td><p>CumulativeTotalFuelExpenses</p></td>
 <td><p>USD</p></td>
 <td><p>Cumulative fuel expenses across all fuels plus shore power.</p></td>
 </tr>
-<tr class="row-even"><td><p>CumulativeTotalLevyExpenses</p></td>
+<tr class="row-odd"><td><p>CumulativeTotalLevyExpenses</p></td>
 <td><p>USD</p></td>
 <td><p>Cumulative levy expenses across all fuels.</p></td>
 </tr>
-<tr class="row-odd"><td><p>CumulativeTotalFuelRelatedExpenses</p></td>
+<tr class="row-even"><td><p>CumulativeTotalFuelRelatedExpenses</p></td>
 <td><p>USD</p></td>
 <td><p>Cumulative fuel related expenses (fuel and levy) across all fuels plus shore power.</p></td>
 </tr>
@@ -928,61 +894,53 @@ of results both on a node basis and on a global basis.</p>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>PropulsionSaving</p></td>
-<td><p>GJ/GJ</p></td>
-<td><p>Relative reduction of propulsion energy demand.</p></td>
-</tr>
-<tr class="row-odd"><td><p>ElectricalSaving</p></td>
-<td><p>GJ/GJ</p></td>
-<td><p>Relative reduction of electrical energy demand.</p></td>
-</tr>
-<tr class="row-even"><td><p>HeatSaving</p></td>
-<td><p>GJ/GJ</p></td>
-<td><p>Relative reduction of heat energy demand.</p></td>
-</tr>
-<tr class="row-odd"><td><p>SpeedEnergyIntensitySaving</p></td>
+<tr class="row-even"><td><p>SpeedEnergyIntensitySaving</p></td>
 <td><p>GJ/GJ</p></td>
 <td><p>Relative reduction of energy intensity from speed changes, against the year-0 raw intensity performing the actual transport work.</p></td>
 </tr>
-<tr class="row-even"><td><p>OperationalEnergyIntensitySaving</p></td>
+<tr class="row-odd"><td><p>OperationalEnergyIntensitySaving</p></td>
 <td><p>GJ/GJ</p></td>
 <td><p>Relative reduction of energy intensity from speed and operational measures, against the year-0 raw intensity performing the actual transport work.</p></td>
 </tr>
-<tr class="row-odd"><td><p>TechnologyEnergyIntensitySaving</p></td>
+<tr class="row-even"><td><p>TechnologyEnergyIntensitySaving</p></td>
 <td><p>GJ/GJ</p></td>
 <td><p>Relative reduction of energy from added technologies.</p></td>
 </tr>
-<tr class="row-even"><td><p>EnergyIntensitySaving</p></td>
+<tr class="row-odd"><td><p>EnergyIntensitySaving</p></td>
 <td><p>GJ/GJ</p></td>
 <td><p>Relative reduction of energy intensity from speed, operational measures, and technologies, against the year-0 raw intensity performing the actual transport work.</p></td>
 </tr>
-<tr class="row-odd"><td><p>InstalledPower</p></td>
+<tr class="row-even"><td><p>InstalledPower</p></td>
 <td><p>MW</p></td>
 <td><p>Installed power per fuel type.</p></td>
 </tr>
-<tr class="row-even"><td><p>NewbuildPower</p></td>
+<tr class="row-odd"><td><p>NewbuildPower</p></td>
 <td><p>MW/year</p></td>
 <td><p>Installed power for newbuilds per fuel type.</p></td>
 </tr>
-<tr class="row-odd"><td><p>ScrappedPower</p></td>
+<tr class="row-even"><td><p>ScrappedPower</p></td>
 <td><p>MW/year</p></td>
 <td><p>Installed power scrapped per fuel type.</p></td>
 </tr>
-<tr class="row-even"><td><p>FuelConvertedPower</p></td>
+<tr class="row-odd"><td><p>FuelConvertedPower</p></td>
 <td><p>MW/year</p></td>
 <td><p>Installed power fuel converted per fuel type to fuel type.</p></td>
 </tr>
-<tr class="row-odd"><td><p>CumulativeNewbuildPower</p></td>
+<tr class="row-even"><td><p>CumulativeNewbuildPower</p></td>
 <td><p>MW</p></td>
 <td><p>Cumulative installed power for newbuilds per fuel type.</p></td>
 </tr>
-<tr class="row-even"><td><p>CumulativeScrappedPopwer</p></td>
+<tr class="row-odd"><td><p>CumulativeScrappedPower</p></td>
 <td><p>MW</p></td>
 <td><p>Cumulative installed power scrapped per fuel type.</p></td>
 </tr>
-<tr class="row-odd"><td><p>CumulativeFuelConvertedPower</p></td>
+<tr class="row-even"><td><p>CumulativeFuelConvertedPower</p></td>
 <td><p>MW</p></td>
 <td><p>Cumulative installed power fuel converted per fuel type to fuel type.</p></td>
+</tr>
+<tr class="row-odd"><td><p>WeightedAverageAge</p></td>
+<td><p>Year</p></td>
+<td><p>Power-weighted average age of the vessels in the fleet per fuel type.</p></td>
 </tr>
 <tr class="row-even"><td><p>VesselExpenses</p></td>
 <td><p>USD/year</p></td>
@@ -1071,25 +1029,53 @@ of results both on a node basis and on a global basis.</p>
 <td><p>Second</p></td>
 <td><p>The time spent running the technology retrofit algorithm</p></td>
 </tr>
-<tr class="row-even"><td><p>EvolutionTime</p></td>
+<tr class="row-even"><td><p>FleetEvolutionTime</p></td>
 <td><p>Second</p></td>
-<td><p>The time spent calculating the evolution of the producer and fleet nodes.</p></td>
+<td><p>The time spent calculating the evolution of the fleet nodes.</p></td>
 </tr>
-<tr class="row-odd"><td><p>ExistingBuildTime</p></td>
+<tr class="row-odd"><td><p>ProducerEvolutionTime</p></td>
+<td><p>Second</p></td>
+<td><p>The time spent calculating the evolution of the producer nodes.</p></td>
+</tr>
+<tr class="row-even"><td><p>ExistingBuildTime</p></td>
 <td><p>Second</p></td>
 <td><p>The LP build time for the existing bunker decision.</p></td>
 </tr>
-<tr class="row-even"><td><p>ExistingSolveTime</p></td>
+<tr class="row-odd"><td><p>ExistingSolveTime</p></td>
 <td><p>Second</p></td>
 <td><p>The LP solve time for the existing bunker decision.</p></td>
 </tr>
-<tr class="row-odd"><td><p>ExistingTransferTime</p></td>
+<tr class="row-even"><td><p>ExistingTransferTime</p></td>
 <td><p>Second</p></td>
 <td><p>The transfer time for the results of the existing bunker decision.</p></td>
 </tr>
-<tr class="row-even"><td><p>OtherTime</p></td>
+<tr class="row-odd"><td><p>TemporalTime</p></td>
 <td><p>Second</p></td>
-<td><p>The time spent on other relevant calculations such as calculation of expectations.</p></td>
+<td><p>The time spent assigning the temporal calculators and precalculating expectations.</p></td>
+</tr>
+<tr class="row-even"><td><p>VesselTime</p></td>
+<td><p>Second</p></td>
+<td><p>The time spent on the operational profiles and charter properties of the vessels.</p></td>
+</tr>
+<tr class="row-odd"><td><p>FuelSupplyTime</p></td>
+<td><p>Second</p></td>
+<td><p>The time spent on the production, logistics and port import properties of the fuels.</p></td>
+</tr>
+<tr class="row-even"><td><p>PolicyTime</p></td>
+<td><p>Second</p></td>
+<td><p>The time spent on the policy emission coefficients and the fair share fuel supply.</p></td>
+</tr>
+<tr class="row-odd"><td><p>FleetStateTime</p></td>
+<td><p>Second</p></td>
+<td><p>The time spent updating increment ages, fleet evolution expectations and the missing technology approximation.</p></td>
+</tr>
+<tr class="row-even"><td><p>ProfileAggTime</p></td>
+<td><p>Second</p></td>
+<td><p>The time spent aggregating the profiles of the fleet, port, producer, regulation and vessel nodes.</p></td>
+</tr>
+<tr class="row-odd"><td><p>OverheadTime</p></td>
+<td><p>Second</p></td>
+<td><p>The time spent initializing the existing fleet and production, and updating the investment signal beliefs.</p></td>
 </tr>
 </tbody>
 </table>
@@ -1110,25 +1096,33 @@ of results both on a node basis and on a global basis.</p>
 <td><p>Cargo-miles/year</p></td>
 <td><p>Trade satisfied.</p></td>
 </tr>
-<tr class="row-odd"><td><p>ExistingVessels</p></td>
+<tr class="row-odd"><td><p>CargoMiles</p></td>
+<td><p>Cargo-miles/year</p></td>
+<td><p>Transport work performed.</p></td>
+</tr>
+<tr class="row-even"><td><p>ExistingVessels</p></td>
 <td><p># of vessels</p></td>
 <td><p>Number of existing vessels per vessel.</p></td>
 </tr>
-<tr class="row-even"><td><p>Scrap</p></td>
+<tr class="row-odd"><td><p>Scrap</p></td>
 <td><p># of vessels/year</p></td>
 <td><p>Number of vessels scrapped (primary and secondary) per vessel.</p></td>
 </tr>
-<tr class="row-odd"><td><p>Newbuilds</p></td>
+<tr class="row-even"><td><p>Newbuilds</p></td>
 <td><p># of vessels/year</p></td>
 <td><p>Number of newbuild vessels per vessel.</p></td>
 </tr>
-<tr class="row-even"><td><p>FuelConversions</p></td>
+<tr class="row-odd"><td><p>FuelConversions</p></td>
 <td><p># of vessels/year</p></td>
 <td><p>Number of vessels fuel converted per vessel to vessel.</p></td>
 </tr>
-<tr class="row-odd"><td><p>TechnologyUptake</p></td>
+<tr class="row-even"><td><p>TechnologyUptake</p></td>
 <td><p>Fraction of fleet</p></td>
 <td><p>Fraction of vessels with the technology installed per vessel and technology.</p></td>
+</tr>
+<tr class="row-odd"><td><p>FleetTechnologyUptake</p></td>
+<td><p>Fraction of fleet</p></td>
+<td><p>Fraction of vessels with the technology installed, weighted by the existing vessel count, per technology.</p></td>
 </tr>
 <tr class="row-even"><td><p>NewbuildTechnologyUptake</p></td>
 <td><p>Fraction of fleet</p></td>
@@ -1154,6 +1148,22 @@ of results both on a node basis and on a global basis.</p>
 <td><p>Knots</p></td>
 <td><p>The average speed across all vessels.</p></td>
 </tr>
+<tr class="row-even"><td><p>OptimalSpeed</p></td>
+<td><p>Knots</p></td>
+<td><p>The average optimal speed across all vessels.</p></td>
+</tr>
+<tr class="row-odd"><td><p>LowestSpeed</p></td>
+<td><p>Knots</p></td>
+<td><p>The lowest actual speed across all vessels.</p></td>
+</tr>
+<tr class="row-even"><td><p>HighestSpeed</p></td>
+<td><p>Knots</p></td>
+<td><p>The highest actual speed across all vessels.</p></td>
+</tr>
+<tr class="row-odd"><td><p>InstantaneousFreightRate</p></td>
+<td><p>USD/cargo-nautical mile</p></td>
+<td><p>Charter cost of the fleet per cargo-mile delivered, includes fuel and technology expenses.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -1169,7 +1179,7 @@ of results both on a node basis and on a global basis.</p>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>DevelopmentConstraint</p></td>
+<tr class="row-even"><td><p>MaximumDevelopment</p></td>
 <td><p># of plants/year</p></td>
 <td><p>Number of plants that can be added to the pipeline across all plants.</p></td>
 </tr>
@@ -1177,7 +1187,7 @@ of results both on a node basis and on a global basis.</p>
 <td><p># of plants/year</p></td>
 <td><p>Number of plants added to the pipeline across all plants.</p></td>
 </tr>
-<tr class="row-even"><td><p>CumulativeDevelopmentConstraint</p></td>
+<tr class="row-even"><td><p>CumulativeMaximumDevelopment</p></td>
 <td><p># of plants</p></td>
 <td><p>Cumulative number of plants that can be added to the pipeline across all plants.</p></td>
 </tr>
@@ -1208,6 +1218,14 @@ of results both on a node basis and on a global basis.</p>
 <td><p>Year</p></td>
 <td><p>Lifetime of the vessel.</p></td>
 </tr>
+<tr class="row-odd"><td><p>LeadTime</p></td>
+<td><p>Year</p></td>
+<td><p>Lead time of the vessel, used only in its levelized cost.</p></td>
+</tr>
+<tr class="row-even"><td><p>CargoMiles</p></td>
+<td><p>Cargo-miles/year</p></td>
+<td><p>Transport work performed.</p></td>
+</tr>
 <tr class="row-odd"><td><p>ReferenceSpeed</p></td>
 <td><p>Knots</p></td>
 <td><p>Average reference speed (speed defined in Route) of the vessel.</p></td>
@@ -1223,6 +1241,22 @@ of results both on a node basis and on a global basis.</p>
 <tr class="row-even"><td><p>ActualSpeed</p></td>
 <td><p>Knots</p></td>
 <td><p>Average actual speed.</p></td>
+</tr>
+<tr class="row-odd"><td><p>OptimalSpeed</p></td>
+<td><p>Knots</p></td>
+<td><p>Average optimal speed.</p></td>
+</tr>
+<tr class="row-even"><td><p>LowestSpeed</p></td>
+<td><p>Knots</p></td>
+<td><p>Lowest actual speed.</p></td>
+</tr>
+<tr class="row-odd"><td><p>HighestSpeed</p></td>
+<td><p>Knots</p></td>
+<td><p>Highest actual speed.</p></td>
+</tr>
+<tr class="row-even"><td><p>SpeedEnergySaving</p></td>
+<td><p>GJ/GJ</p></td>
+<td><p>Relative reduction of all energy demand due to speed changes.</p></td>
 </tr>
 <tr class="row-odd"><td><p>OperationalEnergySaving</p></td>
 <td><p>GJ/GJ</p></td>
@@ -1272,6 +1306,14 @@ of results both on a node basis and on a global basis.</p>
 <td><p>USD/cargo-nautical mile</p></td>
 <td><p>Long-run freight rate at the actual conditions of the vessel, includes fuel and technology expenses.</p></td>
 </tr>
+<tr class="row-odd"><td><p>InvestmentSignalTechnology</p></td>
+<td><p>USD/GJ</p></td>
+<td><p>Energy-weighted average of the smoothed energy conservation duals over the technology horizon.</p></td>
+</tr>
+<tr class="row-even"><td><p>InvestmentSignalSpeed</p></td>
+<td><p>USD/GJ</p></td>
+<td><p>Energy-weighted average of the smoothed energy conservation duals over the speed horizon.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -1291,9 +1333,17 @@ of results both on a node basis and on a global basis.</p>
 <td><p>USD/ton</p></td>
 <td><p>Levelized production cost at time of investment.</p></td>
 </tr>
-<tr class="row-odd"><td><p>InstantaneousCost</p></td>
+<tr class="row-odd"><td><p>InvestmentIntensityCost</p></td>
+<td><p>USD/GJ</p></td>
+<td><p>Levelized production cost at time of investment per energy in fuel.</p></td>
+</tr>
+<tr class="row-even"><td><p>InstantaneousCost</p></td>
 <td><p>USD/ton</p></td>
 <td><p>Supply-weighted average cost over all plants.</p></td>
+</tr>
+<tr class="row-odd"><td><p>InstantaneousIntensityCost</p></td>
+<td><p>USD/GJ</p></td>
+<td><p>Supply-weighted average cost over all plants per energy in fuel.</p></td>
 </tr>
 <tr class="row-even"><td><p>EquivalentInvestmentWtt</p></td>
 <td><p>Ton CO<sub>2</sub>-eq./ton</p></td>
@@ -1342,35 +1392,39 @@ of results both on a node basis and on a global basis.</p>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>BunkerPrice</p></td>
+<tr class="row-even"><td><p>BunkeringAllowed</p></td>
+<td><p>Boolean</p></td>
+<td><p>Whether bunkering is allowed at the port, per fuel.</p></td>
+</tr>
+<tr class="row-odd"><td><p>BunkerPrice</p></td>
 <td><p>USD/ton</p></td>
 <td><p>Bunker price per ton of fuel.</p></td>
 </tr>
-<tr class="row-odd"><td><p>BunkerIntensityPrice</p></td>
+<tr class="row-even"><td><p>BunkerIntensityPrice</p></td>
 <td><p>USD/GJ</p></td>
 <td><p>Bunker price per energy in fuel.</p></td>
 </tr>
-<tr class="row-even"><td><p>BunkerWtt</p></td>
+<tr class="row-odd"><td><p>BunkerWtt</p></td>
 <td><p>Ton/ton</p></td>
 <td><p>Well-to-tank emissions of bunker fuel per ton of fuel per fuel and emission.</p></td>
 </tr>
-<tr class="row-odd"><td><p>EquivalentBunkerWtt</p></td>
+<tr class="row-even"><td><p>EquivalentBunkerWtt</p></td>
 <td><p>Ton CO<sub>2</sub>-eq./ton</p></td>
 <td><p>Well-to-tank emissions of bunker fuel per ton of fuel per fuel and emission.</p></td>
 </tr>
-<tr class="row-even"><td><p>TotalEquivalentBunkerWtt</p></td>
+<tr class="row-odd"><td><p>TotalEquivalentBunkerWtt</p></td>
 <td><p>Ton CO<sub>2</sub>-eq./ton</p></td>
 <td><p>Well-to-tank emissions of bunker fuel per ton of fuel per fuel.</p></td>
 </tr>
-<tr class="row-odd"><td><p>BunkerIntensityWtt</p></td>
+<tr class="row-even"><td><p>BunkerIntensityWtt</p></td>
 <td><p>Ton/GJ</p></td>
 <td><p>Well-to-tank emissions of bunker fuel per energy in fuel per fuel and emission.</p></td>
 </tr>
-<tr class="row-even"><td><p>BunkerIntensityEquivalentWtt</p></td>
+<tr class="row-odd"><td><p>BunkerIntensityEquivalentWtt</p></td>
 <td><p>Ton CO<sub>2</sub>-eq./GJ</p></td>
 <td><p>Well-to-tank emissions of bunker fuel per energy in fuel per fuel and emission.</p></td>
 </tr>
-<tr class="row-odd"><td><p>BunkerIntensityTotalEquivalentWtt</p></td>
+<tr class="row-even"><td><p>BunkerIntensityTotalEquivalentWtt</p></td>
 <td><p>Ton CO<sub>2</sub>-eq./GJ</p></td>
 <td><p>Well-to-tank emissions of bunker fuel per energy in per fuel.</p></td>
 </tr>
@@ -1397,13 +1451,21 @@ of results both on a node basis and on a global basis.</p>
 <td><p>USD/ton</p></td>
 <td><p>Cost of remedial compliance unit.</p></td>
 </tr>
-<tr class="row-even"><td><p>VesselTreshold</p></td>
+<tr class="row-even"><td><p>VesselThreshold</p></td>
 <td><p>Unit*</p></td>
 <td><p>Allowable emissions measure per vessel.</p></td>
 </tr>
-<tr class="row-odd"><td><p>SharedThreshold</p></td>
+<tr class="row-odd"><td><p>AdjustedVesselThreshold</p></td>
+<td><p>Unit*</p></td>
+<td><p>Allowable emissions measure per vessel after threshold adjustment of an INDIVIDUAL regulation.</p></td>
+</tr>
+<tr class="row-even"><td><p>SharedThreshold</p></td>
 <td><p>Unit*</p></td>
 <td><p>Fleet-level effective target of a FLEXIBLE regulation.</p></td>
+</tr>
+<tr class="row-odd"><td><p>AdjustedSharedThreshold</p></td>
+<td><p>Unit*</p></td>
+<td><p>Fleet-level effective target of a FLEXIBLE regulation after threshold adjustment.</p></td>
 </tr>
 <tr class="row-even"><td><p>VesselCompliance</p></td>
 <td><p>Unit*</p></td>
@@ -1413,35 +1475,47 @@ of results both on a node basis and on a global basis.</p>
 <td><p>Unit*</p></td>
 <td><p>Total achieved emissions measure.</p></td>
 </tr>
-<tr class="row-even"><td><p>IntendedUnits</p></td>
+<tr class="row-even"><td><p>VesselAllowance</p></td>
 <td><p>Ton</p></td>
-<td><p>Total intended units.</p></td>
+<td><p>Allowed emissions per vessel.</p></td>
 </tr>
-<tr class="row-odd"><td><p>AchievedUnits</p></td>
+<tr class="row-odd"><td><p>SharedAllowance</p></td>
 <td><p>Ton</p></td>
-<td><p>Total achieved units.</p></td>
+<td><p>Total allowed emissions across the policed vessels.</p></td>
 </tr>
-<tr class="row-even"><td><p>SurplusUnits</p></td>
+<tr class="row-even"><td><p>VesselUnits</p></td>
+<td><p>Ton</p></td>
+<td><p>Achieved emissions per vessel.</p></td>
+</tr>
+<tr class="row-odd"><td><p>SharedUnits</p></td>
+<td><p>Ton</p></td>
+<td><p>Total achieved emissions across the policed vessels.</p></td>
+</tr>
+<tr class="row-even"><td><p>NonComplianceUnits</p></td>
+<td><p>Ton</p></td>
+<td><p>Flexibility and remedial compliance units combined.</p></td>
+</tr>
+<tr class="row-odd"><td><p>SurplusUnits</p></td>
 <td><p>Ton</p></td>
 <td><p>Surplus compliance units generated.</p></td>
 </tr>
-<tr class="row-odd"><td><p>FlexibilityUnits</p></td>
+<tr class="row-even"><td><p>FlexibilityUnits</p></td>
 <td><p>Ton</p></td>
 <td><p>Flexibility compliance units used.</p></td>
 </tr>
-<tr class="row-even"><td><p>RemedialUnits</p></td>
+<tr class="row-odd"><td><p>RemedialUnits</p></td>
 <td><p>Ton</p></td>
 <td><p>Remedial compliance units required.</p></td>
 </tr>
-<tr class="row-odd"><td><p>SurplusRevenue</p></td>
+<tr class="row-even"><td><p>SurplusRevenue</p></td>
 <td><p>USD/ton</p></td>
 <td><p>Revenue from selling surplus compliance units.</p></td>
 </tr>
-<tr class="row-even"><td><p>FlexibilityExpenses</p></td>
+<tr class="row-odd"><td><p>FlexibilityExpenses</p></td>
 <td><p>USD/ton</p></td>
 <td><p>Expenses from purchasing flexibility compliance units.</p></td>
 </tr>
-<tr class="row-odd"><td><p>RemedialExpenses</p></td>
+<tr class="row-even"><td><p>RemedialExpenses</p></td>
 <td><p>USD/ton</p></td>
 <td><p>Expenses from purchasing remedial compliance units.</p></td>
 </tr>
@@ -1531,6 +1605,7 @@ of results both on a node basis and on a global basis.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#add-port-property">add_port_property</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#add-regulation-property">add_regulation_property</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#add-levy-property">add_levy_property</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#add-producer-property">add_producer_property</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#appendix-report-node-properties">Appendix - Report Node Properties</a></li>

@@ -33,6 +33,13 @@ Forecast "methanol_plant_capacity" {
 
 ## Attributes
 
+### Table
+
+This attribute sets the table of x- and y-values that the forecast interpolates in, where the x-values are dates or days since the start of the simulation. The table must hold at least two rows and its x-values must be strictly increasing. The syntax is described under [Assigning tables](dsl_reference.md#forecast).
+
+* **Data type**: `Table`
+* **Default**: None. Must be defined by the user.
+
 ### Addition
 
 Sets an addition that is added on the y-values. The addition occurs according to the formula

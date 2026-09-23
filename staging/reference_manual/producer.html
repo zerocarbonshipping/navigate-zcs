@@ -684,6 +684,25 @@ for large scale methanol, ammonia, methane, and diesel plants and regional marke
 <li><p><strong>Default</strong>: INF</p></li>
 </ul>
 </section>
+<section id="set-export-distribution">
+<h3>set_export_distribution<a class="headerlink" href="#set-export-distribution" title="Link to this heading">#</a></h3>
+<p>This command sets the relative weight with which the fuel production of the producer is exported to a given port.</p>
+<p>The weights of all ports are normalized to sum to one in every time-step, so a weight is a share of the production only when the weights assigned across the ports already sum to one. Assigning <code class="docutils literal notranslate"><span class="pre">0.5</span></code> to one of three ports therefore exports the entire production to that port, not half of it. If no port carries a positive weight, the production is split equally across all ports.</p>
+<ul class="simple">
+<li><p><strong>Primary key type</strong>: String (Port name)</p></li>
+<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
+<li><p><strong>Example values</strong>:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;port_name&quot;,</span> <span class="pre">0.2</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;port_name&quot;,</span> <span class="pre">Forecast(&quot;name&quot;)</span></code></p></li>
+</ul>
+</li>
+<li><p><strong>Unit</strong>: Relative weight</p></li>
+<li><p><strong>Minimum value</strong>: 0</p></li>
+<li><p><strong>Maximum value</strong>: 1</p></li>
+<li><p><strong>Default</strong>: 0, which leaves the production split equally across all ports when no port is weighted.</p></li>
+</ul>
+</section>
 </section>
 </section>
 
@@ -751,6 +770,7 @@ for large scale methanol, ammonia, methane, and diesel plants and regional marke
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#set-existing-pipeline">set_existing_pipeline</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#set-allow-plant">set_allow_plant</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#set-feed-constraint">set_feed_constraint</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#set-export-distribution">set_export_distribution</a></li>
 </ul>
 </li>
 </ul>

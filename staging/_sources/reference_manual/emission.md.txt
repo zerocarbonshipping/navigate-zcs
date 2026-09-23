@@ -29,3 +29,11 @@ This attribute specifies the Global Warming Potential (GWP) of the emission. The
 * **Unit**: ton CO<sub>2</sub> equivalent / ton emission
 * **Minimum value**: 0
 * **Default**: 0
+
+### FuelType
+
+This attribute sets the fuel type associated with the emission for slip gating. When it is set, the emission only receives slip contributions from fuels whose fuel type matches this value.
+
+* **Data type**: `ID`
+* **Legal values**: [FuelTypeID](appendix_ids.md#fueltypeid)
+* **Default**: None. Without it the emission receives no slip contributions.

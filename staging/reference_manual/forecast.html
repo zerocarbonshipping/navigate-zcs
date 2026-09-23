@@ -495,6 +495,14 @@ y = \min\left(\max\left(\text{Multiplier} \cdot (y(t) + \text{Addition}), \text{
 </div>
 <section id="attributes">
 <h2>Attributes<a class="headerlink" href="#attributes" title="Link to this heading">#</a></h2>
+<section id="table">
+<h3>Table<a class="headerlink" href="#table" title="Link to this heading">#</a></h3>
+<p>This attribute sets the table of x- and y-values that the forecast interpolates in, where the x-values are dates or days since the start of the simulation. The table must hold at least two rows and its x-values must be strictly increasing. The syntax is described under <a class="reference internal" href="dsl_reference.html#forecast"><span class="std std-ref">Assigning tables</span></a>.</p>
+<ul class="simple">
+<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Table</span></code></p></li>
+<li><p><strong>Default</strong>: None. Must be defined by the user.</p></li>
+</ul>
+</section>
 <section id="addition">
 <h3>Addition<a class="headerlink" href="#addition" title="Link to this heading">#</a></h3>
 <p>Sets an addition that is added on the y-values. The addition occurs according to the formula</p>
@@ -618,6 +626,7 @@ y = \min\left(\max\left(\text{Multiplier} \cdot (y(t) + \text{Addition}), \text{
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#attributes">Attributes</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#table">Table</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#addition">Addition</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#multiplier">Multiplier</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#lowerbound">LowerBound</a></li>

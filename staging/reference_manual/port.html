@@ -475,8 +475,8 @@ which the vessel is operating. Examples of ports are Rotterdam (if used specific
 unrouted port is removed (see <a class="reference internal" href="dsl_reference.html#unreachable-nodes"><span class="std std-ref">Unreachable nodes</span></a>).</p>
 <p>Example:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Port</span> <span class="s2">"asia"</span> <span class="p">{</span>
-    <span class="n">WindUtilization</span> <span class="o">=</span> <span class="mf">0.4</span>
-    <span class="n">SolarUtilization</span> <span class="o">=</span> <span class="mf">0.4</span>
+    <span class="n">ShorePowerCost</span> <span class="o">=</span> <span class="mi">80</span>
+    <span class="n">ShorePowerConnectionShare</span> <span class="o">=</span> <span class="mf">0.8</span>
     
     <span class="n">set_bunker_price_overwrite</span><span class="p">(</span><span class="s2">"low_sulfur_fuel_oil"</span><span class="p">,</span> <span class="mi">250</span><span class="p">)</span>
     <span class="n">set_bunker_wtt_overwrite</span><span class="p">(</span><span class="s2">"low_sulfur_fuel_oil"</span><span class="p">,</span> <span class="s2">"carbon_dioxide"</span><span class="p">,</span> <span class="mf">0.62</span><span class="p">)</span>
@@ -485,30 +485,37 @@ unrouted port is removed (see <a class="reference internal" href="dsl_reference.
 </div>
 <section id="attributes">
 <h2>Attributes<a class="headerlink" href="#attributes" title="Link to this heading">#</a></h2>
-<section id="windutilization">
-<h3>WindUtilization<a class="headerlink" href="#windutilization" title="Link to this heading">#</a></h3>
-<p>This attribute sets the wind utilization factor in the port. The wind utilization is used for alternative power in port.</p>
-<p>This is relevant only for vessels that have alternative power technologies utilizing wind energy installed. These technologies have an installed capacity. The parameter “wind utilization” describes the fraction of this installed capacity that is eventually utilized while in port. E.g. if the wind is only blowing half of the time while in port, 50% of the installed capacity is utilized.</p>
+<section id="shorepowercost">
+<h3>ShorePowerCost<a class="headerlink" href="#shorepowercost" title="Link to this heading">#</a></h3>
+<p>This attribute sets the shore power electricity tariff in the port in USD/MWh. It is converted internally to USD/GJ for consistency with the energy model.</p>
 <ul class="simple">
-<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code></p></li>
-<li><p><strong>Example values</strong>: <code class="docutils literal notranslate"><span class="pre">0.5</span></code></p></li>
-<li><p><strong>Unit</strong>: Fraction</p></li>
+<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
+<li><p><strong>Example values</strong>:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">80</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Forecast(&quot;name&quot;)</span></code></p></li>
+</ul>
+</li>
+<li><p><strong>Unit</strong>: USD/MWh</p></li>
 <li><p><strong>Minimum value</strong>: 0</p></li>
-<li><p><strong>Maximum value</strong>: 1</p></li>
-<li><p><strong>Default</strong>: 1</p></li>
+<li><p><strong>Default</strong>: 0</p></li>
 </ul>
 </section>
-<section id="solarutilization">
-<h3>SolarUtilization<a class="headerlink" href="#solarutilization" title="Link to this heading">#</a></h3>
-<p>This attribute determines the solar utilization factor in the port. The solar utilization is used for alternative power in port.</p>
-<p>This is relevant only for vessels that have alternative power technologies utilizing solar energy installed. These technologies have an installed capacity. The attribute “solar utilization” describes the fraction of this installed capacity that is eventually utilized while in port. E.g., if the sun is only shining half of the time while in port, 50% of the installed capacity is utilized.</p>
+<section id="shorepowerconnectionshare">
+<h3>ShorePowerConnectionShare<a class="headerlink" href="#shorepowerconnectionshare" title="Link to this heading">#</a></h3>
+<p>This attribute sets the fraction of the time in port during which a shore power connection is available. A value of 0 means shore power is not available in the port.</p>
 <ul class="simple">
-<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code></p></li>
-<li><p><strong>Example values</strong>: <code class="docutils literal notranslate"><span class="pre">0.5</span></code></p></li>
+<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
+<li><p><strong>Example values</strong>:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">0.8</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Forecast(&quot;name&quot;)</span></code></p></li>
+</ul>
+</li>
 <li><p><strong>Unit</strong>: Fraction</p></li>
 <li><p><strong>Minimum value</strong>: 0</p></li>
 <li><p><strong>Maximum value</strong>: 1</p></li>
-<li><p><strong>Default</strong>: 1</p></li>
+<li><p><strong>Default</strong>: 0</p></li>
 </ul>
 </section>
 </section>
@@ -618,6 +625,23 @@ unrouted port is removed (see <a class="reference internal" href="dsl_reference.
 <li><p><strong>Default</strong>: None</p></li>
 </ul>
 </section>
+<section id="set-shore-power-emission-factor">
+<h3>set_shore_power_emission_factor<a class="headerlink" href="#set-shore-power-emission-factor" title="Link to this heading">#</a></h3>
+<p>This command sets the WTW (Well-to-Wake) emission factor of the shore power grid electricity for a specific emission in the port in ton emission/MWh. It is converted internally to ton emission/GJ.</p>
+<ul class="simple">
+<li><p><strong>Primary key type</strong>: String (Emission name)</p></li>
+<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
+<li><p><strong>Example values</strong>:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;emission_name&quot;,</span> <span class="pre">0.18</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;emission_name&quot;,</span> <span class="pre">Forecast(&quot;name&quot;)</span></code></p></li>
+</ul>
+</li>
+<li><p><strong>Unit</strong>: ton emission/MWh</p></li>
+<li><p><strong>Minimum value</strong>: 0</p></li>
+<li><p><strong>Default</strong>: 0</p></li>
+</ul>
+</section>
 </section>
 </section>
 
@@ -669,8 +693,8 @@ unrouted port is removed (see <a class="reference internal" href="dsl_reference.
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#attributes">Attributes</a><ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#windutilization">WindUtilization</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#solarutilization">SolarUtilization</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#shorepowercost">ShorePowerCost</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#shorepowerconnectionshare">ShorePowerConnectionShare</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#commands">Commands</a><ul class="pst-show_toc_level nav section-nav flex-column">
@@ -680,6 +704,7 @@ unrouted port is removed (see <a class="reference internal" href="dsl_reference.
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#set-bunkering-inertia">set_bunkering_inertia</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#set-bunker-price-overwrite">set_bunker_price_overwrite</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#set-bunker-wtt-overwrite">set_bunker_wtt_overwrite</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#set-shore-power-emission-factor">set_shore_power_emission_factor</a></li>
 </ul>
 </li>
 </ul>
