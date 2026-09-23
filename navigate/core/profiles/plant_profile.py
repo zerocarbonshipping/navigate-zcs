@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.initial_values import EMPTY_NAN
-from navigate.core.profiles._base_profile import _BaseProfile
+from navigate.core.profiles._emission_base_profile import _EmissionBaseProfile
 from navigate.util import multiply_dicts
 
 if TYPE_CHECKING:
@@ -17,12 +17,11 @@ if TYPE_CHECKING:
     from navigate.util.types_ import FloatArray
 
 
-class PlantProfile(_BaseProfile):
+class PlantProfile(_EmissionBaseProfile):
     def __init__(self):
         super().__init__()
 
         # constants
-        self._global_warming_potential: dict[str, float] = {}
         self._lower_heating_value: float = 0.0  # lower heating value of fuel
 
         # costs
@@ -70,10 +69,7 @@ class PlantProfile(_BaseProfile):
 
         self._lower_heating_value = fuel.lower_heating_value.get()
 
-        for emission_name, emission in emissions.items():
-            self._global_warming_potential[emission_name] = (
-                emission.global_warming_potential.get(emissions_lifetime)
-            )
+        self._initialize_global_warming_potential(emissions, emissions_lifetime)
 
     def _intensity_equivalent(
         self, wtt: dict[str, FloatArray]

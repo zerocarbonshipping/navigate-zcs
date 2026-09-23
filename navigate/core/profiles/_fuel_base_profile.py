@@ -6,7 +6,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from navigate.core.enum_ import FuelTypeID
-from navigate.core.profiles._base_profile import _BaseProfile
+from navigate.core.profiles._emission_base_profile import _EmissionBaseProfile
 from navigate.util import multiply_dicts
 
 if TYPE_CHECKING:
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from navigate.util.types_ import FloatArray
 
 
-class _FuelBaseProfile(_BaseProfile):
+class _FuelBaseProfile(_EmissionBaseProfile):
     """Base class used exclusively for sub-classing."""
 
     def __init__(self):

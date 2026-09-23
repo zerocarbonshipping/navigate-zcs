@@ -21,9 +21,6 @@ class PortProfile(_InfrastructureAggregateProfile):
     def __init__(self):
         super().__init__()
 
-        # constants
-        self._global_warming_potential: dict[str, float] = {}
-
         # bunkering
         self._bunkering_allowed: dict[
             str, np.ndarray
@@ -66,10 +63,7 @@ class PortProfile(_InfrastructureAggregateProfile):
         self._bunker_price = self._default_dict(fuels)
         self._bunker_wtt = self._default_tuple_dict(fuels, emissions)
 
-        for emission_name, emission in emissions.items():
-            self._global_warming_potential[emission_name] = (
-                emission.global_warming_potential.get(emissions_lifetime)
-            )
+        self._initialize_global_warming_potential(emissions, emissions_lifetime)
 
     def _to_emission_intensity(
         self, emission: FloatArray, fuel_name: str
@@ -113,7 +107,7 @@ class PortProfile(_InfrastructureAggregateProfile):
         return dict(self._bunker_wtt)
 
     def get_equivalent_bunker_wtt(self) -> dict[tuple[str, str], FloatArray]:
-        return self._equivalent(self._bunker_wtt, self._global_warming_potential)
+        return self._equivalent(self._bunker_wtt)
 
     def get_total_equivalent_bunker_wtt(self) -> FloatArray:
         return self._sum_values(self.get_equivalent_bunker_wtt())
