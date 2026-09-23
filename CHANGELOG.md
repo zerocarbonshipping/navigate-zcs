@@ -56,7 +56,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   a library: `Plant.initialize_profile` takes the fuels dict and
   `PlantProfile.initialize` the fuels dict and the fuel name;
   `Emission.global_warming_potential` holds its zero default from
-  construction and `Emission.initialize` is gone; `Scalar.get` is typed with
+  construction, typed as the scalar, curve, variable or expression a deck can
+  assign, and `Emission.initialize` is gone; `Scalar.get` is typed with
   paired overloads (an array in returns an array, anything else a `float`).
 - **Breaking** for code importing navigate as a library: `assign_fraction_list`
   returns the rescaled fractions instead of also rescaling the list it was

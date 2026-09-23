@@ -13,6 +13,7 @@ from navigate.core.node import Node
 from navigate.core.node_type import CURVE, EMISSION, VARIABLE
 
 if TYPE_CHECKING:
+    from navigate.core import Expression
     from navigate.core.nodes.curve import Curve
     from navigate.core.nodes.variable import Variable
 
@@ -24,7 +25,7 @@ class Emission(Node):
         super().__init__(name, EMISSION)
 
         # external variables -----------------------------------------------------------
-        self.global_warming_potential: Scalar | Curve | Variable = Scalar(
+        self.global_warming_potential: Scalar | Curve | Variable | Expression = Scalar(
             0.0
         )  # ton CO2 equivalent per ton emitted
         self.fuel_type: FuelTypeID | None = (
@@ -33,7 +34,7 @@ class Emission(Node):
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_global_warming_potential(
-        self, global_warming_potential: float | Curve | Variable
+        self, global_warming_potential: float | Curve | Variable | Expression
     ) -> None:
         """
         Set the Global Warming Potential (GWP) of the emission.
@@ -45,8 +46,9 @@ class Emission(Node):
 
         Parameters
         ----------
-        global_warming_potential : float | Node
-            The Global Warming Potential of the emission.
+        global_warming_potential
+            The Global Warming Potential of the emission, in ton CO2 equivalent
+            per ton emitted.
         """
         self.global_warming_potential = assign_value(
             as_scalar(global_warming_potential), type_=(CURVE, VARIABLE), lower=0.0
@@ -65,7 +67,7 @@ class Emission(Node):
 
         Parameters
         ----------
-        fuel_type : str
+        fuel_type
             The fuel type that produces this emission when slipping.
         """
         self.fuel_type = assign_id(fuel_type, FuelTypeID)

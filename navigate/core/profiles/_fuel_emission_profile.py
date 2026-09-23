@@ -37,8 +37,12 @@ class _FuelEmissionProfile(_FuelBaseProfile):
         emissions_lifetime
             Lifetime the global warming potentials are read at, in years.
         """
+        # a warming potential read at a single lifetime is one number, while the
+        # getter's return type also covers the array an array input would produce
         self._global_warming_potential = {
-            emission_name: emission.global_warming_potential.get(emissions_lifetime)
+            emission_name: float(
+                emission.global_warming_potential.get(emissions_lifetime)
+            )
             for emission_name, emission in emissions.items()
         }
 

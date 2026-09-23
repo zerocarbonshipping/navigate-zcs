@@ -53,8 +53,8 @@ class Scalar:
         float or FloatArray
             The wrapped number, or an array of it in the shape of ``x``.
         """
-        # y never arrives without x and shares its shape, so x alone decides
-        # the output
+        # broadcasting is what keeps a Scalar substitutable for a calculator
+        # node, whose getter answers an array input with an array
         if isinstance(x, np.ndarray):
             return np.full_like(x, self._value)
 
