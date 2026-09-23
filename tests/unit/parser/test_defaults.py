@@ -22,7 +22,8 @@ def _variable(name="v", **attributes):
 
 
 def _host(variable, emission="e"):
-    # an Emission is a top-level node, so the referenced Variable is never pruned
+    # an Emission is a top-level node, so the referenced Variable is never
+    # pruned (see the conftest module docstring)
     return f"""
 Emission "{emission}" {{
     GlobalWarmingPotential = Variable("{variable}")
@@ -30,11 +31,6 @@ Emission "{emission}" {{
 """
 
 
-MODEL_DEFINITION = """
-ModelDefinition {
-    StartDate = "01-01-2026"
-}
-"""
 HOST = _host("v")
 DEFAULT = _variable(Value=3.0)
 # a library node whose multiplier makes an unintended pull visible as 30.0
@@ -63,30 +59,22 @@ End
 """
 
 
-def _write_deck(tmp_path, define, events=None):
-    (tmp_path / "define.inc").write_text(MODEL_DEFINITION + define)
-    events_block = "EVENTS { }\n"
-    if events is not None:
-        (tmp_path / "events.inc").write_text(events)
-        events_block = 'EVENTS { Include "events.inc" }\n'
+@pytest.fixture
+def read_library_deck(tmp_path, read_deck):
+    """Read a deck against a synthesised two-branch default library."""
 
-    deck = tmp_path / "deck.nav"
-    deck.write_text('DEFINE { Include "define.inc" }\n' + events_block)
-    return deck
+    def read(define, *, installation=None, user=None, events=None):
+        data_dir = tmp_path / "data"
+        # mirror the shipped library: both branches carry a directory per node type
+        for branch, files in (("user", user), ("installation", installation)):
+            directory = data_dir / "defaults" / branch / "Variable"
+            directory.mkdir(parents=True)
+            for stem, content in (files or {}).items():
+                (directory / f"{stem}.inc").write_text(content)
 
+        return read_deck(define, events=events, data_dir=data_dir)
 
-def _read_deck(tmp_path, define, *, installation=None, user=None, events=None):
-    data_dir = tmp_path / "data"
-    # mirror the shipped library: both branches carry a directory per node type
-    for branch, files in (("user", user), ("installation", installation)):
-        directory = data_dir / "defaults" / branch / "Variable"
-        directory.mkdir(parents=True)
-        for stem, content in (files or {}).items():
-            (directory / f"{stem}.inc").write_text(content)
-
-    parser = Parser()
-    parser.read_deck(_write_deck(tmp_path, define, events), data_dir=data_dir)
-    return parser
+    return read
 
 
 class TestReferenceResolution:
@@ -99,9 +87,9 @@ class TestReferenceResolution:
         ids=["deck_declaration", "copy_target"],
     )
     def test_declaration_after_the_reference_shadows_the_library(
-        self, tmp_path, define, expected
+        self, read_library_deck, define, expected
     ):
-        parser = _read_deck(tmp_path, define, installation={"v": DECOY})
+        parser = read_library_deck(define, installation={"v": DECOY})
         variable = parser.nodes.variables["v"]
 
         assert parser.nodes.emissions["e"].global_warming_potential is variable
@@ -112,19 +100,21 @@ class TestReferenceResolution:
         [HOST, HOST + 'Import Variable "v"\n', HOST + 'Import Variable "v*"\n'],
         ids=["reference", "import_after_reference", "wildcard_import"],
     )
-    def test_undeclared_name_binds_to_the_library_node(self, tmp_path, define):
-        parser = _read_deck(tmp_path, define, installation={"v": DEFAULT})
+    def test_undeclared_name_binds_to_the_library_node(self, read_library_deck, define):
+        parser = read_library_deck(define, installation={"v": DEFAULT})
         variable = parser.nodes.variables["v"]
 
         assert parser.nodes.emissions["e"].global_warming_potential is variable
         assert variable.get() == 3.0
 
-    def test_command_argument_reference_pulls_its_default(self, tmp_path):
-        parser = _read_deck(tmp_path, COMMAND_HOST, installation={"v": DEFAULT})
+    def test_command_argument_reference_pulls_its_default(self, read_library_deck):
+        parser = read_library_deck(COMMAND_HOST, installation={"v": DEFAULT})
 
         assert parser.nodes.variables["v"].get() == 3.0
 
-    def test_bounds_of_an_overwritten_reference_stay_on_the_node(self, tmp_path):
+    def test_bounds_of_an_overwritten_reference_stay_on_the_node(
+        self, read_library_deck
+    ):
         # GlobalWarmingPotential imposes its lower bound when the first assignment
         # is read; the EVENTS reference only keeps the Variable from being pruned
         define = (
@@ -133,15 +123,14 @@ class TestReferenceResolution:
             + _variable(Value=-2.0)
         )
 
-        parser = _read_deck(tmp_path, define, events="Start\n" + HOST + "End\n")
+        parser = read_library_deck(define, events="Start\n" + HOST + "End\n")
 
         assert parser.nodes.variables["v"].get() == 0.0
 
 
 class TestDefaultPrecedence:
-    def test_user_branch_shadows_installation_branch(self, tmp_path):
-        parser = _read_deck(
-            tmp_path,
+    def test_user_branch_shadows_installation_branch(self, read_library_deck):
+        parser = read_library_deck(
             HOST,
             user={"v": _variable(Value=5.0)},
             installation={"v": DEFAULT},
@@ -149,20 +138,23 @@ class TestDefaultPrecedence:
 
         assert parser.nodes.variables["v"].get() == 5.0
 
-    def test_user_file_overlays_the_installation_node_of_the_same_name(self, tmp_path):
+    def test_user_file_overlays_the_installation_node_of_the_same_name(
+        self, read_library_deck
+    ):
         # the Import inside the user file for v reads the installation v instead
         # of re-entering the user file: 2.0 * 3.0
-        parser = _read_deck(
-            tmp_path, HOST, user={"v": OVERLAY}, installation={"v": DEFAULT}
+        parser = read_library_deck(
+            HOST, user={"v": OVERLAY}, installation={"v": DEFAULT}
         )
 
         assert parser.nodes.variables["v"].get() == 6.0
 
-    def test_overlay_survives_an_import_of_another_library_node(self, tmp_path):
+    def test_overlay_survives_an_import_of_another_library_node(
+        self, read_library_deck
+    ):
         # pulling y must not cost the user file its own overlay route: the
         # self-Import still reaches the installation v, so 2.0 * 3.0 again
-        parser = _read_deck(
-            tmp_path,
+        parser = read_library_deck(
             HOST,
             user={"v": OVERLAY_AFTER_IMPORT},
             installation={"v": DEFAULT, "y": _variable("y", Value=1.0)},
@@ -172,10 +164,10 @@ class TestDefaultPrecedence:
 
 
 class TestCopyFromDefault:
-    def test_source_is_removed_after_the_copy(self, tmp_path):
+    def test_source_is_removed_after_the_copy(self, read_library_deck):
         define = 'Copy Variable "v" "dst"\n' + _host("dst")
 
-        parser = _read_deck(tmp_path, define, installation={"v": DEFAULT})
+        parser = read_library_deck(define, installation={"v": DEFAULT})
 
         assert set(parser.nodes.variables) == {"dst"}
         assert parser.nodes.variables["dst"].get() == 3.0
@@ -188,8 +180,8 @@ class TestCopyFromDefault:
         ],
         ids=["reference_after_copy", "reference_before_copy"],
     )
-    def test_separate_reference_pulls_the_source_again(self, tmp_path, define):
-        parser = _read_deck(tmp_path, define, installation={"v": DEFAULT})
+    def test_separate_reference_pulls_the_source_again(self, read_library_deck, define):
+        parser = read_library_deck(define, installation={"v": DEFAULT})
         source = parser.nodes.variables["v"]
         copied = parser.nodes.variables["dst"]
 
@@ -198,26 +190,28 @@ class TestCopyFromDefault:
         assert parser.nodes.emissions["e2"].global_warming_potential is copied
         assert source is not copied
 
-    def test_the_copy_takes_over_a_target_the_pulled_file_declares(self, tmp_path):
+    def test_the_copy_takes_over_a_target_the_pulled_file_declares(
+        self, read_library_deck
+    ):
         # the source file declares the target's name too, so the reference ends
         # on the copy, not on the file's node
         library = {"v": DEFAULT + _variable("dst", Value=9.0)}
         define = _host("dst") + 'Copy Variable "v" "dst"\n'
 
-        parser = _read_deck(tmp_path, define, installation=library)
+        parser = read_library_deck(define, installation=library)
         copied = parser.nodes.variables["dst"]
 
         assert parser.nodes.emissions["e"].global_warming_potential is copied
         assert copied.get() == 3.0
 
     def test_reference_inside_the_pulled_file_binds_to_the_pulled_again_source(
-        self, tmp_path
+        self, read_library_deck
     ):
         # the file's own Emission references the source that the copy discards
         library = {"v": DEFAULT + _host("v", emission="inner")}
         define = 'Copy Variable "v" "dst"\n' + _host("dst", emission="e2")
 
-        parser = _read_deck(tmp_path, define, installation=library)
+        parser = read_library_deck(define, installation=library)
 
         assert set(parser.nodes.variables) == {"v", "dst"}
         assert (
@@ -232,7 +226,9 @@ class TestUnresolvableReference:
         [HOST, 'Emission "e" { GlobalWarmingPotential = <2 * Variable("v")> }\n'],
         ids=["reference", "expression"],
     )
-    def test_missing_default_names_the_type_name_and_location(self, tmp_path, define):
+    def test_missing_default_names_the_type_name_and_location(
+        self, read_library_deck, define
+    ):
         with pytest.raises(
             DeckKeywordError,
             match=(
@@ -241,7 +237,7 @@ class TestUnresolvableReference:
                 r"or the default location of Variable"
             ),
         ):
-            _read_deck(tmp_path, define)
+            read_library_deck(define)
 
     @pytest.mark.parametrize(
         "define",
@@ -251,7 +247,9 @@ class TestUnresolvableReference:
         ],
         ids=["attribute", "command_argument"],
     )
-    def test_unknown_reference_type_is_a_located_deck_error(self, tmp_path, define):
+    def test_unknown_reference_type_is_a_located_deck_error(
+        self, read_library_deck, define
+    ):
         with pytest.raises(
             DeckKeywordError,
             match=(
@@ -259,7 +257,7 @@ class TestUnresolvableReference:
                 r"'Foo' is not a recognized node type"
             ),
         ):
-            _read_deck(tmp_path, define)
+            read_library_deck(define)
 
     @pytest.mark.parametrize(
         "library",
@@ -273,7 +271,9 @@ class TestUnresolvableReference:
         ],
         ids=["wrong_name", "wrong_type", "user_branch", "user_over_installation"],
     )
-    def test_file_without_the_requested_node_is_rejected(self, tmp_path, library):
+    def test_file_without_the_requested_node_is_rejected(
+        self, read_library_deck, library
+    ):
         with pytest.raises(
             DeckKeywordError,
             match=(
@@ -281,7 +281,7 @@ class TestUnresolvableReference:
                 r"found, but not containing a node with type 'Variable'"
             ),
         ):
-            _read_deck(tmp_path, HOST, **library)
+            read_library_deck(HOST, **library)
 
     @pytest.mark.parametrize(
         "define",
@@ -289,24 +289,24 @@ class TestUnresolvableReference:
         ids=["import", "copy"],
     )
     def test_import_and_copy_reject_a_user_file_without_the_node(
-        self, tmp_path, define
+        self, read_library_deck, define
     ):
         with pytest.raises(DeckKeywordError, match=r"A file with name 'v' was found"):
-            _read_deck(tmp_path, define, user={"v": _variable("w", Value=1.0)})
+            read_library_deck(define, user={"v": _variable("w", Value=1.0)})
 
-    def test_reference_without_an_assumptions_directory_is_rejected(self, tmp_path):
+    def test_reference_without_an_assumptions_directory_is_rejected(self, write_deck):
         with pytest.raises(
             DeckKeywordError,
             match=r"User or Installation Default 'v' is requested but not specified",
         ):
-            Parser().read_deck(_write_deck(tmp_path, HOST))
+            Parser().read_deck(write_deck(HOST))
 
 
 class TestEventsTarget:
-    def test_undeclared_target_is_rejected_instead_of_pulled(self, tmp_path):
+    def test_undeclared_target_is_rejected_instead_of_pulled(self, read_library_deck):
         # the library holds the target, so success would mean EVENTS created a
         # node from it
-        parser = _read_deck(tmp_path, "", installation={"v": DEFAULT}, events=EVENTS)
+        parser = read_library_deck("", installation={"v": DEFAULT}, events=EVENTS)
 
         with pytest.raises(
             DeckKeywordError, match="Unable to define new nodes outside DEFINE"
