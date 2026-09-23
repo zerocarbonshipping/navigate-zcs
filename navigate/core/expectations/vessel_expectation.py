@@ -49,9 +49,6 @@ class VesselExpectation(_Expectation):
         self._speeds: list[
             np.ndarray
         ] = []  # list[leg_idx: float], expected speed per leg, knots
-        self._distances: list[
-            np.ndarray
-        ] = []  # list[leg_idx: float] expected distances per leg, nautical miles
 
         # durations
         self._time_sea: list[
@@ -180,7 +177,6 @@ class VesselExpectation(_Expectation):
         self._speed_anchor_reference = self._default_float(default=np.nan)
         self._speed_anchor_optimal = self._default_float(default=np.nan)
         self._speeds = self._default_list_array(n_leg)
-        self._distances = self._default_list_array(n_leg)
 
         # durations
         self._time_sea = self._default_list_array(n_leg)
@@ -336,10 +332,6 @@ class VesselExpectation(_Expectation):
     def set_speeds(self, idx: int, speeds: list) -> None:
         for i, speed in enumerate(speeds):
             self._speeds[i][idx] = speed
-
-    def set_distances(self, idx: int, distances: list) -> None:
-        for i, distance in enumerate(distances):
-            self._distances[i][idx:] = distance
 
     def set_time_sea(self, idx: int, time_sea: list) -> None:
         for i, time in enumerate(time_sea):

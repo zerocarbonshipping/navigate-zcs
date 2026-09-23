@@ -153,7 +153,6 @@ def transfer_operational_profile(
 
     # transfer expectations
     vessel.expectation.set_voyages(idx, operations.voyages)
-    vessel.expectation.set_distances(idx, operations.distances)
     vessel.expectation.set_speeds(idx, operations.speeds)
     vessel.expectation.set_time_sea(idx, operations.times_sea)
     vessel.expectation.set_time_port(idx, operations.times_port)
