@@ -28,7 +28,7 @@ from navigate.economics.decision import calculate_asset_shares
 from navigate.economics.flows import expand_to_flow, trim_flow_to_lifetime
 from navigate.economics.metric import calculate_net_present_value
 from navigate.fleet.utils import is_retrofit_cycle
-from navigate.util import ROUND_OFF, YEAR, extract_from_tuple_dict
+from navigate.util import ROUND_OFF, YEAR
 
 if TYPE_CHECKING:
     from navigate.core import Scalar
@@ -353,11 +353,10 @@ def _extract_conversion_source(
     -------
     The source bundle, or None when no conversion lane is defined for the vessel type.
     """
-    conversion_costs = extract_from_tuple_dict(
-        fleet.fuel_conversion_cost, key1=vessel_from.name
-    )
     conversion_costs = {
-        name_to: cost for name_to, cost in conversion_costs.items() if cost is not None
+        name_to: cost
+        for (name_from, name_to), cost in fleet.fuel_conversion_cost.items()
+        if name_from == vessel_from.name and cost is not None
     }
 
     if not conversion_costs:

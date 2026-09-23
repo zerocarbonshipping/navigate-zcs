@@ -12,7 +12,6 @@ from navigate.util import (
     add_dicts,
     collapse_tuple_dict,
     extract_from_dict,
-    extract_from_tuple_dict,
     multiply_dicts,
     slice_dict_list,
     sum_dict_results,
@@ -150,39 +149,6 @@ class TestExtractFromDict:
         result = extract_from_dict({"a": value}, "a", np.array([2, 0]))
         np.testing.assert_array_equal(result, [3.0, 1.0])
         assert not np.shares_memory(result, value)
-
-
-class TestExtractFromTupleDict:
-    @pytest.fixture
-    def result(self):
-        return {
-            ("a", "x"): np.array([1.0, 2.0]),
-            ("a", "y"): np.array([10.0, 20.0]),
-            ("b", "x"): np.array([100.0, 200.0]),
-        }
-
-    def test_both_keys_give_the_sliced_value(self, result):
-        assert extract_from_tuple_dict(result, "a", "y", 1) == 20.0
-
-    def test_key1_collects_by_key2(self, result):
-        assert extract_from_tuple_dict(result, key1="a", idx=0) == {"x": 1.0, "y": 10.0}
-
-    def test_key2_collects_by_key1(self, result):
-        assert extract_from_tuple_dict(result, key2="x", idx=1) == {
-            "a": 2.0,
-            "b": 200.0,
-        }
-
-    def test_no_keys_slice_the_whole_dict(self, result):
-        sliced = extract_from_tuple_dict(result, idx=0)
-        assert sliced == {("a", "x"): 1.0, ("a", "y"): 10.0, ("b", "x"): 100.0}
-
-    def test_no_index_leaves_values_unsliced(self, result):
-        whole = extract_from_tuple_dict(result, key1="b")
-        np.testing.assert_array_equal(whole["x"], [100.0, 200.0])
-
-    def test_empty_input_stays_empty(self):
-        assert extract_from_tuple_dict({}, idx=0) == {}
 
 
 class TestSliceDictList:

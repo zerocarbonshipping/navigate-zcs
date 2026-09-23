@@ -11,7 +11,6 @@ import numpy as np
 
 if TYPE_CHECKING:
     from collections.abc import (
-        Callable,
         Collection,
         Hashable,
         Iterable,
@@ -229,68 +228,6 @@ def extract_from_dict[K](
     return _resolve_dict(result, idx)
 
 
-# deliberately not overloaded: four return shapes keyed on two optional
-# parameters, and no caller passes a statically known key pair
-def extract_from_tuple_dict[K1, K2](
-    result: dict[tuple[K1, K2], FloatLike],
-    key1: K1 | None = None,
-    key2: K2 | None = None,
-    idx: Index | None = None,
-    transform: Callable[[FloatLike], FloatLike] = lambda x: x,
-) -> (
-    dict[tuple[K1, K2], FloatLike]
-    | dict[K1, FloatLike]
-    | dict[K2, FloatLike]
-    | FloatLike
-):
-    """
-    Extract results from a tuple-keyed dict: dict[tuple[K1, K2], FloatLike].
-
-    If both keys are given, returns a single (possibly sliced) value.
-    If only key1 is given, returns {key2: value} for matching (key1, key2).
-    If only key2 is given, returns {key1: value} for matching (key1, key2).
-    If neither is given, returns the whole dict.
-
-    If idx is not None and the return is a dict, values are sliced (when possible) then
-    transformed.
-
-    Parameters
-    ----------
-    result
-        Profile result given as a tuple dict.
-    key1
-        First key.
-    key2
-        Second key.
-    idx
-        Time-step index(es) or slice.
-    transform
-        Transform of the extracted values.
-
-    Returns
-    -------
-    dict | FloatLike
-        Desired form of result from tuple dict; dicts are keyed by the
-        remaining key part(s).
-    """
-    if not result:
-        return result
-
-    if (key1 is not None) and (key2 is not None):
-        value = result[(key1, key2)]
-        return transform(_slice_value(value, idx))
-
-    if key1 is not None:
-        by_key2 = {k2: value for (k1, k2), value in result.items() if k1 == key1}
-        return _resolve_dict(by_key2, idx, transform)
-
-    if key2 is not None:
-        by_key1 = {k1: value for (k1, k2), value in result.items() if k2 == key2}
-        return _resolve_dict(by_key1, idx, transform)
-
-    return _resolve_dict(result, idx, transform)
-
-
 def sum_dict_results[K](
     result: dict[K, FloatArray],
     idx: Index | None = None,
@@ -452,12 +389,11 @@ def slice_dict_list[K](
 def _resolve_dict[K](
     result: dict[K, FloatLike],
     idx: Index | None,
-    transform: Callable[[FloatLike], FloatLike] = lambda x: x,
 ) -> dict[K, FloatLike]:
     if idx is None:
         return result
 
-    return {key: transform(_slice_value(value, idx)) for key, value in result.items()}
+    return {key: _slice_value(value, idx) for key, value in result.items()}
 
 
 def _slice_value(value: FloatLike, idx: Index | None) -> FloatLike:
