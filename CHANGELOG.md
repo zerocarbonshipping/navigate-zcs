@@ -887,6 +887,14 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   1 exactly; both it and `InitialSplit`'s entry name the 1% deviation above
   which the rescale is logged, and that a list summing to 0 is accepted
   unchanged.
+- The tied-capital expectation store of plants and vessels is zero-initialized
+  like its sibling list storages, and both `get_tied_capital` getters declare
+  the `np.ndarray` they now always return. An unwritten slot previously held
+  `None`, reachable through an `InitialAgeDistribution` whose curve starts at a
+  negative age: that read one index past the current time step, where the plant
+  store already returned a real array and the charter rate zero, while the
+  vessel store raised an `AttributeError`. Such an increment now contributes
+  zero tied capital. No committed deck is affected.
 
 ## [1.0.0] - 2026-07-16
 

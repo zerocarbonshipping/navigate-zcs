@@ -48,9 +48,7 @@ class PlantExpectation(_Expectation):
         ] = {}  # levelized cost of delivery, USD/ton
 
         # capital
-        self._tied_capital: list[
-            np.ndarray | None
-        ] = []  # list[time_step: np.ndarray], USD
+        self._tied_capital: list[np.ndarray] = []  # yearly flow from commencement, USD
 
         # emissions
         self._production_wtt: dict[
@@ -93,7 +91,7 @@ class PlantExpectation(_Expectation):
         self._levelized_production_cost = self._default_array()
         self._levelized_delivery_cost = self._default_dict_array(ports)
 
-        self._tied_capital = self._allocate_list()
+        self._tied_capital = self._default_list_array(self._length)
 
         self._production_wtt = self._default_dict_array(emissions)
         self._delivery_wtt = self._default_tuple_dict_array(ports, emissions)

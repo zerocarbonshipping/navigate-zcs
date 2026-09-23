@@ -157,9 +157,7 @@ class VesselExpectation(_Expectation):
         self._technology_charter_rate: np.ndarray = (
             EMPTY_FLOAT  # fleet-average technology charge, USD/year
         )
-        self._tied_capital: list[
-            np.ndarray | None
-        ] = []  # list[time_step: np.ndarray], USD
+        self._tied_capital: list[np.ndarray] = []  # yearly flow from commencement, USD
 
     def initialize(self, length: int, route: Route, fuels: dict[str, Fuel]) -> None:
         self._initialize_expectation(length)
@@ -288,7 +286,7 @@ class VesselExpectation(_Expectation):
         self._asset_charter_rate = self._default_array()
         self._freight_rate = self._default_array()
         self._technology_charter_rate = self._default_array()
-        self._tied_capital = self._allocate_list()
+        self._tied_capital = self._default_list_array(self._length)
 
     def reset_expected_bunkering(self) -> None:
         self._total_energy = self._default_array()
@@ -744,5 +742,5 @@ class VesselExpectation(_Expectation):
     def get_technology_charter_rate(self, idx: int) -> float:
         return self._technology_charter_rate[idx]
 
-    def get_tied_capital(self, idx: int) -> np.ndarray | None:
+    def get_tied_capital(self, idx: int) -> np.ndarray:
         return self._tied_capital[idx]
