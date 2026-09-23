@@ -13,7 +13,9 @@ from navigate.util import (
     collapse_tuple_dict,
     extract_from_dict,
     multiply_dicts,
+    slice_dict,
     slice_dict_list,
+    slice_list,
     sum_dict_results,
 )
 
@@ -149,6 +151,61 @@ class TestExtractFromDict:
         result = extract_from_dict({"a": value}, "a", np.array([2, 0]))
         np.testing.assert_array_equal(result, [3.0, 1.0])
         assert not np.shares_memory(result, value)
+
+
+class TestSliceList:
+    @pytest.fixture
+    def result(self):
+        return [np.array([1.0, 2.0, 3.0]), np.array([4.0, 5.0, 6.0])]
+
+    def test_scalar_index_gives_a_list_of_floats(self, result):
+        assert slice_list(result, 0) == [1.0, 4.0]
+
+    @pytest.mark.parametrize(
+        ("args", "expected"),
+        [
+            ((np.s_[1:],), [[2.0, 3.0], [5.0, 6.0]]),
+            ((np.array([2, 0]),), [[3.0, 1.0], [6.0, 4.0]]),
+            ((), [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]),
+        ],
+        ids=["slice", "fancy_index", "no_index_slices_the_whole_timeline"],
+    )
+    def test_index_kinds(self, result, args, expected):
+        np.testing.assert_array_equal(slice_list(result, *args), expected)
+
+
+class TestSliceDict:
+    @pytest.fixture
+    def result(self):
+        return {"a": np.array([1.0, 2.0, 3.0])}
+
+    def test_scalar_index_gives_a_dict_of_floats(self, result):
+        assert slice_dict(result, 0) == {"a": 1.0}
+
+    @pytest.mark.parametrize(
+        ("args", "expected"),
+        [
+            ((np.s_[1:],), [2.0, 3.0]),
+            ((np.array([2, 0]),), [3.0, 1.0]),
+            ((np.int64(1),), 2.0),
+            ((), [1.0, 2.0, 3.0]),
+        ],
+        ids=[
+            "slice",
+            "fancy_index",
+            "numpy_scalar_index",
+            "no_index_slices_the_whole_timeline",
+        ],
+    )
+    def test_index_kinds(self, result, args, expected):
+        np.testing.assert_array_equal(slice_dict(result, *args)["a"], expected)
+
+    def test_fancy_index_returns_a_copy(self, result):
+        sliced = slice_dict(result, np.array([2, 0]))
+        assert not np.shares_memory(sliced["a"], result["a"])
+
+    def test_whole_dict_is_not_the_input_object(self, result):
+        assert slice_dict(result) is not result
 
 
 class TestSliceDictList:
