@@ -22,7 +22,6 @@ from navigate.output.plots._illu_util import (
 from navigate.output.plots._style import (
     LEGEND_OPTIONS,
 )
-from navigate.util import extract_from_tuple_dict
 
 
 def plot_technology_uptake(manager, directory):
@@ -50,13 +49,16 @@ def plot_technology_uptake(manager, directory):
         technology_names = [technology.name for technology in fleet.technologies]
 
         for name in technology_names:
-            # NOTE: underlying storage is still a tuple-dict; keep extraction logic
-            shares_nb = (
-                extract_from_tuple_dict(uptakes_nb, key2=name) if uptakes_nb else {}
-            )
-            shares_rf = (
-                extract_from_tuple_dict(uptakes_rf, key2=name) if uptakes_rf else {}
-            )
+            shares_nb = {
+                vessel_name: share
+                for (vessel_name, technology), share in uptakes_nb.items()
+                if technology == name
+            }
+            shares_rf = {
+                vessel_name: share
+                for (vessel_name, technology), share in uptakes_rf.items()
+                if technology == name
+            }
 
             values_nb = [
                 shares_nb[vessel.name]

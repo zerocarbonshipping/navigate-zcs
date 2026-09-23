@@ -733,6 +733,13 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   getters, expectation getters are never dispatched by name from a report or
   plot property, so no deck reaches one. The state behind them is still
   written and unchanged.
+- **Breaking** for code importing navigate as a library:
+  `extract_from_tuple_dict` (`navigate/util/collections.py`, re-exported from
+  `navigate.util`). All three call sites selected on a single key part and
+  passed neither an index nor a transform, so each now builds the dict it
+  needs with a comprehension; the both-keys arm, the whole-dict arm, the
+  `idx` parameter and the never-passed `transform` parameter had no caller.
+  The `transform` parameter of the internal `_resolve_dict` goes with it.
 
 ### Fixed
 - The error for a node found in neither the deck nor the default library
