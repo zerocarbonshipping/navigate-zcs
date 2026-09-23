@@ -7,14 +7,14 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.profiles._fuel_base_profile import _FuelBaseProfile
+from navigate.core.profiles._fuel_emission_profile import _FuelEmissionProfile
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fuel import Fuel
     from navigate.util.types_ import FloatArray
 
 
-class _FuelInfrastructureProfile(_FuelBaseProfile):
+class _FuelInfrastructureProfile(_FuelEmissionProfile):
     """Base class used exclusively for sub-classing."""
 
     def __init__(self):

@@ -47,6 +47,17 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `get_remaining_cost_flow`).
 
 ### Changed
+- Internal reorganization (no DSL or result changes): the five profiles that
+  weigh emissions by global warming potential (vessel, fleet, manager, port
+  and plant) share one `_FuelEmissionProfile` layer that reads the emission
+  nodes once, where three of them each built the same lookup; `PlantProfile`
+  joins the fuel-profile branch and reads its fuel's lower heating value from
+  the shared lookup by fuel name. **Breaking** for code importing navigate as
+  a library: `Plant.initialize_profile` takes the fuels dict and
+  `PlantProfile.initialize` the fuels dict and the fuel name;
+  `Emission.global_warming_potential` holds its zero default from
+  construction and `Emission.initialize` is gone; `Scalar.get` is typed with
+  paired overloads (an array in returns an array, anything else a `float`).
 - **Breaking** for code importing navigate as a library: `assign_fraction_list`
   returns the rescaled fractions instead of also rescaling the list it was
   handed, and its second return value is named for the rescale it reports.
