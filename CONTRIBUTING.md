@@ -73,7 +73,10 @@ Issues are the preferred way to ask. Whether you are unsure if a change needs
 a feature request first, want to discuss a design, or have a question about
 the model, open an issue and we will get back to you.
 
+## AI tools
 
-### Note on AI Tools
-
-The use of Generative AI and related tools is neither encouraged nor discouraged. However, you are responsible for the quality of your own contributions, and we kindly ask that you do not clutter the repository with code or inputs you do not fully understand.
+The use of generative AI and related tools is neither encouraged nor
+discouraged. You are responsible for the quality of your own contributions,
+and we kindly ask that you do not clutter the repository with code or inputs
+you do not fully understand. `AGENTS.md` at the repository root is the entry
+point for anyone starting to work here; coding agents read it automatically.
