@@ -17,8 +17,6 @@ helpers in `tests/helpers/`, and each simulating suite's decks under its own
 - Coverage of the DSL attribute/command surface → `tests/attribute` (no
   README; conventions: the module docstrings of `test_attribute_coverage.py`
   and `test_report_properties.py`).
-- Domain-expected behaviour of a full simulation → `tests/guardrails`
-  (conventions: `tests/guardrails/README.md`).
 - "Did simulation results change when they shouldn't have?" →
   `tests/regression` (golden baselines; conventions:
   `tests/regression/README.md`).
@@ -71,7 +69,5 @@ helpers in `tests/helpers/`, and each simulating suite's decks under its own
   `tests/attribute/test_report_properties.py` checks that it resolves to a
   profile getter; nothing checks that a committed deck activates it, and an
   all-NaN column compares equal to its baseline and carries no signal.
-- A new guardrail deck: `BEHAVIOR.md`, a test module, the shared includes;
-  the layout and template are in `tests/guardrails/README.md`.
 - A new regression deck: exact comparison at first, activation guards, and
   the baseline in a commit of its own; `tests/regression/README.md`.

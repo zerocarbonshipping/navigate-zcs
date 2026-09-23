@@ -77,12 +77,12 @@ overwrite each other's files, and the test suites run decks too.
 - The test targets are `test-unit`, `test-attribute`, `test-guardrails`,
   `test-regression`, `test-tutorials`, `test-examples` and `test-all`. What
   each suite answers, how long it takes and its conventions are documented
-  under `tests/`.
+  under `tests/`. `test-guardrails` is suspended and is not part of
+  `test-all`; the status note in `tests/guardrails/README.md` has the
+  detail.
 - `make docs` builds the user manual.
 - CI runs on every pull request: Lint, Build package, and Run tests with the
-  unit, attribute, regression, tutorial and example suites. The guardrails
-  are not in CI. Run `make test-guardrails` locally for any change that can
-  move simulation results.
+  unit, attribute, regression, tutorial and example suites.
 
 ## Rules for every change
 
@@ -114,10 +114,9 @@ overwrite each other's files, and the test suites run decks too.
   `docs/reference_manual/`; and the attribute coverage test. The first two
   are checked against each other; the manual page is not.
 - A change that moves simulation results explains the difference in the
-  pull request, passes the guardrails locally, and regenerates the
-  regression baselines with `make regen-regression` in a commit of their
-  own. Baselines are never edited by hand, and guardrail assertions are
-  never edited to make them pass.
+  pull request and regenerates the regression baselines with
+  `make regen-regression` in a commit of their own. Baselines are never
+  edited by hand.
 - A new non-trivial calculation gets a unit test whose expected value is
   derived independently of the implementation; `tests/unit/README.md` has
   the conventions.

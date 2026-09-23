@@ -62,8 +62,10 @@ what the change did to results.
 Triage of a red suite:
 
 - Unintended change → fix the code, not the baseline.
-- Intended change → regenerate, review the diff, and use the guardrails to
-  argue "different and correct" rather than "different and broken".
+- Intended change → regenerate, then read the baseline diff against what the
+  change was meant to do: every moved cell has to follow from the intended
+  mechanism, and one that does not is a second change riding along. Carry
+  that reasoning into the pull request.
 - Structural failure (missing file or column) → the report writer logs
   swallowed per-sheet errors at ERROR level in the deck `.log`; the wide
   report's no-match lines for absent node types log at WARNING and are
@@ -76,10 +78,13 @@ Triage of a red suite:
 
 ## Deck rules
 
-Guardrail conventions apply (`tests/guardrails/README.md`): pin the solver
-(`0_includes/options.inc`), pin scenario inputs as explicit constants, size
-the scenario by tuning deck inputs. In addition:
+The deck rules in `tests/AGENTS.md` apply: the solver is pinned through
+`0_includes/options.inc` and scenario inputs are pinned as explicit
+constants. In addition:
 
+- Tuning sizes the scenario, not the comparison: tune deck inputs
+  (constraints, capacities, regulation levels) until the run has the
+  intended shape, and never widen a tolerance to fit a badly-sized deck.
 - Every deck has activation guards: assertions that its mechanism actually
   fired, plus wiring guards for inputs whose defaults would silently make the
   baseline insensitive (a zero discount rate, an unset `include_vessel`).
