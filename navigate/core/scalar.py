@@ -1,9 +1,16 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Scalar, the float wrapper that setters store in place of a calculator node."""
+
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, overload
+
 import numpy as np
+
+if TYPE_CHECKING:
+    from navigate.util.types_ import FloatArray, FloatLike
 
 
 class Scalar:
@@ -23,28 +30,32 @@ class Scalar:
     def __repr__(self) -> str:
         return f"Scalar({self._value!s})"
 
-    def get(self, x=None, y=None) -> float | np.ndarray:
+    @overload
+    def get(self, x: FloatArray, y: FloatLike | None = None) -> FloatArray: ...
+
+    @overload
+    def get(self, x: float | None = None, y: FloatLike | None = None) -> float: ...
+
+    def get(self, x: FloatLike | None = None, y: FloatLike | None = None) -> FloatLike:
         """
-        Return the number associated to a Value.
+        Return the wrapped number, broadcast to the shape of an array input.
 
         Parameters
         ----------
-        x : float or np.ndarray or str
-            Dummy input variable for calculations with getters of 1 input.
-        y : float or np.ndarray or str
-            Dummy input variable for calculations with getters of 2 input.
+        x
+            Dummy first input matching the calculator getters; an array sets
+            the output shape.
+        y
+            Dummy second input matching the calculator getters.
 
         Returns
         -------
-        float
-            Assigned scalar value.
+        float or FloatArray
+            The wrapped number, or an array of it in the shape of ``x``.
         """
-        # no need to check against y
-        # as y can never be passed
-        # without x and will always
-        # have the same size
-        if (x is not None) and isinstance(x, np.ndarray):
+        # y never arrives without x and shares its shape, so x alone decides
+        # the output
+        if isinstance(x, np.ndarray):
             return np.full_like(x, self._value)
 
-        else:
-            return self._value
+        return self._value
