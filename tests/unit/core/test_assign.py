@@ -473,6 +473,33 @@ class TestAssignFractionList:
         with pytest.raises(ValueError, match="only allows assignment of lists"):
             assign_fraction_list((0.5, 0.5))
 
+    @pytest.mark.parametrize(
+        ("entry", "message"),
+        [
+            (Variable("v"), r'but got Variable\("v"\)'),
+            (Curve("c"), r'but got Curve\("c"\)'),
+            ([0.5], "but got list"),
+            (TableData(rows=[[1.0, 2.0]]), "but got table"),
+            (DATE, "but got date"),
+        ],
+        ids=["variable", "curve", "nested_list", "table", "date"],
+    )
+    def test_non_number_entry_rejected(self, entry, message):
+        # the sign check compares every entry against 0.0, so a value of
+        # another kind used to escape as a TypeError the parser cannot locate
+        with pytest.raises(
+            ValueError, match=f"only allows assignment of plain numbers, {message}"
+        ):
+            assign_fraction_list([0.5, entry])
+
+    def test_integer_entries_rescale(self):
+        # the kind check accepts integers because rescaling is what turns a
+        # whole-number list into the floats assign_list then requires
+        fractions, rescaled = assign_fraction_list([1, 1])
+
+        assert fractions == pytest.approx([0.5, 0.5])
+        assert rescaled is True
+
 
 # ── command_assignment_to_dict ────────────────────────────────────────────────
 

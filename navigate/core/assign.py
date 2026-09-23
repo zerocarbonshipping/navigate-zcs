@@ -774,5 +774,12 @@ def _check_fraction_list(fractions: object) -> None:
     if not isinstance(fractions, list):
         raise ValueError("only allows assignment of lists")
 
-    if any(fraction < 0.0 for fraction in fractions):
-        raise ValueError("does not allow negative values")
+    # a non-number would reach the comparison below as a TypeError carrying no
+    # deck line for the parser to report; a deck writes floats only, and the
+    # integer list a Python caller can pass is accepted when it rescales
+    for fraction in fractions:
+        if not isinstance(fraction, (int, float)):
+            raise ValueError(_only_allows("plain numbers", fraction))
+
+        if fraction < 0.0:
+            raise ValueError("does not allow negative values")
