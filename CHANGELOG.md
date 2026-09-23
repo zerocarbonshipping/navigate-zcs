@@ -167,6 +167,14 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   at fault. Each of the three died as a `TypeError` that no deck line could be
   attached to. The `does not accept ID 'X'` message an unknown token produces
   is unchanged.
+- A whole-number `InitialSplit` or `ConditionDistribution` list is accepted
+  whatever it sums to, so `ConditionDistribution = [1]` — the single-leg
+  example in the reference manual — is taken rather than rejected as
+  `only allows assignment of scalars, but got integer`. Only a list the
+  rescale happened to divide reached the attribute as fractions; every other
+  one failed under a rule the attribute does not have. No deck moves: the DSL
+  grammar reads every number as a float, so this was reachable from Python
+  only.
 - `set_operational_saving_port(PROPULSION, 0.1)` is rejected as an energy
   demand the command does not accept, `only allows assignment of ELECTRICAL,
   HEAT, but got PROPULSION`, naming the same two demands the wildcard spelling

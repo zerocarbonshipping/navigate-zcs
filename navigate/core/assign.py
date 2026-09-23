@@ -443,6 +443,8 @@ def assign_fraction_list(fractions: list[float]) -> tuple[list[float], bool]:
 
     A list summing to anything else is rescaled proportionally, and the flag
     says whether the deviation was large enough for the setter to report it.
+    Whole numbers are floated first, so a list written as integers takes the
+    same path as its float spelling whatever it sums to.
 
     If the requirements are not satisfied a ValueError is raised. Note that this error is only a partial message
     designed to be caught at a higher level.
@@ -459,6 +461,8 @@ def assign_fraction_list(fractions: list[float]) -> tuple[list[float], bool]:
         more than one percent.
     """
     _check_fraction_list(fractions)
+
+    fractions = [float(fraction) for fraction in fractions]
 
     rescaled = False
     total = round(sum(fractions), ROUND_OFF)
@@ -826,8 +830,8 @@ def _check_fraction_list(fractions: object) -> None:
         raise ValueError("only allows assignment of lists")
 
     # a non-number would reach the comparison below as a TypeError carrying no
-    # deck line for the parser to report; a deck writes floats only, and the
-    # integer list a Python caller can pass is accepted when it rescales
+    # deck line for the parser to report; int, and the bool that subclasses it,
+    # pass because assign_fraction_list floats every entry it is handed
     for fraction in fractions:
         if not isinstance(fraction, (int, float)):
             raise ValueError(_only_allows("plain numbers", fraction))

@@ -573,13 +573,29 @@ class TestAssignFractionList:
         ):
             assign_fraction_list([0.5, entry])
 
-    def test_integer_entries_rescale(self):
-        # the kind check accepts integers because rescaling is what turns a
-        # whole-number list into the floats assign_list then requires
-        fractions, rescaled = assign_fraction_list([1, 1])
+    @pytest.mark.parametrize(
+        ("fractions", "expected", "is_rescaled"),
+        [
+            ([1, 1], [0.5, 0.5], True),
+            ([1], [1.0], False),
+            ([1, 0], [1.0, 0.0], False),
+            ([0, 0], [0.0, 0.0], False),
+            ([True, False], [1.0, 0.0], False),
+        ],
+        ids=["rescales", "single", "unit_sum", "all_zero", "booleans"],
+    )
+    def test_whole_number_entries_take_the_float_path(
+        self, fractions, expected, is_rescaled
+    ):
+        # the kind check accepts whole numbers because they are floated before
+        # the rescale, so acceptance no longer depends on the total: only a
+        # list the rescale happened to divide used to reach assign_list as
+        # floats, and every other whole-number list was rejected as an integer
+        result, is_rescaled_result = assign_fraction_list(fractions)
 
-        assert fractions == pytest.approx([0.5, 0.5])
-        assert rescaled is True
+        assert result == pytest.approx(expected)
+        assert all(isinstance(fraction, float) for fraction in result)
+        assert is_rescaled_result is is_rescaled
 
 
 # ── command_assignment_to_dict ────────────────────────────────────────────────
