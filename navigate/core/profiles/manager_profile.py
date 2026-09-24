@@ -8,8 +8,8 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.initial_values import EMPTY_FLOAT
-from navigate.core.profiles._infrastructure_aggregate_profile import (
-    _InfrastructureAggregateProfile,
+from navigate.core.profiles._fuel_infrastructure_profile import (
+    _FuelInfrastructureProfile,
 )
 from navigate.core.profiles._plant_aggregate_profile import _PlantAggregateProfile
 from navigate.core.profiles._vessel_aggregate_profile import _VesselAggregateProfile
@@ -23,12 +23,12 @@ if TYPE_CHECKING:
 
 
 class ManagerProfile(
-    _VesselAggregateProfile, _PlantAggregateProfile, _InfrastructureAggregateProfile
+    _VesselAggregateProfile, _PlantAggregateProfile, _FuelInfrastructureProfile
 ):
     def __init__(self):
         _VesselAggregateProfile.__init__(self)
         _PlantAggregateProfile.__init__(self)
-        _InfrastructureAggregateProfile.__init__(self)
+        _FuelInfrastructureProfile.__init__(self)
 
         # computational time
         self._total_time: np.ndarray = EMPTY_FLOAT  # complete FT simulation time
@@ -86,7 +86,6 @@ class ManagerProfile(
         self._initialize_fuel_infrastructure(fuels)
         self._initialize_vessel_aggregate()
         self._initialize_plant_aggregate()
-        self._initialize_infrastructure_aggregate()
 
         # computational time
         self._total_time = self._default_array()

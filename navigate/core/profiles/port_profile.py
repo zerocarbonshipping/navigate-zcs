@@ -7,8 +7,8 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.profiles._infrastructure_aggregate_profile import (
-    _InfrastructureAggregateProfile,
+from navigate.core.profiles._fuel_infrastructure_profile import (
+    _FuelInfrastructureProfile,
 )
 
 if TYPE_CHECKING:
@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from navigate.util.types_ import BoolArray, FloatArray
 
 
-class PortProfile(_InfrastructureAggregateProfile):
+class PortProfile(_FuelInfrastructureProfile):
     def __init__(self):
         super().__init__()
 
@@ -57,7 +57,6 @@ class PortProfile(_InfrastructureAggregateProfile):
         self._initialize_fuel_base(fuels)
         self._initialize_fuel_emission(emissions, emissions_lifetime)
         self._initialize_fuel_infrastructure(fuels)
-        self._initialize_infrastructure_aggregate()
 
         self._bunkering_allowed = self._default_dict(fuels, default=False)
 
