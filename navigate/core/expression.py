@@ -16,7 +16,8 @@ from __future__ import annotations
 import ast
 import operator
 import re
-from typing import TYPE_CHECKING, NoReturn, Protocol, overload
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Protocol, overload
 
 import numpy as np
 
@@ -75,20 +76,11 @@ class _Evaluable(Protocol):
     ) -> FloatLike: ...
 
 
-class _Unparsed:
-    """Tree of an expression that has not been initialized."""
-
-    def evaluate(
-        self, node_references: _References, x: FloatLike | None, y: FloatLike | None
-    ) -> NoReturn:
-        raise RuntimeError("Expression evaluated before it was initialized.")
-
-
+@dataclass(frozen=True, slots=True)
 class _Constant:
     """Numeric literal."""
 
-    def __init__(self, value: float) -> None:
-        self.value: float = value  # the numeric literal
+    value: float  # the numeric literal
 
     def evaluate(
         self, node_references: _References, x: FloatLike | None, y: FloatLike | None
@@ -96,11 +88,11 @@ class _Constant:
         return self.value
 
 
+@dataclass(frozen=True, slots=True)
 class _Reference:
     """Reference to a node, evaluated through the node's getter."""
 
-    def __init__(self, index: int) -> None:
-        self.index: int = index  # position in the expression's references
+    index: int  # position in the expression's references
 
     def evaluate(
         self, node_references: _References, x: FloatLike | None, y: FloatLike | None
@@ -108,12 +100,12 @@ class _Reference:
         return node_references[self.index].get(x, y)
 
 
+@dataclass(frozen=True, slots=True)
 class _UnaryOperation:
     """Operator applied to a single operand."""
 
-    def __init__(self, operator_: _UnaryOperator, operand: _Evaluable) -> None:
-        self.operator: _UnaryOperator = operator_  # the arithmetic operation
-        self.operand: _Evaluable = operand  # subtree the operator is applied to
+    operator: _UnaryOperator  # the arithmetic operation
+    operand: _Evaluable  # subtree the operator is applied to
 
     def evaluate(
         self, node_references: _References, x: FloatLike | None, y: FloatLike | None
@@ -121,15 +113,13 @@ class _UnaryOperation:
         return self.operator(self.operand.evaluate(node_references, x, y))
 
 
+@dataclass(frozen=True, slots=True)
 class _BinaryOperation:
     """Operator applied to two operands."""
 
-    def __init__(
-        self, operator_: _BinaryOperator, left: _Evaluable, right: _Evaluable
-    ) -> None:
-        self.operator: _BinaryOperator = operator_  # the arithmetic operation
-        self.left: _Evaluable = left  # subtree on the left of the operator
-        self.right: _Evaluable = right  # subtree on the right of the operator
+    operator: _BinaryOperator  # the arithmetic operation
+    left: _Evaluable  # subtree on the left of the operator
+    right: _Evaluable  # subtree on the right of the operator
 
     def evaluate(
         self, node_references: _References, x: FloatLike | None, y: FloatLike | None
@@ -277,7 +267,7 @@ class Expression:
         self.reference_location: str = ""  # deck file and line it is read from
         self.internal_bounds: tuple[float, float] = (-np.inf, np.inf)  # clip range
 
-        self._tree: _Evaluable = _Unparsed()  # evaluator tree built from the text
+        self._tree: _Evaluable | None = None  # evaluator tree built from the text
         self._node: Node | None = None  # node the expression is assigned to
         self._allowed_types: list[str] | None = None  # node types the attribute accepts
 
@@ -295,6 +285,32 @@ class Expression:
         """
         self._node = node
         self._tree, self.reference_strings = _Builder(self.text, node).build()
+
+    def resolve(
+        self, node: Node, read_reference: Callable[[str, str], _ReferencedNode]
+    ) -> None:
+        """
+        Initialize the expression, resolve its references and check their types.
+
+        An expression already initialized is left as it is.
+
+        Parameters
+        ----------
+        node
+            Node the expression is assigned to.
+        read_reference
+            Returns the node a canonical reference string names, given the
+            string and the deck location the expression is read from.
+        """
+        if self.is_initialized():
+            return
+
+        self.initialize(node)
+        self.node_references = [
+            read_reference(reference_string, self.reference_location)
+            for reference_string in self.reference_strings
+        ]
+        self.check_consistency()
 
     @overload
     def get(self, x: FloatArray, y: FloatLike | None = None) -> FloatArray: ...
@@ -319,6 +335,9 @@ class Expression:
             Expression value, clipped to the internal bounds and broadcast to
             the shape of the input.
         """
+        if self._tree is None:
+            raise RuntimeError("Expression evaluated before it was initialized.")
+
         evaluated = self._tree.evaluate(self.node_references, x, y)
         value = np.clip(evaluated, *self.internal_bounds)
 
@@ -368,7 +387,7 @@ class Expression:
         bool
             True once the text has been built into an evaluator tree.
         """
-        return not isinstance(self._tree, _Unparsed)
+        return self._tree is not None
 
     def check_consistency(self) -> None:
         """Check that the attribute accepts the node types the expression references."""
