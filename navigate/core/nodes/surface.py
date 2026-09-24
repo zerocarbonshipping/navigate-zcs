@@ -28,14 +28,16 @@ class Surface(Node, _Table2D):
         if self.extrapolate == ExtrapolateID.FLAT:
             if self._outside is None:
                 raise ValueError(
-                    "{}: 'Outside' must be defined when 'Extrapolate' is set to FLAT."
+                    f"{self}: 'Outside' must be defined when 'Extrapolate' is set to"
+                    " FLAT."
                 )
 
         else:
             if self._outside is not None:
                 logger.warning(
-                    "{}: 'Outside' is defined, but ignored since 'Extrapolate' is set"
-                    " to LINEAR."
+                    "%s: 'Outside' is defined, but ignored since 'Extrapolate' is set"
+                    " to LINEAR.",
+                    self,
                 )
 
     def get(self, x: float, y: float) -> float:

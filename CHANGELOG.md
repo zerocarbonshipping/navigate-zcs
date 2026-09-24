@@ -819,6 +819,11 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   nodes. No deck result moves.
 
 ### Fixed
+- The four `Outside`/`Extrapolate` messages a `Surface` or a `Timetable`
+  raises or logs name the node that carried the contradiction. Each was
+  written with a literal `{}` and never formatted, so the error read
+  `{}: 'Outside' must be defined when 'Extrapolate' is set to FLAT.` and gave
+  the reader nothing to look for in the deck.
 - The bounds an attribute imposes reach the nodes a wildcard matched, as they
   already did for a node written out by name. A calculator (`Curve`,
   `Forecast`, `Surface`, `Timetable`, `Variable`) reached through a glob — on
