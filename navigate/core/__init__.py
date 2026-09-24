@@ -16,6 +16,7 @@ from navigate.core.assign import (
     command_assignment_to_boolean_dict,
     command_assignment_to_dict,
     command_assignment_to_tuple_dict,
+    default_unassigned,
     expand_id_wildcard,
 )
 from navigate.core.expression import Expression
