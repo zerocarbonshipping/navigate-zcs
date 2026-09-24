@@ -5,6 +5,8 @@
 
 from __future__ import annotations
 
+from typing import final
+
 from navigate.core.node_type import TypeCheckMixin
 
 
@@ -38,12 +40,14 @@ class Node(TypeCheckMixin):
         """Empty the command-reference queue."""
         self.command_references = []
 
+    @final
     def initialize(self) -> None:
         """Bring the node to a usable state, from the deck as first read."""
         self.check_requirements()
         self.apply_defaults()
         self.reinitialize()
 
+    @final
     def reinitialize(self) -> None:
         """Re-run everything a re-read of the deck can invalidate."""
         self.apply_command_defaults()
