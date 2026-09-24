@@ -7,13 +7,13 @@ from __future__ import annotations
 
 import re
 from enum import Enum
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
 
-def retrieve_keys[K](key: str | K, allowed_keys: Iterable[K]) -> list[K]:
+def retrieve_keys[K: str | Enum](key: str | K, allowed_keys: Iterable[K]) -> list[K]:
     """
     Retrieve all keys from 'allowed_keys' matching the (potential) wildcard in key.
 
@@ -49,12 +49,11 @@ def retrieve_keys[K](key: str | K, allowed_keys: Iterable[K]) -> list[K]:
         raise KeyError(key)
 
     regex = re.compile(wildcard_to_regex(key))
-    # a string key is only matched against string keys; non-string keys
-    # take the early return above
-    keys = [
+    # a string pattern only matches string keys
+    keys: list[K] = [
         allowed_key
         for allowed_key in allowed_keys
-        if regex.match(cast("str", allowed_key))
+        if isinstance(allowed_key, str) and regex.match(allowed_key)
     ]
 
     if not keys:
@@ -63,7 +62,7 @@ def retrieve_keys[K](key: str | K, allowed_keys: Iterable[K]) -> list[K]:
     return keys
 
 
-def matching_keys[K](key: str | K, allowed_keys: Iterable[K]) -> list[K]:
+def matching_keys[K: str | Enum](key: str | K, allowed_keys: Iterable[K]) -> list[K]:
     """
     Retrieve the keys matching the wildcard expression in 'key'.
 
@@ -88,7 +87,7 @@ def matching_keys[K](key: str | K, allowed_keys: Iterable[K]) -> list[K]:
         return []
 
 
-def key_name(key: object) -> str:
+def key_name(key: str | Enum) -> str:
     """
     Name a dictionary key the way a deck writes it.
 
@@ -105,7 +104,7 @@ def key_name(key: object) -> str:
     str
         Name of an enum member, the key itself otherwise.
     """
-    return key.name if isinstance(key, Enum) else str(key)
+    return key.name if isinstance(key, Enum) else key
 
 
 def attribute_to_setter(attribute: str, method: str = "set") -> str:

@@ -10,22 +10,6 @@ from typing import Protocol
 import numpy as np
 import numpy.typing as npt
 
-type FloatArray = npt.NDArray[np.float64]
-type FloatLike = float | FloatArray
-type BoolArray = npt.NDArray[np.bool_]
-
-# index-producing numpy operations (searchsorted and friends) reveal
-# width-parametrized signed integers, which only the unparametrized
-# signedinteger accepts
-type IntArray = npt.NDArray[np.signedinteger]
-
-# index kinds the collection helpers accept: Python and numpy scalar
-# positions, slices, and fancy-index arrays
-type Index = int | np.signedinteger | slice | IntArray
-
-type DateArray = npt.NDArray[np.datetime64]
-type TimedeltaArray = npt.NDArray[np.timedelta64]
-
 
 class _SupportsGet(Protocol):
     """Calculator duck type: anything evaluated via .get(None, None)."""
@@ -33,4 +17,14 @@ class _SupportsGet(Protocol):
     def get(self, x: None, y: None, /) -> FloatLike: ...
 
 
+type BoolArray = npt.NDArray[np.bool_]
+type DateArray = npt.NDArray[np.datetime64]
+type FloatArray = npt.NDArray[np.float64]
+type FloatLike = float | FloatArray
+type Index = int | np.signedinteger | slice | IntArray
+# index-producing numpy operations (searchsorted and friends) reveal
+# width-parametrized signed integers, which only the unparametrized
+# signedinteger accepts
+type IntArray = npt.NDArray[np.signedinteger]
+type TimedeltaArray = npt.NDArray[np.timedelta64]
 type _FloatOrCalculator = float | _SupportsGet

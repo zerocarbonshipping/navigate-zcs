@@ -41,23 +41,6 @@ def timedelta_to_days(delta: np.timedelta64 | TimedeltaArray) -> FloatLike:
     return delta.astype(np.float64)
 
 
-def _timedelta_to_years(delta: TimedeltaArray) -> FloatArray:
-    """
-    Convert a timedelta array to years.
-
-    Parameters
-    ----------
-    delta
-        Differences between np.datetime64 objects.
-
-    Returns
-    -------
-    FloatArray
-        Timedeltas in years.
-    """
-    return timedelta_to_days(delta) / YEAR
-
-
 def dates_to_days(dates: DateArray) -> FloatArray:
     """
     Convert a numpy date array to an array of days.
@@ -91,4 +74,4 @@ def dates_to_years(dates: DateArray) -> FloatArray:
         Array of years since the first date.
     """
     deltas: TimedeltaArray = dates - dates[0]
-    return _timedelta_to_years(deltas)
+    return timedelta_to_days(deltas) / YEAR
