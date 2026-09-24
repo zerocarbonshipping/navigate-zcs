@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 import itertools
-from typing import TYPE_CHECKING, overload
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -27,52 +27,40 @@ class _BaseProfile:
     def _initialize_base(self, timeline: FloatArray) -> None:
         self._timeline = timeline
 
-    @overload
-    def _default_array(self, default: bool) -> BoolArray: ...
-
-    @overload
-    def _default_array(self, default: float | None = None) -> FloatArray: ...
-
-    def _default_array(
-        self, default: float | bool | None = None
-    ) -> FloatArray | BoolArray:
+    def _default_array(self, default: float | None = None) -> FloatArray:
 
         if default is None:
             return np.zeros(self._timeline.shape)
         else:
-            dtype = bool if isinstance(default, bool) else np.float64
+            return np.full(self._timeline.shape, default, dtype=np.float64)
 
-            return np.full(self._timeline.shape, default, dtype=dtype)
+    def _default_bool_array(self, default: bool) -> BoolArray:
+        return np.full(self._timeline.shape, default, dtype=bool)
 
-    @overload
-    def _default_dict[K](
-        self, keys: Iterable[K], default: bool
-    ) -> dict[K, BoolArray]: ...
-
-    @overload
     def _default_dict[K](
         self, keys: Iterable[K], default: float | None = None
-    ) -> dict[K, FloatArray]: ...
-
-    def _default_dict[K](
-        self, keys: Iterable[K], default: float | bool | None = None
-    ) -> dict[K, FloatArray] | dict[K, BoolArray]:
+    ) -> dict[K, FloatArray]:
         return {key: self._default_array(default) for key in keys}
+
+    def _default_bool_dict[K](
+        self, keys: Iterable[K], default: bool
+    ) -> dict[K, BoolArray]:
+        return {key: self._default_bool_array(default) for key in keys}
 
     def _default_tuple_dict[K1, K2](
         self,
         keys1: Iterable[K1],
         keys2: Iterable[K2],
-        default: float | bool | None = None,
-    ) -> dict[tuple[K1, K2], FloatArray] | dict[tuple[K1, K2], BoolArray]:
+        default: float | None = None,
+    ) -> dict[tuple[K1, K2], FloatArray]:
         return self._default_dict(itertools.product(keys1, keys2), default)
 
     def _default_nested_dict[K1, K2](
         self,
         keys1: Iterable[K1],
         keys2: Iterable[K2],
-        default: float | bool | None = None,
-    ) -> dict[K1, dict[K2, FloatArray] | dict[K2, BoolArray]]:
+        default: float | None = None,
+    ) -> dict[K1, dict[K2, FloatArray]]:
         return {key: self._default_dict(keys2, default) for key in keys1}
 
     def _to_cumulative(self, value: FloatArray) -> FloatArray:

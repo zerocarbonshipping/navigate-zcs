@@ -58,7 +58,7 @@ class PortProfile(_FuelInfrastructureProfile):
         self._initialize_fuel_emission(emissions, emissions_lifetime)
         self._initialize_fuel_infrastructure(fuels)
 
-        self._bunkering_allowed = self._default_dict(fuels, default=False)
+        self._bunkering_allowed = self._default_bool_dict(fuels, default=False)
 
         self._bunker_price = self._default_dict(fuels)
         self._bunker_wtt = self._default_tuple_dict(fuels, emissions)
