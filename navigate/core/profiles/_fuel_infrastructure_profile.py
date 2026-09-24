@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""The profile layer for the bunkering infrastructure: ports and the manager."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -15,21 +17,16 @@ if TYPE_CHECKING:
 
 
 class _FuelInfrastructureProfile(_FuelEmissionProfile):
-    """Base class used exclusively for sub-classing."""
+    """Fuel bunkered, supplied and permitted by capacity at a bunkering location."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
-        self._bunker_mass: dict[str, np.ndarray] = {}  # amount bunkered, tons/year
-        self._bunker_supply_mass: dict[
-            str, np.ndarray
-        ] = {}  # available supply, tons/year
-        self._bunkering_limit_mass: dict[
-            str, np.ndarray
-        ] = {}  # infrastructure capacity, tons/year
+        self._bunker_mass: dict[str, FloatArray] = {}  # amount bunkered, tons/year
+        self._bunker_supply_mass: dict[str, FloatArray] = {}  # available, tons/year
+        self._bunkering_limit_mass: dict[str, FloatArray] = {}  # capacity, tons/year
 
     def _initialize_fuel_infrastructure(self, fuels: dict[str, Fuel]) -> None:
-
         self._bunker_mass = self._default_dict(fuels)
         self._bunkering_limit_mass = self._default_dict(fuels, default=np.nan)
 
@@ -49,21 +46,23 @@ class _FuelInfrastructureProfile(_FuelEmissionProfile):
 
         Parameters
         ----------
-        profile : _FuelInfrastructureProfile
-            Profile to be added.
-        idx : int
-            Time-step index.
+        profile
+            Infrastructure profile from another node.
+        idx
+            Time-step index or slice.
         """
-        for key in self._bunker_mass:
-            self._bunker_mass[key][idx] += profile._bunker_mass[key][idx]
+        for fuel_name in self._bunker_mass:
+            self._bunker_mass[fuel_name][idx] += profile._bunker_mass[fuel_name][idx]
 
-        for key in self._bunker_supply_mass:
-            self._bunker_supply_mass[key][idx] += profile._bunker_supply_mass[key][idx]
+        for fuel_name in self._bunker_supply_mass:
+            self._bunker_supply_mass[fuel_name][idx] += profile._bunker_supply_mass[
+                fuel_name
+            ][idx]
 
-        for key in self._bunkering_limit_mass:
-            self._bunkering_limit_mass[key][idx] += profile._bunkering_limit_mass[key][
-                idx
-            ]
+        for fuel_name in self._bunkering_limit_mass:
+            self._bunkering_limit_mass[fuel_name][idx] += profile._bunkering_limit_mass[
+                fuel_name
+            ][idx]
 
     def add_bunker_mass(
         self, fuel_name: str, mass: float, idx: int | slice = np.s_[:]

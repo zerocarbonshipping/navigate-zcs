@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""The profile layer for the fuel producers: producers and the manager."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -19,23 +21,15 @@ if TYPE_CHECKING:
 
 
 class _FuelProducerProfile(_FuelBaseProfile, _FuelTypeLookup):
-    """Base class used exclusively for sub-classing."""
+    """Fuel produced, feedstock consumed and the availability limit on it."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
-        # current production
-        self._production_mass: dict[
-            str, np.ndarray
-        ] = {}  # actual production, tons/year
+        self._production_mass: dict[str, FloatArray] = {}  # produced, tons/year
 
-        # feedstock
-        self._feed_mass: dict[
-            str, np.ndarray
-        ] = {}  # feedstock for production, ton/year
-
-        # constraints
-        self._feed_constraint: dict[str, np.ndarray] = {}
+        self._feed_mass: dict[str, FloatArray] = {}  # feedstock used, ton/year
+        self._feed_constraint: dict[str, FloatArray] = {}  # feed available, ton/year
 
     def _initialize_fuel_producer(
         self,
@@ -43,7 +37,6 @@ class _FuelProducerProfile(_FuelBaseProfile, _FuelTypeLookup):
         fuels: dict[str, Fuel],
         processes: dict[str, Process],
     ) -> None:
-
         self._production_mass = self._default_dict(fuels)
 
         feed = {**feedstocks, **processes}
@@ -58,19 +51,23 @@ class _FuelProducerProfile(_FuelBaseProfile, _FuelTypeLookup):
 
         Parameters
         ----------
-        profile : _PlantAggregateProfile | ProducerProfile
-            Aggregate profile from other node.
-        idx : int
-            Time-step index.
+        profile
+            Producer profile from another node.
+        idx
+            Time-step index or slice.
         """
-        for key in self._production_mass:
-            self._production_mass[key][idx] += profile._production_mass[key][idx]
+        for fuel_name in self._production_mass:
+            self._production_mass[fuel_name][idx] += profile._production_mass[
+                fuel_name
+            ][idx]
 
-        for key in self._feed_mass:
-            self._feed_mass[key][idx] += profile._feed_mass[key][idx]
+        for feed_name in self._feed_mass:
+            self._feed_mass[feed_name][idx] += profile._feed_mass[feed_name][idx]
 
-        for key in self._feed_constraint:
-            self._feed_constraint[key][idx] += profile._feed_constraint[key][idx]
+        for feed_name in self._feed_constraint:
+            self._feed_constraint[feed_name][idx] += profile._feed_constraint[
+                feed_name
+            ][idx]
 
     def add_production_mass(
         self, fuel_name: str, mass: float, idx: int | slice = np.s_[:]

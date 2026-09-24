@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""The profile layer that sums vessels into a fleet or the whole model."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -13,39 +15,39 @@ from navigate.core.profiles._fuel_consumer_profile import _FuelConsumerProfile
 from navigate.util import divide_nonzero
 
 if TYPE_CHECKING:
-    from navigate.util.types_ import FloatArray
+    from navigate.util.types_ import FloatArray, FloatLike
 
 
 class _VesselAggregateProfile(_FuelConsumerProfile):
-    def __init__(self):
+    """Installed power, fleet turnover and expenses summed over a set of vessels."""
+
+    def __init__(self) -> None:
         super().__init__()
 
         # counterfactual raw energy: year-0 raw intensity times actual transport work
-        self._baseline_energy: np.ndarray = EMPTY_FLOAT
+        self._baseline_energy: FloatArray = EMPTY_FLOAT  # GJ/year
 
         # power
-        self._installed_power: dict[FuelTypeID, np.ndarray] = {}
-        self._newbuild_power: dict[FuelTypeID, np.ndarray] = {}
-        self._scrapped_power: dict[FuelTypeID, np.ndarray] = {}
-        self._fuel_converted_power: dict[tuple[FuelTypeID, FuelTypeID], np.ndarray] = {}
+        self._installed_power: dict[FuelTypeID, FloatArray] = {}  # MW
+        self._newbuild_power: dict[FuelTypeID, FloatArray] = {}  # added, MW/year
+        self._scrapped_power: dict[FuelTypeID, FloatArray] = {}  # scrapped, MW/year
+        # power moved from one fuel type to another, MW/year
+        self._fuel_converted_power: dict[tuple[FuelTypeID, FuelTypeID], FloatArray] = {}
 
         # expenses
-        self._vessel_expenses: np.ndarray = EMPTY_FLOAT
-        self._technology_expenses: np.ndarray = EMPTY_FLOAT
-        self._fuel_conversion_expenses: np.ndarray = EMPTY_FLOAT
-        self._vessel_tied_capital: np.ndarray = EMPTY_FLOAT
+        self._vessel_expenses: FloatArray = EMPTY_FLOAT  # acquisition, USD/year
+        self._technology_expenses: FloatArray = EMPTY_FLOAT  # USD/year
+        self._fuel_conversion_expenses: FloatArray = EMPTY_FLOAT  # USD/year
+        self._vessel_tied_capital: FloatArray = EMPTY_FLOAT  # USD
 
         # weighted average age (numerator and denominator for correct aggregation)
-        self._weighted_age_numerator: dict[
-            FuelTypeID, np.ndarray
-        ] = {}  # sum(age * power)
-        self._weighted_age_denominator: dict[FuelTypeID, np.ndarray] = {}  # sum(power)
+        self._weighted_age_numerator: dict[FuelTypeID, FloatArray] = {}  # age * power
+        self._weighted_age_denominator: dict[FuelTypeID, FloatArray] = {}  # power
 
-        # fuel
-        self._fuel_type_demand: dict[FuelTypeID, np.ndarray] = {}
+        # fuel demand at the minimum pilot fuel share
+        self._fuel_type_demand: dict[FuelTypeID, FloatArray] = {}  # GJ/year
 
     def _initialize_vessel_aggregate(self) -> None:
-
         self._baseline_energy = self._default_array()
 
         self._installed_power = self._default_dict(FuelTypeID)
@@ -71,49 +73,57 @@ class _VesselAggregateProfile(_FuelConsumerProfile):
 
         Parameters
         ----------
-        profile : _VesselAggregateProfile | VesselProfile
-            Aggregate profile from another node.
-        idx : int
-            Current time-step index.
+        profile
+            Vessel aggregate profile from another node.
+        idx
+            Time-step index or slice.
         """
         self._baseline_energy[idx] += profile._baseline_energy[idx]
 
-        for key in self._installed_power:
-            self._installed_power[key][idx] += profile._installed_power[key][idx]
+        for fuel_type in self._installed_power:
+            self._installed_power[fuel_type][idx] += profile._installed_power[
+                fuel_type
+            ][idx]
 
-        for key in self._newbuild_power:
-            self._newbuild_power[key][idx] += profile._newbuild_power[key][idx]
-
-        for key in self._scrapped_power:
-            self._scrapped_power[key][idx] += profile._scrapped_power[key][idx]
-
-        for key in self._fuel_converted_power:
-            self._fuel_converted_power[key][idx] += profile._fuel_converted_power[key][
+        for fuel_type in self._newbuild_power:
+            self._newbuild_power[fuel_type][idx] += profile._newbuild_power[fuel_type][
                 idx
             ]
+
+        for fuel_type in self._scrapped_power:
+            self._scrapped_power[fuel_type][idx] += profile._scrapped_power[fuel_type][
+                idx
+            ]
+
+        for fuel_type_conversion in self._fuel_converted_power:
+            self._fuel_converted_power[fuel_type_conversion][idx] += (
+                profile._fuel_converted_power[fuel_type_conversion][idx]
+            )
 
         self._vessel_expenses[idx] += profile._vessel_expenses[idx]
         self._technology_expenses[idx] += profile._technology_expenses[idx]
         self._fuel_conversion_expenses[idx] += profile._fuel_conversion_expenses[idx]
         self._vessel_tied_capital[idx] += profile._vessel_tied_capital[idx]
 
-        for key in self._weighted_age_numerator:
-            self._weighted_age_numerator[key][idx] += profile._weighted_age_numerator[
-                key
-            ][idx]
-
-        for key in self._weighted_age_denominator:
-            self._weighted_age_denominator[key][idx] += (
-                profile._weighted_age_denominator[key][idx]
+        for fuel_type in self._weighted_age_numerator:
+            self._weighted_age_numerator[fuel_type][idx] += (
+                profile._weighted_age_numerator[fuel_type][idx]
             )
 
-        for key in self._fuel_type_demand:
-            self._fuel_type_demand[key][idx] += profile._fuel_type_demand[key][idx]
+        for fuel_type in self._weighted_age_denominator:
+            self._weighted_age_denominator[fuel_type][idx] += (
+                profile._weighted_age_denominator[fuel_type][idx]
+            )
+
+        for fuel_type in self._fuel_type_demand:
+            self._fuel_type_demand[fuel_type][idx] += profile._fuel_type_demand[
+                fuel_type
+            ][idx]
 
     def add_installed_power(
         self,
         fuel_type: FuelTypeID,
-        power: float | np.ndarray,
+        power: FloatLike,
         idx: int | slice = np.s_[:],
     ) -> None:
         self._installed_power[fuel_type][idx] += power
@@ -121,7 +131,7 @@ class _VesselAggregateProfile(_FuelConsumerProfile):
     def add_newbuild_power(
         self,
         fuel_type: FuelTypeID,
-        power: float | np.ndarray,
+        power: FloatLike,
         idx: int | slice = np.s_[:],
     ) -> None:
         self._newbuild_power[fuel_type][idx] += power
@@ -129,7 +139,7 @@ class _VesselAggregateProfile(_FuelConsumerProfile):
     def add_scrapped_power(
         self,
         fuel_type: FuelTypeID,
-        power: float | np.ndarray,
+        power: FloatLike,
         idx: int | slice = np.s_[:],
     ) -> None:
         self._scrapped_power[fuel_type][idx] += power
@@ -138,7 +148,7 @@ class _VesselAggregateProfile(_FuelConsumerProfile):
         self,
         fuel_type_from: FuelTypeID,
         fuel_type_to: FuelTypeID,
-        power: float | np.ndarray,
+        power: FloatLike,
         idx: int | slice = np.s_[:],
     ) -> None:
         self._fuel_converted_power[(fuel_type_from, fuel_type_to)][idx] += power
@@ -157,7 +167,7 @@ class _VesselAggregateProfile(_FuelConsumerProfile):
         self._vessel_tied_capital[idx] += tied_capital
 
     def add_fuel_conversion_expenses(
-        self, expenses: float | np.ndarray, idx: int | slice = np.s_[:]
+        self, expenses: FloatLike, idx: int | slice = np.s_[:]
     ) -> None:
         self._fuel_conversion_expenses[idx] += expenses
 
@@ -176,7 +186,7 @@ class _VesselAggregateProfile(_FuelConsumerProfile):
     ) -> None:
         self._fuel_type_demand[fuel_type][idx] += demand
 
-    def set_baseline_energy(self, idx: int | slice, energy: float | np.ndarray) -> None:
+    def set_baseline_energy(self, idx: int | slice, energy: FloatLike) -> None:
         self._baseline_energy[idx] = energy
 
     def get_baseline_energy(self) -> FloatArray:

@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""The profile layer that turns a fuel mass into the energy it carries."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -14,15 +16,12 @@ if TYPE_CHECKING:
 
 
 class _FuelBaseProfile(_BaseProfile):
-    """Base class used exclusively for sub-classing."""
+    """Lower heating value of each fuel, for the branches that report fuel energy."""
 
     def __init__(self) -> None:
         super().__init__()
 
-        # constants
-        self._lower_heating_value: dict[
-            str, float
-        ] = {}  # lower heating value of fuel, for convenience
+        self._lower_heating_value: dict[str, float] = {}  # GJ/ton
 
     def _initialize_fuel_base(self, fuels: dict[str, Fuel]) -> None:
         """
@@ -30,7 +29,7 @@ class _FuelBaseProfile(_BaseProfile):
 
         Parameters
         ----------
-        fuels :
+        fuels
             All fuels in the simulation.
         """
         for fuel_name, fuel in fuels.items():

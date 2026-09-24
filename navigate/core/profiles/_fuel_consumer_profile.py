@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""The profile layer for the fuel consumers: vessels, fleets and the manager."""
+
 from __future__ import annotations
 
 import abc
@@ -12,88 +14,78 @@ from navigate.core.enum_ import EnergyDemandTypeID, EnergyDemandTypePortID, Fuel
 from navigate.core.initial_values import EMPTY_FLOAT
 from navigate.core.profiles._fuel_emission_profile import _FuelEmissionProfile
 from navigate.core.profiles._fuel_type_lookup import _FuelTypeLookup
+from navigate.util import divide_nonzero
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
-    from navigate.util.types_ import FloatArray
-
-from navigate.util import divide_nonzero
+    from navigate.util.types_ import FloatArray, FloatLike
 
 
 class _FuelConsumerProfile(_FuelEmissionProfile, _FuelTypeLookup, abc.ABC):
-    """Base class used exclusively for sub-classing."""
+    """Energy demand, fuel burnt, emissions and fuel expenses of a fuel consumer."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
         # raw energy demand
-        self._raw_energy_sea: dict[EnergyDemandTypeID, np.ndarray] = {}  # GJ/year
-        self._raw_energy_port: dict[EnergyDemandTypePortID, np.ndarray] = {}  # GJ/year
+        self._raw_energy_sea: dict[EnergyDemandTypeID, FloatArray] = {}  # GJ/year
+        self._raw_energy_port: dict[EnergyDemandTypeID, FloatArray] = {}  # GJ/year
 
-        # operational energy demand (after operational savings, before technology)
-        self._operational_energy_sea: dict[
-            EnergyDemandTypeID, np.ndarray
-        ] = {}  # GJ/year
-        self._operational_energy_port: dict[
-            EnergyDemandTypePortID, np.ndarray
-        ] = {}  # GJ/year
+        # operational energy demand, GJ/year: after operational savings, before
+        # technology
+        self._operational_energy_sea: dict[EnergyDemandTypeID, FloatArray] = {}
+        self._operational_energy_port: dict[EnergyDemandTypeID, FloatArray] = {}
 
         # energy demand
-        self._energy_sea: dict[EnergyDemandTypeID, np.ndarray] = {}  # GJ/year
-        self._energy_port: dict[EnergyDemandTypePortID, np.ndarray] = {}  # GJ/year
+        self._energy_sea: dict[EnergyDemandTypeID, FloatArray] = {}  # GJ/year
+        self._energy_port: dict[EnergyDemandTypeID, FloatArray] = {}  # GJ/year
 
         # consumed
-        self._consumed_mass: dict[str, np.ndarray] = {}  # consumed fuel, tons/year
+        self._consumed_mass: dict[str, FloatArray] = {}  # consumed fuel, tons/year
 
         # converter
-        self._converter_mass: dict[FuelTypeID, dict[str, np.ndarray]] = {}  # tons/year
+        self._converter_mass: dict[FuelTypeID, dict[str, FloatArray]] = {}  # tons/year
 
         # emissions
-        self._wtt: dict[tuple[str, str], np.ndarray] = {}  # WTT emissions, tons/year
-        self._ttw: dict[tuple[str, str], np.ndarray] = {}  # TTW emissions, tons/year
+        self._wtt: dict[tuple[str, str], FloatArray] = {}  # WTT emissions, tons/year
+        self._ttw: dict[tuple[str, str], FloatArray] = {}  # TTW emissions, tons/year
 
         # expenses
-        self._fuel_expenses: dict[
-            str, np.ndarray
-        ] = {}  # expenses from purchasing fuel, USD/year
-        self._levy_expenses: dict[
-            str, np.ndarray
-        ] = {}  # expenses from fuel levies, USD/year
-        self._remedial_expenses: np.ndarray = EMPTY_FLOAT  # USD/year
-        self._remedial_units: dict[
-            str, np.ndarray
-        ] = {}  # per-policy remedial units, policy units/year
-        self._levy_units: dict[
-            str, np.ndarray
-        ] = {}  # per-policy levy emission units, policy units/year
-        self._flexibility_expenses: np.ndarray = EMPTY_FLOAT  # USD/year
-        self._surplus_revenue: np.ndarray = EMPTY_FLOAT  # USD/year
+        self._fuel_expenses: dict[str, FloatArray] = {}  # fuel purchases, USD/year
+        self._levy_expenses: dict[str, FloatArray] = {}  # fuel levies, USD/year
+        self._remedial_expenses: FloatArray = EMPTY_FLOAT  # USD/year
+        self._remedial_units: dict[str, FloatArray] = {}  # per policy, units/year
+        self._levy_units: dict[str, FloatArray] = {}  # per policy, units/year
+        self._flexibility_expenses: FloatArray = EMPTY_FLOAT  # USD/year
+        self._surplus_revenue: FloatArray = EMPTY_FLOAT  # USD/year
 
         # shore power (WTW-lumped emission, no fuel attribution)
-        self._shore_power_energy: np.ndarray = EMPTY_FLOAT  # GJ/year
-        self._shore_power_expenses: np.ndarray = EMPTY_FLOAT  # USD/year
-        self._shore_power_emission: dict[str, np.ndarray] = {}  # ton/year
+        self._shore_power_energy: FloatArray = EMPTY_FLOAT  # GJ/year
+        self._shore_power_expenses: FloatArray = EMPTY_FLOAT  # USD/year
+        self._shore_power_emission: dict[str, FloatArray] = {}  # ton/year
 
     def _initialize_fuel_consumer(
         self,
         fuels: dict[str, Fuel],
         emissions: dict[str, Emission],
-        regulation_names: list[str] = (),
-        levy_names: list[str] = (),
+        regulation_names: Sequence[str] = (),
+        levy_names: Sequence[str] = (),
     ) -> None:
         """
         Initialize per-fuel and per-emission lookups for the fuel consumer profile.
 
         Parameters
         ----------
-        fuels :
+        fuels
             All fuels in the simulation.
-        emissions :
+        emissions
             All emissions in the simulation.
-        regulation_names :
+        regulation_names
             Names of all regulations in the simulation.
-        levy_names :
+        levy_names
             Names of all levies in the simulation.
         """
         self._raw_energy_sea = self._default_dict(EnergyDemandTypeID)
@@ -127,7 +119,7 @@ class _FuelConsumerProfile(_FuelEmissionProfile, _FuelTypeLookup, abc.ABC):
     def add_fuel_consumer_profile(
         self,
         profile: _FuelConsumerProfile,
-        multiplier: float | np.ndarray = 1.0,
+        multiplier: FloatLike = 1.0,
         idx: int | slice = np.s_[:],
     ) -> None:
         """
@@ -135,12 +127,12 @@ class _FuelConsumerProfile(_FuelEmissionProfile, _FuelTypeLookup, abc.ABC):
 
         Parameters
         ----------
-        profile : _FuelConsumerProfile
+        profile
             Consumer profile from another node.
-        multiplier : float | np.ndarray
+        multiplier
             Multiplier applied to each additive attribute when adding; a
             scalar, or elementwise weights matching the idx selection.
-        idx : int | slice
+        idx
             Time-step index or slice.
         """
         for energy_id in EnergyDemandTypeID:
@@ -173,42 +165,48 @@ class _FuelConsumerProfile(_FuelEmissionProfile, _FuelTypeLookup, abc.ABC):
                 multiplier * profile._energy_port[energy_id][idx]
             )
 
-        for key in self._consumed_mass:
-            self._consumed_mass[key][idx] += (
-                profile._consumed_mass[key][idx] * multiplier
+        for fuel_name in self._consumed_mass:
+            self._consumed_mass[fuel_name][idx] += (
+                profile._consumed_mass[fuel_name][idx] * multiplier
             )
 
-        for key1, fuel_mass in self._converter_mass.items():
-            for key2 in fuel_mass:
-                self._converter_mass[key1][key2][idx] += (
-                    profile._converter_mass[key1][key2][idx] * multiplier
+        for fuel_type, fuel_mass in self._converter_mass.items():
+            for fuel_name in fuel_mass:
+                self._converter_mass[fuel_type][fuel_name][idx] += (
+                    profile._converter_mass[fuel_type][fuel_name][idx] * multiplier
                 )
 
-        for key in self._wtt:
-            self._wtt[key][idx] += profile._wtt[key][idx] * multiplier
-
-        for key in self._ttw:
-            self._ttw[key][idx] += profile._ttw[key][idx] * multiplier
-
-        for key in self._fuel_expenses:
-            self._fuel_expenses[key][idx] += (
-                profile._fuel_expenses[key][idx] * multiplier
+        for fuel_emission in self._wtt:
+            self._wtt[fuel_emission][idx] += (
+                profile._wtt[fuel_emission][idx] * multiplier
             )
 
-        for key in self._levy_expenses:
-            self._levy_expenses[key][idx] += (
-                profile._levy_expenses[key][idx] * multiplier
+        for fuel_emission in self._ttw:
+            self._ttw[fuel_emission][idx] += (
+                profile._ttw[fuel_emission][idx] * multiplier
+            )
+
+        for fuel_name in self._fuel_expenses:
+            self._fuel_expenses[fuel_name][idx] += (
+                profile._fuel_expenses[fuel_name][idx] * multiplier
+            )
+
+        for fuel_name in self._levy_expenses:
+            self._levy_expenses[fuel_name][idx] += (
+                profile._levy_expenses[fuel_name][idx] * multiplier
             )
 
         self._remedial_expenses[idx] += profile._remedial_expenses[idx] * multiplier
 
-        for key in self._remedial_units:
-            self._remedial_units[key][idx] += (
-                profile._remedial_units[key][idx] * multiplier
+        for policy_name in self._remedial_units:
+            self._remedial_units[policy_name][idx] += (
+                profile._remedial_units[policy_name][idx] * multiplier
             )
 
-        for key in self._levy_units:
-            self._levy_units[key][idx] += profile._levy_units[key][idx] * multiplier
+        for policy_name in self._levy_units:
+            self._levy_units[policy_name][idx] += (
+                profile._levy_units[policy_name][idx] * multiplier
+            )
 
         self._flexibility_expenses[idx] += (
             profile._flexibility_expenses[idx] * multiplier
@@ -220,9 +218,9 @@ class _FuelConsumerProfile(_FuelEmissionProfile, _FuelTypeLookup, abc.ABC):
             profile._shore_power_expenses[idx] * multiplier
         )
 
-        for key in self._shore_power_emission:
-            self._shore_power_emission[key][idx] += (
-                profile._shore_power_emission[key][idx] * multiplier
+        for emission_name in self._shore_power_emission:
+            self._shore_power_emission[emission_name][idx] += (
+                profile._shore_power_emission[emission_name][idx] * multiplier
             )
 
     def _to_consumed_energy_intensity(
@@ -230,8 +228,8 @@ class _FuelConsumerProfile(_FuelEmissionProfile, _FuelTypeLookup, abc.ABC):
     ) -> dict[tuple[str, str], FloatArray]:
         energy = self.get_total_consumed_energy()
         return {
-            key: self._convert_to_intensity(emission, energy)
-            for key, emission in emissions.items()
+            fuel_emission: self._convert_to_intensity(emission, energy)
+            for fuel_emission, emission in emissions.items()
         }
 
     def _to_total_intensity(self, emission: FloatArray) -> FloatArray:
@@ -555,7 +553,10 @@ class _FuelConsumerProfile(_FuelEmissionProfile, _FuelTypeLookup, abc.ABC):
 
     def get_equivalent_wtw(self) -> dict[tuple[str, str], FloatArray]:
         return self._equivalent(
-            {key: wtt + self._ttw[key] for key, wtt in self._wtt.items()}
+            {
+                fuel_emission: wtt + self._ttw[fuel_emission]
+                for fuel_emission, wtt in self._wtt.items()
+            }
         )
 
     def get_total_equivalent_wtw(self) -> FloatArray:

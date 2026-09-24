@@ -33,7 +33,7 @@ class _FuelTypeLookup(_BaseProfile):
 
         Parameters
         ----------
-        fuels :
+        fuels
             All fuels in the simulation.
         """
         for fuel_name, fuel in fuels.items():
