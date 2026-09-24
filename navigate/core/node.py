@@ -5,9 +5,12 @@
 
 from __future__ import annotations
 
-from typing import final
+from typing import TYPE_CHECKING, final
 
 from navigate.core.node_type import TypeCheckMixin
+
+if TYPE_CHECKING:
+    from navigate.parser._commands import CommandReference
 
 
 class Node(TypeCheckMixin):
@@ -16,16 +19,16 @@ class Node(TypeCheckMixin):
     def __init__(self, name: str, type_: str) -> None:
         super().__init__(type_)
 
-        self.name = name  # str
+        self.name: str = name  # name the deck gives the node
 
         # internal variables -----------------------------------------------------------
-        self.allow_dates_in_table = False  # whether added tables can contain dates
-        self.command_references = []  # CommandReference queue executed by the Parser
+        self.allow_dates_in_table: bool = False  # whether added tables can hold dates
+        self.command_references: list[CommandReference] = []  # parser command queue
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'{self.type}("{self.name}")'
 
-    def add_command_reference(self, command_reference):
+    def add_command_reference(self, command_reference: CommandReference) -> None:
         """
         Queue a command reference for the parser to execute.
 
@@ -36,7 +39,7 @@ class Node(TypeCheckMixin):
         """
         self.command_references.append(command_reference)
 
-    def clear_command_references(self):
+    def clear_command_references(self) -> None:
         """Empty the command-reference queue."""
         self.command_references = []
 
