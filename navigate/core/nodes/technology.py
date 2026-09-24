@@ -19,6 +19,7 @@ from navigate.core.nodes._machinery import _Machinery
 
 if TYPE_CHECKING:
     from navigate.core.nodes.curve import Curve
+    from navigate.core.nodes.input_kinds import CurveInput, ScalarInput
     from navigate.core.nodes.variable import Variable
 
 PROPULSION, ELECTRICAL, HEAT = (
@@ -36,25 +37,27 @@ class Technology(_Machinery):
     emission-reduction measure.
     """
 
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         super().__init__(name, TECHNOLOGY)
 
         # external variables -----------------------------------------------------------
-        self.shore_power_capacity: Scalar | None = None
+        self.shore_power_capacity: ScalarInput = Scalar(0.0)
 
         # energy efficiency
-        self.energy_saving: dict[EnergyDemandTypeID, Scalar | None] = dict.fromkeys(
-            EnergyDemandTypeID
-        )
-        self.external_power: dict[EnergyDemandTypeID, Scalar | None] = dict.fromkeys(
-            EnergyDemandTypeID
-        )
+        self.energy_saving: dict[EnergyDemandTypeID, ScalarInput] = {
+            d: Scalar(0.0) for d in EnergyDemandTypeID
+        }
+        self.external_power: dict[EnergyDemandTypeID, ScalarInput] = {
+            d: Scalar(0.0) for d in EnergyDemandTypeID
+        }
 
         # external power
         self.power_transfer: dict[
-            tuple[EnergyDemandTypeID, EnergyDemandTypeID], Curve | Scalar | None
+            tuple[EnergyDemandTypeID, EnergyDemandTypeID], CurveInput
         ] = {
-            (src, dst): None for src in EnergyDemandTypeID for dst in EnergyDemandTypeID
+            (src, dst): Scalar(0.0)
+            for src in EnergyDemandTypeID
+            for dst in EnergyDemandTypeID
         }
 
     # external methods (DSL attributes) ------------------------------------------------
@@ -120,22 +123,3 @@ class Technology(_Machinery):
             lower=0.0,
             upper=1.0,
         )
-
-    # internal methods -----------------------------------------------------------------
-    def initialize(self):
-        if self.shore_power_capacity is None:
-            self.shore_power_capacity = Scalar(0.0)
-
-        for energy_id, saving in self.energy_saving.items():
-            if saving is None:
-                self.energy_saving[energy_id] = Scalar(0)
-
-        for energy_id, power in self.external_power.items():
-            if power is None:
-                self.external_power[energy_id] = Scalar(0)
-
-        for key, transfer in self.power_transfer.items():
-            if transfer is None:
-                self.power_transfer[key] = Scalar(0)
-
-        self._initialize_machinery()

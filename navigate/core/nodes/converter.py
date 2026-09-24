@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from navigate.core import (
     Scalar,
     as_list,
@@ -12,6 +14,7 @@ from navigate.core import (
     assign_value,
     command_assignment_to_dict,
     command_assignment_to_tuple_dict,
+    default_unassigned,
 )
 from navigate.core.enum_ import FuelTypeID
 from navigate.core.node_type import CONVERTER, FORECAST, VARIABLE
@@ -19,29 +22,30 @@ from navigate.core.nodes._machinery import _Machinery
 from navigate.exceptions import no_value_assigned_error
 from navigate.util import list_is_unique
 
+if TYPE_CHECKING:
+    from navigate.core.nodes.input_kinds import ForecastInput, ScalarInput
+
 
 class Converter(_Machinery):
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         super().__init__(name, CONVERTER)
 
         # external variables -----------------------------------------------------------
         # power
-        self.power_capacity = None  # float, power capacity of the Converter, MW
-        self.minimum_load = None  # float, minimum load, fraction of power capacity
+        self.power_capacity: ScalarInput | None = None
+        self.minimum_load: ScalarInput | None = None
 
         # fuels
-        self.main_fuel_types = []  # list of int, IDs to fuel types
-        self.pilot_fuel_types = []  # list of int, IDs to fuel types
-        self.minimum_pilot_fuel = None  # list of floats, minimum pilot fuel fraction
+        self.main_fuel_types: list[FuelTypeID] = []
+        self.pilot_fuel_types: list[FuelTypeID] = []
+        self.minimum_pilot_fuel: ForecastInput = Scalar(0.0)
 
         # performance
-        self.efficiency = (
-            None  # float, conversion efficiency from potential to kinetic energy
-        )
+        self.efficiency: ScalarInput | None = None
 
         # emissions
-        self.consumption_ttw = {}  # dict of floats, emissions from consumption, ton/ton
-        self.slip_fraction = {}  # dict[FuelTypeID, Scalar], fraction escaping unburned
+        self.consumption_ttw: dict[tuple[FuelTypeID, str], ScalarInput | None] = {}
+        self.slip_fraction: dict[FuelTypeID, ScalarInput | None] = {}
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_power_capacity(self, power_capacity):
@@ -219,7 +223,7 @@ class Converter(_Machinery):
         )
 
     # internal methods -----------------------------------------------------------------
-    def initialize(self):
+    def check_requirements(self) -> None:
 
         if self.power_capacity is None:
             no_value_assigned_error(self, "PowerCapacity")
@@ -227,37 +231,29 @@ class Converter(_Machinery):
         if not self.main_fuel_types:
             no_value_assigned_error(self, "MainFuelTypes")
 
-        if not list_is_unique(self.main_fuel_types):
-            raise ValueError(f"{self}: All 'MainFuelTypes' must be unique.")
-
-        if self.pilot_fuel_types:
-            if not list_is_unique(self.main_fuel_types + self.pilot_fuel_types):
-                raise ValueError(
-                    f"{self}: All fuel types across 'MainFuelTypes' and"
-                    " 'PilotFuelTypes' must be unique."
-                )
-
-            if self.minimum_pilot_fuel is None:
-                self.minimum_pilot_fuel = Scalar(0)
-
         if not self.efficiency:
             no_value_assigned_error(self, "Efficiency")
 
-        self._initialize_machinery()
+    def apply_command_defaults(self) -> None:
+        default_unassigned(self.slip_fraction, Scalar(0.0))
+        default_unassigned(self.consumption_ttw, Scalar(0.0))
 
-        # default slip fractions
-        for fuel_type, slip_fraction in self.slip_fraction.items():
-            if slip_fraction is None:
-                self.slip_fraction[fuel_type] = Scalar(0)
+    def check_consistency(self) -> None:
 
-        # default emissions from consumption in the engine
-        for key, consumption in self.consumption_ttw.items():
-            if consumption is None:
-                self.consumption_ttw[key] = Scalar(0)
+        if not list_is_unique(self.main_fuel_types):
+            raise ValueError(f"{self}: All 'MainFuelTypes' must be unique.")
+
+        if self.pilot_fuel_types and not list_is_unique(
+            self.main_fuel_types + self.pilot_fuel_types
+        ):
+            raise ValueError(
+                f"{self}: All fuel types across 'MainFuelTypes' and 'PilotFuelTypes'"
+                " must be unique."
+            )
 
     def initialize_dependencies(self, emissions):
         """
-        Seed per-fuel-type dictionaries so `initialize` can default unassigned entries.
+        Seed the per-fuel-type dictionaries 'apply_command_defaults' fills.
 
         Parameters
         ----------

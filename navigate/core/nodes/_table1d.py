@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import logging
+from typing import TYPE_CHECKING
 
 import numpy as np
 from scipy.interpolate import interp1d
@@ -14,27 +15,31 @@ from navigate.core.nodes._calculator import _Calculator
 from navigate.logging_ import log_extrapolate_bounds
 from navigate.util import find_nearest, is_strictly_increasing
 
+if TYPE_CHECKING:
+    from navigate.core.nodes.input_kinds import NumberInput
+    from navigate.util import FloatArray
+
 logger = logging.getLogger(__name__)
 
 
 class _Table1D(_Calculator):
-    def __init__(self):
+    def __init__(self) -> None:
         _Calculator.__init__(self)
 
         # external variables -----------------------------------------------------------
         # interpolation
-        self._interpolate = Interpolate1DID.LINEAR
+        self._interpolate: Interpolate1DID = Interpolate1DID.LINEAR
 
         # extrapolation
-        self.extrapolate = ExtrapolateID.LINEAR
-        self._below = None
-        self._above = None
+        self.extrapolate: ExtrapolateID = ExtrapolateID.LINEAR
+        self._below: NumberInput | None = None
+        self._above: NumberInput | None = None
 
         # internal variables -----------------------------------------------------------
-        self.x = None
-        self.y = None
-        self._table = None
-        self._is_convex = None
+        self.x: FloatArray | None = None
+        self.y: FloatArray | None = None
+        self._table: interp1d | None = None
+        self._is_convex: bool | None = None
 
     def __getstate__(self):
         state = self.__dict__.copy()
