@@ -355,12 +355,12 @@ The properties are applicable for the following commands:
 | InstantaneousIntensityCost               | USD/GJ                      | Supply-weighted average cost over all plants per energy in fuel.                |
 | EquivalentInvestmentWtt                  | Ton CO<sub>2</sub>-eq./ton  | Well-to-tank emissions at time of investment per ton of fuel per emission.      |
 | TotalEquivalentInvestmentWtt             | Ton CO<sub>2</sub>-eq./ton  | Total well-to-tank emissions at time of investment per ton of fuel.             |
-| IntensityEquivalentInvestmentWtt         | Ton CO<sub>2</sub>-eq./GJ   | Well-to-tank emissions at time of investment per energy in fuel per emission.   |
-| IntensityTotalEquivalentInvestmentWtt    | Ton CO<sub>2</sub>-eq./GJ   | Total well-to-tank emissions at time of investment per energy in fuel.          |
+| IntensityEquivalentInvestmentWtt         | Kg CO<sub>2</sub>-eq./GJ    | Well-to-tank emissions at time of investment per energy in fuel per emission.   |
+| IntensityTotalEquivalentInvestmentWtt    | Kg CO<sub>2</sub>-eq./GJ    | Total well-to-tank emissions at time of investment per energy in fuel.          |
 | EquivalentInstantaneousWtt               | Ton CO<sub>2</sub>-eq./ton  | Supply-weighted average well-to-tank emissions per ton of fuel per emission.    |
 | TotalEquivalentInstantaneousWtt          | Ton CO<sub>2</sub>-eq./ton  | Supply-weighted average total well-to-tank emissions per ton of fuel.           |
-| IntensityEquivalentInstantaneousWtt      | Ton CO<sub>2</sub>-eq./GJ   | Supply-weighted average well-to-tank emissions per energy in fuel per emission. |
-| IntensityTotalEquivalentInstantaneousWtt | Ton CO<sub>2</sub>-eq./GJ   | Supply-weighted average total well-to-tank emissions per energy in fuel.        |
+| IntensityEquivalentInstantaneousWtt      | Kg CO<sub>2</sub>-eq./GJ    | Supply-weighted average well-to-tank emissions per energy in fuel per emission. |
+| IntensityTotalEquivalentInstantaneousWtt | Kg CO<sub>2</sub>-eq./GJ    | Supply-weighted average total well-to-tank emissions per energy in fuel.        |
 
 The properties are applicable for the following commands:
 
@@ -374,9 +374,9 @@ The properties are applicable for the following commands:
 | BunkerWtt                         | Ton/ton                    | Well-to-tank emissions of bunker fuel per ton of fuel per fuel and emission.    |
 | EquivalentBunkerWtt               | Ton CO<sub>2</sub>-eq./ton | Well-to-tank emissions of bunker fuel per ton of fuel per fuel and emission.    |
 | TotalEquivalentBunkerWtt          | Ton CO<sub>2</sub>-eq./ton | Well-to-tank emissions of bunker fuel per ton of fuel per fuel.                 |
-| BunkerIntensityWtt                | Ton/GJ                     | Well-to-tank emissions of bunker fuel per energy in fuel per fuel and emission. |
-| BunkerIntensityEquivalentWtt      | Ton CO<sub>2</sub>-eq./GJ  | Well-to-tank emissions of bunker fuel per energy in fuel per fuel and emission. |
-| BunkerIntensityTotalEquivalentWtt | Ton CO<sub>2</sub>-eq./GJ  | Well-to-tank emissions of bunker fuel per energy in per fuel.                   |
+| BunkerIntensityWtt                | Kg/GJ                      | Well-to-tank emissions of bunker fuel per energy in fuel per fuel and emission. |
+| BunkerIntensityEquivalentWtt      | Kg CO<sub>2</sub>-eq./GJ   | Well-to-tank emissions of bunker fuel per energy in fuel per fuel and emission. |
+| BunkerIntensityTotalEquivalentWtt | Kg CO<sub>2</sub>-eq./GJ   | Well-to-tank emissions of bunker fuel per energy in per fuel.                   |
 
 The properties are applicable for the following commands:
 
