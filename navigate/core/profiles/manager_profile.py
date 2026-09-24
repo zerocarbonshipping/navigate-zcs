@@ -19,6 +19,7 @@ if TYPE_CHECKING:
     from navigate.core.nodes.feedstock import Feedstock
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.process import Process
+    from navigate.util.types_ import FloatArray
 
 
 class ManagerProfile(
@@ -79,9 +80,8 @@ class ManagerProfile(
 
         self._initialize_base(timeline)
         self._initialize_fuel_base(fuels)
-        self._initialize_fuel_consumer(
-            fuels, emissions, emissions_lifetime, regulation_names, levy_names
-        )
+        self._initialize_fuel_emission(emissions, emissions_lifetime)
+        self._initialize_fuel_consumer(fuels, emissions, regulation_names, levy_names)
         self._initialize_fuel_producer(feedstocks, fuels, processes)
         self._initialize_fuel_infrastructure(fuels)
         self._initialize_vessel_aggregate()
@@ -168,56 +168,56 @@ class ManagerProfile(
     def add_overhead_time(self, time: float, idx: int | slice = np.s_[:]) -> None:
         self._overhead_time[idx] += time
 
-    def get_total_time(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._total_time[idx]
+    def get_total_time(self) -> FloatArray:
+        return self._total_time
 
-    def get_expected_build_time(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._expected_build_time[idx]
+    def get_expected_build_time(self) -> FloatArray:
+        return self._expected_build_time
 
-    def get_expected_solve_time(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._expected_solve_time[idx]
+    def get_expected_solve_time(self) -> FloatArray:
+        return self._expected_solve_time
 
-    def get_expected_transfer_time(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._expected_transfer_time[idx]
+    def get_expected_transfer_time(self) -> FloatArray:
+        return self._expected_transfer_time
 
-    def get_speed_time(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._speed_time[idx]
+    def get_speed_time(self) -> FloatArray:
+        return self._speed_time
 
-    def get_retrofit_time(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._retrofit_time[idx]
+    def get_retrofit_time(self) -> FloatArray:
+        return self._retrofit_time
 
-    def get_fleet_evolution_time(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._fleet_evolution_time[idx]
+    def get_fleet_evolution_time(self) -> FloatArray:
+        return self._fleet_evolution_time
 
-    def get_producer_evolution_time(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._producer_evolution_time[idx]
+    def get_producer_evolution_time(self) -> FloatArray:
+        return self._producer_evolution_time
 
-    def get_existing_build_time(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._existing_build_time[idx]
+    def get_existing_build_time(self) -> FloatArray:
+        return self._existing_build_time
 
-    def get_existing_solve_time(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._existing_solve_time[idx]
+    def get_existing_solve_time(self) -> FloatArray:
+        return self._existing_solve_time
 
-    def get_existing_transfer_time(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._existing_transfer_time[idx]
+    def get_existing_transfer_time(self) -> FloatArray:
+        return self._existing_transfer_time
 
-    def get_temporal_time(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._temporal_time[idx]
+    def get_temporal_time(self) -> FloatArray:
+        return self._temporal_time
 
-    def get_vessel_time(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._vessel_time[idx]
+    def get_vessel_time(self) -> FloatArray:
+        return self._vessel_time
 
-    def get_fuel_supply_time(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._fuel_supply_time[idx]
+    def get_fuel_supply_time(self) -> FloatArray:
+        return self._fuel_supply_time
 
-    def get_policy_time(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._policy_time[idx]
+    def get_policy_time(self) -> FloatArray:
+        return self._policy_time
 
-    def get_fleet_state_time(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._fleet_state_time[idx]
+    def get_fleet_state_time(self) -> FloatArray:
+        return self._fleet_state_time
 
-    def get_profile_agg_time(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._profile_agg_time[idx]
+    def get_profile_agg_time(self) -> FloatArray:
+        return self._profile_agg_time
 
-    def get_overhead_time(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._overhead_time[idx]
+    def get_overhead_time(self) -> FloatArray:
+        return self._overhead_time

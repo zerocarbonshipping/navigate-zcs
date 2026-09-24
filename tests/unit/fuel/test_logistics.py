@@ -76,7 +76,7 @@ def _make_plant(
 
 class TestCalculatePlantLogisticsExpectations:
     @pytest.mark.parametrize(
-        "bunkering_allowed, set_transport",
+        ("bunkering_allowed", "set_transport"),
         [
             pytest.param(False, True, id="disallowed_port"),
             pytest.param(True, False, id="no_transport"),

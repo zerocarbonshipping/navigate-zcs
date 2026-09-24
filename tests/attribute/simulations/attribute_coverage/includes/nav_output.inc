@@ -18,14 +18,17 @@ Report "report" {
 	FileFormat = XLSX
 	add_property(TotalEquivalentWtw)
 	add_property(ConsumedEnergy)
+	add_property(LevyUnits)
 	add_fleet_property("fleet_a", ExistingVessels)
 	add_fleet_property("fleet_a", Scrap)
+	add_fleet_property("fleet_a", RemedialUnits)
 	add_levy_property("levy_penalty", Collected)
 	add_plant_property("plant_methanol", InstantaneousCost)
 	add_port_property("port_a", BunkerPrice)
 	add_producer_property("producer_global", Development)
 	add_regulation_property("reg_absolute", VesselCompliance)
 	add_vessel_property("vessel_oil", ConsumedEnergy)
+	add_vessel_property("vessel_oil", Saving)
 }
 
 Plot "test_plot" {

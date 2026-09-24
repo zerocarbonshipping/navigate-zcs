@@ -10,7 +10,8 @@ from navigate.core.node_type import FORECAST, VARIABLE
 
 class _Machinery(Node):
     """
-    Generic node used for the cost parameters of all pieces of machinery:
+    Provide a generic node for cost parameters shared by all machinery types.
+
     - PowerSystem
     - Converter
     - Technology
@@ -19,7 +20,7 @@ class _Machinery(Node):
     def __init__(self, name: str, type_: str) -> None:
         super().__init__(name, type_)
 
-        # external variables -------------------------------------------------------------------------------------------
+        # external variables -----------------------------------------------------------
         self.capex = None  # float, CAPEX for installation
         self.opex = None  # float, OPEX for installation
         self.lifetime = None  # float, lifetime of the installation
@@ -27,7 +28,7 @@ class _Machinery(Node):
             None  # float, fraction of CAPEX paid when replacing at end of lifetime
         )
 
-    # external methods (DSL attributes) --------------------------------------------------------------------------------
+    # external methods (DSL attributes) ------------------------------------------------
     def set_capex(self, capex):
         """
         Set the CAPEX related to installing the machinery.
@@ -66,7 +67,8 @@ class _Machinery(Node):
         """
         Set the lifetime of the machinery.
 
-        If no lifetime is defined, the lifetime will default to the lifetime of vessel it is assigned to.
+        If no lifetime is defined, the lifetime will default to the lifetime of vessel
+        it is assigned to.
 
         Examples
         --------
@@ -87,7 +89,7 @@ class _Machinery(Node):
 
     def set_replacement(self, replacement):
         """
-        Set the CAPEX replacement fraction related to re-installing the machinery at the end of lifetime.
+        Set the CAPEX replacement fraction to reinstall machinery at end of lifetime.
 
         Examples
         --------
@@ -103,7 +105,7 @@ class _Machinery(Node):
             as_scalar(replacement), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
-    # internal methods -------------------------------------------------------------------------------------------------
+    # internal methods -----------------------------------------------------------------
     def _initialize_machinery(self):
 
         if self.capex is None:

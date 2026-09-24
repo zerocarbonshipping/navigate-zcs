@@ -137,6 +137,7 @@ The properties are applicable for the following commands:
 | EnergyPort                            | GJ/year                     | The energy demand in port after operational measures and technologies, one column per energy demand type in port (electrical and heat). |
 | Energy                                | GJ/year                     | The total energy demand at sea and in port after operational measures and technologies.      |
 | TotalEnergyPort                       | GJ/year                     | The total energy demand in port across demand types.                                         |
+| Saving                                | GJ/GJ                       | Relative reduction of the energy demand from operational measures and technologies, one column per energy demand type. |
 | BaselineEnergy                        | GJ/year                     | The year-0 raw energy intensity applied to the transport work actually performed.            |
 | ConsumedEnergy                        | GJ/year                     | Fuel consumed in energy for all fuels.                                                       |
 | FuelTypeEnergy                        | GJ/year                     | Fuel consumed in energy, aggregated by fuel type.                                            |
@@ -157,12 +158,14 @@ The properties are applicable for the following commands:
 | CumulativeTotalEquivalentTtw          | Ton CO<sub>2</sub>-eq.      | Cumulative total emitted tank-to-wake emissions.                                             |
 | CumulativeEquivalentWtw               | Ton CO<sub>2</sub>-eq.      | Cumulative emitted well-to-wake emissions per fuel and emission.                             |
 | CumulativeTotalEquivalentWtw          | Ton CO<sub>2</sub>-eq.      | Cumulative total emitted well-to-wake emissions, including shore power.                      |
-| IntensityEquivalentWtt                | Kg CO<sub>2</sub>-eq./GJ    | Emitted well-to-tank emissions per energy per fuel and emission.                             |
+| IntensityEquivalentWtt                | Kg CO<sub>2</sub>-eq./GJ    | Emitted well-to-tank emissions per fuel and emission, per total consumed energy (including shore power). |
 | IntensityTotalEquivalentWtt           | Kg CO<sub>2</sub>-eq./GJ    | Total emitted well-to-tank emissions per total consumed energy (including shore power).      |
-| IntensityEquivalentTtw                | Kg CO<sub>2</sub>-eq./GJ    | Emitted tank-to-wake emissions per energy per fuel and emission.                             |
+| IntensityEquivalentTtw                | Kg CO<sub>2</sub>-eq./GJ    | Emitted tank-to-wake emissions per fuel and emission, per total consumed energy (including shore power). |
 | IntensityTotalEquivalentTtw           | Kg CO<sub>2</sub>-eq./GJ    | Total emitted tank-to-wake emissions per total consumed energy (including shore power).      |
-| IntensityEquivalentWtw                | Kg CO<sub>2</sub>-eq./GJ    | Emitted well-to-wake emissions per energy per fuel and emission.                             |
-| IntensityTotalEquivalentWtw           | Kg CO<sub>2</sub>-eq./GJ    | Total emitted well-to-wake emissions per energy, including shore power.                      |
+| IntensityEquivalentWtw                | Kg CO<sub>2</sub>-eq./GJ    | Emitted well-to-wake emissions per fuel and emission, per total consumed energy (including shore power). |
+| IntensityTotalEquivalentWtw           | Kg CO<sub>2</sub>-eq./GJ    | Total emitted well-to-wake emissions across all fuels plus shore power, per total consumed energy (including shore power). |
+| LevyUnits                             | Ton                         | Emission units charged by a levy, one column per levy.                                       |
+| RemedialUnits                         | Ton                         | Remedial compliance units required, one column per regulation.                               |
 |  FuelExpenses                         | USD/year                    | Fuel expenses per fuel.                                                                      |
 | LevyExpenses                          | USD/year                    | Levy expenses per fuel.                                                                      |
 | FuelRelatedExpenses                   | USD/year                    | Fuel related expenses (fuel and levy) per fuel.                                              |

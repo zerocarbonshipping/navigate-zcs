@@ -29,7 +29,7 @@ class TestMeanToSpeeds:
     """Verify: speeds = clip(mu + deltas, speed_min, speed_max)."""
 
     @pytest.mark.parametrize(
-        "mu, deltas, speed_min, speed_max, expected",
+        ("mu", "deltas", "speed_min", "speed_max", "expected"),
         [
             # within bounds: output = mu + deltas
             (
@@ -77,7 +77,7 @@ class TestUpdateMeanSpeed:
     """Verify: mu_actual = mu_ref + clip(mu_target - mu_ref, -max, +max)."""
 
     @pytest.mark.parametrize(
-        "mu_ref, mu_target, max_change, expected",
+        ("mu_ref", "mu_target", "max_change", "expected"),
         [
             (14.0, 14.0, 0.5, 14.0),
             (14.0, 14.3, 0.5, 14.3),
@@ -101,10 +101,10 @@ class TestUpdateMeanSpeed:
 
 
 class TestSpeedBounds:
-    """Verify calculate_speed_bounds returns (min(speed_min), max(speed_max)) with fallbacks."""
+    """calculate_speed_bounds returns (min(speed_min), max(speed_max)) with fallback."""
 
     @pytest.mark.parametrize(
-        "speed_min, speed_max, speeds, expected",
+        ("speed_min", "speed_max", "speeds", "expected"),
         [
             ([6.0, 7.0, 8.0], [18.0, 20.0, 19.0], [12.0, 14.0, 16.0], (6.0, 20.0)),
             ([8.0, 8.0], [20.0, 20.0], [12.0, 14.0], (8.0, 20.0)),
@@ -130,7 +130,7 @@ class TestDualVariableSaving:
     """Verify: saving = shadow_price * (baseline - residual)."""
 
     @pytest.mark.parametrize(
-        "residual, baseline, price, expected",
+        ("residual", "baseline", "price", "expected"),
         [
             (80.0, 100.0, 10.0, 200.0),
             (120.0, 100.0, 10.0, -200.0),

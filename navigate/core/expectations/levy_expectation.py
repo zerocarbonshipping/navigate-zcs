@@ -3,12 +3,15 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable
-
-import numpy as np
+from typing import TYPE_CHECKING
 
 from navigate.core.expectations._policy_expectation import _PolicyExpectation
 from navigate.core.initial_values import EMPTY_FLOAT
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
+
+    import numpy as np
 
 
 class LevyExpectation(_PolicyExpectation):

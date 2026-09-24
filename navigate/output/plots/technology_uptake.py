@@ -22,7 +22,6 @@ from navigate.output.plots._illu_util import (
 from navigate.output.plots._style import (
     LEGEND_OPTIONS,
 )
-from navigate.util import extract_from_tuple_dict
 
 
 def plot_technology_uptake(manager, directory):
@@ -40,6 +39,8 @@ def plot_technology_uptake(manager, directory):
             continue
 
         multipliers = profile.get_existing_vessels()
+        newbuilds = profile.get_newbuilds()
+        fleet_uptake = profile.get_fleet_technology_uptake()
 
         uptake = {}
         uptake_nb = {}
@@ -48,13 +49,16 @@ def plot_technology_uptake(manager, directory):
         technology_names = [technology.name for technology in fleet.technologies]
 
         for name in technology_names:
-            # NOTE: underlying storage is still a tuple-dict; keep extraction logic
-            shares_nb = (
-                extract_from_tuple_dict(uptakes_nb, key2=name) if uptakes_nb else {}
-            )
-            shares_rf = (
-                extract_from_tuple_dict(uptakes_rf, key2=name) if uptakes_rf else {}
-            )
+            shares_nb = {
+                vessel_name: share
+                for (vessel_name, technology), share in uptakes_nb.items()
+                if technology == name
+            }
+            shares_rf = {
+                vessel_name: share
+                for (vessel_name, technology), share in uptakes_rf.items()
+                if technology == name
+            }
 
             values_nb = [
                 shares_nb[vessel.name]
@@ -75,13 +79,13 @@ def plot_technology_uptake(manager, directory):
                 if vessel.name in shares_rf
             ]
             weights_nb = [
-                profile.get_newbuilds(vessel.name)
+                newbuilds[vessel.name]
                 for vessel in fleet.vessels
                 if vessel.name in shares_nb
             ]
 
             # Fleet-wide weighted uptake (existing fleet)
-            uptake[name] = profile.get_fleet_technology_uptake(name)
+            uptake[name] = fleet_uptake[name]
 
             # Newbuild uptake (weighted if weights exist; otherwise simple average)
             if values_nb:
@@ -96,8 +100,8 @@ def plot_technology_uptake(manager, directory):
             else:
                 uptake_nb[name] = [0.0 for _ in range(dateline.size)]
 
-            # Yearly retrofit share — fleet-weighted by existing multipliers, since each per-vessel
-            # entry is already `retrofit_count_v / multiplier_v` (a rate).
+            # Yearly retrofit share — fleet-weighted by existing multipliers, since each
+            # per-vessel entry is already `retrofit_count_v / multiplier_v` (a rate).
             if values_rf and weights:
                 uptake_rf[name] = [
                     np.average(
@@ -120,7 +124,7 @@ def plot_technology_uptake(manager, directory):
         newbuild_color = CENTER_COLORS_GREEN[4]
         retrofit_color = CENTER_COLORS_BLUE[4]
 
-        for ax, name in zip(axes, uptake):
+        for ax, name in zip(axes, uptake, strict=False):
             ax.plot(dateline, uptake[name], color=fleet_color, label="Fleet", lw=2)
             ax.plot(
                 dateline[1:],

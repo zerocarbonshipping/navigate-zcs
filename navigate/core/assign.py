@@ -55,6 +55,7 @@ def assign_integer(
     inclusive_upper: bool = True,
 ) -> int:
     """
+    Validate an integer assignment against bounds and return it as int.
 
     Parameters
     ----------
@@ -72,7 +73,8 @@ def assign_integer(
     Returns
     -------
     int:
-        Returns the passed assignment as integer (to allow error checking while assigning)
+        Returns the passed assignment as integer (to allow error checking while
+        assigning)
     """
     _check_scalar(
         assignment,
@@ -102,14 +104,16 @@ def assign_value[T: Assignment](
     inclusive_upper: bool = True,
 ) -> T:
     """
-    Check whether the value (float or calculator) assigned to an attribute satisfy the requirements of that attribute.
+    Check whether a value assigned to an attribute satisfies its requirements.
+
     Only applicable to attributes requiring a single value, not lists.
 
-    The method assumes that if scalar=False, type_ must not be None (or an empty list). No check is made for this
-    as it is an implementation requirement, not a user input issue.
+    The method assumes that if scalar=False, type_ must not be None (or an empty list).
+    No check is made for this as it is an implementation requirement, not a user input
+    issue.
 
-    If the requirements are not satisfied a ValueError is raised. Note that this error is only a partial message
-    designed to be caught at a higher level.
+    If the requirements are not satisfied a ValueError is raised. Note that this error
+    is only a partial message designed to be caught at a higher level.
 
     Parameters
     ----------
@@ -187,11 +191,12 @@ def assign_list[T: Assignment](
     inclusive_upper: bool = True,
 ) -> list[T]:
     """
-    Check whether the value (float or calculator) assigned to an attribute satisfy the requirements of that attribute.
+    Check whether a value assigned to an attribute satisfies its requirements.
+
     Only applicable to attributes requiring a list of values.
 
-    If the requirements are not satisfied a ValueError is raised. Note that this error is only a partial message
-    designed to be caught at a higher level.
+    If the requirements are not satisfied a ValueError is raised. Note that this error
+    is only a partial message designed to be caught at a higher level.
 
     Parameters
     ----------
@@ -246,8 +251,8 @@ def assign_boolean(assignment: object) -> bool:
     """
     Check whether the value assigned to a boolean attribute is a boolean keyword.
 
-    If the requirements are not satisfied a ValueError is raised. Note that this error is only a partial message
-    designed to be caught at a higher level.
+    If the requirements are not satisfied a ValueError is raised. Note that this error
+    is only a partial message designed to be caught at a higher level.
 
     Parameters
     ----------
@@ -265,15 +270,15 @@ def assign_boolean(assignment: object) -> bool:
     # a list or a table reaches the lookup as an unhashable key, and the
     # TypeError that raises carries no deck line for the parser to report
     except (KeyError, TypeError):
-        raise ValueError(_only_allows("TRUE or FALSE", assignment))
+        raise ValueError(_only_allows("TRUE or FALSE", assignment)) from None
 
 
 def assign_bound(assignment: object) -> float:
     """
-    Check whether the value assigned to a bound attribute is a scalar or an infinity keyword.
+    Check whether a bound assignment is a scalar or an infinity keyword.
 
-    If the requirements are not satisfied a ValueError is raised. Note that this error is only a partial message
-    designed to be caught at a higher level.
+    If the requirements are not satisfied a ValueError is raised. Note that this error
+    is only a partial message designed to be caught at a higher level.
 
     Parameters
     ----------
@@ -294,15 +299,15 @@ def assign_bound(assignment: object) -> float:
     # a list or a table reaches the lookup as an unhashable key, and the
     # TypeError that raises carries no deck line for the parser to report
     except (KeyError, TypeError):
-        raise ValueError(_only_allows("scalars, -INF or INF", assignment))
+        raise ValueError(_only_allows("scalars, -INF or INF", assignment)) from None
 
 
 def assign_id[E: Enum](assignment: object, id_enum: type[E]) -> E:
     """
-    Check whether the ID assigned to an attribute satisfy the requirements of that attribute.
+    Check whether the assigned ID satisfies the requirements of that attribute.
 
-    If the requirements are not satisfied a ValueError is raised. Note that this error is only a partial message
-    designed to be caught at a higher level.
+    If the requirements are not satisfied a ValueError is raised. Note that this error
+    is only a partial message designed to be caught at a higher level.
 
     Parameters
     ----------
@@ -323,14 +328,14 @@ def assign_id[E: Enum](assignment: object, id_enum: type[E]) -> E:
     # wildcard test below only reads a string
     except (KeyError, TypeError):
         if not isinstance(assignment, str):
-            raise ValueError(_only_allows("IDs", assignment))
+            raise ValueError(_only_allows("IDs", assignment)) from None
 
         if name_contains_wildcards(assignment):
             raise ValueError(
                 f"does not accept ID '{assignment}' — wildcards are not supported "
                 "for this command"
-            )
-        raise ValueError(f"does not accept ID '{assignment}'")
+            ) from None
+        raise ValueError(f"does not accept ID '{assignment}'") from None
 
 
 def assign_member[E: Enum](assignment: object, members: tuple[E, ...]) -> E:
@@ -341,8 +346,8 @@ def assign_member[E: Enum](assignment: object, members: tuple[E, ...]) -> E:
     enum: ``assign_id`` subscripts the enum class, which a tuple of members
     cannot answer, and would accept every member the class has.
 
-    If the requirements are not satisfied a ValueError is raised. Note that this error is only a partial message
-    designed to be caught at a higher level.
+    If the requirements are not satisfied a ValueError is raised. Note that this error
+    is only a partial message designed to be caught at a higher level.
 
     Parameters
     ----------
@@ -372,8 +377,6 @@ def expand_id_wildcard[E: Enum](
     """
     Expand a wildcard pattern against the member names of a domain.
 
-    Delegates to :func:`retrieve_keys` which handles Enum-keyed collections.
-
     Parameters
     ----------
     pattern
@@ -387,13 +390,16 @@ def expand_id_wildcard[E: Enum](
         Matching enum members.
     """
     members = tuple(domain)
+    by_name = {member.name: member for member in members}
 
     try:
-        return retrieve_keys(pattern, members, key_fn=lambda m: m.name)
+        names = retrieve_keys(pattern, list(by_name))
     except KeyError:
         raise ValueError(
             f"wildcard '{pattern}' did not match any of {_member_names(members)}"
-        )
+        ) from None
+
+    return [by_name[name] for name in names]
 
 
 def assign_id_list[E: Enum](
@@ -402,12 +408,13 @@ def assign_id_list[E: Enum](
     length: ListLength = None,
 ) -> list[E]:
     """
-    Check whether the ID assigned to an attribute satisfy the requirements of that attribute.
-    Only applicable to attributes requiring a list of values. Supports wildcard patterns
-    which are expanded before the length check.
+    Check whether an assigned ID satisfies an attribute's requirements.
 
-    If the requirements are not satisfied a ValueError is raised. Note that this error is only a partial message
-    designed to be caught at a higher level.
+    Only applicable to attributes requiring a list of values. Supports wildcard
+    patterns which are expanded before the length check.
+
+    If the requirements are not satisfied a ValueError is raised. Note that this error
+    is only a partial message designed to be caught at a higher level.
 
     Parameters
     ----------
@@ -437,17 +444,18 @@ def assign_id_list[E: Enum](
 
 def assign_fraction_list(fractions: list[float]) -> tuple[list[float], bool]:
     """
-    Check whether the value (float or calculator) assigned to an attribute satisfy the requirements of that attribute.
-    Only applicable to attributes requiring a list of values.
-    Additionally, requires that the sum of values in the list sum to 1.
+    Check whether a value assigned to an attribute satisfies its requirements.
+
+    Only applicable to attributes requiring a list of values. Additionally, requires
+    that the sum of values in the list sum to 1.
 
     A list summing to anything else is rescaled proportionally, and the flag
     says whether the deviation was large enough for the setter to report it.
     Whole numbers are floated first, so a list written as integers takes the
     same path as its float spelling whatever it sums to.
 
-    If the requirements are not satisfied a ValueError is raised. Note that this error is only a partial message
-    designed to be caught at a higher level.
+    If the requirements are not satisfied a ValueError is raised. Note that this error
+    is only a partial message designed to be caught at a higher level.
 
     Parameters
     ----------
@@ -488,6 +496,7 @@ def command_assignment_to_dict[K: str | Enum](
     inclusive_upper: bool = True,
 ) -> None:
     """
+    Assign a validated value to each dict entry matching a key pattern.
 
     Parameters
     ----------
@@ -545,6 +554,7 @@ def command_assignment_to_tuple_dict[K1: str | Enum, K2: str | Enum](
     inclusive_upper: bool = True,
 ) -> None:
     """
+    Assign a validated value to dict entries keyed by matching tuples.
 
     Parameters
     ----------
@@ -569,13 +579,14 @@ def command_assignment_to_tuple_dict[K1: str | Enum, K2: str | Enum](
     inclusive_upper
         Upper bound is inclusive.
     """
+    if not assignment_dict:
+        raise KeyError(", ".join(key_name(k) for k in key))
+
+    columns = zip(*assignment_dict.keys(), strict=True)
     keys = [
         retrieve_keys(k, unique_list(keys))
-        for k, keys in zip(key, zip(*assignment_dict.keys()))
+        for k, keys in zip(key, columns, strict=True)
     ]
-
-    if not keys:
-        raise KeyError(", ".join(key_name(k) for k in key))
 
     keys1, keys2 = keys
     value = assign_value(
@@ -601,6 +612,7 @@ def command_assignment_to_boolean_dict[K: str | Enum](
     allow_empty: bool = False,
 ) -> None:
     """
+    Assign a boolean value to dict keys matching a key pattern.
 
     Parameters
     ----------
@@ -623,7 +635,7 @@ def command_assignment_to_boolean_dict[K: str | Enum](
             # TODO logging.warning()
             return
         else:
-            raise KeyError(key)
+            raise KeyError(key) from None
 
     for name in names:
         assignment_dict[name] = value

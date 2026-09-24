@@ -1,551 +1,346 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""List and dict helpers, including arithmetic and slicing of profile results."""
+
 from __future__ import annotations
 
-import copy
-from typing import Any
+from typing import TYPE_CHECKING, cast
 
 import numpy as np
 
+if TYPE_CHECKING:
+    from collections.abc import (
+        Collection,
+        Hashable,
+        Iterable,
+        Mapping,
+        Sequence,
+    )
 
-def unique_list(items):
+    from navigate.util.types_ import FloatArray, FloatLike, Index
+
+
+def unique_list[T: Hashable](items: Iterable[T]) -> list[T]:
     """
     Create an order preserved list of unique objects in items.
 
     Parameters
     ----------
-    items : list
-        List of objects.
+    items
+        Objects to deduplicate.
 
     Returns
     -------
-    list
+    list[T]
         Order preserved list of unique objects in items.
     """
     return list(dict.fromkeys(items))
 
 
-def list_intersection(list1, list2):
+def list_intersection[T](list1: list[T], list2: list[T]) -> list[T]:
     """
     Create an order preserved list of the intersection between two lists.
 
     Parameters
     ----------
-    list1 : list
+    list1
         List of objects.
-    list2 : list
+    list2
         List of objects.
 
     Returns
     -------
-    list
+    list[T]
         Order preserved list of the intersection.
     """
-    return [x for x in list1 if x in list2]
+    return [item for item in list1 if item in list2]
 
 
-def list_is_unique(values):
+def list_is_unique(values: Collection[Hashable]) -> bool:
+    """
+    Test whether all values are distinct.
+
+    Parameters
+    ----------
+    values
+        Values to test.
+
+    Returns
+    -------
+    bool
+        Whether no value occurs more than once.
+    """
     return len(values) == len(set(values))
 
 
-def define_index_map(objects):
-    unique_objects = unique_list(objects)
-    n = len(objects)
-    return {
-        object_: [i for i in range(n) if object_ == objects[i]]
-        for object_ in unique_objects
-    }
-
-
-def merge_dicts(dict1, *dicts, in_place=False):
+def define_index_map[T: Hashable](objects: Sequence[T]) -> dict[T, list[int]]:
     """
-    Merge dicts while maintaining the order of them.
+    Map each unique object to the indexes at which it occurs.
 
     Parameters
     ----------
-    dict1 : dict
-        Primary dict.
-    dicts : dict
-        A number of dicts with unique keys.
-    in_place : bool
-        If true all other dicts are merged into 'dict1'.
+    objects
+        Objects to index, possibly with repetitions.
 
     Returns
     -------
-    dict
-        A single merged dict.
+    dict[T, list[int]]
+        Indexes of each unique object, in first-occurrence order.
     """
-    if in_place:
-        out = dict1
-    else:
-        out = copy.deepcopy(dict1)
+    index_map: dict[T, list[int]] = {}
 
-    for i, d in enumerate(dicts):
-        for key, value in d.items():
-            if key in out:
-                raise KeyError(
-                    f"Key {key} encountered in dict number {i} is present in multiple dicts."
-                )
+    for index, object_ in enumerate(objects):
+        index_map.setdefault(object_, []).append(index)
 
-            out[key] = value
-
-    return out
+    return index_map
 
 
-def add_dicts(dict1, *dicts, in_place=False):
+def add_dicts[K](*dicts: dict[K, FloatLike]) -> dict[K, FloatLike]:
     """
-    Merge dicts together, adding up the values if keys are duplicate across multiple dicts.
+    Merge dicts together, adding the values if keys are duplicate across multiple dicts.
 
     Parameters
     ----------
-    dict1 : dict
-        Primary dict.
-    dicts : dict
+    dicts
         A number of dicts with similar or unique keys.
-    in_place : bool
-        If true all other dicts are summed into 'dict1'.
 
     Returns
     -------
-    dict
-        A single merged dict with the sum of overlapping keys.
+    dict[K, FloatLike]
+        A single merged dict with the sum of overlapping keys; the values
+        never alias the inputs.
     """
-    if in_place:
-        out = dict1
-    else:
-        out = copy.deepcopy(dict1)
+    total: dict[K, FloatLike] = {}
 
-    for d in dicts:
-        for key, value in d.items():
-            out.setdefault(key, 0.0)
-            out[key] += value
+    for other in dicts:
+        for key, value in other.items():
+            total[key] = total.get(key, 0.0) + value
 
-    return out
+    return total
 
 
-def multiply_dicts(dict1, *dicts, in_place=False):
+def multiply_dicts[K](*dicts: dict[K, FloatLike]) -> dict[K, FloatLike]:
     """
-    Merge dicts together, multiplying the values if keys are duplicate across multiple dicts.
+    Merge dicts, multiplying the values if keys are duplicate across multiple dicts.
 
     Parameters
     ----------
-    dict1 : dict
-        Primary dict.
-    dicts : dict
+    dicts
         A number of dicts with similar or unique keys.
-    in_place : bool
-        If true all other dicts are multiplied into 'dict1'.
 
     Returns
     -------
-    dict
-        A single merged dict with the product of overlapping keys.
+    dict[K, FloatLike]
+        A single merged dict with the product of overlapping keys; the values
+        never alias the inputs.
     """
-    if in_place:
-        out = dict1
-    else:
-        out = copy.deepcopy(dict1)
+    total: dict[K, FloatLike] = {}
 
-    for d in dicts:
-        for key, value in d.items():
-            out.setdefault(key, 1.0)
-            out[key] *= value
+    for other in dicts:
+        for key, value in other.items():
+            total[key] = total.get(key, 1.0) * value
 
-    return out
+    return total
 
 
-def divide_dicts(dict1, *dicts, in_place=False):
+def is_single_dict[K](dict_: Mapping[K, object]) -> bool:
     """
-    Merge dicts together, divide the values if keys are duplicate across multiple dicts.
+    Check whether a dict is a single dict (keyed by non-tuple keys).
 
     Parameters
     ----------
-    dict1 : dict
-        Primary dict.
-    dicts : dict
-        A number of dicts with similar or unique keys.
-    in_place : bool
-        If true all other dicts are multiplied into 'dict1'.
-
-    Returns
-    -------
-    dict
-        A single merged dict with the division of overlapping keys.
-    """
-    if in_place:
-        out = dict1
-    else:
-        out = copy.deepcopy(dict1)
-
-    for d in dicts:
-        for key, value in d.items():
-            if key in out:
-                out[key] /= value
-            else:
-                out[key] = value
-
-    return out
-
-
-def is_single_dict(dict_):
-    """
-    Check whether a dict is a single dict.
-
-    Parameters
-    ----------
-    dict_ : dict
+    dict_
+        Dict whose key kind is tested.
 
     Returns
     -------
     bool
-        Whether dict is a single dict.
+        Whether the first key is a non-tuple; False for an empty dict.
     """
-    keys = list(dict_.keys())
+    if not dict_:
+        return False
 
-    if keys:
-        representative = keys[0]
-
-        if isinstance(representative, tuple):
-            return False
-
-        else:
-            return True
-
-    return None
+    representative = next(iter(dict_))
+    return not isinstance(representative, tuple)
 
 
-def is_tuple_dict(dict_):
+def is_tuple_dict[K](dict_: Mapping[K, object]) -> bool:
     """
-    Check whether a dict is a tuple dict.
+    Check whether a dict is a tuple dict (keyed by two-element tuples).
 
     Parameters
     ----------
-    dict_ : dict
+    dict_
+        Dict whose key kind is tested.
 
     Returns
     -------
     bool
-        Whether dict is a tuple dict.
+        Whether the first key is a two-element tuple; False for an empty dict.
     """
-    keys = list(dict_.keys())
+    if not dict_:
+        return False
 
-    if keys:
-        representative = keys[0]
-
-        if isinstance(representative, tuple):
-            if len(representative) == 2:
-                return True
-
-            else:
-                return False
-
-        else:
-            return False
-
-    return None
+    representative = next(iter(dict_))
+    return isinstance(representative, tuple) and len(representative) == 2
 
 
-def extract_from_dict(result, key=None, idx=None, transform=lambda x: x):
+def sum_dict_results[K](
+    result: dict[K, FloatArray],
+    idx: Index | None = None,
+) -> FloatLike:
     """
-    Extract results from a plain dict: dict[str, np.ndarray | float].
-
-    If key is given, returns a single (possibly sliced) value.
-    If key is None, returns the whole dict.
-
-    If idx is not None and the return is a dict, values are sliced (when possible) then transformed.
-    """
-    if not result:
-        return result
-
-    if key is not None:
-        v = result[key]
-        return transform(_slice_value(v, idx))
-
-    if idx is None:
-        return result
-
-    return {k: transform(_slice_value(v, idx)) for k, v in result.items()}
-
-
-def extract_from_dict_list(
-    result: dict[Any, list[np.ndarray]], key: Any = None, idx: int | slice = np.s_[:]
-) -> dict[Any, list[np.ndarray]] | list[np.ndarray]:
-    """
+    Sum a dict's values, optionally sliced by index first.
 
     Parameters
     ----------
-    result :
-        Profile result given as a dict containing lists of ndarrays.
-    key :
-        Key.
-    idx :
-        Time-step index.
+    result
+        Profile result given as a dict of arrays.
+    idx
+        Time-step index(es) or slice.
 
     Returns
     -------
-    dict[str, list[np.ndarray]] | list[np.ndarray]
-        Desired form of result from dict with sliced arrays.
+    FloatLike
+        Sum of the (sliced) values; 0.0 for an empty dict with an index.
     """
-    if key is not None:
-        return [array[idx] for array in result[key]]
-    else:
-        return {k: [array[idx] for array in v] for k, v in result.items()}
-
-
-def extract_from_tuple_dict(
-    result, key1=None, key2=None, idx=None, transform=lambda x: x
-):
-    """
-    Extract results from a tuple-keyed dict: dict[tuple[str, str], np.ndarray | float].
-
-    If both keys are given, returns a single (possibly sliced) value.
-    If only key1 is given, returns {key2: value} for matching (key1, key2).
-    If only key2 is given, returns {key1: value} for matching (key1, key2).
-    If neither is given, returns the whole dict.
-
-    If idx is not None and the return is a dict, values are sliced (when possible) then transformed.
-    """
-    if not result:
-        return result
-
-    if (key1 is not None) and (key2 is not None):
-        v = result[(key1, key2)]
-        return transform(_slice_value(v, idx))
-
-    if key1 is not None:
-        out = {k2: r for (k1, k2), r in result.items() if k1 == key1}
-    elif key2 is not None:
-        out = {k1: r for (k1, k2), r in result.items() if k2 == key2}
-    else:
-        out = result
-
-    if idx is None:
-        return out
-
-    return {k: transform(_slice_value(v, idx)) for k, v in out.items()}
-
-
-def sum_dict_results(result, key=None, idx=None, n=None):
-    """
-
-    Parameters
-    ----------
-    result : dict[np.array]
-        Profile result given as a dict.
-    key : str
-        Key.
-    idx : int
-        Time-step index.
-    n : int
-        Length of time-line.
-
-    Returns
-    -------
-    dict[float] | dict[np.ndarray] | float | np.ndarray
-        Desired form of result from dict.
-    """
-    if key is not None:
-        a = result[key]
-
-        if idx is not None:
-            return a[idx]
-        else:
-            return a
-
-    else:
-        arrays = list(result.values())
+    arrays = list(result.values())
 
     if not arrays:
         if idx is not None:
             return 0.0
 
-        elif n is not None:
-            return np.zeros((n,))
-        else:
-            raise ValueError("Dict is empty and no default size 'n' is passed.")
+        raise ValueError("Dict is empty.")
 
     if idx is not None:
-        return np.add.reduce([a[idx] for a in arrays])
-    else:
-        return np.add.reduce(arrays)
+        total: FloatLike = np.add.reduce([array[idx] for array in arrays])
+        return total
+
+    summed: FloatArray = np.add.reduce(arrays)
+    return summed
 
 
-def sum_tuple_dict_results(result, key1=None, key2=None, idx=None, n=None):
+def collapse_tuple_dict[K1: Hashable, K2: Hashable](
+    result: dict[tuple[K1, K2], FloatArray],
+    key1: bool = False,
+    key2: bool = False,
+) -> (
+    FloatLike
+    | dict[K1, FloatLike]
+    | dict[K2, FloatLike]
+    | dict[tuple[K1, K2], FloatLike]
+):
     """
-    Sums the results from a tuple dict.
+    Sum a tuple dict over the key part its flags do not keep.
 
-    If both keys are given the value is returned directly.
-    If the first key is given, but not the second, it returns the sum of values for which the first key is included.
-    If the second key is given, but not the second, it returns the sum of values for which the second key is included.
-    If no keys are given it returns the sum of the full dict.
+    One flag keys the result by that part and sums over the other; both
+    flags sum every entry into a single array; neither returns the dict
+    as-is.
 
     Parameters
     ----------
-    result : dict[np.array]
+    result
         Profile result given as a tuple dict.
-    key1 : str
-        First key.
-    key2 : str
-        Second key.
-    idx : int
-        Time-step index.
-    n : int
-        Length of time-line.
+    key1
+        Whether to key the result by the primary keys, summing over the
+        secondary keys.
+    key2
+        Whether to key the result by the secondary keys, summing over the
+        primary keys.
 
     Returns
     -------
-    float | np.ndarray
-        Desired form of result from tuple dict.
-    """
-    if (key1 is not None) and (key2 is not None):
-        return result[(key1, key2)]
-
-    elif key1 is not None:
-        arrays = [
-            result[key] for key in [(k1, k2) for (k1, k2) in result if k1 == key1]
-        ]
-
-    elif key2 is not None:
-        arrays = [
-            result[key] for key in [(k1, k2) for (k1, k2) in result if k2 == key2]
-        ]
-
-    else:
-        arrays = list(result.values())
-
-    if not arrays:
-        if n is not None:
-            return np.zeros((n,))
-        else:
-            raise ValueError("Dict is empty and no default size 'n' is passed.")
-
-    if idx is not None:
-        return np.add.reduce([a[idx] for a in arrays])
-    else:
-        return np.add.reduce(arrays)
-
-
-def collapse_dict(result, key=False, idx=None, n=None):
-    """
-    Combines extract_from_dict and sum_dict_results by collapsing all arrays over the undefined key
-    instead of creating a subdict.
-
-    Parameters
-    ----------
-    result : dict[np.array]
-        Profile result given as a tuple dict.
-    key : bool
-        Whether to collapse the dict.
-    idx : int
-        Time-step index.
-    n : int
-        Length of time-line.
-
-    Returns
-    -------
-    np.ndarray | dict[np.ndarray]
-        Desired form of result from tuple dict.
-    """
-    if key:
-        return sum_dict_results(result, idx=idx, n=n)
-
-    if idx is not None:
-        return slice_dict(result, idx=idx)
-    else:
-        return result
-
-
-def collapse_tuple_dict(result, key1=False, key2=False, idx=None, n=None):
-    """
-    Combines extract_from_tuple_dict and sum_tuple_dict_results by collapsing all arrays over the undefined key
-    instead of creating a subdict.
-
-    Parameters
-    ----------
-    result : dict[np.array]
-        Profile result given as a tuple dict.
-    key1 : bool
-        Whether to collapse the dict over the primary keys.
-    key2 : bool
-        Whether to collapse the dict over the secondary keys.
-    idx : int
-        Time-step index.
-    n : int
-        Length of time-line.
-
-    Returns
-    -------
-    np.ndarray | dict[np.ndarray]
-        Desired form of result from tuple dict.
+    dict | FloatLike
+        Desired form of result from tuple dict; dicts are keyed by the kept
+        key part.
     """
     if key1 and key2:
-        return sum_tuple_dict_results(result, idx=idx)
+        return sum_dict_results(result)
 
     if key1:
-        keys = unique_list([key for (key, _) in result])
+        primary_keys = unique_list([key for (key, _) in result])
         return {
-            key: sum_tuple_dict_results(result, key1=key, idx=idx, n=n) for key in keys
+            key: sum_dict_results(
+                {k2: value for (k1, k2), value in result.items() if k1 == key}
+            )
+            for key in primary_keys
         }
 
     if key2:
-        keys = unique_list([key for (_, key) in result])
+        secondary_keys = unique_list([key for (_, key) in result])
         return {
-            key: sum_tuple_dict_results(result, key2=key, idx=idx, n=n) for key in keys
+            key: sum_dict_results(
+                {k1: value for (k1, k2), value in result.items() if k2 == key}
+            )
+            for key in secondary_keys
         }
 
-    if idx is not None:
-        return slice_dict(result, idx)
-    else:
-        return result
+    # returned as-is; only the static value type widens
+    return cast("dict[tuple[K1, K2], FloatLike]", result)
 
 
 def slice_list(
-    result: list[np.ndarray], idx: int | slice = np.s_[:], transform=lambda x: x
-) -> list[np.ndarray]:
+    result: list[FloatArray],
+    idx: Index = np.s_[:],
+) -> list[FloatLike]:
     """
+    Slice each array in a list.
 
     Parameters
     ----------
     result
         Result to be sliced.
     idx
-        Specific index or slice object.
-    transform
-        Transform of the list values.
+        Time-step index(es) or slice.
 
     Returns
     -------
-    Sliced and transformed result.
+    list[FloatLike]
+        Sliced result.
     """
-    return [transform(value[idx]) for value in result]
+    return [value[idx] for value in result]
 
 
-def slice_dict(result, idx=np.s_[:], transform=lambda x: x):
+def slice_dict[K](
+    result: dict[K, FloatArray],
+    idx: Index = np.s_[:],
+) -> dict[K, FloatLike]:
     """
+    Slice each value in a dict.
 
     Parameters
     ----------
-    result : dict
+    result
         Result to be sliced.
-    idx : int
-        Specific index or slice object.
-    transform : callable
-        Transform of the dict values.
+    idx
+        Time-step index(es) or slice.
 
     Returns
     -------
-    dict
-        Sliced and transformed result.
+    dict[K, FloatLike]
+        Sliced result.
     """
-    return {key: transform(value[idx]) for key, value in result.items()}
+    return {key: value[idx] for key, value in result.items()}
 
 
-def _slice_value(v, idx):
-    if idx is None:
-        return v
+def slice_dict_list[K](
+    result: dict[K, list[FloatArray]],
+    idx: Index = np.s_[:],
+) -> dict[K, list[FloatLike]]:
+    """
+    Slice each array in each list of a dict of lists.
 
-    if np.isscalar(v) or isinstance(v, (float, int, np.number)):
-        return v
+    Parameters
+    ----------
+    result
+        Result to be sliced.
+    idx
+        Time-step index(es) or slice.
 
-    return v[idx]
+    Returns
+    -------
+    dict[K, list[FloatLike]]
+        Sliced result.
+    """
+    return {key: slice_list(value, idx) for key, value in result.items()}

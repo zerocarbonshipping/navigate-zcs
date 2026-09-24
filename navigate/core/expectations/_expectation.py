@@ -4,10 +4,12 @@
 from __future__ import annotations
 
 import itertools
-from collections.abc import Iterable
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
 
 
 class _Expectation:
@@ -18,17 +20,8 @@ class _Expectation:
     def _initialize_expectation(self, length: int) -> None:
         self._length = length
 
-    def get_length(self, idx: int | None = None) -> int:
-        if idx is None:
-            return self._length
-        else:
-            return self._length - idx
-
-    def get_shape(self, idx: int | None = None) -> tuple[int, ...]:
-        return (self.get_length(idx),)
-
-    def _allocate_list(self) -> list[None]:
-        return [None for _ in range(self._length)]
+    def get_shape(self, start: int = 0) -> tuple[int]:
+        return (self._length - start,)
 
     def _default_float(self, default: float | None = None) -> float:
 
@@ -42,10 +35,7 @@ class _Expectation:
         if default is None:
             return np.zeros(self.get_shape())
         else:
-            if isinstance(default, bool):
-                dtype = bool
-            else:
-                dtype = np.float64
+            dtype = bool if isinstance(default, bool) else np.float64
 
             return np.full(self.get_shape(), default, dtype=dtype)
 
@@ -57,10 +47,7 @@ class _Expectation:
         if default is None:
             return np.zeros(shape)
         else:
-            if isinstance(default, bool):
-                dtype = bool
-            else:
-                dtype = np.float64
+            dtype = bool if isinstance(default, bool) else np.float64
 
             return np.full(shape, default, dtype=dtype)
 

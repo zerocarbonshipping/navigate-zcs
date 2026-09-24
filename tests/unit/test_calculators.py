@@ -5,7 +5,8 @@
 Mathematical stability tests for the calculator pipeline.
 
 Tests verify the correctness of:
-  - Addition/multiplier transforms: output = truncate(multiplier * (table(x) + addition))
+  - Addition/multiplier transforms:
+    output = truncate(multiplier * (table(x) + addition))
   - Bound application: internal vs external bounds widen the envelope
   - Internal-bound tightening: the warning names the node it tightens
   - Convexity detection on piecewise-linear functions
@@ -50,7 +51,7 @@ class TestTruncateTransform:
     """Verify: output = truncate(multiplier * (table(x) + addition))."""
 
     @pytest.mark.parametrize(
-        "multiplier, addition, x, expected",
+        ("multiplier", "addition", "x", "expected"),
         [
             # default multiplier=1, addition=0 is the identity: table(2) = 4
             (1.0, 0.0, 2.0, 4.0),
@@ -81,8 +82,9 @@ class TestTruncateTransform:
 
 class TestBoundApplication:
     """
-    Applied bounds tighten: applied_lower = max(external, internal),
-    applied_upper = min(external, internal).
+    Applied bounds tighten to the tighter of the external and internal bounds.
+
+    applied_lower = max(external, internal), applied_upper = min(external, internal).
     Truncate then clamps: output = max(min(value, upper), lower).
     """
 
@@ -103,17 +105,24 @@ class TestBoundApplication:
         np.testing.assert_array_almost_equal(result, [2.0, 5.0, 8.0])
 
     @pytest.mark.parametrize(
-        "lower_bound, upper_bound, internal_lower, internal_upper, x, expected",
+        (
+            "lower_bound",
+            "upper_bound",
+            "internal_lower",
+            "internal_upper",
+            "x",
+            "expected",
+        ),
         [
             # external lower bound alone clamps: at x=1, raw=1.0 → clamped to 5
             (5.0, np.inf, -np.inf, np.inf, 1.0, 5.0),
             # external upper bound alone clamps: at x=2, raw=4.0 → clamped to 3
             (-np.inf, 3.0, -np.inf, np.inf, 2.0, 3.0),
-            # applied_lower = max(external, internal) = max(3, 5) = 5 — the tighter wins;
-            # at x=0, raw=0.0 → clamped up to 5
+            # applied_lower = max(external, internal) = max(3, 5) = 5 — the tighter
+            # wins; at x=0, raw=0.0 → clamped up to 5
             (3.0, np.inf, 5.0, np.inf, 0.0, 5.0),
-            # applied_upper = min(external, internal) = min(8, 5) = 5 — the tighter wins;
-            # at x=4, raw=16.0 → clamped down to 5
+            # applied_upper = min(external, internal) = min(8, 5) = 5 — the tighter
+            # wins; at x=4, raw=16.0 → clamped down to 5
             (-np.inf, 8.0, -np.inf, 5.0, 4.0, 5.0),
         ],
     )
@@ -129,13 +138,15 @@ class TestBoundApplication:
 
 class TestInternalBoundsWarning:
     """
-    Tightening an already-finite internal bound warns, naming the node the way
-    the deck wrote it. The node is a Variable without a value, so this also
-    pins that a Variable renders as its name rather than its value.
+    Tightening an already-finite internal bound warns, naming the node.
+
+    The warning names the node the way the deck wrote it. The node is a
+    Variable without a value, so this also pins that a Variable renders as its
+    name rather than its value.
     """
 
     @pytest.mark.parametrize(
-        "first, second, expected",
+        ("first", "second", "expected"),
         [
             (
                 (2.0, np.inf),
@@ -170,7 +181,7 @@ class TestConvexity:
     """_test_convexity checks d2y/dx2 >= 0 for piecewise-linear (x, y)."""
 
     @pytest.mark.parametrize(
-        "x, y, expected",
+        ("x", "y", "expected"),
         [
             # x^2 sampled at integers is convex
             (
@@ -225,7 +236,7 @@ class TestTable1DReverseLookup:
         assert x == pytest.approx(2.0)
 
     def test_interpolated_point(self):
-        """Midpoint between y=1 (x=1) and y=4 (x=2) → x ≈ 1.5 via linear interp on the transformed curve."""
+        """Midpoint between y=1 (x=1) and y=4 (x=2) → x ≈ 1.5 via linear interp."""
         x = np.array([0.0, 1.0, 2.0, 3.0])
         y = np.array([0.0, 2.0, 4.0, 6.0])  # strictly increasing, linear
         t = _make_table1d(x=x, y=y)
@@ -256,7 +267,7 @@ class TestTable1DReverseLookup:
 
 
 class TestTable1DPickle:
-    """interp1d is not picklable; _Table1D handles this via __getstate__/__setstate__."""
+    """interp1d is not picklable; _Table1D handles it via __getstate__/__setstate__."""
 
     def test_pickle_preserves_results(self):
         t = _make_table1d()
@@ -306,7 +317,7 @@ class TestTable2DInterpolation:
     """Bilinear interpolation on z = x + y surface."""
 
     @pytest.mark.parametrize(
-        "x, y, expected",
+        ("x", "y", "expected"),
         [
             (1.0, 10.0, 11.0),
             (0.0, 0.0, 0.0),

@@ -28,7 +28,7 @@ def calculate_fuel_import_to_ports(
     idx: int,
 ) -> None:
     """
-    Set bunker price, supply and WTT at each port from both liquid-market and producer imports.
+    Set bunker price, supply and WTT per port from liquid-market and producer imports.
 
     Parameters
     ----------
@@ -139,7 +139,7 @@ def _calculate_import_from_producers(
     idx: int,
 ) -> None:
     """
-    Set supply-weighted bunker price, supply and WTT at each port for producer-supplied fuels.
+    Set supply-weighted bunker price, supply and WTT at each port for producer fuels.
 
     Parameters
     ----------
@@ -190,8 +190,10 @@ def _calculate_import_from_producers(
             # the available production is inaccessible
             if export_normalization[f] == 0.0:
                 logger.debug(
-                    f'Fuel("{f}") is not allowed for bunkering in any port. Any existing'
-                    f" production from {plant} is inaccessible during bunkering."
+                    'Fuel("%s") is not allowed for bunkering in any port. Any existing '
+                    "production from %s is inaccessible during bunkering.",
+                    f,
+                    plant,
                 )
 
                 continue
@@ -288,8 +290,10 @@ def _calculate_import_from_producers(
 
 def _calculate_export_normalization_factors(ports: dict[str, Port]) -> dict[str, float]:
     """
-    Calculate export-normalization factors for each fuel to ensure all fuels are fully exported independent of whether
-    it is allowed to bunker in certain ports.
+    Calculate each fuel's export-normalization factor.
+
+    Ensures all fuels are fully exported independent of whether it is allowed to
+    bunker in certain ports.
 
     Parameters
     ----------
@@ -299,7 +303,8 @@ def _calculate_export_normalization_factors(ports: dict[str, Port]) -> dict[str,
     Returns
     -------
     dict[float]
-        Dict of all fuels and their normalization factors during export from producer to port.
+        Dict of all fuels and their normalization factors during export from producer to
+        port.
     """
     normalization = {}
     n_ports = len(ports)
@@ -324,10 +329,14 @@ def _align_export_with_bunkering_limits(
     idx: int | slice,
 ) -> None:
     """
-    The bunkering of a certain fuel in given port may be limited by the port. In that case no more fuel than can be
-    bunkered should be exported to that port and the surplus distributed to the other ports.
+    Align exports with port bunkering limits.
 
-    TODO: This method surely must break with the export distribution assigned on the producer. May be acceptable.
+    The bunkering of a certain fuel in a given port may be limited by the port; in that
+    case no more fuel than can be bunkered should be exported to that port and the
+    surplus distributed to the other ports.
+
+    TODO: This method surely must break with the export distribution assigned on the
+    producer. May be acceptable.
 
     Parameters
     ----------
@@ -385,10 +394,13 @@ def _align_finite_export_with_bunkering_limits(
     mask: np.ndarray,
 ) -> None:
     """
-    Redistribute the finite-import case: trim each over-limit port to its bunkering limit and spread the freed
-    surplus across the under-limit ports in proportion to their deficit.
+    Redistribute the finite-import case.
 
-    Notice that this method breaks with the fractions assigned in the export distribution.
+    Trim each over-limit port to its bunkering limit and spread the freed surplus across
+    the under-limit ports in proportion to their deficit.
+
+    Notice that this method breaks with the fractions assigned in the export
+    distribution.
 
     TODO: make two-stage algorithm?
 

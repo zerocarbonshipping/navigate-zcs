@@ -92,14 +92,14 @@ def plot_regulation_compliance(manager, directory):
 
         fig, axes = subplot_grid(n, sharex=True)
 
-        for ax, (name, threshold) in zip(axes, thresholds.items()):
+        for ax, (name, threshold) in zip(axes, thresholds.items(), strict=False):
             if name not in compliance:
                 continue
 
             measured = compliance[name]
 
             # use adjusted threshold for compliance coloring if available
-            effective_threshold = adjusted[name] if name in adjusted else threshold
+            effective_threshold = adjusted.get(name, threshold)
 
             # split the measured values into compliant and in breach
             compliant = np.minimum(measured, effective_threshold)

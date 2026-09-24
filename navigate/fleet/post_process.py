@@ -15,14 +15,16 @@ from navigate.util import TOLERANCE, divide_nonzero
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
+    from navigate.util.types_ import FloatArray
 
 logger = logging.getLogger(__name__)
 
 
 def post_process_fleet_profile(fleets: dict[str, Fleet]) -> None:
     """
-    Fold the recorded per-step multipliers into the output-only fleet and
-    vessel profile fields as whole-timeline array operations. Must run before
+    Fold per-step multipliers into the output-only fleet and vessel profiles.
+
+    Runs as whole-timeline array operations. Must run before
     post_process_investment_metric, which reads the in-fleet flags, and
     before the fleet profiles are merged into the global profile.
 
@@ -52,24 +54,30 @@ def _transfer_in_fleet_flags(fleet: Fleet) -> None:
     fleet
         Fleet instance.
     """
+    existing_vessels = fleet.profile.get_existing_vessels()
+
     for vessel in fleet.assets:
-        in_fleet = fleet.profile.get_existing_vessels(vessel.name) > 0.0
-        vessel.profile.set_in_fleet(np.s_[:], in_fleet)
+        vessel.profile.set_in_fleet(np.s_[:], existing_vessels[vessel.name] > 0.0)
 
 
 def _transfer_fuel_consumer_profiles(fleet: Fleet) -> None:
     """
-    Accumulate the multiplier-weighted vessel consumer profiles (emissions,
-    energy, fuel expenses) onto the fleet profile.
+    Accumulate the multiplier-weighted vessel consumer profiles.
+
+    Covers emissions, energy, and fuel expenses, transferred onto the fleet
+    profile.
 
     Parameters
     ----------
     fleet
         Fleet instance.
     """
+    existing_vessels = fleet.profile.get_existing_vessels()
+
     for vessel in fleet.assets:
-        multipliers = fleet.profile.get_existing_vessels(vessel.name)
-        fleet.profile.add_fuel_consumer_profile(vessel.profile, multipliers)
+        fleet.profile.add_fuel_consumer_profile(
+            vessel.profile, existing_vessels[vessel.name]
+        )
 
 
 def _transfer_fuel_conversion_expenses(fleet: Fleet) -> None:
@@ -93,19 +101,21 @@ def _transfer_power_totals(fleet: Fleet) -> None:
     fleet
         Fleet instance.
     """
+    existing_vessels = fleet.profile.get_existing_vessels()
+    newbuilds = fleet.profile.get_newbuilds()
+    scrap = fleet.profile.get_scrap()
+
     for vessel in fleet.assets:
         vessel_name = vessel.name
         power = get_total_power_capacity(vessel)
 
         fleet.profile.add_installed_power(
-            vessel.fuel_type, power * fleet.profile.get_existing_vessels(vessel_name)
+            vessel.fuel_type, power * existing_vessels[vessel_name]
         )
         fleet.profile.add_newbuild_power(
-            vessel.fuel_type, power * fleet.profile.get_newbuilds(vessel_name)
+            vessel.fuel_type, power * newbuilds[vessel_name]
         )
-        fleet.profile.add_scrapped_power(
-            vessel.fuel_type, power * fleet.profile.get_scrap(vessel_name)
-        )
+        fleet.profile.add_scrapped_power(vessel.fuel_type, power * scrap[vessel_name])
 
 
 def _transfer_fuel_converted_power(fleet: Fleet) -> None:
@@ -136,7 +146,13 @@ def _transfer_fuel_converted_power(fleet: Fleet) -> None:
 
         if abs(power_to - power_from) > TOLERANCE:
             logger.warning(
-                f"{fleet}: Fuel conversion occurred with different installed power {vessel_from} ({round(power_from, 1)}) to {vessel_to} ({round(power_to, 1)})."
+                "%s: Fuel conversion occurred with different installed power %s (%s) "
+                "to %s (%s).",
+                fleet,
+                vessel_from,
+                round(power_from, 1),
+                vessel_to,
+                round(power_to, 1),
             )
 
         fleet.profile.add_fuel_converted_power(
@@ -172,9 +188,11 @@ def aggregate_speed_profile(fleet: Fleet) -> None:
     reference_multiplier = np.zeros(size)
     other_multiplier = np.zeros(size)
 
+    multipliers = profile.get_existing_vessels()
+
     for vessel in fleet.assets:
         vessel_profile = vessel.profile
-        multiplier = profile.get_existing_vessels(vessel.name)
+        multiplier = multipliers[vessel.name]
 
         reference = vessel_profile.get_reference_speed()
         minimum = vessel_profile.get_minimum_speed()
@@ -222,22 +240,23 @@ def aggregate_speed_profile(fleet: Fleet) -> None:
 
 def transfer_transport_work(fleet: Fleet) -> None:
     """
-    Transfer the transport work performed and the counterfactual baseline
-    energy: what the year-0 raw energy intensity would require to perform
-    the transport work actually performed at each time step. A fleet with
-    no vessels at the first time step has no year-0 intensity to measure
-    against: its baseline stays 0 for the whole simulation, its intensity
-    savings read 0, and it contributes no baseline to aggregate savings.
+    Transfer the transport work performed and the counterfactual baseline energy.
+
+    The baseline energy is what the year-0 raw energy intensity would
+    require to perform the transport work actually performed at each time
+    step. A fleet with no vessels at the first time step has no year-0
+    intensity to measure against: its baseline stays 0 for the whole
+    simulation, its intensity savings read 0, and it contributes no
+    baseline to aggregate savings.
 
     Parameters
     ----------
     fleet
         Fleet instance.
     """
+    existing_vessels = fleet.profile.get_existing_vessels()
     multipliers = np.ascontiguousarray(
-        np.array(
-            [fleet.profile.get_existing_vessels(vessel.name) for vessel in fleet.assets]
-        ).T
+        np.array([existing_vessels[vessel.name] for vessel in fleet.assets]).T
     )
     vessel_cargo_miles = np.ascontiguousarray(
         np.array([vessel.expectation.get_cargo_miles() for vessel in fleet.assets]).T
@@ -256,13 +275,13 @@ def transfer_transport_work(fleet: Fleet) -> None:
     fleet.profile.set_cargo_miles(np.s_[:], cargo_miles)
 
     growth = divide_nonzero(cargo_miles, cargo_miles[0], default=1.0)
-    baseline = fleet.profile.get_raw_energy(idx=0) * growth
+    baseline = fleet.profile.get_raw_energy()[0] * growth
     fleet.profile.set_baseline_energy(np.s_[:], baseline)
 
 
 def post_process_investment_metric(fleets, timeline):
     """
-    As a post-processing of the simulation, the investment metric is calculated using the post-processed fuel costs.
+    Calculate the investment metric using the post-processed fuel costs.
 
     Parameters
     ----------
@@ -323,44 +342,54 @@ def post_process_investment_metric(fleets, timeline):
         _aggregate_fleet_freight_rate(fleet, timeline)
 
 
-def _aggregate_fleet_freight_rate(fleet, timeline):
+def _aggregate_fleet_freight_rate(fleet: Fleet, timeline: FloatArray) -> None:
     """
     Aggregate a fleet-level instantaneous freight rate (USD/cargo-mile).
 
     The fleet rate is the multiplier-weighted total achieved charter cost divided by the
-    multiplier-weighted cargo-miles delivered, making it the cargo-mile-consistent counterpart of the
-    per-vessel instantaneous freight rate. Only vessels with a positive multiplier and a calculated
-    cost at the time-step contribute.
+    multiplier-weighted cargo-miles delivered, making it the cargo-mile-consistent
+    counterpart of the per-vessel instantaneous freight rate. A vessel contributes at
+    every time-step where its cost is calculated unless its multiplier is zero or
+    negative; the rate is NaN wherever the weighted cargo-miles are not positive.
 
     Parameters
     ----------
-    fleet : Fleet
+    fleet
         Fleet whose vessels are aggregated.
-    timeline : np.ndarray
+    timeline
         Full timeline of the simulation.
     """
-    for idx in range(timeline.size):
-        cost_weighted = 0.0
-        cargo_weighted = 0.0
+    multipliers = fleet.profile.get_existing_vessels()
+    cost_weighted = np.zeros(timeline.size)
+    cargo_weighted = np.zeros(timeline.size)
 
-        for vessel in fleet.vessels:
-            multiplier = fleet.profile.get_existing_vessels(vessel.name, idx)
-            if multiplier <= 0.0 or not vessel.profile.cost_is_calculated(idx):
-                continue
+    # one ordered `+=` per vessel over the time axis, so each step's sums receive
+    # their float64 additions in one fixed vessel order: stacking the vessels and
+    # reducing over that axis may reorder the additions and drift in the last
+    # bit, breaking bit-for-bit comparison of runs
+    for vessel in fleet.vessels:
+        multiplier = multipliers[vessel.name]
 
-            cost_weighted += multiplier * vessel.profile.get_cargo_charter_rate(idx)
-            cargo_weighted += multiplier * vessel.expectation.get_cargo_miles(idx)
+        # a NaN multiplier stays active so it surfaces in the rate instead of
+        # being dropped silently
+        active = ~(multiplier <= 0.0) & vessel.profile.cost_is_calculated()
+        cost_weighted += np.where(
+            active, multiplier * vessel.profile.get_cargo_charter_rate(), 0.0
+        )
+        cargo_weighted += np.where(
+            active, multiplier * vessel.expectation.get_cargo_miles(), 0.0
+        )
 
-        if cargo_weighted > 0.0:
-            fleet.profile.set_instantaneous_freight_rate(
-                idx, cost_weighted / cargo_weighted
-            )
+    fleet.profile.set_instantaneous_freight_rate(
+        np.s_[:], divide_nonzero(cost_weighted, cargo_weighted, default=np.nan)
+    )
 
 
 def _calculate_total_vessel_operating_expenses(vessel, idx, timeline):
     """
-    Assigns the fuel, levy, regulation, and technology expenses for a vessel in the fleet at a given time
-    of the simulation.
+    Assign the fuel, levy, regulation, and technology expenses for a vessel.
+
+    The vessel belongs to the fleet at a given time of the simulation.
 
     Parameters
     ----------
@@ -374,23 +403,26 @@ def _calculate_total_vessel_operating_expenses(vessel, idx, timeline):
     Returns
     -------
     tuple[np.ndarray, np.ndarray, np.ndarray] | None
-        The total operating cost flow, the operating-year grid (days), and the per-year operating
-        fraction (shared with the caller); None when the vessel lacks bunkering data over the horizon.
+        The total operating cost flow, the operating-year grid (days), and the per-year
+        operating fraction (shared with the caller); None when the vessel lacks
+        bunkering data over the horizon.
     """
     profile = vessel.profile
 
     # the cost requires bunkering knowledge over the construction lead time
     # plus the operational lifetime. If a vessel has become inactive it will
     # not have been part of the bunkering algorithm and so lacks the data.
-    lifetime = profile.get_lifetime(idx)
-    lead_time = profile.get_lead_time(idx)
+    lifetime = profile.get_lifetime()[idx]
+    lead_time = profile.get_lead_time()[idx]
     idx_to = min(
         timeline.size, idx + get_flow_size(lead_time=lead_time, lifetime=lifetime)
     )
 
     if not np.all(profile.is_in_fleet()[idx:idx_to]):
         logger.debug(
-            f"{vessel}: Unable to post-process fuel related costs at time {round(timeline[idx], 0)} days."
+            "%s: Unable to post-process fuel related costs at time %s days.",
+            vessel,
+            round(timeline[idx], 0),
         )
 
         return None

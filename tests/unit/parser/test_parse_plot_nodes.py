@@ -1,9 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Unit tests for Parser.parse_plot_nodes and the replot error handling (used by --replot)."""
+"""Tests Parser.parse_plot_nodes and the replot error handling (used by --replot)."""
 
 from __future__ import annotations
+
+from typing import ClassVar
 
 import pytest
 
@@ -42,7 +44,7 @@ def _write_inc(tmp_path, content, name="plots.inc"):
 
 class TestParsePlotNodes:
     @pytest.mark.parametrize(
-        "content, expected",
+        ("content", "expected"),
         [
             (
                 PLOT_INC,
@@ -75,10 +77,10 @@ class TestParsePlotNodes:
 
 class TestReplotErrors:
     def test_raises_when_no_configs_and_no_include(self, monkeypatch):
-        """A pkl with no stored plot configs and no include file is a clear error, not AttributeError."""
+        """No stored plot configs, no include file: clear error, not AttributeError."""
 
         class _Stub:
-            plot_configs = []
+            plot_configs: ClassVar[list] = []
             deck_directory = "."
 
         monkeypatch.setattr(
@@ -89,12 +91,12 @@ class TestReplotErrors:
             replot_module.replot("dummy.pkl")
 
     def test_include_without_plot_nodes_raises(self, tmp_path, monkeypatch):
-        """An include file supplied but containing no Plot nodes raises an include-specific error."""
+        """An include file with no Plot nodes raises an include-specific error."""
         empty_inc = _write_inc(tmp_path, "# no plot nodes here\n", name="empty.inc")
 
         class _Stub:
             # non-empty on purpose: the include must take precedence over stored configs
-            plot_configs = [
+            plot_configs: ClassVar[list] = [
                 {"name": "stored", "directory": "./p/", "selected_plots": set()}
             ]
             deck_directory = str(tmp_path)

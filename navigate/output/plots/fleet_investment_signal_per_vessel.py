@@ -55,7 +55,7 @@ def _plot_investment_signal_per_vessel(
 
     fig, axes = subplot_grid(len(relevant_fleets))
 
-    for ax, fleet in zip(axes, relevant_fleets.values()):
+    for ax, fleet in zip(axes, relevant_fleets.values(), strict=False):
         # plot the energy-weighted investment signal per vessel
         signals = []
         for vessel in fleet.vessels:
@@ -80,7 +80,7 @@ def _plot_investment_signal_per_vessel(
 
 
 def _signals_all_non_negative(signals):
-    """True when no vessel signal dips below zero, ignoring NaN time-steps."""
+    """Return True when no vessel signal dips below zero, ignoring NaN time-steps."""
     return all(
         np.nanmin(signal) >= 0.0 for signal in signals if np.any(np.isfinite(signal))
     )

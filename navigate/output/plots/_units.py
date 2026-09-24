@@ -16,6 +16,7 @@ import math
 
 def find_best_metric_prefix(value, default=0, symbol=True):
     """
+    Return the divisor and metric prefix best matching the value's magnitude.
 
     Note: https://en.wikipedia.org/wiki/Metric_prefix
 
@@ -26,17 +27,11 @@ def find_best_metric_prefix(value, default=0, symbol=True):
     default : int
         Existing order of magnitude of value relative to base SI-unit.
     symbol : bool
-        If true return a symbol (k, M, etc.). If false return a word (million, billion, etc.)
-
-    Returns
-    -------
-
+        If true return a symbol (k, M, etc.). If false return a word (million,
+        billion, etc.)
     """
     value = abs(value)
-    if value > 0.0:
-        order = math.floor(math.log10(value)) + default
-    else:
-        order = 1
+    order = math.floor(math.log10(value)) + default if value > 0.0 else 1
 
     divisor = 1.0
     prefix_symbol = ""  #
@@ -82,10 +77,7 @@ def find_best_metric_prefix(value, default=0, symbol=True):
         prefix_symbol = "E"
         prefix_short = "quintillion"
 
-    if symbol:
-        prefix = prefix_symbol
-    else:
-        prefix = prefix_short
+    prefix = prefix_symbol if symbol else prefix_short
 
     return int(divisor / 10**default), prefix
 

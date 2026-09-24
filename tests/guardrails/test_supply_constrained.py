@@ -40,10 +40,11 @@ def producer(manager):
 @pytest.fixture(scope="module")
 def window(manager, producer):
     """
-    Assertable steps: the first step only initializes expectations (no
-    development decision is taken yet), and the final LeadTime years are
-    excluded per assertable_end — a known, explicitly not-desired limitation
-    (see BEHAVIOR.md); the exclusion is not an endorsement.
+    Build the window of assertable steps.
+
+    The first step only initializes expectations (no development decision is taken yet),
+    and the final LeadTime years are excluded per assertable_end — a known, explicitly
+    not-desired limitation (see BEHAVIOR.md); the exclusion is not an endorsement.
     """
     end = assertable_end(manager, producer)
     assert end > 1, "Assertable window is empty — the horizon is too short"
@@ -66,8 +67,9 @@ class TestSupplyConstrained:
 
     def test_demand_remains_unmet(self, manager, window):
         """
-        Deck validity: the scenario must stay supply-constrained, which
-        shows up as the fleet still paying remedial costs near the end.
+        Deck validity: the scenario must stay supply-constrained.
+
+        This shows up as the fleet still paying remedial costs near the end.
         """
         regulation = manager.nodes.regulations["intensity_regulation"]
         remedial = regulation.profile.get_remedial_units()

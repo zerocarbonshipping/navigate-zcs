@@ -18,7 +18,7 @@ from navigate.util import (
     TOLERANCE,
     YEAR,
     divide_nonzero,
-    get_increments_origin_index,
+    get_increment_origin_index,
     slice_dict,
 )
 
@@ -43,6 +43,7 @@ def _accumulate_weighted_cost(
 ) -> None:
     """
     Accumulate weighted production cost and emissions for a set of increments.
+
     Shared by the existing-plant and pipeline sections of the evolution expectation.
     """
     expectation = plant.expectation
@@ -92,8 +93,9 @@ def perform_decommissioning(producer: Producer) -> None:
 
 def calculate_evolution_expectation(producer: Producer, timeline, idx):
     """
-    Calculate the expected future evolution of production from existing plants,
-    pipeline, and newbuilds.
+    Calculate the expected future evolution of production.
+
+    Covers existing plants, the pipeline, and newbuilds.
 
     Parameters
     ----------
@@ -144,7 +146,7 @@ def calculate_evolution_expectation(producer: Producer, timeline, idx):
         multipliers = np.array([inc.multiplier for inc in incs])
         ages = np.array([inc.age for inc in incs])
 
-        origins = get_increments_origin_index(years, years[idx], decided)
+        origins = get_increment_origin_index(years, years[idx], decided)
         production = plant.expectation.get_production(origins)
 
         # calculate cumulative decommissioning expectation
@@ -192,7 +194,7 @@ def calculate_evolution_expectation(producer: Producer, timeline, idx):
         multipliers = np.array([inc.multiplier for inc in pinc])
         ages = np.array([inc.age for inc in pinc])
 
-        origins = get_increments_origin_index(years, years[idx], decided)
+        origins = get_increment_origin_index(years, years[idx], decided)
         production = plant.expectation.get_production(origins)
 
         # calculate cumulative pipeline delivery expectation
@@ -332,7 +334,7 @@ def calculate_evolution_expectation(producer: Producer, timeline, idx):
             # update the additional feed consumption
             # dict to account for what has been added as
             # new production
-            conversions = expectation.get_feed_mass(idx=idx + t)
+            conversions = expectation.get_feed_masses(idx + t)
             for feed_name, conversion in conversions.items():
                 # the feed gap moves everything forward by
                 # 'lead_time' duration to look at the gap of what
@@ -435,8 +437,9 @@ def perform_pipeline_delivery(producer: Producer) -> None:
 
 def calculate_feed_availability(producer: Producer, timeline, idx) -> None:
     """
-    Calculate the gap between feed used in current and pipeline production
-    and the available supply.
+    Calculate the gap between feed used and the available feed supply.
+
+    Feed used covers both current and pipeline production.
 
     Parameters
     ----------
@@ -516,9 +519,9 @@ def calculate_feed_availability(producer: Producer, timeline, idx) -> None:
         # extract the production capacity and use of
         # feed at the time the plants were built
         expectation = plant.expectation
-        origins = get_increments_origin_index(years, today, existing_decided)
+        origins = get_increment_origin_index(years, today, existing_decided)
         production = expectation.get_production(origins)
-        conversions = expectation.get_feed_mass(idx=origins)
+        conversions = expectation.get_feed_masses(origins)
 
         for feed_name, conversion in conversions.items():
             feed_mass = np.sum(production * conversion * existing_increments)
@@ -535,9 +538,9 @@ def calculate_feed_availability(producer: Producer, timeline, idx) -> None:
         decided = np.array([inc.decided for inc in pinc])
         multipliers = np.array([inc.multiplier for inc in pinc])
 
-        origins = get_increments_origin_index(years, today, decided)
+        origins = get_increment_origin_index(years, today, decided)
         production = expectation.get_production(origins)
-        conversions = expectation.get_feed_mass(idx=origins)
+        conversions = expectation.get_feed_masses(origins)
 
         for feed_name, conversion in conversions.items():
             feed_mass = np.sum(production * conversion * multipliers)
@@ -586,7 +589,10 @@ def calculate_feed_availability(producer: Producer, timeline, idx) -> None:
         # TODO: Remove if scrapping for negatives gets implemented
         if gap[0] < -TOLERANCE:
             logger.warning(
-                f"{producer}: {round(-gap[0])} tons/year more '{feed_name}' feed is being used than is available."
+                "%s: %s tons/year more '%s' feed is being used than is available.",
+                producer,
+                round(-gap[0]),
+                feed_name,
             )
 
             gap = 0.0
@@ -596,8 +602,10 @@ def calculate_feed_availability(producer: Producer, timeline, idx) -> None:
 
 def define_existing_pipeline(producer: Producer, timeline: np.ndarray) -> None:
     """
-    Define the initial number of plants of each plant type in the production pipeline, and derive
-    the initial uptake and development-constraint utilization from it.
+    Define the initial number of plants of each type in the production pipeline.
+
+    Also derives the initial uptake and development-constraint utilization from the
+    pipeline counts.
 
     Parameters
     ----------
@@ -655,7 +663,9 @@ def define_existing_pipeline(producer: Producer, timeline: np.ndarray) -> None:
         # pipeline uses negative ages (not yet delivered)
         producer.pipeline[p] = [
             Increment(multiplier=m, age=-d, dt=t, decided=lead_time - d)
-            for m, d, t in zip(incremental_plants, incremental_delivery, incremental_dt)
+            for m, d, t in zip(
+                incremental_plants, incremental_delivery, incremental_dt, strict=True
+            )
         ]
 
         # assign to profile
@@ -704,7 +714,7 @@ def calculate_export_expectation(
     producer: Producer, timeline: np.ndarray, idx: int
 ) -> None:
     """
-    Calculate the expected export distribution of the producer over the remaining timeline.
+    Calculate the producer's expected export distribution over the remaining timeline.
 
     Parameters
     ----------
@@ -738,8 +748,9 @@ def calculate_export_expectation(
 
 def perform_progression(producer: Producer, timeline: np.ndarray, idx: int) -> None:
     """
-    Progress the existing production in time: decommissioning, pipeline delivery, and the
-    resulting feed availability.
+    Progress the existing production in time.
+
+    Covers decommissioning, pipeline delivery, and the resulting feed availability.
 
     Parameters
     ----------
@@ -768,8 +779,9 @@ def perform_planning(
     producer: Producer, timeline: np.ndarray, time_step: float, idx: int
 ) -> None:
     """
-    Plan new plants into the pipeline from the fuel supply/demand gap and refresh the
-    evolution expectation used to quantify the next gap.
+    Plan new plants into the pipeline from the fuel supply/demand gap.
+
+    Also refreshes the evolution expectation used to quantify the next gap.
 
     Parameters
     ----------

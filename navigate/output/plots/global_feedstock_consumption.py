@@ -34,15 +34,15 @@ def plot_global_feedstock_consumption(manager, directory):
     fig, axes = subplot_grid(len(feedstocks))
     colors = generate_color_dict(feedstocks, FEEDSTOCK_COLOR)
 
-    for ax, feedstock_name in zip(axes, feedstocks):
-        consumed = profile.get_feed_mass(feedstock_name)
-        constraint = profile.get_feed_constraint(feedstock_name)
+    feed_mass = profile.get_feed_mass()
+    feed_constraint = profile.get_feed_constraint()
+
+    for ax, feedstock_name in zip(axes, feedstocks, strict=False):
+        consumed = feed_mass[feedstock_name]
+        constraint = feed_constraint[feedstock_name]
         constraint = np.where(constraint == np.inf, np.nan, constraint)
 
-        if np.all(np.isnan(constraint)):
-            max_constraint = 0.0
-        else:
-            max_constraint = np.nanmax(constraint)
+        max_constraint = 0.0 if np.all(np.isnan(constraint)) else np.nanmax(constraint)
 
         maximum = max(np.nanmax(consumed), max_constraint)
         divisor, unit = get_best_unit_mass(maximum)

@@ -14,6 +14,11 @@ helpers in `tests/helpers/`, and each simulating suite's decks under its own
 - Exact behaviour of a function or class, with an expected value derivable
   independently of the implementation → `tests/unit` (conventions:
   `tests/unit/README.md`).
+- A convention `CODESTYLE.md` states, checked by reflection over the code
+  instead of by an expected value → `tests/unit`. The rule lives in
+  `CODESTYLE.md` and the test only checks conformance to it:
+  `tests/unit/core/test_profile_getters.py` and
+  `tests/unit/core/test_expectation_getters.py`.
 - Coverage of the DSL attribute/command surface → `tests/attribute` (no
   README; conventions: the module docstrings of `test_attribute_coverage.py`,
   `test_report_properties.py`, `test_reference_manual_coverage.py` and

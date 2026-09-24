@@ -49,7 +49,7 @@ def extract_times(vessel: Vessel, idx: int) -> tuple[list, list]:
 
 def get_converters(vessel: Vessel) -> dict[str, Converter]:
     """
-    The three converters of a vessel's power system, keyed by name.
+    Return the three converters of a vessel's power system, keyed by name.
 
     Parameters
     ----------
@@ -66,7 +66,7 @@ def get_converters(vessel: Vessel) -> dict[str, Converter]:
 
 def get_port_converters(vessel: Vessel) -> dict[str, Converter]:
     """
-    The two converters that serve port energy demands (electrical and heat), keyed by name.
+    Return the two converters serving port energy demands, keyed by name.
 
     Parameters
     ----------
@@ -122,7 +122,7 @@ def initialize_converter_fuel_maps(alg: BunkerAlgorithm) -> None:
 
 def get_port_name_to_indices(route: Route) -> dict[str, list[int]]:
     """
-    The port indices of a route, keyed by port name.
+    Return the port indices of a route, keyed by port name.
 
     Parameters
     ----------

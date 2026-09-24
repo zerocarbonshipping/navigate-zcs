@@ -147,8 +147,10 @@ def calculate_regulation_emission_term(
     terms = port_terms + sea_terms + shore_power_terms
 
     if terms:
-        weights, variables = zip(*terms)
-        constraint_weights, emission_weights, energy_weights = zip(*weights)
+        weights, variables = zip(*terms, strict=True)
+        constraint_weights, emission_weights, energy_weights = zip(
+            *weights, strict=True
+        )
 
         constraints = gp.LinExpr(constraint_weights, variables)
         emissions = gp.LinExpr(emission_weights, variables)
@@ -253,7 +255,7 @@ def get_regulation_vessel_rhs(
 
 def update_regulation_individual_rhs(alg: BunkerAlgorithm) -> None:
     """
-    Updates the right-hand side values for individual regulations specific to each vessel.
+    Update right-hand side values for individual regulations specific to each vessel.
 
     Parameters
     ----------
@@ -275,7 +277,7 @@ def update_regulation_individual_rhs(alg: BunkerAlgorithm) -> None:
 
 def update_regulation_flexibility_rhs(alg: BunkerAlgorithm) -> None:
     """
-    Updates the right-hand side (RHS) for regulations marked as flexible.
+    Update the right-hand side (RHS) for regulations marked as flexible.
 
     Parameters
     ----------

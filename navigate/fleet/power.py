@@ -3,19 +3,23 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import numpy as np
 
 from navigate.core import Scalar
 from navigate.core.enum_ import EnergyDemandTypeID, EnergyDemandTypePortID
 from navigate.core.node_type import is_surface, is_variable
-from navigate.core.nodes.converter import Converter
-from navigate.core.nodes.curve import Curve
-from navigate.core.nodes.surface import Surface
-from navigate.core.nodes.variable import Variable
-from navigate.core.nodes.vessel import Vessel
 from navigate.core.unit import MWD_TO_GJ
 from navigate.exceptions import PowerCapacityError
 from navigate.util import TOLERANCE, to_numpy
+
+if TYPE_CHECKING:
+    from navigate.core.nodes.converter import Converter
+    from navigate.core.nodes.curve import Curve
+    from navigate.core.nodes.surface import Surface
+    from navigate.core.nodes.variable import Variable
+    from navigate.core.nodes.vessel import Vessel
 
 
 def calculate_speed_bounds(
@@ -24,7 +28,7 @@ def calculate_speed_bounds(
     speeds: np.ndarray,
 ) -> tuple[float, float]:
     """
-    Calculate the minimum and maximum mean speed achievable by a vessel based on its technical minimum and maximum.
+    Calculate a vessel's minimum and maximum mean speed from its technical bounds.
 
     Parameters
     ----------
@@ -55,11 +59,12 @@ def calculate_speed_bounds(
 
 def calculate_technical_speed_limits(vessel: Vessel) -> tuple[np.ndarray, np.ndarray]:
     """
-    Calculate the minimum and maximum achievable speeds for a vessel based on its propulsion load and propulsion system.
+    Calculate a vessel's minimum and maximum achievable speed from its propulsion load.
 
-    Notice that the technical minimum/maximum speed is only defined as a function of the propulsion load.
-    Meaning that if a minimum load is defined for the electrical or heat converter, this information is ignored
-    although this could in theory be the bindind speed constraint in extreme cases.
+    Notice that the technical minimum/maximum speed is only defined as a function of the
+    propulsion load. Meaning that if a minimum load is defined for the electrical or
+    heat converter, this information is ignored although this could in theory be the
+    bindind speed constraint in extreme cases.
 
     Returns
     -------
@@ -114,8 +119,10 @@ def calculate_technical_speed_limits(vessel: Vessel) -> tuple[np.ndarray, np.nda
 
 def loads_are_convex(vessel: Vessel) -> bool:
     """
-    Check whether all loads at sea are based on a convex function. This is necessary since both the propulsion load,
-    electrical load, and heat load at sea can depend on the speed and capacity utilization
+    Check whether all loads at sea are based on a convex function.
+
+    This is necessary since both the propulsion load, electrical load, and
+    heat load at sea can depend on the speed and capacity utilization.
 
     Parameters
     ----------
@@ -216,7 +223,7 @@ def _find_capacity_violations(
     power_capacity = converter.power_capacity.get()
     violations = []
 
-    for step, (energy, time) in enumerate(zip(energies, times)):
+    for step, (energy, time) in enumerate(zip(energies, times, strict=True)):
         deliverable = power_capacity * time * MWD_TO_GJ
 
         if energy - deliverable <= TOLERANCE * max(1.0, deliverable):
@@ -224,7 +231,9 @@ def _find_capacity_violations(
 
         implied_power = energy / (time * MWD_TO_GJ) if time > 0.0 else float("inf")
         violations.append(
-            f"  {demand_type.name.lower()} demand on {step_label} {step} requires {implied_power:.2f} MW but {converter} has {power_capacity:.2f} MW installed."
+            f"  {demand_type.name.lower()} demand on {step_label} {step} requires "
+            f"{implied_power:.2f} MW but {converter} has "
+            f"{power_capacity:.2f} MW installed."
         )
 
     return violations
@@ -244,7 +253,7 @@ def _calculate_speed_extremum(
     vessel: Vessel, power: float, load: Curve | Surface
 ) -> float | list[float]:
     """
-    Calculate the speed at which a given minimum or maximum power is reached for a vessel.
+    Calculate the vessel speed at which a given minimum or maximum power is reached.
 
     Parameters
     ----------
@@ -271,7 +280,7 @@ def _calculate_speed_extremum(
 
 def _load_is_convex(load: Scalar | Variable | Curve | Surface) -> bool:
     """
-    Check whether a propulsion, electrical, or heat load level is based on a convex function.
+    Check whether a propulsion, electrical, or heat load is based on a convex function.
 
     Parameters
     ----------

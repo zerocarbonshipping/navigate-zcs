@@ -21,7 +21,7 @@ class _Table2D(_Calculator):
     def __init__(self):
         _Calculator.__init__(self)
 
-        # external variables -------------------------------------------------------------------------------------------
+        # external variables -----------------------------------------------------------
         # interpolation
         self._interpolate = Interpolate2DID.LINEAR
 
@@ -29,7 +29,7 @@ class _Table2D(_Calculator):
         self.extrapolate = ExtrapolateID.LINEAR
         self._outside = None
 
-        # internal variables -------------------------------------------------------------------------------------------
+        # internal variables -----------------------------------------------------------
         self.x = None
         self.y = None
         self._z = None
@@ -46,7 +46,7 @@ class _Table2D(_Calculator):
         if self.x is not None and self.y is not None and self._z is not None:
             self._set_table(self.x, self.y, self._z)
 
-    # external methods (DSL attributes) --------------------------------------------------------------------------------
+    # external methods (DSL attributes) ------------------------------------------------
     def set_interpolate(self, interpolate):
         self._interpolate = assign_id(interpolate, Interpolate2DID)
 
@@ -56,7 +56,7 @@ class _Table2D(_Calculator):
     def set_outside(self, outside):
         self._outside = assign_value(outside)
 
-    # internal methods -------------------------------------------------------------------------------------------------
+    # internal methods -----------------------------------------------------------------
     def get_table_limits(self):
         return np.min(self._z), np.max(self._z)
 
@@ -74,10 +74,12 @@ class _Table2D(_Calculator):
 
     def _reverse_lookup_x(self, y, z, interpolate=True):
         """
-        Perform a reverse lookup in the table defined by (xp, yp, zp), finding the x-value which is closest to 'z'.
-        along a z-slice defined by y.
+        Perform a reverse lookup in the table defined by (xp, yp, zp).
 
-        This lookup is only applicable to strictly increasing functions such as exponential functions.
+        Finds the x-value closest to 'z' along a z-slice defined by y.
+
+        This lookup is only applicable to strictly increasing functions such as
+        exponential functions.
 
         Parameters
         ----------
@@ -91,7 +93,8 @@ class _Table2D(_Calculator):
         Returns
         -------
         np.ndarray
-            Interpolated or exact 'x' value corresponding to the given 'z' along a z-slice defined by 'y'.
+            Interpolated or exact 'x' value corresponding to the given 'z' along a
+            z-slice defined by 'y'.
         """
         x = []
 
@@ -135,7 +138,7 @@ class _Table2D(_Calculator):
                 self._extrapolation_warned = True
             else:
                 logger.debug(
-                    f"{self}: Extrapolating beyond table limits (suppressed repeat)."
+                    "%s: Extrapolating beyond table limits (suppressed repeat).", self
                 )
 
     def _get_x_limits(self):
@@ -152,7 +155,7 @@ class _Table2D(_Calculator):
             return "nearest"
 
     def _get_allow_extrapolate_internal(self):
-        return True if self.extrapolate == ExtrapolateID.FALSE else False
+        return self.extrapolate == ExtrapolateID.FALSE
 
     def _get_extrapolate_internal(self):
         if self.extrapolate == ExtrapolateID.FLAT:
@@ -213,6 +216,7 @@ class _Table2D(_Calculator):
 
 def check_table2d_input(x, y, z):
     """
+    Validate the x, y, and z arrays used to build a 2D table.
 
     Parameters
     ----------
@@ -225,7 +229,8 @@ def check_table2d_input(x, y, z):
     """
     if (x.size * y.size) != z.size:
         raise ValueError(
-            f"'z' ({z.size}) must have a length equal to the product of 'x' ({x.size}) and 'y' ({y.size}) ."
+            f"'z' ({z.size}) must have a length equal to the product of 'x' ({x.size})"
+            f" and 'y' ({y.size}) ."
         )
 
     if not is_strictly_increasing(x):

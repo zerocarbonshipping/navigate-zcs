@@ -32,7 +32,7 @@ def leg_jurisdiction_fraction(
     port_i, port_e, jurisdiction, intra_fraction, inter_fraction, extra_fraction
 ):
     """
-    The regulated fraction of a leg from its ports' jurisdiction membership.
+    Return the regulated fraction of a leg from its ports' jurisdiction membership.
 
     Parameters
     ----------
@@ -67,6 +67,7 @@ def _calculate_attribute_in_policy_jurisdiction(
     regulation, vessel, times, attribute_sea
 ):
     """
+    Calculate the attribute value accumulated within the regulation jurisdiction.
 
     Parameters
     ----------

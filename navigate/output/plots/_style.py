@@ -2,8 +2,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Rendering configuration for the plots: matplotlib setup, fonts, and shared
-save/legend options.
+Rendering configuration for the plots.
+
+Covers the matplotlib setup, fonts, and shared save/legend options.
 
 Domain-entity display labels and colour palettes live in
 :mod:`navigate.output.plots._labels`. The catalogue of selectable plot

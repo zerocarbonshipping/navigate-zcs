@@ -24,7 +24,8 @@ def transfer_bunker(alg: BunkerAlgorithm) -> None:
         fleet_name: dict.fromkeys(alg.fuels, 0.0) for fleet_name in alg.fleets
     }
 
-    # precompute levy levels (independent of vessel/fuel) to avoid redundant getter calls
+    # precompute levy levels (independent of vessel/fuel) to avoid redundant getter
+    # calls
     levy_level_cache = {}
     if alg.scope == BunkerScopeID.EXISTING:
         for levies in alg.port_levies.values():
@@ -53,7 +54,6 @@ def transfer_bunker(alg: BunkerAlgorithm) -> None:
         # transfer bunkered values for
         # future inertia calculations
         vessel.expectation.add_bunker_mass_expected(port_name, f, bunker.X)
-        port.expectation.add_bunker_mass_expected(f, bunker.X)
 
         if alg.scope == BunkerScopeID.EXISTING:
             # calculate fuel expenses
@@ -62,7 +62,6 @@ def transfer_bunker(alg: BunkerAlgorithm) -> None:
             # transfer bunkered values for
             # future inertia calculations
             vessel.expectation.add_bunker_mass_existing(port_name, f, bunker.X)
-            port.expectation.add_bunker_mass_existing(f, bunker.X)
 
             # transfer to vessel profile
             vessel.profile.add_consumed_mass(f, bunker.X, idx=alg.idx)

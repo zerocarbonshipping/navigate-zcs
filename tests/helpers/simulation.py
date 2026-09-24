@@ -15,13 +15,16 @@ import argparse
 import os
 import shutil
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import numpy as np
 
 from navigate.__main__ import ASSUMPTIONS_ENV_VAR
-from navigate.core.nodes.producer import Producer
 from navigate.simulation import SimulationManager
 from navigate.util import YEAR
+
+if TYPE_CHECKING:
+    from navigate.core.nodes.producer import Producer
 
 # Tolerance for comparing per-step producer development against the nominal
 # per-year MaximumDevelopment in decks with yearly time steps: leap years
@@ -35,8 +38,10 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 
 def default_assumptions_dir() -> Path:
     """
-    Resolves the assumptions directory like the CLI: environment variable
-    first, falling back to the repository checkout containing this test tree.
+    Resolve the assumptions directory the way the CLI does.
+
+    Checks the environment variable first, falling back to the repository checkout
+    containing this test tree.
 
     Returns
     -------
@@ -50,7 +55,8 @@ def default_assumptions_dir() -> Path:
 
 def make_args(data_dir: Path | None = None) -> argparse.Namespace:
     """
-    Builds the CLI argument namespace expected by SimulationManager.read_deck.
+    Build the CLI argument namespace expected by SimulationManager.read_deck.
+
     'solver' is left as None so a deck's BunkerOptions.Solver setting wins.
 
     Parameters
@@ -71,7 +77,7 @@ def make_args(data_dir: Path | None = None) -> argparse.Namespace:
 
 def run_simulation(sim_dir: Path, data_dir: Path | None = None) -> SimulationManager:
     """
-    Parses and runs the deck '<sim_dir>/<sim_dir.name>.nav'.
+    Parse and run the deck '<sim_dir>/<sim_dir.name>.nav'.
 
     Parameters
     ----------
@@ -96,10 +102,11 @@ def run_simulation(sim_dir: Path, data_dir: Path | None = None) -> SimulationMan
 
 def clear_output_dir(output_dir: Path) -> None:
     """
-    Deletes a deck's report output directory before a run, so only that run's
-    files exist afterwards — stale files from earlier runs (including the
-    report writer's locked-file retry names) must never reach a consumer of
-    the output.
+    Delete a deck's report output directory before a run.
+
+    Only the coming run's files then exist: stale files from earlier runs
+    (including the report writer's locked-file retry names) must never reach
+    a consumer of the output.
 
     Parameters
     ----------
@@ -111,9 +118,10 @@ def clear_output_dir(output_dir: Path) -> None:
 
 def assertable_end(manager: SimulationManager, producer: Producer) -> int:
     """
-    Last time-step index (exclusive) at which producer development is
-    assertable: in the final LeadTime years the foresight window runs past
-    the simulation end and the producer under-builds by construction.
+    Last time-step index (exclusive) at which producer development is assertable.
+
+    In the final LeadTime years the foresight window runs past the simulation end and
+    the producer under-builds by construction.
 
     Parameters
     ----------
@@ -127,7 +135,7 @@ def assertable_end(manager: SimulationManager, producer: Producer) -> int:
     Exclusive end index, guaranteed within (0, len(timeline)].
     """
     timeline = manager.timeline
-    lead_time = int(round(producer.assets[0].lead_time.get(timeline[0])))
+    lead_time = round(producer.assets[0].lead_time.get(timeline[0]))
     end = len(timeline) - lead_time
     # guard against vacuously-true assertions on empty (or, with negative
     # indices, silently wrong) windows when a horizon shrinks or a default
@@ -140,8 +148,7 @@ def assertable_end(manager: SimulationManager, producer: Producer) -> int:
 
 def check_invariants(manager: SimulationManager) -> None:
     """
-    Verifies universal invariants that must hold for every completed
-    simulation.
+    Verify universal invariants that must hold for every completed simulation.
 
     Parameters
     ----------

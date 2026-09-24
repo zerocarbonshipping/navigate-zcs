@@ -56,7 +56,8 @@ def _make_technology(name: str, **kwargs) -> Technology:
         energy_saving : dict[EnergyDemandTypeID, float]
         external_power : dict[EnergyDemandTypeID, float]
         shore_power_capacity : float
-        power_transfer : dict[tuple[EnergyDemandTypeID, EnergyDemandTypeID], float | Curve]
+        power_transfer :
+            dict[tuple[EnergyDemandTypeID, EnergyDemandTypeID], float | Curve]
         capex : float
         opex : float
         lifetime : float
@@ -102,7 +103,7 @@ class TestCompoundSavings:
     """Verify: compound_saving = 1 - prod(1 - s_i), per energy type."""
 
     @pytest.mark.parametrize(
-        "savings, expected",
+        ("savings", "expected"),
         [
             ([0.08], 0.08),
             # 4% + 7.5% → 1 - 0.96 * 0.925 = 0.112
@@ -149,7 +150,7 @@ class TestCompoundSavings:
         assert pkg.compound_savings[HEAT] == pytest.approx(0.0)
 
     def test_diminishing_marginal_return(self):
-        """Second identical technology contributes less marginal saving than the first."""
+        """Second identical technology adds less marginal saving than the first."""
         s = 0.10
         t1 = _make_technology("t1", energy_saving={PROPULSION: s})
         t2 = _make_technology("t2", energy_saving={PROPULSION: s})
@@ -173,7 +174,7 @@ class TestCompoundPower:
     """Verify: compound_power = sum(power_i), per energy type."""
 
     @pytest.mark.parametrize(
-        "powers, expected",
+        ("powers", "expected"),
         [
             ([1.25], 1.25),
             ([1.25, 2.0], 3.25),
@@ -210,12 +211,13 @@ class TestResidualEnergy:
     """Verify: residual = max(raw * (1 - saving) - external, 0)."""
 
     @pytest.mark.parametrize(
-        "raw, saving, external, expected",
+        ("raw", "saving", "external", "expected"),
         [
             ([100.0, 200.0, 300.0], 0.0, [0.0, 0.0, 0.0], [100.0, 200.0, 300.0]),
             ([100.0, 200.0], 0.20, [0.0, 0.0], [80.0, 160.0]),
             ([100.0], 0.0, [30.0], [70.0]),
-            # saving is applied first (multiplicative), then external is subtracted: 100 * 0.8 - 10 = 70
+            # saving is applied first (multiplicative), then external is subtracted:
+            # 100 * 0.8 - 10 = 70
             ([100.0], 0.20, [10.0], [70.0]),
             # external power exceeding post-saving demand → 0, not negative
             ([10.0], 0.0, [999.0], [0.0]),
@@ -267,7 +269,7 @@ class TestPowerEnergyConversion:
 
 
 class TestTransferCurves:
-    """Verify Package filters zero-transfer curves and _calculate_power_transfer sums."""
+    """Verify Package filters zero-transfer curves; _calculate_power_transfer sums."""
 
     def test_zero_transfer_filtered_out(self):
         """Technologies with no power transfer produce no transfer_curves entries."""
@@ -310,7 +312,7 @@ class TestShorePowerCapacity:
     """Verify shore power capacity is additive across technologies."""
 
     @pytest.mark.parametrize(
-        "capacities, expected",
+        ("capacities", "expected"),
         [
             ([4.0], 4.0),
             ([4.0, 2.5], 6.5),
@@ -375,16 +377,16 @@ class TestCombinedResidualEnergy:
     Expected pipeline per energy type:
 
     PROPULSION:
-      1. External energy = 0.5 MW × 1 day × 86.4 GJ/MWd = 43.2 GJ
-      2. Residual = max(1000 × 0.9 - 43.2, 0) = 856.8 GJ
+      1. External energy = 0.5 MW * 1 day * 86.4 GJ/MWd = 43.2 GJ
+      2. Residual = max(1000 * 0.9 - 43.2, 0) = 856.8 GJ
 
     HEAT:
       1. External energy = 0 (no external heat power)
-      2. Residual before transfer = max(500 × 1.0 - 0, 0) = 500 GJ
+      2. Residual before transfer = max(500 * 1.0 - 0, 0) = 500 GJ
       3. Propulsion residual power = 856.8 / 86.4 = 9.9167 MW
       4. Converter load = 9.9167 / 20.0 = 0.4958
       5. Transfer power = 0.2 MW (scalar, load-independent)
-      6. Transfer energy = 0.2 × 1.0 × 86.4 = 17.28 GJ
+      6. Transfer energy = 0.2 * 1.0 * 86.4 = 17.28 GJ
       7. Residual after transfer = max(500 - 17.28, 0) = 482.72 GJ
     """
 
@@ -421,7 +423,7 @@ class TestCombinedResidualEnergy:
         assert result[PROPULSION][0] == pytest.approx(expected)
 
     def test_heat_residual_with_transfer(self, setup):
-        """Heat: no saving, no external, but 0.2 MW transferred from propulsion → 482.72 GJ."""
+        """Heat: no saving/external, 0.2 MW transferred from propulsion → 482.72 GJ."""
         vessel, pkg, durations, raw_demands = setup
         result = _iterate_legs_or_ports(vessel, pkg, durations, raw_demands)
 
@@ -482,8 +484,9 @@ class TestCombinedResidualEnergy:
 
 class TestPackagePickling:
     """
-    Packages are pickled through the fleet nodes in PlotData.save, so
-    preprocess_packages must leave only picklable state on them.
+    Packages are pickled through the fleet nodes in PlotData.save.
+
+    So preprocess_packages must leave only picklable state on them.
     """
 
     def test_preprocessed_packages_round_trip(self):

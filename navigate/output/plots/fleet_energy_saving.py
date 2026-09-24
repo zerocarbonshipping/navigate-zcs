@@ -30,7 +30,7 @@ def plot_fleet_energy_saving(manager, directory):
     min_saving = 0.0
     max_saving = 0.0
 
-    for ax, fleet in zip(axes, fleets.values()):
+    for ax, fleet in zip(axes, fleets.values(), strict=False):
         fleet_profile = fleet.profile
 
         saving_op = fleet_profile.get_operational_energy_intensity_saving() * 100.0

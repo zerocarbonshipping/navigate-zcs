@@ -7,8 +7,6 @@ import itertools
 import logging
 from typing import TYPE_CHECKING
 
-import numpy as np
-
 from navigate.core import (
     Scalar,
     as_list,
@@ -21,7 +19,6 @@ from navigate.core import (
 )
 from navigate.core.enum_ import ExtrapolateID
 from navigate.core.expectations import ProducerExpectation
-from navigate.core.increment import Increment
 from navigate.core.node_type import FORECAST, PLANT, PRODUCER, VARIABLE
 from navigate.core.nodes._asset_manager import _AssetManager
 from navigate.core.profiles import ProducerProfile
@@ -29,6 +26,9 @@ from navigate.exceptions import no_value_assigned_error
 from navigate.util import is_non_strictly_increasing
 
 if TYPE_CHECKING:
+    import numpy as np
+
+    from navigate.core.increment import Increment
     from navigate.core.nodes.feedstock import Feedstock
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.port import Port
@@ -41,7 +41,7 @@ class Producer(_AssetManager):
     def __init__(self, name):
         super().__init__(name, PRODUCER)
 
-        # external variables -------------------------------------------------------------------------------------------
+        # external variables -----------------------------------------------------------
         # plant uptake
         self.minimum_offtake_duration = (
             None  # float, minimum duration of offtake agreements, years
@@ -52,7 +52,7 @@ class Producer(_AssetManager):
         self.fuel_cost_sensitivity = None  # float, odds ratio for plant choice on LCoF
 
         # initial conditions
-        self._initial_capacity = []  # list[float], initial capacity per plant type, tons/day
+        self._initial_capacity = []  # list[float], initial capacity per plant, tons/day
 
         # existing pipeline
         self.existing_pipelines = {}  # dict[plant_name: Forecast]
@@ -61,7 +61,7 @@ class Producer(_AssetManager):
         self.maximum_development = (
             None  # float, number of plants which can be built per year
         )
-        self.feed_constraints = {}  # dict[float], amount of feed (process/feedstock) available for plants
+        self.feed_constraints = {}  # dict[float], feed (process/feedstock) available
         self.jump_start_fraction = (
             None  # float, fraction to jump-start supply/demand interaction
         )
@@ -70,21 +70,22 @@ class Producer(_AssetManager):
         )
 
         # export
-        self.export_distribution = {}  # dict[port_name: float], fraction of production being exported to which port
+        self.export_distribution = {}  # dict[port_name: float], export fraction by port
 
         # boolean
         self.allow_plant = {}  # dict[bool], whether a plant is allowed to be built
 
-        # internal variables -------------------------------------------------------------------------------------------
+        # internal variables -----------------------------------------------------------
         self.expectation: ProducerExpectation = ProducerExpectation()
         self.profile: ProducerProfile = ProducerProfile()
 
-        # pipeline increments (Producer-specific, separate from active increments in _AssetManager)
+        # pipeline increments (Producer-specific, separate from active increments in
+        # _AssetManager)
         self.pipeline: list[list[Increment]] = []
         self._increment_stores.append(self.pipeline)
 
         # static variables
-        self.fuels = {}  # dict[Fuel], store a list of possible production fuels for convenience
+        self.fuels = {}  # dict[Fuel], possible production fuels, for convenience
 
         # dynamic variables
         self.current_utilization = (
@@ -94,7 +95,7 @@ class Producer(_AssetManager):
     # public domain name for the inherited assets list
     plants = property(lambda self: self.assets)
 
-    # external methods (DSL attributes) --------------------------------------------------------------------------------
+    # external methods (DSL attributes) ------------------------------------------------
     def set_plants(self, plants):
         """
         Set the list of plant types that can be built.
@@ -135,10 +136,10 @@ class Producer(_AssetManager):
         """
         Set the sensitivity of the fuel-pathway choice to expected demand.
 
-        The value is an odds ratio: a pathway whose expected demand is 10% higher receives this many
-        times the odds of an otherwise identical pathway. For example 1.25 means a 10% higher demand
-        gives 1.25 times the odds, and 1 means no preference. Demand is higher-is-better, so use a
-        value above 1.
+        The value is an odds ratio: a pathway whose expected demand is 10% higher
+        receives this many times the odds of an otherwise identical pathway. For example
+        1.25 means a 10% higher demand gives 1.25 times the odds, and 1 means no
+        preference. Demand is higher-is-better, so use a value above 1.
 
         Examples
         --------
@@ -161,9 +162,10 @@ class Producer(_AssetManager):
         """
         Set the sensitivity of the plant choice to levelized cost of fuel (LCoF).
 
-        The value is an odds ratio: a plant whose LCoF is 10% higher receives this many times the odds
-        of an otherwise identical plant. For example 0.5 means a 10% higher LCoF halves the odds, and
-        1 means no preference. LCoF is lower-is-better, so use a value below 1.
+        The value is an odds ratio: a plant whose LCoF is 10% higher receives this many
+        times the odds of an otherwise identical plant. For example 0.5 means a 10%
+        higher LCoF halves the odds, and 1 means no preference. LCoF is lower-is-better,
+        so use a value below 1.
 
         Examples
         --------
@@ -203,7 +205,7 @@ class Producer(_AssetManager):
 
     def set_maximum_development(self, maximum_development):
         """
-        Set the maximum development limiting the number of plants which can be built per year.
+        Set the maximum number of plants that can be developed per year.
 
         Examples
         --------
@@ -221,7 +223,7 @@ class Producer(_AssetManager):
 
     def set_maximum_ramp_up(self, maximum_ramp_up):
         """
-        Set the maximum ramp-up for the utilization of the development constraint per year.
+        Set the maximum ramp-up of the development constraint's utilization per year.
 
         Examples
         --------
@@ -239,11 +241,11 @@ class Producer(_AssetManager):
 
     def set_jump_start_fraction(self, jump_start_fraction):
         """
-        Set the jump-start fraction used to initiate the supply/demand interaction if there has been no production.
+        Set the jump-start fraction for supply/demand interaction absent production.
 
-        Due to the use of self.current_uptake and self.current_utilization in the expectation calculations it is
-        necessary to include a "jump-start" fraction in case those values are zero, to get the supply/demand interaction
-        started.
+        Due to the use of self.current_uptake and self.current_utilization in the
+        expectation calculations it is necessary to include a "jump-start" fraction in
+        case those values are zero, to get the supply/demand interaction started.
 
         Examples
         --------
@@ -258,10 +260,10 @@ class Producer(_AssetManager):
             jump_start_fraction, lower=0.0, upper=1.0
         )
 
-    # external methods (DSL commands) ----------------------------------------------------------------------------------
+    # external methods (DSL commands) --------------------------------------------------
     def set_existing_pipeline(self, plant_name, existing_pipeline):
         """
-        Set an existing pipelines for a given plant used for determining the new plants from the pipeline.
+        Set an existing pipeline for a plant, used to determine new plants from it.
 
         The pipeline forecast must be non-strictly increasing.
 
@@ -287,7 +289,7 @@ class Producer(_AssetManager):
 
     def set_allow_plant(self, plant_name, allow_plant):
         """
-        Set a boolean flag for a given plant from the list of plants whether it is allowed or not.
+        Set a boolean flag for whether a given plant is allowed to be built.
 
         Examples
         --------
@@ -307,7 +309,7 @@ class Producer(_AssetManager):
 
     def set_feed_constraint(self, feed_name, feed_constraint):
         """
-        Set a static constraint for the amount of feed (feedstock or process) available in the region in tons/year.
+        Set a static feed (feedstock or process) constraint for the region, tons/year.
 
         Examples
         --------
@@ -331,12 +333,12 @@ class Producer(_AssetManager):
 
     def set_export_distribution(self, port_name, export_distribution):
         """
-        Set the relative weight with which the fuel production is exported to a given port.
+        Set the weight with which the fuel production is exported to a port.
 
-        The weights of all ports are normalized to sum to one in every time-step, so a weight is
-        a share of the production only when the weights assigned across the ports already sum to
-        one. If no port carries a positive weight, the production is split equally across all
-        ports.
+        The weights of all ports are normalized to sum to one in every time-step,
+        so a weight is a share of the production only when the weights assigned
+        across the ports already sum to one. If no port carries a positive weight,
+        the production is split equally across all ports.
 
         Examples
         --------
@@ -359,7 +361,7 @@ class Producer(_AssetManager):
             upper=1.0,
         )
 
-    # internal methods -------------------------------------------------------------------------------------------------
+    # internal methods -----------------------------------------------------------------
     def initialize(self):
 
         if not self.assets:
@@ -388,14 +390,17 @@ class Producer(_AssetManager):
 
         if self._initial_capacity and (len(self.assets) != len(self._initial_capacity)):
             raise ValueError(
-                f"{self}: The length of Plants ({len(self.assets)}) and InitialCapacity ({len(self._initial_capacity)}) must correspond."
+                f"{self}: The length of Plants ({len(self.assets)}) and InitialCapacity"
+                f" ({len(self._initial_capacity)}) must correspond."
             )
 
         if self._initial_age_distribution and (
             len(self.assets) != len(self._initial_age_distribution)
         ):
             raise ValueError(
-                f"{self}: The length of Plants ({len(self.assets)}) and InitialAgeDistribution ({len(self._initial_age_distribution)}) must correspond."
+                f"{self}: The length of Plants ({len(self.assets)}) and"
+                f" InitialAgeDistribution"
+                f" ({len(self._initial_age_distribution)}) must correspond."
             )
 
         # check that pipelines satisfy various requirements
@@ -413,8 +418,10 @@ class Producer(_AssetManager):
                 # print a warning if the forecast allows extrapolation
                 if pipeline.extrapolate == ExtrapolateID.LINEAR:
                     logger.warning(
-                        f"{self}: Pipeline ({pipeline}) allows extrapolation and"
-                        " may therefore continue past the last date."
+                        "%s: Pipeline (%s) allows extrapolation and may therefore "
+                        "continue past the last date.",
+                        self,
+                        pipeline,
                     )
 
         # ensure consistent export distribution
@@ -440,7 +447,8 @@ class Producer(_AssetManager):
             All processes in the simulation.
         """
         for feed_name in itertools.chain(feedstocks, processes):
-            # stays None when unset: ProducerExpectation reads a missing constraint as unlimited
+            # stays None when unset: ProducerExpectation reads a missing constraint as
+            # unlimited
             self.feed_constraints.setdefault(feed_name, None)
 
         for port_name in ports:
@@ -449,7 +457,8 @@ class Producer(_AssetManager):
         for plant in self.assets:
             name = plant.name
             self.allow_plant.setdefault(name, None)
-            # stays None when unset: a None entry means the plant has no committed pipeline
+            # stays None when unset: a None entry means the plant has no committed
+            # pipeline
             self.existing_pipelines.setdefault(name, None)
 
     def initialize_expectation(
@@ -478,9 +487,7 @@ class Producer(_AssetManager):
         self.profile.initialize(timeline, feedstocks, fuels, processes)
 
     def define_initial_capacity(self) -> None:
-        """
-        Define the initial capacity of each plant type.
-        """
+        """Define the initial capacity of each plant type."""
         if not self._initial_capacity:
             # if the initial capacity is not
             # supplied by the user, then assume
@@ -501,7 +508,11 @@ class Producer(_AssetManager):
         if capacity > 0.0:
             return self._initial_capacity[index].get() / capacity
         logger.warning(
-            f"{self}: Unable to initialize a capacity of tons/day from {self._initial_capacity[index].get()} (plant {self.assets[index]}) as the plant capacity is zero."
+            "%s: Unable to initialize a capacity of tons/day from %s (plant %s) as the "
+            "plant capacity is zero.",
+            self,
+            self._initial_capacity[index].get(),
+            self.assets[index],
         )
         return 0.0
 

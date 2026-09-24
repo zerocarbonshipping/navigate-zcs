@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import numpy as np
 
 from navigate.core.enum_ import (
@@ -11,16 +13,19 @@ from navigate.core.enum_ import (
     FuelTypeID,
     RouteTypeID,
 )
-from navigate.core.nodes.port import Port
-from navigate.core.nodes.vessel import Vessel
 from navigate.util import divide_nonzero
+
+if TYPE_CHECKING:
+    from navigate.core.nodes.port import Port
+    from navigate.core.nodes.vessel import Vessel
 
 
 def calculate_fair_share_fuel_supply(fleets, fuels, ports, idx, scope):
     """
-    Calculates the fair-share of fuel supply from each port for every vessel in the simulation.
+    Calculate fair-share fuel supply from each port for every vessel in the simulation.
 
-    Used as a starting guess for the fair-share of fuel supply during existing bunkering.
+    Used as a starting guess for the fair-share of fuel supply during existing
+    bunkering.
 
     Parameters
     ----------
@@ -63,7 +68,7 @@ def calculate_fair_share_fuel_supply(fleets, fuels, ports, idx, scope):
 
 def _calculate_demand_based_fair_share_fuel_supply(fleets, ports, idx, scope):
     """
-    Calculates the fair-share of fuel type supply from each port for every vessel in the simulation.
+    Calculate the fair-share fuel type supply from each port for every vessel.
 
     Parameters
     ----------
@@ -80,12 +85,10 @@ def _calculate_demand_based_fair_share_fuel_supply(fleets, ports, idx, scope):
     Returns
     -------
     tuple[dict, dict, dict, dict]
-        Fair-share of fuel type supply from each port for every vessel in the simulation.
+        Fair-share of fuel type supply from each port for every vessel in the
+        simulation.
     """
-    if scope == BunkerScopeID.EXISTING:
-        _idx = idx
-    else:
-        _idx = np.s_[idx:]
+    _idx = idx if scope == BunkerScopeID.EXISTING else np.s_[idx:]
 
     vessels = {
         vessel.name: vessel for fleet in fleets.values() for vessel in fleet.vessels
@@ -140,7 +143,7 @@ def _calculate_demand_based_fair_share_fuel_supply(fleets, ports, idx, scope):
 
 def _calculate_fuel_type_demand_in_port_jurisdiction(port, vessel, idx):
     """
-    Calculates the potential energy demand per fuel type of a given vessel within the jurisdiction of a given port.
+    Calculate a vessel's potential energy demand per fuel type in port's jurisdiction.
 
     Parameters
     ----------
@@ -201,7 +204,7 @@ def _calculate_operational_demand_in_port_jurisdiction(
     vessel: Vessel, port: Port, idx: int
 ) -> dict[EnergyDemandTypeID, np.ndarray]:
     """
-    Calculates the operational energy demand for a vessel within the jurisdiction of a port.
+    Calculate operational energy demand for a vessel within a port's jurisdiction.
 
     Parameters
     ----------
@@ -233,7 +236,7 @@ def _calculate_energy_in_port_jurisdiction(
     energy_port: dict[EnergyDemandTypeID, list[np.ndarray]],
 ) -> dict[EnergyDemandTypeID, np.ndarray]:
     """
-    Calculates the energy demand or spend for a vessel within the jurisdiction of a port.
+    Calculate the energy demand or spend for a vessel within a port's jurisdiction.
 
     Parameters
     ----------

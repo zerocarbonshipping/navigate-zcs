@@ -22,7 +22,7 @@ from navigate.util import TOLERANCE, collapse_tuple_dict, dates_to_years
 
 
 def _vessel_series_by_fuel_type(series, vessel_map):
-    """Flat (values, colors) per vessel, in canonical fuel-type order, near-zero dropped."""
+    """Flat (values, colors) per vessel, in fuel-type order, near-zero dropped."""
     order = {ft: i for i, ft in enumerate(FUEL_TYPE_ORDER)}
 
     names = [
@@ -55,7 +55,9 @@ def plot_fleet_conversions_cumulative(manager, directory):
     fig, axes = subplot_grid(len(fuel_conversions))
 
     count = 0
-    for ax, (fleet_name, conversions) in zip(axes, fuel_conversions.items()):
+    for ax, (fleet_name, conversions) in zip(
+        axes, fuel_conversions.items(), strict=False
+    ):
         # used for trimming
         count += 1
 

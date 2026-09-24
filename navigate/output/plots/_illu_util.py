@@ -39,9 +39,7 @@ def set_font_sizes(ax, font_size=12, legend_size=10):
 
 
 def trim_axes(axes, n):
-    """
-    Reduce *axs* to *N* Axes. All further Axes are removed from the figure.
-    """
+    """Reduce *axs* to *N* Axes. All further Axes are removed from the figure."""
     for ax in axes[n:]:
         ax.remove()
 
@@ -50,15 +48,12 @@ def trim_axes(axes, n):
 
 def get_font_sizes(n):
     """
+    Return (label, legend) font sizes scaled down with the number of axes.
 
     Parameters
     ----------
     n : int
         Number of axes on the figure.
-
-    Returns
-    -------
-
     """
     labels = 25.0
     legend = 25.0

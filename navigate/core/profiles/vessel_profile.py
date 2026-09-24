@@ -15,6 +15,7 @@ from navigate.util import divide_nonzero
 if TYPE_CHECKING:
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
+    from navigate.util.types_ import BoolArray, FloatArray
 
 
 class VesselProfile(_FuelConsumerProfile):
@@ -37,7 +38,8 @@ class VesselProfile(_FuelConsumerProfile):
         self._lowest_speed: np.ndarray = EMPTY_NAN  # lowest actual speed, knots
         self._highest_speed: np.ndarray = EMPTY_NAN  # highest actual speed, knots
 
-        # investment signals (energy-weighted average of the smoothed energy-conservation duals, USD/GJ)
+        # investment signals (energy-weighted average of the smoothed
+        # energy-conservation duals, USD/GJ)
         self._investment_signal_technology: np.ndarray = (
             EMPTY_NAN  # technology-horizon belief
         )
@@ -68,6 +70,7 @@ class VesselProfile(_FuelConsumerProfile):
         levy_names: list[str] = (),
     ) -> None:
         """
+        Initialize the vessel profile's storage arrays and lookups.
 
         Parameters
         ----------
@@ -86,9 +89,8 @@ class VesselProfile(_FuelConsumerProfile):
         """
         self._initialize_base(timeline)
         self._initialize_fuel_base(fuels)
-        self._initialize_fuel_consumer(
-            fuels, emissions, emissions_lifetime, regulation_names, levy_names
-        )
+        self._initialize_fuel_emission(emissions, emissions_lifetime)
+        self._initialize_fuel_consumer(fuels, emissions, regulation_names, levy_names)
 
         self._lifetime = self._default_array()
         self._lead_time = self._default_array()
@@ -218,91 +220,85 @@ class VesselProfile(_FuelConsumerProfile):
     ) -> None:
         self._instantaneous_freight_rate[idx] = instantaneous_freight_rate
 
-    def get_lifetime(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._lifetime[idx]
+    def get_lifetime(self) -> FloatArray:
+        return self._lifetime
 
-    def get_lead_time(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._lead_time[idx]
+    def get_lead_time(self) -> FloatArray:
+        return self._lead_time
 
-    def get_cargo_miles(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._cargo_miles[idx]
+    def get_cargo_miles(self) -> FloatArray:
+        return self._cargo_miles
 
-    def get_reference_speed(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._reference_speed[idx]
+    def get_reference_speed(self) -> FloatArray:
+        return self._reference_speed
 
-    def get_minimum_speed(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._minimum_speed[idx]
+    def get_minimum_speed(self) -> FloatArray:
+        return self._minimum_speed
 
-    def get_maximum_speed(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._maximum_speed[idx]
+    def get_maximum_speed(self) -> FloatArray:
+        return self._maximum_speed
 
-    def get_actual_speed(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._actual_speed[idx]
+    def get_actual_speed(self) -> FloatArray:
+        return self._actual_speed
 
-    def get_optimal_speed(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._optimal_speed[idx]
+    def get_optimal_speed(self) -> FloatArray:
+        return self._optimal_speed
 
-    def get_lowest_speed(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._lowest_speed[idx]
+    def get_lowest_speed(self) -> FloatArray:
+        return self._lowest_speed
 
-    def get_highest_speed(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._highest_speed[idx]
+    def get_highest_speed(self) -> FloatArray:
+        return self._highest_speed
 
-    def get_investment_signal_technology(
-        self, idx: int | slice = np.s_[:]
-    ) -> np.ndarray:
-        return self._investment_signal_technology[idx]
+    def get_investment_signal_technology(self) -> FloatArray:
+        return self._investment_signal_technology
 
-    def get_investment_signal_speed(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._investment_signal_speed[idx]
+    def get_investment_signal_speed(self) -> FloatArray:
+        return self._investment_signal_speed
 
-    def get_speed_energy_saving(self, idx: int | slice = np.s_[:]) -> np.ndarray:
+    def get_speed_energy_saving(self) -> FloatArray:
         return 1.0 - divide_nonzero(
-            self.get_raw_energy(idx=idx), self.get_raw_energy(idx=0), default=1.0
+            self.get_raw_energy(), self.get_raw_energy()[0], default=1.0
         )
 
-    def get_operational_energy_saving(self, idx: int | slice = np.s_[:]) -> np.ndarray:
+    def get_operational_energy_saving(self) -> FloatArray:
         return 1.0 - divide_nonzero(
-            self.get_operational_energy(idx=idx),
-            self.get_raw_energy(idx=0),
-            default=1.0,
+            self.get_operational_energy(), self.get_raw_energy()[0], default=1.0
         )
 
-    def get_technology_energy_saving(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self.get_technology_energy_intensity_saving(idx)
+    def get_technology_energy_saving(self) -> FloatArray:
+        return self.get_technology_energy_intensity_saving()
 
-    def get_energy_saving(self, idx: int | slice = np.s_[:]) -> np.ndarray:
+    def get_energy_saving(self) -> FloatArray:
         return 1.0 - divide_nonzero(
-            self.get_energy(idx=idx), self.get_raw_energy(idx=0), default=1.0
+            self.get_energy(), self.get_raw_energy()[0], default=1.0
         )
 
-    def get_baseline_energy(self, idx: int | slice = np.s_[:]) -> np.ndarray:
+    def get_baseline_energy(self) -> FloatArray:
         # counterfactual raw energy: year-0 raw intensity times actual transport work
-        growth = divide_nonzero(
-            self._cargo_miles[idx], self._cargo_miles[0], default=1.0
-        )
-        return self.get_raw_energy(idx=0) * growth
+        growth = divide_nonzero(self._cargo_miles, self._cargo_miles[0], default=1.0)
+        return self.get_raw_energy()[0] * growth
 
-    def is_active(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._in_fleet[idx]
+    def is_active(self) -> BoolArray:
+        return self._in_fleet
 
-    def is_in_fleet(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._in_fleet[idx]
+    def is_in_fleet(self) -> BoolArray:
+        return self._in_fleet
 
-    def cost_is_calculated(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._cost_is_calculated[idx]
+    def cost_is_calculated(self) -> BoolArray:
+        return self._cost_is_calculated
 
-    def get_technology_cost(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._technology_cost[idx]
+    def get_technology_cost(self) -> FloatArray:
+        return self._technology_cost
 
-    def get_asset_charter_rate(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._asset_charter_rate[idx]
+    def get_asset_charter_rate(self) -> FloatArray:
+        return self._asset_charter_rate
 
-    def get_cargo_charter_rate(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._cargo_charter_rate[idx]
+    def get_cargo_charter_rate(self) -> FloatArray:
+        return self._cargo_charter_rate
 
-    def get_investment_freight_rate(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._investment_freight_rate[idx]
+    def get_investment_freight_rate(self) -> FloatArray:
+        return self._investment_freight_rate
 
-    def get_instantaneous_freight_rate(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._instantaneous_freight_rate[idx]
+    def get_instantaneous_freight_rate(self) -> FloatArray:
+        return self._instantaneous_freight_rate

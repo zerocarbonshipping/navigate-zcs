@@ -4,9 +4,8 @@
 from __future__ import annotations
 
 import inspect
-from collections.abc import Iterable
-from enum import Enum
 from itertools import product
+from typing import TYPE_CHECKING
 
 from navigate.core.assign import expand_id_wildcard
 from navigate.core.enum_ import (
@@ -46,6 +45,10 @@ from navigate.exceptions import CommandError
 from navigate.parser._keywords import SECTION_BOTH, SECTION_DEFINE, SECTION_NAME
 from navigate.util import name_contains_wildcards
 
+if TYPE_CHECKING:
+    from collections.abc import Iterable
+    from enum import Enum
+
 # per-command wildcard domains. tuple indices correspond to the method's
 # string arguments (excluding self), and an argument beyond the end of the
 # tuple is a node name, whose wildcards are matched downstream. a domain
@@ -62,7 +65,7 @@ _WILDCARD_DOMAINS: dict[str, tuple[type[Enum] | tuple[Enum, ...], ...]] = {
     "set_power_transfer": (EnergyDemandTypeID, EnergyDemandTypeID),
 }
 
-# high-level class commands to multiple nodes --------------------------------------------------------------------------
+# high-level class commands to multiple nodes ------------------------------------------
 _POLICY_COMMANDS = {
     "set_include_vessel": SECTION_BOTH,
     "set_global_warming_potential": SECTION_BOTH,
@@ -70,7 +73,7 @@ _POLICY_COMMANDS = {
     "set_fuel_ttw": SECTION_BOTH,
 }
 
-# nodes ----------------------------------------------------------------------------------------------------------------
+# nodes --------------------------------------------------------------------------------
 _ALTERNATIVE_POWER_COMMANDS = {}
 
 _CONVERTER_COMMANDS = {
@@ -182,7 +185,7 @@ _TRANSPORT_COMMANDS = {}
 _VARIABLE_COMMANDS = {}
 _VESSEL_COMMANDS = {}
 
-# assemble dicts -------------------------------------------------------------------------------------------------------
+# assemble dicts -----------------------------------------------------------------------
 NODE_COMMAND_SECTIONS = {
     CONVERTER: _CONVERTER_COMMANDS,
     CURVE: _CURVE_COMMANDS,
@@ -213,7 +216,7 @@ NODE_COMMAND_SECTIONS = {
 }
 
 
-# classes --------------------------------------------------------------------------------------------------------------
+# classes ------------------------------------------------------------------------------
 class CommandReference:
     """
     A deferred command invocation stored on a node.
@@ -349,9 +352,10 @@ def _expand_inputs(command: str, inputs: list) -> Iterable[tuple]:
     return product(*arg_options)
 
 
-# methods --------------------------------------------------------------------------------------------------------------
+# methods ------------------------------------------------------------------------------
 def check_node_command_is_allowed(node_type, command_name, section):
     """
+    Check whether a node type may use a command in a section.
 
     Parameters
     ----------
@@ -377,7 +381,8 @@ def check_node_command_is_allowed(node_type, command_name, section):
 
         else:
             raise CommandError(
-                f"Nodes of type '{node_type}' does not allow use of command '{command_name}' in '{SECTION_NAME[section]}'"
+                f"Nodes of type '{node_type}' does not allow use of command "
+                f"'{command_name}' in '{SECTION_NAME[section]}'"
             )
 
     else:

@@ -1,97 +1,94 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Calendar constants and converters from numpy dates to float day and year axes."""
+
 from __future__ import annotations
+
+from typing import TYPE_CHECKING, overload
 
 import numpy as np
 
-DAY = 1.0
-MONTH = 30.4375  # equivalent to 365.25/12 = 30.4375 days
-YEAR = 365.25  # equivalent to 365.25 days
+if TYPE_CHECKING:
+    from navigate.util.types_ import (
+        DateArray,
+        FloatArray,
+        FloatLike,
+        TimedeltaArray,
+    )
+
+YEAR = 365.25  # calendar year in days
 
 
-def timedelta_to_days(delta):
+@overload
+def timedelta_to_days(delta: np.timedelta64) -> float: ...
+@overload
+def timedelta_to_days(delta: TimedeltaArray) -> FloatArray: ...
+def timedelta_to_days(delta: np.timedelta64 | TimedeltaArray) -> FloatLike:
     """
+    Convert a timedelta to days.
 
     Parameters
     ----------
-    delta : np.timedelta64
-        Difference between two np.datetime64 objects.
+    delta
+        Difference between two np.datetime64 objects, scalar or array.
 
     Returns
     -------
-    np.ndarray :
-        Timedelta in years.
+    FloatLike
+        Timedelta in days, mirroring the input's scalar- or arrayness.
     """
     return delta.astype(np.float64)
 
 
-def _timedelta_to_years(delta):
+def _timedelta_to_years(delta: TimedeltaArray) -> FloatArray:
     """
+    Convert a timedelta array to years.
 
     Parameters
     ----------
-    delta : np.timedelta64
-        Difference between two np.datetime64 objects.
+    delta
+        Differences between np.datetime64 objects.
 
     Returns
     -------
-    np.ndarray :
-        Timedelta in years.
+    FloatArray
+        Timedeltas in years.
     """
     return timedelta_to_days(delta) / YEAR
 
 
-def dates_to_days(dates):
+def dates_to_days(dates: DateArray) -> FloatArray:
     """
-    Converts a numpy date array to an array of days.
+    Convert a numpy date array to an array of days.
 
     Parameters
     ----------
-    dates : np.ndarray
+    dates
         Array of dates in numpy datetime64[D] format.
 
     Returns
     -------
-    np.ndarray
-        Array of days in numpy float64 format.
+    FloatArray
+        Array of days since the first date.
     """
-    return timedelta_to_days(dates - dates[0])
+    deltas: TimedeltaArray = dates - dates[0]
+    return timedelta_to_days(deltas)
 
 
-def dates_to_years(dates):
+def dates_to_years(dates: DateArray) -> FloatArray:
     """
-    Converts a numpy date array to an array of days.
+    Convert a numpy date array to an array of years.
 
     Parameters
     ----------
-    dates : np.ndarray
+    dates
         Array of dates in numpy datetime64[D] format.
 
     Returns
     -------
-    np.ndarray
-        Array of days in numpy float64 format.
+    FloatArray
+        Array of years since the first date.
     """
-    return _timedelta_to_years(dates - dates[0])
-
-
-def decompose_dates(dates):
-    """
-    Decompose a numpy date array into three arrays containing the years, months and days (integers).
-
-    Parameters
-    ----------
-    dates : np.ndarray
-        Array of dates in numpy datetime64[D] format.
-
-    Returns
-    -------
-    tuple[np.ndarray, np.ndarray, np.ndarray]
-        Arrays containing years, months and days as integers.
-    """
-    years = dates.astype("datetime64[Y]").astype(int) + 1970
-    months = dates.astype("datetime64[M]").astype(int) % 12 + 1
-    days = (dates - dates.astype("datetime64[M]")).astype(int) + 1
-
-    return years, months, days
+    deltas: TimedeltaArray = dates - dates[0]
+    return _timedelta_to_years(deltas)

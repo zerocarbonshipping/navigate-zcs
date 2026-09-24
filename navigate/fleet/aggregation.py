@@ -9,7 +9,7 @@ import numpy as np
 
 from navigate.core.enum_ import FuelTypeID
 from navigate.fleet.utils import get_total_power_capacity
-from navigate.util import YEAR, get_increment_origin_index, interpolate_tied_capital
+from navigate.util import YEAR, get_increment_origin_index, interpolate_yearly_flow
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
@@ -20,11 +20,12 @@ def calculate_fleet_profile(
     fleet: Fleet, fuels: dict[str, Fuel], timeline: np.ndarray, idx: int
 ) -> None:
     """
-    Calculate the per-step fleet state: the increment-based cost transfers,
-    which need the live cohort composition, and the fuel-type demand/supply
-    totals on the fleet expectation, which the next step's fuel conversion
-    reads. Output-only profile aggregation happens in
-    navigate.fleet.post_process after the simulation.
+    Calculate the per-step fleet state: cost transfers and fuel-type totals.
+
+    The increment-based cost transfers need the live cohort composition. The
+    fuel-type demand/supply totals go on the fleet expectation, which the
+    next step's fuel conversion reads. Output-only profile aggregation
+    happens in navigate.fleet.post_process after the simulation.
 
     Parameters
     ----------
@@ -46,8 +47,10 @@ def calculate_fleet_profile(
 
 def _transfer_increment_expenses(fleet: Fleet, timeline: np.ndarray, idx: int) -> None:
     """
-    Transfer the running vessel expenses per increment: instantaneous charter
-    rate, remaining tied-up capital, and the carried technology charge.
+    Transfer the running vessel expenses per increment.
+
+    Includes the instantaneous charter rate, remaining tied-up capital, and
+    the carried technology charge.
 
     Parameters
     ----------
@@ -75,7 +78,7 @@ def _transfer_increment_expenses(fleet: Fleet, timeline: np.ndarray, idx: int) -
 
             # calculate remaining tied up capital
             tied_capital_flow = vessel.expectation.get_tied_capital(origin)
-            tied_capital = interpolate_tied_capital(tied_capital_flow, inc.age)
+            tied_capital = interpolate_yearly_flow(tied_capital_flow, inc.age)
 
             fleet.profile.add_vessel_expenses(cost * inc.multiplier, idx)
             fleet.profile.add_vessel_tied_capital(tied_capital * inc.multiplier, idx)
@@ -89,8 +92,10 @@ def _transfer_increment_expenses(fleet: Fleet, timeline: np.ndarray, idx: int) -
 
 def _transfer_weighted_age(fleet: Fleet, idx: int) -> None:
     """
-    Transfer the power-weighted average fleet age per fuel type as separate
-    numerator (age * count * power) and denominator (count * power) sums.
+    Transfer the power-weighted average fleet age per fuel type.
+
+    Stored as separate numerator (age * count * power) and denominator
+    (count * power) sums.
 
     Parameters
     ----------
@@ -115,8 +120,9 @@ def _transfer_weighted_age(fleet: Fleet, idx: int) -> None:
 
 def _gather_fuel_type_demand(fleet: Fleet) -> None:
     """
-    Gather the fuel type specific demand for the fleet from the latest
-    bunkering solution onto the fleet expectation.
+    Gather the fleet's fuel-type demand onto the fleet expectation.
+
+    The demand is sourced from the latest bunkering solution.
 
     Parameters
     ----------
@@ -171,8 +177,9 @@ def _gather_fuel_type_demand(fleet: Fleet) -> None:
 
 def _gather_fuel_type_supply(fleet: Fleet, fuels: dict[str, Fuel], idx: int) -> None:
     """
-    Gather the fuel type specific supply for the fleet from each vessel's
-    fair share of the port supplies onto the fleet expectation.
+    Gather the fleet's fuel-type supply onto the fleet expectation.
+
+    Each vessel's supply is its fair share of the port supplies.
 
     Parameters
     ----------
@@ -189,7 +196,7 @@ def _gather_fuel_type_supply(fleet: Fleet, fuels: dict[str, Fuel], idx: int) -> 
         if multiplier == 0.0:
             continue
 
-        fair_shares = vessel.expectation.get_fair_share_fuel_existing()
+        fair_shares = vessel.expectation.get_fair_share_fuels_existing()
 
         ports = vessel.route.ports
 

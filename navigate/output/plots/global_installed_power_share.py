@@ -19,9 +19,8 @@ from navigate.output.plots._labels import FUEL_TYPE_ORDER
 def plot_global_installed_power_share(manager, directory):
     dateline = manager.dateline
 
-    engine_power = {
-        ft: manager.profile.get_installed_power(ft) for ft in FUEL_TYPE_ORDER
-    }
+    installed_power = manager.profile.get_installed_power()
+    engine_power = {ft: installed_power[ft] for ft in FUEL_TYPE_ORDER}
 
     remove_below_threshold(engine_power, 1.0)
     total_power = sum(list(engine_power.values()))
@@ -34,7 +33,7 @@ def plot_global_installed_power_share(manager, directory):
 
     fig, axes = subplot_grid(len(values), sharey=True)
 
-    for ax, value, label, color in zip(axes, values, labels, colors):
+    for ax, value, label, color in zip(axes, values, labels, colors, strict=False):
         ax.plot(dateline, value, color=color, lw=2.5)
 
         ax.set_title(label)

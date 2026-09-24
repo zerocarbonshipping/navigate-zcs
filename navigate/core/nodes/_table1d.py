@@ -21,7 +21,7 @@ class _Table1D(_Calculator):
     def __init__(self):
         _Calculator.__init__(self)
 
-        # external variables -------------------------------------------------------------------------------------------
+        # external variables -----------------------------------------------------------
         # interpolation
         self._interpolate = Interpolate1DID.LINEAR
 
@@ -30,7 +30,7 @@ class _Table1D(_Calculator):
         self._below = None
         self._above = None
 
-        # internal variables -------------------------------------------------------------------------------------------
+        # internal variables -----------------------------------------------------------
         self.x = None
         self.y = None
         self._table = None
@@ -46,7 +46,7 @@ class _Table1D(_Calculator):
         if self.x is not None and self.y is not None:
             self._set_table(self.x, self.y)
 
-    # external methods (DSL attributes) --------------------------------------------------------------------------------
+    # external methods (DSL attributes) ------------------------------------------------
     def set_interpolate(self, interpolate):
         self._interpolate = assign_id(interpolate, Interpolate1DID)
 
@@ -59,7 +59,7 @@ class _Table1D(_Calculator):
     def set_above(self, above):
         self._above = assign_value(above)
 
-    # internal methods -------------------------------------------------------------------------------------------------
+    # internal methods -----------------------------------------------------------------
     def get_table_limits(self):
         return np.min(self.y), np.max(self.y)
 
@@ -71,9 +71,10 @@ class _Table1D(_Calculator):
 
     def reverse_lookup(self, y, interpolate=True):
         """
-        Perform a reverse lookup in the table defined by (xp, yp), finding the x-value which is closest to 'y'.
+        Perform a reverse lookup in the table (xp, yp) for the x-value closest to 'y'.
 
-        This lookup is only applicable to strictly increasing functions such as exponential functions.
+        This lookup is only applicable to strictly increasing functions such as
+        exponential functions.
 
         Parameters
         ----------
@@ -114,7 +115,7 @@ class _Table1D(_Calculator):
                 self._extrapolation_warned = True
             else:
                 logger.debug(
-                    f"{self}: Extrapolating beyond table limits (suppressed repeat)."
+                    "%s: Extrapolating beyond table limits (suppressed repeat).", self
                 )
 
     def _get_x_limits(self):
@@ -126,8 +127,9 @@ class _Table1D(_Calculator):
             self.extrapolate == ExtrapolateID.LINEAR
         ):
             raise ValueError(
-                f"'Extrapolate' must not be LINEAR when 'Interpolate' is {self._interpolate.name}. This can lead to"
-                " non-numeric extrapolations yielding erroneous results."
+                "'Extrapolate' must not be LINEAR when 'Interpolate' is"
+                f" {self._interpolate.name}. This can lead to non-numeric"
+                " extrapolations yielding erroneous results."
             )
 
     def _get_interpolate_internal(self):
@@ -147,7 +149,7 @@ class _Table1D(_Calculator):
             return "nearest-up"
 
     def _get_allow_extrapolate_internal(self):
-        return True if self.extrapolate == ExtrapolateID.FALSE else False
+        return self.extrapolate == ExtrapolateID.FALSE
 
     def _get_extrapolate_internal(self):
         if self.extrapolate == ExtrapolateID.FLAT:
@@ -179,6 +181,7 @@ class _Table1D(_Calculator):
 
 def check_table1d_input(x, y):
     """
+    Validate the x and y arrays used to build a 1D table.
 
     Parameters
     ----------
@@ -189,7 +192,8 @@ def check_table1d_input(x, y):
     """
     if (x.size < 2) or (y.size < 2) or (x.size != y.size):
         raise ValueError(
-            f"'x' ({x.size}) and 'y' ({y.size}) must be at least of length 2 and the same size."
+            f"'x' ({x.size}) and 'y' ({y.size}) must be at least of length 2 and the"
+            " same size."
         )
 
     if not is_strictly_increasing(x):

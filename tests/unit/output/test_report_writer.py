@@ -2,8 +2,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Resolution of Report property requests against the node registry, and the per-sheet error
-containment of write_report.
+Resolution of Report property requests against the node registry.
+
+Also covers the per-sheet error containment of write_report.
 """
 
 from __future__ import annotations

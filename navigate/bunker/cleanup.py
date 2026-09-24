@@ -53,7 +53,7 @@ def remove_redundant_vessel(alg: BunkerAlgorithm, v: str) -> None:
 
 def remove_redundant_fuels_from_ports(alg: BunkerAlgorithm) -> None:
     """
-    Remove redundant bunker variables and availability/inertia constraints related to fuels in ports.
+    Remove redundant port-fuel bunker variables and availability/inertia constraints.
 
     Parameters
     ----------
@@ -64,22 +64,20 @@ def remove_redundant_fuels_from_ports(alg: BunkerAlgorithm) -> None:
     for v, p, f in list(alg.bunker.keys()):
         port = alg.vessels[v].route.ports[p]
 
-        if not port.is_bunkering_allowed(f):
+        if not port.is_bunkering_allowed(f) and (v, p, f) in alg.bunker:
             # remove bunker variable
-            if (v, p, f) in alg.bunker:
-                alg.model.remove(alg.bunker[v, p, f])
-                del alg.bunker[v, p, f]
+            alg.model.remove(alg.bunker[v, p, f])
+            del alg.bunker[v, p, f]
 
     # remove vessel constraints
     for v, p, f in list(alg.fuel_inertia.keys()):
         # notice 'p' is the port name, not the port index
         port = alg.ports[p]
 
-        if not port.is_bunkering_allowed(f):
+        if not port.is_bunkering_allowed(f) and (v, p, f) in alg.fuel_inertia:
             # remove fuel inertia constraint
-            if (v, p, f) in alg.fuel_inertia:
-                alg.model.remove(alg.fuel_inertia[v, p, f])
-                del alg.fuel_inertia[v, p, f]
+            alg.model.remove(alg.fuel_inertia[v, p, f])
+            del alg.fuel_inertia[v, p, f]
 
     # remove fair-share constraints
     for v, p, f in list(alg.fair_share_fuel.keys()):
@@ -89,10 +87,10 @@ def remove_redundant_fuels_from_ports(alg: BunkerAlgorithm) -> None:
         available = port.is_bunkering_allowed(f)
         supply = port.expectation.get_bunker_supply(f, alg.idx)
 
-        if (not available) or (not np.isfinite(supply)):
-            if (v, p, f) in alg.fair_share_fuel:
-                alg.model.remove(alg.fair_share_fuel[v, p, f])
-                del alg.fair_share_fuel[v, p, f]
+        redundant = (not available) or (not np.isfinite(supply))
+        if redundant and (v, p, f) in alg.fair_share_fuel:
+            alg.model.remove(alg.fair_share_fuel[v, p, f])
+            del alg.fair_share_fuel[v, p, f]
 
 
 def remove_redundant_regulations(alg: BunkerAlgorithm) -> None:
@@ -132,7 +130,7 @@ def remove_model_attribute_and_dict_element(
     positions: tuple[int, ...] = (0,),
 ) -> None:
     """
-    Removes a variable or constraint from the LP model and deletes it from the dict it is stored in.
+    Remove a variable or constraint from the LP model and delete it from its dict.
 
     Parameters
     ----------
@@ -149,6 +147,9 @@ def remove_model_attribute_and_dict_element(
         to_remove = (to_remove,)
 
     for key, attribute in list(tuple_dict.items()):
-        if all(to == key[position] for to, position in zip(to_remove, positions)):
+        if all(
+            to == key[position]
+            for to, position in zip(to_remove, positions, strict=True)
+        ):
             alg.model.remove(attribute)
             del tuple_dict[key]

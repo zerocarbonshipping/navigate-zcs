@@ -26,16 +26,20 @@ def plot_producer_fair_share(manager, directory):
         return
 
     colors = center_color_saturation(len(producers))
+    fair_shares = {
+        producer_name: producer.profile.get_fair_share_fuel_fraction()
+        for producer_name, producer in producers.items()
+    }
 
     fig, axes = subplot_grid(len(fuels))
 
-    for ax, (fuel_name, fuel) in zip(axes, fuels.items()):
+    for ax, (fuel_name, fuel) in zip(axes, fuels.items(), strict=False):
         added_lines = False
         for i, (producer_name, producer) in enumerate(producers.items()):
             if not producer.can_produce(fuel_name):
                 continue
 
-            fair_share = producer.profile.get_fair_share_fuel_fraction(fuel_name)
+            fair_share = fair_shares[producer_name][fuel_name]
 
             label = producer_name
             ax.plot(dateline[1:], fair_share[1:], color=colors[i], label=label, lw=2.0)

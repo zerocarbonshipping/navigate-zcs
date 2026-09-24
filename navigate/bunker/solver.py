@@ -19,6 +19,7 @@ Usage:
 
 from __future__ import annotations
 
+import contextlib
 import logging
 
 # ---------------------------------------------------------------------------
@@ -100,14 +101,10 @@ if _GUROBI_AVAILABLE:
             return [bool(c.IISConstr) for c in self.getConstrs()]
 
         def __del__(self):
-            try:
+            with contextlib.suppress(Exception):
                 super().__del__()
-            except Exception:
-                pass
-            try:
+            with contextlib.suppress(Exception):
                 self._gurobi_env.dispose()
-            except Exception:
-                pass
 
 
 # ---------------------------------------------------------------------------
@@ -145,7 +142,8 @@ def _configure(preference):
             _logger.info("Gurobi solver backend selected by user preference.")
         else:
             _logger.warning(
-                "Gurobi preferred but not available -- falling back to HiGHS solver backend."
+                "Gurobi preferred but not available -- falling back to HiGHS solver "
+                "backend."
             )
 
     else:  # AUTOMATIC
@@ -196,7 +194,7 @@ def set_solver_preference(preference: SolverBackendID):
 
 
 def get_active_backend():
-    """Return ``\"gurobi\"`` or ``\"highs\"`` for the currently active backend."""
+    """Return ``"gurobi"`` or ``"highs"`` for the currently active backend."""
     return _active_backend
 
 

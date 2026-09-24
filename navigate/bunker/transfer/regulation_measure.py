@@ -31,7 +31,9 @@ def transfer_regulation_measure(alg: BunkerAlgorithm, properties: dict) -> None:
         total_measure = 0.0
         total_rhs = 0.0
 
-        for vessel, multiplier in zip(alg.vessels.values(), alg.multipliers.values()):
+        for vessel, multiplier in zip(
+            alg.vessels.values(), alg.multipliers.values(), strict=True
+        ):
             v = vessel.name
 
             if not regulation.vessel_is_policed(v):
@@ -90,7 +92,7 @@ def transfer_regulation_measure(alg: BunkerAlgorithm, properties: dict) -> None:
 def _normalize_by_measure(
     measure: RegulationMeasureID, value: float, total_measure: float
 ) -> float:
-    """Normalize a fleet aggregate by the pooled measure; ABSOLUTE values pass through."""
+    """Normalize a fleet aggregate by the pooled measure; ABSOLUTE passes through."""
     if measure == RegulationMeasureID.ABSOLUTE:
         return value
 

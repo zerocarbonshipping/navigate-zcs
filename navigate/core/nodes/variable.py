@@ -15,20 +15,21 @@ class Variable(Node, _Calculator):
         Node.__init__(self, name, VARIABLE)
         _Calculator.__init__(self)
 
-        # internal variables -------------------------------------------------------------------------------------------
+        # internal variables -----------------------------------------------------------
         self._value = None
 
-    # external methods (DSL attributes) --------------------------------------------------------------------------------
+    # external methods (DSL attributes) ------------------------------------------------
     def set_value(self, value):
         self._value = assign_value(value)
 
-    # internal methods -------------------------------------------------------------------------------------------------
+    # internal methods -----------------------------------------------------------------
     def initialize(self):
         if self._value is None:
             no_value_assigned_error(self, "Value")
 
     def get(self, x=None, y=None):
         """
+        Return the variable value with the multiplier, addition, and truncation.
 
         Parameters
         ----------
@@ -42,10 +43,7 @@ class Variable(Node, _Calculator):
         float :
             Response variable.
         """
-        if isinstance(self._value, float):
-            value = self._value
-        else:
-            # expression
-            value = self._value.get()
+        # a non-float value is an expression and must be evaluated
+        value = self._value if isinstance(self._value, float) else self._value.get()
 
         return self._truncate(self.multiplier * (value + self.addition))

@@ -18,7 +18,7 @@ class Forecast(Node, _Table1D):
         Node.__init__(self, name, FORECAST)
         _Table1D.__init__(self)
 
-        # internal variables -------------------------------------------------------------------------------------------
+        # internal variables -----------------------------------------------------------
         self.allow_dates_in_table = True
 
         # temporarily stored variables at current time-step
@@ -33,6 +33,8 @@ class Forecast(Node, _Table1D):
 
     def get(self, x: float | None = None, y: float | None = None) -> float:
         """
+        Return the forecast value: recalculated at ``x`` if given, else cached.
+
         Parameters
         ----------
         x
@@ -51,6 +53,8 @@ class Forecast(Node, _Table1D):
 
     def precalculate(self, time: float | np.ndarray) -> None:
         """
+        Precalculate and cache the forecast value at the given time.
+
         Parameters
         ----------
         time

@@ -6,14 +6,15 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import numpy as np
-from numpy.typing import NDArray
 
-from navigate.core.enum_ import EnergyDemandTypeID
-from navigate.core.nodes.vessel import Vessel
 from navigate.util import ROUND_OFF, calculate_compound_growth
 
 if TYPE_CHECKING:
+    from numpy.typing import NDArray
+
+    from navigate.core.enum_ import EnergyDemandTypeID
     from navigate.core.nodes.fleet import Fleet
+    from navigate.core.nodes.vessel import Vessel
 
 
 def extract_cargo_miles(
@@ -53,9 +54,7 @@ def get_cargo_miles(fleet: Fleet, idx: int) -> float:
 def is_retrofit_cycle(
     age: float, retrofit_frequency: float, time_step: float, decimals: int = 2
 ) -> bool:
-    """
-    Returns whether the vessel is in a retrofit cycle.
-    """
+    """Return whether the vessel is in a retrofit cycle."""
     # check the increment is within a retrofit
     # frequency period and not at age 0
     age_ = round(age, decimals)
@@ -67,8 +66,10 @@ def calculate_projected_multipliers(
     multipliers: float, trade: np.ndarray
 ) -> np.ndarray:
     """
-    Calculate a naive projection of future number of multipliers. This method does not take into account that different
-     vessel types may have varying nominal capacity or cargo utilization.
+    Calculate a naive projection of future number of multipliers.
+
+    This method does not take into account that different vessel types may
+    have varying nominal capacity or cargo utilization.
 
     Parameters
     ----------
@@ -89,7 +90,7 @@ def calculate_increments(
     uptakes: np.ndarray, cargo_miles: np.ndarray, trade_gap: float
 ) -> np.ndarray:
     """
-    Calculate the number of multipliers with a given uptake share which satisfies the trade-gap.
+    Calculate the multiplier count at a given uptake share satisfying the trade-gap.
 
     Parameters
     ----------
@@ -109,6 +110,8 @@ def calculate_increments(
 
 def extract_investment_metrics(vessels: list[Vessel]) -> np.ndarray:
     """
+    Extract each vessel's investment metric.
+
     Parameters
     ----------
     vessels
@@ -133,7 +136,7 @@ def net_energy_from_raw(
     out = {}
     for k, raw in raw_energies.items():
         sav = savings[k]
-        out[k] = [(1.0 - s) * e for e, s in zip(raw, sav)]
+        out[k] = [(1.0 - s) * e for e, s in zip(raw, sav, strict=True)]
     return out
 
 
@@ -163,8 +166,10 @@ def define_initial_split(fleet: Fleet) -> None:
 
 def define_initial_trade(fleet: Fleet, timeline: np.ndarray) -> None:
     """
-    Define the initial trade of the fleet and project it forward over the timeline by the
-    user-supplied growth rates.
+    Define the initial trade of the fleet.
+
+    Projects it forward over the timeline using the user-supplied growth
+    rates.
 
     Parameters
     ----------

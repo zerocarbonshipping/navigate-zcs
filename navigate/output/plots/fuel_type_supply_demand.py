@@ -39,6 +39,17 @@ def plot_fuel_type_supply_demand(manager, directory):
     ]
     fuel_type_to_fuels = get_fuels_per_fuel_type(fuels)
 
+    fuel_type_demand = profile.get_fuel_type_demand()
+    production_type_energy = profile.get_production_type_energy()
+    port_bunkering = [
+        (
+            port.profile.get_bunkering_allowed(),
+            port.profile.get_bunker_supply_mass(),
+            port.profile.get_bunker_energy(),
+        )
+        for port in ports.values()
+    ]
+
     fig, axes = subplot_grid(len(fuel_types))  # , sharey=True)
 
     # containers for saving results. Needed for intermediate calculation of optimal unit
@@ -55,35 +66,31 @@ def plot_fuel_type_supply_demand(manager, directory):
     for fuel_type in fuel_types:
         usable_fuels = fuel_type_to_fuels[fuel_type]
         fuel_spend = {}
-        fuel_demand = profile.get_fuel_type_demand(fuel_type)
-        fuel_supply = profile.get_production_type_energy()[fuel_type]
+        fuel_demand = fuel_type_demand[fuel_type]
+        fuel_supply = production_type_energy[fuel_type]
 
         # calculate the total fuel supply and spend
         constrained = True
-        for port in ports.values():
-            port_profile = port.profile
-
+        for bunkering_allowed, bunker_supply_mass, bunkering in port_bunkering:
             for fuel in usable_fuels:
                 if not fuel.liquid_market:
                     fuel_name = fuel.name
 
                     # add fuel supply
-                    available = port_profile.get_bunkering_allowed(fuel_name)
-                    constraint = port_profile.get_bunker_supply_mass(fuel_name)
+                    available = bunkering_allowed[fuel_name]
+                    constraint = bunker_supply_mass[fuel_name]
 
-                    if constraint is None:
-                        if np.any(available):
-                            constrained = False
-                            break
+                    if constraint is None and np.any(available):
+                        constrained = False
+                        break
 
-                    # add fuel spend
-                    bunkering = port_profile.get_bunker_energy()
-
+                    # add fuel spend; the sum owns its array so the in-place
+                    # accumulation never writes into a port's bunkering dict
                     if fuel_name in bunkering:
                         if fuel_name in fuel_spend:
                             fuel_spend[fuel_name] += bunkering[fuel_name]
                         else:
-                            fuel_spend[fuel_name] = bunkering[fuel_name]
+                            fuel_spend[fuel_name] = bunkering[fuel_name].copy()
 
         # plot spend
         values = list(fuel_spend.values())
@@ -116,7 +123,7 @@ def plot_fuel_type_supply_demand(manager, directory):
     else:
         return
 
-    for ax, fuel_type in zip(axes, fuel_types):
+    for ax, fuel_type in zip(axes, fuel_types, strict=False):
         values = [value / divisor for value in all_values[fuel_type]]
         colors = all_colors[fuel_type]
         labels = all_labels[fuel_type]

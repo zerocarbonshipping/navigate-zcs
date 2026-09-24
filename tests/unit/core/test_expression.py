@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Unit tests for the restricted arithmetic evaluator behind deck ``<...>`` expressions."""
+"""Tests for the restricted arithmetic evaluator behind deck ``<...>`` expressions."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ import pickle
 import numpy as np
 import pytest
 
-from navigate.core.expression import Expression
+from navigate.core.expression import Expression, parse_reference_strings
 
 
 class _StubNode:
@@ -46,7 +46,7 @@ def _initialized(expression_text):
 
 class TestArithmetic:
     @pytest.mark.parametrize(
-        "text, expected",
+        ("text", "expected"),
         [
             ("3", 3.0),
             ("0.11", 0.11),
@@ -84,10 +84,14 @@ class TestNodeReferences:
         expression.initialize(_StubNode())
         assert expression.is_initialized()
 
-        assert expression.node_references == ['Forecast("x")']
+        assert expression.reference_strings == ['Forecast("x")']
 
         expression.node_references = [_StubNode(2.0)]
         assert expression.get() == 3.0
+
+    def test_get_before_initialize_raises(self):
+        with pytest.raises(RuntimeError, match="before it was initialized"):
+            Expression('1 + Forecast("x")').get()
 
     def test_reference_only(self):
         expression = _initialized('Forecast("x")')
@@ -101,25 +105,25 @@ class TestNodeReferences:
 
     def test_multiple_distinct_references_keep_order(self):
         expression = _initialized('Forecast("a") - Variable("b")')
-        assert expression.node_references == ['Forecast("a")', 'Variable("b")']
+        assert expression.reference_strings == ['Forecast("a")', 'Variable("b")']
 
         expression.node_references = [_StubNode(4.0), _StubNode(1.0)]
         assert expression.get() == 3.0
 
     def test_duplicate_reference_yields_entry_per_occurrence(self):
         expression = _initialized('Forecast("x") + Forecast("x")')
-        assert expression.node_references == ['Forecast("x")', 'Forecast("x")']
+        assert expression.reference_strings == ['Forecast("x")', 'Forecast("x")']
 
         expression.node_references = [_StubNode(2.0), _StubNode(2.0)]
         assert expression.get() == 4.0
 
     def test_reference_with_spacing_is_canonicalized(self):
         expression = _initialized('Forecast( "x" )')
-        assert expression.node_references == ['Forecast("x")']
+        assert expression.reference_strings == ['Forecast("x")']
 
     def test_single_quoted_reference_is_canonicalized(self):
         expression = _initialized("Forecast('x')")
-        assert expression.node_references == ['Forecast("x")']
+        assert expression.reference_strings == ['Forecast("x")']
 
     def test_x_is_passed_to_references(self):
         expression = _initialized('Forecast("f")')
@@ -143,6 +147,24 @@ class TestNodeReferences:
         expression = _initialized('1 + Forecast("x")')
         with pytest.raises(ValueError, match="does not allow node references"):
             expression.check_consistency()
+
+
+# ── reference-string parsing ──────────────────────────────────────────────────
+
+
+class TestParseReferenceStrings:
+    def test_extracts_references_in_order(self):
+        assert parse_reference_strings('0.5 * Forecast("a") + Variable("b")') == [
+            'Forecast("a")',
+            'Variable("b")',
+        ]
+
+    def test_reference_free_text_yields_no_references(self):
+        assert parse_reference_strings("1 + 2") == []
+
+    @pytest.mark.parametrize("text", ["!!!", "Foo + 1", "Forecast(1)"])
+    def test_unparseable_text_yields_none(self, text):
+        assert parse_reference_strings(text) == []
 
 
 # ── broadcasting and bounds ───────────────────────────────────────────────────
@@ -190,7 +212,7 @@ class TestRejectedSyntax:
         assert not (tmp_path / "marker").exists()
 
     @pytest.mark.parametrize(
-        "text, exception, match",
+        ("text", "exception", "match"),
         [
             ("open('f', 'w')", ValueError, "not a valid node reference"),
             ('Forecast("x").__class__', ValueError, "unsupported syntax"),
@@ -256,6 +278,16 @@ class TestCopySemantics:
 
         assert expression.get() == 2.0
         assert clone.get() == 5.0
+
+    def test_deepcopy_before_initialize_stays_uninitialized(self):
+        clone = copy.deepcopy(Expression('1 + Forecast("x")'))
+
+        assert not clone.is_initialized()
+
+    def test_pickle_round_trip_before_initialize_stays_uninitialized(self):
+        restored = pickle.loads(pickle.dumps(Expression('1 + Forecast("x")')))
+
+        assert not restored.is_initialized()
 
     def test_pickle_round_trip_after_initialize(self):
         expression = _initialized('2 * Forecast("x")')

@@ -2,8 +2,10 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Reachability analysis and unreachable-node pruning: find_unreachable over
-synthetic registries, and the parser's prune-and-warn pass over inline decks.
+Reachability analysis and unreachable-node pruning.
+
+Covers find_unreachable over synthetic registries, and the parser's
+prune-and-warn pass over inline decks.
 """
 
 from __future__ import annotations
@@ -188,7 +190,7 @@ class TestFindUnreachable:
 
         assert find_unreachable(nodes, GeneralNodes(), event_queue) == []
 
-    def test_events_expression_references_found_by_probe(self):
+    def test_events_expression_references_found_without_initializing(self):
         nodes = self._fleet_chain()
         nodes.forecasts["a"] = Forecast("a")
         nodes.forecasts["b"] = Forecast("b")
@@ -693,10 +695,10 @@ Fleet "fleet_copy" {
 
 class TestActivationEdges:
     """
-    Every declared activation edge must name a real DEFINE-only list
-    attribute with one DSL name, and every reference site of a restricted
-    type must be classified, so the edge map cannot drift from the node
-    classes.
+    Every declared activation edge must name a real DEFINE-only list attribute.
+
+    It must have one DSL name, and every reference site of a restricted type must be
+    classified, so the edge map cannot drift from the node classes.
     """
 
     def test_edges_name_real_define_only_list_attributes(self):

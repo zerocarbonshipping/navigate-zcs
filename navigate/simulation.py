@@ -3,11 +3,10 @@
 
 from __future__ import annotations
 
-import argparse
 import logging
 import math
 import timeit
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 from navigate.bunker import BunkerAlgorithm, calculate_fair_share_fuel_supply
 from navigate.core.enum_ import BunkerScopeID
@@ -58,13 +57,17 @@ from navigate.policy import (
 )
 from navigate.util import YEAR, dates_to_days, timedelta_to_days
 
+if TYPE_CHECKING:
+    import argparse
+    from pathlib import Path
+
 logger = logging.getLogger(__name__)
 
 
 class SimulationManager:
     def __init__(self):
 
-        # properties ---------------------------------------------------------------------------------------------------
+        # properties -------------------------------------------------------------------
         self.name = (
             "global"  # str, keys manager-level report sheets alongside node names
         )
@@ -74,27 +77,27 @@ class SimulationManager:
         self._idx = 0  # int, time-step index
 
         # simulation time/date line
-        self.timeline = None  # np.ndarray, all times at which the simulation will perform calculations, days
-        self.dateline = None  # np.ndarray, all dates at which the simulation will perform calculations,
+        self.timeline = None  # np.ndarray, simulation calculation times, days
+        self.dateline = None  # np.ndarray, simulation calculation dates
 
         # profile
         self.profile = ManagerProfile()
 
-        # bunker algorithm ---------------------------------------------------------------------------------------------
+        # bunker algorithm -------------------------------------------------------------
         self._bunker_existing = BunkerAlgorithm()
         self._bunker_expected = BunkerAlgorithm()
 
-        # parser -------------------------------------------------------------------------------------------------------
+        # parser -----------------------------------------------------------------------
         self.parser = Parser()
         self.nodes = self.parser.nodes
         self.general_nodes = self.parser.general_nodes
 
-        # code timing --------------------------------------------------------------------------------------------------
+        # code timing ------------------------------------------------------------------
         self._computational_time = None
 
     def read_deck(self, path: Path, args: argparse.Namespace) -> None:
         """
-        Read the simulation deck using the Parser. Must be called prior to the 'run' method.
+        Read the simulation deck using the Parser; must be called before 'run'.
 
         Parameters
         ----------
@@ -111,9 +114,7 @@ class SimulationManager:
             self.general_nodes.bunker_options.set_solver(args.solver.upper())
 
     def run(self):
-        """
-        Run the simulation as defined in the deck. This method handles the high-level flow of the simulation.
-        """
+        """Run the simulation as defined in the deck, handling its high-level flow."""
         # check that necessary nodes are
         # defined as well as a timeline
         self.parser.includes_necessary_information()
@@ -137,10 +138,10 @@ class SimulationManager:
 
     def _initialize_timeline(self):
         """
-        All dates at which the simulation will perform calculations is known up front once the Parser has read
-        the input deck. This method initializes all time-related properties on the Manager required for calculations
-        throughout the simulation.
+        Initialize all time-related properties required throughout the simulation.
 
+        All dates at which the simulation will perform calculations are known up
+        front once the Parser has read the input deck.
         """
         self.dateline = self.parser.dates
         self.timeline = dates_to_days(self.dateline)
@@ -152,8 +153,10 @@ class SimulationManager:
 
     def _initialize_simulation(self):
         """
-        This method initializes the model based on the defined initial conditions.
-        The calculations performed overlap partially with those performed at each time-step.
+        Initialize the model based on the defined initial conditions.
+
+        The calculations performed overlap partially with those performed at each
+        time-step.
         """
         # log the start of the simulation
         # to the .log file
@@ -369,9 +372,7 @@ class SimulationManager:
         )
 
     def _pre_assign_temporal(self):
-        """
-        Precalculate forecasts and assign time to timetables.
-        """
+        """Precalculate forecasts and assign time to timetables."""
         for forecast in self.nodes.forecasts.values():
             forecast.precalculate(self._time)
 
@@ -379,9 +380,7 @@ class SimulationManager:
             timetable.set_current_time(self._time)
 
     def _calculate_expectations(self):
-        """
-        Precalculate certain expectations which are simulation bottlenecks
-        """
+        """Precalculate certain expectations which are simulation bottlenecks."""
         emissions_lifetime = self.general_nodes.model_definition.emissions_lifetime
 
         for levy in self.nodes.levies.values():
@@ -494,13 +493,15 @@ class SimulationManager:
 
     def _perform_producer_evolution(self):
         """
-        As preparation each producer is progressed in time, namely:
+        Progress each producer in time and assign fair shares of the supply gap.
+
+        The preparation per producer consists of:
         - updating increment ages,
         - delivering from the pipeline,
         - calculating feedstock gap.
 
-        Then the fuel/supply demand gap is calculated and producers are assigned a fair-share of the gap and their
-        pipeline is updated.
+        Then the fuel/supply demand gap is calculated and producers are assigned a
+        fair-share of the gap and their pipeline is updated.
         """
         start_time = timeit.default_timer()
 
@@ -702,8 +703,9 @@ class SimulationManager:
 
     def _missing_technology_approximation(self):
         """
-        Estimate energy-efficiency uptake for fleets without retrofittable
-        technologies from the fleet-average savings of those that have them.
+        Estimate energy-efficiency uptake for fleets that cannot retrofit.
+
+        The estimate uses the fleet-average savings of the fleets that have them.
         """
         start_time = timeit.default_timer()
 
@@ -818,7 +820,9 @@ class SimulationManager:
             levy.initialize_profile(timeline)
 
         for plant in self.nodes.plants.values():
-            plant.initialize_profile(timeline, self.nodes.emissions, emissions_lifetime)
+            plant.initialize_profile(
+                timeline, self.nodes.emissions, self.nodes.fuels, emissions_lifetime
+            )
 
         for port in self.nodes.ports.values():
             port.initialize_profile(
@@ -931,7 +935,8 @@ class SimulationManager:
         plot_data.save()
 
     def _export_plots(self, plot_data):
-        # deferred so matplotlib only loads when plots are actually rendered (see also replot.py)
+        # deferred so matplotlib only loads when plots are actually rendered (see also
+        # replot.py)
         from navigate.output.plots.render import generate_plots
 
         for plot_node in self.nodes.plots.values():

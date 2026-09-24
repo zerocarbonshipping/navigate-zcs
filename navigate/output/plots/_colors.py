@@ -16,8 +16,9 @@ import math
 
 import numpy as np
 
-# ----------------------------------------------------------------------------------------------------------------------
-# Default colouring scheme - first 7 from Matlab default, next 10 from Matplotlib default
+# --------------------------------------------------------------------------------------
+# Default colouring scheme - first 7 from Matlab default, next 10 from
+# Matplotlib default
 DEFAULT_COLOURS = [
     np.array([0.0, 114.0, 189.0]) / 255.0,
     np.array([217.0, 83.0, 25.0]) / 255.0,
@@ -128,11 +129,7 @@ def center_color_saturation(n, shift=False):
     ]
 
     if n < 10:
-        if shift:
-            initial = 3
-
-        else:
-            initial = 2
+        initial = 3 if shift else 2
 
         step = 3
 
@@ -140,10 +137,7 @@ def center_color_saturation(n, shift=False):
             color_types = color_types[:n]
 
     elif 10 <= n < 15:
-        if shift:
-            initial = 1 + shift
-        else:
-            initial = 1
+        initial = 1 + shift if shift else 1
 
         step = 2
 

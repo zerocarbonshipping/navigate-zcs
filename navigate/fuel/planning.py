@@ -252,8 +252,9 @@ def calculate_inertia_increments(producer: Producer, time_step, idx):
 
 def calculate_modelled_uptake(producer: Producer) -> np.ndarray:
     """
-    Calculate the relative uptake share of each plant type using a two-axis discrete choice model
-    grouped by fuel pathway.
+    Calculate each plant type's relative uptake share.
+
+    Uses a two-axis discrete choice model grouped by fuel pathway.
 
     Parameters
     ----------
@@ -272,7 +273,8 @@ def calculate_modelled_uptake(producer: Producer) -> np.ndarray:
                 (i, plant)
                 for i, plant in enumerate(producer.assets)
                 if producer.allow_plant[plant.name] and plant.expectation.is_in_demand()
-            )
+            ),
+            strict=True,
         )
 
     except ValueError:
@@ -310,7 +312,7 @@ def calculate_constrained_uptakes(
     producer: Producer, uptakes, development, limits, idx, additional_consumption=None
 ):
     """
-    Iteratively constrain uptake shares to respect feed availability.
+    Constrain uptake shares iteratively to respect feed availability.
 
     Parameters
     ----------
@@ -330,7 +332,8 @@ def calculate_constrained_uptakes(
     Returns
     -------
     np.ndarray
-        Uptake-shares adhering to the feed constraint at the specified amount of development.
+        Uptake-shares adhering to the feed constraint at the specified amount of
+        development.
     """
     # TODO: make it assignable
     tolerance = 1e-3
@@ -355,7 +358,7 @@ def calculate_constrained_uptakes(
         # shares based on the maximum allowable
         # share of each plant related to the
         # supply/demand gap
-        new_uptakes, utilization = calculate_constrained_shares(uptakes, new_limits)
+        new_uptakes, _utilization = calculate_constrained_shares(uptakes, new_limits)
 
         # if there is no change in uptakes from
         # the previous iteration the algorithm

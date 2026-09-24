@@ -62,7 +62,7 @@ DISCOUNT = 0.08
 
 
 def _charge_window_flow(window: float) -> np.ndarray:
-    """Operating-year flow the constant charge is recovered over: ones with a prorated final year."""
+    """Operating-year flow the charge recovers over: ones with a prorated final year."""
     flow = get_age_flow(lead_time=0.0, lifetime=window)
     correct_flow_residual(window, flow)
     return flow
@@ -399,8 +399,8 @@ class TestPostProcessTechnologyExpenses:
 
         vessel = MagicMock()
         profile = vessel.profile
-        profile.get_lifetime.return_value = 3.0
-        profile.get_lead_time.return_value = 0.0
+        profile.get_lifetime.return_value = np.full(n, 3.0)
+        profile.get_lead_time.return_value = np.zeros(n)
         profile.is_in_fleet.return_value = np.ones(n, dtype=bool)
         profile.get_total_fuel_expenses.return_value = np.zeros(n)
         profile.get_total_levy_expenses.return_value = np.zeros(n)

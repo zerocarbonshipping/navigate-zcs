@@ -62,11 +62,11 @@ class _StubExpectation:
         assert idx == IDX
         return self._times_port
 
-    def get_energy_sea(self, energy_type_id=None, idx=None) -> dict:
+    def get_energy_sea(self, idx: int) -> dict:
         assert idx == IDX
         return self._energies_sea
 
-    def get_energy_port(self, energy_type_id=None, idx=None) -> dict:
+    def get_energy_port(self, idx: int) -> dict:
         assert idx == IDX
         return self._energies_port
 
@@ -98,27 +98,27 @@ class _StubVessel:
 
 
 def _make_vessel(**overrides) -> _StubVessel:
-    """A one-leg, one-port vessel with 10 MW converters at half load everywhere."""
+    """Build a one-leg, one-port vessel, 10 MW converters at half load everywhere."""
     half_load = 5.0 * 10.0 * MWD_TO_GJ
 
-    defaults = dict(
-        capacities={PROPULSION: 10.0, ELECTRICAL: 10.0, HEAT: 10.0},
-        energies_sea={
+    defaults = {
+        "capacities": {PROPULSION: 10.0, ELECTRICAL: 10.0, HEAT: 10.0},
+        "energies_sea": {
             PROPULSION: [half_load],
             ELECTRICAL: [half_load],
             HEAT: [half_load],
         },
-        times_sea=[10.0],
-        energies_port={ELECTRICAL: [half_load], HEAT: [half_load]},
-        times_port=[10.0],
-    )
+        "times_sea": [10.0],
+        "energies_port": {ELECTRICAL: [half_load], HEAT: [half_load]},
+        "times_port": [10.0],
+    }
     defaults.update(overrides)
     return _StubVessel(**defaults)
 
 
 class TestVerifyPowerCapacity:
     @pytest.mark.parametrize(
-        "load_factor, raises",
+        ("load_factor", "raises"),
         [
             # a load equal to the installed power is feasible, not a violation
             pytest.param(1.0, False, id="exactly_at_capacity"),
@@ -163,14 +163,14 @@ class TestVerifyPowerCapacity:
         assert "10.00 MW" in message
 
     @pytest.mark.parametrize(
-        "demand_type, message",
+        ("demand_type", "message"),
         [
             pytest.param(HEAT, "heat demand on port 0", id="heat"),
             pytest.param(ELECTRICAL, "electrical demand on port 0", id="electrical"),
         ],
     )
     def test_port_overload_errors_by_demand_type(self, demand_type, message):
-        """Port demand must fit the onboard converter; shore power gives no allowance."""
+        """Port demand must fit onboard converter; shore power gives no allowance."""
         energies_port = {ELECTRICAL: [0.0], HEAT: [0.0]}
         energies_port[demand_type] = [11.0 * 10.0 * MWD_TO_GJ]
         vessel = _make_vessel(energies_port=energies_port)
@@ -210,10 +210,12 @@ class TestVerifyPowerCapacity:
 
 class TestExpectationHorizonBroadcast:
     """
+    Pins the horizon-broadcast contract that expected-scope power gating relies on.
+
     The expected-scope gating in SimulationManager._verify_power_capacity checks demands
     only at the current index; that is valid because a vessel-expectation write at idx
-    broadcasts over the whole remaining horizon, so every future expected-bunkering build
-    reads the same demands and times. This pins that contract.
+    broadcasts over the whole remaining horizon, so every future expected-bunkering
+    build reads the same demands and times.
     """
 
     LENGTH = 6
@@ -255,7 +257,7 @@ class TestExpectationHorizonBroadcast:
 
 
 class TestSimulationGating:
-    """The driver only verifies vessels whose multiplier admits them into the LP scope."""
+    """The driver only verifies vessels whose multiplier admits them into LP scope."""
 
     @staticmethod
     def _make_manager(vessel, existing_multiplier, expected_multipliers):
@@ -302,8 +304,9 @@ class TestSimulationGating:
 
     def test_expected_gating_covers_the_remaining_horizon(self):
         """
-        A vessel entering only at a later forecast step is still verified: expected
-        bunkering builds one LP per future step, so the gate spans the horizon.
+        A vessel entering only at a later forecast step is still verified.
+
+        Expected bunkering builds one LP per future step, so the gate spans the horizon.
         """
         manager = self._make_manager(
             self._make_overloaded_vessel(),

@@ -69,7 +69,7 @@ def _fleet(vessels: list, conversion_cost: dict, supply: dict) -> Fleet:
 def _oil_to_ammonia_fleet(
     supply: float = 1000.0, multiplier: float = 4.0, age: float = 10.0
 ) -> Fleet:
-    """One oil vessel with one increment, one ammonia destination, conversion cost 100."""
+    """One oil vessel, one increment, one ammonia destination, conversion cost 100."""
     vessel_from = _vessel("oil", FuelTypeID.OIL, np.full(30, 8.0))
     vessel_to = _vessel("ammonia", FuelTypeID.AMMONIA, np.full(30, 3.0))
     fleet = _fleet(
@@ -94,7 +94,7 @@ def _make_proposal(
     dt: float,
     candidates: dict[str, tuple[float, float, float]],
 ) -> _ConversionProposal:
-    """Candidates maps name_to -> (count, charge, window); the DCM fields are inert for apply."""
+    """Candidates maps name_to -> (count, charge, window); DCM fields are inert here."""
     return _ConversionProposal(
         name_from,
         increment_idx,

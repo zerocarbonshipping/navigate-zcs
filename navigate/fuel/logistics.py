@@ -3,13 +3,17 @@
 
 from __future__ import annotations
 
-import numpy as np
+from typing import TYPE_CHECKING
 
-from navigate.core.nodes.emission import Emission
-from navigate.core.nodes.plant import Plant
-from navigate.core.nodes.port import Port
 from navigate.economics.flows import build_operating_flows
 from navigate.economics.metric import calculate_levelized_cost
+
+if TYPE_CHECKING:
+    import numpy as np
+
+    from navigate.core.nodes.emission import Emission
+    from navigate.core.nodes.plant import Plant
+    from navigate.core.nodes.port import Port
 
 
 def calculate_plant_logistics_expectations(
@@ -20,15 +24,17 @@ def calculate_plant_logistics_expectations(
     idx: int,
 ) -> None:
     """
-    Calculate the expected cost and WTT emissions of delivering each plant's fuel to each port.
+    Calculate the cost and WTT emissions of delivering each plant's fuel to each port.
 
-    The delivery cost and emissions are given by the transport mode and distance assigned per port on the
-    plant, combined with the per-distance rates of the plant's region.
+    The delivery cost and emissions are given by the transport mode and distance
+    assigned per port on the plant, combined with the per-distance rates of the plant's
+    region.
 
-    The delivery cost is production-levelized over the same window as the levelized cost of production:
-    the plant's construction lead time followed by its operational lifetime, anchored at the evaluation
-    time. Since the plant's annual production is constant over the operating window, it cancels from the
-    levelization ratio, leaving the per-year operating fraction as the leveling flow.
+    The delivery cost is production-levelized over the same window as the levelized cost
+    of production: the plant's construction lead time followed by its operational
+    lifetime, anchored at the evaluation time. Since the plant's annual production is
+    constant over the operating window, it cancels from the levelization ratio, leaving
+    the per-year operating fraction as the leveling flow.
 
     Parameters
     ----------

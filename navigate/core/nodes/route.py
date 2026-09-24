@@ -23,7 +23,7 @@ from navigate.core.enum_ import RouteTypeID
 from navigate.core.node import Node
 from navigate.core.node_type import FORECAST, PORT, ROUTE, VARIABLE
 from navigate.exceptions import no_value_assigned_error
-from navigate.util import normalize_fractional, to_numpy, unique_list
+from navigate.util import ROUND_OFF, divide_nonzero, to_numpy, unique_list
 
 logger = logging.getLogger(__name__)
 
@@ -32,25 +32,28 @@ class Route(Node):
     def __init__(self, name):
         super().__init__(name, ROUTE)
 
-        # external variables -------------------------------------------------------------------------------------------
+        # external variables -----------------------------------------------------------
         self.route_type = None  # int, route type ID
         self.ports = []  # list[Port], ports a vessel can bunker in
 
         # time at sea/in port
-        self.port_durations = []  # list[float], duration spend in each port, days (round trip)
+        self.port_durations = []  # list[float], duration per port, days (round trip)
         self.time_at_sea = None  # float, fraction of time spent at sea (regional trip)
-        self.port_calls = []  # list[float], number of times each port is called (regional trip)
+        self.port_calls = []  # list[float], times each port is called (regional trip)
 
         # conditions per leg
         self.speeds = []  # list[float], speed of the vessel, knots
-        self.capacity_utilizations = []  # list[float], cargo capacity utilization, fraction
-        self.distances = []  # list[float], distance per leg, nautical miles (round trip)
-        self.condition_distribution = []  # list[float], time at condition, fraction (regional trip)
+        self.capacity_utilizations = []  # list[float], capacity utilization, fraction
+        self.distances = []  # list[float], distance per leg, naut. miles (round trip)
+        self.condition_distribution = []  # list[float], time fraction (regional trip)
 
         # regulation
-        self.voyage_distribution = {}  # dict[(port_name, port_name)], fraction of sea time spent between ports
+        self.voyage_distribution = {}  # dict[(port, port)], sea-time fraction
 
-    # external methods (DSL attributes) --------------------------------------------------------------------------------
+        # internal variables -----------------------------------------------------------
+        self._voyage_fractions = {}  # dict[(port, port)], normalized in initialize
+
+    # external methods (DSL attributes) ------------------------------------------------
     def set_route_type(self, route_type):
         """
         Set the route type.
@@ -168,6 +171,7 @@ class Route(Node):
     def set_condition_distribution(self, condition_distribution):
         """
         Set the fraction of time spent on the various legs of the trip.
+
         The sum of the coefficients in the list must equal unity.
 
         Only applicable if 'RouteType' is REGIONAL_TRIP.
@@ -188,7 +192,8 @@ class Route(Node):
 
         if rescaled:
             logger.info(
-                f"{self}: 'ConditionDistribution' is rescaled proportionally to sum to 1."
+                "%s: 'ConditionDistribution' is rescaled proportionally to sum to 1.",
+                self,
             )
 
     def set_speeds(self, speeds):
@@ -233,10 +238,10 @@ class Route(Node):
             upper=1.0,
         )
 
-    # external methods (DSL commands) ----------------------------------------------------------------------------------
+    # external methods (DSL commands) --------------------------------------------------
     def set_voyage_distribution(self, port_name_from, port_name_to, fraction):
         """
-        Set the fraction of total sailing time spent traveling from 'port_from' to 'port_to'.
+        Set the fraction of sailing time spent traveling from 'port_from' to 'port_to'.
 
         Examples
         --------
@@ -250,7 +255,8 @@ class Route(Node):
         port_name_to : str
             Name of port to which vessel arrives.
         fraction : float
-            Fraction of total sailing time spent traveling from 'port_from' to 'port_to'.
+            Fraction of total sailing time spent traveling from 'port_from' to
+            'port_to'.
         """
         command_assignment_to_tuple_dict(
             (port_name_from, port_name_to),
@@ -261,7 +267,7 @@ class Route(Node):
             upper=1.0,
         )
 
-    # internal methods -------------------------------------------------------------------------------------------------
+    # internal methods -----------------------------------------------------------------
     def initialize(self):
         if self.route_type is None:
             no_value_assigned_error(self, "RouteType")
@@ -278,7 +284,8 @@ class Route(Node):
         if len(self.speeds) != len(self.capacity_utilizations):
             raise ValueError(
                 f"{self}: The length of 'Speeds' ({len(self.speeds)}) and "
-                f"'CapacityUtilizations' ({len(self.capacity_utilizations)}) must correspond."
+                f"'CapacityUtilizations' ({len(self.capacity_utilizations)}) must"
+                " correspond."
             )
 
         # checking requirements that are route type specific
@@ -291,52 +298,61 @@ class Route(Node):
 
             if len(self.distances) != len(self.speeds):
                 raise ValueError(
-                    f"{self}: The length of 'Distances' ({len(self.distances)}) and Speeds ({len(self.speeds)}) must correspond."
+                    f"{self}: The length of 'Distances' ({len(self.distances)}) and"
+                    f" Speeds ({len(self.speeds)}) must correspond."
                 )
 
             if len(self.ports) < 2:
                 raise ValueError(
-                    f"{self}: Must have a minimum of 2 ports assigned for a ROUND_TRIP, only {len(self.ports)} were given."
+                    f"{self}: Must have a minimum of 2 ports assigned for a ROUND_TRIP,"
+                    f" only {len(self.ports)} were given."
                 )
 
-            # based on previous checks, distances is representative for all leg related lists
+            # based on previous checks, distances is representative for all leg related
+            # lists
             if len(self.distances) != len(self.ports):
                 raise ValueError(
-                    f"{self}: The length of 'Distances' ({len(self.distances)}) and 'Ports' ({len(self.ports)}) must correspond for a ROUND_TRIP."
+                    f"{self}: The length of 'Distances' ({len(self.distances)}) and"
+                    f" 'Ports' ({len(self.ports)}) must correspond for a ROUND_TRIP."
                 )
 
             if len(self.ports) != len(self.port_durations):
                 raise ValueError(
-                    f"{self}: The length of 'Ports' ({len(self.ports)}) and 'PortDurations' ({len(self.port_durations)}) must correspond."
+                    f"{self}: The length of 'Ports' ({len(self.ports)}) and"
+                    f" 'PortDurations' ({len(self.port_durations)}) must correspond."
                 )
 
             # the same port may not be placed in sequence
             for p in range(len(self.ports) - 1):
                 if self.ports[p] is self.ports[p + 1]:
                     raise ValueError(
-                        f"{self}: Unable to place {self.ports[p]} after itself in the sequence."
+                        f"{self}: Unable to place {self.ports[p]} after itself in the"
+                        " sequence."
                     )
 
             # the set is assumed periodical so check first/last are not in sequence
             if self.ports[0] is self.ports[-1]:
                 raise ValueError(
-                    f"{self}: The set of ports is assumed to wrap around for a 'ROUND_TRIP', so {self.ports[0]} cannot be"
+                    f"{self}: The set of ports is assumed to wrap around for a"
+                    f" 'ROUND_TRIP', so {self.ports[0]} cannot be"
                     " placed both first and last."
                 )
 
             if self.time_at_sea is not None:
                 logger.warning(
-                    f"{self}: 'TimeAtSea' is assigned but is unused for a ROUND_TRIP."
+                    "%s: 'TimeAtSea' is assigned but is unused for a ROUND_TRIP.", self
                 )
 
             if self.port_calls:
                 logger.warning(
-                    f"{self}: 'PortCalls' is assigned but is unused for a ROUND_TRIP."
+                    "%s: 'PortCalls' is assigned but is unused for a ROUND_TRIP.", self
                 )
 
             if self.condition_distribution:
                 logger.warning(
-                    f"{self}: 'ConditionDistribution' is assigned but is unused for a ROUND_TRIP."
+                    "%s: 'ConditionDistribution' is assigned but is unused for a "
+                    "ROUND_TRIP.",
+                    self,
                 )
 
         elif self.route_type == RouteTypeID.REGIONAL_TRIP:
@@ -345,7 +361,9 @@ class Route(Node):
 
             if len(self.condition_distribution) != len(self.speeds):
                 raise ValueError(
-                    f"{self}: The length of 'ConditionDistribution' ({len(self.condition_distribution)}) and 'Speeds' ({len(self.speeds)}) must correspond."
+                    f"{self}: The length of 'ConditionDistribution'"
+                    f" ({len(self.condition_distribution)}) and 'Speeds'"
+                    f" ({len(self.speeds)}) must correspond."
                 )
 
             # all ports must be unique
@@ -359,40 +377,51 @@ class Route(Node):
 
             if len(self.ports) != len(self.port_calls):
                 raise ValueError(
-                    f"{self}: The length of 'Ports' ({len(self.ports)}) and 'PortCalls' ({len(self.port_calls)}) must correspond."
+                    f"{self}: The length of 'Ports' ({len(self.ports)}) and 'PortCalls'"
+                    f" ({len(self.port_calls)}) must correspond."
                 )
 
             if self.distances:
                 logger.warning(
-                    f"{self}: 'Distances' is assigned but is unused for a REGIONAL_TRIP."
+                    "%s: 'Distances' is assigned but is unused for a REGIONAL_TRIP.",
+                    self,
                 )
 
             if self.port_durations:
                 logger.warning(
-                    f"{self}: 'PortDurations' is assigned but is unused for a REGIONAL_TRIP."
+                    "%s: 'PortDurations' is assigned but is unused for a "
+                    "REGIONAL_TRIP.",
+                    self,
                 )
 
         for key, distribution in self.voyage_distribution.items():
             if distribution is None:
                 self.voyage_distribution[key] = Scalar(0.0)
 
+        # values only change through commands, and initialize re-runs after
+        # every event read, so the normalized fractions can be cached here
+        self._voyage_fractions = self._normalize_voyage_distribution()
+
     def initialize_dependencies(self):
-        """
-        Initialize dependent dictionaries to allow wildcarding during command calls.
-        """
+        """Initialize dependent dictionaries so command calls can use wildcards."""
         names = [port.name for port in self.ports]
         for key in itertools.product(names, names):
             self.voyage_distribution.setdefault(key, None)
 
     def get_voyage_distribution(self, to_array=False):
-        fractions = normalize_fractional(self.voyage_distribution, None)
+        """
+        Get the normalized voyage distribution, cached at (re-)initialization.
 
+        The returned mapping is shared between calls; treat it as read-only.
+        """
         if to_array:
             return [
-                fractions[(pi.name, pj.name)] for pj in self.ports for pi in self.ports
+                self._voyage_fractions[(pi.name, pj.name)]
+                for pj in self.ports
+                for pi in self.ports
             ]
         else:
-            return fractions
+            return self._voyage_fractions
 
     def get_number_of_legs(self):
         return len(self.speeds)
@@ -402,12 +431,12 @@ class Route(Node):
 
     def get_leg_indices(self) -> tuple[tuple[int, int], ...]:
         """
-        The (origin, destination) port-index pairs of the legs on the route.
+        Return the (origin, destination) port-index pairs of the legs on the route.
 
         Returns
         -------
-        Consecutive legs for a round trip, otherwise all port-to-port combinations (required for
-        regulatory purposes).
+        Consecutive legs for a round trip, otherwise all port-to-port combinations
+        (required for regulatory purposes).
         """
         if self.route_type == RouteTypeID.ROUND_TRIP:
             n_legs = self.get_number_of_legs()
@@ -427,6 +456,26 @@ class Route(Node):
             return self.get_number_of_legs()
         else:
             return self.get_number_of_ports() ** 2
+
+    def _normalize_voyage_distribution(self):
+        """
+        Normalize the voyage fractions to sum to unity, splitting equally at zero total.
+
+        The values are always calculators (assignment wraps numbers in Scalar),
+        evaluated without arguments.
+        """
+        count = len(self.voyage_distribution)
+
+        evaluated = {
+            key: value.get(None, None)
+            for key, value in self.voyage_distribution.items()
+        }
+        total = np.round(np.sum(list(evaluated.values()), axis=0), ROUND_OFF)
+
+        return {
+            key: divide_nonzero(value, total, default=1.0 / count)
+            for key, value in evaluated.items()
+        }
 
     def get_number_of_port_calls(self):
         if self.route_type == RouteTypeID.ROUND_TRIP:

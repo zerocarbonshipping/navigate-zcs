@@ -20,7 +20,7 @@ def plot_fleet_shore_power_share(manager, directory):
     fleets = manager.nodes.fleets
     fig, axes = subplot_grid(len(fleets), sharey=True)
 
-    for ax, fleet in zip(axes, fleets.values()):
+    for ax, fleet in zip(axes, fleets.values(), strict=False):
         fleet_profile = fleet.profile
         shore_power = fleet_profile.get_shore_power_energy()
         port_energy = fleet_profile.get_total_energy_port()

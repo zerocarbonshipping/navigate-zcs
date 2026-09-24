@@ -42,18 +42,18 @@ def plot_port_bunker_supply(manager, directory):
         fig, axes = subplot_grid(len(fuels))
 
         profile = port.profile
+        bunker_mass = profile.get_bunker_mass()
+        bunker_supply_mass = profile.get_bunker_supply_mass()
+        bunkering_limit_mass = profile.get_bunkering_limit_mass()
 
-        for ax, fuel_name in zip(axes, fuels):
-            bunkered = profile.get_bunker_mass(fuel_name)
-            supply = profile.get_bunker_supply_mass(fuel_name)
-            limit = profile.get_bunkering_limit_mass(fuel_name)
+        for ax, fuel_name in zip(axes, fuels, strict=False):
+            bunkered = bunker_mass[fuel_name]
+            supply = bunker_supply_mass[fuel_name]
+            limit = bunkering_limit_mass[fuel_name]
 
             limit = np.where(np.isinf(limit), np.nan, limit)
 
-            if np.all(np.isnan(limit)):
-                max_limit = 0.0
-            else:
-                max_limit = np.nanmax(limit)
+            max_limit = 0.0 if np.all(np.isnan(limit)) else np.nanmax(limit)
 
             maximum = max(np.amax(bunkered), np.amax(supply), max_limit)
             divisor, unit = get_best_unit_mass(maximum)

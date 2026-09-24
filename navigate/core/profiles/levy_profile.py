@@ -3,10 +3,15 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import numpy as np
 
 from navigate.core.initial_values import EMPTY_FLOAT
 from navigate.core.profiles._base_profile import _BaseProfile
+
+if TYPE_CHECKING:
+    from navigate.util.types_ import FloatArray
 
 
 class LevyProfile(_BaseProfile):
@@ -26,5 +31,5 @@ class LevyProfile(_BaseProfile):
     def set_collected(self, idx: int, collected: float) -> None:
         self._collected[idx] = collected
 
-    def get_collected(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._collected[idx]
+    def get_collected(self) -> FloatArray:
+        return self._collected

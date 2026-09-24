@@ -2,15 +2,18 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Shared machinery for scanning node instance attributes for node references,
-used by the parser's reference resolution and the reachability analysis.
+Shared machinery for scanning node instance attributes for node references.
+
+Used by the parser's reference resolution and the reachability analysis.
 """
 
 from __future__ import annotations
 
 import re
-from collections.abc import Iterator
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 # a node reference in canonical deck form, e.g. Vessel("name");
 # group 1 is the node type and group 3 the node name
@@ -51,7 +54,7 @@ REFERENCE_SCAN_EXCLUDE = (
 
 def get_attributes(instance: object, exclude: tuple = ()) -> Iterator[tuple[str, Any]]:
     """
-    Extracts all attributes from the supplied instance except built-in attributes and attributes listed in 'exclude'.
+    Extract all attributes from the instance except built-ins and those in 'exclude'.
 
     The instance's attribute dict is snapshotted so callers may reassign
     attributes while iterating.

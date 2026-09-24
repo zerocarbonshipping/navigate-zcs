@@ -46,7 +46,7 @@ def plot_engine_fuel_consumed(manager, directory):
 
     fig, axes = subplot_grid(len(engine_fuel_consumed))
 
-    for ax, fuel_type in zip(axes, engine_fuel_consumed):
+    for ax, fuel_type in zip(axes, engine_fuel_consumed, strict=False):
         fuel_consumed = engine_fuel_consumed[fuel_type]
         fuel_consumed = {
             fuel_name: consumed / divisor

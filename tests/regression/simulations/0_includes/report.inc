@@ -54,6 +54,9 @@ Report "regression" {
 	add_fleet_property("*", VesselExpenses)
 	add_fleet_property("*", FuelConversionExpenses)
 	add_fleet_property("*", InstalledPower)
+	add_fleet_property("*", CargoMiles)
+	add_fleet_property("*", BaselineEnergy)
+	add_fleet_property("*", InstantaneousFreightRate)
 
 	add_vessel_property("*", AssetCharterRate)
 	add_vessel_property("*", CargoCharterRate)

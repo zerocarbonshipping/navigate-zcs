@@ -17,9 +17,10 @@ only when the statement's target node is itself reachable.
 
 from __future__ import annotations
 
-from navigate.core import Expression
+from typing import TYPE_CHECKING
+
+from navigate.core.expression import Expression, parse_reference_strings
 from navigate.core.node import Node
-from navigate.core.node_registry import GeneralNodes, Nodes
 from navigate.core.node_type import (
     EMISSION,
     FLEET,
@@ -43,6 +44,9 @@ from navigate.parser._scan import (
     parse_node_reference,
 )
 from navigate.util import matching_keys
+
+if TYPE_CHECKING:
+    from navigate.core.node_registry import GeneralNodes, Nodes
 
 ROOT_TYPES = (EMISSION, FLEET, FUEL, LEVY, PLOT, PRODUCER, REGULATION, REPORT)
 ROOT_GROUPS = tuple(NODE_GROUP[node_type] for node_type in ROOT_TYPES)
@@ -135,9 +139,11 @@ def find_unreachable(
 
 def _activating_references(edge, value, nodes: Nodes):
     """
-    Yield the references in a value that activate their target: every
-    reference to an unrestricted node type, and references to a type in
-    ACTIVATION_EDGES only when the value sits on one of its declared edges.
+    Yield the references in a value that activate their target.
+
+    Every reference to an unrestricted node type activates it; a reference to
+    a type in ACTIVATION_EDGES activates only when the value sits on one of
+    its declared edges.
 
     Parameters
     ----------
@@ -161,8 +167,9 @@ def _activating_references(edge, value, nodes: Nodes):
 
 def _iter_references(value, nodes: Nodes):
     """
-    Yield the (node type, node name) of every node reference in a value,
-    recursing containers the way the parser's reference walk does.
+    Yield the (node type, node name) of every node reference in a value.
+
+    Recurses containers the way the parser's reference walk does.
 
     The walks share their containers but read different leaves: the parser
     materializes every attribute value and command input when the deck is read
@@ -201,7 +208,7 @@ def _iter_references(value, nodes: Nodes):
             yield from _iter_references(element, nodes)
 
     elif isinstance(value, Expression):
-        for reference_string in value.reference_strings():
+        for reference_string in parse_reference_strings(value.text):
             reference = parse_node_reference(reference_string)
             if reference is not None and reference[0] in NODE_GROUP:
                 yield reference
@@ -212,9 +219,10 @@ def _iter_references(value, nodes: Nodes):
 
 def _collect_event_edges(event_queue: dict, nodes: Nodes) -> dict:
     """
-    Collect the node references inside queued EVENTS statements as edges from
-    each statement's target node, so they keep a node alive only when the
-    target is itself reachable.
+    Collect the node references inside queued EVENTS statements as edges.
+
+    Each edge originates from the statement's target node, so it keeps a node
+    alive only when the target is itself reachable.
 
     Parameters
     ----------

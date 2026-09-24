@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from navigate.core import (
     Scalar,
     as_scalar,
@@ -14,8 +16,10 @@ from navigate.core.assign import command_assignment_to_dict
 from navigate.core.enum_ import EnergyDemandTypeID
 from navigate.core.node_type import CURVE, TECHNOLOGY, VARIABLE
 from navigate.core.nodes._machinery import _Machinery
-from navigate.core.nodes.curve import Curve
-from navigate.core.nodes.variable import Variable
+
+if TYPE_CHECKING:
+    from navigate.core.nodes.curve import Curve
+    from navigate.core.nodes.variable import Variable
 
 PROPULSION, ELECTRICAL, HEAT = (
     EnergyDemandTypeID.PROPULSION,
@@ -26,14 +30,16 @@ PROPULSION, ELECTRICAL, HEAT = (
 
 class Technology(_Machinery):
     """
-    A technology installable on vessels: an energy-efficiency device, an
-    alternative power source, or an emission-reduction measure.
+    Represent a technology installable on vessels.
+
+    It is an energy-efficiency device, an alternative power source, or an
+    emission-reduction measure.
     """
 
     def __init__(self, name):
         super().__init__(name, TECHNOLOGY)
 
-        # external variables -------------------------------------------------------------------------------------------
+        # external variables -----------------------------------------------------------
         self.shore_power_capacity: Scalar | None = None
 
         # energy efficiency
@@ -51,7 +57,7 @@ class Technology(_Machinery):
             (src, dst): None for src in EnergyDemandTypeID for dst in EnergyDemandTypeID
         }
 
-    # external methods (DSL attributes) --------------------------------------------------------------------------------
+    # external methods (DSL attributes) ------------------------------------------------
     def set_shore_power_capacity(self, capacity):
         """
         Set the vessel-side shore power connection capacity in MW.
@@ -70,18 +76,15 @@ class Technology(_Machinery):
             as_scalar(capacity), type_=VARIABLE, lower=0.0
         )
 
-    # external methods (DSL commands) ----------------------------------------------------------------------------------
+    # external methods (DSL commands) --------------------------------------------------
     def set_energy_saving(self, energy_type: str, saving):
         """
+        Set the energy saving for the given energy demand type.
 
         Parameters
         ----------
         energy_type
         saving
-
-        Returns
-        -------
-
         """
         id_ = assign_id(energy_type, EnergyDemandTypeID)
         command_assignment_to_dict(
@@ -90,15 +93,12 @@ class Technology(_Machinery):
 
     def set_external_power(self, energy_type: str, power):
         """
+        Set the external power for the given energy demand type.
 
         Parameters
         ----------
         energy_type
         power
-
-        Returns
-        -------
-
         """
         id_ = assign_id(energy_type, EnergyDemandTypeID)
         command_assignment_to_dict(
@@ -121,7 +121,7 @@ class Technology(_Machinery):
             upper=1.0,
         )
 
-    # internal methods -------------------------------------------------------------------------------------------------
+    # internal methods -----------------------------------------------------------------
     def initialize(self):
         if self.shore_power_capacity is None:
             self.shore_power_capacity = Scalar(0.0)

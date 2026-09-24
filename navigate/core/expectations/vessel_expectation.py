@@ -10,16 +10,12 @@ import numpy as np
 from navigate.core.enum_ import EnergyDemandTypeID, EnergyDemandTypePortID
 from navigate.core.expectations._expectation import _Expectation
 from navigate.core.initial_values import EMPTY_FLOAT
-from navigate.util import (
-    divide_nonzero,
-    extract_from_dict_list,
-    extract_from_tuple_dict,
-    slice_list,
-)
+from navigate.util import divide_nonzero, slice_dict_list, slice_list
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.route import Route
+    from navigate.util.types_ import FloatLike, Index
 
 
 class VesselExpectation(_Expectation):
@@ -53,9 +49,6 @@ class VesselExpectation(_Expectation):
         self._speeds: list[
             np.ndarray
         ] = []  # list[leg_idx: float], expected speed per leg, knots
-        self._distances: list[
-            np.ndarray
-        ] = []  # list[leg_idx: float] expected distances per leg, nautical miles
 
         # durations
         self._time_sea: list[
@@ -78,7 +71,6 @@ class VesselExpectation(_Expectation):
         self._energy_sea: dict[EnergyDemandTypeID, list[np.ndarray]] = {}
         self._energy_port: dict[EnergyDemandTypeID, list[np.ndarray]] = {}
 
-        self._regional_raw_energy_sea: dict[EnergyDemandTypeID, list[np.ndarray]] = {}
         self._regional_operational_energy_sea: dict[
             EnergyDemandTypeID, list[np.ndarray]
         ] = {}
@@ -110,16 +102,14 @@ class VesselExpectation(_Expectation):
             EnergyDemandTypeID, list[np.ndarray]
         ] = {}
 
-        # per-leg, per-energy-type smoothed shadow-price beliefs (same shape as the raw pi
-        # dicts above). Tech-horizon belief is amortised over the decision horizon used by
-        # newbuild/retrofit NPVs; speed-horizon belief is faster, matched to the timescale of
-        # operational speed management.
+        # per-leg, per-energy-type smoothed shadow-price beliefs (same shape as the raw
+        # pi dicts above). Tech-horizon belief is amortised over the decision horizon
+        # used by newbuild/retrofit NPVs; speed-horizon belief is faster, matched to the
+        # timescale of operational speed management.
         self._belief_pi_sea_technology: dict[EnergyDemandTypeID, list[np.ndarray]] = {}
-        self._belief_pi_port_technology: dict[
-            EnergyDemandTypePortID, list[np.ndarray]
-        ] = {}
+        self._belief_pi_port_technology: dict[EnergyDemandTypeID, list[np.ndarray]] = {}
         self._belief_pi_sea_speed: dict[EnergyDemandTypeID, list[np.ndarray]] = {}
-        self._belief_pi_port_speed: dict[EnergyDemandTypePortID, list[np.ndarray]] = {}
+        self._belief_pi_port_speed: dict[EnergyDemandTypeID, list[np.ndarray]] = {}
 
         # bunkering/spend
         self._bunker_mass_expected: dict[
@@ -163,9 +153,7 @@ class VesselExpectation(_Expectation):
         self._technology_charter_rate: np.ndarray = (
             EMPTY_FLOAT  # fleet-average technology charge, USD/year
         )
-        self._tied_capital: list[
-            np.ndarray | None
-        ] = []  # list[time_step: np.ndarray], USD
+        self._tied_capital: list[np.ndarray] = []  # yearly flow from commencement, USD
 
     def initialize(self, length: int, route: Route, fuels: dict[str, Fuel]) -> None:
         self._initialize_expectation(length)
@@ -188,7 +176,6 @@ class VesselExpectation(_Expectation):
         self._speed_anchor_reference = self._default_float(default=np.nan)
         self._speed_anchor_optimal = self._default_float(default=np.nan)
         self._speeds = self._default_list_array(n_leg)
-        self._distances = self._default_list_array(n_leg)
 
         # durations
         self._time_sea = self._default_list_array(n_leg)
@@ -214,9 +201,6 @@ class VesselExpectation(_Expectation):
         self._energy_sea = self._default_dict_list_array(EnergyDemandTypeID, n_leg)
         self._energy_port = self._default_dict_list_array(
             EnergyDemandTypePortID, n_port
-        )
-        self._regional_raw_energy_sea = self._default_dict_list_array(
-            EnergyDemandTypeID, n_leg_regional
         )
         self._regional_operational_energy_sea = self._default_dict_list_array(
             EnergyDemandTypeID, n_leg_regional
@@ -294,7 +278,7 @@ class VesselExpectation(_Expectation):
         self._asset_charter_rate = self._default_array()
         self._freight_rate = self._default_array()
         self._technology_charter_rate = self._default_array()
-        self._tied_capital = self._allocate_list()
+        self._tied_capital = self._default_list_array(self._length)
 
     def reset_expected_bunkering(self) -> None:
         self._total_energy = self._default_array()
@@ -344,10 +328,6 @@ class VesselExpectation(_Expectation):
     def set_speeds(self, idx: int, speeds: list) -> None:
         for i, speed in enumerate(speeds):
             self._speeds[i][idx] = speed
-
-    def set_distances(self, idx: int, distances: list) -> None:
-        for i, distance in enumerate(distances):
-            self._distances[i][idx:] = distance
 
     def set_time_sea(self, idx: int, time_sea: list) -> None:
         for i, time in enumerate(time_sea):
@@ -414,13 +394,6 @@ class VesselExpectation(_Expectation):
         for key, values in energy_port.items():
             for leg, value in enumerate(values):
                 self._energy_port[key][leg][idx:] = value
-
-    def set_regional_raw_energy_sea(
-        self, idx: int, regional_energy_port: dict[EnergyDemandTypeID, list]
-    ) -> None:
-        for key, values in regional_energy_port.items():
-            for leg, value in enumerate(values):
-                self._regional_raw_energy_sea[key][leg][idx:] = value
 
     def set_regional_operational_energy_sea(
         self, idx: int, regional_operational_energy_sea: dict[EnergyDemandTypeID, list]
@@ -561,9 +534,6 @@ class VesselExpectation(_Expectation):
     def get_speeds(self, idx: int | slice = np.s_[:]) -> list[np.ndarray]:
         return slice_list(self._speeds, idx)
 
-    def get_distances(self, idx: int | slice = np.s_[:]) -> list[np.ndarray]:
-        return slice_list(self._distances, idx)
-
     def get_time_sea(self, idx: int | slice) -> list[np.ndarray]:
         return slice_list(self._time_sea, idx)
 
@@ -571,108 +541,44 @@ class VesselExpectation(_Expectation):
         return slice_list(self._time_port, idx)
 
     def get_raw_energy_sea(
-        self,
-        energy_type_id: EnergyDemandTypeID | None = None,
-        idx: int | slice = np.s_[:],
-    ) -> dict[EnergyDemandTypeID, list] | list:
-        return extract_from_dict_list(self._raw_energy_sea, energy_type_id, idx)
+        self, idx: Index = np.s_[:]
+    ) -> dict[EnergyDemandTypeID, list[FloatLike]]:
+        return slice_dict_list(self._raw_energy_sea, idx)
 
     def get_raw_energy_port(
-        self,
-        energy_type_id: EnergyDemandTypeID | None = None,
-        idx: int | slice = np.s_[:],
-    ) -> dict[EnergyDemandTypeID, list] | list:
-        return extract_from_dict_list(self._raw_energy_port, energy_type_id, idx)
-
-    def get_raw_energy_per_leg(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return np.sum(
-            [np.array(slice_list(legs, idx)) for legs in self._raw_energy_sea.values()],
-            axis=0,
-        )
-
-    def get_raw_energy_per_port(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return np.sum(
-            [
-                np.array(slice_list(ports, idx))
-                for ports in self._raw_energy_port.values()
-            ],
-            axis=0,
-        )
+        self, idx: Index = np.s_[:]
+    ) -> dict[EnergyDemandTypeID, list[FloatLike]]:
+        return slice_dict_list(self._raw_energy_port, idx)
 
     def get_operational_energy_sea(
-        self,
-        energy_type_id: EnergyDemandTypeID | None = None,
-        idx: int | slice = np.s_[:],
-    ) -> dict[EnergyDemandTypeID, list] | list:
-        return extract_from_dict_list(self._operational_energy_sea, energy_type_id, idx)
+        self, idx: Index = np.s_[:]
+    ) -> dict[EnergyDemandTypeID, list[FloatLike]]:
+        return slice_dict_list(self._operational_energy_sea, idx)
 
     def get_operational_energy_port(
-        self,
-        energy_type_id: EnergyDemandTypeID | None = None,
-        idx: int | slice = np.s_[:],
-    ) -> dict[EnergyDemandTypeID, list] | list:
-        return extract_from_dict_list(
-            self._operational_energy_port, energy_type_id, idx
-        )
-
-    def get_operational_energy_per_leg(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return np.sum(
-            [
-                np.array(slice_list(legs, idx))
-                for legs in self._operational_energy_sea.values()
-            ],
-            axis=0,
-        )
-
-    def get_operational_energy_per_port(
-        self, idx: int | slice = np.s_[:]
-    ) -> np.ndarray:
-        return np.sum(
-            [
-                np.array(slice_list(ports, idx))
-                for ports in self._operational_energy_port.values()
-            ],
-            axis=0,
-        )
+        self, idx: Index = np.s_[:]
+    ) -> dict[EnergyDemandTypeID, list[FloatLike]]:
+        return slice_dict_list(self._operational_energy_port, idx)
 
     def get_energy_sea(
-        self,
-        energy_type_id: EnergyDemandTypeID | None = None,
-        idx: int | slice = np.s_[:],
-    ) -> dict[EnergyDemandTypeID, list] | list:
-        return extract_from_dict_list(self._energy_sea, energy_type_id, idx)
+        self, idx: Index = np.s_[:]
+    ) -> dict[EnergyDemandTypeID, list[FloatLike]]:
+        return slice_dict_list(self._energy_sea, idx)
 
     def get_energy_port(
-        self,
-        energy_type_id: EnergyDemandTypeID | None = None,
-        idx: int | slice = np.s_[:],
-    ) -> dict[EnergyDemandTypeID, list] | list:
-        return extract_from_dict_list(self._energy_port, energy_type_id, idx)
-
-    def get_regional_raw_energy_sea(
-        self,
-        energy_type_id: EnergyDemandTypeID | None = None,
-        idx: int | slice = np.s_[:],
-    ) -> dict[EnergyDemandTypeID, list] | list:
-        return extract_from_dict_list(
-            self._regional_raw_energy_sea, energy_type_id, idx
-        )
+        self, idx: Index = np.s_[:]
+    ) -> dict[EnergyDemandTypeID, list[FloatLike]]:
+        return slice_dict_list(self._energy_port, idx)
 
     def get_regional_operational_energy_sea(
-        self,
-        energy_type_id: EnergyDemandTypeID | None = None,
-        idx: int | slice = np.s_[:],
-    ) -> dict[EnergyDemandTypeID, list] | list:
-        return extract_from_dict_list(
-            self._regional_operational_energy_sea, energy_type_id, idx
-        )
+        self, idx: Index = np.s_[:]
+    ) -> dict[EnergyDemandTypeID, list[FloatLike]]:
+        return slice_dict_list(self._regional_operational_energy_sea, idx)
 
     def get_regional_energy_sea(
-        self,
-        energy_type_id: EnergyDemandTypeID | None = None,
-        idx: int | slice = np.s_[:],
-    ) -> dict[EnergyDemandTypeID, list] | list:
-        return extract_from_dict_list(self._regional_energy_sea, energy_type_id, idx)
+        self, idx: Index = np.s_[:]
+    ) -> dict[EnergyDemandTypeID, list[FloatLike]]:
+        return slice_dict_list(self._regional_energy_sea, idx)
 
     def get_total_demand(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         energy_sea = self.get_energy_sea(idx=idx)
@@ -691,10 +597,12 @@ class VesselExpectation(_Expectation):
             energy_id: [
                 1.0 - divide_nonzero(energy[idx], raw_energy[idx], default=1.0)
                 for (energy, raw_energy) in zip(
-                    self._energy_sea[energy_id], self._raw_energy_sea[energy_id]
+                    self._energy_sea[energy_id],
+                    self._raw_energy_sea[energy_id],
+                    strict=True,
                 )
             ]
-            for energy_id in self._energy_sea.keys()
+            for energy_id in self._energy_sea
         }
 
     def get_energy_saving_port(self, idx: int) -> dict[EnergyDemandTypeID, list]:
@@ -702,34 +610,12 @@ class VesselExpectation(_Expectation):
             energy_id: [
                 1.0 - divide_nonzero(energy[idx], raw_energy[idx], default=1.0)
                 for (energy, raw_energy) in zip(
-                    self._energy_port[energy_id], self._raw_energy_port[energy_id]
-                )
-            ]
-            for energy_id in self._energy_port.keys()
-        }
-
-    def get_operational_saving_sea(self, idx: int) -> dict[EnergyDemandTypeID, list]:
-        return {
-            energy_id: [
-                1.0 - divide_nonzero(op[idx], raw[idx], default=1.0)
-                for (op, raw) in zip(
-                    self._operational_energy_sea[energy_id],
-                    self._raw_energy_sea[energy_id],
-                )
-            ]
-            for energy_id in self._operational_energy_sea.keys()
-        }
-
-    def get_operational_saving_port(self, idx: int) -> dict[EnergyDemandTypeID, list]:
-        return {
-            energy_id: [
-                1.0 - divide_nonzero(op[idx], raw[idx], default=1.0)
-                for (op, raw) in zip(
-                    self._operational_energy_port[energy_id],
+                    self._energy_port[energy_id],
                     self._raw_energy_port[energy_id],
+                    strict=True,
                 )
             ]
-            for energy_id in self._operational_energy_port.keys()
+            for energy_id in self._energy_port
         }
 
     def get_energy_conservation_pi_sea(
@@ -779,7 +665,7 @@ class VesselExpectation(_Expectation):
 
     def get_belief_pi_port_technology(
         self,
-    ) -> dict[EnergyDemandTypePortID, list[np.ndarray]]:
+    ) -> dict[EnergyDemandTypeID, list[np.ndarray]]:
         return self._belief_pi_port_technology
 
     def get_belief_pi_sea_speed(self) -> dict[EnergyDemandTypeID, list[np.ndarray]]:
@@ -787,7 +673,7 @@ class VesselExpectation(_Expectation):
 
     def get_belief_pi_port_speed(
         self,
-    ) -> dict[EnergyDemandTypePortID, list[np.ndarray]]:
+    ) -> dict[EnergyDemandTypeID, list[np.ndarray]]:
         return self._belief_pi_port_speed
 
     def get_bunker_mass_expected(self, port_name: str, fuel_name: str) -> float:
@@ -802,22 +688,16 @@ class VesselExpectation(_Expectation):
         else:
             return 0.0
 
-    def get_fair_share_fuel_existing(
-        self, port_name: str | None = None, fuel_name: str | None = None
-    ) -> float | dict[tuple[str, str], float]:
-        return extract_from_tuple_dict(
-            self._fair_share_fuel_existing, port_name, fuel_name
-        )
+    def get_fair_share_fuel_existing(self, port_name: str, fuel_name: str) -> float:
+        return self._fair_share_fuel_existing[(port_name, fuel_name)]
+
+    def get_fair_share_fuels_existing(self) -> dict[tuple[str, str], float]:
+        return self._fair_share_fuel_existing
 
     def get_fair_share_fuel_expected(
-        self,
-        port_name: str | None = None,
-        fuel_name: str | None = None,
-        idx: int | slice = np.s_[:],
-    ) -> np.ndarray | dict[tuple[str, str], np.ndarray]:
-        return extract_from_tuple_dict(
-            self._fair_share_fuel_expected, port_name, fuel_name, idx=idx
-        )
+        self, port_name: str, fuel_name: str, idx: Index = np.s_[:]
+    ) -> FloatLike:
+        return self._fair_share_fuel_expected[(port_name, fuel_name)][idx]
 
     def get_total_energy(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         return self._total_energy[idx]
@@ -843,5 +723,5 @@ class VesselExpectation(_Expectation):
     def get_technology_charter_rate(self, idx: int) -> float:
         return self._technology_charter_rate[idx]
 
-    def get_tied_capital(self, idx: int) -> np.ndarray | None:
+    def get_tied_capital(self, idx: int) -> np.ndarray:
         return self._tied_capital[idx]

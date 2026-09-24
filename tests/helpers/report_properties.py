@@ -43,13 +43,13 @@ PROFILE_CLASSES = {
 
 assert set(PROFILE_CLASSES) == set(_REPORT_COMMANDS)
 
-# public getters declared on _BaseProfile itself describe the timeline a profile
-# is sized to rather than a result, so no report property names them
+# _BaseProfile declares no public getter of its own, so every getter a profile
+# carries names a result a report property can extract
 PLUMBING_GETTERS = {name for name in vars(_BaseProfile) if name.startswith("get_")}
 
-assert sorted(PLUMBING_GETTERS) == ["get_length", "get_shape"], (
-    "_BaseProfile's public getters changed: add the new one here only if it describes"
-    " the timeline a profile is sized to, and otherwise expect a report property to"
+assert not PLUMBING_GETTERS, (
+    "_BaseProfile declared a public getter: add it here only if it describes the"
+    " timeline a profile is sized to, and otherwise expect a report property to"
     " name it"
 )
 

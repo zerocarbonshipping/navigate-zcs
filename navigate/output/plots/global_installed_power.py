@@ -25,9 +25,8 @@ def plot_global_installed_power(manager, directory):
 
     fig, ax = single_panel()
 
-    engine_power = {
-        ft: manager.profile.get_installed_power(ft) for ft in FUEL_TYPE_ORDER
-    }
+    installed_power = manager.profile.get_installed_power()
+    engine_power = {ft: installed_power[ft] for ft in FUEL_TYPE_ORDER}
 
     remove_below_threshold(engine_power, 1.0)
 

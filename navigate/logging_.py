@@ -116,7 +116,9 @@ def log_time_step_breaker(logger, idx, date, time):
 
 def log_extrapolate_bounds(logger, node, x, a, b):
     info = f" Value was {x}." if x.size < 5 else ""
-    logger.warning(f"{node}: Extrapolating beyond table limits ({a}, {b}).{info}")
+    logger.warning(
+        "%s: Extrapolating beyond table limits (%s, %s).%s", node, a, b, info
+    )
 
 
 def log_start_of_simulation(logger, date):
@@ -130,7 +132,7 @@ def log_model_post_process(logger):
 
 
 def log_fair_share_convergence(logger, statistics, iterations, converged) -> None:
-    headers = ["Iter."] + list(statistics.keys())
+    headers = ["Iter.", *statistics.keys()]
     cols = list(statistics.values())
     rows = [
         [i + 1] + [str(_round_for_display(cols[c][i])) for c in range(len(cols))]
@@ -177,7 +179,10 @@ def log_summary() -> str:
     if _DEDUP_FILTER and _DEDUP_FILTER.unique_warnings:
         n_unique = len(_DEDUP_FILTER.seen)
         n_suppressed = _DEDUP_FILTER.suppressed
-        summary += f"\n\nUnique warnings ({n_unique} unique, {n_suppressed} duplicates suppressed):"
+        summary += (
+            f"\n\nUnique warnings ({n_unique} unique, {n_suppressed} duplicates "
+            f"suppressed):"
+        )
         for i, msg in enumerate(_DEDUP_FILTER.unique_warnings, 1):
             # Truncate long messages for the digest
             short = (msg[:120] + "...") if len(msg) > 120 else msg
@@ -190,8 +195,9 @@ def log_summary() -> str:
 
 def print_warning_summary() -> None:
     """
-    Print the number of logged warnings to the console, pointing at the log
-    file that setup_logger opened.
+    Print the number of logged warnings to the console.
+
+    Points at the log file that setup_logger opened.
     """
     warnings = get_log_counts().get("WARNING", 0)
 
@@ -201,7 +207,7 @@ def print_warning_summary() -> None:
 
 def _round_for_display(x):
     """
-    Rounds off a value to the appropriate decimals for visual display.
+    Round off a value to the appropriate decimals for visual display.
 
     Parameters
     ----------
@@ -218,7 +224,7 @@ def _round_for_display(x):
     if abs_x <= TOLERANCE:
         return 0
 
-    significant = -int(floor(log10(abs_x)))
+    significant = -floor(log10(abs_x))
 
     if significant <= 0:
         return int(np.round(x, 0))

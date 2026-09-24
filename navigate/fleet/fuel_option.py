@@ -2,9 +2,10 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Determines the fuel options of a vessel from its power system and tanks: the representative fuel
-type, the usable fuel types, and the usable fuels, based on the simulation fuels grouped by fuel
-type.
+Determine the fuel options of a vessel from its power system and tanks.
+
+Covers the representative fuel type, the usable fuel types, and the usable
+fuels, based on the simulation fuels grouped by fuel type.
 """
 
 from __future__ import annotations
@@ -13,18 +14,18 @@ import logging
 from typing import TYPE_CHECKING
 
 from navigate.core.enum_ import FuelTypeID
-from navigate.core.nodes.vessel import Vessel
 from navigate.util import unique_list
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fuel import Fuel
+    from navigate.core.nodes.vessel import Vessel
 
 logger = logging.getLogger(__name__)
 
 
 def get_fuels_per_fuel_type(fuels: dict[str, Fuel]) -> dict[FuelTypeID, list[Fuel]]:
     """
-    Creates a dict of all fuels available for bunkering for each fuel type.
+    Create a dict of all fuels available for bunkering for each fuel type.
 
     Parameters
     ----------
@@ -47,16 +48,20 @@ def get_fuels_per_fuel_type(fuels: dict[str, Fuel]) -> dict[FuelTypeID, list[Fue
 
 def determine_fuel_type(vessel: Vessel) -> None:
     """
-    Determines the representative fuel type of a vessel based on the sum of power capacity for the main fuel types
-    across all converters in the power system. If multiple fuel types have the same power capacity, the one
-    with the largest tank is chosen.
+    Determine a vessel's representative fuel type.
 
-    TODO: The tank size should optimally be weighted by the LHV, but it might vary within a given fuel type
+    Based on the sum of power capacity for the main fuel types across all
+    converters in the power system. If multiple fuel types have the same
+    power capacity, the one with the largest tank is chosen.
+
+    TODO: The tank size should optimally be weighted by the LHV, but it might vary
+    within a given fuel type
 
     Parameters
     ----------
     vessel
-        Vessel to determine the representative fuel type for; skipped if already set through the DSL.
+        Vessel to determine the representative fuel type for; skipped if already set
+        through the DSL.
     """
     if vessel.fuel_type is not None:
         return
@@ -115,12 +120,11 @@ def determine_fuel_type(vessel: Vessel) -> None:
                 fuel_type = type_
 
         logger.info(
-            "{}: Has a power system with multiple main fuel types "
-            "({}) of equal power. {} was chosen as the primary.".format(
-                vessel,
-                ", ".join([FuelTypeID(f).name for f in power_fuel_type[max_power]]),
-                FuelTypeID(fuel_type).name,
-            )
+            "%s: Has a power system with multiple main fuel types (%s) of equal power. "
+            "%s was chosen as the primary.",
+            vessel,
+            ", ".join([FuelTypeID(f).name for f in power_fuel_type[max_power]]),
+            FuelTypeID(fuel_type).name,
         )
 
     else:
@@ -131,8 +135,10 @@ def determine_fuel_type(vessel: Vessel) -> None:
 
 def determine_usable_fuel_types(vessel: Vessel) -> None:
     """
-    Determines the fuel types usable by a vessel as the union of tank and converter fuel types, after checking
-    that the tanks can store the fuels required by the converters.
+    Determine a vessel's usable fuel types.
+
+    The usable types are the union of tank and converter fuel types, after
+    checking that the tanks can store the fuels required by the converters.
 
     Parameters
     ----------
@@ -158,23 +164,23 @@ def determine_usable_fuel_types(vessel: Vessel) -> None:
         pilot_fuel_types = converter.pilot_fuel_types
 
         if converter.is_dual_fuel():
-            if converter.minimum_pilot_fuel.get() > 0.0:
-                if not any(
-                    fuel_type in tank_fuel_types for fuel_type in pilot_fuel_types
-                ):
-                    raise ValueError(
-                        "{}: Missing a tank which can store fuel of"
-                        " type(s) {} required as pilot fuel for {}.".format(
-                            vessel,
-                            ", ".join(FuelTypeID(f).name for f in pilot_fuel_types),
-                            converter,
-                        )
+            if converter.minimum_pilot_fuel.get() > 0.0 and not any(
+                fuel_type in tank_fuel_types for fuel_type in pilot_fuel_types
+            ):
+                raise ValueError(
+                    "{}: Missing a tank which can store fuel of"
+                    " type(s) {} required as pilot fuel for {}.".format(
+                        vessel,
+                        ", ".join(FuelTypeID(f).name for f in pilot_fuel_types),
+                        converter,
                     )
+                )
 
         else:
             if not any(fuel_type in tank_fuel_types for fuel_type in main_fuel_types):
                 raise ValueError(
-                    "{}: Missing a tank which can store fuel of type(s) {} for {}.".format(
+                    "{}: Missing a tank which can store fuel of type(s) {} for"
+                    " {}.".format(
                         vessel,
                         ", ".join(FuelTypeID(f).name for f in main_fuel_types),
                         converter,
@@ -188,7 +194,7 @@ def determine_usable_fuels(
     vessel: Vessel, fuels_by_fuel_type: dict[FuelTypeID, list[Fuel]]
 ) -> None:
     """
-    Determines the fuels usable by a vessel from its usable fuel types.
+    Determine the fuels usable by a vessel from its usable fuel types.
 
     Parameters
     ----------
@@ -206,5 +212,6 @@ def determine_usable_fuels(
     # check that the vessel can bunker
     if not vessel.usable_fuels:
         raise ValueError(
-            f"{vessel}: No overlap between the fuel types of the PowerSystem, Tanks and Fuels."
+            f"{vessel}: No overlap between the fuel types of the PowerSystem,"
+            " Tanks and Fuels."
         )

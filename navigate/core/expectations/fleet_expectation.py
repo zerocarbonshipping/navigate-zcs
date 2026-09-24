@@ -86,11 +86,6 @@ class FleetExpectation(_Expectation):
     ) -> np.ndarray:
         return self._existing_multipliers[vessel_name][idx]
 
-    def get_newbuild_multipliers(
-        self, vessel_name: str, idx: int | slice = np.s_[:]
-    ) -> np.ndarray:
-        return self._newbuild_multipliers[vessel_name][idx]
-
     def get_expected_multipliers(
         self, vessel_name: str, idx: int | slice = np.s_[:]
     ) -> np.ndarray:
@@ -98,15 +93,6 @@ class FleetExpectation(_Expectation):
             self._existing_multipliers[vessel_name][idx]
             + self._newbuild_multipliers[vessel_name][idx]
         )
-
-    def get_total_existing_multipliers(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return np.add.reduce(list(self._existing_multipliers.values()))[idx]
-
-    def get_total_expected_multipliers(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return (
-            np.add.reduce(list(self._existing_multipliers.values()))
-            + np.add.reduce(list(self._newbuild_multipliers.values()))
-        )[idx]
 
     def get_fuel_demand(self, idx: int | slice = np.s_[:]) -> dict[str, np.ndarray]:
         return slice_dict(self._fuel_demand, idx)

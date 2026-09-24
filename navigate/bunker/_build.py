@@ -2,8 +2,10 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Get-or-create helpers for the incremental build of the LP model: variables and
-constraints are added on first use and reused by the builders on later builds.
+Provide get-or-create helpers for the incremental LP model build.
+
+Variables and constraints are added on first use and reused by the builders on
+later builds.
 """
 
 from __future__ import annotations
@@ -56,9 +58,9 @@ def get_constraint(
     Return the constraint stored under a key, creating an empty one if absent.
 
     A new constraint starts as ``0 <sense> 0``; the caller must set its rhs (where it is
-    not the fixed zero) and re-apply every coefficient via ``model.chgCoeff`` on every build,
-    new or reused -- re-applying is what lets a variable created after the constraint
-    (e.g. a fuel that later becomes bunkerable at a port) join the row.
+    not the fixed zero) and re-apply every coefficient via ``model.chgCoeff`` on every
+    build, new or reused -- re-applying is what lets a variable created after the
+    constraint (e.g. a fuel that later becomes bunkerable at a port) join the row.
 
     Parameters
     ----------
@@ -98,8 +100,9 @@ def get_constraint(
 
 def _full_name(name: str, key: tuple | str) -> str:
     """
-    Name of an LP model element: the key elements appended underscore-separated
-    to the family name.
+    Return the name of an LP model element.
+
+    The key elements are appended underscore-separated to the family name.
 
     Parameters
     ----------

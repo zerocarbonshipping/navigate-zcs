@@ -3,20 +3,22 @@
 
 from __future__ import annotations
 
-from collections.abc import KeysView
 from typing import TYPE_CHECKING
 
 import numpy as np
 
 from navigate.core.expectations._expectation import _Expectation
 from navigate.core.initial_values import EMPTY_FLOAT
-from navigate.util import extract_from_dict, extract_from_tuple_dict
+from navigate.util import slice_dict
 
 if TYPE_CHECKING:
+    from collections.abc import KeysView
+
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.feedstock import Feedstock
     from navigate.core.nodes.port import Port
     from navigate.core.nodes.process import Process
+    from navigate.util.types_ import FloatLike, Index
 
 
 class PlantExpectation(_Expectation):
@@ -31,7 +33,6 @@ class PlantExpectation(_Expectation):
 
         # production
         self._size: np.ndarray = EMPTY_FLOAT  # tons/day (for CAPEX/OPEX scaling)
-        self._capacity: np.ndarray = EMPTY_FLOAT  # tons/year
         self._production: np.ndarray = EMPTY_FLOAT  # tons/year (incl. uptime)
 
         # feed
@@ -46,9 +47,7 @@ class PlantExpectation(_Expectation):
         ] = {}  # levelized cost of delivery, USD/ton
 
         # capital
-        self._tied_capital: list[
-            np.ndarray | None
-        ] = []  # list[time_step: np.ndarray], USD
+        self._tied_capital: list[np.ndarray] = []  # yearly flow from commencement, USD
 
         # emissions
         self._production_wtt: dict[
@@ -83,7 +82,6 @@ class PlantExpectation(_Expectation):
         self._lead_time = self._default_array()
 
         self._size = self._default_array()
-        self._capacity = self._default_array()
         self._production = self._default_array()
 
         self._feed_mass = self._default_dict_array({**feedstocks, **processes})
@@ -91,7 +89,7 @@ class PlantExpectation(_Expectation):
         self._levelized_production_cost = self._default_array()
         self._levelized_delivery_cost = self._default_dict_array(ports)
 
-        self._tied_capital = self._allocate_list()
+        self._tied_capital = self._default_list_array(self._length)
 
         self._production_wtt = self._default_dict_array(emissions)
         self._delivery_wtt = self._default_tuple_dict_array(ports, emissions)
@@ -118,9 +116,6 @@ class PlantExpectation(_Expectation):
 
     def set_size(self, idx: int, size: np.ndarray) -> None:
         self._size[idx:] = size
-
-    def set_capacity(self, idx: int, capacity: np.ndarray) -> None:
-        self._capacity[idx:] = capacity
 
     def set_production(self, idx: int, production: np.ndarray) -> None:
         self._production[idx:] = production
@@ -177,35 +172,33 @@ class PlantExpectation(_Expectation):
     def get_size(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         return self._size[idx]
 
-    def get_capacity(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._capacity[idx]
-
     def get_production(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         return self._production[idx]
 
-    def get_feed_mass(
-        self, feed_name: str | None = None, idx: int | slice = np.s_[:]
-    ) -> np.ndarray | dict[str, np.ndarray]:
-        return extract_from_dict(self._feed_mass, feed_name, idx)
+    def get_feed_mass(self, feed_name: str, idx: Index = np.s_[:]) -> FloatLike:
+        return self._feed_mass[feed_name][idx]
+
+    def get_feed_masses(self, idx: Index = np.s_[:]) -> dict[str, FloatLike]:
+        return slice_dict(self._feed_mass, idx)
 
     def get_levelized_production_cost(self, idx: int | slice = np.s_[:]) -> np.ndarray:
         return self._levelized_production_cost[idx]
 
     def get_levelized_delivery_cost(
-        self, port_name: str | None = None, idx: int | slice = np.s_[:]
-    ) -> np.ndarray | dict[str, np.ndarray]:
-        return extract_from_dict(self._levelized_delivery_cost, port_name, idx)
+        self, port_name: str, idx: Index = np.s_[:]
+    ) -> FloatLike:
+        return self._levelized_delivery_cost[port_name][idx]
 
     def get_levelized_delivered_cost(
         self, port_name: str, idx: int | slice = np.s_[:]
-    ) -> np.ndarray:
+    ) -> FloatLike:
         return self.get_levelized_production_cost(
             idx
         ) + self.get_levelized_delivery_cost(port_name, idx)
 
     def get_expected_delivered_cost(
         self, port_name: str, idx: int | slice = np.s_[:]
-    ) -> np.ndarray:
+    ) -> FloatLike:
         return self._expected_production_cost[idx] + self.get_levelized_delivery_cost(
             port_name, idx
         )
@@ -214,28 +207,23 @@ class PlantExpectation(_Expectation):
         return self._tied_capital[idx]
 
     def get_production_wtt(
-        self, emission_name: str | None = None, idx: int | slice = np.s_[:]
-    ) -> np.ndarray | dict[str, np.ndarray]:
-        return extract_from_dict(self._production_wtt, emission_name, idx)
+        self, emission_name: str, idx: Index = np.s_[:]
+    ) -> FloatLike:
+        return self._production_wtt[emission_name][idx]
 
     def get_delivery_wtt(
-        self,
-        port_name: str | None = None,
-        emission_name: str | None = None,
-        idx: int | slice = np.s_[:],
-    ) -> np.ndarray | dict[tuple[str, str], np.ndarray]:
-        return extract_from_tuple_dict(
-            self._delivery_wtt, port_name, emission_name, idx
-        )
+        self, port_name: str, emission_name: str, idx: Index = np.s_[:]
+    ) -> FloatLike:
+        return self._delivery_wtt[(port_name, emission_name)][idx]
 
     def get_expected_production_wtt(
-        self, emission_name: str | None = None, idx: int | slice = np.s_[:]
-    ) -> np.ndarray | dict[str, np.ndarray]:
-        return extract_from_dict(self._expected_production_wtt, emission_name, idx)
+        self, emission_name: str, idx: Index = np.s_[:]
+    ) -> FloatLike:
+        return self._expected_production_wtt[emission_name][idx]
 
     def get_expected_delivered_wtt(
         self, port_name: str, emission_name: str, idx: int | slice = np.s_[:]
-    ) -> np.ndarray:
+    ) -> FloatLike:
         return self.get_delivery_wtt(
             port_name, emission_name, idx
         ) + self.get_expected_production_wtt(emission_name, idx)

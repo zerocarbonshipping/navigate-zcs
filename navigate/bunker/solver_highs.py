@@ -15,13 +15,15 @@ Usage:
 
 from __future__ import annotations
 
+import contextlib
+
 import highspy
 import numpy as np
 from highspy import HighsBasisStatus, HighsModelStatus
 
-# ======================================================================================================================
+# ====================================================================================
 # Constants
-# ======================================================================================================================
+# ====================================================================================
 
 CONTINUOUS = "continuous"
 OPTIMAL = 1
@@ -45,9 +47,9 @@ _METHOD_MAP = {
 }
 
 
-# ======================================================================================================================
+# ====================================================================================
 # GRB namespace (mirrors gurobipy.GRB constants)
-# ======================================================================================================================
+# ====================================================================================
 
 
 class _GRB:
@@ -60,9 +62,9 @@ class _GRB:
 GRB = _GRB()
 
 
-# ======================================================================================================================
+# ====================================================================================
 # LinExpr
-# ======================================================================================================================
+# ====================================================================================
 
 
 class LinExpr:
@@ -78,7 +80,7 @@ class LinExpr:
         # _terms: list of (coefficient, Var)
         # _constant: float
         if coefficients is not None and variables is not None:
-            self._terms = list(zip(coefficients, variables))
+            self._terms = list(zip(coefficients, variables, strict=True))
             self._constant = 0.0
         else:
             self._terms = []
@@ -90,7 +92,7 @@ class LinExpr:
         expr._constant = self._constant
         return expr
 
-    # arithmetic --------------------------------------------------------------------------------------------------------
+    # arithmetic -----------------------------------------------------------------------
     def __add__(self, other):
         result = self._copy()
         if isinstance(other, LinExpr):
@@ -148,7 +150,7 @@ class LinExpr:
         result._constant = -self._constant
         return result
 
-    # comparison operators (create TempConstr) --------------------------------------------------------------------------
+    # comparison operators (create TempConstr) -----------------------------------------
     def __eq__(self, other):
         if isinstance(other, (int, float)):
             return TempConstr(self, _SENSE_EQ, float(other))
@@ -168,19 +170,19 @@ class LinExpr:
             return TempConstr(self - other, _SENSE_GE, 0.0)
         return NotImplemented
 
-    # evaluation --------------------------------------------------------------------------------------------------------
+    # evaluation -----------------------------------------------------------------------
     def getValue(self):
         """Evaluate the expression using current solution values."""
         return sum(c * v.X for c, v in self._terms) + self._constant
 
 
-# ======================================================================================================================
+# ====================================================================================
 # TempConstr
-# ======================================================================================================================
+# ====================================================================================
 
 
 class TempConstr:
-    """Temporary constraint object created by comparison operators, passed to Model.addConstr()."""
+    """Temporary constraint from comparison operators, passed to Model.addConstr()."""
 
     def __init__(self, lhs, sense, rhs):
         self.lhs = lhs  # LinExpr
@@ -188,9 +190,9 @@ class TempConstr:
         self.rhs = rhs  # float
 
 
-# ======================================================================================================================
+# ====================================================================================
 # Var
-# ======================================================================================================================
+# ====================================================================================
 
 
 class Var:
@@ -204,13 +206,13 @@ class Var:
         self._model = model  # Model instance (for accessing HiGHS and solution)
         self._col = col  # column index in HiGHS
 
-    # solution value ----------------------------------------------------------------------------------------------------
+    # solution value -------------------------------------------------------------------
     @property
     def X(self):
         """Primal solution value."""
         return self._model._col_values[self._col]
 
-    # objective coefficient ---------------------------------------------------------------------------------------------
+    # objective coefficient ------------------------------------------------------------
     @property
     def Obj(self):
         return self._model._col_costs[self._col]
@@ -221,7 +223,7 @@ class Var:
         self._model._col_costs[self._col] = value
         self._model._pending_obj[self._col] = value
 
-    # arithmetic (return LinExpr) ---------------------------------------------------------------------------------------
+    # arithmetic (return LinExpr) ------------------------------------------------------
     def _to_expr(self, coeff=1.0):
         expr = LinExpr()
         expr._terms = [(coeff, self)]
@@ -262,7 +264,7 @@ class Var:
     def __neg__(self):
         return self._to_expr(-1.0)
 
-    # comparison operators (create TempConstr via LinExpr) ---------------------------------------------------------------
+    # comparison operators (create TempConstr via LinExpr) -----------------------------
     def __le__(self, other):
         return self._to_expr().__le__(other)
 
@@ -273,16 +275,17 @@ class Var:
         # Only support constraint creation (comparison with numbers)
         if isinstance(other, (int, float)):
             return self._to_expr().__eq__(other)
-        # For identity comparison (used in dict lookups etc.), fall back to object identity
+        # For identity comparison (used in dict lookups etc.), fall back to object
+        # identity
         return NotImplemented
 
     def __hash__(self):
         return id(self)
 
 
-# ======================================================================================================================
+# ====================================================================================
 # Constr
-# ======================================================================================================================
+# ====================================================================================
 
 
 class Constr:
@@ -299,7 +302,7 @@ class Constr:
         self._rhs_value = rhs_value
         self._name = name
 
-    # RHS write (lowercase, as used in gurobipy) ------------------------------------------------------------------------
+    # RHS write (lowercase, as used in gurobipy) ---------------------------------------
     @property
     def rhs(self):
         return self._rhs_value
@@ -315,18 +318,18 @@ class Constr:
         elif self._sense == _SENSE_GE:
             self._model._pending_rhs[self._row] = (value, highspy.kHighsInf)
 
-    # RHS read (uppercase, as used in gurobipy) -------------------------------------------------------------------------
+    # RHS read (uppercase, as used in gurobipy) ----------------------------------------
     @property
     def RHS(self):
         return self._rhs_value
 
-    # dual value --------------------------------------------------------------------------------------------------------
+    # dual value -----------------------------------------------------------------------
     @property
     def Pi(self):
         """Shadow price (dual value)."""
         return self._model._row_duals[self._row]
 
-    # sensitivity analysis (ranging) ------------------------------------------------------------------------------------
+    # sensitivity analysis (ranging) ---------------------------------------------------
     @property
     def SARHSLow(self):
         """Lower bound of the RHS sensitivity range."""
@@ -340,15 +343,13 @@ class Constr:
         return self._model._ranging_rhs_up[self._row]
 
 
-# ======================================================================================================================
+# ====================================================================================
 # Params
-# ======================================================================================================================
+# ====================================================================================
 
 
 class Params:
-    """
-    Proxy for HiGHS solver options, using Gurobi parameter names.
-    """
+    """Proxy for HiGHS solver options, using Gurobi parameter names."""
 
     def __init__(self, highs):
         self._highs = highs
@@ -413,9 +414,9 @@ class Params:
         self._dual_reductions = value
 
 
-# ======================================================================================================================
+# ====================================================================================
 # Model
-# ======================================================================================================================
+# ====================================================================================
 
 
 class Model:
@@ -471,16 +472,17 @@ class Model:
         # Last-written coefficients (skip redundant changeCoeff calls)
         self._coeff_values = {}  # (row, col) -> value
 
-        # Recycled constraint pool (neutralized rows available for reuse via recycleConstr)
+        # Recycled constraint pool (neutralized rows available for reuse via
+        # recycleConstr)
         self._recycled_rows = []
         self._row_coeffs = {}  # row_index -> set of col_indices with non-zero coeffs
 
         # Params proxy
         self.Params = Params(self._highs)
 
-    # ------------------------------------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     # Variable management
-    # ------------------------------------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def addVar(self, vtype=CONTINUOUS, name=""):
         """Add a non-negative continuous variable."""
         col = self._num_cols
@@ -490,9 +492,9 @@ class Model:
         self._model_grew = True
         return Var(self, col)
 
-    # ------------------------------------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     # Constraint management
-    # ------------------------------------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def addConstr(self, constr: TempConstr, name: str = ""):
         """
         Add a constraint to the model.
@@ -551,9 +553,9 @@ class Model:
 
         return constr_obj
 
-    # ------------------------------------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     # Coefficient modification
-    # ------------------------------------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def chgCoeff(self, constr, var, value):
         """Change a single coefficient in the constraint matrix."""
         row = constr._row
@@ -577,9 +579,9 @@ class Model:
             if row_set is not None:
                 row_set.discard(col)
 
-    # ------------------------------------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     # Removal (neutralization)
-    # ------------------------------------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def remove(self, item):
         """
         Neutralize a variable or constraint.
@@ -603,9 +605,9 @@ class Model:
         else:
             raise TypeError(f"Cannot remove object of type {type(item)}")
 
-    # ------------------------------------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     # Constraint recycling
-    # ------------------------------------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def recycleConstr(self, constr: TempConstr, name: str = "", mark_grew: bool = True):
         """
         Reuse a neutralized row slot for a new constraint.
@@ -677,10 +679,8 @@ class Model:
             self._model_grew = True
             # Set recycled row to kBasic (matches addConstr behavior)
             if self._basis is not None:
-                try:
+                with contextlib.suppress(IndexError, AttributeError):
                     self._basis.row_status[row] = HighsBasisStatus.kBasic
-                except (IndexError, AttributeError):
-                    pass
 
         constr_obj = Constr(self, row, sense, adjusted_rhs, name)
         self._constr_names[row] = name
@@ -688,9 +688,9 @@ class Model:
 
         return constr_obj
 
-    # ------------------------------------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     # Solve
-    # ------------------------------------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def _flush_pending(self):
         """Flush deferred RHS and Obj changes as batch HiGHS calls."""
         if self._pending_rhs:
@@ -785,9 +785,9 @@ class Model:
         self._col_values = np.array(sol.col_value)
         self._row_duals = np.array(sol.row_dual)
 
-    # ------------------------------------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     # Solution status
-    # ------------------------------------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     @property
     def Status(self):
         """Map HiGHS model status to wrapper constants."""
@@ -808,16 +808,16 @@ class Model:
         # For other statuses (e.g. not set, error), treat as infeasible/unbounded
         return INF_OR_UNBD
 
-    # ------------------------------------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     # Ranging (sensitivity analysis)
-    # ------------------------------------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def _ensure_ranging(self):
         """Compute ranging if not already done since last optimize()."""
         if self._ranging_computed:
             return
 
         try:
-            status, ranging_info = self._highs.getRanging()
+            _status, ranging_info = self._highs.getRanging()
 
             self._ranging_rhs_low = np.array(ranging_info.row_bound_dn.value_)
             self._ranging_rhs_up = np.array(ranging_info.row_bound_up.value_)
@@ -827,9 +827,9 @@ class Model:
 
         self._ranging_computed = True
 
-    # ------------------------------------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     # IIS (Irreducible Infeasible Subset)
-    # ------------------------------------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def computeIIS(self):
         """Compute the Irreducible Infeasible Subset."""
         self._iis_row_flags = [False] * self._num_rows
@@ -858,19 +858,19 @@ class Model:
         """List of constraint names."""
         return list(self._constr_names)
 
-    # ------------------------------------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     # Model export
-    # ------------------------------------------------------------------------------------------------------------------
+    # ----------------------------------------------------------------------------------
     def write(self, filename):
         """Write the model to a file (LP or MPS format, determined by extension)."""
         self._highs.writeModel(filename)
 
 
-# ======================================================================================================================
+# ====================================================================================
 # tupledict (compatibility alias)
-# ======================================================================================================================
+# ====================================================================================
 
 
 def tupledict():
-    """Return a plain dict. The code only uses standard dict operations on tupledict instances."""
-    return dict()
+    """Return a plain dict; the code only uses standard dict operations on tupledict."""
+    return {}

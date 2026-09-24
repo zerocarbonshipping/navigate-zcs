@@ -9,12 +9,12 @@ import numpy as np
 
 from navigate.core.initial_values import EMPTY_FLOAT, EMPTY_NAN
 from navigate.core.profiles._plant_aggregate_profile import _PlantAggregateProfile
-from navigate.util import extract_from_dict
 
 if TYPE_CHECKING:
     from navigate.core.nodes.feedstock import Feedstock
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.process import Process
+    from navigate.util.types_ import FloatArray
 
 
 class ProducerProfile(_PlantAggregateProfile):
@@ -36,6 +36,7 @@ class ProducerProfile(_PlantAggregateProfile):
         processes: dict[str, Process],
     ) -> None:
         """
+        Initialize the producer profile's storage arrays and lookups.
 
         Parameters
         ----------
@@ -69,21 +70,17 @@ class ProducerProfile(_PlantAggregateProfile):
     ) -> None:
         self._fair_share_fuel_fraction[fuel_name][idx] = fair_share
 
-    def get_maximum_development(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._maximum_development[idx]
+    def get_maximum_development(self) -> FloatArray:
+        return self._maximum_development
 
-    def get_development(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._development[idx]
+    def get_development(self) -> FloatArray:
+        return self._development
 
-    def get_cumulative_maximum_development(
-        self, idx: int | slice = np.s_[:]
-    ) -> np.ndarray:
-        return self._to_cumulative(self._maximum_development[idx])
+    def get_cumulative_maximum_development(self) -> FloatArray:
+        return self._to_cumulative(self._maximum_development)
 
-    def get_cumulative_development(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._to_cumulative(self._development[idx])
+    def get_cumulative_development(self) -> FloatArray:
+        return self._to_cumulative(self._development)
 
-    def get_fair_share_fuel_fraction(
-        self, fuel_name: str | None = None, idx: int | slice = np.s_[:]
-    ) -> np.ndarray | dict[str, np.ndarray]:
-        return extract_from_dict(self._fair_share_fuel_fraction, fuel_name, idx)
+    def get_fair_share_fuel_fraction(self) -> dict[str, FloatArray]:
+        return dict(self._fair_share_fuel_fraction)

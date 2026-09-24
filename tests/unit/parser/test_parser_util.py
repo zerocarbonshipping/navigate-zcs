@@ -53,7 +53,7 @@ def _val(text: str):
 # ═════════════════════════════════════════════════════════════════════════════════
 class TestStringToDate:
     @pytest.mark.parametrize(
-        "raw, expected",
+        ("raw", "expected"),
         [
             ("01-01-2020", np.datetime64("2020-01-01")),
             ("15/06/2030", np.datetime64("2030-06-15")),
@@ -79,7 +79,8 @@ class TestStringToDate:
         ids=["no_separator", "invalid_date"],
     )
     def test_rejects_invalid_input(self, raw):
-        with pytest.raises(ValueError):
+        # the message is empty by design: the caller passes msg= with deck context
+        with pytest.raises(ValueError, match=r"^$"):
             string_to_date(raw)
 
 
@@ -167,7 +168,7 @@ class TestStatements:
 
     # ── statement type recognition ──────────────────────────────────
     @pytest.mark.parametrize(
-        "text, index, expected_type",
+        ("text", "index", "expected_type"),
         [
             ('Date "01-01-2025"', 0, DateStatement),
             ("Start\nEnd", 0, StartTimeline),
@@ -180,7 +181,11 @@ class TestStatements:
 
     # ── multiple statements ────────────────────────────────────────
     def test_multiple_statements(self):
-        text = 'Vessel "a" { Lifetime = 25 }\nDate "01-01-2030"\nVessel "a" { Lifetime = 30 }'
+        text = (
+            'Vessel "a" { Lifetime = 25 }\n'
+            'Date "01-01-2030"\n'
+            'Vessel "a" { Lifetime = 30 }'
+        )
         assert len(parse_include_content(text)) == 3
 
     def test_empty_input(self):
@@ -208,7 +213,7 @@ class TestStatements:
 # ═════════════════════════════════════════════════════════════════════════════════
 class TestValues:
     @pytest.mark.parametrize(
-        "source, check",
+        ("source", "check"),
         [
             ("Value = 25", lambda v: v == 25.0),
             ("Value = -0.5", lambda v: v == -0.5),
@@ -268,7 +273,7 @@ class TestValues:
 # ═════════════════════════════════════════════════════════════════════════════════
 class TestCommands:
     @pytest.mark.parametrize(
-        "source, expected_name, check_args",
+        ("source", "expected_name", "check_args"),
         [
             (
                 'set_bunkering_allowed("LSFO", TRUE)',
@@ -307,7 +312,7 @@ class TestTables:
         assert item.value.rows == [[2020.0, 0.5], [2030.0, 1.0]]
 
     @pytest.mark.parametrize(
-        "source, expected_rows",
+        ("source", "expected_rows"),
         [
             ("Table = [ 2020 0.5\n2030 1.0\n]", [[2020.0, 0.5], [2030.0, 1.0]]),
             (
@@ -349,7 +354,7 @@ class TestCasingRules:
 
     # ── digits in node types; attributes and commands accept any casing ──
     @pytest.mark.parametrize(
-        "source, extract, expected",
+        ("source", "extract", "expected"),
         [
             ('Vessel2 "v" { }', lambda s: s[0].node_type, "Vessel2"),
             (
@@ -388,7 +393,7 @@ class TestCasingRules:
 # ═════════════════════════════════════════════════════════════════════════════════
 class TestOneStatementPerLine:
     @pytest.mark.parametrize(
-        "parse_fn, source",
+        ("parse_fn", "source"),
         [
             (parse_include_content, 'Vessel "a" { } Vessel "b" { }'),
             (parse_include_content, 'Vessel "v" { A = 1 B = 2 }'),
@@ -454,8 +459,10 @@ class TestSyntaxErrors:
 
 class TestReferenceScanExclude:
     """
-    Every exclude entry must name a real node attribute, so stale entries
-    cannot accumulate silently in the reference-resolution scan.
+    Every exclude entry must name a real node attribute.
+
+    This keeps stale entries from accumulating silently in the reference-resolution
+    scan.
     """
 
     def test_entries_are_real_node_attributes(self):

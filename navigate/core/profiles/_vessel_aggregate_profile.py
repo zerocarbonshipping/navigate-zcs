@@ -3,12 +3,17 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import numpy as np
 
 from navigate.core.enum_ import FuelTypeID
 from navigate.core.initial_values import EMPTY_FLOAT
 from navigate.core.profiles._fuel_consumer_profile import _FuelConsumerProfile
-from navigate.util import divide_nonzero, extract_from_dict, extract_from_tuple_dict
+from navigate.util import divide_nonzero
+
+if TYPE_CHECKING:
+    from navigate.util.types_ import FloatArray
 
 
 class _VesselAggregateProfile(_FuelConsumerProfile):
@@ -62,6 +67,7 @@ class _VesselAggregateProfile(_FuelConsumerProfile):
         self, profile: _VesselAggregateProfile, idx: int | slice = np.s_[:]
     ) -> None:
         """
+        Add another vessel aggregate profile's values into this one.
 
         Parameters
         ----------
@@ -173,111 +179,83 @@ class _VesselAggregateProfile(_FuelConsumerProfile):
     def set_baseline_energy(self, idx: int | slice, energy: float | np.ndarray) -> None:
         self._baseline_energy[idx] = energy
 
-    def get_baseline_energy(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._baseline_energy[idx]
+    def get_baseline_energy(self) -> FloatArray:
+        return self._baseline_energy
 
-    def get_weighted_average_age(
-        self, fuel_type: FuelTypeID | None = None, idx: int | slice = np.s_[:]
-    ) -> np.ndarray | dict[FuelTypeID, np.ndarray]:
-        if fuel_type is not None:
-            return divide_nonzero(
-                self._weighted_age_numerator[fuel_type][idx],
-                self._weighted_age_denominator[fuel_type][idx],
-            )
+    def get_weighted_average_age(self) -> dict[FuelTypeID, FloatArray]:
         return {
-            ft: divide_nonzero(
-                self._weighted_age_numerator[ft][idx],
-                self._weighted_age_denominator[ft][idx],
+            fuel_type: divide_nonzero(
+                self._weighted_age_numerator[fuel_type],
+                self._weighted_age_denominator[fuel_type],
             )
-            for ft in self._weighted_age_numerator
+            for fuel_type in self._weighted_age_numerator
         }
 
-    def get_installed_power(
-        self, fuel_type: FuelTypeID | None = None, idx: int | slice = np.s_[:]
-    ) -> np.ndarray | dict[FuelTypeID, np.ndarray]:
-        return extract_from_dict(self._installed_power, fuel_type, idx)
+    def get_installed_power(self) -> dict[FuelTypeID, FloatArray]:
+        return dict(self._installed_power)
 
-    def get_newbuild_power(
-        self, fuel_type: FuelTypeID | None = None, idx: int | slice = np.s_[:]
-    ) -> np.ndarray | dict[FuelTypeID, np.ndarray]:
-        return extract_from_dict(self._newbuild_power, fuel_type, idx)
+    def get_newbuild_power(self) -> dict[FuelTypeID, FloatArray]:
+        return dict(self._newbuild_power)
 
-    def get_scrapped_power(
-        self, fuel_type: FuelTypeID | None = None, idx: int | slice = np.s_[:]
-    ) -> np.ndarray | dict[FuelTypeID, np.ndarray]:
-        return extract_from_dict(self._scrapped_power, fuel_type, idx)
+    def get_scrapped_power(self) -> dict[FuelTypeID, FloatArray]:
+        return dict(self._scrapped_power)
 
     def get_fuel_converted_power(
         self,
-        fuel_type_from: FuelTypeID | None = None,
-        fuel_type_to: FuelTypeID | None = None,
-        idx: int | slice = np.s_[:],
-    ) -> np.ndarray | dict[tuple[FuelTypeID, FuelTypeID], np.ndarray]:
-        return extract_from_tuple_dict(
-            self._fuel_converted_power, fuel_type_from, fuel_type_to, idx
-        )
+    ) -> dict[tuple[FuelTypeID, FuelTypeID], FloatArray]:
+        return dict(self._fuel_converted_power)
 
-    def get_cumulative_newbuild_power(
-        self, fuel_type: FuelTypeID | None = None
-    ) -> np.ndarray | dict[FuelTypeID, np.ndarray]:
-        return self._to_cumulative_any(
-            extract_from_dict(self._newbuild_power, fuel_type)
-        )
+    def get_cumulative_newbuild_power(self) -> dict[FuelTypeID, FloatArray]:
+        return self._to_cumulative_dict(self._newbuild_power)
 
-    def get_cumulative_scrapped_power(
-        self, fuel_type: FuelTypeID | None = None
-    ) -> np.ndarray | dict[FuelTypeID, np.ndarray]:
-        return self._to_cumulative_any(
-            extract_from_dict(self._scrapped_power, fuel_type)
-        )
+    def get_cumulative_scrapped_power(self) -> dict[FuelTypeID, FloatArray]:
+        return self._to_cumulative_dict(self._scrapped_power)
 
     def get_cumulative_fuel_converted_power(
         self,
-    ) -> dict[tuple[FuelTypeID, FuelTypeID], np.ndarray]:
+    ) -> dict[tuple[FuelTypeID, FuelTypeID], FloatArray]:
         return self._to_cumulative_dict(self._fuel_converted_power)
 
-    def get_vessel_expenses(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._vessel_expenses[idx]
+    def get_vessel_expenses(self) -> FloatArray:
+        return self._vessel_expenses
 
-    def get_technology_expenses(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._technology_expenses[idx]
+    def get_technology_expenses(self) -> FloatArray:
+        return self._technology_expenses
 
-    def get_fuel_conversion_expenses(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._fuel_conversion_expenses[idx]
+    def get_fuel_conversion_expenses(self) -> FloatArray:
+        return self._fuel_conversion_expenses
 
-    def get_vessel_related_expenses(self, idx: int | slice = np.s_[:]) -> np.ndarray:
+    def get_vessel_related_expenses(self) -> FloatArray:
         return (
-            self._vessel_expenses[idx]
-            + self._technology_expenses[idx]
-            + self._fuel_conversion_expenses[idx]
+            self._vessel_expenses
+            + self._technology_expenses
+            + self._fuel_conversion_expenses
         )
 
-    def get_expenses(self, idx: int | slice = np.s_[:]) -> np.ndarray:
+    def get_expenses(self) -> FloatArray:
         return (
-            self.get_total_fuel_related_expenses(idx)
-            + self.get_regulation_expenses(idx)
-            + self.get_vessel_related_expenses(idx)
+            self.get_total_fuel_related_expenses()
+            + self.get_regulation_expenses()
+            + self.get_vessel_related_expenses()
         )
 
-    def get_cumulative_vessel_expenses(self) -> np.ndarray:
+    def get_cumulative_vessel_expenses(self) -> FloatArray:
         return self._to_cumulative(self._vessel_expenses)
 
-    def get_cumulative_technology_expenses(self) -> np.ndarray:
+    def get_cumulative_technology_expenses(self) -> FloatArray:
         return self._to_cumulative(self._technology_expenses)
 
-    def get_cumulative_fuel_conversion_expenses(self) -> np.ndarray:
+    def get_cumulative_fuel_conversion_expenses(self) -> FloatArray:
         return self._to_cumulative(self._fuel_conversion_expenses)
 
-    def get_cumulative_vessel_related_expenses(self) -> np.ndarray:
+    def get_cumulative_vessel_related_expenses(self) -> FloatArray:
         return self._to_cumulative(self.get_vessel_related_expenses())
 
-    def get_cumulative_expenses(self) -> np.ndarray:
+    def get_cumulative_expenses(self) -> FloatArray:
         return self._to_cumulative(self.get_expenses())
 
-    def get_vessel_tied_capital(self, idx: int | slice = np.s_[:]) -> np.ndarray:
-        return self._vessel_tied_capital[idx]
+    def get_vessel_tied_capital(self) -> FloatArray:
+        return self._vessel_tied_capital
 
-    def get_fuel_type_demand(
-        self, fuel_type: FuelTypeID | None = None, idx: int | slice = np.s_[:]
-    ) -> np.ndarray | dict[FuelTypeID, np.ndarray]:
-        return extract_from_dict(self._fuel_type_demand, fuel_type, idx)
+    def get_fuel_type_demand(self) -> dict[FuelTypeID, FloatArray]:
+        return dict(self._fuel_type_demand)

@@ -7,20 +7,18 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.enum_ import FuelTypeID
 from navigate.core.profiles._fuel_base_profile import _FuelBaseProfile
-from navigate.util import extract_from_dict
 
 if TYPE_CHECKING:
+    from navigate.core.enum_ import FuelTypeID
     from navigate.core.nodes.feedstock import Feedstock
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.process import Process
+    from navigate.util.types_ import FloatArray
 
 
 class _FuelProducerProfile(_FuelBaseProfile):
-    """
-    This class is used exclusively for sub-classing.
-    """
+    """Base class used exclusively for sub-classing."""
 
     def __init__(self):
         super().__init__()
@@ -55,6 +53,7 @@ class _FuelProducerProfile(_FuelBaseProfile):
         self, profile: _FuelProducerProfile, idx: int | slice = np.s_[:]
     ) -> None:
         """
+        Add another fuel producer profile's values into this one.
 
         Parameters
         ----------
@@ -85,22 +84,14 @@ class _FuelProducerProfile(_FuelBaseProfile):
     def set_feed_constraint(self, idx: int, feed_name: str, constraint: float) -> None:
         self._feed_constraint[feed_name][idx] = constraint
 
-    def get_production_energy(
-        self, fuel_name: str | None = None, idx: int | slice = np.s_[:]
-    ) -> np.ndarray | dict[str, np.ndarray]:
-        return self._fuel_mass_to_energy(self._production_mass, fuel_name, idx)
+    def get_production_energy(self) -> dict[str, FloatArray]:
+        return self._fuel_mass_to_energy(self._production_mass)
 
-    def get_production_type_energy(
-        self, idx: int | slice = np.s_[:]
-    ) -> dict[FuelTypeID, np.ndarray]:
-        return self._fuel_type_mass_to_energy(self._production_mass, idx)
+    def get_production_type_energy(self) -> dict[FuelTypeID, FloatArray]:
+        return self._fuel_type_mass_to_energy(self._production_mass)
 
-    def get_feed_mass(
-        self, feed_name: str | None = None, idx: int | slice = np.s_[:]
-    ) -> np.ndarray | dict[str, np.ndarray]:
-        return extract_from_dict(self._feed_mass, feed_name, idx)
+    def get_feed_mass(self) -> dict[str, FloatArray]:
+        return dict(self._feed_mass)
 
-    def get_feed_constraint(
-        self, feedstock_name: str | None = None, idx: int | slice = np.s_[:]
-    ) -> np.ndarray | dict[str, np.ndarray]:
-        return extract_from_dict(self._feed_constraint, feedstock_name, idx)
+    def get_feed_constraint(self) -> dict[str, FloatArray]:
+        return dict(self._feed_constraint)

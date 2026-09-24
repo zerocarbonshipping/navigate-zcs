@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-import numpy as np
+from typing import TYPE_CHECKING
 
 from navigate.core import Scalar, as_scalar, assign_id, assign_value
 from navigate.core.enum_ import LevySchemeID
@@ -13,12 +13,15 @@ from navigate.core.nodes._policy import _Policy
 from navigate.core.profiles import LevyProfile
 from navigate.exceptions import no_value_assigned_error
 
+if TYPE_CHECKING:
+    import numpy as np
+
 
 class Levy(_Policy):
     def __init__(self, name):
         super().__init__(name, LEVY)
 
-        # external variables -------------------------------------------------------------------------------------------
+        # external variables -----------------------------------------------------------
         self.level = (
             None  # dict[vessel_name: float], level of the levy, USD/ton emission
         )
@@ -29,18 +32,19 @@ class Levy(_Policy):
             None  # float, upper cap on emission factor for penalty calculation
         )
 
-        # internal variables -------------------------------------------------------------------------------------------
+        # internal variables -----------------------------------------------------------
         self.expectation: LevyExpectation = LevyExpectation()
         self.profile: LevyProfile = LevyProfile()
 
-    # external methods (DSL attributes) --------------------------------------------------------------------------------
+    # external methods (DSL attributes) ------------------------------------------------
     def set_scheme(self, scheme):
         """
         Set the scheme of the levy.
 
-        If 'PENALTY' then the fuel is penalized for emission factors above the threshold.
-        If 'SUBSIDY' then the fuel is subsidized for emission factors below the threshold.
-        If 'BOTH' then the fuel is penalized above and subsidized below the threshold.
+        If 'PENALTY' then the fuel is penalized for emission factors above the
+        threshold. If 'SUBSIDY' then the fuel is subsidized for emission factors below
+        the threshold. If 'BOTH' then the fuel is penalized above and subsidized below
+        the threshold.
 
         Examples
         --------
@@ -57,7 +61,7 @@ class Levy(_Policy):
 
     def set_level(self, level):
         """
-        Set the level of the levy being paid or received dependent on the scheme in USD/ton emission.
+        Set the levy level paid or received, depending on scheme, in USD/ton emission.
 
         Examples
         --------
@@ -77,8 +81,8 @@ class Levy(_Policy):
         """
         Set the lower emission factor threshold of the levy in kg emissions / GJ.
 
-        Emissions below this threshold are not penalized (for PENALTY/BOTH scheme) and emissions above are not
-        subsidized (for SUBSIDY/BOTH scheme).
+        Emissions below this threshold are not penalized (for PENALTY/BOTH scheme) and
+        emissions above are not subsidized (for SUBSIDY/BOTH scheme).
 
         Examples
         --------
@@ -98,8 +102,9 @@ class Levy(_Policy):
         """
         Set the upper emission factor threshold of the levy in kg emissions / GJ.
 
-        Emissions above this threshold are not additionally penalized (for PENALTY/BOTH scheme). The penalty is only
-        paid for emissions between the lower and upper threshold. If not set, there is no upper cap on the penalty.
+        Emissions above this threshold are not additionally penalized (for PENALTY/BOTH
+        scheme). The penalty is only paid for emissions between the lower and upper
+        threshold. If not set, there is no upper cap on the penalty.
 
         Examples
         --------
@@ -115,7 +120,7 @@ class Levy(_Policy):
             as_scalar(upper_threshold), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
-    # internal methods -------------------------------------------------------------------------------------------------
+    # internal methods -----------------------------------------------------------------
     def initialize(self):
 
         self._initialize_policy()

@@ -14,8 +14,9 @@ from navigate.util import divide_nonzero
 
 def transfer_regulation_flexibility(alg: BunkerAlgorithm, properties: dict) -> None:
     """
-    Use a heuristic to split the cost of purchasing flexibility units and selling surplus units between the
-    relevant vessels.
+    Split the cost of purchasing flexibility units and selling surplus units.
+
+    Uses a heuristic to allocate the amounts between the relevant vessels.
 
     Parameters
     ----------

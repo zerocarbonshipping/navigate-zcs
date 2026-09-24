@@ -26,18 +26,18 @@ def plot_engine_pilot_fuel_share(manager, directory):
 
     relevant_fuel_types = [FuelTypeID.METHANE, FuelTypeID.METHANOL, FuelTypeID.AMMONIA]
 
-    pilot_fuel_share = {
-        fuel_type: manager.profile.get_pilot_fuel_share(fuel_type)
-        for fuel_type in relevant_fuel_types
-    }
+    fleet_pilot_fuel_share = manager.profile.get_pilot_fuel_share()
     pilot_fuel_share = {
         fuel_type: np.where(
-            pilot_fuel_share[fuel_type] > 0.0, pilot_fuel_share[fuel_type], np.nan
+            fleet_pilot_fuel_share[fuel_type] > 0.0,
+            fleet_pilot_fuel_share[fuel_type],
+            np.nan,
         )
         for fuel_type in relevant_fuel_types
     }
 
-    # find minimum pilot fuel. Assuming it is constant and similar for all converters. Too simplistic.
+    # find minimum pilot fuel. Assuming it is constant and similar for all
+    # converters. Too simplistic.
     minimum_share = dict.fromkeys(pilot_fuel_share, 0.0)
 
     for converter in converters.values():
@@ -53,7 +53,7 @@ def plot_engine_pilot_fuel_share(manager, directory):
 
     fig, axes = subplot_grid(len(pilot_fuel_share))
 
-    for ax, fuel_type in zip(axes, relevant_fuel_types):
+    for ax, fuel_type in zip(axes, relevant_fuel_types, strict=False):
         share = pilot_fuel_share[fuel_type] * 100.0
         minimum = np.full_like(
             dateline, minimum_share[fuel_type] * 100.0, dtype=np.float64
