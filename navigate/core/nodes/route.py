@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import itertools
 import logging
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -18,6 +19,7 @@ from navigate.core import (
     assign_list,
     assign_value,
     command_assignment_to_tuple_dict,
+    default_unassigned,
 )
 from navigate.core.enum_ import RouteTypeID
 from navigate.core.node import Node
@@ -25,33 +27,39 @@ from navigate.core.node_type import FORECAST, PORT, ROUTE, VARIABLE
 from navigate.exceptions import no_value_assigned_error
 from navigate.util import ROUND_OFF, divide_nonzero, to_numpy, unique_list
 
+if TYPE_CHECKING:
+    from navigate.core.expression import Expression
+    from navigate.core.nodes.input_kinds import ForecastInput, ScalarInput
+    from navigate.core.nodes.port import Port
+    from navigate.util import FloatArray
+
 logger = logging.getLogger(__name__)
 
 
 class Route(Node):
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         super().__init__(name, ROUTE)
 
         # external variables -----------------------------------------------------------
-        self.route_type = None  # int, route type ID
-        self.ports = []  # list[Port], ports a vessel can bunker in
+        self.route_type: RouteTypeID | None = None
+        self.ports: list[Port] = []
 
         # time at sea/in port
-        self.port_durations = []  # list[float], duration per port, days (round trip)
-        self.time_at_sea = None  # float, fraction of time spent at sea (regional trip)
-        self.port_calls = []  # list[float], times each port is called (regional trip)
+        self.port_durations: list[ForecastInput] = []
+        self.time_at_sea: ForecastInput | None = None
+        self.port_calls: list[ForecastInput] = []
 
         # conditions per leg
-        self.speeds = []  # list[float], speed of the vessel, knots
-        self.capacity_utilizations = []  # list[float], capacity utilization, fraction
-        self.distances = []  # list[float], distance per leg, naut. miles (round trip)
-        self.condition_distribution = []  # list[float], time fraction (regional trip)
+        self.speeds: list[ForecastInput] = []
+        self.capacity_utilizations: list[ForecastInput] = []
+        self.distances: list[Scalar | Expression] = []
+        self.condition_distribution: list[float] = []
 
         # regulation
-        self.voyage_distribution = {}  # dict[(port, port)], sea-time fraction
+        self.voyage_distribution: dict[tuple[str, str], ScalarInput | None] = {}
 
         # internal variables -----------------------------------------------------------
-        self._voyage_fractions = {}  # dict[(port, port)], normalized in initialize
+        self._voyage_fractions: dict[tuple[str, str], FloatArray] = {}
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_route_type(self, route_type):
@@ -268,7 +276,8 @@ class Route(Node):
         )
 
     # internal methods -----------------------------------------------------------------
-    def initialize(self):
+    def check_requirements(self) -> None:
+
         if self.route_type is None:
             no_value_assigned_error(self, "RouteType")
 
@@ -278,8 +287,35 @@ class Route(Node):
         if not self.speeds:
             no_value_assigned_error(self, "Speeds")
 
+        # each route type reads a different set of the leg and port attributes
+        if self.route_type == RouteTypeID.ROUND_TRIP:
+            if not self.port_durations:
+                no_value_assigned_error(self, "PortDurations")
+
+            if not self.distances:
+                no_value_assigned_error(self, "Distances")
+
+        elif self.route_type == RouteTypeID.REGIONAL_TRIP:
+            if self.time_at_sea is None:
+                no_value_assigned_error(self, "TimeAtSea")
+
+    def apply_defaults(self) -> None:
+
         if not self.capacity_utilizations:
             self.capacity_utilizations = as_scalar_list([1.0 for _ in self.speeds])
+
+        if (self.route_type == RouteTypeID.REGIONAL_TRIP) and not self.port_calls:
+            self.port_calls = as_scalar_list([1.0 for _ in self.ports])
+
+    def apply_command_defaults(self) -> None:
+        default_unassigned(self.voyage_distribution, Scalar(0.0))
+
+        # the normalized fractions are the resolved form of the command
+        # dictionary, so they are recomputed here, once the blanks above have
+        # completed it and on every pass a command can have added a key
+        self._voyage_fractions = self._normalize_voyage_distribution()
+
+    def check_consistency(self) -> None:
 
         if len(self.speeds) != len(self.capacity_utilizations):
             raise ValueError(
@@ -288,119 +324,103 @@ class Route(Node):
                 " correspond."
             )
 
-        # checking requirements that are route type specific
         if self.route_type == RouteTypeID.ROUND_TRIP:
-            if not self.port_durations:
-                no_value_assigned_error(self, "PortDurations")
-
-            if not self.distances:
-                no_value_assigned_error(self, "Distances")
-
-            if len(self.distances) != len(self.speeds):
-                raise ValueError(
-                    f"{self}: The length of 'Distances' ({len(self.distances)}) and"
-                    f" Speeds ({len(self.speeds)}) must correspond."
-                )
-
-            if len(self.ports) < 2:
-                raise ValueError(
-                    f"{self}: Must have a minimum of 2 ports assigned for a ROUND_TRIP,"
-                    f" only {len(self.ports)} were given."
-                )
-
-            # based on previous checks, distances is representative for all leg related
-            # lists
-            if len(self.distances) != len(self.ports):
-                raise ValueError(
-                    f"{self}: The length of 'Distances' ({len(self.distances)}) and"
-                    f" 'Ports' ({len(self.ports)}) must correspond for a ROUND_TRIP."
-                )
-
-            if len(self.ports) != len(self.port_durations):
-                raise ValueError(
-                    f"{self}: The length of 'Ports' ({len(self.ports)}) and"
-                    f" 'PortDurations' ({len(self.port_durations)}) must correspond."
-                )
-
-            # the same port may not be placed in sequence
-            for p in range(len(self.ports) - 1):
-                if self.ports[p] is self.ports[p + 1]:
-                    raise ValueError(
-                        f"{self}: Unable to place {self.ports[p]} after itself in the"
-                        " sequence."
-                    )
-
-            # the set is assumed periodical so check first/last are not in sequence
-            if self.ports[0] is self.ports[-1]:
-                raise ValueError(
-                    f"{self}: The set of ports is assumed to wrap around for a"
-                    f" 'ROUND_TRIP', so {self.ports[0]} cannot be"
-                    " placed both first and last."
-                )
-
-            if self.time_at_sea is not None:
-                logger.warning(
-                    "%s: 'TimeAtSea' is assigned but is unused for a ROUND_TRIP.", self
-                )
-
-            if self.port_calls:
-                logger.warning(
-                    "%s: 'PortCalls' is assigned but is unused for a ROUND_TRIP.", self
-                )
-
-            if self.condition_distribution:
-                logger.warning(
-                    "%s: 'ConditionDistribution' is assigned but is unused for a "
-                    "ROUND_TRIP.",
-                    self,
-                )
+            self._check_round_trip()
 
         elif self.route_type == RouteTypeID.REGIONAL_TRIP:
-            if self.time_at_sea is None:
-                no_value_assigned_error(self, "TimeAtSea")
+            self._check_regional_trip()
 
-            if len(self.condition_distribution) != len(self.speeds):
+    def _check_round_trip(self) -> None:
+        """Check what a ROUND_TRIP reads, and warn about what it ignores."""
+        if len(self.distances) != len(self.speeds):
+            raise ValueError(
+                f"{self}: The length of 'Distances' ({len(self.distances)}) and"
+                f" Speeds ({len(self.speeds)}) must correspond."
+            )
+
+        if len(self.ports) < 2:
+            raise ValueError(
+                f"{self}: Must have a minimum of 2 ports assigned for a ROUND_TRIP,"
+                f" only {len(self.ports)} were given."
+            )
+
+        # based on previous checks, distances is representative for all leg related
+        # lists
+        if len(self.distances) != len(self.ports):
+            raise ValueError(
+                f"{self}: The length of 'Distances' ({len(self.distances)}) and"
+                f" 'Ports' ({len(self.ports)}) must correspond for a ROUND_TRIP."
+            )
+
+        if len(self.ports) != len(self.port_durations):
+            raise ValueError(
+                f"{self}: The length of 'Ports' ({len(self.ports)}) and"
+                f" 'PortDurations' ({len(self.port_durations)}) must correspond."
+            )
+
+        # the same port may not be placed in sequence
+        for p in range(len(self.ports) - 1):
+            if self.ports[p] is self.ports[p + 1]:
                 raise ValueError(
-                    f"{self}: The length of 'ConditionDistribution'"
-                    f" ({len(self.condition_distribution)}) and 'Speeds'"
-                    f" ({len(self.speeds)}) must correspond."
+                    f"{self}: Unable to place {self.ports[p]} after itself in the"
+                    " sequence."
                 )
 
-            # all ports must be unique
-            if len(self.ports) > len(unique_list(self.ports)):
-                raise ValueError(
-                    f"{self}: All ports on a 'REGIONAL_TRIP' must be unique."
-                )
+        # the set is assumed periodical so check first/last are not in sequence
+        if self.ports[0] is self.ports[-1]:
+            raise ValueError(
+                f"{self}: The set of ports is assumed to wrap around for a"
+                f" 'ROUND_TRIP', so {self.ports[0]} cannot be"
+                " placed both first and last."
+            )
 
-            if not self.port_calls:
-                self.port_calls = as_scalar_list([1.0 for _ in self.ports])
+        if self.time_at_sea is not None:
+            logger.warning(
+                "%s: 'TimeAtSea' is assigned but is unused for a ROUND_TRIP.", self
+            )
 
-            if len(self.ports) != len(self.port_calls):
-                raise ValueError(
-                    f"{self}: The length of 'Ports' ({len(self.ports)}) and 'PortCalls'"
-                    f" ({len(self.port_calls)}) must correspond."
-                )
+        if self.port_calls:
+            logger.warning(
+                "%s: 'PortCalls' is assigned but is unused for a ROUND_TRIP.", self
+            )
 
-            if self.distances:
-                logger.warning(
-                    "%s: 'Distances' is assigned but is unused for a REGIONAL_TRIP.",
-                    self,
-                )
+        if self.condition_distribution:
+            logger.warning(
+                "%s: 'ConditionDistribution' is assigned but is unused for a "
+                "ROUND_TRIP.",
+                self,
+            )
 
-            if self.port_durations:
-                logger.warning(
-                    "%s: 'PortDurations' is assigned but is unused for a "
-                    "REGIONAL_TRIP.",
-                    self,
-                )
+    def _check_regional_trip(self) -> None:
+        """Check what a REGIONAL_TRIP reads, and warn about what it ignores."""
+        if len(self.condition_distribution) != len(self.speeds):
+            raise ValueError(
+                f"{self}: The length of 'ConditionDistribution'"
+                f" ({len(self.condition_distribution)}) and 'Speeds'"
+                f" ({len(self.speeds)}) must correspond."
+            )
 
-        for key, distribution in self.voyage_distribution.items():
-            if distribution is None:
-                self.voyage_distribution[key] = Scalar(0.0)
+        # all ports must be unique
+        if len(self.ports) > len(unique_list(self.ports)):
+            raise ValueError(f"{self}: All ports on a 'REGIONAL_TRIP' must be unique.")
 
-        # values only change through commands, and initialize re-runs after
-        # every event read, so the normalized fractions can be cached here
-        self._voyage_fractions = self._normalize_voyage_distribution()
+        if len(self.ports) != len(self.port_calls):
+            raise ValueError(
+                f"{self}: The length of 'Ports' ({len(self.ports)}) and 'PortCalls'"
+                f" ({len(self.port_calls)}) must correspond."
+            )
+
+        if self.distances:
+            logger.warning(
+                "%s: 'Distances' is assigned but is unused for a REGIONAL_TRIP.",
+                self,
+            )
+
+        if self.port_durations:
+            logger.warning(
+                "%s: 'PortDurations' is assigned but is unused for a REGIONAL_TRIP.",
+                self,
+            )
 
     def initialize_dependencies(self):
         """Initialize dependent dictionaries so command calls can use wildcards."""
