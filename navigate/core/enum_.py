@@ -86,7 +86,7 @@ class PolicyScopeID(Enum):
 
     WTT = auto()  # well-to-tank
     TTW = auto()  # tank-to-wake
-    WTW = auto()  # well-to-tank
+    WTW = auto()  # well-to-wake
 
 
 class RegulationSchemeID(Enum):
@@ -116,7 +116,7 @@ class LevySchemeID(Enum):
 class SpeedAlignmentID(Enum):
     """How the optimal speeds of the vessel types in a fleet are aligned."""
 
-    INDIVIDUAL = auto()  # no alignment, current behavior
+    INDIVIDUAL = auto()  # keep each vessel type's own optimal speed
     MINIMUM = auto()  # use minimum optimal speed across vessels
     MAXIMUM = auto()  # use maximum optimal speed across vessels
     AVERAGE = auto()  # use weighted arithmetic mean of optimal speeds
