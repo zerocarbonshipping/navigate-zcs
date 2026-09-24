@@ -13,7 +13,7 @@ from navigate.core import assign_id, assign_value
 from navigate.core.enum_ import ExtrapolateID, Interpolate2DID
 from navigate.core.nodes._calculator import _Calculator
 from navigate.logging_ import log_extrapolate_bounds
-from navigate.util import find_nearest, is_strictly_increasing
+from navigate.util import find_nearest_index, is_strictly_increasing
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -122,7 +122,7 @@ class _Table2D(_Calculator):
                 # extract a z-slice for the given y
                 zp = self.calculate(self.x, yp)
 
-                idx = find_nearest(zp, z)
+                idx = find_nearest_index(zp, z)
                 x.append(self.x[idx])
 
         return np.array(x)

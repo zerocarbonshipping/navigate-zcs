@@ -5,7 +5,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, overload
+from typing import TYPE_CHECKING
 
 import numpy as np
 import numpy.typing as npt
@@ -17,7 +17,6 @@ if TYPE_CHECKING:
 
     from navigate.util.types_ import (
         FloatArray,
-        FloatLike,
         IntArray,
         _FloatOrCalculator,
     )
@@ -135,21 +134,13 @@ def interpolate_yearly_flow(yearly_flow: FloatArray, age: float) -> float:
     return np.interp(age * YEAR, time_flow, yearly_flow)
 
 
-@overload
 def get_increment_origin_index(
     years: FloatArray, current_year: float, age: float
-) -> np.signedinteger: ...
-@overload
-def get_increment_origin_index(
-    years: FloatArray, current_year: float, age: FloatArray
-) -> IntArray: ...
-def get_increment_origin_index(
-    years: FloatArray, current_year: float, age: FloatLike
-) -> np.signedinteger | IntArray:
+) -> int:
     """
-    Find the time-step index(es) at which increments entered the simulation.
+    Find the time-step index at which an increment entered the simulation.
 
-    Each increment (vessel or plant) is treated as having entered 'age' years
+    The increment (vessel or plant) is treated as having entered 'age' years
     before current_year. An entity present at the initialization of the node
     gets index 0 — the best available approximation, as historical data is
     unavailable.
@@ -161,23 +152,42 @@ def get_increment_origin_index(
     current_year
         The current year (years[idx]).
     age
-        Age(s) of the increment(s) in years.
+        Age of the increment in years.
 
     Returns
     -------
-    np.signedinteger | IntArray
-        Time-step index(es), mirroring the scalar- or arrayness of 'age'.
+    int
+        Time-step index.
     """
-    return find_nearest(years, current_year - age)
+    return find_nearest_index(years, current_year - age)
 
 
-@overload
-def find_nearest(array: npt.ArrayLike, values: float) -> np.signedinteger: ...
-@overload
-def find_nearest(array: npt.ArrayLike, values: FloatArray) -> IntArray: ...
-def find_nearest(
-    array: npt.ArrayLike, values: FloatLike
-) -> np.signedinteger | IntArray:
+def get_increment_origin_indexes(
+    years: FloatArray, current_year: float, ages: FloatArray
+) -> IntArray:
+    """
+    Find the time-step indexes at which increments entered the simulation.
+
+    Array counterpart of `get_increment_origin_index`, one index per age.
+
+    Parameters
+    ----------
+    years
+        Simulation timeline in years.
+    current_year
+        The current year (years[idx]).
+    ages
+        Ages of the increments in years.
+
+    Returns
+    -------
+    IntArray
+        Time-step indexes, one per age.
+    """
+    return find_nearest(years, current_year - ages)
+
+
+def find_nearest(array: npt.ArrayLike, values: FloatArray) -> IntArray:
     """
     Find the index of the entry in 'array' nearest to each of 'values'.
 
@@ -189,27 +199,47 @@ def find_nearest(
     array
         Values to search, assumed sorted ascending.
     values
-        Query value or values.
+        Query values.
 
     Returns
     -------
-    np.signedinteger | IntArray
-        Indexes of the nearest entries, mirroring the arrayness of 'values'.
+    IntArray
+        Indexes of the nearest entries, one per query value.
     """
     array = np.asarray(array)
 
     idxs = np.searchsorted(array, values, side="left")
 
     # where the previous entry is closer, or the query fell past the end,
-    # step one index back; booleans subtract as 0/1 for scalars and arrays
+    # step one index back; booleans subtract as 0/1
     prev_idx_is_less = (idxs == len(array)) | (
         np.fabs(values - array[np.maximum(idxs - 1, 0)])
         < np.fabs(values - array[np.minimum(idxs, len(array) - 1)])
     )
     idxs -= prev_idx_is_less
 
-    nearest: np.signedinteger | IntArray = idxs
-    return nearest
+    return idxs
+
+
+def find_nearest_index(array: npt.ArrayLike, value: float) -> int:
+    """
+    Find the index of the entry in 'array' nearest to 'value'.
+
+    Scalar counterpart of `find_nearest`.
+
+    Parameters
+    ----------
+    array
+        Values to search, assumed sorted ascending.
+    value
+        Query value.
+
+    Returns
+    -------
+    int
+        Index of the nearest entry.
+    """
+    return int(find_nearest(array, np.array([value]))[0])
 
 
 def update_belief_path(

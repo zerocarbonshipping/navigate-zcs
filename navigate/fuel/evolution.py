@@ -18,7 +18,7 @@ from navigate.util import (
     TOLERANCE,
     YEAR,
     divide_nonzero,
-    get_increment_origin_index,
+    get_increment_origin_indexes,
     slice_dict,
 )
 
@@ -146,7 +146,7 @@ def calculate_evolution_expectation(producer: Producer, timeline, idx):
         multipliers = np.array([inc.multiplier for inc in incs])
         ages = np.array([inc.age for inc in incs])
 
-        origins = get_increment_origin_index(years, years[idx], decided)
+        origins = get_increment_origin_indexes(years, years[idx], decided)
         production = plant.expectation.get_production(origins)
 
         # calculate cumulative decommissioning expectation
@@ -194,7 +194,7 @@ def calculate_evolution_expectation(producer: Producer, timeline, idx):
         multipliers = np.array([inc.multiplier for inc in pinc])
         ages = np.array([inc.age for inc in pinc])
 
-        origins = get_increment_origin_index(years, years[idx], decided)
+        origins = get_increment_origin_indexes(years, years[idx], decided)
         production = plant.expectation.get_production(origins)
 
         # calculate cumulative pipeline delivery expectation
@@ -521,7 +521,7 @@ def calculate_feed_availability(producer: Producer, timeline, idx) -> None:
         # extract the production capacity and use of
         # feed at the time the plants were built
         expectation = plant.expectation
-        origins = get_increment_origin_index(years, today, existing_decided)
+        origins = get_increment_origin_indexes(years, today, existing_decided)
         production = expectation.get_production(origins)
         conversions = expectation.get_feed_masses(origins)
 
@@ -540,7 +540,7 @@ def calculate_feed_availability(producer: Producer, timeline, idx) -> None:
         decided = np.array([inc.decided for inc in pinc])
         multipliers = np.array([inc.multiplier for inc in pinc])
 
-        origins = get_increment_origin_index(years, today, decided)
+        origins = get_increment_origin_indexes(years, today, decided)
         production = expectation.get_production(origins)
         conversions = expectation.get_feed_masses(origins)
 

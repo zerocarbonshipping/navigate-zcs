@@ -618,6 +618,12 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `parse_reference_strings`, replacing the `reference_strings()` probe.
   Evaluating an expression before it is initialized raises `RuntimeError`.
   `navigate.core.expression` is fully type-annotated and type-checked.
+- **Breaking** for code importing navigate as a library: the nearest-index
+  helpers in `navigate.util` split by the shape they take instead of
+  overloading one name. `find_nearest` takes an array of query values only; a
+  single value goes through `find_nearest_index`, which returns an `int`.
+  `get_increment_origin_index` takes a single age and returns an `int`; an
+  array of ages goes through `get_increment_origin_indexes`. No result moves.
 
 ### Removed
 - **Breaking** for input decks: the `BunkerLogistics` general node is

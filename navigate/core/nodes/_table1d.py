@@ -13,7 +13,7 @@ from navigate.core import assign_id, assign_value
 from navigate.core.enum_ import ExtrapolateID, Interpolate1DID
 from navigate.core.nodes._calculator import _Calculator
 from navigate.logging_ import log_extrapolate_bounds
-from navigate.util import find_nearest, is_strictly_increasing
+from navigate.util import find_nearest_index, is_strictly_increasing
 
 if TYPE_CHECKING:
     from navigate.core.nodes.input_kinds import NumberInput
@@ -102,7 +102,7 @@ class _Table1D(_Calculator):
         if interpolate:
             x = np.interp(y, yp, self.x)
         else:
-            idx = find_nearest(yp, y)
+            idx = find_nearest_index(yp, y)
             x = self.x[idx]
 
         return x
