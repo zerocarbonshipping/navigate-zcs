@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""PlantProfile, the output storage the Plant node reports its results from."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -17,29 +19,25 @@ if TYPE_CHECKING:
 
 
 class PlantProfile(_FuelEmissionProfile):
-    def __init__(self):
+    """Production cost and well-to-tank emissions of the fuel one plant makes."""
+
+    def __init__(self) -> None:
         super().__init__()
 
         # constants
         self._fuel_name: str = ""  # name of the fuel the plant produces
 
-        # costs
-        self._investment_cost: np.ndarray = (
-            EMPTY_NAN  # expected cost at time of investment, USD/ton
-        )
-        self._instantaneous_cost: np.ndarray = EMPTY_NAN  # instantaneous cost, USD/ton
+        # cost of the fuel produced, USD/ton
+        self._investment_cost: FloatArray = EMPTY_NAN  # expected at investment
+        self._instantaneous_cost: FloatArray = EMPTY_NAN  # at the current time
 
-        # emissions
-        self._investment_wtt: dict[
-            str, np.ndarray
-        ] = {}  # expected WTT at time of investment, ton emission/ton fuel
-        self._instantaneous_wtt: dict[
-            str, np.ndarray
-        ] = {}  # instantaneous WTT at a given time, ton emission/ton fuel
+        # well-to-tank emissions, ton emission/ton fuel
+        self._investment_wtt: dict[str, FloatArray] = {}  # expected at investment
+        self._instantaneous_wtt: dict[str, FloatArray] = {}  # at the current time
 
     def initialize(
         self,
-        timeline: np.ndarray,
+        timeline: FloatArray,
         emissions: dict[str, Emission],
         fuels: dict[str, Fuel],
         fuel_name: str,
@@ -50,16 +48,16 @@ class PlantProfile(_FuelEmissionProfile):
 
         Parameters
         ----------
-        timeline : np.ndarray
-            Simulation timeline in years.
-        emissions : dict[Emission]
+        timeline
+            Simulation timeline, in years.
+        emissions
             All emissions in the simulation.
-        fuels : dict[Fuel]
+        fuels
             All fuels in the simulation.
-        fuel_name : str
-            Name of the fuel produced by the plant.
-        emissions_lifetime : float
-            GWP lifetime.
+        fuel_name
+            Name of the fuel the plant produces.
+        emissions_lifetime
+            Lifetime the global warming potentials are read at, in years.
         """
         self._initialize_base(timeline)
         self._initialize_fuel_base(fuels)

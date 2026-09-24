@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""VesselProfile, the output storage the Vessel node reports its results from."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -13,78 +15,75 @@ from navigate.core.profiles._fuel_consumer_profile import _FuelConsumerProfile
 from navigate.util import divide_nonzero
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
     from navigate.util.types_ import BoolArray, FloatArray
 
 
 class VesselProfile(_FuelConsumerProfile):
-    def __init__(self):
+    """Energy, emissions, speeds, expenses and charter rates of one vessel type."""
+
+    def __init__(self) -> None:
         super().__init__()
 
-        self._lifetime: np.ndarray = EMPTY_FLOAT  # year, lifetime of the vessel
-        self._lead_time: np.ndarray = EMPTY_FLOAT  # year, lead time of the vessel
+        self._lifetime: FloatArray = EMPTY_FLOAT  # years
+        self._lead_time: FloatArray = EMPTY_FLOAT  # years
 
-        self._cargo_miles: np.ndarray = (
-            EMPTY_FLOAT  # transport work performed, cargo-miles/year
-        )
+        self._cargo_miles: FloatArray = EMPTY_FLOAT  # transport work, cargo-miles/year
 
         # speeds
-        self._reference_speed: np.ndarray = EMPTY_NAN  # reference speed, knots
-        self._minimum_speed: np.ndarray = EMPTY_NAN  # minimum possible speed, knots
-        self._maximum_speed: np.ndarray = EMPTY_NAN  # maximum possible speed, knots
-        self._actual_speed: np.ndarray = EMPTY_NAN  # average actual speed, knots
-        self._optimal_speed: np.ndarray = EMPTY_NAN  # average optimal speed, knots
-        self._lowest_speed: np.ndarray = EMPTY_NAN  # lowest actual speed, knots
-        self._highest_speed: np.ndarray = EMPTY_NAN  # highest actual speed, knots
+        self._reference_speed: FloatArray = EMPTY_NAN  # reference speed, knots
+        self._minimum_speed: FloatArray = EMPTY_NAN  # minimum possible speed, knots
+        self._maximum_speed: FloatArray = EMPTY_NAN  # maximum possible speed, knots
+        self._actual_speed: FloatArray = EMPTY_NAN  # average actual speed, knots
+        self._optimal_speed: FloatArray = EMPTY_NAN  # average optimal speed, knots
+        self._lowest_speed: FloatArray = EMPTY_NAN  # lowest actual speed, knots
+        self._highest_speed: FloatArray = EMPTY_NAN  # highest actual speed, knots
 
         # investment signals (energy-weighted average of the smoothed
         # energy-conservation duals, USD/GJ)
-        self._investment_signal_technology: np.ndarray = (
-            EMPTY_NAN  # technology-horizon belief
-        )
-        self._investment_signal_speed: np.ndarray = EMPTY_NAN  # speed-horizon belief
+        self._investment_signal_technology: FloatArray = EMPTY_NAN  # technology horizon
+        self._investment_signal_speed: FloatArray = EMPTY_NAN  # speed horizon
 
-        # technology costs
-        self._technology_cost: np.ndarray = (
-            EMPTY_FLOAT  # USD/year, average yearly purchase cost
-        )
+        self._technology_cost: FloatArray = EMPTY_FLOAT  # average purchase, USD/year
 
-        # freight rates
-        self._asset_charter_rate: np.ndarray = EMPTY_NAN
-        self._cargo_charter_rate: np.ndarray = EMPTY_NAN
-        self._investment_freight_rate: np.ndarray = EMPTY_NAN  # USD/cargo-mile
-        self._instantaneous_freight_rate: np.ndarray = EMPTY_NAN  # USD/cargo-mile
+        # freight and charter rates
+        self._asset_charter_rate: FloatArray = EMPTY_NAN  # owner to operator, USD/year
+        self._cargo_charter_rate: FloatArray = EMPTY_NAN  # operator to cargo, USD/year
+        self._investment_freight_rate: FloatArray = EMPTY_NAN  # USD/cargo-mile
+        self._instantaneous_freight_rate: FloatArray = EMPTY_NAN  # USD/cargo-mile
 
-        # various boolean properties
-        self._in_fleet: np.ndarray = EMPTY_BOOL  # whether multiplier > 0
-        self._cost_is_calculated: np.ndarray = EMPTY_BOOL  # whether cost is calculated
+        # fleet membership and cost state
+        self._in_fleet: BoolArray = EMPTY_BOOL  # whether multiplier > 0
+        self._cost_is_calculated: BoolArray = EMPTY_BOOL  # whether cost is calculated
 
     def initialize(
         self,
-        timeline: np.ndarray,
+        timeline: FloatArray,
         emissions: dict[str, Emission],
         fuels: dict[str, Fuel],
         emissions_lifetime: float,
-        regulation_names: list[str] = (),
-        levy_names: list[str] = (),
+        regulation_names: Sequence[str] = (),
+        levy_names: Sequence[str] = (),
     ) -> None:
         """
         Initialize the vessel profile's storage arrays and lookups.
 
         Parameters
         ----------
-        timeline : np.ndarray
-            Simulation timeline in years.
-        emissions : dict[Emission]
+        timeline
+            Simulation timeline, in years.
+        emissions
             All emissions in the simulation.
-        fuels : dict[Fuel]
-            All fuels in the simulation
-        emissions_lifetime : float
-            GWP lifetime.
-        regulation_names : list[str]
+        fuels
+            All fuels in the simulation.
+        emissions_lifetime
+            Lifetime the global warming potentials are read at, in years.
+        regulation_names
             Names of all regulations in the simulation.
-        levy_names : list[str]
+        levy_names
             Names of all levies in the simulation.
         """
         self._initialize_base(timeline)
@@ -161,37 +160,37 @@ class VesselProfile(_FuelConsumerProfile):
         self._investment_signal_speed[idx] = investment_signal
 
     def set_raw_energy_sea(
-        self, idx: int, energy: dict[EnergyDemandTypeID, np.ndarray]
+        self, idx: int, energy: dict[EnergyDemandTypeID, FloatArray]
     ) -> None:
         for energy_id in EnergyDemandTypeID:
             self._raw_energy_sea[energy_id][idx] = energy[energy_id]
 
     def set_raw_energy_port(
-        self, idx: int, energy: dict[EnergyDemandTypeID, np.ndarray]
+        self, idx: int, energy: dict[EnergyDemandTypeID, FloatArray]
     ) -> None:
         for energy_id in EnergyDemandTypePortID:
             self._raw_energy_port[energy_id][idx] = energy[energy_id]
 
     def set_operational_energy_sea(
-        self, idx: int, energy: dict[EnergyDemandTypeID, np.ndarray]
+        self, idx: int, energy: dict[EnergyDemandTypeID, FloatArray]
     ) -> None:
         for energy_id in EnergyDemandTypeID:
             self._operational_energy_sea[energy_id][idx] = energy[energy_id]
 
     def set_operational_energy_port(
-        self, idx: int, energy: dict[EnergyDemandTypeID, np.ndarray]
+        self, idx: int, energy: dict[EnergyDemandTypeID, FloatArray]
     ) -> None:
         for energy_id in EnergyDemandTypePortID:
             self._operational_energy_port[energy_id][idx] = energy[energy_id]
 
     def set_energy_sea(
-        self, idx: int, energy: dict[EnergyDemandTypeID, np.ndarray]
+        self, idx: int, energy: dict[EnergyDemandTypeID, FloatArray]
     ) -> None:
         for energy_id in EnergyDemandTypeID:
             self._energy_sea[energy_id][idx] = energy[energy_id]
 
     def set_energy_port(
-        self, idx: int, energy: dict[EnergyDemandTypeID, np.ndarray]
+        self, idx: int, energy: dict[EnergyDemandTypeID, FloatArray]
     ) -> None:
         for energy_id in EnergyDemandTypePortID:
             self._energy_port[energy_id][idx] = energy[energy_id]
@@ -199,7 +198,7 @@ class VesselProfile(_FuelConsumerProfile):
     def set_technology_cost(self, idx: int, cost: float) -> None:
         self._technology_cost[idx] = cost
 
-    def set_in_fleet(self, idx: int | slice, in_fleet: bool | np.ndarray) -> None:
+    def set_in_fleet(self, idx: int | slice, in_fleet: bool | BoolArray) -> None:
         self._in_fleet[idx] = in_fleet
 
     def set_cost_is_calculated(self, idx: int, cost_is_calculated: bool) -> None:
@@ -278,7 +277,8 @@ class VesselProfile(_FuelConsumerProfile):
     def get_baseline_energy(self) -> FloatArray:
         # counterfactual raw energy: year-0 raw intensity times actual transport work
         growth = divide_nonzero(self._cargo_miles, self._cargo_miles[0], default=1.0)
-        return self.get_raw_energy()[0] * growth
+        initial_energy: float = self.get_raw_energy()[0]
+        return initial_energy * growth
 
     def is_active(self) -> BoolArray:
         return self._in_fleet

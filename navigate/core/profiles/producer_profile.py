@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""ProducerProfile, the output storage the Producer node reports results from."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -18,19 +20,20 @@ if TYPE_CHECKING:
 
 
 class ProducerProfile(_PlantAggregateProfile):
-    def __init__(self):
+    """Production, feedstock use and plant development of one fuel producer."""
+
+    def __init__(self) -> None:
         super().__init__()
 
-        self._maximum_development: np.ndarray = EMPTY_NAN
-        self._development: np.ndarray = EMPTY_FLOAT
+        # plants added to the development pipeline, plants/year
+        self._maximum_development: FloatArray = EMPTY_NAN  # the most that may be added
+        self._development: FloatArray = EMPTY_FLOAT  # actually added
 
-        self._fair_share_fuel_fraction: dict[
-            str, np.ndarray
-        ] = {}  # fraction of fair-share going to the specific producer
+        self._fair_share_fuel_fraction: dict[str, FloatArray] = {}  # of the fair share
 
     def initialize(
         self,
-        timeline: np.ndarray,
+        timeline: FloatArray,
         feedstocks: dict[str, Feedstock],
         fuels: dict[str, Fuel],
         processes: dict[str, Process],
@@ -40,13 +43,13 @@ class ProducerProfile(_PlantAggregateProfile):
 
         Parameters
         ----------
-        timeline : np.ndarray
-            Simulation timeline in years.
-        feedstocks : dict[Feedstock]
+        timeline
+            Simulation timeline, in years.
+        feedstocks
             All feedstocks in the simulation.
-        fuels : dict[Fuel]
+        fuels
             All fuels in the simulation.
-        processes : dict[Process]
+        processes
             All processes in the simulation.
         """
         self._initialize_base(timeline)

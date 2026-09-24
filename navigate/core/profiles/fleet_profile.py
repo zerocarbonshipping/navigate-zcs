@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""FleetProfile, the output storage the Fleet node reports its results from."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -9,75 +11,79 @@ import numpy as np
 
 from navigate.core.initial_values import EMPTY_FLOAT, EMPTY_NAN
 from navigate.core.profiles._vessel_aggregate_profile import _VesselAggregateProfile
+from navigate.util import divide_nonzero
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
     from navigate.util.types_ import FloatArray, FloatLike
 
-from navigate.util import divide_nonzero
-
 
 class FleetProfile(_VesselAggregateProfile):
-    def __init__(self):
+    """Trade, transport work, fleet composition and speeds of one fleet."""
+
+    def __init__(self) -> None:
         super().__init__()
 
-        self._trade: np.ndarray = EMPTY_FLOAT
-        self._cargo_miles: np.ndarray = (
-            EMPTY_FLOAT  # transport work performed, cargo-miles/year
-        )
+        self._trade: FloatArray = EMPTY_FLOAT  # trade satisfied, cargo-miles/year
+        self._cargo_miles: FloatArray = EMPTY_FLOAT  # transport work, cargo-miles/year
 
-        self._existing_vessels: dict[str, np.ndarray] = {}
-        self._scrap: dict[str, np.ndarray] = {}
-        self._newbuilds: dict[str, np.ndarray] = {}
-        self._fuel_conversions: dict[tuple[str, str], np.ndarray] = {}
-        self._technology_uptake: dict[tuple[str, str], np.ndarray] = {}
-        self._newbuild_technology_uptake: dict[tuple[str, str], np.ndarray] = {}
-        self._retrofit_technology_uptake: dict[tuple[str, str], np.ndarray] = {}
+        self._existing_vessels: dict[str, FloatArray] = {}  # vessels per vessel type
+        self._scrap: dict[str, FloatArray] = {}  # scrapped, vessels/year
+        self._newbuilds: dict[str, FloatArray] = {}  # ordered, vessels/year
+        self._fuel_conversions: dict[tuple[str, str], FloatArray] = {}  # vessels/year
+
+        # fraction of the vessels carrying a technology, per vessel and technology,
+        # across the fleet, among the newbuilds and among the retrofits
+        self._technology_uptake: dict[tuple[str, str], FloatArray] = {}
+        self._newbuild_technology_uptake: dict[tuple[str, str], FloatArray] = {}
+        self._retrofit_technology_uptake: dict[tuple[str, str], FloatArray] = {}
 
         # speed
-        self._reference_speed: np.ndarray = EMPTY_NAN  # average reference speed, knots
-        self._minimum_speed: np.ndarray = (
-            EMPTY_NAN  # average minimum possible speed, knots
-        )
-        self._maximum_speed: np.ndarray = (
-            EMPTY_NAN  # average maximum possible speed, knots
-        )
-        self._actual_speed: np.ndarray = EMPTY_NAN  # average actual speed, knots
-        self._optimal_speed: np.ndarray = EMPTY_NAN  # average optimal speed, knots
-        self._lowest_speed: np.ndarray = EMPTY_NAN  # lowest actual speed, knots
-        self._highest_speed: np.ndarray = EMPTY_NAN  # highest actual speed, knots
+        self._reference_speed: FloatArray = EMPTY_NAN  # average reference speed, knots
+        self._minimum_speed: FloatArray = EMPTY_NAN  # average minimum speed, knots
+        self._maximum_speed: FloatArray = EMPTY_NAN  # average maximum speed, knots
+        self._actual_speed: FloatArray = EMPTY_NAN  # average actual speed, knots
+        self._optimal_speed: FloatArray = EMPTY_NAN  # average optimal speed, knots
+        self._lowest_speed: FloatArray = EMPTY_NAN  # lowest actual speed, knots
+        self._highest_speed: FloatArray = EMPTY_NAN  # highest actual speed, knots
 
-        self._instantaneous_freight_rate: np.ndarray = EMPTY_NAN  # USD/cargo-mile
+        self._instantaneous_freight_rate: FloatArray = EMPTY_NAN  # USD/cargo-mile
 
     def initialize(
         self,
-        timeline: np.ndarray,
+        timeline: FloatArray,
         vessel_names: list[str],
         technology_names: list[str],
         fuels: dict[str, Fuel],
         emissions: dict[str, Emission],
         emissions_lifetime: float,
-        regulation_names: list[str] = (),
-        levy_names: list[str] = (),
+        regulation_names: Sequence[str] = (),
+        levy_names: Sequence[str] = (),
     ) -> None:
         """
         Initialize the fleet profile's storage arrays and lookups.
 
         Parameters
         ----------
-        timeline :
-            Simulation timeline in years.
-        vessel_names :
-            List of vessel names.
-        technology_names :
-            List of technology names.
-        fuels :
+        timeline
+            Simulation timeline, in years.
+        vessel_names
+            Names of all vessels in the fleet.
+        technology_names
+            Names of all technologies in the simulation.
+        fuels
             All fuels in the simulation.
-        emissions :
+        emissions
             All emissions in the simulation.
-        emissions_lifetime :
-            Emissions lifetime used for calculating GWP.
+        emissions_lifetime
+            Lifetime the global warming potentials are read at, in years.
+        regulation_names
+            Names of all regulations in the simulation.
+        levy_names
+            Names of all levies in the simulation.
         """
         self._initialize_base(timeline)
         self._initialize_fuel_base(fuels)
@@ -118,9 +124,7 @@ class FleetProfile(_VesselAggregateProfile):
     def set_trade(self, idx: int, trade: float) -> None:
         self._trade[idx] = trade
 
-    def set_cargo_miles(
-        self, idx: int | slice, cargo_miles: float | np.ndarray
-    ) -> None:
+    def set_cargo_miles(self, idx: int | slice, cargo_miles: FloatLike) -> None:
         self._cargo_miles[idx] = cargo_miles
 
     def set_existing_vessels(
@@ -162,39 +166,25 @@ class FleetProfile(_VesselAggregateProfile):
     ) -> None:
         self._retrofit_technology_uptake[(vessel_name, technology_name)][idx] = uptake
 
-    def set_reference_speed(
-        self, idx: int | slice, reference_speed: float | np.ndarray
-    ) -> None:
+    def set_reference_speed(self, idx: int | slice, reference_speed: FloatLike) -> None:
         self._reference_speed[idx] = reference_speed
 
-    def set_minimum_speed(
-        self, idx: int | slice, minimum_speed: float | np.ndarray
-    ) -> None:
+    def set_minimum_speed(self, idx: int | slice, minimum_speed: FloatLike) -> None:
         self._minimum_speed[idx] = minimum_speed
 
-    def set_maximum_speed(
-        self, idx: int | slice, maximum_speed: float | np.ndarray
-    ) -> None:
+    def set_maximum_speed(self, idx: int | slice, maximum_speed: FloatLike) -> None:
         self._maximum_speed[idx] = maximum_speed
 
-    def set_actual_speed(
-        self, idx: int | slice, actual_speed: float | np.ndarray
-    ) -> None:
+    def set_actual_speed(self, idx: int | slice, actual_speed: FloatLike) -> None:
         self._actual_speed[idx] = actual_speed
 
-    def set_optimal_speed(
-        self, idx: int | slice, optimal_speed: float | np.ndarray
-    ) -> None:
+    def set_optimal_speed(self, idx: int | slice, optimal_speed: FloatLike) -> None:
         self._optimal_speed[idx] = optimal_speed
 
-    def set_lowest_speed(
-        self, idx: int | slice, lowest_speed: float | np.ndarray
-    ) -> None:
+    def set_lowest_speed(self, idx: int | slice, lowest_speed: FloatLike) -> None:
         self._lowest_speed[idx] = lowest_speed
 
-    def set_highest_speed(
-        self, idx: int | slice, highest_speed: float | np.ndarray
-    ) -> None:
+    def set_highest_speed(self, idx: int | slice, highest_speed: FloatLike) -> None:
         self._highest_speed[idx] = highest_speed
 
     def set_instantaneous_freight_rate(

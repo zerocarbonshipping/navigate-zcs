@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""PortProfile, the output storage the Port node reports its results from."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -18,23 +20,21 @@ if TYPE_CHECKING:
 
 
 class PortProfile(_FuelInfrastructureProfile):
-    def __init__(self):
+    """Bunkering permissions, prices and well-to-tank emissions at one port."""
+
+    def __init__(self) -> None:
         super().__init__()
 
         # bunkering
-        self._bunkering_allowed: dict[
-            str, np.ndarray
-        ] = {}  # bool, is bunkering allowed
+        self._bunkering_allowed: dict[str, BoolArray] = {}  # bunkering permission
 
         # results
-        self._bunker_price: dict[str, np.ndarray] = {}  # fuel price paid for bunkering
-        self._bunker_wtt: dict[
-            tuple[str, str], np.ndarray
-        ] = {}  # WTT emissions from fuel
+        self._bunker_price: dict[str, FloatArray] = {}  # bunkered fuel price, USD/ton
+        self._bunker_wtt: dict[tuple[str, str], FloatArray] = {}  # WTT, ton/ton fuel
 
     def initialize(
         self,
-        timeline: np.ndarray,
+        timeline: FloatArray,
         emissions: dict[str, Emission],
         fuels: dict[str, Fuel],
         emissions_lifetime: float,
@@ -44,14 +44,14 @@ class PortProfile(_FuelInfrastructureProfile):
 
         Parameters
         ----------
-        timeline : np.ndarray
-            Simulation timeline in years.
-        emissions : dict[Emission]
-            All emissions in the model.
-        fuels : dict[Fuel]
+        timeline
+            Simulation timeline, in years.
+        emissions
+            All emissions in the simulation.
+        fuels
             All fuels in the simulation.
-        emissions_lifetime : float
-            GWP lifetime.
+        emissions_lifetime
+            Lifetime the global warming potentials are read at, in years.
         """
         self._initialize_base(timeline)
         self._initialize_fuel_base(fuels)

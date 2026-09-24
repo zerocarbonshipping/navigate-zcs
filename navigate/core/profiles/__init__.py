@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""End-of-run output storage, one profile class per node kind that reports."""
+
 from __future__ import annotations
 
 from navigate.core.profiles.fleet_profile import FleetProfile
