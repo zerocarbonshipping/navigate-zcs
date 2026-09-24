@@ -77,7 +77,7 @@ class _Policy(Node):
 
         Parameters
         ----------
-        ports : list[Node | WildcardNodeReference]
+        ports : list[Node]
             List of Port nodes.
         """
         self.jurisdiction = assign_list(as_list(ports), scalar=False, type_=PORT)

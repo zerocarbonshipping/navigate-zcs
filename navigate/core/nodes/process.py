@@ -28,7 +28,7 @@ class Process(Node):
 
         Parameters
         ----------
-        feeds : list[Node | WildcardNodeReference]
+        feeds : list[Node]
             A list of feedstock and/or process.
         """
         self.feeds = assign_list(

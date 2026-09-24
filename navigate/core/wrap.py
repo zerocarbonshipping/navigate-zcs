@@ -12,7 +12,6 @@ if TYPE_CHECKING:
 
     from navigate.core.expression import Expression
     from navigate.core.node import Node
-    from navigate.core.wildcard import WildcardNodeReference
 
 # these two aliases are the contract for typed callers, not a claim about what
 # reaches the boundary at runtime: the parser is untyped, so it hands every
@@ -23,9 +22,7 @@ if TYPE_CHECKING:
 
 # a value that already answers a getter, and a date, pass the wrappers
 # untouched; only a bare float needs wrapping
-type WrappedAssignment = (
-    Scalar | Node | WildcardNodeReference | Expression | np.datetime64
-)
+type WrappedAssignment = Scalar | Node | Expression | np.datetime64
 
 # everything a setter may be handed for a single-valued attribute
 type Assignment = float | WrappedAssignment

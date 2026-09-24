@@ -35,14 +35,13 @@ from navigate.core.nodes.route import Route
 from navigate.core.nodes.tank import Tank
 from navigate.core.nodes.variable import Variable
 from navigate.core.nodes.vessel import Vessel
-from navigate.core.wildcard import WildcardNodeReference
 from navigate.exceptions import CommandError
 from navigate.parser._attributes import NODE_ATTRIBUTE_SECTIONS
 from navigate.parser._commands import CommandReference
 from navigate.parser._event import Event
 from navigate.parser._keywords import NODE_GROUP, SECTION_DEFINE, define_new_node
 from navigate.parser._lark_parser import Assignment, NodeDeclaration, SourceLocation
-from navigate.parser._node_reference import NodeReference
+from navigate.parser._node_reference import NodeReference, WildcardNodeReference
 from navigate.parser._reachability import ACTIVATION_EDGES, find_unreachable
 from navigate.parser.parser import Parser
 from navigate.util import attribute_to_instance_name
