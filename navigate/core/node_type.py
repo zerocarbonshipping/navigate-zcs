@@ -59,7 +59,7 @@ MODEL_DEFINITION = "ModelDefinition"
 _CALCULATOR_TYPES = (CURVE, FORECAST, SURFACE, TIMETABLE, VARIABLE)
 
 # the node type(s) an attribute accepts; None where it accepts no reference
-type AcceptedTypes = str | tuple[str, ...] | None
+type AcceptedNodeTypes = str | tuple[str, ...] | None
 
 
 class TypeCheckMixin:

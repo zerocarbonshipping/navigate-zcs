@@ -18,7 +18,7 @@ import numpy as np
 
 from navigate.core.expression import Expression
 from navigate.core.node import Node
-from navigate.core.node_type import AcceptedTypes, is_calculator
+from navigate.core.node_type import AcceptedNodeTypes, is_calculator
 from navigate.core.scalar import Scalar
 from navigate.core.table_data import TableData
 from navigate.core.wrap import Assignment, WrappedAssignment, as_scalar
@@ -103,7 +103,7 @@ def assign_value[T: Assignment](
     assignment: T,
     scalar: bool = True,
     date: bool = False,
-    type_: AcceptedTypes = None,
+    type_: AcceptedNodeTypes = None,
     lower: float = -np.inf,
     upper: float = np.inf,
     *,
@@ -172,7 +172,7 @@ def assign_list[T: Assignment](
     unique: bool = False,
     scalar: bool = True,
     date: bool = False,
-    type_: AcceptedTypes = None,
+    type_: AcceptedNodeTypes = None,
     lower: float = -np.inf,
     upper: float = np.inf,
     *,
@@ -452,7 +452,7 @@ def command_assignment_to_dict[K: str | Enum](
     assignment_dict: dict[K, WrappedAssignment | None],
     scalar: bool = True,
     date: bool = False,
-    type_: AcceptedTypes = None,
+    type_: AcceptedNodeTypes = None,
     lower: float = -np.inf,
     upper: float = np.inf,
     *,
@@ -510,7 +510,7 @@ def command_assignment_to_tuple_dict[K1: str | Enum, K2: str | Enum](
     assignment_dict: dict[tuple[K1, K2], WrappedAssignment | None],
     scalar: bool = True,
     date: bool = False,
-    type_: AcceptedTypes = None,
+    type_: AcceptedNodeTypes = None,
     lower: float = -np.inf,
     upper: float = np.inf,
     *,
@@ -626,7 +626,7 @@ def default_unassigned[K, V](values: dict[K, V | None], default: V) -> None:
             values[key] = default
 
 
-def _accepts_reference(node: Node, type_: AcceptedTypes) -> bool:
+def _accepts_reference(node: Node, type_: AcceptedNodeTypes) -> bool:
     """
     Check whether an attribute accepting 'type_' accepts a reference to a node.
 
@@ -652,7 +652,7 @@ def _accepts_reference(node: Node, type_: AcceptedTypes) -> bool:
 
 
 def _failed_value_message(
-    assignment: object, scalar: bool, date: bool, type_: AcceptedTypes
+    assignment: object, scalar: bool, date: bool, type_: AcceptedNodeTypes
 ) -> str:
     """
     Build the error message for a value an attribute does not accept.

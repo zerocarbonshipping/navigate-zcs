@@ -26,7 +26,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
     from navigate.core.node import Node
-    from navigate.core.node_type import AcceptedTypes
+    from navigate.core.node_type import AcceptedNodeTypes
     from navigate.util.types_ import FloatArray, FloatLike
 
 type _UnaryOperator = Callable[[FloatLike], FloatLike]
@@ -333,7 +333,7 @@ class Expression:
 
         return value
 
-    def set_allowed_types(self, allowed_types: AcceptedTypes) -> None:
+    def set_allowed_types(self, allowed_types: AcceptedNodeTypes) -> None:
         """
         Set the node types the attribute holding the expression accepts.
 
