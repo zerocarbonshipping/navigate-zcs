@@ -1,13 +1,15 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""The registries the parser fills with the nodes and general nodes of a deck."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
+    from collections.abc import Iterable, Mapping
 
     from navigate.core.general_nodes.bunker_options import BunkerOptions
     from navigate.core.general_nodes.model_definition import ModelDefinition
@@ -42,6 +44,8 @@ if TYPE_CHECKING:
 
 @dataclass
 class Nodes:
+    """The nodes a deck defines, grouped by node type and keyed by node name."""
+
     converters: dict[str, Converter] = field(default_factory=dict)
     curves: dict[str, Curve] = field(default_factory=dict)
     emissions: dict[str, Emission] = field(default_factory=dict)
@@ -69,7 +73,15 @@ class Nodes:
     variables: dict[str, Variable] = field(default_factory=dict)
     vessels: dict[str, Vessel] = field(default_factory=dict)
 
-    def all_groups(self) -> list[dict[str, Node]]:
+    def _all_groups(self) -> list[Mapping[str, Node]]:
+        """
+        Collect the per-type groups in one list.
+
+        Returns
+        -------
+        list[Mapping[str, Node]]
+            One group per node type, each keyed by node name.
+        """
         return [
             self.converters,
             self.curves,
@@ -100,15 +112,33 @@ class Nodes:
         ]
 
     def all_nodes(self) -> Iterable[Node]:
-        for g in self.all_groups():
-            yield from g.values()
+        """
+        Walk every node the deck defines, group by group.
+
+        Returns
+        -------
+        Iterable[Node]
+            The nodes of every group.
+        """
+        for group in self._all_groups():
+            yield from group.values()
 
     def all_names(self) -> Iterable[str]:
-        for g in self.all_groups():
-            yield from g.keys()
+        """
+        Walk the name of every node the deck defines, group by group.
+
+        Returns
+        -------
+        Iterable[str]
+            The names of the nodes of every group.
+        """
+        for group in self._all_groups():
+            yield from group.keys()
 
 
 @dataclass
 class GeneralNodes:
+    """The at-most-one-per-deck nodes, each unset until the deck defines it."""
+
     bunker_options: BunkerOptions | None = None
     model_definition: ModelDefinition | None = None
