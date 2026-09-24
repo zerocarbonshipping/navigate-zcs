@@ -15,7 +15,7 @@ from pathlib import Path
 from navigate.exceptions import NavigateError
 from navigate.logging_ import (
     LOG_LEVELS,
-    log_summary,
+    build_log_summary,
     print_warning_summary,
     setup_logger,
 )
@@ -226,7 +226,7 @@ def _run(path: Path, args: argparse.Namespace) -> SimulationManager:
     logger.info(
         "Simulation completed successfully in %s seconds.", manager.get_elapsed_time()
     )
-    logger.info(log_summary())
+    logger.info(build_log_summary())
 
     if not args.profile:
         print_warning_summary()

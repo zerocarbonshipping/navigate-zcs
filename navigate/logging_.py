@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import logging
 import os
-import time as time_module
+import time
 from collections import Counter
 from importlib.metadata import PackageNotFoundError, version
 from math import floor, log10
@@ -51,13 +51,16 @@ class _DeduplicatingFilter(logging.Filter):
     def filter(self, record: logging.LogRecord) -> bool:
         if record.levelno < logging.WARNING:
             return True
+
         key = record.getMessage()
         if key in self.seen:
             self.suppressed += 1
             return False
+
         self.seen.add(key)
         if len(self.unique_warnings) < _MAX_DIGEST_WARNINGS:
             self.unique_warnings.append(key)
+
         return True
 
 
@@ -88,8 +91,8 @@ def setup_logger(path: Path, level: int = logging.INFO) -> logging.Logger:
     logging.Logger
         The configured root logger.
     """
-    # splitext finds no extension in a name whose stem is only dots, where
-    # with_suffix replaces one: '..nav' logs to '..nav.log', not '..log'
+    # splitext treats a name whose stem is only dots as carrying no extension,
+    # so '..nav' logs to '..nav.log'
     filename = os.path.splitext(path)[0] + ".log"
     file_handler = logging.FileHandler(filename, mode="w")
 
@@ -117,18 +120,19 @@ def setup_logger(path: Path, level: int = logging.INFO) -> logging.Logger:
 def print_preamble() -> None:
     """Print the banner and the package version to the console."""
     try:
-        pkg_version = version("navigate-zcs")
+        package_version = version("navigate-zcs")
     except PackageNotFoundError:
-        pkg_version = "Debug"
+        package_version = "Debug"
 
     file = Path(__file__).parent / "preamble.txt"
-    with open(file) as f:
-        preamble = f.read()
-    print(preamble.format(pkg_version))
+    with open(file) as handle:
+        preamble = handle.read()
+
+    print(preamble.format(package_version))
 
 
 def log_time_step_breaker(
-    logger: logging.Logger, idx: int, date: np.datetime64, time: float
+    logger: logging.Logger, idx: int, date: np.datetime64, days_elapsed: float
 ) -> None:
     """
     Log the banner separating one time-step from the next.
@@ -141,26 +145,28 @@ def log_time_step_breaker(
         Index of the time-step.
     date
         Date of the time-step.
-    time
+    days_elapsed
         Days since the start of the simulation.
     """
-    elapsed_time = (
-        time_module.perf_counter() - _WALL_START_TIME if _WALL_START_TIME else 0
-    )
+    elapsed_time = time.perf_counter() - _WALL_START_TIME if _WALL_START_TIME else 0
 
-    msg = (
+    message = (
         f"Time-step: {idx}, current date: {date}. "
-        f"{int(time)} days "
-        f"({int(round(time / YEAR_TO_DAYS, 0))} years) "
+        f"{int(days_elapsed)} days "
+        f"({int(round(days_elapsed / YEAR_TO_DAYS, 0))} years) "
         "since start of simulation. "
         f"Wall time since start: {elapsed_time:,.1f} s"
     )
 
-    logger.info(_wrap_in_hlines(msg))
+    logger.info(_wrap_in_hlines(message))
 
 
 def log_extrapolate_bounds(
-    logger: logging.Logger, node: object, x: FloatArray, a: float, b: float
+    logger: logging.Logger,
+    node: object,
+    lookup_values: FloatArray,
+    lower: float,
+    upper: float,
 ) -> None:
     """
     Warn that a table look-up reached beyond the tabulated range.
@@ -171,25 +177,25 @@ def log_extrapolate_bounds(
         Logger to write to.
     node
         Node owning the table, named in the message.
-    x
+    lookup_values
         Look-up values, reported when there are few enough to read.
-    a
+    lower
         Lower limit of the tabulated range.
-    b
+    upper
         Upper limit of the tabulated range.
     """
     # node is typed as object because the table mixins calling this are not
     # Node subclasses statically; it is only formatted into the message
-    info = f" Value was {x}." if x.size < 5 else ""
+    info = f" Value was {lookup_values}." if lookup_values.size < 5 else ""
 
     logger.warning(
-        "%s: Extrapolating beyond table limits (%s, %s).%s", node, a, b, info
+        "%s: Extrapolating beyond table limits (%s, %s).%s", node, lower, upper, info
     )
 
 
 def log_start_of_simulation(logger: logging.Logger, date: np.datetime64) -> None:
     """
-    Log the banner opening the simulation and start the wall clock.
+    Open the simulation section of the log, timing the run from here.
 
     Parameters
     ----------
@@ -199,7 +205,7 @@ def log_start_of_simulation(logger: logging.Logger, date: np.datetime64) -> None
         Date the simulation starts from.
     """
     global _WALL_START_TIME
-    _WALL_START_TIME = time_module.perf_counter()
+    _WALL_START_TIME = time.perf_counter()
 
     logger.info(_wrap_in_hlines(f"Time-step: 0, starting simulation at date: {date}"))
 
@@ -237,9 +243,9 @@ def log_fair_share_convergence(
         Whether the algorithm reached its convergence criterion.
     """
     headers = ["Iter.", *statistics.keys()]
-    cols = list(statistics.values())
+    columns = list(statistics.values())
     rows = [
-        [i + 1] + [str(_round_for_display(cols[c][i])) for c in range(len(cols))]
+        [i + 1] + [str(_round_for_display(column[i])) for column in columns]
         for i in range(iterations)
     ]
 
@@ -249,18 +255,19 @@ def log_fair_share_convergence(
         logger.info("Fair-share bunkering convergence status: Successful.")
         logger.debug("Fair-share bunkering convergence statistics:\n\n%s", table)
     else:
-        msg = "Fair-share bunkering convergence status: Failure.\n"
-        msg += f"Fair-share bunkering convergence statistics:\n\n{table}"
-        logger.info(msg)
+        message = "Fair-share bunkering convergence status: Failure.\n"
+        message += f"Fair-share bunkering convergence statistics:\n\n{table}"
+
+        logger.info(message)
 
 
-def _wrap_in_hlines(msg: str) -> str:
+def _wrap_in_hlines(message: str) -> str:
     """
     Frame a message in horizontal lines.
 
     Parameters
     ----------
-    msg
+    message
         Message to frame.
 
     Returns
@@ -268,7 +275,7 @@ def _wrap_in_hlines(msg: str) -> str:
     str
         Framed message.
     """
-    return "\n" + HLINE + "\n" + msg + "\n" + HLINE + "\n"
+    return "\n" + HLINE + "\n" + message + "\n" + HLINE + "\n"
 
 
 def get_log_counts() -> dict[str, int]:
@@ -284,12 +291,12 @@ def get_log_counts() -> dict[str, int]:
         return {}
 
     return {
-        lvl: _COUNT_HANDLER.counter.get(lvl, 0)
-        for lvl in set(LOG_LEVELS) | set(_COUNT_HANDLER.counter)
+        level: _COUNT_HANDLER.counter.get(level, 0)
+        for level in set(LOG_LEVELS) | set(_COUNT_HANDLER.counter)
     }
 
 
-def log_summary() -> str:
+def build_log_summary() -> str:
     """
     Build the end-of-run summary: the record counts and the warning digest.
 
@@ -300,9 +307,9 @@ def log_summary() -> str:
     """
     counts = get_log_counts()
 
-    rows = [[lvl, counts.get(lvl, 0)] for lvl in LOG_LEVELS if lvl in counts] + [
-        [lvl, counts[lvl]] for lvl in counts if lvl not in LOG_LEVELS
-    ]
+    rows = [
+        [level, counts.get(level, 0)] for level in LOG_LEVELS if level in counts
+    ] + [[level, counts[level]] for level in counts if level not in LOG_LEVELS]
     table = tabulate(
         rows, headers=["Level", "Count"], tablefmt="github", stralign="right"
     )
@@ -310,20 +317,20 @@ def log_summary() -> str:
     summary = f"\nLog summary:\n{table}"
 
     if _DEDUP_FILTER and _DEDUP_FILTER.unique_warnings:
-        n_unique = len(_DEDUP_FILTER.seen)
-        n_suppressed = _DEDUP_FILTER.suppressed
+        unique_count = len(_DEDUP_FILTER.seen)
+        suppressed_count = _DEDUP_FILTER.suppressed
 
         summary += (
-            f"\n\nUnique warnings ({n_unique} unique, {n_suppressed} duplicates "
-            f"suppressed):"
+            f"\n\nUnique warnings ({unique_count} unique, "
+            f"{suppressed_count} duplicates suppressed):"
         )
 
-        for i, msg in enumerate(_DEDUP_FILTER.unique_warnings, 1):
-            short = (msg[:120] + "...") if len(msg) > 120 else msg
+        for i, message in enumerate(_DEDUP_FILTER.unique_warnings, 1):
+            short = (message[:120] + "...") if len(message) > 120 else message
             summary += f"\n  {i}. {short}"
 
-        if n_unique > _MAX_DIGEST_WARNINGS:
-            summary += f"\n  ... and {n_unique - _MAX_DIGEST_WARNINGS} more"
+        if unique_count > _MAX_DIGEST_WARNINGS:
+            summary += f"\n  ... and {unique_count - _MAX_DIGEST_WARNINGS} more"
 
     return summary
 
@@ -340,13 +347,13 @@ def print_warning_summary() -> None:
         print(f"{warnings} warning(s) logged - see '{_LOG_FILE_NAME}'.")
 
 
-def _round_for_display(x: float) -> float:
+def _round_for_display(value: float) -> float:
     """
     Round off a value to the appropriate decimals for visual display.
 
     Parameters
     ----------
-    x
+    value
         Value to be rounded for display.
 
     Returns
@@ -354,14 +361,14 @@ def _round_for_display(x: float) -> float:
     float
         Rounded value.
     """
-    abs_x = abs(x)
+    magnitude = abs(value)
 
-    if abs_x <= TOLERANCE:
+    if magnitude <= TOLERANCE:
         return 0
 
-    significant = -floor(log10(abs_x))
+    significant = -floor(log10(magnitude))
 
     if significant <= 0:
-        return int(np.round(x, 0))
+        return int(np.round(value, 0))
 
-    return float(np.round(x, significant))
+    return float(np.round(value, significant))
