@@ -23,42 +23,35 @@ from navigate.exceptions import no_value_assigned_error
 if TYPE_CHECKING:
     import numpy as np
 
+    from navigate.core.nodes.input_kinds import ForecastInput
     from navigate.core.nodes.vessel import Vessel
 
 
 class Regulation(_Policy):
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         super().__init__(name, REGULATION)
 
         # external variables -----------------------------------------------------------
-        self.measure = None  # enum, ID of emissions measure
+        self.measure: RegulationMeasureID | None = None
 
-        self.intra_fraction = (
-            None  # float, fraction of emissions on intra travel accounted for
-        )
-        self.inter_fraction = (
-            None  # float, fraction of emissions on inter travel accounted for
-        )
-        self.extra_fraction = (
-            None  # float, fraction of emissions on extra travel accounted for
-        )
+        self.intra_fraction: ForecastInput = Scalar(1.0)
+        self.inter_fraction: ForecastInput = Scalar(1.0)
+        self.extra_fraction: ForecastInput = Scalar(0.0)
 
         # remedial compliance
-        self.remedial_cost = None  # float, cost per remedial unit, USD/ton
+        self.remedial_cost: ForecastInput = Scalar(0.0)
 
         # flexibility cost belief
-        self.flexibility_horizon = (
-            None  # float, belief horizon for the flexibility cost, years
-        )
+        self.flexibility_horizon: ForecastInput = Scalar(3.0)
 
         # threshold
-        self.vessel_threshold = {}  # dict[vessel_name: float], threshold per vessel
+        self.vessel_threshold: dict[str, ForecastInput | None] = {}
 
         # capacity (measure specific)
-        self.vessel_capacity = {}  # dict[vessel: float], capacity if impact is vessel
+        self.vessel_capacity: dict[str, ForecastInput | None] = {}
 
         # threshold adjustment
-        self.allow_threshold_adjustment = False  # bool, adjust on non-compliance
+        self.allow_threshold_adjustment: bool = False
 
         # internal variables -----------------------------------------------------------
         self.expectation: RegulationExpectation = RegulationExpectation()
@@ -291,9 +284,8 @@ class Regulation(_Policy):
         self.allow_threshold_adjustment = assign_boolean(allow_threshold_adjustment)
 
     # internal methods -----------------------------------------------------------------
-    def initialize(self):
-
-        self._initialize_policy()
+    def check_requirements(self) -> None:
+        super().check_requirements()
 
         if self.scheme is None:
             no_value_assigned_error(self, "Scheme")
@@ -301,20 +293,8 @@ class Regulation(_Policy):
         if self.measure is None:
             no_value_assigned_error(self, "Measure")
 
-        if self.intra_fraction is None:
-            self.intra_fraction = Scalar(1)
-
-        if self.inter_fraction is None:
-            self.inter_fraction = Scalar(1)
-
-        if self.extra_fraction is None:
-            self.extra_fraction = Scalar(0)
-
-        if self.remedial_cost is None:
-            self.remedial_cost = Scalar(0)
-
-        if self.flexibility_horizon is None:
-            self.flexibility_horizon = Scalar(3)
+    def check_consistency(self) -> None:
+        super().check_consistency()
 
         for vessel_name, include_vessel in self.include_vessel.items():
             if include_vessel and (self.vessel_threshold[vessel_name] is None):
