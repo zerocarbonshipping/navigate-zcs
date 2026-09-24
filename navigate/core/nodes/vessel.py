@@ -33,57 +33,59 @@ from navigate.util import to_numpy
 if TYPE_CHECKING:
     import numpy as np
 
+    from navigate.core.expression import Expression
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
+    from navigate.core.nodes.input_kinds import (
+        ForecastInput,
+        ScalarInput,
+        SurfaceInput,
+    )
+    from navigate.core.nodes.power_system import PowerSystem
+    from navigate.core.nodes.route import Route
     from navigate.core.nodes.tank import Tank
 
 
 class Vessel(Node):
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         super().__init__(name, VESSEL)
 
         # external variables -----------------------------------------------------------
         # power demand
-        self.propulsion_load = None  # float, Curve or Surface, load in MW (at sea)
-        self.electrical_load_at_sea = (
-            None  # float, Curve or Surface, load in MW (at sea)
-        )
-        self.electrical_load_in_port = None  # float, load in MW (in port)
-        self.heat_load_at_sea = None  # float, Curve or Surface, load in MW (at sea)
-        self.heat_load_in_port = None  # float, load in MW (in port)
+        self.propulsion_load: SurfaceInput = Scalar(0.0)
+        self.electrical_load_at_sea: SurfaceInput = Scalar(0.0)
+        self.electrical_load_in_port: ScalarInput = Scalar(0.0)
+        self.heat_load_at_sea: SurfaceInput = Scalar(0.0)
+        self.heat_load_in_port: ScalarInput = Scalar(0.0)
 
         # fuel based power
-        self.power_system = None  # class PowerSystem
+        self.power_system: PowerSystem | Expression | None = None
         self.tanks: list[Tank] = []
 
         # voyage
-        self.route = None  # class Route
-        self.nominal_capacity = (
-            None  # float, nominal capacity of the vessel in TEU/DWT/GT
-        )
+        self.route: Route | Expression | None = None
+        self.nominal_capacity: ScalarInput | None = None
 
         # base cost
-        self.capex = None  # float, base CAPEX of vessel. Hull, etc.
-        self.opex = None  # float, base OPEX of vessel. Hull, etc.
-        self.lifetime = None  # float, lifetime of vessel
-        self.lead_time = (
-            None  # float, lead time of vessel (only relevant for cost calculations)
-        )
-        self.cost_of_capital = None  # float, cost of capital
+        self.capex: ForecastInput = Scalar(0.0)
+        self.opex: ForecastInput = Scalar(0.0)
+        self.lifetime: ForecastInput = Scalar(25.0)
+        self.lead_time: ForecastInput = Scalar(0.0)
+        self.cost_of_capital: ForecastInput = Scalar(0.0)
 
         # tag
-        self.fuel_type = None  # int, ID of primary fuel type
+        self.fuel_type: FuelTypeID | None = None
 
         # internal variables -----------------------------------------------------------
         self.expectation: VesselExpectation = VesselExpectation()
         self.profile: VesselProfile = VesselProfile()
 
         # convenience variables
-        self.usable_fuel_types = []  # list[FuelTypeID], usable fuel types, power system
-        self.usable_fuels = {}  # dict[Fuel], fuels usable in the vessel's power system
+        self.usable_fuel_types: list[FuelTypeID] = []
+        self.usable_fuels: dict[str, Fuel] = {}
 
         # cross-check variables
-        self.fleet_assignment = None  # name of fleet vessel is assigned to
+        self.fleet_assignment: str | None = None
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_propulsion_load(self, propulsion_load):
@@ -393,22 +395,7 @@ class Vessel(Node):
         )
 
     # internal methods -----------------------------------------------------------------
-    def initialize(self):
-
-        if self.propulsion_load is None:
-            self.propulsion_load = Scalar(0.0)
-
-        if self.electrical_load_at_sea is None:
-            self.electrical_load_at_sea = Scalar(0.0)
-
-        if self.electrical_load_in_port is None:
-            self.electrical_load_in_port = Scalar(0.0)
-
-        if self.heat_load_at_sea is None:
-            self.heat_load_at_sea = Scalar(0.0)
-
-        if self.heat_load_in_port is None:
-            self.heat_load_in_port = Scalar(0.0)
+    def check_requirements(self) -> None:
 
         if self.power_system is None:
             no_value_assigned_error(self, "PowerSystem")
@@ -421,21 +408,6 @@ class Vessel(Node):
 
         if self.nominal_capacity is None:
             no_value_assigned_error(self, "NominalCapacity")
-
-        if self.lifetime is None:
-            self.lifetime = Scalar(25)
-
-        if self.lead_time is None:
-            self.lead_time = Scalar(0)
-
-        if self.capex is None:
-            self.capex = Scalar(0)
-
-        if self.opex is None:
-            self.opex = Scalar(0)
-
-        if self.cost_of_capital is None:
-            self.cost_of_capital = Scalar(0)
 
     def initialize_expectation(self, length: int, fuels: dict[str, Fuel]) -> None:
         self.expectation.initialize(length, self.route, fuels)
