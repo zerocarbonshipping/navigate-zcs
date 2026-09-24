@@ -6,7 +6,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from navigate.core.profiles._base_profile import _BaseProfile
-from navigate.util import multiply_dicts
+from navigate.exceptions import no_value_assigned_error
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fuel import Fuel
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 class _FuelBaseProfile(_BaseProfile):
     """Base class used exclusively for sub-classing."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
         # constants
@@ -34,9 +34,17 @@ class _FuelBaseProfile(_BaseProfile):
             All fuels in the simulation.
         """
         for fuel_name, fuel in fuels.items():
-            self._lower_heating_value[fuel_name] = fuel.lower_heating_value.get()
+            if fuel.lower_heating_value is None:
+                no_value_assigned_error(fuel, "LowerHeatingValue")
+
+            # a heating value read without an input is one number, while the
+            # getter's return type also covers the array an array input produces
+            self._lower_heating_value[fuel_name] = float(fuel.lower_heating_value.get())
 
     def _fuel_mass_to_energy(
         self, mass: dict[str, FloatArray]
     ) -> dict[str, FloatArray]:
-        return multiply_dicts(mass, self._lower_heating_value)
+        return {
+            fuel_name: fuel_mass * self._lower_heating_value[fuel_name]
+            for fuel_name, fuel_mass in mass.items()
+        }

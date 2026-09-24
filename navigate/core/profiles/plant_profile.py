@@ -9,7 +9,6 @@ import numpy as np
 
 from navigate.core.initial_values import EMPTY_NAN
 from navigate.core.profiles._fuel_emission_profile import _FuelEmissionProfile
-from navigate.util import multiply_dicts
 
 if TYPE_CHECKING:
     from navigate.core.nodes.emission import Emission
@@ -77,7 +76,7 @@ class PlantProfile(_FuelEmissionProfile):
     def _intensity_equivalent(
         self, wtt: dict[str, FloatArray]
     ) -> dict[str, FloatArray]:
-        equivalent = multiply_dicts(wtt, self._global_warming_potential)
+        equivalent = self._equivalent_by_emission(wtt)
         return {
             emission_name: self._convert_to_intensity(
                 value, self._lower_heating_value[self._fuel_name]
@@ -114,7 +113,7 @@ class PlantProfile(_FuelEmissionProfile):
         return self._instantaneous_cost
 
     def get_equivalent_investment_wtt(self) -> dict[str, FloatArray]:
-        return multiply_dicts(self._investment_wtt, self._global_warming_potential)
+        return self._equivalent_by_emission(self._investment_wtt)
 
     def get_total_equivalent_investment_wtt(self) -> FloatArray:
         return self._sum_values(self.get_equivalent_investment_wtt())
@@ -126,7 +125,7 @@ class PlantProfile(_FuelEmissionProfile):
         return self._sum_values(self.get_intensity_equivalent_investment_wtt())
 
     def get_equivalent_instantaneous_wtt(self) -> dict[str, FloatArray]:
-        return multiply_dicts(self._instantaneous_wtt, self._global_warming_potential)
+        return self._equivalent_by_emission(self._instantaneous_wtt)
 
     def get_total_equivalent_instantaneous_wtt(self) -> FloatArray:
         return self._sum_values(self.get_equivalent_instantaneous_wtt())

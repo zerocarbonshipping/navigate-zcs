@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from navigate.core.nodes.fuel import Fuel
     from navigate.util.types_ import FloatArray
 
-from navigate.util import add_dicts, divide_nonzero, multiply_dicts
+from navigate.util import divide_nonzero
 
 
 class _FuelConsumerProfile(_FuelEmissionProfile, _FuelTypeLookup, abc.ABC):
@@ -253,7 +253,7 @@ class _FuelConsumerProfile(_FuelEmissionProfile, _FuelTypeLookup, abc.ABC):
 
     def _shore_power_equivalent(self) -> FloatArray:
         return self._sum_values(
-            multiply_dicts(self._shore_power_emission, self._global_warming_potential)
+            self._equivalent_by_emission(self._shore_power_emission)
         )
 
     def _converter_fuel_type_share(self, fuel_type: FuelTypeID) -> FloatArray:
@@ -459,7 +459,10 @@ class _FuelConsumerProfile(_FuelEmissionProfile, _FuelTypeLookup, abc.ABC):
         return dict(self._levy_expenses)
 
     def get_fuel_related_expenses(self) -> dict[str, FloatArray]:
-        return add_dicts(self._fuel_expenses, self._levy_expenses)
+        return {
+            fuel_name: expenses + self._levy_expenses[fuel_name]
+            for fuel_name, expenses in self._fuel_expenses.items()
+        }
 
     def get_remedial_expenses(self) -> FloatArray:
         return self._remedial_expenses
@@ -491,9 +494,7 @@ class _FuelConsumerProfile(_FuelEmissionProfile, _FuelTypeLookup, abc.ABC):
         return self._to_cumulative_dict(self._levy_expenses)
 
     def get_cumulative_fuel_related_expenses(self) -> dict[str, FloatArray]:
-        return self._to_cumulative_dict(
-            add_dicts(self._fuel_expenses, self._levy_expenses)
-        )
+        return self._to_cumulative_dict(self.get_fuel_related_expenses())
 
     def get_cumulative_remedial_expenses(self) -> FloatArray:
         return self._to_cumulative(self.get_remedial_expenses())
@@ -553,7 +554,9 @@ class _FuelConsumerProfile(_FuelEmissionProfile, _FuelTypeLookup, abc.ABC):
         return self._to_total_intensity(self.get_total_equivalent_ttw())
 
     def get_equivalent_wtw(self) -> dict[tuple[str, str], FloatArray]:
-        return self._equivalent(add_dicts(self._wtt, self._ttw))
+        return self._equivalent(
+            {key: wtt + self._ttw[key] for key, wtt in self._wtt.items()}
+        )
 
     def get_total_equivalent_wtw(self) -> FloatArray:
         # shore power emissions are a WTW lump with no (fuel, emission) attribution,
