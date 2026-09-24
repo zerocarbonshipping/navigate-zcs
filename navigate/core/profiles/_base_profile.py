@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""_BaseProfile, the timeline and the storage builders every profile inherits."""
+
 from __future__ import annotations
 
 import itertools
@@ -18,17 +20,15 @@ if TYPE_CHECKING:
 
 
 class _BaseProfile:
-    """Base class used exclusively for sub-classing."""
+    """Timeline-sized storage allocation and the aggregations every profile shares."""
 
-    def __init__(self):
-
+    def __init__(self) -> None:
         self._timeline: FloatArray = EMPTY_FLOAT
 
     def _initialize_base(self, timeline: FloatArray) -> None:
         self._timeline = timeline
 
     def _default_array(self, default: float | None = None) -> FloatArray:
-
         if default is None:
             return np.zeros(self._timeline.shape)
         else:

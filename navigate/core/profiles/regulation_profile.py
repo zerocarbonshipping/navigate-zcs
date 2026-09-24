@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""RegulationProfile, the output storage the Regulation node reports from."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -16,77 +18,46 @@ if TYPE_CHECKING:
 
 
 class RegulationProfile(_BaseProfile):
-    def __init__(self):
+    """Thresholds, compliance and the units traded under one regulation."""
+
+    def __init__(self) -> None:
         super().__init__()
 
-        # unit costs
-        self._remedial_cost: np.ndarray = (
-            EMPTY_NAN  # USD/ton, cost of a remedial compliance unit
-        )
-        self._flexibility_cost: np.ndarray = (
-            EMPTY_NAN  # USD/ton, cost of flexible/surplus compliance unit
-        )
+        # cost of one compliance unit, USD/ton
+        self._remedial_cost: FloatArray = EMPTY_NAN
+        self._flexibility_cost: FloatArray = EMPTY_NAN
 
-        # thresholds
-        self._vessel_threshold: dict[
-            str, np.ndarray
-        ] = {}  # individual vessel threshold in measure unit
-        self._shared_threshold: np.ndarray = (
-            EMPTY_NAN  # shared threshold in measure unit
-        )
+        # thresholds, in the measure unit of the regulation
+        self._vessel_threshold: dict[str, FloatArray] = {}
+        self._shared_threshold: FloatArray = EMPTY_NAN
 
-        # adjusted thresholds (from threshold adjustment when non-compliant)
-        self._adjusted_vessel_threshold: dict[
-            str, np.ndarray
-        ] = {}  # vessel adjusted threshold
-        self._adjusted_shared_threshold: np.ndarray = (
-            EMPTY_NAN  # shared adjusted threshold
-        )
+        # thresholds after adjustment for non-compliance, in the measure unit
+        self._adjusted_vessel_threshold: dict[str, FloatArray] = {}
+        self._adjusted_shared_threshold: FloatArray = EMPTY_NAN
 
-        # allowances
-        self._vessel_allowance: dict[
-            str, np.ndarray
-        ] = {}  # ton/year, individual vessel allowance
-        self._shared_allowance: np.ndarray = EMPTY_NAN  # ton/year, shared allowance
+        # allowances, ton/year
+        self._vessel_allowance: dict[str, FloatArray] = {}
+        self._shared_allowance: FloatArray = EMPTY_NAN
 
-        # compliance
-        self._vessel_compliance: dict[
-            str, np.ndarray
-        ] = {}  # individual vessel compliance in measure unit
-        self._shared_compliance: np.ndarray = (
-            EMPTY_NAN  # shared compliance in measure unit
-        )
-        self._vessel_units: dict[
-            str, np.ndarray
-        ] = {}  # ton/year, vessel compliance in absolute emissions
-        self._shared_units: np.ndarray = (
-            EMPTY_NAN  # ton/year, shared compliance in absolute emissions
-        )
+        # compliance, in the measure unit of the regulation
+        self._vessel_compliance: dict[str, FloatArray] = {}
+        self._shared_compliance: FloatArray = EMPTY_NAN
 
-        # traded units
-        self._surplus_units: np.ndarray = (
-            EMPTY_FLOAT  # surplus units generated, ton emissions/year
-        )
-        self._flexibility_units: np.ndarray = (
-            EMPTY_FLOAT  # flexibility units traded, ton emissions/year
-        )
-        self._remedial_units: np.ndarray = (
-            EMPTY_FLOAT  # remedial units sold, ton emissions/year
-        )
+        # compliance in absolute emissions, ton/year
+        self._vessel_units: dict[str, FloatArray] = {}
+        self._shared_units: FloatArray = EMPTY_NAN
 
-        # compliance expenses
-        self._surplus_revenue: np.ndarray = (
-            EMPTY_FLOAT  # total revenue from selling surplus units, USD/year
-        )
-        self._flexibility_expenses: np.ndarray = (
-            EMPTY_FLOAT  # total expenses from flexibility units, USD/year
-        )
-        self._remedial_expenses: np.ndarray = (
-            EMPTY_FLOAT  # total expenses from remedial units, USD/year
-        )
+        # traded units, ton emissions/year
+        self._surplus_units: FloatArray = EMPTY_FLOAT
+        self._flexibility_units: FloatArray = EMPTY_FLOAT
+        self._remedial_units: FloatArray = EMPTY_FLOAT
 
-    def initialize(self, timeline: np.ndarray, vessels: dict[str, Vessel]) -> None:
+        # compliance expenses, USD/year
+        self._surplus_revenue: FloatArray = EMPTY_FLOAT
+        self._flexibility_expenses: FloatArray = EMPTY_FLOAT
+        self._remedial_expenses: FloatArray = EMPTY_FLOAT
 
+    def initialize(self, timeline: FloatArray, vessels: dict[str, Vessel]) -> None:
         self._initialize_base(timeline)
 
         self._flexibility_cost = self._default_array(default=np.nan)

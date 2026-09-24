@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""LevyProfile, the output storage the Levy node reports its results from."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -15,12 +17,14 @@ if TYPE_CHECKING:
 
 
 class LevyProfile(_BaseProfile):
-    def __init__(self):
+    """Revenue one levy collected over the timeline."""
+
+    def __init__(self) -> None:
         super().__init__()
 
-        self._collected: np.ndarray = EMPTY_FLOAT
+        self._collected: FloatArray = EMPTY_FLOAT
 
-    def initialize(self, timeline: np.ndarray) -> None:
+    def initialize(self, timeline: FloatArray) -> None:
         self._initialize_base(timeline)
 
         self._collected = self._default_array()

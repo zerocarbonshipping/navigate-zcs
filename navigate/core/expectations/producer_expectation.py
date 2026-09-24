@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""The expectation of a Producer node, read across the fuel domain."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -15,45 +17,29 @@ if TYPE_CHECKING:
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.port import Port
     from navigate.core.nodes.process import Process
-    from navigate.util.types_ import FloatLike, Index
+    from navigate.util.types_ import FloatArray, FloatLike, Index
 
 
 class ProducerExpectation(_Expectation):
-    def __init__(self):
+    """Feedstock use, fair-share demand and production paths of a single producer."""
+
+    def __init__(self) -> None:
         super().__init__()
 
-        self._export_distribution: dict[
-            str, np.ndarray
-        ] = {}  # dict[port_name: np.ndarray], fraction of export going to a port
+        self._export_distribution: dict[str, FloatArray] = {}
 
-        self._plant_feed_consumption: dict[
-            tuple[str, str], float
-        ] = {}  # feed use, ton/year
-        self._existing_feed: dict[
-            str, float
-        ] = {}  # dict[feedstock_name: float], feedstock used by existing production
-        self._pipeline_feed: dict[
-            str, float
-        ] = {}  # dict[feedstock_name: float], feedstock that will be used by pipeline
-        self._feed_gap: dict[str, np.ndarray] = {}  # supply/demand gap for feedstock
+        self._plant_feed_consumption: dict[tuple[str, str], float] = {}
+        self._existing_feed: dict[str, float] = {}
+        self._pipeline_feed: dict[str, float] = {}
+        self._feed_gap: dict[str, FloatArray] = {}
 
-        self._development_potential: dict[
-            str, float
-        ] = {}  # current development potential, tons/year
+        self._development_potential: dict[str, float] = {}
 
-        self._fair_share_demand: dict[
-            str, np.ndarray
-        ] = {}  # fair-share of demand to satisfy, tons/year
+        self._fair_share_demand: dict[str, FloatArray] = {}
 
-        self._existing_production: dict[
-            str, np.ndarray
-        ] = {}  # dict[plant_name: np.ndarray], existing production, tons/year
-        self._pipeline_production: dict[
-            str, np.ndarray
-        ] = {}  # dict[plant_name: np.ndarray], pipeline production, tons/year
-        self._newbuild_production: dict[
-            str, np.ndarray
-        ] = {}  # dict[plant_name: np.ndarray], newbuild production, tons/year
+        self._existing_production: dict[str, FloatArray] = {}
+        self._pipeline_production: dict[str, FloatArray] = {}
+        self._newbuild_production: dict[str, FloatArray] = {}
 
     def initialize(
         self,
@@ -90,7 +76,7 @@ class ProducerExpectation(_Expectation):
         self._reset_dict_float(self._pipeline_feed)
 
     def set_export_distribution(
-        self, idx: int, port_name: str, export_distribution: np.ndarray
+        self, idx: int, port_name: str, export_distribution: FloatLike
     ) -> None:
         self._export_distribution[port_name][idx:] = export_distribution
 
@@ -100,7 +86,7 @@ class ProducerExpectation(_Expectation):
     def add_pipeline_feed(self, feed_name: str, pipeline_feed: float) -> None:
         self._pipeline_feed[feed_name] += pipeline_feed
 
-    def set_feed_gap(self, idx: int, feed_name: str, feed_gap: np.ndarray) -> None:
+    def set_feed_gap(self, idx: int, feed_name: str, feed_gap: FloatLike) -> None:
         self._feed_gap[feed_name][idx:] = feed_gap
 
     def set_plant_feed_consumption(
@@ -114,22 +100,22 @@ class ProducerExpectation(_Expectation):
         self._development_potential[fuel_name] = development_potential
 
     def set_fair_share_demand(
-        self, idx: int, fuel_name: str, fair_share_demand: np.ndarray
+        self, idx: int, fuel_name: str, fair_share_demand: FloatLike
     ) -> None:
         self._fair_share_demand[fuel_name][idx:] = fair_share_demand
 
     def set_existing_production(
-        self, idx: int, plant_name: str, production: np.ndarray
+        self, idx: int, plant_name: str, production: FloatLike
     ) -> None:
         self._existing_production[plant_name][idx:] = production
 
     def set_pipeline_production(
-        self, idx: int, plant_name: str, production: np.ndarray
+        self, idx: int, plant_name: str, production: FloatLike
     ) -> None:
         self._pipeline_production[plant_name][idx:] = production
 
     def set_newbuild_production(
-        self, idx: int, plant_name: str, production: np.ndarray
+        self, idx: int, plant_name: str, production: FloatLike
     ) -> None:
         self._newbuild_production[plant_name][idx:] = production
 
@@ -145,26 +131,26 @@ class ProducerExpectation(_Expectation):
     def get_pipeline_feed(self, feed_name: str) -> float:
         return self._pipeline_feed[feed_name]
 
-    def get_feed_gap(self, feed_name: str, idx: int | slice = np.s_[:]) -> np.ndarray:
+    def get_feed_gap(self, feed_name: str, idx: Index = np.s_[:]) -> FloatLike:
         return self._feed_gap[feed_name][idx]
 
     def get_development_potential(self, fuel_name: str) -> float:
         return self._development_potential[fuel_name]
 
-    def get_fair_share_demand(self) -> dict[str, np.ndarray]:
+    def get_fair_share_demand(self) -> dict[str, FloatArray]:
         return self._fair_share_demand
 
     def get_guaranteed_production(
-        self, plant_name: str, idx: int | slice = np.s_[:]
-    ) -> np.ndarray:
+        self, plant_name: str, idx: Index = np.s_[:]
+    ) -> FloatLike:
         return (
             self._existing_production[plant_name][idx]
             + self._pipeline_production[plant_name][idx]
         )
 
     def get_expected_production(
-        self, plant_name: str, idx: int | slice = np.s_[:]
-    ) -> np.ndarray:
+        self, plant_name: str, idx: Index = np.s_[:]
+    ) -> FloatLike:
         return (
             self._existing_production[plant_name][idx]
             + self._pipeline_production[plant_name][idx]

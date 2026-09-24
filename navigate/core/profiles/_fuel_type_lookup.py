@@ -25,7 +25,7 @@ class _FuelTypeLookup(_BaseProfile):
     def __init__(self) -> None:
         super().__init__()
 
-        self._fuel_type: dict[str, FuelTypeID] = {}  # fuel type of fuel
+        self._fuel_type: dict[str, FuelTypeID] = {}
 
     def _initialize_fuel_type(self, fuels: dict[str, Fuel]) -> None:
         """
@@ -33,7 +33,7 @@ class _FuelTypeLookup(_BaseProfile):
 
         Parameters
         ----------
-        fuels :
+        fuels
             All fuels in the simulation.
         """
         for fuel_name, fuel in fuels.items():

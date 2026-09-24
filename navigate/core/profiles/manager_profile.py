@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""ManagerProfile, the model-wide output storage the simulation manager fills."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -15,6 +17,8 @@ from navigate.core.profiles._plant_aggregate_profile import _PlantAggregateProfi
 from navigate.core.profiles._vessel_aggregate_profile import _VesselAggregateProfile
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.feedstock import Feedstock
     from navigate.core.nodes.fuel import Fuel
@@ -25,57 +29,42 @@ if TYPE_CHECKING:
 class ManagerProfile(
     _VesselAggregateProfile, _PlantAggregateProfile, _FuelInfrastructureProfile
 ):
-    def __init__(self):
+    """Totals over every vessel, plant and port, plus the timings of the run."""
+
+    def __init__(self) -> None:
         super().__init__()
 
-        # computational time
-        self._total_time: np.ndarray = EMPTY_FLOAT  # complete FT simulation time
-        self._expected_build_time: np.ndarray = (
-            EMPTY_FLOAT  # LP build time (part of FT)
-        )
-        self._expected_solve_time: np.ndarray = (
-            EMPTY_FLOAT  # LP solve time (part of FT)
-        )
-        self._expected_transfer_time: np.ndarray = (
-            EMPTY_FLOAT  # LP transfer time (part of FT)
-        )
-        self._speed_time: np.ndarray = EMPTY_FLOAT  # speed management time (part of FT)
-        self._retrofit_time: np.ndarray = EMPTY_FLOAT  # EE retrofit time (part of FT)
-        self._fleet_evolution_time: np.ndarray = (
-            EMPTY_FLOAT  # fleet evolution time (part of FT)
-        )
-        self._producer_evolution_time: np.ndarray = (
-            EMPTY_FLOAT  # producer evolution time (part of FT)
-        )
-        self._existing_build_time: np.ndarray = (
-            EMPTY_FLOAT  # LP model build time (part of FT)
-        )
-        self._existing_solve_time: np.ndarray = (
-            EMPTY_FLOAT  # LP model solve time (part of FT)
-        )
-        self._existing_transfer_time: np.ndarray = (
-            EMPTY_FLOAT  # LP transfer time (part of FT)
-        )
-        self._temporal_time: np.ndarray = EMPTY_FLOAT  # temporal + expectations
-        self._vessel_time: np.ndarray = EMPTY_FLOAT  # vessel ops + charter
-        self._fuel_supply_time: np.ndarray = EMPTY_FLOAT  # fuel supply chain
-        self._policy_time: np.ndarray = EMPTY_FLOAT  # policy + regulation
-        self._fleet_state_time: np.ndarray = EMPTY_FLOAT  # age + evolution + tech
-        self._profile_agg_time: np.ndarray = EMPTY_FLOAT  # profile aggregation
-        self._overhead_time: np.ndarray = EMPTY_FLOAT  # init overhead
+        # computational time in seconds; every entry below the total is part of it
+        self._total_time: FloatArray = EMPTY_FLOAT
+        self._expected_build_time: FloatArray = EMPTY_FLOAT
+        self._expected_solve_time: FloatArray = EMPTY_FLOAT
+        self._expected_transfer_time: FloatArray = EMPTY_FLOAT
+        self._speed_time: FloatArray = EMPTY_FLOAT
+        self._retrofit_time: FloatArray = EMPTY_FLOAT
+        self._fleet_evolution_time: FloatArray = EMPTY_FLOAT
+        self._producer_evolution_time: FloatArray = EMPTY_FLOAT
+        self._existing_build_time: FloatArray = EMPTY_FLOAT
+        self._existing_solve_time: FloatArray = EMPTY_FLOAT
+        self._existing_transfer_time: FloatArray = EMPTY_FLOAT
+        self._temporal_time: FloatArray = EMPTY_FLOAT
+        self._vessel_time: FloatArray = EMPTY_FLOAT
+        self._fuel_supply_time: FloatArray = EMPTY_FLOAT
+        self._policy_time: FloatArray = EMPTY_FLOAT
+        self._fleet_state_time: FloatArray = EMPTY_FLOAT
+        self._profile_agg_time: FloatArray = EMPTY_FLOAT
+        self._overhead_time: FloatArray = EMPTY_FLOAT
 
     def initialize(
         self,
-        timeline: np.ndarray,
+        timeline: FloatArray,
         emissions: dict[str, Emission],
         feedstocks: dict[str, Feedstock],
         fuels: dict[str, Fuel],
         processes: dict[str, Process],
         emissions_lifetime: float,
-        regulation_names: list[str] = (),
-        levy_names: list[str] = (),
+        regulation_names: Sequence[str] = (),
+        levy_names: Sequence[str] = (),
     ) -> None:
-
         self._initialize_base(timeline)
         self._initialize_fuel_base(fuels)
         self._initialize_fuel_type(fuels)

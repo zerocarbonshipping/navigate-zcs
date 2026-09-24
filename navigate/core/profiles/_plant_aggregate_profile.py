@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""The profile layer that sums plant capital over a producer or the model."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -15,13 +17,14 @@ if TYPE_CHECKING:
 
 
 class _PlantAggregateProfile(_FuelProducerProfile):
-    def __init__(self):
+    """Capital tied up in the plants aggregated into a producer or the manager."""
+
+    def __init__(self) -> None:
         super().__init__()
 
-        self._plant_tied_capital: np.ndarray = EMPTY_FLOAT
+        self._plant_tied_capital: FloatArray = EMPTY_FLOAT
 
     def _initialize_plant_aggregate(self) -> None:
-
         self._plant_tied_capital = self._default_array()
 
     def add_plant_aggregate_profile(
@@ -32,10 +35,10 @@ class _PlantAggregateProfile(_FuelProducerProfile):
 
         Parameters
         ----------
-        profile : _PlantAggregateProfile | ProducerProfile
-            Aggregate profile from other node.
-        idx : int
-            Time-step index.
+        profile
+            Plant aggregate profile from another node.
+        idx
+            Time-step index or slice.
         """
         self._plant_tied_capital[idx] += profile._plant_tied_capital[idx]
 

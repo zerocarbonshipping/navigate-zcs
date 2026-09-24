@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""The expectation of a Fleet node, read by the fuel domain and the bunkering LP."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -14,31 +16,24 @@ from navigate.util import slice_dict
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fuel import Fuel
+    from navigate.util.types_ import FloatArray, FloatLike, Index
 
 
 class FleetExpectation(_Expectation):
-    def __init__(self):
+    """Vessel multipliers, expected fuel demand and realized fuel-type totals."""
+
+    def __init__(self) -> None:
         super().__init__()
 
-        self._existing_multipliers: dict[
-            str, np.ndarray
-        ] = {}  # dict[vessel_name: np.ndarray], number of existing vessels
-        self._newbuild_multipliers: dict[
-            str, np.ndarray
-        ] = {}  # dict[vessel_name: np.ndarray], number of newbuild vessels
+        self._existing_multipliers: dict[str, FloatArray] = {}
+        self._newbuild_multipliers: dict[str, FloatArray] = {}
 
-        self._fuel_demand: dict[
-            str, np.ndarray
-        ] = {}  # dict[fuel_name: np.ndarray], expected future fuel demand
+        self._fuel_demand: dict[str, FloatArray] = {}
 
-        self._fuel_type_demand: dict[
-            FuelTypeID, float
-        ] = {}  # realized demand of the last completed time-step
-        self._fuel_type_supply: dict[
-            FuelTypeID, float
-        ] = {}  # realized fair-share supply of the last completed time-step
+        self._fuel_type_demand: dict[FuelTypeID, float] = {}
+        self._fuel_type_supply: dict[FuelTypeID, float] = {}
 
-        self._uptakes: np.ndarray = EMPTY_FLOAT
+        self._uptakes: FloatArray = EMPTY_FLOAT
 
     def initialize(
         self, length: int, vessel_names: list[str], fuels: dict[str, Fuel]
@@ -60,12 +55,12 @@ class FleetExpectation(_Expectation):
         self._reset_dict_float(self._fuel_type_supply)
 
     def set_existing_multipliers(
-        self, idx: int, vessel_name: str, multipliers: np.ndarray
+        self, idx: int, vessel_name: str, multipliers: FloatLike
     ) -> None:
         self._existing_multipliers[vessel_name][idx:] = multipliers
 
     def set_newbuild_multipliers(
-        self, idx: int, vessel_name: str, multipliers: np.ndarray
+        self, idx: int, vessel_name: str, multipliers: FloatLike
     ) -> None:
         self._newbuild_multipliers[vessel_name][idx:] = multipliers
 
@@ -78,23 +73,23 @@ class FleetExpectation(_Expectation):
     def add_fuel_type_supply(self, fuel_type: FuelTypeID, supply: float) -> None:
         self._fuel_type_supply[fuel_type] += supply
 
-    def set_uptakes(self, idx: int, uptakes: np.ndarray) -> None:
+    def set_uptakes(self, idx: int, uptakes: FloatArray) -> None:
         self._uptakes[:, idx] = uptakes
 
     def get_existing_multipliers(
-        self, vessel_name: str, idx: int | slice = np.s_[:]
-    ) -> np.ndarray:
+        self, vessel_name: str, idx: Index = np.s_[:]
+    ) -> FloatLike:
         return self._existing_multipliers[vessel_name][idx]
 
     def get_expected_multipliers(
-        self, vessel_name: str, idx: int | slice = np.s_[:]
-    ) -> np.ndarray:
+        self, vessel_name: str, idx: Index = np.s_[:]
+    ) -> FloatLike:
         return (
             self._existing_multipliers[vessel_name][idx]
             + self._newbuild_multipliers[vessel_name][idx]
         )
 
-    def get_fuel_demand(self, idx: int | slice = np.s_[:]) -> dict[str, np.ndarray]:
+    def get_fuel_demand(self, idx: Index = np.s_[:]) -> dict[str, FloatLike]:
         return slice_dict(self._fuel_demand, idx)
 
     def get_fuel_type_demand(self, fuel_type: FuelTypeID) -> float:
@@ -103,5 +98,5 @@ class FleetExpectation(_Expectation):
     def get_fuel_type_supply(self, fuel_type: FuelTypeID) -> float:
         return self._fuel_type_supply[fuel_type]
 
-    def get_uptakes(self, idx: int) -> np.ndarray:
+    def get_uptakes(self, idx: int) -> FloatArray:
         return self._uptakes[:, : (idx + 1)]
