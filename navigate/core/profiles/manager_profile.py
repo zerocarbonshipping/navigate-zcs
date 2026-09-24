@@ -26,9 +26,7 @@ class ManagerProfile(
     _VesselAggregateProfile, _PlantAggregateProfile, _FuelInfrastructureProfile
 ):
     def __init__(self):
-        _VesselAggregateProfile.__init__(self)
-        _PlantAggregateProfile.__init__(self)
-        _FuelInfrastructureProfile.__init__(self)
+        super().__init__()
 
         # computational time
         self._total_time: np.ndarray = EMPTY_FLOAT  # complete FT simulation time
