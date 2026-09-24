@@ -33,7 +33,6 @@ from navigate.core.expectations import FleetExpectation
 from navigate.core.node_type import CURVE, FLEET, FORECAST, TECHNOLOGY, VARIABLE, VESSEL
 from navigate.core.nodes._asset_manager import _AssetManager
 from navigate.core.nodes.forecast import Forecast
-from navigate.core.nodes.variable import Variable
 from navigate.core.profiles import FleetProfile
 from navigate.exceptions import no_value_assigned_error
 from navigate.util import is_non_strictly_increasing
@@ -45,14 +44,12 @@ if TYPE_CHECKING:
     from navigate.core.nodes.curve import Curve
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
+    from navigate.core.nodes.input_kinds import ForecastInput
     from navigate.core.nodes.technology import Technology
+    from navigate.core.nodes.variable import Variable
     from navigate.fleet.package import Package
 
 logger = logging.getLogger(__name__)
-
-# Type helpers
-type ScalarLike = Scalar | Forecast | Variable | None
-type InputScalarLike = Scalar | Forecast | Variable
 
 
 class Fleet(_AssetManager):
@@ -60,28 +57,30 @@ class Fleet(_AssetManager):
         super().__init__(name, FLEET)
 
         # external variables -----------------------------------------------------------
-        self.trade_growth: ScalarLike = None  # Trade-growth of the fleet
-        self.fixed_scrap_rate: ScalarLike = (
+        self.trade_growth: ForecastInput | None = None  # Trade-growth of the fleet
+        self.fixed_scrap_rate: ForecastInput | None = (
             None  # Fixed scrap rate to replace age based
         )
         self.allow_secondary_scrapping: bool = (
             True  # Whether to allow secondary scrapping
         )
-        self.intra_fuel_sensitivity: ScalarLike = (
+        self.intra_fuel_sensitivity: ForecastInput | None = (
             None  # Odds ratio for within-fuel tech choice (LCOT)
         )
-        self.inter_fuel_sensitivity: ScalarLike = (
+        self.inter_fuel_sensitivity: ForecastInput | None = (
             None  # Odds ratio for fuel-type choice (LCOT)
         )
-        self.fuel_conversion_sensitivity: ScalarLike = (
+        self.fuel_conversion_sensitivity: ForecastInput | None = (
             None  # Odds ratio for fuel conversion (NPV)
         )
-        self.memory: ScalarLike = None  # Weight of historic uptake distributions used
+        self.memory: ForecastInput | None = (
+            None  # Weight of historic uptake distributions used
+        )
         self.initial_vessels: Scalar | Variable | None = (
             None  # Initial number of vessels
         )
         self.allow_speed_management: bool = False  # Whether to perform speed management
-        self.maximum_speed_change: ScalarLike = (
+        self.maximum_speed_change: ForecastInput | None = (
             None  # Maximum change in speed per year, knots/year
         )
         self.speed_alignment: SpeedAlignmentID = (
@@ -90,19 +89,19 @@ class Fleet(_AssetManager):
         self.assume_reference_speed_optimal: bool = (
             False  # Whether to anchor speed changes to reference
         )
-        self.retrofit_frequency: ScalarLike = (
+        self.retrofit_frequency: ForecastInput | None = (
             None  # Frequency at which retrofit can be done
         )
-        self.technology_sensitivity: ScalarLike = (
+        self.technology_sensitivity: ForecastInput | None = (
             None  # Odds ratio for technology packages (NPV)
         )
-        self.technology_cost_of_capital: ScalarLike = (
+        self.technology_cost_of_capital: ForecastInput | None = (
             None  # Cost of capital for technology
         )
-        self.technology_horizon: ScalarLike = (
+        self.technology_horizon: ForecastInput | None = (
             None  # Belief horizon for tech decisions, years
         )
-        self.speed_horizon: ScalarLike = (
+        self.speed_horizon: ForecastInput | None = (
             None  # Belief horizon for speed management, years
         )
         self.fuel_conversion_minimum_age: Scalar | None = (
@@ -117,26 +116,26 @@ class Fleet(_AssetManager):
         ] = {}  # (vessel, tech) -> Curve
         self.orderbooks: list[Forecast] = []  # Cumulative vessels by date
         self.technologies: list[Technology] = []  # Energy efficiency technologies
-        self.operational_saving_sea: dict[EnergyDemandTypeID, InputScalarLike] = {
+        self.operational_saving_sea: dict[EnergyDemandTypeID, ForecastInput] = {
             d: Scalar(0) for d in EnergyDemandTypeID
         }
-        self.operational_saving_port: dict[EnergyDemandTypeID, InputScalarLike] = {
+        self.operational_saving_port: dict[EnergyDemandTypeID, ForecastInput] = {
             d: Scalar(0) for d in EnergyDemandTypePortID
         }
         self.fuel_conversion_cost: dict[
-            tuple[str, str], float | Forecast | None
+            tuple[str, str], ForecastInput | None
         ] = {}  # Fuel conversion costs
         self.fuel_conversion_limit: dict[
-            tuple[str, str], InputScalarLike | None
+            tuple[str, str], ForecastInput | None
         ] = {}  # Per-pair conversion cap
         self.newbuild_limit: dict[
-            str, InputScalarLike | None
+            str, ForecastInput | None
         ] = {}  # Per-vessel newbuild share cap
         self.newbuild_technology_limit: dict[
-            str, InputScalarLike | None
+            str, ForecastInput | None
         ] = {}  # Per-tech newbuild install cap
         self.retrofit_technology_limit: dict[
-            str, InputScalarLike | None
+            str, ForecastInput | None
         ] = {}  # Per-tech retrofit cap
         self.allow_vessel: dict[str, bool | None] = {}  # Whether a vessel is allowed
         self.newbuild_available: dict[
