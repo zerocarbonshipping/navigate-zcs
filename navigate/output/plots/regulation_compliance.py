@@ -200,7 +200,6 @@ def plot_regulation_compliance(manager, directory):
                 leg_labels = [*labels, "Threshold"]
 
             ax.set_xlim([dateline[0], dateline[-1]])
-            # ax.set_ylim([0., None])
 
             if len(thresholds) > 1:
                 ax.set_title(name)  # TODO: add back if multiple global regulations

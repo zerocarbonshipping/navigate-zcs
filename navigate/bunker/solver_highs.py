@@ -77,8 +77,8 @@ class LinExpr:
     __hash__ = None  # unhashable, like gurobipy LinExpr
 
     def __init__(self, coefficients=None, variables=None):
-        # _terms: list of (coefficient, Var)
-        # _constant: float
+        # _terms holds a list of (coefficient, Var) pairs
+        # _constant is a float accumulator
         if coefficients is not None and variables is not None:
             self._terms = list(zip(coefficients, variables, strict=True))
             self._constant = 0.0
@@ -580,7 +580,7 @@ class Model:
                 row_set.discard(col)
 
     # ----------------------------------------------------------------------------------
-    # Removal (neutralization)
+    # Removal by neutralization
     # ----------------------------------------------------------------------------------
     def remove(self, item):
         """

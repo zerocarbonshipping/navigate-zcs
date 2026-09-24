@@ -38,6 +38,7 @@ extend-select = [
     "D417",   # every argument appears in a Parameters section that exists
     "DOC102", # every documented parameter exists in the signature
     "DOC202", # no Returns section on a function that returns nothing
+    "ERA001", # no commented-out code
     "G001",   # no str.format in logging calls - pass lazy % arguments
     "G004",   # no f-strings in logging calls - pass lazy % arguments
 ]

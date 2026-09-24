@@ -277,8 +277,8 @@ def calculate_modelled_newbuilds(
     trade_gap -= np.dot(inertia_increments, cargo_miles)
 
     # convert remaining count cap to a fraction-of-trade-gap (cm) bound for the modelled
-    # DCM: cap_share[v] = cap_count_subset[v] · cargo_miles[v] / trade_gap, clamped to
-    # [0, 1]
+    # DCM: each vessel's cap share is cap_count_subset · cargo_miles / trade_gap,
+    # clamped to [0, 1]
     if trade_gap > TOLERANCE:
         cap_share = np.minimum(cap_count_subset * cargo_miles / trade_gap, 1.0)
     else:

@@ -27,20 +27,20 @@ if TYPE_CHECKING:
 # expression arm before it ever compares the value against 'type_', so a
 # setter that accepts a value at all accepts an expression of it.
 
-# type_=VARIABLE
+# setters passing type_ VARIABLE
 type ScalarInput = Scalar | Variable | Expression
 
-# type_=(FORECAST, VARIABLE)
+# setters passing type_ FORECAST or VARIABLE
 type ForecastInput = Scalar | Forecast | Variable | Expression
 
-# type_=(CURVE, VARIABLE)
+# setters passing type_ CURVE or VARIABLE
 type CurveInput = Scalar | Curve | Variable | Expression
 
-# type_=(CURVE, SURFACE, VARIABLE)
+# setters passing type_ CURVE, SURFACE, or VARIABLE
 type SurfaceInput = Scalar | Curve | Surface | Variable | Expression
 
-# type_=(FORECAST, TIMETABLE, VARIABLE)
+# setters passing type_ FORECAST, TIMETABLE, or VARIABLE
 type TimetableInput = Scalar | Forecast | Timetable | Variable | Expression
 
-# type_=VARIABLE, where the setter stores the number it was handed unwrapped
+# setters passing type_ VARIABLE, storing the number handed to them unwrapped
 type NumberInput = float | Expression
