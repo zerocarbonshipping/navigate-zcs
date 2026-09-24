@@ -1,12 +1,16 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Node, the base class of every DSL node the parser builds from a deck."""
+
 from __future__ import annotations
 
 from navigate.core.node_type import TypeCheckMixin
 
 
 class Node(TypeCheckMixin):
+    """Base class of the DSL nodes: a name, a type tag and a command queue."""
+
     def __init__(self, name: str, type_: str) -> None:
         super().__init__(type_)
 
@@ -20,10 +24,19 @@ class Node(TypeCheckMixin):
         return f'{self.type}("{self.name}")'
 
     def add_command_reference(self, command_reference):
+        """
+        Queue a command reference for the parser to execute.
+
+        Parameters
+        ----------
+        command_reference
+            The reference to queue.
+        """
         self.command_references.append(command_reference)
 
     def clear_command_references(self):
+        """Empty the command-reference queue."""
         self.command_references = []
 
     def initialize(self):
-        pass
+        """Bring the node to a usable state, from the deck as first read."""
