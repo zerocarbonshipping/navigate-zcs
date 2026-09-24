@@ -5,13 +5,12 @@ SPDX-License-Identifier: CC-BY-4.0
 
 # Code Style
 
-<!-- >>> shared code style (managed block, identical across zerocarbonshipping repositories - do not edit here) >>> -->
 This document carries the conventions the tooling cannot check. Everything
-mechanical lives in the lint and type-check configuration (`ruff-shared.toml`,
-`.ruff.toml`, `mypy.ini`); formatting and layout within statements are owned by
-`ruff format` and are not discussed here. The configuration is the arbiter:
-files listed in its generated ratchet regions predate the tooling — clean them
-whole-file in style-only commits, and never add new entries.
+mechanical lives in the lint and type-check configuration (`.ruff.toml` and
+`mypy.ini`); formatting and layout within statements are owned by `ruff format`
+and are not discussed here. The configuration is the arbiter: files listed in
+its generated ratchet regions predate the tooling — clean them whole-file in
+style-only commits, and never add new entries.
 
 ## Naming
 
@@ -120,7 +119,6 @@ The formatter owns spacing within statements; blank lines are yours:
 - `isinstance` and dynamic attribute access (`hasattr`/`getattr`/`setattr`)
   belong to the boundary modules enumerated in the repository-specific section;
   elsewhere they signal a design problem to fix, not to suppress.
-<!-- <<< shared code style <<< -->
 
 ## Navigate-specific conventions
 
