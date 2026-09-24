@@ -72,6 +72,11 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   **Breaking** for code importing navigate as a library: `assign_value` and
   `assign_list` no longer accept a `WildcardNodeReference`; the parser
   expands the glob into the matched nodes first. No result moves.
+- A `Fuel` whose `LowerHeatingValue` or `MassDensity` is missing is now
+  reported as the unassigned attribute it is (`Attribute 'LowerHeatingValue'
+  is unassigned.`), as every other required node attribute is; the
+  greater-than-zero bound is reported separately and only when a value was
+  actually assigned.
 - Internal reorganization (no DSL or result changes): the five profiles that
   weigh emissions by global warming potential (vessel, fleet, manager, port
   and plant) share one `_FuelEmissionProfile` layer that reads the emission

@@ -13,6 +13,7 @@ from navigate.core import (
     command_assignment_to_boolean_dict,
     command_assignment_to_dict,
     command_assignment_to_tuple_dict,
+    default_unassigned,
 )
 from navigate.core.expectations import PortExpectation
 from navigate.core.node import Node
@@ -25,34 +26,33 @@ if TYPE_CHECKING:
 
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
+    from navigate.core.nodes.input_kinds import ForecastInput
 
 logger = logging.getLogger(__name__)
 
 
 class Port(Node):
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         super().__init__(name, PORT)
 
         # external variables -----------------------------------------------------------
         # bunkering
-        self.bunkering_allowed = {}  # dict[bool], whether bunkering is allowed
-        self.bunkering_limit = {}  # dict[float], max bunkering achievable, ton/year
-        self.bunkering_inertia = {}  # dict[float], bunkering fraction due next year
+        self.bunkering_allowed: dict[str, bool | None] = {}
+        self.bunkering_limit: dict[str, ForecastInput | None] = {}
+        self.bunkering_inertia: dict[str, ForecastInput | None] = {}
 
         # fuel handling
-        self.handling_cost = {}  # dict[float], storage/bunkering service cost, USD/ton
+        self.handling_cost: dict[str, ForecastInput | None] = {}
 
         # bunker overwrite
-        self.liquid_market_fuel = {}  # dict[bool], fuel belongs to a liquid market
-        self.bunker_price_overwrite = {}  # dict[float], manual bunker price, USD/ton
-        self.bunker_wtt_overwrite = {}  # dict[float], manual bunker WTT, USD/ton
+        self.liquid_market_fuel: dict[str, bool] = {}
+        self.bunker_price_overwrite: dict[str, ForecastInput | None] = {}
+        self.bunker_wtt_overwrite: dict[tuple[str, str], ForecastInput | None] = {}
 
         # shore power
-        self.shore_power_cost: Scalar | None = (
-            None  # USD/GJ (stored internally, input in USD/MWh)
-        )
-        self.shore_power_connection_share: Scalar | None = None  # fraction [0,1]
-        self.shore_power_emission_factor = {}  # dict[emission: Scalar], stored ton/GJ
+        self.shore_power_cost: ForecastInput = Scalar(0.0)
+        self.shore_power_connection_share: ForecastInput = Scalar(0.0)
+        self.shore_power_emission_factor: dict[str, ForecastInput | None] = {}
 
         # internal variables -----------------------------------------------------------
         self.expectation: PortExpectation = PortExpectation()
@@ -272,20 +272,15 @@ class Port(Node):
         )
 
     # internal methods -----------------------------------------------------------------
-    def initialize(self):
+    def apply_command_defaults(self) -> None:
+        default_unassigned(self.bunkering_allowed, True)
+        default_unassigned(self.bunkering_inertia, Scalar(0.0))
+        default_unassigned(self.handling_cost, Scalar(0.0))
+        default_unassigned(self.shore_power_emission_factor, Scalar(0.0))
 
-        for fuel_name, allowed in self.bunkering_allowed.items():
-            if allowed is None:
-                self.bunkering_allowed[fuel_name] = True
-
-        for fuel_name, inertia in self.bunkering_inertia.items():
-            if inertia is None:
-                self.bunkering_inertia[fuel_name] = Scalar(0.0)
-
-        for fuel_name, cost in self.handling_cost.items():
-            if cost is None:
-                self.handling_cost[fuel_name] = Scalar(0.0)
-
+        # a liquid-market fuel has no bottom-up production chain to price it, so its
+        # entry is filled; any other fuel keeps None, which is what selects the
+        # bottom-up calculation
         for fuel_name, price in self.bunker_price_overwrite.items():
             if (price is None) and self.liquid_market_fuel[fuel_name]:
                 self.bunker_price_overwrite[fuel_name] = Scalar(0.0)
@@ -293,17 +288,6 @@ class Port(Node):
         for (fuel_name, emission_name), wtt in self.bunker_wtt_overwrite.items():
             if (wtt is None) and self.liquid_market_fuel[fuel_name]:
                 self.bunker_wtt_overwrite[(fuel_name, emission_name)] = Scalar(0.0)
-
-        # shore power defaults
-        if self.shore_power_cost is None:
-            self.shore_power_cost = Scalar(0.0)
-
-        if self.shore_power_connection_share is None:
-            self.shore_power_connection_share = Scalar(0.0)
-
-        for emission_name, factor in self.shore_power_emission_factor.items():
-            if factor is None:
-                self.shore_power_emission_factor[emission_name] = Scalar(0.0)
 
     def initialize_dependencies(self, emissions, fuels):
         """
