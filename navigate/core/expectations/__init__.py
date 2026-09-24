@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Per-node containers for the dynamic state that crosses module boundaries."""
+
 from __future__ import annotations
 
 from navigate.core.expectations.fleet_expectation import FleetExpectation

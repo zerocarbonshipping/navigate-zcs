@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""The expectation of a Regulation node, read by the bunkering LP and policy layer."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -11,22 +13,28 @@ from navigate.core.initial_values import EMPTY_FLOAT
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
-    import numpy as np
-
     from navigate.core.nodes.vessel import Vessel
-    from navigate.util.types_ import FloatArray
+    from navigate.util.types_ import FloatArray, FloatLike
 
 
 class RegulationExpectation(_PolicyExpectation):
-    def __init__(self):
+    """Compliance costs of a regulation and the capacity each vessel is measured on."""
+
+    def __init__(self) -> None:
         super().__init__()
 
-        self._flexibility_cost: np.ndarray = EMPTY_FLOAT
-        self._belief_flexibility_cost: np.ndarray = EMPTY_FLOAT
-        self._vessel_net_flexibility_units: dict[str, np.ndarray] = {}
-        self._remedial_cost: np.ndarray = EMPTY_FLOAT
+        self._flexibility_cost: FloatArray = EMPTY_FLOAT  # USD/ton emission
+        self._belief_flexibility_cost: FloatArray = (
+            EMPTY_FLOAT  # smoothed flexibility cost belief, USD/ton emission
+        )
+        self._vessel_net_flexibility_units: dict[
+            str, FloatArray
+        ] = {}  # deficit less surplus compliance units per vessel, ton emission
+        self._remedial_cost: FloatArray = EMPTY_FLOAT  # USD/ton emission
 
-        self._vessel_capacity: dict[str, np.ndarray] = {}
+        self._vessel_capacity: dict[
+            str, FloatArray
+        ] = {}  # capacity behind the transport compliance measure, tons
 
     def initialize(
         self, length: int, emission_names: Iterable[str], vessels: dict[str, Vessel]
@@ -55,25 +63,27 @@ class RegulationExpectation(_PolicyExpectation):
     ) -> None:
         self._vessel_net_flexibility_units[vessel_name][idx] = units
 
-    def set_remedial_cost(self, idx: int, cost: np.ndarray) -> None:
+    def set_remedial_cost(self, idx: int, cost: FloatLike) -> None:
         self._remedial_cost[idx:] = cost
 
     def set_vessel_capacity(
-        self, idx: int, vessel_name: str, capacity: np.ndarray
+        self, idx: int, vessel_name: str, capacity: FloatLike
     ) -> None:
         self._vessel_capacity[vessel_name][idx:] = capacity
 
     def get_flexibility_cost(self) -> FloatArray:
         return self._flexibility_cost
 
-    def get_belief_flexibility_cost(self) -> np.ndarray:
+    def get_belief_flexibility_cost(self) -> FloatArray:
         return self._belief_flexibility_cost
 
-    def get_vessel_net_flexibility_units(self, vessel_name: str) -> np.ndarray:
+    def get_vessel_net_flexibility_units(self, vessel_name: str) -> FloatArray:
         return self._vessel_net_flexibility_units[vessel_name]
 
-    def get_remedial_cost(self, idx: int) -> np.ndarray:
-        return self._remedial_cost[idx]
+    def get_remedial_cost(self, idx: int) -> float:
+        cost: float = self._remedial_cost[idx]
+        return cost
 
-    def get_vessel_capacity(self, vessel_name: str, idx: int) -> np.ndarray:
-        return self._vessel_capacity[vessel_name][idx]
+    def get_vessel_capacity(self, vessel_name: str, idx: int) -> float:
+        capacity: float = self._vessel_capacity[vessel_name][idx]
+        return capacity
