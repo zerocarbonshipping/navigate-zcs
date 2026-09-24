@@ -55,7 +55,7 @@ def _accumulate_weighted_cost(
 
         total_production = production[i] * inc.multiplier
         interval = calculate_increment_production_interval(
-            total_production, delivery, decommission, inc.dt * YEAR, times
+            total_production, delivery, decommission, inc.age_span * YEAR, times
         )
 
         cost[p, :] += interval * expectation.get_levelized_production_cost(origins[i])
@@ -81,14 +81,14 @@ def perform_decommissioning(producer: Producer) -> None:
         # remove all increments past their lifetime
         producer.increments[a] = [inc for inc in incs if inc.age < lifetime]
 
-        # partially decommission increments whose dt spans the lifetime boundary
+        # partially decommission increments whose age_span spans the lifetime boundary
         for inc in producer.increments[a]:
-            if inc.age + inc.dt > lifetime:
-                alpha = (lifetime - inc.age) / inc.dt
+            if inc.age + inc.age_span > lifetime:
+                alpha = (lifetime - inc.age) / inc.age_span
                 decommissioning = inc.multiplier * (1.0 - alpha)
 
                 inc.multiplier -= decommissioning
-                inc.dt = lifetime - inc.age
+                inc.age_span = lifetime - inc.age
 
 
 def calculate_evolution_expectation(producer: Producer, timeline, idx):
@@ -399,7 +399,9 @@ def perform_pipeline_delivery(producer: Producer) -> None:
                 # fully delivered: age already represents
                 # time since delivery, no sign-flipping needed
                 incs.append(
-                    Increment(increment, pinc_i.age, pinc_i.dt, decided=pinc_i.decided)
+                    Increment(
+                        increment, pinc_i.age, pinc_i.age_span, decided=pinc_i.decided
+                    )
                 )
 
                 last_idx = i
@@ -410,11 +412,11 @@ def perform_pipeline_delivery(producer: Producer) -> None:
                 # has crossed zero (based on an assumption
                 # of plants entering uniformly over
                 # a time-step)
-                if pinc_i.age + pinc_i.dt > 0.0:
-                    alpha = -pinc_i.age / pinc_i.dt
+                if pinc_i.age + pinc_i.age_span > 0.0:
+                    alpha = -pinc_i.age / pinc_i.age_span
                     remaining = increment * alpha
                     delivered = increment - remaining
-                    delivered_dt = pinc_i.age + pinc_i.dt
+                    delivered_dt = pinc_i.age + pinc_i.age_span
 
                     # add a new increment for the delivered
                     # portion. 'decided' is kept consistent
@@ -428,7 +430,7 @@ def perform_pipeline_delivery(producer: Producer) -> None:
                     # the time-step to maintain the assumption
                     # of uniformity
                     pinc_i.multiplier = remaining
-                    pinc_i.dt = -pinc_i.age
+                    pinc_i.age_span = -pinc_i.age
 
         # remove the delivered increments from the pipeline
         if last_idx is not None:
@@ -507,7 +509,7 @@ def calculate_feed_availability(producer: Producer, timeline, idx) -> None:
         for i in range(start, continued.size):
             increment_i = multipliers[i]
             age_i = ages[i]
-            dt_i = incs[i].dt
+            dt_i = incs[i].age_span
 
             if age_i + dt_i > (lifetime - lead_time):
                 alpha = ((lifetime - lead_time) - age_i) / dt_i
@@ -662,7 +664,7 @@ def define_existing_pipeline(producer: Producer, timeline: np.ndarray) -> None:
 
         # pipeline uses negative ages (not yet delivered)
         producer.pipeline[p] = [
-            Increment(multiplier=m, age=-d, dt=t, decided=lead_time - d)
+            Increment(multiplier=m, age=-d, age_span=t, decided=lead_time - d)
             for m, d, t in zip(
                 incremental_plants, incremental_delivery, incremental_dt, strict=True
             )

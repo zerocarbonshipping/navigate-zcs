@@ -132,7 +132,7 @@ def perform_age_based_scrapping(fleet: Fleet, idx: int):
         # vessels entering uniformly over a time-step)
         if incs and incs[0].baseline is not None:
             age_i = incs[0].age
-            dt_i = incs[0].dt
+            dt_i = incs[0].age_span
 
             if age_i + dt_i > lifetime:
                 alpha = (lifetime - age_i) / dt_i
@@ -272,7 +272,7 @@ def perform_fixed_trade_scrapping(fleet: Fleet, trade_gap: float, idx: int):
             for v, ii in group:
                 # extract necessary parameters
                 age = fleet.increments[v][ii].age
-                dt = fleet.increments[v][ii].dt
+                dt = fleet.increments[v][ii].age_span
 
                 to_scrap = fleet.increments[v][ii].multiplier * scrap_fraction
                 fleet.increments[v][ii].multiplier -= to_scrap
@@ -341,16 +341,16 @@ def clean_up_multipliers(fleet: Fleet):
                 continue
 
             age_i = incs[i].age
-            dt_i = incs[i].dt
+            dt_i = incs[i].age_span
 
-            # find other increments with matching age and dt
+            # find other increments with matching age and age_span
             matching = [
                 j
                 for j in range(n)
                 if j != i
                 and available[j]
                 and incs[j].age == age_i
-                and incs[j].dt == dt_i
+                and incs[j].age_span == dt_i
             ]
 
             if matching:

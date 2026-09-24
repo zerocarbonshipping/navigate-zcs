@@ -57,7 +57,7 @@ class _ConversionProposal:
     name_from: str
     increment_idx: int
     age: float
-    dt: float
+    age_span: float
     candidates: dict[str, _ConversionCandidate]  # keyed by destination vessel-type name
 
 
@@ -196,7 +196,7 @@ def propose_fuel_conversions(
             ):
                 continue
 
-            avg_age = round(increment.age + increment.dt / 2.0, ROUND_OFF)
+            avg_age = round(increment.age + increment.age_span / 2.0, ROUND_OFF)
             if avg_age < minimum_age:
                 continue
 
@@ -225,7 +225,11 @@ def propose_fuel_conversions(
 
             proposals.append(
                 _ConversionProposal(
-                    source.name, increment_idx, increment.age, increment.dt, candidates
+                    source.name,
+                    increment_idx,
+                    increment.age,
+                    increment.age_span,
+                    candidates,
                 )
             )
 
@@ -633,7 +637,7 @@ def _apply_to_side(
                 increment_from,
                 candidate.count,
                 proposal.age,
-                proposal.dt,
+                proposal.age_span,
             )
 
 

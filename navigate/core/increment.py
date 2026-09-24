@@ -23,7 +23,7 @@ class Increment:
         Number of assets in the cohort.
     age
         Age of the cohort in years, negative while it is still undelivered.
-    dt
+    age_span
         Width in years of the age bin the cohort spans.
     decided
         Years since the cohort was decided, None until it is assigned.
@@ -37,7 +37,7 @@ class Increment:
 
     multiplier: float  # number of assets in the cohort
     age: float  # age of the cohort, years
-    dt: float  # width of the age bin the cohort spans, years
+    age_span: float  # width of the age bin the cohort spans, years
     decided: float | None = None  # years since the cohort was decided
     package_uptake: FloatArray | None = None  # cohort share per package, fleet only
     baseline: float | None = None  # reference multiplier for scrapping, fleet only

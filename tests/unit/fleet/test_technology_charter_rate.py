@@ -164,7 +164,10 @@ class TestCalculatePackageCharterRates:
 class TestApplyRetrofits:
     def test_moved_share_accumulates_annuity(self):
         increment = Increment(
-            multiplier=10.0, age=5.0, dt=1.0, package_uptake=np.array([1.0, 0.0, 0.0])
+            multiplier=10.0,
+            age=5.0,
+            age_span=1.0,
+            package_uptake=np.array([1.0, 0.0, 0.0]),
         )
 
         choices = np.array([0.5, 0.3, 0.2])
@@ -182,7 +185,7 @@ class TestApplyRetrofits:
         increment = Increment(
             multiplier=10.0,
             age=5.0,
-            dt=1.0,
+            age_span=1.0,
             package_uptake=np.array([0.4, 0.6]),
             technology_charter_rate=3.0,
         )
@@ -265,7 +268,7 @@ class TestConversionCarriesCharterRate:
                 "a",
                 0,
                 age=5.0,
-                dt=1.0,
+                age_span=1.0,
                 candidates={
                     "b": _ConversionCandidate(
                         metric=0.0,

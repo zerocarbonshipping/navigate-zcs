@@ -107,7 +107,7 @@ class _AssetManager(Node):
         """
         Define the age distribution of the existing assets.
 
-        Creates empty Increment lists with ages and dt populated.
+        Creates empty Increment lists with ages and age_span populated.
         """
         assets = self.assets
 
@@ -136,7 +136,9 @@ class _AssetManager(Node):
 
                 for i in range(ages.size):
                     increments.append(
-                        Increment(multiplier=0.0, age=float(ages[i]), dt=float(dts[i]))
+                        Increment(
+                            multiplier=0.0, age=float(ages[i]), age_span=float(dts[i])
+                        )
                     )
 
             self.increments.append(increments)
