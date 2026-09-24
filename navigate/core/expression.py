@@ -7,7 +7,7 @@ Define restricted arithmetic expressions for deck attributes and commands.
 They are written using the deck's ``<...>`` syntax. Expression bodies are parsed
 with the standard library ``ast`` module into a small internal tree that only
 supports numeric literals, the operators ``+ - * / **``, and node-reference calls
-such as ``Forecast("name")`` — they are never passed to ``eval()`` and cannot execute
+such as ``Forecast("name")`` - they are never passed to ``eval()`` and cannot execute
 arbitrary code.
 """
 
@@ -88,7 +88,6 @@ class _Constant:
     """Numeric literal."""
 
     def __init__(self, value: float) -> None:
-
         self.value: float = value  # the numeric literal
 
     def evaluate(
@@ -101,7 +100,6 @@ class _Reference:
     """Reference to a node, evaluated through the node's getter."""
 
     def __init__(self, index: int) -> None:
-
         self.index: int = index  # position in the expression's references
 
     def evaluate(
@@ -114,7 +112,6 @@ class _UnaryOperation:
     """Operator applied to a single operand."""
 
     def __init__(self, operator_: _UnaryOperator, operand: _Evaluable) -> None:
-
         self.operator: _UnaryOperator = operator_  # the arithmetic operation
         self.operand: _Evaluable = operand  # subtree the operator is applied to
 
@@ -130,7 +127,6 @@ class _BinaryOperation:
     def __init__(
         self, operator_: _BinaryOperator, left: _Evaluable, right: _Evaluable
     ) -> None:
-
         self.operator: _BinaryOperator = operator_  # the arithmetic operation
         self.left: _Evaluable = left  # subtree on the left of the operator
         self.right: _Evaluable = right  # subtree on the right of the operator
@@ -158,7 +154,6 @@ class _Builder:
     """
 
     def __init__(self, text: str, owner: Node | None) -> None:
-
         self._text: str = text  # expression body, as written in the deck
         self._owner: Node | None = owner  # node the expression is assigned to
         self.reference_strings: list[str] = []  # references, in order of appearance
@@ -174,8 +169,8 @@ class _Builder:
         """
         try:
             tree = ast.parse(self._text, mode="eval")
-        except SyntaxError as e:
-            raise self._error(f"{e.msg}.") from None
+        except SyntaxError as error:
+            raise self._error(f"{error.msg}.") from None
 
         return self._build(tree.body), self.reference_strings
 
@@ -276,11 +271,9 @@ class Expression:
     """
 
     def __init__(self, text: str) -> None:
-
         self.text: str = text  # expression body, as written in the deck
         self.reference_strings: list[str] = []  # references, in order of appearance
-        # the resolved references, one per reference string and in that order
-        self.node_references: _References = []
+        self.node_references: _References = []  # resolved references, in that order
         self.reference_location: str = ""  # deck file and line it is read from
         self.internal_bounds: tuple[float, float] = (-np.inf, np.inf)  # clip range
 
@@ -329,7 +322,8 @@ class Expression:
         evaluated = self._tree.evaluate(self.node_references, x, y)
         value = np.clip(evaluated, *self.internal_bounds)
 
-        # resize to same shape as the input
+        # a float result is broadcast so an expression over scalars answers
+        # an array input the way one over arrays does
         if isinstance(value, float):
             if isinstance(x, np.ndarray):
                 return np.full_like(x, value)
@@ -366,7 +360,14 @@ class Expression:
         self.internal_bounds = (lower, upper)
 
     def is_initialized(self) -> bool:
-        """Check whether the expression text has been parsed."""
+        """
+        Check whether the expression text has been parsed.
+
+        Returns
+        -------
+        bool
+            True once the text has been built into an evaluator tree.
+        """
         return not isinstance(self._tree, _Unparsed)
 
     def check_consistency(self) -> None:
