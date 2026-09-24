@@ -117,8 +117,8 @@ class Nodes:
 
         Yields
         ------
-        Iterable[Node]
-            The nodes of every group.
+        Node
+            Each node of every group, in turn.
         """
         for group in self._all_groups():
             yield from group.values()
@@ -129,8 +129,8 @@ class Nodes:
 
         Yields
         ------
-        Iterable[str]
-            The names of the nodes of every group.
+        str
+            The name of each node of every group, in turn.
         """
         for group in self._all_groups():
             yield from group.keys()

@@ -90,8 +90,9 @@ class _Table1D(_Calculator):
 
         Returns
         -------
-        bool
-            Interpolated or exact 'x' value corresponding to the given 'y'.
+        float | np.ndarray | None
+            Interpolated or exact 'x' value corresponding to the given 'y', or
+            `None` when the table is not strictly increasing.
         """
         yp = self.calculate(self.x)
 

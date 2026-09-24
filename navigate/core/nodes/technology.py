@@ -115,7 +115,19 @@ class Technology(_Machinery):
     def set_power_transfer(
         self, power_system_id: str, energy_id: str, transfer: Variable | Curve
     ):
+        """
+        Set the power transfer from one energy demand type to another.
 
+        Parameters
+        ----------
+        power_system_id
+            Energy demand type supplying the transferred power.
+        energy_id
+            Energy demand type receiving the transferred power.
+        transfer
+            Power transferred between the two demand types, in MW; as a Curve,
+            a function of the source system's converter load.
+        """
         power_system_id_ = assign_id(power_system_id, EnergyDemandTypeID)
         energy_id_ = assign_id(energy_id, EnergyDemandTypeID)
 
