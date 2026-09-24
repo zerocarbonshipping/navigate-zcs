@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import abc
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -19,7 +20,7 @@ if TYPE_CHECKING:
 from navigate.util import add_dicts, divide_nonzero, multiply_dicts
 
 
-class _FuelConsumerProfile(_FuelEmissionProfile):
+class _FuelConsumerProfile(_FuelEmissionProfile, abc.ABC):
     """Base class used exclusively for sub-classing."""
 
     def __init__(self):
@@ -394,6 +395,10 @@ class _FuelConsumerProfile(_FuelEmissionProfile):
         return {
             demand_type: self._saving(demand_type) for demand_type in self._energy_sea
         }
+
+    @abc.abstractmethod
+    def get_baseline_energy(self) -> FloatArray:
+        """Counterfactual energy demand the intensity savings are measured against."""
 
     def get_speed_energy_intensity_saving(self) -> FloatArray:
         return 1.0 - divide_nonzero(
