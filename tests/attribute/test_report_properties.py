@@ -17,37 +17,12 @@ decks.
 
 from __future__ import annotations
 
-import inspect
 import re
 
 import pytest
 
+from helpers.report_properties import PROFILE_CLASSES, getter_for, is_argument_free
 from helpers.simulation import REPO_ROOT
-from navigate.core.profiles import (
-    FleetProfile,
-    LevyProfile,
-    ManagerProfile,
-    PlantProfile,
-    PortProfile,
-    ProducerProfile,
-    RegulationProfile,
-    VesselProfile,
-)
-from navigate.parser._commands import _REPORT_COMMANDS
-from navigate.util import attribute_to_setter
-
-PROFILE_CLASSES = {
-    "add_property": ManagerProfile,
-    "add_fleet_property": FleetProfile,
-    "add_levy_property": LevyProfile,
-    "add_plant_property": PlantProfile,
-    "add_port_property": PortProfile,
-    "add_producer_property": ProducerProfile,
-    "add_regulation_property": RegulationProfile,
-    "add_vessel_property": VesselProfile,
-}
-
-assert set(PROFILE_CLASSES) == set(_REPORT_COMMANDS)
 
 _PROPERTY_CALL = re.compile(
     r'\b({})\(\s*(?:"[^"]*"\s*,\s*)?([A-Za-z][A-Za-z0-9]*)'.format(
@@ -79,17 +54,14 @@ def _deck_properties():
 @pytest.mark.parametrize(("command", "token"), _deck_properties())
 def test_deck_report_properties_resolve(command, token):
     profile_class = PROFILE_CLASSES[command]
-    getter_name = attribute_to_setter(token, method="get")
+    getter_name = getter_for(token)
 
     assert hasattr(profile_class, getter_name), (
         f"'{token}' does not resolve: {profile_class.__name__} has no getter "
         f"'{getter_name}'"
     )
 
-    parameters = list(
-        inspect.signature(getattr(profile_class, getter_name)).parameters
-    )[1:]
-    assert not parameters, (
-        f"'{token}' resolves to {profile_class.__name__}.{getter_name}, "
-        f"which the report writer cannot call without arguments"
+    assert is_argument_free(getattr(profile_class, getter_name)), (
+        f"'{token}' resolves to {profile_class.__name__}.{getter_name}, which the "
+        f"report writer cannot call without arguments"
     )

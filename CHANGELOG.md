@@ -12,6 +12,12 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ### Added
+- An attribute-suite check that every registered DSL attribute and command has a
+  heading on its node's reference-manual page, that every heading there names a
+  registered one, and that the report-property appendix and the profile getters
+  cover each other in both directions. The manual is hand-written with no
+  autodoc, so its drift from the parser tables and from what a report can
+  actually extract was previously found by readers rather than by CI.
 - A golden-baseline regression suite (`tests/regression`, `make
   test-regression`, run in CI): small pinned-constant decks whose report CSV
   output is compared against committed baselines within a documented
@@ -59,6 +65,14 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   construction, typed as the scalar, curve, variable or expression a deck can
   assign, and `Emission.initialize` is gone; `Scalar.get` is typed with
   paired overloads (an array in returns an array, anything else a `float`).
+- **Breaking** for code importing navigate as a library: `expand_id_wildcard`'s
+  second parameter is named `domain` and takes an enum class or a tuple of its
+  members.
+- `make` runs its targets through a local `.venv` when one exists and only
+  otherwise through the `nav` conda env, so a git worktree runs its own
+  source tree instead of the checkout the conda env's editable install
+  points at. The `PATH` it builds is quoted, so the `.venv` path also works
+  on WSL where Windows entries with spaces are inherited.
 - **Breaking** for code importing navigate as a library: `assign_fraction_list`
   returns the rescaled fractions instead of also rescaling the list it was
   handed, and its second return value is named for the rescale it reports.
@@ -774,6 +788,82 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   nodes. No deck result moves.
 
 ### Fixed
+- The reference manual documents the DSL surface the parser accepts. Twelve
+  registered names had no entry — `Table` on `Curve`, `Forecast`, `Surface` and
+  `Timetable`, `FuelType` on `Emission`, `ShorePowerCost` and
+  `ShorePowerConnectionShare` on `Port`, `FlexibilityHorizon` and
+  `AllowThresholdAdjustment` on `Regulation`,
+  `set_shore_power_emission_factor` on `Port`, `set_export_distribution` on
+  `Producer`, and `add_producer_property` on `Report` — and five entries named
+  attributes no node has: `WindUtilization` and `SolarUtilization` on `Port`,
+  which the page also used in its example, and
+  `FlexibilityMaximumIterations`, `FlexibilityToleranceX` and
+  `FlexibilityToleranceY` on `BunkerOptions`.
+- The report-property appendix of the reference manual documents the properties
+  a report can carry. Thirty-four documented tokens resolved to no profile
+  getter, and seventy-six resolvable properties, over forty-six distinct tokens,
+  had no row under a command that exposes them. The twenty-two `*Demand*` rows
+  are gone: a fuel consumer stores its demand as dicts keyed by energy demand
+  type, which `RawEnergy*`, `OperationalEnergy*` and `Energy*` export as one
+  column per type. `PropulsionSaving`, `ElectricalSaving` and `HeatSaving` are
+  gone with no replacement — they name a getter the report writer cannot call.
+  `CumulativeScrappedPopwer`, `VesselTreshold`, `ConverterFuelEnergy`,
+  `DevelopmentConstraint`, `CumulativeDevelopmentConstraint`, `OtherTime`,
+  `IntendedUnits` and `AchievedUnits` are spelled `CumulativeScrappedPower`,
+  `VesselThreshold`, `ConverterEnergy`, `MaximumDevelopment`,
+  `CumulativeMaximumDevelopment`, `OverheadTime`, `SharedAllowance` and
+  `SharedUnits`, and `EvolutionTime` splits into `FleetEvolutionTime` and
+  `ProducerEvolutionTime`. The appendix gains the rows it was missing, among
+  them the per-phase timers, `CargoMiles`, `BaselineEnergy`,
+  `WeightedAverageAge`, the speed extremes, `BunkeringAllowed`, the plant
+  intensity costs and the regulation allowance and unit properties.
+- `set_bunkering_cost` is no longer accepted on a `Port`. The command was
+  registered but implemented nowhere, so a deck writing it passed the parser's
+  allow-list and then died with an `AttributeError`; it is now rejected at its
+  deck line like any other unknown command. Use `set_handling_cost` for the
+  cost of bunkering a fuel in a port.
+- A value the model rejects — an attribute's or a command's — prints the
+  located one-line error and exits 1, as a deck naming an attribute no node
+  has already did. The sentence was the same, but arrived as the last line of
+  a Python traceback.
+- A non-number in an `InitialSplit` or `ConditionDistribution` list is
+  rejected against its deck line, naming the kind that was written, as
+  `only allows assignment of plain numbers, but got Curve("c")`. The
+  entries were checked for a negative sign before their kind, so
+  anything that does not compare against a number escaped as an
+  unlocated `TypeError`.
+- A boolean or an ID attribute reports whatever kind of value a deck wrote
+  against its own line: `Active = [1.0]` reads as `only allows assignment of
+  TRUE or FALSE, but got list`, `FuelType = [1.0]` as `only allows assignment
+  of IDs, but got list`, and `FuelTypes = [1.0]` — a list-valued ID attribute
+  such as a `Tank`'s or a `Converter`'s — as the same sentence for the element
+  at fault. Each of the three died as a `TypeError` that no deck line could be
+  attached to. The `does not accept ID 'X'` message an unknown token produces
+  is unchanged.
+- A whole-number fraction list is accepted whatever it sums to. Only a list
+  the rescale happened to divide reached the attribute as fractions, so
+  `Route.set_condition_distribution([1])` — the single-leg value its docstring
+  and the Route reference page give as the example — along with `[1, 0]`,
+  `[0, 0]` and, `bool` subclassing `int`, `[True, False]`, failed as
+  `only allows assignment of scalars, but got integer`, a rule the attribute
+  does not have, while `[1, 1]` passed. The same held for
+  `Fleet.set_initial_split`. Only a Python caller could reach this, and no
+  deck moves: the DSL grammar reads every number as a float, so the example
+  written in a deck has always arrived as `[1.0]`.
+- `set_operational_saving_port` names the energy demands it accepts whenever
+  it rejects one: both `PROPULSION`, a member the attribute does not hold, and
+  an unknown token such as `BOGUS` now read `only allows assignment of
+  ELECTRICAL, HEAT, but got X`, the same two demands the wildcard spelling
+  names. `PROPULSION` read as `attempts to reference non-existing name(s)
+  'PROPULSION'`, the sentence written for a reference to a node that no deck
+  declares, and `BOGUS` as `does not accept ID 'BOGUS'`. This is the one
+  command whose unknown-token message differs from its siblings', which name
+  no set and still read `does not accept ID 'X'`.
+- `set_operational_saving_port(*, 0.1)` sets the energy demands a vessel has
+  in port, `ELECTRICAL` and `HEAT`. The wildcard previously expanded over
+  every `EnergyDemandTypeID` member and so also reached `PROPULSION`, which
+  the attribute does not hold, failing the command with the message written
+  for a reference to a node that no deck declares.
 - The error for a node found in neither the deck nor the default library
   names the deck line and include file of the reference; it opened with a
   bare colon before.

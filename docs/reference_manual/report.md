@@ -107,6 +107,16 @@ The parameters are:
 * Attribute: All allowed attributes are listed in the [Report Properties](#appendix---report-node-properties) section.
 * Reduce: Reduction axis; see [ReportReduceID](appendix_ids.md#reportreduceid). Default: None (no reduction).
 
+### add\_producer\_property
+
+This command adds a specified property of a producer to the report.
+
+The parameters are:
+
+* Key: Producer name
+* Attribute: All allowed attributes are listed in the [Report Properties](#appendix---report-node-properties) section.
+* Reduce: Reduction axis; see [ReportReduceID](appendix_ids.md#reportreduceid). Default: None (no reduction).
+
 ## Appendix - Report Node Properties
 
 The properties are applicable for the following commands:
@@ -117,33 +127,23 @@ The properties are applicable for the following commands:
 
 | **Property name**                     | **Unit**                    | **Description**                                                                              |
 |---------------------------------------|-----------------------------|----------------------------------------------------------------------------------------------|
-| RawPropulsionDemandSea                | GJ/year                     | The energy demand for propulsion when at sea excluding technologies.                         |
-| RawElectricalDemandSea                | GJ/year                     | The energy demand for electricity when at sea excluding technologies.                        |
-| RawHeatDemandSea                      | GJ/year                     | The energy demand for heat when at sea excluding technologies.                               |
-| RawElectricalDemandPort               | GJ/year                     | The energy demand for electricity when in port excluding technologies.                       |
-| RawHeatDemandPort                     | GJ/year                     | The energy demand for heat when in port excluding technologies.                              |
-| RawPropulsionDemand                   | GJ/year                     | The energy demand for propulsion excluding technologies.                                     |
-| RawElectricalDemand                   | GJ/year                     | The energy demand for electricity excluding technologies.                                    |
-| RawHeatDemand                         | GJ/year                     | The energy demand for heat excluding technologies.                                           |
-| RawDemandSea                          | GJ/year                     | The energy demand for everything at sea excluding technologies.                              |
-| RawDemandPort                         | GJ/year                     | The energy demand for everything in port excluding technologies.                             |
-| RawDemand                             | GJ/year                     | The total energy demand excluding technologies.                                              |
-| PropulsionDemandSea                   | GJ/year                     | The energy demand for propulsion when at sea.                                                |
-| ElectricalDemandSea                   | GJ/year                     | The energy demand for electricity when at sea.                                               |
-| HeatDemandSea                         | GJ/year                     | The energy demand for heat when at sea.                                                      |
-| ElectricalDemandPort                  | GJ/year                     | The energy demand for electricity when in port.                                              |
-| HeatDemandPort                        | GJ/year                     | The energy demand for heat when in port.                                                     |
-| PropulsionDemand                      | GJ/year                     | The energy demand for propulsion.                                                            |
-| ElectricalDemand                      | GJ/year                     | The energy demand for electrical.                                                            |
-| HeatDemand                            | GJ/year                     | The energy demand for heat.                                                                  |
-| DemandSea                             | GJ/year                     | The energy demand at sea.                                                                    |
-| DemandPort                            | GJ/year                     | The energy demand in port.                                                                   |
-| Demand                                | GJ/year                     | The energy demand.                                                                           |
+| RawEnergySea                          | GJ/year                     | The energy demand at sea before operational measures and technologies, one column per energy demand type. |
+| RawEnergyPort                         | GJ/year                     | The energy demand in port before operational measures and technologies, one column per energy demand type in port (electrical and heat). |
+| RawEnergy                             | GJ/year                     | The total energy demand at sea and in port before operational measures and technologies.     |
+| OperationalEnergySea                  | GJ/year                     | The energy demand at sea after operational measures and before technologies, one column per energy demand type. |
+| OperationalEnergyPort                 | GJ/year                     | The energy demand in port after operational measures and before technologies, one column per energy demand type in port (electrical and heat). |
+| OperationalEnergy                     | GJ/year                     | The total energy demand at sea and in port after operational measures and before technologies. |
+| EnergySea                             | GJ/year                     | The energy demand at sea after operational measures and technologies, one column per energy demand type. |
+| EnergyPort                            | GJ/year                     | The energy demand in port after operational measures and technologies, one column per energy demand type in port (electrical and heat). |
+| Energy                                | GJ/year                     | The total energy demand at sea and in port after operational measures and technologies.      |
+| TotalEnergyPort                       | GJ/year                     | The total energy demand in port across demand types.                                         |
+| Saving                                | GJ/GJ                       | Relative reduction of the energy demand from operational measures and technologies, one column per energy demand type. |
+| BaselineEnergy                        | GJ/year                     | The year-0 raw energy intensity applied to the transport work actually performed.            |
 | ConsumedEnergy                        | GJ/year                     | Fuel consumed in energy for all fuels.                                                       |
 | FuelTypeEnergy                        | GJ/year                     | Fuel consumed in energy, aggregated by fuel type.                                            |
 | TotalConsumedEnergy                   | GJ/year                     | Total consumed energy across all fuels plus shore power.                                     |
 | ShorePowerEnergy                      | GJ/year                     | Shore power energy supplied.                                                                 |
-| ConverterFuelEnergy                   | GJ/year                     | Fuel consumed in energy in vessels of a fuel type across fuels per fuel type.                |
+| ConverterEnergy                       | GJ/year                     | Fuel consumed in energy in vessels of a fuel type across fuels per fuel type.                |
 | PilotFuelShare                        | Ton/ton                     | The fraction of total fuel spent which is pilot fuel for each vessel fuel type.              |
 | EquivalentWtt                         | Ton CO<sub>2</sub>-eq./year | Emitted well-to-tank emissions per fuel and emission.                                        |
 | TotalEquivalentWtt                    | Ton CO<sub>2</sub>-eq./year | Total emitted well-to-tank emissions.                                                        |
@@ -164,6 +164,8 @@ The properties are applicable for the following commands:
 | IntensityTotalEquivalentTtw           | Kg CO<sub>2</sub>-eq./GJ    | Total emitted tank-to-wake emissions per total consumed energy (including shore power).      |
 | IntensityEquivalentWtw                | Kg CO<sub>2</sub>-eq./GJ    | Emitted well-to-wake emissions per fuel and emission, per total consumed energy (including shore power). |
 | IntensityTotalEquivalentWtw           | Kg CO<sub>2</sub>-eq./GJ    | Total emitted well-to-wake emissions across all fuels plus shore power, per total consumed energy (including shore power). |
+| LevyUnits                             | Ton                         | Emission units charged by a levy, one column per levy.                                       |
+| RemedialUnits                         | Ton                         | Remedial compliance units required, one column per regulation.                               |
 |  FuelExpenses                         | USD/year                    | Fuel expenses per fuel.                                                                      |
 | LevyExpenses                          | USD/year                    | Levy expenses per fuel.                                                                      |
 | FuelRelatedExpenses                   | USD/year                    | Fuel related expenses (fuel and levy) per fuel.                                              |
@@ -220,9 +222,6 @@ The properties are applicable for the following commands:
 
 | **Property name**                     | **Unit** | **Description**                                                        |
 |---------------------------------------|----------|------------------------------------------------------------------------|
-| PropulsionSaving                      | GJ/GJ    | Relative reduction of propulsion energy demand.                        |
-| ElectricalSaving                      | GJ/GJ    | Relative reduction of electrical energy demand.                        |
-| HeatSaving                            | GJ/GJ    | Relative reduction of heat energy demand.                              |
 | SpeedEnergyIntensitySaving            | GJ/GJ    | Relative reduction of energy intensity from speed changes, against the year-0 raw intensity performing the actual transport work. |
 | OperationalEnergyIntensitySaving      | GJ/GJ    | Relative reduction of energy intensity from speed and operational measures, against the year-0 raw intensity performing the actual transport work. |
 | TechnologyEnergyIntensitySaving       | GJ/GJ    | Relative reduction of energy from added technologies.                  |
@@ -232,8 +231,9 @@ The properties are applicable for the following commands:
 | ScrappedPower                         | MW/year  | Installed power scrapped per fuel type.                                |
 | FuelConvertedPower                    | MW/year  | Installed power fuel converted per fuel type to fuel type.             |
 | CumulativeNewbuildPower               | MW       | Cumulative installed power for newbuilds per fuel type.                |
-| CumulativeScrappedPopwer              | MW       | Cumulative installed power scrapped per fuel type.                     |
+| CumulativeScrappedPower               | MW      | Cumulative installed power scrapped per fuel type.                     |
 | CumulativeFuelConvertedPower          | MW       | Cumulative installed power fuel converted per fuel type to fuel type.  |
+| WeightedAverageAge                    | Year     | Power-weighted average age of the vessels in the fleet per fuel type.  |
 | VesselExpenses                        | USD/year | Running expenses of acquisition of all vessels.                        |
 | TechnologyExpenses                    | USD/year | Running levelized expenses of all installed technologies.              |
 | FuelConversionExpenses                | USD/year | Running expenses of all fuel conversions.                              |
@@ -259,11 +259,18 @@ The properties are applicable for the following commands:
 | ExpectedTransferTime | Second | The transfer time for the results of the expected future bunker decisions.         |
 | SpeedTime            | Second | The time spent running the speed management algorithm.                             |
 | RetrofitTime         | Second | The time spent running the technology retrofit algorithm                           |
-| EvolutionTime        | Second | The time spent calculating the evolution of the producer and fleet nodes.          |
+| FleetEvolutionTime   | Second | The time spent calculating the evolution of the fleet nodes.                       |
+| ProducerEvolutionTime | Second | The time spent calculating the evolution of the producer nodes.                    |
 | ExistingBuildTime    | Second | The LP build time for the existing bunker decision.                                |
 | ExistingSolveTime    | Second | The LP solve time for the existing bunker decision.                                |
 | ExistingTransferTime | Second | The transfer time for the results of the existing bunker decision.                 |
-| OtherTime            | Second | The time spent on other relevant calculations such as calculation of expectations. |
+| TemporalTime         | Second | The time spent assigning the temporal calculators and precalculating expectations. |
+| VesselTime           | Second | The time spent on the operational profiles and charter properties of the vessels.  |
+| FuelSupplyTime       | Second | The time spent on the production, logistics and port import properties of the fuels. |
+| PolicyTime           | Second | The time spent on the policy emission coefficients and the fair share fuel supply. |
+| FleetStateTime       | Second | The time spent updating increment ages, fleet evolution expectations and the missing technology approximation. |
+| ProfileAggTime       | Second | The time spent aggregating the profiles of the fleet, port, producer, regulation and vessel nodes. |
+| OverheadTime         | Second | The time spent initializing the existing fleet and production, and updating the investment signal beliefs. |
 
 The properties are applicable for the following commands:
 
@@ -272,17 +279,23 @@ The properties are applicable for the following commands:
 | **Property name**                  | **Unit**          | **Description**                                                                                 |
 |------------------------------------|-------------------|-------------------------------------------------------------------------------------------------|
 | Trade                              | Cargo-miles/year  | Trade satisfied.                                                                                |
+| CargoMiles                         | Cargo-miles/year  | Transport work performed.                                                                       |
 | ExistingVessels                    | # of vessels      | Number of existing vessels per vessel.                                                          |
 | Scrap                              | # of vessels/year | Number of vessels scrapped (primary and secondary) per vessel.                                  |
 | Newbuilds                          | # of vessels/year | Number of newbuild vessels per vessel.                                                          |
 | FuelConversions                    | # of vessels/year | Number of vessels fuel converted per vessel to vessel.                                          |
 | TechnologyUptake                   | Fraction of fleet | Fraction of vessels with the technology installed per vessel and technology.                    |
+| FleetTechnologyUptake              | Fraction of fleet | Fraction of vessels with the technology installed, weighted by the existing vessel count, per technology. |
 | NewbuildTechnologyUptake           | Fraction of fleet | Fraction of newbuild vessels with the technology installed per vessel and technology.           |
 | RetrofitTechnologyUptake           | Fraction of fleet | Fraction of vessels retrofitted with the technology per vessel and technology.                  |
 | ReferenceSpeed                     | Knots             | The average reference (speed defined in Route) speed across all vessels.                        |
 | MinimumSpeed                       | Knots             | The average minimum speed attainable across all vessels.                                        |
 | MaximumSpeed                       | Knots             | The average maximum speed attainable across all vessels.                                        |
 | ActualSpeed                        | Knots             | The average speed across all vessels.                                                           |
+| OptimalSpeed                       | Knots             | The average optimal speed across all vessels.                                                   |
+| LowestSpeed                        | Knots             | The lowest actual speed across all vessels.                                                     |
+| HighestSpeed                       | Knots             | The highest actual speed across all vessels.                                                    |
+| InstantaneousFreightRate           | USD/cargo-nautical mile | Charter cost of the fleet per cargo-mile delivered, includes fuel and technology expenses.      |
 
 
 The properties are applicable for the following commands:
@@ -291,9 +304,9 @@ The properties are applicable for the following commands:
 
 | **Property name**               | **Unit**         | **Description**                                                                  |
 |---------------------------------|------------------|----------------------------------------------------------------------------------|
-| DevelopmentConstraint           | # of plants/year | Number of plants that can be added to the pipeline across all plants.            |
+| MaximumDevelopment              | # of plants/year | Number of plants that can be added to the pipeline across all plants.            |
 | Development                     | # of plants/year | Number of plants added to the pipeline across all plants.                        |
-| CumulativeDevelopmentConstraint | # of plants      | Cumulative number of plants that can be added to the pipeline across all plants. |
+| CumulativeMaximumDevelopment    | # of plants      | Cumulative number of plants that can be added to the pipeline across all plants. |
 | CumulativeDevelopment           | # of plants      | Cumulative number of plants added to the pipeline across all plants.             |
 | FairShareFuelFraction           | Fraction         | Fraction of fuel demand allocated to the producer to supply.                     |
 
@@ -304,10 +317,16 @@ The properties are applicable for the following commands:
 | **Property name**       | **Unit**                  | **Description**                                                           |
 |-------------------------|---------------------------|---------------------------------------------------------------------------|
 | Lifetime                | Year                      | Lifetime of the vessel.                                                   |
+| LeadTime                | Year                      | Lead time of the vessel, used only in its levelized cost.                 |
+| CargoMiles              | Cargo-miles/year          | Transport work performed.                                                 |
 | ReferenceSpeed          | Knots                     | Average reference speed (speed defined in Route) of the vessel.           |
 | MinimumSpeed            | Knots                     | Average minimum speed attainable.                                         |
 | MaximumSpeed            | Knots                     | Average maximum speed attainable.                                         |
 | ActualSpeed             | Knots                     | Average actual speed.                                                     |
+| OptimalSpeed            | Knots                     | Average optimal speed.                                                    |
+| LowestSpeed             | Knots                     | Lowest actual speed.                                                      |
+| HighestSpeed            | Knots                     | Highest actual speed.                                                     |
+| SpeedEnergySaving       | GJ/GJ                     | Relative reduction of all energy demand due to speed changes.             |
 | OperationalEnergySaving | GJ/GJ                     | Relative reduction of all energy demand due to operational changes.       |
 | TechnologyEnergySaving  | GJ/GJ                     | Relative reduction of all energy demand from added technologies.          |
 | EnergySaving            | GJ/GJ                     | Relative reduction of all energy from operational and technology changes. |
@@ -320,6 +339,8 @@ The properties are applicable for the following commands:
 | TechnologyCost          | USD/year                  | Fleet-average levelized cost of installed technologies.                   |
 | InvestmentFreightRate   | USD/cargo-nautical mile   | Long-run freight rate at the time of investment, includes fuel and technology expenses. |
 | InstantaneousFreightRate | USD/cargo-nautical mile  | Long-run freight rate at the actual conditions of the vessel, includes fuel and technology expenses. |
+| InvestmentSignalTechnology | USD/GJ                    | Energy-weighted average of the smoothed energy conservation duals over the technology horizon. |
+| InvestmentSignalSpeed   | USD/GJ                    | Energy-weighted average of the smoothed energy conservation duals over the speed horizon. |
 
 
 The properties are applicable for the following commands:
@@ -329,7 +350,9 @@ The properties are applicable for the following commands:
 | **Property name**                        | **Unit**                    | **Description**                                                                 |
 |------------------------------------------|-----------------------------|---------------------------------------------------------------------------------|
 | InvestmentCost                           | USD/ton                     | Levelized production cost at time of investment.                                |
+| InvestmentIntensityCost                  | USD/GJ                      | Levelized production cost at time of investment per energy in fuel.             |
 | InstantaneousCost                        | USD/ton                     | Supply-weighted average cost over all plants.                                   |
+| InstantaneousIntensityCost               | USD/GJ                      | Supply-weighted average cost over all plants per energy in fuel.                |
 | EquivalentInvestmentWtt                  | Ton CO<sub>2</sub>-eq./ton  | Well-to-tank emissions at time of investment per ton of fuel per emission.      |
 | TotalEquivalentInvestmentWtt             | Ton CO<sub>2</sub>-eq./ton  | Total well-to-tank emissions at time of investment per ton of fuel.             |
 | IntensityEquivalentInvestmentWtt         | Ton CO<sub>2</sub>-eq./GJ   | Well-to-tank emissions at time of investment per energy in fuel per emission.   |
@@ -345,6 +368,7 @@ The properties are applicable for the following commands:
 
 | **Property name**                 | **Unit**                   | **Description**                                                                 |
 |-----------------------------------|----------------------------|---------------------------------------------------------------------------------|
+| BunkeringAllowed                  | Boolean                    | Whether bunkering is allowed at the port, per fuel.                             |
 | BunkerPrice                       | USD/ton                    | Bunker price per ton of fuel.                                                   |
 | BunkerIntensityPrice              | USD/GJ                     | Bunker price per energy in fuel.                                                |
 | BunkerWtt                         | Ton/ton                    | Well-to-tank emissions of bunker fuel per ton of fuel per fuel and emission.    |
@@ -362,12 +386,17 @@ The properties are applicable for the following commands:
 |---------------------|----------|--------------------------------------------------------|
 | FlexibilityCost     | USD/ton  | Cost of flexibility compliance unit.                   |
 | RemedialCost        | USD/ton  | Cost of remedial compliance unit.                      |
-| VesselTreshold      | Unit\*   | Allowable emissions measure per vessel.                |
+| VesselThreshold     | Unit\*   | Allowable emissions measure per vessel.                |
+| AdjustedVesselThreshold | Unit\*   | Allowable emissions measure per vessel after threshold adjustment of an INDIVIDUAL regulation. |
 | SharedThreshold     | Unit\*   | Fleet-level effective target of a FLEXIBLE regulation. |
+| AdjustedSharedThreshold | Unit\*   | Fleet-level effective target of a FLEXIBLE regulation after threshold adjustment. |
 | VesselCompliance    | Unit\*   | Achieved emissions measure per vessel.                 |
 | SharedCompliance    | Unit\*   | Total achieved emissions measure.                      |
-| IntendedUnits       | Ton      | Total intended units.                                  |
-| AchievedUnits       | Ton      | Total achieved units.                                  |
+| VesselAllowance     | Ton      | Allowed emissions per vessel.                          |
+| SharedAllowance     | Ton      | Total allowed emissions across the policed vessels.    |
+| VesselUnits         | Ton      | Achieved emissions per vessel.                         |
+| SharedUnits         | Ton      | Total achieved emissions across the policed vessels.   |
+| NonComplianceUnits  | Ton      | Flexibility and remedial compliance units combined.    |
 | SurplusUnits        | Ton      | Surplus compliance units generated.                    |
 | FlexibilityUnits    | Ton      | Flexibility compliance units used.                     |
 | RemedialUnits       | Ton      | Remedial compliance units required.                    |

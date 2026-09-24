@@ -43,6 +43,13 @@ Curve "speed_power_curve" {
 
 ## Attributes
 
+### Table
+
+This attribute sets the table of x- and y-values that the curve interpolates in. The table must hold at least two rows and its x-values must be strictly increasing. The syntax is described under [Assigning tables](dsl_reference.md#curve).
+
+* **Data type**: `Table`
+* **Default**: None. Must be defined by the user.
+
 ### Addition
 
 Sets an addition that is added on the y-values. The addition occurs according to the formula

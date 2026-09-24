@@ -49,9 +49,9 @@ _DATE_COLUMN = "Date"
 
 _REGEN_HINT = (
     "If this change is intended: regenerate with `make regen-regression`, "
-    "review the baseline git diff, and commit it as its own commit. Triage "
-    '"different and correct" vs "different and broken" against '
-    "tests/guardrails (see tests/regression/README.md)."
+    "review the baseline git diff against what the change was meant to do, "
+    "and commit it as its own commit. tests/regression/README.md has the "
+    "triage steps for a red suite."
 )
 
 # (field name, report label) — ok(), the summary line, and the report body

@@ -11,6 +11,7 @@ from navigate.core.assign import (
     assign_id_list,
     assign_integer,
     assign_list,
+    assign_member,
     assign_value,
     command_assignment_to_boolean_dict,
     command_assignment_to_dict,

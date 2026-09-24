@@ -16,6 +16,12 @@ from navigate.__main__ import ASSUMPTIONS_ENV_VAR, main
 # Fails at parse time with a caret-pointed DeckFormatError, before any simulation work.
 GARBLED_DECK = "DEFINE {\n    garbage\n}\n"
 
+# Node bodies whose value the model rejects once the deck itself has parsed.
+REJECTED_ATTRIBUTE_VALUE = 'Vessel "v" {\n    Capex = FLAT\n}\n'
+REJECTED_COMMAND_VALUE = (
+    'Fleet "fleet" {\n    set_operational_saving_sea(PROPULSION, 2.0)\n}\n'
+)
+
 
 @pytest.fixture(autouse=True)
 def _clean_environment(monkeypatch):
@@ -28,6 +34,19 @@ def _clean_environment(monkeypatch):
     for handler in root.handlers[:]:
         handler.close()
         root.removeHandler(handler)
+
+
+def _write_deck(tmp_path, define_body):
+    (tmp_path / "define.inc").write_text(
+        'ModelDefinition {\n    StartDate = "01/01/2025"\n}\n' + define_body
+    )
+    (tmp_path / "events.inc").write_text('Start\nDate "01-01-2026"\nEnd\n')
+
+    deck = tmp_path / "deck.nav"
+    deck.write_text(
+        'DEFINE { Include "./define.inc" }\nEVENTS { Include "./events.inc" }\n'
+    )
+    return deck
 
 
 def _run_main(monkeypatch, *argv):
@@ -154,6 +173,32 @@ class TestTopLevelErrorHandling:
         log = (tmp_path / "deck.log").read_text()
         assert "Fatal error" in log
         assert "Traceback" in log
+
+    @pytest.mark.parametrize(
+        ("define_body", "expected"),
+        [
+            pytest.param(
+                REJECTED_ATTRIBUTE_VALUE, "attribute 'Capex'", id="attribute_value"
+            ),
+            pytest.param(
+                REJECTED_COMMAND_VALUE,
+                "'set_operational_saving_sea'",
+                id="command_value",
+            ),
+        ],
+    )
+    def test_rejected_deck_value_shows_one_line_no_traceback(
+        self, monkeypatch, capsys, tmp_path, define_body, expected
+    ):
+        deck = _write_deck(tmp_path, define_body)
+
+        assert _run_main(monkeypatch, deck) == 1
+
+        captured = capsys.readouterr()
+        assert "Error:" in captured.err
+        assert expected in captured.err
+        assert "Traceback" not in captured.err
+        assert "Traceback" not in captured.out
 
     def test_replot_bad_pickle_no_traceback(self, monkeypatch, capsys, tmp_path):
         (tmp_path / "plot_data.pkl").write_bytes(b"not a gzip file")

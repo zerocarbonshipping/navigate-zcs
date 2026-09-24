@@ -247,7 +247,7 @@ def assign_list[T: Assignment](
     return assignment
 
 
-def assign_boolean(assignment: str) -> bool:
+def assign_boolean(assignment: object) -> bool:
     """
     Check whether the value assigned to a boolean attribute is a boolean keyword.
 
@@ -266,7 +266,10 @@ def assign_boolean(assignment: str) -> bool:
     """
     try:
         return _BOOL_ID[assignment]
-    except KeyError:
+
+    # a list or a table reaches the lookup as an unhashable key, and the
+    # TypeError that raises carries no deck line for the parser to report
+    except (KeyError, TypeError):
         raise ValueError(_only_allows("TRUE or FALSE", assignment)) from None
 
 
@@ -299,7 +302,7 @@ def assign_bound(assignment: object) -> float:
         raise ValueError(_only_allows("scalars, -INF or INF", assignment)) from None
 
 
-def assign_id[E: Enum](assignment: str, id_enum: type[E]) -> E:
+def assign_id[E: Enum](assignment: object, id_enum: type[E]) -> E:
     """
     Check whether the assigned ID satisfies the requirements of that attribute.
 
@@ -320,7 +323,13 @@ def assign_id[E: Enum](assignment: str, id_enum: type[E]) -> E:
     """
     try:
         return id_enum[assignment]
-    except KeyError:
+
+    # a list or a table reaches the lookup as an unhashable key, and the
+    # wildcard test below only reads a string
+    except (KeyError, TypeError):
+        if not isinstance(assignment, str):
+            raise ValueError(_only_allows("IDs", assignment)) from None
+
         if name_contains_wildcards(assignment):
             raise ValueError(
                 f"does not accept ID '{assignment}' — wildcards are not supported "
@@ -329,33 +338,72 @@ def assign_id[E: Enum](assignment: str, id_enum: type[E]) -> E:
         raise ValueError(f"does not accept ID '{assignment}'") from None
 
 
-def expand_id_wildcard[E: Enum](pattern: str, id_enum: type[E]) -> list[E]:
+def assign_member[E: Enum](assignment: object, members: tuple[E, ...]) -> E:
     """
-    Expand a wildcard pattern against an enum's member names.
+    Check whether the ID assigned to an attribute is one the attribute accepts.
+
+    The sibling of :func:`assign_id` for an attribute holding a subset of an
+    enum: ``assign_id`` subscripts the enum class, which a tuple of members
+    cannot answer, and would accept every member the class has.
+
+    If the requirements are not satisfied a ValueError is raised. Note that this error
+    is only a partial message designed to be caught at a higher level.
+
+    Parameters
+    ----------
+    assignment
+        Value passed to the setter.
+    members
+        The enum members the attribute accepts.
+
+    Returns
+    -------
+    Enum
+        Returns the passed assignment (to allow error checking while assigning).
+    """
+    if not isinstance(assignment, str):
+        raise ValueError(_only_allows("IDs", assignment))
+
+    for member in members:
+        if member.name == assignment:
+            return member
+
+    raise ValueError(_only_allows(_member_names(members), assignment))
+
+
+def expand_id_wildcard[E: Enum](
+    pattern: str, domain: type[E] | tuple[E, ...]
+) -> list[E]:
+    """
+    Expand a wildcard pattern against the member names of a domain.
 
     Parameters
     ----------
     pattern
         Glob-style pattern (e.g. ``"M*"``), matched against each member's ``.name``.
-    id_enum
-        Enum class to match against.
+    domain
+        Enum class, or tuple of its members, the pattern may match.
 
     Returns
     -------
-    List of matching enum members.
+    list[Enum]
+        Matching enum members.
     """
+    members = tuple(domain)
+    by_name = {member.name: member for member in members}
+
     try:
-        names = retrieve_keys(pattern, [member.name for member in id_enum])
+        names = retrieve_keys(pattern, list(by_name))
     except KeyError:
         raise ValueError(
-            f"wildcard '{pattern}' did not match any member of {id_enum.__name__}"
+            f"wildcard '{pattern}' did not match any of {_member_names(members)}"
         ) from None
 
-    return [id_enum[name] for name in names]
+    return [by_name[name] for name in names]
 
 
 def assign_id_list[E: Enum](
-    assignment: list[str],
+    assignment: list[object],
     id_enum: type[E],
     length: ListLength = None,
 ) -> list[E]:
@@ -385,7 +433,7 @@ def assign_id_list[E: Enum](
     """
     expanded = []
     for value in assignment:
-        if name_contains_wildcards(value):
+        if isinstance(value, str) and name_contains_wildcards(value):
             expanded.extend(expand_id_wildcard(value, id_enum))
         else:
             expanded.append(assign_id(value, id_enum))
@@ -403,6 +451,8 @@ def assign_fraction_list(fractions: list[float]) -> tuple[list[float], bool]:
 
     A list summing to anything else is rescaled proportionally, and the flag
     says whether the deviation was large enough for the setter to report it.
+    Whole numbers are floated first, so a list written as integers takes the
+    same path as its float spelling whatever it sums to.
 
     If the requirements are not satisfied a ValueError is raised. Note that this error
     is only a partial message designed to be caught at a higher level.
@@ -419,6 +469,8 @@ def assign_fraction_list(fractions: list[float]) -> tuple[list[float], bool]:
         more than one percent.
     """
     _check_fraction_list(fractions)
+
+    fractions = [float(fraction) for fraction in fractions]
 
     rescaled = False
     total = round(sum(fractions), ROUND_OFF)
@@ -657,6 +709,23 @@ def _only_allows(allowed: str, assignment: object) -> str:
     return f"only allows assignment of {allowed}, but got {_value_kind(assignment)}"
 
 
+def _member_names(members: tuple[Enum, ...]) -> str:
+    """
+    Spell the members a setter accepts, so both its spellings name the same set.
+
+    Parameters
+    ----------
+    members
+        The enum members the setter accepts.
+
+    Returns
+    -------
+    str :
+        The member names, in the order the setter accepts them.
+    """
+    return ", ".join(member.name for member in members)
+
+
 def _value_kind(assignment: object) -> str:
     """
     Name the kind of a value, or echo the value when it has no listed kind.
@@ -772,5 +841,12 @@ def _check_fraction_list(fractions: object) -> None:
     if not isinstance(fractions, list):
         raise ValueError("only allows assignment of lists")
 
-    if any(fraction < 0.0 for fraction in fractions):
-        raise ValueError("does not allow negative values")
+    # a non-number would reach the comparison below as a TypeError carrying no
+    # deck line for the parser to report; int, and the bool that subclasses it,
+    # pass because assign_fraction_list floats every entry it is handed
+    for fraction in fractions:
+        if not isinstance(fraction, (int, float)):
+            raise ValueError(_only_allows("plain numbers", fraction))
+
+        if fraction < 0.0:
+            raise ValueError("does not allow negative values")

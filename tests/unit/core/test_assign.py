@@ -21,17 +21,25 @@ from navigate.core.assign import (
     assign_bound,
     assign_fraction_list,
     assign_id,
+    assign_id_list,
     assign_integer,
     assign_list,
+    assign_member,
     assign_value,
     command_assignment_to_boolean_dict,
     command_assignment_to_dict,
     command_assignment_to_tuple_dict,
+    expand_id_wildcard,
 )
-from navigate.core.enum_ import FuelTypeID
+from navigate.core.enum_ import (
+    EnergyDemandTypeID,
+    EnergyDemandTypePortID,
+    FuelTypeID,
+)
 from navigate.core.expression import Expression
 from navigate.core.node_type import FORECAST, FUEL, VARIABLE
 from navigate.core.nodes.curve import Curve
+from navigate.core.nodes.fleet import Fleet
 from navigate.core.nodes.forecast import Forecast
 from navigate.core.nodes.fuel import Fuel
 from navigate.core.nodes.variable import Variable
@@ -56,6 +64,121 @@ class TestAssignId:
     def test_wildcard_raises_dedicated_message(self):
         with pytest.raises(ValueError, match="wildcards are not supported"):
             assign_id("M*", FuelTypeID)
+
+    @pytest.mark.parametrize(
+        ("assignment", "kind"),
+        [
+            ([1.0, 2.0], "list"),
+            (TableData(rows=[[1.0, 2.0]]), "table"),
+            (DATE, "date"),
+            (Curve("c"), r'Curve\("c"\)'),
+        ],
+        ids=["list", "table", "date", "node"],
+    )
+    def test_non_string_rejected_as_a_value_error(self, assignment, kind):
+        # every ID setter hands the raw deck value here, and an unhashable one
+        # must not escape the enum lookup as a TypeError, which carries no deck
+        # line for the parser to report
+        with pytest.raises(
+            ValueError, match=f"only allows assignment of IDs, but got {kind}"
+        ):
+            assign_id(assignment, FuelTypeID)
+
+
+# ── assign_member ─────────────────────────────────────────────────────────────
+
+
+class TestAssignMember:
+    """
+    The ID check for an attribute holding a subset of an enum.
+
+    The setter's own rejection is pinned here too: the sentence a deck author
+    reads is this function's, and it must name what the wildcard spelling of
+    the same command names.
+    """
+
+    def test_accepted_member(self):
+        assert (
+            assign_member("ELECTRICAL", EnergyDemandTypePortID)
+            is EnergyDemandTypeID.ELECTRICAL
+        )
+
+    @pytest.mark.parametrize(
+        "assignment",
+        ["PROPULSION", "BOGUS", "H*"],
+        ids=["excluded_member", "unknown_id", "wildcard"],
+    )
+    def test_unaccepted_id_names_the_accepted_members(self, assignment):
+        # the parser expands a wildcard against the same members before the
+        # setter is reached, so one arriving here is an unaccepted name like
+        # any other
+        with pytest.raises(ValueError, match="ELECTRICAL, HEAT") as rejected:
+            assign_member(assignment, EnergyDemandTypePortID)
+
+        assert str(rejected.value) == (
+            f"only allows assignment of ELECTRICAL, HEAT, but got {assignment}"
+        )
+
+    @pytest.mark.parametrize(
+        ("assignment", "kind"),
+        [
+            ([1.0, 2.0], "list"),
+            (TableData(rows=[[1.0, 2.0]]), "table"),
+            (DATE, "date"),
+            (Curve("c"), r'Curve\("c"\)'),
+        ],
+        ids=["list", "table", "date", "node"],
+    )
+    def test_non_string_rejected_as_a_value_error(self, assignment, kind):
+        with pytest.raises(
+            ValueError, match=f"only allows assignment of IDs, but got {kind}"
+        ):
+            assign_member(assignment, EnergyDemandTypePortID)
+
+    def test_agrees_with_the_wildcard_rejection(self):
+        # both spellings of a command must name one accepted set, or a deck
+        # author reads two different rules for the same argument
+        accepted = "ELECTRICAL, HEAT"
+
+        with pytest.raises(ValueError, match=accepted) as literal:
+            assign_member("PROPULSION", EnergyDemandTypePortID)
+
+        with pytest.raises(ValueError, match=accepted) as wildcard:
+            expand_id_wildcard("P*", EnergyDemandTypePortID)
+
+        assert str(literal.value) == (
+            f"only allows assignment of {accepted}, but got PROPULSION"
+        )
+        assert str(wildcard.value) == (f"wildcard 'P*' did not match any of {accepted}")
+
+    def test_the_port_saving_setter_names_the_demands_it_accepts(self):
+        with pytest.raises(
+            ValueError,
+            match="only allows assignment of ELECTRICAL, HEAT, but got PROPULSION",
+        ):
+            Fleet("fleet").set_operational_saving_port("PROPULSION", 0.1)
+
+
+# ── assign_id_list ────────────────────────────────────────────────────────────
+
+
+class TestAssignIdList:
+    @pytest.mark.parametrize(
+        ("element", "kind"),
+        [
+            (1.0, "scalar"),
+            ([1.0, 2.0], "list"),
+            (TableData(rows=[[1.0, 2.0]]), "table"),
+        ],
+        ids=["float", "list", "table"],
+    )
+    def test_non_string_element_rejected_as_a_value_error(self, element, kind):
+        # name_contains_wildcards takes a str; a non-string element must fall
+        # through to assign_id instead of raising a TypeError there first
+        with pytest.raises(
+            ValueError, match=f"only allows assignment of IDs, but got {kind}"
+        ):
+            assign_id_list([element], FuelTypeID)
 
 
 # ── assign_bound ──────────────────────────────────────────────────────────────
@@ -123,6 +246,26 @@ class TestAssignBoolean:
         # KeyError would be reported as a missing name instead
         with pytest.raises(
             ValueError, match="only allows assignment of TRUE or FALSE, but got"
+        ):
+            assign_boolean(assignment)
+
+    @pytest.mark.parametrize(
+        ("assignment", "kind"),
+        [
+            ([1.0, 2.0], "list"),
+            (TableData(rows=[[1.0, 2.0]]), "table"),
+            (DATE, "date"),
+            (Curve("c"), r'Curve\("c"\)'),
+        ],
+        ids=["list", "table", "date", "node"],
+    )
+    def test_non_keyword_value_rejected_as_a_value_error(self, assignment, kind):
+        # the boolean setters hand the raw deck value here, and an unhashable
+        # one must not escape the keyword lookup as a TypeError, which carries
+        # no deck line for the parser to report
+        with pytest.raises(
+            ValueError,
+            match=f"only allows assignment of TRUE or FALSE, but got {kind}",
         ):
             assign_boolean(assignment)
 
@@ -410,6 +553,49 @@ class TestAssignFractionList:
     def test_non_list_rejected(self):
         with pytest.raises(ValueError, match="only allows assignment of lists"):
             assign_fraction_list((0.5, 0.5))
+
+    @pytest.mark.parametrize(
+        ("entry", "message"),
+        [
+            (Variable("v"), r'but got Variable\("v"\)'),
+            (Curve("c"), r'but got Curve\("c"\)'),
+            ([0.5], "but got list"),
+            (TableData(rows=[[1.0, 2.0]]), "but got table"),
+            (DATE, "but got date"),
+        ],
+        ids=["variable", "curve", "nested_list", "table", "date"],
+    )
+    def test_non_number_entry_rejected(self, entry, message):
+        # the sign check compares every entry against 0.0, so a value of
+        # another kind used to escape as a TypeError the parser cannot locate
+        with pytest.raises(
+            ValueError, match=f"only allows assignment of plain numbers, {message}"
+        ):
+            assign_fraction_list([0.5, entry])
+
+    @pytest.mark.parametrize(
+        ("fractions", "expected", "is_rescaled"),
+        [
+            ([1, 1], [0.5, 0.5], True),
+            ([1], [1.0], False),
+            ([1, 0], [1.0, 0.0], False),
+            ([0, 0], [0.0, 0.0], False),
+            ([True, False], [1.0, 0.0], False),
+        ],
+        ids=["rescales", "single", "unit_sum", "all_zero", "booleans"],
+    )
+    def test_whole_number_entries_take_the_float_path(
+        self, fractions, expected, is_rescaled
+    ):
+        # the kind check accepts whole numbers because they are floated before
+        # the rescale, so acceptance no longer depends on the total: only a
+        # list the rescale happened to divide used to reach assign_list as
+        # floats, and every other whole-number list was rejected as an integer
+        result, is_rescaled_result = assign_fraction_list(fractions)
+
+        assert result == pytest.approx(expected)
+        assert all(isinstance(fraction, float) for fraction in result)
+        assert is_rescaled_result is is_rescaled
 
 
 # ── command_assignment_to_dict ────────────────────────────────────────────────

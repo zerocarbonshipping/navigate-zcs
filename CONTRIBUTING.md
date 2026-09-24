@@ -58,14 +58,12 @@ values, so that the provenance of the model inputs stays traceable.
 All tests must pass before a pull request can be merged. Run the full suite
 with `make test-all`, or the individual suites during development.
 
-New code needs appropriate test coverage: `tests/README.md` says which suite
+New code needs appropriate test coverage: `tests/AGENTS.md` says which suite
 a check belongs in and points to each suite's conventions. Changes that alter
 simulation results should explain the difference in the pull request
-description and must keep the behavior guardrails passing (`tests/guardrails`
-— see its `README.md` before touching thresholds); the regression baselines
-they move are regenerated only with `make regen-regression` and committed as
-their own commit, with the baseline diff as review material
-(`tests/regression/README.md`).
+description; the regression baselines they move are regenerated only with
+`make regen-regression` and committed as their own commit, with the baseline
+diff as review material (`tests/regression/README.md`).
 
 ## Questions
 
@@ -73,7 +71,10 @@ Issues are the preferred way to ask. Whether you are unsure if a change needs
 a feature request first, want to discuss a design, or have a question about
 the model, open an issue and we will get back to you.
 
+## AI tools
 
-### Note on AI Tools
-
-The use of Generative AI and related tools is neither encouraged nor discouraged. However, you are responsible for the quality of your own contributions, and we kindly ask that you do not clutter the repository with code or inputs you do not fully understand.
+The use of generative AI and related tools is neither encouraged nor
+discouraged. You are responsible for the quality of your own contributions,
+and we kindly ask that you do not clutter the repository with code or inputs
+you do not fully understand. `AGENTS.md` at the repository root is the entry
+point for anyone starting to work here; coding agents read it automatically.

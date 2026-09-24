@@ -291,7 +291,7 @@ Navigate accepts glob-style wildcards in node names and identifiers, letting a s
 
 A pattern may be the bare wildcard `"*"` (matches every value) or a partial pattern that combines wildcards with literal characters, e.g. `"bio_*"`, `"port_?"`, or `"*_2030"`. Wildcards are written inside the quoted node name; for enum identifiers in commands they are written inline without quotes (e.g. `M*`).
 
-Wildcards are resolved at the point of use against the set of registered nodes, every member of the enum an argument is typed against, the existing keys of a target dictionary, or the file names in the default-node folders — depending on the construct. The expanded pattern must match at least one value; otherwise an error is raised.
+Wildcards are resolved at the point of use against the set of registered nodes, the enum members registered as a command argument's domain, the existing keys of a target dictionary, or the file names in the default-node folders — depending on the construct. The expanded pattern must match at least one value; otherwise an error is raised.
 
 The following constructs accept wildcards:
 
@@ -299,7 +299,7 @@ The following constructs accept wildcards:
 
 * **Commands with string arguments.** Wildcards in a command's string key(s) expand against the existing entries of the dictionary the command writes to. For example, `set_initial_technology_share("*", "hull_painting", Curve("..."))` applies the assignment to every existing vessel key, and `set_fuel_conversion_cost("*ice_oil*", "*ice_methanol*", 13.4e6)` matches every from/to vessel pair whose names contain the substrings.
 
-* **Commands with enum arguments.** Wildcards in an enum-typed argument (written inline, without quotes) expand against the member names of the whole enum class the argument is typed against. For example, `set_slip_fraction(M*, 0.03)` applies the assignment to both the `METHANE` and `METHANOL` members of `FuelTypeID`.
+* **Commands with enum arguments.** Wildcards in an enum-typed argument (written inline, without quotes) expand against the members registered as that argument's domain, which is the whole enum class unless the attribute written to holds a fixed subset of it. For example, `set_slip_fraction(M*, 0.03)` applies the assignment to both the `METHANE` and `METHANOL` members of `FuelTypeID`, while `set_operational_saving_port(*, 0.1)` applies it to `ELECTRICAL` and `HEAT` only, the energy demands a vessel has in port. Where the domain is a subset, an argument written literally is checked against those same members, so `set_operational_saving_port(PROPULSION, 0.1)` is rejected as `only allows assignment of ELECTRICAL, HEAT, but got PROPULSION`, naming what the wildcard spelling names. Where the domain is the whole enum class, a literal is checked against the class and an unaccepted token is rejected as `does not accept ID 'X'`. Where the accepted members depend on the node — `set_slip_fraction` and `set_consumption_ttw` take the fuel types the Converter declares — the expansion still runs over the whole class, so a pattern reaching a fuel type that Converter does not declare is rejected.
 
 * **Import statements.** Wildcards in an `Import` directive match the file names of `.inc` files in the user and installation default folders. For example, `Import Converter "electrical_ice_methane_*"` imports every default Converter whose file name begins with `electrical_ice_methane_`.
 

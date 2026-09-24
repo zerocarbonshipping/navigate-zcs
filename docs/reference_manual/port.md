@@ -14,8 +14,8 @@ Example:
 
 ```python
 Port "asia" {
-    WindUtilization = 0.4
-    SolarUtilization = 0.4
+    ShorePowerCost = 80
+    ShorePowerConnectionShare = 0.8
     
     set_bunker_price_overwrite("low_sulfur_fuel_oil", 250)
     set_bunker_wtt_overwrite("low_sulfur_fuel_oil", "carbon_dioxide", 0.62)
@@ -24,31 +24,30 @@ Port "asia" {
 
 ## Attributes
 
-### WindUtilization
+### ShorePowerCost
 
-This attribute sets the wind utilization factor in the port. The wind utilization is used for alternative power in port.
+This attribute sets the shore power electricity tariff in the port in USD/MWh. It is converted internally to USD/GJ for consistency with the energy model.
 
-This is relevant only for vessels that have alternative power technologies utilizing wind energy installed. These technologies have an installed capacity. The parameter "wind utilization" describes the fraction of this installed capacity that is eventually utilized while in port. E.g. if the wind is only blowing half of the time while in port, 50% of the installed capacity is utilized.
+* **Data type**: `Float`, `Forecast`, `Variable`
+* **Example values**:
+  + `80`
+  + `Forecast("name")`
+* **Unit**: USD/MWh
+* **Minimum value**: 0
+* **Default**: 0
 
-* **Data type**: `Float`
-* **Example values**: `0.5`
+### ShorePowerConnectionShare
+
+This attribute sets the fraction of the time in port during which a shore power connection is available. A value of 0 means shore power is not available in the port.
+
+* **Data type**: `Float`, `Forecast`, `Variable`
+* **Example values**:
+  + `0.8`
+  + `Forecast("name")`
 * **Unit**: Fraction
 * **Minimum value**: 0
 * **Maximum value**: 1
-* **Default**: 1
-
-### SolarUtilization
-
-This attribute determines the solar utilization factor in the port. The solar utilization is used for alternative power in port.
-
-This is relevant only for vessels that have alternative power technologies utilizing solar energy installed. These technologies have an installed capacity. The attribute "solar utilization" describes the fraction of this installed capacity that is eventually utilized while in port. E.g., if the sun is only shining half of the time while in port, 50% of the installed capacity is utilized.
-
-* **Data type**: `Float`
-* **Example values**: `0.5`
-* **Unit**: Fraction
-* **Minimum value**: 0
-* **Maximum value**: 1
-* **Default**: 1
+* **Default**: 0
 
 ## Commands
 
@@ -134,3 +133,16 @@ If an overwrite is set for a specific fuel and emission, then the bottom-up calc
   + `"fuel_name", "emission_name", Forecast("name")`
 * **Unit**: ton emission / ton fuel
 * **Default**: None
+
+### set\_shore\_power\_emission\_factor
+
+This command sets the WTW (Well-to-Wake) emission factor of the shore power grid electricity for a specific emission in the port in ton emission/MWh. It is converted internally to ton emission/GJ.
+
+* **Primary key type**: String (Emission name)
+* **Data type**: `Float`, `Forecast`, `Variable`
+* **Example values**:
+  + `"emission_name", 0.18`
+  + `"emission_name", Forecast("name")`
+* **Unit**: ton emission/MWh
+* **Minimum value**: 0
+* **Default**: 0
