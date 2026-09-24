@@ -404,7 +404,7 @@ The properties are applicable for the following commands:
 | FlexibilityExpenses | USD/ton  | Expenses from purchasing flexibility compliance units. |
 | RemedialExpenses    | USD/ton  | Expenses from purchasing remedial compliance units.    |
 
-\*Depends on the ‘Measure’ of the regulation (ABSOLUTE=ton, INTENSITY=Ton/GJ, TRANSPORT\_NOMINAL=USD/cargo-nautical mile, TRANSPORT=USD/cargo-nautical mile)
+\*Depends on the ‘Measure’ of the regulation (ABSOLUTE=ton, INTENSITY=kg/GJ, TRANSPORT\_NOMINAL=g/nominal cargo-nautical mile, TRANSPORT=g/actual cargo-nautical mile)
 
 The properties are applicable for the following commands:
 
