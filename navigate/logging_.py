@@ -72,9 +72,7 @@ class _CountingHandler(logging.Handler):
         self.counter[record.levelname] += 1
 
 
-def setup_logger(
-    path: str | os.PathLike[str], level: int = logging.INFO
-) -> logging.Logger:
+def setup_logger(path: Path, level: int = logging.INFO) -> logging.Logger:
     """
     Configure the root logger to write a log file next to the deck.
 
@@ -90,6 +88,8 @@ def setup_logger(
     logging.Logger
         The configured root logger.
     """
+    # splitext finds no extension in a name whose stem is only dots, where
+    # with_suffix replaces one: '..nav' logs to '..nav.log', not '..log'
     filename = os.path.splitext(path)[0] + ".log"
     file_handler = logging.FileHandler(filename, mode="w")
 
