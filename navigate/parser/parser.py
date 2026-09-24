@@ -1017,12 +1017,12 @@ class Parser:
                 "Error in simulation: 'ModelDefinition' must be defined."
             )
 
-        self.general_nodes.model_definition.initialize()
+        self.general_nodes.model_definition.check_requirements()
 
         if self.general_nodes.bunker_options is None:
             self.general_nodes.bunker_options = BunkerOptions()
 
-        self.general_nodes.bunker_options.initialize()
+        self.general_nodes.bunker_options.check_requirements()
 
     def _update_dependencies(self):
         """

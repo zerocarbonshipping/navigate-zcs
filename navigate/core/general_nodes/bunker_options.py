@@ -9,22 +9,18 @@ from navigate.core.general_nodes._general_node import _GeneralNode
 
 
 class BunkerOptions(_GeneralNode):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
         # external variables -----------------------------------------------------------
-        self.solver = None  # enum, solver backend (AUTOMATIC, GUROBI, HIGHS)
-        self.solver_method = None  # enum, LP solver method
-        self.solution_tolerance = None  # float, the tolerance of the solution
-        self.threads = None  # int, the number of threads used for LP solves
+        self.solver: SolverBackendID = SolverBackendID.AUTOMATIC
+        self.solver_method: SolverMethodID = SolverMethodID.DETERMINISTIC
+        self.solution_tolerance: float = 1e-6
+        self.threads: int = 0
 
         # fair-share
-        self.fair_share_maximum_iterations = (
-            None  # int, maximum number of fair-share iterations
-        )
-        self.fair_share_tolerance = (
-            None  # float, the tolerance of the fair-share convergence
-        )
+        self.fair_share_maximum_iterations: int = 50
+        self.fair_share_tolerance: float = 1e-1
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_solver(self, solver: str):
@@ -133,24 +129,3 @@ class BunkerOptions(_GeneralNode):
         self.fair_share_tolerance = assign_value(
             fair_share_tolerance, lower=0.0, inclusive_lower=False
         )
-
-    # internal methods -----------------------------------------------------------------
-    def initialize(self):
-
-        if self.solver is None:
-            self.solver = SolverBackendID.AUTOMATIC
-
-        if self.solver_method is None:
-            self.solver_method = SolverMethodID.DETERMINISTIC
-
-        if self.solution_tolerance is None:
-            self.solution_tolerance = 1e-6
-
-        if self.threads is None:
-            self.threads = 0
-
-        if self.fair_share_maximum_iterations is None:
-            self.fair_share_maximum_iterations = 50
-
-        if self.fair_share_tolerance is None:
-            self.fair_share_tolerance = 1e-1

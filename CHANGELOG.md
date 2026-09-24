@@ -72,6 +72,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   **Breaking** for code importing navigate as a library: `assign_value` and
   `assign_list` no longer accept a `WildcardNodeReference`; the parser
   expands the glob into the matched nodes first. No result moves.
+- A deck whose `ModelDefinition` omits `StartDate` is now reported as the
+  unassigned attribute it is (`ModelDefinition: Attribute 'StartDate' is
+  unassigned.`), as every other required node attribute is, in place of
+  `Error in ModelDefinition: 'StartDate' must be defined.`.
 - A `Fuel` whose `LowerHeatingValue` or `MassDensity` is missing is now
   reported as the unassigned attribute it is (`Attribute 'LowerHeatingValue'
   is unassigned.`), as every other required node attribute is; the
