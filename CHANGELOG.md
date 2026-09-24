@@ -72,6 +72,11 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   **Breaking** for code importing navigate as a library: `assign_value` and
   `assign_list` no longer accept a `WildcardNodeReference`; the parser
   expands the glob into the matched nodes first. No result moves.
+- A `Route` rejects an empty `Speeds` or `PortDurations` list at assignment
+  (`List must contain at least 1 values.`), naming the deck line that emptied
+  it. Both are assignable under EVENTS, where an empty list previously passed
+  the setter and was reported later, if at all, as an inconsistency between
+  the route's leg lists.
 - A deck whose `ModelDefinition` omits `StartDate` is now reported as the
   unassigned attribute it is (`ModelDefinition: Attribute 'StartDate' is
   unassigned.`), as every other required node attribute is, in place of

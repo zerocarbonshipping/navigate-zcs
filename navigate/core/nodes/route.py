@@ -111,7 +111,10 @@ class Route(Node):
             A list of floats or Forecast nodes.
         """
         self.port_durations = assign_list(
-            as_scalar_list(port_durations), type_=(FORECAST, VARIABLE), lower=0.0
+            as_scalar_list(port_durations),
+            length=(1, None),
+            type_=(FORECAST, VARIABLE),
+            lower=0.0,
         )
 
     def set_time_at_sea(self, time_at_sea):
@@ -220,6 +223,7 @@ class Route(Node):
         """
         self.speeds = assign_list(
             as_scalar_list(speeds),
+            length=(1, None),
             type_=(FORECAST, VARIABLE),
             lower=0.0,
             inclusive_lower=False,
