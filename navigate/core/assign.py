@@ -1,7 +1,13 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Validation of the values a deck assigns, shared by every DSL setter."""
+"""
+Validation of the values a deck assigns, shared by every DSL setter.
+
+A value failing its attribute's requirements raises a ValueError carrying only
+a partial message; the parser catches it and completes it with the deck
+location and the attribute assigned to.
+"""
 
 from __future__ import annotations
 
@@ -73,9 +79,9 @@ def assign_integer(
 
     Returns
     -------
-    int:
-        Returns the passed assignment as integer (to allow error checking while
-        assigning)
+    int
+        The value that was passed, as an int, so a setter assigns what it
+        validated.
     """
     _check_scalar(
         assignment,
@@ -107,14 +113,9 @@ def assign_value[T: Assignment](
     """
     Check whether a value assigned to an attribute satisfies its requirements.
 
-    Only applicable to attributes requiring a single value, not lists.
-
-    The method assumes that if scalar=False, type_ must not be None (or an empty list).
-    No check is made for this as it is an implementation requirement, not a user input
-    issue.
-
-    If the requirements are not satisfied a ValueError is raised. Note that this error
-    is only a partial message designed to be caught at a higher level.
+    Only applicable to attributes requiring a single value, not lists. A setter
+    passing scalar=False must pass a non-empty type_; that is an implementation
+    requirement, so it goes unchecked.
 
     Parameters
     ----------
@@ -125,7 +126,7 @@ def assign_value[T: Assignment](
     date
         Whether the setter accepts dates.
     type_
-        Type(s) of Node that attribute allows.
+        The node type(s) the attribute accepts a reference to.
     lower
         Lower bound.
     upper
@@ -183,9 +184,6 @@ def assign_list[T: Assignment](
 
     Only applicable to attributes requiring a list of values.
 
-    If the requirements are not satisfied a ValueError is raised. Note that this error
-    is only a partial message designed to be caught at a higher level.
-
     Parameters
     ----------
     assignment
@@ -200,7 +198,7 @@ def assign_list[T: Assignment](
     date
         Whether the setter accepts dates.
     type_
-        Type(s) of Node that attribute allows.
+        The node type(s) the attribute accepts a reference to.
     lower
         Lower bound.
     upper
@@ -239,9 +237,6 @@ def assign_boolean(assignment: object) -> bool:
     """
     Check whether the value assigned to a boolean attribute is a boolean keyword.
 
-    If the requirements are not satisfied a ValueError is raised. Note that this error
-    is only a partial message designed to be caught at a higher level.
-
     Parameters
     ----------
     assignment
@@ -265,9 +260,6 @@ def assign_boolean(assignment: object) -> bool:
 def assign_bound(assignment: object) -> float:
     """
     Check whether a bound assignment is a scalar or an infinity keyword.
-
-    If the requirements are not satisfied a ValueError is raised. Note that this error
-    is only a partial message designed to be caught at a higher level.
 
     Parameters
     ----------
@@ -296,20 +288,17 @@ def assign_id[E: Enum](assignment: object, id_enum: type[E]) -> E:
     """
     Check whether the assigned ID satisfies the requirements of that attribute.
 
-    If the requirements are not satisfied a ValueError is raised. Note that this error
-    is only a partial message designed to be caught at a higher level.
-
     Parameters
     ----------
     assignment
         Value passed to the setter.
     id_enum
-        Enumerator.
+        Enum class the assigned name is looked up in.
 
     Returns
     -------
     Enum
-        Returns the passed assignment (to allow error checking while assigning).
+        The member the assigned ID names, so a setter assigns what it validated.
     """
     if not isinstance(assignment, str):
         raise ValueError(_only_allows("IDs", assignment))
@@ -331,12 +320,8 @@ def assign_member[E: Enum](assignment: object, members: tuple[E, ...]) -> E:
     """
     Check whether the ID assigned to an attribute is one the attribute accepts.
 
-    The sibling of :func:`assign_id` for an attribute holding a subset of an
-    enum: ``assign_id`` subscripts the enum class, which a tuple of members
-    cannot answer, and would accept every member the class has.
-
-    If the requirements are not satisfied a ValueError is raised. Note that this error
-    is only a partial message designed to be caught at a higher level.
+    For an attribute holding a subset of an enum: only the members passed in
+    are accepted.
 
     Parameters
     ----------
@@ -348,7 +333,7 @@ def assign_member[E: Enum](assignment: object, members: tuple[E, ...]) -> E:
     Returns
     -------
     Enum
-        Returns the passed assignment (to allow error checking while assigning).
+        The member the assigned ID names, so a setter assigns what it validated.
     """
     if not isinstance(assignment, str):
         raise ValueError(_only_allows("IDs", assignment))
@@ -402,23 +387,20 @@ def assign_id_list[E: Enum](
     Only applicable to attributes requiring a list of values. Supports wildcard
     patterns which are expanded before the length check.
 
-    If the requirements are not satisfied a ValueError is raised. Note that this error
-    is only a partial message designed to be caught at a higher level.
-
     Parameters
     ----------
     assignment
         List of values passed to the setter.
     id_enum
-        Enumerator.
+        Enum class the assigned name is looked up in.
     length
         Exact length the list should have or lower and upper bound. Any falsy
         length makes no check, ``0`` as well as ``None``.
 
     Returns
     -------
-    list[Enum] :
-        Returns the passed assignment (to allow error checking while assigning).
+    list[Enum]
+        The members the assigned IDs name, with wildcards expanded.
     """
     expanded = []
     for value in assignment:
@@ -435,16 +417,9 @@ def assign_fraction_list(fractions: list[float]) -> tuple[list[float], bool]:
     """
     Check whether a value assigned to an attribute satisfies its requirements.
 
-    Only applicable to attributes requiring a list of values. Additionally, requires
-    that the sum of values in the list sum to 1.
-
-    A list summing to anything else is rescaled proportionally, and the flag
-    says whether the deviation was large enough for the setter to report it.
-    Whole numbers are floated first, so a list written as integers takes the
-    same path as its float spelling whatever it sums to.
-
-    If the requirements are not satisfied a ValueError is raised. Note that this error
-    is only a partial message designed to be caught at a higher level.
+    Only applicable to attributes requiring a list of values summing to 1.
+    Entries are floated first, so a list written as integers is rescaled the
+    same way as its float spelling.
 
     Parameters
     ----------
@@ -500,7 +475,7 @@ def command_assignment_to_dict[K: str | Enum](
     date
         Whether the setter accepts dates.
     type_
-        Type(s) of Node that attribute allows.
+        The node type(s) the attribute accepts a reference to.
     lower
         Lower bound.
     upper
@@ -558,7 +533,7 @@ def command_assignment_to_tuple_dict[K1: str | Enum, K2: str | Enum](
     date
         Whether the setter accepts dates.
     type_
-        Type(s) of Node that attribute allows.
+        The node type(s) the attribute accepts a reference to.
     lower
         Lower bound.
     upper
@@ -569,12 +544,12 @@ def command_assignment_to_tuple_dict[K1: str | Enum, K2: str | Enum](
         Upper bound is inclusive.
     """
     if not assignment_dict:
-        raise KeyError(", ".join(key_name(k) for k in key))
+        raise KeyError(", ".join(key_name(key_part) for key_part in key))
 
     columns = zip(*assignment_dict.keys(), strict=True)
     keys = [
-        retrieve_keys(k, unique_list(keys))
-        for k, keys in zip(key, columns, strict=True)
+        retrieve_keys(key_part, unique_list(existing_keys))
+        for key_part, existing_keys in zip(key, columns, strict=True)
     ]
 
     keys1, keys2 = keys
@@ -624,8 +599,8 @@ def command_assignment_to_boolean_dict[K: str | Enum](
             # wildcards in a shared include are written against whatever the
             # deck defines, so a pattern that matches nothing is not an error
             return
-        else:
-            raise KeyError(key) from None
+
+        raise KeyError(key) from None
 
     for name in names:
         assignment_dict[name] = value
@@ -635,16 +610,9 @@ def default_unassigned[K, V](values: dict[K, V | None], default: V) -> None:
     """
     Replace every unassigned entry of a command dictionary, in place.
 
-    The dictionaries the 'command_assignment_to_*' helpers write are seeded
-    with a key per node and a value of None, so an entry no deck command
-    named is still present and still None once the deck is read. This fills
-    those entries.
-
-    Every filled entry holds the one 'default' object passed in. That is safe
-    because these values are immutable - a Scalar holds one '_value' and
-    exposes no mutator, and a boolean default is 'True' or 'False' - so no
-    entry can change another. A mutable default would have to be copied per
-    entry instead.
+    Every filled entry holds the one 'default' object passed in, which is safe
+    only because a Scalar and a boolean are immutable; a mutable default would
+    have to be copied per entry.
 
     Parameters
     ----------
@@ -667,11 +635,11 @@ def _accepts_reference(node: Node, type_: AcceptedTypes) -> bool:
     node
         The node the deck named.
     type_
-        Type(s) of Node that the attribute allows.
+        The node type(s) the attribute accepts a reference to.
 
     Returns
     -------
-    bool :
+    bool
         Whether the node is of a type the attribute allows.
     """
     if type_ is None:
@@ -698,11 +666,11 @@ def _failed_value_message(
     date
         Whether the setter accepts dates.
     type_
-        Type(s) of Node that attribute allows.
+        The node type(s) the attribute accepts a reference to.
 
     Returns
     -------
-    str :
+    str
         Error message of a failed error check.
     """
     # a setter accepting no kind at all, and an empty 'type_', are
@@ -745,7 +713,7 @@ def _only_allows(allowed: str, assignment: object) -> str:
 
     Returns
     -------
-    str :
+    str
         Error message of a failed error check.
     """
     return f"only allows assignment of {allowed}, but got {_value_kind(assignment)}"
@@ -762,7 +730,7 @@ def _member_names(members: tuple[Enum, ...]) -> str:
 
     Returns
     -------
-    str :
+    str
         The member names, in the order the setter accepts them.
     """
     return ", ".join(member.name for member in members)
@@ -779,7 +747,7 @@ def _value_kind(assignment: object) -> str:
 
     Returns
     -------
-    str :
+    str
         Kind word of the value, or the value itself.
     """
     for types, kind in _VALUE_KINDS:
@@ -827,19 +795,17 @@ def _check_scalar(
     else:
         raise ValueError(f"requires a scalar, but got {_value_kind(assignment)}")
 
-    if inclusive_lower:
-        if value < lower:
-            raise ValueError(f"must be ≥ {lower}, but got {value}")
-    else:
-        if value <= lower:
-            raise ValueError(f"must be > {lower}, but got {value}")
+    if inclusive_lower and value < lower:
+        raise ValueError(f"must be ≥ {lower}, but got {value}")
 
-    if inclusive_upper:
-        if value > upper:
-            raise ValueError(f"must be ≤ {upper}, but got {value}")
-    else:
-        if value >= upper:
-            raise ValueError(f"must be < {upper}, but got {value}")
+    if not inclusive_lower and value <= lower:
+        raise ValueError(f"must be > {lower}, but got {value}")
+
+    if inclusive_upper and value > upper:
+        raise ValueError(f"must be ≤ {upper}, but got {value}")
+
+    if not inclusive_upper and value >= upper:
+        raise ValueError(f"must be < {upper}, but got {value}")
 
 
 def _check_list_length(assignment: Sized, length: ListLength) -> None:
@@ -854,28 +820,45 @@ def _check_list_length(assignment: Sized, length: ListLength) -> None:
         Exact length, or lower and upper bound. Any falsy length makes no
         check, ``0`` as well as ``None``.
     """
-    if length:
-        if isinstance(length, tuple):
-            lower, upper = length
+    if not length:
+        return
 
-            if (lower is not None) and (len(assignment) < lower):
-                raise ValueError(f"List must contain at least {lower} values.")
+    if isinstance(length, tuple):
+        lower, upper = length
 
-            if (upper is not None) and (len(assignment) > upper):
-                raise ValueError(f"List must contain at most {upper} values.")
+        if (lower is not None) and (len(assignment) < lower):
+            raise ValueError(f"List must contain at least {lower} values.")
 
-        else:
-            if len(assignment) != length:
-                raise ValueError(f"List must contain exactly {length} values.")
+        if (upper is not None) and (len(assignment) > upper):
+            raise ValueError(f"List must contain at most {upper} values.")
+
+    elif len(assignment) != length:
+        raise ValueError(f"List must contain exactly {length} values.")
 
 
 def _check_list_is_unique(assignment: Sequence[Assignment]) -> None:
+    """
+    Validate that no node is named twice in a list.
+
+    Parameters
+    ----------
+    assignment
+        The list whose node references are checked.
+    """
     names = [entry.name for entry in assignment if isinstance(entry, Node)]
     if not list_is_unique(names):
         raise ValueError("requires all entries in the list to be unique")
 
 
 def _check_fraction_list(fractions: object) -> None:
+    """
+    Validate that an assignment is a list of non-negative plain numbers.
+
+    Parameters
+    ----------
+    fractions
+        The value passed to the setter.
+    """
     if not isinstance(fractions, list):
         raise ValueError("only allows assignment of lists")
 
