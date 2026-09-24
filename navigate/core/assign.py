@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Validation of the values a deck assigns, shared by every DSL setter."""
+
 from __future__ import annotations
 
 from enum import Enum
@@ -138,21 +140,11 @@ def assign_value[T: Assignment](
     Assignment
         The value that was passed, so a setter assigns what it validated.
     """
-    is_float = isinstance(assignment, (float, Scalar))
-    is_date = isinstance(assignment, np.datetime64)
-    is_expression = isinstance(assignment, Expression)
-    is_node = isinstance(assignment, Node)
-    type_is_list = isinstance(type_, (list, tuple))
+    if isinstance(assignment, Expression):
+        assignment.set_allowed_types(type_)
+        assignment.set_internal_bounds(lower, upper)
 
-    float_allowed = is_float and scalar
-    date_allowed = is_date and date
-    reference_allowed = (
-        is_node
-        and (type_ is not None)
-        and (assignment.type in type_ if type_is_list else assignment.is_type(type_))
-    )
-
-    if float_allowed:
+    elif scalar and isinstance(assignment, (float, Scalar)):
         _check_scalar(
             assignment,
             lower=lower,
@@ -161,14 +153,14 @@ def assign_value[T: Assignment](
             inclusive_upper=inclusive_upper,
         )
 
-    elif is_expression:
-        assignment.set_allowed_types(type_)
+    elif isinstance(assignment, Node) and _accepts_reference(assignment, type_):
+        # a calculator answers a getter with a value of its own, so it is the
+        # only reference kind the attribute bounds have anything to clip
+        if is_calculator(assignment):
+            assignment.set_internal_bounds(lower, upper)
 
-    elif not (date_allowed or reference_allowed):
+    elif not (date and isinstance(assignment, np.datetime64)):
         raise ValueError(_failed_value_message(assignment, scalar, date, type_))
-
-    if is_expression or (is_node and is_calculator(assignment)):
-        assignment.set_internal_bounds(lower, upper)
 
     return assignment
 
@@ -260,12 +252,13 @@ def assign_boolean(assignment: object) -> bool:
     bool
         Value of the keyword.
     """
+    if not isinstance(assignment, str):
+        raise ValueError(_only_allows("TRUE or FALSE", assignment))
+
     try:
         return _BOOL_ID[assignment]
 
-    # a list or a table reaches the lookup as an unhashable key, and the
-    # TypeError that raises carries no deck line for the parser to report
-    except (KeyError, TypeError):
+    except KeyError:
         raise ValueError(_only_allows("TRUE or FALSE", assignment)) from None
 
 
@@ -289,12 +282,13 @@ def assign_bound(assignment: object) -> float:
     if isinstance(assignment, float):
         return assign_value(assignment)
 
+    if not isinstance(assignment, str):
+        raise ValueError(_only_allows("scalars, -INF or INF", assignment))
+
     try:
         return _BOUND_ID[assignment]
 
-    # a list or a table reaches the lookup as an unhashable key, and the
-    # TypeError that raises carries no deck line for the parser to report
-    except (KeyError, TypeError):
+    except KeyError:
         raise ValueError(_only_allows("scalars, -INF or INF", assignment)) from None
 
 
@@ -317,20 +311,19 @@ def assign_id[E: Enum](assignment: object, id_enum: type[E]) -> E:
     Enum
         Returns the passed assignment (to allow error checking while assigning).
     """
+    if not isinstance(assignment, str):
+        raise ValueError(_only_allows("IDs", assignment))
+
     try:
         return id_enum[assignment]
 
-    # a list or a table reaches the lookup as an unhashable key, and the
-    # wildcard test below only reads a string
-    except (KeyError, TypeError):
-        if not isinstance(assignment, str):
-            raise ValueError(_only_allows("IDs", assignment)) from None
-
+    except KeyError:
         if name_contains_wildcards(assignment):
             raise ValueError(
                 f"does not accept ID '{assignment}' — wildcards are not supported "
                 "for this command"
             ) from None
+
         raise ValueError(f"does not accept ID '{assignment}'") from None
 
 
@@ -627,8 +620,9 @@ def command_assignment_to_boolean_dict[K: str | Enum](
         names = retrieve_keys(key, assignment_dict)
 
     except KeyError:
-        if allow_empty and name_contains_wildcards(key):
-            # TODO logging.warning()
+        if allow_empty and isinstance(key, str) and name_contains_wildcards(key):
+            # wildcards in a shared include are written against whatever the
+            # deck defines, so a pattern that matches nothing is not an error
             return
         else:
             raise KeyError(key) from None
@@ -662,6 +656,31 @@ def default_unassigned[K, V](values: dict[K, V | None], default: V) -> None:
     for key, value in values.items():
         if value is None:
             values[key] = default
+
+
+def _accepts_reference(node: Node, type_: AcceptedTypes) -> bool:
+    """
+    Check whether an attribute accepting 'type_' accepts a reference to a node.
+
+    Parameters
+    ----------
+    node
+        The node the deck named.
+    type_
+        Type(s) of Node that the attribute allows.
+
+    Returns
+    -------
+    bool :
+        Whether the node is of a type the attribute allows.
+    """
+    if type_ is None:
+        return False
+
+    if isinstance(type_, (list, tuple)):
+        return node.type in type_
+
+    return node.is_type(type_)
 
 
 def _failed_value_message(

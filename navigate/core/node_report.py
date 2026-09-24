@@ -18,6 +18,8 @@ if TYPE_CHECKING:
 
 
 class NodeReport:
+    """The report properties requested for one node, in the order they were added."""
+
     def __init__(self) -> None:
 
         self.attributes: list[str] = []
@@ -25,6 +27,16 @@ class NodeReport:
         self.reduce: list[ReportReduceID] = []
 
     def add_property(self, attribute: str, reduce: ReportReduceID) -> None:
+        """
+        Record a report property, ignoring one already recorded for this node.
+
+        Parameters
+        ----------
+        attribute
+            Deck-facing attribute token naming the property to report.
+        reduce
+            Reduction to apply to the tuple keys of the property.
+        """
         if attribute not in self.attributes:
             self.attributes.append(attribute)
             self.getters.append(attribute_to_setter(attribute, method="get"))
