@@ -77,7 +77,7 @@ def _calculate_attribute_in_policy_jurisdiction(
         Vessel operating under the jurisdiction of the regulation.
     times : float | np.ndarray
         Time since start of simulation.
-    attr_sea : np.ndarray
+    attribute_sea : np.ndarray
         Attribute per leg at sea.
 
     Returns

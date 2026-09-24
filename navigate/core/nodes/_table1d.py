@@ -84,7 +84,7 @@ class _Table1D(_Calculator):
         Parameters
         ----------
         y : float | np.ndarray
-
+            Value to find the corresponding x-value for.
         xp : np.ndarray
             x-values of a piecewise linear function.
         yp : np.ndarray

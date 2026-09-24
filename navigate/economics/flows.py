@@ -226,6 +226,8 @@ def build_cargo_flow(
         Component for which cargo-mile flow is calculated.
     cargo
         Variable cargo-mile rate in tons per year.
+    timeline
+        Timeline at which `cargo` is defined.
 
     Returns
     -------

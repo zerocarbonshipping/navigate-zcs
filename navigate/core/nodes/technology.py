@@ -87,7 +87,9 @@ class Technology(_Machinery):
         Parameters
         ----------
         energy_type
+            Energy demand type the saving applies to.
         saving
+            Fraction of energy saved for that demand type.
         """
         id_ = assign_id(energy_type, EnergyDemandTypeID)
         command_assignment_to_dict(
@@ -101,7 +103,9 @@ class Technology(_Machinery):
         Parameters
         ----------
         energy_type
+            Energy demand type the external power supplies.
         power
+            External power supplied for that demand type, in MW.
         """
         id_ = assign_id(energy_type, EnergyDemandTypeID)
         command_assignment_to_dict(

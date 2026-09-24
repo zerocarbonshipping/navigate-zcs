@@ -32,6 +32,7 @@ select = [
 ]
 extend-select = [
     "D213", # multi-line docstring summaries start on the second line
+    "D417", # every argument appears in a Parameters section that exists
     "G001", # no str.format in logging calls - pass lazy % arguments
     "G004", # no f-strings in logging calls - pass lazy % arguments
 ]

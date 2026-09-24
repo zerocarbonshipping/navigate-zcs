@@ -59,8 +59,8 @@ judgment:
 
 - Summaries are terse: what the function does, plus any non-obvious why.
   Verbose docstrings are explicitly discouraged.
-- `Parameters` covers every argument, one line each, without types (the
-  signature has them).
+- `Parameters` gives each argument one line, without types (the signature has
+  them).
 - `Returns` follows the numpydoc shape: a type line with the description
   indented under it. Here the type deliberately duplicates the annotation -
   the documentation renderer reads the docstring alone, and a bare
