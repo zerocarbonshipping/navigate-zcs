@@ -91,7 +91,7 @@ def _make_proposal(
     name_from: str,
     increment_idx: int,
     age: float,
-    dt: float,
+    age_span: float,
     candidates: dict[str, tuple[float, float, float]],
 ) -> _ConversionProposal:
     """Candidates maps name_to -> (count, charge, window); DCM fields are inert here."""
@@ -99,7 +99,7 @@ def _make_proposal(
         name_from,
         increment_idx,
         age,
-        dt,
+        age_span,
         {
             name_to: _ConversionCandidate(
                 metric=0.0,
@@ -140,7 +140,7 @@ class TestProposeFuelConversions:
         with patch(_DCM, return_value=_SHARES) as dcm:
             proposals = propose_fuel_conversions(fleet, idx=3, time_step=YEAR)
 
-        # age 10 with dt 1 gives avg_age 10.5 and 14.5 remaining years: 14 full
+        # age 10 with age_span 1 gives avg_age 10.5 and 14.5 remaining years: 14 full
         # years of fuel saving plus a prorated half year, less the lump-sum cost
         expected_cash = np.full(15, 8.0 - 3.0)
         expected_cash[-1] *= 0.5
@@ -160,7 +160,7 @@ class TestProposeFuelConversions:
         assert proposal.name_from == "oil"
         assert proposal.increment_idx == 0
         assert proposal.age == 10.0
-        assert proposal.dt == 1.0
+        assert proposal.age_span == 1.0
         np.testing.assert_almost_equal(proposal.candidates["ammonia"].count, 0.25 * 4.0)
 
     def test_charge_levelizes_conversion_cost(self):
@@ -215,8 +215,8 @@ class TestProposeFuelConversions:
         )
 
     def test_empty_business_case_does_not_stop_older_increments(self):
-        # two cohorts share an age with different dt: the one walked first (larger
-        # dt, higher average age) outlives the destination's remaining lifetime,
+        # two cohorts share an age with different age_span: the one walked first (larger
+        # age_span, higher average age) outlives the destination's remaining lifetime,
         # while the other still has a business case
         fleet = _oil_to_ammonia_fleet()
         fleet.assets[1].lifetime = Scalar(12.0)
@@ -302,7 +302,9 @@ class TestApplyFuelConversionExpenses:
 
         idx = 1
         proposals = [
-            _make_proposal("a", 0, age=5.0, dt=1.0, candidates={"b": (2.0, 30.0, 3.0)})
+            _make_proposal(
+                "a", 0, age=5.0, age_span=1.0, candidates={"b": (2.0, 30.0, 3.0)}
+            )
         ]
         apply_fuel_conversions(fleet, proposals, idx=idx, timeline=timeline)
 
@@ -329,7 +331,9 @@ class TestApplyFuelConversionExpenses:
         # a 1.5-year window books the full charge in the conversion year and half
         # the charge in the partial second service year
         proposals = [
-            _make_proposal("a", 0, age=5.0, dt=1.0, candidates={"b": (2.0, 30.0, 1.5)})
+            _make_proposal(
+                "a", 0, age=5.0, age_span=1.0, candidates={"b": (2.0, 30.0, 1.5)}
+            )
         ]
         apply_fuel_conversions(fleet, proposals, idx=1, timeline=timeline)
 

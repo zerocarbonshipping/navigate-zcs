@@ -344,7 +344,7 @@ def _make_fleet_for_retrofit(
             Increment(
                 multiplier=float(m),
                 age=0.0,
-                dt=1.0,
+                age_span=1.0,
                 package_uptake=_package_at_zero(n_packages),
             )
             for m in counts

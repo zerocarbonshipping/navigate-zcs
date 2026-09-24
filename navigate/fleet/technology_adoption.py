@@ -574,7 +574,7 @@ def _propose_retrofits(
             if not is_retrofit_cycle(inc.age, retrofit_frequency, dt_years):
                 continue
 
-            remaining = get_remaining_lifetime(vessel, inc.age, inc.dt)
+            remaining = get_remaining_lifetime(vessel, inc.age, inc.age_span)
             if remaining <= 0:
                 continue
 

@@ -53,8 +53,7 @@ def as_scalar(value: Assignment) -> Assignment:
     Wrap a value in a Scalar class if it is a float, otherwise return the value as is.
 
     The wrapping is necessary as Scalar provides a getter which takes two
-    arguments, similar to all calculator nodes. This is convenient when an
-    attribute can be defined as either a float or a calculator node.
+    arguments, similar to all calculator nodes.
 
     Parameters
     ----------
@@ -68,8 +67,8 @@ def as_scalar(value: Assignment) -> Assignment:
     """
     if isinstance(value, float):
         return Scalar(value)
-    else:
-        return value
+
+    return value
 
 
 def as_scalar_list(
@@ -100,8 +99,7 @@ def as_list[T](value: T | list[T] | tuple[T, ...]) -> list[T]:
     Wrap a value in a list if it is not already a list.
 
     This is a convenient method when an attribute requires a list, but the
-    list has no defined length. It allows the user to pass the assignment
-    without the '[' and ']' around the value.
+    list has no defined length.
 
     Parameters
     ----------
@@ -110,11 +108,13 @@ def as_list[T](value: T | list[T] | tuple[T, ...]) -> list[T]:
 
     Returns
     -------
-    list
+    list[T]
         A list containing the passed value or simply the value itself if already a list.
     """
     if isinstance(value, tuple):
         return list(value)
 
-    else:
-        return [value] if not isinstance(value, list) else value
+    if isinstance(value, list):
+        return value
+
+    return [value]

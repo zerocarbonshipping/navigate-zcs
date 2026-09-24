@@ -21,12 +21,11 @@ class NodeReport:
     """The report properties requested for one node, in the order they were added."""
 
     def __init__(self) -> None:
+        self.attributes: list[str] = []  # deck-facing attribute tokens, in order
+        self.getters: list[str] = []  # profile getter names resolved from the tokens
+        self.reductions: list[ReportReduceID] = []  # key reduction per attribute
 
-        self.attributes: list[str] = []
-        self.getters: list[str] = []
-        self.reduce: list[ReportReduceID] = []
-
-    def add_property(self, attribute: str, reduce: ReportReduceID) -> None:
+    def add_property(self, attribute: str, reduction: ReportReduceID) -> None:
         """
         Record a report property, ignoring one already recorded for this node.
 
@@ -34,10 +33,10 @@ class NodeReport:
         ----------
         attribute
             Deck-facing attribute token naming the property to report.
-        reduce
+        reduction
             Reduction to apply to the tuple keys of the property.
         """
         if attribute not in self.attributes:
             self.attributes.append(attribute)
             self.getters.append(attribute_to_setter(attribute, method="get"))
-            self.reduce.append(reduce)
+            self.reductions.append(reduction)

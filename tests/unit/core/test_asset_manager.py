@@ -17,9 +17,9 @@ class TestUpdateIncrementAges:
 
     def test_producer_ages_increments_and_pipeline(self):
         producer = Producer("producer")
-        producer.increments.append([Increment(multiplier=1.0, age=2.0, dt=1.0)])
+        producer.increments.append([Increment(multiplier=1.0, age=2.0, age_span=1.0)])
         producer.pipeline.append(
-            [Increment(multiplier=1.0, age=-1.5, dt=1.0, decided=0.0)]
+            [Increment(multiplier=1.0, age=-1.5, age_span=1.0, decided=0.0)]
         )
 
         producer.update_increment_ages(time_step=YEAR / 2.0)
