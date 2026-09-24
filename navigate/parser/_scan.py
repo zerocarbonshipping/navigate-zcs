@@ -34,9 +34,9 @@ def parse_node_reference(reference_string: str) -> tuple[str, str] | None:
     ``(node type, node name)``, or ``None`` when the text is not a reference.
     """
     match = _NODE_REFERENCE_PATTERN.match(reference_string)
-    if match is None:
-        return None
-    return match.group(1), match.group(3)
+    node_reference = None if match is None else (match.group(1), match.group(3))
+
+    return node_reference
 
 
 # node attributes that can never hold node references, skipped when the parser

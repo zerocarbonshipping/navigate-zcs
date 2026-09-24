@@ -47,12 +47,10 @@ def calculate_speed_bounds(
     low = np.min(speeds_min)
     high = np.max(speeds_max)
 
-    if np.isfinite(low) and np.isfinite(high) and (low < high):
-        return low, high
-
-    # fallback: use reference distribution envelope
-    low = np.min(speeds)
-    high = np.max(speeds)
+    if not (np.isfinite(low) and np.isfinite(high) and (low < high)):
+        # fallback: use reference distribution envelope
+        low = np.min(speeds)
+        high = np.max(speeds)
 
     return low, high
 
@@ -74,10 +72,9 @@ def calculate_technical_speed_limits(vessel: Vessel) -> tuple[np.ndarray, np.nda
     load = vessel.propulsion_load
 
     if isinstance(load, Scalar) or is_variable(load):
-        return -np.inf, np.inf
-
-    # must per definition be Curve or Surface
+        speed_minimum, speed_maximum = -np.inf, np.inf
     else:
+        # must per definition be Curve or Surface
         converter = vessel.power_system.propulsion
         power_maximum = converter.power_capacity.get()
         minimum_load = converter.minimum_load
@@ -114,7 +111,7 @@ def calculate_technical_speed_limits(vessel: Vessel) -> tuple[np.ndarray, np.nda
         speed_minimum = _expand_speed_to_legs(vessel, speed_minimum)
         speed_maximum = _expand_speed_to_legs(vessel, speed_maximum)
 
-        return speed_minimum, speed_maximum
+    return speed_minimum, speed_maximum
 
 
 def loads_are_convex(vessel: Vessel) -> bool:
@@ -293,8 +290,9 @@ def _load_is_convex(load: Scalar | Variable | Curve | Surface) -> bool:
         Whether the load level is based on a convex function.
     """
     if isinstance(load, Scalar) or is_variable(load):
-        return True
-
-    # must per definition be Curve or Surface
+        is_convex = True
     else:
-        return load.is_convex()
+        # must per definition be Curve or Surface
+        is_convex = load.is_convex()
+
+    return is_convex

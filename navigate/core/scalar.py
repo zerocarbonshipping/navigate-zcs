@@ -55,6 +55,8 @@ class Scalar:
         # broadcasting is what keeps a Scalar substitutable for a calculator
         # node, whose getter answers an array input with an array
         if isinstance(x, np.ndarray):
-            return np.full_like(x, self._value)
+            value: FloatLike = np.full_like(x, self._value)
+        else:
+            value = self._value
 
-        return self._value
+        return value

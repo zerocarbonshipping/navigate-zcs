@@ -203,20 +203,24 @@ def convert_to_regional_steps(
     """
     route = vessel.route
 
-    if route.route_type != RouteTypeID.REGIONAL_TRIP:
-        return energy_sea
+    if route.route_type == RouteTypeID.REGIONAL_TRIP:
+        n_leg = route.get_number_of_regional_legs()
+        regional_energy_sea = {
+            demand_type: [0.0 for _ in range(n_leg)] for demand_type in energy_sea
+        }
+        sailing_fractions = route.get_voyage_distribution(to_array=True)
 
-    n_leg = route.get_number_of_regional_legs()
-    out_sea = {demand_type: [0.0 for _ in range(n_leg)] for demand_type in energy_sea}
-    sailing_fractions = route.get_voyage_distribution(to_array=True)
+        for energy_id, energy in energy_sea.items():
+            total_energy = sum(energy)
 
-    for energy_id, energy in energy_sea.items():
-        total_energy = sum(energy)
+            for leg in range(n_leg):
+                regional_energy_sea[energy_id][leg] = (
+                    total_energy * sailing_fractions[leg]
+                )
+    else:
+        regional_energy_sea = energy_sea
 
-        for leg in range(n_leg):
-            out_sea[energy_id][leg] = total_energy * sailing_fractions[leg]
-
-    return out_sea
+    return regional_energy_sea
 
 
 def _calculate_trip(operations: Operations, vessel: Vessel) -> None:

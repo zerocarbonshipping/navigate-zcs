@@ -29,13 +29,15 @@ def _get_adjusted_threshold(
         scheme == enum_.RegulationSchemeID.FLEXIBLE
         and r in alg.adjusted_shared_thresholds
     ):
-        return alg.adjusted_shared_thresholds[r]
-    if (
+        adjusted_threshold = alg.adjusted_shared_thresholds[r]
+    elif (
         scheme == enum_.RegulationSchemeID.INDIVIDUAL
         and (r, v) in alg.adjusted_vessel_thresholds
     ):
-        return alg.adjusted_vessel_thresholds[(r, v)]
-    return None
+        adjusted_threshold = alg.adjusted_vessel_thresholds[(r, v)]
+    else:
+        adjusted_threshold = None
+    return adjusted_threshold
 
 
 def calculate_regulation_emission_properties(alg: BunkerAlgorithm) -> dict:

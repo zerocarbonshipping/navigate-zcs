@@ -147,10 +147,9 @@ def _energy_weighted_signal(
                 weighted_sum += belief_leg[idx] * weight
                 weight_total += weight
 
-    if weight_total <= 0.0:
-        return np.nan
+    signal = np.nan if weight_total <= 0.0 else weighted_sum / weight_total
 
-    return weighted_sum / weight_total
+    return signal
 
 
 def _smooth_pi_dict(

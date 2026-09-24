@@ -26,10 +26,14 @@ FOUNDATION = (
 
 def _is_forbidden(module):
     if module != "navigate" and not module.startswith("navigate."):
-        return False
-    return not any(
-        module == package or module.startswith(package + ".") for package in FOUNDATION
-    )
+        forbidden = False
+    else:
+        forbidden = not any(
+            module == package or module.startswith(package + ".")
+            for package in FOUNDATION
+        )
+
+    return forbidden
 
 
 def _is_type_checking_guard(test):

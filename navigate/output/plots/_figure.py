@@ -28,9 +28,11 @@ from navigate.output.plots._style import SAVE_OPTIONS
 def ensure_axes_list(axes):
     """Ensure axes is always a flat list, even for a single subplot."""
     try:
-        return axes.flatten()
+        axes_list = axes.flatten()
     except AttributeError:
-        return [axes]
+        axes_list = [axes]
+
+    return axes_list
 
 
 def single_panel(figsize=(27, 15), **kwargs):
@@ -46,16 +48,16 @@ def subplot_grid(n, figsize=(27, 15), **kwargs):
 
 def plot_stack_with_lines(ax, x, values, labels, colors, alpha=0.8):
 
-    if not values:
-        return []
+    if values:
+        stack = ax.stackplot(x, *values, labels=labels, colors=colors, alpha=alpha)
 
-    stack = ax.stackplot(x, *values, labels=labels, colors=colors, alpha=alpha)
+        # plot lines between the stacks (in reverse order)
+        cumulative = [np.add.reduce(values[: (i + 1)]) for i in range(len(values))]
 
-    # plot lines between the stacks (in reverse order)
-    cumulative = [np.add.reduce(values[: (i + 1)]) for i in range(len(values))]
-
-    for value, color in zip(cumulative[::-1], colors[::-1], strict=True):
-        ax.plot(x, value, color=color, lw=2)
+        for value, color in zip(cumulative[::-1], colors[::-1], strict=True):
+            ax.plot(x, value, color=color, lw=2)
+    else:
+        stack = []
 
     return stack
 

@@ -237,17 +237,19 @@ class _FuelConsumerProfile(_FuelEmissionProfile, _FuelTypeLookup, abc.ABC):
 
     def _saving(self, demand_type: EnergyDemandTypeID) -> FloatArray:
         if demand_type == EnergyDemandTypeID.PROPULSION:
-            return 1.0 - divide_nonzero(
+            saving = 1.0 - divide_nonzero(
                 self._energy_sea[demand_type],
                 self._raw_energy_sea[demand_type],
                 default=1.0,
             )
         else:
-            return 1.0 - divide_nonzero(
+            saving = 1.0 - divide_nonzero(
                 self._energy_sea[demand_type] + self._energy_port[demand_type],
                 self._raw_energy_sea[demand_type] + self._raw_energy_port[demand_type],
                 default=1.0,
             )
+
+        return saving
 
     def _shore_power_equivalent(self) -> FloatArray:
         return self._sum_values(

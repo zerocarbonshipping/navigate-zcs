@@ -282,28 +282,32 @@ def _table_2d_columns(
     bool
         Whether the x-column holds dates.
     """
+    columns: tuple[list[float | np.datetime64], list[float], list[list[float]], bool]
+
     if not table.rows:
-        return [], [], [], False
+        columns = [], [], [], False
+    else:
+        header, *data = table.rows
+        y = _header_row(header)
 
-    header, *data = table.rows
-    y = _header_row(header)
+        x: list[float | np.datetime64] = []
+        z: list[list[float]] = []
+        is_date = None
 
-    x: list[float | np.datetime64] = []
-    z: list[list[float]] = []
-    is_date = None
+        for row in data:
+            x_value, values = _table_2d_row(row, allow_date)
 
-    for row in data:
-        x_value, values = _table_2d_row(row, allow_date)
+            if len(values) != len(y):
+                raise ValueError("All rows in the table must have equal length.")
 
-        if len(values) != len(y):
-            raise ValueError("All rows in the table must have equal length.")
+            is_date = _consistent_is_date(is_date, x_value)
 
-        is_date = _consistent_is_date(is_date, x_value)
+            x.append(x_value)
+            z.append(values)
 
-        x.append(x_value)
-        z.append(values)
+        columns = x, y, z, bool(is_date)
 
-    return x, y, z, bool(is_date)
+    return columns
 
 
 def _header_row(row: list[float | str]) -> list[float]:
@@ -411,6 +415,8 @@ def _x_array(x: list[float | np.datetime64], is_date: bool) -> FloatArray | Date
         The x-column, float or date.
     """
     if is_date:
-        return np.array(x, dtype=np.dtype("datetime64[D]"))
+        x_array: FloatArray | DateArray = np.array(x, dtype=np.dtype("datetime64[D]"))
+    else:
+        x_array = np.array(x, dtype=np.float64)
 
-    return np.array(x, dtype=np.float64)
+    return x_array

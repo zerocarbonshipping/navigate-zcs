@@ -39,26 +39,29 @@ def retrieve_keys[K](key: str | K, allowed_keys: Iterable[K]) -> list[K]:
         if key not in allowed_keys:
             raise KeyError(key_name(key))
 
-        return [key]
+        keys = [key]
 
-    # fast path: exact lookup when no wildcards are present
-    if not name_contains_wildcards(key):
+    elif not name_contains_wildcards(key):
+        # fast path: exact lookup when no wildcards are present
         for allowed_key in allowed_keys:
             if allowed_key == key:
-                return [allowed_key]
-        raise KeyError(key)
+                keys = [allowed_key]
+                break
+        else:
+            raise KeyError(key)
 
-    regex = re.compile(wildcard_to_regex(key))
-    # a string key is only matched against string keys; non-string keys
-    # take the early return above
-    keys = [
-        allowed_key
-        for allowed_key in allowed_keys
-        if regex.match(cast("str", allowed_key))
-    ]
+    else:
+        regex = re.compile(wildcard_to_regex(key))
+        # a string key is only matched against string keys; non-string keys are
+        # handled by the branches above
+        keys = [
+            allowed_key
+            for allowed_key in allowed_keys
+            if regex.match(cast("str", allowed_key))
+        ]
 
-    if not keys:
-        raise KeyError(key)
+        if not keys:
+            raise KeyError(key)
 
     return keys
 
@@ -83,9 +86,11 @@ def matching_keys[K](key: str | K, allowed_keys: Iterable[K]) -> list[K]:
         List of all keys matching 'key'; empty when nothing matches.
     """
     try:
-        return retrieve_keys(key, allowed_keys)
+        keys = retrieve_keys(key, allowed_keys)
     except KeyError:
-        return []
+        keys = []
+
+    return keys
 
 
 def key_name(key: object) -> str:

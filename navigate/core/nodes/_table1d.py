@@ -100,9 +100,8 @@ class _Table1D(_Calculator):
         yp = self.calculate(self.x)
 
         if not is_strictly_increasing(yp):
-            return None
-
-        if interpolate:
+            x = None
+        elif interpolate:
             x = np.interp(y, yp, self.x)
         else:
             idx = find_nearest(yp, y)
@@ -139,19 +138,24 @@ class _Table1D(_Calculator):
 
     def _get_interpolate_internal(self):
         if self._interpolate == Interpolate1DID.LINEAR:
-            return "linear"
+            interpolate_internal = "linear"
 
         elif self._interpolate == Interpolate1DID.PREVIOUS:
-            return "previous"
+            interpolate_internal = "previous"
 
         elif self._interpolate == Interpolate1DID.NEXT:
-            return "next"
+            interpolate_internal = "next"
 
         elif self._interpolate == Interpolate1DID.NEAREST:
-            return "nearest"
+            interpolate_internal = "nearest"
 
         elif self._interpolate == Interpolate1DID.NEAREST_UP:
-            return "nearest-up"
+            interpolate_internal = "nearest-up"
+
+        else:
+            interpolate_internal = None
+
+        return interpolate_internal
 
     def _get_allow_extrapolate_internal(self):
         return self.extrapolate == ExtrapolateID.FALSE
@@ -161,10 +165,15 @@ class _Table1D(_Calculator):
             below = self._below if self._below is not None else self.y[0]
             above = self._above if self._above is not None else self.y[-1]
 
-            return below, above
+            extrapolate_internal = below, above
 
         elif self.extrapolate == ExtrapolateID.LINEAR:
-            return "extrapolate"
+            extrapolate_internal = "extrapolate"
+
+        else:
+            extrapolate_internal = None
+
+        return extrapolate_internal
 
     def _set_table(self, x, y):
 

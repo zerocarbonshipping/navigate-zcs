@@ -176,24 +176,24 @@ class _Builder:
 
     def _build(self, node_ast: ast.expr) -> _Evaluable:
         if isinstance(node_ast, ast.Constant):
-            return self._build_constant(node_ast)
-
-        if isinstance(node_ast, ast.BinOp):
-            return self._build_binary_operation(node_ast)
-
-        if isinstance(node_ast, ast.UnaryOp):
-            return self._build_unary_operation(node_ast)
-
-        if isinstance(node_ast, ast.Call):
-            return self._build_reference(node_ast)
-
-        if isinstance(node_ast, ast.Name) and _CAPITALIZED_NAME.fullmatch(node_ast.id):
+            evaluable: _Evaluable = self._build_constant(node_ast)
+        elif isinstance(node_ast, ast.BinOp):
+            evaluable = self._build_binary_operation(node_ast)
+        elif isinstance(node_ast, ast.UnaryOp):
+            evaluable = self._build_unary_operation(node_ast)
+        elif isinstance(node_ast, ast.Call):
+            evaluable = self._build_reference(node_ast)
+        elif isinstance(node_ast, ast.Name) and _CAPITALIZED_NAME.fullmatch(
+            node_ast.id
+        ):
             raise NotImplementedError(
                 f"{self._owner}: Expression '{self._text}' is currently unable"
                 " to support references to attributes."
             )
+        else:
+            raise self._error(f"unsupported syntax '{ast.unparse(node_ast)}'.")
 
-        raise self._error(f"unsupported syntax '{ast.unparse(node_ast)}'.")
+        return evaluable
 
     def _build_constant(self, node_ast: ast.Constant) -> _Constant:
         value = node_ast.value
@@ -324,12 +324,10 @@ class Expression:
 
         # a float result is broadcast so an expression over scalars answers
         # an array input the way one over arrays does
-        if isinstance(value, float):
-            if isinstance(x, np.ndarray):
-                return np.full_like(x, value)
-
-            if isinstance(y, np.ndarray):
-                return np.full_like(y, value)
+        if isinstance(value, float) and isinstance(x, np.ndarray):
+            value = np.full_like(x, value)
+        elif isinstance(value, float) and isinstance(y, np.ndarray):
+            value = np.full_like(y, value)
 
         return value
 
@@ -412,6 +410,6 @@ def parse_reference_strings(text: str) -> list[str]:
     try:
         _, reference_strings = _Builder(text, None).build()
     except (ValueError, NotImplementedError):
-        return []
+        reference_strings = []
 
     return reference_strings

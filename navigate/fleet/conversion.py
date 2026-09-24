@@ -98,18 +98,14 @@ def perform_fuel_conversions(
     time_step
         Current time-step size.
     """
-    if not fleet.can_fuel_convert():
-        return
+    if fleet.can_fuel_convert():
+        # must be pre-newbuild: newbuilds are inserted later in the same timestep.
+        existing_total = sum(fleet.get_multipliers())
 
-    # must be pre-newbuild: newbuilds are inserted later in the same timestep.
-    existing_total = sum(fleet.get_multipliers())
-
-    proposals = propose_fuel_conversions(fleet, idx, time_step)
-    if not proposals:
-        return
-
-    reconcile_fuel_conversion_caps(fleet, proposals, time_step, existing_total)
-    apply_fuel_conversions(fleet, proposals, idx, timeline)
+        proposals = propose_fuel_conversions(fleet, idx, time_step)
+        if proposals:
+            reconcile_fuel_conversion_caps(fleet, proposals, time_step, existing_total)
+            apply_fuel_conversions(fleet, proposals, idx, timeline)
 
 
 def propose_fuel_conversions(
@@ -363,17 +359,20 @@ def _extract_conversion_source(
         if name_from == vessel_from.name and cost is not None
     }
 
-    if not conversion_costs:
-        return None
+    source: _ConversionSource | None
+    if conversion_costs:
+        source = _ConversionSource(
+            vessel_from.name,
+            vessel_from.fuel_type,
+            vessel_from.expectation.get_total_energy(idx),
+            vessel_from.expectation.get_fuel_cost_flow(),
+            vessel_from.expectation.get_capex_npv(idx),
+            conversion_costs,
+        )
+    else:
+        source = None
 
-    return _ConversionSource(
-        vessel_from.name,
-        vessel_from.fuel_type,
-        vessel_from.expectation.get_total_energy(idx),
-        vessel_from.expectation.get_fuel_cost_flow(),
-        vessel_from.expectation.get_capex_npv(idx),
-        conversion_costs,
-    )
+    return source
 
 
 def _evaluate_increment(
@@ -435,26 +434,24 @@ def _evaluate_increment(
         if candidate is not None:
             candidates[name_to] = candidate
 
-    if not candidates:
-        return candidates
+    if candidates:
+        # the BAU sentinel (metric=0., limit=1.) sits at index -1 of the DCM input and
+        # is dropped on return
+        metrics = [candidate.metric for candidate in candidates.values()] + [0.0]
+        limits = [candidate.limit for candidate in candidates.values()] + [1.0]
 
-    # the BAU sentinel (metric=0., limit=1.) sits at index -1 of the DCM input and is
-    # dropped on return
-    metrics = [candidate.metric for candidate in candidates.values()] + [0.0]
-    limits = [candidate.limit for candidate in candidates.values()] + [1.0]
+        uptakes, _ = calculate_asset_shares(
+            metrics,
+            UtilityID.SIGNED_REFERENCE,
+            fleet.fuel_conversion_sensitivity.get(),
+            reference=source.capex_npv,
+            limits=limits,
+        )
 
-    uptakes, _ = calculate_asset_shares(
-        metrics,
-        UtilityID.SIGNED_REFERENCE,
-        fleet.fuel_conversion_sensitivity.get(),
-        reference=source.capex_npv,
-        limits=limits,
-    )
-
-    # store as conversion counts so reconciliation can scale per-pair without a
-    # re-multiply; strict=False drops the BAU sentinel's share
-    for candidate, share in zip(candidates.values(), uptakes, strict=False):
-        candidate.count = share * multiplier
+        # store as conversion counts so reconciliation can scale per-pair without a
+        # re-multiply; strict=False drops the BAU sentinel's share
+        for candidate, share in zip(candidates.values(), uptakes, strict=False):
+            candidate.count = share * multiplier
 
     return candidates
 
@@ -497,40 +494,41 @@ def _evaluate_candidate(
     type has no remaining lifetime or no fuel supply excess.
     """
     remaining_lifetime_to = round(vessel_to.lifetime.get() - avg_age, ROUND_OFF)
-    if remaining_lifetime_to <= 0.0:
-        return None
 
-    if supply <= 0.0:
-        return None
+    candidate: _ConversionCandidate | None
+    if remaining_lifetime_to <= 0.0 or supply <= 0.0:
+        candidate = None
+    else:
+        discount_rate = vessel_to.cost_of_capital.get()
+        energy_per_vessel = vessel_to.expectation.get_total_energy(idx)
+        maximum_vessels = supply / energy_per_vessel
+        limit = min(maximum_vessels / multiplier, 1.0)
 
-    discount_rate = vessel_to.cost_of_capital.get()
-    energy_per_vessel = vessel_to.expectation.get_total_energy(idx)
-    maximum_vessels = supply / energy_per_vessel
-    limit = min(maximum_vessels / multiplier, 1.0)
+        cost_fuel_to = vessel_to.expectation.get_fuel_cost_flow()
 
-    cost_fuel_to = vessel_to.expectation.get_fuel_cost_flow()
+        # fuel savings count over the window both the current and the converted
+        # vessel type still serve; the conversion cost is a lump sum up front
+        common_window = min(remaining_lifetime_from, remaining_lifetime_to)
+        cash_flow = trim_flow_to_lifetime(
+            source.fuel_cost_flow, common_window
+        ) - trim_flow_to_lifetime(cost_fuel_to, common_window)
+        cash_flow[0] -= conversion_cost.get()
 
-    # fuel savings count over the window both the current and the converted
-    # vessel type still serve; the conversion cost is a lump sum up front
-    common_window = min(remaining_lifetime_from, remaining_lifetime_to)
-    cash_flow = trim_flow_to_lifetime(
-        source.fuel_cost_flow, common_window
-    ) - trim_flow_to_lifetime(cost_fuel_to, common_window)
-    cash_flow[0] -= conversion_cost.get()
+        metric = calculate_net_present_value(cash_flow, discount_rate)
 
-    metric = calculate_net_present_value(cash_flow, discount_rate)
+        # for expense reporting the cost is levelized exactly: a constant yearly
+        # charge whose NPV over the destination type's remaining lifetime equals
+        # the conversion cost
+        ones_flow = expand_to_flow(remaining_lifetime_to, 1.0)
+        charge = conversion_cost.get() / calculate_net_present_value(
+            ones_flow, discount_rate
+        )
 
-    # for expense reporting the cost is levelized exactly: a constant yearly
-    # charge whose NPV over the destination type's remaining lifetime equals
-    # the conversion cost
-    ones_flow = expand_to_flow(remaining_lifetime_to, 1.0)
-    charge = conversion_cost.get() / calculate_net_present_value(
-        ones_flow, discount_rate
-    )
+        candidate = _ConversionCandidate(
+            metric, limit, energy_per_vessel, charge, remaining_lifetime_to
+        )
 
-    return _ConversionCandidate(
-        metric, limit, energy_per_vessel, charge, remaining_lifetime_to
-    )
+    return candidate
 
 
 def _apply_from_side(

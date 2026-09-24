@@ -103,15 +103,16 @@ class LinExpr:
         elif isinstance(other, (int, float)):
             result._constant += other
         else:
-            return NotImplemented
+            result = NotImplemented
         return result
 
     def __radd__(self, other):
         if isinstance(other, (int, float)):
             result = self._copy()
             result._constant += other
-            return result
-        return NotImplemented
+        else:
+            result = NotImplemented
+        return result
 
     def __sub__(self, other):
         result = self._copy()
@@ -123,23 +124,25 @@ class LinExpr:
         elif isinstance(other, (int, float)):
             result._constant -= other
         else:
-            return NotImplemented
+            result = NotImplemented
         return result
 
     def __rsub__(self, other):
         if isinstance(other, (int, float)):
             result = self.__neg__()
             result._constant += other
-            return result
-        return NotImplemented
+        else:
+            result = NotImplemented
+        return result
 
     def __mul__(self, scalar):
         if isinstance(scalar, (int, float)):
             result = LinExpr()
             result._terms = [(c * scalar, v) for c, v in self._terms]
             result._constant = self._constant * scalar
-            return result
-        return NotImplemented
+        else:
+            result = NotImplemented
+        return result
 
     def __rmul__(self, scalar):
         return self.__mul__(scalar)
@@ -153,22 +156,28 @@ class LinExpr:
     # comparison operators (create TempConstr) -----------------------------------------
     def __eq__(self, other):
         if isinstance(other, (int, float)):
-            return TempConstr(self, _SENSE_EQ, float(other))
-        return NotImplemented
+            temp_constr = TempConstr(self, _SENSE_EQ, float(other))
+        else:
+            temp_constr = NotImplemented
+        return temp_constr
 
     def __le__(self, other):
         if isinstance(other, (int, float)):
-            return TempConstr(self, _SENSE_LE, float(other))
-        if isinstance(other, LinExpr):
-            return TempConstr(self - other, _SENSE_LE, 0.0)
-        return NotImplemented
+            temp_constr = TempConstr(self, _SENSE_LE, float(other))
+        elif isinstance(other, LinExpr):
+            temp_constr = TempConstr(self - other, _SENSE_LE, 0.0)
+        else:
+            temp_constr = NotImplemented
+        return temp_constr
 
     def __ge__(self, other):
         if isinstance(other, (int, float)):
-            return TempConstr(self, _SENSE_GE, float(other))
-        if isinstance(other, LinExpr):
-            return TempConstr(self - other, _SENSE_GE, 0.0)
-        return NotImplemented
+            temp_constr = TempConstr(self, _SENSE_GE, float(other))
+        elif isinstance(other, LinExpr):
+            temp_constr = TempConstr(self - other, _SENSE_GE, 0.0)
+        else:
+            temp_constr = NotImplemented
+        return temp_constr
 
     # evaluation -----------------------------------------------------------------------
     def getValue(self):
@@ -236,10 +245,11 @@ class Var:
         if isinstance(other, (int, float)):
             expr = self._to_expr()
             expr._constant += other
-            return expr
-        if isinstance(other, LinExpr):
-            return other.__add__(self)
-        return NotImplemented
+        elif isinstance(other, LinExpr):
+            expr = other.__add__(self)
+        else:
+            expr = NotImplemented
+        return expr
 
     def __sub__(self, other):
         return self._to_expr().__sub__(other)
@@ -248,15 +258,18 @@ class Var:
         if isinstance(other, (int, float)):
             expr = self._to_expr(-1.0)
             expr._constant += other
-            return expr
-        if isinstance(other, LinExpr):
-            return other.__sub__(self)
-        return NotImplemented
+        elif isinstance(other, LinExpr):
+            expr = other.__sub__(self)
+        else:
+            expr = NotImplemented
+        return expr
 
     def __mul__(self, scalar):
         if isinstance(scalar, (int, float)):
-            return self._to_expr(float(scalar))
-        return NotImplemented
+            expr = self._to_expr(float(scalar))
+        else:
+            expr = NotImplemented
+        return expr
 
     def __rmul__(self, scalar):
         return self.__mul__(scalar)
@@ -272,12 +285,14 @@ class Var:
         return self._to_expr().__ge__(other)
 
     def __eq__(self, other):
-        # Only support constraint creation (comparison with numbers)
+        # only support constraint creation (comparison with numbers)
         if isinstance(other, (int, float)):
-            return self._to_expr().__eq__(other)
-        # For identity comparison (used in dict lookups etc.), fall back to object
-        # identity
-        return NotImplemented
+            temp_constr = self._to_expr().__eq__(other)
+        else:
+            # for identity comparison (used in dict lookups etc.), fall back to
+            # object identity
+            temp_constr = NotImplemented
+        return temp_constr
 
     def __hash__(self):
         return id(self)
@@ -628,63 +643,63 @@ class Model:
         Constr
         """
         if not self._recycled_rows:
-            return self.addConstr(constr, name=name)
-
-        row = self._recycled_rows.pop()
-        self._removed_rows.discard(row)
-
-        lhs = constr.lhs
-        sense = constr.sense
-        rhs = constr.rhs
-
-        adjusted_rhs = rhs - lhs._constant
-
-        # Zero out all old coefficients on this row
-        old_cols = self._row_coeffs.get(row)
-        if old_cols:
-            changeCoeff = self._highs.changeCoeff
-            for col in old_cols:
-                changeCoeff(row, col, 0.0)
-                self._coeff_values.pop((row, col), None)
-            old_cols.clear()
-
-        # Write new coefficients
-        new_cols = set()
-        changeCoeff = self._highs.changeCoeff
-        for coeff, var in lhs._terms:
-            col = var._col
-            changeCoeff(row, col, coeff)
-            self._coeff_values[(row, col)] = coeff
-            new_cols.add(col)
-
-        if new_cols:
-            self._row_coeffs[row] = new_cols
-
-        # Set row bounds based on sense
-        if sense == _SENSE_EQ:
-            lb = adjusted_rhs
-            ub = adjusted_rhs
-        elif sense == _SENSE_LE:
-            lb = -highspy.kHighsInf
-            ub = adjusted_rhs
-        elif sense == _SENSE_GE:
-            lb = adjusted_rhs
-            ub = highspy.kHighsInf
+            constr_obj = self.addConstr(constr, name=name)
         else:
-            raise ValueError(f"Unknown constraint sense: {sense}")
+            row = self._recycled_rows.pop()
+            self._removed_rows.discard(row)
 
-        self._highs.changeRowBounds(row, lb, ub)
+            lhs = constr.lhs
+            sense = constr.sense
+            rhs = constr.rhs
 
-        if mark_grew:
-            self._model_grew = True
-            # Set recycled row to kBasic (matches addConstr behavior)
-            if self._basis is not None:
-                with contextlib.suppress(IndexError, AttributeError):
-                    self._basis.row_status[row] = HighsBasisStatus.kBasic
+            adjusted_rhs = rhs - lhs._constant
 
-        constr_obj = Constr(self, row, sense, adjusted_rhs, name)
-        self._constr_names[row] = name
-        self._constr_objects[row] = constr_obj
+            # Zero out all old coefficients on this row
+            old_cols = self._row_coeffs.get(row)
+            if old_cols:
+                changeCoeff = self._highs.changeCoeff
+                for col in old_cols:
+                    changeCoeff(row, col, 0.0)
+                    self._coeff_values.pop((row, col), None)
+                old_cols.clear()
+
+            # Write new coefficients
+            new_cols = set()
+            changeCoeff = self._highs.changeCoeff
+            for coeff, var in lhs._terms:
+                col = var._col
+                changeCoeff(row, col, coeff)
+                self._coeff_values[(row, col)] = coeff
+                new_cols.add(col)
+
+            if new_cols:
+                self._row_coeffs[row] = new_cols
+
+            # Set row bounds based on sense
+            if sense == _SENSE_EQ:
+                lb = adjusted_rhs
+                ub = adjusted_rhs
+            elif sense == _SENSE_LE:
+                lb = -highspy.kHighsInf
+                ub = adjusted_rhs
+            elif sense == _SENSE_GE:
+                lb = adjusted_rhs
+                ub = highspy.kHighsInf
+            else:
+                raise ValueError(f"Unknown constraint sense: {sense}")
+
+            self._highs.changeRowBounds(row, lb, ub)
+
+            if mark_grew:
+                self._model_grew = True
+                # Set recycled row to kBasic (matches addConstr behavior)
+                if self._basis is not None:
+                    with contextlib.suppress(IndexError, AttributeError):
+                        self._basis.row_status[row] = HighsBasisStatus.kBasic
+
+            constr_obj = Constr(self, row, sense, adjusted_rhs, name)
+            self._constr_names[row] = name
+            self._constr_objects[row] = constr_obj
 
         return constr_obj
 
@@ -794,19 +809,15 @@ class Model:
         status = self._highs.getModelStatus()
 
         if status == HighsModelStatus.kOptimal:
-            return OPTIMAL
+            wrapper_status = OPTIMAL
+        elif status == HighsModelStatus.kInfeasible:
+            wrapper_status = INFEASIBLE
+        else:
+            # unbounded, unbounded-or-infeasible, and any other status (not set,
+            # error, etc.) all map to the same wrapper constant
+            wrapper_status = INF_OR_UNBD
 
-        if status == HighsModelStatus.kInfeasible:
-            return INFEASIBLE
-
-        if status in (
-            HighsModelStatus.kUnbounded,
-            HighsModelStatus.kUnboundedOrInfeasible,
-        ):
-            return INF_OR_UNBD
-
-        # For other statuses (e.g. not set, error), treat as infeasible/unbounded
-        return INF_OR_UNBD
+        return wrapper_status
 
     # ----------------------------------------------------------------------------------
     # Ranging (sensitivity analysis)
@@ -850,8 +861,10 @@ class Model:
     def IISConstr(self):
         """List of booleans indicating which constraints are in the IIS."""
         if self._iis_row_flags is None:
-            return [False] * self._num_rows
-        return list(self._iis_row_flags)
+            iis_flags = [False] * self._num_rows
+        else:
+            iis_flags = list(self._iis_row_flags)
+        return iis_flags
 
     @property
     def ConstrName(self):

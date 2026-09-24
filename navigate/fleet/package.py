@@ -293,11 +293,13 @@ def levelize_package_cost(
         Constant yearly charge in USD/year.
     """
     if window <= 0.0:
-        return 0.0
+        charge = 0.0
+    else:
+        charge = _levelize_trimmed(
+            trim_flow_to_lifetime(cost_flow, window), window, discount_rate
+        )
 
-    return _levelize_trimmed(
-        trim_flow_to_lifetime(cost_flow, window), window, discount_rate
-    )
+    return charge
 
 
 def _levelize_trimmed(

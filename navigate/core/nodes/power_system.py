@@ -100,8 +100,12 @@ class PowerSystem(_Machinery):
     def get_converter_by_energy_type(self, demand_type):
         match demand_type:
             case EnergyDemandTypeID.PROPULSION:
-                return self.propulsion
+                converter = self.propulsion
             case EnergyDemandTypeID.ELECTRICAL:
-                return self.electrical
+                converter = self.electrical
             case EnergyDemandTypeID.HEAT:
-                return self.heat
+                converter = self.heat
+            case _:
+                converter = None
+
+        return converter

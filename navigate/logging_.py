@@ -50,18 +50,20 @@ class _DeduplicatingFilter(logging.Filter):
 
     def filter(self, record: logging.LogRecord) -> bool:
         if record.levelno < logging.WARNING:
-            return True
+            passes = True
+        else:
+            key = record.getMessage()
+            if key in self.seen:
+                self.suppressed += 1
+                passes = False
+            else:
+                self.seen.add(key)
+                if len(self.unique_warnings) < _MAX_DIGEST_WARNINGS:
+                    self.unique_warnings.append(key)
 
-        key = record.getMessage()
-        if key in self.seen:
-            self.suppressed += 1
-            return False
+                passes = True
 
-        self.seen.add(key)
-        if len(self.unique_warnings) < _MAX_DIGEST_WARNINGS:
-            self.unique_warnings.append(key)
-
-        return True
+        return passes
 
 
 class _CountingHandler(logging.Handler):
@@ -288,12 +290,14 @@ def get_log_counts() -> dict[str, int]:
         Number of records per level name, empty when no run has been set up.
     """
     if not _COUNT_HANDLER:
-        return {}
+        counts = {}
+    else:
+        counts = {
+            level: _COUNT_HANDLER.counter.get(level, 0)
+            for level in set(LOG_LEVELS) | set(_COUNT_HANDLER.counter)
+        }
 
-    return {
-        level: _COUNT_HANDLER.counter.get(level, 0)
-        for level in set(LOG_LEVELS) | set(_COUNT_HANDLER.counter)
-    }
+    return counts
 
 
 def build_log_summary() -> str:
@@ -363,12 +367,15 @@ def _round_for_display(value: float) -> float:
     """
     magnitude = abs(value)
 
+    rounded: float
     if magnitude <= TOLERANCE:
-        return 0
+        rounded = 0
+    else:
+        significant = -floor(log10(magnitude))
 
-    significant = -floor(log10(magnitude))
+        if significant <= 0:
+            rounded = int(np.round(value, 0))
+        else:
+            rounded = float(np.round(value, significant))
 
-    if significant <= 0:
-        return int(np.round(value, 0))
-
-    return float(np.round(value, significant))
+    return rounded

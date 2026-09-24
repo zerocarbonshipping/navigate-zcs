@@ -66,9 +66,11 @@ def as_scalar(value: Assignment) -> Assignment:
         Wrapped value.
     """
     if isinstance(value, float):
-        return Scalar(value)
+        wrapped: Assignment = Scalar(value)
+    else:
+        wrapped = value
 
-    return value
+    return wrapped
 
 
 def as_scalar_list(
@@ -112,9 +114,10 @@ def as_list[T](value: T | list[T] | tuple[T, ...]) -> list[T]:
         A list containing the passed value or simply the value itself if already a list.
     """
     if isinstance(value, tuple):
-        return list(value)
+        value_list = list(value)
+    elif isinstance(value, list):
+        value_list = value
+    else:
+        value_list = [value]
 
-    if isinstance(value, list):
-        return value
-
-    return [value]
+    return value_list

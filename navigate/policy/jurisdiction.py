@@ -55,12 +55,13 @@ def leg_jurisdiction_fraction(
         The fraction of the leg covered by the regulation.
     """
     if (port_i in jurisdiction) and (port_e in jurisdiction):
-        return intra_fraction
+        fraction = intra_fraction
+    elif (port_i in jurisdiction) or (port_e in jurisdiction):
+        fraction = inter_fraction
+    else:
+        fraction = extra_fraction
 
-    if (port_i in jurisdiction) or (port_e in jurisdiction):
-        return inter_fraction
-
-    return extra_fraction
+    return fraction
 
 
 def _calculate_attribute_in_policy_jurisdiction(

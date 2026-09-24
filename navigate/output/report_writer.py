@@ -623,10 +623,9 @@ def _export_time_series(ws: Worksheet, series: np.ndarray, col: int) -> int:
 
 
 def _format_header(header):
-    if isinstance(header, Enum):
-        return header.name
-    else:
-        return header
+    formatted_header = header.name if isinstance(header, Enum) else header
+
+    return formatted_header
 
 
 def _flatten_to_csv(

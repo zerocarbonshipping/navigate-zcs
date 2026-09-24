@@ -328,8 +328,11 @@ def regen_baselines(baseline_dir: Path, output_dir: Path) -> list[str]:
 
 def _csv_names(directory: Path) -> set[str]:
     if not directory.is_dir():
-        return set()
-    return {path.name for path in directory.glob("*.csv")}
+        names = set()
+    else:
+        names = {path.name for path in directory.glob("*.csv")}
+
+    return names
 
 
 def _reject_retry_names(directory: Path, names: list[str] | set[str]) -> None:
@@ -443,19 +446,25 @@ def _cell_deviation(
     try:
         baseline_value = float(baseline)
         actual_value = float(actual)
+        parsed = True
     except ValueError:
-        return None if baseline == actual else (math.inf, math.inf)
+        parsed = False
 
-    if baseline_value == actual_value:
-        return None
-    if math.isnan(baseline_value) and math.isnan(actual_value):
-        return None
+    deviation: tuple[float, float] | None
+    if not parsed:
+        deviation = None if baseline == actual else (math.inf, math.inf)
+    elif baseline_value == actual_value or (
+        math.isnan(baseline_value) and math.isnan(actual_value)
+    ):
+        deviation = None
+    else:
+        abs_dev = abs(actual_value - baseline_value)
+        if not math.isfinite(abs_dev):
+            deviation = (math.inf, math.inf)
+        elif abs_dev <= atol + rtol * abs(baseline_value):
+            deviation = None
+        else:
+            rel_dev = abs_dev / max(abs(baseline_value), abs(actual_value))
+            deviation = (abs_dev, rel_dev)
 
-    abs_dev = abs(actual_value - baseline_value)
-    if not math.isfinite(abs_dev):
-        return (math.inf, math.inf)
-    if abs_dev <= atol + rtol * abs(baseline_value):
-        return None
-
-    rel_dev = abs_dev / max(abs(baseline_value), abs(actual_value))
-    return (abs_dev, rel_dev)
+    return deviation

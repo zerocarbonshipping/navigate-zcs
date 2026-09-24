@@ -216,7 +216,6 @@ def generate_color_dict(nodes, default_dict):
 
 
 def _color_is_used(color, colors):
-    if not colors:
-        return False
+    is_used = False if not colors else np.any(np.all(color == colors, axis=1))
 
-    return np.any(np.all(color == colors, axis=1))
+    return is_used

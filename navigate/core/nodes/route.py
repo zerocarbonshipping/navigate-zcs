@@ -439,13 +439,15 @@ class Route(Node):
         The returned mapping is shared between calls; treat it as read-only.
         """
         if to_array:
-            return [
+            voyage_distribution = [
                 self._voyage_fractions[(pi.name, pj.name)]
                 for pj in self.ports
                 for pi in self.ports
             ]
         else:
-            return self._voyage_fractions
+            voyage_distribution = self._voyage_fractions
+
+        return voyage_distribution
 
     def get_number_of_legs(self):
         return len(self.speeds)
@@ -464,22 +466,28 @@ class Route(Node):
         """
         if self.route_type == RouteTypeID.ROUND_TRIP:
             n_legs = self.get_number_of_legs()
-            return tuple((i, (i + 1) % n_legs) for i in range(n_legs))
+            leg_indices = tuple((i, (i + 1) % n_legs) for i in range(n_legs))
         else:
             n_ports = self.get_number_of_ports()
-            return tuple((i, j) for i in range(n_ports) for j in range(n_ports))
+            leg_indices = tuple((i, j) for i in range(n_ports) for j in range(n_ports))
+
+        return leg_indices
 
     def local_to_global_leg_idx(self, p1: int, p2: int):
         if self.route_type == RouteTypeID.ROUND_TRIP:
-            return p1
+            leg_idx = p1
         else:
-            return p1 * self.get_number_of_ports() + p2
+            leg_idx = p1 * self.get_number_of_ports() + p2
+
+        return leg_idx
 
     def get_number_of_regional_legs(self):
         if self.route_type == RouteTypeID.ROUND_TRIP:
-            return self.get_number_of_legs()
+            number_of_regional_legs = self.get_number_of_legs()
         else:
-            return self.get_number_of_ports() ** 2
+            number_of_regional_legs = self.get_number_of_ports() ** 2
+
+        return number_of_regional_legs
 
     def _normalize_voyage_distribution(self):
         """
@@ -503,6 +511,8 @@ class Route(Node):
 
     def get_number_of_port_calls(self):
         if self.route_type == RouteTypeID.ROUND_TRIP:
-            return np.ones((self.get_number_of_ports(),))
+            number_of_port_calls = np.ones((self.get_number_of_ports(),))
         else:
-            return to_numpy(self.port_calls)
+            number_of_port_calls = to_numpy(self.port_calls)
+
+        return number_of_port_calls

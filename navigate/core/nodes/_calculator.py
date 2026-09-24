@@ -208,8 +208,10 @@ class _Calculator:
             Whether the piecewise linear function is convex.
         """
         if x.size < 3:
-            return True
+            is_convex = True
+        else:
+            dy_dx = (y[1:] - y[:-1]) / (x[1:] - x[:-1])
+            d2y_d2x = (dy_dx[1:] - dy_dx[:-1]) / (x[2:] - x[1:-1])
+            is_convex = not np.any(np.round(d2y_d2x, ROUND_OFF) < 0.0)
 
-        dy_dx = (y[1:] - y[:-1]) / (x[1:] - x[:-1])
-        d2y_d2x = (dy_dx[1:] - dy_dx[:-1]) / (x[2:] - x[1:-1])
-        return not np.any(np.round(d2y_d2x, ROUND_OFF) < 0.0)
+        return is_convex

@@ -279,14 +279,18 @@ def derive_smoothing_alpha(
         Smoothing parameter.
     """
     horizon_idx = timeline.size - 1
+
     if idx > horizon_idx:
-        return 1.0
+        alpha = 1.0
+    else:
+        outer_step_years: float = (timeline[idx] - timeline[idx - 1]) / YEAR
 
-    outer_step_years: float = (timeline[idx] - timeline[idx - 1]) / YEAR
-    if outer_step_years <= 0.0:
-        return 1.0
+        if outer_step_years <= 0.0:
+            alpha = 1.0
+        else:
+            alpha = 1.0 / (1.0 + decision_horizon_years / outer_step_years)
 
-    return 1.0 / (1.0 + decision_horizon_years / outer_step_years)
+    return alpha
 
 
 def calculate_inertia(inertia: float, time_step: float) -> float:

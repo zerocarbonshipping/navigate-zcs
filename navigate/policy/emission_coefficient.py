@@ -647,22 +647,22 @@ def _calculate_converter_ttw(
     fuel_type = fuel.fuel_type
 
     if fuel_type not in converter.get_fuel_types():
-        return 0.0, 0.0
+        ttw_consumption, ttw_slip = 0.0, 0.0
+    else:
+        slip = converter.slip_fraction[fuel_type].get()
 
-    slip = converter.slip_fraction[fuel_type].get()
+        # fuel-bound TTW emissions scale with burned fraction (1 - slip)
+        ttw_consumption = (1.0 - slip) * fuel.ttw[emission_name].get()
 
-    # fuel-bound TTW emissions scale with burned fraction (1 - slip)
-    ttw_consumption = (1.0 - slip) * fuel.ttw[emission_name].get()
+        # consumption emissions per ton fuel-in, no slip scaling
+        ttw_consumption += converter.consumption_ttw[(fuel_type, emission_name)].get()
 
-    # consumption emissions per ton fuel-in, no slip scaling
-    ttw_consumption += converter.consumption_ttw[(fuel_type, emission_name)].get()
-
-    # slip emissions: X per ton fuel-in, gated by emission fuel_type
-    ttw_slip = 0.0
-    if include_slip:
-        emission_fuel_type = emission.fuel_type
-        if emission_fuel_type == fuel_type:
-            ttw_slip = slip
+        # slip emissions: X per ton fuel-in, gated by emission fuel_type
+        ttw_slip = 0.0
+        if include_slip:
+            emission_fuel_type = emission.fuel_type
+            if emission_fuel_type == fuel_type:
+                ttw_slip = slip
 
     return ttw_consumption, ttw_slip
 
@@ -717,20 +717,22 @@ def _average_wtt_over_ports(
         wtts.append(_get_port_bunker_wtt(port, fuel, emission, idx))
 
     if not supplies:
-        return 0.0
+        average_wtt = 0.0
+    else:
+        supply = np.stack(supplies)
+        wtt = np.stack(wtts)
 
-    supply = np.stack(supplies)
-    wtt = np.stack(wtts)
+        # ports with a supply below tolerance carry no weight
+        weights = np.where(supply > TOLERANCE, supply, 0.0)
 
-    # ports with a supply below tolerance carry no weight
-    weights = np.where(supply > TOLERANCE, supply, 0.0)
+        # ports with an infinite supply dominate the market at that time-step
+        # and are weighted equally, ignoring the finite-supply ports
+        infinite = np.isinf(supply)
+        weights = np.where(infinite.any(axis=0), infinite, weights)
 
-    # ports with an infinite supply dominate the market at that time-step
-    # and are weighted equally, ignoring the finite-supply ports
-    infinite = np.isinf(supply)
-    weights = np.where(infinite.any(axis=0), infinite, weights)
+        average_wtt = divide_nonzero((weights * wtt).sum(axis=0), weights.sum(axis=0))
 
-    return divide_nonzero((weights * wtt).sum(axis=0), weights.sum(axis=0))
+    return average_wtt
 
 
 def _average_ttw_over_converters(

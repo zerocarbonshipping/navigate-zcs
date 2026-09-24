@@ -70,11 +70,12 @@ def calculate_residual_energy(
     raw_demand_port = vessel.expectation.get_operational_energy_port(idx=idx)
 
     if package.is_empty:
-        return raw_demand_sea, raw_demand_port
-
-    energy_sea = _iterate_legs_or_ports(vessel, package, times_sea, raw_demand_sea)
-
-    energy_port = _iterate_legs_or_ports(vessel, package, times_port, raw_demand_port)
+        energy_sea, energy_port = raw_demand_sea, raw_demand_port
+    else:
+        energy_sea = _iterate_legs_or_ports(vessel, package, times_sea, raw_demand_sea)
+        energy_port = _iterate_legs_or_ports(
+            vessel, package, times_port, raw_demand_port
+        )
 
     return energy_sea, energy_port
 

@@ -279,8 +279,10 @@ class NavTransformer(Transformer):
         node_type = str(items[0])
         name = str(items[1])[1:-1]
         if name_contains_wildcards(name):
-            return WildcardNodeReference(node_type, name)
-        return NodeReference(node_type, name)
+            reference = WildcardNodeReference(node_type, name)
+        else:
+            reference = NodeReference(node_type, name)
+        return reference
 
     def expression(self, meta, items):
         return Expression(str(items[0])[1:-1])
@@ -294,10 +296,12 @@ class NavTransformer(Transformer):
     def string_value(self, meta, items):
         s = str(items[0])[1:-1]
         if re.match(r"^\d{2}([-/])\d{2}\1\d{4}$", s):
-            return string_to_date(
+            value = string_to_date(
                 s, msg="Error in date: Must be dd-mm-yyyy or dd/mm/yyyy."
             )
-        return s
+        else:
+            value = s
+        return value
 
     def list_value(self, meta, items):
         return list(items)

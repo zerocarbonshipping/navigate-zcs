@@ -46,10 +46,9 @@ class Forecast(Node, _Table1D):
         -------
         Precalculated value.
         """
-        if x is not None:
-            return self.calculate(x)
-        else:
-            return self._current_value
+        value = self.calculate(x) if x is not None else self._current_value
+
+        return value
 
     def precalculate(self, time: float | np.ndarray) -> None:
         """

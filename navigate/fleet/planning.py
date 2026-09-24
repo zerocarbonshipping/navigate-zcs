@@ -53,93 +53,98 @@ def calculate_orderbook_newbuilds(
     nv = len(fleet.assets)
     delivery = np.zeros((nv,))
 
-    if not fleet.orderbooks:
-        return delivery, 0.0, cap_count
+    if fleet.orderbooks:
+        # extract whether the vessel type is allowed
+        # and trade delivered by the vessel type
+        allowed = np.array(
+            [
+                (
+                    fleet.allow_vessel[vessel.name]
+                    and fleet.newbuild_available[vessel.name]
+                )
+                for vessel in fleet.assets
+            ]
+        )
 
-    # extract whether the vessel type is allowed
-    # and trade delivered by the vessel type
-    allowed = np.array(
-        [
-            (fleet.allow_vessel[vessel.name] and fleet.newbuild_available[vessel.name])
-            for vessel in fleet.assets
-        ]
-    )
+        cargo_miles = np.array(extract_cargo_miles(fleet.assets, idx=idx))
 
-    cargo_miles = np.array(extract_cargo_miles(fleet.assets, idx=idx))
+        # first deliver orders which were postponed
+        postponed_before = fleet.orders_postponed.copy()
+        postponed_trade = np.dot(fleet.orders_postponed[allowed], cargo_miles[allowed])
 
-    # first deliver orders which were postponed
-    postponed_before = fleet.orders_postponed.copy()
-    postponed_trade = np.dot(fleet.orders_postponed[allowed], cargo_miles[allowed])
+        if postponed_trade > 0.0:
+            # account for whether the trade gap
+            # is larger or smaller than the trade
+            # from postponed vessels
+            scaling = min(trade_gap / postponed_trade, 1.0)
 
-    if postponed_trade > 0.0:
-        # account for whether the trade gap
-        # is larger or smaller than the trade
-        # from postponed vessels
-        scaling = min(trade_gap / postponed_trade, 1.0)
+            # deliver the postponed vessels
+            delivery[allowed] += scaling * fleet.orders_postponed[allowed]
 
-        # deliver the postponed vessels
-        delivery[allowed] += scaling * fleet.orders_postponed[allowed]
+            # reduce the trade gap by the newly added vessels
+            trade_gap -= scaling * postponed_trade
 
-        # reduce the trade gap by the newly added vessels
-        trade_gap -= scaling * postponed_trade
+            # move the delivered orders from postponement to delivery
+            fleet.orders_postponed[allowed] -= delivery[allowed]
+            fleet.orders_delivered[allowed] += delivery[allowed]
 
-        # move the delivered orders from postponement to delivery
-        fleet.orders_postponed[allowed] -= delivery[allowed]
-        fleet.orders_delivered[allowed] += delivery[allowed]
+            if scaling < 1.0:
+                attempted = np.where(allowed, postponed_before, 0.0)
+                delivered = np.where(allowed, scaling * postponed_before, 0.0)
+                log_orderbook_deferral(
+                    fleet, delivered, attempted, reason="insufficient trade gap"
+                )
 
-        if scaling < 1.0:
-            attempted = np.where(allowed, postponed_before, 0.0)
-            delivered = np.where(allowed, scaling * postponed_before, 0.0)
-            log_orderbook_deferral(
-                fleet, delivered, attempted, reason="insufficient trade gap"
-            )
+        # if the trade gap has not been filled,
+        # then look to the orderbook for further orders
+        cumulative_orders = to_numpy(fleet.orderbooks)
+        incremental_orders = (
+            cumulative_orders - fleet.orders_delivered - fleet.orders_postponed
+        )
+        ordered_trade = np.dot(incremental_orders[allowed], cargo_miles[allowed])
 
-    # if the trade gap has not been filled,
-    # then look to the orderbook for further orders
-    cumulative_orders = to_numpy(fleet.orderbooks)
-    incremental_orders = (
-        cumulative_orders - fleet.orders_delivered - fleet.orders_postponed
-    )
-    ordered_trade = np.dot(incremental_orders[allowed], cargo_miles[allowed])
+        if ordered_trade > 0.0:
+            # account for whether the trade gap
+            # is larger or smaller than the trade
+            # from ordered vessels
+            scaling = min(trade_gap / ordered_trade, 1.0)
 
-    if ordered_trade > 0.0:
-        # account for whether the trade gap
-        # is larger or smaller than the trade
-        # from ordered vessels
-        scaling = min(trade_gap / ordered_trade, 1.0)
+            # deliver the ordered vessels
+            orders = scaling * incremental_orders
+            fleet.orders_delivered[allowed] += orders[allowed]
+            delivery[allowed] += orders[allowed]
 
-        # deliver the ordered vessels
-        orders = scaling * incremental_orders
-        fleet.orders_delivered[allowed] += orders[allowed]
-        delivery[allowed] += orders[allowed]
+            # postpone the undelivered vessels to the next time-step
+            fleet.orders_postponed += (1.0 - scaling) * incremental_orders
 
-        # postpone the undelivered vessels to the next time-step
-        fleet.orders_postponed += (1.0 - scaling) * incremental_orders
+            if scaling < 1.0:
+                attempted = np.where(allowed, incremental_orders, 0.0)
+                delivered = np.where(allowed, scaling * incremental_orders, 0.0)
+                log_orderbook_deferral(
+                    fleet, delivered, attempted, reason="insufficient trade gap"
+                )
 
-        if scaling < 1.0:
-            attempted = np.where(allowed, incremental_orders, 0.0)
-            delivered = np.where(allowed, scaling * incremental_orders, 0.0)
-            log_orderbook_deferral(
-                fleet, delivered, attempted, reason="insufficient trade gap"
-            )
+        # apply the per-vessel newbuild-limit cap (vessel count)
+        over_limit = delivery > cap_count + TOLERANCE
+        if np.any(over_limit):
+            attempted = delivery.copy()
+            excess_count = np.where(over_limit, delivery - cap_count, 0.0)
+            fleet.orders_delivered -= excess_count
+            fleet.orders_postponed += excess_count
+            delivery -= excess_count
+            log_orderbook_deferral(fleet, delivery, attempted, reason="newbuild limit")
 
-    # apply the per-vessel newbuild-limit cap (vessel count)
-    over_limit = delivery > cap_count + TOLERANCE
-    if np.any(over_limit):
-        attempted = delivery.copy()
-        excess_count = np.where(over_limit, delivery - cap_count, 0.0)
-        fleet.orders_delivered -= excess_count
-        fleet.orders_postponed += excess_count
-        delivery -= excess_count
-        log_orderbook_deferral(fleet, delivery, attempted, reason="newbuild limit")
+        # transfer to profile
+        for v, vessel in enumerate(fleet.assets):
+            fleet.profile.add_newbuilds(vessel.name, delivery[v], idx)
 
-    # transfer to profile
-    for v, vessel in enumerate(fleet.assets):
-        fleet.profile.add_newbuilds(vessel.name, delivery[v], idx)
+        cap_count_remaining = np.maximum(cap_count - delivery, 0.0)
+        trade_delivered = np.dot(delivery, cargo_miles)
+    else:
+        cap_count_remaining = cap_count
+        trade_delivered = 0.0
 
-    cap_count_remaining = np.maximum(cap_count - delivery, 0.0)
-
-    return delivery, np.dot(delivery, cargo_miles), cap_count_remaining
+    return delivery, trade_delivered, cap_count_remaining
 
 
 def log_orderbook_deferral(

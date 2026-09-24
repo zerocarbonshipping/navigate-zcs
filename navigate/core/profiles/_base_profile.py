@@ -30,9 +30,11 @@ class _BaseProfile:
 
     def _default_array(self, default: float | None = None) -> FloatArray:
         if default is None:
-            return np.zeros(self._timeline.shape)
+            default_array = np.zeros(self._timeline.shape)
         else:
-            return np.full(self._timeline.shape, default, dtype=np.float64)
+            default_array = np.full(self._timeline.shape, default, dtype=np.float64)
+
+        return default_array
 
     def _default_bool_array(self, default: bool) -> BoolArray:
         return np.full(self._timeline.shape, default, dtype=bool)

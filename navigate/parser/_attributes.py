@@ -329,9 +329,12 @@ def instance_to_dsl_name(node_type, attribute_name):
     """
     for dsl_name in NODE_ATTRIBUTE_SECTIONS[node_type]:
         if attribute_to_instance_name(dsl_name) == attribute_name:
-            return dsl_name
+            found_name = dsl_name
+            break
+    else:
+        found_name = attribute_name
 
-    return attribute_name
+    return found_name
 
 
 def check_node_attribute_is_allowed(node_type, attribute_name, section):

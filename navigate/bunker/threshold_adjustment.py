@@ -57,122 +57,132 @@ def adjust_regulation_thresholds(alg: BunkerAlgorithm) -> bool:
     }
 
     if not adjustable_regulations:
-        return False
+        thresholds_adjusted = False
+    else:
+        needs_resolve = False
+        has_intensity = False
 
-    needs_resolve = False
-    has_intensity = False
-
-    # individual regulations
-    for (r, v), remedial_factor in alg.remedial_factor_individual.items():
-        if r not in adjustable_regulations:
-            continue
-
-        regulation = alg.regulations[r]
-        if regulation.scheme != RegulationSchemeID.INDIVIDUAL:
-            continue
-
-        # compliant — store original threshold as adjusted
-        if remedial_factor.X <= 0.0:
-            alg.adjusted_vessel_thresholds[(r, v)] = get_regulation_vessel_threshold(
-                alg, regulation, v
-            )
-            continue
-
-        measure = regulation.measure
-        emissions = alg.regulation_emission_terms[(r, v)].getValue()
-        energy = (
-            alg.regulation_energy_terms[(r, v)].getValue()
-            if measure == RegulationMeasureID.INTENSITY
-            else 0.0
-        )
-        vessel_measure = alg.regulation_measure.get((r, v), 0.0)
-
-        adjusted_threshold = _compute_vessel_adjusted_threshold(
-            measure, emissions, energy, vessel_measure
-        )
-        if measure == RegulationMeasureID.INTENSITY:
-            has_intensity = True
-
-        alg.adjusted_vessel_thresholds[(r, v)] = adjusted_threshold
-        needs_resolve = True
-
-    # flexible regulations
-    for r, remedial_factor in alg.remedial_factor_flexibility.items():
-        if r not in adjustable_regulations:
-            continue
-
-        regulation = alg.regulations[r]
-        if regulation.scheme != RegulationSchemeID.FLEXIBLE:
-            continue
-
-        if remedial_factor.X <= 0.0:
-            # compliant — nothing was adjusted: store the original per-vessel
-            # thresholds and no fleet-level value, so downstream consumers fall
-            # back to the per-vessel targets the initial build solved against
-            alg.adjusted_vessel_thresholds.update(
-                {
-                    (r, v): get_regulation_vessel_threshold(alg, regulation, v)
-                    for v in alg.vessels
-                    if regulation.vessel_is_policed(v)
-                }
-            )
-            continue
-
-        measure = regulation.measure
-
-        # compute fleet-level adjusted shared threshold from total emissions/energy
-        total_emissions = 0.0
-        total_energy = 0.0
-        total_measure = 0.0
-        for v in alg.vessels:
-            if not regulation.vessel_is_policed(v):
+        # individual regulations
+        for (r, v), remedial_factor in alg.remedial_factor_individual.items():
+            if r not in adjustable_regulations:
                 continue
 
+            regulation = alg.regulations[r]
+            if regulation.scheme != RegulationSchemeID.INDIVIDUAL:
+                continue
+
+            # compliant — store original threshold as adjusted
+            if remedial_factor.X <= 0.0:
+                alg.adjusted_vessel_thresholds[(r, v)] = (
+                    get_regulation_vessel_threshold(alg, regulation, v)
+                )
+                continue
+
+            measure = regulation.measure
             emissions = alg.regulation_emission_terms[(r, v)].getValue()
-            multiplier = alg.multipliers[v]
-            total_emissions += emissions * multiplier
+            energy = (
+                alg.regulation_energy_terms[(r, v)].getValue()
+                if measure == RegulationMeasureID.INTENSITY
+                else 0.0
+            )
+            vessel_measure = alg.regulation_measure.get((r, v), 0.0)
 
-            if measure == RegulationMeasureID.INTENSITY:
-                energy = alg.regulation_energy_terms[(r, v)].getValue()
-                total_energy += energy * multiplier
-                has_intensity = True
-                vessel_measure = 0.0
-            elif measure in (
-                RegulationMeasureID.TRANSPORT,
-                RegulationMeasureID.TRANSPORT_NOMINAL,
-            ):
-                vessel_measure = alg.regulation_measure[(r, v)]
-                total_measure += vessel_measure * multiplier
-                energy = 0.0
-            else:
-                energy = 0.0
-                vessel_measure = 0.0
-
-            # store per-vessel adjusted threshold, reusing already-fetched values
-            alg.adjusted_vessel_thresholds[(r, v)] = _compute_vessel_adjusted_threshold(
+            adjusted_threshold = _compute_vessel_adjusted_threshold(
                 measure, emissions, energy, vessel_measure
             )
+            if measure == RegulationMeasureID.INTENSITY:
+                has_intensity = True
 
-        # compute fleet-level adjusted shared threshold (with tolerance)
-        alg.adjusted_shared_thresholds[r] = _compute_vessel_adjusted_threshold(
-            measure, total_emissions, total_energy, total_measure
-        )
+            alg.adjusted_vessel_thresholds[(r, v)] = adjusted_threshold
+            needs_resolve = True
 
-        needs_resolve = True
+        # flexible regulations
+        for r, remedial_factor in alg.remedial_factor_flexibility.items():
+            if r not in adjustable_regulations:
+                continue
 
-    if not needs_resolve:
-        return False
+            regulation = alg.regulations[r]
+            if regulation.scheme != RegulationSchemeID.FLEXIBLE:
+                continue
 
-    # update LP constraints with adjusted thresholds
-    if has_intensity:
-        # for INTENSITY regulations, the threshold is embedded in the constraint
-        # coefficients, so we need to rebuild coefficients and constraints
-        _rebuild_regulation_constraints_for_adjustment(alg, adjustable_regulations)
-    else:
-        # for non-INTENSITY regulations, we can simply update the constraint RHS
-        _update_regulation_rhs_for_adjustment(alg, adjustable_regulations)
+            if remedial_factor.X <= 0.0:
+                # compliant — nothing was adjusted: store the original per-vessel
+                # thresholds and no fleet-level value, so downstream consumers fall
+                # back to the per-vessel targets the initial build solved against
+                alg.adjusted_vessel_thresholds.update(
+                    {
+                        (r, v): get_regulation_vessel_threshold(alg, regulation, v)
+                        for v in alg.vessels
+                        if regulation.vessel_is_policed(v)
+                    }
+                )
+                continue
 
-    return True
+            measure = regulation.measure
+
+            # compute fleet-level adjusted shared threshold from total
+            # emissions/energy
+            total_emissions = 0.0
+            total_energy = 0.0
+            total_measure = 0.0
+            for v in alg.vessels:
+                if not regulation.vessel_is_policed(v):
+                    continue
+
+                emissions = alg.regulation_emission_terms[(r, v)].getValue()
+                multiplier = alg.multipliers[v]
+                total_emissions += emissions * multiplier
+
+                if measure == RegulationMeasureID.INTENSITY:
+                    energy = alg.regulation_energy_terms[(r, v)].getValue()
+                    total_energy += energy * multiplier
+                    has_intensity = True
+                    vessel_measure = 0.0
+                elif measure in (
+                    RegulationMeasureID.TRANSPORT,
+                    RegulationMeasureID.TRANSPORT_NOMINAL,
+                ):
+                    vessel_measure = alg.regulation_measure[(r, v)]
+                    total_measure += vessel_measure * multiplier
+                    energy = 0.0
+                else:
+                    energy = 0.0
+                    vessel_measure = 0.0
+
+                # store per-vessel adjusted threshold, reusing already-fetched
+                # values
+                alg.adjusted_vessel_thresholds[(r, v)] = (
+                    _compute_vessel_adjusted_threshold(
+                        measure, emissions, energy, vessel_measure
+                    )
+                )
+
+            # compute fleet-level adjusted shared threshold (with tolerance)
+            alg.adjusted_shared_thresholds[r] = _compute_vessel_adjusted_threshold(
+                measure, total_emissions, total_energy, total_measure
+            )
+
+            needs_resolve = True
+
+        if not needs_resolve:
+            thresholds_adjusted = False
+        else:
+            # update LP constraints with adjusted thresholds
+            if has_intensity:
+                # for INTENSITY regulations, the threshold is embedded in the
+                # constraint coefficients, so we need to rebuild coefficients and
+                # constraints
+                _rebuild_regulation_constraints_for_adjustment(
+                    alg, adjustable_regulations
+                )
+            else:
+                # for non-INTENSITY regulations, we can simply update the
+                # constraint RHS
+                _update_regulation_rhs_for_adjustment(alg, adjustable_regulations)
+
+            thresholds_adjusted = True
+
+    return thresholds_adjusted
 
 
 def _compute_vessel_adjusted_threshold(measure, emissions, energy, measure_value):

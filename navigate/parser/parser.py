@@ -444,12 +444,13 @@ class Parser:
     def _next_event(self):
         if self._idx_date < len(self.dates):
             date = self.dates[self._idx_date]
+            events = self._event_queue.get(date, [])
+            self._idx_date += 1
+            next_event = date, events
         else:
-            return None, []
+            next_event = None, []
 
-        events = self._event_queue.get(date, [])
-        self._idx_date += 1
-        return date, events
+        return next_event
 
     def _read_event(self, event):
         """Process stored AST statements from a queued event."""
@@ -888,20 +889,22 @@ class Parser:
                     f"{self._error_prefix()}: No node of type '{node_type}' matches "
                     f"the wildcard expression '{name}'."
                 )
-            return nodes
 
-        if name in group:
-            return [group[name]]
+        elif name in group:
+            nodes = [group[name]]
 
-        self._check_allow_new_node("define")
-        self._check_node_name_is_available(node_type, name)
-        node = self._adopt(node_type, name)
-        if node is None:
-            node = define_new_node(node_type, name)
-        # registered before the body is read, so a reference in the body to
-        # the node itself binds to it
-        group[name] = node
-        return [node]
+        else:
+            self._check_allow_new_node("define")
+            self._check_node_name_is_available(node_type, name)
+            node = self._adopt(node_type, name)
+            if node is None:
+                node = define_new_node(node_type, name)
+            # registered before the body is read, so a reference in the body to
+            # the node itself binds to it
+            group[name] = node
+            nodes = [node]
+
+        return nodes
 
     def _retrieve_general_node(self, type_: str):
         field = GENERAL_NODE_GROUP[type_]
@@ -1234,16 +1237,19 @@ class Parser:
             Pruned node names grouped by node type.
         """
         if not isinstance(statement, NodeDeclaration):
-            return False
+            targets_only_pruned = False
+        else:
+            pruned_names = pruned_names_by_type.get(statement.node_type, ())
 
-        pruned_names = pruned_names_by_type.get(statement.node_type, ())
+            if not matching_keys(statement.name, pruned_names):
+                targets_only_pruned = False
+            else:
+                targets_only_pruned = not matching_keys(
+                    statement.name,
+                    getattr(self.nodes, NODE_GROUP[statement.node_type]),
+                )
 
-        if not matching_keys(statement.name, pruned_names):
-            return False
-
-        return not matching_keys(
-            statement.name, getattr(self.nodes, NODE_GROUP[statement.node_type])
-        )
+        return targets_only_pruned
 
     def _execute_commands(self):
         for node in self._get_all_nodes():
@@ -1421,21 +1427,24 @@ class Parser:
         list of its matches, and one inside a list is spliced into that list.
         """
         if isinstance(value, WildcardNodeReference):
-            return self._expand_wildcard_node_reference(value, location)
+            expanded_value = self._expand_wildcard_node_reference(value, location)
 
-        if not isinstance(value, list):
-            return value
+        elif not isinstance(value, list):
+            expanded_value = value
 
-        # the recursion mirrors _materialize's, so no wildcard the grammar can
-        # nest reaches a setter
-        expanded = []
-        for element in value:
-            if isinstance(element, WildcardNodeReference):
-                expanded += self._expand_wildcard_node_reference(element, location)
-            else:
-                expanded.append(self._expand_wildcards(element, location))
+        else:
+            # the recursion mirrors _materialize's, so no wildcard the grammar can
+            # nest reaches a setter
+            expanded = []
+            for element in value:
+                if isinstance(element, WildcardNodeReference):
+                    expanded += self._expand_wildcard_node_reference(element, location)
+                else:
+                    expanded.append(self._expand_wildcards(element, location))
 
-        return expanded
+            expanded_value = expanded
+
+        return expanded_value
 
     def _expand_wildcard_node_reference(
         self, wildcard_ref: WildcardNodeReference, location: str
@@ -1529,9 +1538,12 @@ class Parser:
             basename = os.path.splitext(file_name)[0]
             if name == basename:
                 self._read_include_file(os.path.join(directory, file_name))
-                return True
+                found = True
+                break
+        else:
+            found = False
 
-        return False
+        return found
 
     # ── node references ───────────────────────────────────────────────
 
@@ -1561,18 +1573,19 @@ class Parser:
             )
 
         key = (node_type, name)
+        node = None
 
         if key not in self._provisional:
             node = getattr(self.nodes, NODE_GROUP[node_type]).get(name)
-            if node is not None:
-                return node
 
-        entry = self._deferred.get(key)
-        if entry is None:
-            entry = _Deferred(define_new_node(node_type, name), location)
-            self._deferred[key] = entry
+        if node is None:
+            entry = self._deferred.get(key)
+            if entry is None:
+                entry = _Deferred(define_new_node(node_type, name), location)
+                self._deferred[key] = entry
+            node = entry.node
 
-        return entry.node
+        return node
 
     def _adopt(self, node_type, name):
         """
@@ -1584,10 +1597,12 @@ class Parser:
         key = (node_type, name)
 
         if key in self._provisional:
-            return None
+            adopted = None
+        else:
+            entry = self._deferred.pop(key, None)
+            adopted = None if entry is None else entry.node
 
-        entry = self._deferred.pop(key, None)
-        return None if entry is None else entry.node
+        return adopted
 
     def _materialize(self, value):
         """
@@ -1604,17 +1619,20 @@ class Parser:
         The value with nodes in place of references.
         """
         if isinstance(value, NodeReference):
-            return self._node(value.type, value.name, self._error_prefix())
+            materialized = self._node(value.type, value.name, self._error_prefix())
 
-        if isinstance(value, list):
-            return [self._materialize(element) for element in value]
+        elif isinstance(value, list):
+            materialized = [self._materialize(element) for element in value]
 
-        if isinstance(value, Expression):
-            # its references materialize when the walk initializes it, so the
-            # location travels with the expression
-            value.reference_location = self._error_prefix()
+        else:
+            if isinstance(value, Expression):
+                # its references materialize when the walk initializes it, so the
+                # location travels with the expression
+                value.reference_location = self._error_prefix()
 
-        return value
+            materialized = value
+
+        return materialized
 
     def _pull_deferred(self, entry):
         """
@@ -1683,9 +1701,11 @@ def _get_files_in_directory(directory):
 def _contains_wildcard(value):
     """Test whether a materialized value is, or holds, a wildcard reference."""
     if isinstance(value, list):
-        return any(_contains_wildcard(element) for element in value)
+        contains_wildcard = any(_contains_wildcard(element) for element in value)
+    else:
+        contains_wildcard = isinstance(value, WildcardNodeReference)
 
-    return isinstance(value, WildcardNodeReference)
+    return contains_wildcard
 
 
 def _transplant(node, copied):

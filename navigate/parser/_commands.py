@@ -339,17 +339,19 @@ def _expand_inputs(command: str, inputs: list) -> Iterable[tuple]:
     domains = _WILDCARD_DOMAINS.get(command)
 
     if not domains:
-        return (tuple(inputs),)
+        expanded_inputs = (tuple(inputs),)
+    else:
+        arg_options = []
+        for i, inp in enumerate(inputs):
+            domain = domains[i] if i < len(domains) else None
+            if domain and isinstance(inp, str) and name_contains_wildcards(inp):
+                arg_options.append([m.name for m in expand_id_wildcard(inp, domain)])
+            else:
+                arg_options.append([inp])
 
-    arg_options = []
-    for i, inp in enumerate(inputs):
-        domain = domains[i] if i < len(domains) else None
-        if domain and isinstance(inp, str) and name_contains_wildcards(inp):
-            arg_options.append([m.name for m in expand_id_wildcard(inp, domain)])
-        else:
-            arg_options.append([inp])
+        expanded_inputs = product(*arg_options)
 
-    return product(*arg_options)
+    return expanded_inputs
 
 
 # methods ------------------------------------------------------------------------------

@@ -26,8 +26,11 @@ READER_PREFIXES = ("get_", "is_", "has_", "cost_is_")
 def _function(member):
     # vars() hands over the staticmethod or classmethod wrapper, not its function
     if isinstance(member, (staticmethod, classmethod)):
-        return member.__func__
-    return member
+        func = member.__func__
+    else:
+        func = member
+
+    return func
 
 
 def _readers():

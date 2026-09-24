@@ -272,16 +272,18 @@ def assign_bound(assignment: object) -> float:
         The scalar itself, or the value of the keyword.
     """
     if isinstance(assignment, float):
-        return assign_value(assignment)
+        bound = assign_value(assignment)
+    else:
+        if not isinstance(assignment, str):
+            raise ValueError(_only_allows("scalars, -INF or INF", assignment))
 
-    if not isinstance(assignment, str):
-        raise ValueError(_only_allows("scalars, -INF or INF", assignment))
+        try:
+            bound = _BOUND_ID[assignment]
 
-    try:
-        return _BOUND_ID[assignment]
+        except KeyError:
+            raise ValueError(_only_allows("scalars, -INF or INF", assignment)) from None
 
-    except KeyError:
-        raise ValueError(_only_allows("scalars, -INF or INF", assignment)) from None
+    return bound
 
 
 def assign_id[E: Enum](assignment: object, id_enum: type[E]) -> E:
@@ -643,12 +645,13 @@ def _accepts_reference(node: Node, type_: AcceptedTypes) -> bool:
         Whether the node is of a type the attribute allows.
     """
     if type_ is None:
-        return False
+        accepts_reference = False
+    elif isinstance(type_, (list, tuple)):
+        accepts_reference = node.type in type_
+    else:
+        accepts_reference = node.is_type(type_)
 
-    if isinstance(type_, (list, tuple)):
-        return node.type in type_
-
-    return node.is_type(type_)
+    return accepts_reference
 
 
 def _failed_value_message(
@@ -752,9 +755,12 @@ def _value_kind(assignment: object) -> str:
     """
     for types, kind in _VALUE_KINDS:
         if isinstance(assignment, types):
-            return kind
+            value_kind = kind
+            break
+    else:
+        value_kind = str(assignment)
 
-    return str(assignment)
+    return value_kind
 
 
 def _check_scalar(

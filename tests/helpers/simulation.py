@@ -48,9 +48,9 @@ def default_assumptions_dir() -> Path:
     Path to the assumptions directory.
     """
     env = os.environ.get(ASSUMPTIONS_ENV_VAR)
-    if env:
-        return Path(env)
-    return REPO_ROOT / "assumptions"
+    assumptions_dir = Path(env) if env else REPO_ROOT / "assumptions"
+
+    return assumptions_dir
 
 
 def make_args(data_dir: Path | None = None) -> argparse.Namespace:

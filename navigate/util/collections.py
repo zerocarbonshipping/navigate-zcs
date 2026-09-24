@@ -159,10 +159,12 @@ def is_single_dict[K](dict_: Mapping[K, object]) -> bool:
         Whether the first key is a non-tuple; False for an empty dict.
     """
     if not dict_:
-        return False
+        is_single = False
+    else:
+        representative = next(iter(dict_))
+        is_single = not isinstance(representative, tuple)
 
-    representative = next(iter(dict_))
-    return not isinstance(representative, tuple)
+    return is_single
 
 
 def is_tuple_dict[K](dict_: Mapping[K, object]) -> bool:
@@ -180,10 +182,12 @@ def is_tuple_dict[K](dict_: Mapping[K, object]) -> bool:
         Whether the first key is a two-element tuple; False for an empty dict.
     """
     if not dict_:
-        return False
+        is_tuple = False
+    else:
+        representative = next(iter(dict_))
+        is_tuple = isinstance(representative, tuple) and len(representative) == 2
 
-    representative = next(iter(dict_))
-    return isinstance(representative, tuple) and len(representative) == 2
+    return is_tuple
 
 
 def sum_dict_results[K](
@@ -207,18 +211,17 @@ def sum_dict_results[K](
     """
     arrays = list(result.values())
 
-    if not arrays:
-        if idx is not None:
-            return 0.0
-
+    total: FloatLike
+    if not arrays and idx is None:
         raise ValueError("Dict is empty.")
+    elif not arrays:
+        total = 0.0
+    elif idx is not None:
+        total = np.add.reduce([array[idx] for array in arrays])
+    else:
+        total = np.add.reduce(arrays)
 
-    if idx is not None:
-        total: FloatLike = np.add.reduce([array[idx] for array in arrays])
-        return total
-
-    summed: FloatArray = np.add.reduce(arrays)
-    return summed
+    return total
 
 
 def collapse_tuple_dict[K1: Hashable, K2: Hashable](
@@ -255,29 +258,35 @@ def collapse_tuple_dict[K1: Hashable, K2: Hashable](
         Desired form of result from tuple dict; dicts are keyed by the kept
         key part.
     """
+    collapsed: (
+        FloatLike
+        | dict[K1, FloatLike]
+        | dict[K2, FloatLike]
+        | dict[tuple[K1, K2], FloatLike]
+    )
     if key1 and key2:
-        return sum_dict_results(result)
-
-    if key1:
+        collapsed = sum_dict_results(result)
+    elif key1:
         primary_keys = unique_list([key for (key, _) in result])
-        return {
+        collapsed = {
             key: sum_dict_results(
                 {k2: value for (k1, k2), value in result.items() if k1 == key}
             )
             for key in primary_keys
         }
-
-    if key2:
+    elif key2:
         secondary_keys = unique_list([key for (_, key) in result])
-        return {
+        collapsed = {
             key: sum_dict_results(
                 {k1: value for (k1, k2), value in result.items() if k2 == key}
             )
             for key in secondary_keys
         }
+    else:
+        # returned as-is; only the static value type widens
+        collapsed = cast("dict[tuple[K1, K2], FloatLike]", result)
 
-    # returned as-is; only the static value type widens
-    return cast("dict[tuple[K1, K2], FloatLike]", result)
+    return collapsed
 
 
 def slice_list(

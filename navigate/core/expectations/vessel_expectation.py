@@ -675,9 +675,11 @@ class VesselExpectation(_Expectation):
 
     def get_spend_energy(self, converter_name: str) -> float:
         if converter_name in self._spend_energy:
-            return self._spend_energy[converter_name]
+            spend_energy = self._spend_energy[converter_name]
         else:
-            return 0.0
+            spend_energy = 0.0
+
+        return spend_energy
 
     def get_fair_share_fuel_existing(self, port_name: str, fuel_name: str) -> float:
         return self._fair_share_fuel_existing[(port_name, fuel_name)]

@@ -31,25 +31,28 @@ class _Expectation:
 
     def _default_float(self, default: float | None = None) -> float:
 
-        if default is None:
-            return 0.0
-        else:
-            return default
+        default_float = 0.0 if default is None else default
+
+        return default_float
 
     def _default_array(self, default: float | None = None) -> FloatArray:
 
         if default is None:
-            return np.zeros(self.get_shape())
+            default_array = np.zeros(self.get_shape())
         else:
-            return np.full(self.get_shape(), default, dtype=np.float64)
+            default_array = np.full(self.get_shape(), default, dtype=np.float64)
+
+        return default_array
 
     def _default_2d_array(self, n: int, default: float | None = None) -> FloatArray:
         shape = (n, self._length)
 
         if default is None:
-            return np.zeros(shape)
+            default_2d_array = np.zeros(shape)
         else:
-            return np.full(shape, default, dtype=np.float64)
+            default_2d_array = np.full(shape, default, dtype=np.float64)
+
+        return default_2d_array
 
     def _default_list_array(
         self, n: int, default: float | None = None

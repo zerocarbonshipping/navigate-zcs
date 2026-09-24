@@ -29,8 +29,11 @@ def _function(member):
     # vars() hands over a staticmethod or classmethod wrapper rather than its
     # function: unwrap it, or a reader declared as one is silently skipped
     if isinstance(member, (staticmethod, classmethod)):
-        return member.__func__
-    return member
+        func = member.__func__
+    else:
+        func = member
+
+    return func
 
 
 def _readers():

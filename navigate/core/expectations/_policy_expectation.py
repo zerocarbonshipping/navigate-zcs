@@ -83,43 +83,50 @@ class _PolicyExpectation(_Expectation):
     def get_expected_wtt(self, key: tuple[str, ...], idx: Index) -> FloatLike:
 
         if key in self._expected_wtt:
-            return self._expected_wtt[key][idx]
+            expected_wtt: FloatLike = self._expected_wtt[key][idx]
         else:
-            return 0.0
+            expected_wtt = 0.0
+
+        return expected_wtt
 
     def get_existing_wtt(self, key: tuple[str, ...], idx: Index) -> FloatLike:
 
         if key in self._existing_wtt:
-            return self._existing_wtt[key][idx]
+            existing_wtt: FloatLike = self._existing_wtt[key][idx]
         else:
-            return 0.0
+            existing_wtt = 0.0
+
+        return existing_wtt
 
     def get_ttw_consumption(self, key: tuple[str, ...], idx: Index) -> FloatLike:
 
         if key in self._ttw_consumption:
-            return self._ttw_consumption[key][idx]
+            ttw_consumption: FloatLike = self._ttw_consumption[key][idx]
         else:
-            return 0.0
+            ttw_consumption = 0.0
+
+        return ttw_consumption
 
     def get_ttw_slip(self, key: tuple[str, ...], idx: Index) -> FloatLike:
 
-        if key in self._ttw_slip:
-            return self._ttw_slip[key][idx]
-        else:
-            return 0.0
+        ttw_slip = self._ttw_slip[key][idx] if key in self._ttw_slip else 0.0
+
+        return ttw_slip
 
     def get_expected_coefficient(self, key: tuple[str, ...], idx: int) -> float:
 
         if key in self._expected_coefficient:
             coefficient: float = self._expected_coefficient[key][idx]
-            return coefficient
         else:
-            return 0.0
+            coefficient = 0.0
+
+        return coefficient
 
     def get_existing_coefficient(self, key: tuple[str, ...], idx: int) -> float:
 
         if key in self._existing_coefficient:
             coefficient: float = self._existing_coefficient[key][idx]
-            return coefficient
         else:
-            return 0.0
+            coefficient = 0.0
+
+        return coefficient

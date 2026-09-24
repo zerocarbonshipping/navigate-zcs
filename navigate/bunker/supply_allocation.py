@@ -263,56 +263,57 @@ def _calculate_energy_in_port_jurisdiction(
     timeline_shape = energy_sea[EnergyDemandTypeID.PROPULSION][0].shape
     energy = {energy_id: np.zeros(timeline_shape) for energy_id in EnergyDemandTypeID}
 
-    if port not in ports:
-        return energy
+    if port in ports:
+        # inter region travel (assume jurisdiction is split 50/50 for fairness)
+        jurisdiction_fraction = 0.5
 
-    # inter region travel (assume jurisdiction is split 50/50 for fairness)
-    jurisdiction_fraction = 0.5
+        if route_type == RouteTypeID.REGIONAL_TRIP:
+            port_idx = ports.index(port)
+            port_name = port.name
 
-    if route_type == RouteTypeID.REGIONAL_TRIP:
-        port_idx = ports.index(port)
-        port_name = port.name
+            voyage_distribution = route.get_voyage_distribution()
 
-        voyage_distribution = route.get_voyage_distribution()
+            # sum energy at sea
+            for energy_id in EnergyDemandTypeID:
+                total_energy_sea = np.add.reduce(energy_sea[energy_id])
 
-        # sum energy at sea
-        for energy_id in EnergyDemandTypeID:
-            total_energy_sea = np.add.reduce(energy_sea[energy_id])
+                for (p_from, p_to), fraction in voyage_distribution.items():
+                    # intra region travel
+                    if (p_from == p_to) and p_from == port_name:
+                        energy[energy_id] += total_energy_sea * fraction
 
-            for (p_from, p_to), fraction in voyage_distribution.items():
-                # intra region travel
-                if (p_from == p_to) and p_from == port_name:
-                    energy[energy_id] += total_energy_sea * fraction
+                    elif (p_from == port_name) or (p_to == port_name):
+                        energy[energy_id] += (
+                            jurisdiction_fraction * total_energy_sea * fraction
+                        )
 
-                elif (p_from == port_name) or (p_to == port_name):
-                    energy[energy_id] += (
-                        jurisdiction_fraction * total_energy_sea * fraction
-                    )
+                # add energy in port
+                if energy_id != EnergyDemandTypeID.PROPULSION:
+                    energy[energy_id] += energy_port[energy_id][port_idx]
 
-            # add energy in port
-            if energy_id != EnergyDemandTypeID.PROPULSION:
-                energy[energy_id] += energy_port[energy_id][port_idx]
+        else:
+            ports = route.ports
+            n_legs = route.get_number_of_legs()
 
-    else:
-        ports = route.ports
-        n_legs = route.get_number_of_legs()
+            # sum energy at sea
+            for energy_id in EnergyDemandTypeID:
+                for p, route_port in enumerate(ports):
+                    if (
+                        route_port == port
+                        and energy_id != EnergyDemandTypeID.PROPULSION
+                    ):
+                        energy[energy_id] += energy_port[energy_id][p]
 
-        # sum energy at sea
-        for energy_id in EnergyDemandTypeID:
-            for p, route_port in enumerate(ports):
-                if route_port == port and energy_id != EnergyDemandTypeID.PROPULSION:
-                    energy[energy_id] += energy_port[energy_id][p]
+                for leg in range(n_legs):
+                    # initial and end port
+                    port_from = ports[leg]
+                    port_to = ports[
+                        (leg + 1) % n_legs
+                    ]  # periodical boundary condition wrapping around to the first port
 
-            for leg in range(n_legs):
-                # initial and end port
-                port_from = ports[leg]
-                port_to = ports[
-                    (leg + 1) % n_legs
-                ]  # periodical boundary condition wrapping around to the first port
-
-                if (port_from == port) or (port_to == port):
-                    energy[energy_id] += (
-                        jurisdiction_fraction * energy_sea[energy_id][leg]
-                    )
+                    if (port_from == port) or (port_to == port):
+                        energy[energy_id] += (
+                            jurisdiction_fraction * energy_sea[energy_id][leg]
+                        )
 
     return energy

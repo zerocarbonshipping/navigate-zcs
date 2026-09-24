@@ -276,34 +276,38 @@ def calculate_modelled_uptake(producer: Producer) -> np.ndarray:
             ),
             strict=True,
         )
+        has_demand = True
 
     except ValueError:
         # if none of the plants are in demand, the zip
         # fails which means there should be no uptake
-        return np.zeros((len(producer.assets),))
+        has_demand = False
 
-    index = np.array(index)
+    if not has_demand:
+        uptake_padded = np.zeros((len(producer.assets),))
+    else:
+        index = np.array(index)
 
-    group_keys = [plant.fuel.name for plant in plants]
-    metrics_intra = [plant.expectation.get_intra_fuel_metric() for plant in plants]
-    metrics_inter = [plant.expectation.get_inter_fuel_metric() for plant in plants]
+        group_keys = [plant.fuel.name for plant in plants]
+        metrics_intra = [plant.expectation.get_intra_fuel_metric() for plant in plants]
+        metrics_inter = [plant.expectation.get_inter_fuel_metric() for plant in plants]
 
-    uptake = calculate_two_axis_uptake(
-        group_keys=group_keys,
-        metrics_intra=metrics_intra,
-        metrics_inter=metrics_inter,
-        intra_utility=UtilityID.LOWER_LOG_RATIO,
-        inter_utility=UtilityID.HIGHER_LOG_RATIO,
-        intra_odds=producer.fuel_cost_sensitivity.get(),
-        inter_odds=producer.fuel_demand_sensitivity.get(),
-        context=str(producer),
-    )
+        uptake = calculate_two_axis_uptake(
+            group_keys=group_keys,
+            metrics_intra=metrics_intra,
+            metrics_inter=metrics_inter,
+            intra_utility=UtilityID.LOWER_LOG_RATIO,
+            inter_utility=UtilityID.HIGHER_LOG_RATIO,
+            intra_odds=producer.fuel_cost_sensitivity.get(),
+            inter_odds=producer.fuel_demand_sensitivity.get(),
+            context=str(producer),
+        )
 
-    # pad the uptake shares back to the original length
-    uptake_padded = np.zeros(len(producer.assets))
+        # pad the uptake shares back to the original length
+        uptake_padded = np.zeros(len(producer.assets))
 
-    for i, p in enumerate(index):
-        uptake_padded[p] = uptake[i]
+        for i, p in enumerate(index):
+            uptake_padded[p] = uptake[i]
 
     return uptake_padded
 

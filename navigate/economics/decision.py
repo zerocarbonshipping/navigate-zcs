@@ -93,12 +93,13 @@ def _beta_from_odds(odds: float, utility: UtilityID) -> float:
     Sensitivity coefficient beta.
     """
     if utility == UtilityID.LOWER_LOG_RATIO:
-        return -np.log(odds) / _LOG_REFERENCE_INCREASE
+        beta = -np.log(odds) / _LOG_REFERENCE_INCREASE
+    elif utility == UtilityID.HIGHER_LOG_RATIO:
+        beta = np.log(odds) / _LOG_REFERENCE_INCREASE
+    else:
+        beta = np.log(odds) / _REFERENCE_ADVANTAGE
 
-    if utility == UtilityID.HIGHER_LOG_RATIO:
-        return np.log(odds) / _LOG_REFERENCE_INCREASE
-
-    return np.log(odds) / _REFERENCE_ADVANTAGE
+    return beta
 
 
 def softmax(utilities: np.ndarray) -> np.ndarray:
@@ -151,10 +152,13 @@ def _shares_lower_log_ratio(
             "undefined, so shares were split uniformly among the alternatives at the "
             "minimum value"
         )
-        return _uniform_at_min(values), msg
+        shares = _uniform_at_min(values)
+    else:
+        utilities = -beta * np.log(values / np.min(values))
+        shares = softmax(utilities)
+        msg = ""
 
-    utilities = -beta * np.log(values / np.min(values))
-    return softmax(utilities), ""
+    return shares, msg
 
 
 def _shares_higher_log_ratio(
@@ -182,12 +186,11 @@ def _shares_higher_log_ratio(
     shares = np.zeros_like(values)
 
     positive = values > 0.0
-    if not np.any(positive):
-        return shares, ""
+    if np.any(positive):
+        shares[positive] = softmax(
+            beta * np.log(values[positive] / np.max(values[positive]))
+        )
 
-    shares[positive] = softmax(
-        beta * np.log(values[positive] / np.max(values[positive]))
-    )
     return shares, ""
 
 
@@ -217,9 +220,12 @@ def _shares_signed_reference(
 
     if (reference is None) or (reference <= 0.0):
         msg = "has a non-positive reference value; shares were split uniformly"
-        return np.ones_like(values) / values.size, msg
+        shares = np.ones_like(values) / values.size
+    else:
+        shares = softmax(beta * values / reference)
+        msg = ""
 
-    return softmax(beta * values / reference), ""
+    return shares, msg
 
 
 def _uniform_at_min(values: np.ndarray) -> np.ndarray:
@@ -270,21 +276,21 @@ def _apply_limits(
     limits = np.clip(limits, 0.0, 1.0)
 
     msg = ""
-
-    # infeasible: even saturating every option cannot reach a unit total.
     total_limit = float(np.sum(limits))
     if total_limit < 1.0 - 1e-12:
+        # infeasible: even saturating every option cannot reach a unit total.
         msg = (
             f"sum of limits ({total_limit:.4f}) is below 1; allocation is infeasible "
             "and every option has been saturated to its limit"
         )
-        return limits.copy(), msg
+        constrained_shares = limits.copy()
+    elif not np.any(shares > limits + 1e-12):
+        # no effective constraint.
+        constrained_shares = shares.copy()
+    else:
+        constrained_shares = _redistribute_proportional(shares, limits)
 
-    # no effective constraint.
-    if not np.any(shares > limits + 1e-12):
-        return shares.copy(), msg
-
-    return _redistribute_proportional(shares, limits), msg
+    return constrained_shares, msg
 
 
 def _redistribute_proportional(shares: np.ndarray, limits: np.ndarray) -> np.ndarray:

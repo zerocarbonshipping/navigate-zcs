@@ -425,19 +425,27 @@ def _calculate_total_vessel_operating_expenses(vessel, idx, timeline):
             round(timeline[idx], 0),
         )
 
-        return None
+        operating_expenses = None
+    else:
+        # operating-year grid: zero during construction lead time, operational
+        # thereafter, so costs are only incurred while the vessel operates
+        year_flow, overlap = build_operating_flows(timeline[idx], lead_time, lifetime)
 
-    # operating-year grid: zero during construction lead time, operational
-    # thereafter, so costs are only incurred while the vessel operates
-    year_flow, overlap = build_operating_flows(timeline[idx], lead_time, lifetime)
+        fuel = (
+            np.interp(year_flow, timeline, profile.get_total_fuel_expenses()) * overlap
+        )
+        levy = (
+            np.interp(year_flow, timeline, profile.get_total_levy_expenses()) * overlap
+        )
+        regulation = (
+            np.interp(year_flow, timeline, profile.get_regulation_expenses()) * overlap
+        )
+        technology = (
+            np.interp(year_flow, timeline, profile.get_technology_cost()) * overlap
+        )
 
-    fuel = np.interp(year_flow, timeline, profile.get_total_fuel_expenses()) * overlap
-    levy = np.interp(year_flow, timeline, profile.get_total_levy_expenses()) * overlap
-    regulation = (
-        np.interp(year_flow, timeline, profile.get_regulation_expenses()) * overlap
-    )
-    technology = np.interp(year_flow, timeline, profile.get_technology_cost()) * overlap
+        profile.set_cost_is_calculated(idx, True)
 
-    profile.set_cost_is_calculated(idx, True)
+        operating_expenses = fuel + levy + regulation + technology, year_flow, overlap
 
-    return fuel + levy + regulation + technology, year_flow, overlap
+    return operating_expenses

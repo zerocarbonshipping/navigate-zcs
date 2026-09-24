@@ -96,15 +96,17 @@ def main() -> int:
     _validate_args(parser, args)
 
     try:
-        return _dispatch(args)
+        exit_code = _dispatch(args)
     except KeyboardInterrupt:
         print("Interrupted.", file=sys.stderr)
-        return 130
+        exit_code = 130
     except (NavigateError, OSError) as exc:
         _handle_error(
             exc, debug=(args.log_level == "DEBUG"), log_to_file=not args.replot
         )
-        return 1
+        exit_code = 1
+
+    return exit_code
 
 
 def _validate_args(parser: argparse.ArgumentParser, args: argparse.Namespace) -> None:
@@ -173,19 +175,17 @@ def _validate_file(
 def _dispatch(args: argparse.Namespace) -> int:
     if args.replot:
         replot(args.replot, plot_inc=args.filename, data_dir=args.data_dir)
-        return 0
+    else:
+        setup_logger(args.filename, level=logging.getLevelName(args.log_level))
+        deck = args.filename.resolve()
 
-    setup_logger(args.filename, level=logging.getLevelName(args.log_level))
-    deck = args.filename.resolve()
+        if args.profile:
+            _run_with_profile(deck, args)
+        else:
+            manager = _run(deck, args)
 
-    if args.profile:
-        _run_with_profile(deck, args)
-        return 0
-
-    manager = _run(deck, args)
-
-    if not args.suppress_plots:
-        manager.export_graphs()
+            if not args.suppress_plots:
+                manager.export_graphs()
 
     return 0
 

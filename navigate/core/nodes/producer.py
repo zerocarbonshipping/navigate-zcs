@@ -480,15 +480,18 @@ class Producer(_AssetManager):
     def _get_initial_multiplier(self, index: int) -> float:
         capacity = self.assets[index].capacity.get()
         if capacity > 0.0:
-            return self._initial_capacity[index].get() / capacity
-        logger.warning(
-            "%s: Unable to initialize a capacity of tons/day from %s (plant %s) as the "
-            "plant capacity is zero.",
-            self,
-            self._initial_capacity[index].get(),
-            self.assets[index],
-        )
-        return 0.0
+            initial_multiplier = self._initial_capacity[index].get() / capacity
+        else:
+            logger.warning(
+                "%s: Unable to initialize a capacity of tons/day from %s (plant %s) "
+                "as the plant capacity is zero.",
+                self,
+                self._initial_capacity[index].get(),
+                self.assets[index],
+            )
+            initial_multiplier = 0.0
+
+        return initial_multiplier
 
     def can_produce(self, fuel_name):
         return fuel_name in self.fuels

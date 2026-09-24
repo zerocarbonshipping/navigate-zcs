@@ -68,20 +68,20 @@ def _calculate_emission_factor_ttw(
     fuel_type = fuel.fuel_type
 
     if fuel_type not in converter.get_fuel_types():
-        return 0.0
+        emission_factor = 0.0
+    else:
+        slip = converter.slip_fraction[fuel_type].get()
 
-    slip = converter.slip_fraction[fuel_type].get()
+        # fuel-bound TTW emissions scale with burned fraction
+        emission_factor = (1.0 - slip) * fuel.ttw[emission_name].get()
 
-    # fuel-bound TTW emissions scale with burned fraction
-    emission_factor = (1.0 - slip) * fuel.ttw[emission_name].get()
+        # consumption emissions per ton fuel-in, no slip scaling
+        emission_factor += converter.consumption_ttw[(fuel_type, emission_name)].get()
 
-    # consumption emissions per ton fuel-in, no slip scaling
-    emission_factor += converter.consumption_ttw[(fuel_type, emission_name)].get()
-
-    # slip emissions: slip per ton fuel-in, gated by emission fuel_type
-    emission_fuel_type = emission.fuel_type
-    if emission_fuel_type == fuel_type:
-        emission_factor += slip
+        # slip emissions: slip per ton fuel-in, gated by emission fuel_type
+        emission_fuel_type = emission.fuel_type
+        if emission_fuel_type == fuel_type:
+            emission_factor += slip
 
     return emission_factor
 

@@ -313,28 +313,24 @@ def add_fixed_wtt(
         Mapping of emission name to callable returning locked WTT factor at anchor time
         (days).
     """
-    if not wtt_callables:
-        return
+    if wtt_callables:
+        if not component.has_lifetime():
+            time_initial = component.time_initial
+            overlap = component.constant_overlap
 
-    if not component.has_lifetime():
-        time_initial = component.time_initial
-        overlap = component.constant_overlap
+            for emission_name, wtt in wtt_callables.items():
+                component.add_wtt_flow(emission_name, wtt(time_initial) * overlap)
+        else:
+            segments = component.staircase_segments
+            n = component.get_length()
+            flows = {e: np.zeros(n, dtype=float) for e in wtt_callables}
 
-        for emission_name, wtt in wtt_callables.items():
-            component.add_wtt_flow(emission_name, wtt(time_initial) * overlap)
+            for anchor_time, normalized_overlap in segments:
+                for emission_name, wtt in wtt_callables.items():
+                    flows[emission_name] += wtt(anchor_time) * normalized_overlap
 
-        return
-
-    segments = component.staircase_segments
-    n = component.get_length()
-    flows = {e: np.zeros(n, dtype=float) for e in wtt_callables}
-
-    for anchor_time, normalized_overlap in segments:
-        for emission_name, wtt in wtt_callables.items():
-            flows[emission_name] += wtt(anchor_time) * normalized_overlap
-
-    for emission_name, flow in flows.items():
-        component.add_wtt_flow(emission_name, flow)
+            for emission_name, flow in flows.items():
+                component.add_wtt_flow(emission_name, flow)
 
 
 def add_variable_wtt(
@@ -851,13 +847,13 @@ def _build_staircase_flow(
     # constant value with zeros during lead time
     # and prorated value in the commencement year
     if not component.has_lifetime():
-        return _build_constant_flow(component, value(component.time_initial))
+        flow = _build_constant_flow(component, value(component.time_initial))
+    else:
+        flow = np.zeros(component.get_length(), dtype=float)
+        for anchor_time, normalized_overlap in component.staircase_segments:
+            flow += value(anchor_time) * normalized_overlap
 
-    out = np.zeros(component.get_length(), dtype=float)
-    for anchor_time, normalized_overlap in component.staircase_segments:
-        out += value(anchor_time) * normalized_overlap
-
-    return out
+    return flow
 
 
 def _build_constant_flow(component: Component, value: float) -> np.ndarray:
@@ -955,9 +951,10 @@ def _bin_index(time: float, time_initial: float, n_years: int) -> int:
     """
     idx = int((time - time_initial) // YEAR_TO_DAYS)
     if idx < 0:
-        return 0
-    if idx >= n_years:
-        return n_years - 1
+        idx = 0
+    elif idx >= n_years:
+        idx = n_years - 1
+
     return idx
 
 

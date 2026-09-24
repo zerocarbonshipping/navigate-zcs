@@ -104,6 +104,7 @@ class _Table2D(_Calculator):
             z-slice defined by 'y'.
         """
         x = []
+        reverse_lookup = None
 
         if interpolate:
             for yp in y:
@@ -111,11 +112,13 @@ class _Table2D(_Calculator):
                 zp = self.calculate(self.x, yp)
 
                 if not is_strictly_increasing(zp):
-                    return None
+                    break
 
                 # then reverse calculate along
                 # the x-axis using the z-slice
                 x.append(np.interp(z, zp, self.x))
+            else:
+                reverse_lookup = np.array(x)
 
         else:
             for yp in y:
@@ -125,7 +128,9 @@ class _Table2D(_Calculator):
                 idx = find_nearest(zp, z)
                 x.append(self.x[idx])
 
-        return np.array(x)
+            reverse_lookup = np.array(x)
+
+        return reverse_lookup
 
     def _check_extrapolation(self, x, y):
         x_range = self.x[-1] - self.x[0]
@@ -156,20 +161,29 @@ class _Table2D(_Calculator):
 
     def _get_interpolate_internal(self):
         if self._interpolate == Interpolate2DID.LINEAR:
-            return "linear"
+            interpolate_internal = "linear"
 
         elif self._interpolate == Interpolate2DID.NEAREST:
-            return "nearest"
+            interpolate_internal = "nearest"
+
+        else:
+            interpolate_internal = None
+
+        return interpolate_internal
 
     def _get_allow_extrapolate_internal(self):
         return self.extrapolate == ExtrapolateID.FALSE
 
     def _get_extrapolate_internal(self):
         if self.extrapolate == ExtrapolateID.FLAT:
-            return self._outside
+            extrapolate_internal = self._outside
 
-        elif self.extrapolate == ExtrapolateID.LINEAR:
-            return None
+        else:
+            # LINEAR extrapolates without a fill value; FALSE never reaches
+            # interpn since bounds_error is set instead
+            extrapolate_internal = None
+
+        return extrapolate_internal
 
     def _set_table(self, x, y, z):
         self.x = x
@@ -196,20 +210,13 @@ class _Table2D(_Calculator):
             if scalar_inputs:
                 # xi must be (npoints, ndim) for a single point -> (1, 2)
                 xi = np.array([[x_.item(), y_.item()]], dtype=float)
-                return interpn(
-                    (x, y),
-                    z,
-                    xi,
-                    method=method,
-                    bounds_error=bounds_error,
-                    fill_value=fill_value,
-                )[0]  # -> np.float64
+            else:
+                # for arrays (including scalar/array mix): broadcast + stack into
+                # (..., 2)
+                xb, yb = np.broadcast_arrays(x_, y_)
+                xi = np.stack([xb, yb], axis=-1)
 
-            # For arrays (including scalar/array mix): broadcast + stack into (..., 2)
-            xb, yb = np.broadcast_arrays(x_, y_)
-            xi = np.stack([xb, yb], axis=-1)
-
-            return interpn(
+            interpolated = interpn(
                 (x, y),
                 z,
                 xi,
@@ -217,6 +224,11 @@ class _Table2D(_Calculator):
                 bounds_error=bounds_error,
                 fill_value=fill_value,
             )
+
+            if scalar_inputs:
+                interpolated = interpolated[0]  # -> np.float64
+
+            return interpolated
 
         self._table = interp
 

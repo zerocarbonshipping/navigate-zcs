@@ -141,10 +141,14 @@ class _RetrofitProposal:
             Index of the technology in the CAPEX-sorted order.
         """
         start = self.first_adopting_step(technology_idx)
-        if not 0 < start < len(self.choices):
-            return None
 
-        return _CapContribution(self.choices, start, self.eligible_count)
+        contribution: _CapContribution | None
+        if not 0 < start < len(self.choices):
+            contribution = None
+        else:
+            contribution = _CapContribution(self.choices, start, self.eligible_count)
+
+        return contribution
 
 
 @dataclass
@@ -651,26 +655,23 @@ def _reconcile_retrofit_technology_caps(
         Sum of pre-newbuild fleet multipliers — the denominator for the per-technology
         cap (`cap = limit · multipliers_total · time_step / YEAR`).
     """
-    if multipliers_total <= 0.0 or not proposals or not fleet.technology_packages:
-        return
+    if not (multipliers_total <= 0.0 or not proposals or not fleet.technology_packages):
+        sorted_technologies = fleet.technology_packages[-1].technologies
 
-    sorted_technologies = fleet.technology_packages[-1].technologies
-    if not sorted_technologies:
-        return
+        if sorted_technologies:
+            budget = multipliers_total * (time_step / YEAR)
 
-    budget = multipliers_total * (time_step / YEAR)
+            for i in range(len(sorted_technologies) - 1, -1, -1):
+                technology_name = sorted_technologies[i].name
+                cap = fleet.retrofit_technology_limit[technology_name].get() * budget
 
-    for i in range(len(sorted_technologies) - 1, -1, -1):
-        technology_name = sorted_technologies[i].name
-        cap = fleet.retrofit_technology_limit[technology_name].get() * budget
+                contributions = []
+                for proposal in proposals:
+                    contribution = proposal.cap_contribution(i)
+                    if contribution is not None:
+                        contributions.append(contribution)
 
-        contributions = []
-        for proposal in proposals:
-            contribution = proposal.cap_contribution(i)
-            if contribution is not None:
-                contributions.append(contribution)
-
-        _scale_tails_to_cap(contributions, cap)
+                _scale_tails_to_cap(contributions, cap)
 
 
 def reconcile_newbuild_technology_caps(
@@ -702,31 +703,28 @@ def reconcile_newbuild_technology_caps(
         Sum of pre-newbuild fleet multipliers — the denominator for the per-technology
         cap (`cap = limit · multipliers_total · time_step / YEAR`).
     """
-    if multipliers_total <= 0.0 or not fleet.technology_packages:
-        return
+    if not (multipliers_total <= 0.0 or not fleet.technology_packages):
+        sorted_technologies = fleet.technology_packages[-1].technologies
 
-    sorted_technologies = fleet.technology_packages[-1].technologies
-    if not sorted_technologies:
-        return
+        if sorted_technologies:
+            budget = multipliers_total * (time_step / YEAR)
 
-    budget = multipliers_total * (time_step / YEAR)
+            for i in range(len(sorted_technologies) - 1, -1, -1):
+                technology_name = sorted_technologies[i].name
+                cap = fleet.newbuild_technology_limit[technology_name].get() * budget
+                k_start = i + 1
 
-    for i in range(len(sorted_technologies) - 1, -1, -1):
-        technology_name = sorted_technologies[i].name
-        cap = fleet.newbuild_technology_limit[technology_name].get() * budget
-        k_start = i + 1
+                contributions = []
+                for v in range(len(fleet.assets)):
+                    uptake = fleet.newbuild_package_uptake[v]
+                    if k_start >= len(uptake) or increments[v] <= 0.0:
+                        continue
 
-        contributions = []
-        for v in range(len(fleet.assets)):
-            uptake = fleet.newbuild_package_uptake[v]
-            if k_start >= len(uptake) or increments[v] <= 0.0:
-                continue
+                    contributions.append(
+                        _CapContribution(uptake, k_start, float(increments[v]))
+                    )
 
-            contributions.append(
-                _CapContribution(uptake, k_start, float(increments[v]))
-            )
-
-        _scale_tails_to_cap(contributions, cap)
+                _scale_tails_to_cap(contributions, cap)
 
 
 def _scale_tails_to_cap(contributions: list[_CapContribution], cap: float) -> None:
@@ -824,41 +822,40 @@ def _transfer_retrofit_uptake(
     idx
         Current time-step index, used for the profile write.
     """
-    if not fleet.technology_packages or not proposals:
-        return
+    if fleet.technology_packages and proposals:
+        sorted_technologies = fleet.technology_packages[-1].technologies
 
-    sorted_technologies = fleet.technology_packages[-1].technologies
-    if not sorted_technologies:
-        return
+        if sorted_technologies:
+            retrofit_counts = {}
+            for proposal in proposals:
+                weight = proposal.eligible_count
+                if weight <= 0.0:
+                    continue
 
-    retrofit_counts = {}
-    for proposal in proposals:
-        weight = proposal.eligible_count
-        if weight <= 0.0:
-            continue
+                for i in range(proposal.package_idx, len(sorted_technologies)):
+                    k_start = proposal.first_adopting_step(i)
+                    if k_start >= len(proposal.choices):
+                        break
 
-        for i in range(proposal.package_idx, len(sorted_technologies)):
-            k_start = proposal.first_adopting_step(i)
-            if k_start >= len(proposal.choices):
-                break
+                    # `choices` is post-reconciliation post-application; the tail-sum
+                    # has not been mutated by `_apply_retrofits` because that function
+                    # only reads choices and rewrites the per-increment
+                    # package_uptake — the proposal vector itself is preserved.
+                    key = (proposal.vessel_idx, i)
+                    retrofit_counts[key] = retrofit_counts.get(
+                        key, 0.0
+                    ) + weight * float(np.sum(proposal.choices[k_start:]))
 
-            # `choices` is post-reconciliation post-application; the tail-sum has not
-            # been mutated by `_apply_retrofits` because that function only reads
-            # choices and rewrites the per-increment package_uptake — the proposal
-            # vector itself is preserved.
-            key = (proposal.vessel_idx, i)
-            retrofit_counts[key] = retrofit_counts.get(key, 0.0) + weight * float(
-                np.sum(proposal.choices[k_start:])
-            )
-
-    for v, vessel in enumerate(fleet.assets):
-        multipliers_total = float(sum(inc.multiplier for inc in fleet.increments[v]))
-        for i, technology in enumerate(sorted_technologies):
-            count = retrofit_counts.get((v, i), 0.0)
-            share = divide_nonzero(count, multipliers_total)
-            fleet.profile.set_retrofit_technology_uptake(
-                idx, vessel.name, technology.name, share
-            )
+            for v, vessel in enumerate(fleet.assets):
+                multipliers_total = float(
+                    sum(inc.multiplier for inc in fleet.increments[v])
+                )
+                for i, technology in enumerate(sorted_technologies):
+                    count = retrofit_counts.get((v, i), 0.0)
+                    share = divide_nonzero(count, multipliers_total)
+                    fleet.profile.set_retrofit_technology_uptake(
+                        idx, vessel.name, technology.name, share
+                    )
 
 
 def transfer_technology_charter_rate(fleet: Fleet, idx: int) -> None:

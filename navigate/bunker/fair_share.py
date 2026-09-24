@@ -47,14 +47,16 @@ def perform_fair_share_iteration(alg: BunkerAlgorithm) -> bool:
     converged = calculate_fair_share_solution_convergence(alg)
 
     if converged:
-        return converged
+        result = converged
+    else:
+        iteration = len(alg.fair_share_convergence_statistics["Norm"])
+        logger.debug("Fair-share bunkering iteration %d did not converge.", iteration)
 
-    iteration = len(alg.fair_share_convergence_statistics["Norm"])
-    logger.debug("Fair-share bunkering iteration %d did not converge.", iteration)
+        update_fair_share_solution(alg)
 
-    update_fair_share_solution(alg)
+        result = False
 
-    return False
+    return result
 
 
 def run_fair_share_solve(alg: BunkerAlgorithm) -> tuple[int, bool]:

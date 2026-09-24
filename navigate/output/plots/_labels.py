@@ -178,7 +178,6 @@ def extract_label(node, default_dict):
 
 
 def default_label(key, default_dict):
-    if key in default_dict:
-        return default_dict[key]
-    else:
-        return key
+    label = default_dict.get(key, key)
+
+    return label

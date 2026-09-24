@@ -94,7 +94,9 @@ def _normalize_by_measure(
 ) -> float:
     """Normalize a fleet aggregate by the pooled measure; ABSOLUTE passes through."""
     if measure == RegulationMeasureID.ABSOLUTE:
-        return value
+        normalized = value
+    else:
+        # division by zero occurs if no vessels are policed
+        normalized = divide_nonzero(value, total_measure)
 
-    # division by zero occurs if no vessels are policed
-    return divide_nonzero(value, total_measure)
+    return normalized

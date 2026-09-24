@@ -81,20 +81,21 @@ def get_constraint(
     The existing or newly created constraint.
     """
     if key in container:
-        return container[key]
-
-    full_name = _full_name(name, key)
-
-    if sense == "==":
-        constraint = alg.model.addConstr(gp.LinExpr() == 0.0, name=full_name)
-    elif sense == "<=":
-        constraint = alg.model.addConstr(gp.LinExpr() <= 0.0, name=full_name)
-    elif sense == ">=":
-        constraint = alg.model.addConstr(gp.LinExpr() >= 0.0, name=full_name)
+        constraint = container[key]
     else:
-        raise ValueError(f"Unknown constraint sense '{sense}'.")
+        full_name = _full_name(name, key)
 
-    container[key] = constraint
+        if sense == "==":
+            constraint = alg.model.addConstr(gp.LinExpr() == 0.0, name=full_name)
+        elif sense == "<=":
+            constraint = alg.model.addConstr(gp.LinExpr() <= 0.0, name=full_name)
+        elif sense == ">=":
+            constraint = alg.model.addConstr(gp.LinExpr() >= 0.0, name=full_name)
+        else:
+            raise ValueError(f"Unknown constraint sense '{sense}'.")
+
+        container[key] = constraint
+
     return constraint
 
 
