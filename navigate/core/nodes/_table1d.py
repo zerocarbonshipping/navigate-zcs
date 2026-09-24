@@ -76,7 +76,7 @@ class _Table1D(_Calculator):
 
     def reverse_lookup(self, y, interpolate=True):
         """
-        Perform a reverse lookup in the table (xp, yp) for the x-value closest to 'y'.
+        Perform a reverse lookup in the node's table for the x-value closest to 'y'.
 
         This lookup is only applicable to strictly increasing functions such as
         exponential functions.
@@ -85,10 +85,6 @@ class _Table1D(_Calculator):
         ----------
         y : float | np.ndarray
             Value to find the corresponding x-value for.
-        xp : np.ndarray
-            x-values of a piecewise linear function.
-        yp : np.ndarray
-            y-values of a piecewise linear function.
         interpolate : bool
             Whether to interpolate or use the nearest value.
 

@@ -263,11 +263,6 @@ def add_fixed_opex(component: Component, value: Callable[[float], float]) -> Non
         Component for which OPEX costs are added.
     value
         Callable returning per-year cost locked at anchor time (days).
-
-    Returns
-    -------
-    None
-        Accumulates into `component.cost_flow`.
     """
     fixed = _build_staircase_flow(component=component, value=value)
     component.add_opex_flow(fixed)
@@ -290,11 +285,6 @@ def add_variable_opex(
     cost
         Callable returning price as a function of absolute time (days). Vectorized over
         arrays of days.
-
-    Returns
-    -------
-    None
-        Accumulates into `component.cost_flow`.
     """
     fixed = _build_staircase_flow(component=component, value=metric)
     variable = cost(component.year_flow)
@@ -838,8 +828,6 @@ def _build_staircase_flow(
     ----------
     component
         Component for which value flow is calculated.
-    out
-        Target array to fill (overwrites).
     value
         Callable returning the locked value at the anchor time (days).
 

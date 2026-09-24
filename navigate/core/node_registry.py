@@ -115,8 +115,8 @@ class Nodes:
         """
         Walk every node the deck defines, group by group.
 
-        Returns
-        -------
+        Yields
+        ------
         Iterable[Node]
             The nodes of every group.
         """
@@ -127,8 +127,8 @@ class Nodes:
         """
         Walk the name of every node the deck defines, group by group.
 
-        Returns
-        -------
+        Yields
+        ------
         Iterable[str]
             The names of the nodes of every group.
         """

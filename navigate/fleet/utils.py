@@ -37,10 +37,8 @@ def get_total_power_capacity(vessel: Vessel) -> float:
     Total installed power across the converters, MW.
     """
     return sum(
-        [
-            converter.power_capacity.get()
-            for converter in vessel.power_system.get_converters()
-        ]
+        converter.power_capacity.get()
+        for converter in vessel.power_system.get_converters()
     )
 
 
