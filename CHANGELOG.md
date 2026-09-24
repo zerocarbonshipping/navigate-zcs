@@ -819,6 +819,13 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   nodes. No deck result moves.
 
 ### Fixed
+- The `RemedialUnits` and `LevyUnits` report columns sum the vessels below a
+  fleet and below the whole simulation, as the remedial and levy expenses of
+  the same policies already did. Only vessel scope accumulated them, so a
+  fleet- or global-scope report gave zero across the whole timeline beside
+  non-zero expenses for those policies, and the zeros read as a result rather
+  than as missing data. Reported results at fleet and global scope move
+  accordingly; vessel scope is unchanged.
 - The four `Outside`/`Extrapolate` messages a `Surface` or a `Timetable`
   raises or logs name the node that carried the contradiction. Each was
   written with a literal `{}` and never formatted, so the error read
