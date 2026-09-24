@@ -116,9 +116,9 @@ The formatter owns spacing within statements; blank lines are yours:
 - Validate at the input boundary and raise domain-specific errors carrying the
   offending input's context. Past the boundary, trust the types: no defensive
   re-validation inside calculation code.
-- `isinstance` and dynamic attribute access (`hasattr`/`getattr`/`setattr`)
-  belong to the boundary modules enumerated in the repository-specific section;
-  elsewhere they signal a design problem to fix, not to suppress.
+- Dynamic attribute access (`hasattr`/`getattr`/`setattr`) belongs to the
+  boundary modules enumerated in the repository-specific section; elsewhere it
+  signals a design problem to fix, not to suppress.
 
 ## Navigate-specific conventions
 
@@ -175,11 +175,6 @@ The formatter owns spacing within statements; blank lines are yours:
 
 ### Boundary modules
 
-- `isinstance` is confined to input validation and value-shape dispatch in
-  `navigate/core/` (`assign.py`, `expression.py`, `scalar.py`,
-  `table_data.py`, `wrap.py`), to `navigate/parser/`, `navigate/output/`, the
-  solver shims, and the type-dispatch helpers in `navigate/util/`, where
-  dispatch on the input kind is the helper's contract.
 - Dynamic attribute access (`hasattr`/`getattr`/`setattr`) is confined to
   `navigate/parser/` (DSL dispatch) and `navigate/output/`.
 - Dictionaries keyed by nodes or enum members are prepopulated at
