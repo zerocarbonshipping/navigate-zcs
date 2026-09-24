@@ -104,9 +104,9 @@ The formatter owns spacing within statements; blank lines are yours:
   operation stay adjacent.
 - Keep simple control flow compact - no blank line merely because a construct
   ended; place one after a non-trivial construct before the next section.
-- Prefer guard clauses over nesting, and follow a guard (a short `if` ending
-  in `return`/`continue`/`break`/`raise`) with a blank line so the structural
-  break stays visible.
+- A function returns once, at its end: assign the result in each branch and
+  return it. Guard clauses end in `raise`, `continue`, or `break`, and are
+  followed by a blank line so the structural break stays visible.
 - Logging and other string-assembly statements form their own visual section,
   with a blank line above and below.
 - Group related local variables; do not interleave them with logic.

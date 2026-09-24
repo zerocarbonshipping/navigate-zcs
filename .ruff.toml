@@ -31,9 +31,10 @@ select = [
     "PT",  # pytest style and failure quality
 ]
 extend-select = [
-    "D213", # multi-line docstring summaries start on the second line
-    "G001", # no str.format in logging calls - pass lazy % arguments
-    "G004", # no f-strings in logging calls - pass lazy % arguments
+    "D213",    # multi-line docstring summaries start on the second line
+    "G001",    # no str.format in logging calls - pass lazy % arguments
+    "G004",    # no f-strings in logging calls - pass lazy % arguments
+    "PLR0911", # one return per function, at its end
 ]
 ignore = [
     "E731", # lambda assignments are allowed
@@ -46,6 +47,9 @@ convention = "numpy"
 [lint.isort]
 required-imports = ["from __future__ import annotations"]
 known-first-party = ["helpers"]
+
+[lint.pylint]
+max-returns = 1
 
 [lint.per-file-ignores]
 "__init__.py" = ["F401"]
