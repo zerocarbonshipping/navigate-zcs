@@ -27,7 +27,6 @@ style-only commits, and never add new entries.
   within their class. What counts as internal is a judgment call; the linter
   only polices access from outside.
 - A value taken from an external API keeps the foreign casing at the call site
-  but becomes snake_case the moment it is rebound
   (`change_coefficient = model.chgCoeff`).
 
 ## Classes and attributes
@@ -48,7 +47,7 @@ style-only commits, and never add new entries.
 
 ## Typing
 
-- Annotate every signature and every `__init__` attribute.
+- Annotate every `__init__` attribute.
 - Do not annotate local variables unless the type checker cannot infer them
   (empty containers, `None`-initialized accumulators).
 
