@@ -109,7 +109,7 @@ class LevySchemeID(Enum):
     """Whether a levy penalizes emissions, subsidizes avoiding them, or both."""
 
     PENALTY = auto()  # penalized above, no remuneration below
-    SUBSIDY = auto()  # subsidy below, no penalty below
+    SUBSIDY = auto()  # subsidy below, no penalty above
     BOTH = auto()  # penalty above, subsidy below
 
 
@@ -149,7 +149,7 @@ class SolverBackendID(Enum):
 class SolverMethodID(Enum):
     """The solution method the solver backend applies to the linear program."""
 
-    # Integer values are Gurobi Method IDs (also mapped in solver_highs.py for HiGHS)
+    # integer values are Gurobi Method IDs (also mapped in solver_highs.py for HiGHS)
     AUTOMATIC = -1
     DETERMINISTIC = 4
     NON_DETERMINISTIC = 3
@@ -166,12 +166,6 @@ class BunkerScopeID(Enum):
 class UtilityID(Enum):
     """How a metric is turned into the dimensionless utility of a discrete choice."""
 
-    LOWER_LOG_RATIO = (
-        auto()
-    )  # lower-is-better, log-ratio to the minimum (e.g. LCOT, LCoF)
-    HIGHER_LOG_RATIO = (
-        auto()
-    )  # higher-is-better, log-ratio to the maximum (e.g. expected demand)
-    SIGNED_REFERENCE = (
-        auto()
-    )  # signed metric scaled by a reference value (e.g. NPV / ship CAPEX)
+    LOWER_LOG_RATIO = auto()  # lower-is-better, log-ratio to the minimum
+    HIGHER_LOG_RATIO = auto()  # higher-is-better, log-ratio to the maximum
+    SIGNED_REFERENCE = auto()  # signed metric scaled by a reference value

@@ -461,7 +461,7 @@ def _prepare_export(
 
             export[node_name][0].extend(report.attributes)
             export[node_name][1].extend(report.getters)
-            export[node_name][2].extend(report.reduce)
+            export[node_name][2].extend(report.reductions)
 
     return export
 

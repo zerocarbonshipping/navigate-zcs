@@ -7,8 +7,7 @@ from __future__ import annotations
 
 import numpy as np
 
-# Zero-length sentinel arrays used as __init__ defaults before initialize() is called.
-# Safe to share: zero-length arrays cannot be mutated in-place.
+# safe to share: zero-length arrays cannot be mutated in-place
 EMPTY_FLOAT = np.zeros(0, dtype=float)
 EMPTY_NAN = np.full(0, np.nan)
 EMPTY_BOOL = np.zeros(0, dtype=bool)
