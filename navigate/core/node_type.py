@@ -66,35 +66,107 @@ class TypeCheckMixin:
     """Stores a node's type tag."""
 
     def __init__(self, type_: str) -> None:
-        self.type = type_  # node-type name (DSL keyword)
+        self.type: str = type_  # node-type name (DSL keyword)
 
     def is_type(self, type_: str) -> bool:
-        """Check whether the type tag equals ``type_``."""
+        """
+        Check whether the node was declared with the given DSL node-type keyword.
+
+        Parameters
+        ----------
+        type_
+            Node-type name to compare the type tag against.
+
+        Returns
+        -------
+        bool
+            True if the node carries that type.
+        """
         return self.type == type_
 
 
 def is_calculator(
     node: Node,
 ) -> TypeIs[Curve | Forecast | Surface | Timetable | Variable]:
-    """Check whether the node is a calculator, narrowing its static type."""
+    """
+    Check whether the node is a calculator, narrowing its static type.
+
+    Parameters
+    ----------
+    node
+        Node whose type tag is tested.
+
+    Returns
+    -------
+    TypeIs[Curve | Forecast | Surface | Timetable | Variable]
+        True if the node is one of the calculator types.
+    """
     return node.type in _CALCULATOR_TYPES
 
 
 def is_feedstock(node: Node) -> TypeIs[Feedstock]:
-    """Check whether the node is a Feedstock, narrowing its static type."""
+    """
+    Check whether the node is a Feedstock, narrowing its static type.
+
+    Parameters
+    ----------
+    node
+        Node whose type tag is tested.
+
+    Returns
+    -------
+    TypeIs[Feedstock]
+        True if the node is a Feedstock.
+    """
     return node.type == FEEDSTOCK
 
 
 def is_process(node: Node) -> TypeIs[Process]:
-    """Check whether the node is a Process, narrowing its static type."""
+    """
+    Check whether the node is a Process, narrowing its static type.
+
+    Parameters
+    ----------
+    node
+        Node whose type tag is tested.
+
+    Returns
+    -------
+    TypeIs[Process]
+        True if the node is a Process.
+    """
     return node.type == PROCESS
 
 
 def is_surface(node: Node) -> TypeIs[Surface]:
-    """Check whether the node is a Surface, narrowing its static type."""
+    """
+    Check whether the node is a Surface, narrowing its static type.
+
+    Parameters
+    ----------
+    node
+        Node whose type tag is tested.
+
+    Returns
+    -------
+    TypeIs[Surface]
+        True if the node is a Surface.
+    """
     return node.type == SURFACE
 
 
 def is_variable(node: Node) -> TypeIs[Variable]:
-    """Check whether the node is a Variable, narrowing its static type."""
+    """
+    Check whether the node is a Variable, narrowing its static type.
+
+    Parameters
+    ----------
+    node
+        Node whose type tag is tested.
+
+    Returns
+    -------
+    TypeIs[Variable]
+        True if the node is a Variable.
+    """
     return node.type == VARIABLE
