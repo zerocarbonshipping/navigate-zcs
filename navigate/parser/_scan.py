@@ -45,7 +45,6 @@ def parse_node_reference(reference_string: str) -> tuple[str, str] | None:
 REFERENCE_SCAN_EXCLUDE = (
     "name",
     "type",
-    "allow_dates_in_table",
     "expectation",
     "profile",
     "_table",

@@ -73,11 +73,12 @@ def to_numpy(scalars: Iterable[_FloatOrCalculator]) -> FloatArray:
     FloatArray
         Evaluated values.
     """
-    return np.array([_to_value(scalar) for scalar in scalars])
-
-
-def _to_value(scalar: _FloatOrCalculator) -> FloatLike:
-    return scalar if isinstance(scalar, float) else scalar.get(None, None)
+    return np.array(
+        [
+            scalar if isinstance(scalar, float) else scalar.get(None, None)
+            for scalar in scalars
+        ]
+    )
 
 
 def is_strictly_increasing(values: FloatArray) -> bool:

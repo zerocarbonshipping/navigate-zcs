@@ -73,16 +73,16 @@ class Nodes:
     variables: dict[str, Variable] = field(default_factory=dict)
     vessels: dict[str, Vessel] = field(default_factory=dict)
 
-    def _all_groups(self) -> list[Mapping[str, Node]]:
+    def _all_groups(self) -> tuple[Mapping[str, Node], ...]:
         """
-        Collect the per-type groups in one list.
+        Collect the per-type groups in one tuple.
 
         Returns
         -------
-        list[Mapping[str, Node]]
+        tuple[Mapping[str, Node], ...]
             One group per node type, each keyed by node name.
         """
-        return [
+        return (
             self.converters,
             self.curves,
             self.emissions,
@@ -109,7 +109,7 @@ class Nodes:
             self.transports,
             self.variables,
             self.vessels,
-        ]
+        )
 
     def all_nodes(self) -> Iterable[Node]:
         """

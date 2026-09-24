@@ -22,7 +22,6 @@ class Node(TypeCheckMixin):
         self.name: str = name  # name the deck gives the node
 
         # internal variables -----------------------------------------------------------
-        self.allow_dates_in_table: bool = False  # whether added tables can hold dates
         self.command_references: list[CommandReference] = []  # parser command queue
 
     def __repr__(self) -> str:
