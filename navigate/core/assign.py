@@ -621,7 +621,8 @@ def command_assignment_to_boolean_dict[K: str | Enum](
 
     except KeyError:
         if allow_empty and isinstance(key, str) and name_contains_wildcards(key):
-            # TODO logging.warning()
+            # wildcards in a shared include are written against whatever the
+            # deck defines, so a pattern that matches nothing is not an error
             return
         else:
             raise KeyError(key) from None
