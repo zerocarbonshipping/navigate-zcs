@@ -101,9 +101,9 @@ These IDs describe the way that a regulation will measure emissions in terms of 
 | ID | Description |
 | --- | --- |
 | ABSOLUTE | Absolute emissions measured in mass of emissions (ton of emissions) |
-| INTENSITY | Emissions intensity meaning emissions per energy consumed (ton of emissions per gigajoule, ton/GJ) |
-| TRANSPORT\_NOMINAL | Emissions intensity per NOMINAL transport work (ton of emission per nominal cargo-mile) |
-| TRANSPORT | Emissions intensity per ACTUAL transport work (ton of emission per actual cargo-mile) |
+| INTENSITY | Emissions intensity meaning emissions per energy consumed (kg of emissions per gigajoule, kg/GJ, equivalently g/MJ) |
+| TRANSPORT\_NOMINAL | Emissions intensity per NOMINAL transport work (g of emission per nominal cargo-mile) |
+| TRANSPORT | Emissions intensity per ACTUAL transport work (g of emission per actual cargo-mile) |
 
 ## RegulationSchemeID
 

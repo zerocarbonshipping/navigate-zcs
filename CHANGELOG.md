@@ -819,6 +819,20 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   nodes. No deck result moves.
 
 ### Fixed
+- The reference manual states the units an emission intensity is reported
+  and given in. The `RegulationMeasureID` appendix had INTENSITY in ton/GJ,
+  a factor of 1000 out, and both transport measures in ton per cargo-mile, a
+  factor of a million out; the report-property footnote repeated the
+  INTENSITY error and gave the two transport measures a cost unit, USD per
+  cargo-nautical mile. The same factor of 1000 sat on seven report
+  properties documented in ton per gigajoule: the four plant
+  `Intensity*Wtt` rows and the three port `BunkerIntensity*Wtt` rows, which
+  share the conversion that the six vessel and fleet `Intensity*` rows
+  already documented in kg per gigajoule. A reader sizing a threshold or
+  reading an intensity column off these pages was out by that factor. The
+  code and the `Regulation` page always had it right — an emission intensity
+  is kg/GJ, equivalently g/MJ, and both transport measures are grams per
+  cargo-mile — so no behaviour and no result changes.
 - The `RemedialUnits` and `LevyUnits` report columns sum the vessels below a
   fleet and below the whole simulation, as the remedial and levy expenses of
   the same policies already did. Only vessel scope accumulated them, so a
