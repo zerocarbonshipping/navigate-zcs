@@ -20,10 +20,11 @@ class Surface(Node, _Table2D):
         Node.__init__(self, name, SURFACE)
         _Table2D.__init__(self)
 
-    def initialize(self) -> None:
+    def check_requirements(self) -> None:
         if self._table is None:
             no_value_assigned_error(self, "Table")
 
+    def check_consistency(self) -> None:
         if self.extrapolate == ExtrapolateID.FLAT:
             if self._outside is None:
                 raise ValueError(

@@ -3,27 +3,32 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from navigate.core import assign_value
 from navigate.core.node import Node
 from navigate.core.node_type import VARIABLE
 from navigate.core.nodes._calculator import _Calculator
 from navigate.exceptions import no_value_assigned_error
 
+if TYPE_CHECKING:
+    from navigate.core.nodes.input_kinds import NumberInput
+
 
 class Variable(Node, _Calculator):
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         Node.__init__(self, name, VARIABLE)
         _Calculator.__init__(self)
 
         # internal variables -----------------------------------------------------------
-        self._value = None
+        self._value: NumberInput | None = None
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_value(self, value):
         self._value = assign_value(value)
 
     # internal methods -----------------------------------------------------------------
-    def initialize(self):
+    def check_requirements(self) -> None:
         if self._value is None:
             no_value_assigned_error(self, "Value")
 

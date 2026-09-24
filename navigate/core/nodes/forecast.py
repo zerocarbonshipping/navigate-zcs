@@ -27,7 +27,7 @@ class Forecast(Node, _Table1D):
         # used for temporary storage of tables during deck parsing
         self._temporary_table: tuple | None = None
 
-    def initialize(self) -> None:
+    def check_requirements(self) -> None:
         if self._table is None:
             no_value_assigned_error(self, "Table")
 

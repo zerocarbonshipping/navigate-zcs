@@ -18,22 +18,22 @@ from navigate.core.node_type import REPORT
 
 
 class Report(Node):
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         super().__init__(name, REPORT)
 
         # external variables -----------------------------------------------------------
-        self.directory = None  # str, either relative to deck directory or absolute path
-        self.file_format = FileFormatID.XLSX
+        self.directory: str | None = None
+        self.file_format: FileFormatID = FileFormatID.XLSX
 
         # internal variables -----------------------------------------------------------
-        self.manager_reports = {}
-        self.fleet_reports = {}
-        self.levy_reports = {}
-        self.plant_reports = {}
-        self.port_reports = {}
-        self.producer_reports = {}
-        self.regulation_reports = {}
-        self.vessel_reports = {}
+        self.manager_reports: dict[str, NodeReport] = {}
+        self.fleet_reports: dict[str, NodeReport] = {}
+        self.levy_reports: dict[str, NodeReport] = {}
+        self.plant_reports: dict[str, NodeReport] = {}
+        self.port_reports: dict[str, NodeReport] = {}
+        self.producer_reports: dict[str, NodeReport] = {}
+        self.regulation_reports: dict[str, NodeReport] = {}
+        self.vessel_reports: dict[str, NodeReport] = {}
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_directory(self, directory):

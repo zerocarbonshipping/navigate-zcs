@@ -3,18 +3,24 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from navigate.core import as_list, as_scalar_list, assign_list
 from navigate.core.node import Node
 from navigate.core.node_type import FEEDSTOCK, FORECAST, PROCESS, VARIABLE
 
+if TYPE_CHECKING:
+    from navigate.core.nodes.feedstock import Feedstock
+    from navigate.core.nodes.input_kinds import ForecastInput
+
 
 class Process(Node):
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         super().__init__(name, PROCESS)
 
         # external variables -----------------------------------------------------------
-        self.feeds = []  # list[Feedstock | Process], feedstock or sub-process input
-        self.conversions = []  # list[float], conversion factor per process/feedstock
+        self.feeds: list[Feedstock | Process] = []
+        self.conversions: list[ForecastInput] = []
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_feeds(self, feeds):
@@ -53,8 +59,7 @@ class Process(Node):
         )
 
     # internal methods -----------------------------------------------------------------
-    def initialize(self):
-
+    def check_consistency(self) -> None:
         if len(self.feeds) != len(self.conversions):
             raise ValueError(
                 f"The number of feeds ({len(self.feeds)}) and conversions"
