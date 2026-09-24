@@ -20,6 +20,12 @@ every change. The detail lives in the files it points to.
   invariants and the naming conventions inside `navigate/`. Read it before
   changing code there.
 - `CODESTYLE.md` — the conventions the tooling cannot check.
+- `ruff-shared.toml` — the lint rules themselves. It, the managed block at
+  the top of `CODESTYLE.md` and the managed block in `mypy.ini` are
+  identical across the zerocarbonshipping repositories: a change to them
+  lands in all of those repositories at once, never in this one alone.
+- `.ruff.toml` — this repository's own ruff settings, layered over
+  `ruff-shared.toml`.
 - `CONTRIBUTING.md` — how a change gets in: an issue first for large
   features, what a pull request must carry, provenance for assumption
   changes.
@@ -72,8 +78,8 @@ overwrite each other's files, and the test suites run decks too.
   that needs a commercial licence.
 - Run a deck with `navigate <deck>.nav -d ./assumptions -s`; `-s` skips the
   plots. `ASSUMPTIONS_DATA_DIR` replaces `-d`.
-- `make lint` runs `ruff check`, `ruff format --check`, `mypy` over
-  `navigate/`, and `reuse lint`.
+- `make lint` runs `ruff check` and `ruff format --check` over `navigate/`
+  and `tests/`, `mypy` over `navigate/` only, and `reuse lint`.
 - The test targets are `test-unit`, `test-attribute`, `test-guardrails`,
   `test-regression`, `test-tutorials`, `test-examples` and `test-all`. What
   each suite answers, how long it takes and its conventions are documented
@@ -97,13 +103,20 @@ overwrite each other's files, and the test suites run decks too.
 - The ratchet regions in `.ruff.toml` and `mypy.ini` list files that predate
   the tooling. Entries are only ever removed. When lint fails in a listed
   file, clean the whole file in a style-only commit and delete its entry;
-  a new file never gets one.
+  a new file never gets one. The regions are this repository's own; the
+  rules they waive are shared, so never answer a ratchet entry by editing
+  `ruff-shared.toml` or a managed block.
 - No lint or type suppressions in code: no `noqa`, no `type: ignore`. The
-  configuration is the arbiter; fix the code, or change the rule for
-  everyone in the configuration.
+  configuration catches only the blanket forms, through `PGH`; a targeted
+  suppression passes `make lint` and is still not written. Fix the code, or
+  change the rule for everyone in the configuration.
 - `CHANGELOG.md` records user-facing changes only: deck behaviour, results,
   the CLI, the output. Navigate is not a library, so a change to what
-  Python code can import is not user-facing and gets no entry.
+  Python code can import gets no entry of its own. A breaking one is still
+  called out, in its own entry or in the entry for the change that caused
+  it: `**Breaking** for code importing navigate as a library:`, then the
+  symbols that moved and their new spelling, then what it does to results,
+  which is usually nothing.
 - A change to an assumption value carries references or a justification.
 
 ## What a change touches
@@ -112,7 +125,12 @@ overwrite each other's files, and the test suites run decks too.
   class, with a docstring; the parser table in
   `navigate/parser/_attributes.py` or `_commands.py`; the node's page in
   `docs/reference_manual/`; and the attribute coverage test. The first two
-  are checked against each other; the manual page is not.
+  are checked against each other, and the manual page is checked against
+  the registries in both directions by
+  `tests/attribute/test_reference_manual_coverage.py`; the report-property
+  appendix of `docs/reference_manual/report.md` is checked against the
+  profile getters the same way by `test_report_property_docs.py`. Nothing
+  checks the coverage deck against the registries.
 - A change that moves simulation results explains the difference in the
   pull request and regenerates the regression baselines with
   `make regen-regression` in a commit of their own. Baselines are never
