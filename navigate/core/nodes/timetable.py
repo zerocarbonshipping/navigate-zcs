@@ -23,9 +23,6 @@ class Timetable(Node, _Table2D):
         Node.__init__(self, name, TIMETABLE)
         _Table2D.__init__(self)
 
-        # internal variables -----------------------------------------------------------
-        self.allow_dates_in_table = True
-
         # temporarily stored variables at current time-step
         self._current_time: float | None = None
 
