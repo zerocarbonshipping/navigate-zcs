@@ -45,7 +45,6 @@ from navigate.core.nodes.fuel import Fuel
 from navigate.core.nodes.variable import Variable
 from navigate.core.scalar import Scalar
 from navigate.core.table_data import TableData
-from navigate.core.wildcard import WildcardNodeReference
 
 DATE = np.datetime64("2024-01-01", "D")
 
@@ -488,14 +487,11 @@ class TestAssignList:
     def test_default_length_skips_the_check(self):
         assert assign_list([1.0, 2.0], length=None) == [1.0, 2.0]
 
-    @pytest.mark.parametrize(
-        "entries",
-        [[Fuel("oil"), Fuel("oil")], [WildcardNodeReference(FUEL, "*")] * 2],
-        ids=["nodes", "wildcards"],
-    )
-    def test_duplicate_references_rejected(self, entries):
+    def test_duplicate_references_rejected(self):
         with pytest.raises(ValueError, match=r"requires all entries .* to be unique"):
-            assign_list(entries, unique=True, scalar=False, type_=FUEL)
+            assign_list(
+                [Fuel("oil"), Fuel("oil")], unique=True, scalar=False, type_=FUEL
+            )
 
     def test_uniqueness_ignores_floats(self):
         # _check_list_is_unique only inspects node entries, so unique=True is a

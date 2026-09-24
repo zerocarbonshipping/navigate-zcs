@@ -46,7 +46,6 @@ if TYPE_CHECKING:
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.technology import Technology
-    from navigate.core.wildcard import WildcardNodeReference
     from navigate.fleet.package import Package
 
 logger = logging.getLogger(__name__)
@@ -181,7 +180,7 @@ class Fleet(_AssetManager):
 
     # external methods (DSL attributes) ------------------------------------------------
 
-    def set_vessels(self, vessels: list[Node | WildcardNodeReference]):
+    def set_vessels(self, vessels: list[Node]):
         """
         Set the list of vessel types that exists for the fleet.
 
@@ -327,7 +326,7 @@ class Fleet(_AssetManager):
                 "%s: 'InitialSplit' is rescaled proportionally to sum to 1.", self
             )
 
-    def set_technologies(self, technologies: list[Node | WildcardNodeReference]):
+    def set_technologies(self, technologies: list[Node]):
         """
         Set the list of energy efficiency technologies that can be installed on vessels.
 

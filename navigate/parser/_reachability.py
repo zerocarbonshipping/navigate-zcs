@@ -33,11 +33,10 @@ from navigate.core.node_type import (
     REPORT,
     ROUTE,
 )
-from navigate.core.wildcard import WildcardNodeReference
 from navigate.parser._commands import CommandReference
 from navigate.parser._keywords import GENERAL_NODE_GROUP, NODE_GROUP
 from navigate.parser._lark_parser import Assignment, Command, NodeDeclaration
-from navigate.parser._node_reference import NodeReference
+from navigate.parser._node_reference import NodeReference, WildcardNodeReference
 from navigate.parser._scan import (
     REFERENCE_SCAN_EXCLUDE,
     get_attributes,
@@ -174,14 +173,15 @@ def _iter_references(value, nodes: Nodes):
     The walks share their containers but read different leaves: the parser
     materializes every attribute value and command input when the deck is read
     (Parser._materialize, which recurses lists only — the grammar's one
-    container value), so Parser._replace_references_on_attribute sees nodes
-    and wildcards only, while this one also scans the parsed AST of queued
-    EVENTS bodies, where a reference is still a NodeReference token. A
-    container shape added to one walk must be recognized by the others, or
-    nodes referenced through it are wrongly pruned. The whole yield is
-    attributed to the one attribute the value sits under, so a reference
-    nested anywhere inside — Expression strings included — activates a
-    restricted type only when that attribute is one of its declared edges.
+    container value) and expands every wildcard before the setter stores it,
+    so Parser._replace_references_on_attribute sees nodes only, while this one
+    also scans the parsed AST of queued EVENTS bodies, where a reference is
+    still a NodeReference or a WildcardNodeReference token. A container shape
+    added to one walk must be recognized by the others, or nodes referenced
+    through it are wrongly pruned. The whole yield is attributed to the one
+    attribute the value sits under, so a reference nested anywhere inside —
+    Expression strings included — activates a restricted type only when that
+    attribute is one of its declared edges.
 
     Parameters
     ----------
@@ -191,9 +191,7 @@ def _iter_references(value, nodes: Nodes):
         The registry, used to expand wildcard references.
     """
     if isinstance(value, WildcardNodeReference):
-        for name in matching_keys(
-            value.pattern, getattr(nodes, NODE_GROUP[value.type])
-        ):
+        for name in matching_keys(value.name, getattr(nodes, NODE_GROUP[value.type])):
             yield value.type, name
 
     elif isinstance(value, (Node, NodeReference)):

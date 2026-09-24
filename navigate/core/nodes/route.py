@@ -81,7 +81,7 @@ class Route(Node):
 
         Parameters
         ----------
-        ports : list[Node | WildcardNodeReference]
+        ports : list[Node]
             A list of Port nodes.
         """
         self.ports = assign_list(as_list(ports), scalar=False, type_=PORT)

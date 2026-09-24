@@ -53,6 +53,25 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `get_remaining_cost_flow`).
 
 ### Changed
+- A wildcard node reference is expanded against the registered nodes of its
+  type before the value reaches the attribute, where it used to be handed to
+  the attribute as written and the matched nodes spliced into the stored list
+  afterwards. What a deck may write is unchanged — a glob still stands for
+  every registered node of its type whose name matches, and both
+  `Fuels = Fuel("*")` and `Fuels = [Fuel("*")]` still work — but three
+  constructs that used to slip past the attribute are now rejected. A glob as
+  a command argument, which was never documented and died later in the run
+  with a misleading "may only appear inside lists", is refused at its deck
+  line naming the command. A glob on a single-valued attribute is refused by
+  the attribute itself, so `Route = Route("r_*")` on a Vessel now reads
+  `Vessel("v") attribute 'Route' only allows assignment of nodes of type
+  Route, but got list`. And an attribute listing both a node and a glob that
+  also matches it is rejected as a duplicate, where the uniqueness check ran
+  before the expansion and passed. Expansion also no longer depends on how
+  far the reference resolution had progressed when the glob was reached.
+  **Breaking** for code importing navigate as a library: `assign_value` and
+  `assign_list` no longer accept a `WildcardNodeReference`; the parser
+  expands the glob into the matched nodes first. No result moves.
 - Internal reorganization (no DSL or result changes): the five profiles that
   weigh emissions by global warming potential (vessel, fleet, manager, port
   and plant) share one `_FuelEmissionProfile` layer that reads the emission
@@ -113,12 +132,12 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   does spelling "no length check" as `length=None` rather than `length=()`.
 - **Breaking** for code importing navigate as a library: the two reference
   classes are split along the line the parser already draws between them.
-  `NodeReference` is a parser-internal token and moves to
-  `navigate.parser._node_reference`, out of the `navigate.core` namespace; it
-  is now a frozen dataclass of `type` and `name`, so it compares by value and
-  carries no `is_type()`. `WildcardNodeReference` stays a public `core` value
-  — `assign_value` and `assign_list` accept one — and moves to
-  `navigate.core.wildcard`, no longer subclassing `NodeReference`.
+  Both are parser-internal tokens and move to
+  `navigate.parser._node_reference`, out of the `navigate.core` namespace;
+  each is now a frozen dataclass of `type` and `name`, so it compares by
+  value and carries no `is_type()`, the wildcard's `pattern` property is gone
+  — read `name` — and `WildcardNodeReference` no longer subclasses
+  `NodeReference`.
 - **Breaking** for code importing navigate as a library: the parser resolves
   every `Type("name")` a deck writes when it reads the assignment or command,
   so node setters receive the referenced node itself, never a `NodeReference`.
@@ -126,15 +145,14 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   declaration is read or, failing that, pulled from the default library where
   the reference walk used to swap it in — same order, same pulls, same
   registry, and the same results on every committed deck. `assign_value` and
-  `assign_list` accept a `Node` or a `WildcardNodeReference` and reject a
-  `NodeReference`; `Expression.node_references` holds nodes as soon as the
-  parser initializes the expression; and `NodeReference` loses
-  `reference_location`, `internal_bounds` and `set_internal_bounds`, which
-  nothing writes any more — the calculator nodes expose the bounds they hold
-  as `internal_bounds`. The one delta: a reference's bounds reach the
-  calculator when the assignment is read, so a reference re-assigned later in
-  `DEFINE` leaves them behind, as one re-assigned across time steps in
-  `EVENTS` always did.
+  `assign_list` accept a `Node` and reject either reference token;
+  `Expression.node_references` holds nodes as soon as the parser initializes
+  the expression; and `NodeReference` loses `reference_location`,
+  `internal_bounds` and `set_internal_bounds`, which nothing writes any more —
+  the calculator nodes expose the bounds they hold as `internal_bounds`. The
+  one delta: a reference's bounds reach the calculator when the assignment is
+  read, so a reference re-assigned later in `DEFINE` leaves them behind, as one
+  re-assigned across time steps in `EVENTS` always did.
 - **Breaking** for code importing navigate as a library: the calculator nodes
   (`Curve`, `Forecast`, `Surface`, `Timetable`, `Variable`) take the bounds an
   attribute imposes on them as two floats, `set_internal_bounds(lower, upper)`,
@@ -191,8 +209,7 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `is_process`, `is_surface`, `is_variable`), so type checkers narrow node
   types at call sites; the sixteen unused predicates and the unused
   `Scalar.is_forecast()` are removed without replacement. The guards take a
-  `Node`; for a `WildcardNodeReference` use the `is_type()` method, which
-  remains on it.
+  `Node`.
 - Deck errors surface as a single clean traceback (the internal exception
   that triggered them is no longer chained), internal parallel-structure
   mismatches in the calculation modules now raise instead of silently
@@ -788,6 +805,16 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   nodes. No deck result moves.
 
 ### Fixed
+- The bounds an attribute imposes reach the nodes a wildcard matched, as they
+  already did for a node written out by name. A calculator (`Curve`,
+  `Forecast`, `Surface`, `Timetable`, `Variable`) reached through a glob — on
+  `Route.PortDurations`, for instance — kept whatever bounds its other
+  references gave it, so the limit of the attribute it was assigned to never
+  applied. No committed deck globs a calculator, so no shipped result moves.
+- The two errors a wildcard node reference can raise — it matched no node, or
+  it stands where a single node is expected — name the deck line and the
+  include file they were written in, as every other deck error does. Both
+  were raised after the decks had been read, with no line left to report.
 - The reference manual documents the DSL surface the parser accepts. Twelve
   registered names had no entry — `Table` on `Curve`, `Forecast`, `Surface` and
   `Timetable`, `FuelType` on `Emission`, `ShorePowerCost` and

@@ -7,14 +7,15 @@ from __future__ import annotations
 
 import pytest
 
+from navigate.core.enum_ import SimulationSectionID
 from navigate.core.nodes.fleet import Fleet
 from navigate.core.nodes.fuel import Fuel
 from navigate.core.nodes.port import Port
 from navigate.core.nodes.route import Route
-from navigate.core.wildcard import WildcardNodeReference
 from navigate.exceptions import DeckFormatError
 from navigate.parser._commands import CommandReference
-from navigate.parser._lark_parser import SourceLocation
+from navigate.parser._lark_parser import Assignment, SourceLocation
+from navigate.parser._node_reference import WildcardNodeReference
 from navigate.parser.parser import Parser
 
 # ── CommandReference domain-aware wildcard expansion ─────────────────────────
@@ -120,7 +121,7 @@ class TestCommandReferenceWildcard:
         assert all(value.get() == 0.1 for value in saving.values())
 
 
-# ── In-list WildcardNodeReference expansion via Parser ────────────────────────
+# ── WildcardNodeReference expansion via Parser ────────────────────────────────
 
 
 class TestWildcardNodeReferenceExpansion:
@@ -141,22 +142,25 @@ class TestWildcardNodeReferenceExpansion:
     def test_expand_star_returns_all_nodes_of_type(self):
         parser = self._make_parser_with_fuels("fuel_a", "fuel_b", "fuel_c")
         matched = parser._expand_wildcard_node_reference(
-            WildcardNodeReference("Fuel", "*")
+            WildcardNodeReference("Fuel", "*"), "loc"
         )
         assert {n.name for n in matched} == {"fuel_a", "fuel_b", "fuel_c"}
 
     def test_expand_prefix_pattern(self):
         parser = self._make_parser_with_fuels("bio_a", "bio_b", "fossil_c")
         matched = parser._expand_wildcard_node_reference(
-            WildcardNodeReference("Fuel", "bio_*")
+            WildcardNodeReference("Fuel", "bio_*"), "loc"
         )
         assert {n.name for n in matched} == {"bio_a", "bio_b"}
 
     def test_expand_no_match_raises(self):
         parser = self._make_parser_with_fuels("fuel_a")
-        with pytest.raises(DeckFormatError, match="did not match any Fuel nodes"):
+        with pytest.raises(
+            DeckFormatError,
+            match=r"loc: Wildcard 'missing_\*' did not match any Fuel",
+        ):
             parser._expand_wildcard_node_reference(
-                WildcardNodeReference("Fuel", "missing_*")
+                WildcardNodeReference("Fuel", "missing_*"), "loc"
             )
 
     def test_list_splice_preserves_surrounding_entries(self):
@@ -164,35 +168,35 @@ class TestWildcardNodeReferenceExpansion:
 
         marker_before = "BEFORE"
         marker_after = "AFTER"
-        container = [
-            marker_before,
-            WildcardNodeReference("Port", "port_*"),
-            marker_after,
-        ]
-        # iterate the list via the same path the parser uses
-        parser._replace_references_on_attribute(node=None, attribute=container)
+        expanded = parser._expand_wildcards(
+            [marker_before, WildcardNodeReference("Port", "port_*"), marker_after],
+            "loc",
+        )
 
-        assert container[0] == marker_before
-        assert container[-1] == marker_after
-        middle_names = {n.name for n in container[1:-1]}
-        assert middle_names == {"port_a", "port_b"}
+        assert expanded[0] == marker_before
+        assert expanded[-1] == marker_after
+        assert {n.name for n in expanded[1:-1]} == {"port_a", "port_b"}
 
-    def test_wildcard_outside_list_raises(self):
-        parser = Parser()
-        wildcard = WildcardNodeReference("Fuel", "*")
-        with pytest.raises(
-            DeckFormatError,
-            match="Wildcard node references may only appear inside lists",
-        ):
-            parser._replace_references_on_attribute(node=None, attribute=wildcard)
-
-    def test_bare_wildcard_handed_to_a_setter_expands(self):
-        # the setter wraps a bare Foo("*") into a list, so it expands like [Foo("*")]
+    def test_wildcard_outside_list_expands_to_a_list(self):
         parser = self._make_parser_with_ports("port_a", "port_b")
+        expanded = parser._expand_wildcards(WildcardNodeReference("Port", "*"), "loc")
+        assert {n.name for n in expanded} == {"port_a", "port_b"}
 
+    def test_pending_assignment_reaches_the_setter_expanded(self):
+        # the setter never sees the wildcard: the parser holds the assignment
+        # back and flushes it once the registry is complete
+        parser = self._make_parser_with_ports("port_a", "port_b")
+        parser._current_section = SimulationSectionID.DEFINE
         route = Route("r")
-        route.set_ports(WildcardNodeReference("Port", "*"))
+        parser.nodes.routes["r"] = route
 
-        parser._replace_references_on_attribute(route, route.ports)
+        parser._apply_assignment(
+            route,
+            Assignment("Ports", WildcardNodeReference("Port", "*"), SourceLocation()),
+            "Route",
+        )
+
+        assert route.ports == []
+        parser._flush_pending_assignments()
 
         assert {p.name for p in route.ports} == {"port_a", "port_b"}

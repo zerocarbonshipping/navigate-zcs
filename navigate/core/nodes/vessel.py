@@ -250,7 +250,7 @@ class Vessel(Node):
 
         Parameters
         ----------
-        tanks : list[Node | WildcardNodeReference]
+        tanks : list[Node]
             List of Tank nodes.
         """
         self.tanks = assign_list(as_list(tanks), unique=True, scalar=False, type_=TANK)

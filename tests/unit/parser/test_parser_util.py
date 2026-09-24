@@ -10,7 +10,6 @@ import pytest
 from lark.exceptions import VisitError
 
 from navigate.core import Expression
-from navigate.core.wildcard import WildcardNodeReference
 from navigate.exceptions import DeckFormatError
 from navigate.parser._lark_parser import (
     Assignment,
@@ -32,7 +31,7 @@ from navigate.parser._lark_parser import (
     parse_table_cells,
     string_to_date,
 )
-from navigate.parser._node_reference import NodeReference
+from navigate.parser._node_reference import NodeReference, WildcardNodeReference
 
 
 # ═════════════════════════════════════════════════════════════════════════════════
@@ -444,7 +443,7 @@ class TestSyntaxErrors:
         statements = parse_include_content('Vessel "v" { Route = Route("r_*") }')
         assignment = statements[0].body[0]
         assert isinstance(assignment.value, WildcardNodeReference)
-        assert assignment.value.pattern == "r_*"
+        assert assignment.value.name == "r_*"
         assert assignment.value.type == "Route"
 
     def test_unquoted_wildcard_in_command(self):

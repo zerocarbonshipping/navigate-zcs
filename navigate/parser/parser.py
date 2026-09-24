@@ -7,7 +7,7 @@ import copy
 import logging
 import os
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import ClassVar
 
@@ -19,7 +19,6 @@ from navigate.core.general_nodes.bunker_options import BunkerOptions
 from navigate.core.node import Node
 from navigate.core.node_registry import GeneralNodes, Nodes
 from navigate.core.node_type import is_calculator
-from navigate.core.wildcard import WildcardNodeReference
 from navigate.exceptions import (
     AttributeAssignmentError,
     CommandError,
@@ -65,7 +64,7 @@ from navigate.parser._lark_parser import (
     parse_include_content,
     string_to_date,
 )
-from navigate.parser._node_reference import NodeReference
+from navigate.parser._node_reference import NodeReference, WildcardNodeReference
 from navigate.parser._reachability import ROOT_TYPES, find_unreachable
 from navigate.parser._scan import (
     REFERENCE_SCAN_EXCLUDE,
@@ -93,6 +92,17 @@ class _Deferred:
     # the error prefix of the referencing line, for when neither a declaration
     # nor a default file turns up
     location: str
+
+
+@dataclass(frozen=True)
+class _PendingAssignment:
+    """An assignment held back until its wildcard can be expanded."""
+
+    node: Node
+    attribute: str
+    value: object
+    source: SourceLocation
+    deck_line: int
 
 
 class Parser:
@@ -134,6 +144,9 @@ class Parser:
         # progress, one entry per pull: they leave the registry after the
         # copy, so nothing may bind to them
         self._provisional: list[tuple[str, str]] = []
+        # assignments whose value carries a wildcard, held until the registry
+        # holds every node the glob may match
+        self._pending_assignments: list[_PendingAssignment] = []
 
         # section flags
         self._current_section = None
@@ -656,16 +669,46 @@ class Parser:
             raise AttributeAssignmentError(self._error_prefix() + f": {e!s}.") from None
 
         value = self._materialize(item.value)
+        deck_line = self._current_deck_line
 
         target_nodes = nodes if isinstance(nodes, list) else [nodes]
-        for node in target_nodes:
-            try:
-                getattr(node, attribute_to_setter(attribute))(value)
 
-            except ValueError as e:
-                raise AttributeAssignmentError(
-                    self._error_prefix() + f": {node} attribute '{attribute}' {e}."
-                ) from None
+        # a glob matches against the finished registry, so the assignment waits
+        if _contains_wildcard(value):
+            self._pending_assignments += [
+                _PendingAssignment(node, attribute, value, item.source, deck_line)
+                for node in target_nodes
+            ]
+            return
+
+        for node in target_nodes:
+            self._call_setter(node, attribute, value, item.source, deck_line)
+
+    def _call_setter(self, node, attribute, value, source, deck_line):
+        """
+        Hand a value to the setter of the deck attribute that names it.
+
+        Parameters
+        ----------
+        node : Node
+            Node the assignment targets.
+        attribute : str
+            Deck-facing attribute token.
+        value
+            The value to assign, with every reference already a node.
+        source : SourceLocation
+            Include-file location of the assignment.
+        deck_line : int
+            Deck line of the assignment.
+        """
+        try:
+            getattr(node, attribute_to_setter(attribute))(value)
+
+        except ValueError as e:
+            raise AttributeAssignmentError(
+                self._error_prefix(source, deck_line)
+                + f": {node} attribute '{attribute}' {e}."
+            ) from None
 
     def _queue_command(self, nodes, item, node_type):
         """
@@ -690,6 +733,14 @@ class Parser:
             raise CommandError(self._error_prefix() + f": {e!s}.") from None
 
         inputs = self._materialize(item.args)
+
+        if _contains_wildcard(inputs):
+            raise CommandError(
+                self._error_prefix()
+                + f": '{command}' does not accept a wildcard node reference as an "
+                "argument."
+            )
+
         ref = CommandReference(
             command, inputs, source=item.source, deck_line=self._current_deck_line
         )
@@ -793,6 +844,14 @@ class Parser:
             existing = group.get(statement.copy_to)
         if existing is not None:
             new_node = _transplant(existing, new_node)
+
+        # the parser holds a pending assignment, not the source, so deepcopy
+        # leaves it behind and the copy needs an entry of its own
+        self._pending_assignments += [
+            replace(entry, node=new_node)
+            for entry in self._pending_assignments
+            if entry.node is source
+        ]
 
         if from_default:
             del group[statement.copy_from]
@@ -969,13 +1028,14 @@ class Parser:
         """
         Replace references, execute commands, initialize nodes.
 
-        The sequence is: replace refs → replace tables → prune unreachable
-        nodes (DEFINE pass only) → init dicts → execute commands → replace
-        refs again (commands may create new ones) → replace tables again →
-        initialize nodes.
+        The sequence is: expand held-back wildcards → replace refs → replace
+        tables → prune unreachable nodes (DEFINE pass only) → init dicts →
+        execute commands → replace refs again (commands may create new ones) →
+        replace tables again → initialize nodes.
         """
         self._reading_events = True
 
+        self._flush_pending_assignments()
         self._replace_references()
         self._replace_temporary_tables()
 
@@ -1293,30 +1353,14 @@ class Parser:
     def _replace_references_on_attribute(self, node, attribute):
         # the container shapes stay in lockstep with
         # _reachability._iter_references, which states how the two walks differ
-        if isinstance(attribute, WildcardNodeReference):
-            # the list arm expands wildcards, so one reaching the dispatch sits
-            # outside a list
-            raise DeckFormatError(
-                f"Wildcard node references may only appear inside lists: {attribute}"
-            )
-
         if isinstance(attribute, Node):
             entry = self._deferred.get((attribute.type, attribute.name))
             if entry is not None:
                 self._pull_deferred(entry)
 
         elif isinstance(attribute, list):
-            # iterate by index because a wildcard splice grows the list
-            i = 0
-            while i < len(attribute):
-                element = attribute[i]
-                if isinstance(element, WildcardNodeReference):
-                    matched = self._expand_wildcard_node_reference(element)
-                    attribute[i : i + 1] = matched
-                    i += len(matched)
-                else:
-                    self._replace_references_on_attribute(node, element)
-                    i += 1
+            for element in attribute:
+                self._replace_references_on_attribute(node, element)
 
         elif isinstance(attribute, dict):
             for element in attribute.values():
@@ -1333,8 +1377,54 @@ class Parser:
 
             self._replace_references_on_attribute(node, attribute.node_references)
 
+    def _flush_pending_assignments(self):
+        """Expand the wildcards of the held-back assignments and apply them."""
+        while self._pending_assignments:
+            pending = self._pending_assignments
+            self._pending_assignments = []
+
+            for entry in pending:
+                location = self._error_prefix(entry.source, entry.deck_line)
+                value = self._expand_wildcards(entry.value, location)
+                self._call_setter(
+                    entry.node, entry.attribute, value, entry.source, entry.deck_line
+                )
+
+    def _expand_wildcards(self, value, location):
+        """
+        Replace every wildcard in a materialized value with the nodes it matches.
+
+        Parameters
+        ----------
+        value
+            A materialized assignment value.
+        location : str
+            Error prefix of the line the value was read at.
+
+        Returns
+        -------
+        The value with nodes in place of wildcards: a bare wildcard becomes the
+        list of its matches, and one inside a list is spliced into that list.
+        """
+        if isinstance(value, WildcardNodeReference):
+            return self._expand_wildcard_node_reference(value, location)
+
+        if not isinstance(value, list):
+            return value
+
+        # the recursion mirrors _materialize's, so no wildcard the grammar can
+        # nest reaches a setter
+        expanded = []
+        for element in value:
+            if isinstance(element, WildcardNodeReference):
+                expanded += self._expand_wildcard_node_reference(element, location)
+            else:
+                expanded.append(self._expand_wildcards(element, location))
+
+        return expanded
+
     def _expand_wildcard_node_reference(
-        self, wildcard_ref: WildcardNodeReference
+        self, wildcard_ref: WildcardNodeReference, location: str
     ) -> list[Node]:
         """
         Expand a wildcard node reference into matching nodes.
@@ -1343,20 +1433,22 @@ class Parser:
         ----------
         wildcard_ref
             Reference containing a glob pattern.
+        location
+            Error prefix of the line the reference was read at.
 
         Returns
         -------
         Matched nodes from the registry.
         """
         node_type = wildcard_ref.type
-        pattern = wildcard_ref.pattern
+        pattern = wildcard_ref.name
         group = getattr(self.nodes, NODE_GROUP[node_type])
 
         try:
             matched_names = retrieve_keys(pattern, group)
         except KeyError:
             raise DeckFormatError(
-                f"Wildcard '{pattern}' did not match any {node_type} nodes."
+                f"{location}: Wildcard '{pattern}' did not match any {node_type} nodes."
             ) from None
 
         return [group[name] for name in matched_names]
@@ -1487,9 +1579,6 @@ class Parser:
         """
         Replace every node reference in a parsed value with the node it names.
 
-        A wildcard stays as written: it expands against the finished registry
-        in the reference walk, and only inside a list.
-
         Parameters
         ----------
         value
@@ -1500,9 +1589,6 @@ class Parser:
         -------
         The value with nodes in place of references.
         """
-        if isinstance(value, WildcardNodeReference):
-            return value
-
         if isinstance(value, NodeReference):
             return self._node(value.type, value.name, self._error_prefix())
 
@@ -1527,6 +1613,8 @@ class Parser:
         """
         node = entry.node
         self._retrieve_node_from_default(node.type, node.name, entry.location)
+        # the pulled file declares nodes of its own, and may glob over them
+        self._flush_pending_assignments()
         self._replace_references_on_node(node)
 
     def _read_node_reference(self, reference_string, location):
@@ -1576,6 +1664,14 @@ def _get_files_in_directory(directory):
         for f in os.listdir(directory)
         if os.path.isfile(os.path.join(directory, f)) and f not in ignored
     ]
+
+
+def _contains_wildcard(value):
+    """Test whether a materialized value is, or holds, a wildcard reference."""
+    if isinstance(value, list):
+        return any(_contains_wildcard(element) for element in value)
+
+    return isinstance(value, WildcardNodeReference)
 
 
 def _transplant(node, copied):

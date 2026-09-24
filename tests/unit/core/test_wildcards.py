@@ -7,19 +7,12 @@ from __future__ import annotations
 
 import pytest
 
-from navigate.core.assign import (
-    assign_id_list,
-    assign_list,
-    assign_value,
-    expand_id_wildcard,
-)
+from navigate.core.assign import assign_id_list, expand_id_wildcard
 from navigate.core.enum_ import (
     EnergyDemandTypeID,
     EnergyDemandTypePortID,
     FuelTypeID,
 )
-from navigate.core.node_type import FUEL, PORT
-from navigate.core.wildcard import WildcardNodeReference
 from navigate.util import matching_keys, retrieve_keys
 
 # ── expand_id_wildcard ────────────────────────────────────────────────────────
@@ -138,27 +131,3 @@ class TestMatchingKeys:
     )
     def test_matches(self, pattern, keys, expected):
         assert set(matching_keys(pattern, keys)) == expected
-
-
-# ── assign_value / assign_list accept WildcardNodeReference ───────────────────
-
-
-class TestAssignValueWildcardNodeReference:
-    def test_assign_value_accepts_matching_type(self):
-        ref = WildcardNodeReference(FUEL, "*")
-        # the attribute's bounds have no node to land on yet
-        result = assign_value(ref, scalar=False, type_=FUEL, lower=0.0)
-        assert result is ref
-
-    def test_assign_value_rejects_mismatched_type(self):
-        ref = WildcardNodeReference(FUEL, "*")
-        with pytest.raises(ValueError, match="nodes of type"):
-            assign_value(ref, scalar=False, type_=PORT)
-
-    def test_assign_list_accepts_wildcard_entries(self):
-        entries = [
-            WildcardNodeReference(FUEL, "bio_*"),
-            WildcardNodeReference(FUEL, "fossil_*"),
-        ]
-        result = assign_list(entries, unique=True, scalar=False, type_=FUEL)
-        assert result == entries

@@ -13,7 +13,6 @@ from navigate.core.node import Node
 from navigate.core.node_type import AcceptedTypes, is_calculator
 from navigate.core.scalar import Scalar
 from navigate.core.table_data import TableData
-from navigate.core.wildcard import WildcardNodeReference
 from navigate.core.wrap import Assignment, WrappedAssignment, as_scalar
 from navigate.util import (
     ROUND_OFF,
@@ -143,13 +142,12 @@ def assign_value[T: Assignment](
     is_date = isinstance(assignment, np.datetime64)
     is_expression = isinstance(assignment, Expression)
     is_node = isinstance(assignment, Node)
-    is_wildcard = isinstance(assignment, WildcardNodeReference)
     type_is_list = isinstance(type_, (list, tuple))
 
     float_allowed = is_float and scalar
     date_allowed = is_date and date
     reference_allowed = (
-        (is_node or is_wildcard)
+        is_node
         and (type_ is not None)
         and (assignment.type in type_ if type_is_list else assignment.is_type(type_))
     )
@@ -169,8 +167,6 @@ def assign_value[T: Assignment](
     elif not (date_allowed or reference_allowed):
         raise ValueError(_failed_value_message(assignment, scalar, date, type_))
 
-    # only a calculator has bounds to tighten; is_calculator reads the type tag,
-    # which a wildcard of a calculator type carries too, and its matches get none
     if is_expression or (is_node and is_calculator(assignment)):
         assignment.set_internal_bounds(lower, upper)
 
@@ -828,11 +824,7 @@ def _check_list_length(assignment: Sized, length: ListLength) -> None:
 
 
 def _check_list_is_unique(assignment: Sequence[Assignment]) -> None:
-    names = [
-        entry.name
-        for entry in assignment
-        if isinstance(entry, (Node, WildcardNodeReference))
-    ]
+    names = [entry.name for entry in assignment if isinstance(entry, Node)]
     if not list_is_unique(names):
         raise ValueError("requires all entries in the list to be unique")
 

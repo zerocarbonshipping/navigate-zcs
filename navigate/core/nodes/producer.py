@@ -107,7 +107,7 @@ class Producer(_AssetManager):
 
         Parameters
         ----------
-        plants : list[Node | WildcardNodeReference]
+        plants : list[Node]
             The list of plants that can be built.
         """
         self.assets = assign_list(
