@@ -224,7 +224,7 @@ class _FuelConsumerProfile(_FuelEmissionProfile, abc.ABC):
                 profile._shore_power_emission[key][idx] * multiplier
             )
 
-    def _to_intensity(
+    def _to_consumed_energy_intensity(
         self, emissions: dict[tuple[str, str], FloatArray]
     ) -> dict[tuple[str, str], FloatArray]:
         energy = self.get_total_consumed_energy()
@@ -528,7 +528,7 @@ class _FuelConsumerProfile(_FuelEmissionProfile, abc.ABC):
         return self._to_cumulative(self.get_total_equivalent_wtt())
 
     def get_intensity_equivalent_wtt(self) -> dict[tuple[str, str], FloatArray]:
-        return self._to_intensity(self.get_equivalent_wtt())
+        return self._to_consumed_energy_intensity(self.get_equivalent_wtt())
 
     def get_intensity_total_equivalent_wtt(self) -> FloatArray:
         return self._to_total_intensity(self.get_total_equivalent_wtt())
@@ -546,7 +546,7 @@ class _FuelConsumerProfile(_FuelEmissionProfile, abc.ABC):
         return self._to_cumulative(self.get_total_equivalent_ttw())
 
     def get_intensity_equivalent_ttw(self) -> dict[tuple[str, str], FloatArray]:
-        return self._to_intensity(self.get_equivalent_ttw())
+        return self._to_consumed_energy_intensity(self.get_equivalent_ttw())
 
     def get_intensity_total_equivalent_ttw(self) -> FloatArray:
         return self._to_total_intensity(self.get_total_equivalent_ttw())
@@ -568,7 +568,7 @@ class _FuelConsumerProfile(_FuelEmissionProfile, abc.ABC):
         return self._to_cumulative(self.get_total_equivalent_wtw())
 
     def get_intensity_equivalent_wtw(self) -> dict[tuple[str, str], FloatArray]:
-        return self._to_intensity(self.get_equivalent_wtw())
+        return self._to_consumed_energy_intensity(self.get_equivalent_wtw())
 
     def get_intensity_total_equivalent_wtw(self) -> FloatArray:
         return self._to_total_intensity(self.get_total_equivalent_wtw())

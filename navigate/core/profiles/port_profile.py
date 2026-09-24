@@ -63,18 +63,13 @@ class PortProfile(_FuelInfrastructureProfile):
         self._bunker_price = self._default_dict(fuels)
         self._bunker_wtt = self._default_tuple_dict(fuels, emissions)
 
-    def _to_emission_intensity(
-        self, emission: FloatArray, fuel_name: str
-    ) -> FloatArray:
-        # emissions are converted from ton to g (10^6) and energy from GJ to
-        # MJ (10^3), so dividing by 10^3
-        return emission / (self._lower_heating_value[fuel_name] / 1e3)
-
-    def _to_intensity(
+    def _to_heating_value_intensity(
         self, emissions: dict[tuple[str, str], FloatArray]
     ) -> dict[tuple[str, str], FloatArray]:
         return {
-            (fuel_name, emission_name): self._to_emission_intensity(emission, fuel_name)
+            (fuel_name, emission_name): self._convert_to_intensity(
+                emission, self._lower_heating_value[fuel_name]
+            )
             for (fuel_name, emission_name), emission in emissions.items()
         }
 
@@ -111,24 +106,24 @@ class PortProfile(_FuelInfrastructureProfile):
         return self._sum_values(self.get_equivalent_bunker_wtt())
 
     def get_bunker_intensity_wtt(self) -> dict[tuple[str, str], FloatArray]:
-        return self._to_intensity(self._bunker_wtt)
+        return self._to_heating_value_intensity(self._bunker_wtt)
 
     def get_bunker_intensity_equivalent_wtt(
         self,
     ) -> dict[tuple[str, str], FloatArray]:
-        return self._to_intensity(self.get_equivalent_bunker_wtt())
+        return self._to_heating_value_intensity(self.get_equivalent_bunker_wtt())
 
     def get_bunker_intensity_total_equivalent_wtt(self) -> dict[str, FloatArray]:
         equivalent = self.get_equivalent_bunker_wtt()
         return {
-            fuel_name: self._to_emission_intensity(
+            fuel_name: self._convert_to_intensity(
                 np.add.reduce(
                     [
                         equivalent[(fuel_name, emission_name)]
                         for emission_name in self._global_warming_potential
                     ]
                 ),
-                fuel_name,
+                self._lower_heating_value[fuel_name],
             )
             for fuel_name in self._lower_heating_value
         }
