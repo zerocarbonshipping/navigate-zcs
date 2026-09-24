@@ -51,9 +51,6 @@ class _Expectation:
 
             return np.full(shape, default, dtype=dtype)
 
-    def _default_list_float(self, n: int, default: float | None = None) -> list[float]:
-        return [self._default_float(default) for _ in range(n)]
-
     def _default_list_array(
         self, n: int, default: float | bool | None = None
     ) -> list[np.ndarray]:
@@ -87,38 +84,11 @@ class _Expectation:
     ) -> dict[Any, list[np.ndarray]]:
         return {key: self._default_list_array(length, default) for key in keys}
 
-    def _reset_array(self, array: np.ndarray, default: float | None = None) -> None:
-        array[:] = self._default_array(default)
-
-    def _reset_array_partial(
-        self, array: np.ndarray, idx: int, default: float | None = None
-    ) -> None:
-        array[idx:] = self._default_array(default)[np.s_[idx:]]
-
-    def _reset_list_array(
-        self, list_: list[np.ndarray], default: float | None = None
-    ) -> None:
-        for array in list_:
-            array[:] = self._default_array(default)
-
-    def _reset_list_array_partial(
-        self, list_: list[np.ndarray], idx: int, default: float | None = None
-    ) -> None:
-        s = np.s_[idx:]
-        for array in list_:
-            array[s] = self._default_array(default)[s]
-
     def _reset_dict_float(
         self, dict_: dict[Any, float], default: float | None = None
     ) -> None:
         for key in dict_:
             dict_[key] = self._default_float(default)
-
-    def _reset_dict_array(
-        self, dict_: dict[Any, np.ndarray], default: float | None = None
-    ) -> None:
-        for array in dict_.values():
-            array[:] = self._default_array(default)
 
     def _reset_dict_array_partial(
         self, dict_: dict[Any, np.ndarray], idx: int, default: float | None = None

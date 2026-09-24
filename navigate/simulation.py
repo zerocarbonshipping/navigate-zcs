@@ -911,7 +911,6 @@ class SimulationManager:
 
         for port in self.nodes.ports.values():
             self.profile.add_fuel_infrastructure_profile(port.profile)
-            self.profile.add_infrastructure_aggregate_profile(port.profile)
 
         for producer in self.nodes.producers.values():
             self.profile.add_fuel_producer_profile(producer.profile)

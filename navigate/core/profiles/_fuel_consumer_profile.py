@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import abc
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -10,6 +11,7 @@ import numpy as np
 from navigate.core.enum_ import EnergyDemandTypeID, EnergyDemandTypePortID, FuelTypeID
 from navigate.core.initial_values import EMPTY_FLOAT
 from navigate.core.profiles._fuel_emission_profile import _FuelEmissionProfile
+from navigate.core.profiles._fuel_type_lookup import _FuelTypeLookup
 
 if TYPE_CHECKING:
     from navigate.core.nodes.emission import Emission
@@ -19,7 +21,7 @@ if TYPE_CHECKING:
 from navigate.util import add_dicts, divide_nonzero, multiply_dicts
 
 
-class _FuelConsumerProfile(_FuelEmissionProfile):
+class _FuelConsumerProfile(_FuelEmissionProfile, _FuelTypeLookup, abc.ABC):
     """Base class used exclusively for sub-classing."""
 
     def __init__(self):
@@ -223,7 +225,7 @@ class _FuelConsumerProfile(_FuelEmissionProfile):
                 profile._shore_power_emission[key][idx] * multiplier
             )
 
-    def _to_intensity(
+    def _to_consumed_energy_intensity(
         self, emissions: dict[tuple[str, str], FloatArray]
     ) -> dict[tuple[str, str], FloatArray]:
         energy = self.get_total_consumed_energy()
@@ -395,6 +397,10 @@ class _FuelConsumerProfile(_FuelEmissionProfile):
             demand_type: self._saving(demand_type) for demand_type in self._energy_sea
         }
 
+    @abc.abstractmethod
+    def get_baseline_energy(self) -> FloatArray:
+        """Counterfactual energy demand the intensity savings are measured against."""
+
     def get_speed_energy_intensity_saving(self) -> FloatArray:
         return 1.0 - divide_nonzero(
             self.get_raw_energy(), self.get_baseline_energy(), default=1.0
@@ -523,7 +529,7 @@ class _FuelConsumerProfile(_FuelEmissionProfile):
         return self._to_cumulative(self.get_total_equivalent_wtt())
 
     def get_intensity_equivalent_wtt(self) -> dict[tuple[str, str], FloatArray]:
-        return self._to_intensity(self.get_equivalent_wtt())
+        return self._to_consumed_energy_intensity(self.get_equivalent_wtt())
 
     def get_intensity_total_equivalent_wtt(self) -> FloatArray:
         return self._to_total_intensity(self.get_total_equivalent_wtt())
@@ -541,7 +547,7 @@ class _FuelConsumerProfile(_FuelEmissionProfile):
         return self._to_cumulative(self.get_total_equivalent_ttw())
 
     def get_intensity_equivalent_ttw(self) -> dict[tuple[str, str], FloatArray]:
-        return self._to_intensity(self.get_equivalent_ttw())
+        return self._to_consumed_energy_intensity(self.get_equivalent_ttw())
 
     def get_intensity_total_equivalent_ttw(self) -> FloatArray:
         return self._to_total_intensity(self.get_total_equivalent_ttw())
@@ -563,7 +569,7 @@ class _FuelConsumerProfile(_FuelEmissionProfile):
         return self._to_cumulative(self.get_total_equivalent_wtw())
 
     def get_intensity_equivalent_wtw(self) -> dict[tuple[str, str], FloatArray]:
-        return self._to_intensity(self.get_equivalent_wtw())
+        return self._to_consumed_energy_intensity(self.get_equivalent_wtw())
 
     def get_intensity_total_equivalent_wtw(self) -> FloatArray:
         return self._to_total_intensity(self.get_total_equivalent_wtw())

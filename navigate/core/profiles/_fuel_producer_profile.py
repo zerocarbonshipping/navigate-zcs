@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.profiles._fuel_base_profile import _FuelBaseProfile
+from navigate.core.profiles._fuel_type_lookup import _FuelTypeLookup
 
 if TYPE_CHECKING:
     from navigate.core.enum_ import FuelTypeID
@@ -17,7 +18,7 @@ if TYPE_CHECKING:
     from navigate.util.types_ import FloatArray
 
 
-class _FuelProducerProfile(_FuelBaseProfile):
+class _FuelProducerProfile(_FuelBaseProfile, _FuelTypeLookup):
     """Base class used exclusively for sub-classing."""
 
     def __init__(self):

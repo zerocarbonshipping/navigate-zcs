@@ -89,6 +89,7 @@ class VesselProfile(_FuelConsumerProfile):
         """
         self._initialize_base(timeline)
         self._initialize_fuel_base(fuels)
+        self._initialize_fuel_type(fuels)
         self._initialize_fuel_emission(emissions, emissions_lifetime)
         self._initialize_fuel_consumer(fuels, emissions, regulation_names, levy_names)
 
@@ -112,8 +113,8 @@ class VesselProfile(_FuelConsumerProfile):
 
         self._technology_cost = self._default_array()
 
-        self._in_fleet = self._default_array(default=False)
-        self._cost_is_calculated = self._default_array(default=False)
+        self._in_fleet = self._default_bool_array(default=False)
+        self._cost_is_calculated = self._default_bool_array(default=False)
 
         # investment metrics
         self._asset_charter_rate = self._default_array(np.nan)

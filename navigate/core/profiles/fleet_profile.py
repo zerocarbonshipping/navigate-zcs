@@ -81,6 +81,7 @@ class FleetProfile(_VesselAggregateProfile):
         """
         self._initialize_base(timeline)
         self._initialize_fuel_base(fuels)
+        self._initialize_fuel_type(fuels)
         self._initialize_fuel_emission(emissions, emissions_lifetime)
         self._initialize_fuel_consumer(fuels, emissions, regulation_names, levy_names)
         self._initialize_vessel_aggregate()
