@@ -20,12 +20,8 @@ every change. The detail lives in the files it points to.
   invariants and the naming conventions inside `navigate/`. Read it before
   changing code there.
 - `CODESTYLE.md` — the conventions the tooling cannot check.
-- `ruff-shared.toml` — the lint rules themselves. It, the managed block at
-  the top of `CODESTYLE.md` and the managed block in `mypy.ini` are
-  identical across the zerocarbonshipping repositories: a change to them
-  lands in all of those repositories at once, never in this one alone.
-- `.ruff.toml` — this repository's own ruff settings, layered over
-  `ruff-shared.toml`.
+- `.ruff.toml` — this repository's lint rules and ruff settings. They are
+  owned here and changed here.
 - `CONTRIBUTING.md` — how a change gets in: an issue first for large
   features, what a pull request must carry, provenance for assumption
   changes.
@@ -101,11 +97,12 @@ overwrite each other's files, and the test suites run decks too.
   file that cannot carry a header gets an annotation in `REUSE.toml`.
   `reuse lint` catches a missing header, not a wrong licence.
 - The ratchet regions in `.ruff.toml` and `mypy.ini` list files that predate
-  the tooling. Entries are only ever removed. When lint fails in a listed
-  file, clean the whole file in a style-only commit and delete its entry;
-  a new file never gets one. The regions are this repository's own; the
-  rules they waive are shared, so never answer a ratchet entry by editing
-  `ruff-shared.toml` or a managed block.
+  the tooling, and `tools/ratchet.py` generates and prunes them. Entries are
+  only ever removed. When lint fails in a listed file, clean the whole file
+  in a style-only commit and delete its entry; a new file never gets one.
+  Never answer a ratchet entry by loosening the rule it waives: the entry
+  exists to be deleted once the file is clean, not to be made unnecessary by
+  weakening the rule for every other file.
 - No lint or type suppressions in code: no `noqa`, no `type: ignore`. The
   configuration catches only the blanket forms, through `PGH`; a targeted
   suppression passes `make lint` and is still not written. Fix the code, or
