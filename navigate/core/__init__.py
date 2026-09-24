@@ -1,6 +1,13 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""
+The model definition.
+
+The node classes a deck declares, the DSL value infrastructure their setters are
+written against, and the containers holding their dynamic state and output.
+"""
+
 from __future__ import annotations
 
 from navigate.core.assign import (

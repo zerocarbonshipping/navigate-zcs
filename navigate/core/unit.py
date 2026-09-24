@@ -1,9 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-# time
+"""The unit conversion factors the model calculates with."""
+
 from __future__ import annotations
 
+# time
 YEAR_TO_DAYS = 365.25
 DAY_TO_YEARS = 1.0 / YEAR_TO_DAYS
 DAY_TO_HOURS = 24.0
