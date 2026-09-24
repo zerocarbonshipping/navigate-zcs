@@ -77,6 +77,6 @@ class TestVoyageDistributionNormalization:
             {("a", "b"): Scalar(0.75), ("b", "a"): Scalar(0.25)}
         )
 
-        # [(a, a), (b, a), (a, b), (b, b)]
+        # to_array orders as (origin, destination) pairs: aa, ba, ab, bb
         values = route.get_voyage_distribution(to_array=True)
         assert values == pytest.approx([0.0, 0.25, 0.75, 0.0])

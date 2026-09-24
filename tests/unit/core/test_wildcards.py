@@ -111,7 +111,7 @@ class TestRetrieveKeys:
         # keyed by nodes or enum members are prepopulated at initialization).
         # The key is named, not carried: a KeyError renders its argument with
         # 'repr', so the member itself would reach the deck error as
-        # '<FuelTypeID.OIL: 1>'
+        # <FuelTypeID.OIL: 1> rather than 'OIL'
         with pytest.raises(KeyError, match=r"^'OIL'$"):
             retrieve_keys(FuelTypeID.OIL, allowed_keys)
 

@@ -11,6 +11,9 @@ target-version = "py313"
 docstring-code-format = true
 
 [lint]
+# preview rules are opt-in one at a time, by full code, in extend-select below
+preview = true
+explicit-preview-rules = true
 select = [
     "E",   # pycodestyle errors
     "W",   # pycodestyle warnings
@@ -31,9 +34,13 @@ select = [
     "PT",  # pytest style and failure quality
 ]
 extend-select = [
-    "D213", # multi-line docstring summaries start on the second line
-    "G001", # no str.format in logging calls - pass lazy % arguments
-    "G004", # no f-strings in logging calls - pass lazy % arguments
+    "D213",   # multi-line docstring summaries start on the second line
+    "D417",   # every argument appears in a Parameters section that exists
+    "DOC102", # every documented parameter exists in the signature
+    "DOC202", # no Returns section on a function that returns nothing
+    "ERA001", # no commented-out code
+    "G001",   # no str.format in logging calls - pass lazy % arguments
+    "G004",   # no f-strings in logging calls - pass lazy % arguments
 ]
 ignore = [
     "E731", # lambda assignments are allowed

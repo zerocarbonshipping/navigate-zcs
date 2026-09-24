@@ -27,7 +27,6 @@ style-only commits, and never add new entries.
   within their class. What counts as internal is a judgment call; the linter
   only polices access from outside.
 - A value taken from an external API keeps the foreign casing at the call site
-  but becomes snake_case the moment it is rebound
   (`change_coefficient = model.chgCoeff`).
 
 ## Classes and attributes
@@ -48,7 +47,7 @@ style-only commits, and never add new entries.
 
 ## Typing
 
-- Annotate every signature and every `__init__` attribute.
+- Annotate every `__init__` attribute.
 - Do not annotate local variables unless the type checker cannot infer them
   (empty containers, `None`-initialized accumulators).
 
@@ -59,8 +58,8 @@ judgment:
 
 - Summaries are terse: what the function does, plus any non-obvious why.
   Verbose docstrings are explicitly discouraged.
-- `Parameters` covers every argument, one line each, without types (the
-  signature has them).
+- `Parameters` gives each argument one line, without types (the signature has
+  them).
 - `Returns` follows the numpydoc shape: a type line with the description
   indented under it. Here the type deliberately duplicates the annotation -
   the documentation renderer reads the docstring alone, and a bare
@@ -117,9 +116,9 @@ The formatter owns spacing within statements; blank lines are yours:
 - Validate at the input boundary and raise domain-specific errors carrying the
   offending input's context. Past the boundary, trust the types: no defensive
   re-validation inside calculation code.
-- `isinstance` and dynamic attribute access (`hasattr`/`getattr`/`setattr`)
-  belong to the boundary modules enumerated in the repository-specific section;
-  elsewhere they signal a design problem to fix, not to suppress.
+- Dynamic attribute access (`hasattr`/`getattr`/`setattr`) belongs to the
+  boundary modules enumerated in the repository-specific section; elsewhere it
+  signals a design problem to fix, not to suppress.
 
 ## Navigate-specific conventions
 
@@ -176,11 +175,6 @@ The formatter owns spacing within statements; blank lines are yours:
 
 ### Boundary modules
 
-- `isinstance` is confined to input validation and value-shape dispatch in
-  `navigate/core/` (`assign.py`, `expression.py`, `scalar.py`,
-  `table_data.py`, `wrap.py`), to `navigate/parser/`, `navigate/output/`, the
-  solver shims, and the type-dispatch helpers in `navigate/util/`, where
-  dispatch on the input kind is the helper's contract.
 - Dynamic attribute access (`hasattr`/`getattr`/`setattr`) is confined to
   `navigate/parser/` (DSL dispatch) and `navigate/output/`.
 - Dictionaries keyed by nodes or enum members are prepopulated at

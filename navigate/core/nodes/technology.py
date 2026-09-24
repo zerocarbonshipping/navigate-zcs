@@ -87,7 +87,9 @@ class Technology(_Machinery):
         Parameters
         ----------
         energy_type
+            Energy demand type the saving applies to.
         saving
+            Fraction of energy saved for that demand type.
         """
         id_ = assign_id(energy_type, EnergyDemandTypeID)
         command_assignment_to_dict(
@@ -101,7 +103,9 @@ class Technology(_Machinery):
         Parameters
         ----------
         energy_type
+            Energy demand type the external power supplies.
         power
+            External power supplied for that demand type, in MW.
         """
         id_ = assign_id(energy_type, EnergyDemandTypeID)
         command_assignment_to_dict(
@@ -111,7 +115,19 @@ class Technology(_Machinery):
     def set_power_transfer(
         self, power_system_id: str, energy_id: str, transfer: Variable | Curve
     ):
+        """
+        Set the power transfer from one energy demand type to another.
 
+        Parameters
+        ----------
+        power_system_id
+            Energy demand type supplying the transferred power.
+        energy_id
+            Energy demand type receiving the transferred power.
+        transfer
+            Power transferred between the two demand types, in MW; as a Curve,
+            a function of the source system's converter load.
+        """
         power_system_id_ = assign_id(power_system_id, EnergyDemandTypeID)
         energy_id_ = assign_id(energy_id, EnergyDemandTypeID)
 

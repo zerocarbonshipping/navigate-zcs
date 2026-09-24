@@ -550,13 +550,6 @@ def _export_dict(
         if not isinstance(key, tuple):
             key = (key,)
 
-        # TODO: DUPLICATE LIKE ROW ATTR
-        # if not nested_dict:
-        #     for k, key_ in enumerate(key):
-        #         ws.cell(row=ROW_KEY + k + offset, column=col).value = (
-        #             _format_header(key_)
-        #         )
-
         if isinstance(value, dict):
             # in rare cases a dict may container another dict
             col = _export_dict(ws, *key, value, col, nested_dict=True)

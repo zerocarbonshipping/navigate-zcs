@@ -52,6 +52,7 @@ def _make_technology(name: str, **kwargs) -> Technology:
     Parameters
     ----------
     name : str
+        Name of the technology node.
     kwargs :
         energy_saving : dict[EnergyDemandTypeID, float]
         external_power : dict[EnergyDemandTypeID, float]
