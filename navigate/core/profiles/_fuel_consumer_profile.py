@@ -199,6 +199,15 @@ class _FuelConsumerProfile(_FuelEmissionProfile):
             )
 
         self._remedial_expenses[idx] += profile._remedial_expenses[idx] * multiplier
+
+        for key in self._remedial_units:
+            self._remedial_units[key][idx] += (
+                profile._remedial_units[key][idx] * multiplier
+            )
+
+        for key in self._levy_units:
+            self._levy_units[key][idx] += profile._levy_units[key][idx] * multiplier
+
         self._flexibility_expenses[idx] += (
             profile._flexibility_expenses[idx] * multiplier
         )
