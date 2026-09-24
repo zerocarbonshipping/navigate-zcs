@@ -3,18 +3,23 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from navigate.core.assign import assign_value
 from navigate.core.general_nodes._general_node import _GeneralNode
-from navigate.exceptions import DeckKeywordError
+from navigate.exceptions import no_value_assigned_error
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 class ModelDefinition(_GeneralNode):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
 
         # external variables -----------------------------------------------------------
-        self.start_date = None
-        self.emissions_lifetime = None
+        self.start_date: np.datetime64 | None = None
+        self.emissions_lifetime: float = 100.0
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_start_date(self, start_date):
@@ -49,12 +54,7 @@ class ModelDefinition(_GeneralNode):
         self.emissions_lifetime = assign_value(emissions_lifetime, lower=0.0)
 
     # internal methods -----------------------------------------------------------------
-    def initialize(self):
+    def check_requirements(self) -> None:
 
         if self.start_date is None:
-            raise DeckKeywordError(
-                "Error in ModelDefinition: 'StartDate' must be defined."
-            )
-
-        if self.emissions_lifetime is None:
-            self.emissions_lifetime = 100.0
+            no_value_assigned_error(self, "StartDate")

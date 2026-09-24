@@ -9,6 +9,8 @@ It is never assigned or instantiated directly through the DSL.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import numpy as np
 
 from navigate.core import Scalar, as_scalar, as_scalar_list, assign_list, assign_value
@@ -16,6 +18,11 @@ from navigate.core.increment import Increment
 from navigate.core.node import Node
 from navigate.core.node_type import CURVE, FORECAST, VARIABLE
 from navigate.util import YEAR
+
+if TYPE_CHECKING:
+    from navigate.core.expression import Expression
+    from navigate.core.nodes.curve import Curve
+    from navigate.core.nodes.input_kinds import ForecastInput
 
 
 class _AssetManager(Node):
@@ -26,16 +33,15 @@ class _AssetManager(Node):
 
         # external variables -----------------------------------------------------------
         # shared decision attribute
-        self.inertia: Scalar | None = None
+        self.inertia: ForecastInput = Scalar(0.0)
 
         # initial conditions
-        self._initial_age_distribution: list = []
+        self._initial_age_distribution: list[Scalar | Curve | Expression] = []
 
         # asset types (vessels or plants)
         self.assets: list = []
 
         # internal variables -----------------------------------------------------------
-        # increment storage — one list of Increment per asset type
         self.increments: list[list[Increment]] = []
 
         # every store registered here ages together in update_increment_ages; subclasses
@@ -43,7 +49,6 @@ class _AssetManager(Node):
         # must never be rebound, only have its inner lists replaced.
         self._increment_stores: list[list[list[Increment]]] = [self.increments]
 
-        # dynamic variables
         self.current_uptake: np.ndarray = np.empty(0)
 
     # external methods (DSL attributes) ------------------------------------------------

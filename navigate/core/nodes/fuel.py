@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from navigate.core import (
     Scalar,
     as_scalar,
@@ -10,28 +12,32 @@ from navigate.core import (
     assign_id,
     assign_value,
     command_assignment_to_dict,
+    default_unassigned,
 )
 from navigate.core.enum_ import FuelTypeID
 from navigate.core.node import Node
 from navigate.core.node_type import FUEL, VARIABLE
 from navigate.exceptions import no_value_assigned_error
 
+if TYPE_CHECKING:
+    from navigate.core.nodes.input_kinds import ScalarInput
+
 
 class Fuel(Node):
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         super().__init__(name, FUEL)
 
         # external variables -----------------------------------------------------------
         # definition
-        self.fuel_type = None  # enum, fuel type ID
-        self.liquid_market = False  # bool, whether the fuel belongs to a liquid market
+        self.fuel_type: FuelTypeID | None = None
+        self.liquid_market: bool = False
 
         # physical properties
-        self.lower_heating_value = None  # float, lower heating value GJ/ton
-        self.mass_density = None  # float, mass density ton/m3 (equivalent to g/cm3)
+        self.lower_heating_value: ScalarInput | None = None
+        self.mass_density: ScalarInput | None = None
 
         # emissions
-        self.ttw = {}  # dict, emission factor in ton of emission per ton of fuel
+        self.ttw: dict[str, ScalarInput | None] = {}
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_fuel_type(self, fuel_type):
@@ -127,27 +133,31 @@ class Fuel(Node):
         )
 
     # internal methods -----------------------------------------------------------------
-    def initialize(self):
+    def check_requirements(self) -> None:
+
         if self.fuel_type is None:
             no_value_assigned_error(self, "FuelType")
 
-        if (self.lower_heating_value is None) or (
-            self.lower_heating_value.get() == 0.0
-        ):
+        if self.lower_heating_value is None:
+            no_value_assigned_error(self, "LowerHeatingValue")
+
+        if self.mass_density is None:
+            no_value_assigned_error(self, "MassDensity")
+
+    def apply_command_defaults(self) -> None:
+        default_unassigned(self.ttw, Scalar(0.0))
+
+    def check_consistency(self) -> None:
+
+        if self.lower_heating_value.get() == 0.0:
             raise ValueError(
-                f"{self}: Attribute 'LowerHeatingValue' must be defined and greater"
-                " than zero."
+                f"{self}: Attribute 'LowerHeatingValue' must be greater than zero."
             )
 
-        if (self.mass_density is None) or (self.mass_density.get() == 0.0):
+        if self.mass_density.get() == 0.0:
             raise ValueError(
-                f"{self}: Attribute 'MassDensity' must be defined and greater than"
-                " zero."
+                f"{self}: Attribute 'MassDensity' must be greater than zero."
             )
-
-        for emission_name, ttw in self.ttw.items():
-            if ttw is None:
-                self.ttw[emission_name] = Scalar(0.0)
 
     def initialize_dependencies(self, emissions):
         """

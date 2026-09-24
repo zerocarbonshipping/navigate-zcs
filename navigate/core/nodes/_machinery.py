@@ -3,9 +3,14 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from navigate.core import Scalar, as_scalar, assign_value
 from navigate.core.node import Node
 from navigate.core.node_type import FORECAST, VARIABLE
+
+if TYPE_CHECKING:
+    from navigate.core.nodes.input_kinds import ForecastInput
 
 
 class _Machinery(Node):
@@ -21,12 +26,10 @@ class _Machinery(Node):
         super().__init__(name, type_)
 
         # external variables -----------------------------------------------------------
-        self.capex = None  # float, CAPEX for installation
-        self.opex = None  # float, OPEX for installation
-        self.lifetime = None  # float, lifetime of the installation
-        self.replacement = (
-            None  # float, fraction of CAPEX paid when replacing at end of lifetime
-        )
+        self.capex: ForecastInput = Scalar(0.0)
+        self.opex: ForecastInput = Scalar(0.0)
+        self.lifetime: ForecastInput | None = None
+        self.replacement: ForecastInput = Scalar(1.0)
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_capex(self, capex):
@@ -104,15 +107,3 @@ class _Machinery(Node):
         self.replacement = assign_value(
             as_scalar(replacement), type_=(FORECAST, VARIABLE), lower=0.0
         )
-
-    # internal methods -----------------------------------------------------------------
-    def _initialize_machinery(self):
-
-        if self.capex is None:
-            self.capex = Scalar(0.0)
-
-        if self.opex is None:
-            self.opex = Scalar(0.0)
-
-        if self.replacement is None:
-            self.replacement = Scalar(1.0)

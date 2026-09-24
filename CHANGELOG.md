@@ -72,6 +72,20 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   **Breaking** for code importing navigate as a library: `assign_value` and
   `assign_list` no longer accept a `WildcardNodeReference`; the parser
   expands the glob into the matched nodes first. No result moves.
+- A `Route` rejects an empty `Speeds` or `PortDurations` list at assignment
+  (`List must contain at least 1 values.`), naming the deck line that emptied
+  it. Both are assignable under EVENTS, where an empty list previously passed
+  the setter and was reported later, if at all, as an inconsistency between
+  the route's leg lists.
+- A deck whose `ModelDefinition` omits `StartDate` is now reported as the
+  unassigned attribute it is (`ModelDefinition: Attribute 'StartDate' is
+  unassigned.`), as every other required node attribute is, in place of
+  `Error in ModelDefinition: 'StartDate' must be defined.`.
+- A `Fuel` whose `LowerHeatingValue` or `MassDensity` is missing is now
+  reported as the unassigned attribute it is (`Attribute 'LowerHeatingValue'
+  is unassigned.`), as every other required node attribute is; the
+  greater-than-zero bound is reported separately and only when a value was
+  actually assigned.
 - Internal reorganization (no DSL or result changes): the five profiles that
   weigh emissions by global warming potential (vessel, fleet, manager, port
   and plant) share one `_FuelEmissionProfile` layer that reads the emission
@@ -805,6 +819,11 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   nodes. No deck result moves.
 
 ### Fixed
+- The four `Outside`/`Extrapolate` messages a `Surface` or a `Timetable`
+  raises or logs name the node that carried the contradiction. Each was
+  written with a literal `{}` and never formatted, so the error read
+  `{}: 'Outside' must be defined when 'Extrapolate' is set to FLAT.` and gave
+  the reader nothing to look for in the deck.
 - The bounds an attribute imposes reach the nodes a wildcard matched, as they
   already did for a node written out by name. A calculator (`Curve`,
   `Forecast`, `Surface`, `Timetable`, `Variable`) reached through a glob — on

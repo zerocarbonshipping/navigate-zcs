@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from navigate.core import (
     as_list,
     as_scalar,
@@ -13,11 +15,19 @@ from navigate.core import (
     command_assignment_to_boolean_dict,
     command_assignment_to_dict,
     command_assignment_to_tuple_dict,
+    default_unassigned,
 )
 from navigate.core.enum_ import PolicyScopeID
 from navigate.core.node import Node
 from navigate.core.node_type import CURVE, EMISSION, FORECAST, FUEL, PORT, VARIABLE
 from navigate.exceptions import no_value_assigned_error
+
+if TYPE_CHECKING:
+    from navigate.core.enum_ import LevySchemeID, RegulationSchemeID
+    from navigate.core.nodes.emission import Emission
+    from navigate.core.nodes.fuel import Fuel
+    from navigate.core.nodes.input_kinds import CurveInput, ForecastInput, ScalarInput
+    from navigate.core.nodes.port import Port
 
 
 class _Policy(Node):
@@ -26,29 +36,29 @@ class _Policy(Node):
 
         # external variables -----------------------------------------------------------
         # active
-        self.active = None  # bool, whether the regulation is active and known
+        self.active: bool = True
 
         # design
-        self.scheme = None  # enum, ID of implementation scheme
-        self.jurisdiction = []  # list[Port], list of ports affected
+        self.scheme: LevySchemeID | RegulationSchemeID | None = None
+        self.jurisdiction: list[Port] = []
 
         # emissions
-        self.emissions = []  # list[Emission], specific emissions being regulated
-        self.fuels = []  # list[Fuel], specific fuels being regulated
-        self.scope = None  # enum, ID of emission scope
-        self.emissions_lifetime = None  # float, emissions lifetime in GWP calculations
-        self.include_slip = None  # bool, whether to include slip in coefficients
+        self.emissions: list[Emission] = []
+        self.fuels: list[Fuel] = []
+        self.scope: PolicyScopeID = PolicyScopeID.WTW
+        self.emissions_lifetime: ScalarInput | None = None
+        self.include_slip: bool = True
 
         # vessels impacted by the policy
-        self.include_vessel = {}  # dict[vessel_name: bool], whether vessel is impacted
+        self.include_vessel: dict[str, bool | None] = {}
 
         # emission factors
-        self.global_warming_potential = {}  # dict[emission_name: float], policy GWP
-        self.fuel_wtt = {}  # dict[(fuel_name, emission_name): float], policy WTT factor
-        self.fuel_ttw = {}  # dict[(fuel_name, emission_name): float], policy TTW factor
+        self.global_warming_potential: dict[str, CurveInput | None] = {}
+        self.fuel_wtt: dict[tuple[str, str], ForecastInput | None] = {}
+        self.fuel_ttw: dict[tuple[str, str], ForecastInput | None] = {}
 
         # internal variables -----------------------------------------------------------
-        self.in_jurisdiction_vessel = {}  # dict[vessel_name: bool], not in jurisdiction
+        self.in_jurisdiction_vessel: dict[str, bool] = {}
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_active(self, active):
@@ -276,7 +286,7 @@ class _Policy(Node):
         )
 
     # internal methods -----------------------------------------------------------------
-    def _initialize_policy(self):
+    def check_requirements(self) -> None:
 
         if not self.jurisdiction:
             no_value_assigned_error(self, "Jurisdiction")
@@ -287,18 +297,8 @@ class _Policy(Node):
         if not self.fuels:
             no_value_assigned_error(self, "Fuels")
 
-        if self.active is None:
-            self.active = True
-
-        if self.scope is None:
-            self.scope = PolicyScopeID.WTW
-
-        if self.include_slip is None:
-            self.include_slip = True
-
-        for vessel_name, include_vessel in self.include_vessel.items():
-            if include_vessel is None:
-                self.include_vessel[vessel_name] = False
+    def apply_command_defaults(self) -> None:
+        default_unassigned(self.include_vessel, False)
 
     def _initialize_policy_dependencies(self, vessels):
 

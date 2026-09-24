@@ -32,21 +32,24 @@ class Timetable(Node, _Table2D):
         # used for temporary storage of tables during deck parsing
         self._temporary_table: tuple | None = None
 
-    def initialize(self) -> None:
+    def check_requirements(self) -> None:
         if self._table is None:
             no_value_assigned_error(self, "Table")
 
+    def check_consistency(self) -> None:
         if self.extrapolate == ExtrapolateID.FLAT:
             if self._outside is None:
                 raise ValueError(
-                    "{}: 'Outside' must be defined when 'Extrapolate' is set to FLAT."
+                    f"{self}: 'Outside' must be defined when 'Extrapolate' is set to"
+                    " FLAT."
                 )
 
         else:
             if self._outside is not None:
                 logger.warning(
-                    "{}: 'Outside' is defined, but ignored since 'Extrapolate' is set"
-                    " to LINEAR."
+                    "%s: 'Outside' is defined, but ignored since 'Extrapolate' is set"
+                    " to LINEAR.",
+                    self,
                 )
 
     def get(self, x: float | None = None, y: float | None = None) -> float:

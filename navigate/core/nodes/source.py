@@ -11,11 +11,11 @@ from navigate.exceptions import no_value_assigned_error
 
 
 class Source(Node):
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         super().__init__(name, SOURCE)
 
         # external variables -----------------------------------------------------------
-        self.dependency = None  # enum, whether source is standalone or connected
+        self.dependency: SourceDependencyID | None = None
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_dependency(self, dependency):
@@ -35,6 +35,6 @@ class Source(Node):
         self.dependency = assign_id(dependency, SourceDependencyID)
 
     # internal methods -----------------------------------------------------------------
-    def initialize(self):
+    def check_requirements(self) -> None:
         if self.dependency is None:
             no_value_assigned_error(self, "Dependency")

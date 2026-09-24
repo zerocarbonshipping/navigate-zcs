@@ -8,6 +8,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, NoReturn
 
 if TYPE_CHECKING:
+    from navigate.core.general_nodes._general_node import _GeneralNode
     from navigate.core.node import Node
 
 
@@ -72,7 +73,7 @@ class PlotDataError(NavigateError, ValueError):
     """
 
 
-def no_value_assigned_error(node: Node, attribute_name: str) -> NoReturn:
+def no_value_assigned_error(node: Node | _GeneralNode, attribute_name: str) -> NoReturn:
     """
     Raise a ValueError naming the node and its unassigned attribute.
 

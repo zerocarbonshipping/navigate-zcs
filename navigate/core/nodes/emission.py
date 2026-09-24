@@ -15,6 +15,7 @@ from navigate.core.node_type import CURVE, EMISSION, VARIABLE
 if TYPE_CHECKING:
     from navigate.core import Expression
     from navigate.core.nodes.curve import Curve
+    from navigate.core.nodes.input_kinds import CurveInput
     from navigate.core.nodes.variable import Variable
 
 
@@ -25,12 +26,8 @@ class Emission(Node):
         super().__init__(name, EMISSION)
 
         # external variables -----------------------------------------------------------
-        self.global_warming_potential: Scalar | Curve | Variable | Expression = Scalar(
-            0.0
-        )  # ton CO2 equivalent per ton emitted
-        self.fuel_type: FuelTypeID | None = (
-            None  # the fuel type whose slip feeds this emission; unset gates nothing
-        )
+        self.global_warming_potential: CurveInput = Scalar(0.0)
+        self.fuel_type: FuelTypeID | None = None
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_global_warming_potential(

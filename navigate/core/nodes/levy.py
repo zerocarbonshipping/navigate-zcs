@@ -16,21 +16,17 @@ from navigate.exceptions import no_value_assigned_error
 if TYPE_CHECKING:
     import numpy as np
 
+    from navigate.core.nodes.input_kinds import ForecastInput
+
 
 class Levy(_Policy):
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         super().__init__(name, LEVY)
 
         # external variables -----------------------------------------------------------
-        self.level = (
-            None  # dict[vessel_name: float], level of the levy, USD/ton emission
-        )
-        self.lower_threshold = (
-            None  # float, reference emissions factor between penalty and subsidy
-        )
-        self.upper_threshold = (
-            None  # float, upper cap on emission factor for penalty calculation
-        )
+        self.level: ForecastInput = Scalar(0.0)
+        self.lower_threshold: ForecastInput = Scalar(0.0)
+        self.upper_threshold: ForecastInput | None = None
 
         # internal variables -----------------------------------------------------------
         self.expectation: LevyExpectation = LevyExpectation()
@@ -121,15 +117,14 @@ class Levy(_Policy):
         )
 
     # internal methods -----------------------------------------------------------------
-    def initialize(self):
-
-        self._initialize_policy()
+    def check_requirements(self) -> None:
+        super().check_requirements()
 
         if self.scheme is None:
             no_value_assigned_error(self, "Scheme")
 
-        if self.lower_threshold is None:
-            self.lower_threshold = Scalar(0)
+    def check_consistency(self) -> None:
+        super().check_consistency()
 
         if self.upper_threshold is not None:
             upper = self.upper_threshold.get()
@@ -138,9 +133,6 @@ class Levy(_Policy):
                 raise ValueError(
                     f"{self}: 'UpperThreshold' must be >= 'LowerThreshold'."
                 )
-
-        if self.level is None:
-            self.level = Scalar(0)
 
     def initialize_dependencies(self, vessels):
         """

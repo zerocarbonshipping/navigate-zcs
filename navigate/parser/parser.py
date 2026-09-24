@@ -1017,12 +1017,12 @@ class Parser:
                 "Error in simulation: 'ModelDefinition' must be defined."
             )
 
-        self.general_nodes.model_definition.initialize()
+        self.general_nodes.model_definition.check_requirements()
 
         if self.general_nodes.bunker_options is None:
             self.general_nodes.bunker_options = BunkerOptions()
 
-        self.general_nodes.bunker_options.initialize()
+        self.general_nodes.bunker_options.check_requirements()
 
     def _update_dependencies(self):
         """
@@ -1031,7 +1031,8 @@ class Parser:
         The sequence is: expand held-back wildcards → replace refs → replace
         tables → prune unreachable nodes (DEFINE pass only) → init dicts →
         execute commands → replace refs again (commands may create new ones) →
-        replace tables again → initialize nodes.
+        replace tables again → run the node lifecycle hooks, whose requirement
+        checks run on the DEFINE pass only.
         """
         self._reading_events = True
 
@@ -1298,8 +1299,21 @@ class Parser:
                 raise AttributeAssignmentError(f"{node}: {e!s}") from None
 
     def _initialize_nodes(self):
+        """
+        Run the lifecycle hooks over every node.
+
+        The requirement checks run on the DEFINE pass only: no node is created
+        after DEFINE and no deck can unassign an attribute. Everything else
+        re-runs every pass, because a command may add a dictionary key and most
+        attributes may be re-assigned under EVENTS.
+        """
+        first_pass = self._current_section == SimulationSectionID.DEFINE
+
         for node in self._get_all_nodes():
-            node.initialize()
+            if first_pass:
+                node.initialize()
+            else:
+                node.reinitialize()
 
     def _initialize_dependent_dicts(self):
         for converter in self.nodes.converters.values():

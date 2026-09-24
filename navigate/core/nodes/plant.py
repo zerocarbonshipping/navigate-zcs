@@ -24,46 +24,47 @@ from navigate.exceptions import no_value_assigned_error
 if TYPE_CHECKING:
     import numpy as np
 
+    from navigate.core.expression import Expression
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.feedstock import Feedstock
     from navigate.core.nodes.fuel import Fuel
+    from navigate.core.nodes.input_kinds import ForecastInput
     from navigate.core.nodes.port import Port
     from navigate.core.nodes.process import Process
+    from navigate.core.nodes.region import Region
+    from navigate.core.nodes.source import Source
+    from navigate.core.nodes.transport import Transport
 
 
 class Plant(Node):
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         super().__init__(name, PLANT)
 
         # external variables -----------------------------------------------------------
-        self.fuel = None  # Fuel, the fuel being produced by the plant
-        self.process = (
-            None  # Process, the top-level production process used at the plant
-        )
-        self.region = None  # Region, region in which fuel is being produced.
-        self.source = None  # Source, source of energy to power the process.
+        self.fuel: Fuel | Expression | None = None
+        self.process: Process | Expression | None = None
+        self.region: Region | Expression | None = None
+        self.source: Source | Expression | None = None
 
-        self.capacity = None  # float, production of fuel in tons/day
-        self.uptime = None  # float, uptime of the plant in time/time
-        self.lifetime = (
-            None  # float, lifetime of the plant before decommissioning, years
-        )
-        self.lead_time = None  # float, time from planning to production, years
+        self.capacity: ForecastInput | None = None
+        self.uptime: ForecastInput = Scalar(1.0)
+        self.lifetime: ForecastInput = Scalar(30.0)
+        self.lead_time: ForecastInput = Scalar(1.0)
 
-        self.cost_of_capital = None  # float, cost of capital and discount rate
+        self.cost_of_capital: ForecastInput = Scalar(0.0)
 
-        self.feed_transport = {}  # dict[feedstock_name: Transport], transport mode
-        self.feed_distance = {}  # dict[feedstock_name: float], distance, nautical miles
+        self.feed_transport: dict[str, Transport | Expression | None] = {}
+        self.feed_distance: dict[str, ForecastInput | None] = {}
 
-        self.fuel_transport = {}  # dict[port_name: Transport], fuel transport mode
-        self.fuel_distance = {}  # dict[port_name: float], port distance, nautical miles
+        self.fuel_transport: dict[str, Transport | Expression | None] = {}
+        self.fuel_distance: dict[str, ForecastInput | None] = {}
 
         # internal variables -----------------------------------------------------------
         self.expectation: PlantExpectation = PlantExpectation()
         self.profile: PlantProfile = PlantProfile()
 
         # cross-check variables
-        self.producer_assignment = None  # name of producer plant is assigned to
+        self.producer_assignment: str | None = None
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_fuel(self, fuel):
@@ -316,7 +317,7 @@ class Plant(Node):
         )
 
     # internal methods -----------------------------------------------------------------
-    def initialize(self):
+    def check_requirements(self) -> None:
 
         if self.fuel is None:
             no_value_assigned_error(self, "Fuel")
@@ -333,40 +334,36 @@ class Plant(Node):
         if self.capacity is None:
             no_value_assigned_error(self, "Capacity")
 
+    def apply_command_defaults(self) -> None:
+        self._default_distances(self.feed_transport, self.feed_distance)
+        self._default_distances(self.fuel_transport, self.fuel_distance)
+
+    def check_consistency(self) -> None:
+
         if self.fuel.liquid_market:
             raise ValueError(
                 f"{self}: Unable to assign {self.fuel} to attribute 'Fuel' as it"
                 " belongs to a liquid market ('LiquidMarket = TRUE')."
             )
 
-        if self.uptime is None:
-            self.uptime = Scalar(1)
+        self._require_transport_where_distance(self.feed_transport, self.feed_distance)
+        self._require_transport_where_distance(self.fuel_transport, self.fuel_distance)
 
-        if self.lifetime is None:
-            self.lifetime = Scalar(30)
-
-        if self.lead_time is None:
-            self.lead_time = Scalar(1)
-
-        if self.cost_of_capital is None:
-            self.cost_of_capital = Scalar(0)
-
-        self._pair_transport_and_distance(self.feed_transport, self.feed_distance)
-        self._pair_transport_and_distance(self.fuel_transport, self.fuel_distance)
-
-    def _pair_transport_and_distance(self, transports, distances):
-        """Require a transport wherever distance is set; default to zero otherwise."""
+    @staticmethod
+    def _default_distances(transports, distances):
+        """Give a transported route with no distance assigned a distance of zero."""
         for name, transport in transports.items():
-            distance = distances[name]
+            if (transport is not None) and (distances[name] is None):
+                distances[name] = Scalar(0.0)
 
-            if (transport is None) and (distance is not None):
+    def _require_transport_where_distance(self, transports, distances):
+        """Raise where a distance is assigned but no transport carries it."""
+        for name, transport in transports.items():
+            if (transport is None) and (distances[name] is not None):
                 raise ValueError(
                     f"{self}: Unable to assign a transport distance to '{name}' as no"
                     " transport is assigned."
                 )
-
-            elif (transport is not None) and (distance is None):
-                distances[name] = Scalar(0.0)
 
     def initialize_dependencies(self, feedstocks, ports, processes):
         """

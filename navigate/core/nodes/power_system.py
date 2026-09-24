@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from navigate.core import assign_value
 from navigate.core.enum_ import EnergyDemandTypeID
 from navigate.core.node_type import CONVERTER, POWER_SYSTEM
@@ -10,18 +12,19 @@ from navigate.core.nodes._machinery import _Machinery
 from navigate.exceptions import no_value_assigned_error
 from navigate.util import list_is_unique
 
+if TYPE_CHECKING:
+    from navigate.core.nodes.converter import Converter
+
 
 class PowerSystem(_Machinery):
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         super().__init__(name, POWER_SYSTEM)
 
         # external variables -----------------------------------------------------------
         # converters
-        self.propulsion = None  # Converter, main engine delivering propulsion power
-        self.electrical = (
-            None  # Converter, auxiliary engine delivering electrical power
-        )
-        self.heat = None  # Converter, boiler delivering heat
+        self.propulsion: Converter | None = None
+        self.electrical: Converter | None = None
+        self.heat: Converter | None = None
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_propulsion(self, propulsion):
@@ -70,7 +73,7 @@ class PowerSystem(_Machinery):
         self.heat = assign_value(heat, scalar=False, type_=CONVERTER)
 
     # internal methods -----------------------------------------------------------------
-    def initialize(self):
+    def check_requirements(self) -> None:
 
         if not self.propulsion:
             no_value_assigned_error(self, "Propulsion")
@@ -81,6 +84,7 @@ class PowerSystem(_Machinery):
         if not self.heat:
             no_value_assigned_error(self, "Heat")
 
+    def check_consistency(self) -> None:
         # downstream code sums over the converters (installed power, cost, fuel demand);
         # a shared one would double-count
         names = (self.propulsion.name, self.electrical.name, self.heat.name)
@@ -89,8 +93,6 @@ class PowerSystem(_Machinery):
                 f"{self}: 'Propulsion', 'Electrical' and 'Heat' must be three distinct"
                 f" converters, got {names}."
             )
-
-        self._initialize_machinery()
 
     def get_converters(self):
         return self.propulsion, self.electrical, self.heat

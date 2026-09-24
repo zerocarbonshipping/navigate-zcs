@@ -15,7 +15,7 @@ class Curve(Node, _Table1D):
         Node.__init__(self, name, CURVE)
         _Table1D.__init__(self)
 
-    def initialize(self) -> None:
+    def check_requirements(self) -> None:
         if self._table is None:
             no_value_assigned_error(self, "Table")
 

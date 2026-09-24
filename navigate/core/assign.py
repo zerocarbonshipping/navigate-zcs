@@ -637,6 +637,33 @@ def command_assignment_to_boolean_dict[K: str | Enum](
         assignment_dict[name] = value
 
 
+def default_unassigned[K, V](values: dict[K, V | None], default: V) -> None:
+    """
+    Replace every unassigned entry of a command dictionary, in place.
+
+    The dictionaries the 'command_assignment_to_*' helpers write are seeded
+    with a key per node and a value of None, so an entry no deck command
+    named is still present and still None once the deck is read. This fills
+    those entries.
+
+    Every filled entry holds the one 'default' object passed in. That is safe
+    because these values are immutable - a Scalar holds one '_value' and
+    exposes no mutator, and a boolean default is 'True' or 'False' - so no
+    entry can change another. A mutable default would have to be copied per
+    entry instead.
+
+    Parameters
+    ----------
+    values
+        The dictionary to fill; modified in place.
+    default
+        The value every unassigned entry is given.
+    """
+    for key, value in values.items():
+        if value is None:
+            values[key] = default
+
+
 def _failed_value_message(
     assignment: object, scalar: bool, date: bool, type_: AcceptedTypes
 ) -> str:

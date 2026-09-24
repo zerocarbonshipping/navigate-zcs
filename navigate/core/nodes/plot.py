@@ -15,12 +15,12 @@ from navigate.core.node_type import PLOT
 
 
 class Plot(Node):
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         super().__init__(name, PLOT)
 
         # external variables -----------------------------------------------------------
-        self.directory = None
-        self.selected_plots = set()
+        self.directory: str | None = None
+        self.selected_plots: set[str] = set()
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_directory(self, directory):

@@ -1,0 +1,46 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: Apache-2.0
+
+"""
+Input kinds: the value sets the DSL setters on the node classes accept.
+
+Each alias is the set one 'assign_value' call admits, and the comment above
+it gives the 'type_' argument that spells that set at the boundary. Every
+alias but the last carries 'Scalar' rather than 'float', because the setter
+wraps through 'as_scalar' before storing.
+"""
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from navigate.core.expression import Expression
+    from navigate.core.nodes.curve import Curve
+    from navigate.core.nodes.forecast import Forecast
+    from navigate.core.nodes.surface import Surface
+    from navigate.core.nodes.timetable import Timetable
+    from navigate.core.nodes.variable import Variable
+    from navigate.core.scalar import Scalar
+
+# 'Expression' is a member of every alias below: 'assign_value' takes its
+# expression arm before it ever compares the value against 'type_', so a
+# setter that accepts a value at all accepts an expression of it.
+
+# type_=VARIABLE
+type ScalarInput = Scalar | Variable | Expression
+
+# type_=(FORECAST, VARIABLE)
+type ForecastInput = Scalar | Forecast | Variable | Expression
+
+# type_=(CURVE, VARIABLE)
+type CurveInput = Scalar | Curve | Variable | Expression
+
+# type_=(CURVE, SURFACE, VARIABLE)
+type SurfaceInput = Scalar | Curve | Surface | Variable | Expression
+
+# type_=(FORECAST, TIMETABLE, VARIABLE)
+type TimetableInput = Scalar | Forecast | Timetable | Variable | Expression
+
+# type_=VARIABLE, where the setter stores the number it was handed unwrapped
+type NumberInput = float | Expression

@@ -129,21 +129,36 @@ The formatter owns spacing within statements; blank lines are yours:
 - Any variable on a `Node` or `_GeneralNode` subclass exposed via the DSL needs
   a setter (e.g. `set_propulsion_load` on the `Vessel` node).
 - DSL setters are public-facing API and always carry a docstring; the node
-  lifecycle methods (`initialize`, `initialize_dependencies`,
-  `calculate_expectation`, `calculate_profile`) need none — the docstring
-  check is waived for `navigate/core/nodes/` to allow this.
+  lifecycle methods (`initialize`, `reinitialize`, `check_requirements`,
+  `apply_defaults`, `apply_command_defaults`, `check_consistency`,
+  `initialize_dependencies`, `calculate_expectation`, `calculate_profile`)
+  need none — the docstring check is waived for `navigate/core/nodes/` to
+  allow this.
 - All Python identifiers, including DSL command names, are pure snake_case
   with acronyms lowercased (`set_fuel_wtt`, `capex`). Deck-facing attribute
   tokens keep their DSL casing (`CAPEX`, `TotalEquivalentWTT`) and are mapped
   to method names by `attribute_to_setter` (`navigate/util/naming.py`).
   ALL_CAPS is reserved for enum keyword values (`AMMONIA`, `FLAT`) and
   module-level constants.
-- Node classes order their methods: `__init__`, DSL setters, `initialize*`
-  lifecycle, `calculate_*`, getters last.
+- Node classes order their methods: `__init__`, DSL setters, the lifecycle
+  hooks in the order the parser runs them, `calculate_*`, getters last.
 - Nodes are parser-constructed, so node class docstrings stay one line (their
   inputs are DSL attributes, documented in the DSL reference). The
   caller-instantiated classes - `Scalar` and the calculators - document
   constructor parameters in the class docstring per the shared rule.
+- An attribute definition in a node `__init__` carries the annotation alone
+  and no trailing comment — a deliberate exception to the shared "Classes and
+  attributes" rule. Every such attribute has a DSL setter whose docstring is
+  what its reference-manual page is written from, so a comment beside the
+  definition can only restate that docstring or drift from it, and the
+  comment column is what pushed the definitions past the line-length budget.
+  The group comments that head a run of attributes stay. The exception is
+  this narrow: elsewhere in `navigate/` the shared rule holds.
+- The kinds a setter may store are named once, in
+  `navigate/core/nodes/input_kinds.py`, and used at every attribute
+  definition. The alias matches the setter's `type_=` argument, and an
+  attribute still unset after construction spells it `<alias> | None` rather
+  than folding `None` into an alias.
 
 ### Dynamic state and results
 

@@ -3,40 +3,46 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from navigate.core import (
     Scalar,
     command_assignment_to_dict,
     command_assignment_to_tuple_dict,
+    default_unassigned,
 )
 from navigate.core.node import Node
 from navigate.core.node_type import FORECAST, REGION, TIMETABLE, VARIABLE
 
+if TYPE_CHECKING:
+    from navigate.core.nodes.input_kinds import ForecastInput, TimetableInput
+
 
 class Region(Node):
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         super().__init__(name, REGION)
 
         # external variables -----------------------------------------------------------
         # process
-        self.process_capex = {}  # dict[process_name: float], process CAPEX, USD/ton
-        self.process_opex = {}  # dict[process_name: float], process OPEX, USD/ton/year
-        self.process_energy = {}  # dict[process: float], process energy demand, MWh/ton
-        self.process_lifetime = {}  # dict[process_name: float], process lifetime, years
-        self.process_replacement = {}  # dict[process: float], CAPEX share repaid at EoL
-        self.process_wtt = {}  # dict[(process, emission): float], ton emission/ton fuel
+        self.process_capex: dict[str, TimetableInput | None] = {}
+        self.process_opex: dict[str, TimetableInput | None] = {}
+        self.process_energy: dict[str, ForecastInput | None] = {}
+        self.process_lifetime: dict[str, ForecastInput | None] = {}
+        self.process_replacement: dict[str, ForecastInput | None] = {}
+        self.process_wtt: dict[tuple[str, str], ForecastInput | None] = {}
 
         # source
-        self.source_capex = {}  # dict[source: float], CAPEX, USD/MWh (stand-alone)
-        self.source_opex = {}  # dict[source: float], OPEX, USD/MWh/year (stand-alone)
-        self.source_wtt = {}  # dict[(source, emission): float], ton emission/MWh
+        self.source_capex: dict[str, ForecastInput | None] = {}
+        self.source_opex: dict[str, ForecastInput | None] = {}
+        self.source_wtt: dict[tuple[str, str], ForecastInput | None] = {}
 
         # feedstock
-        self.feedstock_cost = {}  # dict[feedstock_name: float], feedstock cost, USD/ton
-        self.feedstock_wtt = {}  # dict[(feedstock, emission): float], ton/ton fuel
+        self.feedstock_cost: dict[str, ForecastInput | None] = {}
+        self.feedstock_wtt: dict[tuple[str, str], ForecastInput | None] = {}
 
         # transport
-        self.transport_cost = {}  # dict[transport: float], cost, USD/ton-naut mile
-        self.transport_wtt = {}  # dict[(transport, emission): float], ton/ton-naut mile
+        self.transport_cost: dict[str, ForecastInput | None] = {}
+        self.transport_wtt: dict[tuple[str, str], ForecastInput | None] = {}
 
     # external methods (DSL commands) --------------------------------------------------
     def set_process_capex(self, process_name, value):
@@ -354,55 +360,19 @@ class Region(Node):
         )
 
     # internal methods -----------------------------------------------------------------
-    def initialize(self):
-
-        for process_name, capex in self.process_capex.items():
-            if capex is None:
-                self.process_capex[process_name] = Scalar(0.0)
-
-        for process_name, opex in self.process_opex.items():
-            if opex is None:
-                self.process_opex[process_name] = Scalar(0.0)
-
-        for process_name, energy in self.process_energy.items():
-            if energy is None:
-                self.process_energy[process_name] = Scalar(0.0)
-
-        for process_name, replacement in self.process_replacement.items():
-            if replacement is None:
-                self.process_replacement[process_name] = Scalar(0.0)
-
-        for key, wtt in self.process_wtt.items():
-            if wtt is None:
-                self.process_wtt[key] = Scalar(0.0)
-
-        for feedstock_name, cost in self.feedstock_cost.items():
-            if cost is None:
-                self.feedstock_cost[feedstock_name] = Scalar(0.0)
-
-        for key, wtt in self.feedstock_wtt.items():
-            if wtt is None:
-                self.feedstock_wtt[key] = Scalar(0.0)
-
-        for source_name, capex in self.source_capex.items():
-            if capex is None:
-                self.source_capex[source_name] = Scalar(0.0)
-
-        for source_name, opex in self.source_opex.items():
-            if opex is None:
-                self.source_opex[source_name] = Scalar(0.0)
-
-        for key, wtt in self.source_wtt.items():
-            if wtt is None:
-                self.source_wtt[key] = Scalar(0.0)
-
-        for transport_name, cost in self.transport_cost.items():
-            if cost is None:
-                self.transport_cost[transport_name] = Scalar(0.0)
-
-        for key, wtt in self.transport_wtt.items():
-            if wtt is None:
-                self.transport_wtt[key] = Scalar(0.0)
+    def apply_command_defaults(self) -> None:
+        default_unassigned(self.process_capex, Scalar(0.0))
+        default_unassigned(self.process_opex, Scalar(0.0))
+        default_unassigned(self.process_energy, Scalar(0.0))
+        default_unassigned(self.process_replacement, Scalar(0.0))
+        default_unassigned(self.process_wtt, Scalar(0.0))
+        default_unassigned(self.feedstock_cost, Scalar(0.0))
+        default_unassigned(self.feedstock_wtt, Scalar(0.0))
+        default_unassigned(self.source_capex, Scalar(0.0))
+        default_unassigned(self.source_opex, Scalar(0.0))
+        default_unassigned(self.source_wtt, Scalar(0.0))
+        default_unassigned(self.transport_cost, Scalar(0.0))
+        default_unassigned(self.transport_wtt, Scalar(0.0))
 
     def initialize_dependencies(
         self, emissions, feedstocks, processes, sources, transports

@@ -16,6 +16,7 @@ from navigate.core import (
     assign_value,
     command_assignment_to_boolean_dict,
     command_assignment_to_dict,
+    default_unassigned,
 )
 from navigate.core.enum_ import ExtrapolateID
 from navigate.core.expectations import ProducerExpectation
@@ -28,9 +29,12 @@ from navigate.util import is_non_strictly_increasing
 if TYPE_CHECKING:
     import numpy as np
 
+    from navigate.core.expression import Expression
     from navigate.core.increment import Increment
     from navigate.core.nodes.feedstock import Feedstock
+    from navigate.core.nodes.forecast import Forecast
     from navigate.core.nodes.fuel import Fuel
+    from navigate.core.nodes.input_kinds import ForecastInput, NumberInput, ScalarInput
     from navigate.core.nodes.port import Port
     from navigate.core.nodes.process import Process
 
@@ -38,42 +42,32 @@ logger = logging.getLogger(__name__)
 
 
 class Producer(_AssetManager):
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         super().__init__(name, PRODUCER)
 
         # external variables -----------------------------------------------------------
         # plant uptake
-        self.minimum_offtake_duration = (
-            None  # float, minimum duration of offtake agreements, years
-        )
-        self.fuel_demand_sensitivity = (
-            None  # float, odds ratio for pathway choice on expected demand
-        )
-        self.fuel_cost_sensitivity = None  # float, odds ratio for plant choice on LCoF
+        self.minimum_offtake_duration: ForecastInput = Scalar(1.0)
+        self.fuel_demand_sensitivity: ForecastInput | None = None
+        self.fuel_cost_sensitivity: ForecastInput | None = None
 
         # initial conditions
-        self._initial_capacity = []  # list[float], initial capacity per plant, tons/day
+        self._initial_capacity: list[ScalarInput] = []
 
         # existing pipeline
-        self.existing_pipelines = {}  # dict[plant_name: Forecast]
+        self.existing_pipelines: dict[str, Forecast | Expression | None] = {}
 
         # constraints
-        self.maximum_development = (
-            None  # float, number of plants which can be built per year
-        )
-        self.feed_constraints = {}  # dict[float], feed (process/feedstock) available
-        self.jump_start_fraction = (
-            None  # float, fraction to jump-start supply/demand interaction
-        )
-        self.maximum_ramp_up = (
-            None  # float, maximum change in utilization of development, fraction/year
-        )
+        self.maximum_development: ForecastInput | None = None
+        self.feed_constraints: dict[str, ForecastInput | None] = {}
+        self.jump_start_fraction: NumberInput = 0.1
+        self.maximum_ramp_up: ForecastInput = Scalar(1.0)
 
         # export
-        self.export_distribution = {}  # dict[port_name: float], export fraction by port
+        self.export_distribution: dict[str, ForecastInput | None] = {}
 
         # boolean
-        self.allow_plant = {}  # dict[bool], whether a plant is allowed to be built
+        self.allow_plant: dict[str, bool | None] = {}
 
         # internal variables -----------------------------------------------------------
         self.expectation: ProducerExpectation = ProducerExpectation()
@@ -85,12 +79,10 @@ class Producer(_AssetManager):
         self._increment_stores.append(self.pipeline)
 
         # static variables
-        self.fuels = {}  # dict[Fuel], possible production fuels, for convenience
+        self.fuels: dict[str, Fuel] = {}
 
         # dynamic variables
-        self.current_utilization = (
-            None  # float, current fraction of construction capacity utilized
-        )
+        self.current_utilization: float | None = None
 
     # public domain name for the inherited assets list
     plants = property(lambda self: self.assets)
@@ -362,7 +354,7 @@ class Producer(_AssetManager):
         )
 
     # internal methods -----------------------------------------------------------------
-    def initialize(self):
+    def check_requirements(self) -> None:
 
         if not self.assets:
             no_value_assigned_error(self, "Plants")
@@ -376,17 +368,11 @@ class Producer(_AssetManager):
         if self.maximum_development is None:
             no_value_assigned_error(self, "MaximumDevelopment")
 
-        if self.inertia is None:
-            self.inertia = Scalar(0)
+    def apply_command_defaults(self) -> None:
+        default_unassigned(self.export_distribution, Scalar(0.0))
+        default_unassigned(self.allow_plant, True)
 
-        if self.maximum_ramp_up is None:
-            self.maximum_ramp_up = Scalar(1)
-
-        if self.minimum_offtake_duration is None:
-            self.minimum_offtake_duration = Scalar(1)
-
-        if self.jump_start_fraction is None:
-            self.jump_start_fraction = 0.1
+    def check_consistency(self) -> None:
 
         if self._initial_capacity and (len(self.assets) != len(self._initial_capacity)):
             raise ValueError(
@@ -403,35 +389,23 @@ class Producer(_AssetManager):
                 f" ({len(self._initial_age_distribution)}) must correspond."
             )
 
-        # check that pipelines satisfy various requirements
-        if self.existing_pipelines:
-            for pipeline in self.existing_pipelines.values():
-                if pipeline is None:
-                    continue
+        for pipeline in self.existing_pipelines.values():
+            if pipeline is None:
+                continue
 
-                # check that pipelines are cumulative
-                if not is_non_strictly_increasing(pipeline.y):
-                    raise ValueError(
-                        f"{self}: Pipeline ({pipeline}) is not non-strictly increasing."
-                    )
+            # a pipeline is a cumulative count of the plants committed to
+            if not is_non_strictly_increasing(pipeline.y):
+                raise ValueError(
+                    f"{self}: Pipeline ({pipeline}) is not non-strictly increasing."
+                )
 
-                # print a warning if the forecast allows extrapolation
-                if pipeline.extrapolate == ExtrapolateID.LINEAR:
-                    logger.warning(
-                        "%s: Pipeline (%s) allows extrapolation and may therefore "
-                        "continue past the last date.",
-                        self,
-                        pipeline,
-                    )
-
-        # ensure consistent export distribution
-        for port_name, export in self.export_distribution.items():
-            if export is None:
-                self.export_distribution[port_name] = Scalar(0.0)
-
-        for plant_name, allow in self.allow_plant.items():
-            if allow is None:
-                self.allow_plant[plant_name] = True
+            if pipeline.extrapolate == ExtrapolateID.LINEAR:
+                logger.warning(
+                    "%s: Pipeline (%s) allows extrapolation and may therefore "
+                    "continue past the last date.",
+                    self,
+                    pipeline,
+                )
 
     def initialize_dependencies(self, feedstocks, ports, processes):
         """

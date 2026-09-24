@@ -73,6 +73,39 @@ imports `core.unit`
 - Direct attribute access (`node.some_input.get()`) is reserved for
   DSL-defined inputs.
 
+## Node lifecycle
+
+The parser brings a node to a usable state through two `@final` entry points
+on `Node`; a node overrides the hooks they call, never the entry points.
+
+- `initialize()` runs once, after the DEFINE block: `check_requirements()`,
+  `apply_defaults()`, then `reinitialize()`.
+- `reinitialize()` runs after DEFINE and again after every event read:
+  `apply_command_defaults()`, then `check_consistency()`.
+
+What each hook holds:
+
+- `check_requirements()` raises where an attribute the node cannot run
+  without is unassigned.
+- `apply_defaults()` fills a value derived from the size or the value of
+  another attribute.
+- `apply_command_defaults()` fills the unassigned entries of the
+  command-written dictionaries and resolves them into the form the node
+  reads.
+- `check_consistency()` raises where attributes contradict each other and
+  warns where one is unused.
+
+The cadences differ because no deck can unassign a required attribute or
+create a node after DEFINE, while a `SECTION_BOTH` attribute may be
+re-assigned between time steps and a command may create a dictionary key
+mid-run.
+
+General nodes accept attributes in `SECTION_DEFINE` only, so `_GeneralNode`
+has `check_requirements()` alone and no per-pass path.
+
+Anything derived from the node registries stays in
+`initialize_dependencies(...)`, the only hook the parser hands them.
+
 ## Naming conventions
 
 - `fleet/` and `fuel/` mirror each other deliberately (`initialization.py`,

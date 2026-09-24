@@ -22,6 +22,7 @@ from navigate.core import (
     command_assignment_to_boolean_dict,
     command_assignment_to_dict,
     command_assignment_to_tuple_dict,
+    default_unassigned,
 )
 from navigate.core.enum_ import (
     EnergyDemandTypeID,
@@ -33,7 +34,6 @@ from navigate.core.expectations import FleetExpectation
 from navigate.core.node_type import CURVE, FLEET, FORECAST, TECHNOLOGY, VARIABLE, VESSEL
 from navigate.core.nodes._asset_manager import _AssetManager
 from navigate.core.nodes.forecast import Forecast
-from navigate.core.nodes.variable import Variable
 from navigate.core.profiles import FleetProfile
 from navigate.exceptions import no_value_assigned_error
 from navigate.util import is_non_strictly_increasing
@@ -45,14 +45,12 @@ if TYPE_CHECKING:
     from navigate.core.nodes.curve import Curve
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
+    from navigate.core.nodes.input_kinds import ForecastInput
     from navigate.core.nodes.technology import Technology
+    from navigate.core.nodes.variable import Variable
     from navigate.fleet.package import Package
 
 logger = logging.getLogger(__name__)
-
-# Type helpers
-type ScalarLike = Scalar | Forecast | Variable | None
-type InputScalarLike = Scalar | Forecast | Variable
 
 
 class Fleet(_AssetManager):
@@ -60,120 +58,56 @@ class Fleet(_AssetManager):
         super().__init__(name, FLEET)
 
         # external variables -----------------------------------------------------------
-        self.trade_growth: ScalarLike = None  # Trade-growth of the fleet
-        self.fixed_scrap_rate: ScalarLike = (
-            None  # Fixed scrap rate to replace age based
-        )
-        self.allow_secondary_scrapping: bool = (
-            True  # Whether to allow secondary scrapping
-        )
-        self.intra_fuel_sensitivity: ScalarLike = (
-            None  # Odds ratio for within-fuel tech choice (LCOT)
-        )
-        self.inter_fuel_sensitivity: ScalarLike = (
-            None  # Odds ratio for fuel-type choice (LCOT)
-        )
-        self.fuel_conversion_sensitivity: ScalarLike = (
-            None  # Odds ratio for fuel conversion (NPV)
-        )
-        self.memory: ScalarLike = None  # Weight of historic uptake distributions used
-        self.initial_vessels: Scalar | Variable | None = (
-            None  # Initial number of vessels
-        )
-        self.allow_speed_management: bool = False  # Whether to perform speed management
-        self.maximum_speed_change: ScalarLike = (
-            None  # Maximum change in speed per year, knots/year
-        )
-        self.speed_alignment: SpeedAlignmentID = (
-            SpeedAlignmentID.INDIVIDUAL
-        )  # How to align speed across vessels
-        self.assume_reference_speed_optimal: bool = (
-            False  # Whether to anchor speed changes to reference
-        )
-        self.retrofit_frequency: ScalarLike = (
-            None  # Frequency at which retrofit can be done
-        )
-        self.technology_sensitivity: ScalarLike = (
-            None  # Odds ratio for technology packages (NPV)
-        )
-        self.technology_cost_of_capital: ScalarLike = (
-            None  # Cost of capital for technology
-        )
-        self.technology_horizon: ScalarLike = (
-            None  # Belief horizon for tech decisions, years
-        )
-        self.speed_horizon: ScalarLike = (
-            None  # Belief horizon for speed management, years
-        )
-        self.fuel_conversion_minimum_age: Scalar | None = (
-            None  # Minimum age of fuel conversions
-        )
-        self.allow_technology_approximation: bool = (
-            True  # Whether to allow technology approximation
-        )
-        self.initial_split: list[float] = []  # Fraction of vessel type at start
-        self.initial_technology_share: dict[
-            tuple[str, str], Curve | None
-        ] = {}  # (vessel, tech) -> Curve
-        self.orderbooks: list[Forecast] = []  # Cumulative vessels by date
-        self.technologies: list[Technology] = []  # Energy efficiency technologies
-        self.operational_saving_sea: dict[EnergyDemandTypeID, InputScalarLike] = {
-            d: Scalar(0) for d in EnergyDemandTypeID
+        self.trade_growth: ForecastInput = Scalar(0.0)
+        self.fixed_scrap_rate: ForecastInput | None = None
+        self.allow_secondary_scrapping: bool = True
+        self.intra_fuel_sensitivity: ForecastInput | None = None
+        self.inter_fuel_sensitivity: ForecastInput | None = None
+        self.fuel_conversion_sensitivity: ForecastInput = Scalar(2.0)
+        self.memory: ForecastInput = Scalar(0.5)
+        self.initial_vessels: Scalar | Variable | None = None
+        self.allow_speed_management: bool = False
+        self.maximum_speed_change: ForecastInput = Scalar(np.inf)
+        self.speed_alignment: SpeedAlignmentID = SpeedAlignmentID.INDIVIDUAL
+        self.assume_reference_speed_optimal: bool = False
+        self.retrofit_frequency: ForecastInput = Scalar(5.0)
+        self.technology_sensitivity: ForecastInput | None = None
+        self.technology_cost_of_capital: ForecastInput | None = None
+        self.technology_horizon: ForecastInput = Scalar(3.0)
+        self.speed_horizon: ForecastInput = Scalar(1.0)
+        self.fuel_conversion_minimum_age: ForecastInput = Scalar(0.0)
+        self.allow_technology_approximation: bool = True
+        self.initial_split: list[float] = []
+        self.initial_technology_share: dict[tuple[str, str], Curve | None] = {}
+        self.orderbooks: list[Forecast] = []
+        self.technologies: list[Technology] = []
+        self.operational_saving_sea: dict[EnergyDemandTypeID, ForecastInput] = {
+            d: Scalar(0.0) for d in EnergyDemandTypeID
         }
-        self.operational_saving_port: dict[EnergyDemandTypeID, InputScalarLike] = {
-            d: Scalar(0) for d in EnergyDemandTypePortID
+        self.operational_saving_port: dict[EnergyDemandTypeID, ForecastInput] = {
+            d: Scalar(0.0) for d in EnergyDemandTypePortID
         }
-        self.fuel_conversion_cost: dict[
-            tuple[str, str], float | Forecast | None
-        ] = {}  # Fuel conversion costs
-        self.fuel_conversion_limit: dict[
-            tuple[str, str], InputScalarLike | None
-        ] = {}  # Per-pair conversion cap
-        self.newbuild_limit: dict[
-            str, InputScalarLike | None
-        ] = {}  # Per-vessel newbuild share cap
-        self.newbuild_technology_limit: dict[
-            str, InputScalarLike | None
-        ] = {}  # Per-tech newbuild install cap
-        self.retrofit_technology_limit: dict[
-            str, InputScalarLike | None
-        ] = {}  # Per-tech retrofit cap
-        self.allow_vessel: dict[str, bool | None] = {}  # Whether a vessel is allowed
-        self.newbuild_available: dict[
-            str, bool | None
-        ] = {}  # Whether newbuild is available
-        self.conversion_available: dict[
-            str, bool | None
-        ] = {}  # Whether conversion is available
+        self.fuel_conversion_cost: dict[tuple[str, str], ForecastInput | None] = {}
+        self.fuel_conversion_limit: dict[tuple[str, str], ForecastInput | None] = {}
+        self.newbuild_limit: dict[str, ForecastInput | None] = {}
+        self.newbuild_technology_limit: dict[str, ForecastInput | None] = {}
+        self.retrofit_technology_limit: dict[str, ForecastInput | None] = {}
+        self.allow_vessel: dict[str, bool | None] = {}
+        self.newbuild_available: dict[str, bool | None] = {}
+        self.conversion_available: dict[str, bool | None] = {}
 
         # internal variables -----------------------------------------------------------
         self.expectation: FleetExpectation = FleetExpectation()
         self.profile: FleetProfile = FleetProfile()
 
-        self.projected_multipliers: NDArray[np.float64] | None = (
-            None  # Naive projection of future multipliers
-        )
-        self.fuel_conversion_expenses: NDArray[np.float64] | None = (
-            None  # Rolling costs of previous fuel conversions
-        )
-        self.trade: NDArray[np.float64] = np.ndarray(
-            0
-        )  # Trade by the fleet, cargo-miles
-        self.newbuild_package_uptake: list[
-            NDArray[np.float64]
-        ] = []  # EE uptake on newbuilds
-        self.orders_delivered: NDArray[np.float64] = np.empty(
-            0
-        )  # Orders delivered per vessel type
-        self.orders_postponed: NDArray[np.float64] = np.empty(
-            0
-        )  # Orders postponed per vessel type
-        self.technology_packages: list[
-            Package
-        ] = []  # Packages based on technology input
-        self.package_to_technology_map: dict[
-            int, int
-        ] = {}  # Package index -> technology index
+        self.projected_multipliers: NDArray[np.float64] | None = None
+        self.fuel_conversion_expenses: NDArray[np.float64] | None = None
+        self.trade: NDArray[np.float64] = np.ndarray(0)
+        self.newbuild_package_uptake: list[NDArray[np.float64]] = []
+        self.orders_delivered: NDArray[np.float64] = np.empty(0)
+        self.orders_postponed: NDArray[np.float64] = np.empty(0)
+        self.technology_packages: list[Package] = []
+        self.package_to_technology_map: dict[int, int] = {}
 
     # public domain name for the inherited assets list
     vessels = property(lambda self: self.assets)
@@ -1004,7 +938,7 @@ class Fleet(_AssetManager):
         )
 
     # internal methods -----------------------------------------------------------------
-    def initialize(self):
+    def check_requirements(self) -> None:
 
         if not self.assets:
             no_value_assigned_error(self, "Vessels")
@@ -1021,63 +955,23 @@ class Fleet(_AssetManager):
         if self.technologies and self.technology_sensitivity is None:
             no_value_assigned_error(self, "TechnologySensitivity")
 
-        if self.fuel_conversion_sensitivity is None:
-            self.fuel_conversion_sensitivity = Scalar(2)
-
-        if self.trade_growth is None:
-            self.trade_growth = Scalar(0)
-
-        if self.retrofit_frequency is None:
-            self.retrofit_frequency = Scalar(5)
-
-        if self.inertia is None:
-            self.inertia = Scalar(0)
-
-        if self.memory is None:
-            self.memory = Scalar(0.5)
-
-        if self.technology_horizon is None:
-            self.technology_horizon = Scalar(3)
-
-        if self.speed_horizon is None:
-            self.speed_horizon = Scalar(1)
-
-        if self.fuel_conversion_minimum_age is None:
-            self.fuel_conversion_minimum_age = Scalar(0)
+    def apply_command_defaults(self) -> None:
 
         # cross-pair keys exist only after commands fill fuel_conversion_cost; seed them
-        # before the defaulting loop below
+        # before the defaulting below
         for key, cost in self.fuel_conversion_cost.items():
             if cost is not None:
                 self.fuel_conversion_limit.setdefault(key, None)
 
-        for key, limit in self.fuel_conversion_limit.items():
-            if limit is None:
-                self.fuel_conversion_limit[key] = Scalar(1.0)
+        default_unassigned(self.fuel_conversion_limit, Scalar(1.0))
+        default_unassigned(self.newbuild_limit, Scalar(1.0))
+        default_unassigned(self.newbuild_technology_limit, Scalar(1.0))
+        default_unassigned(self.retrofit_technology_limit, Scalar(1.0))
+        default_unassigned(self.allow_vessel, True)
+        default_unassigned(self.newbuild_available, True)
+        default_unassigned(self.conversion_available, True)
 
-        for name, allow in self.allow_vessel.items():
-            if allow is None:
-                self.allow_vessel[name] = True
-
-        for name, available in self.newbuild_available.items():
-            if available is None:
-                self.newbuild_available[name] = True
-
-        for name, available in self.conversion_available.items():
-            if available is None:
-                self.conversion_available[name] = True
-
-        for name, limit in self.newbuild_limit.items():
-            if limit is None:
-                self.newbuild_limit[name] = Scalar(1.0)
-
-        for name, limit in self.newbuild_technology_limit.items():
-            if limit is None:
-                self.newbuild_technology_limit[name] = Scalar(1.0)
-
-        for name, limit in self.retrofit_technology_limit.items():
-            if limit is None:
-                self.retrofit_technology_limit[name] = Scalar(1.0)
+    def check_consistency(self) -> None:
 
         if self.initial_split and (len(self.assets) != len(self.initial_split)):
             raise ValueError(
@@ -1094,35 +988,32 @@ class Fleet(_AssetManager):
                 "must correspond."
             )
 
-        # check that orderbooks satisfy various requirements
-        if self.orderbooks:
-            # check length between orderbooks and vessels correspond
-            if len(self.assets) != len(self.orderbooks):
+        if not self.orderbooks:
+            return
+
+        if len(self.assets) != len(self.orderbooks):
+            raise ValueError(
+                f"{self}: The length of Vessel ({len(self.assets)}) and "
+                f"Orderbooks ({len(self.orderbooks)}) must correspond."
+            )
+
+        for orderbook in self.orderbooks:
+            if not isinstance(orderbook, Forecast):
+                continue
+
+            # an orderbook is a cumulative count of the vessels on order
+            if not is_non_strictly_increasing(orderbook.y):
                 raise ValueError(
-                    f"{self}: The length of Vessel ({len(self.assets)}) and "
-                    f"Orderbooks ({len(self.orderbooks)}) must correspond."
+                    f"{self}: Orderbook ({orderbook}) is not non-strictly increasing."
                 )
 
-            for orderbook in self.orderbooks:
-                if isinstance(orderbook, Forecast):
-                    # check that orderbooks are cumulative
-                    if not is_non_strictly_increasing(orderbook.y):
-                        raise ValueError(
-                            f"{self}: Orderbook ({orderbook}) is not "
-                            "non-strictly increasing."
-                        )
-
-                    # print a warning if the forecast allows extrapolation
-                    if orderbook.extrapolate == ExtrapolateID.LINEAR:
-                        logger.warning(
-                            "%s: Orderbook (%s) allows extrapolation and may therefore "
-                            "continue past the last date.",
-                            self,
-                            orderbook,
-                        )
-
-        if self.allow_speed_management and self.maximum_speed_change is None:
-            self.maximum_speed_change = Scalar(np.inf)
+            if orderbook.extrapolate == ExtrapolateID.LINEAR:
+                logger.warning(
+                    "%s: Orderbook (%s) allows extrapolation and may therefore "
+                    "continue past the last date.",
+                    self,
+                    orderbook,
+                )
 
     def initialize_dependencies(self):
         """Initialize dependent dictionaries so command calls can use wildcards."""
@@ -1193,6 +1084,4 @@ class Fleet(_AssetManager):
         return bool(self.technologies)
 
     def can_fuel_convert(self) -> bool:
-        return any(
-            value is not None for value in self.fuel_conversion_cost.values()
-        ) and (self.fuel_conversion_sensitivity is not None)
+        return any(value is not None for value in self.fuel_conversion_cost.values())

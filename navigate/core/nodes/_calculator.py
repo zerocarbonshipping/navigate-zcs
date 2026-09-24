@@ -4,11 +4,15 @@
 from __future__ import annotations
 
 import logging
+from typing import TYPE_CHECKING
 
 import numpy as np
 
 from navigate.core import assign_bound, assign_value
 from navigate.util import ROUND_OFF
+
+if TYPE_CHECKING:
+    from navigate.core.nodes.input_kinds import NumberInput
 
 logger = logging.getLogger(__name__)
 
@@ -20,26 +24,26 @@ class _Calculator:
     Mixed into `Node` subclasses only, so the bound warnings can name the node.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
 
         # external variables -----------------------------------------------------------
-        self.addition = 0.0
-        self.multiplier = 1.0
-        self.lower_bound = -np.inf
-        self.upper_bound = np.inf
+        self.addition: NumberInput = 0.0
+        self.multiplier: NumberInput = 1.0
+        self.lower_bound: float = -np.inf
+        self.upper_bound: float = np.inf
 
         # internal variables -----------------------------------------------------------
         # extrapolation warning
-        self._extrapolation_warned = False
+        self._extrapolation_warned: bool = False
 
         # internal bounds are assigned when setting
         # attributes which have certain limits
-        self._internal_lower_bound = -np.inf
-        self._internal_upper_bound = np.inf
+        self._internal_lower_bound: float = -np.inf
+        self._internal_upper_bound: float = np.inf
 
         # applied bounds used in truncating
-        self._applied_lower_bound = -np.inf
-        self._applied_upper_bound = np.inf
+        self._applied_lower_bound: float = -np.inf
+        self._applied_upper_bound: float = np.inf
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_addition(self, addition):
