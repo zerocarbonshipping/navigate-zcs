@@ -11,6 +11,7 @@ import numpy as np
 from navigate.core.enum_ import EnergyDemandTypeID, EnergyDemandTypePortID, FuelTypeID
 from navigate.core.initial_values import EMPTY_FLOAT
 from navigate.core.profiles._fuel_emission_profile import _FuelEmissionProfile
+from navigate.core.profiles._fuel_type_lookup import _FuelTypeLookup
 
 if TYPE_CHECKING:
     from navigate.core.nodes.emission import Emission
@@ -20,7 +21,7 @@ if TYPE_CHECKING:
 from navigate.util import add_dicts, divide_nonzero, multiply_dicts
 
 
-class _FuelConsumerProfile(_FuelEmissionProfile, abc.ABC):
+class _FuelConsumerProfile(_FuelEmissionProfile, _FuelTypeLookup, abc.ABC):
     """Base class used exclusively for sub-classing."""
 
     def __init__(self):

@@ -51,6 +51,7 @@ class ProducerProfile(_PlantAggregateProfile):
         """
         self._initialize_base(timeline)
         self._initialize_fuel_base(fuels)
+        self._initialize_fuel_type(fuels)
         self._initialize_fuel_producer(feedstocks, fuels, processes)
         self._initialize_plant_aggregate()
 
