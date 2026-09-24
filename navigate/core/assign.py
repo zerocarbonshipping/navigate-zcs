@@ -144,7 +144,6 @@ def assign_value[T: Assignment](
     if isinstance(assignment, Expression):
         assignment.set_allowed_types(type_)
         assignment.set_internal_bounds(lower, upper)
-
     elif scalar and isinstance(assignment, (float, Scalar)):
         _check_scalar(
             assignment,
@@ -153,13 +152,11 @@ def assign_value[T: Assignment](
             inclusive_lower=inclusive_lower,
             inclusive_upper=inclusive_upper,
         )
-
     elif isinstance(assignment, Node) and _accepts_reference(assignment, type_):
         # a calculator answers a getter with a value of its own, so it is the
         # only reference kind the attribute bounds have anything to clip
         if is_calculator(assignment):
             assignment.set_internal_bounds(lower, upper)
-
     elif not (date and isinstance(assignment, np.datetime64)):
         raise ValueError(_failed_value_message(assignment, scalar, date, type_))
 
@@ -233,7 +230,7 @@ def assign_list[T: Assignment](
     return assignment
 
 
-def assign_boolean(assignment: object) -> bool:
+def assign_boolean(assignment: str) -> bool:
     """
     Check whether the value assigned to a boolean attribute is a boolean keyword.
 
@@ -252,12 +249,11 @@ def assign_boolean(assignment: object) -> bool:
 
     try:
         return _BOOL_ID[assignment]
-
     except KeyError:
         raise ValueError(_only_allows("TRUE or FALSE", assignment)) from None
 
 
-def assign_bound(assignment: object) -> float:
+def assign_bound(assignment: float | str) -> float:
     """
     Check whether a bound assignment is a scalar or an infinity keyword.
 
@@ -279,12 +275,11 @@ def assign_bound(assignment: object) -> float:
 
     try:
         return _BOUND_ID[assignment]
-
     except KeyError:
         raise ValueError(_only_allows("scalars, -INF or INF", assignment)) from None
 
 
-def assign_id[E: Enum](assignment: object, id_enum: type[E]) -> E:
+def assign_id[E: Enum](assignment: str, id_enum: type[E]) -> E:
     """
     Check whether the assigned ID satisfies the requirements of that attribute.
 
@@ -305,7 +300,6 @@ def assign_id[E: Enum](assignment: object, id_enum: type[E]) -> E:
 
     try:
         return id_enum[assignment]
-
     except KeyError:
         if name_contains_wildcards(assignment):
             raise ValueError(
@@ -316,7 +310,7 @@ def assign_id[E: Enum](assignment: object, id_enum: type[E]) -> E:
         raise ValueError(f"does not accept ID '{assignment}'") from None
 
 
-def assign_member[E: Enum](assignment: object, members: tuple[E, ...]) -> E:
+def assign_member[E: Enum](assignment: str, members: tuple[E, ...]) -> E:
     """
     Check whether the ID assigned to an attribute is one the attribute accepts.
 
@@ -377,7 +371,7 @@ def expand_id_wildcard[E: Enum](
 
 
 def assign_id_list[E: Enum](
-    assignment: list[object],
+    assignment: list[str],
     id_enum: type[E],
     length: ListLength = None,
 ) -> list[E]:
@@ -593,7 +587,6 @@ def command_assignment_to_boolean_dict[K: str | Enum](
 
     try:
         names = retrieve_keys(key, assignment_dict)
-
     except KeyError:
         if allow_empty and isinstance(key, str) and name_contains_wildcards(key):
             # wildcards in a shared include are written against whatever the
@@ -645,7 +638,7 @@ def _accepts_reference(node: Node, type_: AcceptedNodeTypes) -> bool:
     if type_ is None:
         return False
 
-    if isinstance(type_, (list, tuple)):
+    if isinstance(type_, tuple):
         return node.type in type_
 
     return node.is_type(type_)
@@ -677,13 +670,10 @@ def _failed_value_message(
     # implementation errors rather than deck errors, so neither the empty
     # 'allowed' nor the empty subscript below is handled (see assign_value)
     allowed = []
-
     if scalar:
         allowed.append("scalars")
-
     if date:
         allowed.append("dates")
-
     if type_ is not None:
         if isinstance(type_, str):
             allowed.append(f"nodes of type {type_}")
@@ -758,7 +748,7 @@ def _value_kind(assignment: object) -> str:
 
 
 def _check_scalar(
-    assignment: object,
+    assignment: float | Scalar,
     lower: float = -np.inf,
     upper: float = np.inf,
     *,
@@ -788,10 +778,8 @@ def _check_scalar(
     """
     if isinstance(assignment, float):
         value = assignment
-
     elif isinstance(assignment, Scalar):
         value = assignment.get()
-
     else:
         raise ValueError(f"requires a scalar, but got {_value_kind(assignment)}")
 
@@ -831,7 +819,6 @@ def _check_list_length(assignment: Sized, length: ListLength) -> None:
 
         if (upper is not None) and (len(assignment) > upper):
             raise ValueError(f"List must contain at most {upper} values.")
-
     elif len(assignment) != length:
         raise ValueError(f"List must contain exactly {length} values.")
 
@@ -850,7 +837,7 @@ def _check_list_is_unique(assignment: Sequence[Assignment]) -> None:
         raise ValueError("requires all entries in the list to be unique")
 
 
-def _check_fraction_list(fractions: object) -> None:
+def _check_fraction_list(fractions: list[float]) -> None:
     """
     Validate that an assignment is a list of non-negative plain numbers.
 

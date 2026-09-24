@@ -18,9 +18,8 @@ if TYPE_CHECKING:
 # these two aliases are the contract for typed callers, not a claim about what
 # reaches the boundary at runtime: the parser is untyped, so it hands every
 # deck value in as 'Any' and a deck can name any shape the grammar accepts -
-# a bare string, a list, a TableData. That is why the helpers in 'assign' keep
-# runtime reject arms that a reader of the annotations alone would take for
-# dead code, and why their validators take 'object' rather than a narrow type.
+# a bare string, a list, a TableData. That is why the validators in 'assign'
+# keep runtime reject arms for values their typed callers never pass.
 
 # a value that already answers a getter, and a date, pass the wrappers
 # untouched; only a bare float needs wrapping
@@ -34,20 +33,12 @@ type Assignment = float | WrappedAssignment
 # unwrapped; the numeric tower would otherwise type them as Scalar
 @overload
 def as_scalar(value: bool) -> bool: ...
-
-
 @overload
 def as_scalar(value: int) -> int: ...
-
-
 @overload
 def as_scalar(value: float) -> Scalar: ...
-
-
 @overload
 def as_scalar[T: WrappedAssignment](value: T) -> T: ...
-
-
 def as_scalar(value: Assignment) -> Assignment:
     """
     Wrap a value in a Scalar class if it is a float, otherwise return the value as is.
@@ -90,7 +81,6 @@ def as_scalar_list(
         List of wrapped values.
     """
     assignments: list[Assignment] = as_list(values)
-
     return [as_scalar(value) for value in assignments]
 
 
