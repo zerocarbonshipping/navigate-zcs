@@ -28,36 +28,36 @@ class VesselProfile(_FuelConsumerProfile):
     def __init__(self) -> None:
         super().__init__()
 
-        self._lifetime: FloatArray = EMPTY_FLOAT  # years
-        self._lead_time: FloatArray = EMPTY_FLOAT  # years
+        self._lifetime: FloatArray = EMPTY_FLOAT
+        self._lead_time: FloatArray = EMPTY_FLOAT
 
-        self._cargo_miles: FloatArray = EMPTY_FLOAT  # transport work, cargo-miles/year
+        self._cargo_miles: FloatArray = EMPTY_FLOAT
 
         # speeds
-        self._reference_speed: FloatArray = EMPTY_NAN  # reference speed, knots
-        self._minimum_speed: FloatArray = EMPTY_NAN  # minimum possible speed, knots
-        self._maximum_speed: FloatArray = EMPTY_NAN  # maximum possible speed, knots
-        self._actual_speed: FloatArray = EMPTY_NAN  # average actual speed, knots
-        self._optimal_speed: FloatArray = EMPTY_NAN  # average optimal speed, knots
-        self._lowest_speed: FloatArray = EMPTY_NAN  # lowest actual speed, knots
-        self._highest_speed: FloatArray = EMPTY_NAN  # highest actual speed, knots
+        self._reference_speed: FloatArray = EMPTY_NAN
+        self._minimum_speed: FloatArray = EMPTY_NAN
+        self._maximum_speed: FloatArray = EMPTY_NAN
+        self._actual_speed: FloatArray = EMPTY_NAN
+        self._optimal_speed: FloatArray = EMPTY_NAN
+        self._lowest_speed: FloatArray = EMPTY_NAN
+        self._highest_speed: FloatArray = EMPTY_NAN
 
         # investment signals (energy-weighted average of the smoothed
         # energy-conservation duals, USD/GJ)
-        self._investment_signal_technology: FloatArray = EMPTY_NAN  # technology horizon
-        self._investment_signal_speed: FloatArray = EMPTY_NAN  # speed horizon
+        self._investment_signal_technology: FloatArray = EMPTY_NAN
+        self._investment_signal_speed: FloatArray = EMPTY_NAN
 
-        self._technology_cost: FloatArray = EMPTY_FLOAT  # average purchase, USD/year
+        self._technology_cost: FloatArray = EMPTY_FLOAT
 
         # freight and charter rates
-        self._asset_charter_rate: FloatArray = EMPTY_NAN  # owner to operator, USD/year
-        self._cargo_charter_rate: FloatArray = EMPTY_NAN  # operator to cargo, USD/year
-        self._investment_freight_rate: FloatArray = EMPTY_NAN  # USD/cargo-mile
-        self._instantaneous_freight_rate: FloatArray = EMPTY_NAN  # USD/cargo-mile
+        self._asset_charter_rate: FloatArray = EMPTY_NAN
+        self._cargo_charter_rate: FloatArray = EMPTY_NAN
+        self._investment_freight_rate: FloatArray = EMPTY_NAN
+        self._instantaneous_freight_rate: FloatArray = EMPTY_NAN
 
         # fleet membership and cost state
-        self._in_fleet: BoolArray = EMPTY_BOOL  # whether multiplier > 0
-        self._cost_is_calculated: BoolArray = EMPTY_BOOL  # whether cost is calculated
+        self._in_fleet: BoolArray = EMPTY_BOOL
+        self._cost_is_calculated: BoolArray = EMPTY_BOOL
 
     def initialize(
         self,

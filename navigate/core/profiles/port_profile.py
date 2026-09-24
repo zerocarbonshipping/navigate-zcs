@@ -26,11 +26,11 @@ class PortProfile(_FuelInfrastructureProfile):
         super().__init__()
 
         # bunkering
-        self._bunkering_allowed: dict[str, BoolArray] = {}  # bunkering permission
+        self._bunkering_allowed: dict[str, BoolArray] = {}
 
         # results
-        self._bunker_price: dict[str, FloatArray] = {}  # bunkered fuel price, USD/ton
-        self._bunker_wtt: dict[tuple[str, str], FloatArray] = {}  # WTT, ton/ton fuel
+        self._bunker_price: dict[str, FloatArray] = {}
+        self._bunker_wtt: dict[tuple[str, str], FloatArray] = {}
 
     def initialize(
         self,

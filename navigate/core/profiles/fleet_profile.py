@@ -27,13 +27,13 @@ class FleetProfile(_VesselAggregateProfile):
     def __init__(self) -> None:
         super().__init__()
 
-        self._trade: FloatArray = EMPTY_FLOAT  # trade satisfied, cargo-miles/year
-        self._cargo_miles: FloatArray = EMPTY_FLOAT  # transport work, cargo-miles/year
+        self._trade: FloatArray = EMPTY_FLOAT
+        self._cargo_miles: FloatArray = EMPTY_FLOAT
 
-        self._existing_vessels: dict[str, FloatArray] = {}  # vessels per vessel type
-        self._scrap: dict[str, FloatArray] = {}  # scrapped, vessels/year
-        self._newbuilds: dict[str, FloatArray] = {}  # ordered, vessels/year
-        self._fuel_conversions: dict[tuple[str, str], FloatArray] = {}  # vessels/year
+        self._existing_vessels: dict[str, FloatArray] = {}
+        self._scrap: dict[str, FloatArray] = {}
+        self._newbuilds: dict[str, FloatArray] = {}
+        self._fuel_conversions: dict[tuple[str, str], FloatArray] = {}
 
         # fraction of the vessels carrying a technology, per vessel and technology,
         # across the fleet, among the newbuilds and among the retrofits
@@ -42,15 +42,15 @@ class FleetProfile(_VesselAggregateProfile):
         self._retrofit_technology_uptake: dict[tuple[str, str], FloatArray] = {}
 
         # speed
-        self._reference_speed: FloatArray = EMPTY_NAN  # average reference speed, knots
-        self._minimum_speed: FloatArray = EMPTY_NAN  # average minimum speed, knots
-        self._maximum_speed: FloatArray = EMPTY_NAN  # average maximum speed, knots
-        self._actual_speed: FloatArray = EMPTY_NAN  # average actual speed, knots
-        self._optimal_speed: FloatArray = EMPTY_NAN  # average optimal speed, knots
-        self._lowest_speed: FloatArray = EMPTY_NAN  # lowest actual speed, knots
-        self._highest_speed: FloatArray = EMPTY_NAN  # highest actual speed, knots
+        self._reference_speed: FloatArray = EMPTY_NAN
+        self._minimum_speed: FloatArray = EMPTY_NAN
+        self._maximum_speed: FloatArray = EMPTY_NAN
+        self._actual_speed: FloatArray = EMPTY_NAN
+        self._optimal_speed: FloatArray = EMPTY_NAN
+        self._lowest_speed: FloatArray = EMPTY_NAN
+        self._highest_speed: FloatArray = EMPTY_NAN
 
-        self._instantaneous_freight_rate: FloatArray = EMPTY_NAN  # USD/cargo-mile
+        self._instantaneous_freight_rate: FloatArray = EMPTY_NAN
 
     def initialize(
         self,

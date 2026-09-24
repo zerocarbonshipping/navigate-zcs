@@ -31,45 +31,35 @@ class PlantExpectation(_Expectation):
         super().__init__()
 
         # durations
-        self._lifetime: FloatArray = EMPTY_FLOAT  # plant lifetime, years
-        self._lead_time: FloatArray = EMPTY_FLOAT  # construction lead time, years
+        self._lifetime: FloatArray = EMPTY_FLOAT
+        self._lead_time: FloatArray = EMPTY_FLOAT
 
         # production
-        self._size: FloatArray = EMPTY_FLOAT  # tons/day (for CAPEX/OPEX scaling)
-        self._production: FloatArray = EMPTY_FLOAT  # tons/year (incl. uptime)
+        self._size: FloatArray = EMPTY_FLOAT
+        self._production: FloatArray = EMPTY_FLOAT
 
         # feed
-        self._feed_mass: dict[str, FloatArray] = {}  # feed used in production, ton/ton
+        self._feed_mass: dict[str, FloatArray] = {}
 
         # levelized cost
-        self._levelized_production_cost: FloatArray = EMPTY_FLOAT  # USD/ton
-        self._levelized_delivery_cost: dict[
-            str, FloatArray
-        ] = {}  # levelized cost of delivery, USD/ton
+        self._levelized_production_cost: FloatArray = EMPTY_FLOAT
+        self._levelized_delivery_cost: dict[str, FloatArray] = {}
 
         # capital
-        self._tied_capital: list[FloatArray] = []  # yearly flow from commencement, USD
+        self._tied_capital: list[FloatArray] = []
 
         # emissions
-        self._production_wtt: dict[
-            str, FloatArray
-        ] = {}  # production emissions, ton e/ton f
-        self._delivery_wtt: dict[
-            tuple[str, str], FloatArray
-        ] = {}  # delivery emissions, ton e/ton f
+        self._production_wtt: dict[str, FloatArray] = {}
+        self._delivery_wtt: dict[tuple[str, str], FloatArray] = {}
 
         # production-weighted properties across plants
-        self._expected_production_cost: FloatArray = EMPTY_FLOAT  # USD/ton
-        self._expected_production_wtt: dict[
-            str, FloatArray
-        ] = {}  # production emissions, ton e/ton f
+        self._expected_production_cost: FloatArray = EMPTY_FLOAT
+        self._expected_production_wtt: dict[str, FloatArray] = {}
 
         # decision related
-        self._demand_newbuilds: float = (
-            0.0  # maximum number of newbuilds to satisfy expected supply gap
-        )
-        self._inter_fuel_metric: float = 0.0  # business case for the fuel pathway
-        self._intra_fuel_metric: float = 0.0  # business case within the pathway, USD/t
+        self._demand_newbuilds: float = 0.0
+        self._inter_fuel_metric: float = 0.0
+        self._intra_fuel_metric: float = 0.0
 
     def initialize(
         self,

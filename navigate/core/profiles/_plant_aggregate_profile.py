@@ -22,7 +22,7 @@ class _PlantAggregateProfile(_FuelProducerProfile):
     def __init__(self) -> None:
         super().__init__()
 
-        self._plant_tied_capital: FloatArray = EMPTY_FLOAT  # capital in plants, USD
+        self._plant_tied_capital: FloatArray = EMPTY_FLOAT
 
     def _initialize_plant_aggregate(self) -> None:
         self._plant_tied_capital = self._default_array()

@@ -35,24 +35,24 @@ class ManagerProfile(
         super().__init__()
 
         # computational time in seconds; every entry below the total is part of it
-        self._total_time: FloatArray = EMPTY_FLOAT  # the whole simulation
-        self._expected_build_time: FloatArray = EMPTY_FLOAT  # expected LP build
-        self._expected_solve_time: FloatArray = EMPTY_FLOAT  # expected LP solve
-        self._expected_transfer_time: FloatArray = EMPTY_FLOAT  # expected LP transfer
-        self._speed_time: FloatArray = EMPTY_FLOAT  # speed management
-        self._retrofit_time: FloatArray = EMPTY_FLOAT  # technology retrofit
-        self._fleet_evolution_time: FloatArray = EMPTY_FLOAT  # fleet evolution
-        self._producer_evolution_time: FloatArray = EMPTY_FLOAT  # producer evolution
-        self._existing_build_time: FloatArray = EMPTY_FLOAT  # existing LP build
-        self._existing_solve_time: FloatArray = EMPTY_FLOAT  # existing LP solve
-        self._existing_transfer_time: FloatArray = EMPTY_FLOAT  # existing LP transfer
-        self._temporal_time: FloatArray = EMPTY_FLOAT  # temporal and expectations
-        self._vessel_time: FloatArray = EMPTY_FLOAT  # vessel operations and charter
-        self._fuel_supply_time: FloatArray = EMPTY_FLOAT  # fuel supply chain
-        self._policy_time: FloatArray = EMPTY_FLOAT  # policy and regulation
-        self._fleet_state_time: FloatArray = EMPTY_FLOAT  # age, evolution, technology
-        self._profile_agg_time: FloatArray = EMPTY_FLOAT  # profile aggregation
-        self._overhead_time: FloatArray = EMPTY_FLOAT  # initialization overhead
+        self._total_time: FloatArray = EMPTY_FLOAT
+        self._expected_build_time: FloatArray = EMPTY_FLOAT
+        self._expected_solve_time: FloatArray = EMPTY_FLOAT
+        self._expected_transfer_time: FloatArray = EMPTY_FLOAT
+        self._speed_time: FloatArray = EMPTY_FLOAT
+        self._retrofit_time: FloatArray = EMPTY_FLOAT
+        self._fleet_evolution_time: FloatArray = EMPTY_FLOAT
+        self._producer_evolution_time: FloatArray = EMPTY_FLOAT
+        self._existing_build_time: FloatArray = EMPTY_FLOAT
+        self._existing_solve_time: FloatArray = EMPTY_FLOAT
+        self._existing_transfer_time: FloatArray = EMPTY_FLOAT
+        self._temporal_time: FloatArray = EMPTY_FLOAT
+        self._vessel_time: FloatArray = EMPTY_FLOAT
+        self._fuel_supply_time: FloatArray = EMPTY_FLOAT
+        self._policy_time: FloatArray = EMPTY_FLOAT
+        self._fleet_state_time: FloatArray = EMPTY_FLOAT
+        self._profile_agg_time: FloatArray = EMPTY_FLOAT
+        self._overhead_time: FloatArray = EMPTY_FLOAT
 
     def initialize(
         self,

@@ -25,15 +25,15 @@ class PlantProfile(_FuelEmissionProfile):
         super().__init__()
 
         # constants
-        self._fuel_name: str = ""  # name of the fuel the plant produces
+        self._fuel_name: str = ""
 
         # cost of the fuel produced, USD/ton
-        self._investment_cost: FloatArray = EMPTY_NAN  # expected at investment
-        self._instantaneous_cost: FloatArray = EMPTY_NAN  # at the current time
+        self._investment_cost: FloatArray = EMPTY_NAN
+        self._instantaneous_cost: FloatArray = EMPTY_NAN
 
         # well-to-tank emissions, ton emission/ton fuel
-        self._investment_wtt: dict[str, FloatArray] = {}  # expected at investment
-        self._instantaneous_wtt: dict[str, FloatArray] = {}  # at the current time
+        self._investment_wtt: dict[str, FloatArray] = {}
+        self._instantaneous_wtt: dict[str, FloatArray] = {}
 
     def initialize(
         self,

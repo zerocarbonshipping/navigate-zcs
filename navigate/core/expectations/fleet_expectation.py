@@ -25,25 +25,15 @@ class FleetExpectation(_Expectation):
     def __init__(self) -> None:
         super().__init__()
 
-        self._existing_multipliers: dict[
-            str, FloatArray
-        ] = {}  # number of existing vessels
-        self._newbuild_multipliers: dict[
-            str, FloatArray
-        ] = {}  # number of newbuild vessels
+        self._existing_multipliers: dict[str, FloatArray] = {}
+        self._newbuild_multipliers: dict[str, FloatArray] = {}
 
-        self._fuel_demand: dict[
-            str, FloatArray
-        ] = {}  # expected future fuel demand, tons/year
+        self._fuel_demand: dict[str, FloatArray] = {}
 
-        self._fuel_type_demand: dict[
-            FuelTypeID, float
-        ] = {}  # realized demand of the last completed time-step, tons/year
-        self._fuel_type_supply: dict[
-            FuelTypeID, float
-        ] = {}  # realized fair-share supply of the last completed time-step, tons/year
+        self._fuel_type_demand: dict[FuelTypeID, float] = {}
+        self._fuel_type_supply: dict[FuelTypeID, float] = {}
 
-        self._uptakes: FloatArray = EMPTY_FLOAT  # cargo-mile share of each vessel
+        self._uptakes: FloatArray = EMPTY_FLOAT
 
     def initialize(
         self, length: int, vessel_names: list[str], fuels: dict[str, Fuel]

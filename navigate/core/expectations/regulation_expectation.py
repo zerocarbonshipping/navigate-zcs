@@ -23,18 +23,12 @@ class RegulationExpectation(_PolicyExpectation):
     def __init__(self) -> None:
         super().__init__()
 
-        self._flexibility_cost: FloatArray = EMPTY_FLOAT  # USD/ton emission
-        self._belief_flexibility_cost: FloatArray = (
-            EMPTY_FLOAT  # smoothed flexibility cost belief, USD/ton emission
-        )
-        self._vessel_net_flexibility_units: dict[
-            str, FloatArray
-        ] = {}  # deficit less surplus compliance units per vessel, ton emission
-        self._remedial_cost: FloatArray = EMPTY_FLOAT  # USD/ton emission
+        self._flexibility_cost: FloatArray = EMPTY_FLOAT
+        self._belief_flexibility_cost: FloatArray = EMPTY_FLOAT
+        self._vessel_net_flexibility_units: dict[str, FloatArray] = {}
+        self._remedial_cost: FloatArray = EMPTY_FLOAT
 
-        self._vessel_capacity: dict[
-            str, FloatArray
-        ] = {}  # capacity behind the transport compliance measure, tons
+        self._vessel_capacity: dict[str, FloatArray] = {}
 
     def initialize(
         self, length: int, emission_names: Iterable[str], vessels: dict[str, Vessel]

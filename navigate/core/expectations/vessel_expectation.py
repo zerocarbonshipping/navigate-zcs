@@ -30,151 +30,103 @@ class VesselExpectation(_Expectation):
         super().__init__()
 
         # voyage
-        self._voyages: FloatArray = EMPTY_FLOAT  # number of voyages per year
+        self._voyages: FloatArray = EMPTY_FLOAT
 
         # cargo
-        self._cargo_miles: FloatArray = EMPTY_FLOAT  # cargo miles delivered per year
-        self._cargo_miles_leg: list[FloatArray] = []  # cargo miles delivered per leg
-        self._cargo_miles_leg_nominal: list[
-            FloatArray
-        ] = []  # nominal cargo miles delivered per leg
+        self._cargo_miles: FloatArray = EMPTY_FLOAT
+        self._cargo_miles_leg: list[FloatArray] = []
+        self._cargo_miles_leg_nominal: list[FloatArray] = []
 
         # speeds
-        self._speed_mean: float = (
-            np.nan
-        )  # speed management mean speed (excluding weighting), knots
-        self._speed_anchor_reference: float = (
-            np.nan
-        )  # initial route reference mean speed for anchoring, knots
-        self._speed_anchor_optimal: float = (
-            np.nan
-        )  # initial modelled optimal mean speed for anchoring, knots
-        self._speeds: list[FloatArray] = []  # expected speed per leg, knots
+        self._speed_mean: float = np.nan
+        self._speed_anchor_reference: float = np.nan
+        self._speed_anchor_optimal: float = np.nan
+        self._speeds: list[FloatArray] = []
 
         # durations
-        self._time_sea: list[FloatArray] = []  # time spent at sea per leg, days
-        self._time_port: list[FloatArray] = []  # time spent in port per port call, days
+        self._time_sea: list[FloatArray] = []
+        self._time_port: list[FloatArray] = []
 
-        # Energies
-        self._raw_energy_sea: dict[
-            EnergyDemandTypeID, list[FloatArray]
-        ] = {}  # energy demand per leg before any saving, GJ
-        self._raw_energy_port: dict[
-            EnergyDemandTypeID, list[FloatArray]
-        ] = {}  # energy demand per port call before any saving, GJ
+        # energies
+        self._raw_energy_sea: dict[EnergyDemandTypeID, list[FloatArray]] = {}
+        self._raw_energy_port: dict[EnergyDemandTypeID, list[FloatArray]] = {}
 
-        self._operational_energy_sea: dict[
-            EnergyDemandTypeID, list[FloatArray]
-        ] = {}  # energy demand per leg after operational savings, GJ
-        self._operational_energy_port: dict[
-            EnergyDemandTypeID, list[FloatArray]
-        ] = {}  # energy demand per port call after operational savings, GJ
+        self._operational_energy_sea: dict[EnergyDemandTypeID, list[FloatArray]] = {}
+        self._operational_energy_port: dict[EnergyDemandTypeID, list[FloatArray]] = {}
 
-        self._operational_saving_fraction_sea: dict[
-            EnergyDemandTypeID, float
-        ] = {}  # share of sea energy demand removed by operational savings
-        self._operational_saving_fraction_port: dict[
-            EnergyDemandTypeID, float
-        ] = {}  # share of port energy demand removed by operational savings
+        self._operational_saving_fraction_sea: dict[EnergyDemandTypeID, float] = {}
+        self._operational_saving_fraction_port: dict[EnergyDemandTypeID, float] = {}
 
-        self._energy_sea: dict[
-            EnergyDemandTypeID, list[FloatArray]
-        ] = {}  # energy demand per leg after all savings, GJ
-        self._energy_port: dict[
-            EnergyDemandTypeID, list[FloatArray]
-        ] = {}  # energy demand per port call after all savings, GJ
+        self._energy_sea: dict[EnergyDemandTypeID, list[FloatArray]] = {}
+        self._energy_port: dict[EnergyDemandTypeID, list[FloatArray]] = {}
 
         self._regional_operational_energy_sea: dict[
             EnergyDemandTypeID, list[FloatArray]
-        ] = {}  # operationally saved energy demand per regional leg, GJ
-        self._regional_energy_sea: dict[
-            EnergyDemandTypeID, list[FloatArray]
-        ] = {}  # energy demand per regional leg after all savings, GJ
+        ] = {}
+        self._regional_energy_sea: dict[EnergyDemandTypeID, list[FloatArray]] = {}
 
-        # Constraint Attributes
+        # constraint attributes
         self._energy_conservation_pi_sea: dict[
             EnergyDemandTypeID, list[FloatArray]
-        ] = {}  # shadow price of the sea energy constraint, USD/GJ
+        ] = {}
         self._energy_conservation_pi_port: dict[
             EnergyDemandTypeID, list[FloatArray]
-        ] = {}  # shadow price of the port energy constraint, USD/GJ
+        ] = {}
         self._energy_conservation_rhs_sea: dict[
             EnergyDemandTypeID, list[FloatArray]
-        ] = {}  # right-hand side of the sea energy constraint, GJ
+        ] = {}
         self._energy_conservation_rhs_port: dict[
             EnergyDemandTypeID, list[FloatArray]
-        ] = {}  # right-hand side of the port energy constraint, GJ
+        ] = {}
         self._energy_conservation_sarhslow_sea: dict[
             EnergyDemandTypeID, list[FloatArray]
-        ] = {}  # lower end of the sea right-hand-side validity range, GJ
+        ] = {}
         self._energy_conservation_sarhslow_port: dict[
             EnergyDemandTypeID, list[FloatArray]
-        ] = {}  # lower end of the port right-hand-side validity range, GJ
+        ] = {}
         self._energy_conservation_sarhsup_sea: dict[
             EnergyDemandTypeID, list[FloatArray]
-        ] = {}  # upper end of the sea right-hand-side validity range, GJ
+        ] = {}
         self._energy_conservation_sarhsup_port: dict[
             EnergyDemandTypeID, list[FloatArray]
-        ] = {}  # upper end of the port right-hand-side validity range, GJ
+        ] = {}
 
         # per-leg, per-energy-type smoothed shadow-price beliefs (same shape as the raw
         # pi dicts above). Tech-horizon belief is amortised over the decision horizon
         # used by newbuild/retrofit NPVs; speed-horizon belief is faster, matched to the
         # timescale of operational speed management.
-        self._belief_pi_sea_technology: dict[
-            EnergyDemandTypeID, list[FloatArray]
-        ] = {}  # technology-horizon sea shadow-price belief, USD/GJ
-        self._belief_pi_port_technology: dict[
-            EnergyDemandTypeID, list[FloatArray]
-        ] = {}  # technology-horizon port shadow-price belief, USD/GJ
-        self._belief_pi_sea_speed: dict[
-            EnergyDemandTypeID, list[FloatArray]
-        ] = {}  # speed-horizon sea shadow-price belief, USD/GJ
-        self._belief_pi_port_speed: dict[
-            EnergyDemandTypeID, list[FloatArray]
-        ] = {}  # speed-horizon port shadow-price belief, USD/GJ
+        self._belief_pi_sea_technology: dict[EnergyDemandTypeID, list[FloatArray]] = {}
+        self._belief_pi_port_technology: dict[EnergyDemandTypeID, list[FloatArray]] = {}
+        self._belief_pi_sea_speed: dict[EnergyDemandTypeID, list[FloatArray]] = {}
+        self._belief_pi_port_speed: dict[EnergyDemandTypeID, list[FloatArray]] = {}
 
         # bunkering/spend
-        self._bunker_mass_expected: dict[
-            tuple[str, str], float
-        ] = {}  # amount of fuel bunkered, tons
-        self._bunker_mass_existing: dict[
-            tuple[str, str], float
-        ] = {}  # amount of fuel bunkered, tons
-        self._spend_energy: dict[
-            str, float
-        ] = {}  # amount of fuel bunkered/spend per converter, GJ
+        self._bunker_mass_expected: dict[tuple[str, str], float] = {}
+        self._bunker_mass_existing: dict[tuple[str, str], float] = {}
+        self._spend_energy: dict[str, float] = {}
 
         # fair-share fuel supply
-        self._fair_share_fuel_existing: dict[
-            tuple[str, str], float
-        ] = {}  # fair-share for bunkering
-        self._fair_share_fuel_expected: dict[
-            tuple[str, str], FloatArray
-        ] = {}  # fair-share for bunkering
+        self._fair_share_fuel_existing: dict[tuple[str, str], float] = {}
+        self._fair_share_fuel_expected: dict[tuple[str, str], FloatArray] = {}
 
         # bunker results (expected bunkering)
-        self._total_energy: FloatArray = EMPTY_FLOAT  # total energy
-        self._fuel_expenses: FloatArray = EMPTY_FLOAT  # fuel expenses
-        self._policy_expenses: FloatArray = (
-            EMPTY_FLOAT  # policy expenses (remedial, flexible, surplus, levy)
-        )
+        self._total_energy: FloatArray = EMPTY_FLOAT
+        self._fuel_expenses: FloatArray = EMPTY_FLOAT
+        self._policy_expenses: FloatArray = EMPTY_FLOAT
 
         # shore power
-        self._shore_power_capacity: FloatArray = EMPTY_FLOAT  # uptake-weighted, MW
+        self._shore_power_capacity: FloatArray = EMPTY_FLOAT
 
         # costs
-        self._fuel_cost_flow: FloatArray = EMPTY_FLOAT  # future fuel cost, USD/year
+        self._fuel_cost_flow: FloatArray = EMPTY_FLOAT
 
         # investment metrics
-        self._asset_charter_npv: FloatArray = EMPTY_FLOAT  # charter NPV, USD
-        self._capex_npv: FloatArray = EMPTY_FLOAT  # summed ship CAPEX NPV, USD
-        self._asset_charter_rate: FloatArray = EMPTY_FLOAT  # charter rate, USD/year
-        self._freight_rate: FloatArray = EMPTY_FLOAT  # freight rate, USD/year
-        self._technology_charter_rate: FloatArray = (
-            EMPTY_FLOAT  # fleet-average technology charge, USD/year
-        )
-        self._tied_capital: list[FloatArray] = []  # yearly flow from commencement, USD
+        self._asset_charter_npv: FloatArray = EMPTY_FLOAT
+        self._capex_npv: FloatArray = EMPTY_FLOAT
+        self._asset_charter_rate: FloatArray = EMPTY_FLOAT
+        self._freight_rate: FloatArray = EMPTY_FLOAT
+        self._technology_charter_rate: FloatArray = EMPTY_FLOAT
+        self._tied_capital: list[FloatArray] = []
 
     def initialize(self, length: int, route: Route, fuels: dict[str, Fuel]) -> None:
         self._initialize_expectation(length)

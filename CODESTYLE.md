@@ -35,9 +35,10 @@ style-only commits, and never add new entries.
 - Attributes are defined in `__init__` only, never on the class body, and are
   annotated there. Dataclass fields, enum members, and `ClassVar` constants are
   the exceptions.
-- Each attribute definition carries one short inline comment saying what the
-  attribute is - no type (the annotation has it), no column alignment (the
-  formatter owns spacing).
+- An attribute definition carries the annotation alone and no trailing
+  comment; a group comment heading a run of attributes stays. Anything worth
+  saying about one attribute is either a why, under the Comments section, or
+  belongs in the class docstring.
 - Access attributes directly; do not add getters or setters without a need a
   plain attribute cannot express. Sanctioned exceptions are listed in the
   repository-specific section below.
@@ -144,14 +145,9 @@ The formatter owns spacing within statements; blank lines are yours:
   inputs are DSL attributes, documented in the DSL reference). The
   caller-instantiated classes - `Scalar` and the calculators - document
   constructor parameters in the class docstring per the shared rule.
-- An attribute definition in a node `__init__` carries the annotation alone
-  and no trailing comment — a deliberate exception to the shared "Classes and
-  attributes" rule. Every such attribute has a DSL setter whose docstring is
-  what its reference-manual page is written from, so a comment beside the
-  definition can only restate that docstring or drift from it, and the
-  comment column is what pushed the definitions past the line-length budget.
-  The group comments that head a run of attributes stay. The exception is
-  this narrow: elsewhere in `navigate/` the shared rule holds.
+- Every attribute in a node `__init__` has a DSL setter whose docstring is
+  what its reference-manual page is written from, so anything said about the
+  attribute is said there.
 - The kinds a setter may store are named once, in
   `navigate/core/nodes/input_kinds.py`, and used at every attribute
   definition. The alias matches the setter's `type_=` argument, and an

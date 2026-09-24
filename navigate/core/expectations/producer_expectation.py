@@ -26,40 +26,20 @@ class ProducerExpectation(_Expectation):
     def __init__(self) -> None:
         super().__init__()
 
-        self._export_distribution: dict[
-            str, FloatArray
-        ] = {}  # fraction of export going to a port
+        self._export_distribution: dict[str, FloatArray] = {}
 
-        self._plant_feed_consumption: dict[
-            tuple[str, str], float
-        ] = {}  # feed use, ton/year
-        self._existing_feed: dict[
-            str, float
-        ] = {}  # feedstock used by existing production, tons/year
-        self._pipeline_feed: dict[
-            str, float
-        ] = {}  # feedstock that will be used by pipeline production, tons/year
-        self._feed_gap: dict[
-            str, FloatArray
-        ] = {}  # supply/demand gap for feedstock, tons/year
+        self._plant_feed_consumption: dict[tuple[str, str], float] = {}
+        self._existing_feed: dict[str, float] = {}
+        self._pipeline_feed: dict[str, float] = {}
+        self._feed_gap: dict[str, FloatArray] = {}
 
-        self._development_potential: dict[
-            str, float
-        ] = {}  # current development potential, tons/year
+        self._development_potential: dict[str, float] = {}
 
-        self._fair_share_demand: dict[
-            str, FloatArray
-        ] = {}  # fair-share of demand to satisfy, tons/year
+        self._fair_share_demand: dict[str, FloatArray] = {}
 
-        self._existing_production: dict[
-            str, FloatArray
-        ] = {}  # existing production per plant, tons/year
-        self._pipeline_production: dict[
-            str, FloatArray
-        ] = {}  # pipeline production per plant, tons/year
-        self._newbuild_production: dict[
-            str, FloatArray
-        ] = {}  # newbuild production per plant, tons/year
+        self._existing_production: dict[str, FloatArray] = {}
+        self._pipeline_production: dict[str, FloatArray] = {}
+        self._newbuild_production: dict[str, FloatArray] = {}
 
     def initialize(
         self,

@@ -22,9 +22,9 @@ class _FuelInfrastructureProfile(_FuelEmissionProfile):
     def __init__(self) -> None:
         super().__init__()
 
-        self._bunker_mass: dict[str, FloatArray] = {}  # amount bunkered, tons/year
-        self._bunker_supply_mass: dict[str, FloatArray] = {}  # available, tons/year
-        self._bunkering_limit_mass: dict[str, FloatArray] = {}  # capacity, tons/year
+        self._bunker_mass: dict[str, FloatArray] = {}
+        self._bunker_supply_mass: dict[str, FloatArray] = {}
+        self._bunkering_limit_mass: dict[str, FloatArray] = {}
 
     def _initialize_fuel_infrastructure(self, fuels: dict[str, Fuel]) -> None:
         self._bunker_mass = self._default_dict(fuels)

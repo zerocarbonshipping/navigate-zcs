@@ -20,9 +20,7 @@ class _FuelEmissionProfile(_FuelBaseProfile):
     def __init__(self) -> None:
         super().__init__()
 
-        self._global_warming_potential: dict[
-            str, float
-        ] = {}  # ton CO2 equivalent per ton emitted
+        self._global_warming_potential: dict[str, float] = {}
 
     def _initialize_fuel_emission(
         self, emissions: dict[str, Emission], emissions_lifetime: float

@@ -26,10 +26,10 @@ class ProducerProfile(_PlantAggregateProfile):
         super().__init__()
 
         # plants added to the development pipeline, plants/year
-        self._maximum_development: FloatArray = EMPTY_NAN  # the most that may be added
-        self._development: FloatArray = EMPTY_FLOAT  # actually added
+        self._maximum_development: FloatArray = EMPTY_NAN
+        self._development: FloatArray = EMPTY_FLOAT
 
-        self._fair_share_fuel_fraction: dict[str, FloatArray] = {}  # of the fair share
+        self._fair_share_fuel_fraction: dict[str, FloatArray] = {}
 
     def initialize(
         self,

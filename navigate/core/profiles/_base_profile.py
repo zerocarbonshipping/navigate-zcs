@@ -23,7 +23,7 @@ class _BaseProfile:
     """Timeline-sized storage allocation and the aggregations every profile shares."""
 
     def __init__(self) -> None:
-        self._timeline: FloatArray = EMPTY_FLOAT  # simulation timeline, years
+        self._timeline: FloatArray = EMPTY_FLOAT
 
     def _initialize_base(self, timeline: FloatArray) -> None:
         self._timeline = timeline

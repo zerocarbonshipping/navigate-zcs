@@ -21,7 +21,7 @@ class _Expectation:
 
     def __init__(self) -> None:
 
-        self._length: int = 0  # number of time steps on the simulation timeline
+        self._length: int = 0
 
     def _initialize_expectation(self, length: int) -> None:
         self._length = length

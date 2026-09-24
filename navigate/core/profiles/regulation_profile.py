@@ -24,38 +24,38 @@ class RegulationProfile(_BaseProfile):
         super().__init__()
 
         # cost of one compliance unit, USD/ton
-        self._remedial_cost: FloatArray = EMPTY_NAN  # remedial unit
-        self._flexibility_cost: FloatArray = EMPTY_NAN  # flexible or surplus unit
+        self._remedial_cost: FloatArray = EMPTY_NAN
+        self._flexibility_cost: FloatArray = EMPTY_NAN
 
         # thresholds, in the measure unit of the regulation
-        self._vessel_threshold: dict[str, FloatArray] = {}  # per vessel
-        self._shared_threshold: FloatArray = EMPTY_NAN  # shared
+        self._vessel_threshold: dict[str, FloatArray] = {}
+        self._shared_threshold: FloatArray = EMPTY_NAN
 
         # thresholds after adjustment for non-compliance, in the measure unit
-        self._adjusted_vessel_threshold: dict[str, FloatArray] = {}  # per vessel
-        self._adjusted_shared_threshold: FloatArray = EMPTY_NAN  # shared
+        self._adjusted_vessel_threshold: dict[str, FloatArray] = {}
+        self._adjusted_shared_threshold: FloatArray = EMPTY_NAN
 
         # allowances, ton/year
-        self._vessel_allowance: dict[str, FloatArray] = {}  # per vessel
-        self._shared_allowance: FloatArray = EMPTY_NAN  # shared
+        self._vessel_allowance: dict[str, FloatArray] = {}
+        self._shared_allowance: FloatArray = EMPTY_NAN
 
         # compliance, in the measure unit of the regulation
-        self._vessel_compliance: dict[str, FloatArray] = {}  # per vessel
-        self._shared_compliance: FloatArray = EMPTY_NAN  # shared
+        self._vessel_compliance: dict[str, FloatArray] = {}
+        self._shared_compliance: FloatArray = EMPTY_NAN
 
         # compliance in absolute emissions, ton/year
-        self._vessel_units: dict[str, FloatArray] = {}  # per vessel
-        self._shared_units: FloatArray = EMPTY_NAN  # shared
+        self._vessel_units: dict[str, FloatArray] = {}
+        self._shared_units: FloatArray = EMPTY_NAN
 
         # traded units, ton emissions/year
-        self._surplus_units: FloatArray = EMPTY_FLOAT  # generated
-        self._flexibility_units: FloatArray = EMPTY_FLOAT  # traded
-        self._remedial_units: FloatArray = EMPTY_FLOAT  # sold
+        self._surplus_units: FloatArray = EMPTY_FLOAT
+        self._flexibility_units: FloatArray = EMPTY_FLOAT
+        self._remedial_units: FloatArray = EMPTY_FLOAT
 
         # compliance expenses, USD/year
-        self._surplus_revenue: FloatArray = EMPTY_FLOAT  # revenue from surplus units
-        self._flexibility_expenses: FloatArray = EMPTY_FLOAT  # flexibility units
-        self._remedial_expenses: FloatArray = EMPTY_FLOAT  # remedial units
+        self._surplus_revenue: FloatArray = EMPTY_FLOAT
+        self._flexibility_expenses: FloatArray = EMPTY_FLOAT
+        self._remedial_expenses: FloatArray = EMPTY_FLOAT
 
     def initialize(self, timeline: FloatArray, vessels: dict[str, Vessel]) -> None:
         self._initialize_base(timeline)

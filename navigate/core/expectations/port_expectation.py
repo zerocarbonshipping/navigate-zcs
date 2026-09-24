@@ -24,39 +24,21 @@ class PortExpectation(_Expectation):
     def __init__(self) -> None:
         super().__init__()
 
-        self._handling_cost: dict[
-            str, FloatArray
-        ] = {}  # storage and bunkering service cost, USD/ton
+        self._handling_cost: dict[str, FloatArray] = {}
 
-        self._bunkering_limit: dict[
-            str, FloatArray
-        ] = {}  # upper bound on what may be bunkered, tons/year
+        self._bunkering_limit: dict[str, FloatArray] = {}
 
-        self._bunker_price_overwrite: dict[
-            str, FloatArray
-        ] = {}  # deck-set bunker price replacing the modelled one, USD/ton
-        self._bunker_wtt_overwrite: dict[
-            tuple[str, str], FloatArray
-        ] = {}  # deck-set bunker WTT replacing the modelled one, ton e/ton f
+        self._bunker_price_overwrite: dict[str, FloatArray] = {}
+        self._bunker_wtt_overwrite: dict[tuple[str, str], FloatArray] = {}
 
-        self._bunker_supply: dict[
-            str, FloatArray
-        ] = {}  # expected future bunker supply, tons/year
-        self._bunker_price: dict[
-            str, FloatArray
-        ] = {}  # expected future bunker price, USD/ton
-        self._bunker_wtt: dict[
-            tuple[str, str], FloatArray
-        ] = {}  # expected future bunker WTT, ton e/ton f
+        self._bunker_supply: dict[str, FloatArray] = {}
+        self._bunker_price: dict[str, FloatArray] = {}
+        self._bunker_wtt: dict[tuple[str, str], FloatArray] = {}
 
         # shore power
-        self._shore_power_cost: FloatArray = EMPTY_FLOAT  # shore power cost, USD/GJ
-        self._shore_power_connection_share: FloatArray = (
-            EMPTY_FLOAT  # share of port calls able to connect, fraction [0,1]
-        )
-        self._shore_power_emission_factor: dict[
-            str, FloatArray
-        ] = {}  # shore power emissions, ton/GJ
+        self._shore_power_cost: FloatArray = EMPTY_FLOAT
+        self._shore_power_connection_share: FloatArray = EMPTY_FLOAT
+        self._shore_power_emission_factor: dict[str, FloatArray] = {}
 
     def initialize(
         self, length: int, fuels: dict[str, Fuel], emissions: dict[str, Emission]

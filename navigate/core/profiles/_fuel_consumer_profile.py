@@ -31,8 +31,8 @@ class _FuelConsumerProfile(_FuelEmissionProfile, _FuelTypeLookup, abc.ABC):
         super().__init__()
 
         # raw energy demand
-        self._raw_energy_sea: dict[EnergyDemandTypeID, FloatArray] = {}  # GJ/year
-        self._raw_energy_port: dict[EnergyDemandTypeID, FloatArray] = {}  # GJ/year
+        self._raw_energy_sea: dict[EnergyDemandTypeID, FloatArray] = {}
+        self._raw_energy_port: dict[EnergyDemandTypeID, FloatArray] = {}
 
         # operational energy demand, GJ/year: after operational savings, before
         # technology
@@ -40,32 +40,32 @@ class _FuelConsumerProfile(_FuelEmissionProfile, _FuelTypeLookup, abc.ABC):
         self._operational_energy_port: dict[EnergyDemandTypeID, FloatArray] = {}
 
         # energy demand
-        self._energy_sea: dict[EnergyDemandTypeID, FloatArray] = {}  # GJ/year
-        self._energy_port: dict[EnergyDemandTypeID, FloatArray] = {}  # GJ/year
+        self._energy_sea: dict[EnergyDemandTypeID, FloatArray] = {}
+        self._energy_port: dict[EnergyDemandTypeID, FloatArray] = {}
 
         # consumed
-        self._consumed_mass: dict[str, FloatArray] = {}  # consumed fuel, tons/year
+        self._consumed_mass: dict[str, FloatArray] = {}
 
         # converter
-        self._converter_mass: dict[FuelTypeID, dict[str, FloatArray]] = {}  # tons/year
+        self._converter_mass: dict[FuelTypeID, dict[str, FloatArray]] = {}
 
         # emissions
-        self._wtt: dict[tuple[str, str], FloatArray] = {}  # WTT emissions, tons/year
-        self._ttw: dict[tuple[str, str], FloatArray] = {}  # TTW emissions, tons/year
+        self._wtt: dict[tuple[str, str], FloatArray] = {}
+        self._ttw: dict[tuple[str, str], FloatArray] = {}
 
         # expenses
-        self._fuel_expenses: dict[str, FloatArray] = {}  # fuel purchases, USD/year
-        self._levy_expenses: dict[str, FloatArray] = {}  # fuel levies, USD/year
-        self._remedial_expenses: FloatArray = EMPTY_FLOAT  # USD/year
-        self._remedial_units: dict[str, FloatArray] = {}  # per policy, units/year
-        self._levy_units: dict[str, FloatArray] = {}  # per policy, units/year
-        self._flexibility_expenses: FloatArray = EMPTY_FLOAT  # USD/year
-        self._surplus_revenue: FloatArray = EMPTY_FLOAT  # USD/year
+        self._fuel_expenses: dict[str, FloatArray] = {}
+        self._levy_expenses: dict[str, FloatArray] = {}
+        self._remedial_expenses: FloatArray = EMPTY_FLOAT
+        self._remedial_units: dict[str, FloatArray] = {}
+        self._levy_units: dict[str, FloatArray] = {}
+        self._flexibility_expenses: FloatArray = EMPTY_FLOAT
+        self._surplus_revenue: FloatArray = EMPTY_FLOAT
 
         # shore power (WTW-lumped emission, no fuel attribution)
-        self._shore_power_energy: FloatArray = EMPTY_FLOAT  # GJ/year
-        self._shore_power_expenses: FloatArray = EMPTY_FLOAT  # USD/year
-        self._shore_power_emission: dict[str, FloatArray] = {}  # ton/year
+        self._shore_power_energy: FloatArray = EMPTY_FLOAT
+        self._shore_power_expenses: FloatArray = EMPTY_FLOAT
+        self._shore_power_emission: dict[str, FloatArray] = {}
 
     def _initialize_fuel_consumer(
         self,

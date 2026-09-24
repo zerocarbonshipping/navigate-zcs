@@ -22,7 +22,7 @@ class LevyProfile(_BaseProfile):
     def __init__(self) -> None:
         super().__init__()
 
-        self._collected: FloatArray = EMPTY_FLOAT  # levy revenue, USD/year
+        self._collected: FloatArray = EMPTY_FLOAT
 
     def initialize(self, timeline: FloatArray) -> None:
         self._initialize_base(timeline)

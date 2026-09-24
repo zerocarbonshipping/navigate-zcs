@@ -22,7 +22,7 @@ class LevyExpectation(_PolicyExpectation):
     def __init__(self) -> None:
         super().__init__()
 
-        self._level: FloatArray = EMPTY_FLOAT  # levy level, USD/ton emission
+        self._level: FloatArray = EMPTY_FLOAT
 
     def initialize(self, length: int, emission_names: Iterable[str]) -> None:
         self._initialize_expectation(length)

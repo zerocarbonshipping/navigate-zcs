@@ -26,10 +26,10 @@ class _FuelProducerProfile(_FuelBaseProfile, _FuelTypeLookup):
     def __init__(self) -> None:
         super().__init__()
 
-        self._production_mass: dict[str, FloatArray] = {}  # produced, tons/year
+        self._production_mass: dict[str, FloatArray] = {}
 
-        self._feed_mass: dict[str, FloatArray] = {}  # feedstock used, ton/year
-        self._feed_constraint: dict[str, FloatArray] = {}  # feed available, ton/year
+        self._feed_mass: dict[str, FloatArray] = {}
+        self._feed_constraint: dict[str, FloatArray] = {}
 
     def _initialize_fuel_producer(
         self,

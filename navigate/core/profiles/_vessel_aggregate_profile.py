@@ -24,28 +24,25 @@ class _VesselAggregateProfile(_FuelConsumerProfile):
     def __init__(self) -> None:
         super().__init__()
 
-        # counterfactual raw energy: year-0 raw intensity times actual transport work
-        self._baseline_energy: FloatArray = EMPTY_FLOAT  # GJ/year
+        self._baseline_energy: FloatArray = EMPTY_FLOAT
 
         # power
-        self._installed_power: dict[FuelTypeID, FloatArray] = {}  # MW
-        self._newbuild_power: dict[FuelTypeID, FloatArray] = {}  # added, MW/year
-        self._scrapped_power: dict[FuelTypeID, FloatArray] = {}  # scrapped, MW/year
-        # power moved from one fuel type to another, MW/year
+        self._installed_power: dict[FuelTypeID, FloatArray] = {}
+        self._newbuild_power: dict[FuelTypeID, FloatArray] = {}
+        self._scrapped_power: dict[FuelTypeID, FloatArray] = {}
         self._fuel_converted_power: dict[tuple[FuelTypeID, FuelTypeID], FloatArray] = {}
 
         # expenses
-        self._vessel_expenses: FloatArray = EMPTY_FLOAT  # acquisition, USD/year
-        self._technology_expenses: FloatArray = EMPTY_FLOAT  # USD/year
-        self._fuel_conversion_expenses: FloatArray = EMPTY_FLOAT  # USD/year
-        self._vessel_tied_capital: FloatArray = EMPTY_FLOAT  # USD
+        self._vessel_expenses: FloatArray = EMPTY_FLOAT
+        self._technology_expenses: FloatArray = EMPTY_FLOAT
+        self._fuel_conversion_expenses: FloatArray = EMPTY_FLOAT
+        self._vessel_tied_capital: FloatArray = EMPTY_FLOAT
 
         # weighted average age (numerator and denominator for correct aggregation)
-        self._weighted_age_numerator: dict[FuelTypeID, FloatArray] = {}  # age * power
-        self._weighted_age_denominator: dict[FuelTypeID, FloatArray] = {}  # power
+        self._weighted_age_numerator: dict[FuelTypeID, FloatArray] = {}
+        self._weighted_age_denominator: dict[FuelTypeID, FloatArray] = {}
 
-        # fuel demand at the minimum pilot fuel share
-        self._fuel_type_demand: dict[FuelTypeID, FloatArray] = {}  # GJ/year
+        self._fuel_type_demand: dict[FuelTypeID, FloatArray] = {}
 
     def _initialize_vessel_aggregate(self) -> None:
         self._baseline_energy = self._default_array()

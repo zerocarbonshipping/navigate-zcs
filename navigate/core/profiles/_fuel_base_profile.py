@@ -21,7 +21,7 @@ class _FuelBaseProfile(_BaseProfile):
     def __init__(self) -> None:
         super().__init__()
 
-        self._lower_heating_value: dict[str, float] = {}  # GJ/ton
+        self._lower_heating_value: dict[str, float] = {}
 
     def _initialize_fuel_base(self, fuels: dict[str, Fuel]) -> None:
         """

@@ -21,36 +21,22 @@ class _PolicyExpectation(_Expectation):
     def __init__(self) -> None:
         super().__init__()
 
-        self._global_warming_potential: dict[
-            str, float
-        ] = {}  # ton CO2 equivalent per ton emitted
+        self._global_warming_potential: dict[str, float] = {}
 
         # for levy the key is:       (port_name, fuel_name, emission_name)
         # for regulation the key is: (vessel_name, fuel_name, emission_name)
-        self._expected_wtt: dict[
-            tuple[str, ...], FloatArray
-        ] = {}  # well-to-tank emissions of expected bunkering, ton e/ton f
-        self._existing_wtt: dict[
-            tuple[str, ...], FloatArray
-        ] = {}  # well-to-tank emissions of existing bunkering, ton e/ton f
+        self._expected_wtt: dict[tuple[str, ...], FloatArray] = {}
+        self._existing_wtt: dict[tuple[str, ...], FloatArray] = {}
 
         # for levy the key is:       (vessel_name, fuel_name, emission_name)
         # for regulation the key is: (converter_name, fuel_name, emission_name)
-        self._ttw_consumption: dict[
-            tuple[str, ...], FloatArray
-        ] = {}  # tank-to-wake emissions from combustion, ton e/ton f
-        self._ttw_slip: dict[
-            tuple[str, ...], FloatArray
-        ] = {}  # tank-to-wake emissions from unburnt fuel slip, ton e/ton f
+        self._ttw_consumption: dict[tuple[str, ...], FloatArray] = {}
+        self._ttw_slip: dict[tuple[str, ...], FloatArray] = {}
 
         # for levy the key is:       (vessel_name, port_name, fuel_name)
         # for regulation the key is: (vessel_name, converter_name, fuel_name)
-        self._expected_coefficient: dict[
-            tuple[str, ...], FloatArray
-        ] = {}  # emissions charged on expected bunkering, ton e/ton f
-        self._existing_coefficient: dict[
-            tuple[str, ...], FloatArray
-        ] = {}  # emissions charged on existing bunkering, ton e/ton f
+        self._expected_coefficient: dict[tuple[str, ...], FloatArray] = {}
+        self._existing_coefficient: dict[tuple[str, ...], FloatArray] = {}
 
     def _initialize_policy_expectation(self, emission_names: Iterable[str]) -> None:
 
