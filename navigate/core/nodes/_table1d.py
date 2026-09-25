@@ -12,6 +12,7 @@ from scipy.interpolate import interp1d
 from navigate.core import assign_id, assign_value
 from navigate.core.enum_ import ExtrapolateID, Interpolate1DID
 from navigate.core.nodes._calculator import _Calculator
+from navigate.exceptions import no_value_assigned_error
 from navigate.logging_ import log_extrapolate_bounds
 from navigate.util import find_nearest, is_strictly_increasing
 
@@ -36,8 +37,8 @@ class _Table1D(_Calculator):
         self._above: NumberInput | None = None
 
         # internal variables -----------------------------------------------------------
-        self.x: FloatArray | None = None
-        self.y: FloatArray | None = None
+        self._x: FloatArray | None = None
+        self._y: FloatArray | None = None
         self._table: interp1d | None = None
         self._is_convex: bool = False  # set with the table
 
@@ -48,8 +49,8 @@ class _Table1D(_Calculator):
 
     def __setstate__(self, state):
         self.__dict__.update(state)
-        if self.x is not None and self.y is not None:
-            self._set_table(self.x, self.y)
+        if self._x is not None and self._y is not None:
+            self._set_table(self._x, self._y)
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_interpolate(self, interpolate):
@@ -167,8 +168,8 @@ class _Table1D(_Calculator):
 
         self._check_interpolate_extrapolate_consistency()
 
-        self.x = x
-        self.y = y
+        self._x = x
+        self._y = y
 
         self._is_convex = self._test_convexity(x, y)
 
@@ -179,6 +180,20 @@ class _Table1D(_Calculator):
             bounds_error=self._get_allow_extrapolate_internal(),
             fill_value=self._get_extrapolate_internal(),
         )
+
+    @property
+    def x(self) -> FloatArray:
+        if self._x is None:
+            no_value_assigned_error(self, "Table")
+
+        return self._x
+
+    @property
+    def y(self) -> FloatArray:
+        if self._y is None:
+            no_value_assigned_error(self, "Table")
+
+        return self._y
 
 
 def check_table1d_input(x, y):

@@ -47,8 +47,8 @@ class Producer(_AssetManager):
         # external variables -----------------------------------------------------------
         # plant uptake
         self.minimum_offtake_duration: ForecastInput = Scalar(1.0)
-        self.fuel_demand_sensitivity: ForecastInput | None = None
-        self.fuel_cost_sensitivity: ForecastInput | None = None
+        self._fuel_demand_sensitivity: ForecastInput | None = None
+        self._fuel_cost_sensitivity: ForecastInput | None = None
 
         # initial conditions
         self._initial_capacity: list[ScalarInput] = []
@@ -57,7 +57,7 @@ class Producer(_AssetManager):
         self.existing_pipelines: dict[str, Forecast | Expression | None] = {}
 
         # constraints
-        self.maximum_development: ForecastInput | None = None
+        self._maximum_development: ForecastInput | None = None
         self.feed_constraints: dict[str, ForecastInput | None] = {}
         self.jump_start_fraction: NumberInput = 0.1
         self.maximum_ramp_up: ForecastInput = Scalar(1.0)
@@ -142,7 +142,7 @@ class Producer(_AssetManager):
         fuel_demand_sensitivity : float | Node
             Odds ratio for a 10% higher expected demand in the between-pathway choice.
         """
-        self.fuel_demand_sensitivity = assign_value(
+        self._fuel_demand_sensitivity = assign_value(
             as_scalar(fuel_demand_sensitivity),
             type_=(FORECAST, VARIABLE),
             lower=0.0,
@@ -168,7 +168,7 @@ class Producer(_AssetManager):
         fuel_cost_sensitivity : float | Node
             Odds ratio for a 10% higher LCoF in the within-pathway plant choice.
         """
-        self.fuel_cost_sensitivity = assign_value(
+        self._fuel_cost_sensitivity = assign_value(
             as_scalar(fuel_cost_sensitivity),
             type_=(FORECAST, VARIABLE),
             lower=0.0,
@@ -208,7 +208,7 @@ class Producer(_AssetManager):
         maximum_development : float | Node
             Maximum developments of plants per year.
         """
-        self.maximum_development = assign_value(
+        self._maximum_development = assign_value(
             as_scalar(maximum_development), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
@@ -358,13 +358,13 @@ class Producer(_AssetManager):
         if not self.assets:
             no_value_assigned_error(self, "Plants")
 
-        if self.fuel_demand_sensitivity is None:
+        if self._fuel_demand_sensitivity is None:
             no_value_assigned_error(self, "FuelDemandSensitivity")
 
-        if self.fuel_cost_sensitivity is None:
+        if self._fuel_cost_sensitivity is None:
             no_value_assigned_error(self, "FuelCostSensitivity")
 
-        if self.maximum_development is None:
+        if self._maximum_development is None:
             no_value_assigned_error(self, "MaximumDevelopment")
 
     def check_consistency(self) -> None:
@@ -487,3 +487,24 @@ class Producer(_AssetManager):
 
     def can_produce(self, fuel_name):
         return fuel_name in self.fuels
+
+    @property
+    def fuel_demand_sensitivity(self) -> ForecastInput:
+        if self._fuel_demand_sensitivity is None:
+            no_value_assigned_error(self, "FuelDemandSensitivity")
+
+        return self._fuel_demand_sensitivity
+
+    @property
+    def fuel_cost_sensitivity(self) -> ForecastInput:
+        if self._fuel_cost_sensitivity is None:
+            no_value_assigned_error(self, "FuelCostSensitivity")
+
+        return self._fuel_cost_sensitivity
+
+    @property
+    def maximum_development(self) -> ForecastInput:
+        if self._maximum_development is None:
+            no_value_assigned_error(self, "MaximumDevelopment")
+
+        return self._maximum_development

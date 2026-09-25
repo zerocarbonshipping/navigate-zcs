@@ -8,7 +8,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from navigate.core.profiles._base_profile import _BaseProfile
-from navigate.exceptions import no_value_assigned_error
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fuel import Fuel
@@ -33,9 +32,6 @@ class _FuelBaseProfile(_BaseProfile):
             All fuels in the simulation.
         """
         for fuel_name, fuel in fuels.items():
-            if fuel.lower_heating_value is None:
-                no_value_assigned_error(fuel, "LowerHeatingValue")
-
             # a heating value read without an input is one number, while the
             # getter's return type also covers the array an array input produces
             self._lower_heating_value[fuel_name] = float(fuel.lower_heating_value.get())

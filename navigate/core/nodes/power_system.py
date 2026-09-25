@@ -22,9 +22,9 @@ class PowerSystem(_Machinery):
 
         # external variables -----------------------------------------------------------
         # converters
-        self.propulsion: Converter | None = None
-        self.electrical: Converter | None = None
-        self.heat: Converter | None = None
+        self._propulsion: Converter | None = None
+        self._electrical: Converter | None = None
+        self._heat: Converter | None = None
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_propulsion(self, propulsion):
@@ -40,7 +40,7 @@ class PowerSystem(_Machinery):
         propulsion : Node
             A converter used to satisfy the propulsion demand.
         """
-        self.propulsion = assign_value(propulsion, scalar=False, type_=CONVERTER)
+        self._propulsion = assign_value(propulsion, scalar=False, type_=CONVERTER)
 
     def set_electrical(self, electrical):
         """
@@ -55,7 +55,7 @@ class PowerSystem(_Machinery):
         electrical : Node
             A converter used to satisfy the electrical demand.
         """
-        self.electrical = assign_value(electrical, scalar=False, type_=CONVERTER)
+        self._electrical = assign_value(electrical, scalar=False, type_=CONVERTER)
 
     def set_heat(self, heat):
         """
@@ -70,18 +70,18 @@ class PowerSystem(_Machinery):
         heat : Node
             A converter used to satisfy the heat demand.
         """
-        self.heat = assign_value(heat, scalar=False, type_=CONVERTER)
+        self._heat = assign_value(heat, scalar=False, type_=CONVERTER)
 
     # internal methods -----------------------------------------------------------------
     def check_requirements(self) -> None:
 
-        if not self.propulsion:
+        if not self._propulsion:
             no_value_assigned_error(self, "Propulsion")
 
-        if not self.electrical:
+        if not self._electrical:
             no_value_assigned_error(self, "Electrical")
 
-        if not self.heat:
+        if not self._heat:
             no_value_assigned_error(self, "Heat")
 
     def check_consistency(self) -> None:
@@ -105,3 +105,24 @@ class PowerSystem(_Machinery):
                 return self.electrical
             case EnergyDemandTypeID.HEAT:
                 return self.heat
+
+    @property
+    def propulsion(self) -> Converter:
+        if self._propulsion is None:
+            no_value_assigned_error(self, "Propulsion")
+
+        return self._propulsion
+
+    @property
+    def electrical(self) -> Converter:
+        if self._electrical is None:
+            no_value_assigned_error(self, "Electrical")
+
+        return self._electrical
+
+    @property
+    def heat(self) -> Converter:
+        if self._heat is None:
+            no_value_assigned_error(self, "Heat")
+
+        return self._heat

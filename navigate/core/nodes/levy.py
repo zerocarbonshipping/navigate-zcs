@@ -53,7 +53,7 @@ class Levy(_Policy):
         scheme : str
             Levy scheme.
         """
-        self.scheme = assign_id(scheme, LevySchemeID)
+        self._scheme = assign_id(scheme, LevySchemeID)
 
     def set_level(self, level):
         """
@@ -120,7 +120,7 @@ class Levy(_Policy):
     def check_requirements(self) -> None:
         super().check_requirements()
 
-        if self.scheme is None:
+        if self._scheme is None:
             no_value_assigned_error(self, "Scheme")
 
     def check_consistency(self) -> None:

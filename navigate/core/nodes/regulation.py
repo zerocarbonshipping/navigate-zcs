@@ -32,7 +32,7 @@ class Regulation(_Policy):
         super().__init__(name, REGULATION)
 
         # external variables -----------------------------------------------------------
-        self.measure: RegulationMeasureID | None = None
+        self._measure: RegulationMeasureID | None = None
 
         self.intra_fraction: ForecastInput = Scalar(1.0)
         self.inter_fraction: ForecastInput = Scalar(1.0)
@@ -76,7 +76,7 @@ class Regulation(_Policy):
         scheme : str
             Regulation scheme.
         """
-        self.scheme = assign_id(scheme, RegulationSchemeID)
+        self._scheme = assign_id(scheme, RegulationSchemeID)
 
     def set_measure(self, measure):
         """
@@ -99,7 +99,7 @@ class Regulation(_Policy):
         measure : str
             Emission measure.
         """
-        self.measure = assign_id(measure, RegulationMeasureID)
+        self._measure = assign_id(measure, RegulationMeasureID)
 
     def set_intra_fraction(self, intra_fraction):
         """
@@ -287,10 +287,10 @@ class Regulation(_Policy):
     def check_requirements(self) -> None:
         super().check_requirements()
 
-        if self.scheme is None:
+        if self._scheme is None:
             no_value_assigned_error(self, "Scheme")
 
-        if self.measure is None:
+        if self._measure is None:
             no_value_assigned_error(self, "Measure")
 
     def check_consistency(self) -> None:
@@ -367,3 +367,10 @@ class Regulation(_Policy):
         for vessel_name, threshold in self.vessel_threshold.items():
             if self.vessel_is_policed(vessel_name):
                 self.profile.set_vessel_threshold(idx, vessel_name, threshold.get())
+
+    @property
+    def measure(self) -> RegulationMeasureID:
+        if self._measure is None:
+            no_value_assigned_error(self, "Measure")
+
+        return self._measure

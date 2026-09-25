@@ -28,12 +28,12 @@ class Fuel(Node):
 
         # external variables -----------------------------------------------------------
         # definition
-        self.fuel_type: FuelTypeID | None = None
+        self._fuel_type: FuelTypeID | None = None
         self.liquid_market: bool = False
 
         # physical properties
-        self.lower_heating_value: ScalarInput | None = None
-        self.mass_density: ScalarInput | None = None
+        self._lower_heating_value: ScalarInput | None = None
+        self._mass_density: ScalarInput | None = None
 
         # emissions
         self.ttw: dict[str, ScalarInput] = {}
@@ -54,7 +54,7 @@ class Fuel(Node):
         fuel_type : str
             Type of fuel.
         """
-        self.fuel_type = assign_id(fuel_type, FuelTypeID)
+        self._fuel_type = assign_id(fuel_type, FuelTypeID)
 
     def set_liquid_market(self, liquid_market):
         """
@@ -89,7 +89,7 @@ class Fuel(Node):
         lower_heating_value : float | Node
             The lower heating value of the fuel in GJ/ton.
         """
-        self.lower_heating_value = assign_value(
+        self._lower_heating_value = assign_value(
             as_scalar(lower_heating_value), type_=VARIABLE, lower=0.0
         )
 
@@ -106,7 +106,7 @@ class Fuel(Node):
         mass_density : float | Node
             The mass density of the fuel.
         """
-        self.mass_density = assign_value(
+        self._mass_density = assign_value(
             as_scalar(mass_density), type_=VARIABLE, lower=0.0
         )
 
@@ -134,13 +134,13 @@ class Fuel(Node):
     # internal methods -----------------------------------------------------------------
     def check_requirements(self) -> None:
 
-        if self.fuel_type is None:
+        if self._fuel_type is None:
             no_value_assigned_error(self, "FuelType")
 
-        if self.lower_heating_value is None:
+        if self._lower_heating_value is None:
             no_value_assigned_error(self, "LowerHeatingValue")
 
-        if self.mass_density is None:
+        if self._mass_density is None:
             no_value_assigned_error(self, "MassDensity")
 
     def check_consistency(self) -> None:
@@ -166,3 +166,24 @@ class Fuel(Node):
         """
         for emission_name in emissions:
             self.ttw.setdefault(emission_name, Scalar(0.0))
+
+    @property
+    def fuel_type(self) -> FuelTypeID:
+        if self._fuel_type is None:
+            no_value_assigned_error(self, "FuelType")
+
+        return self._fuel_type
+
+    @property
+    def lower_heating_value(self) -> ScalarInput:
+        if self._lower_heating_value is None:
+            no_value_assigned_error(self, "LowerHeatingValue")
+
+        return self._lower_heating_value
+
+    @property
+    def mass_density(self) -> ScalarInput:
+        if self._mass_density is None:
+            no_value_assigned_error(self, "MassDensity")
+
+        return self._mass_density

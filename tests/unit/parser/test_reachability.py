@@ -75,10 +75,10 @@ class TestFindUnreachable:
         nodes.ports["port"] = port = Port("port")
 
         fleet.assets = [vessel]
-        vessel.power_system = power_system
+        vessel._power_system = power_system
         vessel.tanks = [tank]
-        vessel.route = route
-        power_system.propulsion = converter
+        vessel._route = route
+        power_system._propulsion = converter
         route.ports = [port]
 
         return nodes
@@ -94,7 +94,7 @@ class TestFindUnreachable:
         nodes.routes["orphan_route"] = orphan_route = Route("orphan_route")
         nodes.ports["orphan_port"] = orphan_port = Port("orphan_port")
 
-        orphan_vessel.route = orphan_route
+        orphan_vessel._route = orphan_route
         orphan_route.ports = [nodes.ports["port"], orphan_port]
 
         unreachable = find_unreachable(nodes, GeneralNodes(), {})
@@ -115,7 +115,7 @@ class TestFindUnreachable:
         nodes.processes["d"] = process_d = Process("d")
 
         producer.assets = [plant]
-        plant.process = process_a
+        plant._process = process_a
         process_a.feeds = [process_b]
         process_b.feeds = [process_a]
         process_c.feeds = [process_d]

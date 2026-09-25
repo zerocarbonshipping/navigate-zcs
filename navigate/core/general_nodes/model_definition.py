@@ -18,7 +18,7 @@ class ModelDefinition(_GeneralNode):
         super().__init__()
 
         # external variables -----------------------------------------------------------
-        self.start_date: np.datetime64 | None = None
+        self._start_date: np.datetime64 | None = None
         self.emissions_lifetime: float = 100.0
 
     # external methods (DSL attributes) ------------------------------------------------
@@ -36,7 +36,7 @@ class ModelDefinition(_GeneralNode):
         start_date : np.datetime64
             Assignment read from input deck.
         """
-        self.start_date = assign_value(start_date, scalar=False, date=True)
+        self._start_date = assign_value(start_date, scalar=False, date=True)
 
     def set_emissions_lifetime(self, emissions_lifetime):
         """
@@ -56,5 +56,12 @@ class ModelDefinition(_GeneralNode):
     # internal methods -----------------------------------------------------------------
     def check_requirements(self) -> None:
 
-        if self.start_date is None:
+        if self._start_date is None:
             no_value_assigned_error(self, "StartDate")
+
+    @property
+    def start_date(self) -> np.datetime64:
+        if self._start_date is None:
+            no_value_assigned_error(self, "StartDate")
+
+        return self._start_date

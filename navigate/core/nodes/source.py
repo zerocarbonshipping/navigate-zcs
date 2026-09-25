@@ -15,7 +15,7 @@ class Source(Node):
         super().__init__(name, SOURCE)
 
         # external variables -----------------------------------------------------------
-        self.dependency: SourceDependencyID | None = None
+        self._dependency: SourceDependencyID | None = None
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_dependency(self, dependency):
@@ -32,9 +32,16 @@ class Source(Node):
         dependency : str
             Type of dependency.
         """
-        self.dependency = assign_id(dependency, SourceDependencyID)
+        self._dependency = assign_id(dependency, SourceDependencyID)
 
     # internal methods -----------------------------------------------------------------
     def check_requirements(self) -> None:
-        if self.dependency is None:
+        if self._dependency is None:
             no_value_assigned_error(self, "Dependency")
+
+    @property
+    def dependency(self) -> SourceDependencyID:
+        if self._dependency is None:
+            no_value_assigned_error(self, "Dependency")
+
+        return self._dependency

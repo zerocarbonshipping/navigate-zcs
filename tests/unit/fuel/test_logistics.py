@@ -57,8 +57,8 @@ def _make_plant(
     discount_rate=DISCOUNT_RATE,
 ) -> Plant:
     plant = Plant("plant")
-    plant.fuel = Fuel("oil")
-    plant.region = Region("region")
+    plant._fuel = Fuel("oil")
+    plant._region = Region("region")
     plant.set_cost_of_capital(discount_rate)
 
     plant.region.transport_cost["truck"] = (

@@ -59,12 +59,12 @@ class Vessel(Node):
         self.heat_load_in_port: ScalarInput = Scalar(0.0)
 
         # fuel based power
-        self.power_system: PowerSystem | Expression | None = None
+        self._power_system: PowerSystem | Expression | None = None
         self.tanks: list[Tank] = []
 
         # voyage
-        self.route: Route | Expression | None = None
-        self.nominal_capacity: ScalarInput | None = None
+        self._route: Route | Expression | None = None
+        self._nominal_capacity: ScalarInput | None = None
 
         # base cost
         self.capex: ForecastInput = Scalar(0.0)
@@ -239,7 +239,9 @@ class Vessel(Node):
         power_system : Node
             The powersystem used to convert fuel to energy.
         """
-        self.power_system = assign_value(power_system, scalar=False, type_=POWER_SYSTEM)
+        self._power_system = assign_value(
+            power_system, scalar=False, type_=POWER_SYSTEM
+        )
 
     def set_tanks(self, tanks):
         """
@@ -270,7 +272,7 @@ class Vessel(Node):
         route : Node
             The route the vessel is sailing on.
         """
-        self.route = assign_value(route, scalar=False, type_=ROUTE)
+        self._route = assign_value(route, scalar=False, type_=ROUTE)
 
     def set_nominal_capacity(self, nominal_capacity):
         """
@@ -293,7 +295,7 @@ class Vessel(Node):
         nominal_capacity : float | Node
             The nominal cargo carrying capacity of the vessel.
         """
-        self.nominal_capacity = assign_value(
+        self._nominal_capacity = assign_value(
             as_scalar(nominal_capacity), type_=VARIABLE, lower=0.0
         )
 
@@ -397,16 +399,16 @@ class Vessel(Node):
     # internal methods -----------------------------------------------------------------
     def check_requirements(self) -> None:
 
-        if self.power_system is None:
+        if self._power_system is None:
             no_value_assigned_error(self, "PowerSystem")
 
         if not self.tanks:
             no_value_assigned_error(self, "Tanks")
 
-        if self.route is None:
+        if self._route is None:
             no_value_assigned_error(self, "Route")
 
-        if self.nominal_capacity is None:
+        if self._nominal_capacity is None:
             no_value_assigned_error(self, "NominalCapacity")
 
     def initialize_expectation(self, length: int, fuels: dict[str, Fuel]) -> None:
@@ -449,3 +451,24 @@ class Vessel(Node):
             )
 
         self.fleet_assignment = fleet_name
+
+    @property
+    def power_system(self) -> PowerSystem | Expression:
+        if self._power_system is None:
+            no_value_assigned_error(self, "PowerSystem")
+
+        return self._power_system
+
+    @property
+    def route(self) -> Route | Expression:
+        if self._route is None:
+            no_value_assigned_error(self, "Route")
+
+        return self._route
+
+    @property
+    def nominal_capacity(self) -> ScalarInput:
+        if self._nominal_capacity is None:
+            no_value_assigned_error(self, "NominalCapacity")
+
+        return self._nominal_capacity

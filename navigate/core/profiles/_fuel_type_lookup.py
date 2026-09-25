@@ -9,7 +9,6 @@ from typing import TYPE_CHECKING
 
 from navigate.core.enum_ import FuelTypeID
 from navigate.core.profiles._base_profile import _BaseProfile
-from navigate.exceptions import no_value_assigned_error
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fuel import Fuel
@@ -37,9 +36,6 @@ class _FuelTypeLookup(_BaseProfile):
             All fuels in the simulation.
         """
         for fuel_name, fuel in fuels.items():
-            if fuel.fuel_type is None:
-                no_value_assigned_error(fuel, "FuelType")
-
             self._fuel_type[fuel_name] = fuel.fuel_type
 
     def _fuel_type_mass_to_energy(

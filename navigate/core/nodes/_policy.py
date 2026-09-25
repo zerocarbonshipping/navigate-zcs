@@ -38,7 +38,7 @@ class _Policy(Node):
         self.active: bool = True
 
         # design
-        self.scheme: LevySchemeID | RegulationSchemeID | None = None
+        self._scheme: LevySchemeID | RegulationSchemeID | None = None
         self.jurisdiction: list[Port] = []
 
         # emissions
@@ -350,3 +350,10 @@ class _Policy(Node):
             self.include_vessel[vessel_name]
             and self.in_jurisdiction_vessel[vessel_name]
         )
+
+    @property
+    def scheme(self) -> LevySchemeID | RegulationSchemeID:
+        if self._scheme is None:
+            no_value_assigned_error(self, "Scheme")
+
+        return self._scheme

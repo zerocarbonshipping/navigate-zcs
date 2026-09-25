@@ -22,7 +22,7 @@ def _mock_port(name):
 
 def _make_regional_route(voyage_distribution):
     route = Route("r")
-    route.route_type = RouteTypeID.REGIONAL_TRIP
+    route._route_type = RouteTypeID.REGIONAL_TRIP
     route.ports = [_mock_port("a"), _mock_port("b")]
     route.speeds = [Scalar(10.0)]
     route.condition_distribution = [1.0]

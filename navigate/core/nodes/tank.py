@@ -20,8 +20,8 @@ class Tank(_Machinery):
         super().__init__(name, TANK)
 
         # external variables -----------------------------------------------------------
-        self.fuel_types: list[FuelTypeID] | None = None
-        self.size: ScalarInput | None = None
+        self._fuel_types: list[FuelTypeID] | None = None
+        self._size: ScalarInput | None = None
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_fuel_types(self, fuel_types):
@@ -39,7 +39,7 @@ class Tank(_Machinery):
         fuel_types : list[str]
             List of fuel types which can be stored in the tank.
         """
-        self.fuel_types = assign_id_list(
+        self._fuel_types = assign_id_list(
             as_list(fuel_types), FuelTypeID, length=(1, None)
         )
 
@@ -56,15 +56,29 @@ class Tank(_Machinery):
         size : float
             Volumetric size of the tank in cubic meter.
         """
-        self.size = assign_value(as_scalar(size), type_=VARIABLE, lower=0.0)
+        self._size = assign_value(as_scalar(size), type_=VARIABLE, lower=0.0)
 
     # internal methods -----------------------------------------------------------------
     def check_requirements(self) -> None:
-        if self.fuel_types is None:
+        if self._fuel_types is None:
             no_value_assigned_error(self, "FuelTypes")
 
-        if self.size is None:
+        if self._size is None:
             no_value_assigned_error(self, "Size")
 
     def get_fuel_types(self):
         return self.fuel_types
+
+    @property
+    def fuel_types(self) -> list[FuelTypeID]:
+        if self._fuel_types is None:
+            no_value_assigned_error(self, "FuelTypes")
+
+        return self._fuel_types
+
+    @property
+    def size(self) -> ScalarInput:
+        if self._size is None:
+            no_value_assigned_error(self, "Size")
+
+        return self._size
