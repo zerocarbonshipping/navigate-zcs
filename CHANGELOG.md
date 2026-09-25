@@ -831,7 +831,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   run with a bare `FileNotFoundError` naming no deck line, so an assumptions
   tree without a user folder for a type could not reach the installation
   default at all. A node found in neither branch is reported by the existing
-  located "referenced but not found" error.
+  located "referenced but not found" error. A `Load` treats a missing
+  `modules/user/` or `modules/installation/` folder as empty in the same way,
+  falling through to the other branch and finally to the existing `No module
+  with name '...' was found.` error.
 - The reference manual states the units an emission intensity is reported
   and given in. The `RegulationMeasureID` appendix had INTENSITY in ton/GJ,
   a factor of 1000 out, and both transport measures in ton per cargo-mile, a
