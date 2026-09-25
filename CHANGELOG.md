@@ -834,6 +834,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   also states that a separate `Type("node_copy_from")` reference elsewhere in
   the deck pulls the source from the library again as its own, independent
   node, so both names end up registered.
+- The CLI rejects a deck path whose name is nothing but dots before `.nav`
+  (`..nav`, `...nav`), which `pathlib` read as carrying a `.nav` suffix and
+  an all-dots stem. `.nav` itself stays rejected, as before, since its
+  suffix is empty. No committed deck used such a name.
 - The reference manual states the units an emission intensity is reported
   and given in. The `RegulationMeasureID` appendix had INTENSITY in ton/GJ,
   a factor of 1000 out, and both transport measures in ton per cargo-mile, a

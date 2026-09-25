@@ -91,9 +91,7 @@ def setup_logger(path: Path, level: int = logging.INFO) -> logging.Logger:
     logging.Logger
         The configured root logger.
     """
-    # splitext treats a name whose stem is only dots as carrying no extension,
-    # so '..nav' logs to '..nav.log'
-    filename = os.path.splitext(path)[0] + ".log"
+    filename = Path(path).with_suffix(".log")
     file_handler = logging.FileHandler(filename, mode="w")
 
     global _LOG_FILE_NAME
