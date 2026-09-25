@@ -20,15 +20,7 @@ class NavigateError(Exception):
     package inherit from this common base so the top-level CLI handler in
     ``navigate.__main__`` can catch them as one group and present a friendly
     message.
-
-    Parameters
-    ----------
-    message
-        Message presented by the top-level handler.
     """
-
-    def __init__(self, message: str = "") -> None:
-        super().__init__(message)
 
 
 class DeckInsufficientError(NavigateError):
