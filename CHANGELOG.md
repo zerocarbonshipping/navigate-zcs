@@ -872,6 +872,21 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   values) the first time the calculator was read. `Multiplier` and `Addition`
   are evaluated with the inputs the table is looked up at, the fill values and
   every expression on a `Variable` without inputs (#226).
+- The order of the attributes inside a `Curve` or `Surface` definition no
+  longer matters. The table was built the moment `Table` was read, so
+  `Interpolate`, `Extrapolate`, `Below`, `Above` and `Outside` written after
+  it were silently ignored; the table is now built once the whole definition
+  is read, as a `Forecast` or `Timetable` table already was, and a setting
+  that conflicts with the table, such as `Interpolate = PREVIOUS` under the
+  default LINEAR extrapolation, now stops the deck. The default curves
+  `global_warming_potential_methane`, `global_warming_potential_nitrous_oxide`
+  and `technology_uptake` write `Extrapolate = FLAT` after their table, and
+  now extrapolate flat as written. Results change only where one of them is
+  looked up outside its table: methane's global warming potential at an
+  `EmissionsLifetime` below 20 or above 100 years is now 82.5 or 29.8
+  instead of a linear extrapolation, and `technology_uptake` below 0 is now
+  1.0. Nitrous oxide's table is constant, and no shipped deck looks the
+  other two up outside their tables, so no shipped result moves (#273).
 - The reference manual states the units an emission intensity is reported
   and given in. The `RegulationMeasureID` appendix had INTENSITY in ton/GJ,
   a factor of 1000 out, and both transport measures in ton per cargo-mile, a

@@ -15,7 +15,7 @@ from navigate.core.nodes._table2d import _Table2D, check_table2d_input
 from navigate.core.table_data import TableData, build_table_2d
 
 if TYPE_CHECKING:
-    from navigate.util import FloatLike
+    from navigate.util import FloatArray, FloatLike
 
 logger = logging.getLogger(__name__)
 
@@ -34,13 +34,17 @@ class Surface(Node, _Table2D):
         Node.__init__(self, name, SURFACE)
         _Table2D.__init__(self)
 
+        # used for temporary storage of the table during deck parsing
+        self._temporary_table: tuple[FloatArray, FloatArray, FloatArray] | None = None
+
     def set_table(self, table: TableData) -> None:
         """
         Set the table of x-, y- and z-values the surface interpolates in.
 
         Both the x-values and the y-values must be strictly increasing, and the
         number of z-values must equal the number of x-values times the number of
-        y-values.
+        y-values. The table is built once the whole definition has been read, so
+        the order of the attributes within the definition does not matter.
 
         Parameters
         ----------
@@ -50,7 +54,16 @@ class Surface(Node, _Table2D):
         """
         x, y, z = build_table_2d(table)
         check_table2d_input(x, y, z)
+        self._temporary_table = (x, y, z)
+
+    def build_table(self) -> None:
+        """Build the pending table with the interpolation and extrapolation set."""
+        if self._temporary_table is None:
+            return
+
+        x, y, z = self._temporary_table
         self._set_table(x, y, z)
+        self._temporary_table = None
 
     def check_consistency(self) -> None:
         if self.extrapolate == ExtrapolateID.FLAT:

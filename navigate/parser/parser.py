@@ -1064,10 +1064,10 @@ class Parser:
         """
         Replace references, execute commands, initialize nodes.
 
-        The sequence is: expand held-back wildcards → replace refs → replace
+        The sequence is: expand held-back wildcards → replace refs → build
         tables → prune unreachable nodes and check required attributes (DEFINE
         pass only) → init dicts → execute commands → replace refs again
-        (commands may create new ones) → replace tables again → run the node
+        (commands may create new ones) → build tables again → run the node
         lifecycle hooks, whose requirement checks, the required attributes'
         among them, run on the DEFINE pass only.
         """
@@ -1075,7 +1075,7 @@ class Parser:
 
         self._flush_pending_assignments()
         self._replace_references()
-        self._replace_temporary_tables()
+        self._build_tables()
 
         # prune before the dependency dicts are seeded so no dict carries a
         # key for a node that is absent from the registry; the per-time-step
@@ -1092,7 +1092,7 @@ class Parser:
         self._execute_commands()
 
         self._replace_references()
-        self._replace_temporary_tables()
+        self._build_tables()
 
         self._initialize_nodes()
 
@@ -1331,12 +1331,24 @@ class Parser:
 
         node.clear_command_references()
 
-    def _replace_temporary_tables(self):
+    def _build_tables(self):
+        """
+        Build the tables set since the last pass, rebasing dated ones to the start.
+
+        A table is built once its whole definition is read, so the interpolation
+        and extrapolation settings apply wherever the definition writes them.
+        """
         start_date = self.general_nodes.model_definition.start_date
 
         for node in (*self.nodes.forecasts.values(), *self.nodes.timetables.values()):
             try:
                 node.replace_reference_table(start_date)
+            except ValueError as e:
+                raise AttributeAssignmentError(f"{node}: {e!s}") from None
+
+        for node in (*self.nodes.curves.values(), *self.nodes.surfaces.values()):
+            try:
+                node.build_table()
             except ValueError as e:
                 raise AttributeAssignmentError(f"{node}: {e!s}") from None
 
