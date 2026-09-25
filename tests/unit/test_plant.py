@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import pytest
 
+from navigate.core.expression import Expression
 from navigate.core.nodes.fuel import Fuel
 from navigate.core.nodes.plant import Plant
 from navigate.core.nodes.process import Process
@@ -60,3 +61,24 @@ class TestLiquidMarketGuard:
 
         with pytest.raises(ValueError, match="belongs to a liquid market"):
             plant.initialize()
+
+
+class TestNodeReferences:
+    def test_fuel_rejects_an_expression(self):
+        with pytest.raises(ValueError, match="nodes of type Fuel, but got expression"):
+            Plant("plant").set_fuel(Expression('Fuel("x")'))
+
+    @pytest.mark.parametrize(
+        "value",
+        [Expression('Transport("x")'), 3.0],
+        ids=["expression", "scalar"],
+    )
+    def test_fuel_transport_takes_only_a_transport(self, value):
+        # a transport is read as the node itself, so neither a number nor an
+        # expression has a meaning there
+        plant = _make_plant()
+
+        with pytest.raises(
+            ValueError, match="only allows assignment of nodes of type Transport"
+        ):
+            plant.set_fuel_transport("port_a", value)

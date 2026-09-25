@@ -21,11 +21,12 @@ from navigate.core.nodes.curve import Curve
 from navigate.util import YEAR
 
 if TYPE_CHECKING:
-    from navigate.core.expression import Expression
     from navigate.core.nodes.input_kinds import ForecastInput
+    from navigate.core.nodes.plant import Plant
+    from navigate.core.nodes.vessel import Vessel
 
 
-class _AssetManager(Node):
+class _AssetManager[A: Vessel | Plant](Node):
     """Track asset-type increments via a discrete-choice investment model."""
 
     def __init__(self, name: str, type_: str) -> None:
@@ -36,10 +37,10 @@ class _AssetManager(Node):
         self.inertia: ForecastInput = Scalar(0.0)
 
         # initial conditions
-        self._initial_age_distribution: list[Scalar | Curve | Expression] = []
+        self._initial_age_distribution: list[Scalar | Curve] = []
 
         # asset types (vessels or plants)
-        self.assets: list = []
+        self.assets: list[A] = []
 
         # internal variables -----------------------------------------------------------
         self.increments: list[list[Increment]] = []
@@ -76,9 +77,7 @@ class _AssetManager(Node):
 
     def set_initial_age_distribution(
         self,
-        initial_age_distribution: (
-            float | Curve | Expression | list[float | Curve | Expression]
-        ),
+        initial_age_distribution: (float | Curve | list[float | Curve]),
     ) -> None:
         """
         Set the initial age distribution of each asset type.
@@ -97,9 +96,12 @@ class _AssetManager(Node):
         initial_age_distribution
             List of Curve references for the age distribution of each asset type.
         """
-        entries: list[float | Curve | Expression] = as_list(initial_age_distribution)
+        entries: list[float | Curve] = as_list(initial_age_distribution)
         self._initial_age_distribution = assign_list(
-            [as_scalar(entry) for entry in entries], type_=CURVE, lower=0.0
+            [as_scalar(entry) for entry in entries],
+            type_=CURVE,
+            lower=0.0,
+            expression=False,
         )
 
     # internal methods -----------------------------------------------------------------

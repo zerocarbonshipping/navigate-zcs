@@ -7,7 +7,9 @@ from __future__ import annotations
 
 import pytest
 
+from navigate.core.expression import Expression
 from navigate.core.increment import Increment
+from navigate.core.nodes.fleet import Fleet
 from navigate.core.nodes.producer import Producer
 from navigate.util import YEAR
 
@@ -27,3 +29,20 @@ class TestUpdateIncrementAges:
         assert producer.increments[0][0].age == pytest.approx(2.5)
         assert producer.pipeline[0][0].age == pytest.approx(-1.0)
         assert producer.pipeline[0][0].decided == pytest.approx(0.5)
+
+
+class TestExpressionsRejected:
+    """Inputs read for their table, never evaluated, take no expression."""
+
+    def test_existing_pipeline(self):
+        producer = Producer("producer")
+        producer.existing_pipelines = {"plant": None}
+
+        with pytest.raises(
+            ValueError, match="nodes of type Forecast, but got expression"
+        ):
+            producer.set_existing_pipeline("plant", Expression('Forecast("f") * 2'))
+
+    def test_initial_age_distribution(self):
+        with pytest.raises(ValueError, match="nodes of type Curve, but got expression"):
+            Fleet("fleet").set_initial_age_distribution([Expression('Curve("c")')])

@@ -6,7 +6,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, overload
 
 from navigate.core.enum_ import ExtrapolateID
 from navigate.core.node import Node
@@ -18,7 +18,7 @@ from navigate.util import is_date_array, timedelta_to_days
 if TYPE_CHECKING:
     import numpy as np
 
-    from navigate.util import DateArray, FloatArray
+    from navigate.util import DateArray, FloatArray, FloatLike
 
 logger = logging.getLogger(__name__)
 
@@ -105,7 +105,18 @@ class Timetable(Node, _Table2D):
         """
         self._current_time = time
 
-    def get(self, x: float | None = None, y: float | None = None) -> float:
+    @overload
+    def get(self, x: float | None = None, y: float | None = None) -> float: ...
+
+    @overload
+    def get(self, x: FloatArray, y: FloatLike | None = None) -> FloatArray: ...
+
+    @overload
+    def get(
+        self, x: FloatLike | None = None, y: FloatLike | None = None
+    ) -> FloatLike: ...
+
+    def get(self, x: FloatLike | None = None, y: FloatLike | None = None) -> FloatLike:
         """
         Return the timetable value at (x, y), with x defaulting to the current time.
 
@@ -119,8 +130,8 @@ class Timetable(Node, _Table2D):
 
         Returns
         -------
-        float
-            Response variable.
+        float or FloatArray
+            Response variable, in the shape of the inputs.
 
         Raises
         ------

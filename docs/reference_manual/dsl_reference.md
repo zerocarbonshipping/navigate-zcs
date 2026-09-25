@@ -224,6 +224,12 @@ Attribute = <0.5 * Forecast("name_1") + Forecast("name_2")>
 set_command("key", <0.5 * Forecast("name_1") + Forecast("name_2")>)
 ```
 
+An expression is accepted only where the value is used as a number: an attribute or command that accepts scalars, or one accepting a Curve, Forecast, Surface, Timetable, or Variable that it evaluates. Where a node is expected as such — a `Port` in `Jurisdiction`, a `Fuel` on a `Plant`, the Curves of `InitialAgeDistribution`, or the Forecast of `set_existing_pipeline`, which are read as tables — an expression is rejected when the deck is loaded, even one that only names the node:
+
+```python
+Jurisdiction = <Port("name")>    # rejected; write Jurisdiction = Port("name")
+```
+
 Expressions are restricted arithmetic, not general Python. The only accepted syntax is: numeric literals (including scientific notation such as `1e6`), the operators `+`, `-`, `*`, `/`, and `**`, unary minus, parentheses for grouping, and node references of the form `Type("name")` with a single string argument. Anything else — names, comparisons, other function calls, and so on — is rejected with an error when the deck is loaded. In particular, expressions cannot execute code or access the file system.
 
 

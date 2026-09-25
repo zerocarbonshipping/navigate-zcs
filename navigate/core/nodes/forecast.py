@@ -83,12 +83,17 @@ class Forecast(Node, _Table1D):
         self._current_value = self.calculate(time)
 
     @overload
-    def get(self, x: FloatArray, y: float | None = None) -> FloatArray: ...
+    def get(self, x: FloatArray, y: FloatLike | None = None) -> FloatArray: ...
 
     @overload
-    def get(self, x: float | None = None, y: float | None = None) -> float: ...
+    def get(self, x: float | None = None, y: FloatLike | None = None) -> float: ...
 
-    def get(self, x: FloatLike | None = None, y: float | None = None) -> FloatLike:
+    @overload
+    def get(
+        self, x: FloatLike | None = None, y: FloatLike | None = None
+    ) -> FloatLike: ...
+
+    def get(self, x: FloatLike | None = None, y: FloatLike | None = None) -> FloatLike:
         """
         Return the forecast value: recalculated at ``x`` if given, else cached.
 

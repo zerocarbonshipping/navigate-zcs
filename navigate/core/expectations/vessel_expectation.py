@@ -707,8 +707,9 @@ class VesselExpectation(_Expectation):
         npv: float = self._capex_npv[idx]
         return npv
 
-    def get_asset_charter_rate(self, idx: Index) -> FloatLike:
-        return self._asset_charter_rate[idx]
+    def get_asset_charter_rate(self, idx: int) -> float:
+        rate: float = self._asset_charter_rate[idx]
+        return rate
 
     def get_freight_rate(self, idx: int) -> float:
         rate: float = self._freight_rate[idx]

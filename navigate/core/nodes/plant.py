@@ -23,7 +23,6 @@ from navigate.core.node_type import (
 from navigate.core.profiles import PlantProfile
 
 if TYPE_CHECKING:
-    from navigate.core.expression import Expression
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.feedstock import Feedstock
     from navigate.core.nodes.fuel import Fuel
@@ -43,10 +42,10 @@ class Plant(Node):
         super().__init__(name, PLANT)
 
         # external variables -----------------------------------------------------------
-        self.fuel: Fuel | Expression
-        self.process: Process | Expression
-        self.region: Region | Expression
-        self.source: Source | Expression
+        self.fuel: Fuel
+        self.process: Process
+        self.region: Region
+        self.source: Source
 
         self.capacity: ForecastInput
         self.uptime: ForecastInput = Scalar(1.0)
@@ -55,10 +54,10 @@ class Plant(Node):
 
         self.cost_of_capital: ForecastInput = Scalar(0.0)
 
-        self.feed_transport: dict[str, Transport | Expression | None] = {}
+        self.feed_transport: dict[str, Transport | None] = {}
         self.feed_distance: dict[str, ForecastInput | None] = {}
 
-        self.fuel_transport: dict[str, Transport | Expression | None] = {}
+        self.fuel_transport: dict[str, Transport | None] = {}
         self.fuel_distance: dict[str, ForecastInput | None] = {}
 
         # internal variables -----------------------------------------------------------
@@ -251,7 +250,7 @@ class Plant(Node):
             The transport mode used to transport the feedstock or process output.
         """
         command_assignment_to_dict(
-            feed_name, as_scalar(value), self.feed_transport, type_=TRANSPORT
+            feed_name, value, self.feed_transport, scalar=False, type_=TRANSPORT
         )
 
     def set_feed_distance(self, feed_name: str, value: float | ForecastInput) -> None:
@@ -299,7 +298,7 @@ class Plant(Node):
             The transport mode used to deliver the produced fuel to the port.
         """
         command_assignment_to_dict(
-            port_name, as_scalar(value), self.fuel_transport, type_=TRANSPORT
+            port_name, value, self.fuel_transport, scalar=False, type_=TRANSPORT
         )
 
     def set_fuel_distance(self, port_name: str, value: float | ForecastInput) -> None:
@@ -344,7 +343,7 @@ class Plant(Node):
 
     @staticmethod
     def _default_distances(
-        transports: dict[str, Transport | Expression | None],
+        transports: dict[str, Transport | None],
         distances: dict[str, ForecastInput | None],
     ) -> None:
         """Give a transported route with no distance assigned a distance of zero."""
@@ -354,7 +353,7 @@ class Plant(Node):
 
     def _require_transport_where_distance(
         self,
-        transports: dict[str, Transport | Expression | None],
+        transports: dict[str, Transport | None],
         distances: dict[str, ForecastInput | None],
     ) -> None:
         """Raise where a distance is assigned but no transport carries it."""

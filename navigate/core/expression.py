@@ -21,11 +21,13 @@ from typing import TYPE_CHECKING, Protocol, overload
 
 import numpy as np
 
+from navigate.core.node_type import is_calculator
+
 if TYPE_CHECKING:
     from collections.abc import Callable
 
     from navigate.core.node import Node
-    from navigate.core.node_type import AcceptedNodeTypes
+    from navigate.core.node_type import AcceptedNodeTypes, Calculator
     from navigate.util.types_ import FloatArray, FloatLike
 
 type _UnaryOperator = Callable[[FloatLike], FloatLike]
@@ -57,13 +59,7 @@ _UNARY_OPERATORS: dict[type[ast.unaryop], _UnaryOperator] = {
 }
 
 
-class _ReferencedNode(Protocol):
-    """Duck type of a referenced node: the expression reads it through its getter."""
-
-    def get(self, x: FloatLike | None, y: FloatLike | None) -> FloatLike: ...
-
-
-type _References = list[_ReferencedNode]
+type _References = list[Calculator]
 
 
 class _Evaluable(Protocol):
@@ -284,9 +280,7 @@ class Expression:
         self._node = node
         self._tree, self.reference_strings = _Builder(self.text, node).build()
 
-    def resolve(
-        self, node: Node, read_reference: Callable[[str, str], _ReferencedNode]
-    ) -> None:
+    def resolve(self, node: Node, read_reference: Callable[[str, str], Node]) -> None:
         """
         Initialize the expression, resolve its references and check their types.
 
@@ -304,11 +298,28 @@ class Expression:
             return
 
         self.initialize(node)
-        self.node_references = [
+        references = [
             read_reference(reference_string, self.reference_location)
             for reference_string in self.reference_strings
         ]
+        # the type check reads the reference strings, so it runs first and a
+        # reference the attribute does not accept keeps its own message
         self.check_consistency()
+        self.node_references = [
+            self._as_calculator(reference) for reference in references
+        ]
+
+    def _as_calculator(self, reference: Node) -> Calculator:
+        # only a setter accepting a calculator type takes an expression with
+        # references (assign_value), so check_consistency has already refused
+        # any other node
+        if not is_calculator(reference):
+            raise ValueError(
+                f"{self._node}: Expression <{self.text}> references {reference},"
+                " which is not a Curve, Forecast, Surface, Timetable or Variable."
+            )
+
+        return reference
 
     @overload
     def get(self, x: FloatArray, y: FloatLike | None = None) -> FloatArray: ...
