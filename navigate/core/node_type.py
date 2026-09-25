@@ -66,7 +66,7 @@ class TypeCheckMixin:
     """Stores a node's type tag."""
 
     def __init__(self, type_: str) -> None:
-        self.type: str = type_  # node-type name (DSL keyword)
+        self.type: str = type_
 
     def is_type(self, type_: str) -> bool:
         """

@@ -825,11 +825,15 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   nodes. No deck result moves.
 
 ### Fixed
-- A wildcard `Import` whose matches include a name the deck already uses
-  reports the collision at the deck's `Import` line. From the second matched
-  name on, the error named the default-library file a previous match had
-  pulled in, and a line inside it, which the deck author never wrote and does
-  not need to change.
+- The DSL reference's "Default nodes" and "Default modules" sections gave the
+  default library's location as a fixed installation path, which no longer
+  matches the parser. Both now give the real location,
+  `<data_dir>/defaults/{user,installation}/<NodeType>/` and
+  `<data_dir>/modules/{user,installation}/`, with `data_dir` taken from
+  `-d`/`--data-dir` or `ASSUMPTIONS_DATA_DIR`. The "Copying a node" section now
+  also states that a separate `Type("node_copy_from")` reference elsewhere in
+  the deck pulls the source from the library again as its own, independent
+  node, so both names end up registered.
 - The reference manual states the units an emission intensity is reported
   and given in. The `RegulationMeasureID` appendix had INTENSITY in ton/GJ,
   a factor of 1000 out, and both transport measures in ton per cargo-mile, a
@@ -862,6 +866,11 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `Route.PortDurations`, for instance — kept whatever bounds its other
   references gave it, so the limit of the attribute it was assigned to never
   applied. No committed deck globs a calculator, so no shipped result moves.
+- A wildcard `Import` whose matches include a name the deck already uses
+  reports the collision at the deck's `Import` line. From the second matched
+  name on, the error named the default-library file a previous match had
+  pulled in, and a line inside it, which the deck author never wrote and does
+  not need to change.
 - The two errors a wildcard node reference can raise — it matched no node, or
   it stands where a single node is expected — name the deck line and the
   include file they were written in, as every other deck error does. Both

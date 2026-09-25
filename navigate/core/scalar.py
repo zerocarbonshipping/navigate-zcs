@@ -24,7 +24,7 @@ class Scalar:
     """
 
     def __init__(self, value: float) -> None:
-        self._value: float = value  # the number the scalar answers with
+        self._value: float = value
 
     def __repr__(self) -> str:
         return f"Scalar({self._value!s})"
