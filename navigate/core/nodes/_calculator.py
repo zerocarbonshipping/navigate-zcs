@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, overload
 
 import numpy as np
 
@@ -13,7 +13,7 @@ from navigate.util import ROUND_OFF
 
 if TYPE_CHECKING:
     from navigate.core.nodes.input_kinds import NumberInput
-    from navigate.util import FloatArray
+    from navigate.util import FloatArray, FloatLike
 
 logger = logging.getLogger(__name__)
 
@@ -47,35 +47,35 @@ class _Calculator:
         self._applied_upper_bound: float = np.inf
 
     # external methods (DSL attributes) ------------------------------------------------
-    def set_addition(self, addition):
+    def set_addition(self, addition: NumberInput) -> None:
         """
         Set the addition of the calculator.
 
         Parameters
         ----------
-        addition : float
+        addition
             Addition to the calculated value.
         """
         self.addition = assign_value(addition)
 
-    def set_multiplier(self, multiplier):
+    def set_multiplier(self, multiplier: NumberInput) -> None:
         """
         Set the multiplier of the calculator.
 
         Parameters
         ----------
-        multiplier : float
+        multiplier
             Multiplier of the calculated value.
         """
         self.multiplier = assign_value(multiplier)
 
-    def set_lower_bound(self, lower_bound):
+    def set_lower_bound(self, lower_bound: float | str) -> None:
         """
         Set the publicly defined lower bound of the calculator.
 
         Parameters
         ----------
-        lower_bound : float, str
+        lower_bound
             Lower bound of calculated value.
         """
         self.lower_bound = assign_bound(lower_bound)
@@ -83,13 +83,13 @@ class _Calculator:
         # called here in case the lower bound is changed during time-stepping
         self._assign_applied_bounds()
 
-    def set_upper_bound(self, upper_bound):
+    def set_upper_bound(self, upper_bound: float | str) -> None:
         """
         Set the publicly defined upper bound of the calculator.
 
         Parameters
         ----------
-        upper_bound : float, str
+        upper_bound
             Upper bound of calculated value.
         """
         self.upper_bound = assign_bound(upper_bound)
@@ -99,7 +99,7 @@ class _Calculator:
 
     # internal methods -----------------------------------------------------------------
     @property
-    def internal_bounds(self):
+    def internal_bounds(self) -> tuple[float, float]:
         """
         The tightest bounds any referencing attribute has imposed so far.
 
@@ -110,7 +110,7 @@ class _Calculator:
         """
         return self._internal_lower_bound, self._internal_upper_bound
 
-    def set_internal_bounds(self, lower, upper):
+    def set_internal_bounds(self, lower: float, upper: float) -> None:
         """
         Tighten the internal bounds of the calculator.
 
@@ -119,9 +119,9 @@ class _Calculator:
 
         Parameters
         ----------
-        lower : float
+        lower
             Internally applied lower bound.
-        upper : float
+        upper
             Internally applied upper bound.
         """
         if lower > -np.inf:
@@ -155,25 +155,31 @@ class _Calculator:
         # called here in case internal bounds are set after the lower/upper bound
         self._assign_applied_bounds()
 
-    def _truncate(self, value):
+    @overload
+    def _truncate(self, value: float) -> float: ...
+
+    @overload
+    def _truncate(self, value: FloatArray) -> FloatArray: ...
+
+    def _truncate(self, value: FloatLike) -> FloatLike:
         """
         Truncate a calculated value.
 
         Parameters
         ----------
-        value : float | np.ndarray
+        value
             Calculated value.
 
         Returns
         -------
-        float | np.ndarray :
-            Truncated value.
+        FloatLike
+            Truncated value, in the shape of ``value``.
         """
         return np.maximum(
             np.minimum(value, self._applied_upper_bound), self._applied_lower_bound
         )
 
-    def _assign_applied_bounds(self):
+    def _assign_applied_bounds(self) -> None:
         """
         Assign concrete bounds based on an internal and external bounding logic.
 
@@ -198,9 +204,9 @@ class _Calculator:
 
         Parameters
         ----------
-        x : np.ndarray
+        x
             x-values of a piecewise linear function.
-        y : np.ndarray
+        y
             y-values of a piecewise linear function.
 
         Returns

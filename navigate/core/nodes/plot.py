@@ -15,6 +15,8 @@ from navigate.core.node_type import PLOT
 
 
 class Plot(Node):
+    """Hold the plot selection and output directory of a run."""
+
     def __init__(self, name: str) -> None:
         super().__init__(name, PLOT)
 
@@ -23,17 +25,32 @@ class Plot(Node):
         self.selected_plots: set[str] = set()
 
     # external methods (DSL attributes) ------------------------------------------------
-    def set_directory(self, directory):
+    def set_directory(self, directory: str) -> None:
         """
         Set the plot output directory.
 
         Parameters
         ----------
-        directory : str
+        directory
             Relative or absolute path for plot output.
         """
         self.directory = directory
 
     # external methods (DSL commands) --------------------------------------------------
-    def add_plot(self, label):
+    def add_plot(self, label: str) -> None:
+        """
+        Select a plot to render, by its label.
+
+        Call once per plot; every available plot is rendered when no 'add_plot'
+        command is given at all.
+
+        Examples
+        --------
+        - "global_fuel_consumed"
+
+        Parameters
+        ----------
+        label
+            Plot label, one of the labels listed in the reference manual.
+        """
         self.selected_plots.add(label)

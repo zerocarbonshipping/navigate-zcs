@@ -6,5 +6,5 @@ from __future__ import annotations
 
 
 class _GeneralNode:
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{type(self).__name__}"

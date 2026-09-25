@@ -47,7 +47,6 @@ REFERENCE_SCAN_EXCLUDE = (
     "type",
     "expectation",
     "profile",
-    "_table",
 )
 
 

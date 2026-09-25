@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Define the Curve node, a one-input table lookup read through its getter."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, overload
@@ -15,9 +17,34 @@ if TYPE_CHECKING:
 
 
 class Curve(Node, _Table1D):
+    """
+    A table of y against x, interpolated at the input it is evaluated with.
+
+    Parameters
+    ----------
+    name
+        Node name.
+    """
+
     def __init__(self, name: str) -> None:
         Node.__init__(self, name, CURVE)
         _Table1D.__init__(self)
+
+    def set_table(self, table: TableData) -> None:
+        """
+        Set the table of x- and y-values the curve interpolates in.
+
+        The table must hold at least two rows, and its x-values must be strictly
+        increasing.
+
+        Parameters
+        ----------
+        table
+            Parsed table, x-values in the first column and y-values in the second.
+        """
+        x, y = build_table_1d(table)
+        check_table1d_input(x, y)
+        self._set_table(x, y)
 
     @overload
     def get(self, x: FloatArray, y: FloatLike | None = None) -> FloatArray: ...
@@ -51,8 +78,3 @@ class Curve(Node, _Table1D):
             raise ValueError(f"{self}: Evaluating a Curve requires an input 'x'.")
 
         return self.calculate(x)
-
-    def set_table(self, table: TableData) -> None:
-        x, y = build_table_1d(table)
-        check_table1d_input(x, y)
-        self._set_table(x, y)

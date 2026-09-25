@@ -27,4 +27,4 @@ from navigate.core.assign import (
 )
 from navigate.core.expression import Expression
 from navigate.core.scalar import Scalar
-from navigate.core.wrap import as_list, as_scalar, as_scalar_list
+from navigate.core.wrap import as_list, as_scalar

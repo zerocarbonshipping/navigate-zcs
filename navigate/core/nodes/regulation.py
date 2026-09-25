@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Define the Regulation node, an emission target vessels must comply with."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -20,13 +22,15 @@ from navigate.core.nodes._policy import _Policy
 from navigate.core.profiles import RegulationProfile
 
 if TYPE_CHECKING:
-    import numpy as np
-
+    from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.input_kinds import ForecastInput
     from navigate.core.nodes.vessel import Vessel
+    from navigate.util import FloatArray
 
 
 class Regulation(_Policy):
+    """A regulation holding policed vessels to an emission threshold in its measure."""
+
     def __init__(self, name: str) -> None:
         super().__init__(name, REGULATION)
 
@@ -57,7 +61,7 @@ class Regulation(_Policy):
         self.profile: RegulationProfile = RegulationProfile()
 
     # external methods (DSL attributes) ------------------------------------------------
-    def set_scheme(self, scheme):
+    def set_scheme(self, scheme: str) -> None:
         """
         Set the scheme of the regulation.
 
@@ -72,12 +76,12 @@ class Regulation(_Policy):
 
         Parameters
         ----------
-        scheme : str
+        scheme
             Regulation scheme.
         """
         self.scheme = assign_id(scheme, RegulationSchemeID)
 
-    def set_measure(self, measure):
+    def set_measure(self, measure: str) -> None:
         """
         Set the emission measure of the regulation.
 
@@ -95,12 +99,12 @@ class Regulation(_Policy):
 
         Parameters
         ----------
-        measure : str
+        measure
             Emission measure.
         """
         self.measure = assign_id(measure, RegulationMeasureID)
 
-    def set_intra_fraction(self, intra_fraction):
+    def set_intra_fraction(self, intra_fraction: float | ForecastInput) -> None:
         """
         Set the fraction of emissions counted for intra-jurisdiction travel.
 
@@ -112,14 +116,14 @@ class Regulation(_Policy):
 
         Parameters
         ----------
-        intra_fraction : float | Node
+        intra_fraction
             Fraction of emissions counted during intra jurisdiction travel.
         """
         self.intra_fraction = assign_value(
             as_scalar(intra_fraction), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
         )
 
-    def set_inter_fraction(self, inter_fraction):
+    def set_inter_fraction(self, inter_fraction: float | ForecastInput) -> None:
         """
         Set the fraction of emissions counted for inter-jurisdiction travel.
 
@@ -132,14 +136,14 @@ class Regulation(_Policy):
 
         Parameters
         ----------
-        inter_fraction : float | Node
+        inter_fraction
             Fraction of emissions counted during inter jurisdiction travel.
         """
         self.inter_fraction = assign_value(
             as_scalar(inter_fraction), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
         )
 
-    def set_extra_fraction(self, extra_fraction):
+    def set_extra_fraction(self, extra_fraction: float | ForecastInput) -> None:
         """
         Set the fraction of emissions counted for extra-jurisdiction travel.
 
@@ -151,14 +155,14 @@ class Regulation(_Policy):
 
         Parameters
         ----------
-        extra_fraction : float | Node
+        extra_fraction
             Fraction of emissions counted during extra jurisdiction travel.
         """
         self.extra_fraction = assign_value(
             as_scalar(extra_fraction), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
         )
 
-    def set_remedial_cost(self, remedial_cost):
+    def set_remedial_cost(self, remedial_cost: float | ForecastInput) -> None:
         """
         Set the cost of purchasing a remedial compliance unit in USD/ton emission.
 
@@ -169,14 +173,16 @@ class Regulation(_Policy):
 
         Parameters
         ----------
-        remedial_cost : float | Node
+        remedial_cost
             Cost of a remedial unit.
         """
         self.remedial_cost = assign_value(
             as_scalar(remedial_cost), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
-    def set_flexibility_horizon(self, flexibility_horizon):
+    def set_flexibility_horizon(
+        self, flexibility_horizon: float | ForecastInput
+    ) -> None:
         """
         Set the decision horizon, in years, smoothing the flexibility-cost belief.
 
@@ -194,7 +200,7 @@ class Regulation(_Policy):
 
         Parameters
         ----------
-        flexibility_horizon : float | Node
+        flexibility_horizon
             Decision horizon for the flexibility cost belief, in years.
         """
         self.flexibility_horizon = assign_value(
@@ -202,7 +208,9 @@ class Regulation(_Policy):
         )
 
     # external methods (DSL commands) --------------------------------------------------
-    def set_vessel_threshold(self, vessel_name, threshold):
+    def set_vessel_threshold(
+        self, vessel_name: str, threshold: float | ForecastInput
+    ) -> None:
         """
         Set the threshold that a specific vessel must satisfy in the measure unit.
 
@@ -223,9 +231,9 @@ class Regulation(_Policy):
 
         Parameters
         ----------
-        vessel_name : str
+        vessel_name
             Name of vessel for which the threshold is assigned.
-        threshold : float | Node
+        threshold
             Threshold for a vessel.
         """
         command_assignment_to_dict(
@@ -236,7 +244,9 @@ class Regulation(_Policy):
             lower=0.0,
         )
 
-    def set_vessel_capacity(self, vessel_name, capacity):
+    def set_vessel_capacity(
+        self, vessel_name: str, capacity: float | ForecastInput
+    ) -> None:
         """
         Set the capacity of a specific vessel for use in transport calculations.
 
@@ -249,9 +259,9 @@ class Regulation(_Policy):
 
         Parameters
         ----------
-        vessel_name : str
+        vessel_name
             Name of vessel for which the capacity is assigned.
-        capacity : float | Node
+        capacity
             Capacity of a vessel.
         """
         command_assignment_to_dict(
@@ -262,7 +272,7 @@ class Regulation(_Policy):
             lower=0.0,
         )
 
-    def set_allow_threshold_adjustment(self, allow_threshold_adjustment):
+    def set_allow_threshold_adjustment(self, allow_threshold_adjustment: str) -> None:
         """
         Set whether the threshold is automatically adjusted on non-compliance.
 
@@ -277,7 +287,7 @@ class Regulation(_Policy):
 
         Parameters
         ----------
-        allow_threshold_adjustment : str
+        allow_threshold_adjustment
             Whether to allow threshold adjustment (TRUE/FALSE).
         """
         self.allow_threshold_adjustment = assign_boolean(allow_threshold_adjustment)
@@ -293,13 +303,13 @@ class Regulation(_Policy):
                     " no vessel_threshold is defined."
                 )
 
-    def initialize_dependencies(self, vessels):
+    def initialize_dependencies(self, vessels: dict[str, Vessel]) -> None:
         """
         Initialize dependent dictionaries to allow wildcarding during command calls.
 
         Parameters
         ----------
-        vessels : dict[str, Vessel]
+        vessels
             All vessels in the simulation.
         """
         for vessel_name in vessels:
@@ -312,13 +322,18 @@ class Regulation(_Policy):
         self.expectation.initialize(length, [e.name for e in self.emissions], vessels)
 
     def initialize_profile(
-        self, timeline: np.ndarray, vessels: dict[str, Vessel]
+        self, timeline: FloatArray, vessels: dict[str, Vessel]
     ) -> None:
         self.profile.initialize(timeline, vessels)
 
     def calculate_expectation(
-        self, emissions, vessels, emissions_lifetime, timeline, idx
-    ):
+        self,
+        emissions: dict[str, Emission],
+        vessels: dict[str, Vessel],
+        emissions_lifetime: float,
+        timeline: FloatArray,
+        idx: int,
+    ) -> None:
 
         if not self.active:
             return
@@ -347,13 +362,14 @@ class Regulation(_Policy):
             self.expectation, emissions, emissions_lifetime
         )
 
-    def calculate_profile(self, idx):
+    def calculate_profile(self, idx: int) -> None:
 
         if not self.active:
             return
 
         self.profile.set_remedial_cost(idx, self.remedial_cost.get())
 
+        # check_consistency guarantees every policed vessel a threshold
         for vessel_name, threshold in self.vessel_threshold.items():
-            if self.vessel_is_policed(vessel_name):
+            if self.vessel_is_policed(vessel_name) and threshold is not None:
                 self.profile.set_vessel_threshold(idx, vessel_name, threshold.get())

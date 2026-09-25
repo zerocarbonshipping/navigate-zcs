@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Define the Region node, the production costs and emissions of a world region."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -15,10 +17,17 @@ from navigate.core.node import Node
 from navigate.core.node_type import FORECAST, REGION, TIMETABLE, VARIABLE
 
 if TYPE_CHECKING:
+    from navigate.core.nodes.emission import Emission
+    from navigate.core.nodes.feedstock import Feedstock
     from navigate.core.nodes.input_kinds import ForecastInput, TimetableInput
+    from navigate.core.nodes.process import Process
+    from navigate.core.nodes.source import Source
+    from navigate.core.nodes.transport import Transport
 
 
 class Region(Node):
+    """A fuel-producing region: its process, source, feedstock and transport inputs."""
+
     def __init__(self, name: str) -> None:
         super().__init__(name, REGION)
 
@@ -45,7 +54,9 @@ class Region(Node):
         self.transport_wtt: dict[tuple[str, str], ForecastInput] = {}
 
     # external methods (DSL commands) --------------------------------------------------
-    def set_process_capex(self, process_name, value):
+    def set_process_capex(
+        self, process_name: str, value: float | TimetableInput
+    ) -> None:
         """
         Set the CAPEX associated with a production process in USD/ton.
 
@@ -56,9 +67,9 @@ class Region(Node):
 
         Parameters
         ----------
-        process_name : str
+        process_name
             The name of a process.
-        value : float | Node
+        value
             The CAPEX cost of the process in USD/ton.
         """
         command_assignment_to_dict(
@@ -69,7 +80,9 @@ class Region(Node):
             lower=0.0,
         )
 
-    def set_process_opex(self, process_name, value):
+    def set_process_opex(
+        self, process_name: str, value: float | TimetableInput
+    ) -> None:
         """
         Set the OPEX associated with a production process in USD/ton/year.
 
@@ -83,9 +96,9 @@ class Region(Node):
 
         Parameters
         ----------
-        process_name : str
+        process_name
             The name of a process.
-        value : float | Node
+        value
             The OPEX cost of the process in USD/ton/year.
         """
         command_assignment_to_dict(
@@ -95,7 +108,9 @@ class Region(Node):
             type_=(FORECAST, TIMETABLE, VARIABLE),
         )
 
-    def set_process_energy(self, process_name, value):
+    def set_process_energy(
+        self, process_name: str, value: float | ForecastInput
+    ) -> None:
         """
         Set the energy demand required to run a production process in MWh/ton.
 
@@ -106,9 +121,9 @@ class Region(Node):
 
         Parameters
         ----------
-        process_name : str
+        process_name
             The name of a process.
-        value : float | Node
+        value
             The energy demand of the process in MWh/ton.
         """
         command_assignment_to_dict(
@@ -119,7 +134,9 @@ class Region(Node):
             lower=0.0,
         )
 
-    def set_process_lifetime(self, process_name, value):
+    def set_process_lifetime(
+        self, process_name: str, value: float | ForecastInput
+    ) -> None:
         """
         Set the lifetime of a production process in years.
 
@@ -130,9 +147,9 @@ class Region(Node):
 
         Parameters
         ----------
-        process_name : str
+        process_name
             The name of a process.
-        value : float | Node
+        value
             The lifetime of the process in years.
         """
         command_assignment_to_dict(
@@ -143,7 +160,9 @@ class Region(Node):
             lower=0.0,
         )
 
-    def set_process_replacement(self, process_name, value):
+    def set_process_replacement(
+        self, process_name: str, value: float | ForecastInput
+    ) -> None:
         """
         Set the replacement fraction of CAPEX repaid at the end of a process's lifetime.
 
@@ -154,9 +173,9 @@ class Region(Node):
 
         Parameters
         ----------
-        process_name : str
+        process_name
             The name of a process.
-        value : float | Node
+        value
             The replacement fraction of the CAPEX repaid at EoL (end of lifetime).
         """
         command_assignment_to_dict(
@@ -168,7 +187,9 @@ class Region(Node):
             upper=1.0,
         )
 
-    def set_process_wtt(self, process_name, emission_name, value):
+    def set_process_wtt(
+        self, process_name: str, emission_name: str, value: float | ForecastInput
+    ) -> None:
         """
         Set the WTT emissions from a production process, ton emission/ton fuel.
 
@@ -179,11 +200,11 @@ class Region(Node):
 
         Parameters
         ----------
-        process_name : str
+        process_name
             The name of a process.
-        emission_name : str
+        emission_name
             The name of an emission.
-        value : float | Node
+        value
             The amount of emissions emitted during the production in ton emissions/ton
             fuel.
         """
@@ -194,7 +215,7 @@ class Region(Node):
             type_=(FORECAST, VARIABLE),
         )
 
-    def set_source_capex(self, source_name, value):
+    def set_source_capex(self, source_name: str, value: float | ForecastInput) -> None:
         """
         Set the CAPEX associated with a source in USD/MWh.
 
@@ -205,9 +226,9 @@ class Region(Node):
 
         Parameters
         ----------
-        source_name : str
+        source_name
             The name of a source.
-        value : float | Node
+        value
             The CAPEX cost of the source in USD/MWh.
         """
         command_assignment_to_dict(
@@ -218,7 +239,7 @@ class Region(Node):
             lower=0.0,
         )
 
-    def set_source_opex(self, source_name, value):
+    def set_source_opex(self, source_name: str, value: float | ForecastInput) -> None:
         """
         Set the OPEX associated with a source in USD/MWh/year.
 
@@ -229,9 +250,9 @@ class Region(Node):
 
         Parameters
         ----------
-        source_name : str
+        source_name
             The name of a source.
-        value : float | Node
+        value
             The OPEX cost of the source in USD/MWh/year.
         """
         command_assignment_to_dict(
@@ -242,7 +263,9 @@ class Region(Node):
             lower=0.0,
         )
 
-    def set_source_wtt(self, source_name, emission_name, value):
+    def set_source_wtt(
+        self, source_name: str, emission_name: str, value: float | ForecastInput
+    ) -> None:
         """
         Set the WTT emissions of an emission type from using a source, ton emission/MWh.
 
@@ -253,11 +276,11 @@ class Region(Node):
 
         Parameters
         ----------
-        source_name : str
+        source_name
             The name of a source.
-        emission_name : str
+        emission_name
             The name of an emission.
-        value : float | Node
+        value
             The amount of emissions emitted by using a source in ton emission/MWh.
         """
         command_assignment_to_tuple_dict(
@@ -267,7 +290,9 @@ class Region(Node):
             type_=(FORECAST, VARIABLE),
         )
 
-    def set_feedstock_cost(self, feedstock_name, value):
+    def set_feedstock_cost(
+        self, feedstock_name: str, value: float | ForecastInput
+    ) -> None:
         """
         Set the cost of a feedstock in USD/ton.
 
@@ -278,9 +303,9 @@ class Region(Node):
 
         Parameters
         ----------
-        feedstock_name : str
+        feedstock_name
             The name of a feedstock.
-        value : float | Node
+        value
             The cost of a feedstock in USD/ton.
         """
         command_assignment_to_dict(
@@ -291,7 +316,9 @@ class Region(Node):
             lower=0.0,
         )
 
-    def set_feedstock_wtt(self, feedstock_name, emission_name, value):
+    def set_feedstock_wtt(
+        self, feedstock_name: str, emission_name: str, value: float | ForecastInput
+    ) -> None:
         """
         Set the WTT emissions from a feedstock, ton emission/ton feedstock.
 
@@ -302,11 +329,11 @@ class Region(Node):
 
         Parameters
         ----------
-        feedstock_name : str
+        feedstock_name
             The name of a feedstock.
-        emission_name : str
+        emission_name
             The name of an emission.
-        value : float | Node
+        value
             The amount of emissions emitted by using a feedstock in ton emission/ton
             feedstock.
         """
@@ -317,7 +344,9 @@ class Region(Node):
             type_=(FORECAST, VARIABLE),
         )
 
-    def set_transport_cost(self, transport_name, value):
+    def set_transport_cost(
+        self, transport_name: str, value: float | ForecastInput
+    ) -> None:
         """
         Set the cost associated with a transport in USD/ton-nautical mile.
 
@@ -328,10 +357,10 @@ class Region(Node):
 
         Parameters
         ----------
-        transport_name : str
+        transport_name
             The name of a transport.
-        value : float | Node
-            The cost of the transport in USD/MWh.
+        value
+            The cost of the transport in USD/ton-nautical mile.
         """
         command_assignment_to_dict(
             transport_name,
@@ -341,7 +370,9 @@ class Region(Node):
             lower=0.0,
         )
 
-    def set_transport_wtt(self, transport_name, emission_name, value):
+    def set_transport_wtt(
+        self, transport_name: str, emission_name: str, value: float | ForecastInput
+    ) -> None:
         """
         Set the WTT emissions from a transport, ton emission/ton-nautical mile.
 
@@ -352,11 +383,11 @@ class Region(Node):
 
         Parameters
         ----------
-        transport_name : str
+        transport_name
             The name of a transport.
-        emission_name : str
+        emission_name
             The name of an emission.
-        value : float | Node
+        value
             The amount of emissions emitted by using a transport in ton
             emission/ton-nautical mile.
         """
@@ -369,22 +400,27 @@ class Region(Node):
 
     # internal methods -----------------------------------------------------------------
     def initialize_dependencies(
-        self, emissions, feedstocks, processes, sources, transports
-    ):
+        self,
+        emissions: dict[str, Emission],
+        feedstocks: dict[str, Feedstock],
+        processes: dict[str, Process],
+        sources: dict[str, Source],
+        transports: dict[str, Transport],
+    ) -> None:
         """
         Initialize dependent dictionaries to allow wildcarding during command calls.
 
         Parameters
         ----------
-        emissions : dict[str, Emission]
+        emissions
             All emissions in the simulation.
-        feedstocks : dict[str, Feedstock]
+        feedstocks
             All feedstocks in the simulation.
-        processes : dict[str, Process]
+        processes
             All processes in the simulation.
-        sources : dict[str, Source]
+        sources
             All sources in the simulation.
-        transports : dict[str, Transport]
+        transports
             All transports in the simulation.
         """
         for process_name in processes:

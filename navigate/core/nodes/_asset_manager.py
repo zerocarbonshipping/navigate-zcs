@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core import Scalar, as_scalar, as_scalar_list, assign_list, assign_value
+from navigate.core import Scalar, as_list, as_scalar, assign_list, assign_value
 from navigate.core.increment import Increment
 from navigate.core.node import Node
 from navigate.core.node_type import CURVE, FORECAST, VARIABLE
@@ -52,7 +52,7 @@ class _AssetManager(Node):
         self.current_uptake: np.ndarray = np.empty(0)
 
     # external methods (DSL attributes) ------------------------------------------------
-    def set_inertia(self, inertia: float | Node) -> None:
+    def set_inertia(self, inertia: float | ForecastInput) -> None:
         """
         Set the inertia used in the uptake decision of newbuild assets.
 
@@ -74,7 +74,12 @@ class _AssetManager(Node):
             as_scalar(inertia), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
         )
 
-    def set_initial_age_distribution(self, initial_age_distribution) -> None:
+    def set_initial_age_distribution(
+        self,
+        initial_age_distribution: (
+            float | Curve | Expression | list[float | Curve | Expression]
+        ),
+    ) -> None:
         """
         Set the initial age distribution of each asset type.
 
@@ -92,8 +97,9 @@ class _AssetManager(Node):
         initial_age_distribution
             List of Curve references for the age distribution of each asset type.
         """
+        entries: list[float | Curve | Expression] = as_list(initial_age_distribution)
         self._initial_age_distribution = assign_list(
-            as_scalar_list(initial_age_distribution), type_=CURVE, lower=0.0
+            [as_scalar(entry) for entry in entries], type_=CURVE, lower=0.0
         )
 
     # internal methods -----------------------------------------------------------------

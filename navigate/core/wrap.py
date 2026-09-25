@@ -66,28 +66,6 @@ def as_scalar(value: Assignment) -> Assignment:
     return value
 
 
-def as_scalar_list(
-    values: Assignment | list[Assignment] | tuple[Assignment, ...],
-) -> list[WrappedAssignment]:
-    """
-    Wrap all values in a list as Scalars if they are floats.
-
-    See 'as_scalar' for further documentation.
-
-    Parameters
-    ----------
-    values
-        Values to wrap in a Scalar if they are floats.
-
-    Returns
-    -------
-    list[WrappedAssignment]
-        List of wrapped values.
-    """
-    assignments: list[Assignment] = as_list(values)
-    return [as_scalar(value) for value in assignments]
-
-
 def as_list[T](value: T | list[T] | tuple[T, ...]) -> list[T]:
     """
     Wrap a value in a list if it is not already a list.
