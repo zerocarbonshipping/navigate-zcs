@@ -1498,6 +1498,10 @@ class Parser:
             self._reading_default = reading_default
 
     def _read_default_folder(self, name, directory):
+        # a branch without a folder for the type holds no defaults of it
+        if not os.path.isdir(directory):
+            return False
+
         file_names = _get_files_in_directory(directory)
 
         for file_name in file_names:
