@@ -166,7 +166,7 @@ def _validate_file(
     if path.is_dir():
         parser.error(f"{kind} is a directory, not a file: '{path}'")
 
-    if path.suffix.lower() != suffix:
+    if path.suffix.lower() != suffix or not path.stem.strip("."):
         parser.error(f"{kind} must have a '{suffix}' extension: '{path}'")
 
 
