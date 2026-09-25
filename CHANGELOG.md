@@ -825,11 +825,15 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   nodes. No deck result moves.
 
 ### Fixed
-- A wildcard pattern matches its literal characters literally: a `.` or
-  another regex-metacharacter in a node name, dictionary key, or import
-  file name previously stayed live regex syntax, so a pattern could match
-  more than what was written (e.g. `a.b` also matching `aXb`). Only `*` and
-  `?` act as wildcards now.
+- The DSL reference's "Default nodes" and "Default modules" sections gave the
+  default library's location as a fixed installation path, which no longer
+  matches the parser. Both now give the real location,
+  `<data_dir>/defaults/{user,installation}/<NodeType>/` and
+  `<data_dir>/modules/{user,installation}/`, with `data_dir` taken from
+  `-d`/`--data-dir` or `ASSUMPTIONS_DATA_DIR`. The "Copying a node" section now
+  also states that a separate `Type("node_copy_from")` reference elsewhere in
+  the deck pulls the source from the library again as its own, independent
+  node, so both names end up registered.
 - The reference manual states the units an emission intensity is reported
   and given in. The `RegulationMeasureID` appendix had INTENSITY in ton/GJ,
   a factor of 1000 out, and both transport measures in ton per cargo-mile, a
@@ -877,6 +881,11 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   which the page also used in its example, and
   `FlexibilityMaximumIterations`, `FlexibilityToleranceX` and
   `FlexibilityToleranceY` on `BunkerOptions`.
+- A wildcard pattern matches its literal characters literally: a `.` or
+  another regex-metacharacter in a node name, dictionary key, or import
+  file name previously stayed live regex syntax, so a pattern could match
+  more than what was written (e.g. `a.b` also matching `aXb`). Only `*` and
+  `?` act as wildcards now.
 - The report-property appendix of the reference manual documents the properties
   a report can carry. Thirty-four documented tokens resolved to no profile
   getter, and seventy-six resolvable properties, over forty-six distinct tokens,

@@ -80,7 +80,7 @@ class _Evaluable(Protocol):
 class _Constant:
     """Numeric literal."""
 
-    value: float  # the numeric literal
+    value: float
 
     def evaluate(
         self, node_references: _References, x: FloatLike | None, y: FloatLike | None
@@ -92,7 +92,7 @@ class _Constant:
 class _Reference:
     """Reference to a node, evaluated through the node's getter."""
 
-    index: int  # position in the expression's references
+    index: int
 
     def evaluate(
         self, node_references: _References, x: FloatLike | None, y: FloatLike | None
@@ -104,8 +104,8 @@ class _Reference:
 class _UnaryOperation:
     """Operator applied to a single operand."""
 
-    operator: _UnaryOperator  # the arithmetic operation
-    operand: _Evaluable  # subtree the operator is applied to
+    operator: _UnaryOperator
+    operand: _Evaluable
 
     def evaluate(
         self, node_references: _References, x: FloatLike | None, y: FloatLike | None
@@ -117,9 +117,9 @@ class _UnaryOperation:
 class _BinaryOperation:
     """Operator applied to two operands."""
 
-    operator: _BinaryOperator  # the arithmetic operation
-    left: _Evaluable  # subtree on the left of the operator
-    right: _Evaluable  # subtree on the right of the operator
+    operator: _BinaryOperator
+    left: _Evaluable
+    right: _Evaluable
 
     def evaluate(
         self, node_references: _References, x: FloatLike | None, y: FloatLike | None
@@ -144,9 +144,9 @@ class _Builder:
     """
 
     def __init__(self, text: str, owner: Node | None) -> None:
-        self._text: str = text  # expression body, as written in the deck
-        self._owner: Node | None = owner  # node the expression is assigned to
-        self.reference_strings: list[str] = []  # references, in order of appearance
+        self._text: str = text
+        self._owner: Node | None = owner
+        self.reference_strings: list[str] = []
 
     def build(self) -> tuple[_Evaluable, list[str]]:
         """
@@ -261,15 +261,15 @@ class Expression:
     """
 
     def __init__(self, text: str) -> None:
-        self.text: str = text  # expression body, as written in the deck
-        self.reference_strings: list[str] = []  # references, in order of appearance
-        self.node_references: _References = []  # resolved references, in that order
-        self.reference_location: str = ""  # deck file and line it is read from
-        self.internal_bounds: tuple[float, float] = (-np.inf, np.inf)  # clip range
+        self.text: str = text
+        self.reference_strings: list[str] = []
+        self.node_references: _References = []
+        self.reference_location: str = ""
+        self.internal_bounds: tuple[float, float] = (-np.inf, np.inf)
 
-        self._tree: _Evaluable | None = None  # evaluator tree built from the text
-        self._node: Node | None = None  # node the expression is assigned to
-        self._allowed_types: list[str] | None = None  # node types the attribute accepts
+        self._tree: _Evaluable | None = None
+        self._node: Node | None = None
+        self._allowed_types: list[str] | None = None
 
     def __repr__(self) -> str:
         return self.text
