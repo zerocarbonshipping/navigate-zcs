@@ -902,6 +902,11 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   it stands where a single node is expected — name the deck line and the
   include file they were written in, as every other deck error does. Both
   were raised after the decks had been read, with no line left to report.
+- An installation default file that imports or copies its own node, directly
+  or through another default it pulls, is reported as a deck error at the
+  statement that re-enters it, naming the installation folder. It recursed
+  until Python's `RecursionError`. A user default file importing its own node
+  still overlays the installation node of that name.
 - The reference manual documents the DSL surface the parser accepts. Twelve
   registered names had no entry — `Table` on `Curve`, `Forecast`, `Surface` and
   `Timetable`, `FuelType` on `Emission`, `ShorePowerCost` and
