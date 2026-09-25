@@ -825,6 +825,11 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   nodes. No deck result moves.
 
 ### Fixed
+- A node declared, imported or copied under a name another node already uses
+  is reported as a deck error (`Unable to add Type("name"), the name is
+  already in use by a different node.`), at the line that declared it. It was
+  raised as a bare `ValueError`, which the command-line error handler does
+  not catch, so the run ended in a Python traceback.
 - The reference manual states the units an emission intensity is reported
   and given in. The `RegulationMeasureID` appendix had INTENSITY in ton/GJ,
   a factor of 1000 out, and both transport measures in ton per cargo-mile, a
