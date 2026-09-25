@@ -70,7 +70,7 @@ class TestStringToDate:
         ],
     )
     def test_parses_valid_formats(self, raw, expected):
-        assert string_to_date(raw) == expected
+        assert string_to_date(raw, _DATE_FORMAT_ERROR) == expected
 
     @pytest.mark.parametrize(
         "raw",
@@ -82,9 +82,10 @@ class TestStringToDate:
     )
     def test_rejects_invalid_input(self, raw):
         # every production caller passes its own msg= with deck context; this
-        # only exercises the default, which names the accepted formats
+        # passes the same message they use for a rejection, naming the
+        # accepted formats
         with pytest.raises(ValueError, match=f"^{re.escape(_DATE_FORMAT_ERROR)}$"):
-            string_to_date(raw)
+            string_to_date(raw, _DATE_FORMAT_ERROR)
 
 
 # ═════════════════════════════════════════════════════════════════════════════════

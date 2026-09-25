@@ -40,7 +40,7 @@ _DATE_FORMAT_ERROR = (
 )
 
 
-def string_to_date(string: str, msg: str = _DATE_FORMAT_ERROR) -> np.datetime64:
+def string_to_date(string: str, msg: str) -> np.datetime64:
     """
     Convert a date string to ``np.datetime64``.
 
@@ -51,8 +51,7 @@ def string_to_date(string: str, msg: str = _DATE_FORMAT_ERROR) -> np.datetime64:
     string
         Date string (may contain surrounding whitespace/quotes).
     msg
-        Error message for raised ``ValueError``; defaults to naming the
-        accepted formats.
+        Error message for raised ``ValueError``.
 
     Returns
     -------
