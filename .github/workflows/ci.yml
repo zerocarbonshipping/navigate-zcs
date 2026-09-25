@@ -7,12 +7,18 @@ on:
   push:
     branches: [ main, dev ]
   pull_request:
+    types: [ opened, synchronize, reopened, edited ]
 
+# A title or body edit gets its own group so it cannot cancel a real run.
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}-${{ github.event.action == 'edited' && !github.event.changes.base && github.run_id || 'run' }}
+  cancel-in-progress: true
 
 jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
+    if: github.event.action != 'edited' || github.event.changes.base != null
 
     steps:
       - name: Checkout code
@@ -33,6 +39,7 @@ jobs:
   build:
     name: Build package
     runs-on: ubuntu-latest
+    if: github.event.action != 'edited' || github.event.changes.base != null
 
     steps:
       - name: Checkout code
@@ -60,6 +67,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: build
+    if: github.event.action != 'edited' || github.event.changes.base != null
     env:
       ASSUMPTIONS_DATA_DIR: ${{ github.workspace }}/assumptions
 
