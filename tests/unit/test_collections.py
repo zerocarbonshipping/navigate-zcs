@@ -11,7 +11,6 @@ import pytest
 from navigate.util import (
     add_dicts,
     collapse_tuple_dict,
-    multiply_dicts,
     slice_dict,
     slice_dict_list,
     slice_list,
@@ -42,32 +41,6 @@ class TestAddDicts:
 
         np.testing.assert_array_equal(first_value, [1.0, 2.0])
         np.testing.assert_array_equal(second_value, [3.0, 4.0])
-        assert not np.shares_memory(result["a"], first_value)
-        assert not np.shares_memory(result["b"], second_value)
-
-
-class TestMultiplyDicts:
-    def test_overlapping_and_unique_keys(self):
-        result = multiply_dicts({"a": 2.0, "b": 3.0}, {"b": 4.0, "c": 5.0})
-        assert result == {"a": 2.0, "b": 12.0, "c": 5.0}
-
-    def test_array_times_float_dict(self):
-        result = multiply_dicts({"a": np.array([1.0, 2.0])}, {"a": 3.0})
-        np.testing.assert_array_equal(result["a"], [3.0, 6.0])
-
-    def test_empty_call_returns_empty_dict(self):
-        assert multiply_dicts() == {}
-
-    def test_inputs_left_unmutated_and_unaliased(self):
-        first_value = np.array([1.0, 2.0])
-        second_value = np.array([3.0, 4.0])
-        result = multiply_dicts(
-            {"a": first_value}, {"a": second_value, "b": second_value}
-        )
-
-        np.testing.assert_array_equal(first_value, [1.0, 2.0])
-        np.testing.assert_array_equal(second_value, [3.0, 4.0])
-        np.testing.assert_array_equal(result["a"], [3.0, 8.0])
         assert not np.shares_memory(result["a"], first_value)
         assert not np.shares_memory(result["b"], second_value)
 
