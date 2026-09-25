@@ -87,15 +87,26 @@ def write_region(config: Path, region: str) -> None:
     config.write_text(head + region + tail)
 
 
+def _is_repo_root(path: str) -> bool:
+    """Whether path denotes the repository root itself (".", "./", "")."""
+    return PurePosixPath(path) == PurePosixPath(".")
+
+
 def path_is_selected(rel: str, paths: list[str]) -> bool:
     """Whether rel (a repo-relative file) falls under one of paths.
 
     A prune run only observes violations under --paths, so only entries this
     check accepts may be intersected with what the run found; every other
     entry falls outside what the run could see and must carry over as is.
+    A path denoting the repository root itself selects every file.
     """
+    if any(_is_repo_root(p) for p in paths):
+        return True
     rel_path = PurePosixPath(rel)
-    return any(rel_path == PurePosixPath(p) or PurePosixPath(p) in rel_path.parents for p in paths)
+    return any(
+        rel_path == PurePosixPath(p) or PurePosixPath(p) in rel_path.parents
+        for p in paths
+    )
 
 
 def parse_ruff_region(region: str) -> dict[str, list[str]]:
@@ -175,8 +186,12 @@ def module_is_selected(module: str, paths: list[str]) -> bool:
 
     Mirrors path_is_selected, but --paths for mypy are module paths
     (files or packages), so the entries they cover are module names and
-    dotted-prefix matches rather than filesystem ones.
+    dotted-prefix matches rather than filesystem ones. A path denoting the
+    repository root itself selects every module: module_of(".") would
+    otherwise raise, since Path(".") has no name to strip a suffix from.
     """
+    if any(_is_repo_root(p) for p in paths):
+        return True
     return any(
         module == prefix or module.startswith(prefix + ".")
         for prefix in (module_of(p) for p in paths)
