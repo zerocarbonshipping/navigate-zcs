@@ -1,0 +1,65 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: Apache-2.0
+
+# The workshop notebooks are committed with their outputs, which the docs site
+# shows. The "Open in Colab" badges open the copies this workflow publishes to
+# the workshop-colab branch instead: the same notebooks with every output
+# cleared, so participants run each cell themselves.
+
+name: Workshop notebooks for Colab
+
+on:
+  push:
+    branches: [ dev-workshop ]   # change to main once the workshop is merged
+    paths:
+      - 'docs/workshop/*.ipynb'
+      - '.github/workflows/workshop-colab.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write   # push to the workshop-colab branch
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Clear the outputs
+        run: |
+          python -m pip install nbformat
+          python - <<'PY'
+          import glob, os
+          import nbformat
+
+          os.makedirs("colab/docs/workshop", exist_ok=True)
+          for path in sorted(glob.glob("docs/workshop/*.ipynb")):
+              nb = nbformat.read(path, as_version=4)
+              for cell in nb.cells:
+                  if cell.cell_type == "code":
+                      cell.outputs = []
+                      cell.execution_count = None
+                      cell.metadata.pop("execution", None)
+              nbformat.write(nb, os.path.join("colab", path))
+              print("cleared", path)
+
+          with open("colab/README.md", "w", encoding="utf-8") as f:
+              f.write("Generated from `dev-workshop` by "
+                      "`.github/workflows/workshop-colab.yml`: the workshop "
+                      "notebooks with their outputs cleared, for Google Colab. "
+                      "Do not edit here.\n")
+          PY
+
+      - name: Publish to the workshop-colab branch
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: workshop-colab
+          publish_dir: colab
+          force_orphan: true
