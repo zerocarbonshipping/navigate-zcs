@@ -86,7 +86,10 @@ on `Node`; a node overrides the hooks they call, never the entry points.
 What each hook holds:
 
 - `check_requirements()` raises where an attribute the node cannot run
-  without is unassigned.
+  without is unassigned. `None` on a node attribute always means just
+  that: the grammar has no `none` literal, and every `assign_*` in
+  `navigate/core/assign.py` returns a value or raises, so no DSL value is
+  ever `None`.
 - `apply_defaults()` fills a value derived from the size or the value of
   another attribute.
 - `apply_command_defaults()` fills the unassigned entries of the

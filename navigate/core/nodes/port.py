@@ -345,10 +345,7 @@ class Port(Node):
                 self.expectation.set_bunkering_limit(idx, fuel_name, limit.get(times))
 
         for fuel_name, handling_cost in self.handling_cost.items():
-            if handling_cost is not None:
-                self.expectation.set_handling_cost(
-                    idx, fuel_name, handling_cost.get(times)
-                )
+            self.expectation.set_handling_cost(idx, fuel_name, handling_cost.get(times))
 
         for fuel_name, overwrite in self.bunker_price_overwrite.items():
             if overwrite is not None:
@@ -371,10 +368,9 @@ class Port(Node):
         )
 
         for emission_name, ef in self.shore_power_emission_factor.items():
-            if ef is not None:
-                self.expectation.set_shore_power_emission_factor(
-                    idx, emission_name, ef.get(times) / MWH_TO_GJ
-                )
+            self.expectation.set_shore_power_emission_factor(
+                idx, emission_name, ef.get(times) / MWH_TO_GJ
+            )
 
     def calculate_profile(self, idx):
 
