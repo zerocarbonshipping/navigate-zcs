@@ -924,6 +924,11 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   which the page also used in its example, and
   `FlexibilityMaximumIterations`, `FlexibilityToleranceX` and
   `FlexibilityToleranceY` on `BunkerOptions`.
+- A wildcard pattern matches its literal characters literally: a `.` or
+  another regex-metacharacter in a node name, dictionary key, or import
+  file name previously stayed live regex syntax, so a pattern could match
+  more than what was written (e.g. `a.b` also matching `aXb`). Only `*` and
+  `?` act as wildcards now.
 - The report-property appendix of the reference manual documents the properties
   a report can carry. Thirty-four documented tokens resolved to no profile
   getter, and seventy-six resolvable properties, over forty-six distinct tokens,
