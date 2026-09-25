@@ -874,8 +874,7 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   or through another default it pulls, is reported as a deck error at the
   statement that re-enters it, naming the installation folder. It recursed
   until Python's `RecursionError`. A user default file importing its own node
-  still overlays the installation node of that name; the check that allows it
-  now matches on node type and name, where it matched on the name alone.
+  still overlays the installation node of that name.
 - The reference manual documents the DSL surface the parser accepts. Twelve
   registered names had no entry — `Table` on `Curve`, `Forecast`, `Surface` and
   `Timetable`, `FuelType` on `Emission`, `ShorePowerCost` and

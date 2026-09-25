@@ -135,10 +135,11 @@ class Parser:
         self._reading_default = False
         self._pruned_nodes = set()
         self._copy_source_names = set()
-        # (type, name) of the defaults whose user or installation file is
-        # being read, so a nested pull of the same node can tell it re-entered
-        self._user_defaults_in_progress: set[tuple[str, str]] = set()
-        self._installation_defaults_in_progress: set[tuple[str, str]] = set()
+        # names of the defaults whose user or installation file is being read,
+        # so a nested pull of the same node can tell it re-entered; names are
+        # unique across node types, so the name alone identifies the node
+        self._user_defaults_in_progress: set[str] = set()
+        self._installation_defaults_in_progress: set[str] = set()
 
         # nodes a reference named before their declaration, keyed by (type,
         # name); kept out of the registry until a declaration adopts them
@@ -1472,14 +1473,13 @@ class Parser:
                 "or environment variable "
             )
 
-        key = (node_type, name)
         installation_directory = os.path.join(
             self._installation_default_directory, node_type
         )
 
         # nothing lies beyond the installation branch, so re-entering it would
         # read the same file until the recursion limit
-        if key in self._installation_defaults_in_progress:
+        if name in self._installation_defaults_in_progress:
             raise DeckKeywordError(
                 f'{location}: {node_type}("{name}") is pulled from the default '
                 f"library while its own installation default in "
@@ -1497,23 +1497,23 @@ class Parser:
 
             # a user file pulling its own node overlays the installation one,
             # so the nested pull skips the user branch
-            if key not in self._user_defaults_in_progress:
-                self._user_defaults_in_progress.add(key)
+            if name not in self._user_defaults_in_progress:
+                self._user_defaults_in_progress.add(name)
                 try:
                     if self._read_default_folder(
                         name, os.path.join(self._user_default_directory, node_type)
                     ):
                         found_in = "User"
                 finally:
-                    self._user_defaults_in_progress.remove(key)
+                    self._user_defaults_in_progress.remove(name)
 
             if found_in is None:
-                self._installation_defaults_in_progress.add(key)
+                self._installation_defaults_in_progress.add(name)
                 try:
                     if self._read_default_folder(name, installation_directory):
                         found_in = "Installation"
                 finally:
-                    self._installation_defaults_in_progress.remove(key)
+                    self._installation_defaults_in_progress.remove(name)
 
             if found_in is None:
                 raise DeckKeywordError(
