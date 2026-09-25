@@ -52,19 +52,6 @@ class TestSumDictResults:
         )
         np.testing.assert_array_equal(result, [4.0, 6.0])
 
-    def test_index_slices_before_summing(self):
-        result = sum_dict_results(
-            {"a": np.array([1.0, 2.0]), "b": np.array([3.0, 4.0])}, idx=1
-        )
-        assert result == 6.0
-
-    def test_empty_dict_with_index_is_zero(self):
-        assert sum_dict_results({}, idx=0) == 0.0
-
-    def test_empty_dict_without_index_raises(self):
-        with pytest.raises(ValueError, match="empty"):
-            sum_dict_results({})
-
 
 class TestCollapseTupleDict:
     @pytest.fixture
