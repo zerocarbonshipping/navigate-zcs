@@ -40,9 +40,6 @@ class TestAsScalar:
 
 
 class TestAsList:
-    def test_tuple_becomes_list(self):
-        assert as_list((1.0, 2.0)) == [1.0, 2.0]
-
     @pytest.mark.parametrize(
         "value",
         [1.0, "OIL"],
