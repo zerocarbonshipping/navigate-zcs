@@ -825,6 +825,12 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   nodes. No deck result moves.
 
 ### Fixed
+- An installation default file that imports or copies its own node, directly
+  or through another default it pulls, is reported as a deck error at the
+  statement that re-enters it, naming the installation folder. It recursed
+  until Python's `RecursionError`. A user default file importing its own node
+  still overlays the installation node of that name; the check that allows it
+  now matches on node type and name, where it matched on the name alone.
 - The reference manual states the units an emission intensity is reported
   and given in. The `RegulationMeasureID` appendix had INTENSITY in ton/GJ,
   a factor of 1000 out, and both transport measures in ton per cargo-mile, a
