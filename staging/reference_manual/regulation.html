@@ -698,7 +698,7 @@ jurisdiction (inter) should be counted in the calculation.</p>
 <h2>Commands<a class="headerlink" href="#commands" title="Link to this heading">#</a></h2>
 <section id="set-global-warming-potential">
 <h3>set_global_warming_potential<a class="headerlink" href="#set-global-warming-potential" title="Link to this heading">#</a></h3>
-<p>This command allows the user to set the global warming potential (GWP) for a specific emission. If the GWP is assigned on the regulation then it overwrites the physical GWP defined on the emission during the calculation of emission factors.</p>
+<p>This command allows the user to set the global warming potential (GWP) for a specific emission. If the GWP is assigned on the regulation then it overwrites the physical GWP defined on the emission during the calculation of emission factors. A <code class="docutils literal notranslate"><span class="pre">Curve</span></code> is read at the emissions lifetime, like the GWP of the emission: the <code class="docutils literal notranslate"><span class="pre">EmissionsLifetime</span></code> of the regulation if assigned, otherwise that of the model.</p>
 <ul class="simple">
 <li><p><strong>Primary key type</strong>: String (Emission name)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Curve</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
