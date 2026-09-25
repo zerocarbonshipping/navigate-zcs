@@ -446,7 +446,13 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/dev-workshop/docs/workshop/04-run-a-reference-scenario.ipynb"><img alt="Open In Colab" src="https://colab.research.google.com/assets/colab-badge.svg" /></a></p>
+  <blockquote>
+<div><p><strong>Recommended: run this notebook in Google Colab, nothing to install.</strong></p>
+<p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/04-run-a-reference-scenario.ipynb"><img alt="Open In Colab" src="https://colab.research.google.com/assets/colab-badge.svg" /></a></p>
+<p>In Colab the notebook opens without results: run the cells yourself, from
+the top (Shift+Enter runs one cell). The results shown on the documentation
+website come from a run made in advance.</p>
+</div></blockquote>
 <section class="tex2jax_ignore mathjax_ignore" id="run-the-reference-scenarios">
 <h1>4. Run the reference scenarios<a class="headerlink" href="#run-the-reference-scenarios" title="Link to this heading">#</a></h1>
 <p>Navigate ships a set of <strong>reference scenarios</strong> under
@@ -464,7 +470,7 @@ Global-Fuel-Standard-style mechanism named <code class="docutils literal notrans
 <p><em>The reference scenario’s geography: five fuel-supply regions, the 2050 electricity
 cost that feeds them, the production pathways each can host, and the EU jurisdiction
 the ETS and FuelEU reach.</em></p>
-<p>This deck is different from the single-voyage illustrative case in <a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/dev-workshop/docs/workshop/02-vessel-case-study.ipynb">notebook 2</a>.
+<p>This deck is different from the single-voyage illustrative case in <a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/02-vessel-case-study.ipynb">notebook 2</a>.
 One big difference is that here, 23 fleets sail 23 routes with no endpoints, and bunkering is
 aggregated into just two ports, one EU and one rest-of-world. So there is no line to
 draw across the ocean. Instead, the routes in the model represent an averaged profile for the fleet.</p>
@@ -473,7 +479,12 @@ draw across the ocean. Instead, the routes in the model represent an averaged pr
 <section id="setup-repeat-if-starting-a-fresh-session">
 <h2>Setup (repeat if starting a fresh session)<a class="headerlink" href="#setup-repeat-if-starting-a-fresh-session" title="Link to this heading">#</a></h2>
 <p>Running this on Colab or locally? The <a class="reference external" href="https://github.com/zerocarbonshipping/navigate-zcs/blob/dev-workshop/docs/workshop/index.md">workshop overview</a> explains both; the cell below handles either case without changes.</p>
-<div class="cell docutils container">
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Setup. Works both on Google Colab and in a local checkout of the repository;</span>
 <span class="c1"># the workshop overview explains the two ways to run these notebooks.</span>
@@ -481,10 +492,12 @@ draw across the ocean. Instead, the routes in the model represent an averaged pr
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
 
-<span class="c1"># The branch these notebooks live on. Colab clones THIS branch, and the</span>
-<span class="c1"># "Open in Colab" badge at the top of the notebook, like the links between the</span>
-<span class="c1"># notebooks, points at the same one. Change all of them to "main" once the</span>
-<span class="c1"># branch has been merged.</span>
+<span class="c1"># The branch these notebooks live on, and the one Colab clones. The "Open in</span>
+<span class="c1"># Colab" badge at the top of the notebook, like the links between the</span>
+<span class="c1"># notebooks, opens the copy on the workshop-colab branch instead: the same</span>
+<span class="c1"># notebooks with their outputs cleared, rebuilt from this branch by</span>
+<span class="c1"># .github/workflows/workshop-colab.yml. Change BRANCH, and that workflow, to</span>
+<span class="c1"># "main" once the branch has been merged.</span>
 <span class="n">BRANCH</span> <span class="o">=</span> <span class="s2">"dev-workshop"</span>
 
 
@@ -531,6 +544,7 @@ draw across the ocean. Instead, the routes in the model represent an averaged pr
 </pre></div>
 </div>
 </div>
+</details>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Moved up to the repository root.
 Navigate 1.0.0 is already installed.
@@ -573,7 +587,12 @@ Navigate 1.0.0 is already installed.
 <section id="a-first-look-at-the-different-scenarios">
 <h2>A first look at the different scenarios<a class="headerlink" href="#a-first-look-at-the-different-scenarios" title="Link to this heading">#</a></h2>
 <p>In these decks the regulation is the only thing that differs between scenarios. Check how the decks of each scenario are built:</p>
-<div class="cell docutils container">
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
@@ -608,6 +627,7 @@ Navigate 1.0.0 is already installed.
 </pre></div>
 </div>
 </div>
+</details>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>basecase_no_regulation.nav
     DEFINE {
@@ -708,7 +728,12 @@ what that included file asks for.</p>
 <p>A Global Fuel Standard (GFS) is a worldwide limit on the greenhouse-gas intensity of the fuel a ship burns, tightening year on year, with penalties for exceeding the limit and rewards for using cleaner fuels. It is relatively similar to the EU FuelEU Maritime regulation, but applies worldwide rather than only to EU/EEA ports. It is a modelling assumption in these decks, not an adopted rule.</p>
 <p><code class="docutils literal notranslate"><span class="pre">gfs_target_reduction</span></code> is the well-to-wake GHG intensity limit every vessel is measured against, and
 <code class="docutils literal notranslate"><span class="pre">gfs_remedial_unit</span></code> is the penalty for missing it. Both are defined per scenario in <code class="docutils literal notranslate"><span class="pre">simulations/scenarios/0_includes/{mid,strong}_regulation.inc</span></code>, so we can parse both decks and compare their regulatory assumptions side by side.</p>
-<div class="cell docutils container">
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
@@ -785,6 +810,7 @@ what that included file asks for.</p>
 </pre></div>
 </div>
 </div>
+</details>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>——————————————————————————————————————————————————————————————————————————————————————————————————
             |    |    |                                  .oO
@@ -835,7 +861,12 @@ what the two regulation scenarios ask for, by 2050:
 <h2>Run the scenarios<a class="headerlink" href="#run-the-scenarios" title="Link to this heading">#</a></h2>
 <p>Run the next cell to solve the three scenarios in parallel.
 Since this step takes a while, run it at the beginning of the workshop and come back to it later!</p>
-<div class="cell docutils container">
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
@@ -881,6 +912,7 @@ Since this step takes a while, run it at the beginning of the workshop and come 
 </pre></div>
 </div>
 </div>
+</details>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>started basecase_no_regulation (pid 34392) -&gt; simulations/scenarios/basecase_no_regulation/basecase_no_regulation_console.log
 started basecase_mid_regulation (pid 11616) -&gt; simulations/scenarios/basecase_mid_regulation/basecase_mid_regulation_console.log
@@ -912,7 +944,12 @@ you might see is documented, grouped by category, in the reference manual’s
 <a class="reference external" href="https://zerocarbonshipping.github.io/navigate-zcs/reference_manual/plot.html">Plot Node Labels</a>
 appendix — e.g. <code class="docutils literal notranslate"><span class="pre">global_fuel_consumed</span></code> for the fuel mix, <code class="docutils literal notranslate"><span class="pre">global_emission_absolute</span></code>
 for emissions, or <code class="docutils literal notranslate"><span class="pre">regulation_compliance</span></code> for how the “gfs” regulation binds.</p>
-<div class="cell docutils container">
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">glob</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">IPython.display</span><span class="w"> </span><span class="kn">import</span> <span class="n">Image</span><span class="p">,</span> <span class="n">Markdown</span><span class="p">,</span> <span class="n">display</span>
@@ -933,6 +970,7 @@ for emissions, or <code class="docutils literal notranslate"><span class="pre">r
 </pre></div>
 </div>
 </div>
+</details>
 <div class="cell_output docutils container">
 <p class="rubric" id="engine-fuel-consumed">Engine fuel consumed</p>
 <img alt="../_images/e50c9ebf3f71f25fdbf24aba20045adb273ff84e610fe64e09415a73e0988627.png" src="../_images/e50c9ebf3f71f25fdbf24aba20045adb273ff84e610fe64e09415a73e0988627.png" />
@@ -1077,7 +1115,12 @@ It is also the only view that works for a run that solved but whose plots were
 not exported.</p>
 <p>The three decks differ only in their regulation lines, so everything below is
 attributable to regulatory stringency alone.</p>
-<div class="cell docutils container">
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">gzip</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span>
@@ -1234,6 +1277,7 @@ attributable to regulatory stringency alone.</p>
 </pre></div>
 </div>
 </div>
+</details>
 <div class="cell_output docutils container">
 <img alt="../_images/ccc7983450426750fd3bb1bc24142ab2d26d6e9ad57fdbc7e0a0979115536c2e.png" src="../_images/ccc7983450426750fd3bb1bc24142ab2d26d6e9ad57fdbc7e0a0979115536c2e.png" />
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  scenario         WTW 2026   WTW 2050   cumulative  alt fuel 2050      freight 2050

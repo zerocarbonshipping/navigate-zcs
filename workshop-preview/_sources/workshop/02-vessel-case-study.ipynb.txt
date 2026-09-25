@@ -5,7 +5,13 @@
    "id": "b9fabfa4",
    "metadata": {},
    "source": [
-    "[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/dev-workshop/docs/workshop/02-vessel-case-study.ipynb)"
+    "> **Recommended: run this notebook in Google Colab, nothing to install.**\n",
+    ">\n",
+    "> [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/02-vessel-case-study.ipynb)\n",
+    ">\n",
+    "> In Colab the notebook opens without results: run the cells yourself, from\n",
+    "> the top (Shift+Enter runs one cell). The results shown on the documentation\n",
+    "> website come from a run made in advance."
    ]
   },
   {
@@ -104,7 +110,10 @@
      "iopub.status.busy": "2026-09-25T09:36:12.562249Z",
      "iopub.status.idle": "2026-09-25T09:36:12.587297Z",
      "shell.execute_reply": "2026-09-25T09:36:12.586410Z"
-    }
+    },
+    "tags": [
+     "hide-input"
+    ]
    },
    "outputs": [
     {
@@ -122,10 +131,12 @@
     "from pathlib import Path\n",
     "\n",
     "\n",
-    "# The branch these notebooks live on. Colab clones THIS branch, and the\n",
-    "# \"Open in Colab\" badge at the top of the notebook, like the links between the\n",
-    "# notebooks, points at the same one. Change all of them to \"main\" once the\n",
-    "# branch has been merged.\n",
+    "# The branch these notebooks live on, and the one Colab clones. The \"Open in\n",
+    "# Colab\" badge at the top of the notebook, like the links between the\n",
+    "# notebooks, opens the copy on the workshop-colab branch instead: the same\n",
+    "# notebooks with their outputs cleared, rebuilt from this branch by\n",
+    "# .github/workflows/workshop-colab.yml. Change BRANCH, and that workflow, to\n",
+    "# \"main\" once the branch has been merged.\n",
     "BRANCH = \"dev-workshop\"\n",
     "\n",
     "\n",
@@ -181,7 +192,10 @@
      "iopub.status.busy": "2026-09-25T09:36:12.589373Z",
      "iopub.status.idle": "2026-09-25T09:36:12.598979Z",
      "shell.execute_reply": "2026-09-25T09:36:12.598343Z"
-    }
+    },
+    "tags": [
+     "hide-input"
+    ]
    },
    "outputs": [
     {
@@ -1220,7 +1234,10 @@
      "iopub.status.busy": "2026-09-25T09:36:12.664475Z",
      "iopub.status.idle": "2026-09-25T09:36:26.639909Z",
      "shell.execute_reply": "2026-09-25T09:36:26.638456Z"
-    }
+    },
+    "tags": [
+     "hide-input"
+    ]
    },
    "outputs": [
     {
@@ -1387,7 +1404,10 @@
      "iopub.status.busy": "2026-09-25T09:36:26.642588Z",
      "iopub.status.idle": "2026-09-25T09:36:27.152659Z",
      "shell.execute_reply": "2026-09-25T09:36:27.150561Z"
-    }
+    },
+    "tags": [
+     "hide-input"
+    ]
    },
    "outputs": [
     {
@@ -1605,7 +1625,10 @@
      "iopub.status.busy": "2026-09-25T09:36:27.156759Z",
      "iopub.status.idle": "2026-09-25T09:36:27.445177Z",
      "shell.execute_reply": "2026-09-25T09:36:27.443799Z"
-    }
+    },
+    "tags": [
+     "hide-input"
+    ]
    },
    "outputs": [
     {
@@ -1820,7 +1843,10 @@
      "iopub.status.busy": "2026-09-25T09:36:28.039793Z",
      "iopub.status.idle": "2026-09-25T09:36:28.707193Z",
      "shell.execute_reply": "2026-09-25T09:36:28.705855Z"
-    }
+    },
+    "tags": [
+     "hide-input"
+    ]
    },
    "outputs": [
     {
@@ -1927,7 +1953,10 @@
      "iopub.status.busy": "2026-09-25T09:36:28.711195Z",
      "iopub.status.idle": "2026-09-25T09:36:28.985066Z",
      "shell.execute_reply": "2026-09-25T09:36:28.983114Z"
-    }
+    },
+    "tags": [
+     "hide-input"
+    ]
    },
    "outputs": [
     {
@@ -2038,7 +2067,10 @@
      "iopub.status.busy": "2026-09-25T09:36:28.990111Z",
      "iopub.status.idle": "2026-09-25T09:36:29.545281Z",
      "shell.execute_reply": "2026-09-25T09:36:29.543642Z"
-    }
+    },
+    "tags": [
+     "hide-input"
+    ]
    },
    "outputs": [
     {
@@ -2130,7 +2162,10 @@
      "iopub.status.busy": "2026-09-25T09:36:29.548964Z",
      "iopub.status.idle": "2026-09-25T09:36:30.114112Z",
      "shell.execute_reply": "2026-09-25T09:36:30.112525Z"
-    }
+    },
+    "tags": [
+     "hide-input"
+    ]
    },
    "outputs": [
     {
@@ -2396,7 +2431,10 @@
      "iopub.status.busy": "2026-09-25T09:36:30.118169Z",
      "iopub.status.idle": "2026-09-25T09:36:45.732970Z",
      "shell.execute_reply": "2026-09-25T09:36:45.732244Z"
-    }
+    },
+    "tags": [
+     "hide-input"
+    ]
    },
    "outputs": [
     {
@@ -2735,7 +2773,10 @@
      "iopub.status.busy": "2026-09-25T09:36:45.735573Z",
      "iopub.status.idle": "2026-09-25T09:36:45.932803Z",
      "shell.execute_reply": "2026-09-25T09:36:45.931526Z"
-    }
+    },
+    "tags": [
+     "hide-input"
+    ]
    },
    "outputs": [
     {
@@ -2888,7 +2929,10 @@
      "iopub.status.busy": "2026-09-25T09:36:45.936082Z",
      "iopub.status.idle": "2026-09-25T09:36:46.726692Z",
      "shell.execute_reply": "2026-09-25T09:36:46.724030Z"
-    }
+    },
+    "tags": [
+     "hide-input"
+    ]
    },
    "outputs": [
     {
@@ -3253,7 +3297,10 @@
      "iopub.status.busy": "2026-09-25T09:36:46.729350Z",
      "iopub.status.idle": "2026-09-25T09:36:47.628597Z",
      "shell.execute_reply": "2026-09-25T09:36:47.627254Z"
-    }
+    },
+    "tags": [
+     "hide-input"
+    ]
    },
    "outputs": [
     {
@@ -3654,7 +3701,10 @@
      "iopub.status.busy": "2026-09-25T09:36:47.632600Z",
      "iopub.status.idle": "2026-09-25T09:36:48.325537Z",
      "shell.execute_reply": "2026-09-25T09:36:48.324534Z"
-    }
+    },
+    "tags": [
+     "hide-input"
+    ]
    },
    "outputs": [
     {
@@ -3953,7 +4003,10 @@
      "iopub.status.busy": "2026-09-25T09:36:48.328753Z",
      "iopub.status.idle": "2026-09-25T09:36:49.484029Z",
      "shell.execute_reply": "2026-09-25T09:36:49.483308Z"
-    }
+    },
+    "tags": [
+     "hide-input"
+    ]
    },
    "outputs": [
     {
@@ -4599,7 +4652,10 @@
      "iopub.status.busy": "2026-09-25T09:36:49.486766Z",
      "iopub.status.idle": "2026-09-25T09:36:49.494039Z",
      "shell.execute_reply": "2026-09-25T09:36:49.492801Z"
-    }
+    },
+    "tags": [
+     "hide-input"
+    ]
    },
    "outputs": [
     {
@@ -4703,7 +4759,10 @@
      "iopub.status.busy": "2026-09-25T09:36:49.928944Z",
      "iopub.status.idle": "2026-09-25T09:36:50.647558Z",
      "shell.execute_reply": "2026-09-25T09:36:50.645713Z"
-    }
+    },
+    "tags": [
+     "hide-input"
+    ]
    },
    "outputs": [
     {
@@ -4855,7 +4914,10 @@
      "iopub.status.busy": "2026-09-25T09:36:52.400020Z",
      "iopub.status.idle": "2026-09-25T09:36:55.266151Z",
      "shell.execute_reply": "2026-09-25T09:36:55.264036Z"
-    }
+    },
+    "tags": [
+     "hide-input"
+    ]
    },
    "outputs": [
     {
@@ -5008,7 +5070,10 @@
      "iopub.status.busy": "2026-09-25T09:36:55.269333Z",
      "iopub.status.idle": "2026-09-25T09:36:55.606435Z",
      "shell.execute_reply": "2026-09-25T09:36:55.605384Z"
-    }
+    },
+    "tags": [
+     "hide-input"
+    ]
    },
    "outputs": [
     {
@@ -5125,7 +5190,10 @@
      "iopub.status.busy": "2026-09-25T09:36:55.608837Z",
      "iopub.status.idle": "2026-09-25T09:36:55.963650Z",
      "shell.execute_reply": "2026-09-25T09:36:55.961687Z"
-    }
+    },
+    "tags": [
+     "hide-input"
+    ]
    },
    "outputs": [
     {
@@ -5222,7 +5290,10 @@
      "iopub.status.busy": "2026-09-25T09:36:55.968722Z",
      "iopub.status.idle": "2026-09-25T09:36:56.722120Z",
      "shell.execute_reply": "2026-09-25T09:36:56.721011Z"
-    }
+    },
+    "tags": [
+     "hide-input"
+    ]
    },
    "outputs": [
     {
@@ -5365,7 +5436,10 @@
      "iopub.status.busy": "2026-09-25T09:36:56.724390Z",
      "iopub.status.idle": "2026-09-25T09:36:57.060592Z",
      "shell.execute_reply": "2026-09-25T09:36:57.059303Z"
-    }
+    },
+    "tags": [
+     "hide-input"
+    ]
    },
    "outputs": [
     {
@@ -5469,7 +5543,10 @@
      "iopub.status.busy": "2026-09-25T09:36:57.063811Z",
      "iopub.status.idle": "2026-09-25T09:36:57.720449Z",
      "shell.execute_reply": "2026-09-25T09:36:57.719298Z"
-    }
+    },
+    "tags": [
+     "hide-input"
+    ]
    },
    "outputs": [
     {
@@ -5702,7 +5779,10 @@
      "iopub.status.busy": "2026-09-25T09:36:57.722612Z",
      "iopub.status.idle": "2026-09-25T09:36:58.232383Z",
      "shell.execute_reply": "2026-09-25T09:36:58.231529Z"
-    }
+    },
+    "tags": [
+     "hide-input"
+    ]
    },
    "outputs": [
     {
@@ -5854,7 +5934,10 @@
      "iopub.status.busy": "2026-09-25T09:36:58.235075Z",
      "iopub.status.idle": "2026-09-25T09:36:58.711269Z",
      "shell.execute_reply": "2026-09-25T09:36:58.709920Z"
-    }
+    },
+    "tags": [
+     "hide-input"
+    ]
    },
    "outputs": [
     {
@@ -5987,7 +6070,10 @@
      "iopub.status.busy": "2026-09-25T09:36:58.714713Z",
      "iopub.status.idle": "2026-09-25T09:36:58.744227Z",
      "shell.execute_reply": "2026-09-25T09:36:58.742508Z"
-    }
+    },
+    "tags": [
+     "hide-input"
+    ]
    },
    "outputs": [
     {
@@ -6469,7 +6555,7 @@
     "\n",
     "Advanced sensitivities or personalized simulations can be done by:\n",
     "- editing the deck in `simulations/examples/example_4/` itself (needs a local installation)\n",
-    "- building a new case from scratch as [notebook 3](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/dev-workshop/docs/workshop/03-build-your-own-case.ipynb) describes (needs a local installation)\n",
+    "- building a new case from scratch as [notebook 3](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/03-build-your-own-case.ipynb) describes (needs a local installation)\n",
     "- you can also check out our Horizon-zcs tool on GitHub for global sensitivity analysis (which is what we are using for our own analyses)"
    ]
   }

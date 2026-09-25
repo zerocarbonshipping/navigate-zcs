@@ -446,7 +446,13 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/dev-workshop/docs/workshop/01-setup-and-quicktest.ipynb"><img alt="Open In Colab" src="https://colab.research.google.com/assets/colab-badge.svg" /></a></p>
+  <blockquote>
+<div><p><strong>Recommended: run this notebook in Google Colab, nothing to install.</strong></p>
+<p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/01-setup-and-quicktest.ipynb"><img alt="Open In Colab" src="https://colab.research.google.com/assets/colab-badge.svg" /></a></p>
+<p>In Colab the notebook opens without results: run the cells yourself, from
+the top (Shift+Enter runs one cell). The results shown on the documentation
+website come from a run made in advance.</p>
+</div></blockquote>
 <section class="tex2jax_ignore mathjax_ignore" id="test-set-up">
 <h1>1. Test set-up<a class="headerlink" href="#test-set-up" title="Link to this heading">#</a></h1>
 <p>What the complete workshop covers, and how to run these notebooks either on Google
@@ -460,7 +466,12 @@ simulation that finishes in seconds.</p>
 <p>On Google Colab or in Jupyter, click <strong>Run</strong> on the next cell to install
 Navigate. It works in either environment, and you can re-run it if you come
 back to a Colab session that has gone idle.</p>
-<div class="cell docutils container">
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
@@ -468,10 +479,12 @@ back to a Colab session that has gone idle.</p>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
 
-<span class="c1"># The branch these notebooks live on. Colab clones THIS branch, and the</span>
-<span class="c1"># "Open in Colab" badge at the top of the notebook, like the links between the</span>
-<span class="c1"># notebooks, points at the same one. Change all of them to "main" once the</span>
-<span class="c1"># branch has been merged.</span>
+<span class="c1"># The branch these notebooks live on, and the one Colab clones. The "Open in</span>
+<span class="c1"># Colab" badge at the top of the notebook, like the links between the</span>
+<span class="c1"># notebooks, opens the copy on the workshop-colab branch instead: the same</span>
+<span class="c1"># notebooks with their outputs cleared, rebuilt from this branch by</span>
+<span class="c1"># .github/workflows/workshop-colab.yml. Change BRANCH, and that workflow, to</span>
+<span class="c1"># "main" once the branch has been merged.</span>
 <span class="n">BRANCH</span> <span class="o">=</span> <span class="s2">"dev-workshop"</span>
 
 
@@ -509,6 +522,7 @@ back to a Colab session that has gone idle.</p>
 </pre></div>
 </div>
 </div>
+</details>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Moved up to the repository root.
 Navigate 1.0.0 is already installed.
@@ -574,7 +588,12 @@ type, a name in quotes, and a block of attributes.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">EVENTS</span></code> sets out the timeline: the dates the model steps through, and any
 changes to nodes along the way.</p></li>
 </ul>
-<div class="cell docutils container">
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 
@@ -699,6 +718,7 @@ changes to nodes along the way.</p></li>
 </pre></div>
 </div>
 </div>
+</details>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Wrote quicktest/quicktest.nav and includes/
 </pre></div>
@@ -708,7 +728,7 @@ changes to nodes along the way.</p></li>
 <p>Now let’s look at the results.</p>
 <p>If the next cell produces a plot, or at least a <code class="docutils literal notranslate"><span class="pre">Finished</span> <span class="pre">simulation</span></code> message
 with no errors, your environment is working and you are ready to move on to
-<a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/dev-workshop/docs/workshop/02-vessel-case-study.ipynb">notebook 2, the vessel case study</a>. The link opens it in
+<a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/02-vessel-case-study.ipynb">notebook 2, the vessel case study</a>. The link opens it in
 Colab; if you are running locally, open it from <code class="docutils literal notranslate"><span class="pre">docs/workshop/</span></code> instead.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">

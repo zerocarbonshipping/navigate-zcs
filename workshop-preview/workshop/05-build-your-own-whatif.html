@@ -446,10 +446,16 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/dev-workshop/docs/workshop/05-build-your-own-whatif.ipynb"><img alt="Open In Colab" src="https://colab.research.google.com/assets/colab-badge.svg" /></a></p>
+  <blockquote>
+<div><p><strong>Recommended: run this notebook in Google Colab, nothing to install.</strong></p>
+<p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/05-build-your-own-whatif.ipynb"><img alt="Open In Colab" src="https://colab.research.google.com/assets/colab-badge.svg" /></a></p>
+<p>In Colab the notebook opens without results: run the cells yourself, from
+the top (Shift+Enter runs one cell). The results shown on the documentation
+website come from a run made in advance.</p>
+</div></blockquote>
 <section class="tex2jax_ignore mathjax_ignore" id="change-the-numbers-and-see-what-moves">
 <h1>5. Change the numbers and see what moves<a class="headerlink" href="#change-the-numbers-and-see-what-moves" title="Link to this heading">#</a></h1>
-<p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/dev-workshop/docs/workshop/04-run-a-reference-scenario.ipynb">Notebook 4</a> ran the Center’s reference scenarios exactly as they are. This one
+<p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/04-run-a-reference-scenario.ipynb">Notebook 4</a> ran the Center’s reference scenarios exactly as they are. This one
 lets you change the assumptions behind one of them and watch the answer move.</p>
 <div class="warning admonition">
 <p class="admonition-title">These numbers are for comparing, not for quoting</p>
@@ -460,7 +466,7 @@ sound but the absolute figures are different from the Center’s base simulation
 </div>
 <section id="why-this-runs-in-a-minute-or-two">
 <h2>Why this runs in a minute or two<a class="headerlink" href="#why-this-runs-in-a-minute-or-two" title="Link to this heading">#</a></h2>
-<p>The reference scenarios in <a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/dev-workshop/docs/workshop/04-run-a-reference-scenario.ipynb">notebook 4</a> take between six and twenty-two minutes
+<p>The reference scenarios in <a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/04-run-a-reference-scenario.ipynb">notebook 4</a> take between six and twenty-two minutes
 each.
 To have a faster solving time, we change the <code class="docutils literal notranslate"><span class="pre">EVENTS</span></code> block in this simulation to reduce the number of time steps.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Start</span>
@@ -507,7 +513,12 @@ To have a faster solving time, we change the <code class="docutils literal notra
 <section id="setup-repeat-if-starting-a-fresh-session">
 <h2>Setup (repeat if starting a fresh session)<a class="headerlink" href="#setup-repeat-if-starting-a-fresh-session" title="Link to this heading">#</a></h2>
 <p>Run the cell below to install Navigate, prepare the sensitivities and run a reference scenario (you can choose yours among the ones available in the simulation folder by updating the SCENARIO variable at the top of the cell below).</p>
-<div class="cell docutils container">
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># ===========================================================================</span>
 <span class="c1">#  WHICH SCENARIO TO START FROM</span>
@@ -539,10 +550,12 @@ To have a faster solving time, we change the <code class="docutils literal notra
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
 
-<span class="c1"># The branch these notebooks live on. Colab clones THIS branch, and the</span>
-<span class="c1"># "Open in Colab" badge at the top of the notebook, like the links between the</span>
-<span class="c1"># notebooks, points at the same one. Change all of them to "main" once the</span>
-<span class="c1"># branch has been merged.</span>
+<span class="c1"># The branch these notebooks live on, and the one Colab clones. The "Open in</span>
+<span class="c1"># Colab" badge at the top of the notebook, like the links between the</span>
+<span class="c1"># notebooks, opens the copy on the workshop-colab branch instead: the same</span>
+<span class="c1"># notebooks with their outputs cleared, rebuilt from this branch by</span>
+<span class="c1"># .github/workflows/workshop-colab.yml. Change BRANCH, and that workflow, to</span>
+<span class="c1"># "main" once the branch has been merged.</span>
 <span class="n">BRANCH</span> <span class="o">=</span> <span class="s2">"dev-workshop"</span>
 
 
@@ -857,6 +870,7 @@ To have a faster solving time, we change the <code class="docutils literal notra
 </pre></div>
 </div>
 </div>
+</details>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Moved up to the repository root.
 Navigate 1.0.0 is already installed.
@@ -1108,7 +1122,7 @@ Change one of the numbers above and run this cell again.
 <ul class="simple">
 <li><p>editing the deck in <code class="docutils literal notranslate"><span class="pre">simulations/scenarios/workshop_whatif/</span></code> itself,</p></li>
 <li><p>keeping your own variants under <code class="docutils literal notranslate"><span class="pre">simulations/user/</span></code>,</p></li>
-<li><p>building a case from scratch as <a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/dev-workshop/docs/workshop/03-build-your-own-case.ipynb">notebook 3</a> describes (needs a local checkout rather than Colab)</p></li>
+<li><p>building a case from scratch as <a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/03-build-your-own-case.ipynb">notebook 3</a> describes (needs a local checkout rather than Colab)</p></li>
 <li><p>you can also check out our Horizon-zcs tool on GitHub for global sensitivity analysis (which is what we are using for our own analyses)</p></li>
 </ul>
 </section>

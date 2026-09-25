@@ -5,7 +5,13 @@
    "id": "badge",
    "metadata": {},
    "source": [
-    "[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/dev-workshop/docs/workshop/05-build-your-own-whatif.ipynb)"
+    "> **Recommended: run this notebook in Google Colab, nothing to install.**\n",
+    ">\n",
+    "> [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/05-build-your-own-whatif.ipynb)\n",
+    ">\n",
+    "> In Colab the notebook opens without results: run the cells yourself, from\n",
+    "> the top (Shift+Enter runs one cell). The results shown on the documentation\n",
+    "> website come from a run made in advance."
    ]
   },
   {
@@ -15,7 +21,7 @@
    "source": [
     "# 5. Change the numbers and see what moves\n",
     "\n",
-    "[Notebook 4](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/dev-workshop/docs/workshop/04-run-a-reference-scenario.ipynb) ran the Center's reference scenarios exactly as they are. This one\n",
+    "[Notebook 4](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/04-run-a-reference-scenario.ipynb) ran the Center's reference scenarios exactly as they are. This one\n",
     "lets you change the assumptions behind one of them and watch the answer move.\n",
     "\n",
     "```{admonition} These numbers are for comparing, not for quoting\n",
@@ -34,7 +40,7 @@
    "source": [
     "## Why this runs in a minute or two\n",
     "\n",
-    "The reference scenarios in [notebook 4](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/dev-workshop/docs/workshop/04-run-a-reference-scenario.ipynb) take between six and twenty-two minutes\n",
+    "The reference scenarios in [notebook 4](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/04-run-a-reference-scenario.ipynb) take between six and twenty-two minutes\n",
     "each.\n",
     "To have a faster solving time, we change the `EVENTS` block in this simulation to reduce the number of time steps.\n",
     "\n",
@@ -82,7 +88,10 @@
      "iopub.status.busy": "2026-09-25T09:49:23.244314Z",
      "iopub.status.idle": "2026-09-25T09:50:26.571830Z",
      "shell.execute_reply": "2026-09-25T09:50:26.571065Z"
-    }
+    },
+    "tags": [
+     "hide-input"
+    ]
    },
    "outputs": [
     {
@@ -181,10 +190,12 @@
     "from pathlib import Path\n",
     "\n",
     "\n",
-    "# The branch these notebooks live on. Colab clones THIS branch, and the\n",
-    "# \"Open in Colab\" badge at the top of the notebook, like the links between the\n",
-    "# notebooks, points at the same one. Change all of them to \"main\" once the\n",
-    "# branch has been merged.\n",
+    "# The branch these notebooks live on, and the one Colab clones. The \"Open in\n",
+    "# Colab\" badge at the top of the notebook, like the links between the\n",
+    "# notebooks, opens the copy on the workshop-colab branch instead: the same\n",
+    "# notebooks with their outputs cleared, rebuilt from this branch by\n",
+    "# .github/workflows/workshop-colab.yml. Change BRANCH, and that workflow, to\n",
+    "# \"main\" once the branch has been merged.\n",
     "BRANCH = \"dev-workshop\"\n",
     "\n",
     "\n",
@@ -724,7 +735,7 @@
     "More advanced sensitivities or personalized simulations can be done by:\n",
     "- editing the deck in `simulations/scenarios/workshop_whatif/` itself,\n",
     "- keeping your own variants under `simulations/user/`,\n",
-    "- building a case from scratch as [notebook 3](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/dev-workshop/docs/workshop/03-build-your-own-case.ipynb) describes (needs a local checkout rather than Colab)\n",
+    "- building a case from scratch as [notebook 3](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/03-build-your-own-case.ipynb) describes (needs a local checkout rather than Colab)\n",
     "- you can also check out our Horizon-zcs tool on GitHub for global sensitivity analysis (which is what we are using for our own analyses)"
    ]
   }

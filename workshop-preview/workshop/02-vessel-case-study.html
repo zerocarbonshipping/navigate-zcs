@@ -446,7 +446,13 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/dev-workshop/docs/workshop/02-vessel-case-study.ipynb"><img alt="Open In Colab" src="https://colab.research.google.com/assets/colab-badge.svg" /></a></p>
+  <blockquote>
+<div><p><strong>Recommended: run this notebook in Google Colab, nothing to install.</strong></p>
+<p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/02-vessel-case-study.ipynb"><img alt="Open In Colab" src="https://colab.research.google.com/assets/colab-badge.svg" /></a></p>
+<p>In Colab the notebook opens without results: run the cells yourself, from
+the top (Shift+Enter runs one cell). The results shown on the documentation
+website come from a run made in advance.</p>
+</div></blockquote>
 <section class="tex2jax_ignore mathjax_ignore" id="illustrating-the-navigate-logic-with-a-simple-case">
 <h1>2. Illustrating the Navigate logic with a simple case<a class="headerlink" href="#illustrating-the-navigate-logic-with-a-simple-case" title="Link to this heading">#</a></h1>
 <p>The aim of this section is to cover the basics of Navigate’s logic using a simple, though useful, case as an illustration. Keep in mind that some of the data have been invented for the purpose of this exercise (so please do not create your own trade route based on this example).</p>
@@ -512,17 +518,24 @@ fuel supply, the operator’s temperament) and see what moves the answer.</p>
 <section id="setup-repeat-if-starting-a-fresh-session">
 <h2>Setup (repeat if starting a fresh session)<a class="headerlink" href="#setup-repeat-if-starting-a-fresh-session" title="Link to this heading">#</a></h2>
 <p>Run the cell below on Colab or locally to set up the Navigate model.</p>
-<div class="cell docutils container">
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Setup. Works both on Google Colab and in a local checkout of the repository.</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
 
-<span class="c1"># The branch these notebooks live on. Colab clones THIS branch, and the</span>
-<span class="c1"># "Open in Colab" badge at the top of the notebook, like the links between the</span>
-<span class="c1"># notebooks, points at the same one. Change all of them to "main" once the</span>
-<span class="c1"># branch has been merged.</span>
+<span class="c1"># The branch these notebooks live on, and the one Colab clones. The "Open in</span>
+<span class="c1"># Colab" badge at the top of the notebook, like the links between the</span>
+<span class="c1"># notebooks, opens the copy on the workshop-colab branch instead: the same</span>
+<span class="c1"># notebooks with their outputs cleared, rebuilt from this branch by</span>
+<span class="c1"># .github/workflows/workshop-colab.yml. Change BRANCH, and that workflow, to</span>
+<span class="c1"># "main" once the branch has been merged.</span>
 <span class="n">BRANCH</span> <span class="o">=</span> <span class="s2">"dev-workshop"</span>
 
 
@@ -561,6 +574,7 @@ fuel supply, the operator’s temperament) and see what moves the answer.</p>
 </pre></div>
 </div>
 </div>
+</details>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Moved up to the repository root.
 Navigate 1.0.0 is already installed.
@@ -569,7 +583,12 @@ Navigate 1.0.0 is already installed.
 </div>
 </div>
 <p>Load the pre-made example that will be used to illustrate this part of the workshop.</p>
-<div class="cell docutils container">
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
@@ -610,6 +629,7 @@ Navigate 1.0.0 is already installed.
 </pre></div>
 </div>
 </div>
+</details>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>The deck:
   example_4.nav
@@ -1403,7 +1423,12 @@ and
 <a class="reference external" href="https://zerocarbonshipping.github.io/navigate-zcs/reference_manual/variable.html">Variable</a>
 if you want the full attribute reference.</p>
 <p>The next cell needs to be run to prepare the data extraction from Navigate.</p>
-<div class="cell docutils container">
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">contextlib</span>
@@ -1519,6 +1544,7 @@ if you want the full attribute reference.</p>
 </pre></div>
 </div>
 </div>
+</details>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>——————————————————————————————————————————————————————————————————————————————————————————————————
             |    |    |                                  .oO
@@ -1551,7 +1577,12 @@ if you want the full attribute reference.</p>
 <section id="newbuild-capex-retrofitting-costs-and-financing-conditions">
 <h3>Newbuild CAPEX, retrofitting costs and financing conditions<a class="headerlink" href="#newbuild-capex-retrofitting-costs-and-financing-conditions" title="Link to this heading">#</a></h3>
 <p>The next cell presents the ship retrofitting costs, the CAPEX of newbuild ships and the cost of capital each configuration is financed at, used as base assumptions.</p>
-<div class="cell docutils container">
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># What the four configurations cost to build.</span>
 <span class="c1">#</span>
@@ -1672,6 +1703,7 @@ if you want the full attribute reference.</p>
 </pre></div>
 </div>
 </div>
+</details>
 <div class="cell_output docutils container">
 <img alt="../_images/29e32d69fe3d26c07b1c10af9f775f3ee07cc8979dd983f35fc18b2c480b866f.png" src="../_images/29e32d69fe3d26c07b1c10af9f775f3ee07cc8979dd983f35fc18b2c480b866f.png" />
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Retrofitting an existing ship, instead of replacing it:
@@ -1758,7 +1790,12 @@ the model’s call rather than something the deck schedules.</p>
 <p>Five start partly fitted at the library’s observed uptake for the world Panamax
 fleet; the Flettner rotor starts at zero, because no Panamax in that fleet
 carries one.</p>
-<div class="cell docutils container">
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># What each hull already carries before the model decides anything. Read off the</span>
 <span class="c1"># parsed deck: initial_technology_share maps (vessel, technology) to the library</span>
@@ -1795,6 +1832,7 @@ carries one.</p>
 </pre></div>
 </div>
 </div>
+</details>
 <div class="cell_output docutils container">
 <img alt="../_images/84158d0e523f96278389f1d5ebaac0952750f4b65af4bfc6d34d4958d9b9bd2c.png" src="../_images/84158d0e523f96278389f1d5ebaac0952750f4b65af4bfc6d34d4958d9b9bd2c.png" />
 </div>
@@ -1887,7 +1925,12 @@ is that slice reduced again to one fleet on one trade.</p>
 <p>Below are the ceilings themselves, straight out of the deck. Whether either one
 ever binds is a result rather than an input, so that waits until Part 3, with
 the rest of what the twenty-five years produced.</p>
-<div class="cell docutils container">
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># What the two feedstock ceilings allow. The ceilings only - what the run draws</span>
 <span class="c1"># against them is a result, and is plotted in Part 3.</span>
@@ -1950,6 +1993,7 @@ the rest of what the twenty-five years produced.</p>
 </pre></div>
 </div>
 </div>
+</details>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  Gasification feedstock     ceiling  0.81 Mt/yr in 2026, rising to  0.95 by 2050
   Biogenic CO2 (PS)          ceiling  0.14 Mt/yr in 2026, rising to  0.53 by 2050
@@ -1965,7 +2009,12 @@ the rest of what the twenty-five years produced.</p>
 <h2>3. Data about bunkering<a class="headerlink" href="#data-about-bunkering" title="Link to this heading">#</a></h2>
 <p>A fuel’s production cost is not what a ship pays. The deck adds <code class="docutils literal notranslate"><span class="pre">distance</span> <span class="pre">×</span> <span class="pre">rate</span></code> from the plant to the bunker port. It means that fuel is cheap at the port next door and
 carries a penalty at the far one.</p>
-<div class="cell docutils container">
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
 
@@ -2031,6 +2080,7 @@ carries a penalty at the far one.</p>
 </pre></div>
 </div>
 </div>
+</details>
 <div class="cell_output docutils container">
 <img alt="../_images/a0007d0f3cc09289470a1d73c029ee8904e6fc3e24ba2fc4f850dbae477436ed.png" src="../_images/a0007d0f3cc09289470a1d73c029ee8904e6fc3e24ba2fc4f850dbae477436ed.png" />
 </div>
@@ -2050,7 +2100,12 @@ fuel — e-ammonia, e-methanol and bio-methanol carry the same factors per ton,
 leaving only their methane and nitrous oxide to charge. FuelEU is
 <code class="docutils literal notranslate"><span class="pre">Scope</span> <span class="pre">=</span> <span class="pre">WTW</span></code>, so it can influence the choices between the different
 alternative fuel supplies.</p>
-<div class="cell docutils container">
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span><span class="p">)</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">11</span><span class="p">,</span> <span class="mf">3.6</span><span class="p">))</span>
 
@@ -2081,6 +2136,7 @@ alternative fuel supplies.</p>
 </pre></div>
 </div>
 </div>
+</details>
 <div class="cell_output docutils container">
 <img alt="../_images/7540613af0c47a8399a25564857957cf843cc9971eccda7cbfb29930fc3523c4.png" src="../_images/7540613af0c47a8399a25564857957cf843cc9971eccda7cbfb29930fc3523c4.png" />
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>ETS allowance (USD/ton CO2)          100.0 (2024)  -&gt;    417.0 (2050)
@@ -2102,7 +2158,12 @@ a cap. Breaching the cap leads to a <strong>760 USD/ton penalty</strong> which i
 <p>The same fuel can also score a different <strong>TTW</strong> for FuelEU and EU ETS because each regulation carries its own emission factors.</p>
 <p><strong>FuelEU is WTW</strong>, so it charges the full combustion carbon of the molecule at the funnel. Bio-methanol is charged 72 gCO2eq/MJ TTW (the same as e-methanol, because burning either releases the same carbon). In case of biogenic carbon use, the WTT component is credited with a negative value. That is not a modelling shortcut: the regulation derives the WTT from the lifecycle value on the fuel’s Proof of Sustainability, reduced by the combustion carbon.</p>
 <p><strong>The EU ETS is TTW</strong>. It zero-rates the combustion CO2 of bio- and e-fuels. So for bio-methanol the TTW is about 2 (for N2O and CH4 emissions).</p>
-<div class="cell docutils container">
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># What each regulation charges each fuel, and where each number comes from.</span>
 <span class="c1"># The factors come from DECK_FACTORS, the copy Part 2's data-extraction cell took</span>
@@ -2281,6 +2342,7 @@ a cap. Breaching the cap leads to a <strong>760 USD/ton penalty</strong> which i
 </pre></div>
 </div>
 </div>
+</details>
 <div class="cell_output docutils container">
 <img alt="../_images/f221800f7146cdaff371434b8c26a0af6d14ac7490c2a4c7e5228262daeab286.png" src="../_images/f221800f7146cdaff371434b8c26a0af6d14ac7490c2a4c7e5228262daeab286.png" />
 </div>
@@ -2321,7 +2383,12 @@ turns into a share. With 300 ships those shares read as ships — “12 % e-ammo
 thirty-six hulls.</p>
 <p>The fuel producer decides last, in the same year, basing its decision on the expected fuel demand from the shipping sector: if that demand exceeds the supply it has already built or ordered, the plant owner takes its share of the gap and turns that into fuel plants. Here too there is no “absolute winner”, only shares.</p>
 <p>Now, run the next cell that solves the model and “extracts” some information along the solving process that we can observe and analyze.</p>
-<div class="cell docutils container">
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">run_case</span><span class="p">(</span><span class="n">tweak</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">probe_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">quiet</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Parse the deck, optionally modify it, solve it, return the manager.</span>
@@ -2622,6 +2689,7 @@ thirty-six hulls.</p>
 </pre></div>
 </div>
 </div>
+</details>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>CPU times: total: 14.8 s
 Wall time: 15.6 s
@@ -2640,7 +2708,12 @@ walking 2027 (step 1) and 2040 (step 14)
 <p>A time step starts with an initialization. It inherits a fleet with an age
 structure, plants that were sanctioned years ago, and two regulations whose
 terms for this year are already fixed.</p>
-<div class="cell docutils container">
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># What the year inherits, as two pictures rather than a list. Drawn by a function</span>
 <span class="c1"># taking a step, so the 2040 section can put the same picture beside this one.</span>
@@ -2741,6 +2814,7 @@ terms for this year are already fixed.</p>
 </pre></div>
 </div>
 </div>
+</details>
 <div class="cell_output docutils container">
 <img alt="../_images/d72a7149f1abfe1402611afaef58b4213f3bc65cf30c0742b9192812acc295b4.png" src="../_images/d72a7149f1abfe1402611afaef58b4213f3bc65cf30c0742b9192812acc295b4.png" />
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>25 live cohorts: decisions are taken per cohort, against that cohort's own remaining life.
@@ -2764,7 +2838,12 @@ this year's regulatory terms:
 <p>The fleet operator calculates the expected optimal strategy for his fleet and evaluates: how many tons of which fuel to buy at which port, the cheapest strategy between switching fuel or paying the regulation penalty. It is solved for the whole fleet at once — in fact for every fleet in the simulation — so the ships compete for the same supply. The expenses of new build ships, retrofits, etc. are not considered at this stage yet.</p>
 <p>The cheapest bunkering strategy is solved <strong>forward</strong>: one optimisation for each remaining year out to 2050, run one after another.</p>
 <p>The step hands a cost path per option to the stages below, and that is what the investment decisions are made on. It produces a second output as well: the <strong>fuel scarcity signal</strong>. For every ship and every leg the optimisation reports the shadow price of energy (what one more unit of energy would have cost). It is the ordinary fuel price when fuel is plentiful and rises above it when the supply is tight. This number is used to act on efficiency and speed decisions for the on-going year.</p>
-<div class="cell docutils container">
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.patches</span><span class="w"> </span><span class="kn">import</span> <span class="n">Patch</span>
 
@@ -3059,6 +3138,7 @@ this year's regulatory terms:
 </pre></div>
 </div>
 </div>
+</details>
 <div class="cell_output docutils container">
 <img alt="../_images/deb838c4d1cf71cd18fc3f673aa6055a433f6bcd6e7e1d0c940a07834333d65a.png" src="../_images/deb838c4d1cf71cd18fc3f673aa6055a433f6bcd6e7e1d0c940a07834333d65a.png" />
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  ship_oil        expects  100% of its tons to be oil
@@ -3089,7 +3169,12 @@ in the previous stage:</p>
 <li><p><strong>The fleet</strong>: depending on the ranking: scrap hulls, retrofit for fuel
 conversions and order newbuilds</p></li>
 </ol>
-<div class="cell docutils container">
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># The four levers Stage 2 pulls, side by side. Each panel is one decision, taken</span>
 <span class="c1"># on this year's beliefs and without waiting for the other three.</span>
@@ -3440,6 +3525,7 @@ conversions and order newbuilds</p></li>
 </pre></div>
 </div>
 </div>
+</details>
 <div class="cell_output docutils container">
 <img alt="../_images/b093b5ec4034350c880647e66c58c72ed36e628ee3c559b38f172f5ea843ff07.png" src="../_images/b093b5ec4034350c880647e66c58c72ed36e628ee3c559b38f172f5ea843ff07.png" />
 <img alt="../_images/65b92700b068878797a5c91087008e67b5c94736484c4e63bf26015ad426d6b5.png" src="../_images/65b92700b068878797a5c91087008e67b5c94736484c4e63bf26015ad426d6b5.png" />
@@ -3454,7 +3540,12 @@ output <em>is</em> the fleet’s available supply.</p>
 <p>There is an intentional structural lag between the two. The demand is taken directly from the expected bunkering calculated previously in the time-step, so it does not account for the newest fleet evolution but rather a time-lagged view. The producer is acting on the demand figure computed <em>earlier in this same year</em> — before the newbuilds and retrofits we just watched.</p>
 <p>In this example the build-rate ceiling (max number of plants that can be built) is voluntarily not binding, though the gasifiable-biomass feedstock ceiling is. Both can be investigated in the sensitivity analysis section.</p>
 <p>Check <code class="docutils literal notranslate"><span class="pre">navigate/fuel/supply_demand.py</span></code> and <code class="docutils literal notranslate"><span class="pre">_calculate_expected_fleet_fuel_demand</span></code> for more details.</p>
-<div class="cell docutils container">
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"=== </span><span class="si">{</span><span class="n">FOCUS_YEARS</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">: what the producer saw, and did ===</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"the demand vector it read (this year's forward view, first year):"</span><span class="p">)</span>
@@ -3683,6 +3774,7 @@ output <em>is</em> the fleet’s available supply.</p>
 </pre></div>
 </div>
 </div>
+</details>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>=== 2027: what the producer saw, and did ===
 
@@ -3711,7 +3803,12 @@ Neither producer came near its build-rate ceiling:
 <p>The forward optimization bunkering algorithm of Stage 1 was a belief.
 Now the year is bought for real, with the new fleet from this year and against what the producers actually
 delivered.</p>
-<div class="cell docutils container">
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.colors</span><span class="w"> </span><span class="kn">import</span> <span class="n">to_rgba</span>
 
@@ -4210,6 +4307,7 @@ delivered.</p>
 </pre></div>
 </div>
 </div>
+</details>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>=== 2027: the bunkering plan, tons per ship ===
 
@@ -4290,7 +4388,12 @@ still running.</p>
 <section id="thirteen-years-on-the-same-step-in-2040">
 <h2>Thirteen years on: the same step in 2040<a class="headerlink" href="#thirteen-years-on-the-same-step-in-2040" title="Link to this heading">#</a></h2>
 <p>Tadaaa, we are now 13 years later (we repeated the 2027 step multiple times and we are now checking what happens at the year 2040). The logic is the same as before but the conditions have changed.</p>
-<div class="cell docutils container">
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># What CHANGED between the two steps. The levers themselves are drawn further</span>
 <span class="c1"># down, one stage at a time; these are the conditions the stages answered to.</span>
@@ -4318,6 +4421,7 @@ still running.</p>
 </pre></div>
 </div>
 </div>
+</details>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>                                              2027          2040
   ------------------------------------------------------------
@@ -4352,7 +4456,12 @@ still running.</p>
 </section>
 <section id="stage-1-look-ahead-2027-vs-2040">
 <h3>Stage 1 — Look ahead (2027 vs 2040)<a class="headerlink" href="#stage-1-look-ahead-2027-vs-2040" title="Link to this heading">#</a></h3>
-<div class="cell docutils container">
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Stage 1, both years. The look-ahead's two outputs - what it expects to buy,</span>
 <span class="c1"># and what it expects that to cost.</span>
@@ -4379,6 +4488,7 @@ still running.</p>
 </pre></div>
 </div>
 </div>
+</details>
 <div class="cell_output docutils container">
 <img alt="../_images/dd398895f60852f0485b4ddb6abbd8f09e46a0bd1f7ebae3d34bc8ac1b1b0920.png" src="../_images/dd398895f60852f0485b4ddb6abbd8f09e46a0bd1f7ebae3d34bc8ac1b1b0920.png" />
 </div>
@@ -4435,7 +4545,12 @@ still running.</p>
 </section>
 <section id="stage-4-commit-the-bunkering-algorithm-that-binds-2027-vs-2040">
 <h3>Stage 4 — Commit: the bunkering algorithm that binds (2027 vs 2040)<a class="headerlink" href="#stage-4-commit-the-bunkering-algorithm-that-binds-2027-vs-2040" title="Link to this heading">#</a></h3>
-<div class="cell docutils container">
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Stage 4, both years: what was committed, then what had been expected of the</span>
 <span class="c1"># same year. Both pairs share one tons scale, across both years and both halves.</span>
@@ -4464,6 +4579,7 @@ still running.</p>
 </pre></div>
 </div>
 </div>
+</details>
 <div class="cell_output docutils container">
 <img alt="../_images/d29f01b24e0195ca728d837e3fb0f664924939a0ec925be8dcccdbf671cab2e0.png" src="../_images/d29f01b24e0195ca728d837e3fb0f664924939a0ec925be8dcccdbf671cab2e0.png" />
 <img alt="../_images/5a1449e9962f432187587b1e1ea4654ac3c90bb5e6df3c7e682eaaa5b9f3376a.png" src="../_images/5a1449e9962f432187587b1e1ea4654ac3c90bb5e6df3c7e682eaaa5b9f3376a.png" />
@@ -4521,7 +4637,12 @@ on in <code class="docutils literal notranslate"><span class="pre">includes/flee
 order is no longer necessarily a replacement. What the growth does <em>not</em> change
 is the mix: turn it off and the 2050 shares move by well under a percentage
 point each.</p>
-<div class="cell docutils container">
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># One figure for the fleet: what it is at each date, and where each configuration</span>
 <span class="c1"># came from.</span>
@@ -4596,6 +4717,7 @@ point each.</p>
 </pre></div>
 </div>
 </div>
+</details>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>fleet 300 -&gt; 489 hulls;  over the horizon 477 ordered, 38 converted, 288 scrapped
 </pre></div>
@@ -4610,7 +4732,12 @@ point each.</p>
 third is to need less energy for the same voyage. Part 2 lists the six measures
 this deck offers and what each one costs; this is when the model actually fitted
 them. What they turn out to be worth is a Part 4 question.</p>
-<div class="cell docutils container">
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># What got fitted, and when.</span>
 <span class="c1">#</span>
@@ -4659,6 +4786,7 @@ them. What they turn out to be worth is a Part 4 question.</p>
 </pre></div>
 </div>
 </div>
+</details>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>technology energy saving:  2026  1.3%   2038 10.8%   2050 17.1%
 </pre></div>
@@ -4674,7 +4802,12 @@ them. What they turn out to be worth is a Part 4 question.</p>
 <h3>What it bunkers, and when<a class="headerlink" href="#what-it-bunkers-and-when" title="Link to this heading">#</a></h3>
 <p>The headline result, and the question the case opened with. Shares of energy,
 not of hulls — a dual-fuel ship that bunkers oil counts as oil here.</p>
-<div class="cell docutils container">
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fuels</span> <span class="o">=</span> <span class="n">fuel_frame</span><span class="p">(</span><span class="n">base</span><span class="p">)</span>
 <span class="n">fuels</span> <span class="o">=</span> <span class="n">fuels</span><span class="p">[</span><span class="n">fuel_sorted</span><span class="p">(</span><span class="n">fuels</span><span class="o">.</span><span class="n">columns</span><span class="p">)]</span>      <span class="c1"># Navigate's own stacking order</span>
@@ -4756,6 +4889,7 @@ not of hulls — a dual-fuel ship that bunkers oil counts as oil here.</p>
 </pre></div>
 </div>
 </div>
+</details>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Share of total energy over 2026-2050:
   Fuel oil                    67.0%
@@ -4779,7 +4913,12 @@ was ever more than a line on a chart.</p>
 it shapes the second half of the horizon, while biogenic CO2 only catches up with the plants
 drawing on it in the last years. A ceiling matters where the line meets it, not
 because it is there.</p>
-<div class="cell docutils container">
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># The same two ceilings as Part 2, now against what the run drew. Consumption is</span>
 <span class="c1"># a run output - the profile aggregates it, and each constrained feed has one</span>
@@ -4834,6 +4973,7 @@ because it is there.</p>
 </pre></div>
 </div>
 </div>
+</details>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  Gasification feedstock     ceiling  0.95 Mt/yr by 2050,   binds from 2038, in 13 of 25 years
   Biogenic CO2 (PS)          ceiling  0.53 Mt/yr by 2050,   binds from 2049, in 2 of 25 years
@@ -4854,7 +4994,12 @@ producer’s output <strong>is</strong> the supply the operator can buy. The lag
 The demand figure a producer acts on is the fleet’s expectation computed earlier
 in the same time step, before that year’s newbuild and retrofit decisions, and
 the plant’s build lead time comes on top of that.</p>
-<div class="cell docutils container">
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">FUEL</span> <span class="o">=</span> <span class="s2">"ammonia_electro"</span>        <span class="c1"># the largest e-fuel in the baseline; the others behave the same</span>
 
@@ -5040,6 +5185,7 @@ the plant’s build lead time comes on top of that.</p>
 </pre></div>
 </div>
 </div>
+</details>
 <div class="cell_output docutils container">
 <img alt="../_images/63e88aa76fa9f273fb1a01b7e932d6e1f65b07eda675fb0a36678fb210e9580c.png" src="../_images/63e88aa76fa9f273fb1a01b7e932d6e1f65b07eda675fb0a36678fb210e9580c.png" />
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  first capacity sanctioned: 2028
@@ -5060,7 +5206,12 @@ its build between them on delivered cost instead of picking one.
 one that decides it: where each configuration’s blended intensity sits
 against the FuelEU limit, on green ground where it earns surplus and red
 where it buys compliance.</p>
-<div class="cell docutils container">
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># The compliance panel borrows regulation_compliance.py's colours - COMPLIANT</span>
 <span class="c1"># and BREACH are that module's own green and red - but not its shading. The</span>
@@ -5158,6 +5309,7 @@ where it buys compliance.</p>
 </pre></div>
 </div>
 </div>
+</details>
 <div class="cell_output docutils container">
 <img alt="../_images/ef34f70ff168048e794b2767b55f39a37b31cdabcc8a0da3ee7d6ba3b5721e6c.png" src="../_images/ef34f70ff168048e794b2767b55f39a37b31cdabcc8a0da3ee7d6ba3b5721e6c.png" />
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  well-to-wake 2026:    5.93 Mt/yr   2050:    2.74 Mt/yr   over the horizon     119.1 Mt
@@ -5185,7 +5337,12 @@ discrete-choice model compares between configurations, so it is what explains
 <em>why</em> one was picked. A configuration that is not in the fleet in a given year
 has no value and simply does not plot.</p></li>
 </ul>
-<div class="cell docutils container">
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span><span class="p">)</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mf">4.2</span><span class="p">))</span>
 
@@ -5231,6 +5388,7 @@ has no value and simply does not plot.</p></li>
 </pre></div>
 </div>
 </div>
+</details>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>instantaneous freight rate   2026: 3.48   2050: 4.74   (+36%)
 
@@ -5314,7 +5472,12 @@ input we can change to see how much of the answer it was holding up.</p>
 of them it depends on — so this part turns the dials from the table that closed
 Part 3 and puts your version beside the reference.</p>
 <p>Run the cell below to prepare the sensitivity analysis.</p>
-<div class="cell docutils container">
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># ===========================================================================</span>
 <span class="c1">#  The machinery. Nothing to edit here - the levers are in the next cell.</span>
@@ -5506,6 +5669,7 @@ Part 3 and puts your version beside the reference.</p>
 </pre></div>
 </div>
 </div>
+</details>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>the reference, 2026-2050
   well-to-wake in 2026               5,935  kt CO2e/yr
@@ -5766,7 +5930,7 @@ Change one of the numbers above and run this cell again.
 <p>Advanced sensitivities or personalized simulations can be done by:</p>
 <ul class="simple">
 <li><p>editing the deck in <code class="docutils literal notranslate"><span class="pre">simulations/examples/example_4/</span></code> itself (needs a local installation)</p></li>
-<li><p>building a new case from scratch as <a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/dev-workshop/docs/workshop/03-build-your-own-case.ipynb">notebook 3</a> describes (needs a local installation)</p></li>
+<li><p>building a new case from scratch as <a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/03-build-your-own-case.ipynb">notebook 3</a> describes (needs a local installation)</p></li>
 <li><p>you can also check out our Horizon-zcs tool on GitHub for global sensitivity analysis (which is what we are using for our own analyses)</p></li>
 </ul>
 </section>
