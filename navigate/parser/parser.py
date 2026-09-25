@@ -994,12 +994,12 @@ class Parser:
     # ══════════════════════════════════════════════════════════════════
 
     def includes_necessary_information(self):
+        # a Fleet requires Vessels, a Vessel a Route and a Route Ports, so a
+        # deck with a Fleet has vessels and ports; emissions may be absent
         checks = [
             (self.dates, "timeline"),
             (self.nodes.fleets, "Fleets"),
             (self.nodes.fuels, "Fuels"),
-            (self.nodes.ports, "Ports"),
-            (self.nodes.vessels, "Vessels"),
         ]
         missing = [label for collection, label in checks if len(collection) == 0]
         if missing:

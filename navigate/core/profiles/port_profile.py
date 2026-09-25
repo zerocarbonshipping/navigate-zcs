@@ -7,8 +7,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import numpy as np
-
 from navigate.core.profiles._fuel_infrastructure_profile import (
     _FuelInfrastructureProfile,
 )
@@ -117,11 +115,11 @@ class PortProfile(_FuelInfrastructureProfile):
         equivalent = self.get_equivalent_bunker_wtt()
         return {
             fuel_name: self._convert_to_intensity(
-                np.add.reduce(
-                    [
-                        equivalent[(fuel_name, emission_name)]
+                self._sum_values(
+                    {
+                        emission_name: equivalent[(fuel_name, emission_name)]
                         for emission_name in self._global_warming_potential
-                    ]
+                    }
                 ),
                 self._lower_heating_value[fuel_name],
             )

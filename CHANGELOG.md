@@ -1177,6 +1177,18 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   store already returned a real array and the charter rate zero, while the
   vessel store raised an `AttributeError`. Such an increment now contributes
   zero tied capital. No committed deck is affected.
+- A deck that defines no Fleet is refused with "No Fleets are defined." alone.
+  The message also listed "No Ports are defined." and "No Vessels are
+  defined.", because vessels and ports that no Fleet reaches are removed as
+  unreachable; a deck with a Fleet always has both, since a Fleet requires
+  `Vessels`, a Vessel a `Route` and a Route `Ports`.
+- A deck with no Emission node reports its total-equivalent emissions, their
+  cumulative totals and the ports' total-equivalent bunker intensities as
+  zero over the whole timeline. They came out as single zeros instead, so the
+  CSV report skipped those columns, the cumulative totals with an "invalid
+  index to scalar variable" error, and could not save a port report holding
+  the bunker intensity, which was left with its header only. Decks that
+  define an Emission are unaffected.
 
 ## [1.0.0] - 2026-07-16
 
