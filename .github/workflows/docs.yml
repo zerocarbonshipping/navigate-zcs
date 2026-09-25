@@ -5,7 +5,7 @@ name: Documentation
 
 on:
   push:
-    branches: [ main, dev ]   # main: build + deploy (latest); dev: build + deploy (staging)
+    branches: [ main, dev, dev-workshop ]   # main: build + deploy (latest); dev: build + deploy (staging); dev-workshop: build + deploy (workshop-preview)
     tags:     [ 'v*', 'V*', '[0-9]*.[0-9]*.[0-9]*' ]   # build + deploy
   pull_request:
     branches: [ main, dev ]   # build only, so a PR can't break the deployed site
@@ -52,9 +52,10 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write   # push to the gh-pages branch
-    # deploy on any tag and on pushes to main (publishes "latest"), and on
-    # pushes to dev (publishes /staging/); never on PRs
-    if: github.event_name != 'pull_request' && (github.ref_type == 'tag' || github.ref_name == 'main' || github.ref_name == 'dev')
+    # deploy on any tag and on pushes to main (publishes "latest"), on pushes
+    # to dev (publishes /staging/) and to dev-workshop (publishes
+    # /workshop-preview/); never on PRs
+    if: github.event_name != 'pull_request' && (github.ref_type == 'tag' || github.ref_name == 'main' || github.ref_name == 'dev' || github.ref_name == 'dev-workshop')
     steps:
       - name: Download site artifact
         uses: actions/download-artifact@v8
@@ -94,4 +95,16 @@ jobs:
           publish_branch: gh-pages
           publish_dir: site
           destination_dir: staging
+          keep_files: false
+
+      # dev-workshop publishes the workshop preview until it is merged into dev;
+      # remove this step and the dev-workshop triggers above at that merge
+      - name: Deploy docs (-> /workshop-preview/)
+        if: github.ref_name == 'dev-workshop'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: site
+          destination_dir: workshop-preview
           keep_files: false

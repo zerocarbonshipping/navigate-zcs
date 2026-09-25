@@ -86,6 +86,11 @@ if ref_name == "dev":
     # development-version warning banner
     version_match = "dev"
     release += "-dev"
+elif ref_name == "dev-workshop":
+    # workshop preview at /workshop-preview/, until the workshop is merged into
+    # dev; "-preview" makes the theme show its development-version banner
+    version_match = "workshop-preview"
+    release += "-preview"
 elif ref_name in ("main", "HEAD"):
     version_match = release
 else:
