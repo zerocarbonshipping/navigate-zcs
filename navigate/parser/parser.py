@@ -848,6 +848,11 @@ class Parser:
         # setter may store an input, such as an expression, that is later bound
         # in place to the node holding it
         command_queue = copy.deepcopy(self._command_queue.get(source, []), memo)
+        if from_default:
+            # drop the source's queue now, before anything is stored under
+            # new_node: a self-copy transplants into the source itself, so
+            # popping after that store would delete the copy's own queue
+            self._command_queue.pop(source, None)
 
         existing = self._adopt(statement.node_type, statement.copy_to)
         if existing is None:
@@ -875,7 +880,6 @@ class Parser:
         ]
 
         if from_default:
-            self._command_queue.pop(source, None)
             del group[statement.copy_from]
         else:
             self._copy_source_names.add(source_key)

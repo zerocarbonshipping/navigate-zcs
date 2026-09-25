@@ -224,3 +224,16 @@ class TestQueuedCommands:
         assert "src" not in parser.nodes.fuels
         assert parser.nodes.fuels["dst"].ttw["co2"].get() == 2.75
         assert parser._command_queue == {}
+
+    def test_a_source_pulled_from_the_library_onto_its_own_name_keeps_its_queue(
+        self, read_deck, tmp_path
+    ):
+        # the pull registers "x" under its own name, so the transplant below
+        # returns that same node: the copy's queue must survive the pop that
+        # drops the source's entry once the pull is done
+        library = {"x": _fuel("x", 2.75)}
+        define = CO2 + 'Copy Fuel "x" "x"\n'
+
+        parser = read_deck(define, data_dir=_fuel_library(tmp_path, library))
+
+        assert parser.nodes.fuels["x"].ttw["co2"].get() == 2.75
