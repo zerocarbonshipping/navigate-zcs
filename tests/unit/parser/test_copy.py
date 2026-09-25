@@ -6,7 +6,8 @@ Copy duplicates one node and shares the nodes it references.
 
 Each copy is a new object carrying its own name, and what it points at stays
 the single registry object. A copy declared under a name that earlier
-references named keeps what those references imposed on it.
+references named keeps what those references imposed on it. The commands
+queued on the source run on the copy too, each on its own inputs.
 """
 
 from __future__ import annotations
@@ -14,6 +15,7 @@ from __future__ import annotations
 import pytest
 
 from navigate.core.enum_ import SimulationSectionID
+from navigate.core.expression import Expression
 from navigate.core.node_type import EMISSION
 from navigate.core.nodes.emission import Emission
 from navigate.parser._lark_parser import CopyStatement
@@ -36,6 +38,33 @@ Fuel "src" {
 }
 """
 )
+CO2 = 'Emission "co2" { GlobalWarmingPotential = 1.0 }\n'
+
+
+def _fuel(name, ttw, emission="co2"):
+    # the TTW factor is set by a command, so it sits in the parser's queue
+    # until the commands run, after every declaration is read
+    return f"""
+Fuel "{name}" {{
+    FuelType = OIL
+    LowerHeatingValue = 41.2
+    MassDensity = 0.9
+    set_ttw("{emission}", {ttw})
+}}
+"""
+
+
+def _fuel_library(tmp_path, files):
+    """Write a default library holding the given Fuel files and return its root."""
+    data_dir = tmp_path / "data"
+    # mirror the shipped library: both branches carry a directory per node type
+    for branch in ("user", "installation"):
+        (data_dir / "defaults" / branch / "Fuel").mkdir(parents=True)
+    for stem, content in files.items():
+        (data_dir / "defaults" / "installation" / "Fuel" / f"{stem}.inc").write_text(
+            content
+        )
+    return data_dir
 
 
 @pytest.mark.parametrize(
@@ -126,3 +155,72 @@ def test_the_copy_shares_a_reference_declared_before_the_copy(
 
     assert read(getattr(parser.nodes, group)["src"]) is shared
     assert read(getattr(parser.nodes, group)["dst"]) is shared
+
+
+class TestQueuedCommands:
+    def test_a_command_queued_on_the_source_runs_on_the_source_and_the_copy(
+        self, read_deck
+    ):
+        define = CO2 + _fuel("src", 2.75) + 'Copy Fuel "src" "dst"\n'
+
+        parser = read_deck(define)
+
+        assert parser.nodes.fuels["src"].ttw["co2"].get() == 2.75
+        assert parser.nodes.fuels["dst"].ttw["co2"].get() == 2.75
+
+    def test_an_expression_input_is_copied_and_bound_to_each_node(self, read_deck):
+        # a setter stores the expression it is given, and the reference walk
+        # binds it in place to the node holding it, so a shared one would stay
+        # bound to whichever node the walk reached first
+        define = (
+            SHARED
+            + CO2
+            + _fuel("src", '<2 * Variable("w")>')
+            + 'Copy Fuel "src" "dst"\n'
+        )
+
+        parser = read_deck(define)
+        source = parser.nodes.fuels["src"]
+        copied = parser.nodes.fuels["dst"]
+        source_ttw = source.ttw["co2"]
+        copied_ttw = copied.ttw["co2"]
+
+        assert isinstance(source_ttw, Expression)
+        assert isinstance(copied_ttw, Expression)
+        assert source_ttw is not copied_ttw
+        assert source_ttw._node is source
+        assert copied_ttw._node is copied
+        assert copied_ttw.get() == 1.0
+
+    def test_the_copy_queue_replaces_the_queue_of_the_node_it_takes_over(
+        self, read_deck, tmp_path
+    ):
+        # the pulled file declares the target's name too, so the copy moves into
+        # that registered node, and the command the file queued on it is
+        # dropped with the rest of the file's declaration
+        library = {"src": _fuel("src", 2.75) + _fuel("dst", 9.0, emission="ch4")}
+        define = (
+            CO2
+            + 'Emission "ch4" { GlobalWarmingPotential = 1.0 }\n'
+            + 'Copy Fuel "src" "dst"\n'
+        )
+
+        parser = read_deck(define, data_dir=_fuel_library(tmp_path, library))
+        copied = parser.nodes.fuels["dst"]
+
+        assert copied.ttw["co2"].get() == 2.75
+        assert copied.ttw["ch4"].get() == 0.0
+
+    def test_a_source_pulled_from_the_library_leaves_no_queued_commands(
+        self, read_deck, tmp_path
+    ):
+        # the source leaves the registry after the copy, so the drain, which
+        # walks the registry, would never reach a queue left under it
+        library = {"src": _fuel("src", 2.75)}
+        define = CO2 + 'Copy Fuel "src" "dst"\n'
+
+        parser = read_deck(define, data_dir=_fuel_library(tmp_path, library))
+
+        assert "src" not in parser.nodes.fuels
+        assert parser.nodes.fuels["dst"].ttw["co2"].get() == 2.75
+        assert parser._command_queue == {}
