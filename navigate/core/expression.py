@@ -21,8 +21,6 @@ from typing import TYPE_CHECKING, Protocol, overload
 
 import numpy as np
 
-from navigate.core.wrap import as_list
-
 if TYPE_CHECKING:
     from collections.abc import Callable
 
@@ -269,7 +267,7 @@ class Expression:
 
         self._tree: _Evaluable | None = None
         self._node: Node | None = None
-        self._allowed_types: list[str] | None = None
+        self._allowed_types: tuple[str, ...] | None = None
 
     def __repr__(self) -> str:
         return self.text
@@ -362,7 +360,7 @@ class Expression:
             Accepted node types; None where the attribute accepts no reference.
         """
         self._allowed_types = (
-            as_list(allowed_types) if allowed_types is not None else None
+            (allowed_types,) if isinstance(allowed_types, str) else allowed_types
         )
 
     def set_internal_bounds(self, lower: float, upper: float) -> None:

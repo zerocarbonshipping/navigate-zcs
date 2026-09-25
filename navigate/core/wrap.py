@@ -66,12 +66,13 @@ def as_scalar(value: Assignment) -> Assignment:
     return value
 
 
-def as_list[T](value: T | list[T] | tuple[T, ...]) -> list[T]:
+def as_list[T](value: T | list[T]) -> list[T]:
     """
-    Wrap a value in a list if it is not already a list.
+    Wrap a bare deck value in a list, and return a list as is.
 
-    This is a convenient method when an attribute requires a list, but the
-    list has no defined length.
+    A deck may give a single value where an attribute takes a list, e.g.
+    'MainFuelTypes = OIL' instead of 'MainFuelTypes = [OIL]'; a deck list
+    always arrives as a Python list.
 
     Parameters
     ----------
@@ -83,9 +84,6 @@ def as_list[T](value: T | list[T] | tuple[T, ...]) -> list[T]:
     list[T]
         A list containing the passed value or simply the value itself if already a list.
     """
-    if isinstance(value, tuple):
-        return list(value)
-
     if isinstance(value, list):
         return value
 
