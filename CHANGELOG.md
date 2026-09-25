@@ -825,6 +825,11 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   nodes. No deck result moves.
 
 ### Fixed
+- A wildcard pattern matches its literal characters literally: a `.` or
+  another regex-metacharacter in a node name, dictionary key, or import
+  file name previously stayed live regex syntax, so a pattern could match
+  more than what was written (e.g. `a.b` also matching `aXb`). Only `*` and
+  `?` act as wildcards now.
 - The reference manual states the units an emission intensity is reported
   and given in. The `RegulationMeasureID` appendix had INTENSITY in ton/GJ,
   a factor of 1000 out, and both transport measures in ton per cargo-mile, a

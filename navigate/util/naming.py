@@ -204,4 +204,4 @@ def wildcard_to_regex(word: str) -> str:
         Regular expression.
     """
     replacements = {"*": r".*", "?": r"\w"}
-    return "^" + "".join(replacements.get(char, char) for char in word) + "$"
+    return "^" + "".join(replacements.get(char, re.escape(char)) for char in word) + "$"
