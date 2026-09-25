@@ -9,8 +9,9 @@ on:
   pull_request:
     types: [ opened, synchronize, reopened, edited ]
 
+# A title or body edit gets its own group so it cannot cancel a real run.
 concurrency:
-  group: ci-${{ github.event.pull_request.number || github.ref }}
+  group: ci-${{ github.event.pull_request.number || github.ref }}-${{ github.event.action == 'edited' && !github.event.changes.base && github.run_id || 'run' }}
   cancel-in-progress: true
 
 jobs:

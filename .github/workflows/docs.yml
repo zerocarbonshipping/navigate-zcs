@@ -14,8 +14,9 @@ on:
 permissions:
   contents: read
 
+# A title or body edit gets its own group so it cannot cancel a real run.
 concurrency:
-  group: docs-${{ github.event.pull_request.number || github.run_id }}
+  group: docs-${{ github.event.pull_request.number || github.run_id }}-${{ github.event.action == 'edited' && !github.event.changes.base && github.run_id || 'run' }}
   cancel-in-progress: true
 
 jobs:
