@@ -14,7 +14,6 @@ from navigate.core import (
     assign_value,
     command_assignment_to_dict,
     command_assignment_to_tuple_dict,
-    default_unassigned,
 )
 from navigate.core.enum_ import FuelTypeID
 from navigate.core.node_type import CONVERTER, FORECAST, VARIABLE
@@ -44,8 +43,8 @@ class Converter(_Machinery):
         self.efficiency: ScalarInput | None = None
 
         # emissions
-        self.consumption_ttw: dict[tuple[FuelTypeID, str], ScalarInput | None] = {}
-        self.slip_fraction: dict[FuelTypeID, ScalarInput | None] = {}
+        self.consumption_ttw: dict[tuple[FuelTypeID, str], ScalarInput] = {}
+        self.slip_fraction: dict[FuelTypeID, ScalarInput] = {}
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_power_capacity(self, power_capacity):
@@ -182,7 +181,12 @@ class Converter(_Machinery):
             raise ValueError(f"received {fuel_type} which is not available for {self}.")
 
         command_assignment_to_dict(
-            id_, value, self.slip_fraction, type_=VARIABLE, lower=0.0, upper=1.0
+            id_,
+            as_scalar(value),
+            self.slip_fraction,
+            type_=VARIABLE,
+            lower=0.0,
+            upper=1.0,
         )
 
     def set_consumption_ttw(self, fuel_type, emission_name, value):
@@ -219,7 +223,7 @@ class Converter(_Machinery):
             raise KeyError(f"{emission_name}")
 
         command_assignment_to_tuple_dict(
-            key, value, self.consumption_ttw, type_=VARIABLE, lower=0.0
+            key, as_scalar(value), self.consumption_ttw, type_=VARIABLE, lower=0.0
         )
 
     # internal methods -----------------------------------------------------------------
@@ -233,10 +237,6 @@ class Converter(_Machinery):
 
         if not self.efficiency:
             no_value_assigned_error(self, "Efficiency")
-
-    def apply_command_defaults(self) -> None:
-        default_unassigned(self.slip_fraction, Scalar(0.0))
-        default_unassigned(self.consumption_ttw, Scalar(0.0))
 
     def check_consistency(self) -> None:
 
@@ -253,7 +253,7 @@ class Converter(_Machinery):
 
     def initialize_dependencies(self, emissions):
         """
-        Seed the per-fuel-type dictionaries 'apply_command_defaults' fills.
+        Seed the per-fuel-type dictionaries with their defaults.
 
         Parameters
         ----------
@@ -261,10 +261,10 @@ class Converter(_Machinery):
             Dict of class Emission.
         """
         for fuel_type in self.get_fuel_types():
-            self.slip_fraction.setdefault(fuel_type, None)
+            self.slip_fraction.setdefault(fuel_type, Scalar(0.0))
 
             for emission_name in emissions:
-                self.consumption_ttw.setdefault((fuel_type, emission_name), None)
+                self.consumption_ttw.setdefault((fuel_type, emission_name), Scalar(0.0))
 
     def get_fuel_types(self):
         return self.main_fuel_types + self.pilot_fuel_types

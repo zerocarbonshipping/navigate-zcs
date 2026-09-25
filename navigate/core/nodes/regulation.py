@@ -231,7 +231,7 @@ class Regulation(_Policy):
         """
         command_assignment_to_dict(
             vessel_name,
-            threshold,
+            as_scalar(threshold),
             self.vessel_threshold,
             type_=(FORECAST, VARIABLE),
             lower=0.0,
@@ -257,7 +257,7 @@ class Regulation(_Policy):
         """
         command_assignment_to_dict(
             vessel_name,
-            capacity,
+            as_scalar(capacity),
             self.vessel_capacity,
             type_=(FORECAST, VARIABLE),
             lower=0.0,

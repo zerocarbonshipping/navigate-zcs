@@ -58,6 +58,9 @@ MODEL_DEFINITION = "ModelDefinition"
 
 _CALCULATOR_TYPES = (CURVE, FORECAST, SURFACE, TIMETABLE, VARIABLE)
 
+# the node classes '_CALCULATOR_TYPES' names
+type Calculator = Curve | Forecast | Surface | Timetable | Variable
+
 # the node type(s) an attribute accepts; None where it accepts no reference
 type AcceptedNodeTypes = str | tuple[str, ...] | None
 
@@ -85,9 +88,7 @@ class TypeCheckMixin:
         return self.type == type_
 
 
-def is_calculator(
-    node: Node,
-) -> TypeIs[Curve | Forecast | Surface | Timetable | Variable]:
+def is_calculator(node: Node) -> TypeIs[Calculator]:
     """
     Check whether the node is a calculator, narrowing its static type.
 
@@ -98,7 +99,7 @@ def is_calculator(
 
     Returns
     -------
-    TypeIs[Curve | Forecast | Surface | Timetable | Variable]
+    TypeIs[Calculator]
         True if the node is one of the calculator types.
     """
     return node.type in _CALCULATOR_TYPES

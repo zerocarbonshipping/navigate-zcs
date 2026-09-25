@@ -92,9 +92,10 @@ What each hook holds:
   ever `None`.
 - `apply_defaults()` fills a value derived from the size or the value of
   another attribute.
-- `apply_command_defaults()` fills the unassigned entries of the
-  command-written dictionaries and resolves them into the form the node
-  reads.
+- `apply_command_defaults()` fills the entries of the command-written
+  dictionaries that `initialize_dependencies(...)` cannot seed with their
+  default, such as the keys a command creates, and resolves the
+  dictionaries into the form the node reads.
 - `check_consistency()` raises where attributes contradict each other and
   warns where one is unused.
 
@@ -107,7 +108,10 @@ General nodes accept attributes in `SECTION_DEFINE` only, so `_GeneralNode`
 has `check_requirements()` alone and no per-pass path.
 
 Anything derived from the node registries stays in
-`initialize_dependencies(...)`, the only hook the parser hands them.
+`initialize_dependencies(...)`, the only hook the parser hands them. It
+also seeds every registry-keyed entry of a command-written dictionary with
+its default, or with `None` where unassigned means something to the reader,
+before the commands run.
 
 ## Naming conventions
 

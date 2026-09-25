@@ -13,13 +13,7 @@ import numpy.typing as npt
 from navigate.util.dates import YEAR
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
-
-    from navigate.util.types_ import (
-        FloatArray,
-        IntArray,
-        _FloatOrCalculator,
-    )
+    from navigate.util.types_ import FloatArray, IntArray
 
 ROUND_OFF = 5  # decimals
 TOLERANCE = 10 ** (-ROUND_OFF)
@@ -56,28 +50,6 @@ def divide_nonzero(
     # entries excluded by where= keep the prefilled default
     np.divide(numerator, denominator, out=quotients, where=(denominator > 0.0))
     return quotients
-
-
-def to_numpy(scalars: Iterable[_FloatOrCalculator]) -> FloatArray:
-    """
-    Evaluate a collection of floats and/or calculators into a numpy array.
-
-    Parameters
-    ----------
-    scalars
-        Floats and/or calculator nodes to evaluate.
-
-    Returns
-    -------
-    FloatArray
-        Evaluated values.
-    """
-    return np.array(
-        [
-            scalar if isinstance(scalar, float) else scalar.get(None, None)
-            for scalar in scalars
-        ]
-    )
 
 
 def is_strictly_increasing(values: FloatArray) -> bool:

@@ -12,7 +12,7 @@ location and the attribute assigned to.
 from __future__ import annotations
 
 from enum import Enum
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Protocol
 
 import numpy as np
 
@@ -21,7 +21,7 @@ from navigate.core.node import Node
 from navigate.core.node_type import AcceptedNodeTypes, is_calculator
 from navigate.core.scalar import Scalar
 from navigate.core.table_data import TableData
-from navigate.core.wrap import Assignment, WrappedAssignment, as_scalar
+from navigate.core.wrap import Assignment
 from navigate.util import (
     ROUND_OFF,
     TOLERANCE,
@@ -33,7 +33,7 @@ from navigate.util import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence, Sized
+    from collections.abc import Iterator, Sequence, Sized
 
 _BOOL_ID = {"FALSE": False, "TRUE": True}
 _BOUND_ID = {"-INF": -np.inf, "INF": np.inf}
@@ -52,6 +52,22 @@ _VALUE_KINDS = (
     (bool, "boolean"),
     (int, "integer"),
 )
+
+
+class _CommandDict[K, V](Protocol):
+    """
+    Command-written dictionary, as the command helpers use it.
+
+    Its values are only written, never read, so a dictionary whose values are
+    wider than V passes: one keeping None for an entry left unassigned takes
+    an assigned V all the same, which a 'dict[K, V]' parameter would refuse.
+    """
+
+    def __iter__(self) -> Iterator[K]: ...
+
+    def __len__(self) -> int: ...
+
+    def __setitem__(self, key: K, value: V, /) -> None: ...
 
 
 def assign_integer(
@@ -440,10 +456,10 @@ def assign_fraction_list(fractions: list[float]) -> tuple[list[float], bool]:
     return assign_list(fractions, lower=0.0, upper=1.0), rescaled
 
 
-def command_assignment_to_dict[K: str | Enum](
+def command_assignment_to_dict[K: str | Enum, V: Assignment](
     key: K | str,
-    assignment: Assignment,
-    assignment_dict: dict[K, WrappedAssignment | None],
+    assignment: V,
+    assignment_dict: _CommandDict[K, V],
     scalar: bool = True,
     date: bool = False,
     type_: AcceptedNodeTypes = None,
@@ -461,7 +477,8 @@ def command_assignment_to_dict[K: str | Enum](
     key
         Name of node, possibly including wildcards.
     assignment
-        Assignment to dict.
+        Value assigned to every matched entry, a float already wrapped in
+        a Scalar by the setter.
     assignment_dict
         The dictionary being assigned to.
     scalar
@@ -484,7 +501,7 @@ def command_assignment_to_dict[K: str | Enum](
     # every matched key holds the same object: a Scalar answers a getter and
     # carries no per-key state, and a node or an expression was always shared
     value = assign_value(
-        as_scalar(assignment),
+        assignment,
         scalar,
         date,
         type_,
@@ -498,10 +515,10 @@ def command_assignment_to_dict[K: str | Enum](
         assignment_dict[key_] = value
 
 
-def command_assignment_to_tuple_dict[K1: str | Enum, K2: str | Enum](
+def command_assignment_to_tuple_dict[K1: str | Enum, K2: str | Enum, V: Assignment](
     key: tuple[K1 | str, K2 | str],
-    assignment: Assignment,
-    assignment_dict: dict[tuple[K1, K2], WrappedAssignment | None],
+    assignment: V,
+    assignment_dict: _CommandDict[tuple[K1, K2], V],
     scalar: bool = True,
     date: bool = False,
     type_: AcceptedNodeTypes = None,
@@ -519,7 +536,8 @@ def command_assignment_to_tuple_dict[K1: str | Enum, K2: str | Enum](
     key
         Tuple of node names, possibly including wildcards.
     assignment
-        Assignment to dict.
+        Value assigned to every matched entry, a float already wrapped in
+        a Scalar by the setter.
     assignment_dict
         The dictionary being assigned to.
     scalar
@@ -540,7 +558,7 @@ def command_assignment_to_tuple_dict[K1: str | Enum, K2: str | Enum](
     if not assignment_dict:
         raise KeyError(", ".join(key_name(key_part) for key_part in key))
 
-    columns = zip(*assignment_dict.keys(), strict=True)
+    columns = zip(*assignment_dict, strict=True)
     keys = [
         retrieve_keys(key_part, unique_list(existing_keys))
         for key_part, existing_keys in zip(key, columns, strict=True)
@@ -548,7 +566,7 @@ def command_assignment_to_tuple_dict[K1: str | Enum, K2: str | Enum](
 
     keys1, keys2 = keys
     value = assign_value(
-        as_scalar(assignment),
+        assignment,
         scalar,
         date,
         type_,
@@ -597,26 +615,6 @@ def command_assignment_to_boolean_dict[K: str | Enum](
 
     for name in names:
         assignment_dict[name] = value
-
-
-def default_unassigned[K, V](values: dict[K, V | None], default: V) -> None:
-    """
-    Replace every unassigned entry of a command dictionary, in place.
-
-    Every filled entry holds the one 'default' object passed in, which is safe
-    only because a Scalar and a boolean are immutable; a mutable default would
-    have to be copied per entry.
-
-    Parameters
-    ----------
-    values
-        The dictionary to fill; modified in place.
-    default
-        The value every unassigned entry is given.
-    """
-    for key, value in values.items():
-        if value is None:
-            values[key] = default
 
 
 def _accepts_reference(node: Node, type_: AcceptedNodeTypes) -> bool:

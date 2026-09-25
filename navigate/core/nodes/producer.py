@@ -16,7 +16,6 @@ from navigate.core import (
     assign_value,
     command_assignment_to_boolean_dict,
     command_assignment_to_dict,
-    default_unassigned,
 )
 from navigate.core.enum_ import ExtrapolateID
 from navigate.core.expectations import ProducerExpectation
@@ -64,10 +63,10 @@ class Producer(_AssetManager):
         self.maximum_ramp_up: ForecastInput = Scalar(1.0)
 
         # export
-        self.export_distribution: dict[str, ForecastInput | None] = {}
+        self.export_distribution: dict[str, ForecastInput] = {}
 
         # boolean
-        self.allow_plant: dict[str, bool | None] = {}
+        self.allow_plant: dict[str, bool] = {}
 
         # internal variables -----------------------------------------------------------
         self.expectation: ProducerExpectation = ProducerExpectation()
@@ -272,7 +271,7 @@ class Producer(_AssetManager):
         """
         command_assignment_to_dict(
             plant_name,
-            existing_pipeline,
+            as_scalar(existing_pipeline),
             self.existing_pipelines,
             scalar=False,
             type_=FORECAST,
@@ -317,7 +316,7 @@ class Producer(_AssetManager):
         """
         command_assignment_to_dict(
             feed_name,
-            feed_constraint,
+            as_scalar(feed_constraint),
             self.feed_constraints,
             type_=(FORECAST, VARIABLE),
             lower=0.0,
@@ -346,7 +345,7 @@ class Producer(_AssetManager):
         """
         command_assignment_to_dict(
             port_name,
-            export_distribution,
+            as_scalar(export_distribution),
             self.export_distribution,
             type_=(FORECAST, VARIABLE),
             lower=0.0,
@@ -367,10 +366,6 @@ class Producer(_AssetManager):
 
         if self.maximum_development is None:
             no_value_assigned_error(self, "MaximumDevelopment")
-
-    def apply_command_defaults(self) -> None:
-        default_unassigned(self.export_distribution, Scalar(0.0))
-        default_unassigned(self.allow_plant, True)
 
     def check_consistency(self) -> None:
 
@@ -426,11 +421,11 @@ class Producer(_AssetManager):
             self.feed_constraints.setdefault(feed_name, None)
 
         for port_name in ports:
-            self.export_distribution.setdefault(port_name, None)
+            self.export_distribution.setdefault(port_name, Scalar(0.0))
 
         for plant in self.assets:
             name = plant.name
-            self.allow_plant.setdefault(name, None)
+            self.allow_plant.setdefault(name, True)
             # stays None when unset: a None entry means the plant has no committed
             # pipeline
             self.existing_pipelines.setdefault(name, None)

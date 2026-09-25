@@ -22,7 +22,6 @@ from navigate.core import (
     command_assignment_to_boolean_dict,
     command_assignment_to_dict,
     command_assignment_to_tuple_dict,
-    default_unassigned,
 )
 from navigate.core.enum_ import (
     EnergyDemandTypeID,
@@ -88,13 +87,13 @@ class Fleet(_AssetManager):
             d: Scalar(0.0) for d in EnergyDemandTypePortID
         }
         self.fuel_conversion_cost: dict[tuple[str, str], ForecastInput | None] = {}
-        self.fuel_conversion_limit: dict[tuple[str, str], ForecastInput | None] = {}
-        self.newbuild_limit: dict[str, ForecastInput | None] = {}
-        self.newbuild_technology_limit: dict[str, ForecastInput | None] = {}
-        self.retrofit_technology_limit: dict[str, ForecastInput | None] = {}
-        self.allow_vessel: dict[str, bool | None] = {}
-        self.newbuild_available: dict[str, bool | None] = {}
-        self.conversion_available: dict[str, bool | None] = {}
+        self.fuel_conversion_limit: dict[tuple[str, str], ForecastInput] = {}
+        self.newbuild_limit: dict[str, ForecastInput] = {}
+        self.newbuild_technology_limit: dict[str, ForecastInput] = {}
+        self.retrofit_technology_limit: dict[str, ForecastInput] = {}
+        self.allow_vessel: dict[str, bool] = {}
+        self.newbuild_available: dict[str, bool] = {}
+        self.conversion_available: dict[str, bool] = {}
 
         # internal variables -----------------------------------------------------------
         self.expectation: FleetExpectation = FleetExpectation()
@@ -646,7 +645,7 @@ class Fleet(_AssetManager):
         """
         command_assignment_to_tuple_dict(
             (vessel_name_from, vessel_name_to),
-            fuel_conversion_cost,
+            as_scalar(fuel_conversion_cost),
             self.fuel_conversion_cost,
             type_=(FORECAST, VARIABLE),
             lower=0.0,
@@ -681,7 +680,7 @@ class Fleet(_AssetManager):
         """
         command_assignment_to_tuple_dict(
             (vessel_name_from, vessel_name_to),
-            fuel_conversion_limit,
+            as_scalar(fuel_conversion_limit),
             self.fuel_conversion_limit,
             type_=(FORECAST, VARIABLE),
             lower=0.0,
@@ -786,7 +785,7 @@ class Fleet(_AssetManager):
         """
         command_assignment_to_tuple_dict(
             (vessel_name, technology_name),
-            uptake_curve,
+            as_scalar(uptake_curve),
             self.initial_technology_share,
             scalar=False,
             type_=CURVE,
@@ -816,7 +815,7 @@ class Fleet(_AssetManager):
         """
         command_assignment_to_dict(
             vessel_name,
-            limit,
+            as_scalar(limit),
             self.newbuild_limit,
             type_=(FORECAST, VARIABLE),
             lower=0.0,
@@ -844,7 +843,7 @@ class Fleet(_AssetManager):
         """
         command_assignment_to_dict(
             technology_name,
-            limit,
+            as_scalar(limit),
             self.newbuild_technology_limit,
             type_=(FORECAST, VARIABLE),
             lower=0.0,
@@ -872,7 +871,7 @@ class Fleet(_AssetManager):
         """
         command_assignment_to_dict(
             technology_name,
-            limit,
+            as_scalar(limit),
             self.retrofit_technology_limit,
             type_=(FORECAST, VARIABLE),
             lower=0.0,
@@ -901,7 +900,7 @@ class Fleet(_AssetManager):
         id_ = assign_id(energy_type, EnergyDemandTypeID)
         command_assignment_to_dict(
             id_,
-            saving,
+            as_scalar(saving),
             self.operational_saving_sea,
             type_=(FORECAST, VARIABLE),
             lower=0.0,
@@ -930,7 +929,7 @@ class Fleet(_AssetManager):
         id_ = assign_member(energy_type, EnergyDemandTypePortID)
         command_assignment_to_dict(
             id_,
-            saving,
+            as_scalar(saving),
             self.operational_saving_port,
             type_=(FORECAST, VARIABLE),
             lower=0.0,
@@ -957,19 +956,11 @@ class Fleet(_AssetManager):
 
     def apply_command_defaults(self) -> None:
 
-        # cross-pair keys exist only after commands fill fuel_conversion_cost; seed them
-        # before the defaulting below
+        # cross-pair keys exist only after commands fill fuel_conversion_cost, so
+        # their limits are seeded here rather than in initialize_dependencies
         for key, cost in self.fuel_conversion_cost.items():
             if cost is not None:
-                self.fuel_conversion_limit.setdefault(key, None)
-
-        default_unassigned(self.fuel_conversion_limit, Scalar(1.0))
-        default_unassigned(self.newbuild_limit, Scalar(1.0))
-        default_unassigned(self.newbuild_technology_limit, Scalar(1.0))
-        default_unassigned(self.retrofit_technology_limit, Scalar(1.0))
-        default_unassigned(self.allow_vessel, True)
-        default_unassigned(self.newbuild_available, True)
-        default_unassigned(self.conversion_available, True)
+                self.fuel_conversion_limit.setdefault(key, Scalar(1.0))
 
     def check_consistency(self) -> None:
 
@@ -1023,11 +1014,11 @@ class Fleet(_AssetManager):
             self.fuel_conversion_cost.setdefault((name, name), None)
             # placeholder self-pair so command_assignment_to_tuple_dict can validate
             # cross-pair keys
-            self.fuel_conversion_limit.setdefault((name, name), None)
-            self.allow_vessel.setdefault(name, None)
-            self.newbuild_available.setdefault(name, None)
-            self.conversion_available.setdefault(name, None)
-            self.newbuild_limit.setdefault(name, None)
+            self.fuel_conversion_limit.setdefault((name, name), Scalar(1.0))
+            self.allow_vessel.setdefault(name, True)
+            self.newbuild_available.setdefault(name, True)
+            self.conversion_available.setdefault(name, True)
+            self.newbuild_limit.setdefault(name, Scalar(1.0))
 
             for tech in self.technologies:
                 # stays None when unset: technology adoption treats a missing curve
@@ -1035,8 +1026,8 @@ class Fleet(_AssetManager):
                 self.initial_technology_share.setdefault((name, tech.name), None)
 
         for tech in self.technologies:
-            self.newbuild_technology_limit.setdefault(tech.name, None)
-            self.retrofit_technology_limit.setdefault(tech.name, None)
+            self.newbuild_technology_limit.setdefault(tech.name, Scalar(1.0))
+            self.retrofit_technology_limit.setdefault(tech.name, Scalar(1.0))
 
     def initialize_expectation(self, length: int, fuels: dict[str, Fuel]) -> None:
 

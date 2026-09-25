@@ -11,6 +11,7 @@ import numpy as np
 from scipy.optimize import minimize_scalar
 
 from navigate.core.enum_ import SpeedAlignmentID
+from navigate.core.wrap import to_numpy
 from navigate.fleet.marginal_saving import (
     calculate_marginal_speed_saving,
     get_smoothed_energy_duals_speed,
@@ -26,7 +27,7 @@ from navigate.fleet.power import (
     loads_are_convex,
 )
 from navigate.fleet.utils import net_energy_from_raw
-from navigate.util import YEAR, to_numpy
+from navigate.util import YEAR
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet

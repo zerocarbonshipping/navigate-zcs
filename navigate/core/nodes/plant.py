@@ -249,7 +249,7 @@ class Plant(Node):
             The transport mode used to transport the feedstock or process output.
         """
         command_assignment_to_dict(
-            feed_name, value, self.feed_transport, type_=TRANSPORT
+            feed_name, as_scalar(value), self.feed_transport, type_=TRANSPORT
         )
 
     def set_feed_distance(self, feed_name, value):
@@ -270,7 +270,11 @@ class Plant(Node):
             The distance of transport in nautical miles.
         """
         command_assignment_to_dict(
-            feed_name, value, self.feed_distance, type_=(FORECAST, VARIABLE), lower=0.0
+            feed_name,
+            as_scalar(value),
+            self.feed_distance,
+            type_=(FORECAST, VARIABLE),
+            lower=0.0,
         )
 
     def set_fuel_transport(self, port_name, value):
@@ -293,7 +297,7 @@ class Plant(Node):
             The transport mode used to deliver the produced fuel to the port.
         """
         command_assignment_to_dict(
-            port_name, value, self.fuel_transport, type_=TRANSPORT
+            port_name, as_scalar(value), self.fuel_transport, type_=TRANSPORT
         )
 
     def set_fuel_distance(self, port_name, value):
@@ -313,7 +317,11 @@ class Plant(Node):
             The distance of transport in nautical miles.
         """
         command_assignment_to_dict(
-            port_name, value, self.fuel_distance, type_=(FORECAST, VARIABLE), lower=0.0
+            port_name,
+            as_scalar(value),
+            self.fuel_distance,
+            type_=(FORECAST, VARIABLE),
+            lower=0.0,
         )
 
     # internal methods -----------------------------------------------------------------

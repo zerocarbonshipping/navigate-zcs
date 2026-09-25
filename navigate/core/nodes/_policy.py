@@ -15,7 +15,6 @@ from navigate.core import (
     command_assignment_to_boolean_dict,
     command_assignment_to_dict,
     command_assignment_to_tuple_dict,
-    default_unassigned,
 )
 from navigate.core.enum_ import PolicyScopeID
 from navigate.core.node import Node
@@ -50,7 +49,7 @@ class _Policy(Node):
         self.include_slip: bool = True
 
         # vessels impacted by the policy
-        self.include_vessel: dict[str, bool | None] = {}
+        self.include_vessel: dict[str, bool] = {}
 
         # emission factors
         self.global_warming_potential: dict[str, CurveInput | None] = {}
@@ -224,7 +223,7 @@ class _Policy(Node):
         """
         command_assignment_to_dict(
             emission_name,
-            global_warming_potential,
+            as_scalar(global_warming_potential),
             self.global_warming_potential,
             type_=(CURVE, VARIABLE),
         )
@@ -252,7 +251,7 @@ class _Policy(Node):
         """
         command_assignment_to_tuple_dict(
             (fuel_name, emission_name),
-            emission_factor,
+            as_scalar(emission_factor),
             self.fuel_wtt,
             type_=(FORECAST, VARIABLE),
         )
@@ -280,7 +279,7 @@ class _Policy(Node):
         """
         command_assignment_to_tuple_dict(
             (fuel_name, emission_name),
-            emission_factor,
+            as_scalar(emission_factor),
             self.fuel_ttw,
             type_=(FORECAST, VARIABLE),
         )
@@ -296,9 +295,6 @@ class _Policy(Node):
 
         if not self.fuels:
             no_value_assigned_error(self, "Fuels")
-
-    def apply_command_defaults(self) -> None:
-        default_unassigned(self.include_vessel, False)
 
     def _initialize_policy_dependencies(self, vessels):
 
@@ -316,7 +312,7 @@ class _Policy(Node):
             self.global_warming_potential.setdefault(emission.name, None)
 
         for vessel_name in vessels:
-            self.include_vessel.setdefault(vessel_name, None)
+            self.include_vessel.setdefault(vessel_name, False)
 
         # derived from the current routes and jurisdiction, so recomputed
         # unconditionally every pass

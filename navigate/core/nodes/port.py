@@ -13,7 +13,6 @@ from navigate.core import (
     command_assignment_to_boolean_dict,
     command_assignment_to_dict,
     command_assignment_to_tuple_dict,
-    default_unassigned,
 )
 from navigate.core.expectations import PortExpectation
 from navigate.core.node import Node
@@ -37,12 +36,12 @@ class Port(Node):
 
         # external variables -----------------------------------------------------------
         # bunkering
-        self.bunkering_allowed: dict[str, bool | None] = {}
+        self.bunkering_allowed: dict[str, bool] = {}
         self.bunkering_limit: dict[str, ForecastInput | None] = {}
-        self.bunkering_inertia: dict[str, ForecastInput | None] = {}
+        self.bunkering_inertia: dict[str, ForecastInput] = {}
 
         # fuel handling
-        self.handling_cost: dict[str, ForecastInput | None] = {}
+        self.handling_cost: dict[str, ForecastInput] = {}
 
         # bunker overwrite
         self.liquid_market_fuel: dict[str, bool] = {}
@@ -52,7 +51,7 @@ class Port(Node):
         # shore power
         self.shore_power_cost: ForecastInput = Scalar(0.0)
         self.shore_power_connection_share: ForecastInput = Scalar(0.0)
-        self.shore_power_emission_factor: dict[str, ForecastInput | None] = {}
+        self.shore_power_emission_factor: dict[str, ForecastInput] = {}
 
         # internal variables -----------------------------------------------------------
         self.expectation: PortExpectation = PortExpectation()
@@ -95,7 +94,7 @@ class Port(Node):
         """
         command_assignment_to_dict(
             fuel_name,
-            value,
+            as_scalar(value),
             self.bunkering_limit,
             type_=(FORECAST, VARIABLE),
             lower=0.0,
@@ -122,7 +121,7 @@ class Port(Node):
         """
         command_assignment_to_dict(
             fuel_name,
-            value,
+            as_scalar(value),
             self.bunkering_inertia,
             type_=(FORECAST, VARIABLE),
             lower=0.0,
@@ -147,7 +146,11 @@ class Port(Node):
             in USD/ton.
         """
         command_assignment_to_dict(
-            fuel_name, value, self.handling_cost, type_=(FORECAST, VARIABLE), lower=0.0
+            fuel_name,
+            as_scalar(value),
+            self.handling_cost,
+            type_=(FORECAST, VARIABLE),
+            lower=0.0,
         )
 
     def set_bunker_price_overwrite(self, fuel_name, value):
@@ -171,7 +174,7 @@ class Port(Node):
         """
         command_assignment_to_dict(
             fuel_name,
-            value,
+            as_scalar(value),
             self.bunker_price_overwrite,
             type_=(FORECAST, VARIABLE),
             lower=0.0,
@@ -200,7 +203,7 @@ class Port(Node):
         """
         command_assignment_to_tuple_dict(
             (fuel_name, emission_name),
-            value,
+            as_scalar(value),
             self.bunker_wtt_overwrite,
             type_=(FORECAST, VARIABLE),
         )
@@ -265,7 +268,7 @@ class Port(Node):
         """
         command_assignment_to_dict(
             emission_name,
-            value,
+            as_scalar(value),
             self.shore_power_emission_factor,
             type_=(FORECAST, VARIABLE),
             lower=0.0,
@@ -273,11 +276,6 @@ class Port(Node):
 
     # internal methods -----------------------------------------------------------------
     def apply_command_defaults(self) -> None:
-        default_unassigned(self.bunkering_allowed, True)
-        default_unassigned(self.bunkering_inertia, Scalar(0.0))
-        default_unassigned(self.handling_cost, Scalar(0.0))
-        default_unassigned(self.shore_power_emission_factor, Scalar(0.0))
-
         # a liquid-market fuel has no bottom-up production chain to price it, so its
         # entry is filled; any other fuel keeps None, which is what selects the
         # bottom-up calculation
@@ -301,19 +299,19 @@ class Port(Node):
             All fuels in the simulation.
         """
         for fuel_name in fuels:
-            self.bunkering_allowed.setdefault(fuel_name, None)
+            self.bunkering_allowed.setdefault(fuel_name, True)
             # stays None when unset: PortExpectation reads a missing limit as unlimited
             self.bunkering_limit.setdefault(fuel_name, None)
-            self.bunkering_inertia.setdefault(fuel_name, None)
+            self.bunkering_inertia.setdefault(fuel_name, Scalar(0.0))
 
-            self.handling_cost.setdefault(fuel_name, None)
+            self.handling_cost.setdefault(fuel_name, Scalar(0.0))
             self.bunker_price_overwrite.setdefault(fuel_name, None)
 
             for emission_name in emissions:
                 self.bunker_wtt_overwrite.setdefault((fuel_name, emission_name), None)
 
         for emission_name in emissions:
-            self.shore_power_emission_factor.setdefault(emission_name, None)
+            self.shore_power_emission_factor.setdefault(emission_name, Scalar(0.0))
 
         # derived from the current fuels, so recomputed unconditionally every pass
         self.liquid_market_fuel = {

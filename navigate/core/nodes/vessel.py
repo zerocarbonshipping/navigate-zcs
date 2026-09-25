@@ -27,8 +27,8 @@ from navigate.core.node_type import (
     VESSEL,
 )
 from navigate.core.profiles import VesselProfile
+from navigate.core.wrap import to_numpy
 from navigate.exceptions import no_value_assigned_error
-from navigate.util import to_numpy
 
 if TYPE_CHECKING:
     import numpy as np

@@ -12,7 +12,6 @@ from navigate.core import (
     assign_id,
     assign_value,
     command_assignment_to_dict,
-    default_unassigned,
 )
 from navigate.core.enum_ import FuelTypeID
 from navigate.core.node import Node
@@ -37,7 +36,7 @@ class Fuel(Node):
         self.mass_density: ScalarInput | None = None
 
         # emissions
-        self.ttw: dict[str, ScalarInput | None] = {}
+        self.ttw: dict[str, ScalarInput] = {}
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_fuel_type(self, fuel_type):
@@ -129,7 +128,7 @@ class Fuel(Node):
             Ton of emissions per ton of fuel.
         """
         command_assignment_to_dict(
-            emission_name, ttw, self.ttw, type_=VARIABLE, lower=0.0
+            emission_name, as_scalar(ttw), self.ttw, type_=VARIABLE, lower=0.0
         )
 
     # internal methods -----------------------------------------------------------------
@@ -143,9 +142,6 @@ class Fuel(Node):
 
         if self.mass_density is None:
             no_value_assigned_error(self, "MassDensity")
-
-    def apply_command_defaults(self) -> None:
-        default_unassigned(self.ttw, Scalar(0.0))
 
     def check_consistency(self) -> None:
 
@@ -169,4 +165,4 @@ class Fuel(Node):
             All emissions in the simulation.
         """
         for emission_name in emissions:
-            self.ttw.setdefault(emission_name, None)
+            self.ttw.setdefault(emission_name, Scalar(0.0))
