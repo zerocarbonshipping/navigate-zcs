@@ -9,7 +9,6 @@ from navigate.core import as_list, as_scalar, assign_id_list, assign_value
 from navigate.core.enum_ import FuelTypeID
 from navigate.core.node_type import TANK, VARIABLE
 from navigate.core.nodes._machinery import _Machinery
-from navigate.exceptions import no_value_assigned_error
 
 if TYPE_CHECKING:
     from navigate.core.nodes.input_kinds import ScalarInput
@@ -20,8 +19,8 @@ class Tank(_Machinery):
         super().__init__(name, TANK)
 
         # external variables -----------------------------------------------------------
-        self.fuel_types: list[FuelTypeID] | None = None
-        self.size: ScalarInput | None = None
+        self.fuel_types: list[FuelTypeID]
+        self.size: ScalarInput
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_fuel_types(self, fuel_types):
@@ -59,12 +58,5 @@ class Tank(_Machinery):
         self.size = assign_value(as_scalar(size), type_=VARIABLE, lower=0.0)
 
     # internal methods -----------------------------------------------------------------
-    def check_requirements(self) -> None:
-        if self.fuel_types is None:
-            no_value_assigned_error(self, "FuelTypes")
-
-        if self.size is None:
-            no_value_assigned_error(self, "Size")
-
     def get_fuel_types(self):
         return self.fuel_types

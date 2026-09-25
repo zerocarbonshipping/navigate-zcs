@@ -7,7 +7,6 @@ from navigate.core import assign_id
 from navigate.core.enum_ import SourceDependencyID
 from navigate.core.node import Node
 from navigate.core.node_type import SOURCE
-from navigate.exceptions import no_value_assigned_error
 
 
 class Source(Node):
@@ -15,7 +14,7 @@ class Source(Node):
         super().__init__(name, SOURCE)
 
         # external variables -----------------------------------------------------------
-        self.dependency: SourceDependencyID | None = None
+        self.dependency: SourceDependencyID
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_dependency(self, dependency):
@@ -33,8 +32,3 @@ class Source(Node):
             Type of dependency.
         """
         self.dependency = assign_id(dependency, SourceDependencyID)
-
-    # internal methods -----------------------------------------------------------------
-    def check_requirements(self) -> None:
-        if self.dependency is None:
-            no_value_assigned_error(self, "Dependency")

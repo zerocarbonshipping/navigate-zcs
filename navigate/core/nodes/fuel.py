@@ -12,12 +12,10 @@ from navigate.core import (
     assign_id,
     assign_value,
     command_assignment_to_dict,
-    default_unassigned,
 )
 from navigate.core.enum_ import FuelTypeID
 from navigate.core.node import Node
 from navigate.core.node_type import FUEL, VARIABLE
-from navigate.exceptions import no_value_assigned_error
 
 if TYPE_CHECKING:
     from navigate.core.nodes.input_kinds import ScalarInput
@@ -29,15 +27,15 @@ class Fuel(Node):
 
         # external variables -----------------------------------------------------------
         # definition
-        self.fuel_type: FuelTypeID | None = None
+        self.fuel_type: FuelTypeID
         self.liquid_market: bool = False
 
         # physical properties
-        self.lower_heating_value: ScalarInput | None = None
-        self.mass_density: ScalarInput | None = None
+        self.lower_heating_value: ScalarInput
+        self.mass_density: ScalarInput
 
         # emissions
-        self.ttw: dict[str, ScalarInput | None] = {}
+        self.ttw: dict[str, ScalarInput] = {}
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_fuel_type(self, fuel_type):
@@ -129,24 +127,10 @@ class Fuel(Node):
             Ton of emissions per ton of fuel.
         """
         command_assignment_to_dict(
-            emission_name, ttw, self.ttw, type_=VARIABLE, lower=0.0
+            emission_name, as_scalar(ttw), self.ttw, type_=VARIABLE, lower=0.0
         )
 
     # internal methods -----------------------------------------------------------------
-    def check_requirements(self) -> None:
-
-        if self.fuel_type is None:
-            no_value_assigned_error(self, "FuelType")
-
-        if self.lower_heating_value is None:
-            no_value_assigned_error(self, "LowerHeatingValue")
-
-        if self.mass_density is None:
-            no_value_assigned_error(self, "MassDensity")
-
-    def apply_command_defaults(self) -> None:
-        default_unassigned(self.ttw, Scalar(0.0))
-
     def check_consistency(self) -> None:
 
         if self.lower_heating_value.get() == 0.0:
@@ -169,4 +153,4 @@ class Fuel(Node):
             All emissions in the simulation.
         """
         for emission_name in emissions:
-            self.ttw.setdefault(emission_name, None)
+            self.ttw.setdefault(emission_name, Scalar(0.0))

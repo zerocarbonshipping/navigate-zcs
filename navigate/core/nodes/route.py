@@ -19,13 +19,13 @@ from navigate.core import (
     assign_list,
     assign_value,
     command_assignment_to_tuple_dict,
-    default_unassigned,
 )
 from navigate.core.enum_ import RouteTypeID
 from navigate.core.node import Node
 from navigate.core.node_type import FORECAST, PORT, ROUTE, VARIABLE
+from navigate.core.wrap import to_numpy
 from navigate.exceptions import no_value_assigned_error
-from navigate.util import ROUND_OFF, divide_nonzero, to_numpy, unique_list
+from navigate.util import ROUND_OFF, divide_nonzero, unique_list
 
 if TYPE_CHECKING:
     from navigate.core.expression import Expression
@@ -41,7 +41,7 @@ class Route(Node):
         super().__init__(name, ROUTE)
 
         # external variables -----------------------------------------------------------
-        self.route_type: RouteTypeID | None = None
+        self.route_type: RouteTypeID
         self.ports: list[Port] = []
 
         # time at sea/in port
@@ -56,7 +56,7 @@ class Route(Node):
         self.condition_distribution: list[float] = []
 
         # regulation
-        self.voyage_distribution: dict[tuple[str, str], ScalarInput | None] = {}
+        self.voyage_distribution: dict[tuple[str, str], ScalarInput] = {}
 
         # internal variables -----------------------------------------------------------
         self._voyage_fractions: dict[tuple[str, str], FloatArray] = {}
@@ -272,7 +272,7 @@ class Route(Node):
         """
         command_assignment_to_tuple_dict(
             (port_name_from, port_name_to),
-            fraction,
+            as_scalar(fraction),
             self.voyage_distribution,
             type_=VARIABLE,
             lower=0.0,
@@ -281,9 +281,6 @@ class Route(Node):
 
     # internal methods -----------------------------------------------------------------
     def check_requirements(self) -> None:
-
-        if self.route_type is None:
-            no_value_assigned_error(self, "RouteType")
 
         if not self.ports:
             no_value_assigned_error(self, "Ports")
@@ -312,11 +309,9 @@ class Route(Node):
             self.port_calls = as_scalar_list([1.0 for _ in self.ports])
 
     def apply_command_defaults(self) -> None:
-        default_unassigned(self.voyage_distribution, Scalar(0.0))
-
         # the normalized fractions are the resolved form of the command
-        # dictionary, so they are recomputed here, once the blanks above have
-        # completed it and on every pass a command can have added a key
+        # dictionary, so they are recomputed here, on every pass a command can
+        # have added a key
         self._voyage_fractions = self._normalize_voyage_distribution()
 
     def check_consistency(self) -> None:
@@ -430,7 +425,7 @@ class Route(Node):
         """Initialize dependent dictionaries so command calls can use wildcards."""
         names = [port.name for port in self.ports]
         for key in itertools.product(names, names):
-            self.voyage_distribution.setdefault(key, None)
+            self.voyage_distribution.setdefault(key, Scalar(0.0))
 
     def get_voyage_distribution(self, to_array=False):
         """

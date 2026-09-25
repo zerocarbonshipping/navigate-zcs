@@ -11,8 +11,9 @@ from navigate.core import Scalar
 from navigate.core.enum_ import EnergyDemandTypeID, EnergyDemandTypePortID
 from navigate.core.node_type import is_surface, is_variable
 from navigate.core.unit import MWD_TO_GJ
+from navigate.core.wrap import to_numpy
 from navigate.exceptions import PowerCapacityError
-from navigate.util import TOLERANCE, to_numpy
+from navigate.util import TOLERANCE
 
 if TYPE_CHECKING:
     from navigate.core.nodes.converter import Converter
@@ -271,9 +272,9 @@ def _calculate_speed_extremum(
     """
     if is_surface(load):
         utilization = to_numpy(vessel.route.capacity_utilizations)
-        speed = load.reverse_lookup(power, y=utilization, interpolate=True)
+        speed = load.reverse_lookup(power, y=utilization)
     else:
-        speed = load.reverse_lookup(power, interpolate=True)
+        speed = load.reverse_lookup(power)
 
     return speed
 

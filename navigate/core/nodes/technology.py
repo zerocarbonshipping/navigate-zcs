@@ -93,7 +93,7 @@ class Technology(_Machinery):
         """
         id_ = assign_id(energy_type, EnergyDemandTypeID)
         command_assignment_to_dict(
-            id_, saving, self.energy_saving, type_=VARIABLE, lower=0.0
+            id_, as_scalar(saving), self.energy_saving, type_=VARIABLE, lower=0.0
         )
 
     def set_external_power(self, energy_type: str, power):
@@ -109,7 +109,7 @@ class Technology(_Machinery):
         """
         id_ = assign_id(energy_type, EnergyDemandTypeID)
         command_assignment_to_dict(
-            id_, power, self.external_power, type_=VARIABLE, lower=0.0
+            id_, as_scalar(power), self.external_power, type_=VARIABLE, lower=0.0
         )
 
     def set_power_transfer(
@@ -133,7 +133,7 @@ class Technology(_Machinery):
 
         command_assignment_to_tuple_dict(
             (power_system_id_, energy_id_),
-            transfer,
+            as_scalar(transfer),
             self.power_transfer,
             type_=(CURVE, VARIABLE),
             lower=0.0,

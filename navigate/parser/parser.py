@@ -9,7 +9,7 @@ import os
 import re
 from dataclasses import dataclass, replace
 from pathlib import Path
-from typing import ClassVar
+from typing import TYPE_CHECKING, ClassVar
 
 import numpy as np
 
@@ -18,15 +18,18 @@ from navigate.core.enum_ import SimulationSectionID
 from navigate.core.general_nodes.bunker_options import BunkerOptions
 from navigate.core.node import Node
 from navigate.core.node_registry import GeneralNodes, Nodes
-from navigate.core.node_type import is_calculator
+from navigate.core.node_type import MODEL_DEFINITION, is_calculator
 from navigate.exceptions import (
     AttributeAssignmentError,
     CommandError,
     DeckFormatError,
     DeckKeywordError,
+    no_value_assigned_error,
 )
 from navigate.logging_ import log_time_step_breaker, print_preamble
 from navigate.parser._attributes import (
+    GENERAL_NODE_REQUIRED_ATTRIBUTES,
+    NODE_REQUIRED_ATTRIBUTES,
     check_general_node_attribute_is_allowed,
     check_node_attribute_is_allowed,
     instance_to_dsl_name,
@@ -79,6 +82,9 @@ from navigate.util import (
     timedelta_to_days,
     wildcard_to_regex,
 )
+
+if TYPE_CHECKING:
+    from navigate.core.general_nodes._general_node import _GeneralNode
 
 logger = logging.getLogger(__name__)
 
@@ -150,6 +156,9 @@ class Parser:
         # assignments whose value carries a wildcard, held until the registry
         # holds every node the glob may match
         self._pending_assignments: list[_PendingAssignment] = []
+        # the deck attributes whose setter ran on each node, which the required
+        # attribute check reads
+        self._assigned_attributes: dict[Node | _GeneralNode, set[str]] = {}
 
         # section flags
         self._current_section = None
@@ -712,6 +721,8 @@ class Parser:
                 + f": {node} attribute '{attribute}' {e}."
             ) from None
 
+        self._assigned_attributes.setdefault(node, set()).add(attribute)
+
     def _queue_command(self, nodes, item, node_type):
         """
         Validate and queue a Command AST node on one or more nodes.
@@ -840,6 +851,11 @@ class Parser:
             existing = group.get(statement.copy_to)
         if existing is not None:
             new_node = _transplant(existing, new_node)
+
+        # the copy carries the source's assignments, and only those
+        self._assigned_attributes[new_node] = set(
+            self._assigned_attributes.get(source, ())
+        )
 
         # the parser holds a pending assignment, not the source, so deepcopy
         # leaves it behind and the copy needs an entry of its own
@@ -1011,22 +1027,49 @@ class Parser:
                 "Error in simulation: 'ModelDefinition' must be defined."
             )
 
-        self.general_nodes.model_definition.check_requirements()
+        self._check_required_attributes(
+            self.general_nodes.model_definition,
+            GENERAL_NODE_REQUIRED_ATTRIBUTES[MODEL_DEFINITION],
+        )
 
         if self.general_nodes.bunker_options is None:
             self.general_nodes.bunker_options = BunkerOptions()
 
-        self.general_nodes.bunker_options.check_requirements()
+    def _check_required_node_attributes(self) -> None:
+        for node in self._get_all_nodes():
+            self._check_required_attributes(
+                node, NODE_REQUIRED_ATTRIBUTES.get(node.type, ())
+            )
+
+    def _check_required_attributes(
+        self, node: Node | _GeneralNode, required: tuple[str, ...]
+    ) -> None:
+        """
+        Raise for the first required deck attribute no setter assigned on a node.
+
+        Parameters
+        ----------
+        node
+            The node to check.
+        required
+            The deck attributes the node cannot run without.
+        """
+        assigned = self._assigned_attributes.get(node, set())
+
+        for attribute in required:
+            if attribute not in assigned:
+                no_value_assigned_error(node, attribute)
 
     def _update_dependencies(self):
         """
         Replace references, execute commands, initialize nodes.
 
         The sequence is: expand held-back wildcards → replace refs → replace
-        tables → prune unreachable nodes (DEFINE pass only) → init dicts →
-        execute commands → replace refs again (commands may create new ones) →
-        replace tables again → run the node lifecycle hooks, whose requirement
-        checks run on the DEFINE pass only.
+        tables → prune unreachable nodes and check required attributes (DEFINE
+        pass only) → init dicts → execute commands → replace refs again
+        (commands may create new ones) → replace tables again → run the node
+        lifecycle hooks, whose requirement checks, the required attributes'
+        among them, run on the DEFINE pass only.
         """
         self._reading_events = True
 
@@ -1039,6 +1082,11 @@ class Parser:
         # calls arrive under EVENTS, so the prune runs exactly once
         if self._current_section == SimulationSectionID.DEFINE:
             self._prune_unreachable_nodes()
+
+            # before anything reads a node's attributes, including another
+            # node's initialize_dependencies, and only over the nodes the
+            # prune kept
+            self._check_required_node_attributes()
 
         self._initialize_dependent_dicts()
         self._execute_commands()
@@ -1302,6 +1350,11 @@ class Parser:
         attributes may be re-assigned under EVENTS.
         """
         first_pass = self._current_section == SimulationSectionID.DEFINE
+
+        # a node a command argument named arrives with the reference pass after
+        # the commands, so the check runs again over it
+        if first_pass:
+            self._check_required_node_attributes()
 
         for node in self._get_all_nodes():
             if first_pass:
@@ -1715,10 +1768,11 @@ def _transplant(node, copied):
     """
     Move a copy's state into the node already held under the copy's name.
 
-    Every attribute is declared in ``__init__``, so the update replaces the
-    node's whole state — a placeholder's, or the declaration a pulled file gave
-    it. The bounds references imposed on the node are the one thing to keep:
-    they are merged back after the update, which brought the source's.
+    The node's state is cleared first, so the copy replaces all of it — a
+    placeholder's, or the declaration a pulled file gave it — including a
+    required attribute the copy has not been assigned. The bounds references
+    imposed on the node are the one thing to keep: they are merged back after
+    the update, which brought the source's.
 
     Parameters
     ----------
@@ -1734,6 +1788,7 @@ def _transplant(node, copied):
     """
     bounds = node.internal_bounds if is_calculator(node) else None
 
+    node.__dict__.clear()
     node.__dict__.update(copied.__dict__)
 
     if bounds is not None:

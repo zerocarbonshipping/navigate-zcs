@@ -75,11 +75,11 @@ class Node(TypeCheckMixin):
         """
         Fill and resolve the dictionaries the DSL commands write.
 
-        Fills the unassigned entries of the dictionaries
-        'initialize_dependencies' seeds, and resolves them into whatever
-        internal form the node reads them through. Runs after the DEFINE
-        block and again after every event read, because a SECTION_BOTH
-        command can create a key mid-run.
+        Fills the entries 'initialize_dependencies' cannot seed with their
+        default, such as the keys a command creates, and resolves the
+        dictionaries into whatever internal form the node reads them through. Runs after
+        the DEFINE block and again after every event read, because a
+        SECTION_BOTH command can create a key mid-run.
         """
 
     def check_consistency(self) -> None:

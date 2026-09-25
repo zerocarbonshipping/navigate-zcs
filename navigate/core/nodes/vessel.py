@@ -27,8 +27,8 @@ from navigate.core.node_type import (
     VESSEL,
 )
 from navigate.core.profiles import VesselProfile
+from navigate.core.wrap import to_numpy
 from navigate.exceptions import no_value_assigned_error
-from navigate.util import to_numpy
 
 if TYPE_CHECKING:
     import numpy as np
@@ -59,12 +59,12 @@ class Vessel(Node):
         self.heat_load_in_port: ScalarInput = Scalar(0.0)
 
         # fuel based power
-        self.power_system: PowerSystem | Expression | None = None
+        self.power_system: PowerSystem | Expression
         self.tanks: list[Tank] = []
 
         # voyage
-        self.route: Route | Expression | None = None
-        self.nominal_capacity: ScalarInput | None = None
+        self.route: Route | Expression
+        self.nominal_capacity: ScalarInput
 
         # base cost
         self.capex: ForecastInput = Scalar(0.0)
@@ -397,17 +397,8 @@ class Vessel(Node):
     # internal methods -----------------------------------------------------------------
     def check_requirements(self) -> None:
 
-        if self.power_system is None:
-            no_value_assigned_error(self, "PowerSystem")
-
         if not self.tanks:
             no_value_assigned_error(self, "Tanks")
-
-        if self.route is None:
-            no_value_assigned_error(self, "Route")
-
-        if self.nominal_capacity is None:
-            no_value_assigned_error(self, "NominalCapacity")
 
     def initialize_expectation(self, length: int, fuels: dict[str, Fuel]) -> None:
         self.expectation.initialize(length, self.route, fuels)

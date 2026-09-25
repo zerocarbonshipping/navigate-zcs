@@ -250,16 +250,6 @@ class TestTable1DReverseLookup:
         t = _make_table1d(x=x, y=y)
         assert t.reverse_lookup(4.0) is None
 
-    def test_reverse_lookup_nearest(self):
-        """Non-interpolating reverse lookup snaps to nearest grid point."""
-        x = np.array([0.0, 1.0, 2.0, 3.0])
-        y = np.array([0.0, 2.0, 4.0, 6.0])
-        t = _make_table1d(x=x, y=y)
-        result = t.reverse_lookup(3.1, interpolate=False)
-        assert result == pytest.approx(
-            2.0
-        )  # nearest to y=4? No, find_nearest to 3.1 → y=4 at x=2
-
 
 # ---------------------------------------------------------------------------
 # 5. _Table1D — pickle round-trip

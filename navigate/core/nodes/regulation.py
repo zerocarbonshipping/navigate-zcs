@@ -18,7 +18,6 @@ from navigate.core.expectations import RegulationExpectation
 from navigate.core.node_type import FORECAST, REGULATION, VARIABLE
 from navigate.core.nodes._policy import _Policy
 from navigate.core.profiles import RegulationProfile
-from navigate.exceptions import no_value_assigned_error
 
 if TYPE_CHECKING:
     import numpy as np
@@ -32,7 +31,7 @@ class Regulation(_Policy):
         super().__init__(name, REGULATION)
 
         # external variables -----------------------------------------------------------
-        self.measure: RegulationMeasureID | None = None
+        self.measure: RegulationMeasureID
 
         self.intra_fraction: ForecastInput = Scalar(1.0)
         self.inter_fraction: ForecastInput = Scalar(1.0)
@@ -231,7 +230,7 @@ class Regulation(_Policy):
         """
         command_assignment_to_dict(
             vessel_name,
-            threshold,
+            as_scalar(threshold),
             self.vessel_threshold,
             type_=(FORECAST, VARIABLE),
             lower=0.0,
@@ -257,7 +256,7 @@ class Regulation(_Policy):
         """
         command_assignment_to_dict(
             vessel_name,
-            capacity,
+            as_scalar(capacity),
             self.vessel_capacity,
             type_=(FORECAST, VARIABLE),
             lower=0.0,
@@ -284,15 +283,6 @@ class Regulation(_Policy):
         self.allow_threshold_adjustment = assign_boolean(allow_threshold_adjustment)
 
     # internal methods -----------------------------------------------------------------
-    def check_requirements(self) -> None:
-        super().check_requirements()
-
-        if self.scheme is None:
-            no_value_assigned_error(self, "Scheme")
-
-        if self.measure is None:
-            no_value_assigned_error(self, "Measure")
-
     def check_consistency(self) -> None:
         super().check_consistency()
 

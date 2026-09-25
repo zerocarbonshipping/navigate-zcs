@@ -83,18 +83,31 @@ on `Node`; a node overrides the hooks they call, never the entry points.
 - `reinitialize()` runs after DEFINE and again after every event read:
   `apply_command_defaults()`, then `check_consistency()`.
 
+Before `initialize()`, the parser checks the required attributes. The attribute
+registry in `navigate/parser/_attributes.py` lists, per node type, the
+attributes a deck must assign; the parser records every setter it runs, and
+once the DEFINE block is read it raises `no_value_assigned_error` for a
+required attribute no setter reached. The check runs after the
+unreachable-node prune, so a pruned node is never checked, and before
+`initialize_dependencies(...)`, the commands and the hooks, so no node reads
+another's required attribute unset. The general nodes are checked before
+anything reads the start date. A node declares a required attribute without
+a value, so it is absent from the node's `__dict__` until its setter runs.
+
 What each hook holds:
 
 - `check_requirements()` raises where an attribute the node cannot run
-  without is unassigned. `None` on a node attribute always means just
-  that: the grammar has no `none` literal, and every `assign_*` in
-  `navigate/core/assign.py` returns a value or raises, so no DSL value is
-  ever `None`.
+  without is unassigned and the registry cannot say so: a list left empty,
+  or an attribute required only under a condition on others. `None` on a
+  node attribute always means unassigned: the grammar has no `none`
+  literal, and every `assign_*` in `navigate/core/assign.py` returns a value
+  or raises, so no DSL value is ever `None`.
 - `apply_defaults()` fills a value derived from the size or the value of
   another attribute.
-- `apply_command_defaults()` fills the unassigned entries of the
-  command-written dictionaries and resolves them into the form the node
-  reads.
+- `apply_command_defaults()` fills the entries of the command-written
+  dictionaries that `initialize_dependencies(...)` cannot seed with their
+  default, such as the keys a command creates, and resolves the
+  dictionaries into the form the node reads.
 - `check_consistency()` raises where attributes contradict each other and
   warns where one is unused.
 
@@ -104,10 +117,13 @@ re-assigned between time steps and a command may create a dictionary key
 mid-run.
 
 General nodes accept attributes in `SECTION_DEFINE` only, so `_GeneralNode`
-has `check_requirements()` alone and no per-pass path.
+has no lifecycle hooks: the required-attribute check is all they need.
 
 Anything derived from the node registries stays in
-`initialize_dependencies(...)`, the only hook the parser hands them.
+`initialize_dependencies(...)`, the only hook the parser hands them. It
+also seeds every registry-keyed entry of a command-written dictionary with
+its default, or with `None` where unassigned means something to the reader,
+before the commands run.
 
 ## Naming conventions
 

@@ -9,7 +9,6 @@ from navigate.core import assign_value
 from navigate.core.enum_ import EnergyDemandTypeID
 from navigate.core.node_type import CONVERTER, POWER_SYSTEM
 from navigate.core.nodes._machinery import _Machinery
-from navigate.exceptions import no_value_assigned_error
 from navigate.util import list_is_unique
 
 if TYPE_CHECKING:
@@ -22,9 +21,9 @@ class PowerSystem(_Machinery):
 
         # external variables -----------------------------------------------------------
         # converters
-        self.propulsion: Converter | None = None
-        self.electrical: Converter | None = None
-        self.heat: Converter | None = None
+        self.propulsion: Converter
+        self.electrical: Converter
+        self.heat: Converter
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_propulsion(self, propulsion):
@@ -73,17 +72,6 @@ class PowerSystem(_Machinery):
         self.heat = assign_value(heat, scalar=False, type_=CONVERTER)
 
     # internal methods -----------------------------------------------------------------
-    def check_requirements(self) -> None:
-
-        if not self.propulsion:
-            no_value_assigned_error(self, "Propulsion")
-
-        if not self.electrical:
-            no_value_assigned_error(self, "Electrical")
-
-        if not self.heat:
-            no_value_assigned_error(self, "Heat")
-
     def check_consistency(self) -> None:
         # downstream code sums over the converters (installed power, cost, fuel demand);
         # a shared one would double-count

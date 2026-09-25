@@ -7,9 +7,9 @@ from typing import TYPE_CHECKING
 
 from navigate.core import (
     Scalar,
+    as_scalar,
     command_assignment_to_dict,
     command_assignment_to_tuple_dict,
-    default_unassigned,
 )
 from navigate.core.node import Node
 from navigate.core.node_type import FORECAST, REGION, TIMETABLE, VARIABLE
@@ -24,25 +24,25 @@ class Region(Node):
 
         # external variables -----------------------------------------------------------
         # process
-        self.process_capex: dict[str, TimetableInput | None] = {}
-        self.process_opex: dict[str, TimetableInput | None] = {}
-        self.process_energy: dict[str, ForecastInput | None] = {}
+        self.process_capex: dict[str, TimetableInput] = {}
+        self.process_opex: dict[str, TimetableInput] = {}
+        self.process_energy: dict[str, ForecastInput] = {}
         self.process_lifetime: dict[str, ForecastInput | None] = {}
-        self.process_replacement: dict[str, ForecastInput | None] = {}
-        self.process_wtt: dict[tuple[str, str], ForecastInput | None] = {}
+        self.process_replacement: dict[str, ForecastInput] = {}
+        self.process_wtt: dict[tuple[str, str], ForecastInput] = {}
 
         # source
-        self.source_capex: dict[str, ForecastInput | None] = {}
-        self.source_opex: dict[str, ForecastInput | None] = {}
-        self.source_wtt: dict[tuple[str, str], ForecastInput | None] = {}
+        self.source_capex: dict[str, ForecastInput] = {}
+        self.source_opex: dict[str, ForecastInput] = {}
+        self.source_wtt: dict[tuple[str, str], ForecastInput] = {}
 
         # feedstock
-        self.feedstock_cost: dict[str, ForecastInput | None] = {}
-        self.feedstock_wtt: dict[tuple[str, str], ForecastInput | None] = {}
+        self.feedstock_cost: dict[str, ForecastInput] = {}
+        self.feedstock_wtt: dict[tuple[str, str], ForecastInput] = {}
 
         # transport
-        self.transport_cost: dict[str, ForecastInput | None] = {}
-        self.transport_wtt: dict[tuple[str, str], ForecastInput | None] = {}
+        self.transport_cost: dict[str, ForecastInput] = {}
+        self.transport_wtt: dict[tuple[str, str], ForecastInput] = {}
 
     # external methods (DSL commands) --------------------------------------------------
     def set_process_capex(self, process_name, value):
@@ -63,7 +63,7 @@ class Region(Node):
         """
         command_assignment_to_dict(
             process_name,
-            value,
+            as_scalar(value),
             self.process_capex,
             type_=(FORECAST, TIMETABLE, VARIABLE),
             lower=0.0,
@@ -90,7 +90,7 @@ class Region(Node):
         """
         command_assignment_to_dict(
             process_name,
-            value,
+            as_scalar(value),
             self.process_opex,
             type_=(FORECAST, TIMETABLE, VARIABLE),
         )
@@ -113,7 +113,7 @@ class Region(Node):
         """
         command_assignment_to_dict(
             process_name,
-            value,
+            as_scalar(value),
             self.process_energy,
             type_=(FORECAST, VARIABLE),
             lower=0.0,
@@ -137,7 +137,7 @@ class Region(Node):
         """
         command_assignment_to_dict(
             process_name,
-            value,
+            as_scalar(value),
             self.process_lifetime,
             type_=(FORECAST, VARIABLE),
             lower=0.0,
@@ -161,7 +161,7 @@ class Region(Node):
         """
         command_assignment_to_dict(
             process_name,
-            value,
+            as_scalar(value),
             self.process_replacement,
             type_=(FORECAST, VARIABLE),
             lower=0.0,
@@ -189,7 +189,7 @@ class Region(Node):
         """
         command_assignment_to_tuple_dict(
             (process_name, emission_name),
-            value,
+            as_scalar(value),
             self.process_wtt,
             type_=(FORECAST, VARIABLE),
         )
@@ -211,7 +211,11 @@ class Region(Node):
             The CAPEX cost of the source in USD/MWh.
         """
         command_assignment_to_dict(
-            source_name, value, self.source_capex, type_=(FORECAST, VARIABLE), lower=0.0
+            source_name,
+            as_scalar(value),
+            self.source_capex,
+            type_=(FORECAST, VARIABLE),
+            lower=0.0,
         )
 
     def set_source_opex(self, source_name, value):
@@ -231,7 +235,11 @@ class Region(Node):
             The OPEX cost of the source in USD/MWh/year.
         """
         command_assignment_to_dict(
-            source_name, value, self.source_opex, type_=(FORECAST, VARIABLE), lower=0.0
+            source_name,
+            as_scalar(value),
+            self.source_opex,
+            type_=(FORECAST, VARIABLE),
+            lower=0.0,
         )
 
     def set_source_wtt(self, source_name, emission_name, value):
@@ -254,7 +262,7 @@ class Region(Node):
         """
         command_assignment_to_tuple_dict(
             (source_name, emission_name),
-            value,
+            as_scalar(value),
             self.source_wtt,
             type_=(FORECAST, VARIABLE),
         )
@@ -277,7 +285,7 @@ class Region(Node):
         """
         command_assignment_to_dict(
             feedstock_name,
-            value,
+            as_scalar(value),
             self.feedstock_cost,
             type_=(FORECAST, VARIABLE),
             lower=0.0,
@@ -304,7 +312,7 @@ class Region(Node):
         """
         command_assignment_to_tuple_dict(
             (feedstock_name, emission_name),
-            value,
+            as_scalar(value),
             self.feedstock_wtt,
             type_=(FORECAST, VARIABLE),
         )
@@ -327,7 +335,7 @@ class Region(Node):
         """
         command_assignment_to_dict(
             transport_name,
-            value,
+            as_scalar(value),
             self.transport_cost,
             type_=(FORECAST, VARIABLE),
             lower=0.0,
@@ -354,26 +362,12 @@ class Region(Node):
         """
         command_assignment_to_tuple_dict(
             (transport_name, emission_name),
-            value,
+            as_scalar(value),
             self.transport_wtt,
             type_=(FORECAST, VARIABLE),
         )
 
     # internal methods -----------------------------------------------------------------
-    def apply_command_defaults(self) -> None:
-        default_unassigned(self.process_capex, Scalar(0.0))
-        default_unassigned(self.process_opex, Scalar(0.0))
-        default_unassigned(self.process_energy, Scalar(0.0))
-        default_unassigned(self.process_replacement, Scalar(0.0))
-        default_unassigned(self.process_wtt, Scalar(0.0))
-        default_unassigned(self.feedstock_cost, Scalar(0.0))
-        default_unassigned(self.feedstock_wtt, Scalar(0.0))
-        default_unassigned(self.source_capex, Scalar(0.0))
-        default_unassigned(self.source_opex, Scalar(0.0))
-        default_unassigned(self.source_wtt, Scalar(0.0))
-        default_unassigned(self.transport_cost, Scalar(0.0))
-        default_unassigned(self.transport_wtt, Scalar(0.0))
-
     def initialize_dependencies(
         self, emissions, feedstocks, processes, sources, transports
     ):
@@ -394,32 +388,36 @@ class Region(Node):
             All transports in the simulation.
         """
         for process_name in processes:
-            self.process_capex.setdefault(process_name, None)
-            self.process_opex.setdefault(process_name, None)
-            self.process_energy.setdefault(process_name, None)
+            self.process_capex.setdefault(process_name, Scalar(0.0))
+            self.process_opex.setdefault(process_name, Scalar(0.0))
+            self.process_energy.setdefault(process_name, Scalar(0.0))
             # stays None when unset: Component.initialize_process_component branches on
             # it
             self.process_lifetime.setdefault(process_name, None)
-            self.process_replacement.setdefault(process_name, None)
+            self.process_replacement.setdefault(process_name, Scalar(0.0))
 
             for emission_name in emissions:
-                self.process_wtt.setdefault((process_name, emission_name), None)
+                self.process_wtt.setdefault((process_name, emission_name), Scalar(0.0))
 
         for feedstock_name in feedstocks:
-            self.feedstock_cost.setdefault(feedstock_name, None)
+            self.feedstock_cost.setdefault(feedstock_name, Scalar(0.0))
 
             for emission_name in emissions:
-                self.feedstock_wtt.setdefault((feedstock_name, emission_name), None)
+                self.feedstock_wtt.setdefault(
+                    (feedstock_name, emission_name), Scalar(0.0)
+                )
 
         for source_name in sources:
-            self.source_capex.setdefault(source_name, None)
-            self.source_opex.setdefault(source_name, None)
+            self.source_capex.setdefault(source_name, Scalar(0.0))
+            self.source_opex.setdefault(source_name, Scalar(0.0))
 
             for emission_name in emissions:
-                self.source_wtt.setdefault((source_name, emission_name), None)
+                self.source_wtt.setdefault((source_name, emission_name), Scalar(0.0))
 
         for transport_name in transports:
-            self.transport_cost.setdefault(transport_name, None)
+            self.transport_cost.setdefault(transport_name, Scalar(0.0))
 
             for emission_name in emissions:
-                self.transport_wtt.setdefault((transport_name, emission_name), None)
+                self.transport_wtt.setdefault(
+                    (transport_name, emission_name), Scalar(0.0)
+                )

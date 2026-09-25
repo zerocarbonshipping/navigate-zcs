@@ -13,7 +13,7 @@ from navigate.core import assign_id, assign_value
 from navigate.core.enum_ import ExtrapolateID, Interpolate2DID
 from navigate.core.nodes._calculator import _Calculator
 from navigate.logging_ import log_extrapolate_bounds
-from navigate.util import find_nearest, is_strictly_increasing
+from navigate.util import is_strictly_increasing
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -37,11 +37,11 @@ class _Table2D(_Calculator):
         self._outside: NumberInput | None = None
 
         # internal variables -----------------------------------------------------------
-        self.x: FloatArray | None = None
-        self.y: FloatArray | None = None
-        self._z: FloatArray | None = None
+        self.x: FloatArray
+        self.y: FloatArray
+        self._z: FloatArray
         self._table: Callable[[FloatLike, FloatLike], FloatLike] | None = None
-        self._is_convex: np.bool_ | None = None
+        self._is_convex: bool = False  # set with the table
 
     def __getstate__(self):
         state = self.__dict__.copy()
@@ -50,7 +50,8 @@ class _Table2D(_Calculator):
 
     def __setstate__(self, state):
         self.__dict__.update(state)
-        if self.x is not None and self.y is not None and self._z is not None:
+        # the arrays are set together, and only once the table is
+        if "x" in state:
             self._set_table(self.x, self.y, self._z)
 
     # external methods (DSL attributes) ------------------------------------------------
@@ -67,19 +68,19 @@ class _Table2D(_Calculator):
     def get_table_limits(self):
         return np.min(self._z), np.max(self._z)
 
-    def is_convex(self):
+    def is_convex(self) -> bool:
         return self._is_convex
 
     def calculate(self, x, y):
         return self._truncate(self.multiplier * (self._table(x, y) + self.addition))
 
-    def reverse_lookup(self, z, y=None, interpolate=True):
+    def reverse_lookup(self, z, y=None):
         if y is None:
             y = self.y
 
-        return self._reverse_lookup_x(y, z, interpolate)
+        return self._reverse_lookup_x(y, z)
 
-    def _reverse_lookup_x(self, y, z, interpolate=True):
+    def _reverse_lookup_x(self, y, z):
         """
         Perform a reverse lookup in the table defined by (xp, yp, zp).
 
@@ -94,36 +95,25 @@ class _Table2D(_Calculator):
             Values along which to calculate z-slices.
         z : np.ndarray
             z-values to reverse calculate x-values for.
-        interpolate : bool
-            Whether to interpolate or use the nearest value.
 
         Returns
         -------
-        np.ndarray
-            Interpolated or exact 'x' value corresponding to the given 'z' along a
-            z-slice defined by 'y'.
+        np.ndarray | None
+            Interpolated 'x' value corresponding to the given 'z' along a z-slice
+            defined by 'y', or `None` when a z-slice is not strictly increasing.
         """
         x = []
 
-        if interpolate:
-            for yp in y:
-                # extract a z-slice for the given y
-                zp = self.calculate(self.x, yp)
+        for yp in y:
+            # extract a z-slice for the given y
+            zp = self.calculate(self.x, yp)
 
-                if not is_strictly_increasing(zp):
-                    return None
+            if not is_strictly_increasing(zp):
+                return None
 
-                # then reverse calculate along
-                # the x-axis using the z-slice
-                x.append(np.interp(z, zp, self.x))
-
-        else:
-            for yp in y:
-                # extract a z-slice for the given y
-                zp = self.calculate(self.x, yp)
-
-                idx = find_nearest(zp, np.asarray(z))
-                x.append(self.x[idx])
+            # then reverse calculate along
+            # the x-axis using the z-slice
+            x.append(np.interp(z, zp, self.x))
 
         return np.array(x)
 
@@ -179,9 +169,7 @@ class _Table2D(_Calculator):
         # if all linear paths in the x-direction
         # on the surface are convex, then it is
         # guaranteed to be convex in the x-direction
-        self._is_convex = np.all(
-            [self._test_convexity(x, z[:, i]) for i, _ in enumerate(y)]
-        )
+        self._is_convex = all(self._test_convexity(x, z[:, i]) for i, _ in enumerate(y))
 
         method = self._get_interpolate_internal()
         bounds_error = self._get_allow_extrapolate_internal()

@@ -9,7 +9,6 @@ from navigate.core.node import Node
 from navigate.core.node_type import FORECAST
 from navigate.core.nodes._table1d import _Table1D, check_table1d_input
 from navigate.core.table_data import TableData, build_table_1d_dated
-from navigate.exceptions import no_value_assigned_error
 from navigate.util import timedelta_to_days
 
 
@@ -18,15 +17,12 @@ class Forecast(Node, _Table1D):
         Node.__init__(self, name, FORECAST)
         _Table1D.__init__(self)
 
-        # temporarily stored variables at current time-step
-        self._current_value: float | None = None
+        # temporarily stored variables at current time-step; nan
+        # until the first time step precalculates the value
+        self._current_value: float = np.nan
 
         # used for temporary storage of tables during deck parsing
         self._temporary_table: tuple | None = None
-
-    def check_requirements(self) -> None:
-        if self._table is None:
-            no_value_assigned_error(self, "Table")
 
     def get(self, x: float | None = None, y: float | None = None) -> float:
         """

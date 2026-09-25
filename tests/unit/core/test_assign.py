@@ -600,24 +600,18 @@ class TestAssignFractionList:
 class TestCommandAssignmentToDict:
     def test_literal_key_assigns_one_entry(self):
         assignment_dict = {"oil": None, "ammonia": None}
-        command_assignment_to_dict("oil", 1.0, assignment_dict)
+        command_assignment_to_dict("oil", Scalar(1.0), assignment_dict)
 
         assert isinstance(assignment_dict["oil"], Scalar)
         assert assignment_dict["ammonia"] is None
 
     def test_wildcard_assigns_every_match(self):
         assignment_dict = {"bio_a": None, "bio_b": None, "fossil": None}
-        command_assignment_to_dict("bio_*", 1.0, assignment_dict)
+        command_assignment_to_dict("bio_*", Scalar(1.0), assignment_dict)
 
         assert isinstance(assignment_dict["bio_a"], Scalar)
         assert isinstance(assignment_dict["bio_b"], Scalar)
         assert assignment_dict["fossil"] is None
-
-    def test_float_arrives_wrapped(self):
-        assignment_dict = {"oil": None}
-        command_assignment_to_dict("oil", 2.0, assignment_dict)
-
-        assert assignment_dict["oil"].get() == 2.0
 
     def test_unmatched_key_raises(self):
         with pytest.raises(KeyError, match="missing"):
@@ -639,7 +633,7 @@ class TestCommandAssignmentToTupleDict:
             ("a", "y"): None,
             ("b", "y"): None,
         }
-        command_assignment_to_tuple_dict(("*", "x"), 1.0, assignment_dict)
+        command_assignment_to_tuple_dict(("*", "x"), Scalar(1.0), assignment_dict)
 
         assert isinstance(assignment_dict[("a", "x")], Scalar)
         assert isinstance(assignment_dict[("b", "x")], Scalar)

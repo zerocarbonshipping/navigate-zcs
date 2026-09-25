@@ -309,6 +309,34 @@ GENERAL_NODE_ATTRIBUTE_SECTIONS = {
 }
 
 
+# required attributes ------------------------------------------------------------------
+# a node must be assigned each of these in DEFINE; the parser checks them before any
+# lifecycle hook runs, so the node declares them without a None default
+_TABLE_REQUIRED = ("Table",)
+_POLICY_REQUIRED = ("Scheme",)
+
+NODE_REQUIRED_ATTRIBUTES = {
+    CONVERTER: ("PowerCapacity", "Efficiency"),
+    CURVE: _TABLE_REQUIRED,
+    FLEET: ("InitialVessels", "InterFuelSensitivity", "IntraFuelSensitivity"),
+    FORECAST: _TABLE_REQUIRED,
+    FUEL: ("FuelType", "LowerHeatingValue", "MassDensity"),
+    LEVY: _POLICY_REQUIRED,
+    PLANT: ("Fuel", "Process", "Region", "Source", "Capacity"),
+    POWER_SYSTEM: ("Propulsion", "Electrical", "Heat"),
+    PRODUCER: ("FuelDemandSensitivity", "FuelCostSensitivity", "MaximumDevelopment"),
+    REGULATION: (*_POLICY_REQUIRED, "Measure"),
+    ROUTE: ("RouteType",),
+    SOURCE: ("Dependency",),
+    SURFACE: _TABLE_REQUIRED,
+    TANK: ("FuelTypes", "Size"),
+    TIMETABLE: _TABLE_REQUIRED,
+    VESSEL: ("PowerSystem", "Route", "NominalCapacity"),
+}
+
+GENERAL_NODE_REQUIRED_ATTRIBUTES = {MODEL_DEFINITION: ("StartDate",)}
+
+
 # methods ------------------------------------------------------------------------------
 def instance_to_dsl_name(node_type, attribute_name):
     """

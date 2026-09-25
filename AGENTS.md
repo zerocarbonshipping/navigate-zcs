@@ -120,7 +120,8 @@ overwrite each other's files, and the test suites run decks too.
 
 - A DSL attribute or command lives in four places: the setter on the node
   class, with a docstring; the parser table in
-  `navigate/parser/_attributes.py` or `_commands.py`; the node's page in
+  `navigate/parser/_attributes.py` or `_commands.py`, which also lists the
+  attribute as required when every deck must assign it; the node's page in
   `docs/reference_manual/`; and the attribute coverage test. The first two
   are checked against each other, and the manual page is checked against
   the registries in both directions by

@@ -10,10 +10,11 @@ import numpy as np
 
 from navigate.core.enum_ import UtilityID
 from navigate.core.increment import Increment
+from navigate.core.wrap import to_numpy
 from navigate.economics.decision import calculate_two_axis_uptake
 from navigate.fleet.technology_adoption import calculate_package_charter_rates
 from navigate.fleet.utils import calculate_increments, extract_cargo_miles
-from navigate.util import TOLERANCE, YEAR, to_numpy
+from navigate.util import TOLERANCE, YEAR
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet

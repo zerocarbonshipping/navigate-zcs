@@ -17,11 +17,11 @@ from navigate.core import Scalar, as_scalar, as_scalar_list, assign_list, assign
 from navigate.core.increment import Increment
 from navigate.core.node import Node
 from navigate.core.node_type import CURVE, FORECAST, VARIABLE
+from navigate.core.nodes.curve import Curve
 from navigate.util import YEAR
 
 if TYPE_CHECKING:
     from navigate.core.expression import Expression
-    from navigate.core.nodes.curve import Curve
     from navigate.core.nodes.input_kinds import ForecastInput
 
 
@@ -115,11 +115,13 @@ class _AssetManager(Node):
             increments: list[Increment] = []
 
             if self._get_initial_multiplier(a) > 0.0:
-                if self._initial_age_distribution and isinstance(
-                    self._initial_age_distribution[a], Node
-                ):
-                    curve = self._initial_age_distribution[a]
-                    ages = curve.x[::-1].copy()
+                distribution = (
+                    self._initial_age_distribution[a]
+                    if self._initial_age_distribution
+                    else None
+                )
+                if isinstance(distribution, Curve):
+                    ages = distribution.x[::-1].copy()
 
                 else:
                     lifetime = asset.lifetime.get()
@@ -165,11 +167,13 @@ class _AssetManager(Node):
             n = len(incs)
 
             if multiplier > 0.0 and n > 0:
-                if self._initial_age_distribution and isinstance(
-                    self._initial_age_distribution[a], Node
-                ):
-                    curve = self._initial_age_distribution[a]
-                    fractions = curve.y[::-1]
+                distribution = (
+                    self._initial_age_distribution[a]
+                    if self._initial_age_distribution
+                    else None
+                )
+                if isinstance(distribution, Curve):
+                    fractions = distribution.y[::-1]
 
                     for i, inc in enumerate(incs):
                         inc.multiplier = multiplier * fractions[i]

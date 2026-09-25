@@ -15,10 +15,29 @@ import pytest
 from navigate.core.enum_ import SimulationSectionID
 from navigate.exceptions import AttributeAssignmentError, CommandError
 from navigate.parser._attributes import (
+    GENERAL_NODE_ATTRIBUTE_SECTIONS,
+    GENERAL_NODE_REQUIRED_ATTRIBUTES,
+    NODE_ATTRIBUTE_SECTIONS,
+    NODE_REQUIRED_ATTRIBUTES,
     check_general_node_attribute_is_allowed,
     check_node_attribute_is_allowed,
     instance_to_dsl_name,
 )
+
+
+@pytest.mark.parametrize(
+    ("required", "sections"),
+    [
+        (NODE_REQUIRED_ATTRIBUTES, NODE_ATTRIBUTE_SECTIONS),
+        (GENERAL_NODE_REQUIRED_ATTRIBUTES, GENERAL_NODE_ATTRIBUTE_SECTIONS),
+    ],
+    ids=["node", "general_node"],
+)
+def test_every_required_attribute_is_assignable_in_define(required, sections):
+    # a required attribute outside DEFINE could never be met by the check
+    for node_type, attributes in required.items():
+        for attribute in attributes:
+            assert SimulationSectionID.DEFINE in sections[node_type][attribute]
 
 
 class TestInstanceToDslName:
@@ -98,11 +117,17 @@ class TestRejectedValueIsADomainError:
             read_deck('Vessel "v" {\n    Capex = FLAT\n}\n')
 
     def test_rejected_command_value(self, read_deck):
+        # the required attributes are checked before the commands run
         with pytest.raises(
             CommandError, match=r"'set_operational_saving_sea' must be ≤ 1\.0"
         ):
             read_deck(
-                'Fleet "fleet" {\n    set_operational_saving_sea(PROPULSION, 2.0)\n}\n'
+                'Fleet "fleet" {\n'
+                "    InitialVessels = 1\n"
+                "    InterFuelSensitivity = 1.0\n"
+                "    IntraFuelSensitivity = 1.0\n"
+                "    set_operational_saving_sea(PROPULSION, 2.0)\n"
+                "}\n"
             )
 
     def test_rejected_table_value(self, read_deck):

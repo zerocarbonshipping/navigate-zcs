@@ -13,6 +13,7 @@ from navigate.util import ROUND_OFF
 
 if TYPE_CHECKING:
     from navigate.core.nodes.input_kinds import NumberInput
+    from navigate.util import FloatArray
 
 logger = logging.getLogger(__name__)
 
@@ -188,7 +189,7 @@ class _Calculator:
         )
 
     @staticmethod
-    def _test_convexity(x, y):
+    def _test_convexity(x: FloatArray, y: FloatArray) -> bool:
         """
         Test whether the piecewise linear function made up by (x, y) is convex.
 

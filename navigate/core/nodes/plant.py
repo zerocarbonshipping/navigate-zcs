@@ -19,7 +19,6 @@ from navigate.core.node_type import (
     VARIABLE,
 )
 from navigate.core.profiles import PlantProfile
-from navigate.exceptions import no_value_assigned_error
 
 if TYPE_CHECKING:
     import numpy as np
@@ -41,12 +40,12 @@ class Plant(Node):
         super().__init__(name, PLANT)
 
         # external variables -----------------------------------------------------------
-        self.fuel: Fuel | Expression | None = None
-        self.process: Process | Expression | None = None
-        self.region: Region | Expression | None = None
-        self.source: Source | Expression | None = None
+        self.fuel: Fuel | Expression
+        self.process: Process | Expression
+        self.region: Region | Expression
+        self.source: Source | Expression
 
-        self.capacity: ForecastInput | None = None
+        self.capacity: ForecastInput
         self.uptime: ForecastInput = Scalar(1.0)
         self.lifetime: ForecastInput = Scalar(30.0)
         self.lead_time: ForecastInput = Scalar(1.0)
@@ -249,7 +248,7 @@ class Plant(Node):
             The transport mode used to transport the feedstock or process output.
         """
         command_assignment_to_dict(
-            feed_name, value, self.feed_transport, type_=TRANSPORT
+            feed_name, as_scalar(value), self.feed_transport, type_=TRANSPORT
         )
 
     def set_feed_distance(self, feed_name, value):
@@ -270,7 +269,11 @@ class Plant(Node):
             The distance of transport in nautical miles.
         """
         command_assignment_to_dict(
-            feed_name, value, self.feed_distance, type_=(FORECAST, VARIABLE), lower=0.0
+            feed_name,
+            as_scalar(value),
+            self.feed_distance,
+            type_=(FORECAST, VARIABLE),
+            lower=0.0,
         )
 
     def set_fuel_transport(self, port_name, value):
@@ -293,7 +296,7 @@ class Plant(Node):
             The transport mode used to deliver the produced fuel to the port.
         """
         command_assignment_to_dict(
-            port_name, value, self.fuel_transport, type_=TRANSPORT
+            port_name, as_scalar(value), self.fuel_transport, type_=TRANSPORT
         )
 
     def set_fuel_distance(self, port_name, value):
@@ -313,27 +316,14 @@ class Plant(Node):
             The distance of transport in nautical miles.
         """
         command_assignment_to_dict(
-            port_name, value, self.fuel_distance, type_=(FORECAST, VARIABLE), lower=0.0
+            port_name,
+            as_scalar(value),
+            self.fuel_distance,
+            type_=(FORECAST, VARIABLE),
+            lower=0.0,
         )
 
     # internal methods -----------------------------------------------------------------
-    def check_requirements(self) -> None:
-
-        if self.fuel is None:
-            no_value_assigned_error(self, "Fuel")
-
-        if self.process is None:
-            no_value_assigned_error(self, "Process")
-
-        if self.region is None:
-            no_value_assigned_error(self, "Region")
-
-        if self.source is None:
-            no_value_assigned_error(self, "Source")
-
-        if self.capacity is None:
-            no_value_assigned_error(self, "Capacity")
-
     def apply_command_defaults(self) -> None:
         self._default_distances(self.feed_transport, self.feed_distance)
         self._default_distances(self.fuel_transport, self.fuel_distance)

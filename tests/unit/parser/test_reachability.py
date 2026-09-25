@@ -429,8 +429,9 @@ Port "ghost_port" {
 
 class TestPruneUnreachableNodes:
     def test_ghost_pruned_in_place_with_single_warning(self, read_fleet_deck, caplog):
-        # the ghost has no Route, so its initialize() would raise if it ran;
-        # a successful read_deck pins that pruned nodes are never initialized
+        # the ghost has no Route, so the required-attribute check would raise if
+        # it covered the ghost; a successful read_deck pins that pruned nodes are
+        # never checked or initialized
         with caplog.at_level(logging.WARNING):
             parser = read_fleet_deck(define_extra=GHOST_VESSEL)
 

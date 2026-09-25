@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING
 
 from navigate.core.assign import assign_value
 from navigate.core.general_nodes._general_node import _GeneralNode
-from navigate.exceptions import no_value_assigned_error
 
 if TYPE_CHECKING:
     import numpy as np
@@ -18,7 +17,7 @@ class ModelDefinition(_GeneralNode):
         super().__init__()
 
         # external variables -----------------------------------------------------------
-        self.start_date: np.datetime64 | None = None
+        self.start_date: np.datetime64
         self.emissions_lifetime: float = 100.0
 
     # external methods (DSL attributes) ------------------------------------------------
@@ -52,9 +51,3 @@ class ModelDefinition(_GeneralNode):
             Assignment read from input deck.
         """
         self.emissions_lifetime = assign_value(emissions_lifetime, lower=0.0)
-
-    # internal methods -----------------------------------------------------------------
-    def check_requirements(self) -> None:
-
-        if self.start_date is None:
-            no_value_assigned_error(self, "StartDate")

@@ -48,7 +48,6 @@ from navigate.util.numeric import (
     interpolate_yearly_flow,
     is_non_strictly_increasing,
     is_strictly_increasing,
-    to_numpy,
     update_belief_path,
 )
 from navigate.util.types_ import (

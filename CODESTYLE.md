@@ -152,6 +152,13 @@ The formatter owns spacing within statements; blank lines are yours:
   definition. The alias matches the setter's `type_=` argument, and an
   attribute still unset after construction spells it `<alias> | None` rather
   than folding `None` into an alias.
+- An attribute every deck must assign is listed as required in
+  `navigate/parser/_attributes.py` and declared in `__init__` by annotation
+  alone (`self.start_date: np.datetime64`), with no value and no `None`.
+  The parser guarantees it is set before any node reads it, so neither
+  `check_requirements` nor any reader tests it again. An attribute required
+  only under a condition on other attributes stays `<alias> | None` and is
+  tested in `check_requirements`.
 
 ### Dynamic state and results
 

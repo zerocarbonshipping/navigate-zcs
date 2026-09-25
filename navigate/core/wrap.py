@@ -7,13 +7,17 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, overload
 
+import numpy as np
+
 from navigate.core.scalar import Scalar
 
 if TYPE_CHECKING:
-    import numpy as np
+    from collections.abc import Iterable
 
     from navigate.core.expression import Expression
     from navigate.core.node import Node
+    from navigate.core.nodes.input_kinds import ForecastInput
+    from navigate.util.types_ import FloatArray
 
 # these two aliases are the contract for typed callers, not a claim about what
 # reaches the boundary at runtime: the parser is untyped, so it hands every
@@ -108,3 +112,25 @@ def as_list[T](value: T | list[T] | tuple[T, ...]) -> list[T]:
         return value
 
     return [value]
+
+
+def to_numpy(scalars: Iterable[float | ForecastInput]) -> FloatArray:
+    """
+    Evaluate a collection of floats and/or calculators into a numpy array.
+
+    Parameters
+    ----------
+    scalars
+        Floats and/or calculator nodes to evaluate.
+
+    Returns
+    -------
+    FloatArray
+        Evaluated values.
+    """
+    return np.array(
+        [
+            scalar if isinstance(scalar, float) else scalar.get(None, None)
+            for scalar in scalars
+        ]
+    )
