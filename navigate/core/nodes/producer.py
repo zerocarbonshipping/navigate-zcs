@@ -34,6 +34,7 @@ if TYPE_CHECKING:
     from navigate.core.nodes.forecast import Forecast
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.input_kinds import ForecastInput, NumberInput, ScalarInput
+    from navigate.core.nodes.plant import Plant
     from navigate.core.nodes.port import Port
     from navigate.core.nodes.process import Process
 
@@ -84,7 +85,9 @@ class Producer(_AssetManager):
         self.current_utilization: float | None = None
 
     # public domain name for the inherited assets list
-    plants = property(lambda self: self.assets)
+    @property
+    def plants(self) -> list[Plant]:
+        return self.assets
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_plants(self, plants):

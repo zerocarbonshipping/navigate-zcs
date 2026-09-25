@@ -47,6 +47,7 @@ if TYPE_CHECKING:
     from navigate.core.nodes.input_kinds import ForecastInput
     from navigate.core.nodes.technology import Technology
     from navigate.core.nodes.variable import Variable
+    from navigate.core.nodes.vessel import Vessel
     from navigate.fleet.package import Package
 
 logger = logging.getLogger(__name__)
@@ -109,7 +110,9 @@ class Fleet(_AssetManager):
         self.package_to_technology_map: dict[int, int] = {}
 
     # public domain name for the inherited assets list
-    vessels = property(lambda self: self.assets)
+    @property
+    def vessels(self) -> list[Vessel]:
+        return self.assets
 
     # external methods (DSL attributes) ------------------------------------------------
 
