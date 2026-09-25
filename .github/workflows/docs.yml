@@ -8,15 +8,20 @@ on:
     branches: [ main, dev ]   # main: build + deploy (latest); dev: build + deploy (staging)
     tags:     [ 'v*', 'V*', '[0-9]*.[0-9]*.[0-9]*' ]   # build + deploy
   pull_request:
-    branches: [ main, dev ]   # build only, so a PR can't break the deployed site
+    types: [ opened, synchronize, reopened, edited ]   # build every PR (any base), never deploy
   workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: docs-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    if: github.event.action != 'edited' || github.event.changes.base != null
     steps:
       - name: Checkout (full history for tags)
         uses: actions/checkout@v6
