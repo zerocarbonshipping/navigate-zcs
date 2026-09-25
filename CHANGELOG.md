@@ -825,12 +825,15 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   nodes. No deck result moves.
 
 ### Fixed
-- An installation default file that imports or copies its own node, directly
-  or through another default it pulls, is reported as a deck error at the
-  statement that re-enters it, naming the installation folder. It recursed
-  until Python's `RecursionError`. A user default file importing its own node
-  still overlays the installation node of that name; the check that allows it
-  now matches on node type and name, where it matched on the name alone.
+- The DSL reference's "Default nodes" and "Default modules" sections gave the
+  default library's location as a fixed installation path, which no longer
+  matches the parser. Both now give the real location,
+  `<data_dir>/defaults/{user,installation}/<NodeType>/` and
+  `<data_dir>/modules/{user,installation}/`, with `data_dir` taken from
+  `-d`/`--data-dir` or `ASSUMPTIONS_DATA_DIR`. The "Copying a node" section now
+  also states that a separate `Type("node_copy_from")` reference elsewhere in
+  the deck pulls the source from the library again as its own, independent
+  node, so both names end up registered.
 - The reference manual states the units an emission intensity is reported
   and given in. The `RegulationMeasureID` appendix had INTENSITY in ton/GJ,
   a factor of 1000 out, and both transport measures in ton per cargo-mile, a
@@ -867,6 +870,12 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   it stands where a single node is expected — name the deck line and the
   include file they were written in, as every other deck error does. Both
   were raised after the decks had been read, with no line left to report.
+- An installation default file that imports or copies its own node, directly
+  or through another default it pulls, is reported as a deck error at the
+  statement that re-enters it, naming the installation folder. It recursed
+  until Python's `RecursionError`. A user default file importing its own node
+  still overlays the installation node of that name; the check that allows it
+  now matches on node type and name, where it matched on the name alone.
 - The reference manual documents the DSL surface the parser accepts. Twelve
   registered names had no entry — `Table` on `Curve`, `Forecast`, `Surface` and
   `Timetable`, `FuelType` on `Emission`, `ShorePowerCost` and
