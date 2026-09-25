@@ -208,6 +208,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `slice_list`, `slice_dict`), `x`/`y`/`length` (`to_numpy`), and
   `key`/`n`/`idx` (`sum_dict_results`, which requires a non-empty dict and
   no longer checks for one).
+  `slice_list`, `slice_dict`, and `slice_dict_list` now require `idx`; the
+  whole-timeline default they carried was never passed either.
   `is_single_dict`/`is_tuple_dict` return False (was None) for
   empty dicts, `add_dicts`/`multiply_dicts` rebuild their result instead of
   deep-copying the first argument (values unchanged and still never aliasing
