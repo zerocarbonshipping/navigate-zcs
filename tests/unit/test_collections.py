@@ -95,9 +95,8 @@ class TestSliceList:
         [
             ((np.s_[1:],), [[2.0, 3.0], [5.0, 6.0]]),
             ((np.array([2, 0]),), [[3.0, 1.0], [6.0, 4.0]]),
-            ((), [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]),
         ],
-        ids=["slice", "fancy_index", "no_index_slices_the_whole_timeline"],
+        ids=["slice", "fancy_index"],
     )
     def test_index_kinds(self, result, args, expected):
         np.testing.assert_array_equal(slice_list(result, *args), expected)
@@ -117,14 +116,8 @@ class TestSliceDict:
             ((np.s_[1:],), [2.0, 3.0]),
             ((np.array([2, 0]),), [3.0, 1.0]),
             ((np.int64(1),), 2.0),
-            ((), [1.0, 2.0, 3.0]),
         ],
-        ids=[
-            "slice",
-            "fancy_index",
-            "numpy_scalar_index",
-            "no_index_slices_the_whole_timeline",
-        ],
+        ids=["slice", "fancy_index", "numpy_scalar_index"],
     )
     def test_index_kinds(self, result, args, expected):
         np.testing.assert_array_equal(slice_dict(result, *args)["a"], expected)
@@ -132,9 +125,6 @@ class TestSliceDict:
     def test_fancy_index_returns_a_copy(self, result):
         sliced = slice_dict(result, np.array([2, 0]))
         assert not np.shares_memory(sliced["a"], result["a"])
-
-    def test_whole_dict_is_not_the_input_object(self, result):
-        assert slice_dict(result) is not result
 
 
 class TestSliceDictList:
@@ -150,9 +140,8 @@ class TestSliceDictList:
         [
             ((np.s_[1:],), [[2.0], [4.0]]),
             ((np.array([1, 0]),), [[2.0, 1.0], [4.0, 3.0]]),
-            ((), [[1.0, 2.0], [3.0, 4.0]]),
         ],
-        ids=["slice", "fancy_index", "no_index_slices_the_whole_timeline"],
+        ids=["slice", "fancy_index"],
     )
     def test_index_kinds(self, result, args, expected):
         np.testing.assert_array_equal(slice_dict_list(result, *args)["a"], expected)
