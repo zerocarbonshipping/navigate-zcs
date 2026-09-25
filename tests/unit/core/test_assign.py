@@ -37,7 +37,15 @@ from navigate.core.enum_ import (
     FuelTypeID,
 )
 from navigate.core.expression import Expression
-from navigate.core.node_type import FORECAST, FUEL, VARIABLE
+from navigate.core.node_type import (
+    CURVE,
+    FEEDSTOCK,
+    FORECAST,
+    FUEL,
+    PORT,
+    PROCESS,
+    VARIABLE,
+)
 from navigate.core.nodes.curve import Curve
 from navigate.core.nodes.fleet import Fleet
 from navigate.core.nodes.forecast import Forecast
@@ -466,6 +474,47 @@ class TestAssignValue:
 
         assert assignment.internal_bounds == (0.0, 5.0)
 
+    @pytest.mark.parametrize(
+        ("arguments", "message"),
+        [
+            ({"type_": PORT}, "only allows assignment of nodes of type Port"),
+            (
+                {"type_": (FEEDSTOCK, PROCESS)},
+                "only allows assignment of nodes of type Feedstock or Process",
+            ),
+        ],
+        ids=["single_type", "tuple_type"],
+    )
+    def test_expression_rejected_where_no_calculator_is_accepted(
+        self, arguments, message
+    ):
+        # a node reference is read as the node itself, never evaluated, so an
+        # expression there has nothing to evaluate it and is refused by kind
+        with pytest.raises(ValueError, match=f"{message}, but got expression"):
+            assign_value(Expression('Port("x")'), scalar=False, **arguments)
+
+    @pytest.mark.parametrize(
+        "arguments",
+        [{}, {"scalar": False, "type_": CURVE}],
+        ids=["scalar", "calculator_type"],
+    )
+    def test_expression_accepted_where_the_value_is_evaluated(self, arguments):
+        expression = Expression("1 + 2")
+        assert assign_value(expression, **arguments) is expression
+
+    def test_expression_rejected_where_the_attribute_does_not_evaluate(self):
+        # a Forecast read for its table, not through its getter, takes no
+        # expression although its type is a calculator
+        with pytest.raises(
+            ValueError, match="nodes of type Forecast, but got expression"
+        ):
+            assign_value(
+                Expression('Forecast("f")'),
+                scalar=False,
+                type_=FORECAST,
+                expression=False,
+            )
+
 
 # ── assign_list ───────────────────────────────────────────────────────────────
 
@@ -492,6 +541,10 @@ class TestAssignList:
             assign_list(
                 [Fuel("oil"), Fuel("oil")], unique=True, scalar=False, type_=FUEL
             )
+
+    def test_expression_entry_rejected_where_no_calculator_is_accepted(self):
+        with pytest.raises(ValueError, match="nodes of type Port, but got expression"):
+            assign_list([Expression('Port("x")')], scalar=False, type_=PORT)
 
     def test_uniqueness_ignores_floats(self):
         # _check_list_is_unique only inspects node entries, so unique=True is a
@@ -620,6 +673,17 @@ class TestCommandAssignmentToDict:
     def test_bounds_forwarded(self):
         with pytest.raises(ValueError, match=r"must be ≤ 1\.0"):
             command_assignment_to_dict("oil", 9.0, {"oil": None}, upper=1.0)
+
+    def test_expression_opt_out_forwarded(self):
+        with pytest.raises(ValueError, match="but got expression"):
+            command_assignment_to_dict(
+                "oil",
+                Expression('Forecast("f")'),
+                {"oil": None},
+                scalar=False,
+                type_=FORECAST,
+                expression=False,
+            )
 
 
 # ── command_assignment_to_tuple_dict ──────────────────────────────────────────

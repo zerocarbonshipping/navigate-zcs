@@ -23,9 +23,9 @@ if TYPE_CHECKING:
     from navigate.core.nodes.variable import Variable
     from navigate.core.scalar import Scalar
 
-# 'Expression' is a member of every alias below: 'assign_value' takes its
-# expression arm before it ever compares the value against 'type_', so a
-# setter that accepts a value at all accepts an expression of it.
+# 'Expression' is a member of every alias below: 'assign_value' accepts an
+# expression wherever the setter accepts scalars or a calculator type, and
+# every alias here spells such a setter.
 
 # setters passing type_ VARIABLE
 type ScalarInput = Scalar | Variable | Expression

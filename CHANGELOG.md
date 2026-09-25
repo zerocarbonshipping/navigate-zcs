@@ -844,6 +844,21 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   (`..nav`, `...nav`), which `pathlib` read as carrying a `.nav` suffix and
   an all-dots stem. `.nav` itself stays rejected, as before, since its
   suffix is empty. No committed deck used such a name.
+- An expression (`<...>`) is refused where the attribute or command holds a
+  node rather than a number: `Jurisdiction`, `Ports`, `Fuel`, `Region`,
+  `PowerSystem`, `Vessels`, `Plants` and the other node references, and also
+  `InitialAgeDistribution` and `set_existing_pipeline`, which read their Curve
+  or Forecast as a table. The deck now stops at the offending line with the
+  error a wrongly typed value gives, such as `only allows assignment of nodes
+  of type Port, but got expression`. Such an expression used to be stored
+  unevaluated: `Jurisdiction = <Port("name")>` ran to the end with the port
+  outside the jurisdiction, an `InitialAgeDistribution` entry was taken as no
+  distribution, and `Fuel` or `set_existing_pipeline` failed later with a
+  Python error naming no deck line. `set_feed_transport` and
+  `set_fuel_transport` likewise refuse a number, which they used to store in
+  place of a Transport. Attributes read as numbers, including
+  `set_initial_technology_share`, accept expressions as before, so no shipped
+  deck and no result changes.
 - A `Curve` given to `set_global_warming_potential` on a `Levy` or
   `Regulation` is read at the policy's emissions lifetime, the same lifetime
   the emission's own global warming potential is read at. It was evaluated

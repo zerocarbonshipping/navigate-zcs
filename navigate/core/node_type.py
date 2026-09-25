@@ -56,9 +56,9 @@ BUNKER_OPTIONS = "BunkerOptions"
 MODEL_DEFINITION = "ModelDefinition"
 
 
-_CALCULATOR_TYPES = (CURVE, FORECAST, SURFACE, TIMETABLE, VARIABLE)
+CALCULATOR_TYPES = (CURVE, FORECAST, SURFACE, TIMETABLE, VARIABLE)
 
-# the node classes '_CALCULATOR_TYPES' names
+# the node classes 'CALCULATOR_TYPES' names
 type Calculator = Curve | Forecast | Surface | Timetable | Variable
 
 # the node type(s) an attribute accepts; None where it accepts no reference
@@ -102,7 +102,7 @@ def is_calculator(node: Node) -> TypeIs[Calculator]:
     TypeIs[Calculator]
         True if the node is one of the calculator types.
     """
-    return node.type in _CALCULATOR_TYPES
+    return node.type in CALCULATOR_TYPES
 
 
 def is_feedstock(node: Node) -> TypeIs[Feedstock]:

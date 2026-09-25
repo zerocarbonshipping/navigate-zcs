@@ -36,7 +36,6 @@ if TYPE_CHECKING:
 
     import numpy as np
 
-    from navigate.core.expression import Expression
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.input_kinds import (
@@ -64,11 +63,11 @@ class Vessel(Node):
         self.heat_load_in_port: ScalarInput = Scalar(0.0)
 
         # fuel based power
-        self.power_system: PowerSystem | Expression
+        self.power_system: PowerSystem
         self.tanks: list[Tank] = []
 
         # voyage
-        self.route: Route | Expression
+        self.route: Route
         self.nominal_capacity: ScalarInput
 
         # base cost

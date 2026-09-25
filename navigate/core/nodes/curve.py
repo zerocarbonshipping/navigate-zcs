@@ -52,6 +52,9 @@ class Curve(Node, _Table1D):
     @overload
     def get(self, x: float, y: FloatLike | None = None) -> float: ...
 
+    @overload
+    def get(self, x: FloatLike | None, y: FloatLike | None = None) -> FloatLike: ...
+
     def get(self, x: FloatLike | None, y: FloatLike | None = None) -> FloatLike:
         """
         Return the interpolated table value at x.

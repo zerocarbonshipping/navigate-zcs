@@ -22,18 +22,17 @@ from navigate.core.enum_ import ExtrapolateID
 from navigate.core.expectations import ProducerExpectation
 from navigate.core.node_type import FORECAST, PLANT, PRODUCER, VARIABLE
 from navigate.core.nodes._asset_manager import _AssetManager
+from navigate.core.nodes.plant import Plant
 from navigate.core.profiles import ProducerProfile
 from navigate.exceptions import no_value_assigned_error
 from navigate.util import is_non_strictly_increasing
 
 if TYPE_CHECKING:
-    from navigate.core.expression import Expression
     from navigate.core.increment import Increment
     from navigate.core.nodes.feedstock import Feedstock
     from navigate.core.nodes.forecast import Forecast
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.input_kinds import ForecastInput, NumberInput, ScalarInput
-    from navigate.core.nodes.plant import Plant
     from navigate.core.nodes.port import Port
     from navigate.core.nodes.process import Process
     from navigate.util import FloatArray
@@ -41,7 +40,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class Producer(_AssetManager):
+class Producer(_AssetManager[Plant]):
     """A fuel producer: its buildable plants, pipeline, constraints and exports."""
 
     def __init__(self, name: str) -> None:
@@ -57,7 +56,7 @@ class Producer(_AssetManager):
         self._initial_capacity: list[ScalarInput] = []
 
         # existing pipeline
-        self.existing_pipelines: dict[str, Forecast | Expression | None] = {}
+        self.existing_pipelines: dict[str, Forecast | None] = {}
 
         # constraints
         self.maximum_development: ForecastInput
@@ -262,7 +261,7 @@ class Producer(_AssetManager):
 
     # external methods (DSL commands) --------------------------------------------------
     def set_existing_pipeline(
-        self, plant_name: str, existing_pipeline: Forecast | Expression
+        self, plant_name: str, existing_pipeline: Forecast
     ) -> None:
         """
         Set an existing pipeline for a plant, used to determine new plants from it.
@@ -287,6 +286,7 @@ class Producer(_AssetManager):
             scalar=False,
             type_=FORECAST,
             lower=0.0,
+            expression=False,
         )
 
     def set_allow_plant(self, plant_name: str, allow_plant: str) -> None:
