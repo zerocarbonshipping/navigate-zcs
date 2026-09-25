@@ -219,7 +219,7 @@ NODE_COMMAND_SECTIONS = {
 # classes ------------------------------------------------------------------------------
 class CommandReference:
     """
-    A deferred command invocation stored on a node.
+    A deferred command invocation the parser queues for a node.
 
     Parameters
     ----------

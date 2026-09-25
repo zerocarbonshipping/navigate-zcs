@@ -159,6 +159,9 @@ class Parser:
         # the deck attributes whose setter ran on each node, which the required
         # attribute check reads
         self._assigned_attributes: dict[Node | _GeneralNode, set[str]] = {}
+        # the commands queued on each node, keyed by identity; drained in
+        # registry order, first in first out per node
+        self._command_queue: dict[Node, list[CommandReference]] = {}
 
         # section flags
         self._current_section = None
@@ -760,7 +763,7 @@ class Parser:
 
         target_nodes = nodes if isinstance(nodes, list) else [nodes]
         for node in target_nodes:
-            node.add_command_reference(ref)
+            self._command_queue.setdefault(node, []).append(ref)
 
     # ══════════════════════════════════════════════════════════════════
     # Node declaration processing
@@ -841,6 +844,10 @@ class Parser:
         del memo[id(source)]
         new_node = copy.deepcopy(source, memo)
         new_node.name = statement.copy_to
+        # the queued commands are copied through the same memo, because a
+        # setter may store an input, such as an expression, that is later bound
+        # in place to the node holding it
+        command_queue = copy.deepcopy(self._command_queue.get(source, []), memo)
 
         existing = self._adopt(statement.node_type, statement.copy_to)
         if existing is None:
@@ -852,10 +859,12 @@ class Parser:
         if existing is not None:
             new_node = _transplant(existing, new_node)
 
-        # the copy carries the source's assignments, and only those
+        # the copy carries the source's assignments and queued commands, and
+        # only those
         self._assigned_attributes[new_node] = set(
             self._assigned_attributes.get(source, ())
         )
+        self._command_queue[new_node] = command_queue
 
         # the parser holds a pending assignment, not the source, so deepcopy
         # leaves it behind and the copy needs an entry of its own
@@ -866,6 +875,7 @@ class Parser:
         ]
 
         if from_default:
+            self._command_queue.pop(source, None)
             del group[statement.copy_from]
         else:
             self._copy_source_names.add(source_key)
@@ -1101,14 +1111,16 @@ class Parser:
     def _prune_unreachable_nodes(self):
         """Remove every node no chain of references connects to a root."""
         unreachable = find_unreachable(
-            self.nodes, self.general_nodes, self._event_queue
+            self.nodes, self.general_nodes, self._event_queue, self._command_queue
         )
 
         if not unreachable:
             return
 
         for node_type, name in unreachable:
-            del getattr(self.nodes, NODE_GROUP[node_type])[name]
+            group = getattr(self.nodes, NODE_GROUP[node_type])
+            self._command_queue.pop(group[name], None)
+            del group[name]
 
         self._pruned_nodes = set(unreachable)
         scrubbed = self._scrub_references_to_pruned()
@@ -1288,11 +1300,13 @@ class Parser:
         )
 
     def _execute_commands(self):
+        # a command queued after this drain, by a default pulled during the
+        # later reference walk, waits for the next pass
         for node in self._get_all_nodes():
             self._execute_node_commands(node)
 
     def _execute_node_commands(self, node):
-        for cmd_ref in node.command_references:
+        for cmd_ref in self._command_queue.pop(node, []):
             self._current_deck_line = cmd_ref.deck_line
             self._current_source = cmd_ref.source
 
@@ -1328,8 +1342,6 @@ class Parser:
                 raise CommandError(
                     self._error_prefix() + f": '{cmd_ref.command}' {e!s}."
                 ) from None
-
-        node.clear_command_references()
 
     def _build_tables(self):
         """
