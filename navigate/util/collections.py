@@ -5,7 +5,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -162,38 +162,21 @@ def is_tuple_dict[K](dict_: Mapping[K, object]) -> bool:
     return isinstance(representative, tuple) and len(representative) == 2
 
 
-def sum_dict_results[K](
-    result: dict[K, FloatArray],
-    idx: Index | None = None,
-) -> FloatLike:
+def sum_dict_results[K](result: dict[K, FloatArray]) -> FloatArray:
     """
-    Sum a dict's values, optionally sliced by index first.
+    Sum a dict's array values element-wise.
 
     Parameters
     ----------
     result
-        Profile result given as a dict of arrays.
-    idx
-        Time-step index(es) or slice.
+        Profile result given as a non-empty dict of arrays.
 
     Returns
     -------
-    FloatLike
-        Sum of the (sliced) values; 0.0 for an empty dict with an index.
+    FloatArray
+        Sum of the values.
     """
-    arrays = list(result.values())
-
-    if not arrays:
-        if idx is not None:
-            return 0.0
-
-        raise ValueError("Dict is empty.")
-
-    if idx is not None:
-        total: FloatLike = np.add.reduce([array[idx] for array in arrays])
-        return total
-
-    summed: FloatArray = np.add.reduce(arrays)
+    summed: FloatArray = np.add.reduce(list(result.values()))
     return summed
 
 
@@ -202,10 +185,10 @@ def collapse_tuple_dict[K1: Hashable, K2: Hashable](
     key1: bool = False,
     key2: bool = False,
 ) -> (
-    FloatLike
-    | dict[K1, FloatLike]
-    | dict[K2, FloatLike]
-    | dict[tuple[K1, K2], FloatLike]
+    FloatArray
+    | dict[K1, FloatArray]
+    | dict[K2, FloatArray]
+    | dict[tuple[K1, K2], FloatArray]
 ):
     """
     Sum a tuple dict over the key part its flags do not keep.
@@ -227,7 +210,7 @@ def collapse_tuple_dict[K1: Hashable, K2: Hashable](
 
     Returns
     -------
-    dict | FloatLike
+    dict | FloatArray
         Desired form of result from tuple dict; dicts are keyed by the kept
         key part.
     """
@@ -252,8 +235,7 @@ def collapse_tuple_dict[K1: Hashable, K2: Hashable](
             for key in secondary_keys
         }
 
-    # returned as-is; only the static value type widens
-    return cast("dict[tuple[K1, K2], FloatLike]", result)
+    return result
 
 
 def slice_list(
