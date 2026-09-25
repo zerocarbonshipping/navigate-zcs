@@ -5,42 +5,21 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, final
+from typing import final
 
 from navigate.core.node_type import TypeCheckMixin
 
-if TYPE_CHECKING:
-    from navigate.parser._commands import CommandReference
-
 
 class Node(TypeCheckMixin):
-    """Base class of the DSL nodes: a name, a type tag and a command queue."""
+    """Base class of the DSL nodes: a name and a type tag."""
 
     def __init__(self, name: str, type_: str) -> None:
         super().__init__(type_)
 
         self.name: str = name
 
-        # internal variables -----------------------------------------------------------
-        self.command_references: list[CommandReference] = []
-
     def __repr__(self) -> str:
         return f'{self.type}("{self.name}")'
-
-    def add_command_reference(self, command_reference: CommandReference) -> None:
-        """
-        Queue a command reference for the parser to execute.
-
-        Parameters
-        ----------
-        command_reference
-            The reference to queue.
-        """
-        self.command_references.append(command_reference)
-
-    def clear_command_references(self) -> None:
-        """Empty the command-reference queue."""
-        self.command_references = []
 
     @final
     def initialize(self) -> None:

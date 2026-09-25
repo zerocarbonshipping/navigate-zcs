@@ -33,7 +33,6 @@ from navigate.core.node_type import (
     REPORT,
     ROUTE,
 )
-from navigate.parser._commands import CommandReference
 from navigate.parser._keywords import GENERAL_NODE_GROUP, NODE_GROUP
 from navigate.parser._lark_parser import Assignment, Command, NodeDeclaration
 from navigate.parser._node_reference import NodeReference, WildcardNodeReference
@@ -46,6 +45,7 @@ from navigate.util import matching_keys
 
 if TYPE_CHECKING:
     from navigate.core.node_registry import GeneralNodes, Nodes
+    from navigate.parser._commands import CommandReference
 
 ROOT_TYPES = (EMISSION, FLEET, FUEL, LEVY, PLOT, PRODUCER, REGULATION, REPORT)
 ROOT_GROUPS = tuple(NODE_GROUP[node_type] for node_type in ROOT_TYPES)
@@ -58,7 +58,10 @@ ACTIVATION_EDGES = {PORT: ((ROUTE, "ports"),)}
 
 
 def find_unreachable(
-    nodes: Nodes, general_nodes: GeneralNodes, event_queue: dict
+    nodes: Nodes,
+    general_nodes: GeneralNodes,
+    event_queue: dict,
+    command_queue: dict[Node, list[CommandReference]],
 ) -> list[tuple[str, str]]:
     """
     Find every declared node that no chain of references connects to a root.
@@ -71,6 +74,8 @@ def find_unreachable(
         The general nodes, whose references count as roots.
     event_queue
         The parser's queued EVENTS statements, keyed by date.
+    command_queue
+        The parser's queued commands, keyed by the node they run on.
 
     Returns
     -------
@@ -123,6 +128,9 @@ def find_unreachable(
                 _activating_references((node_type, attribute_name), attribute, nodes)
             )
 
+        for ref in command_queue.get(node, ()):
+            pending.update(_activating_references(None, ref.inputs, nodes))
+
         pending.update(event_edges.get((node_type, name), ()))
 
     unreachable = []
@@ -149,9 +157,9 @@ def _activating_references(edge, value, nodes: Nodes):
     edge : tuple | None
         (owner type, instance-attribute name) the value sits under; ``None``
         where the value sits under no node attribute (a general node, a
-        queued EVENTS body). Only a declared edge activates a restricted
-        type, so references under any other attribute — command references
-        included — activate nothing.
+        queued command, a queued EVENTS body). Only a declared edge activates
+        a restricted type, so references under any other attribute activate
+        nothing.
     value
         Attribute value, command input, or queued EVENTS value.
     nodes
@@ -210,9 +218,6 @@ def _iter_references(value, nodes: Nodes):
             reference = parse_node_reference(reference_string)
             if reference is not None and reference[0] in NODE_GROUP:
                 yield reference
-
-    elif isinstance(value, CommandReference):
-        yield from _iter_references(value.inputs, nodes)
 
 
 def _collect_event_edges(event_queue: dict, nodes: Nodes) -> dict:
