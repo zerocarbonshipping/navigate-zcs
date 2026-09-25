@@ -825,11 +825,15 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   nodes. No deck result moves.
 
 ### Fixed
-- A node declared, imported or copied under a name another node already uses
-  is reported as a deck error (`Unable to add Type("name"), the name is
-  already in use by a different node.`), at the line that declared it. It was
-  raised as a bare `ValueError`, which the command-line error handler does
-  not catch, so the run ended in a Python traceback.
+- The DSL reference's "Default nodes" and "Default modules" sections gave the
+  default library's location as a fixed installation path, which no longer
+  matches the parser. Both now give the real location,
+  `<data_dir>/defaults/{user,installation}/<NodeType>/` and
+  `<data_dir>/modules/{user,installation}/`, with `data_dir` taken from
+  `-d`/`--data-dir` or `ASSUMPTIONS_DATA_DIR`. The "Copying a node" section now
+  also states that a separate `Type("node_copy_from")` reference elsewhere in
+  the deck pulls the source from the library again as its own, independent
+  node, so both names end up registered.
 - The reference manual states the units an emission intensity is reported
   and given in. The `RegulationMeasureID` appendix had INTENSITY in ton/GJ,
   a factor of 1000 out, and both transport measures in ton per cargo-mile, a
@@ -844,6 +848,11 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   code and the `Regulation` page always had it right — an emission intensity
   is kg/GJ, equivalently g/MJ, and both transport measures are grams per
   cargo-mile — so no behaviour and no result changes.
+- A node declared, imported or copied under a name another node already uses
+  is reported as a deck error (`Unable to add Type("name"), the name is
+  already in use by a different node.`), at the line that declared it. It was
+  raised as a bare `ValueError`, which the command-line error handler does
+  not catch, so the run ended in a Python traceback.
 - The `RemedialUnits` and `LevyUnits` report columns sum the vessels below a
   fleet and below the whole simulation, as the remedial and levy expenses of
   the same policies already did. Only vessel scope accumulated them, so a
