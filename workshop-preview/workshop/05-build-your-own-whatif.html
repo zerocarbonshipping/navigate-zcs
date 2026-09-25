@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>5. Change the numbers and see what moves &#8212; Navigate</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=64cc4de3f052d77215f0" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=64cc4de3f052d77215f0" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=64cc4de3f052d77215f0"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
+
+    <script src="../_static/documentation_options.js?v=7bd72466"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=fd10adb8"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'workshop/05-build-your-own-whatif';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.22.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://zerocarbonshipping.github.io/navigate-zcs/_static/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'workshop-preview';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            true;
+        </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="References &amp; further reading" href="references.html" />
+    <link rel="prev" title="4. Run the reference scenarios" href="04-run-a-reference-scenario.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="1.0.0" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class=" navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Navigate</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class=" navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../tutorials/index.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Workshop
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../reference_manual/index.html">
+    Reference Manual
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/zerocarbonshipping/navigate-zcs" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button type="button" class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../tutorials/index.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Workshop
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../reference_manual/index.html">
+    Reference Manual
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/zerocarbonshipping/navigate-zcs" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button type="button" id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="01-setup-and-quicktest.html">1. Test set-up</a></li>
+<li class="toctree-l1"><a class="reference internal" href="02-vessel-case-study.html">2. Illustrating the Navigate logic with a simple case</a></li>
+
+
+
+
+<li class="toctree-l1"><a class="reference internal" href="03-build-your-own-case.html">3. Build your own case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="04-run-a-reference-scenario.html">4. Run the reference scenarios</a></li>
+<li class="toctree-l1 current active"><a aria-current="page" class="current reference internal" href="#">5. Change the numbers and see what moves</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References &amp; further reading</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Workshop</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">5. Change the numbers and see what moves</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/dev-workshop/docs/workshop/05-build-your-own-whatif.ipynb"><img alt="Open In Colab" src="https://colab.research.google.com/assets/colab-badge.svg" /></a></p>
+<section class="tex2jax_ignore mathjax_ignore" id="change-the-numbers-and-see-what-moves">
+<h1>5. Change the numbers and see what moves<a class="headerlink" href="#change-the-numbers-and-see-what-moves" title="Link to this heading">#</a></h1>
+<p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/dev-workshop/docs/workshop/04-run-a-reference-scenario.ipynb">Notebook 4</a> ran the Center’s reference scenarios exactly as they are. This one
+lets you change the assumptions behind one of them and watch the answer move.</p>
+<div class="warning admonition">
+<p class="admonition-title">These numbers are for comparing, not for quoting</p>
+<p>The scenarios here are solved on a <strong>coarse time grid</strong> — eight steps instead of
+twenty-five — which is what makes two solves fit inside a notebook. The next cell
+explains it. Both runs use the same grid, so the <em>comparison</em> between them is
+sound but the absolute figures are different from the Center’s base simulations.</p>
+</div>
+<section id="why-this-runs-in-a-minute-or-two">
+<h2>Why this runs in a minute or two<a class="headerlink" href="#why-this-runs-in-a-minute-or-two" title="Link to this heading">#</a></h2>
+<p>The reference scenarios in <a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/dev-workshop/docs/workshop/04-run-a-reference-scenario.ipynb">notebook 4</a> take between six and twenty-two minutes
+each.
+To have a faster solving time, we change the <code class="docutils literal notranslate"><span class="pre">EVENTS</span></code> block in this simulation to reduce the number of time steps.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Start</span>
+<span class="n">Date</span> <span class="s2">"01-01-2027"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2030"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2034"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2038"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2042"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2046"</span>
+<span class="n">Date</span> <span class="s2">"01-01-2050"</span>
+<span class="n">End</span>
+</pre></div>
+</div>
+<p>The step is <strong>four years</strong> from 2030 onward (and not five), to make sure that the retrofitting mechanism (set by default to every 5 years) actually gets considered in the model.</p>
+<p>This table shows some of the differences between a 25-step (yearly) and an 8-step run of the same scenario:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p></p></th>
+<th class="head"><p>yearly, 25 steps</p></th>
+<th class="head"><p>coarse, 8 steps</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>well-to-wake emissions in 2050</p></td>
+<td><p>639 Mt/yr</p></td>
+<td><p>637 Mt/yr</p></td>
+</tr>
+<tr class="row-odd"><td><p>alternative fuels in 2050</p></td>
+<td><p>58.3 %</p></td>
+<td><p>60.0 %</p></td>
+</tr>
+<tr class="row-even"><td><p>fossil fuel oil, share of energy</p></td>
+<td><p>67.3 %</p></td>
+<td><p>68.9 %</p></td>
+</tr>
+<tr class="row-odd"><td><p>hulls converted over the horizon</p></td>
+<td><p>1,924</p></td>
+<td><p>1,544</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="setup-repeat-if-starting-a-fresh-session">
+<h2>Setup (repeat if starting a fresh session)<a class="headerlink" href="#setup-repeat-if-starting-a-fresh-session" title="Link to this heading">#</a></h2>
+<p>Run the cell below to install Navigate, prepare the sensitivities and run a reference scenario (you can choose yours among the ones available in the simulation folder by updating the SCENARIO variable at the top of the cell below).</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># ===========================================================================</span>
+<span class="c1">#  WHICH SCENARIO TO START FROM</span>
+<span class="c1">#</span>
+<span class="c1">#  Four reference scenarios are available in the default simulation folder.</span>
+<span class="c1">#  The main differences between scenarios are the assumptions taken for regulation.</span>
+<span class="c1">#  Each is a Center reference scenario under its own name, put on the workshop's eight-step grid so that</span>
+<span class="c1">#  it solves in a minute or two instead of about twenty:</span>
+<span class="c1">#</span>
+<span class="c1">#    workshop_basecase_no_regulation      nothing at all - fuel chosen on cost</span>
+<span class="c1">#    workshop_basecase_mid_regulation     EU ETS + FuelEU + a moderate fuel standard</span>
+<span class="c1">#    workshop_basecase_strong_regulation  EU ETS + FuelEU + a strict fuel standard</span>
+<span class="c1">#    workshop_business_as_usual           EU ETS + FuelEU, domestic fleet included</span>
+<span class="c1">#</span>
+<span class="c1">#  "Fuel standard" is a limit on the well-to-wake carbon intensity of the</span>
+<span class="c1">#  energy a ship uses, tightening year on year and applied worldwide: a ship</span>
+<span class="c1">#  above the limit pays, a ship below it earns surplus units it can sell. The</span>
+<span class="c1">#  decks call it `gfs`.</span>
+<span class="c1">#</span>
+<span class="c1">#  Not every lever exists in every deck - with no regulation there is no carbon</span>
+<span class="c1">#  price to move, and only the two middle decks carry a fuel standard. The table</span>
+<span class="c1">#  this cell prints marks what the one you picked does not have.</span>
+
+<span class="n">SCENARIO</span> <span class="o">=</span> <span class="s2">"workshop_basecase_mid_regulation"</span>
+
+<span class="c1"># ===========================================================================</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+
+<span class="c1"># The branch these notebooks live on. Colab clones THIS branch, and the</span>
+<span class="c1"># "Open in Colab" badge at the top of the notebook, like the links between the</span>
+<span class="c1"># notebooks, points at the same one. Change all of them to "main" once the</span>
+<span class="c1"># branch has been merged.</span>
+<span class="n">BRANCH</span> <span class="o">=</span> <span class="s2">"dev-workshop"</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">at_repo_root</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""True if the working directory is the root of the repository."""</span>
+    <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"navigate"</span><span class="p">)</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()</span> <span class="ow">and</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"assumptions"</span><span class="p">)</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()</span>
+
+
+<span class="k">if</span> <span class="n">at_repo_root</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Already at the repository root."</span><span class="p">)</span>
+<span class="k">elif</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"../../navigate"</span><span class="p">)</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+    <span class="c1"># Local Jupyter starts the kernel in the notebook's own folder,</span>
+    <span class="c1"># docs/workshop/, but the paths below are relative to the repository root.</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="s2">"../.."</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Moved up to the repository root."</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="c1"># Colab, or any other fresh environment</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"navigate-zcs"</span><span class="p">)</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+        <span class="o">!</span>git<span class="w"> </span>clone<span class="w"> </span>--depth<span class="w"> </span><span class="m">1</span><span class="w"> </span>-b<span class="w"> </span><span class="o">{</span>BRANCH<span class="o">}</span><span class="w"> </span>https://github.com/zerocarbonshipping/navigate-zcs.git
+    <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="s2">"navigate-zcs"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Cloned the repository and moved into it."</span><span class="p">)</span>
+
+<span class="k">assert</span> <span class="n">at_repo_root</span><span class="p">(),</span> <span class="sa">f</span><span class="s2">"not at the repository root: </span><span class="si">{</span><span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span>
+
+<span class="c1"># `import navigate` is not a usable test here: from the repository root it</span>
+<span class="c1"># succeeds because the source folder is present, which leaves the `navigate`</span>
+<span class="c1"># command itself missing.</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">importlib.metadata</span><span class="w"> </span><span class="kn">import</span> <span class="n">PackageNotFoundError</span><span class="p">,</span> <span class="n">version</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Navigate </span><span class="si">{</span><span class="n">version</span><span class="p">(</span><span class="s1">'navigate-zcs'</span><span class="p">)</span><span class="si">}</span><span class="s2"> is already installed."</span><span class="p">)</span>
+<span class="k">except</span> <span class="n">PackageNotFoundError</span><span class="p">:</span>
+    <span class="o">%</span><span class="k">pip</span> install -q .
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Installed Navigate."</span><span class="p">)</span>
+
+<span class="c1"># The workshop's colours, shared with notebooks 2 and 4.</span>
+<span class="n">_STYLE_DIR</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="s2">"docs/workshop"</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">())</span>
+<span class="k">if</span> <span class="n">_STYLE_DIR</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="p">:</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">_STYLE_DIR</span><span class="p">)</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">_style</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span><span class="n">AXIS</span><span class="p">,</span> <span class="n">GRID</span><span class="p">,</span> <span class="n">INK</span><span class="p">,</span> <span class="n">SUBINK</span><span class="p">,</span> <span class="n">TICK</span><span class="p">,</span> <span class="n">fuel_colour</span><span class="p">,</span> <span class="n">fuel_label</span><span class="p">,</span>
+                    <span class="n">fuel_sorted</span><span class="p">,</span> <span class="n">scen_colour</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">deck_note</span><span class="p">(</span><span class="n">nav</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""What one deck is, read out of it rather than written down here."""</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">nav</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s2">"replace"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s2">"strong_regulation.inc"</span> <span class="ow">in</span> <span class="n">text</span><span class="p">:</span>
+        <span class="n">rule</span> <span class="o">=</span> <span class="s2">"EU ETS + FuelEU + a strict fuel standard"</span>
+    <span class="k">elif</span> <span class="s2">"mid_regulation.inc"</span> <span class="ow">in</span> <span class="n">text</span><span class="p">:</span>
+        <span class="n">rule</span> <span class="o">=</span> <span class="s2">"EU ETS + FuelEU + a moderate fuel standard"</span>
+    <span class="k">elif</span> <span class="s2">"DefaultRegulation"</span> <span class="ow">in</span> <span class="n">text</span><span class="p">:</span>
+        <span class="n">rule</span> <span class="o">=</span> <span class="s2">"EU ETS + FuelEU"</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">rule</span> <span class="o">=</span> <span class="s2">"no regulation at all"</span>
+    <span class="n">size</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"international + domestic, 2-4 min"</span>
+            <span class="k">if</span> <span class="s2">"DefaultFleetDomestic"</span> <span class="ow">in</span> <span class="n">text</span>
+            <span class="k">else</span> <span class="s2">"international only, 1-2 min"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">rule</span><span class="si">:</span><span class="s2">43</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">size</span><span class="si">}</span><span class="s2">"</span>
+
+
+<span class="c1"># every deck on the workshop's coarse grid - all four live in one folder and</span>
+<span class="c1"># share includes/time_steps_coarse.inc</span>
+<span class="n">DECKS</span> <span class="o">=</span> <span class="p">{</span><span class="n">nav</span><span class="o">.</span><span class="n">stem</span><span class="p">:</span> <span class="n">nav</span> <span class="k">for</span> <span class="n">nav</span> <span class="ow">in</span>
+         <span class="nb">sorted</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="s2">"simulations/scenarios/workshop_whatif"</span><span class="p">)</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">"*.nav"</span><span class="p">))}</span>
+<span class="k">assert</span> <span class="n">SCENARIO</span> <span class="ow">in</span> <span class="n">DECKS</span><span class="p">,</span> <span class="p">(</span>
+    <span class="sa">f</span><span class="s2">"no deck called </span><span class="si">{</span><span class="n">SCENARIO</span><span class="si">!r}</span><span class="s2">. Pick one of: </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">DECKS</span><span class="p">))</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">"decks you can start from:"</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">_name</span><span class="p">,</span> <span class="n">_nav</span> <span class="ow">in</span> <span class="n">DECKS</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="s1">'&gt;'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">_name</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">SCENARIO</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">' '</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">_name</span><span class="si">:</span><span class="s2">37</span><span class="si">}{</span><span class="n">deck_note</span><span class="p">(</span><span class="n">_nav</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">()</span>
+
+
+<span class="c1"># --------------------------------------------------------------------------</span>
+<span class="c1"># The machinery: parse, change, solve, and read the results back.</span>
+<span class="c1"># --------------------------------------------------------------------------</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">contextlib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">navigate.manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimulationManager</span>
+
+<span class="n">NAV</span> <span class="o">=</span> <span class="n">DECKS</span><span class="p">[</span><span class="n">SCENARIO</span><span class="p">]</span>
+<span class="n">ARGS</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">Namespace</span><span class="p">(</span><span class="n">data_dir</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">"./assumptions"</span><span class="p">),</span> <span class="n">solver</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+<span class="c1"># Some levers move several forecasts at once: there is one electricity cost per</span>
+<span class="c1"># region, and one availability share per feedstock, and a reader asking "what if</span>
+<span class="c1"># renewable power were cheaper" means all of them.</span>
+<span class="n">POWER</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"electricity_cost_africa_mid"</span><span class="p">,</span> <span class="s2">"electricity_cost_americas_mid"</span><span class="p">,</span>
+         <span class="s2">"electricity_cost_asia_mid"</span><span class="p">,</span> <span class="s2">"electricity_cost_europe_mid"</span><span class="p">,</span>
+         <span class="s2">"electricity_cost_middle_east_mid"</span><span class="p">]</span>
+<span class="n">BIO</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"carbon_dioxide_biogenic_share_shipping"</span><span class="p">,</span>
+       <span class="s2">"feedstock_bioethanol_fermentation_share_shipping"</span><span class="p">,</span>
+       <span class="s2">"feedstock_biogas_share_shipping"</span><span class="p">,</span>
+       <span class="s2">"feedstock_biomethanol_gasification_share_shipping"</span><span class="p">,</span>
+       <span class="s2">"used_cooking_oil_share_shipping"</span><span class="p">]</span>
+<span class="c1"># Every fleet grows its trade along its own segment's path, so "what if trade grew</span>
+<span class="c1"># faster" means all fourteen of them.</span>
+<span class="n">GROWTH</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"trade_growth_bulk_carrier"</span><span class="p">,</span> <span class="s2">"trade_growth_container_15000_teu"</span><span class="p">,</span>
+          <span class="s2">"trade_growth_container_1500_teu"</span><span class="p">,</span> <span class="s2">"trade_growth_container_4500_teu"</span><span class="p">,</span>
+          <span class="s2">"trade_growth_container_8000_teu"</span><span class="p">,</span> <span class="s2">"trade_growth_cruise"</span><span class="p">,</span>
+          <span class="s2">"trade_growth_ferry"</span><span class="p">,</span> <span class="s2">"trade_growth_gas_carrier"</span><span class="p">,</span>
+          <span class="s2">"trade_growth_general_cargo"</span><span class="p">,</span> <span class="s2">"trade_growth_offshore"</span><span class="p">,</span> <span class="s2">"trade_growth_other"</span><span class="p">,</span>
+          <span class="s2">"trade_growth_roro"</span><span class="p">,</span> <span class="s2">"trade_growth_tanker"</span><span class="p">,</span> <span class="s2">"trade_growth_tug"</span><span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">scale</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="n">factor</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Multiply one or more forecasts by `factor`, keeping what the deck set.</span>
+
+<span class="sd">    A Forecast's value is `Multiplier x (table + Addition)`, and `set_multiplier`</span>
+<span class="sd">    REPLACES the multiplier rather than compounding with it. Several</span>
+<span class="sd">    forecasts ship a non-unity one - the GHG intensity limit is stored as a</span>
+<span class="sd">    fraction with `Multiplier = 93.3` - so writing a factor straight in would not</span>
+<span class="sd">    scale that limit, it would delete it. Reading the current value first is what</span>
+<span class="sd">    makes every lever below mean "x the deck's own number".</span>
+<span class="sd">    """</span>
+    <span class="n">names</span> <span class="o">=</span> <span class="p">[</span><span class="n">names</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">names</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">tweak</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">m</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">forecasts</span><span class="p">:</span>
+                <span class="k">continue</span>        <span class="c1"># this deck does not carry that assumption</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">forecasts</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">set_multiplier</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">get_multiplier</span><span class="p">()</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">factor</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">tweak</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">both</span><span class="p">(</span><span class="o">*</span><span class="n">tweaks</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Apply several levers to one freshly parsed deck."""</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">tweak</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tweaks</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">t</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">t</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">tweak</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">run_case</span><span class="p">(</span><span class="n">tweak</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Parse the deck, optionally change it, solve it. A minute or two.</span>
+
+<span class="sd">    The tweak runs between parsing and solving, on the live model objects. Each</span>
+<span class="sd">    call re-parses, so nothing a tweak does can leak into the next run.</span>
+<span class="sd">    """</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">SimulationManager</span><span class="p">()</span>
+    <span class="n">was</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">"navigate"</span><span class="p">)</span><span class="o">.</span><span class="n">level</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">"navigate"</span><span class="p">)</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">)</span>   <span class="c1"># deck warnings, not ours</span>
+    <span class="n">started</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">contextlib</span><span class="o">.</span><span class="n">redirect_stdout</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">StringIO</span><span class="p">()):</span>
+            <span class="n">m</span><span class="o">.</span><span class="n">read_deck</span><span class="p">(</span><span class="n">NAV</span><span class="p">,</span> <span class="n">ARGS</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">tweak</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">tweak</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+            <span class="n">m</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">"navigate"</span><span class="p">)</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">was</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  solved in </span><span class="si">{</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">started</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2"> s"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">m</span>
+
+
+<span class="n">FOSSIL</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"fossil_fuel_oil"</span><span class="p">,</span> <span class="s2">"liquefied_natural_gas"</span><span class="p">}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">summarise</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The whole world fleet, summed over every fleet in the deck."""</span>
+    <span class="n">years</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">get_dateline</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">"datetime64[Y]"</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1970</span>
+    <span class="c1"># A solved step stands for the years up to the next one - Navigate's steps</span>
+    <span class="c1"># look forward - and the last one for its own year. On this coarse grid a</span>
+    <span class="c1"># horizon total therefore weights each step by that gap: unweighted, 2026</span>
+    <span class="c1"># and 2027 would count as much as each four-year stretch after them.</span>
+    <span class="n">span</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">years</span><span class="p">,</span> <span class="n">years</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="n">wtw</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">years</span><span class="p">))</span>
+    <span class="n">rate_x_miles</span><span class="p">,</span> <span class="n">miles</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">years</span><span class="p">)),</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">years</span><span class="p">))</span>
+    <span class="n">energy</span><span class="p">,</span> <span class="n">by_year_raw</span><span class="p">,</span> <span class="n">last_alt</span><span class="p">,</span> <span class="n">last_all</span> <span class="o">=</span> <span class="p">{},</span> <span class="p">{},</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span>
+    <span class="k">for</span> <span class="n">fleet</span> <span class="ow">in</span> <span class="n">m</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">fleets</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="n">wtw</span> <span class="o">=</span> <span class="n">wtw</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span>
+            <span class="n">fleet</span><span class="o">.</span><span class="n">profile</span><span class="o">.</span><span class="n">get_total_equivalent_WTW</span><span class="p">(),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">))</span>
+        <span class="n">cargo_miles</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span>
+            <span class="n">fleet</span><span class="o">.</span><span class="n">profile</span><span class="o">.</span><span class="n">get_cargo_miles</span><span class="p">(),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">))</span>
+        <span class="n">rate_x_miles</span> <span class="o">=</span> <span class="n">rate_x_miles</span> <span class="o">+</span> <span class="n">cargo_miles</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span>
+            <span class="n">fleet</span><span class="o">.</span><span class="n">profile</span><span class="o">.</span><span class="n">get_instantaneous_freight_rate</span><span class="p">(),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">))</span>
+        <span class="n">miles</span> <span class="o">=</span> <span class="n">miles</span> <span class="o">+</span> <span class="n">cargo_miles</span>
+        <span class="k">for</span> <span class="n">fuel</span><span class="p">,</span> <span class="n">series</span> <span class="ow">in</span> <span class="n">fleet</span><span class="o">.</span><span class="n">profile</span><span class="o">.</span><span class="n">get_consumed_energy</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">series</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">))</span>
+            <span class="n">energy</span><span class="p">[</span><span class="n">fuel</span><span class="p">]</span> <span class="o">=</span> <span class="n">energy</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">fuel</span><span class="p">,</span> <span class="mf">0.</span><span class="p">)</span> <span class="o">+</span> <span class="nb">float</span><span class="p">((</span><span class="n">values</span> <span class="o">*</span> <span class="n">span</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+            <span class="n">by_year_raw</span><span class="p">[</span><span class="n">fuel</span><span class="p">]</span> <span class="o">=</span> <span class="n">by_year_raw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">fuel</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">years</span><span class="p">)))</span> <span class="o">+</span> <span class="n">values</span>
+            <span class="n">last_all</span> <span class="o">+=</span> <span class="nb">float</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">fuel</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">FOSSIL</span><span class="p">:</span>
+                <span class="n">last_alt</span> <span class="o">+=</span> <span class="nb">float</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">grand</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">energy</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+    <span class="c1"># the mix year by year, in EJ, stacked in Navigate's own fuel order</span>
+    <span class="n">by_year</span> <span class="o">=</span> <span class="p">{</span><span class="n">f</span><span class="p">:</span> <span class="n">by_year_raw</span><span class="p">[</span><span class="n">f</span><span class="p">]</span> <span class="o">/</span> <span class="mf">1e9</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">fuel_sorted</span><span class="p">(</span><span class="n">by_year_raw</span><span class="p">)</span>
+               <span class="k">if</span> <span class="n">by_year_raw</span><span class="p">[</span><span class="n">f</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">}</span>
+
+    <span class="c1"># Transport cost: the model's own INSTANTANEOUS freight rate - what the</span>
+    <span class="c1"># trade actually cost that year - averaged over the fleets weighted by the</span>
+    <span class="c1"># cargo-miles each one moved. Weighting matters: a plain mean would let a</span>
+    <span class="c1"># small fleet count as much as a large one. Reported in USD per thousand</span>
+    <span class="c1"># cargo-miles, which is the unit Navigate's own fleet_investment_metric plot</span>
+    <span class="c1"># uses, so the two can be read side by side.</span>
+    <span class="n">freight</span> <span class="o">=</span> <span class="mf">1e3</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">rate_x_miles</span><span class="p">,</span> <span class="n">miles</span><span class="p">,</span>
+                              <span class="n">out</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">miles</span><span class="p">),</span> <span class="n">where</span><span class="o">=</span><span class="n">miles</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">{</span><span class="s2">"years"</span><span class="p">:</span> <span class="n">years</span><span class="p">,</span>
+            <span class="s2">"wtw"</span><span class="p">:</span> <span class="n">wtw</span> <span class="o">/</span> <span class="mf">1e6</span><span class="p">,</span>                                  <span class="c1"># Mt CO2e per year</span>
+            <span class="s2">"cum"</span><span class="p">:</span> <span class="nb">float</span><span class="p">((</span><span class="n">wtw</span> <span class="o">*</span> <span class="n">span</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span> <span class="o">/</span> <span class="mf">1e6</span><span class="p">,</span>          <span class="c1"># Mt CO2e over the horizon</span>
+            <span class="s2">"mix"</span><span class="p">:</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="mf">100.</span> <span class="o">*</span> <span class="n">v</span> <span class="o">/</span> <span class="n">grand</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">energy</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">},</span>
+            <span class="s2">"by_year"</span><span class="p">:</span> <span class="n">by_year</span><span class="p">,</span>
+            <span class="s2">"freight"</span><span class="p">:</span> <span class="n">freight</span><span class="p">,</span>                        <span class="c1"># USD per thousand cargo-miles</span>
+            <span class="s2">"alt_last"</span><span class="p">:</span> <span class="mf">100.</span> <span class="o">*</span> <span class="n">last_alt</span> <span class="o">/</span> <span class="n">last_all</span> <span class="k">if</span> <span class="n">last_all</span> <span class="k">else</span> <span class="mf">0.</span><span class="p">}</span>
+
+
+<span class="c1"># --------------------------------------------------------------------------</span>
+<span class="c1"># The reference run. Solved once; the scenario cell below re-solves only</span>
+<span class="c1"># your version, so changing a number costs one solve, not two.</span>
+<span class="c1"># --------------------------------------------------------------------------</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">"solving the reference scenario ..."</span><span class="p">)</span>
+<span class="n">reference</span> <span class="o">=</span> <span class="n">run_case</span><span class="p">()</span>
+
+<span class="n">ref</span> <span class="o">=</span> <span class="n">summarise</span><span class="p">(</span><span class="n">reference</span><span class="p">)</span>
+<span class="n">YEARS</span> <span class="o">=</span> <span class="n">ref</span><span class="p">[</span><span class="s2">"years"</span><span class="p">]</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">time grid: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">YEARS</span><span class="p">)</span><span class="si">}</span><span class="s2"> steps, </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">y</span><span class="p">)</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">YEARS</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">_label</span><span class="p">,</span> <span class="n">_value</span><span class="p">,</span> <span class="n">_unit</span> <span class="ow">in</span> <span class="p">(</span>
+        <span class="p">(</span><span class="sa">f</span><span class="s2">"well-to-wake in </span><span class="si">{</span><span class="n">YEARS</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ref</span><span class="p">[</span><span class="s1">'wtw'</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">,.0f</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="s2">"Mt CO2e/yr"</span><span class="p">),</span>
+        <span class="p">(</span><span class="sa">f</span><span class="s2">"well-to-wake in </span><span class="si">{</span><span class="n">YEARS</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ref</span><span class="p">[</span><span class="s1">'wtw'</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">,.0f</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="s2">"Mt CO2e/yr"</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">"cumulative over the horizon"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ref</span><span class="p">[</span><span class="s1">'cum'</span><span class="p">]</span><span class="si">:</span><span class="s2">,.0f</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="s2">"Mt CO2e"</span><span class="p">),</span>
+        <span class="p">(</span><span class="sa">f</span><span class="s2">"alternative fuels in </span><span class="si">{</span><span class="n">YEARS</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ref</span><span class="p">[</span><span class="s1">'alt_last'</span><span class="p">]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="s2">"%"</span><span class="p">)):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">_label</span><span class="si">:</span><span class="s2">30</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">_value</span><span class="si">:</span><span class="s2">&gt;9</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="n">_unit</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">  </span><span class="si">{</span><span class="s1">'fuel'</span><span class="si">:</span><span class="s2">28</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'</span><span class="si">% o</span><span class="s1">f energy over the horizon'</span><span class="si">:</span><span class="s2">&gt;28</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">_f</span><span class="p">,</span> <span class="n">_v</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ref</span><span class="p">[</span><span class="s2">"mix"</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">kv</span><span class="p">:</span> <span class="o">-</span><span class="n">kv</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">fuel_label</span><span class="p">(</span><span class="n">_f</span><span class="p">)</span><span class="si">:</span><span class="s2">28</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">_v</span><span class="si">:</span><span class="s2">28.1f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="c1"># The levers, with the numbers they multiply. Read off the parsed deck rather</span>
+<span class="c1"># than typed in here, so the table follows `assumptions/` if the Center revises</span>
+<span class="c1"># it. Units are labels, not data, so those are stated.</span>
+<span class="c1"># ---------------------------------------------------------------------------</span>
+<span class="n">LEVER_SPEC</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="s2">"OIL_PRICE"</span><span class="p">,</span> <span class="s2">"fossil bunker fuel"</span><span class="p">,</span>
+     <span class="p">[</span><span class="s2">"fossil_fuel_oil_price_global"</span><span class="p">],</span> <span class="s2">"USD/t"</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="s2">"</span><span class="si">{:,.0f}</span><span class="s2">"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"GAS_PRICE"</span><span class="p">,</span> <span class="s2">"fossil LNG"</span><span class="p">,</span>
+     <span class="p">[</span><span class="s2">"liquefied_natural_gas_price_global"</span><span class="p">],</span> <span class="s2">"USD/t"</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="s2">"</span><span class="si">{:,.0f}</span><span class="s2">"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"CARBON_PRICE"</span><span class="p">,</span> <span class="s2">"EU ETS allowance"</span><span class="p">,</span>
+     <span class="p">[</span><span class="s2">"eu_ets_carbon_credit_price"</span><span class="p">],</span> <span class="s2">"USD/t"</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="s2">"</span><span class="si">{:,.0f}</span><span class="s2">"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"GHG_PENALTY"</span><span class="p">,</span> <span class="s2">"a ton of excess emission"</span><span class="p">,</span>
+     <span class="p">[</span><span class="s2">"gfs_remedial_unit"</span><span class="p">],</span> <span class="s2">"USD/t"</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="s2">"</span><span class="si">{:,.0f}</span><span class="s2">"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"GHG_TARGET"</span><span class="p">,</span> <span class="s2">"the GHG-intensity limit"</span><span class="p">,</span>
+     <span class="p">[</span><span class="s2">"gfs_target_reduction"</span><span class="p">],</span> <span class="s2">"gCO2eq/MJ"</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="s2">"</span><span class="si">{:,.1f}</span><span class="s2">"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"GREEN_POWER"</span><span class="p">,</span> <span class="s2">"electricity at the e-fuel plants"</span><span class="p">,</span>
+     <span class="n">POWER</span><span class="p">,</span> <span class="s2">"USD/MWh"</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="s2">"</span><span class="si">{:,.0f}</span><span class="s2">"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"BIO_SUPPLY"</span><span class="p">,</span> <span class="s2">"shipping's share of the biomass"</span><span class="p">,</span>
+     <span class="n">BIO</span><span class="p">,</span> <span class="s2">"%"</span><span class="p">,</span> <span class="mf">100.</span><span class="p">,</span> <span class="s2">"</span><span class="si">{:,.0f}</span><span class="s2">"</span><span class="p">),</span>
+    <span class="c1"># The capacity forecast is GLOBAL new-plant capacity; shipping's producer</span>
+    <span class="c1"># may build epc_global_share_shipping of it, so the two multiply. Scaling</span>
+    <span class="c1"># the capacity scales the MaximumDevelopment of epc_global with it; the</span>
+    <span class="c1"># bio and FAME producers carry their own limits and do not move.</span>
+    <span class="p">(</span><span class="s2">"PLANT_BUILD"</span><span class="p">,</span> <span class="s2">"fuel plants shipping's producer may build"</span><span class="p">,</span>
+     <span class="p">[</span><span class="s2">"epc_global_capacity_mid"</span><span class="p">,</span> <span class="s2">"epc_global_share_shipping"</span><span class="p">],</span> <span class="s2">"plants/yr"</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span>
+     <span class="s2">"</span><span class="si">{:,.1f}</span><span class="s2">"</span><span class="p">,</span> <span class="s2">"product"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"TRADE_GROWTH"</span><span class="p">,</span> <span class="s2">"cargo trade growth, by segment"</span><span class="p">,</span>
+     <span class="n">GROWTH</span><span class="p">,</span> <span class="s2">"%/yr"</span><span class="p">,</span> <span class="mf">100.</span><span class="p">,</span> <span class="s2">"</span><span class="si">{:,.1f}</span><span class="s2">"</span><span class="p">),</span>
+<span class="p">]</span>
+
+<span class="n">_days</span> <span class="o">=</span> <span class="n">reference</span><span class="o">.</span><span class="n">get_timeline</span><span class="p">()</span>          <span class="c1"># days since the deck's start date</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_lever_span</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="n">when</span><span class="p">,</span> <span class="n">factor</span><span class="p">,</span> <span class="n">fmt</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"range"</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""What one lever is worth at a given moment.</span>
+
+<span class="sd">    Most levers move several forecasts of the same kind, so the honest summary</span>
+<span class="sd">    is the RANGE across them. PLANT_BUILD is different: its two forecasts are a</span>
+<span class="sd">    capacity and the share of it shipping gets, and they MULTIPLY.</span>
+<span class="sd">    """</span>
+    <span class="n">seen</span> <span class="o">=</span> <span class="p">[</span><span class="n">reference</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">forecasts</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">when</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">names</span> <span class="k">if</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">reference</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">forecasts</span><span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">seen</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">"--"</span>             <span class="c1"># not in this deck</span>
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">"product"</span><span class="p">:</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">factor</span>
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">*=</span> <span class="n">v</span>
+        <span class="k">return</span> <span class="n">fmt</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="n">seen</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">v</span> <span class="o">*</span> <span class="n">factor</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">fmt</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">seen</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">seen</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">seen</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&lt;</span> <span class="mf">1e-9</span>
+            <span class="k">else</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">fmt</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">seen</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">fmt</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">seen</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">  the levers, and what 1.0 means for each in </span><span class="si">{</span><span class="n">SCENARIO</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="s1">''</span><span class="si">:</span><span class="s2">14</span><span class="si">}{</span><span class="s1">''</span><span class="si">:</span><span class="s2">42</span><span class="si">}{</span><span class="n">YEARS</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">&gt;12</span><span class="si">}{</span><span class="n">YEARS</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">&gt;12</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">_spec</span> <span class="ow">in</span> <span class="n">LEVER_SPEC</span><span class="p">:</span>
+    <span class="n">_n</span><span class="p">,</span> <span class="n">_what</span><span class="p">,</span> <span class="n">_nodes</span><span class="p">,</span> <span class="n">_unit</span><span class="p">,</span> <span class="n">_f</span><span class="p">,</span> <span class="n">_fmt</span> <span class="o">=</span> <span class="n">_spec</span><span class="p">[:</span><span class="mi">6</span><span class="p">]</span>
+    <span class="n">_mode</span> <span class="o">=</span> <span class="n">_spec</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">_spec</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">6</span> <span class="k">else</span> <span class="s2">"range"</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">_n</span><span class="si">:</span><span class="s2">14</span><span class="si">}{</span><span class="n">_what</span><span class="si">:</span><span class="s2">42</span><span class="si">}</span><span class="s2">"</span>
+          <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">_lever_span</span><span class="p">(</span><span class="n">_nodes</span><span class="p">,</span><span class="w"> </span><span class="n">_days</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="w"> </span><span class="n">_f</span><span class="p">,</span><span class="w"> </span><span class="n">_fmt</span><span class="p">,</span><span class="w"> </span><span class="n">_mode</span><span class="p">)</span><span class="si">:</span><span class="s2">&gt;12</span><span class="si">}</span><span class="s2">"</span>
+          <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">_lever_span</span><span class="p">(</span><span class="n">_nodes</span><span class="p">,</span><span class="w"> </span><span class="n">_days</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="w"> </span><span class="n">_f</span><span class="p">,</span><span class="w"> </span><span class="n">_fmt</span><span class="p">,</span><span class="w"> </span><span class="n">_mode</span><span class="p">)</span><span class="si">:</span><span class="s2">&gt;12</span><span class="si">}</span><span class="s2">   </span><span class="si">{</span><span class="n">_unit</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+<span class="n">_missing</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">LEVER_SPEC</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">n</span> <span class="ow">in</span> <span class="n">reference</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">forecasts</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">s</span><span class="p">[</span><span class="mi">2</span><span class="p">])]</span>
+<span class="k">if</span> <span class="n">_missing</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">  </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">_missing</span><span class="p">)</span><span class="si">}</span><span class="s2"> shown as -- : this deck does not carry that"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"  assumption, so setting those levers will do nothing."</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Moved up to the repository root.
+Navigate 1.0.0 is already installed.
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>decks you can start from:
+  &gt; workshop_basecase_mid_regulation     EU ETS + FuelEU + a moderate fuel standard  international only, 1-2 min
+    workshop_basecase_no_regulation      no regulation at all                        international only, 1-2 min
+    workshop_basecase_strong_regulation  EU ETS + FuelEU + a strict fuel standard    international only, 1-2 min
+    workshop_business_as_usual           EU ETS + FuelEU                             international + domestic, 2-4 min
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>solving the reference scenario ...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  solved in 61 s
+
+time grid: 8 steps, 2026, 2027, 2030, 2034, 2038, 2042, 2046, 2050
+
+  well-to-wake in 2026               1,189  Mt CO2e/yr
+  well-to-wake in 2050                 637  Mt CO2e/yr
+  cumulative over the horizon       24,980  Mt CO2e
+  alternative fuels in 2050           60.0  %
+
+  fuel                         % of energy over the horizon
+  Fuel oil                                             68.9
+  Blue ammonia                                         14.8
+  Bio-methane                                           9.6
+  LNG                                                   5.7
+  e-methanol                                            0.6
+  FAME                                                  0.2
+  Bio-methanol                                          0.1
+  e-diesel                                              0.0
+  Bio-ethanol                                           0.0
+
+  the levers, and what 1.0 means for each in workshop_basecase_mid_regulation
+                                                                  2026        2050
+  OIL_PRICE     fossil bunker fuel                                 485         485   USD/t
+  GAS_PRICE     fossil LNG                                         436         436   USD/t
+  CARBON_PRICE  EU ETS allowance                                   126         417   USD/t
+  GHG_PENALTY   a ton of excess emission                             0         300   USD/t
+  GHG_TARGET    the GHG-intensity limit                           93.3        28.0   gCO2eq/MJ
+  GREEN_POWER   electricity at the e-fuel plants                 58-88       32-53   USD/MWh
+  BIO_SUPPLY    shipping's share of the biomass                   2-50        2-50   %
+  PLANT_BUILD   fuel plants shipping's producer may build          7.1        35.6   plants/yr
+  TRADE_GROWTH  cargo trade growth, by segment                 0.3-4.7     0.0-2.2   %/yr
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="some-of-the-levers">
+<h2>Some of the levers<a class="headerlink" href="#some-of-the-levers" title="Link to this heading">#</a></h2>
+<p>Each suggested sensitivity can be done using a multiplier for each lever: so <code class="docutils literal notranslate"><span class="pre">1.0</span></code> means that the original assumption is used.</p>
+<p>The spans indicated in the cell below are a sensible place to start looking, not a limit —
+go outside them if you want, but check the answer still makes sense when you do.</p>
+<p>Four of these levers are prices, two are regulation, two are limits on what can
+physically be supplied, and one is how much cargo there is to carry. It is worth
+noticing which group the biggest effect
+comes from.</p>
+<p>The table the cell above printed is read off the parsed deck rather than typed
+in here, so if the Center revises an assumption the lever follows it. The values
+repeated in the code comments are a convenience copy of the same thing.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># ===========================================================================</span>
+<span class="c1">#  YOUR SCENARIO.  Set a lever, run the cell, read the answer below it.</span>
+<span class="c1">#</span>
+<span class="c1">#  Every number is a MULTIPLIER on what the deck already says, so 1.0 is the</span>
+<span class="c1">#  reference. The right-hand column is the value being multiplied, so you can</span>
+<span class="c1">#  judge whether a factor of two is a big change or a small one.</span>
+<span class="c1">#</span>
+<span class="c1">#                    suggested span          what 1.0 means in the mid-regulation deck</span>
+<span class="n">OIL_PRICE</span>    <span class="o">=</span> <span class="mf">1.0</span>   <span class="c1">#  0.6 - 2.0     485 USD/t, flat to 2050</span>
+<span class="n">GAS_PRICE</span>    <span class="o">=</span> <span class="mf">1.0</span>   <span class="c1">#  0.6 - 2.0     436 USD/t, flat to 2050</span>
+<span class="n">CARBON_PRICE</span> <span class="o">=</span> <span class="mf">1.0</span>   <span class="c1">#  0.5 - 3.0     126 USD/t in 2026, 417 by 2050</span>
+<span class="n">GHG_PENALTY</span>  <span class="o">=</span> <span class="mf">1.0</span>   <span class="c1">#  0.0 - 5.0     0 until 2028, then 300 USD/t of excess</span>
+<span class="n">GHG_TARGET</span>   <span class="o">=</span> <span class="mf">1.0</span>   <span class="c1">#  0.5 - 1.2     93.3 gCO2eq/MJ in 2026, 28.0 by 2050</span>
+<span class="n">GREEN_POWER</span>  <span class="o">=</span> <span class="mf">1.0</span>   <span class="c1">#  0.6 - 1.4     58-88 USD/MWh in 2026, by region</span>
+<span class="n">BIO_SUPPLY</span>   <span class="o">=</span> <span class="mf">1.0</span>   <span class="c1">#  0.5 - 3.0     2-50 % of the pool, by feedstock</span>
+<span class="n">PLANT_BUILD</span>  <span class="o">=</span> <span class="mf">1.0</span>   <span class="c1">#  0.5 - 3.0     7.1 plants a year in 2026, rising</span>
+<span class="n">TRADE_GROWTH</span> <span class="o">=</span> <span class="mf">1.0</span>   <span class="c1">#  0.0 - 2.0     0.3-4.7 %/yr in 2026, by segment</span>
+<span class="c1">#                                     1.0 = each segment's own growth; 0.0 = trade stays</span>
+<span class="c1">#                                     at its 2026 volume; -1.0 = it shrinks as fast as it grew</span>
+<span class="c1">#</span>
+<span class="c1">#  GHG_TARGET below 1.0 is a STRICTER limit. The spans are a sensible place to</span>
+<span class="c1">#  start, not a boundary - go outside them, but check the answer still makes</span>
+<span class="c1">#  sense when you do.</span>
+<span class="c1"># ===========================================================================</span>
+
+<span class="n">LEVERS</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">"OIL_PRICE"</span><span class="p">,</span> <span class="n">OIL_PRICE</span><span class="p">,</span> <span class="s2">"fossil_fuel_oil_price_global"</span><span class="p">),</span>
+          <span class="p">(</span><span class="s2">"GAS_PRICE"</span><span class="p">,</span> <span class="n">GAS_PRICE</span><span class="p">,</span> <span class="s2">"liquefied_natural_gas_price_global"</span><span class="p">),</span>
+          <span class="p">(</span><span class="s2">"CARBON_PRICE"</span><span class="p">,</span> <span class="n">CARBON_PRICE</span><span class="p">,</span> <span class="s2">"eu_ets_carbon_credit_price"</span><span class="p">),</span>
+          <span class="p">(</span><span class="s2">"GHG_PENALTY"</span><span class="p">,</span> <span class="n">GHG_PENALTY</span><span class="p">,</span> <span class="s2">"gfs_remedial_unit"</span><span class="p">),</span>
+          <span class="p">(</span><span class="s2">"GHG_TARGET"</span><span class="p">,</span> <span class="n">GHG_TARGET</span><span class="p">,</span> <span class="s2">"gfs_target_reduction"</span><span class="p">),</span>
+          <span class="p">(</span><span class="s2">"GREEN_POWER"</span><span class="p">,</span> <span class="n">GREEN_POWER</span><span class="p">,</span> <span class="n">POWER</span><span class="p">),</span>
+          <span class="p">(</span><span class="s2">"BIO_SUPPLY"</span><span class="p">,</span> <span class="n">BIO_SUPPLY</span><span class="p">,</span> <span class="n">BIO</span><span class="p">),</span>
+          <span class="p">(</span><span class="s2">"PLANT_BUILD"</span><span class="p">,</span> <span class="n">PLANT_BUILD</span><span class="p">,</span> <span class="s2">"epc_global_capacity_mid"</span><span class="p">),</span>
+          <span class="p">(</span><span class="s2">"TRADE_GROWTH"</span><span class="p">,</span> <span class="n">TRADE_GROWTH</span><span class="p">,</span> <span class="n">GROWTH</span><span class="p">)]</span>
+
+<span class="c1"># Trade is compounded as log(1 + growth), so a year shrinking by 100 % or more has</span>
+<span class="c1"># no meaning - say so here rather than let the solve fail on it.</span>
+<span class="k">if</span> <span class="nb">min</span><span class="p">(</span><span class="n">TRADE_GROWTH</span> <span class="o">*</span> <span class="n">reference</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">forecasts</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+       <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">GROWTH</span> <span class="k">if</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">reference</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">forecasts</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">_days</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="o">-</span><span class="mf">1.</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"TRADE_GROWTH = </span><span class="si">{</span><span class="n">TRADE_GROWTH</span><span class="si">}</span><span class="s2"> would make some trade shrink by "</span>
+                     <span class="s2">"100 </span><span class="si">% o</span><span class="s2">r more in a year. Pick a value closer to zero."</span><span class="p">)</span>
+
+<span class="n">CHANGED</span> <span class="o">=</span> <span class="p">[(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">target</span> <span class="ow">in</span> <span class="n">LEVERS</span> <span class="k">if</span> <span class="n">value</span> <span class="o">!=</span> <span class="mf">1.0</span><span class="p">]</span>
+
+<span class="c1"># a lever whose forecasts this deck does not carry cannot move anything</span>
+<span class="n">_inert</span> <span class="o">=</span> <span class="p">[</span><span class="n">n</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">_v</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">CHANGED</span>
+          <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">x</span> <span class="ow">in</span> <span class="n">reference</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">forecasts</span>
+                     <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="p">([</span><span class="n">t</span><span class="p">]</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">t</span><span class="p">))]</span>
+<span class="k">if</span> <span class="n">_inert</span><span class="p">:</span>
+    <span class="n">_verb</span> <span class="o">=</span> <span class="s2">"is"</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">_inert</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="s2">"are"</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">_inert</span><span class="p">)</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">_verb</span><span class="si">}</span><span class="s2"> not in </span><span class="si">{</span><span class="n">SCENARIO</span><span class="si">}</span><span class="s2"> "</span>
+          <span class="sa">f</span><span class="s2">"and will have no effect.</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="ow">not</span> <span class="n">CHANGED</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Every lever is still 1.0, so this would just re-solve the reference."</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Change one of the numbers above and run this cell again."</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"solving your scenario:"</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">_name</span><span class="p">,</span> <span class="n">_value</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">CHANGED</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">_name</span><span class="si">:</span><span class="s2">13</span><span class="si">}</span><span class="s2"> x </span><span class="si">{</span><span class="n">_value</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">yours</span> <span class="o">=</span> <span class="n">run_case</span><span class="p">(</span><span class="n">both</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">scale</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">CHANGED</span><span class="p">]))</span>
+    <span class="n">you</span> <span class="o">=</span> <span class="n">summarise</span><span class="p">(</span><span class="n">yours</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">  </span><span class="si">{</span><span class="s1">''</span><span class="si">:</span><span class="s2">28</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'reference'</span><span class="si">:</span><span class="s2">&gt;11</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'yours'</span><span class="si">:</span><span class="s2">&gt;11</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'change'</span><span class="si">:</span><span class="s2">&gt;13</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">_label</span><span class="p">,</span> <span class="n">_r</span><span class="p">,</span> <span class="n">_y</span><span class="p">,</span> <span class="n">_fmt</span><span class="p">,</span> <span class="n">_pp</span> <span class="ow">in</span> <span class="p">(</span>
+            <span class="p">(</span><span class="sa">f</span><span class="s2">"well-to-wake in </span><span class="si">{</span><span class="n">YEARS</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">, Mt/yr"</span><span class="p">,</span>
+             <span class="n">ref</span><span class="p">[</span><span class="s2">"wtw"</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">you</span><span class="p">[</span><span class="s2">"wtw"</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="s2">",.0f"</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">"cumulative, Mt"</span><span class="p">,</span> <span class="n">ref</span><span class="p">[</span><span class="s2">"cum"</span><span class="p">],</span> <span class="n">you</span><span class="p">[</span><span class="s2">"cum"</span><span class="p">],</span> <span class="s2">",.0f"</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+            <span class="c1"># a share is already a percentage, so it moves in POINTS, not per cent</span>
+            <span class="p">(</span><span class="sa">f</span><span class="s2">"alternative fuels in </span><span class="si">{</span><span class="n">YEARS</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">, %"</span><span class="p">,</span>
+             <span class="n">ref</span><span class="p">[</span><span class="s2">"alt_last"</span><span class="p">],</span> <span class="n">you</span><span class="p">[</span><span class="s2">"alt_last"</span><span class="p">],</span> <span class="s2">".1f"</span><span class="p">,</span> <span class="kc">True</span><span class="p">)):</span>
+        <span class="n">_change</span> <span class="o">=</span> <span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">_y</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">_r</span><span class="si">:</span><span class="s2">+.1f</span><span class="si">}</span><span class="s2"> pp"</span> <span class="k">if</span> <span class="n">_pp</span>
+                   <span class="k">else</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="mf">100.</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="n">_y</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">_r</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mf">1.</span><span class="p">)</span><span class="si">:</span><span class="s2">+.1f</span><span class="si">}</span><span class="s2"> %"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">_label</span><span class="si">:</span><span class="s2">28</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">_r</span><span class="si">:</span><span class="s2">11</span><span class="si">{</span><span class="n">_fmt</span><span class="si">}}</span><span class="s2"> </span><span class="si">{</span><span class="n">_y</span><span class="si">:</span><span class="s2">11</span><span class="si">{</span><span class="n">_fmt</span><span class="si">}}</span><span class="s2"> </span><span class="si">{</span><span class="n">_change</span><span class="si">:</span><span class="s2">&gt;13</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+
+    <span class="n">order</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"reference"</span><span class="p">,</span> <span class="s2">"your scenario"</span><span class="p">]</span>
+    <span class="n">cases</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"reference"</span><span class="p">:</span> <span class="n">ref</span><span class="p">,</span> <span class="s2">"your scenario"</span><span class="p">:</span> <span class="n">you</span><span class="p">}</span>
+
+    <span class="c1"># Emissions and cost span both rows; the mix gets one row each, on a shared</span>
+    <span class="c1"># scale, so the two can be read against each other rather than separately.</span>
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mf">15.5</span><span class="p">,</span> <span class="mf">6.6</span><span class="p">),</span> <span class="n">constrained_layout</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">grid</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_gridspec</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">width_ratios</span><span class="o">=</span><span class="p">[</span><span class="mf">1.1</span><span class="p">,</span> <span class="mf">1.3</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
+                            <span class="n">hspace</span><span class="o">=</span><span class="mf">.42</span><span class="p">,</span> <span class="n">wspace</span><span class="o">=</span><span class="mf">.06</span><span class="p">)</span>
+    <span class="n">axE</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">grid</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span>
+    <span class="n">axR</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">grid</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+    <span class="n">axY</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">grid</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">sharex</span><span class="o">=</span><span class="n">axR</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="n">axR</span><span class="p">)</span>
+    <span class="n">axC</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">grid</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">])</span>
+
+    <span class="c1"># ticks on the steps the model actually took, not a tidy sequence that</span>
+    <span class="c1"># implies years it never solved</span>
+    <span class="n">steps_shown</span> <span class="o">=</span> <span class="p">[</span><span class="n">YEARS</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">+</span> <span class="p">[</span><span class="n">y</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">YEARS</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="mi">1</span><span class="p">)</span>
+                                <span class="k">if</span> <span class="n">y</span> <span class="o">-</span> <span class="n">YEARS</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">]</span>
+
+    <span class="c1"># ---- well-to-wake emissions -------------------------------------------</span>
+    <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">order</span><span class="p">:</span>
+        <span class="n">axE</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">cases</span><span class="p">[</span><span class="n">s</span><span class="p">][</span><span class="s2">"years"</span><span class="p">],</span> <span class="n">cases</span><span class="p">[</span><span class="n">s</span><span class="p">][</span><span class="s2">"wtw"</span><span class="p">],</span> <span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s2">"."</span><span class="p">,</span> <span class="n">ms</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
+                 <span class="n">label</span><span class="o">=</span><span class="n">s</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">scen_colour</span><span class="p">(</span><span class="n">s</span><span class="p">))</span>
+    <span class="n">axE</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">"Well-to-wake emissions"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">INK</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s2">"left"</span><span class="p">)</span>
+    <span class="n">axE</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">"Mt CO2e per year"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">SUBINK</span><span class="p">)</span>
+    <span class="n">axE</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">bottom</span><span class="o">=</span><span class="mf">0.</span><span class="p">)</span>
+    <span class="n">axE</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">frameon</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">labelcolor</span><span class="o">=</span><span class="n">SUBINK</span><span class="p">,</span>
+               <span class="n">loc</span><span class="o">=</span><span class="s2">"upper center"</span><span class="p">,</span> <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.10</span><span class="p">),</span> <span class="n">ncol</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># ---- the fuel mix, year by year, one row each --------------------------</span>
+    <span class="n">fuels</span> <span class="o">=</span> <span class="n">fuel_sorted</span><span class="p">({</span><span class="n">f</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cases</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">c</span><span class="p">[</span><span class="s2">"by_year"</span><span class="p">]})</span>
+    <span class="k">for</span> <span class="n">ax</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">((</span><span class="n">axR</span><span class="p">,</span> <span class="n">axY</span><span class="p">),</span> <span class="n">order</span><span class="p">):</span>
+        <span class="n">stack</span> <span class="o">=</span> <span class="p">[</span><span class="n">cases</span><span class="p">[</span><span class="n">s</span><span class="p">][</span><span class="s2">"by_year"</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cases</span><span class="p">[</span><span class="n">s</span><span class="p">][</span><span class="s2">"years"</span><span class="p">])))</span>
+                 <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">fuels</span><span class="p">]</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">stackplot</span><span class="p">(</span><span class="n">cases</span><span class="p">[</span><span class="n">s</span><span class="p">][</span><span class="s2">"years"</span><span class="p">],</span> <span class="o">*</span><span class="n">stack</span><span class="p">,</span> <span class="n">colors</span><span class="o">=</span><span class="p">[</span><span class="n">fuel_colour</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">fuels</span><span class="p">],</span>
+                     <span class="n">labels</span><span class="o">=</span><span class="p">[</span><span class="n">fuel_label</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">fuels</span><span class="p">],</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">.9</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Fuel consumed, </span><span class="si">{</span><span class="n">s</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">INK</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s2">"left"</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">"EJ per year"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">SUBINK</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">margins</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">axY</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="mf">6.5</span><span class="p">,</span> <span class="n">frameon</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">labelcolor</span><span class="o">=</span><span class="n">SUBINK</span><span class="p">,</span> <span class="n">ncol</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+               <span class="n">loc</span><span class="o">=</span><span class="s2">"upper center"</span><span class="p">,</span> <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.22</span><span class="p">))</span>
+
+    <span class="c1"># ---- transport cost ----------------------------------------------------</span>
+    <span class="c1"># step 0 takes no decisions, so Navigate's own freight-rate plot starts at</span>
+    <span class="c1"># the second step and so does this one</span>
+    <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">order</span><span class="p">:</span>
+        <span class="n">axC</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">cases</span><span class="p">[</span><span class="n">s</span><span class="p">][</span><span class="s2">"years"</span><span class="p">][</span><span class="mi">1</span><span class="p">:],</span> <span class="n">cases</span><span class="p">[</span><span class="n">s</span><span class="p">][</span><span class="s2">"freight"</span><span class="p">][</span><span class="mi">1</span><span class="p">:],</span> <span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s2">"."</span><span class="p">,</span>
+                 <span class="n">ms</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">s</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">scen_colour</span><span class="p">(</span><span class="n">s</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">order</span><span class="p">:</span>
+        <span class="n">axC</span><span class="o">.</span><span class="n">annotate</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">cases</span><span class="p">[</span><span class="n">s</span><span class="p">][</span><span class="s1">'freight'</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">,.1f</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                     <span class="p">(</span><span class="n">cases</span><span class="p">[</span><span class="n">s</span><span class="p">][</span><span class="s2">"years"</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">cases</span><span class="p">[</span><span class="n">s</span><span class="p">][</span><span class="s2">"freight"</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span>
+                     <span class="n">xytext</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span> <span class="n">textcoords</span><span class="o">=</span><span class="s2">"offset points"</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s2">"right"</span><span class="p">,</span>
+                     <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">scen_colour</span><span class="p">(</span><span class="n">s</span><span class="p">),</span> <span class="n">fontweight</span><span class="o">=</span><span class="s2">"bold"</span><span class="p">)</span>
+    <span class="n">axC</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">"Freight rate: what moving the cargo cost"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+                  <span class="n">color</span><span class="o">=</span><span class="n">INK</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s2">"left"</span><span class="p">)</span>
+    <span class="n">axC</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">"USD per thousand cargo-miles"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">SUBINK</span><span class="p">)</span>
+    <span class="n">axC</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">bottom</span><span class="o">=</span><span class="mf">0.</span><span class="p">)</span>
+    <span class="c1"># The rate carries what the fleet pays out and almost nothing it gets back.</span>
+    <span class="c1"># The one credit in it is the revenue an operator earns selling its OWN</span>
+    <span class="c1"># surplus compliance units - get_regulation_expenses() is remedial +</span>
+    <span class="c1"># flexibility - surplus_revenue - which is trade inside the scheme. Navigate</span>
+    <span class="c1"># has no rebate, feebate or green-fuel subsidy funded from what a regulator</span>
+    <span class="c1"># collects, so a scheme that recycled its revenue would sit lower than this.</span>
+    <span class="c1"># The note goes inside the axes: constrained_layout reserves room for a</span>
+    <span class="c1"># legend anchored with bbox_to_anchor but not for free text below an axis.</span>
+    <span class="n">axC</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">.02</span><span class="p">,</span> <span class="mf">.03</span><span class="p">,</span>
+             <span class="s2">"Carbon and compliance payments are in this rate."</span> <span class="o">+</span> <span class="nb">chr</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+             <span class="o">+</span> <span class="s2">"None of what regulators collect is paid back:"</span> <span class="o">+</span> <span class="nb">chr</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+             <span class="o">+</span> <span class="s2">"the model has no rebate or subsidy funded from it."</span><span class="p">,</span>
+             <span class="n">transform</span><span class="o">=</span><span class="n">axC</span><span class="o">.</span><span class="n">transAxes</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">SUBINK</span><span class="p">,</span>
+             <span class="n">va</span><span class="o">=</span><span class="s2">"bottom"</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s2">"left"</span><span class="p">,</span> <span class="n">linespacing</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">ax</span> <span class="ow">in</span> <span class="p">(</span><span class="n">axE</span><span class="p">,</span> <span class="n">axR</span><span class="p">,</span> <span class="n">axY</span><span class="p">,</span> <span class="n">axC</span><span class="p">):</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">steps_shown</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="n">GRID</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">.8</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_axisbelow</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">colors</span><span class="o">=</span><span class="n">TICK</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">side</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"top"</span><span class="p">,</span> <span class="s2">"right"</span><span class="p">):</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="n">side</span><span class="p">]</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">side</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"left"</span><span class="p">,</span> <span class="s2">"bottom"</span><span class="p">):</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="n">side</span><span class="p">]</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="n">AXIS</span><span class="p">)</span>
+
+    <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">"  "</span> <span class="o">+</span> <span class="s2">",  "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2"> x </span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">CHANGED</span><span class="p">),</span>
+                 <span class="n">fontsize</span><span class="o">=</span><span class="mi">9</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">SUBINK</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s2">"left"</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+    <span class="n">_fr</span> <span class="o">=</span> <span class="p">(</span><span class="n">you</span><span class="p">[</span><span class="s2">"freight"</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">ref</span><span class="p">[</span><span class="s2">"freight"</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mf">1.</span><span class="p">)</span> <span class="o">*</span> <span class="mf">100.</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"freight rate in </span><span class="si">{</span><span class="n">YEARS</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">: reference </span><span class="si">{</span><span class="n">ref</span><span class="p">[</span><span class="s1">'freight'</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">,.1f</span><span class="si">}</span><span class="s2">, "</span>
+          <span class="sa">f</span><span class="s2">"yours </span><span class="si">{</span><span class="n">you</span><span class="p">[</span><span class="s1">'freight'</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">,.1f</span><span class="si">}</span><span class="s2"> USD per thousand cargo-miles "</span>
+          <span class="sa">f</span><span class="s2">"(</span><span class="si">{</span><span class="n">_fr</span><span class="si">:</span><span class="s2">+.1f</span><span class="si">}</span><span class="s2"> %)"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"what moved most, in percentage points of the fuel mix:"</span><span class="p">)</span>
+    <span class="n">_delta</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(((</span><span class="n">you</span><span class="p">[</span><span class="s2">"mix"</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="mf">0.</span><span class="p">)</span> <span class="o">-</span> <span class="n">ref</span><span class="p">[</span><span class="s2">"mix"</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="mf">0.</span><span class="p">),</span> <span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">fuels</span><span class="p">),</span>
+                    <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">d</span><span class="p">:</span> <span class="o">-</span><span class="nb">abs</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+    <span class="k">for</span> <span class="n">_d</span><span class="p">,</span> <span class="n">_f</span> <span class="ow">in</span> <span class="n">_delta</span><span class="p">[:</span><span class="mi">5</span><span class="p">]:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">fuel_label</span><span class="p">(</span><span class="n">_f</span><span class="p">)</span><span class="si">:</span><span class="s2">28</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">_d</span><span class="si">:</span><span class="s2">+6.1f</span><span class="si">}</span><span class="s2"> pp"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Every lever is still 1.0, so this would just re-solve the reference.
+Change one of the numbers above and run this cell again.
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="do-you-want-more">
+<h2>Do you want more?<a class="headerlink" href="#do-you-want-more" title="Link to this heading">#</a></h2>
+<p>More advanced sensitivities or personalized simulations can be done by:</p>
+<ul class="simple">
+<li><p>editing the deck in <code class="docutils literal notranslate"><span class="pre">simulations/scenarios/workshop_whatif/</span></code> itself,</p></li>
+<li><p>keeping your own variants under <code class="docutils literal notranslate"><span class="pre">simulations/user/</span></code>,</p></li>
+<li><p>building a case from scratch as <a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/dev-workshop/docs/workshop/03-build-your-own-case.ipynb">notebook 3</a> describes (needs a local checkout rather than Colab)</p></li>
+<li><p>you can also check out our Horizon-zcs tool on GitHub for global sensitivity analysis (which is what we are using for our own analyses)</p></li>
+</ul>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="04-run-a-reference-scenario.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">4. Run the reference scenarios</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="references.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">References &amp; further reading</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#why-this-runs-in-a-minute-or-two">Why this runs in a minute or two</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#setup-repeat-if-starting-a-fresh-session">Setup (repeat if starting a fresh session)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#some-of-the-levers">Some of the levers</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#do-you-want-more">Do you want more?</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/workshop/05-build-your-own-whatif.ipynb.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026, Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.22.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

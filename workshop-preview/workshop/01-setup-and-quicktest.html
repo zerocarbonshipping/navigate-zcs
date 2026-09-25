@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>1. Test set-up &#8212; Navigate</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=64cc4de3f052d77215f0" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=64cc4de3f052d77215f0" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=64cc4de3f052d77215f0"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
+
+    <script src="../_static/documentation_options.js?v=7bd72466"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=fd10adb8"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'workshop/01-setup-and-quicktest';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.22.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://zerocarbonshipping.github.io/navigate-zcs/_static/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'workshop-preview';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            true;
+        </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="2. Illustrating the Navigate logic with a simple case" href="02-vessel-case-study.html" />
+    <link rel="prev" title="Workshop" href="index.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="1.0.0" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class=" navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Navigate</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class=" navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../tutorials/index.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Workshop
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../reference_manual/index.html">
+    Reference Manual
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/zerocarbonshipping/navigate-zcs" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button type="button" class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../tutorials/index.html">
+    Tutorials
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="index.html">
+    Workshop
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../reference_manual/index.html">
+    Reference Manual
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/zerocarbonshipping/navigate-zcs" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button type="button" id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active"><a aria-current="page" class="current reference internal" href="#">1. Test set-up</a></li>
+<li class="toctree-l1"><a class="reference internal" href="02-vessel-case-study.html">2. Illustrating the Navigate logic with a simple case</a></li>
+
+
+
+
+<li class="toctree-l1"><a class="reference internal" href="03-build-your-own-case.html">3. Build your own case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="04-run-a-reference-scenario.html">4. Run the reference scenarios</a></li>
+<li class="toctree-l1"><a class="reference internal" href="05-build-your-own-whatif.html">5. Change the numbers and see what moves</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References &amp; further reading</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="index.html" class="nav-link">Workshop</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">1. Test set-up</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/dev-workshop/docs/workshop/01-setup-and-quicktest.ipynb"><img alt="Open In Colab" src="https://colab.research.google.com/assets/colab-badge.svg" /></a></p>
+<section class="tex2jax_ignore mathjax_ignore" id="test-set-up">
+<h1>1. Test set-up<a class="headerlink" href="#test-set-up" title="Link to this heading">#</a></h1>
+<p>What the complete workshop covers, and how to run these notebooks either on Google
+Colab or on your own machine, are on the
+<a class="reference external" href="https://github.com/zerocarbonshipping/navigate-zcs/blob/dev-workshop/docs/workshop/index.md">workshop overview page</a>. Start there if you have not read it
+yet.</p>
+<p>This first notebook installs Navigate and checks your environment on a
+simulation that finishes in seconds.</p>
+<section id="setup">
+<h2>Setup<a class="headerlink" href="#setup" title="Link to this heading">#</a></h2>
+<p>On Google Colab or in Jupyter, click <strong>Run</strong> on the next cell to install
+Navigate. It works in either environment, and you can re-run it if you come
+back to a Colab session that has gone idle.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">importlib.metadata</span><span class="w"> </span><span class="kn">import</span> <span class="n">PackageNotFoundError</span><span class="p">,</span> <span class="n">version</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+
+<span class="c1"># The branch these notebooks live on. Colab clones THIS branch, and the</span>
+<span class="c1"># "Open in Colab" badge at the top of the notebook, like the links between the</span>
+<span class="c1"># notebooks, points at the same one. Change all of them to "main" once the</span>
+<span class="c1"># branch has been merged.</span>
+<span class="n">BRANCH</span> <span class="o">=</span> <span class="s2">"dev-workshop"</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">at_repo_root</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""True if the working directory is the root of the repository."""</span>
+    <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"navigate"</span><span class="p">)</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()</span> <span class="ow">and</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"assumptions"</span><span class="p">)</span><span class="o">.</span><span class="n">is_dir</span><span class="p">()</span>
+
+
+<span class="k">if</span> <span class="n">at_repo_root</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Already at the repository root."</span><span class="p">)</span>
+<span class="k">elif</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"../../navigate"</span><span class="p">)</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+    <span class="c1"># Local Jupyter starts the kernel in the notebook's own folder,</span>
+    <span class="c1"># docs/workshop/, but the paths in these notebooks are relative to the root.</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="s2">"../.."</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Moved up to the repository root."</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="c1"># Colab, or any other fresh environment</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"navigate-zcs"</span><span class="p">)</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+        <span class="o">!</span>git<span class="w"> </span>clone<span class="w"> </span>--depth<span class="w"> </span><span class="m">1</span><span class="w"> </span>-b<span class="w"> </span><span class="o">{</span>BRANCH<span class="o">}</span><span class="w"> </span>https://github.com/zerocarbonshipping/navigate-zcs.git
+    <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="s2">"navigate-zcs"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Cloned the repository and moved into it."</span><span class="p">)</span>
+
+<span class="k">assert</span> <span class="n">at_repo_root</span><span class="p">(),</span> <span class="sa">f</span><span class="s2">"not at the repository root: </span><span class="si">{</span><span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span>
+
+<span class="c1"># Install Navigate unless it is genuinely installed. `import navigate` is not a</span>
+<span class="c1"># usable test here: from the repository root it succeeds because the source</span>
+<span class="c1"># folder is present, which leaves the `navigate` command itself missing.</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Navigate </span><span class="si">{</span><span class="n">version</span><span class="p">(</span><span class="s1">'navigate-zcs'</span><span class="p">)</span><span class="si">}</span><span class="s2"> is already installed."</span><span class="p">)</span>
+<span class="k">except</span> <span class="n">PackageNotFoundError</span><span class="p">:</span>
+    <span class="o">%</span><span class="k">pip</span> install -q .
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Installed Navigate."</span><span class="p">)</span>
+
+<span class="o">!</span><span class="s2">"{sys.executable}"</span><span class="w"> </span>-m<span class="w"> </span>navigate<span class="w"> </span>--help
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Moved up to the repository root.
+Navigate 1.0.0 is already installed.
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span><span class=" -Color -Color-Bold -Color-Bold-Blue">usage: </span><span class=" -Color -Color-Bold -Color-Bold-Magenta">Navigate</span> [<span class=" -Color -Color-Green">-h</span>] [<span class=" -Color -Color-Green">-p</span>] [<span class=" -Color -Color-Green">-e</span>] [<span class=" -Color -Color-Green">-s</span>] [<span class=" -Color -Color-Green">-l </span><span class=" -Color -Color-Yellow">{DEBUG,INFO,WARNING,ERROR}</span>] [<span class=" -Color -Color-Green">-d </span><span class=" -Color -Color-Yellow">DIR</span>]
+                [<span class=" -Color -Color-Cyan">--solver </span><span class=" -Color -Color-Yellow">{auto,gurobi,highs}</span>] [<span class=" -Color -Color-Green">-r </span><span class=" -Color -Color-Yellow">PATH</span>]
+                <span class=" -Color -Color-Green">[PATH]</span>
+
+<span class=" -Color -Color-Bold -Color-Bold-Blue">positional arguments:</span>
+  <span class=" -Color -Color-Bold -Color-Bold-Green">PATH</span>                  Path to the .nav simulation deck to run. When combined
+                        with --replot, an optional .inc file with Plot node(s)
+                        to use instead of the plot nodes stored in the plot
+                        data.
+
+<span class=" -Color -Color-Bold -Color-Bold-Blue">options:</span>
+  <span class=" -Color -Color-Bold -Color-Bold-Green">-h</span>, <span class=" -Color -Color-Bold -Color-Bold-Cyan">--help</span>            show this help message and exit
+  <span class=" -Color -Color-Bold -Color-Bold-Green">-p</span>, <span class=" -Color -Color-Bold -Color-Bold-Cyan">--profile</span>         Profile the computational performance of the
+                        simulation. Note that this suppresses all output that
+                        is not directly related to the simulation.
+  <span class=" -Color -Color-Bold -Color-Bold-Green">-e</span>, <span class=" -Color -Color-Bold -Color-Bold-Cyan">--export-assumptions</span>
+                        Export Assumptions in an Excel format.
+  <span class=" -Color -Color-Bold -Color-Bold-Green">-s</span>, <span class=" -Color -Color-Bold -Color-Bold-Cyan">--suppress-plots</span>  Suppress the generation of plots at the end of the
+                        simulation. Note that Excel based output reports will
+                        still be generated.
+  <span class=" -Color -Color-Bold -Color-Bold-Green">-l</span>, <span class=" -Color -Color-Bold -Color-Bold-Cyan">--log-level</span> <span class=" -Color -Color-Bold -Color-Bold-Yellow">{DEBUG,INFO,WARNING,ERROR}</span>
+                        Set the level of how much output is generated for the
+                        .log file. DEBUG also prints the full traceback to the
+                        console if the run fails.
+  <span class=" -Color -Color-Bold -Color-Bold-Green">-d</span>, <span class=" -Color -Color-Bold -Color-Bold-Cyan">--data-dir</span> <span class=" -Color -Color-Bold -Color-Bold-Yellow">DIR</span>    Folder location for assumptions that may be imported.
+                        Can also be set with the environment variable
+                        'ASSUMPTIONS_DATA_DIR'
+  <span class=" -Color -Color-Bold -Color-Bold-Cyan">--solver</span> <span class=" -Color -Color-Bold -Color-Bold-Yellow">{auto,gurobi,highs}</span>
+                        Solver backend: 'auto' tries Gurobi then falls back to
+                        HiGHS, 'gurobi' prefers Gurobi (falls back to HiGHS if
+                        unlicensed), 'highs' skips Gurobi and uses HiGHS
+                        directly. Default: auto.
+  <span class=" -Color -Color-Bold -Color-Bold-Green">-r</span>, <span class=" -Color -Color-Bold -Color-Bold-Cyan">--replot</span> <span class=" -Color -Color-Bold -Color-Bold-Yellow">PATH</span>     Regenerate plots from previously exported plot data.
+                        Provide path to directory containing plot_data.pkl or
+                        to the file directly. Skips simulation. Optionally
+                        pass a .inc file with Plot node(s) as the trailing
+                        argument to use those instead of the plot nodes stored
+                        in the plot data.
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="quick-test-a-minimal-single-vessel-deck">
+<h2>Quick test: a minimal single-vessel deck<a class="headerlink" href="#quick-test-a-minimal-single-vessel-deck" title="Link to this heading">#</a></h2>
+<p>The cell below writes a deck that reproduces the minimal single-vessel example
+from <a class="reference external" href="https://zerocarbonshipping.github.io/navigate-zcs/tutorials/tutorial_1.html">Tutorial 1</a>: one vessel, one fuel and one port, run from
+2025 to 2050 to confirm that your environment works. It asks for one of that
+tutorial’s three plots, since one is enough to show the run worked.</p>
+<p>For a little context from Tutorial 1, a <strong>deck</strong> is the input to a Navigate run:
+one <code class="docutils literal notranslate"><span class="pre">.nav</span></code> file, plus the <code class="docutils literal notranslate"><span class="pre">.inc</span></code> files it includes. Navigate is the program, and
+the deck is the instructions you hand it. Every <code class="docutils literal notranslate"><span class="pre">.nav</span></code> file has the same two
+sections:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">DEFINE</span></code> sets out the nodes the simulation is made of: vessels, fuels, ports,
+routes, regulations and so on. A <strong>node</strong> is one declared thing, written as a
+type, a name in quotes, and a block of attributes.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">EVENTS</span></code> sets out the timeline: the dates the model steps through, and any
+changes to nodes along the way.</p></li>
+</ul>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+<span class="n">base</span> <span class="o">=</span> <span class="s2">"quicktest"</span>
+<span class="n">inc_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="s2">"includes"</span><span class="p">)</span>
+<span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">inc_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="s2">"quicktest.nav"</span><span class="p">),</span> <span class="s2">"w"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">'''DEFINE {</span>
+<span class="s1">    Include "./includes/define.inc"</span>
+<span class="s1">}</span>
+
+<span class="s1">EVENTS {</span>
+<span class="s1">    Include "./includes/events.inc"</span>
+<span class="s1">}</span>
+<span class="s1">'''</span><span class="p">)</span>
+
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">inc_dir</span><span class="p">,</span> <span class="s2">"define.inc"</span><span class="p">),</span> <span class="s2">"w"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">'''ModelDefinition {</span>
+<span class="s1">    StartDate = "01/01/2025"</span>
+<span class="s1">}</span>
+
+<span class="s1">Fleet "fleet" {</span>
+<span class="s1">    Vessels = [Vessel("vessel_ice_oil")]</span>
+<span class="s1">    InterFuelSensitivity = 0.5</span>
+<span class="s1">    IntraFuelSensitivity = 0.5</span>
+<span class="s1">    InitialVessels = 100</span>
+<span class="s1">}</span>
+
+<span class="s1">Vessel "vessel_ice_oil" {</span>
+<span class="s1">    PowerSystem = PowerSystem("ice_oil")</span>
+<span class="s1">    Route = Route("route")</span>
+<span class="s1">    NominalCapacity = 8000</span>
+<span class="s1">    Tanks = [Tank("main_oil")]</span>
+<span class="s1">    PropulsionLoad = 10</span>
+<span class="s1">}</span>
+
+<span class="s1">PowerSystem "ice_oil" {</span>
+<span class="s1">    Propulsion = Converter("propulsion_ice_oil")</span>
+<span class="s1">    Electrical = Converter("electrical_ice_oil")</span>
+<span class="s1">    Heat = Converter("heat_boiler_oil")</span>
+<span class="s1">}</span>
+
+<span class="s1">Converter "propulsion_ice_oil" {</span>
+<span class="s1">    PowerCapacity = 50</span>
+<span class="s1">    MainFuelTypes = OIL</span>
+<span class="s1">    Efficiency = 0.5</span>
+<span class="s1">}</span>
+
+<span class="s1">Converter "electrical_ice_oil" {</span>
+<span class="s1">    PowerCapacity = 10</span>
+<span class="s1">    MainFuelTypes = OIL</span>
+<span class="s1">    Efficiency = 0.5</span>
+<span class="s1">}</span>
+
+<span class="s1">Converter "heat_boiler_oil" {</span>
+<span class="s1">    PowerCapacity = 5</span>
+<span class="s1">    MainFuelTypes = OIL</span>
+<span class="s1">    Efficiency = 0.5</span>
+<span class="s1">}</span>
+
+<span class="s1">Tank "main_oil" {</span>
+<span class="s1">    FuelTypes = OIL</span>
+<span class="s1">    Size = 9000</span>
+<span class="s1">}</span>
+
+<span class="s1">Route "route" {</span>
+<span class="s1">    RouteType = REGIONAL_TRIP</span>
+<span class="s1">    Ports = [Port("port")]</span>
+<span class="s1">    TimeAtSea = 0.75</span>
+<span class="s1">    ConditionDistribution = [1.0]</span>
+<span class="s1">    Speeds = [10]</span>
+<span class="s1">}</span>
+
+<span class="s1">Port "port" {</span>
+<span class="s1">    set_bunker_price_overwrite("heavy_fuel_oil", 250)</span>
+<span class="s1">    set_bunker_wtt_overwrite("heavy_fuel_oil", "carbon_dioxide", 0.62)</span>
+<span class="s1">}</span>
+
+<span class="s1">BunkerLogistics {</span>
+<span class="s1">    LiquidMarketFuels = [Fuel("heavy_fuel_oil")]</span>
+<span class="s1">}</span>
+
+<span class="s1">Fuel "heavy_fuel_oil" {</span>
+<span class="s1">    FuelType = OIL</span>
+
+<span class="s1">    LowerHeatingValue = 41.2</span>
+<span class="s1">    MassDensity = 0.9</span>
+
+<span class="s1">    set_ttw("carbon_dioxide", 3.114)</span>
+<span class="s1">    set_ttw("methane", 0.00005)</span>
+<span class="s1">    set_ttw("nitrous_oxide", 0.00018)</span>
+<span class="s1">}</span>
+
+<span class="s1">Emission "carbon_dioxide" {</span>
+<span class="s1">    GlobalWarmingPotential = 1</span>
+<span class="s1">}</span>
+
+<span class="s1">Emission "methane" {</span>
+<span class="s1">    GlobalWarmingPotential = 25</span>
+<span class="s1">}</span>
+
+<span class="s1">Emission "nitrous_oxide" {</span>
+<span class="s1">    GlobalWarmingPotential = 273</span>
+<span class="s1">}</span>
+
+<span class="s1">Plot "plots" {</span>
+<span class="s1">    Directory = "./plots/"</span>
+
+<span class="s1">    add_plot("global_fuel_consumed")</span>
+<span class="s1">}</span>
+<span class="s1">'''</span><span class="p">)</span>
+
+<span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"Start</span><span class="se">\n</span><span class="s2">"</span><span class="p">]</span>
+<span class="k">for</span> <span class="n">year</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2025</span><span class="p">,</span> <span class="mi">2051</span><span class="p">):</span>
+    <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Date "01-01-</span><span class="si">{</span><span class="n">year</span><span class="si">}</span><span class="s1">"</span><span class="se">\n</span><span class="s1">'</span><span class="p">)</span>
+<span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"End</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">inc_dir</span><span class="p">,</span> <span class="s2">"events.inc"</span><span class="p">),</span> <span class="s2">"w"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">""</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">))</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Wrote"</span><span class="p">,</span> <span class="n">base</span> <span class="o">+</span> <span class="s2">"/quicktest.nav"</span><span class="p">,</span> <span class="s2">"and includes/"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Wrote quicktest/quicktest.nav and includes/
+</pre></div>
+</div>
+</div>
+</div>
+<p>Now let’s look at the results.</p>
+<p>If the next cell produces a plot, or at least a <code class="docutils literal notranslate"><span class="pre">Finished</span> <span class="pre">simulation</span></code> message
+with no errors, your environment is working and you are ready to move on to
+<a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/dev-workshop/docs/workshop/02-vessel-case-study.ipynb">notebook 2, the vessel case study</a>. The link opens it in
+Colab; if you are running locally, open it from <code class="docutils literal notranslate"><span class="pre">docs/workshop/</span></code> instead.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+
+<span class="o">%</span><span class="k">cd</span> -q quicktest
+<span class="o">!</span><span class="s2">"{sys.executable}"</span><span class="w"> </span>-m<span class="w"> </span>navigate<span class="w"> </span>quicktest.nav
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">IPython.display</span><span class="w"> </span><span class="kn">import</span> <span class="n">Image</span><span class="p">,</span> <span class="n">display</span>
+
+<span class="c1"># One plot: fuel consumed per year, stacked by fuel. Named explicitly rather</span>
+<span class="c1"># than globbed, so a plot left over from an earlier run cannot show up here.</span>
+<span class="n">display</span><span class="p">(</span><span class="n">Image</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s2">"plots/global_fuel_consumed.png"</span><span class="p">))</span>
+
+<span class="o">%</span><span class="k">cd</span> -q ..
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>——————————————————————————————————————————————————————————————————————————————————————————————————
+            |    |    |                                  .oO
+           )_)  )_)  )_)                             __/___                  _    _
+          )___))___))___)\                     _____/______|              __|_|__|_|__
+         )____)____)_____)\\           _______/_____\_______\_____      _|____________|__
+       _____|____|____|____\\\__       \              &lt; &lt; &lt;       |    |o o o o o o o o /
+~~~~~~~\                   /~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        ´´´´´´´´´´´´´´´´´´´              Navigate
+——————————————————————————————————————————————————————————————————————————————————————————————————
+        Navigate - an integrated assessment model for decarbonizing shipping
+        Developed by Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+        Version 1.0.0 - for questions, contact navigate@zerocarbonshipping.com
+Date: 2025-01-01
+Date: 2026-01-01
+Date: 2027-01-01
+Date: 2028-01-01
+Date: 2029-01-01
+Date: 2030-01-01
+Date: 2031-01-01
+Date: 2032-01-01
+Date: 2033-01-01
+Date: 2034-01-01
+Date: 2035-01-01
+Date: 2036-01-01
+Date: 2037-01-01
+Date: 2038-01-01
+Date: 2039-01-01
+Date: 2040-01-01
+Date: 2041-01-01
+Date: 2042-01-01
+Date: 2043-01-01
+Date: 2044-01-01
+Date: 2045-01-01
+Date: 2046-01-01
+Date: 2047-01-01
+Date: 2048-01-01
+Date: 2049-01-01
+Date: 2050-01-01
+Finished simulation, elapsed time: 0m and 0s.
+Finished plots, elapsed time: 0m and 0s.
+</pre></div>
+</div>
+<img alt="../_images/2eb40e66549e93e03f5242df722d1e1ca84d2219f4306023799d00d964124763.png" src="../_images/2eb40e66549e93e03f5242df722d1e1ca84d2219f4306023799d00d964124763.png" />
+</div>
+</div>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Workshop</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="02-vessel-case-study.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">2. Illustrating the Navigate logic with a simple case</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#setup">Setup</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#quick-test-a-minimal-single-vessel-deck">Quick test: a minimal single-vessel deck</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/workshop/01-setup-and-quicktest.ipynb.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026, Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.1.0.
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.22.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>
