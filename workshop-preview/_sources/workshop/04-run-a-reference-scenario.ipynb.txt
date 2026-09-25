@@ -9,9 +9,9 @@
     ">\n",
     "> [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/04-run-a-reference-scenario.ipynb)\n",
     ">\n",
-    "> In Colab the notebook opens without results: run the cells yourself, from\n",
-    "> the top (Shift+Enter runs one cell). The results shown on the documentation\n",
-    "> website come from a run made in advance."
+    "> Just click on the \"Open in Colab\" button and follow along. Click the ▶ button on each cell (or press Shift+Enter) to see the results and move on to the next one.\n",
+    ">\n",
+    "> The documentation website shows pre-run results you can check if you don't want to or can't use Colab."
    ]
   },
   {
@@ -19,12 +19,12 @@
    "id": "8bd66619",
    "metadata": {},
    "source": [
-    "# 4. Run the reference scenarios\n",
+    "# Session 4: Run our reference scenarios\n",
     "\n",
     "Navigate ships a set of **reference scenarios** under\n",
     "`simulations/scenarios/` which are full decks built and maintained by the Center,\n",
     "using its own assumptions (see\n",
-    "`simulations/scenarios/README.md`). This notebook works with three of them:\n",
+    "`simulations/scenarios/README.md`). This session works with three of them:\n",
     "\n",
     "- `basecase_no_regulation`, `basecase_mid_regulation`, `basecase_strong_regulation`\n",
     "\n",
@@ -51,7 +51,7 @@
     "cost that feeds them, the production pathways each can host, and the EU jurisdiction\n",
     "the ETS and FuelEU reach.*\n",
     "\n",
-    "This deck is different from the single-voyage illustrative case in [notebook 2](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/02-vessel-case-study.ipynb).\n",
+    "This deck is different from the single-voyage illustrative case in [Session 2](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/02-vessel-case-study.ipynb).\n",
     "One big difference is that here, 23 fleets sail 23 routes with no endpoints, and bunkering is\n",
     "aggregated into just two ports, one EU and one rest-of-world. So there is no line to\n",
     "draw across the ocean. Instead, the routes in the model represent an averaged profile for the fleet.\n",
@@ -66,7 +66,7 @@
    "id": "56382910",
    "metadata": {},
    "source": [
-    "## Setup (repeat if starting a fresh session)\n",
+    "## Setup\n",
     "\n",
     "Running this on Colab or locally? The [workshop overview](https://github.com/zerocarbonshipping/navigate-zcs/blob/dev-workshop/docs/workshop/index.md) explains both; the cell below handles either case without changes."
    ]
@@ -643,7 +643,7 @@
     "## Inspect the output plots\n",
     "\n",
     "We read `basecase_mid_regulation`'s output here; the comparison at the end of\n",
-    "this notebook puts all three scenarios together.\n",
+    "this session puts all three scenarios together.\n",
     "\n",
     "The scenario decks load `DefaultPlot`, so the exact set of plots produced\n",
     "depends on that default module — rather than assume its contents, we display\n",
@@ -1320,18 +1320,18 @@
    "id": "workshop-notebooks",
    "metadata": {},
    "source": [
-    "## Workshop notebooks\n",
+    "## Workshop sessions\n",
     "\n",
-    "**Next: [5. Change the numbers and see what moves](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/05-build-your-own-whatif.ipynb)**\n",
+    "**Next: [Session 5: Sensitivity analysis](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/05-build-your-own-whatif.ipynb)**\n",
     "\n",
     "Each link opens the notebook in Google Colab, in a fresh session, so run it\n",
     "from the top.\n",
     "\n",
     "1. [Test set-up](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/01-setup-and-quicktest.ipynb)\n",
-    "2. [Illustrating the Navigate logic with a simple case](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/02-vessel-case-study.ipynb)\n",
+    "2. [Understand the Navigate logic](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/02-vessel-case-study.ipynb)\n",
     "3. [Build your own case](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/03-build-your-own-case.ipynb) (you can read it in Colab; its prompts need Navigate installed on your own machine)\n",
-    "4. **Run the reference scenarios** (this notebook)\n",
-    "5. [Change the numbers and see what moves](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/05-build-your-own-whatif.ipynb)"
+    "4. **Run our reference scenarios** (this session)\n",
+    "5. [Sensitivity analysis](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/05-build-your-own-whatif.ipynb)"
    ]
   }
  ],

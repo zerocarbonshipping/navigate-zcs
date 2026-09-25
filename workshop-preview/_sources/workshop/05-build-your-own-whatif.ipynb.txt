@@ -9,9 +9,9 @@
     ">\n",
     "> [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/05-build-your-own-whatif.ipynb)\n",
     ">\n",
-    "> In Colab the notebook opens without results: run the cells yourself, from\n",
-    "> the top (Shift+Enter runs one cell). The results shown on the documentation\n",
-    "> website come from a run made in advance."
+    "> Just click on the \"Open in Colab\" button and follow along. Click the ▶ button on each cell (or press Shift+Enter) to see the results and move on to the next one.\n",
+    ">\n",
+    "> The documentation website shows pre-run results you can check if you don't want to or can't use Colab."
    ]
   },
   {
@@ -19,18 +19,17 @@
    "id": "intro",
    "metadata": {},
    "source": [
-    "# 5. Change the numbers and see what moves\n",
+    "# Session 5: Sensitivity analysis\n",
     "\n",
-    "[Notebook 4](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/04-run-a-reference-scenario.ipynb) ran the Center's reference scenarios exactly as they are. This one\n",
+    "[Session 4](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/04-run-a-reference-scenario.ipynb) ran the Center's reference scenarios exactly as they are. This one\n",
     "lets you change the assumptions behind one of them and watch the answer move.\n",
     "\n",
-    "```{admonition} These numbers are for comparing, not for quoting\n",
-    ":class: warning\n",
-    "The scenarios here are solved on a **coarse time grid** — eight steps instead of\n",
-    "twenty-five — which is what makes two solves fit inside a notebook. The next cell\n",
-    "explains it. Both runs use the same grid, so the *comparison* between them is\n",
-    "sound but the absolute figures are different from the Center's base simulations.\n",
-    "```"
+    "> **These numbers are for comparing, not for quoting**\n",
+    ">\n",
+    "> The scenarios here are solved on a **coarse time grid** — eight steps instead of\n",
+    "> twenty-five — which is what makes two solves fit inside a notebook. The next cell\n",
+    "> explains it. Both runs use the same grid, so the *comparison* between them is\n",
+    "> sound but the absolute figures are different from the Center's base simulations."
    ]
   },
   {
@@ -40,7 +39,7 @@
    "source": [
     "## Why this runs in a minute or two\n",
     "\n",
-    "The reference scenarios in [notebook 4](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/04-run-a-reference-scenario.ipynb) take between six and twenty-two minutes\n",
+    "The reference scenarios in [Session 4](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/04-run-a-reference-scenario.ipynb) take between six and twenty-two minutes\n",
     "each.\n",
     "To have a faster solving time, we change the `EVENTS` block in this simulation to reduce the number of time steps.\n",
     "\n",
@@ -73,7 +72,7 @@
    "id": "60a0f096",
    "metadata": {},
    "source": [
-    "## Setup (repeat if starting a fresh session)\n",
+    "## Setup\n",
     "\n",
     "Run the cell below to install Navigate, prepare the sensitivities and run a reference scenario (you can choose yours among the ones available in the simulation folder by updating the SCENARIO variable at the top of the cell below)."
    ]
@@ -735,7 +734,7 @@
     "More advanced sensitivities or personalized simulations can be done by:\n",
     "- editing the deck in `simulations/scenarios/workshop_whatif/` itself,\n",
     "- keeping your own variants under `simulations/user/`,\n",
-    "- building a case from scratch as [notebook 3](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/03-build-your-own-case.ipynb) describes (needs a local checkout rather than Colab)\n",
+    "- building a case from scratch as [Session 3](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/03-build-your-own-case.ipynb) describes (needs a local checkout rather than Colab)\n",
     "- you can also check out our Horizon-zcs tool on GitHub for global sensitivity analysis (which is what we are using for our own analyses)"
    ]
   },
@@ -744,18 +743,18 @@
    "id": "workshop-notebooks",
    "metadata": {},
    "source": [
-    "## Workshop notebooks\n",
+    "## Workshop sessions\n",
     "\n",
-    "This is the last notebook of the workshop.\n",
+    "This is the last session of the workshop.\n",
     "\n",
     "Each link opens the notebook in Google Colab, in a fresh session, so run it\n",
     "from the top.\n",
     "\n",
     "1. [Test set-up](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/01-setup-and-quicktest.ipynb)\n",
-    "2. [Illustrating the Navigate logic with a simple case](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/02-vessel-case-study.ipynb)\n",
+    "2. [Understand the Navigate logic](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/02-vessel-case-study.ipynb)\n",
     "3. [Build your own case](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/03-build-your-own-case.ipynb) (you can read it in Colab; its prompts need Navigate installed on your own machine)\n",
-    "4. [Run the reference scenarios](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/04-run-a-reference-scenario.ipynb)\n",
-    "5. **Change the numbers and see what moves** (this notebook)"
+    "4. [Run our reference scenarios](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/04-run-a-reference-scenario.ipynb)\n",
+    "5. **Sensitivity analysis** (this session)"
    ]
   }
  ],

@@ -7,7 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>4. Run the reference scenarios &#8212; Navigate</title>
+    <title>Session 4: Run our reference scenarios &#8212; Navigate</title>
   
   
   
@@ -55,10 +55,12 @@
             true;
         </script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../_static/colab-links.js?v=e09c4b8f"></script>
+    <script src="../_static/version-banner.js?v=bdf8961d"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="5. Change the numbers and see what moves" href="05-build-your-own-whatif.html" />
-    <link rel="prev" title="3. Build your own case" href="03-build-your-own-case.html" />
+    <link rel="next" title="Session 5: Sensitivity analysis" href="05-build-your-own-whatif.html" />
+    <link rel="prev" title="Session 3: Build your own case" href="03-build-your-own-case.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="1.0.0" />
@@ -376,15 +378,15 @@
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="01-setup-and-quicktest.html">1. Test set-up</a></li>
-<li class="toctree-l1"><a class="reference internal" href="02-vessel-case-study.html">2. Illustrating the Navigate logic with a simple case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="01-setup-and-quicktest.html">Session 1: Test set-up</a></li>
+<li class="toctree-l1"><a class="reference internal" href="02-vessel-case-study.html">Session 2: Understand the Navigate logic</a></li>
 
 
 
 
-<li class="toctree-l1"><a class="reference internal" href="03-build-your-own-case.html">3. Build your own case</a></li>
-<li class="toctree-l1 current active"><a aria-current="page" class="current reference internal" href="#">4. Run the reference scenarios</a></li>
-<li class="toctree-l1"><a class="reference internal" href="05-build-your-own-whatif.html">5. Change the numbers and see what moves</a></li>
+<li class="toctree-l1"><a class="reference internal" href="03-build-your-own-case.html">Session 3: Build your own case</a></li>
+<li class="toctree-l1 current active"><a aria-current="page" class="current reference internal" href="#">Session 4: Run our reference scenarios</a></li>
+<li class="toctree-l1"><a class="reference internal" href="05-build-your-own-whatif.html">Session 5: Sensitivity analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References &amp; further reading</a></li>
 </ul>
 </div>
@@ -429,7 +431,7 @@
     
     <li class="breadcrumb-item"><a href="index.html" class="nav-link">Workshop</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">4. Run the reference scenarios</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Session 4: Run our reference scenarios</span></li>
   </ul>
 </nav>
 </div>
@@ -449,16 +451,15 @@
   <blockquote>
 <div><p><strong>Recommended: run this notebook in Google Colab, nothing to install.</strong></p>
 <p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/04-run-a-reference-scenario.ipynb"><img alt="Open In Colab" src="https://colab.research.google.com/assets/colab-badge.svg" /></a></p>
-<p>In Colab the notebook opens without results: run the cells yourself, from
-the top (Shift+Enter runs one cell). The results shown on the documentation
-website come from a run made in advance.</p>
+<p>Just click on the “Open in Colab” button and follow along. Click the ▶ button on each cell (or press Shift+Enter) to see the results and move on to the next one.</p>
+<p>The documentation website shows pre-run results you can check if you don’t want to or can’t use Colab.</p>
 </div></blockquote>
-<section class="tex2jax_ignore mathjax_ignore" id="run-the-reference-scenarios">
-<h1>4. Run the reference scenarios<a class="headerlink" href="#run-the-reference-scenarios" title="Link to this heading">#</a></h1>
+<section class="tex2jax_ignore mathjax_ignore" id="session-4-run-our-reference-scenarios">
+<h1>Session 4: Run our reference scenarios<a class="headerlink" href="#session-4-run-our-reference-scenarios" title="Link to this heading">#</a></h1>
 <p>Navigate ships a set of <strong>reference scenarios</strong> under
 <code class="docutils literal notranslate"><span class="pre">simulations/scenarios/</span></code> which are full decks built and maintained by the Center,
 using its own assumptions (see
-<code class="docutils literal notranslate"><span class="pre">simulations/scenarios/README.md</span></code>). This notebook works with three of them:</p>
+<code class="docutils literal notranslate"><span class="pre">simulations/scenarios/README.md</span></code>). This session works with three of them:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">basecase_no_regulation</span></code>, <code class="docutils literal notranslate"><span class="pre">basecase_mid_regulation</span></code>, <code class="docutils literal notranslate"><span class="pre">basecase_strong_regulation</span></code></p></li>
 </ul>
@@ -470,14 +471,14 @@ Global-Fuel-Standard-style mechanism named <code class="docutils literal notrans
 <p><em>The reference scenario’s geography: five fuel-supply regions, the 2050 electricity
 cost that feeds them, the production pathways each can host, and the EU jurisdiction
 the ETS and FuelEU reach.</em></p>
-<p>This deck is different from the single-voyage illustrative case in <a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/02-vessel-case-study.ipynb">notebook 2</a>.
+<p>This deck is different from the single-voyage illustrative case in <a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/02-vessel-case-study.ipynb">Session 2</a>.
 One big difference is that here, 23 fleets sail 23 routes with no endpoints, and bunkering is
 aggregated into just two ports, one EU and one rest-of-world. So there is no line to
 draw across the ocean. Instead, the routes in the model represent an averaged profile for the fleet.</p>
 <p>The 84 plants in the deck are 18 production pathways replicated across five regions, less the six region-pathway combinations the deck leaves out. The difference between the copies is basically the cost of the electricity (the Middle East and Africa end up cheapest, Europe dearest, a spread of about 21 USD/MWh by 2050). Fuel logistics are not part of this simulation. The deck still loads <code class="docutils literal notranslate"><span class="pre">DefaultBunkerLogistics</span></code>, which sets no region-to-port distances, so all ten region-port pairs default to zero nautical miles at zero cost per ton-mile. Thus, for a world-level scenario, it is assumed that every region is equally close to both simulated ports.</p>
 <p>Or in other words: geography does not really matter in this simulation.</p>
-<section id="setup-repeat-if-starting-a-fresh-session">
-<h2>Setup (repeat if starting a fresh session)<a class="headerlink" href="#setup-repeat-if-starting-a-fresh-session" title="Link to this heading">#</a></h2>
+<section id="setup">
+<h2>Setup<a class="headerlink" href="#setup" title="Link to this heading">#</a></h2>
 <p>Running this on Colab or locally? The <a class="reference external" href="https://github.com/zerocarbonshipping/navigate-zcs/blob/dev-workshop/docs/workshop/index.md">workshop overview</a> explains both; the cell below handles either case without changes.</p>
 <div class="cell tag_hide-input docutils container">
 <details class="admonition hide above-input">
@@ -936,7 +937,7 @@ waiting for all three to finish ...
 <section id="inspect-the-output-plots">
 <h2>Inspect the output plots<a class="headerlink" href="#inspect-the-output-plots" title="Link to this heading">#</a></h2>
 <p>We read <code class="docutils literal notranslate"><span class="pre">basecase_mid_regulation</span></code>’s output here; the comparison at the end of
-this notebook puts all three scenarios together.</p>
+this session puts all three scenarios together.</p>
 <p>The scenario decks load <code class="docutils literal notranslate"><span class="pre">DefaultPlot</span></code>, so the exact set of plots produced
 depends on that default module — rather than assume its contents, we display
 whatever image files land in the scenario’s <code class="docutils literal notranslate"><span class="pre">plots/</span></code> folder. Every plot label
@@ -1290,17 +1291,17 @@ attributable to regulatory stringency alone.</p>
 </div>
 </div>
 </section>
-<section id="workshop-notebooks">
-<h2>Workshop notebooks<a class="headerlink" href="#workshop-notebooks" title="Link to this heading">#</a></h2>
-<p><strong>Next: <a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/05-build-your-own-whatif.ipynb">5. Change the numbers and see what moves</a></strong></p>
+<section id="workshop-sessions">
+<h2>Workshop sessions<a class="headerlink" href="#workshop-sessions" title="Link to this heading">#</a></h2>
+<p><strong>Next: <a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/05-build-your-own-whatif.ipynb">Session 5: Sensitivity analysis</a></strong></p>
 <p>Each link opens the notebook in Google Colab, in a fresh session, so run it
 from the top.</p>
 <ol class="arabic simple">
 <li><p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/01-setup-and-quicktest.ipynb">Test set-up</a></p></li>
-<li><p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/02-vessel-case-study.ipynb">Illustrating the Navigate logic with a simple case</a></p></li>
+<li><p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/02-vessel-case-study.ipynb">Understand the Navigate logic</a></p></li>
 <li><p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/03-build-your-own-case.ipynb">Build your own case</a> (you can read it in Colab; its prompts need Navigate installed on your own machine)</p></li>
-<li><p><strong>Run the reference scenarios</strong> (this notebook)</p></li>
-<li><p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/05-build-your-own-whatif.ipynb">Change the numbers and see what moves</a></p></li>
+<li><p><strong>Run our reference scenarios</strong> (this session)</p></li>
+<li><p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/05-build-your-own-whatif.ipynb">Sensitivity analysis</a></p></li>
 </ol>
 </section>
 </section>
@@ -1321,7 +1322,7 @@ from the top.</p>
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">3. Build your own case</p>
+        <p class="prev-next-title">Session 3: Build your own case</p>
       </div>
     </a>
     <a class="right-next"
@@ -1329,7 +1330,7 @@ from the top.</p>
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">5. Change the numbers and see what moves</p>
+        <p class="prev-next-title">Session 5: Sensitivity analysis</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -1352,14 +1353,14 @@ from the top.</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#setup-repeat-if-starting-a-fresh-session">Setup (repeat if starting a fresh session)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#setup">Setup</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#see-what-scenarios-are-available">See what scenarios are available</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#a-first-look-at-the-different-scenarios">A first look at the different scenarios</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#run-the-scenarios">Run the scenarios</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#inspect-the-output-plots">Inspect the output plots</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#inspect-the-exported-assumptions">Inspect the exported assumptions</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#compare-the-three-scenarios">Compare the three scenarios</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#workshop-notebooks">Workshop notebooks</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#workshop-sessions">Workshop sessions</a></li>
 </ul>
   </nav></div>
 

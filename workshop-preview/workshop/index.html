@@ -55,9 +55,11 @@
             true;
         </script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../_static/colab-links.js?v=e09c4b8f"></script>
+    <script src="../_static/version-banner.js?v=bdf8961d"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="1. Test set-up" href="01-setup-and-quicktest.html" />
+    <link rel="next" title="Session 1: Test set-up" href="01-setup-and-quicktest.html" />
     <link rel="prev" title="Tutorial 3" href="../tutorials/tutorial_3.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
@@ -376,15 +378,15 @@
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="01-setup-and-quicktest.html">1. Test set-up</a></li>
-<li class="toctree-l1"><a class="reference internal" href="02-vessel-case-study.html">2. Illustrating the Navigate logic with a simple case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="01-setup-and-quicktest.html">Session 1: Test set-up</a></li>
+<li class="toctree-l1"><a class="reference internal" href="02-vessel-case-study.html">Session 2: Understand the Navigate logic</a></li>
 
 
 
 
-<li class="toctree-l1"><a class="reference internal" href="03-build-your-own-case.html">3. Build your own case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="04-run-a-reference-scenario.html">4. Run the reference scenarios</a></li>
-<li class="toctree-l1"><a class="reference internal" href="05-build-your-own-whatif.html">5. Change the numbers and see what moves</a></li>
+<li class="toctree-l1"><a class="reference internal" href="03-build-your-own-case.html">Session 3: Build your own case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="04-run-a-reference-scenario.html">Session 4: Run our reference scenarios</a></li>
+<li class="toctree-l1"><a class="reference internal" href="05-build-your-own-whatif.html">Session 5: Sensitivity analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References &amp; further reading</a></li>
 </ul>
 </div>
@@ -449,65 +451,40 @@ SPDX-License-Identifier: CC-BY-4.0
 -->
 <section class="tex2jax_ignore mathjax_ignore" id="workshop">
 <h1>Workshop<a class="headerlink" href="#workshop" title="Link to this heading">#</a></h1>
-<p>The aim of this workshop is to work through practical cases with the Navigate
-model, so that you get a sense of:</p>
+<p>The aim of this workshop is to work through practical cases with the Navigate model to get a sense of:</p>
 <ul class="simple">
-<li><p>how the model works;</p></li>
-<li><p>how its input data are organised, and how those inputs shape the results;</p></li>
-<li><p>how the model can be used in practice, for example to analyse how a
-regulatory proposal may change shipping’s decarbonisation pathways.</p></li>
+<li><p>how to create a model</p></li>
+<li><p>what type of data are used in the model and how they are organised</p></li>
+<li><p>how the model works and how inputs shape the results</p></li>
+<li><p>how the model can be used in practice</p></li>
 </ul>
-<p>The workshop works from guided use of the model rather than from theory.
-It starts with one simple case that is used to understand the model logic
-(<a class="reference internal" href="02-vessel-case-study.html"><span class="std std-doc">notebook 2</span></a>), hands you prompts for building a simple
-case of your own (<a class="reference internal" href="03-build-your-own-case.html"><span class="std std-doc">notebook 3</span></a>), shows you some of the
-Center’s reference scenarios (<a class="reference internal" href="04-run-a-reference-scenario.html"><span class="std std-doc">notebook 4</span></a>), and
-ends with you moving the assumptions behind them and re-solving
-(<a class="reference internal" href="05-build-your-own-whatif.html"><span class="std std-doc">notebook 5</span></a>).</p>
-<p>To understand how Navigate itself is built in detail,
-node by node, follow the <a class="reference internal" href="../tutorials/index.html"><span class="std std-doc">Tutorials</span></a> and check our
-<a class="reference internal" href="../reference_manual/index.html"><span class="std std-doc">Reference Manual</span></a>.</p>
 <section id="what-you-ll-do">
 <h2>What you’ll do<a class="headerlink" href="#what-you-ll-do" title="Link to this heading">#</a></h2>
 <ol class="arabic simple">
-<li><p><strong>Get introduced and set up</strong>: sanity-check your environment with a tiny,
-fast-running deck.</p></li>
-<li><p><strong>Work one trade end to end</strong>, a fleet of Panamax bulk carriers hauling
-copper from Chile to Rotterdam: build the deck, see how its input data is
-organised, watch Navigate take one time step decision by decision, read
-twenty-five years of results, then run some sensitivities.</p></li>
-<li><p><strong>Have an assistant build a case for you</strong>: prompts that turn a description of
-a fleet and a trade into a working deck, and how to run what comes back.</p></li>
-<li><p><strong>Run the reference scenarios</strong> end to end, read Navigate’s own output plots
-and the assumptions workbook a run exports, and compare three levels of
-regulatory stringency to see how each one changes the transition pathway.</p></li>
-<li><p><strong>Change the numbers yourself, at global scale</strong>: pick one of four reference
-decks, one per regulatory world, move the assumptions behind it — fuel
-prices, carbon price, regulatory stringency, how much green fuel can be made
-— and put your version beside the original, the same way
-<a class="reference internal" href="02-vessel-case-study.html"><span class="std std-doc">notebook 2</span></a> does it but on the whole world
-fleet.</p></li>
+<li><p><strong>Get introduced and set up</strong>: sanity-check your environment with a tiny, fast-running deck (<a class="reference internal" href="01-setup-and-quicktest.html"><span class="std std-doc">Session 1</span></a>)</p></li>
+<li><p><strong>Understand the model logic</strong>, with a simple case (<a class="reference internal" href="02-vessel-case-study.html"><span class="std std-doc">Session 2</span></a>)</p></li>
+<li><p><strong>Build your own case with an AI assistant</strong>: example prompts that turn a description of your case into a working model (<a class="reference internal" href="03-build-your-own-case.html"><span class="std std-doc">Session 3</span></a>)</p></li>
+<li><p><strong>Run our reference scenarios</strong>: pre-made assumptions set and models maintained by the Center (<a class="reference internal" href="04-run-a-reference-scenario.html"><span class="std std-doc">Session 4</span></a>)</p></li>
+<li><p><strong>Simple sensitivity analysis</strong>: pick one of four reference
+cases, move some of the assumptions behind it (fuel
+prices, regulatory stringency,…) and see how results change (<a class="reference internal" href="05-build-your-own-whatif.html"><span class="std std-doc">Session 5</span></a>)</p></li>
 </ol>
+<p>To understand the details behind Navigate you can also check our <a class="reference internal" href="../tutorials/index.html"><span class="std std-doc">Tutorials</span></a> and
+<a class="reference internal" href="../reference_manual/index.html"><span class="std std-doc">Reference Manual</span></a>.</p>
 </section>
 <section id="how-to-run-the-workshop-material">
 <h2>How to run the workshop material<a class="headerlink" href="#how-to-run-the-workshop-material" title="Link to this heading">#</a></h2>
 <section id="option-1-recommended-google-colab-nothing-to-install">
 <h3>Option 1 (recommended): Google Colab, nothing to install<a class="headerlink" href="#option-1-recommended-google-colab-nothing-to-install" title="Link to this heading">#</a></h3>
-<p>Every notebook here except <a class="reference internal" href="03-build-your-own-case.html"><span class="std std-doc">notebook 3</span></a> opens with an
-<strong>Open in Colab</strong> badge.
-Click it and the notebook runs in your browser on Google’s machines: no Python,
-no installation, nothing on your laptop. You need a free Google account. The
-notebook clones this repository and installs Navigate for you as its first
-step. Notebook 3 is the exception because it has an assistant write a deck into
-this repository, which needs Navigate on your own machine.</p>
-<p>One Colab habit is worth knowing: a session is discarded after a period of
+<p>Every session here except <a class="reference internal" href="03-build-your-own-case.html"><span class="std std-doc">Session 3</span></a> opens with an <strong>Open in Colab</strong> badge. Click it and the notebook runs in your browser: no installation, nothing on your laptop. You need a free Google account to use it.</p>
+<p>For Session 3 you will need to install Navigate on your own machine.</p>
+<p>Note for Colab: a session is discarded after a period of
 inactivity. If cells suddenly start failing on imports or missing files,
 re-run the cells at the top.</p>
 </section>
 <section id="option-2-locally-no-google-account-needed">
 <h3>Option 2: locally, no Google account needed<a class="headerlink" href="#option-2-locally-no-google-account-needed" title="Link to this heading">#</a></h3>
-<p>If you would rather not use Google Colab, run the notebooks on your own machine
-with Jupyter. You need <strong>Python 3.12 or newer</strong>.</p>
+<p>If you would rather not use Google Colab, run the notebooks on your own machine with Jupyter. You need <strong>Python 3.12 or newer</strong> installed.</p>
 <p>To open a terminal: on <strong>Windows</strong> press Start and type <code class="docutils literal notranslate"><span class="pre">PowerShell</span></code>, then
 Enter; on <strong>macOS</strong> press Cmd+Space and type <code class="docutils literal notranslate"><span class="pre">Terminal</span></code>; on <strong>Linux</strong> press
 Ctrl+Alt+T. Then run these commands, one at a time:</p>
@@ -521,11 +498,6 @@ jupyter<span class="w"> </span>lab
 <p>The last command opens Jupyter in your browser. From there, open
 <code class="docutils literal notranslate"><span class="pre">docs/workshop/</span></code> and start with the first notebook. No Google account is
 involved at any point.</p>
-<p>If <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">.</span></code> fails, the main
-<a class="reference external" href="https://github.com/zerocarbonshipping/navigate-zcs#installation">README</a>
-covers installation, including the two errors that commonly come up on
-Windows: a blocked PowerShell script, and an <code class="docutils literal notranslate"><span class="pre">Access</span> <span class="pre">is</span> <span class="pre">denied</span></code> from
-<code class="docutils literal notranslate"><span class="pre">pip.exe</span></code>.</p>
 </section>
 </section>
 <section id="disclaimer">
@@ -535,15 +507,15 @@ analysis. Outputs depend on the assumptions selected and should not be
 interpreted as forecasts, benchmarks, recommendations, or investment advice.</p>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="01-setup-and-quicktest.html">1. Test set-up</a></li>
-<li class="toctree-l1"><a class="reference internal" href="02-vessel-case-study.html">2. Illustrating the Navigate logic with a simple case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="01-setup-and-quicktest.html">Session 1: Test set-up</a></li>
+<li class="toctree-l1"><a class="reference internal" href="02-vessel-case-study.html">Session 2: Understand the Navigate logic</a></li>
 <li class="toctree-l1"><a class="reference internal" href="02-vessel-case-study.html#part-1-build-the-deck">Part 1: Build the deck</a></li>
 <li class="toctree-l1"><a class="reference internal" href="02-vessel-case-study.html#part-2-explore-the-input-data">Part 2: Explore the input data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="02-vessel-case-study.html#part-3-understand-the-logic-behind-the-model">Part 3: Understand the logic behind the model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="02-vessel-case-study.html#part-4-sensitivity-analysis">Part 4: Sensitivity analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="03-build-your-own-case.html">3. Build your own case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="04-run-a-reference-scenario.html">4. Run the reference scenarios</a></li>
-<li class="toctree-l1"><a class="reference internal" href="05-build-your-own-whatif.html">5. Change the numbers and see what moves</a></li>
+<li class="toctree-l1"><a class="reference internal" href="03-build-your-own-case.html">Session 3: Build your own case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="04-run-a-reference-scenario.html">Session 4: Run our reference scenarios</a></li>
+<li class="toctree-l1"><a class="reference internal" href="05-build-your-own-whatif.html">Session 5: Sensitivity analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References &amp; further reading</a></li>
 </ul>
 </div>
@@ -574,7 +546,7 @@ interpreted as forecasts, benchmarks, recommendations, or investment advice.</p>
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">1. Test set-up</p>
+        <p class="prev-next-title">Session 1: Test set-up</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>

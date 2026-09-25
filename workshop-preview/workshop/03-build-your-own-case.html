@@ -7,7 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>3. Build your own case &#8212; Navigate</title>
+    <title>Session 3: Build your own case &#8212; Navigate</title>
   
   
   
@@ -55,10 +55,12 @@
             true;
         </script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <script src="../_static/colab-links.js?v=e09c4b8f"></script>
+    <script src="../_static/version-banner.js?v=bdf8961d"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="4. Run the reference scenarios" href="04-run-a-reference-scenario.html" />
-    <link rel="prev" title="2. Illustrating the Navigate logic with a simple case" href="02-vessel-case-study.html" />
+    <link rel="next" title="Session 4: Run our reference scenarios" href="04-run-a-reference-scenario.html" />
+    <link rel="prev" title="Session 2: Understand the Navigate logic" href="02-vessel-case-study.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="1.0.0" />
@@ -376,15 +378,15 @@
      aria-label="Section Navigation">
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="01-setup-and-quicktest.html">1. Test set-up</a></li>
-<li class="toctree-l1"><a class="reference internal" href="02-vessel-case-study.html">2. Illustrating the Navigate logic with a simple case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="01-setup-and-quicktest.html">Session 1: Test set-up</a></li>
+<li class="toctree-l1"><a class="reference internal" href="02-vessel-case-study.html">Session 2: Understand the Navigate logic</a></li>
 
 
 
 
-<li class="toctree-l1 current active"><a aria-current="page" class="current reference internal" href="#">3. Build your own case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="04-run-a-reference-scenario.html">4. Run the reference scenarios</a></li>
-<li class="toctree-l1"><a class="reference internal" href="05-build-your-own-whatif.html">5. Change the numbers and see what moves</a></li>
+<li class="toctree-l1 current active"><a aria-current="page" class="current reference internal" href="#">Session 3: Build your own case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="04-run-a-reference-scenario.html">Session 4: Run our reference scenarios</a></li>
+<li class="toctree-l1"><a class="reference internal" href="05-build-your-own-whatif.html">Session 5: Sensitivity analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References &amp; further reading</a></li>
 </ul>
 </div>
@@ -429,7 +431,7 @@
     
     <li class="breadcrumb-item"><a href="index.html" class="nav-link">Workshop</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">3. Build your own case</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Session 3: Build your own case</span></li>
   </ul>
 </nav>
 </div>
@@ -446,16 +448,16 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section class="tex2jax_ignore mathjax_ignore" id="build-your-own-case">
-<h1>3. Build your own case<a class="headerlink" href="#build-your-own-case" title="Link to this heading">#</a></h1>
+  <section class="tex2jax_ignore mathjax_ignore" id="session-3-build-your-own-case">
+<h1>Session 3: Build your own case<a class="headerlink" href="#session-3-build-your-own-case" title="Link to this heading">#</a></h1>
 <p><strong>This part of the workshop needs Navigate installed on your own machine.</strong> If you have not set that up yet, work through <a class="reference external" href="https://zerocarbonshipping.github.io/navigate-zcs/tutorials/getting_started.html">Setting up Navigate</a> first.</p>
 <p>Some of the decks in this repository and part of this workshop were written with the help of an AI coding assistant. You can do the same: describe the case you want and let the assistant write a first-shot deck.</p>
-<p>This notebook is about <strong>prompting and running what comes back</strong>. It does not build a
+<p>This session is about <strong>prompting and running what comes back</strong>. It does not build a
 simulation itself (you have to do it).</p>
 <p>Put whatever you generate under <code class="docutils literal notranslate"><span class="pre">simulations/user/</span></code>. That folder is gitignored,
 so your experiments will not show up as changes to the repository.</p>
-<div class="warning admonition">
-<p class="admonition-title">Read this before you use any of it</p>
+<blockquote>
+<div><p><strong>Read this before you use any of it</strong></p>
 <p><strong>A prompt gets you a structure, not an answer.</strong> What comes back will run, and
 running is the easy part. Whether it means anything is on you. Each prompt below
 was tested here by following it and running the deck it produced — the Arabian
@@ -478,7 +480,7 @@ on a map. So when your deck says “Ras Tanura to Ningbo”, those names and tha
 distance are things <em>you</em> (or the AI assistant) supplied; the operating pattern underneath is still a
 global average for the class. The same goes for default fuel prices (<code class="docutils literal notranslate"><span class="pre">fossil_fuel_oil_price_global</span></code>), fleet age distributions, orderbooks, and feedstock availability.</p>
 <p><strong>So a case you build here is a structure to think with, not a study of a trade.</strong></p>
-</div>
+</div></blockquote>
 <section id="three-prompts">
 <h2>Three prompts<a class="headerlink" href="#three-prompts" title="Link to this heading">#</a></h2>
 <p>We propose here three example prompts that lead to a working Navigate deck.
@@ -640,7 +642,7 @@ me, and wait for me to approve it before building anything.
 <ul class="simple">
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">-d</span> <span class="pre">./assumptions</span></code> is needed</strong> whenever the deck uses <code class="docutils literal notranslate"><span class="pre">Load</span></code>, <code class="docutils literal notranslate"><span class="pre">Import</span></code> or
 <code class="docutils literal notranslate"><span class="pre">Copy</span></code> — which any deck built on the library does. A fully self-contained deck
-like <code class="docutils literal notranslate"><span class="pre">quicktest</span></code> from <a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/01-setup-and-quicktest.ipynb">notebook 1</a> needs no <code class="docutils literal notranslate"><span class="pre">-d</span></code> at all.</p></li>
+like <code class="docutils literal notranslate"><span class="pre">quicktest</span></code> from <a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/01-setup-and-quicktest.ipynb">Session 1</a> needs no <code class="docutils literal notranslate"><span class="pre">-d</span></code> at all.</p></li>
 <li><p><strong>Output lands next to the deck</strong>, not in your working directory. Navigate
 resolves the deck path first and writes everything relative to that.</p></li>
 </ul>
@@ -671,29 +673,29 @@ them: <code class="docutils literal notranslate"><span class="pre">&lt;deck&gt;.
 appear is set by the <code class="docutils literal notranslate"><span class="pre">add_plot(&quot;...&quot;)</span></code> calls in the deck; the full list of labels
 is in the appendix of the reference manual’s
 <a class="reference external" href="https://zerocarbonshipping.github.io/navigate-zcs/reference_manual/plot.html">Plot page</a>.</p>
-<div class="note admonition">
-<p class="admonition-title">Old plots are not cleared</p>
+<blockquote>
+<div><p><strong>Old plots are not cleared</strong></p>
 <p>Navigate overwrites a chart it regenerates but never deletes one it no longer
 produces, so a PNG from an earlier configuration can sit in the folder looking
 exactly as current as the rest. Delete the folder before a re-run if you have
 changed which plots the deck asks for.</p>
-</div>
+</div></blockquote>
 <p>If the run finishes without errors, check the <code class="docutils literal notranslate"><span class="pre">Log</span> <span class="pre">summary</span></code> table at the foot of
 <code class="docutils literal notranslate"><span class="pre">&lt;deck&gt;.log</span></code>: it counts warnings and errors, and is the quickest way to tell a
 clean run from one that merely completed.</p>
 </section>
 </section>
-<section id="workshop-notebooks">
-<h2>Workshop notebooks<a class="headerlink" href="#workshop-notebooks" title="Link to this heading">#</a></h2>
-<p><strong>Next: <a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/04-run-a-reference-scenario.ipynb">4. Run the reference scenarios</a></strong></p>
+<section id="workshop-sessions">
+<h2>Workshop sessions<a class="headerlink" href="#workshop-sessions" title="Link to this heading">#</a></h2>
+<p><strong>Next: <a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/04-run-a-reference-scenario.ipynb">Session 4: Run our reference scenarios</a></strong></p>
 <p>Each link opens the notebook in Google Colab, in a fresh session, so run it
 from the top.</p>
 <ol class="arabic simple">
 <li><p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/01-setup-and-quicktest.ipynb">Test set-up</a></p></li>
-<li><p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/02-vessel-case-study.ipynb">Illustrating the Navigate logic with a simple case</a></p></li>
-<li><p><strong>Build your own case</strong> (this notebook)</p></li>
-<li><p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/04-run-a-reference-scenario.ipynb">Run the reference scenarios</a></p></li>
-<li><p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/05-build-your-own-whatif.ipynb">Change the numbers and see what moves</a></p></li>
+<li><p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/02-vessel-case-study.ipynb">Understand the Navigate logic</a></p></li>
+<li><p><strong>Build your own case</strong> (this session)</p></li>
+<li><p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/04-run-a-reference-scenario.ipynb">Run our reference scenarios</a></p></li>
+<li><p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/05-build-your-own-whatif.ipynb">Sensitivity analysis</a></p></li>
 </ol>
 </section>
 </section>
@@ -714,7 +716,7 @@ from the top.</p>
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">2. Illustrating the Navigate logic with a simple case</p>
+        <p class="prev-next-title">Session 2: Understand the Navigate logic</p>
       </div>
     </a>
     <a class="right-next"
@@ -722,7 +724,7 @@ from the top.</p>
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">4. Run the reference scenarios</p>
+        <p class="prev-next-title">Session 4: Run our reference scenarios</p>
       </div>
       <i class="fa-solid fa-angle-right"></i>
     </a>
@@ -756,7 +758,7 @@ from the top.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#where-the-plots-are">Where the plots are</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#workshop-notebooks">Workshop notebooks</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#workshop-sessions">Workshop sessions</a></li>
 </ul>
   </nav></div>
 
