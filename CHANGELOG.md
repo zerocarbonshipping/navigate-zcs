@@ -132,6 +132,11 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - **Breaking** for code importing navigate as a library:
   `command_assignment_to_tuple_dict` loses its `symmetric` flag, which nothing
   assigned.
+- **Breaking** for code importing navigate as a library: `assign_value`,
+  `assign_list`, `command_assignment_to_dict` and `command_assignment_to_tuple_dict`
+  lose their `date` parameter; the start date is validated by the new
+  `assign_date`. `as_scalar` drops its `int` and `bool` overloads, which no
+  setter used. Results and deck error messages are unchanged.
 - A bound the deck writes is reported against its own line: an unaccepted one
   reads `only allows assignment of scalars, -INF or INF, but got X` rather
   than `does not accept ID 'X'`, which named neither the keywords nor the

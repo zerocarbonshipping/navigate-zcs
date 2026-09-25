@@ -123,7 +123,6 @@ def assign_integer(
 def assign_value[T: Assignment](
     assignment: T,
     scalar: bool = True,
-    date: bool = False,
     type_: AcceptedNodeTypes = None,
     lower: float = -np.inf,
     upper: float = np.inf,
@@ -145,8 +144,6 @@ def assign_value[T: Assignment](
         The value passed to the setter.
     scalar
         Whether the setter accepts scalars.
-    date
-        Whether the setter accepts dates.
     type_
         The node type(s) the attribute accepts a reference to.
     lower
@@ -169,7 +166,7 @@ def assign_value[T: Assignment](
     """
     if isinstance(assignment, Expression):
         if not (expression and _evaluates(scalar, type_)):
-            raise ValueError(_failed_value_message(assignment, scalar, date, type_))
+            raise ValueError(_failed_value_message(assignment, scalar, type_))
 
         assignment.set_allowed_types(type_)
         assignment.set_internal_bounds(lower, upper)
@@ -186,8 +183,8 @@ def assign_value[T: Assignment](
         # only reference kind the attribute bounds have anything to clip
         if is_calculator(assignment):
             assignment.set_internal_bounds(lower, upper)
-    elif not (date and isinstance(assignment, np.datetime64)):
-        raise ValueError(_failed_value_message(assignment, scalar, date, type_))
+    else:
+        raise ValueError(_failed_value_message(assignment, scalar, type_))
 
     return assignment
 
@@ -197,7 +194,6 @@ def assign_list[T: Assignment](
     length: ListLength = None,
     unique: bool = False,
     scalar: bool = True,
-    date: bool = False,
     type_: AcceptedNodeTypes = None,
     lower: float = -np.inf,
     upper: float = np.inf,
@@ -222,8 +218,6 @@ def assign_list[T: Assignment](
         Whether all entries in the list must be unique.
     scalar
         Whether the setter accepts scalars.
-    date
-        Whether the setter accepts dates.
     type_
         The node type(s) the attribute accepts a reference to.
     lower
@@ -253,7 +247,6 @@ def assign_list[T: Assignment](
         assign_value(
             value,
             scalar,
-            date,
             type_,
             lower,
             upper,
@@ -286,6 +279,26 @@ def assign_boolean(assignment: str) -> bool:
         return _BOOL_ID[assignment]
     except KeyError:
         raise ValueError(_only_allows("TRUE or FALSE", assignment)) from None
+
+
+def assign_date(assignment: object) -> np.datetime64:
+    """
+    Check whether the value assigned to a date attribute is a date.
+
+    Parameters
+    ----------
+    assignment
+        Value passed to the setter.
+
+    Returns
+    -------
+    np.datetime64
+        The date that was passed, so a setter assigns what it validated.
+    """
+    if isinstance(assignment, np.datetime64):
+        return assignment
+
+    raise ValueError(_only_allows("dates", assignment))
 
 
 def assign_bound(assignment: float | str) -> float:
@@ -480,7 +493,6 @@ def command_assignment_to_dict[K: str | Enum, V: Assignment](
     assignment: V,
     assignment_dict: _CommandDict[K, V],
     scalar: bool = True,
-    date: bool = False,
     type_: AcceptedNodeTypes = None,
     lower: float = -np.inf,
     upper: float = np.inf,
@@ -503,8 +515,6 @@ def command_assignment_to_dict[K: str | Enum, V: Assignment](
         The dictionary being assigned to.
     scalar
         Whether the setter accepts scalars.
-    date
-        Whether the setter accepts dates.
     type_
         The node type(s) the attribute accepts a reference to.
     lower
@@ -527,7 +537,6 @@ def command_assignment_to_dict[K: str | Enum, V: Assignment](
     value = assign_value(
         assignment,
         scalar,
-        date,
         type_,
         lower,
         upper,
@@ -545,7 +554,6 @@ def command_assignment_to_tuple_dict[K1: str | Enum, K2: str | Enum, V: Assignme
     assignment: V,
     assignment_dict: _CommandDict[tuple[K1, K2], V],
     scalar: bool = True,
-    date: bool = False,
     type_: AcceptedNodeTypes = None,
     lower: float = -np.inf,
     upper: float = np.inf,
@@ -568,8 +576,6 @@ def command_assignment_to_tuple_dict[K1: str | Enum, K2: str | Enum, V: Assignme
         The dictionary being assigned to.
     scalar
         Whether the setter accepts scalars.
-    date
-        Whether the setter accepts dates.
     type_
         The node type(s) the attribute accepts a reference to.
     lower
@@ -598,7 +604,6 @@ def command_assignment_to_tuple_dict[K1: str | Enum, K2: str | Enum, V: Assignme
     value = assign_value(
         assignment,
         scalar,
-        date,
         type_,
         lower,
         upper,
@@ -703,7 +708,7 @@ def _evaluates(scalar: bool, type_: AcceptedNodeTypes) -> bool:
 
 
 def _failed_value_message(
-    assignment: object, scalar: bool, date: bool, type_: AcceptedNodeTypes
+    assignment: object, scalar: bool, type_: AcceptedNodeTypes
 ) -> str:
     """
     Build the error message for a value an attribute does not accept.
@@ -714,8 +719,6 @@ def _failed_value_message(
         The value passed to the setter.
     scalar
         Whether the setter accepts scalars.
-    date
-        Whether the setter accepts dates.
     type_
         The node type(s) the attribute accepts a reference to.
 
@@ -730,8 +733,6 @@ def _failed_value_message(
     allowed = []
     if scalar:
         allowed.append("scalars")
-    if date:
-        allowed.append("dates")
     if type_ is not None:
         if isinstance(type_, str):
             allowed.append(f"nodes of type {type_}")
