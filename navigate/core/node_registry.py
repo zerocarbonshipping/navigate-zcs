@@ -5,7 +5,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -77,39 +77,19 @@ class Nodes:
         """
         Collect the per-type groups in one tuple.
 
+        Every field of ``Nodes`` is one of these groups, so deriving the
+        tuple from the dataclass fields keeps it complete by construction:
+        a group added to the dataclass can no longer be forgotten here. The
+        order matches field declaration order, which callers such as
+        ``all_nodes`` rely on to leak into results consistently.
+
         Returns
         -------
         tuple[Mapping[str, Node], ...]
-            One group per node type, each keyed by node name.
+            One group per node type, each keyed by node name, in field
+            declaration order.
         """
-        return (
-            self.converters,
-            self.curves,
-            self.emissions,
-            self.feedstocks,
-            self.fleets,
-            self.forecasts,
-            self.fuels,
-            self.levies,
-            self.plants,
-            self.plots,
-            self.ports,
-            self.power_systems,
-            self.processes,
-            self.producers,
-            self.regions,
-            self.regulations,
-            self.reports,
-            self.routes,
-            self.sources,
-            self.surfaces,
-            self.tanks,
-            self.technologies,
-            self.timetables,
-            self.transports,
-            self.variables,
-            self.vessels,
-        )
+        return tuple(getattr(self, f.name) for f in fields(self))
 
     def all_nodes(self) -> Iterable[Node]:
         """
