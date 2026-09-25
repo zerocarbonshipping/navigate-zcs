@@ -201,8 +201,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `DAY`/`MONTH` constants are removed, as are the never-passed parameters
   `in_place` (dict arithmetic), `transform` (`extract_from_dict`,
   `slice_list`, `slice_dict`), `x`/`y`/`length` (`to_numpy`), and
-  `key`/`n`/`idx` (`sum_dict_results`, which no longer raises on an empty
-  dict).
+  `key`/`n`/`idx` (`sum_dict_results`, which requires a non-empty dict and
+  no longer checks for one).
   `is_single_dict`/`is_tuple_dict` return False (was None) for
   empty dicts, `add_dicts`/`multiply_dicts` rebuild their result instead of
   deep-copying the first argument (values unchanged and still never aliasing

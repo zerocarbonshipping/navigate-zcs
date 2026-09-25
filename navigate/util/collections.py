@@ -169,7 +169,7 @@ def sum_dict_results[K](result: dict[K, FloatArray]) -> FloatArray:
     Parameters
     ----------
     result
-        Profile result given as a dict of arrays.
+        Profile result given as a non-empty dict of arrays.
 
     Returns
     -------
