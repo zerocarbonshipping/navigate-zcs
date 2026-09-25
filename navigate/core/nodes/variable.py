@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 from navigate.core import assign_value
 from navigate.core.node import Node
 from navigate.core.node_type import VARIABLE
-from navigate.core.nodes._calculator import _Calculator
+from navigate.core.nodes._calculator import _Calculator, evaluate_number
 from navigate.exceptions import no_value_assigned_error
 
 if TYPE_CHECKING:
@@ -39,6 +39,9 @@ class Variable(Node, _Calculator):
     def set_value(self, value: NumberInput) -> None:
         """
         Set the value of the variable.
+
+        An expression is evaluated each time the variable is read, without
+        inputs.
 
         Parameters
         ----------
@@ -72,7 +75,5 @@ class Variable(Node, _Calculator):
         if self._value is None:
             no_value_assigned_error(self, "Value")
 
-        # a non-float value is an expression and must be evaluated
-        value = self._value if isinstance(self._value, float) else self._value.get()
-
-        return self._truncate(self.multiplier * (value + self.addition))
+        # the inputs are dummies, so every expression is evaluated without them
+        return self._transform(evaluate_number(self._value))

@@ -865,6 +865,13 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   without an input, so any deck overriding a policy's GWP with a curve failed
   at the first expectation step. Number and `Variable` overrides give the
   same values as before.
+- A deck expression assigned to `Multiplier` or `Addition` on a `Variable`,
+  `Curve`, `Forecast`, `Surface` or `Timetable`, or to `Below`, `Above` or
+  `Outside` on a table calculator, is evaluated before it is used. The run
+  previously stopped with a `TypeError` (or a scipy `ValueError` for the fill
+  values) the first time the calculator was read. `Multiplier` and `Addition`
+  are evaluated with the inputs the table is looked up at, the fill values and
+  every expression on a `Variable` without inputs (#226).
 - The reference manual states the units an emission intensity is reported
   and given in. The `RegulationMeasureID` appendix had INTENSITY in ton/GJ,
   a factor of 1000 out, and both transport measures in ton per cargo-mile, a

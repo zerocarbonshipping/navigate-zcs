@@ -11,7 +11,7 @@ from scipy.interpolate import interpn
 
 from navigate.core import assign_id, assign_value
 from navigate.core.enum_ import ExtrapolateID, Interpolate2DID
-from navigate.core.nodes._calculator import _Calculator
+from navigate.core.nodes._calculator import _Calculator, evaluate_number
 from navigate.logging_ import log_extrapolate_bounds
 from navigate.util import is_strictly_increasing
 
@@ -93,7 +93,8 @@ class _Table2D(_Calculator):
         Set the flat extrapolation value used outside the table.
 
         Required when 'Extrapolate' is FLAT; the node's `check_consistency` rejects
-        an unset value in that case.
+        an unset value in that case. An expression is evaluated, without inputs,
+        each time the table is looked up.
 
         Parameters
         ----------
@@ -116,7 +117,7 @@ class _Table2D(_Calculator):
     def calculate(self, x: FloatLike, y: FloatLike) -> FloatLike: ...
 
     def calculate(self, x: FloatLike, y: FloatLike) -> FloatLike:
-        return self._truncate(self.multiplier * (self._table(x, y) + self.addition))
+        return self._transform(self._table(x, y), x, y)
 
     def reverse_lookup(
         self, z: FloatLike, y: FloatArray | None = None
@@ -223,11 +224,16 @@ class _Table2D(_Calculator):
 
         method = self._get_interpolate_internal()
         bounds_error = self._get_allow_extrapolate_internal()
-        fill_value = self._get_extrapolate_internal()
+        fill_number = self._get_extrapolate_internal()
 
         def interp(x_: FloatLike, y_: FloatLike) -> FloatLike:
             x_array = np.asarray(x_)
             y_array = np.asarray(y_)
+
+            # evaluated here rather than when the table is built: a Surface
+            # builds its table as the deck is read, before the deck's
+            # expressions are resolved
+            fill_value = None if fill_number is None else evaluate_number(fill_number)
 
             scalar_inputs = (x_array.ndim == 0) and (y_array.ndim == 0)
 
