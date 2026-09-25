@@ -12,7 +12,6 @@ from navigate.core.node import Node
 from navigate.core.node_type import TIMETABLE
 from navigate.core.nodes._table2d import _Table2D, check_table2d_input
 from navigate.core.table_data import TableData, build_table_2d_dated
-from navigate.exceptions import no_value_assigned_error
 from navigate.util import timedelta_to_days
 
 logger = logging.getLogger(__name__)
@@ -28,10 +27,6 @@ class Timetable(Node, _Table2D):
 
         # used for temporary storage of tables during deck parsing
         self._temporary_table: tuple | None = None
-
-    def check_requirements(self) -> None:
-        if self._table is None:
-            no_value_assigned_error(self, "Table")
 
     def check_consistency(self) -> None:
         if self.extrapolate == ExtrapolateID.FLAT:

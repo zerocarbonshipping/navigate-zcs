@@ -41,7 +41,7 @@ class Route(Node):
         super().__init__(name, ROUTE)
 
         # external variables -----------------------------------------------------------
-        self._route_type: RouteTypeID | None = None
+        self.route_type: RouteTypeID
         self.ports: list[Port] = []
 
         # time at sea/in port
@@ -76,7 +76,7 @@ class Route(Node):
         route_type : str
             Assignment read from input deck.
         """
-        self._route_type = assign_id(route_type, RouteTypeID)
+        self.route_type = assign_id(route_type, RouteTypeID)
 
     def set_ports(self, ports):
         """
@@ -281,9 +281,6 @@ class Route(Node):
 
     # internal methods -----------------------------------------------------------------
     def check_requirements(self) -> None:
-
-        if self._route_type is None:
-            no_value_assigned_error(self, "RouteType")
 
         if not self.ports:
             no_value_assigned_error(self, "Ports")
@@ -504,10 +501,3 @@ class Route(Node):
             return np.ones((self.get_number_of_ports(),))
         else:
             return to_numpy(self.port_calls)
-
-    @property
-    def route_type(self) -> RouteTypeID:
-        if self._route_type is None:
-            no_value_assigned_error(self, "RouteType")
-
-        return self._route_type

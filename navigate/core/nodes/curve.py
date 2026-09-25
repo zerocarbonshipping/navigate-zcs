@@ -9,7 +9,6 @@ from navigate.core.node import Node
 from navigate.core.node_type import CURVE
 from navigate.core.nodes._table1d import _Table1D, check_table1d_input
 from navigate.core.table_data import TableData, build_table_1d
-from navigate.exceptions import no_value_assigned_error
 
 if TYPE_CHECKING:
     from navigate.util import FloatArray, FloatLike
@@ -19,10 +18,6 @@ class Curve(Node, _Table1D):
     def __init__(self, name: str) -> None:
         Node.__init__(self, name, CURVE)
         _Table1D.__init__(self)
-
-    def check_requirements(self) -> None:
-        if self._table is None:
-            no_value_assigned_error(self, "Table")
 
     @overload
     def get(self, x: FloatArray, y: FloatLike | None = None) -> FloatArray: ...

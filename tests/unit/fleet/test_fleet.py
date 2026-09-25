@@ -690,8 +690,8 @@ def _make_fleet_for_modelled_uptakes(
     fleet = Fleet.__new__(Fleet)
     fleet.type = FLEET
     fleet.name = "test_fleet"
-    fleet._inter_fuel_sensitivity = _make_uniform_sensitivity()
-    fleet._intra_fuel_sensitivity = _make_uniform_sensitivity()
+    fleet.inter_fuel_sensitivity = _make_uniform_sensitivity()
+    fleet.intra_fuel_sensitivity = _make_uniform_sensitivity()
 
     vessels = []
     for i, (fuel, rate) in enumerate(zip(fuel_types, freight_rates, strict=True)):

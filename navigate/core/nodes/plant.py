@@ -19,7 +19,6 @@ from navigate.core.node_type import (
     VARIABLE,
 )
 from navigate.core.profiles import PlantProfile
-from navigate.exceptions import no_value_assigned_error
 
 if TYPE_CHECKING:
     import numpy as np
@@ -41,12 +40,12 @@ class Plant(Node):
         super().__init__(name, PLANT)
 
         # external variables -----------------------------------------------------------
-        self._fuel: Fuel | Expression | None = None
-        self._process: Process | Expression | None = None
-        self._region: Region | Expression | None = None
-        self._source: Source | Expression | None = None
+        self.fuel: Fuel | Expression
+        self.process: Process | Expression
+        self.region: Region | Expression
+        self.source: Source | Expression
 
-        self._capacity: ForecastInput | None = None
+        self.capacity: ForecastInput
         self.uptime: ForecastInput = Scalar(1.0)
         self.lifetime: ForecastInput = Scalar(30.0)
         self.lead_time: ForecastInput = Scalar(1.0)
@@ -80,7 +79,7 @@ class Plant(Node):
         fuel : Node
             A Fuel node.
         """
-        self._fuel = assign_value(fuel, scalar=False, type_=FUEL)
+        self.fuel = assign_value(fuel, scalar=False, type_=FUEL)
 
     def set_process(self, process):
         """
@@ -95,7 +94,7 @@ class Plant(Node):
         process : Node
             A Process node.
         """
-        self._process = assign_value(process, scalar=False, type_=PROCESS)
+        self.process = assign_value(process, scalar=False, type_=PROCESS)
 
     def set_region(self, region):
         """
@@ -110,7 +109,7 @@ class Plant(Node):
         region : Node
             A Region node.
         """
-        self._region = assign_value(region, scalar=False, type_=REGION)
+        self.region = assign_value(region, scalar=False, type_=REGION)
 
     def set_source(self, source):
         """
@@ -125,7 +124,7 @@ class Plant(Node):
         source : Node
             A Source node.
         """
-        self._source = assign_value(source, scalar=False, type_=SOURCE)
+        self.source = assign_value(source, scalar=False, type_=SOURCE)
 
     def set_capacity(self, capacity):
         """
@@ -141,7 +140,7 @@ class Plant(Node):
         capacity : float | Node
             Production capacity of the plant in tons/day.
         """
-        self._capacity = assign_value(
+        self.capacity = assign_value(
             as_scalar(capacity),
             type_=(FORECAST, VARIABLE),
             lower=0.0,
@@ -325,23 +324,6 @@ class Plant(Node):
         )
 
     # internal methods -----------------------------------------------------------------
-    def check_requirements(self) -> None:
-
-        if self._fuel is None:
-            no_value_assigned_error(self, "Fuel")
-
-        if self._process is None:
-            no_value_assigned_error(self, "Process")
-
-        if self._region is None:
-            no_value_assigned_error(self, "Region")
-
-        if self._source is None:
-            no_value_assigned_error(self, "Source")
-
-        if self._capacity is None:
-            no_value_assigned_error(self, "Capacity")
-
     def apply_command_defaults(self) -> None:
         self._default_distances(self.feed_transport, self.feed_distance)
         self._default_distances(self.fuel_transport, self.fuel_distance)
@@ -429,38 +411,3 @@ class Plant(Node):
             )
 
         self.producer_assignment = producer_name
-
-    @property
-    def fuel(self) -> Fuel | Expression:
-        if self._fuel is None:
-            no_value_assigned_error(self, "Fuel")
-
-        return self._fuel
-
-    @property
-    def process(self) -> Process | Expression:
-        if self._process is None:
-            no_value_assigned_error(self, "Process")
-
-        return self._process
-
-    @property
-    def region(self) -> Region | Expression:
-        if self._region is None:
-            no_value_assigned_error(self, "Region")
-
-        return self._region
-
-    @property
-    def source(self) -> Source | Expression:
-        if self._source is None:
-            no_value_assigned_error(self, "Source")
-
-        return self._source
-
-    @property
-    def capacity(self) -> ForecastInput:
-        if self._capacity is None:
-            no_value_assigned_error(self, "Capacity")
-
-        return self._capacity

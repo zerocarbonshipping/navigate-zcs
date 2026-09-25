@@ -16,7 +16,6 @@ from navigate.core import (
 from navigate.core.enum_ import FuelTypeID
 from navigate.core.node import Node
 from navigate.core.node_type import FUEL, VARIABLE
-from navigate.exceptions import no_value_assigned_error
 
 if TYPE_CHECKING:
     from navigate.core.nodes.input_kinds import ScalarInput
@@ -28,12 +27,12 @@ class Fuel(Node):
 
         # external variables -----------------------------------------------------------
         # definition
-        self._fuel_type: FuelTypeID | None = None
+        self.fuel_type: FuelTypeID
         self.liquid_market: bool = False
 
         # physical properties
-        self._lower_heating_value: ScalarInput | None = None
-        self._mass_density: ScalarInput | None = None
+        self.lower_heating_value: ScalarInput
+        self.mass_density: ScalarInput
 
         # emissions
         self.ttw: dict[str, ScalarInput] = {}
@@ -54,7 +53,7 @@ class Fuel(Node):
         fuel_type : str
             Type of fuel.
         """
-        self._fuel_type = assign_id(fuel_type, FuelTypeID)
+        self.fuel_type = assign_id(fuel_type, FuelTypeID)
 
     def set_liquid_market(self, liquid_market):
         """
@@ -89,7 +88,7 @@ class Fuel(Node):
         lower_heating_value : float | Node
             The lower heating value of the fuel in GJ/ton.
         """
-        self._lower_heating_value = assign_value(
+        self.lower_heating_value = assign_value(
             as_scalar(lower_heating_value), type_=VARIABLE, lower=0.0
         )
 
@@ -106,7 +105,7 @@ class Fuel(Node):
         mass_density : float | Node
             The mass density of the fuel.
         """
-        self._mass_density = assign_value(
+        self.mass_density = assign_value(
             as_scalar(mass_density), type_=VARIABLE, lower=0.0
         )
 
@@ -132,17 +131,6 @@ class Fuel(Node):
         )
 
     # internal methods -----------------------------------------------------------------
-    def check_requirements(self) -> None:
-
-        if self._fuel_type is None:
-            no_value_assigned_error(self, "FuelType")
-
-        if self._lower_heating_value is None:
-            no_value_assigned_error(self, "LowerHeatingValue")
-
-        if self._mass_density is None:
-            no_value_assigned_error(self, "MassDensity")
-
     def check_consistency(self) -> None:
 
         if self.lower_heating_value.get() == 0.0:
@@ -166,24 +154,3 @@ class Fuel(Node):
         """
         for emission_name in emissions:
             self.ttw.setdefault(emission_name, Scalar(0.0))
-
-    @property
-    def fuel_type(self) -> FuelTypeID:
-        if self._fuel_type is None:
-            no_value_assigned_error(self, "FuelType")
-
-        return self._fuel_type
-
-    @property
-    def lower_heating_value(self) -> ScalarInput:
-        if self._lower_heating_value is None:
-            no_value_assigned_error(self, "LowerHeatingValue")
-
-        return self._lower_heating_value
-
-    @property
-    def mass_density(self) -> ScalarInput:
-        if self._mass_density is None:
-            no_value_assigned_error(self, "MassDensity")
-
-        return self._mass_density

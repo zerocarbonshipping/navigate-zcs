@@ -13,7 +13,6 @@ from navigate.core.expectations import LevyExpectation
 from navigate.core.node_type import FORECAST, LEVY, VARIABLE
 from navigate.core.nodes._policy import _Policy
 from navigate.core.profiles import LevyProfile
-from navigate.exceptions import no_value_assigned_error
 
 if TYPE_CHECKING:
     from navigate.core.nodes.input_kinds import ForecastInput
@@ -53,7 +52,7 @@ class Levy(_Policy):
         scheme : str
             Levy scheme.
         """
-        self._scheme = assign_id(scheme, LevySchemeID)
+        self.scheme = assign_id(scheme, LevySchemeID)
 
     def set_level(self, level):
         """
@@ -117,12 +116,6 @@ class Levy(_Policy):
         )
 
     # internal methods -----------------------------------------------------------------
-    def check_requirements(self) -> None:
-        super().check_requirements()
-
-        if self._scheme is None:
-            no_value_assigned_error(self, "Scheme")
-
     def check_consistency(self) -> None:
         super().check_consistency()
 

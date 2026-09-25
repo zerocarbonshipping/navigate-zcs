@@ -31,7 +31,7 @@ class Converter(_Machinery):
 
         # external variables -----------------------------------------------------------
         # power
-        self._power_capacity: ScalarInput | None = None
+        self.power_capacity: ScalarInput
         self.minimum_load: ScalarInput | None = None
 
         # fuels
@@ -40,7 +40,7 @@ class Converter(_Machinery):
         self.minimum_pilot_fuel: ForecastInput = Scalar(0.0)
 
         # performance
-        self._efficiency: ScalarInput | None = None
+        self.efficiency: ScalarInput
 
         # emissions
         self.consumption_ttw: dict[tuple[FuelTypeID, str], ScalarInput] = {}
@@ -61,7 +61,7 @@ class Converter(_Machinery):
         power_capacity : float | Node
             The maximum power capacity of the converter.
         """
-        self._power_capacity = assign_value(
+        self.power_capacity = assign_value(
             as_scalar(power_capacity), type_=VARIABLE, lower=0.0
         )
 
@@ -154,7 +154,7 @@ class Converter(_Machinery):
         efficiency : float | Node
             The energy conversion efficiency.
         """
-        self._efficiency = assign_value(
+        self.efficiency = assign_value(
             as_scalar(efficiency), type_=VARIABLE, lower=0.0, upper=1.0
         )
 
@@ -229,14 +229,8 @@ class Converter(_Machinery):
     # internal methods -----------------------------------------------------------------
     def check_requirements(self) -> None:
 
-        if self._power_capacity is None:
-            no_value_assigned_error(self, "PowerCapacity")
-
         if not self.main_fuel_types:
             no_value_assigned_error(self, "MainFuelTypes")
-
-        if not self._efficiency:
-            no_value_assigned_error(self, "Efficiency")
 
     def check_consistency(self) -> None:
 
@@ -271,17 +265,3 @@ class Converter(_Machinery):
 
     def is_dual_fuel(self):
         return self.pilot_fuel_types
-
-    @property
-    def power_capacity(self) -> ScalarInput:
-        if self._power_capacity is None:
-            no_value_assigned_error(self, "PowerCapacity")
-
-        return self._power_capacity
-
-    @property
-    def efficiency(self) -> ScalarInput:
-        if self._efficiency is None:
-            no_value_assigned_error(self, "Efficiency")
-
-        return self._efficiency

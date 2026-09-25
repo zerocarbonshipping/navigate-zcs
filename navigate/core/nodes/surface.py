@@ -11,7 +11,6 @@ from navigate.core.node import Node
 from navigate.core.node_type import SURFACE
 from navigate.core.nodes._table2d import _Table2D, check_table2d_input
 from navigate.core.table_data import TableData, build_table_2d
-from navigate.exceptions import no_value_assigned_error
 
 if TYPE_CHECKING:
     from navigate.util import FloatLike
@@ -23,10 +22,6 @@ class Surface(Node, _Table2D):
     def __init__(self, name: str) -> None:
         Node.__init__(self, name, SURFACE)
         _Table2D.__init__(self)
-
-    def check_requirements(self) -> None:
-        if self._table is None:
-            no_value_assigned_error(self, "Table")
 
     def check_consistency(self) -> None:
         if self.extrapolate == ExtrapolateID.FLAT:

@@ -19,10 +19,10 @@ PORTS = {"port_a": None, "port_b": None}
 
 def _make_plant() -> Plant:
     plant = Plant("plant")
-    plant._fuel = Fuel("oil")
-    plant._process = Process("process")
-    plant._region = Region("region")
-    plant._source = Source("source")
+    plant.fuel = Fuel("oil")
+    plant.process = Process("process")
+    plant.region = Region("region")
+    plant.source = Source("source")
     plant.set_capacity(100.0)
     plant.initialize_dependencies({}, PORTS, {})
     return plant

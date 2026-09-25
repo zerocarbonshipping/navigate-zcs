@@ -22,9 +22,9 @@ def _make_power_system(
     propulsion="main_engine", electrical="auxiliary_engine", heat="boiler"
 ):
     power_system = PowerSystem("ps")
-    power_system._propulsion = _mock_converter(propulsion)
-    power_system._electrical = _mock_converter(electrical)
-    power_system._heat = _mock_converter(heat)
+    power_system.propulsion = _mock_converter(propulsion)
+    power_system.electrical = _mock_converter(electrical)
+    power_system.heat = _mock_converter(heat)
     return power_system
 
 

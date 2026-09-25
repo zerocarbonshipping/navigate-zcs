@@ -61,11 +61,11 @@ class Fleet(_AssetManager):
         self.trade_growth: ForecastInput = Scalar(0.0)
         self.fixed_scrap_rate: ForecastInput | None = None
         self.allow_secondary_scrapping: bool = True
-        self._intra_fuel_sensitivity: ForecastInput | None = None
-        self._inter_fuel_sensitivity: ForecastInput | None = None
+        self.intra_fuel_sensitivity: ForecastInput
+        self.inter_fuel_sensitivity: ForecastInput
         self.fuel_conversion_sensitivity: ForecastInput = Scalar(2.0)
         self.memory: ForecastInput = Scalar(0.5)
-        self._initial_vessels: Scalar | Variable | None = None
+        self.initial_vessels: Scalar | Variable
         self.allow_speed_management: bool = False
         self.maximum_speed_change: ForecastInput = Scalar(np.inf)
         self.speed_alignment: SpeedAlignmentID = SpeedAlignmentID.INDIVIDUAL
@@ -235,7 +235,7 @@ class Fleet(_AssetManager):
         initial_vessels
             Initial number of vessels in the fleet.
         """
-        self._initial_vessels = assign_value(
+        self.initial_vessels = assign_value(
             as_scalar(initial_vessels), type_=VARIABLE, lower=0, inclusive_lower=False
         )
 
@@ -302,7 +302,7 @@ class Fleet(_AssetManager):
         intra_fuel_sensitivity
             Odds ratio for a 10% higher LCOT in the within-fuel-type choice.
         """
-        self._intra_fuel_sensitivity = assign_value(
+        self.intra_fuel_sensitivity = assign_value(
             as_scalar(intra_fuel_sensitivity),
             type_=(FORECAST, VARIABLE),
             lower=0.0,
@@ -328,7 +328,7 @@ class Fleet(_AssetManager):
         inter_fuel_sensitivity
             Odds ratio for a 10% higher LCOT in the between-fuel-type choice.
         """
-        self._inter_fuel_sensitivity = assign_value(
+        self.inter_fuel_sensitivity = assign_value(
             as_scalar(inter_fuel_sensitivity),
             type_=(FORECAST, VARIABLE),
             lower=0.0,
@@ -945,15 +945,6 @@ class Fleet(_AssetManager):
         if not self.assets:
             no_value_assigned_error(self, "Vessels")
 
-        if not self._initial_vessels:
-            no_value_assigned_error(self, "InitialVessels")
-
-        if self._inter_fuel_sensitivity is None:
-            no_value_assigned_error(self, "InterFuelSensitivity")
-
-        if self._intra_fuel_sensitivity is None:
-            no_value_assigned_error(self, "IntraFuelSensitivity")
-
         if self.technologies and self.technology_sensitivity is None:
             no_value_assigned_error(self, "TechnologySensitivity")
 
@@ -1079,24 +1070,3 @@ class Fleet(_AssetManager):
 
     def can_fuel_convert(self) -> bool:
         return any(value is not None for value in self.fuel_conversion_cost.values())
-
-    @property
-    def inter_fuel_sensitivity(self) -> ForecastInput:
-        if self._inter_fuel_sensitivity is None:
-            no_value_assigned_error(self, "InterFuelSensitivity")
-
-        return self._inter_fuel_sensitivity
-
-    @property
-    def intra_fuel_sensitivity(self) -> ForecastInput:
-        if self._intra_fuel_sensitivity is None:
-            no_value_assigned_error(self, "IntraFuelSensitivity")
-
-        return self._intra_fuel_sensitivity
-
-    @property
-    def initial_vessels(self) -> Scalar | Variable:
-        if self._initial_vessels is None:
-            no_value_assigned_error(self, "InitialVessels")
-
-        return self._initial_vessels

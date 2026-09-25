@@ -9,7 +9,6 @@ from navigate.core import as_list, as_scalar, assign_id_list, assign_value
 from navigate.core.enum_ import FuelTypeID
 from navigate.core.node_type import TANK, VARIABLE
 from navigate.core.nodes._machinery import _Machinery
-from navigate.exceptions import no_value_assigned_error
 
 if TYPE_CHECKING:
     from navigate.core.nodes.input_kinds import ScalarInput
@@ -20,8 +19,8 @@ class Tank(_Machinery):
         super().__init__(name, TANK)
 
         # external variables -----------------------------------------------------------
-        self._fuel_types: list[FuelTypeID] | None = None
-        self._size: ScalarInput | None = None
+        self.fuel_types: list[FuelTypeID]
+        self.size: ScalarInput
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_fuel_types(self, fuel_types):
@@ -39,7 +38,7 @@ class Tank(_Machinery):
         fuel_types : list[str]
             List of fuel types which can be stored in the tank.
         """
-        self._fuel_types = assign_id_list(
+        self.fuel_types = assign_id_list(
             as_list(fuel_types), FuelTypeID, length=(1, None)
         )
 
@@ -56,29 +55,8 @@ class Tank(_Machinery):
         size : float
             Volumetric size of the tank in cubic meter.
         """
-        self._size = assign_value(as_scalar(size), type_=VARIABLE, lower=0.0)
+        self.size = assign_value(as_scalar(size), type_=VARIABLE, lower=0.0)
 
     # internal methods -----------------------------------------------------------------
-    def check_requirements(self) -> None:
-        if self._fuel_types is None:
-            no_value_assigned_error(self, "FuelTypes")
-
-        if self._size is None:
-            no_value_assigned_error(self, "Size")
-
     def get_fuel_types(self):
         return self.fuel_types
-
-    @property
-    def fuel_types(self) -> list[FuelTypeID]:
-        if self._fuel_types is None:
-            no_value_assigned_error(self, "FuelTypes")
-
-        return self._fuel_types
-
-    @property
-    def size(self) -> ScalarInput:
-        if self._size is None:
-            no_value_assigned_error(self, "Size")
-
-        return self._size
