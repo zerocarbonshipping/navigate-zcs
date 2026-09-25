@@ -1,0 +1,39 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: CC-BY-4.0
+
+# EXAMPLE 4 - Panamax fleet, Chile to Rotterdam.
+
+DEFINE {
+    Load DefaultModelDefinition
+
+    # ---- fleet ----
+    Include "includes/fleet.inc"
+    Include "includes/energy_efficiencies.inc"
+
+    # ---- route ----
+    Include "includes/route.inc"
+    Include "includes/ports.inc"
+    Include "includes/bunker_logistics.inc"
+
+    # ---- fuel ----
+    Include "includes/fuel_production.inc"
+    Include "includes/regions.inc"
+    Include "includes/producer.inc"
+    Load DefaultEmission
+
+    # ---- regulation ----
+    Include "includes/eu_ets.inc"
+    Include "includes/fuel_eu.inc"
+
+    # ---- decision processes ----
+    Load DefaultCalibration
+
+    # ---- export ----
+    Include "includes/report.inc"
+
+    Load DefaultPlot
+}
+
+EVENTS {
+    Load DefaultTimeStepYearly
+}

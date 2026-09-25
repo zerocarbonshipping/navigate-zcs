@@ -43,6 +43,28 @@ Clone the repository at your desired location.
 
 3. Type `pip install .` into the terminal. If this doesn't work, you can also attempt `pip3 install .`. 
 
+### If the install fails on Windows
+
+Two errors come up often on a fresh Windows machine. Both have a one-line fix, and neither needs administrator privileges.
+
+**`Program 'pip.exe' failed to run: Access is denied`**
+
+Run pip through Python itself instead of the `pip.exe` shortcut:
+
+```powershell
+python -m pip install .
+```
+
+**`.venv\Scripts\Activate.ps1 cannot be loaded because running scripts is disabled on this system.`**
+
+You will only see this if you chose to use a `venv` environment above. PowerShell refuses to run local scripts until you permit it for your own user account:
+
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+
+Then activate the environment again with `.venv\Scripts\Activate.ps1`.
+
 This tutorial also lives in the repository, under `docs/tutorials/`. You can open it and read along from there if you prefer.
 
 

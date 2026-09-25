@@ -29,7 +29,7 @@ We recommend using an environment manager such as [conda](https://www.anaconda.c
 ```bash
 # Using venv (bundled with Python)
 python3.12 -m venv .venv
-source .venv/bin/activate
+source .venv/bin/activate        # Windows PowerShell: .venv\Scripts\Activate.ps1
 # Using conda (https://www.anaconda.com/docs/getting-started/miniconda/install)
 conda create -n nav python=3.12 pip
 conda activate nav
@@ -41,6 +41,19 @@ Install navigate using pip from within the Navigate folder after cloning the rep
 ```bash
 pip install .
 ```
+
+#### Two common errors on Windows
+
+- `.venv\Scripts\Activate.ps1 cannot be loaded because running scripts is disabled on this system.`
+  PowerShell blocks local scripts by default. Allow them for your own user, then activate again:
+  ```powershell
+  Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+  ```
+- `Program 'pip.exe' failed to run: Access is denied`
+  Call pip through the interpreter rather than the `pip.exe` shim:
+  ```powershell
+  python -m pip install .
+  ```
 
 ### Optional: Gurobi solver (commercial license)
 

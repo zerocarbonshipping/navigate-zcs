@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 sphinx
-myst-parser
+myst-nb
 pydata-sphinx-theme
 sphinx-design
 sphinx-copybutton
