@@ -374,8 +374,7 @@ class Parser:
         if not self._user_module_directory or not self._installation_module_directory:
             raise DeckFormatError(
                 self._deck_error_prefix()
-                + f": Module '{directive.name}' is requested but no assumptions "
-                "directory is specified. Use the -d flag or ASSUMPTIONS_DATA_DIR."
+                + f": {_no_assumptions_directory(f"Module '{directive.name}'")}"
             )
 
         file_name = attribute_to_instance_name(directive.name)
@@ -936,9 +935,7 @@ class Parser:
         if not self._user_default_directory or not self._installation_default_directory:
             raise DeckKeywordError(
                 self._deck_error_prefix()
-                + ": Wildcard Import is requested but default directories are not "
-                "specified. Please specify the assumptions location with the -d flag "
-                "or environment variable "
+                + f": {_no_assumptions_directory('Wildcard Import')}"
             )
 
         pattern = re.compile(wildcard_to_regex(name_pattern))
@@ -1271,7 +1268,7 @@ class Parser:
 
             except ValueError as e:
                 raise CommandError(
-                    self._error_prefix() + f": '{cmd_ref.command}' {e!s}"
+                    self._error_prefix() + f": '{cmd_ref.command}' {e!s}."
                 ) from None
 
         node.clear_command_references()
@@ -1451,9 +1448,7 @@ class Parser:
         if not self._user_default_directory or not self._installation_default_directory:
             raise DeckKeywordError(
                 self._deck_error_prefix()
-                + f": User or Installation Default '{name}' is requested but not "
-                "specified. Please specify the assumptions location with the -d flag "
-                "or environment variable "
+                + f": {_no_assumptions_directory(f'Default {node_type}("{name}")')}"
             )
 
         # a default file can pull another default of its own, through an Import
@@ -1633,6 +1628,22 @@ class Parser:
             )
 
         return self._node(node_type, name, location)
+
+
+def _no_assumptions_directory(subject: str) -> str:
+    """
+    Build the message for a default-library request made without a data folder.
+
+    Parameters
+    ----------
+    subject
+        What was requested, e.g. ``Module 'name'``.
+    """
+    return (
+        f"{subject} is requested but no assumptions directory is specified. "
+        "Specify it with the -d/--data-dir flag or the ASSUMPTIONS_DATA_DIR "
+        "environment variable."
+    )
 
 
 def _get_files_in_directory(directory):

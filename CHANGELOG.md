@@ -864,6 +864,14 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   non-zero expenses for those policies, and the zeros read as a result rather
   than as missing data. Reported results at fleet and global scope move
   accordingly; vessel scope is unchanged.
+- The three errors for a default node, a wildcard `Import` or a module
+  requested without an assumptions directory share one wording, a finished
+  sentence naming both the `-d/--data-dir` flag and the `ASSUMPTIONS_DATA_DIR`
+  environment variable. Two of them ended mid-sentence at "the -d flag or
+  environment variable" without saying which variable.
+- A command whose value is rejected (`'set_operational_saving_sea' must be ≤
+  1.0, but got 2.0.`) ends its error in a full stop, as every other deck error
+  does.
 - The four `Outside`/`Extrapolate` messages a `Surface` or a `Timetable`
   raises or logs name the node that carried the contradiction. Each was
   written with a literal `{}` and never formatted, so the error read
