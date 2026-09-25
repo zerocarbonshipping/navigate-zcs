@@ -14,7 +14,7 @@ from navigate.core.enum_ import ExtrapolateID, Interpolate1DID
 from navigate.core.nodes._calculator import _Calculator
 from navigate.exceptions import no_value_assigned_error
 from navigate.logging_ import log_extrapolate_bounds
-from navigate.util import find_nearest, is_strictly_increasing
+from navigate.util import is_strictly_increasing
 
 if TYPE_CHECKING:
     from navigate.core.nodes.input_kinds import NumberInput
@@ -75,7 +75,7 @@ class _Table1D(_Calculator):
     def calculate(self, x):
         return self._truncate(self.multiplier * (self._table(x) + self.addition))
 
-    def reverse_lookup(self, y, interpolate=True):
+    def reverse_lookup(self, y):
         """
         Perform a reverse lookup in the node's table for the x-value closest to 'y'.
 
@@ -86,27 +86,19 @@ class _Table1D(_Calculator):
         ----------
         y : float | np.ndarray
             Value to find the corresponding x-value for.
-        interpolate : bool
-            Whether to interpolate or use the nearest value.
 
         Returns
         -------
         float | np.ndarray | None
-            Interpolated or exact 'x' value corresponding to the given 'y', or
-            `None` when the table is not strictly increasing.
+            Interpolated 'x' value corresponding to the given 'y', or `None` when
+            the table is not strictly increasing.
         """
         yp = self.calculate(self.x)
 
         if not is_strictly_increasing(yp):
             return None
 
-        if interpolate:
-            x = np.interp(y, yp, self.x)
-        else:
-            idx = find_nearest(yp, np.asarray(y))
-            x = self.x[idx]
-
-        return x
+        return np.interp(y, yp, self.x)
 
     def _check_extrapolation(self, x):
         x_range = self.x[-1] - self.x[0]
