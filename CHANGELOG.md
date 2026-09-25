@@ -823,6 +823,12 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   keyed by port and fuel and read by the fuel-inertia constraint, are
   untouched, as are `Plant.set_capacity` and `Route.set_distances` on the DSL
   nodes. No deck result moves.
+- **Breaking** for code importing navigate as a library: `multiply_dicts`
+  (`navigate/util/collections.py`, re-exported from `navigate.util`), which
+  has no replacement: its five call sites in `navigate/core/profiles/` now
+  scale a dict of arrays by a dict of per-key scalars as plain dict
+  comprehensions, next to the two that were already written that way. No
+  result moves.
 
 ### Fixed
 - The reference manual states the units an emission intensity is reported
