@@ -120,30 +120,6 @@ def add_dicts[K](*dicts: dict[K, FloatLike]) -> dict[K, FloatLike]:
     return total
 
 
-def multiply_dicts[K](*dicts: dict[K, FloatLike]) -> dict[K, FloatLike]:
-    """
-    Merge dicts, multiplying the values if keys are duplicate across multiple dicts.
-
-    Parameters
-    ----------
-    dicts
-        A number of dicts with similar or unique keys.
-
-    Returns
-    -------
-    dict[K, FloatLike]
-        A single merged dict with the product of overlapping keys; the values
-        never alias the inputs.
-    """
-    total: dict[K, FloatLike] = {}
-
-    for other in dicts:
-        for key, value in other.items():
-            total[key] = total.get(key, 1.0) * value
-
-    return total
-
-
 def is_single_dict[K](dict_: Mapping[K, object]) -> bool:
     """
     Check whether a dict is a single dict (keyed by non-tuple keys).
