@@ -84,12 +84,14 @@ def _gwp_curve():
     # gwp against lifetime: 80 at 20 years, 30 at 100 years
     curve = Curve("gwp_methane")
     curve.set_table(TableData(rows=[[20.0, 80.0], [100.0, 30.0]]))
+    curve.build_table()
     return curve
 
 
 def _lifetime_times_three():
     curve = Curve("gwp_emission")
     curve.set_table(TableData(rows=[[0.0, 0.0], [100.0, 300.0]]))
+    curve.build_table()
     return curve
 
 

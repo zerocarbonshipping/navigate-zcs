@@ -230,9 +230,9 @@ class _Table2D(_Calculator):
             x_array = np.asarray(x_)
             y_array = np.asarray(y_)
 
-            # evaluated here rather than when the table is built: a Surface
-            # builds its table as the deck is read, before the deck's
-            # expressions are resolved
+            # evaluated here rather than when the table is built: an expression
+            # may read a node whose value changes during the run, such as a
+            # Forecast, which holds the value of the current time step
             fill_value = None if fill_number is None else evaluate_number(fill_number)
 
             scalar_inputs = (x_array.ndim == 0) and (y_array.ndim == 0)

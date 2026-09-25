@@ -14,6 +14,7 @@ Tests verify the correctness of:
   - _Table2D bilinear interpolation, reverse lookup, convexity, pickle round-trip
   - Variable scalar transform chain
   - Deck expressions on the transform and fill-value attributes
+  - Curve and Surface settings apply wherever the definition writes them
 """
 
 from __future__ import annotations
@@ -28,6 +29,9 @@ from navigate.core.expression import Expression
 from navigate.core.nodes._calculator import _Calculator
 from navigate.core.nodes._table1d import _Table1D
 from navigate.core.nodes._table2d import _Table2D
+from navigate.core.nodes.curve import Curve
+from navigate.core.nodes.surface import Surface
+from navigate.core.table_data import TableData
 
 # ---------------------------------------------------------------------------
 # Shared fixtures
@@ -508,8 +512,8 @@ class TestFillValueExpressions:
     """Below, Above and Outside given as deck expressions are evaluated first."""
 
     def test_table1d_below_above(self):
-        # set in the order a Curve deck must write them, the table last,
-        # and resolved only afterwards, as the parser does
+        # the table is built before the expressions are resolved, so the
+        # values must be read on lookup
         t = _Table1D()
         below = Expression("-1 * 2")
         above = Expression("10 + 5")
@@ -533,3 +537,64 @@ class TestFillValueExpressions:
         np.testing.assert_array_almost_equal(
             t.calculate(np.array([1.0, 5.0]), np.array([10.0, 10.0])), [11.0, 9.0]
         )
+
+
+# ---------------------------------------------------------------------------
+# 12. Curve and Surface — settings read when the table is built
+# ---------------------------------------------------------------------------
+
+# y = 10 * x on 0 <= x <= 2
+CURVE_ROWS = [[0.0, 0.0], [1.0, 10.0], [2.0, 20.0]]
+
+# y-values in the header row, then one row per x-value: z = x + y
+SURFACE_ROWS = [
+    [0.0, 10.0],
+    [0.0, 0.0, 10.0],
+    [1.0, 1.0, 11.0],
+]
+
+
+def _set_curve_extrapolation(curve):
+    curve.set_extrapolate("FLAT")
+    curve.set_below(5.0)
+
+
+def _set_surface_extrapolation(surface):
+    surface.set_extrapolate("FLAT")
+    surface.set_outside(9.0)
+
+
+class TestTableSettingsOrder:
+    """The extrapolation settings apply whether written before or after Table."""
+
+    @pytest.mark.parametrize("settings_first", [True, False])
+    def test_curve(self, settings_first):
+        curve = Curve("c")
+        if settings_first:
+            _set_curve_extrapolation(curve)
+        curve.set_table(TableData(rows=CURVE_ROWS))
+        if not settings_first:
+            _set_curve_extrapolation(curve)
+        curve.build_table()
+        # below the table the flat value 5, not the linear extrapolation -10
+        assert curve.get(-1.0) == pytest.approx(5.0)
+
+    @pytest.mark.parametrize("settings_first", [True, False])
+    def test_surface(self, settings_first):
+        surface = Surface("s")
+        if settings_first:
+            _set_surface_extrapolation(surface)
+        surface.set_table(TableData(rows=SURFACE_ROWS))
+        if not settings_first:
+            _set_surface_extrapolation(surface)
+        surface.build_table()
+        # outside the table the flat value 9, not the linear extrapolation 13
+        assert surface.get(3.0, 10.0) == pytest.approx(9.0)
+
+    def test_curve_rejects_a_step_interpolation_set_after_the_table(self):
+        # PREVIOUS with the default LINEAR extrapolation is refused
+        curve = Curve("c")
+        curve.set_table(TableData(rows=CURVE_ROWS))
+        curve.set_interpolate("PREVIOUS")
+        with pytest.raises(ValueError, match="'Extrapolate' must not be LINEAR"):
+            curve.build_table()

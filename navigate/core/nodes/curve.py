@@ -30,12 +30,16 @@ class Curve(Node, _Table1D):
         Node.__init__(self, name, CURVE)
         _Table1D.__init__(self)
 
+        # used for temporary storage of the table during deck parsing
+        self._temporary_table: tuple[FloatArray, FloatArray] | None = None
+
     def set_table(self, table: TableData) -> None:
         """
         Set the table of x- and y-values the curve interpolates in.
 
         The table must hold at least two rows, and its x-values must be strictly
-        increasing.
+        increasing. It is built once the whole definition has been read, so the
+        order of the attributes within the definition does not matter.
 
         Parameters
         ----------
@@ -44,7 +48,16 @@ class Curve(Node, _Table1D):
         """
         x, y = build_table_1d(table)
         check_table1d_input(x, y)
+        self._temporary_table = (x, y)
+
+    def build_table(self) -> None:
+        """Build the pending table with the interpolation and extrapolation set."""
+        if self._temporary_table is None:
+            return
+
+        x, y = self._temporary_table
         self._set_table(x, y)
+        self._temporary_table = None
 
     @overload
     def get(self, x: FloatArray, y: FloatLike | None = None) -> FloatArray: ...

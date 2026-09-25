@@ -243,8 +243,9 @@ class _Table1D(_Calculator):
         Replace the lookups outside the table with the flat extrapolation values.
 
         The values are evaluated here rather than handed to interp1d when the
-        table is built: a Curve builds its table as the deck is read, before
-        the deck's expressions are resolved.
+        table is built: an expression may read a node whose value changes during
+        the run, such as a Forecast, which holds the value of the current time
+        step.
 
         Parameters
         ----------
