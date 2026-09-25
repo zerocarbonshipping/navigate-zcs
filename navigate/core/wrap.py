@@ -25,20 +25,14 @@ if TYPE_CHECKING:
 # a bare string, a list, a TableData. That is why the validators in 'assign'
 # keep runtime reject arms for values their typed callers never pass.
 
-# a value that already answers a getter, and a date, pass the wrappers
-# untouched; only a bare float needs wrapping
-type WrappedAssignment = Scalar | Node | Expression | np.datetime64
+# a value that already answers a getter passes the wrappers untouched; only a
+# bare float needs wrapping
+type WrappedAssignment = Scalar | Node | Expression
 
 # everything a setter may be handed for a single-valued attribute
 type Assignment = float | WrappedAssignment
 
 
-# 'int' and 'bool' are not instances of 'float', so they pass through
-# unwrapped; the numeric tower would otherwise type them as Scalar
-@overload
-def as_scalar(value: bool) -> bool: ...
-@overload
-def as_scalar(value: int) -> int: ...
 @overload
 def as_scalar(value: float) -> Scalar: ...
 @overload
