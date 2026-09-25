@@ -21,9 +21,9 @@ class NodeReport:
     """The report properties requested for one node, in the order they were added."""
 
     def __init__(self) -> None:
-        self.attributes: list[str] = []  # deck-facing attribute tokens, in order
-        self.getters: list[str] = []  # profile getter names resolved from the tokens
-        self.reductions: list[ReportReduceID] = []  # key reduction per attribute
+        self.attributes: list[str] = []
+        self.getters: list[str] = []
+        self.reductions: list[ReportReduceID] = []
 
     def add_property(self, attribute: str, reduction: ReportReduceID) -> None:
         """

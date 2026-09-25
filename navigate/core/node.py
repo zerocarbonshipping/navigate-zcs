@@ -19,10 +19,10 @@ class Node(TypeCheckMixin):
     def __init__(self, name: str, type_: str) -> None:
         super().__init__(type_)
 
-        self.name: str = name  # name the deck gives the node
+        self.name: str = name
 
         # internal variables -----------------------------------------------------------
-        self.command_references: list[CommandReference] = []  # parser command queue
+        self.command_references: list[CommandReference] = []
 
     def __repr__(self) -> str:
         return f'{self.type}("{self.name}")'

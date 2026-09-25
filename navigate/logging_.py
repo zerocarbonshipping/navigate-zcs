@@ -44,9 +44,9 @@ class _DeduplicatingFilter(logging.Filter):
 
     def __init__(self) -> None:
         super().__init__()
-        self.seen: set[str] = set()  # messages already let through
-        self.suppressed: int = 0  # duplicates dropped
-        self.unique_warnings: list[str] = []  # messages kept for the digest
+        self.seen: set[str] = set()
+        self.suppressed: int = 0
+        self.unique_warnings: list[str] = []
 
     def filter(self, record: logging.LogRecord) -> bool:
         if record.levelno < logging.WARNING:
@@ -69,7 +69,7 @@ class _CountingHandler(logging.Handler):
 
     def __init__(self) -> None:
         super().__init__()
-        self.counter: Counter[str] = Counter()  # records seen per level name
+        self.counter: Counter[str] = Counter()
 
     def emit(self, record: logging.LogRecord) -> None:
         self.counter[record.levelname] += 1

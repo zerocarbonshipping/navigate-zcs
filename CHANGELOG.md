@@ -825,6 +825,15 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   nodes. No deck result moves.
 
 ### Fixed
+- The DSL reference's "Default nodes" and "Default modules" sections gave the
+  default library's location as a fixed installation path, which no longer
+  matches the parser. Both now give the real location,
+  `<data_dir>/defaults/{user,installation}/<NodeType>/` and
+  `<data_dir>/modules/{user,installation}/`, with `data_dir` taken from
+  `-d`/`--data-dir` or `ASSUMPTIONS_DATA_DIR`. The "Copying a node" section now
+  also states that a separate `Type("node_copy_from")` reference elsewhere in
+  the deck pulls the source from the library again as its own, independent
+  node, so both names end up registered.
 - The CLI rejects a deck path whose name is nothing but dots before `.nav`
   (`..nav`, `...nav`), which `pathlib` read as carrying a `.nav` suffix and
   an all-dots stem. `.nav` itself stays rejected, as before, since its
