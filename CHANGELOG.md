@@ -825,6 +825,11 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   nodes. No deck result moves.
 
 ### Fixed
+- A wildcard `Import` whose matches include a name the deck already uses
+  reports the collision at the deck's `Import` line. From the second matched
+  name on, the error named the default-library file a previous match had
+  pulled in, and a line inside it, which the deck author never wrote and does
+  not need to change.
 - The reference manual states the units an emission intensity is reported
   and given in. The `RegulationMeasureID` appendix had INTENSITY in ton/GJ,
   a factor of 1000 out, and both transport measures in ton per cargo-mile, a
