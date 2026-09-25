@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from navigate.core.assign import assign_value
+from navigate.core.assign import assign_date, assign_value
 from navigate.core.general_nodes._general_node import _GeneralNode
 
 if TYPE_CHECKING:
@@ -39,7 +39,7 @@ class ModelDefinition(_GeneralNode):
         start_date
             Assignment read from input deck.
         """
-        self.start_date = assign_value(start_date, scalar=False, date=True)
+        self.start_date = assign_date(start_date)
 
     def set_emissions_lifetime(self, emissions_lifetime: float) -> None:
         """

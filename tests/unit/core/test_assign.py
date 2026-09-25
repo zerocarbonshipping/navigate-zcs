@@ -19,6 +19,7 @@ from navigate.core.assign import (
     _check_scalar,
     assign_boolean,
     assign_bound,
+    assign_date,
     assign_fraction_list,
     assign_id,
     assign_id_list,
@@ -277,6 +278,20 @@ class TestAssignBoolean:
             assign_boolean(assignment)
 
 
+# ── assign_date ───────────────────────────────────────────────────────────────
+
+
+class TestAssignDate:
+    def test_date_returned_as_is(self):
+        assert assign_date(DATE) == DATE
+
+    def test_non_date_rejected_as_a_value_error(self):
+        with pytest.raises(
+            ValueError, match="only allows assignment of dates, but got scalar"
+        ):
+            assign_date(5.0)
+
+
 # ── _check_scalar ─────────────────────────────────────────────────────────────
 
 
@@ -395,9 +410,6 @@ class TestAssignValue:
     def test_date_rejected_by_default(self):
         with pytest.raises(ValueError, match="but got date"):
             assign_value(DATE)
-
-    def test_date_accepted_when_allowed(self):
-        assert assign_value(DATE, scalar=False, date=True) == DATE
 
     @pytest.mark.parametrize(
         "assignment",
