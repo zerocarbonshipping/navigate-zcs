@@ -116,6 +116,15 @@ overwrite each other's files, and the test suites run decks too.
   which is usually nothing.
 - A change to an assumption value carries references or a justification.
 
+## Filing an issue
+
+The issue forms in `.github/ISSUE_TEMPLATE/` apply a label and set the
+body's sections, but `gh issue create` and the API bypass them. An issue
+filed that way therefore carries the label of the matching form,
+passed as `--label` with `gh issue create` or the `labels` field of an
+API request: `bug`, `enhancement`, `documentation`, `maintenance`, or
+`performance`. It uses that form's section headings.
+
 ## What a change touches
 
 - A DSL attribute or command lives in four places: the setter on the node
