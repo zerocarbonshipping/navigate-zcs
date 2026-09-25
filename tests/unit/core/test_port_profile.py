@@ -50,6 +50,20 @@ def profile():
     return port_profile
 
 
+@pytest.fixture
+def profile_without_emissions():
+    # a deck with no Emission node initializes every profile with emissions={},
+    # leaving every dict keyed by emission empty (#237)
+    port_profile = PortProfile()
+    port_profile.initialize(
+        timeline=np.array([0.0, 1.0, 2.0]),
+        emissions={},
+        fuels={"lsfo": _fuel(LSFO_LHV), "lng": _fuel(LNG_LHV)},
+        emissions_lifetime=100.0,
+    )
+    return port_profile
+
+
 class TestEquivalentBunkerWtt:
     def test_weights_each_emission_by_its_gwp(self, profile):
         equivalent = profile.get_equivalent_bunker_wtt()
@@ -72,3 +86,29 @@ class TestBunkerIntensityTotalEquivalentWtt:
         np.testing.assert_allclose(
             intensity["lng"], [0.0, LNG_EQUIVALENT_STEP_1 / LNG_LHV * 1e3]
         )
+
+
+class TestNoEmissions:
+    """A deck with no Emission node reports zero, not a bare scalar (#237)."""
+
+    def test_bunker_intensity_total_equivalent_wtt_is_a_zero_timeline_per_fuel(
+        self, profile_without_emissions
+    ):
+        intensity = (
+            profile_without_emissions.get_bunker_intensity_total_equivalent_wtt()
+        )
+
+        assert intensity.keys() == {"lsfo", "lng"}
+
+        # assert_array_equal broadcasts a scalar, so the shape is checked apart
+        for fuel_intensity in intensity.values():
+            assert fuel_intensity.shape == (3,)
+            np.testing.assert_array_equal(fuel_intensity, 0.0)
+
+    def test_total_equivalent_bunker_wtt_is_a_zero_timeline(
+        self, profile_without_emissions
+    ):
+        total = profile_without_emissions.get_total_equivalent_bunker_wtt()
+
+        assert total.shape == (3,)
+        np.testing.assert_array_equal(total, 0.0)
