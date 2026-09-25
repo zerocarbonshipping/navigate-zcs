@@ -13,10 +13,7 @@ from navigate.core.node import Node
 from navigate.core.node_type import CURVE, EMISSION, VARIABLE
 
 if TYPE_CHECKING:
-    from navigate.core import Expression
-    from navigate.core.nodes.curve import Curve
     from navigate.core.nodes.input_kinds import CurveInput
-    from navigate.core.nodes.variable import Variable
 
 
 class Emission(Node):
@@ -31,7 +28,7 @@ class Emission(Node):
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_global_warming_potential(
-        self, global_warming_potential: float | Curve | Variable | Expression
+        self, global_warming_potential: float | CurveInput
     ) -> None:
         """
         Set the Global Warming Potential (GWP) of the emission.

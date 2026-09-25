@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Define the Converter node, machinery turning fuel into usable energy."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -22,10 +24,13 @@ from navigate.exceptions import no_value_assigned_error
 from navigate.util import list_is_unique
 
 if TYPE_CHECKING:
+    from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.input_kinds import ForecastInput, ScalarInput
 
 
 class Converter(_Machinery):
+    """An energy converter: its capacity, efficiency, fuel types and emissions."""
+
     def __init__(self, name: str) -> None:
         super().__init__(name, CONVERTER)
 
@@ -47,7 +52,7 @@ class Converter(_Machinery):
         self.slip_fraction: dict[FuelTypeID, ScalarInput] = {}
 
     # external methods (DSL attributes) ------------------------------------------------
-    def set_power_capacity(self, power_capacity):
+    def set_power_capacity(self, power_capacity: float | ScalarInput) -> None:
         """
         Set the maximum power capacity of the converter.
 
@@ -58,14 +63,14 @@ class Converter(_Machinery):
 
         Parameters
         ----------
-        power_capacity : float | Node
+        power_capacity
             The maximum power capacity of the converter.
         """
         self.power_capacity = assign_value(
             as_scalar(power_capacity), type_=VARIABLE, lower=0.0
         )
 
-    def set_minimum_load(self, minimum_load):
+    def set_minimum_load(self, minimum_load: float | ScalarInput) -> None:
         """
         Set the minimum load as a fraction of power capacity.
 
@@ -76,14 +81,14 @@ class Converter(_Machinery):
 
         Parameters
         ----------
-        minimum_load : float | Node
+        minimum_load
             The minimum load as a fraction of power capacity.
         """
         self.minimum_load = assign_value(
             as_scalar(minimum_load), type_=VARIABLE, lower=0.0, upper=1.0
         )
 
-    def set_main_fuel_types(self, main_fuel_types):
+    def set_main_fuel_types(self, main_fuel_types: list[str]) -> None:
         """
         Set the main fuel types of the converter.
 
@@ -94,14 +99,14 @@ class Converter(_Machinery):
 
         Parameters
         ----------
-        main_fuel_types : list[str]
+        main_fuel_types
             List of main fuel types of the converter.
         """
         self.main_fuel_types = assign_id_list(
             as_list(main_fuel_types), FuelTypeID, length=(1, None)
         )
 
-    def set_pilot_fuel_types(self, pilot_fuel_types):
+    def set_pilot_fuel_types(self, pilot_fuel_types: list[str]) -> None:
         """
         Set the pilot fuel types of the converter.
 
@@ -112,14 +117,14 @@ class Converter(_Machinery):
 
         Parameters
         ----------
-        pilot_fuel_types : list[str]
+        pilot_fuel_types
             List of pilot fuel types of the converter.
         """
         self.pilot_fuel_types = assign_id_list(
             as_list(pilot_fuel_types), FuelTypeID, length=(1, None)
         )
 
-    def set_minimum_pilot_fuel(self, minimum_pilot_fuel):
+    def set_minimum_pilot_fuel(self, minimum_pilot_fuel: float | ForecastInput) -> None:
         """
         Set the minimum pilot fuel fraction required to utilize the converter in GJ/GJ.
 
@@ -130,7 +135,7 @@ class Converter(_Machinery):
 
         Parameters
         ----------
-        minimum_pilot_fuel : float | Node
+        minimum_pilot_fuel
             Minimum pilot fuel fraction.
         """
         self.minimum_pilot_fuel = assign_value(
@@ -140,7 +145,7 @@ class Converter(_Machinery):
             upper=1.0,
         )
 
-    def set_efficiency(self, efficiency):
+    def set_efficiency(self, efficiency: float | ScalarInput) -> None:
         """
         Set the energy conversion efficiency from potential to required kinetic energy.
 
@@ -151,7 +156,7 @@ class Converter(_Machinery):
 
         Parameters
         ----------
-        efficiency : float | Node
+        efficiency
             The energy conversion efficiency.
         """
         self.efficiency = assign_value(
@@ -159,7 +164,7 @@ class Converter(_Machinery):
         )
 
     # external methods (DSL commands) --------------------------------------------------
-    def set_slip_fraction(self, fuel_type, value):
+    def set_slip_fraction(self, fuel_type: str, value: float | ScalarInput) -> None:
         """
         Set the fraction of fuel mass escaping unburned (slip) for a specific fuel type.
 
@@ -170,9 +175,9 @@ class Converter(_Machinery):
 
         Parameters
         ----------
-        fuel_type : str
+        fuel_type
             Type of fuel which has slip when used.
-        value : float | Node
+        value
             Fraction of fuel mass escaping unburned.
         """
         id_ = assign_id(fuel_type, FuelTypeID)
@@ -189,7 +194,9 @@ class Converter(_Machinery):
             upper=1.0,
         )
 
-    def set_consumption_ttw(self, fuel_type, emission_name, value):
+    def set_consumption_ttw(
+        self, fuel_type: str, emission_name: str, value: float | ScalarInput
+    ) -> None:
         """
         Set a consumption related emission for a specific fuel type in the converter.
 
@@ -204,11 +211,11 @@ class Converter(_Machinery):
 
         Parameters
         ----------
-        fuel_type : str
+        fuel_type
             Type of fuel which has a consumption related emission when used.
-        emission_name : str
+        emission_name
             Name of emission emitted as particles.
-        value : float | Node
+        value
             Ton of emission emitted per ton of fuel consumed.
         """
         id_ = assign_id(fuel_type, FuelTypeID)
@@ -216,7 +223,7 @@ class Converter(_Machinery):
         if id_ not in self.get_fuel_types():
             raise ValueError(f"received {fuel_type} which is not available for {self}.")
 
-        # neccesary due to incoherent error thrown if
+        # necessary due to incoherent error thrown if
         # passing a non-existing key to an empty dict
         key = (id_, emission_name)
         if key not in self.consumption_ttw:
@@ -245,13 +252,13 @@ class Converter(_Machinery):
                 " must be unique."
             )
 
-    def initialize_dependencies(self, emissions):
+    def initialize_dependencies(self, emissions: dict[str, Emission]) -> None:
         """
         Seed the per-fuel-type dictionaries with their defaults.
 
         Parameters
         ----------
-        emissions : dict[str, Emission]
+        emissions
             Dict of class Emission.
         """
         for fuel_type in self.get_fuel_types():
@@ -260,8 +267,8 @@ class Converter(_Machinery):
             for emission_name in emissions:
                 self.consumption_ttw.setdefault((fuel_type, emission_name), Scalar(0.0))
 
-    def get_fuel_types(self):
+    def get_fuel_types(self) -> list[FuelTypeID]:
         return self.main_fuel_types + self.pilot_fuel_types
 
-    def is_dual_fuel(self):
-        return self.pilot_fuel_types
+    def is_dual_fuel(self) -> bool:
+        return bool(self.pilot_fuel_types)

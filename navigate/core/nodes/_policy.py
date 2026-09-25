@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Define the policy base shared by the Levy and Regulation nodes."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -23,13 +25,17 @@ from navigate.exceptions import no_value_assigned_error
 
 if TYPE_CHECKING:
     from navigate.core.enum_ import LevySchemeID, RegulationSchemeID
+    from navigate.core.expectations import LevyExpectation, RegulationExpectation
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.input_kinds import CurveInput, ForecastInput, ScalarInput
     from navigate.core.nodes.port import Port
+    from navigate.core.nodes.vessel import Vessel
 
 
 class _Policy(Node):
+    """The scope, jurisdiction and emission factors common to every policy node."""
+
     def __init__(self, name: str, type_: str) -> None:
         super().__init__(name, type_)
 
@@ -60,7 +66,7 @@ class _Policy(Node):
         self.in_jurisdiction_vessel: dict[str, bool] = {}
 
     # external methods (DSL attributes) ------------------------------------------------
-    def set_active(self, active):
+    def set_active(self, active: str) -> None:
         """
         Set the flag for whether the policy is active.
 
@@ -70,12 +76,12 @@ class _Policy(Node):
 
         Parameters
         ----------
-        active : str
+        active
             Boolean flag.
         """
         self.active = assign_boolean(active)
 
-    def set_jurisdiction(self, ports):
+    def set_jurisdiction(self, ports: list[Port]) -> None:
         """
         Set the list of ports that are under the jurisdiction of the policy.
 
@@ -86,12 +92,12 @@ class _Policy(Node):
 
         Parameters
         ----------
-        ports : list[Node]
+        ports
             List of Port nodes.
         """
         self.jurisdiction = assign_list(as_list(ports), scalar=False, type_=PORT)
 
-    def set_emissions(self, emissions):
+    def set_emissions(self, emissions: list[Emission]) -> None:
         """
         Set the emission(s) targeted by the policy.
 
@@ -103,14 +109,14 @@ class _Policy(Node):
 
         Parameters
         ----------
-        emissions : list[Emission]
+        emissions
             A list of Emission nodes.
         """
         self.emissions = assign_list(
             as_list(emissions), unique=True, scalar=False, type_=EMISSION
         )
 
-    def set_fuels(self, fuels):
+    def set_fuels(self, fuels: list[Fuel]) -> None:
         """
         Set the fuel(s) targeted by the policy.
 
@@ -122,12 +128,12 @@ class _Policy(Node):
 
         Parameters
         ----------
-        fuels : list[Fuel]
+        fuels
             A list of Fuel nodes.
         """
         self.fuels = assign_list(as_list(fuels), unique=True, scalar=False, type_=FUEL)
 
-    def set_scope(self, scope):
+    def set_scope(self, scope: str) -> None:
         """
         Set the scope of emission targeted by the policy.
 
@@ -143,12 +149,12 @@ class _Policy(Node):
 
         Parameters
         ----------
-        scope : str
+        scope
             Emission scope.
         """
         self.scope = assign_id(scope, PolicyScopeID)
 
-    def set_include_slip(self, include_slip):
+    def set_include_slip(self, include_slip: str) -> None:
         """
         Set whether emissions slip is included in the policy's emissions calculation.
 
@@ -159,12 +165,12 @@ class _Policy(Node):
 
         Parameters
         ----------
-        include_slip : str
+        include_slip
             Boolean flag.
         """
         self.include_slip = assign_boolean(include_slip)
 
-    def set_emissions_lifetime(self, emissions_lifetime):
+    def set_emissions_lifetime(self, emissions_lifetime: float | ScalarInput) -> None:
         """
         Set the emission lifetime used in the GWP calculation of emissions.
 
@@ -174,7 +180,7 @@ class _Policy(Node):
 
         Parameters
         ----------
-        emissions_lifetime : float | Node
+        emissions_lifetime
             Emissions lifetime used in GWP calculation.
         """
         self.emissions_lifetime = assign_value(
@@ -182,7 +188,7 @@ class _Policy(Node):
         )
 
     # external methods (DSL commands) --------------------------------------------------
-    def set_include_vessel(self, vessel_name, include_vessel):
+    def set_include_vessel(self, vessel_name: str, include_vessel: str) -> None:
         """
         Set whether a specific vessel is impacted by the policy.
 
@@ -193,16 +199,18 @@ class _Policy(Node):
 
         Parameters
         ----------
-        vessel_name : str
+        vessel_name
             Name of vessel.
-        include_vessel : float | Node
+        include_vessel
             Whether the vessel is impacted by the policy.
         """
         command_assignment_to_boolean_dict(
             vessel_name, include_vessel, self.include_vessel, allow_empty=True
         )
 
-    def set_global_warming_potential(self, emission_name, global_warming_potential):
+    def set_global_warming_potential(
+        self, emission_name: str, global_warming_potential: float | CurveInput
+    ) -> None:
         """
         Set the GWP used to translate tons of emissions into CO2-equivalent emissions.
 
@@ -216,9 +224,9 @@ class _Policy(Node):
 
         Parameters
         ----------
-        emission_name : str
+        emission_name
             Name of emission for which the global warming potential is assigned.
-        global_warming_potential : float | Node
+        global_warming_potential
             Global warming potential in ton CO2eq/ton emission.
         """
         command_assignment_to_dict(
@@ -228,7 +236,9 @@ class _Policy(Node):
             type_=(CURVE, VARIABLE),
         )
 
-    def set_fuel_wtt(self, fuel_name, emission_name, emission_factor):
+    def set_fuel_wtt(
+        self, fuel_name: str, emission_name: str, emission_factor: float | ForecastInput
+    ) -> None:
         """
         Set the WTT emission factor for a given fuel and emission.
 
@@ -242,11 +252,11 @@ class _Policy(Node):
 
         Parameters
         ----------
-        fuel_name : str
+        fuel_name
             Name of fuel for which the emission factor is assigned.
-        emission_name : str
+        emission_name
             Name of emission for which the emission factor is assigned.
-        emission_factor : float | Node
+        emission_factor
             WTT emission factor in ton emission/ton fuel.
         """
         command_assignment_to_tuple_dict(
@@ -256,7 +266,9 @@ class _Policy(Node):
             type_=(FORECAST, VARIABLE),
         )
 
-    def set_fuel_ttw(self, fuel_name, emission_name, emission_factor):
+    def set_fuel_ttw(
+        self, fuel_name: str, emission_name: str, emission_factor: float | ForecastInput
+    ) -> None:
         """
         Set the TTW emission factor for a given fuel and emission.
 
@@ -270,11 +282,11 @@ class _Policy(Node):
 
         Parameters
         ----------
-        fuel_name : str
+        fuel_name
             Name of fuel for which the emission factor is assigned.
-        emission_name : str
+        emission_name
             Name of emission for which the emission factor is assigned.
-        emission_factor : float | Node
+        emission_factor
             TTW emission factor in ton emission/ton fuel.
         """
         command_assignment_to_tuple_dict(
@@ -296,7 +308,7 @@ class _Policy(Node):
         if not self.fuels:
             no_value_assigned_error(self, "Fuels")
 
-    def _initialize_policy_dependencies(self, vessels):
+    def _initialize_policy_dependencies(self, vessels: dict[str, Vessel]) -> None:
 
         # fuel_wtt, fuel_ttw, and global_warming_potential stay None when unset:
         # consumers fall back to the model's own factors
@@ -323,8 +335,11 @@ class _Policy(Node):
             )
 
     def _calculate_policy_expectations(
-        self, expectation, emissions, emissions_lifetime
-    ):
+        self,
+        expectation: LevyExpectation | RegulationExpectation,
+        emissions: dict[str, Emission],
+        emissions_lifetime: float,
+    ) -> None:
 
         if self.emissions_lifetime is not None:
             emissions_lifetime = self.emissions_lifetime.get()
@@ -342,10 +357,10 @@ class _Policy(Node):
 
             expectation.set_global_warming_potential(emissions_name, gwp)
 
-    def is_active(self):
+    def is_active(self) -> bool:
         return self.active
 
-    def vessel_is_policed(self, vessel_name):
+    def vessel_is_policed(self, vessel_name: str) -> bool:
         return (
             self.include_vessel[vessel_name]
             and self.in_jurisdiction_vessel[vessel_name]

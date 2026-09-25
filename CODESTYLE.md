@@ -151,7 +151,9 @@ The formatter owns spacing within statements; blank lines are yours:
   `navigate/core/nodes/input_kinds.py`, and used at every attribute
   definition. The alias matches the setter's `type_=` argument, and an
   attribute still unset after construction spells it `<alias> | None` rather
-  than folding `None` into an alias.
+  than folding `None` into an alias. Setter parameters are annotated
+  `float | <alias>`, the unwrapped value the parser passes, while the
+  attributes carry the alias (`NumberInput`, stored unwrapped, is both).
 - An attribute every deck must assign is listed as required in
   `navigate/parser/_attributes.py` and declared in `__init__` by annotation
   alone (`self.start_date: np.datetime64`), with no value and no `None`.

@@ -32,7 +32,7 @@ class _Machinery(Node):
         self.replacement: ForecastInput = Scalar(1.0)
 
     # external methods (DSL attributes) ------------------------------------------------
-    def set_capex(self, capex):
+    def set_capex(self, capex: float | ForecastInput) -> None:
         """
         Set the CAPEX related to installing the machinery.
 
@@ -43,14 +43,14 @@ class _Machinery(Node):
 
         Parameters
         ----------
-        capex : float | Node
+        capex
             CAPEX cost of installing the machinery.
         """
         self.capex = assign_value(
             as_scalar(capex), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
-    def set_opex(self, opex):
+    def set_opex(self, opex: float | ForecastInput) -> None:
         """
         Set the OPEX related to maintaining the machinery.
 
@@ -61,12 +61,12 @@ class _Machinery(Node):
 
         Parameters
         ----------
-        opex : float | Node
+        opex
             OPEX cost per year of maintaining the machinery.
         """
         self.opex = assign_value(as_scalar(opex), type_=(FORECAST, VARIABLE), lower=0.0)
 
-    def set_lifetime(self, lifetime):
+    def set_lifetime(self, lifetime: float | ForecastInput) -> None:
         """
         Set the lifetime of the machinery.
 
@@ -80,7 +80,7 @@ class _Machinery(Node):
 
         Parameters
         ----------
-        lifetime : float | Node
+        lifetime
             Lifetime of the machinery.
         """
         self.lifetime = assign_value(
@@ -90,7 +90,7 @@ class _Machinery(Node):
             inclusive_lower=False,
         )
 
-    def set_replacement(self, replacement):
+    def set_replacement(self, replacement: float | ForecastInput) -> None:
         """
         Set the CAPEX replacement fraction to reinstall machinery at end of lifetime.
 
@@ -101,7 +101,7 @@ class _Machinery(Node):
 
         Parameters
         ----------
-        replacement : float | Node
+        replacement
             Fraction of CAPEX for re-installing the machinery at end of lifetime.
         """
         self.replacement = assign_value(

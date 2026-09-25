@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Define the Levy node, a penalty or subsidy on emission factors at port."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -15,10 +17,15 @@ from navigate.core.nodes._policy import _Policy
 from navigate.core.profiles import LevyProfile
 
 if TYPE_CHECKING:
+    from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.input_kinds import ForecastInput
+    from navigate.core.nodes.vessel import Vessel
+    from navigate.util import FloatArray
 
 
 class Levy(_Policy):
+    """A levy penalizing or subsidizing fuels by emission factor against thresholds."""
+
     def __init__(self, name: str) -> None:
         super().__init__(name, LEVY)
 
@@ -32,7 +39,7 @@ class Levy(_Policy):
         self.profile: LevyProfile = LevyProfile()
 
     # external methods (DSL attributes) ------------------------------------------------
-    def set_scheme(self, scheme):
+    def set_scheme(self, scheme: str) -> None:
         """
         Set the scheme of the levy.
 
@@ -49,12 +56,12 @@ class Levy(_Policy):
 
         Parameters
         ----------
-        scheme : str
+        scheme
             Levy scheme.
         """
         self.scheme = assign_id(scheme, LevySchemeID)
 
-    def set_level(self, level):
+    def set_level(self, level: float | ForecastInput) -> None:
         """
         Set the levy level paid or received, depending on scheme, in USD/ton emission.
 
@@ -65,14 +72,14 @@ class Levy(_Policy):
 
         Parameters
         ----------
-        level : float | Node
+        level
             Cost/remuneration of the levy.
         """
         self.level = assign_value(
             as_scalar(level), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
-    def set_lower_threshold(self, lower_threshold):
+    def set_lower_threshold(self, lower_threshold: float | ForecastInput) -> None:
         """
         Set the lower emission factor threshold of the levy in kg emissions / GJ.
 
@@ -86,14 +93,14 @@ class Levy(_Policy):
 
         Parameters
         ----------
-        lower_threshold : float | Node
+        lower_threshold
             Lower emission factor threshold.
         """
         self.lower_threshold = assign_value(
             as_scalar(lower_threshold), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
-    def set_upper_threshold(self, upper_threshold):
+    def set_upper_threshold(self, upper_threshold: float | ForecastInput) -> None:
         """
         Set the upper emission factor threshold of the levy in kg emissions / GJ.
 
@@ -108,7 +115,7 @@ class Levy(_Policy):
 
         Parameters
         ----------
-        upper_threshold : float | Node
+        upper_threshold
             Upper emission factor threshold.
         """
         self.upper_threshold = assign_value(
@@ -129,13 +136,13 @@ class Levy(_Policy):
                     f"{self}: 'UpperThreshold' must be >= 'LowerThreshold'."
                 )
 
-    def initialize_dependencies(self, vessels):
+    def initialize_dependencies(self, vessels: dict[str, Vessel]) -> None:
         """
         Initialize dependent dictionaries to allow wildcarding during command calls.
 
         Parameters
         ----------
-        vessels : dict[str, Vessel]
+        vessels
             All vessels in the simulation.
         """
         self._initialize_policy_dependencies(vessels)
@@ -143,10 +150,16 @@ class Levy(_Policy):
     def initialize_expectation(self, length: int) -> None:
         self.expectation.initialize(length, [e.name for e in self.emissions])
 
-    def initialize_profile(self, timeline: np.ndarray) -> None:
+    def initialize_profile(self, timeline: FloatArray) -> None:
         self.profile.initialize(timeline)
 
-    def calculate_expectation(self, emissions, emissions_lifetime, timeline, idx):
+    def calculate_expectation(
+        self,
+        emissions: dict[str, Emission],
+        emissions_lifetime: float,
+        timeline: FloatArray,
+        idx: int,
+    ) -> None:
 
         if not self.active:
             return

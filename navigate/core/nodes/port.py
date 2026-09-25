@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Define the Port node, where vessels bunker fuel and connect to shore power."""
+
 from __future__ import annotations
 
 import logging
@@ -26,11 +28,14 @@ if TYPE_CHECKING:
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.input_kinds import ForecastInput
+    from navigate.util import FloatArray
 
 logger = logging.getLogger(__name__)
 
 
 class Port(Node):
+    """A port: the fuels bunkered there, their limits and costs, and shore power."""
+
     def __init__(self, name: str) -> None:
         super().__init__(name, PORT)
 
@@ -58,7 +63,7 @@ class Port(Node):
         self.profile: PortProfile = PortProfile()
 
     # external methods (DSL commands) --------------------------------------------------
-    def set_bunkering_allowed(self, fuel_name, value):
+    def set_bunkering_allowed(self, fuel_name: str, value: str) -> None:
         """
         Set whether it is allowed to bunker a specific fuel in the port.
 
@@ -69,14 +74,14 @@ class Port(Node):
 
         Parameters
         ----------
-        fuel_name : str
+        fuel_name
             The name of a fuel.
-        value : str
+        value
             Whether the fuel is allowed to be bunkered in the port.
         """
         command_assignment_to_boolean_dict(fuel_name, value, self.bunkering_allowed)
 
-    def set_bunkering_limit(self, fuel_name, value):
+    def set_bunkering_limit(self, fuel_name: str, value: float | ForecastInput) -> None:
         """
         Set a limit for the fuel that can be bunkered in the port, tons/year.
 
@@ -87,9 +92,9 @@ class Port(Node):
 
         Parameters
         ----------
-        fuel_name : str
+        fuel_name
             The name of a fuel.
-        value : float | Node
+        value
             The amount of fuel available for bunkering in tons/year.
         """
         command_assignment_to_dict(
@@ -100,7 +105,9 @@ class Port(Node):
             lower=0.0,
         )
 
-    def set_bunkering_inertia(self, fuel_name, value):
+    def set_bunkering_inertia(
+        self, fuel_name: str, value: float | ForecastInput
+    ) -> None:
         """
         Set the inertia of a fuel being bunkered in fraction/year.
 
@@ -114,9 +121,9 @@ class Port(Node):
 
         Parameters
         ----------
-        fuel_name : str
+        fuel_name
             The name of a fuel.
-        value : float | Node
+        value
             The inertia of the bunkering of the fuel.
         """
         command_assignment_to_dict(
@@ -128,7 +135,7 @@ class Port(Node):
             upper=1.0,
         )
 
-    def set_handling_cost(self, fuel_name, value):
+    def set_handling_cost(self, fuel_name: str, value: float | ForecastInput) -> None:
         """
         Set the storage and bunkering service cost for a fuel in the port, USD/ton.
 
@@ -139,9 +146,9 @@ class Port(Node):
 
         Parameters
         ----------
-        fuel_name : str
+        fuel_name
             The name of a fuel.
-        value : float | Node
+        value
             The cost of storage and the service of bunkering a specific fuel in the port
             in USD/ton.
         """
@@ -153,7 +160,9 @@ class Port(Node):
             lower=0.0,
         )
 
-    def set_bunker_price_overwrite(self, fuel_name, value):
+    def set_bunker_price_overwrite(
+        self, fuel_name: str, value: float | ForecastInput
+    ) -> None:
         """
         Set an overwrite cost for a specific fuel in the port in USD/ton.
 
@@ -167,9 +176,9 @@ class Port(Node):
 
         Parameters
         ----------
-        fuel_name : str
+        fuel_name
             The name of a fuel.
-        value : float | Node
+        value
             The overwrite price of a specific fuel in the port in USD/ton.
         """
         command_assignment_to_dict(
@@ -180,7 +189,9 @@ class Port(Node):
             lower=0.0,
         )
 
-    def set_bunker_wtt_overwrite(self, fuel_name, emission_name, value):
+    def set_bunker_wtt_overwrite(
+        self, fuel_name: str, emission_name: str, value: float | ForecastInput
+    ) -> None:
         """
         Set an overwrite WTT emissions for a fuel/emission pair, ton emission/ton fuel.
 
@@ -194,12 +205,12 @@ class Port(Node):
 
         Parameters
         ----------
-        fuel_name : str
+        fuel_name
             The name of a fuel.
-        emission_name : str
+        emission_name
             The name of an emission.
-        value : float | Node
-            The overwrite price of a specific fuel in the port in USD/ton.
+        value
+            The overwrite WTT emission in ton emission/ton fuel.
         """
         command_assignment_to_tuple_dict(
             (fuel_name, emission_name),
@@ -208,7 +219,7 @@ class Port(Node):
             type_=(FORECAST, VARIABLE),
         )
 
-    def set_shore_power_cost(self, value):
+    def set_shore_power_cost(self, value: float | ForecastInput) -> None:
         """
         Set the shore power electricity tariff in USD/MWh.
 
@@ -221,14 +232,14 @@ class Port(Node):
 
         Parameters
         ----------
-        value : float | Node
+        value
             Shore power cost in USD/MWh.
         """
         self.shore_power_cost = assign_value(
             as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
-    def set_shore_power_connection_share(self, value):
+    def set_shore_power_connection_share(self, value: float | ForecastInput) -> None:
         """
         Set the fraction of port time during which shore power connection is available.
 
@@ -241,14 +252,16 @@ class Port(Node):
 
         Parameters
         ----------
-        value : float | Node
+        value
             Fraction of port time with shore power connection [0, 1].
         """
         self.shore_power_connection_share = assign_value(
             as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
         )
 
-    def set_shore_power_emission_factor(self, emission_name, value):
+    def set_shore_power_emission_factor(
+        self, emission_name: str, value: float | ForecastInput
+    ) -> None:
         """
         Set the WTW emission factor for shore power electricity, ton emission/MWh.
 
@@ -261,9 +274,9 @@ class Port(Node):
 
         Parameters
         ----------
-        emission_name : str
+        emission_name
             Name of the emission.
-        value : float | Node
+        value
             Emission factor in ton emission/MWh.
         """
         command_assignment_to_dict(
@@ -287,15 +300,17 @@ class Port(Node):
             if (wtt is None) and self.liquid_market_fuel[fuel_name]:
                 self.bunker_wtt_overwrite[(fuel_name, emission_name)] = Scalar(0.0)
 
-    def initialize_dependencies(self, emissions, fuels):
+    def initialize_dependencies(
+        self, emissions: dict[str, Emission], fuels: dict[str, Fuel]
+    ) -> None:
         """
         Initialize dependent dictionaries to allow wildcarding during command calls.
 
         Parameters
         ----------
-        emissions : dict[str, Emission]
+        emissions
             All emissions in the simulation.
-        fuels : dict[str, Fuel]
+        fuels
             All fuels in the simulation.
         """
         for fuel_name in fuels:
@@ -334,7 +349,7 @@ class Port(Node):
 
         self.profile.initialize(timeline, emissions, fuels, lifetime)
 
-    def calculate_expectation(self, timeline, idx):
+    def calculate_expectation(self, timeline: FloatArray, idx: int) -> None:
 
         times = timeline[idx:]
 
@@ -370,7 +385,7 @@ class Port(Node):
                 idx, emission_name, ef.get(times) / MWH_TO_GJ
             )
 
-    def calculate_profile(self, idx):
+    def calculate_profile(self, idx: int) -> None:
 
         for fuel_name, available in self.bunkering_allowed.items():
             self.profile.set_bunkering_allowed(idx, fuel_name, available)
@@ -379,13 +394,13 @@ class Port(Node):
             if limit is not None:
                 self.profile.set_bunkering_limit_mass(idx, fuel_name, limit.get())
 
-    def is_bunkering_allowed(self, fuel_name):
+    def is_bunkering_allowed(self, fuel_name: str) -> bool:
         """
         Return whether fuel can be bunkered at this port in the current time-step.
 
         Parameters
         ----------
-        fuel_name : str
+        fuel_name
             Name of fuel.
 
         Returns

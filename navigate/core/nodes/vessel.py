@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Define the Vessel node, one vessel type with its loads, machinery and route."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -27,10 +29,11 @@ from navigate.core.node_type import (
     VESSEL,
 )
 from navigate.core.profiles import VesselProfile
-from navigate.core.wrap import to_numpy
 from navigate.exceptions import no_value_assigned_error
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     import numpy as np
 
     from navigate.core.expression import Expression
@@ -47,6 +50,8 @@ if TYPE_CHECKING:
 
 
 class Vessel(Node):
+    """A vessel type: its power demand, machinery, route, capacity and base cost."""
+
     def __init__(self, name: str) -> None:
         super().__init__(name, VESSEL)
 
@@ -88,7 +93,7 @@ class Vessel(Node):
         self.fleet_assignment: str | None = None
 
     # external methods (DSL attributes) ------------------------------------------------
-    def set_propulsion_load(self, propulsion_load):
+    def set_propulsion_load(self, propulsion_load: float | SurfaceInput) -> None:
         """
         Set the propulsion load, in MW.
 
@@ -107,14 +112,16 @@ class Vessel(Node):
 
         Parameters
         ----------
-        propulsion_load : float
-            The propulsion load  in MW.
+        propulsion_load
+            The propulsion load in MW.
         """
         self.propulsion_load = assign_value(
             as_scalar(propulsion_load), type_=(CURVE, SURFACE, VARIABLE), lower=0.0
         )
 
-    def set_electrical_load_at_sea(self, electrical_load_at_sea):
+    def set_electrical_load_at_sea(
+        self, electrical_load_at_sea: float | SurfaceInput
+    ) -> None:
         """
         Set the electrical load at sea, in MW.
 
@@ -133,7 +140,7 @@ class Vessel(Node):
 
         Parameters
         ----------
-        electrical_load_at_sea : float
+        electrical_load_at_sea
             The electrical load at sea in MW.
         """
         self.electrical_load_at_sea = assign_value(
@@ -142,7 +149,9 @@ class Vessel(Node):
             lower=0.0,
         )
 
-    def set_electrical_load_in_port(self, electrical_load_in_port):
+    def set_electrical_load_in_port(
+        self, electrical_load_in_port: float | ScalarInput
+    ) -> None:
         """
         Set the electrical load in port in MW.
 
@@ -154,14 +163,14 @@ class Vessel(Node):
 
         Parameters
         ----------
-        electrical_load_in_port : float
+        electrical_load_in_port
             The electrical load in port in MW.
         """
         self.electrical_load_in_port = assign_value(
             as_scalar(electrical_load_in_port), type_=VARIABLE, lower=0.0
         )
 
-    def set_heat_load_at_sea(self, heat_load_at_sea):
+    def set_heat_load_at_sea(self, heat_load_at_sea: float | SurfaceInput) -> None:
         """
         Set the heat load at sea, in MW.
 
@@ -180,14 +189,14 @@ class Vessel(Node):
 
         Parameters
         ----------
-        heat_load_at_sea : float
+        heat_load_at_sea
             The heating load at sea in MW.
         """
         self.heat_load_at_sea = assign_value(
             as_scalar(heat_load_at_sea), type_=(CURVE, SURFACE, VARIABLE), lower=0.0
         )
 
-    def set_heat_load_in_port(self, heat_load_in_port):
+    def set_heat_load_in_port(self, heat_load_in_port: float | ScalarInput) -> None:
         """
         Set the heating load in port in MW.
 
@@ -199,14 +208,14 @@ class Vessel(Node):
 
         Parameters
         ----------
-        heat_load_in_port : float
+        heat_load_in_port
             The heating load in port in MW.
         """
         self.heat_load_in_port = assign_value(
             as_scalar(heat_load_in_port), type_=VARIABLE, lower=0.0
         )
 
-    def set_fuel_type(self, fuel_type):
+    def set_fuel_type(self, fuel_type: str) -> None:
         """
         Set the primary main fuel type of the vessel.
 
@@ -221,12 +230,12 @@ class Vessel(Node):
 
         Parameters
         ----------
-        fuel_type : str
+        fuel_type
             Primary type of main fuel.
         """
         self.fuel_type = assign_id(fuel_type, FuelTypeID)
 
-    def set_power_system(self, power_system):
+    def set_power_system(self, power_system: PowerSystem) -> None:
         """
         Set the PowerSystem used to convert fuel to energy.
 
@@ -236,12 +245,12 @@ class Vessel(Node):
 
         Parameters
         ----------
-        power_system : Node
+        power_system
             The powersystem used to convert fuel to energy.
         """
         self.power_system = assign_value(power_system, scalar=False, type_=POWER_SYSTEM)
 
-    def set_tanks(self, tanks):
+    def set_tanks(self, tanks: list[Tank]) -> None:
         """
         Set the list of tanks used for onboard fuel storage.
 
@@ -252,12 +261,12 @@ class Vessel(Node):
 
         Parameters
         ----------
-        tanks : list[Node]
+        tanks
             List of Tank nodes.
         """
         self.tanks = assign_list(as_list(tanks), unique=True, scalar=False, type_=TANK)
 
-    def set_route(self, route):
+    def set_route(self, route: Route) -> None:
         """
         Set the Route the vessel is sailing on.
 
@@ -267,12 +276,12 @@ class Vessel(Node):
 
         Parameters
         ----------
-        route : Node
+        route
             The route the vessel is sailing on.
         """
         self.route = assign_value(route, scalar=False, type_=ROUTE)
 
-    def set_nominal_capacity(self, nominal_capacity):
+    def set_nominal_capacity(self, nominal_capacity: float | ScalarInput) -> None:
         """
         Set the nominal cargo carrying capacity of the vessel.
 
@@ -290,14 +299,14 @@ class Vessel(Node):
 
         Parameters
         ----------
-        nominal_capacity : float | Node
+        nominal_capacity
             The nominal cargo carrying capacity of the vessel.
         """
         self.nominal_capacity = assign_value(
             as_scalar(nominal_capacity), type_=VARIABLE, lower=0.0
         )
 
-    def set_lifetime(self, lifetime):
+    def set_lifetime(self, lifetime: float | ForecastInput) -> None:
         """
         Set the lifetime of the vessel in years.
 
@@ -309,7 +318,7 @@ class Vessel(Node):
 
         Parameters
         ----------
-        lifetime : float | Node
+        lifetime
             Lifetime of the vessel in years.
         """
         self.lifetime = assign_value(
@@ -319,7 +328,7 @@ class Vessel(Node):
             inclusive_lower=False,
         )
 
-    def set_lead_time(self, lead_time):
+    def set_lead_time(self, lead_time: float | ForecastInput) -> None:
         """
         Set the lead time of the vessel in years.
 
@@ -332,14 +341,14 @@ class Vessel(Node):
 
         Parameters
         ----------
-        lead_time : float | Node
+        lead_time
             Lead time of the vessel in years.
         """
         self.lead_time = assign_value(
             as_scalar(lead_time), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
-    def set_capex(self, capex):
+    def set_capex(self, capex: float | ForecastInput) -> None:
         """
         Set the base CAPEX of building the vessel in USD.
 
@@ -350,14 +359,14 @@ class Vessel(Node):
 
         Parameters
         ----------
-        capex : float | Node
+        capex
             The base CAPEX of building the vessel in USD.
         """
         self.capex = assign_value(
             as_scalar(capex), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
-    def set_opex(self, opex):
+    def set_opex(self, opex: float | ForecastInput) -> None:
         """
         Set the base OPEX of maintaining the vessel in USD/year.
 
@@ -368,12 +377,12 @@ class Vessel(Node):
 
         Parameters
         ----------
-        opex : float | Node
+        opex
             The base OPEX of maintaining the vessel in USD/year.
         """
         self.opex = assign_value(as_scalar(opex), type_=(FORECAST, VARIABLE), lower=0.0)
 
-    def set_cost_of_capital(self, cost_of_capital):
+    def set_cost_of_capital(self, cost_of_capital: float | ForecastInput) -> None:
         """
         Set the cost of capital used in calculating the finance costs of the vessel.
 
@@ -387,7 +396,7 @@ class Vessel(Node):
 
         Parameters
         ----------
-        cost_of_capital : float | Node
+        cost_of_capital
             Cost of capital.
         """
         self.cost_of_capital = assign_value(
@@ -409,30 +418,43 @@ class Vessel(Node):
         emissions: dict[str, Emission],
         fuels: dict[str, Fuel],
         emissions_lifetime: float,
-        regulation_names: list[str] = (),
-        levy_names: list[str] = (),
+        regulation_names: Sequence[str] = (),
+        levy_names: Sequence[str] = (),
     ) -> None:
 
         self.profile.initialize(
             timeline, emissions, fuels, emissions_lifetime, regulation_names, levy_names
         )
 
-    def calculate_expectation(self, idx):
-        self.expectation.set_speeds(idx, to_numpy(self.route.speeds))
+    def calculate_expectation(self, idx: int) -> None:
+        self.expectation.set_speeds(idx, [speed.get() for speed in self.route.speeds])
 
-    def calculate_profile(self, idx):
+    def calculate_profile(self, idx: int) -> None:
         """
         Write the vessel lifetime and lead time to the profile at idx.
 
         Parameters
         ----------
-        idx : int
+        idx
             Current time-step index.
         """
         self.profile.set_lifetime(idx, self.lifetime.get())
         self.profile.set_lead_time(idx, self.lead_time.get())
 
-    def set_fleet_assignment(self, fleet_name):
+    def set_fleet_assignment(self, fleet_name: str) -> None:
+        """
+        Assign the vessel to a fleet, rejecting a second assignment elsewhere.
+
+        Parameters
+        ----------
+        fleet_name
+            Name of the fleet the vessel is assigned to.
+
+        Raises
+        ------
+        ValueError
+            If the vessel is already assigned to a different fleet.
+        """
         if self.fleet_assignment is not None:
             raise ValueError(
                 f'Fleet("{fleet_name}"): {self} is already assigned to a different'

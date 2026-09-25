@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Define the Surface node, a two-input table lookup read through its getter."""
+
 from __future__ import annotations
 
 import logging
@@ -19,9 +21,36 @@ logger = logging.getLogger(__name__)
 
 
 class Surface(Node, _Table2D):
+    """
+    A table of z against x and y, interpolated at the inputs it is evaluated with.
+
+    Parameters
+    ----------
+    name
+        Node name.
+    """
+
     def __init__(self, name: str) -> None:
         Node.__init__(self, name, SURFACE)
         _Table2D.__init__(self)
+
+    def set_table(self, table: TableData) -> None:
+        """
+        Set the table of x-, y- and z-values the surface interpolates in.
+
+        Both the x-values and the y-values must be strictly increasing, and the
+        number of z-values must equal the number of x-values times the number of
+        y-values.
+
+        Parameters
+        ----------
+        table
+            Parsed table: y-values in the header row, x-values down the first
+            column of every row below it, z-values filling the rest.
+        """
+        x, y, z = build_table_2d(table)
+        check_table2d_input(x, y, z)
+        self._set_table(x, y, z)
 
     def check_consistency(self) -> None:
         if self.extrapolate == ExtrapolateID.FLAT:
@@ -67,8 +96,3 @@ class Surface(Node, _Table2D):
             )
 
         return self.calculate(x, y)
-
-    def set_table(self, table: TableData) -> None:
-        x, y, z = build_table_2d(table)
-        check_table2d_input(x, y, z)
-        self._set_table(x, y, z)

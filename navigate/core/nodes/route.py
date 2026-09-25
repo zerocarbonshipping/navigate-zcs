@@ -1,11 +1,13 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Define the Route node, the ports, legs and sailing conditions a vessel trades on."""
+
 from __future__ import annotations
 
 import itertools
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal, overload
 
 import numpy as np
 
@@ -13,7 +15,6 @@ from navigate.core import (
     Scalar,
     as_list,
     as_scalar,
-    as_scalar_list,
     assign_fraction_list,
     assign_id,
     assign_list,
@@ -29,7 +30,11 @@ from navigate.util import ROUND_OFF, divide_nonzero, unique_list
 
 if TYPE_CHECKING:
     from navigate.core.expression import Expression
-    from navigate.core.nodes.input_kinds import ForecastInput, ScalarInput
+    from navigate.core.nodes.input_kinds import (
+        ForecastInput,
+        NumberInput,
+        ScalarInput,
+    )
     from navigate.core.nodes.port import Port
     from navigate.util import FloatArray
 
@@ -37,6 +42,8 @@ logger = logging.getLogger(__name__)
 
 
 class Route(Node):
+    """The ports a vessel calls at and the speed, load and distance of each leg."""
+
     def __init__(self, name: str) -> None:
         super().__init__(name, ROUTE)
 
@@ -62,7 +69,7 @@ class Route(Node):
         self._voyage_fractions: dict[tuple[str, str], FloatArray] = {}
 
     # external methods (DSL attributes) ------------------------------------------------
-    def set_route_type(self, route_type):
+    def set_route_type(self, route_type: str) -> None:
         """
         Set the route type.
 
@@ -73,12 +80,12 @@ class Route(Node):
 
         Parameters
         ----------
-        route_type : str
+        route_type
             Assignment read from input deck.
         """
         self.route_type = assign_id(route_type, RouteTypeID)
 
-    def set_ports(self, ports):
+    def set_ports(self, ports: list[Port]) -> None:
         """
         Set the list of ports available for bunkering on the route.
 
@@ -89,12 +96,12 @@ class Route(Node):
 
         Parameters
         ----------
-        ports : list[Node]
+        ports
             A list of Port nodes.
         """
         self.ports = assign_list(as_list(ports), scalar=False, type_=PORT)
 
-    def set_port_durations(self, port_durations):
+    def set_port_durations(self, port_durations: list[float | ForecastInput]) -> None:
         """
         Set the duration spent at each port call of the trip, days.
 
@@ -107,17 +114,18 @@ class Route(Node):
 
         Parameters
         ----------
-        port_durations : list[float | Node]
+        port_durations
             A list of floats or Forecast nodes.
         """
+        entries: list[float | ForecastInput] = as_list(port_durations)
         self.port_durations = assign_list(
-            as_scalar_list(port_durations),
+            [as_scalar(entry) for entry in entries],
             length=(1, None),
             type_=(FORECAST, VARIABLE),
             lower=0.0,
         )
 
-    def set_time_at_sea(self, time_at_sea):
+    def set_time_at_sea(self, time_at_sea: float | ForecastInput) -> None:
         """
         Set the fraction of time spent at sea.
 
@@ -129,14 +137,14 @@ class Route(Node):
 
         Parameters
         ----------
-        time_at_sea : float
+        time_at_sea
             Fraction of time spent at sea.
         """
         self.time_at_sea = assign_value(
             as_scalar(time_at_sea), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
         )
 
-    def set_port_calls(self, port_calls):
+    def set_port_calls(self, port_calls: list[float | ForecastInput]) -> None:
         """
         Set the number of port calls per port over the reference duration.
 
@@ -149,17 +157,18 @@ class Route(Node):
 
         Parameters
         ----------
-        port_calls : list[float | Node]
+        port_calls
             A list of floats or Forecast nodes.
         """
+        entries: list[float | ForecastInput] = as_list(port_calls)
         self.port_calls = assign_list(
-            as_scalar_list(port_calls),
+            [as_scalar(entry) for entry in entries],
             type_=(FORECAST, VARIABLE),
             lower=0.0,
             inclusive_lower=False,
         )
 
-    def set_distances(self, distances):
+    def set_distances(self, distances: list[NumberInput]) -> None:
         """
         Set the distance of the various legs of the trip, nautical miles.
 
@@ -172,14 +181,15 @@ class Route(Node):
 
         Parameters
         ----------
-        distances : list[float]
+        distances
             A list of floats.
         """
+        entries: list[NumberInput] = as_list(distances)
         self.distances = assign_list(
-            as_scalar_list(distances), lower=0.0, inclusive_lower=False
+            [as_scalar(entry) for entry in entries], lower=0.0, inclusive_lower=False
         )
 
-    def set_condition_distribution(self, condition_distribution):
+    def set_condition_distribution(self, condition_distribution: list[float]) -> None:
         """
         Set the fraction of time spent on the various legs of the trip.
 
@@ -194,7 +204,7 @@ class Route(Node):
 
         Parameters
         ----------
-        condition_distribution : list[float]
+        condition_distribution
             A list of floats.
         """
         self.condition_distribution, rescaled = assign_fraction_list(
@@ -207,7 +217,7 @@ class Route(Node):
                 self,
             )
 
-    def set_speeds(self, speeds):
+    def set_speeds(self, speeds: list[float | ForecastInput]) -> None:
         """
         Set the speed of the various legs of the trip, knots.
 
@@ -218,18 +228,21 @@ class Route(Node):
 
         Parameters
         ----------
-        speeds : list[float | Node]
+        speeds
             A list of floats or Forecast nodes.
         """
+        entries: list[float | ForecastInput] = as_list(speeds)
         self.speeds = assign_list(
-            as_scalar_list(speeds),
+            [as_scalar(entry) for entry in entries],
             length=(1, None),
             type_=(FORECAST, VARIABLE),
             lower=0.0,
             inclusive_lower=False,
         )
 
-    def set_capacity_utilizations(self, capacity_utilizations):
+    def set_capacity_utilizations(
+        self, capacity_utilizations: list[float | ForecastInput]
+    ) -> None:
         """
         Set the capacity utilization of the various legs of the trip.
 
@@ -240,18 +253,21 @@ class Route(Node):
 
         Parameters
         ----------
-        capacity_utilizations : list[float | Node]
+        capacity_utilizations
             A list of floats or Forecast nodes.
         """
+        entries: list[float | ForecastInput] = as_list(capacity_utilizations)
         self.capacity_utilizations = assign_list(
-            as_scalar_list(capacity_utilizations),
+            [as_scalar(entry) for entry in entries],
             type_=(FORECAST, VARIABLE),
             lower=0.0,
             upper=1.0,
         )
 
     # external methods (DSL commands) --------------------------------------------------
-    def set_voyage_distribution(self, port_name_from, port_name_to, fraction):
+    def set_voyage_distribution(
+        self, port_name_from: str, port_name_to: str, fraction: float | ScalarInput
+    ) -> None:
         """
         Set the fraction of sailing time spent traveling from 'port_from' to 'port_to'.
 
@@ -262,11 +278,11 @@ class Route(Node):
 
         Parameters
         ----------
-        port_name_from : str
+        port_name_from
             Name of port from which vessel departs.
-        port_name_to : str
+        port_name_to
             Name of port to which vessel arrives.
-        fraction : float
+        fraction
             Fraction of total sailing time spent traveling from 'port_from' to
             'port_to'.
         """
@@ -303,10 +319,10 @@ class Route(Node):
     def apply_defaults(self) -> None:
 
         if not self.capacity_utilizations:
-            self.capacity_utilizations = as_scalar_list([1.0 for _ in self.speeds])
+            self.capacity_utilizations = [Scalar(1.0) for _ in self.speeds]
 
         if (self.route_type == RouteTypeID.REGIONAL_TRIP) and not self.port_calls:
-            self.port_calls = as_scalar_list([1.0 for _ in self.ports])
+            self.port_calls = [Scalar(1.0) for _ in self.ports]
 
     def apply_command_defaults(self) -> None:
         # the normalized fractions are the resolved form of the command
@@ -421,13 +437,23 @@ class Route(Node):
                 self,
             )
 
-    def initialize_dependencies(self):
+    def initialize_dependencies(self) -> None:
         """Initialize dependent dictionaries so command calls can use wildcards."""
         names = [port.name for port in self.ports]
         for key in itertools.product(names, names):
             self.voyage_distribution.setdefault(key, Scalar(0.0))
 
-    def get_voyage_distribution(self, to_array=False):
+    @overload
+    def get_voyage_distribution(
+        self, to_array: Literal[False] = False
+    ) -> dict[tuple[str, str], FloatArray]: ...
+
+    @overload
+    def get_voyage_distribution(self, to_array: Literal[True]) -> list[FloatArray]: ...
+
+    def get_voyage_distribution(
+        self, to_array: bool = False
+    ) -> dict[tuple[str, str], FloatArray] | list[FloatArray]:
         """
         Get the normalized voyage distribution, cached at (re-)initialization.
 
@@ -442,10 +468,10 @@ class Route(Node):
         else:
             return self._voyage_fractions
 
-    def get_number_of_legs(self):
+    def get_number_of_legs(self) -> int:
         return len(self.speeds)
 
-    def get_number_of_ports(self):
+    def get_number_of_ports(self) -> int:
         return len(self.ports)
 
     def get_leg_indices(self) -> tuple[tuple[int, int], ...]:
@@ -454,8 +480,9 @@ class Route(Node):
 
         Returns
         -------
-        Consecutive legs for a round trip, otherwise all port-to-port combinations
-        (required for regulatory purposes).
+        tuple[tuple[int, int], ...]
+            Consecutive legs for a round trip, otherwise all port-to-port
+            combinations (required for regulatory purposes).
         """
         if self.route_type == RouteTypeID.ROUND_TRIP:
             n_legs = self.get_number_of_legs()
@@ -464,19 +491,19 @@ class Route(Node):
             n_ports = self.get_number_of_ports()
             return tuple((i, j) for i in range(n_ports) for j in range(n_ports))
 
-    def local_to_global_leg_idx(self, p1: int, p2: int):
+    def local_to_global_leg_idx(self, p1: int, p2: int) -> int:
         if self.route_type == RouteTypeID.ROUND_TRIP:
             return p1
         else:
             return p1 * self.get_number_of_ports() + p2
 
-    def get_number_of_regional_legs(self):
+    def get_number_of_regional_legs(self) -> int:
         if self.route_type == RouteTypeID.ROUND_TRIP:
             return self.get_number_of_legs()
         else:
             return self.get_number_of_ports() ** 2
 
-    def _normalize_voyage_distribution(self):
+    def _normalize_voyage_distribution(self) -> dict[tuple[str, str], FloatArray]:
         """
         Normalize the voyage fractions to sum to unity, splitting equally at zero total.
 
@@ -496,7 +523,7 @@ class Route(Node):
             for key, value in evaluated.items()
         }
 
-    def get_number_of_port_calls(self):
+    def get_number_of_port_calls(self) -> FloatArray:
         if self.route_type == RouteTypeID.ROUND_TRIP:
             return np.ones((self.get_number_of_ports(),))
         else:

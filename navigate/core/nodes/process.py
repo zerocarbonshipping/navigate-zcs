@@ -1,11 +1,13 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Define the Process node, a step in the bottom-up fuel production hierarchy."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from navigate.core import as_list, as_scalar_list, assign_list
+from navigate.core import as_list, as_scalar, assign_list
 from navigate.core.node import Node
 from navigate.core.node_type import FEEDSTOCK, FORECAST, PROCESS, VARIABLE
 
@@ -15,6 +17,8 @@ if TYPE_CHECKING:
 
 
 class Process(Node):
+    """A production process turning feedstocks and process outputs into a new stream."""
+
     def __init__(self, name: str) -> None:
         super().__init__(name, PROCESS)
 
@@ -23,7 +27,7 @@ class Process(Node):
         self.conversions: list[ForecastInput] = []
 
     # external methods (DSL attributes) ------------------------------------------------
-    def set_feeds(self, feeds):
+    def set_feeds(self, feeds: list[Feedstock | Process]) -> None:
         """
         Set the list of feedstocks or output from other processes used in the process.
 
@@ -34,14 +38,14 @@ class Process(Node):
 
         Parameters
         ----------
-        feeds : list[Node]
+        feeds
             A list of feedstock and/or process.
         """
         self.feeds = assign_list(
             as_list(feeds), unique=True, scalar=False, type_=(FEEDSTOCK, PROCESS)
         )
 
-    def set_conversions(self, conversion):
+    def set_conversions(self, conversion: list[float | ForecastInput]) -> None:
         """
         Set the conversion factors required for turning the feed into fuel.
 
@@ -51,11 +55,14 @@ class Process(Node):
 
         Parameters
         ----------
-        conversion : list[float | Node]
+        conversion
             A list of conversion factors in tons of feed per tons of fuel.
         """
+        entries: list[float | ForecastInput] = as_list(conversion)
         self.conversions = assign_list(
-            as_scalar_list(conversion), type_=(FORECAST, VARIABLE), lower=0.0
+            [as_scalar(entry) for entry in entries],
+            type_=(FORECAST, VARIABLE),
+            lower=0.0,
         )
 
     # internal methods -----------------------------------------------------------------

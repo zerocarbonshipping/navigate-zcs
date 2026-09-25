@@ -23,6 +23,7 @@ from navigate.util.dates import (
     YEAR,
     dates_to_days,
     dates_to_years,
+    is_date_array,
     timedelta_to_days,
 )
 from navigate.util.naming import (

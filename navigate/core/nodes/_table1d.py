@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, overload
 
 import numpy as np
 from scipy.interpolate import interp1d
@@ -17,7 +17,7 @@ from navigate.util import is_strictly_increasing
 
 if TYPE_CHECKING:
     from navigate.core.nodes.input_kinds import NumberInput
-    from navigate.util import FloatArray
+    from navigate.util import FloatArray, FloatLike
 
 logger = logging.getLogger(__name__)
 
@@ -38,44 +38,101 @@ class _Table1D(_Calculator):
         # internal variables -----------------------------------------------------------
         self.x: FloatArray
         self.y: FloatArray
-        self._table: interp1d | None = None
+        self._table: interp1d
         self._is_convex: bool = False  # set with the table
 
-    def __getstate__(self):
+    def __getstate__(self) -> dict[str, object]:
         state = self.__dict__.copy()
-        state["_table"] = None  # interp1d is not picklable
+        state.pop("_table", None)  # interp1d is not picklable
         return state
 
-    def __setstate__(self, state):
+    def __setstate__(self, state: dict[str, object]) -> None:
         self.__dict__.update(state)
         # the arrays are set together, and only once the table is
         if "x" in state:
             self._set_table(self.x, self.y)
 
     # external methods (DSL attributes) ------------------------------------------------
-    def set_interpolate(self, interpolate):
+    def set_interpolate(self, interpolate: str) -> None:
+        """
+        Set the interpolation method used within the table.
+
+        Examples
+        --------
+        - LINEAR
+        - PREVIOUS
+        - NEXT
+        - NEAREST
+        - NEAREST_UP
+
+        Parameters
+        ----------
+        interpolate
+            Interpolation method.
+        """
         self._interpolate = assign_id(interpolate, Interpolate1DID)
 
-    def set_extrapolate(self, extrapolate):
+    def set_extrapolate(self, extrapolate: str) -> None:
+        """
+        Set the extrapolation method used beyond the ends of the table.
+
+        Examples
+        --------
+        - FALSE
+        - FLAT
+        - LINEAR
+
+        Parameters
+        ----------
+        extrapolate
+            Extrapolation method.
+        """
         self.extrapolate = assign_id(extrapolate, ExtrapolateID)
 
-    def set_below(self, below):
+    def set_below(self, below: NumberInput) -> None:
+        """
+        Set the flat extrapolation value below the table.
+
+        Only read when 'Extrapolate' is FLAT; the first y-value in the table is
+        used when this is left unset.
+
+        Parameters
+        ----------
+        below
+            Flat extrapolation value below the table.
+        """
         self._below = assign_value(below)
 
-    def set_above(self, above):
+    def set_above(self, above: NumberInput) -> None:
+        """
+        Set the flat extrapolation value above the table.
+
+        Only read when 'Extrapolate' is FLAT; the last y-value in the table is
+        used when this is left unset.
+
+        Parameters
+        ----------
+        above
+            Flat extrapolation value above the table.
+        """
         self._above = assign_value(above)
 
     # internal methods -----------------------------------------------------------------
-    def get_table_limits(self):
-        return np.min(self.y), np.max(self.y)
-
     def is_convex(self) -> bool:
         return self._is_convex
 
-    def calculate(self, x):
-        return self._truncate(self.multiplier * (self._table(x) + self.addition))
+    @overload
+    def calculate(self, x: float) -> float: ...
 
-    def reverse_lookup(self, y):
+    @overload
+    def calculate(self, x: FloatArray) -> FloatArray: ...
+
+    def calculate(self, x: FloatLike) -> FloatLike:
+        # interp1d is untyped; it answers in the shape of its input
+        table_value: FloatLike = self._table(x)
+        return self._truncate(self.multiplier * (table_value + self.addition))
+
+    def reverse_lookup(self, y: FloatLike) -> FloatLike | None:
         """
         Perform a reverse lookup in the node's table for the x-value closest to 'y'.
 
@@ -84,12 +141,12 @@ class _Table1D(_Calculator):
 
         Parameters
         ----------
-        y : float | np.ndarray
+        y
             Value to find the corresponding x-value for.
 
         Returns
         -------
-        float | np.ndarray | None
+        FloatLike | None
             Interpolated 'x' value corresponding to the given 'y', or `None` when
             the table is not strictly increasing.
         """
@@ -100,7 +157,7 @@ class _Table1D(_Calculator):
 
         return np.interp(y, yp, self.x)
 
-    def _check_extrapolation(self, x):
+    def _check_extrapolation(self, x: FloatArray) -> None:
         x_range = self.x[-1] - self.x[0]
         atol = max(x_range * 1e-4, 1e-9)
 
@@ -113,11 +170,10 @@ class _Table1D(_Calculator):
                     "%s: Extrapolating beyond table limits (suppressed repeat).", self
                 )
 
-    def _get_x_limits(self):
+    def _get_x_limits(self) -> tuple[float, float]:
         return self.x[0], self.x[-1]
 
-    def _check_interpolate_extrapolate_consistency(self):
-
+    def _check_interpolate_extrapolate_consistency(self) -> None:
         if (self._interpolate in (Interpolate1DID.PREVIOUS, Interpolate1DID.NEXT)) and (
             self.extrapolate == ExtrapolateID.LINEAR
         ):
@@ -127,37 +183,44 @@ class _Table1D(_Calculator):
                 " extrapolations yielding erroneous results."
             )
 
-    def _get_interpolate_internal(self):
-        if self._interpolate == Interpolate1DID.LINEAR:
-            return "linear"
+    def _get_interpolate_internal(self) -> str:
+        match self._interpolate:
+            case Interpolate1DID.LINEAR:
+                return "linear"
 
-        elif self._interpolate == Interpolate1DID.PREVIOUS:
-            return "previous"
+            case Interpolate1DID.PREVIOUS:
+                return "previous"
 
-        elif self._interpolate == Interpolate1DID.NEXT:
-            return "next"
+            case Interpolate1DID.NEXT:
+                return "next"
 
-        elif self._interpolate == Interpolate1DID.NEAREST:
-            return "nearest"
+            case Interpolate1DID.NEAREST:
+                return "nearest"
 
-        elif self._interpolate == Interpolate1DID.NEAREST_UP:
-            return "nearest-up"
+            case Interpolate1DID.NEAREST_UP:
+                return "nearest-up"
 
-    def _get_allow_extrapolate_internal(self):
+    def _get_allow_extrapolate_internal(self) -> bool:
         return self.extrapolate == ExtrapolateID.FALSE
 
-    def _get_extrapolate_internal(self):
-        if self.extrapolate == ExtrapolateID.FLAT:
-            below = self._below if self._below is not None else self.y[0]
-            above = self._above if self._above is not None else self.y[-1]
+    def _get_extrapolate_internal(
+        self,
+    ) -> tuple[NumberInput, NumberInput] | str | None:
+        match self.extrapolate:
+            case ExtrapolateID.FLAT:
+                below = self._below if self._below is not None else self.y[0]
+                above = self._above if self._above is not None else self.y[-1]
 
-            return below, above
+                return below, above
 
-        elif self.extrapolate == ExtrapolateID.LINEAR:
-            return "extrapolate"
+            case ExtrapolateID.LINEAR:
+                return "extrapolate"
 
-    def _set_table(self, x, y):
+            case ExtrapolateID.FALSE:
+                # out-of-range lookups raise, so no fill value is needed
+                return None
 
+    def _set_table(self, x: FloatArray, y: FloatArray) -> None:
         self._check_interpolate_extrapolate_consistency()
 
         self.x = x
@@ -174,15 +237,15 @@ class _Table1D(_Calculator):
         )
 
 
-def check_table1d_input(x, y):
+def check_table1d_input(x: FloatArray, y: FloatArray) -> None:
     """
     Validate the x and y arrays used to build a 1D table.
 
     Parameters
     ----------
-    x : np.ndarray
+    x
         'x' values in table.
-    y : np.ndarray
+    y
         'y' values in table
     """
     if (x.size < 2) or (y.size < 2) or (x.size != y.size):

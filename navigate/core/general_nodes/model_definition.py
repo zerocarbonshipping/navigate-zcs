@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Define the ModelDefinition general node, the start date and GWP horizon of a run."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -13,6 +15,8 @@ if TYPE_CHECKING:
 
 
 class ModelDefinition(_GeneralNode):
+    """Hold the simulation start date and the emission lifetime used for GWP."""
+
     def __init__(self) -> None:
         super().__init__()
 
@@ -21,7 +25,7 @@ class ModelDefinition(_GeneralNode):
         self.emissions_lifetime: float = 100.0
 
     # external methods (DSL attributes) ------------------------------------------------
-    def set_start_date(self, start_date):
+    def set_start_date(self, start_date: np.datetime64) -> None:
         """
         Set the start date of the simulation in dd-mm-yyyy format (hyphen or slash).
 
@@ -32,12 +36,12 @@ class ModelDefinition(_GeneralNode):
 
         Parameters
         ----------
-        start_date : np.datetime64
+        start_date
             Assignment read from input deck.
         """
         self.start_date = assign_value(start_date, scalar=False, date=True)
 
-    def set_emissions_lifetime(self, emissions_lifetime):
+    def set_emissions_lifetime(self, emissions_lifetime: float) -> None:
         """
         Set the emission lifetime used to calculate GWP for CO2 equivalent emissions.
 
@@ -47,7 +51,7 @@ class ModelDefinition(_GeneralNode):
 
         Parameters
         ----------
-        emissions_lifetime : float
+        emissions_lifetime
             Assignment read from input deck.
         """
         self.emissions_lifetime = assign_value(emissions_lifetime, lower=0.0)

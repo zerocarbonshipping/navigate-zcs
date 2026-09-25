@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, overload
 
 import numpy as np
 from scipy.interpolate import interpn
@@ -40,47 +40,93 @@ class _Table2D(_Calculator):
         self.x: FloatArray
         self.y: FloatArray
         self._z: FloatArray
-        self._table: Callable[[FloatLike, FloatLike], FloatLike] | None = None
+        self._table: Callable[[FloatLike, FloatLike], FloatLike]
         self._is_convex: bool = False  # set with the table
 
-    def __getstate__(self):
+    def __getstate__(self) -> dict[str, object]:
         state = self.__dict__.copy()
-        state["_table"] = None  # local closure is not picklable
+        state.pop("_table", None)  # local closure is not picklable
         return state
 
-    def __setstate__(self, state):
+    def __setstate__(self, state: dict[str, object]) -> None:
         self.__dict__.update(state)
         # the arrays are set together, and only once the table is
         if "x" in state:
             self._set_table(self.x, self.y, self._z)
 
     # external methods (DSL attributes) ------------------------------------------------
-    def set_interpolate(self, interpolate):
+    def set_interpolate(self, interpolate: str) -> None:
+        """
+        Set the interpolation method used within the table.
+
+        Examples
+        --------
+        - LINEAR
+        - NEAREST
+
+        Parameters
+        ----------
+        interpolate
+            Interpolation method.
+        """
         self._interpolate = assign_id(interpolate, Interpolate2DID)
 
-    def set_extrapolate(self, extrapolate):
+    def set_extrapolate(self, extrapolate: str) -> None:
+        """
+        Set the extrapolation method used beyond the ends of the table.
+
+        Examples
+        --------
+        - FALSE
+        - FLAT
+        - LINEAR
+
+        Parameters
+        ----------
+        extrapolate
+            Extrapolation method.
+        """
         self.extrapolate = assign_id(extrapolate, ExtrapolateID)
 
-    def set_outside(self, outside):
+    def set_outside(self, outside: NumberInput) -> None:
+        """
+        Set the flat extrapolation value used outside the table.
+
+        Required when 'Extrapolate' is FLAT; the node's `check_consistency` rejects
+        an unset value in that case.
+
+        Parameters
+        ----------
+        outside
+            Flat extrapolation value outside the table.
+        """
         self._outside = assign_value(outside)
 
     # internal methods -----------------------------------------------------------------
-    def get_table_limits(self):
-        return np.min(self._z), np.max(self._z)
-
     def is_convex(self) -> bool:
         return self._is_convex
 
-    def calculate(self, x, y):
+    @overload
+    def calculate(self, x: float, y: float) -> float: ...
+
+    @overload
+    def calculate(self, x: FloatArray, y: FloatLike) -> FloatArray: ...
+
+    @overload
+    def calculate(self, x: FloatLike, y: FloatLike) -> FloatLike: ...
+
+    def calculate(self, x: FloatLike, y: FloatLike) -> FloatLike:
         return self._truncate(self.multiplier * (self._table(x, y) + self.addition))
 
-    def reverse_lookup(self, z, y=None):
+    def reverse_lookup(
+        self, z: FloatLike, y: FloatArray | None = None
+    ) -> FloatArray | None:
         if y is None:
             y = self.y
 
         return self._reverse_lookup_x(y, z)
 
-    def _reverse_lookup_x(self, y, z):
+    def _reverse_lookup_x(self, y: FloatArray, z: FloatLike) -> FloatArray | None:
         """
         Perform a reverse lookup in the table defined by (xp, yp, zp).
 
@@ -91,9 +137,9 @@ class _Table2D(_Calculator):
 
         Parameters
         ----------
-        y : np.ndarray
+        y
             Values along which to calculate z-slices.
-        z : np.ndarray
+        z
             z-values to reverse calculate x-values for.
 
         Returns
@@ -102,7 +148,7 @@ class _Table2D(_Calculator):
             Interpolated 'x' value corresponding to the given 'z' along a z-slice
             defined by 'y', or `None` when a z-slice is not strictly increasing.
         """
-        x = []
+        x: list[FloatLike] = []
 
         for yp in y:
             # extract a z-slice for the given y
@@ -117,7 +163,7 @@ class _Table2D(_Calculator):
 
         return np.array(x)
 
-    def _check_extrapolation(self, x, y):
+    def _check_extrapolation(self, x: FloatArray, y: FloatArray) -> None:
         x_range = self.x[-1] - self.x[0]
         y_range = self.y[-1] - self.y[0]
         x_atol = max(x_range * 1e-4, 1e-9)
@@ -138,30 +184,34 @@ class _Table2D(_Calculator):
                     "%s: Extrapolating beyond table limits (suppressed repeat).", self
                 )
 
-    def _get_x_limits(self):
+    def _get_x_limits(self) -> tuple[float, float]:
         return self.x[0], self.x[-1]
 
-    def _get_y_limits(self):
+    def _get_y_limits(self) -> tuple[float, float]:
         return self.y[0], self.y[-1]
 
-    def _get_interpolate_internal(self):
-        if self._interpolate == Interpolate2DID.LINEAR:
-            return "linear"
+    def _get_interpolate_internal(self) -> str:
+        match self._interpolate:
+            case Interpolate2DID.LINEAR:
+                return "linear"
 
-        elif self._interpolate == Interpolate2DID.NEAREST:
-            return "nearest"
+            case Interpolate2DID.NEAREST:
+                return "nearest"
 
-    def _get_allow_extrapolate_internal(self):
+    def _get_allow_extrapolate_internal(self) -> bool:
         return self.extrapolate == ExtrapolateID.FALSE
 
-    def _get_extrapolate_internal(self):
-        if self.extrapolate == ExtrapolateID.FLAT:
-            return self._outside
+    def _get_extrapolate_internal(self) -> NumberInput | None:
+        match self.extrapolate:
+            case ExtrapolateID.FLAT:
+                return self._outside
 
-        elif self.extrapolate == ExtrapolateID.LINEAR:
-            return None
+            case ExtrapolateID.LINEAR | ExtrapolateID.FALSE:
+                # interpn extrapolates linearly without a fill value, and raises
+                # before reading one when extrapolation is not allowed
+                return None
 
-    def _set_table(self, x, y, z):
+    def _set_table(self, x: FloatArray, y: FloatArray, z: FloatArray) -> None:
         self.x = x
         self.y = y
         self._z = z
@@ -175,16 +225,16 @@ class _Table2D(_Calculator):
         bounds_error = self._get_allow_extrapolate_internal()
         fill_value = self._get_extrapolate_internal()
 
-        def interp(x_, y_):
-            x_ = np.asarray(x_)
-            y_ = np.asarray(y_)
+        def interp(x_: FloatLike, y_: FloatLike) -> FloatLike:
+            x_array = np.asarray(x_)
+            y_array = np.asarray(y_)
 
-            scalar_inputs = (x_.ndim == 0) and (y_.ndim == 0)
+            scalar_inputs = (x_array.ndim == 0) and (y_array.ndim == 0)
 
             if scalar_inputs:
                 # xi must be (npoints, ndim) for a single point -> (1, 2)
-                xi = np.array([[x_.item(), y_.item()]], dtype=float)
-                return interpn(
+                xi = np.array([[x_array.item(), y_array.item()]], dtype=float)
+                value: float = interpn(
                     (x, y),
                     z,
                     xi,
@@ -192,12 +242,13 @@ class _Table2D(_Calculator):
                     bounds_error=bounds_error,
                     fill_value=fill_value,
                 )[0]  # -> np.float64
+                return value
 
             # For arrays (including scalar/array mix): broadcast + stack into (..., 2)
-            xb, yb = np.broadcast_arrays(x_, y_)
+            xb, yb = np.broadcast_arrays(x_array, y_array)
             xi = np.stack([xb, yb], axis=-1)
 
-            return interpn(
+            values: FloatArray = interpn(
                 (x, y),
                 z,
                 xi,
@@ -205,21 +256,22 @@ class _Table2D(_Calculator):
                 bounds_error=bounds_error,
                 fill_value=fill_value,
             )
+            return values
 
         self._table = interp
 
 
-def check_table2d_input(x, y, z):
+def check_table2d_input(x: FloatArray, y: FloatArray, z: FloatArray) -> None:
     """
     Validate the x, y, and z arrays used to build a 2D table.
 
     Parameters
     ----------
-    x : np.ndarray
+    x
         'x' values in table.
-    y : np.ndarray
+    y
         'y' values in table
-    z : np.ndarray
+    z
         Array of array with z-values.
     """
     if (x.size * y.size) != z.size:

@@ -18,6 +18,8 @@ from navigate.core.node_type import REPORT
 
 
 class Report(Node):
+    """Hold the node properties to export and the file format to export them in."""
+
     def __init__(self, name: str) -> None:
         super().__init__(name, REPORT)
 
@@ -36,7 +38,7 @@ class Report(Node):
         self.vessel_reports: dict[str, NodeReport] = {}
 
     # external methods (DSL attributes) ------------------------------------------------
-    def set_directory(self, directory):
+    def set_directory(self, directory: str) -> None:
         """
         Set the directory for where to export the report.
 
@@ -49,58 +51,238 @@ class Report(Node):
 
         Parameters
         ----------
-        directory : str
+        directory
             Relative or absolute path.
         """
         self.directory = directory
 
-    def set_file_format(self, file_format):
+    def set_file_format(self, file_format: str) -> None:
         """
         Set the file format for report export.
 
         Parameters
         ----------
-        file_format : str or FileFormatID
+        file_format
             Format for export ('XLSX' or 'CSV').
         """
-        if isinstance(file_format, str):
-            self.file_format = assign_id(file_format, FileFormatID)
-        else:
-            self.file_format = file_format
+        self.file_format = assign_id(file_format, FileFormatID)
 
     # external methods (DSL commands) --------------------------------------------------
-    def add_property(self, attribute, reduce=None):
+    def add_property(self, attribute: str, reduce: str | None = None) -> None:
+        """
+        Record a global property to export.
+
+        Ignored if the property was already recorded for this report.
+
+        Examples
+        --------
+        - add_property(ConsumedEnergy)
+
+        Parameters
+        ----------
+        attribute
+            Deck-facing attribute token naming the property to export; see the
+            reference manual for the properties allowed on this command.
+        reduce
+            Reduction axis applied to the tuple keys of the property; None
+            applies no reduction.
+        """
         self._add_property("global", self.manager_reports, attribute, reduce=reduce)
 
-    def add_fleet_property(self, fleet_name, attribute, reduce=None):
+    def add_fleet_property(
+        self, fleet_name: str, attribute: str, reduce: str | None = None
+    ) -> None:
+        """
+        Record a property of one or more fleets to export.
+
+        Ignored for a fleet the property was already recorded for.
+
+        Examples
+        --------
+        - add_fleet_property("*", CargoMiles)
+
+        Parameters
+        ----------
+        fleet_name
+            Name of the fleet the property applies to; a wildcard matches
+            several fleets when the report is written.
+        attribute
+            Deck-facing attribute token naming the property to export; see the
+            reference manual for the properties allowed on this command.
+        reduce
+            Reduction axis applied to the tuple keys of the property; None
+            applies no reduction.
+        """
         self._add_property(fleet_name, self.fleet_reports, attribute, reduce=reduce)
 
-    def add_levy_property(self, levy_name, attribute, reduce=None):
+    def add_levy_property(
+        self, levy_name: str, attribute: str, reduce: str | None = None
+    ) -> None:
+        """
+        Record a property of one or more levies to export.
+
+        Ignored for a levy the property was already recorded for.
+
+        Examples
+        --------
+        - add_levy_property("*", Collected)
+
+        Parameters
+        ----------
+        levy_name
+            Name of the levy the property applies to; a wildcard matches
+            several levies when the report is written.
+        attribute
+            Deck-facing attribute token naming the property to export; see the
+            reference manual for the properties allowed on this command.
+        reduce
+            Reduction axis applied to the tuple keys of the property; None
+            applies no reduction.
+        """
         self._add_property(levy_name, self.levy_reports, attribute, reduce=reduce)
 
-    def add_plant_property(self, plant_name, attribute, reduce=None):
+    def add_plant_property(
+        self, plant_name: str, attribute: str, reduce: str | None = None
+    ) -> None:
+        """
+        Record a property of one or more plants to export.
+
+        Ignored for a plant the property was already recorded for.
+
+        Examples
+        --------
+        - add_plant_property("*", InstantaneousCost)
+
+        Parameters
+        ----------
+        plant_name
+            Name of the plant the property applies to; a wildcard matches
+            several plants when the report is written.
+        attribute
+            Deck-facing attribute token naming the property to export; see the
+            reference manual for the properties allowed on this command.
+        reduce
+            Reduction axis applied to the tuple keys of the property; None
+            applies no reduction.
+        """
         self._add_property(plant_name, self.plant_reports, attribute, reduce=reduce)
 
-    def add_port_property(self, port_name, attribute, reduce=None):
+    def add_port_property(
+        self, port_name: str, attribute: str, reduce: str | None = None
+    ) -> None:
+        """
+        Record a property of one or more ports to export.
+
+        Ignored for a port the property was already recorded for.
+
+        Examples
+        --------
+        - add_port_property("*", BunkerPrice)
+
+        Parameters
+        ----------
+        port_name
+            Name of the port the property applies to; a wildcard matches
+            several ports when the report is written.
+        attribute
+            Deck-facing attribute token naming the property to export; see the
+            reference manual for the properties allowed on this command.
+        reduce
+            Reduction axis applied to the tuple keys of the property; None
+            applies no reduction.
+        """
         self._add_property(port_name, self.port_reports, attribute, reduce=reduce)
 
-    def add_producer_property(self, producer_name, attribute, reduce=None):
+    def add_producer_property(
+        self, producer_name: str, attribute: str, reduce: str | None = None
+    ) -> None:
+        """
+        Record a property of one or more producers to export.
+
+        Ignored for a producer the property was already recorded for.
+
+        Examples
+        --------
+        - add_producer_property("*", Development)
+
+        Parameters
+        ----------
+        producer_name
+            Name of the producer the property applies to; a wildcard matches
+            several producers when the report is written.
+        attribute
+            Deck-facing attribute token naming the property to export; see the
+            reference manual for the properties allowed on this command.
+        reduce
+            Reduction axis applied to the tuple keys of the property; None
+            applies no reduction.
+        """
         self._add_property(
             producer_name, self.producer_reports, attribute, reduce=reduce
         )
 
-    def add_regulation_property(self, regulation_name, attribute, reduce=None):
+    def add_regulation_property(
+        self, regulation_name: str, attribute: str, reduce: str | None = None
+    ) -> None:
+        """
+        Record a property of one or more regulations to export.
+
+        Ignored for a regulation the property was already recorded for.
+
+        Examples
+        --------
+        - add_regulation_property("*", RemedialUnits)
+
+        Parameters
+        ----------
+        regulation_name
+            Name of the regulation the property applies to; a wildcard matches
+            several regulations when the report is written.
+        attribute
+            Deck-facing attribute token naming the property to export; see the
+            reference manual for the properties allowed on this command.
+        reduce
+            Reduction axis applied to the tuple keys of the property; None
+            applies no reduction.
+        """
         self._add_property(
             regulation_name, self.regulation_reports, attribute, reduce=reduce
         )
 
-    def add_vessel_property(self, vessel_name, attribute, reduce=None):
+    def add_vessel_property(
+        self, vessel_name: str, attribute: str, reduce: str | None = None
+    ) -> None:
+        """
+        Record a property of one or more vessels to export.
+
+        Ignored for a vessel the property was already recorded for.
+
+        Examples
+        --------
+        - add_vessel_property("*", AssetCharterRate)
+
+        Parameters
+        ----------
+        vessel_name
+            Name of the vessel the property applies to; a wildcard matches
+            several vessels when the report is written.
+        attribute
+            Deck-facing attribute token naming the property to export; see the
+            reference manual for the properties allowed on this command.
+        reduce
+            Reduction axis applied to the tuple keys of the property; None
+            applies no reduction.
+        """
         self._add_property(vessel_name, self.vessel_reports, attribute, reduce=reduce)
 
     # internal methods -----------------------------------------------------------------
     @staticmethod
-    def _add_property(node_name, assignment_dict, attribute, reduce=None):
-
+    def _add_property(
+        node_name: str,
+        assignment_dict: dict[str, NodeReport],
+        attribute: str,
+        reduce: str | None = None,
+    ) -> None:
         internal_reduce = ReportReduceID.NONE
 
         if reduce is not None:

@@ -5,7 +5,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, overload
+from typing import TYPE_CHECKING, TypeIs, overload
 
 import numpy as np
 
@@ -18,6 +18,23 @@ if TYPE_CHECKING:
     )
 
 YEAR = 365.25  # calendar year in days
+
+
+def is_date_array(values: FloatArray | DateArray) -> TypeIs[DateArray]:
+    """
+    Test whether an array holds dates rather than floats.
+
+    Parameters
+    ----------
+    values
+        Array that is either numeric or of numpy dates.
+
+    Returns
+    -------
+    TypeIs[DateArray]
+        Whether the array holds dates.
+    """
+    return np.issubdtype(values.dtype, np.datetime64)
 
 
 @overload
