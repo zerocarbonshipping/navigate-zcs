@@ -39,7 +39,7 @@ class _Table1D(_Calculator):
         self.x: FloatArray | None = None
         self.y: FloatArray | None = None
         self._table: interp1d | None = None
-        self._is_convex: bool | None = None
+        self._is_convex: bool = False  # set with the table
 
     def __getstate__(self):
         state = self.__dict__.copy()
@@ -68,7 +68,7 @@ class _Table1D(_Calculator):
     def get_table_limits(self):
         return np.min(self.y), np.max(self.y)
 
-    def is_convex(self):
+    def is_convex(self) -> bool:
         return self._is_convex
 
     def calculate(self, x):

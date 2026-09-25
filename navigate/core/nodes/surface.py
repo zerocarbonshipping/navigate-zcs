@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import logging
+from typing import TYPE_CHECKING
 
 from navigate.core.enum_ import ExtrapolateID
 from navigate.core.node import Node
@@ -11,6 +12,9 @@ from navigate.core.node_type import SURFACE
 from navigate.core.nodes._table2d import _Table2D, check_table2d_input
 from navigate.core.table_data import TableData, build_table_2d
 from navigate.exceptions import no_value_assigned_error
+
+if TYPE_CHECKING:
+    from navigate.util import FloatLike
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +44,33 @@ class Surface(Node, _Table2D):
                     self,
                 )
 
-    def get(self, x: float, y: float) -> float:
+    def get(self, x: FloatLike | None, y: FloatLike | None) -> FloatLike:
+        """
+        Return the interpolated surface value at (x, y).
+
+        Parameters
+        ----------
+        x
+            First input variable. None, which an expression passes on when it
+            is evaluated without input, is rejected.
+        y
+            Second input variable, rejected when None like ``x``.
+
+        Returns
+        -------
+        float or FloatArray
+            Response variable, in the broadcast shape of ``x`` and ``y``.
+
+        Raises
+        ------
+        ValueError
+            If ``x`` or ``y`` is None.
+        """
+        if x is None or y is None:
+            raise ValueError(
+                f"{self}: Evaluating a Surface requires both inputs 'x' and 'y'."
+            )
+
         return self.calculate(x, y)
 
     def set_table(self, table: TableData) -> None:

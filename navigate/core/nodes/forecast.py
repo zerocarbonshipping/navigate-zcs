@@ -18,8 +18,9 @@ class Forecast(Node, _Table1D):
         Node.__init__(self, name, FORECAST)
         _Table1D.__init__(self)
 
-        # temporarily stored variables at current time-step
-        self._current_value: float | None = None
+        # temporarily stored variables at current time-step; nan
+        # until the first time step precalculates the value
+        self._current_value: float = np.nan
 
         # used for temporary storage of tables during deck parsing
         self._temporary_table: tuple | None = None

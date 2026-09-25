@@ -5,6 +5,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import numpy as np
+
 from navigate.core import Scalar, as_scalar, assign_id, assign_value
 from navigate.core.enum_ import LevySchemeID
 from navigate.core.expectations import LevyExpectation
@@ -14,8 +16,6 @@ from navigate.core.profiles import LevyProfile
 from navigate.exceptions import no_value_assigned_error
 
 if TYPE_CHECKING:
-    import numpy as np
-
     from navigate.core.nodes.input_kinds import ForecastInput
 
 
@@ -129,7 +129,9 @@ class Levy(_Policy):
         if self.upper_threshold is not None:
             upper = self.upper_threshold.get()
             lower = self.lower_threshold.get()
-            if upper is not None and lower is not None and upper < lower:
+            # a Forecast answers nan until the first time step, so
+            # the check only applies to thresholds known up front
+            if not np.isnan(upper) and not np.isnan(lower) and upper < lower:
                 raise ValueError(
                     f"{self}: 'UpperThreshold' must be >= 'LowerThreshold'."
                 )
