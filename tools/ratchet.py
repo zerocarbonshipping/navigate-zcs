@@ -26,10 +26,13 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import shutil
 import subprocess
 import sys
-from pathlib import Path
+import tempfile
+from collections.abc import Callable
+from pathlib import Path, PurePosixPath
 
 # These marker lines are committed inside .ruff.toml / mypy.ini and must
 # match those files verbatim, or the tool stops finding its regions.
@@ -50,15 +53,29 @@ def split_region(text: str, path: Path) -> tuple[str, str, str]:
     return head, region, tail
 
 
-def run_with_blank_region(config: Path, cmd: list[str], cwd: Path) -> str:
-    """Run cmd with the config's generated region blanked; always restore."""
-    original = config.read_text()
-    head, _, tail = split_region(original, config)
-    config.write_text(head + tail)
+def run_with_blank_region(
+    config: Path, build_cmd: Callable[[Path], list[str]], cwd: Path
+) -> str:
+    """Run a checker against config with its generated region blanked.
+
+    The blanked text is written to a temporary file next to config (never to
+    the tracked file itself, so a concurrent reader or a killed process never
+    sees an incomplete .ruff.toml / mypy.ini) and build_cmd receives that
+    file's path to build the command line pointing the checker at it.
+    """
+    head, _, tail = split_region(config.read_text(), config)
+    name_stem = Path(config.name.lstrip(".")).stem
+    fd, tmp_name = tempfile.mkstemp(
+        prefix=f".ratchet-{name_stem}-", suffix=config.suffix, dir=cwd
+    )
+    tmp = Path(tmp_name)
     try:
+        with os.fdopen(fd, "w") as fh:
+            fh.write(head + tail)
+        cmd = build_cmd(tmp)
         proc = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True)
     finally:
-        config.write_text(original)
+        tmp.unlink(missing_ok=True)
     # ruff/mypy exit 1 on findings; anything above signals a real failure.
     if proc.returncode > 1:
         sys.exit(f"error: {' '.join(cmd)} failed:\n{proc.stderr}")
@@ -68,6 +85,28 @@ def run_with_blank_region(config: Path, cmd: list[str], cwd: Path) -> str:
 def write_region(config: Path, region: str) -> None:
     head, _, tail = split_region(config.read_text(), config)
     config.write_text(head + region + tail)
+
+
+def _is_repo_root(path: str) -> bool:
+    """Whether path denotes the repository root itself (".", "./", "")."""
+    return PurePosixPath(path) == PurePosixPath(".")
+
+
+def path_is_selected(rel: str, paths: list[str]) -> bool:
+    """Whether rel (a repo-relative file) falls under one of paths.
+
+    A prune run only observes violations under --paths, so only entries this
+    check accepts may be intersected with what the run found; every other
+    entry falls outside what the run could see and must carry over as is.
+    A path denoting the repository root itself selects every file.
+    """
+    if any(_is_repo_root(p) for p in paths):
+        return True
+    rel_path = PurePosixPath(rel)
+    return any(
+        rel_path == PurePosixPath(p) or PurePosixPath(p) in rel_path.parents
+        for p in paths
+    )
 
 
 def parse_ruff_region(region: str) -> dict[str, list[str]]:
@@ -87,7 +126,18 @@ def parse_ruff_region(region: str) -> dict[str, list[str]]:
 def ratchet_ruff(repo: Path, paths: list[str], prune: bool) -> None:
     config = repo / ".ruff.toml"
     out = run_with_blank_region(
-        config, ["ruff", "check", *paths, "--output-format", "json", "--exit-zero"], repo
+        config,
+        lambda tmp: [
+            "ruff",
+            "check",
+            *paths,
+            "--config",
+            str(tmp),
+            "--output-format",
+            "json",
+            "--exit-zero",
+        ],
+        repo,
     )
     current: dict[str, set[str]] = {}
     for v in json.loads(out):
@@ -96,11 +146,14 @@ def ratchet_ruff(repo: Path, paths: list[str], prune: bool) -> None:
 
     if prune:
         old = parse_ruff_region(split_region(config.read_text(), config)[1])
-        new = {
-            f: sorted(set(codes) & current.get(f, set()))
-            for f, codes in old.items()
-            if set(codes) & current.get(f, set())
-        }
+        new = {}
+        for f, codes in old.items():
+            if not path_is_selected(f, paths):
+                new[f] = list(codes)
+                continue
+            kept = sorted(set(codes) & current.get(f, set()))
+            if kept:
+                new[f] = kept
     else:
         new = {f: sorted(codes) for f, codes in current.items()}
 
@@ -128,10 +181,29 @@ def module_of(rel_file: str) -> str:
     return ".".join(parts)
 
 
+def module_is_selected(module: str, paths: list[str]) -> bool:
+    """Whether module falls under one of the module prefixes paths denote.
+
+    Mirrors path_is_selected, but --paths for mypy are module paths
+    (files or packages), so the entries they cover are module names and
+    dotted-prefix matches rather than filesystem ones. A path denoting the
+    repository root itself selects every module: module_of(".") would
+    otherwise raise, since Path(".") has no name to strip a suffix from.
+    """
+    if any(_is_repo_root(p) for p in paths):
+        return True
+    return any(
+        module == prefix or module.startswith(prefix + ".")
+        for prefix in (module_of(p) for p in paths)
+    )
+
+
 def ratchet_mypy(repo: Path, paths: list[str], prune: bool) -> None:
     config = repo / "mypy.ini"
     out = run_with_blank_region(
-        config, ["mypy", *paths, "--output=json", "--config-file", "mypy.ini"], repo
+        config,
+        lambda tmp: ["mypy", *paths, "--output=json", "--config-file", str(tmp)],
+        repo,
     )
     current: set[str] = set()
     for line in out.splitlines():
@@ -141,7 +213,9 @@ def ratchet_mypy(repo: Path, paths: list[str], prune: bool) -> None:
 
     if prune:
         old = parse_mypy_region(split_region(config.read_text(), config)[1])
-        new = sorted(set(old) & current)
+        new = sorted(
+            m for m in old if not module_is_selected(m, paths) or m in current
+        )
     else:
         new = sorted(current)
 

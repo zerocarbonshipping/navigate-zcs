@@ -76,6 +76,10 @@ dmypy.json
 # ruff
 .ruff_cache/
 
+# tools/ratchet.py's blanked-config scratch file, normally cleaned up itself;
+# ignored in case a run is killed before it can
+/.ratchet-*
+
 # Local artifacts
 *.bak
 *.lp
