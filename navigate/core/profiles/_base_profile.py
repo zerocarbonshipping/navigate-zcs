@@ -71,11 +71,10 @@ class _BaseProfile:
     ) -> dict[K, FloatArray]:
         return {key: self._to_cumulative(value) for key, value in values.items()}
 
-    @staticmethod
-    def _sum_values[K](values: dict[K, FloatArray]) -> FloatArray:
-        # an empty dict sums to 0.0 rather than raising: a fuel- or policy-free
-        # model produces one
-        return np.add.reduce(list(values.values()))
+    def _sum_values[K](self, values: dict[K, FloatArray]) -> FloatArray:
+        # an empty dict sums to a zero timeline: a deck with no Emission node
+        # leaves every dict keyed by emission empty
+        return sum(values.values(), start=self._default_array())
 
     @staticmethod
     def _convert_to_intensity(emission: FloatArray, energy: FloatLike) -> FloatArray:
