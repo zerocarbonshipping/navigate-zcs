@@ -328,6 +328,11 @@ class Expression:
     @overload
     def get(self, x: float | None = None, y: float | None = None) -> float: ...
 
+    @overload
+    def get(
+        self, x: FloatLike | None = None, y: FloatLike | None = None
+    ) -> FloatLike: ...
+
     def get(self, x: FloatLike | None = None, y: FloatLike | None = None) -> FloatLike:
         """
         Evaluate the expression.

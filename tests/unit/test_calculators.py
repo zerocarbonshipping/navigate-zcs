@@ -13,6 +13,7 @@ Tests verify the correctness of:
   - _Table1D interpolation with transforms, reverse lookup, pickle round-trip
   - _Table2D bilinear interpolation, reverse lookup, convexity, pickle round-trip
   - Variable scalar transform chain
+  - Deck expressions on the transform and fill-value attributes
 """
 
 from __future__ import annotations
@@ -23,6 +24,7 @@ import pickle
 import numpy as np
 import pytest
 
+from navigate.core.expression import Expression
 from navigate.core.nodes._calculator import _Calculator
 from navigate.core.nodes._table1d import _Table1D
 from navigate.core.nodes._table2d import _Table2D
@@ -432,3 +434,102 @@ class TestVariable:
         v = Variable("test")
         v.set_value(7.0)
         assert v.get(x=99.0, y=99.0) == pytest.approx(7.0)
+
+
+# ---------------------------------------------------------------------------
+# 11. Deck expressions on the transform and fill-value attributes
+# ---------------------------------------------------------------------------
+
+
+def _read_no_reference(reference_string, location):
+    raise AssertionError(f"unexpected node reference {reference_string}")
+
+
+def _resolve(node, *expressions):
+    """Resolve expressions the way the parser does once the deck is read."""
+    for expression in expressions:
+        expression.resolve(node, _read_no_reference)
+
+
+class TestTransformExpressions:
+    """Multiplier and Addition given as deck expressions are evaluated first."""
+
+    def test_variable(self):
+        from navigate.core.nodes.variable import Variable
+
+        v = Variable("test")
+        multiplier = Expression("1 + 2")
+        addition = Expression("2 * 0.5")
+        v.set_value(2.0)
+        v.set_multiplier(multiplier)
+        v.set_addition(addition)
+        _resolve(v, multiplier, addition)
+        # output = 3 * (2 + 1) = 9
+        assert v.get() == pytest.approx(9.0)
+
+    @pytest.mark.parametrize(
+        ("x", "expected"),
+        [
+            # table(2) = 4: output = 3 * (4 + 1) = 15
+            (2.0, 15.0),
+            # table(1) = 1, table(2) = 4: output = [3 * (1 + 1), 3 * (4 + 1)]
+            (np.array([1.0, 2.0]), [6.0, 15.0]),
+        ],
+    )
+    def test_table1d(self, x, expected):
+        t = _make_table1d()
+        multiplier = Expression("1.5 * 2")
+        addition = Expression("0.5 + 0.5")
+        t.set_multiplier(multiplier)
+        t.set_addition(addition)
+        _resolve(t, multiplier, addition)
+        np.testing.assert_array_almost_equal(t.calculate(x), expected)
+
+    @pytest.mark.parametrize(
+        ("x", "y", "expected"),
+        [
+            # z(1, 10) = 11: output = 2 * (11 - 1) = 20
+            (1.0, 10.0, 20.0),
+            # scalar x with array y: z = [1, 11, 21] -> 2 * (z - 1)
+            (1.0, np.array([0.0, 10.0, 20.0]), [0.0, 20.0, 40.0]),
+        ],
+    )
+    def test_table2d(self, x, y, expected):
+        t = _make_table2d()
+        multiplier = Expression("4 / 2")
+        addition = Expression("-1")
+        t.set_multiplier(multiplier)
+        t.set_addition(addition)
+        _resolve(t, multiplier, addition)
+        np.testing.assert_array_almost_equal(t.calculate(x, y), expected)
+
+
+class TestFillValueExpressions:
+    """Below, Above and Outside given as deck expressions are evaluated first."""
+
+    def test_table1d_below_above(self):
+        # set in the order a Curve deck must write them, the table last,
+        # and resolved only afterwards, as the parser does
+        t = _Table1D()
+        below = Expression("-1 * 2")
+        above = Expression("10 + 5")
+        t.set_extrapolate("FLAT")
+        t.set_below(below)
+        t.set_above(above)
+        t._set_table(TABLE_X, TABLE_Y)
+        _resolve(t, below, above)
+        np.testing.assert_array_almost_equal(
+            t.calculate(np.array([-1.0, 2.0, 5.0])), [-2.0, 4.0, 15.0]
+        )
+
+    def test_table2d_outside(self):
+        t = _Table2D()
+        outside = Expression("3 * 3")
+        t.set_extrapolate("FLAT")
+        t.set_outside(outside)
+        t._set_table(T2D_X, T2D_Y, T2D_Z)
+        _resolve(t, outside)
+        # inside the grid z = x + y; outside it the fill value 9
+        np.testing.assert_array_almost_equal(
+            t.calculate(np.array([1.0, 5.0]), np.array([10.0, 10.0])), [11.0, 9.0]
+        )

@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, overload
 import numpy as np
 
 from navigate.core import assign_bound, assign_value
+from navigate.core.expression import Expression
 from navigate.util import ROUND_OFF
 
 if TYPE_CHECKING:
@@ -16,6 +17,42 @@ if TYPE_CHECKING:
     from navigate.util import FloatArray, FloatLike
 
 logger = logging.getLogger(__name__)
+
+
+@overload
+def evaluate_number(number: NumberInput) -> float: ...
+
+
+@overload
+def evaluate_number(
+    number: NumberInput, x: FloatLike | None, y: FloatLike | None = None
+) -> FloatLike: ...
+
+
+def evaluate_number(
+    number: NumberInput, x: FloatLike | None = None, y: FloatLike | None = None
+) -> FloatLike:
+    """
+    Evaluate a number a calculator attribute holds, expression or not.
+
+    Parameters
+    ----------
+    number
+        Number or deck expression the attribute holds.
+    x
+        First input variable an expression is evaluated with.
+    y
+        Second input variable an expression is evaluated with.
+
+    Returns
+    -------
+    FloatLike
+        The number, or the expression's value in the shape of the inputs.
+    """
+    if isinstance(number, Expression):
+        return number.get(x, y)
+
+    return number
 
 
 class _Calculator:
@@ -51,6 +88,10 @@ class _Calculator:
         """
         Set the addition of the calculator.
 
+        An expression is evaluated each time the calculator is, with the inputs
+        its table is looked up at; a Variable, which has no table, evaluates it
+        without inputs.
+
         Parameters
         ----------
         addition
@@ -61,6 +102,10 @@ class _Calculator:
     def set_multiplier(self, multiplier: NumberInput) -> None:
         """
         Set the multiplier of the calculator.
+
+        An expression is evaluated each time the calculator is, with the inputs
+        its table is looked up at; a Variable, which has no table, evaluates it
+        without inputs.
 
         Parameters
         ----------
@@ -154,6 +199,40 @@ class _Calculator:
 
         # called here in case internal bounds are set after the lower/upper bound
         self._assign_applied_bounds()
+
+    @overload
+    def _transform(
+        self, value: float, x: FloatLike | None = None, y: FloatLike | None = None
+    ) -> float: ...
+
+    @overload
+    def _transform(
+        self, value: FloatArray, x: FloatLike | None = None, y: FloatLike | None = None
+    ) -> FloatArray: ...
+
+    def _transform(
+        self, value: FloatLike, x: FloatLike | None = None, y: FloatLike | None = None
+    ) -> FloatLike:
+        """
+        Apply the addition, the multiplier and the truncation to a calculated value.
+
+        Parameters
+        ----------
+        value
+            Calculated value.
+        x
+            First input the value was calculated at.
+        y
+            Second input the value was calculated at.
+
+        Returns
+        -------
+        FloatLike
+            Transformed value, in the shape of ``value``.
+        """
+        multiplier = evaluate_number(self.multiplier, x, y)
+        addition = evaluate_number(self.addition, x, y)
+        return self._truncate(multiplier * (value + addition))
 
     @overload
     def _truncate(self, value: float) -> float: ...

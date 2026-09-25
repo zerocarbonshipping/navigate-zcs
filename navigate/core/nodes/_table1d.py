@@ -11,7 +11,7 @@ from scipy.interpolate import interp1d
 
 from navigate.core import assign_id, assign_value
 from navigate.core.enum_ import ExtrapolateID, Interpolate1DID
-from navigate.core.nodes._calculator import _Calculator
+from navigate.core.nodes._calculator import _Calculator, evaluate_number
 from navigate.logging_ import log_extrapolate_bounds
 from navigate.util import is_strictly_increasing
 
@@ -39,6 +39,7 @@ class _Table1D(_Calculator):
         self.x: FloatArray
         self.y: FloatArray
         self._table: interp1d
+        self._fill_values: tuple[NumberInput, NumberInput] | None = None
         self._is_convex: bool = False  # set with the table
 
     def __getstate__(self) -> dict[str, object]:
@@ -94,7 +95,8 @@ class _Table1D(_Calculator):
         Set the flat extrapolation value below the table.
 
         Only read when 'Extrapolate' is FLAT; the first y-value in the table is
-        used when this is left unset.
+        used when this is left unset. An expression is evaluated, without inputs,
+        each time the table is looked up below its first x-value.
 
         Parameters
         ----------
@@ -108,7 +110,8 @@ class _Table1D(_Calculator):
         Set the flat extrapolation value above the table.
 
         Only read when 'Extrapolate' is FLAT; the last y-value in the table is
-        used when this is left unset.
+        used when this is left unset. An expression is evaluated, without inputs,
+        each time the table is looked up above its last x-value.
 
         Parameters
         ----------
@@ -130,7 +133,11 @@ class _Table1D(_Calculator):
     def calculate(self, x: FloatLike) -> FloatLike:
         # interp1d is untyped; it answers in the shape of its input
         table_value: FloatLike = self._table(x)
-        return self._truncate(self.multiplier * (table_value + self.addition))
+
+        if self._fill_values is not None:
+            table_value = self._fill_flat(x, table_value, *self._fill_values)
+
+        return self._transform(table_value, x)
 
     def reverse_lookup(self, y: FloatLike) -> FloatLike | None:
         """
@@ -203,15 +210,11 @@ class _Table1D(_Calculator):
     def _get_allow_extrapolate_internal(self) -> bool:
         return self.extrapolate == ExtrapolateID.FALSE
 
-    def _get_extrapolate_internal(
-        self,
-    ) -> tuple[NumberInput, NumberInput] | str | None:
+    def _get_extrapolate_internal(self) -> float | str | None:
         match self.extrapolate:
             case ExtrapolateID.FLAT:
-                below = self._below if self._below is not None else self.y[0]
-                above = self._above if self._above is not None else self.y[-1]
-
-                return below, above
+                # a placeholder: 'calculate' fills in the flat values
+                return np.nan
 
             case ExtrapolateID.LINEAR:
                 return "extrapolate"
@@ -220,6 +223,54 @@ class _Table1D(_Calculator):
                 # out-of-range lookups raise, so no fill value is needed
                 return None
 
+    def _get_fill_values_internal(self) -> tuple[NumberInput, NumberInput] | None:
+        if self.extrapolate != ExtrapolateID.FLAT:
+            return None
+
+        below = self._below if self._below is not None else float(self.y[0])
+        above = self._above if self._above is not None else float(self.y[-1])
+
+        return below, above
+
+    def _fill_flat(
+        self,
+        x: FloatLike,
+        table_value: FloatLike,
+        below: NumberInput,
+        above: NumberInput,
+    ) -> FloatLike:
+        """
+        Replace the lookups outside the table with the flat extrapolation values.
+
+        The values are evaluated here rather than handed to interp1d when the
+        table is built: a Curve builds its table as the deck is read, before
+        the deck's expressions are resolved.
+
+        Parameters
+        ----------
+        x
+            Input the table was looked up at.
+        table_value
+            Table lookup at ``x``, undefined outside the table.
+        below
+            Flat extrapolation value below the table.
+        above
+            Flat extrapolation value above the table.
+
+        Returns
+        -------
+        FloatLike
+            Table lookup with the flat values filled in, in the shape of ``x``.
+        """
+        filled = np.where(
+            x < self.x[0],
+            evaluate_number(below),
+            np.where(x > self.x[-1], evaluate_number(above), table_value),
+        )
+
+        # np.where answers a scalar input with a 0-d array
+        return filled if isinstance(x, np.ndarray) else float(filled)
+
     def _set_table(self, x: FloatArray, y: FloatArray) -> None:
         self._check_interpolate_extrapolate_consistency()
 
@@ -227,6 +278,7 @@ class _Table1D(_Calculator):
         self.y = y
 
         self._is_convex = self._test_convexity(x, y)
+        self._fill_values = self._get_fill_values_internal()
 
         self._table = interp1d(
             x,
