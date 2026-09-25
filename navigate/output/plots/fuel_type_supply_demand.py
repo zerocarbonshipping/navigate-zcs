@@ -40,14 +40,7 @@ def plot_fuel_type_supply_demand(manager, directory):
 
     fuel_type_demand = profile.get_fuel_type_demand()
     production_type_energy = profile.get_production_type_energy()
-    port_bunkering = [
-        (
-            port.profile.get_bunkering_allowed(),
-            port.profile.get_bunker_supply_mass(),
-            port.profile.get_bunker_energy(),
-        )
-        for port in ports.values()
-    ]
+    port_bunkering = [port.profile.get_bunker_energy() for port in ports.values()]
 
     fig, axes = subplot_grid(len(fuel_types))  # , sharey=True)
 
@@ -57,7 +50,6 @@ def plot_fuel_type_supply_demand(manager, directory):
     all_labels = {}
 
     all_demand = {}
-    all_constrained = {}
     all_fuel_supply = {}
 
     maximum = 0.0
@@ -68,20 +60,11 @@ def plot_fuel_type_supply_demand(manager, directory):
         fuel_demand = fuel_type_demand[fuel_type]
         fuel_supply = production_type_energy[fuel_type]
 
-        # calculate the total fuel supply and spend
-        constrained = True
-        for bunkering_allowed, bunker_supply_mass, bunkering in port_bunkering:
+        # calculate the total fuel spend
+        for bunkering in port_bunkering:
             for fuel in usable_fuels:
                 if not fuel.liquid_market:
                     fuel_name = fuel.name
-
-                    # add fuel supply
-                    available = bunkering_allowed[fuel_name]
-                    constraint = bunker_supply_mass[fuel_name]
-
-                    if constraint is None and np.any(available):
-                        constrained = False
-                        break
 
                     # add fuel spend; the sum owns its array so the in-place
                     # accumulation never writes into a port's bunkering dict
@@ -102,10 +85,9 @@ def plot_fuel_type_supply_demand(manager, directory):
         if values:
             maximum = max(maximum, max(np.amax(value) for value in values))
 
-        if constrained:
-            fuel_supply_max = np.amax(fuel_supply)
-            if not np.isinf(fuel_supply_max):
-                maximum = max(maximum, fuel_supply_max)
+        fuel_supply_max = np.amax(fuel_supply)
+        if not np.isinf(fuel_supply_max):
+            maximum = max(maximum, fuel_supply_max)
 
         # save output
         all_values[fuel_type] = values
@@ -114,7 +96,6 @@ def plot_fuel_type_supply_demand(manager, directory):
 
         all_demand[fuel_type] = fuel_demand
 
-        all_constrained[fuel_type] = constrained
         all_fuel_supply[fuel_type] = fuel_supply
 
     if maximum > 0.0:
@@ -128,13 +109,7 @@ def plot_fuel_type_supply_demand(manager, directory):
         labels = all_labels[fuel_type]
 
         fuel_demand = all_demand[fuel_type] / divisor
-
-        constrained = all_constrained[fuel_type]
-        fuel_supply = (
-            all_fuel_supply[fuel_type] / divisor
-            if constrained
-            else np.zeros_like(fuel_demand)
-        )
+        fuel_supply = all_fuel_supply[fuel_type] / divisor
 
         patches = []
 
@@ -152,13 +127,11 @@ def plot_fuel_type_supply_demand(manager, directory):
         patches.extend(line_demand)
         leg_labels = [*labels, "Demand"]
 
-        # if the model is unconstrained for this fuel type, then do not plot supply
-        if constrained:
-            line_supply = ax.plot(
-                dateline, fuel_supply, label="Supply", ls=(0, (5, 3)), color="b", lw=2
-            )
-            patches.extend(line_supply)
-            leg_labels.append("Supply")
+        line_supply = ax.plot(
+            dateline, fuel_supply, label="Supply", ls=(0, (5, 3)), color="b", lw=2
+        )
+        patches.extend(line_supply)
+        leg_labels.append("Supply")
 
         ax.set_ylabel(f"Fuel [{unit}]")
         ax.set_title(FUEL_TYPE_LABEL[fuel_type])

@@ -825,14 +825,15 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   nodes. No deck result moves.
 
 ### Fixed
-- The three errors for a default node, a wildcard `Import` or a module
-  requested without an assumptions directory share one wording, a finished
-  sentence naming both the `-d/--data-dir` flag and the `ASSUMPTIONS_DATA_DIR`
-  environment variable. Two of them ended mid-sentence at "the -d flag or
-  environment variable" without saying which variable.
-- A command whose value is rejected (`'set_operational_saving_sea' must be ≤
-  1.0, but got 2.0.`) ends its error in a full stop, as every other deck error
-  does.
+- The DSL reference's "Default nodes" and "Default modules" sections gave the
+  default library's location as a fixed installation path, which no longer
+  matches the parser. Both now give the real location,
+  `<data_dir>/defaults/{user,installation}/<NodeType>/` and
+  `<data_dir>/modules/{user,installation}/`, with `data_dir` taken from
+  `-d`/`--data-dir` or `ASSUMPTIONS_DATA_DIR`. The "Copying a node" section now
+  also states that a separate `Type("node_copy_from")` reference elsewhere in
+  the deck pulls the source from the library again as its own, independent
+  node, so both names end up registered.
 - The reference manual states the units an emission intensity is reported
   and given in. The `RegulationMeasureID` appendix had INTENSITY in ton/GJ,
   a factor of 1000 out, and both transport measures in ton per cargo-mile, a
@@ -854,6 +855,14 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   non-zero expenses for those policies, and the zeros read as a result rather
   than as missing data. Reported results at fleet and global scope move
   accordingly; vessel scope is unchanged.
+- The three errors for a default node, a wildcard `Import` or a module
+  requested without an assumptions directory share one wording, a finished
+  sentence naming both the `-d/--data-dir` flag and the `ASSUMPTIONS_DATA_DIR`
+  environment variable. Two of them ended mid-sentence at "the -d flag or
+  environment variable" without saying which variable.
+- A command whose value is rejected (`'set_operational_saving_sea' must be ≤
+  1.0, but got 2.0.`) ends its error in a full stop, as every other deck error
+  does.
 - The four `Outside`/`Extrapolate` messages a `Surface` or a `Timetable`
   raises or logs name the node that carried the contradiction. Each was
   written with a literal `{}` and never formatted, so the error read
