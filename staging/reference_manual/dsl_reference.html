@@ -670,7 +670,8 @@ SPDX-License-Identifier: CC-BY-4.0
 <p>Navigate comes with a substantial library of default nodes which may be included in the simulation model.</p>
 <p>If a node is assigned to another node’s attribute, then the assigned node must be defined somewhere else in the simulation files. If the assigned node is not assigned elsewhere, Navigate will search for the node in the default library. The default library is split into two branches, a “user” branch and an “installation” branch. The user branch allows others to define their own default nodes without mixing them with the default nodes provided by the Navigate installation which are found in the installation branch. Navigate will first search in the user branch for defaults before going to the installation branch and ultimately throw an error if no match is found. Within a user default file, an <code class="docutils literal notranslate"><span class="pre">Import</span></code> of that file’s own node name resolves to the installation branch, so a user file can overlay the installation node with the attributes it reassigns instead of replacing it.</p>
 <p>The default node folder can be found in:</p>
-<p><code class="docutils literal notranslate"><span class="pre">&lt;your_installation_path&gt;/Navigate/navigate/defaults/</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">&lt;data_dir&gt;/defaults/{user,installation}/&lt;NodeType&gt;/</span></code></p>
+<p>where <code class="docutils literal notranslate"><span class="pre">&lt;data_dir&gt;</span></code> is the assumptions directory given with <code class="docutils literal notranslate"><span class="pre">-d</span></code>/<code class="docutils literal notranslate"><span class="pre">--data-dir</span></code> on the command line, or with the <code class="docutils literal notranslate"><span class="pre">ASSUMPTIONS_DATA_DIR</span></code> environment variable, and <code class="docutils literal notranslate"><span class="pre">&lt;NodeType&gt;</span></code> is the node’s type, e.g. <code class="docutils literal notranslate"><span class="pre">Fuel</span></code> or <code class="docutils literal notranslate"><span class="pre">Route</span></code>.</p>
 <p>Technically speaking default node files can contain more than one node, however, it is best practice to separate into individual files.</p>
 </section>
 <section id="default-modules">
@@ -678,7 +679,8 @@ SPDX-License-Identifier: CC-BY-4.0
 <p>Similar to default nodes, it is possible to define default modules. A module is the same as a normal <code class="docutils literal notranslate"><span class="pre">.inc</span></code> file included in the <code class="docutils literal notranslate"><span class="pre">.nav</span></code> file but is a convenient way of storing these if it is an <code class="docutils literal notranslate"><span class="pre">.inc</span></code> file that is used often across multiple simulation decks.</p>
 <p>Like the default nodes, the default modules have a user and an installation branch.</p>
 <p>The default module folder can be found in:</p>
-<p><code class="docutils literal notranslate"><span class="pre">&lt;your_installation_path&gt;/Navigate/navigate/modules/</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">&lt;data_dir&gt;/modules/{user,installation}/</span></code></p>
+<p>where <code class="docutils literal notranslate"><span class="pre">&lt;data_dir&gt;</span></code> is the same assumptions directory as for default nodes.</p>
 </section>
 <section id="importing-a-node">
 <h2>Importing a node<a class="headerlink" href="#importing-a-node" title="Link to this heading">#</a></h2>
@@ -698,6 +700,7 @@ SPDX-License-Identifier: CC-BY-4.0
 Only the copied node itself is duplicated: the nodes it references are shared, so a reassignment to one of those is seen by both.</p>
 <p>If the node being copied from does not already exist in the simulation then it is removed after the import and only the node of the name “node_copy_to” remains.
 This can be used to import nodes with a different name than default name.</p>
+<p>This removal only undoes the pull the <code class="docutils literal notranslate"><span class="pre">Copy</span></code> itself made. If a separate <code class="docutils literal notranslate"><span class="pre">Type(&quot;node_copy_from&quot;)</span></code> reference appears anywhere else in the deck, that reference pulls the source from the default library again as its own, independent node, so both <code class="docutils literal notranslate"><span class="pre">&quot;node_copy_from&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;node_copy_to&quot;</span></code> end up registered as separate nodes.</p>
 </section>
 <section id="wildcards">
 <h2>Wildcards<a class="headerlink" href="#wildcards" title="Link to this heading">#</a></h2>
