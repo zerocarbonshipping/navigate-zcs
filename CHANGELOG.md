@@ -844,6 +844,12 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   (`..nav`, `...nav`), which `pathlib` read as carrying a `.nav` suffix and
   an all-dots stem. `.nav` itself stays rejected, as before, since its
   suffix is empty. No committed deck used such a name.
+- A `Curve` given to `set_global_warming_potential` on a `Levy` or
+  `Regulation` is read at the policy's emissions lifetime, the same lifetime
+  the emission's own global warming potential is read at. It was evaluated
+  without an input, so any deck overriding a policy's GWP with a curve failed
+  at the first expectation step. Number and `Variable` overrides give the
+  same values as before.
 - The reference manual states the units an emission intensity is reported
   and given in. The `RegulationMeasureID` appendix had INTENSITY in ton/GJ,
   a factor of 1000 out, and both transport measures in ton per cargo-mile, a

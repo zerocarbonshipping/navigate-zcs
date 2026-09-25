@@ -197,7 +197,7 @@ This attribute sets whether the regulation threshold is automatically adjusted w
 
 ### set\_global\_warming\_potential
 
-This command allows the user to set the global warming potential (GWP) for a specific emission. If the GWP is assigned on the regulation then it overwrites the physical GWP defined on the emission during the calculation of emission factors.
+This command allows the user to set the global warming potential (GWP) for a specific emission. If the GWP is assigned on the regulation then it overwrites the physical GWP defined on the emission during the calculation of emission factors. A `Curve` is read at the emissions lifetime, like the GWP of the emission: the `EmissionsLifetime` of the regulation if assigned, otherwise that of the model.
 
 * **Primary key type**: String (Emission name)
 * **Data type**: `Float`, `Curve`, `Variable`
