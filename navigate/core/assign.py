@@ -18,7 +18,11 @@ import numpy as np
 
 from navigate.core.expression import Expression
 from navigate.core.node import Node
-from navigate.core.node_type import AcceptedNodeTypes, is_calculator
+from navigate.core.node_type import (
+    CALCULATOR_TYPES,
+    AcceptedNodeTypes,
+    is_calculator,
+)
 from navigate.core.scalar import Scalar
 from navigate.core.table_data import TableData
 from navigate.core.wrap import Assignment
@@ -45,6 +49,7 @@ type ListLength = int | tuple[int | None, int | None] | None
 # here is echoed in the error instead, as its own text is what identifies it.
 # 'bool' precedes 'int' because it is a subclass of it, and the first match wins
 _VALUE_KINDS = (
+    (Expression, "expression"),
     ((list, tuple), "list"),
     (TableData, "table"),
     ((float, Scalar), "scalar"),
@@ -125,6 +130,7 @@ def assign_value[T: Assignment](
     *,
     inclusive_lower: bool = True,
     inclusive_upper: bool = True,
+    expression: bool = True,
 ) -> T:
     """
     Check whether a value assigned to an attribute satisfies its requirements.
@@ -151,6 +157,10 @@ def assign_value[T: Assignment](
         Lower bound is inclusive.
     inclusive_upper
         Upper bound is inclusive.
+    expression
+        Whether the setter accepts expressions; one is accepted only where the
+        setter also accepts scalars or a calculator type, as only those are
+        evaluated.
 
     Returns
     -------
@@ -158,6 +168,9 @@ def assign_value[T: Assignment](
         The value that was passed, so a setter assigns what it validated.
     """
     if isinstance(assignment, Expression):
+        if not (expression and _evaluates(scalar, type_)):
+            raise ValueError(_failed_value_message(assignment, scalar, date, type_))
+
         assignment.set_allowed_types(type_)
         assignment.set_internal_bounds(lower, upper)
     elif scalar and isinstance(assignment, (float, Scalar)):
@@ -191,6 +204,7 @@ def assign_list[T: Assignment](
     *,
     inclusive_lower: bool = True,
     inclusive_upper: bool = True,
+    expression: bool = True,
 ) -> list[T]:
     """
     Check whether a value assigned to an attribute satisfies its requirements.
@@ -220,6 +234,10 @@ def assign_list[T: Assignment](
         Lower bound is inclusive.
     inclusive_upper
         Upper bound is inclusive.
+    expression
+        Whether the setter accepts expressions; one is accepted only where the
+        setter also accepts scalars or a calculator type, as only those are
+        evaluated.
 
     Returns
     -------
@@ -241,6 +259,7 @@ def assign_list[T: Assignment](
             upper,
             inclusive_lower=inclusive_lower,
             inclusive_upper=inclusive_upper,
+            expression=expression,
         )
 
     return assignment
@@ -468,6 +487,7 @@ def command_assignment_to_dict[K: str | Enum, V: Assignment](
     *,
     inclusive_lower: bool = True,
     inclusive_upper: bool = True,
+    expression: bool = True,
 ) -> None:
     """
     Assign a validated value to each dict entry matching a key pattern.
@@ -495,6 +515,10 @@ def command_assignment_to_dict[K: str | Enum, V: Assignment](
         Lower bound is inclusive.
     inclusive_upper
         Upper bound is inclusive.
+    expression
+        Whether the setter accepts expressions; one is accepted only where the
+        setter also accepts scalars or a calculator type, as only those are
+        evaluated.
     """
     keys = retrieve_keys(key, assignment_dict)
 
@@ -509,6 +533,7 @@ def command_assignment_to_dict[K: str | Enum, V: Assignment](
         upper,
         inclusive_lower=inclusive_lower,
         inclusive_upper=inclusive_upper,
+        expression=expression,
     )
 
     for key_ in keys:
@@ -527,6 +552,7 @@ def command_assignment_to_tuple_dict[K1: str | Enum, K2: str | Enum, V: Assignme
     *,
     inclusive_lower: bool = True,
     inclusive_upper: bool = True,
+    expression: bool = True,
 ) -> None:
     """
     Assign a validated value to dict entries keyed by matching tuples.
@@ -554,6 +580,10 @@ def command_assignment_to_tuple_dict[K1: str | Enum, K2: str | Enum, V: Assignme
         Lower bound is inclusive.
     inclusive_upper
         Upper bound is inclusive.
+    expression
+        Whether the setter accepts expressions; one is accepted only where the
+        setter also accepts scalars or a calculator type, as only those are
+        evaluated.
     """
     if not assignment_dict:
         raise KeyError(", ".join(key_name(key_part) for key_part in key))
@@ -574,6 +604,7 @@ def command_assignment_to_tuple_dict[K1: str | Enum, K2: str | Enum, V: Assignme
         upper,
         inclusive_lower=inclusive_lower,
         inclusive_upper=inclusive_upper,
+        expression=expression,
     )
 
     for key1 in keys1:
@@ -640,6 +671,35 @@ def _accepts_reference(node: Node, type_: AcceptedNodeTypes) -> bool:
         return node.type in type_
 
     return node.is_type(type_)
+
+
+def _evaluates(scalar: bool, type_: AcceptedNodeTypes) -> bool:
+    """
+    Check whether an attribute reads its value through a getter.
+
+    Only such an attribute evaluates an expression; one holding a node
+    reference reads the node itself.
+
+    Parameters
+    ----------
+    scalar
+        Whether the setter accepts scalars.
+    type_
+        The node type(s) the attribute accepts a reference to.
+
+    Returns
+    -------
+    bool
+        Whether the attribute accepts scalars or a calculator type.
+    """
+    if scalar:
+        return True
+
+    if type_ is None:
+        return False
+
+    types = type_ if isinstance(type_, tuple) else (type_,)
+    return any(accepted in CALCULATOR_TYPES for accepted in types)
 
 
 def _failed_value_message(

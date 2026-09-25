@@ -113,9 +113,13 @@ def _transfer_weighted_age(fleet: Fleet, idx: int) -> None:
         count_power_sum = (
             float(sum(inc.multiplier for inc in fleet.increments[v])) * power
         )
-        fleet.profile.add_weighted_age(
-            vessel.fuel_type, age_power_sum, count_power_sum, idx
-        )
+        # fuel_option.determine_fuel_type fills in a fuel type no deck
+        # assigned, so it is set for every vessel by the time one is aggregated
+        fuel_type = vessel.fuel_type
+        if fuel_type is None:
+            raise RuntimeError(f"{vessel}: aggregated before its fuel type was set.")
+
+        fleet.profile.add_weighted_age(fuel_type, age_power_sum, count_power_sum, idx)
 
 
 def _gather_fuel_type_demand(fleet: Fleet) -> None:
@@ -208,7 +212,7 @@ def _gather_fuel_type_supply(fleet: Fleet, fuels: dict[str, Fuel], idx: int) -> 
                     continue
 
                 fuel_type = fuel.fuel_type
-                supply_mass = port.expectation.get_bunker_supply(fuel_name, idx)
+                supply_mass = float(port.expectation.get_bunker_supply(fuel_name, idx))
                 supply_energy = supply_mass * fuel.lower_heating_value.get()
 
                 key = (port_name, fuel_name)

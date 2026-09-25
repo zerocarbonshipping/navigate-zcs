@@ -10,6 +10,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from navigate.core.expectations import RegulationExpectation
+from navigate.core.expression import Expression
 from navigate.core.nodes.curve import Curve
 from navigate.core.nodes.emission import Emission
 from navigate.core.nodes.regulation import Regulation
@@ -69,6 +70,14 @@ def test_calculate_profile_writes_policed_vessel_thresholds():
     regulation.calculate_profile(idx=0)
 
     regulation.profile.set_vessel_threshold.assert_called_once_with(0, "v1", 10.0)
+
+
+def test_jurisdiction_rejects_an_expression():
+    # a jurisdiction is a list of ports, read as nodes and never evaluated
+    regulation = Regulation("reg")
+
+    with pytest.raises(ValueError, match="nodes of type Port, but got expression"):
+        regulation.set_jurisdiction([Expression('Port("x")')])
 
 
 def _gwp_curve():
