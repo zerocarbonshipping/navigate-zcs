@@ -36,3 +36,9 @@ SPDX-License-Identifier = "Apache-2.0"
 path = "docs/_static/*.png"
 SPDX-FileCopyrightText = "2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping"
 SPDX-License-Identifier = "CC-BY-4.0"
+
+# Workshop notebooks; strict JSON cannot carry a comment header.
+[[annotations]]
+path = "docs/workshop/*.ipynb"
+SPDX-FileCopyrightText = "2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping"
+SPDX-License-Identifier = "CC-BY-4.0"

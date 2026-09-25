@@ -1,0 +1,44 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: CC-BY-4.0
+
+# basecase_mid_regulation on a coarse timeline. Identical DEFINE block; only the
+# time step differs. Its numbers are therefore NOT comparable with the yearly
+# basecases - see docs/workshop/05-build-your-own-whatif.ipynb.
+
+DEFINE {
+	Load DefaultModelDefinition
+    Load DefaultBunkerLogistics
+
+    # fleets
+    Load DefaultFleet
+
+    # voyages
+    Load DefaultPort
+
+    # fuels
+    Load DefaultEmission
+    Load DefaultFeedstock
+    Load DefaultFuel
+    Load DefaultProducer
+    Load DefaultPlant
+    Load DefaultRegion
+    Load DefaultSource
+    Load DefaultTransport
+
+    # regulations
+	Load DefaultRegulation
+    Include "../0_includes/mid_regulation.inc"
+
+    # calibration
+    Load DefaultCalibration
+
+	# output
+    Load DefaultReport
+    Load DefaultPlot
+	Load DebugPlot
+}
+
+EVENTS {
+	Load DefaultConverterAvailable
+	Include "./includes/time_steps_coarse.inc"
+}

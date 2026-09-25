@@ -13,6 +13,7 @@ SPDX-License-Identifier: CC-BY-4.0
 :hidden:
 
 tutorials/index
+workshop/index
 reference_manual/index
 ```
 
@@ -39,11 +40,13 @@ emissions, and compliance costs through time.
 
 ## About this documentation
 
-This site is organised into two parts. New users should start with the
-tutorials and work through them in order; the reference manual is there to look
-up specifics as you build your own decks.
+This site is organised into three parts. New users should start with the
+tutorials and work through them in order; the workshop is a hands-on
+alternative that works one case through the model before the Center's own
+reference scenarios; the reference manual is there to look up specifics as you
+build your own decks.
 
-::::{grid} 1 1 2 2
+::::{grid} 1 1 3 3
 :gutter: 3
 
 :::{grid-item-card} Tutorials
@@ -52,6 +55,15 @@ up specifics as you build your own decks.
 
 A guided path from installing Navigate and running your first single-vessel
 simulation through to modular, multi-scenario studies.
+:::
+
+:::{grid-item-card} Workshop
+:link: workshop/index
+:link-type: doc
+
+Work one case through the model, then run the Center's own reference
+scenarios and move their assumptions — hands-on notebooks that launch directly
+in Google Colab.
 :::
 
 :::{grid-item-card} Reference Manual

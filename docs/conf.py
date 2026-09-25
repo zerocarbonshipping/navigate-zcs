@@ -28,18 +28,26 @@ version = release
 language = 'en'
 locale_dirs = []
 
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+# '_figures' holds the scripts and source data that generate the workshop
+# figures, not documentation. It carries a README.md, which myst_nb would
+# otherwise pick up as an orphan document and warn about.
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', '_figures']
 
 extensions = [
-    'myst_parser',
+    # myst_nb supersedes myst_parser: it registers the same Markdown parser
+    # plus .ipynb notebook support, so myst_parser is not listed separately.
+    'myst_nb',
     'sphinx_design',
     'sphinx_copybutton',
 ]
 
 source_suffix = {
     '.rst': 'restructuredtext',
-    '.md': 'markdown',
 }
+# .md and .ipynb are left for myst_nb to register itself (as filetype
+# "myst-nb"): pinning '.md' to 'markdown' here would block that registration,
+# since Sphinx only lets an extension's source_suffix win over a value that
+# isn't already user-set.
 
 myst_heading_anchors = 4
 
@@ -49,6 +57,14 @@ myst_enable_extensions = [
     "strikethrough",
     "colon_fence",
 ]
+
+# Never execute notebooks during a docs build: workshop notebook 4 runs three
+# reference scenarios of up to twenty minutes each, and the rest of the docs site
+# never executes example code either (docs/tutorials/*.md show .nav/.inc
+# listings as static text). Notebooks render with whatever output cells they
+# were saved with (they now ship with saved output) rather than being
+# re-run by Sphinx.
+nb_execution_mode = 'off'
 
 # strip interactive prompts so only the command is copied
 copybutton_prompt_text = r">>> |\.\.\. |\$ "

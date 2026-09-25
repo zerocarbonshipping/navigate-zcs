@@ -87,19 +87,37 @@ dmypy.json
 *.ilp
 *.mps
 
+# Local figure exports: PNGs pulled out of a notebook, or rendered from
+# docs/_static/*.svg, to look at outside the notebook. The SVG is the source of
+# truth and the notebook carries its own base64 copy, so nothing here is worth
+# tracking. The reference-scenario map's raster is the same kind of export: it is
+# rebuilt from docs/_static/reference_scenario_map.svg by render_map_png.py.
+/Figures/
+/docs/_figures/reference_scenario_map.png
+
 # Simulation outputs
 # Navigate renders figures and writes reports into plots*/ folders (plots,
 # plots_analysis, plots_debug, ...) inside each run directory. These rules are
 # scoped to the run trees so the source package navigate/illustrations/plots/
 # stays tracked.
+#
+# The loose extensions are needed as well, because a run drops files beside the
+# deck and not only under plots/: plot_data.pkl, <deck>_assumptions.xlsx, and -
+# for a Report node with no Directory - <deck>_<report>_<sheet>.csv or .xlsx.
+# DefaultReport sets Directory = "./plots/", so no deck in the repository does
+# that today, but a deck a reader edits can. No .csv anywhere here is tracked,
+# so the .csv rules cannot hide a source file.
 /simulations/**/plots*/
 /simulations/examples/**/*.png
 /simulations/examples/**/*.pkl
 /simulations/examples/**/*.xlsx
+/simulations/examples/**/*.csv
 
 /simulations/scenarios/**/*.png
 /simulations/scenarios/**/*.pkl
 /simulations/scenarios/**/*.xlsx
+/simulations/scenarios/**/*.csv
+/simulations/user/
 /simulations/scenarios/debug_plots/
 
 /simulations/debug/*
@@ -112,6 +130,9 @@ dmypy.json
 /tutorials/**/*.prt
 /tutorials/**/*.xlsx
 !/tutorials/_static/**
+
+# Workshop quicktest deck, written by notebook 1 when run locally
+/quicktest/
 
 # Test outputs
 /tests/**/plots*/

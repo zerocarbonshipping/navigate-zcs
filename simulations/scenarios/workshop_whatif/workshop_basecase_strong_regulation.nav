@@ -1,0 +1,45 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: CC-BY-4.0
+
+# The strong-regulation basecase on the workshop's coarse timeline. Identical to
+# simulations/scenarios/basecase_strong_regulation/ except for the time step, so its
+# numbers are NOT comparable with that deck - see
+# docs/workshop/05-build-your-own-whatif.ipynb.
+
+DEFINE {
+	Load DefaultModelDefinition
+    Load DefaultBunkerLogistics
+
+    # fleets
+    Load DefaultFleet
+
+    # voyages
+    Load DefaultPort
+
+    # fuels
+    Load DefaultEmission
+    Load DefaultFeedstock
+    Load DefaultFuel
+    Load DefaultProducer
+    Load DefaultPlant
+    Load DefaultRegion
+    Load DefaultSource
+    Load DefaultTransport
+
+    # regulations
+	Load DefaultRegulation
+    Include "../0_includes/strong_regulation.inc"
+
+    # calibration
+    Load DefaultCalibration
+
+	# output
+    Load DefaultReport
+    Load DefaultPlot
+	Load DebugPlot
+}
+
+EVENTS {
+	Load DefaultConverterAvailable
+	Include "./includes/time_steps_coarse.inc"
+}

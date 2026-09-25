@@ -1,0 +1,47 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: CC-BY-4.0
+
+# The business-as-usual deck on the workshop's coarse timeline. Identical to
+# simulations/scenarios/business_as_usual/ except for the time step, so its
+# numbers are NOT comparable with that deck - see
+# docs/workshop/05-build-your-own-whatif.ipynb.
+
+DEFINE {
+	Load DefaultModelDefinition
+    Load DefaultBunkerLogistics
+
+    # fleets
+    Load DefaultFleetInternational
+    Load DefaultFleetDomestic
+
+    # voyages
+    Load DefaultPort
+    Load DefaultVoyageInternational
+    Load DefaultVoyageDomestic
+
+    # fuels
+    Load DefaultEmission
+    Load DefaultFeedstock
+    Load DefaultFuel
+    Load DefaultProducer
+    Load DefaultPlant
+    Load DefaultRegion
+    Load DefaultSource
+    Load DefaultTransport
+
+    # regulations
+    Load DefaultRegulation
+
+    # calibration
+    Load DefaultCalibration
+
+	# output
+    Load DefaultReport
+    Load DefaultPlot
+	Load DebugPlot
+}
+
+EVENTS {
+	Load DefaultConverterAvailable
+	Include "./includes/time_steps_coarse.inc"
+}
