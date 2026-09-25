@@ -215,7 +215,8 @@ class _Policy(Node):
         Set the GWP used to translate tons of emissions into CO2-equivalent emissions.
 
         If this value is not assigned the global warming potential assigned to the
-        emission node is used instead.
+        emission node is used instead. A curve is read at the emissions lifetime of
+        the policy, or of the model when the policy assigns none.
 
         Examples
         --------
@@ -349,7 +350,7 @@ class _Policy(Node):
             global_warming_potential,
         ) in self.global_warming_potential.items():
             if global_warming_potential is not None:
-                gwp = global_warming_potential.get()
+                gwp = global_warming_potential.get(emissions_lifetime)
             else:
                 gwp = emissions[emissions_name].global_warming_potential.get(
                     emissions_lifetime
