@@ -825,16 +825,15 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   nodes. No deck result moves.
 
 ### Fixed
-- A default-library lookup treats a missing `defaults/user/<Type>/` or
-  `defaults/installation/<Type>/` folder as empty, as the wildcard `Import`
-  already did, and moves on to the other branch. The missing folder ended the
-  run with a bare `FileNotFoundError` naming no deck line, so an assumptions
-  tree without a user folder for a type could not reach the installation
-  default at all. A node found in neither branch is reported by the existing
-  located "referenced but not found" error. A `Load` treats a missing
-  `modules/user/` or `modules/installation/` folder as empty in the same way,
-  falling through to the other branch and finally to the existing `No module
-  with name '...' was found.` error.
+- The DSL reference's "Default nodes" and "Default modules" sections gave the
+  default library's location as a fixed installation path, which no longer
+  matches the parser. Both now give the real location,
+  `<data_dir>/defaults/{user,installation}/<NodeType>/` and
+  `<data_dir>/modules/{user,installation}/`, with `data_dir` taken from
+  `-d`/`--data-dir` or `ASSUMPTIONS_DATA_DIR`. The "Copying a node" section now
+  also states that a separate `Type("node_copy_from")` reference elsewhere in
+  the deck pulls the source from the library again as its own, independent
+  node, so both names end up registered.
 - The reference manual states the units an emission intensity is reported
   and given in. The `RegulationMeasureID` appendix had INTENSITY in ton/GJ,
   a factor of 1000 out, and both transport measures in ton per cargo-mile, a
@@ -861,6 +860,16 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   written with a literal `{}` and never formatted, so the error read
   `{}: 'Outside' must be defined when 'Extrapolate' is set to FLAT.` and gave
   the reader nothing to look for in the deck.
+- A default-library lookup treats a missing `defaults/user/<Type>/` or
+  `defaults/installation/<Type>/` folder as empty, as the wildcard `Import`
+  already did, and moves on to the other branch. The missing folder ended the
+  run with a bare `FileNotFoundError` naming no deck line, so an assumptions
+  tree without a user folder for a type could not reach the installation
+  default at all. A node found in neither branch is reported by the existing
+  located "referenced but not found" error. A `Load` treats a missing
+  `modules/user/` or `modules/installation/` folder as empty in the same way,
+  falling through to the other branch and finally to the existing `No module
+  with name '...' was found.` error.
 - The bounds an attribute imposes reach the nodes a wildcard matched, as they
   already did for a node written out by name. A calculator (`Curve`,
   `Forecast`, `Surface`, `Timetable`, `Variable`) reached through a glob — on

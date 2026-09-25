@@ -245,7 +245,9 @@ If a node is assigned to another node’s attribute, then the assigned node must
 
 The default node folder can be found in:
 
-`<your_installation_path>/Navigate/navigate/defaults/`
+`<data_dir>/defaults/{user,installation}/<NodeType>/`
+
+where `<data_dir>` is the assumptions directory given with `-d`/`--data-dir` on the command line, or with the `ASSUMPTIONS_DATA_DIR` environment variable, and `<NodeType>` is the node's type, e.g. `Fuel` or `Route`.
 
 Technically speaking default node files can contain more than one node, however, it is best practice to separate into individual files.
 
@@ -257,7 +259,9 @@ Like the default nodes, the default modules have a user and an installation bran
 
 The default module folder can be found in:
 
-`<your_installation_path>/Navigate/navigate/modules/`
+`<data_dir>/modules/{user,installation}/`
+
+where `<data_dir>` is the same assumptions directory as for default nodes.
 
 ## Importing a node
 
@@ -281,6 +285,8 @@ Only the copied node itself is duplicated: the nodes it references are shared, s
 
 If the node being copied from does not already exist in the simulation then it is removed after the import and only the node of the name "node_copy_to" remains.
 This can be used to import nodes with a different name than default name.
+
+This removal only undoes the pull the `Copy` itself made. If a separate `Type("node_copy_from")` reference appears anywhere else in the deck, that reference pulls the source from the default library again as its own, independent node, so both `"node_copy_from"` and `"node_copy_to"` end up registered as separate nodes.
 
 ## Wildcards
 
