@@ -5,11 +5,14 @@
 
 from __future__ import annotations
 
+import re
+
 import numpy as np
 import pytest
 from lark.exceptions import VisitError
 
 from navigate.core import Expression
+from navigate.core.table_data import _DATE_FORMAT_ERROR
 from navigate.exceptions import DeckFormatError
 from navigate.parser._lark_parser import (
     Assignment,
@@ -78,8 +81,9 @@ class TestStringToDate:
         ids=["no_separator", "invalid_date"],
     )
     def test_rejects_invalid_input(self, raw):
-        # the message is empty by design: the caller passes msg= with deck context
-        with pytest.raises(ValueError, match=r"^$"):
+        # every production caller passes its own msg= with deck context; this
+        # only exercises the default, which names the accepted formats
+        with pytest.raises(ValueError, match=f"^{re.escape(_DATE_FORMAT_ERROR)}$"):
             string_to_date(raw)
 
 
