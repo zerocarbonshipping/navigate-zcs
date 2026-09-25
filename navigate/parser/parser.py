@@ -38,7 +38,6 @@ from navigate.parser._keywords import (
     END,
     GENERAL_NODE_GROUP,
     KEYWORD_SECTIONS,
-    NODE_ALLOW_COPY,
     NODE_GROUP,
     SECTION_NAME,
     START,
@@ -659,12 +658,6 @@ class Parser:
                     node_type, attribute, self._current_section
                 )
 
-        except DeckFormatError:
-            raise DeckFormatError(
-                self._error_prefix()
-                + f": '{item.attribute}' is not a valid assignment."
-            ) from None
-
         except AttributeAssignmentError as e:
             raise AttributeAssignmentError(self._error_prefix() + f": {e!s}.") from None
 
@@ -801,12 +794,6 @@ class Parser:
         self._check_allow_new_node("copy")
         self._check_keyword(statement.node_type)
 
-        if not NODE_ALLOW_COPY[statement.node_type]:
-            raise ValueError(
-                self._error_prefix()
-                + f": Unable to copy nodes of type '{statement.node_type}'."
-            )
-
         self._check_node_name_is_available(statement.node_type, statement.copy_to)
 
         group = getattr(self.nodes, NODE_GROUP[statement.node_type])
@@ -939,7 +926,7 @@ class Parser:
 
     def _check_node_name_is_available(self, node_type, name):
         if name in self._get_all_node_names():
-            raise ValueError(
+            raise DeckKeywordError(
                 self._error_prefix()
                 + f': Unable to add {node_type}("{name}"), the name is already in use '
                 f"by a different node."

@@ -852,6 +852,11 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   code and the `Regulation` page always had it right — an emission intensity
   is kg/GJ, equivalently g/MJ, and both transport measures are grams per
   cargo-mile — so no behaviour and no result changes.
+- A node declared, imported or copied under a name another node already uses
+  is reported as a deck error (`Unable to add Type("name"), the name is
+  already in use by a different node.`), at the line that declared it. It was
+  raised as a bare `ValueError`, which the command-line error handler does
+  not catch, so the run ended in a Python traceback.
 - The `RemedialUnits` and `LevyUnits` report columns sum the vessels below a
   fleet and below the whole simulation, as the remedial and levy expenses of
   the same policies already did. Only vessel scope accumulated them, so a

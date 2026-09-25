@@ -137,35 +137,6 @@ GENERAL_NODE_GROUP = {
     MODEL_DEFINITION: "model_definition",
 }
 
-NODE_ALLOW_COPY = {
-    CONVERTER: True,
-    CURVE: True,
-    EMISSION: True,
-    FEEDSTOCK: True,
-    FLEET: True,
-    FORECAST: True,
-    FUEL: True,
-    LEVY: True,
-    PLANT: True,
-    PLOT: True,
-    PORT: True,
-    POWER_SYSTEM: True,
-    PROCESS: True,
-    PRODUCER: True,
-    REGION: True,
-    REGULATION: True,
-    REPORT: True,
-    ROUTE: True,
-    SOURCE: True,
-    SURFACE: True,
-    TANK: True,
-    TECHNOLOGY: True,
-    TIMETABLE: True,
-    TRANSPORT: True,
-    VARIABLE: True,
-    VESSEL: True,
-}
-
 
 KEYWORD_SECTIONS = {
     CONVERTER: SECTION_BOTH,
