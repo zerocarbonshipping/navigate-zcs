@@ -102,7 +102,7 @@ class _Table1D(_Calculator):
         if interpolate:
             x = np.interp(y, yp, self.x)
         else:
-            idx = find_nearest(yp, y)
+            idx = find_nearest(yp, np.asarray(y))
             x = self.x[idx]
 
         return x

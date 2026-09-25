@@ -121,7 +121,7 @@ def build_table_1d(table: TableData) -> tuple[FloatArray, FloatArray]:
     FloatArray
         The y-column.
     """
-    x, y, _ = _table_1d_columns(table, allow_date=False)
+    x, y = _table_1d_columns(table, allow_date=False)
 
     return np.array(x, dtype=np.float64), np.array(y, dtype=np.float64)
 
@@ -142,9 +142,9 @@ def build_table_1d_dated(table: TableData) -> tuple[FloatArray | DateArray, Floa
     FloatArray
         The y-column.
     """
-    x, y, is_date = _table_1d_columns(table, allow_date=True)
+    x, y = _table_1d_columns(table, allow_date=True)
 
-    return _x_array(x, is_date), np.array(y, dtype=np.float64)
+    return _x_array(x), np.array(y, dtype=np.float64)
 
 
 def build_table_2d(table: TableData) -> tuple[FloatArray, FloatArray, FloatArray]:
@@ -165,7 +165,7 @@ def build_table_2d(table: TableData) -> tuple[FloatArray, FloatArray, FloatArray
     FloatArray
         The value cells, one row per x.
     """
-    x, y, z, _ = _table_2d_columns(table, allow_date=False)
+    x, y, z = _table_2d_columns(table, allow_date=False)
 
     return (
         np.array(x, dtype=np.float64),
@@ -194,10 +194,10 @@ def build_table_2d_dated(
     FloatArray
         The value cells, one row per x.
     """
-    x, y, z, is_date = _table_2d_columns(table, allow_date=True)
+    x, y, z = _table_2d_columns(table, allow_date=True)
 
     return (
-        _x_array(x, is_date),
+        _x_array(x),
         np.array(y, dtype=np.float64),
         np.array(z, dtype=np.float64),
     )
@@ -205,9 +205,9 @@ def build_table_2d_dated(
 
 def _table_1d_columns(
     table: TableData, allow_date: bool
-) -> tuple[list[float | np.datetime64], list[float], bool]:
+) -> tuple[list[float | np.datetime64], list[float]]:
     """
-    Read the x- and y-column of a 1D table, and whether x holds dates.
+    Read the x- and y-column of a 1D table.
 
     Parameters
     ----------
@@ -222,12 +222,12 @@ def _table_1d_columns(
         The x-column.
     list[float]
         The y-column.
-    bool
-        Whether the x-column holds dates.
     """
+    x_error = "Error in table row, 'x' must be a number."
+    y_error = "Error in table row, 'y' must be a number."
+
     x: list[float | np.datetime64] = []
     y: list[float] = []
-    is_date = None
 
     for row in table.rows:
         if len(row) != 2:
@@ -235,34 +235,17 @@ def _table_1d_columns(
 
         x_cell, y_cell = row
 
-        if isinstance(x_cell, float):
-            x_value: float | np.datetime64 = x_cell
-        elif allow_date and isinstance(x_cell, str):
-            x_value = string_to_date(x_cell, msg=_DATE_FORMAT_ERROR)
-        else:
-            raise ValueError("Error in table row, 'x' must be a number.")
+        x.append(_read_x(x_cell, allow_date, x_error))
+        y.extend(_read_numbers([y_cell], y_error))
 
-        if not isinstance(y_cell, float):
-            raise ValueError("Error in table row, 'y' must be a number.")
-
-        is_date = _consistent_is_date(is_date, x_value)
-
-        x.append(x_value)
-        y.append(y_cell)
-
-    return x, y, bool(is_date)
+    return x, y
 
 
 def _table_2d_columns(
     table: TableData, allow_date: bool
-) -> tuple[
-    list[float | np.datetime64],
-    list[float],
-    list[list[float]],
-    bool,
-]:
+) -> tuple[list[float | np.datetime64], list[float], list[list[float]]]:
     """
-    Read the x-, y- and z-column of a 2D table, and whether x holds dates.
+    Read the x-, y- and z-column of a 2D table.
 
     Parameters
     ----------
@@ -279,18 +262,15 @@ def _table_2d_columns(
         The y-column, read from the header row.
     list[list[float]]
         The value cells, one row per x.
-    bool
-        Whether the x-column holds dates.
     """
     if not table.rows:
-        return [], [], [], False
+        return [], [], []
 
     header, *data = table.rows
-    y = _header_row(header)
+    y = _read_numbers(header, "Header row must contain only numbers, got '{cell}'.")
 
     x: list[float | np.datetime64] = []
     z: list[list[float]] = []
-    is_date = None
 
     for row in data:
         x_value, values = _table_2d_row(row, allow_date)
@@ -298,37 +278,10 @@ def _table_2d_columns(
         if len(values) != len(y):
             raise ValueError("All rows in the table must have equal length.")
 
-        is_date = _consistent_is_date(is_date, x_value)
-
         x.append(x_value)
         z.append(values)
 
-    return x, y, z, bool(is_date)
-
-
-def _header_row(row: list[float | str]) -> list[float]:
-    """
-    Read the header row of a 2D table, which carries the y-axis.
-
-    Parameters
-    ----------
-    row
-        The first row of the table.
-
-    Returns
-    -------
-    list[float]
-        The y-column.
-    """
-    values = []
-
-    for cell in row:
-        if not isinstance(cell, float):
-            raise ValueError(f"Header row must contain only numbers, got '{cell}'.")
-
-        values.append(cell)
-
-    return values
+    return x, y, z
 
 
 def _table_2d_row(
@@ -351,66 +304,87 @@ def _table_2d_row(
     list[float]
         The value cells of the row.
     """
+    error = "Error in table row, input must be numbers."
     x_cell, *value_cells = row
 
-    if isinstance(x_cell, float):
-        x_value: float | np.datetime64 = x_cell
-    elif allow_date:
-        x_value = string_to_date(x_cell, msg=_DATE_FORMAT_ERROR)
-    else:
-        raise ValueError("Error in table row, input must be numbers.")
-
-    values = []
-    for cell in value_cells:
-        if not isinstance(cell, float):
-            raise ValueError("Error in table row, input must be numbers.")
-
-        values.append(cell)
-
-    return x_value, values
+    return _read_x(x_cell, allow_date, error), _read_numbers(value_cells, error)
 
 
-def _consistent_is_date(is_date: bool | None, x_value: float | np.datetime64) -> bool:
+def _read_x(cell: float | str, allow_date: bool, error: str) -> float | np.datetime64:
     """
-    Confirm the x-column keeps the kind the rows before it established.
+    Read an x-cell, a number or, where allowed, a date literal.
 
     Parameters
     ----------
-    is_date
-        The kind established so far, ``None`` before the first row.
-    x_value
-        The x-value of the current row.
+    cell
+        The x-cell.
+    allow_date
+        Whether a date literal is accepted.
+    error
+        Message raised for a string cell where no date is accepted.
 
     Returns
     -------
-    bool
-        Whether the current x-value is a date.
+    float | np.datetime64
+        The x-value.
     """
-    row_is_date = not isinstance(x_value, float)
+    if isinstance(cell, float):
+        return cell
 
-    if (is_date is not None) and (is_date != row_is_date):
-        raise ValueError("All 'x' values in table must be consistently number or date.")
+    if allow_date:
+        return string_to_date(cell, msg=_DATE_FORMAT_ERROR)
 
-    return row_is_date
+    raise ValueError(error)
 
 
-def _x_array(x: list[float | np.datetime64], is_date: bool) -> FloatArray | DateArray:
+def _read_numbers(cells: list[float | str], error: str) -> list[float]:
+    """
+    Read cells that must all be numbers.
+
+    Parameters
+    ----------
+    cells
+        The cells to read.
+    error
+        Message raised for a non-numeric cell; a ``{cell}`` placeholder in it
+        is filled with the offending cell.
+
+    Returns
+    -------
+    list[float]
+        The cell values.
+    """
+    values = []
+
+    for cell in cells:
+        if not isinstance(cell, float):
+            raise ValueError(error.format(cell=cell))
+
+        values.append(cell)
+
+    return values
+
+
+def _x_array(x: list[float | np.datetime64]) -> FloatArray | DateArray:
     """
     Turn the x-column into an array of the dtype its cells carry.
 
     Parameters
     ----------
     x
-        The x-column cells.
-    is_date
-        Whether the cells hold dates.
+        The x-column cells, all numbers or all dates.
 
     Returns
     -------
     FloatArray | DateArray
-        The x-column, float or date.
+        The x-column, float or date; float for an empty column.
     """
-    if is_date:
-        return np.array(x, dtype=np.dtype("datetime64[D]"))
+    is_date = [isinstance(value, np.datetime64) for value in x]
 
-    return np.array(x, dtype=np.float64)
+    if not any(is_date):
+        return np.array(x, dtype=np.float64)
+
+    if not all(is_date):
+        raise ValueError("All 'x' values in table must be consistently number or date.")
+
+    return np.array(x, dtype=np.dtype("datetime64[D]"))

@@ -13,7 +13,9 @@ from navigate.util import (
     calculate_compound_growth,
     calculate_inertia,
     find_nearest,
+    find_nearest_index,
     get_increment_origin_index,
+    get_increment_origin_indexes,
     interpolate_yearly_flow,
 )
 
@@ -43,30 +45,30 @@ class TestFindNearest:
     _array = np.array([0.0, 10.0, 20.0])
 
     def test_scalar_query(self):
-        assert find_nearest(self._array, 9.0) == 1
+        assert find_nearest_index(self._array, 9.0) == 1
 
     def test_array_query(self):
         result = find_nearest(self._array, np.array([-5.0, 9.0, 25.0]))
         np.testing.assert_array_equal(result, [0, 1, 2])
 
     def test_below_first_clamps_to_zero(self):
-        assert find_nearest(self._array, -100.0) == 0
+        assert find_nearest_index(self._array, -100.0) == 0
 
     def test_past_last_clamps_to_last(self):
-        assert find_nearest(self._array, 100.0) == 2
+        assert find_nearest_index(self._array, 100.0) == 2
 
     def test_equidistant_tie_picks_right_neighbor(self):
-        assert find_nearest(self._array, 5.0) == 1
+        assert find_nearest_index(self._array, 5.0) == 1
 
     # query kinds the pre-unification scalar/array branch crashed on
     def test_int_query(self):
-        assert find_nearest(self._array, 9) == 1
+        assert find_nearest_index(self._array, 9) == 1
 
     def test_float32_query(self):
-        assert find_nearest(self._array, np.float32(9.0)) == 1
+        assert find_nearest_index(self._array, np.float32(9.0)) == 1
 
     def test_zero_dimensional_query(self):
-        assert find_nearest(self._array, np.array(9.0)) == 1
+        assert find_nearest_index(self._array, np.array(9.0)) == 1
 
 
 class TestGetIncrementOriginIndex:
@@ -76,7 +78,7 @@ class TestGetIncrementOriginIndex:
         assert get_increment_origin_index(self._years, 2022.0, 1.2) == 1
 
     def test_array_ages_clamp_to_start(self):
-        origins = get_increment_origin_index(
+        origins = get_increment_origin_indexes(
             self._years, 2022.0, np.array([0.0, 1.0, 5.0])
         )
         np.testing.assert_array_equal(origins, [2, 1, 0])

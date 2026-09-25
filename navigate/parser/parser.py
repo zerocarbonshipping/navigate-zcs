@@ -1381,14 +1381,7 @@ class Parser:
                 self._replace_references_on_attribute(node, element)
 
         elif isinstance(attribute, Expression):
-            if not attribute.is_initialized():
-                attribute.initialize(node)
-                attribute.node_references = [
-                    self._read_node_reference(reference, attribute.reference_location)
-                    for reference in attribute.reference_strings
-                ]
-                attribute.check_consistency()
-
+            attribute.resolve(node, self._read_node_reference)
             self._replace_references_on_attribute(node, attribute.node_references)
 
     def _flush_pending_assignments(self):

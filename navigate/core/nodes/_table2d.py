@@ -122,7 +122,7 @@ class _Table2D(_Calculator):
                 # extract a z-slice for the given y
                 zp = self.calculate(self.x, yp)
 
-                idx = find_nearest(zp, z)
+                idx = find_nearest(zp, np.asarray(z))
                 x.append(self.x[idx])
 
         return np.array(x)
