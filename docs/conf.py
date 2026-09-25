@@ -74,7 +74,7 @@ copybutton_prompt_is_regexp = True
 
 html_theme = 'pydata_sphinx_theme'
 html_static_path = ['_static']
-html_js_files = ['colab-links.js']
+html_js_files = ['colab-links.js', 'version-banner.js']
 
 # The version-switcher dropdown matches this against the "version" fields in
 # _static/switcher.json; the warning banner separately compares `release`
