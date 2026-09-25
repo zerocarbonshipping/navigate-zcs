@@ -360,7 +360,13 @@ class Parser:
 
         statements = parse_include_content(content, file=abs_path)
 
-        self._process_statements(statements)
+        # the walk moves the location onto each statement it reads; a nested
+        # read hands the reading frame its own location back when it returns
+        source = self._current_source
+        try:
+            self._process_statements(statements)
+        finally:
+            self._current_source = source
 
     def _load_module(self, directive):
         """

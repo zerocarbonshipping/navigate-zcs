@@ -893,6 +893,11 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `Route.PortDurations`, for instance — kept whatever bounds its other
   references gave it, so the limit of the attribute it was assigned to never
   applied. No committed deck globs a calculator, so no shipped result moves.
+- A wildcard `Import` whose matches include a name the deck already uses
+  reports the collision at the deck's `Import` line. From the second matched
+  name on, the error named the default-library file a previous match had
+  pulled in, and a line inside it, which the deck author never wrote and does
+  not need to change.
 - The two errors a wildcard node reference can raise — it matched no node, or
   it stands where a single node is expected — name the deck line and the
   include file they were written in, as every other deck error does. Both
