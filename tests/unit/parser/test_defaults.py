@@ -297,7 +297,7 @@ class TestUnresolvableReference:
     def test_reference_without_an_assumptions_directory_is_rejected(self, write_deck):
         with pytest.raises(
             DeckKeywordError,
-            match=r"User or Installation Default 'v' is requested but not specified",
+            match=r'Default Variable\("v"\) is requested but no assumptions directory',
         ):
             Parser().read_deck(write_deck(HOST))
 

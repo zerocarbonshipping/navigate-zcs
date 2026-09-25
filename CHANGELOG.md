@@ -825,6 +825,14 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   nodes. No deck result moves.
 
 ### Fixed
+- The three errors for a default node, a wildcard `Import` or a module
+  requested without an assumptions directory share one wording, a finished
+  sentence naming both the `-d/--data-dir` flag and the `ASSUMPTIONS_DATA_DIR`
+  environment variable. Two of them ended mid-sentence at "the -d flag or
+  environment variable" without saying which variable.
+- A command whose value is rejected (`'set_operational_saving_sea' must be ≤
+  1.0, but got 2.0.`) ends its error in a full stop, as every other deck error
+  does.
 - The reference manual states the units an emission intensity is reported
   and given in. The `RegulationMeasureID` appendix had INTENSITY in ton/GJ,
   a factor of 1000 out, and both transport measures in ton per cargo-mile, a
