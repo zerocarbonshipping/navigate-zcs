@@ -3,7 +3,7 @@
 
 # FUELEU MARITIME - caps WTW greenhouse gas intensity, tightening over time.
 #
-# The e-fuels get no set_fuel_wtt line below on purpose: Navigate calculates
+# The e-fuels get no default set_fuel_wtt. Instead, Navigate calculates
 # their upstream intensity from the production chain in regions.inc, so the
 # power price at each site feeds their FuelEU score. The fossil fuels and
 # bio-methanol instead use the regulation's own defaults.
