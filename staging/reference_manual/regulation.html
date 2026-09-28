@@ -670,7 +670,7 @@ jurisdiction (inter) should be counted in the calculation.</p>
 </section>
 <section id="flexibilityhorizon">
 <h3>FlexibilityHorizon<a class="headerlink" href="#flexibilityhorizon" title="Link to this heading">#</a></h3>
-<p>This attribute sets the decision horizon, in years, used to smooth the belief of the flexibility cost that enters the expected policy expenses of the policed vessels.</p>
+<p>This attribute sets the decision horizon, in years, used to smooth the belief of the flexibility cost that enters the expected policy expenses of the policed vessels. It only applies when ‘Scheme’ is FLEXIBLE; assigning it under any other scheme is unused and logged as a warning.</p>
 <p>A longer horizon makes the belief respond more slowly to changes in the flexibility cost between outer time-steps, preventing small changes in future fuel availability from translating into expectations of large flexibility-cost differences.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
