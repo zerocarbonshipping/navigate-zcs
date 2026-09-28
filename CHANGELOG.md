@@ -53,6 +53,18 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `get_remaining_cost_flow`).
 
 ### Changed
+- A calculator (`Variable`, `Forecast`, `Curve`, `Timetable` or `Surface`)
+  assigned in `DEFINE` to an attribute or command that `EVENTS` cannot change,
+  directly or through an expression, can no longer be changed in `EVENTS`
+  either. Re-assigning one of its attributes there is now an error when the
+  deck is read, naming the event line, the node holding the calculator and
+  the attribute or command it is held in. It used to be accepted, and made
+  the fixed attribute change over time, as
+  `Converter "eng" { PowerCapacity = Variable("p") }` with
+  `Variable "p" { Value = 12 }` in `EVENTS` did. A calculator held only by
+  attributes `EVENTS` may change stays free, and a Copy of a held calculator
+  is a new node that is free too. **Breaking** for decks that change such a
+  calculator in `EVENTS`; none ship with Navigate.
 - A Curve, Forecast, Surface, Timetable or Variable, or an expression, whose
   value reaches an attribute's exclusive minimum or maximum now stops the run
   with an error naming the node, instead of being clamped onto the bound. A
