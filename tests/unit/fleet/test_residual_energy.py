@@ -24,7 +24,10 @@ import pytest
 
 from navigate.core import Scalar
 from navigate.core.enum_ import EnergyDemandTypeID
+from navigate.core.nodes.curve import Curve
 from navigate.core.nodes.technology import Technology
+from navigate.core.nodes.variable import Variable
+from navigate.core.table_data import TableData
 from navigate.core.unit import MWD_TO_GJ
 from navigate.fleet.package import Package, preprocess_packages
 from navigate.fleet.residual_energy import (
@@ -290,6 +293,40 @@ class TestTransferCurves:
         curves = [Scalar(0.2), Scalar(0.3)]
         result = _calculate_power_transfer(curves, load)
         np.testing.assert_array_almost_equal(result, [0.5, 0.5])
+
+    def test_curve_and_variable_transfer_summed(self):
+        """
+        A Curve and a Variable transferring the same pair sum without a shape crash.
+
+        Through the real path (Technology.set_power_transfer -> Package.precompute ->
+        _calculate_power_transfer): a Variable's getter used to ignore the array load
+        and answer a bare float, while the Curve's answered one value per load point.
+        Stacking the two into one array to sum them then raised
+        "setting an array element with a sequence" for any pair more than one
+        technology contributes to.
+        """
+        curve = Curve("whrs_curve")
+        curve.set_table(TableData(rows=[[0.0, 0.0], [1.0, 1.0]]))  # identity: y = x
+        curve.build_table()
+
+        variable = Variable("whrs_variable")
+        variable.set_value(0.3)
+
+        t_curve = _make_technology(
+            "t_curve", power_transfer={(PROPULSION, HEAT): curve}
+        )
+        t_variable = _make_technology(
+            "t_variable", power_transfer={(PROPULSION, HEAT): variable}
+        )
+        pkg = _make_package(t_curve, t_variable)
+
+        load = np.array([0.5, 0.8])
+        result = _calculate_power_transfer(
+            pkg.transfer_curves[(PROPULSION, HEAT)], load
+        )
+        # curve(load) = load itself (identity table): [0.5, 0.8]; the variable is
+        # a constant 0.3, broadcast to load's shape: [0.3, 0.3]
+        np.testing.assert_array_almost_equal(result, [0.8, 1.1])
 
     def test_includes_transfer_flag(self):
         tech_no_transfer = _make_technology("vfd", energy_saving={ELECTRICAL: 0.08})
