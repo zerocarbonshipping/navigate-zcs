@@ -344,7 +344,11 @@ class Expression:
         """
         evaluated = self._tree.evaluate(self.node_references, x, y)
         bounds = self.internal_bounds
-        bounds.check_exclusive(evaluated, f"{self._node}: Expression <{self.text}>")
+
+        # the owner string is only worth building where a bound can actually raise
+        if bounds.exclusive:
+            bounds.check_exclusive(evaluated, f"{self._node}: Expression <{self.text}>")
+
         value = np.clip(evaluated, bounds.lower, bounds.upper)
 
         # a float result is broadcast so an expression over scalars answers

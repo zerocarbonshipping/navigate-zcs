@@ -41,6 +41,11 @@ class Bounds:
     inclusive_lower: bool = True
     inclusive_upper: bool = True
 
+    @property
+    def exclusive(self) -> bool:
+        """Whether either bound excludes the value it equals."""
+        return not (self.inclusive_lower and self.inclusive_upper)
+
     def check_exclusive(self, value: FloatLike, owner: object) -> None:
         """
         Raise where a value reaches an exclusive bound.
