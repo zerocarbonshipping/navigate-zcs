@@ -41,9 +41,7 @@ class Process(Node):
         feeds
             A list of feedstock and/or process.
         """
-        self.feeds = assign_reference_list(
-            as_list(feeds), (FEEDSTOCK, PROCESS), unique=True
-        )
+        self.feeds = assign_reference_list(feeds, (FEEDSTOCK, PROCESS), unique=True)
 
     def set_conversions(self, conversion: list[ForecastArgument]) -> None:
         """

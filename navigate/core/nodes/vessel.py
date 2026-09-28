@@ -9,7 +9,6 @@ from typing import TYPE_CHECKING
 
 from navigate.core import (
     Scalar,
-    as_list,
     as_scalar,
     assign_id,
     assign_reference,
@@ -267,7 +266,7 @@ class Vessel(Node):
         tanks
             List of Tank nodes.
         """
-        self.tanks = assign_reference_list(as_list(tanks), TANK, unique=True)
+        self.tanks = assign_reference_list(tanks, TANK, unique=True)
 
     def set_route(self, route: Route) -> None:
         """

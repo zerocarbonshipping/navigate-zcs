@@ -683,6 +683,10 @@ class TestAssignReferenceList:
         fuels = [Fuel("oil"), Fuel("oil")]
         assert assign_reference_list(fuels, FUEL) is fuels
 
+    def test_bare_reference_wrapped_in_a_list(self):
+        fuel = Fuel("oil")
+        assert assign_reference_list(fuel, FUEL) == [fuel]
+
     def test_expression_entry_rejected(self):
         with pytest.raises(ValueError, match="nodes of type Port") as rejected:
             assign_reference_list([Expression('Port("x")')], PORT)

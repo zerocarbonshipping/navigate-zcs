@@ -739,8 +739,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `assign_list` with `scalar=False`. `assign_value` and `assign_list` no
   longer accept a node that is not a calculator, and `assign_list` no longer
   takes `unique` or `scalar`; uniqueness is `assign_reference_list(...,
-  unique=True)`. `navigate.core.assign.Assignment` narrows to a float, a
-  `Scalar`, a calculator or an expression, and
+  unique=True)`. `assign_reference_list` also accepts a single node in place
+  of a one-element list, wrapping it. `navigate.core.assign.Assignment`
+  narrows to a float, a `Scalar`, a calculator or an expression, and
   `navigate.core.node_type.AcceptedNodeTypes` no longer includes `None`,
   which the parameters allowing it now write out. Deck messages and results
   are unchanged.

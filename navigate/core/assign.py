@@ -22,6 +22,7 @@ from navigate.core.node import Node
 from navigate.core.node_type import AcceptedNodeTypes, Calculator, is_calculator
 from navigate.core.scalar import Scalar
 from navigate.core.table_data import TableData
+from navigate.core.wrap import as_list
 from navigate.util import (
     ROUND_OFF,
     TOLERANCE,
@@ -293,18 +294,20 @@ def assign_reference[N: Node](assignment: N, type_: AcceptedNodeTypes) -> N:
 
 
 def assign_reference_list[N: Node](
-    assignment: list[N], type_: AcceptedNodeTypes, *, unique: bool = False
+    assignment: N | list[N], type_: AcceptedNodeTypes, *, unique: bool = False
 ) -> list[N]:
     """
     Check whether the nodes assigned to an attribute are of a type it references.
 
     Only applicable to attributes holding a list of node references, each
-    checked as assign_reference checks a single one.
+    checked as assign_reference checks a single one. A deck may give a single
+    value where the attribute takes a list, so a bare node is accepted and
+    returned wrapped in a list.
 
     Parameters
     ----------
     assignment
-        List of values passed to the setter.
+        Value or list of values passed to the setter.
     type_
         The node type(s) the attribute accepts a reference to.
     unique
@@ -313,15 +316,18 @@ def assign_reference_list[N: Node](
     Returns
     -------
     list[Node]
-        The list that was passed, so a setter assigns what it validated.
+        The list that was passed, or the single value wrapped in one, so a
+        setter assigns what it validated.
     """
-    if unique:
-        _check_list_is_unique(assignment)
+    references = as_list(assignment)
 
-    for reference in assignment:
+    if unique:
+        _check_list_is_unique(references)
+
+    for reference in references:
         assign_reference(reference, type_)
 
-    return assignment
+    return references
 
 
 def assign_boolean(assignment: str) -> bool:

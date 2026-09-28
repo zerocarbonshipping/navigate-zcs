@@ -102,7 +102,7 @@ class Route(Node):
         ports
             A list of Port nodes.
         """
-        self.ports = assign_reference_list(as_list(ports), PORT)
+        self.ports = assign_reference_list(ports, PORT)
 
     def set_port_durations(self, port_durations: list[ForecastArgument]) -> None:
         """

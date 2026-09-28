@@ -107,7 +107,7 @@ class Producer(_AssetManager[Plant]):
         plants
             The list of plants that can be built.
         """
-        self.assets = assign_reference_list(as_list(plants), PLANT, unique=True)
+        self.assets = assign_reference_list(plants, PLANT, unique=True)
 
     def set_minimum_offtake_duration(
         self, minimum_offtake_duration: ForecastArgument

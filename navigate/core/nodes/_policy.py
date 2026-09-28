@@ -8,7 +8,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from navigate.core import (
-    as_list,
     as_scalar,
     assign_boolean,
     assign_id,
@@ -102,7 +101,7 @@ class _Policy(Node):
         ports
             List of Port nodes.
         """
-        self.jurisdiction = assign_reference_list(as_list(ports), PORT)
+        self.jurisdiction = assign_reference_list(ports, PORT)
 
     def set_emissions(self, emissions: list[Emission]) -> None:
         """
@@ -119,9 +118,7 @@ class _Policy(Node):
         emissions
             A list of Emission nodes.
         """
-        self.emissions = assign_reference_list(
-            as_list(emissions), EMISSION, unique=True
-        )
+        self.emissions = assign_reference_list(emissions, EMISSION, unique=True)
 
     def set_fuels(self, fuels: list[Fuel]) -> None:
         """
@@ -138,7 +135,7 @@ class _Policy(Node):
         fuels
             A list of Fuel nodes.
         """
-        self.fuels = assign_reference_list(as_list(fuels), FUEL, unique=True)
+        self.fuels = assign_reference_list(fuels, FUEL, unique=True)
 
     def set_scope(self, scope: str) -> None:
         """
