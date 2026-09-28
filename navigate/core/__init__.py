@@ -22,9 +22,9 @@ from navigate.core.assign import (
     assign_member,
     assign_value,
     command_assignment_to_boolean_dict,
-    command_assignment_to_dict,
-    command_assignment_to_tuple_dict,
     expand_id_wildcard,
+    write_matching_key_pairs,
+    write_matching_keys,
 )
 from navigate.core.expression import Expression
 from navigate.core.scalar import Scalar

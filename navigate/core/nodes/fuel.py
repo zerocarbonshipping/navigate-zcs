@@ -13,7 +13,7 @@ from navigate.core import (
     assign_boolean,
     assign_id,
     assign_value,
-    command_assignment_to_dict,
+    write_matching_keys,
 )
 from navigate.core.enum_ import FuelTypeID
 from navigate.core.node import Node
@@ -131,8 +131,10 @@ class Fuel(Node):
         ttw
             Ton of emissions per ton of fuel.
         """
-        command_assignment_to_dict(
-            emission_name, as_scalar(ttw), self.ttw, type_=VARIABLE, lower=0.0
+        write_matching_keys(
+            emission_name,
+            assign_value(as_scalar(ttw), type_=VARIABLE, lower=0.0),
+            self.ttw,
         )
 
     # internal methods -----------------------------------------------------------------

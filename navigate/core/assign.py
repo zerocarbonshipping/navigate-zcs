@@ -520,108 +520,47 @@ def assign_fraction_list(fractions: list[float]) -> tuple[list[float], bool]:
     return assign_list(fractions, lower=0.0, upper=1.0), rescaled
 
 
-def command_assignment_to_dict[K: str | Enum, V: Assignment](
+def write_matching_keys[K: str | Enum, V](
     key: K | str,
-    assignment: V,
+    value: V,
     assignment_dict: _CommandDict[K, V],
-    scalar: bool = True,
-    type_: AcceptedNodeTypes = None,
-    lower: float = -np.inf,
-    upper: float = np.inf,
-    *,
-    inclusive_lower: bool = True,
-    inclusive_upper: bool = True,
-    expression: bool = True,
 ) -> None:
     """
-    Assign a validated value to each dict entry matching a key pattern.
+    Write an already validated value to each dict entry matching a key pattern.
 
     Parameters
     ----------
     key
         Name of node, possibly including wildcards.
-    assignment
-        Value assigned to every matched entry, a float already wrapped in
-        a Scalar by a setter that accepts scalars.
+    value
+        Value assigned to every matched entry, validated by the caller.
     assignment_dict
         The dictionary being assigned to.
-    scalar
-        Whether the setter accepts scalars.
-    type_
-        The node type(s) the attribute accepts a reference to.
-    lower
-        Lower bound.
-    upper
-        Upper bound.
-    inclusive_lower
-        Lower bound is inclusive.
-    inclusive_upper
-        Upper bound is inclusive.
-    expression
-        Whether the setter accepts expressions; one is accepted only where the
-        setter also accepts scalars or a calculator type, as only those are
-        evaluated.
     """
     keys = retrieve_keys(key, assignment_dict)
 
     # every matched key holds the same object: a Scalar answers a getter and
     # carries no per-key state, and a node or an expression was always shared
-    value = assign_value(
-        assignment,
-        scalar,
-        type_,
-        lower,
-        upper,
-        inclusive_lower=inclusive_lower,
-        inclusive_upper=inclusive_upper,
-        expression=expression,
-    )
-
     for key_ in keys:
         assignment_dict[key_] = value
 
 
-def command_assignment_to_tuple_dict[K1: str | Enum, K2: str | Enum, V: Assignment](
+def write_matching_key_pairs[K1: str | Enum, K2: str | Enum, V](
     key: tuple[K1 | str, K2 | str],
-    assignment: V,
+    value: V,
     assignment_dict: _CommandDict[tuple[K1, K2], V],
-    scalar: bool = True,
-    type_: AcceptedNodeTypes = None,
-    lower: float = -np.inf,
-    upper: float = np.inf,
-    *,
-    inclusive_lower: bool = True,
-    inclusive_upper: bool = True,
-    expression: bool = True,
 ) -> None:
     """
-    Assign a validated value to dict entries keyed by matching tuples.
+    Write an already validated value to dict entries keyed by matching tuples.
 
     Parameters
     ----------
     key
         Tuple of node names, possibly including wildcards.
-    assignment
-        Value assigned to every matched entry, a float already wrapped in
-        a Scalar by a setter that accepts scalars.
+    value
+        Value assigned to every matched entry, validated by the caller.
     assignment_dict
         The dictionary being assigned to.
-    scalar
-        Whether the setter accepts scalars.
-    type_
-        The node type(s) the attribute accepts a reference to.
-    lower
-        Lower bound.
-    upper
-        Upper bound.
-    inclusive_lower
-        Lower bound is inclusive.
-    inclusive_upper
-        Upper bound is inclusive.
-    expression
-        Whether the setter accepts expressions; one is accepted only where the
-        setter also accepts scalars or a calculator type, as only those are
-        evaluated.
     """
     if not assignment_dict:
         raise KeyError(", ".join(key_name(key_part) for key_part in key))
@@ -632,18 +571,9 @@ def command_assignment_to_tuple_dict[K1: str | Enum, K2: str | Enum, V: Assignme
         for key_part, existing_keys in zip(key, columns, strict=True)
     ]
 
+    # every matched key holds the same object: a Scalar answers a getter and
+    # carries no per-key state, and a node or an expression was always shared
     keys1, keys2 = keys
-    value = assign_value(
-        assignment,
-        scalar,
-        type_,
-        lower,
-        upper,
-        inclusive_lower=inclusive_lower,
-        inclusive_upper=inclusive_upper,
-        expression=expression,
-    )
-
     for key1 in keys1:
         for key2 in keys2:
             assignment_dict[(key1, key2)] = value

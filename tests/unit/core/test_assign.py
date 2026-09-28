@@ -28,9 +28,9 @@ from navigate.core.assign import (
     assign_member,
     assign_value,
     command_assignment_to_boolean_dict,
-    command_assignment_to_dict,
-    command_assignment_to_tuple_dict,
     expand_id_wildcard,
+    write_matching_key_pairs,
+    write_matching_keys,
 )
 from navigate.core.bounds import Bounds
 from navigate.core.enum_ import (
@@ -719,20 +719,20 @@ class TestAssignFractionList:
         assert is_rescaled_result is is_rescaled
 
 
-# ── command_assignment_to_dict ────────────────────────────────────────────────
+# ── write_matching_keys ───────────────────────────────────────────────────────
 
 
-class TestCommandAssignmentToDict:
+class TestWriteMatchingKeys:
     def test_literal_key_assigns_one_entry(self):
         assignment_dict = {"oil": None, "ammonia": None}
-        command_assignment_to_dict("oil", Scalar(1.0), assignment_dict)
+        write_matching_keys("oil", Scalar(1.0), assignment_dict)
 
         assert isinstance(assignment_dict["oil"], Scalar)
         assert assignment_dict["ammonia"] is None
 
     def test_wildcard_assigns_every_match(self):
         assignment_dict = {"bio_a": None, "bio_b": None, "fossil": None}
-        command_assignment_to_dict("bio_*", Scalar(1.0), assignment_dict)
+        write_matching_keys("bio_*", Scalar(1.0), assignment_dict)
 
         assert isinstance(assignment_dict["bio_a"], Scalar)
         assert isinstance(assignment_dict["bio_b"], Scalar)
@@ -740,28 +740,13 @@ class TestCommandAssignmentToDict:
 
     def test_unmatched_key_raises(self):
         with pytest.raises(KeyError, match="missing"):
-            command_assignment_to_dict("missing", 1.0, {"oil": None})
-
-    def test_bounds_forwarded(self):
-        with pytest.raises(ValueError, match=r"must be ≤ 1\.0"):
-            command_assignment_to_dict("oil", 9.0, {"oil": None}, upper=1.0)
-
-    def test_expression_opt_out_forwarded(self):
-        with pytest.raises(ValueError, match="but got expression"):
-            command_assignment_to_dict(
-                "oil",
-                Expression('Forecast("f")'),
-                {"oil": None},
-                scalar=False,
-                type_=FORECAST,
-                expression=False,
-            )
+            write_matching_keys("missing", 1.0, {"oil": None})
 
 
-# ── command_assignment_to_tuple_dict ──────────────────────────────────────────
+# ── write_matching_key_pairs ──────────────────────────────────────────────────
 
 
-class TestCommandAssignmentToTupleDict:
+class TestWriteMatchingKeyPairs:
     def test_wildcard_expands_the_cross_product(self):
         assignment_dict = {
             ("a", "x"): None,
@@ -769,7 +754,7 @@ class TestCommandAssignmentToTupleDict:
             ("a", "y"): None,
             ("b", "y"): None,
         }
-        command_assignment_to_tuple_dict(("*", "x"), Scalar(1.0), assignment_dict)
+        write_matching_key_pairs(("*", "x"), Scalar(1.0), assignment_dict)
 
         assert isinstance(assignment_dict[("a", "x")], Scalar)
         assert isinstance(assignment_dict[("b", "x")], Scalar)
@@ -777,7 +762,7 @@ class TestCommandAssignmentToTupleDict:
 
     def test_unmatched_key_raises(self):
         with pytest.raises(KeyError, match="missing"):
-            command_assignment_to_tuple_dict(("missing", "x"), 1.0, {("a", "x"): None})
+            write_matching_key_pairs(("missing", "x"), 1.0, {("a", "x"): None})
 
     @pytest.mark.parametrize(
         ("key", "match"),
@@ -791,13 +776,7 @@ class TestCommandAssignmentToTupleDict:
         # the dict is empty when a dependent dict was never seeded, so the key
         # has nothing to match; enum keys are named, not str.join-ed
         with pytest.raises(KeyError, match=match):
-            command_assignment_to_tuple_dict(key, 1.0, {})
-
-    def test_bounds_forwarded(self):
-        with pytest.raises(ValueError, match=r"must be ≤ 1\.0"):
-            command_assignment_to_tuple_dict(
-                ("a", "x"), 9.0, {("a", "x"): None}, upper=1.0
-            )
+            write_matching_key_pairs(key, 1.0, {})
 
 
 # ── command_assignment_to_boolean_dict ────────────────────────────────────────

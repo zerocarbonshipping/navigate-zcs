@@ -13,8 +13,8 @@ from navigate.core import (
     as_scalar,
     assign_value,
     command_assignment_to_boolean_dict,
-    command_assignment_to_dict,
-    command_assignment_to_tuple_dict,
+    write_matching_key_pairs,
+    write_matching_keys,
 )
 from navigate.core.expectations import PortExpectation
 from navigate.core.node import Node
@@ -97,12 +97,10 @@ class Port(Node):
         value
             The amount of fuel available for bunkering in tons/year.
         """
-        command_assignment_to_dict(
+        write_matching_keys(
             fuel_name,
-            as_scalar(value),
+            assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
             self.bunkering_limit,
-            type_=(FORECAST, VARIABLE),
-            lower=0.0,
         )
 
     def set_bunkering_inertia(self, fuel_name: str, value: ForecastArgument) -> None:
@@ -124,13 +122,12 @@ class Port(Node):
         value
             The inertia of the bunkering of the fuel.
         """
-        command_assignment_to_dict(
+        write_matching_keys(
             fuel_name,
-            as_scalar(value),
+            assign_value(
+                as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
+            ),
             self.bunkering_inertia,
-            type_=(FORECAST, VARIABLE),
-            lower=0.0,
-            upper=1.0,
         )
 
     def set_handling_cost(self, fuel_name: str, value: ForecastArgument) -> None:
@@ -150,12 +147,10 @@ class Port(Node):
             The cost of storage and the service of bunkering a specific fuel in the port
             in USD/ton.
         """
-        command_assignment_to_dict(
+        write_matching_keys(
             fuel_name,
-            as_scalar(value),
+            assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
             self.handling_cost,
-            type_=(FORECAST, VARIABLE),
-            lower=0.0,
         )
 
     def set_bunker_price_overwrite(
@@ -179,12 +174,10 @@ class Port(Node):
         value
             The overwrite price of a specific fuel in the port in USD/ton.
         """
-        command_assignment_to_dict(
+        write_matching_keys(
             fuel_name,
-            as_scalar(value),
+            assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
             self.bunker_price_overwrite,
-            type_=(FORECAST, VARIABLE),
-            lower=0.0,
         )
 
     def set_bunker_wtt_overwrite(
@@ -210,11 +203,10 @@ class Port(Node):
         value
             The overwrite WTT emission in ton emission/ton fuel.
         """
-        command_assignment_to_tuple_dict(
+        write_matching_key_pairs(
             (fuel_name, emission_name),
-            as_scalar(value),
+            assign_value(as_scalar(value), type_=(FORECAST, VARIABLE)),
             self.bunker_wtt_overwrite,
-            type_=(FORECAST, VARIABLE),
         )
 
     def set_shore_power_cost(self, value: ForecastArgument) -> None:
@@ -277,12 +269,10 @@ class Port(Node):
         value
             Emission factor in ton emission/MWh.
         """
-        command_assignment_to_dict(
+        write_matching_keys(
             emission_name,
-            as_scalar(value),
+            assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
             self.shore_power_emission_factor,
-            type_=(FORECAST, VARIABLE),
-            lower=0.0,
         )
 
     # internal methods -----------------------------------------------------------------

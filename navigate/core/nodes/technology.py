@@ -12,9 +12,9 @@ from navigate.core import (
     as_scalar,
     assign_id,
     assign_value,
-    command_assignment_to_tuple_dict,
+    write_matching_key_pairs,
+    write_matching_keys,
 )
-from navigate.core.assign import command_assignment_to_dict
 from navigate.core.enum_ import EnergyDemandTypeID
 from navigate.core.node_type import CURVE, TECHNOLOGY, VARIABLE
 from navigate.core.nodes._machinery import _Machinery
@@ -102,8 +102,10 @@ class Technology(_Machinery):
             Fraction of the raw energy demand saved.
         """
         id_ = assign_id(energy_type, EnergyDemandTypeID)
-        command_assignment_to_dict(
-            id_, as_scalar(saving), self.energy_saving, type_=VARIABLE, lower=0.0
+        write_matching_keys(
+            id_,
+            assign_value(as_scalar(saving), type_=VARIABLE, lower=0.0),
+            self.energy_saving,
         )
 
     def set_external_power(self, energy_type: str, power: ScalarArgument) -> None:
@@ -127,8 +129,10 @@ class Technology(_Machinery):
             External power supplied, in MW.
         """
         id_ = assign_id(energy_type, EnergyDemandTypeID)
-        command_assignment_to_dict(
-            id_, as_scalar(power), self.external_power, type_=VARIABLE, lower=0.0
+        write_matching_keys(
+            id_,
+            assign_value(as_scalar(power), type_=VARIABLE, lower=0.0),
+            self.external_power,
         )
 
     def set_power_transfer(
@@ -161,11 +165,10 @@ class Technology(_Machinery):
         power_system_id_ = assign_id(power_system_id, EnergyDemandTypeID)
         energy_id_ = assign_id(energy_id, EnergyDemandTypeID)
 
-        command_assignment_to_tuple_dict(
+        write_matching_key_pairs(
             (power_system_id_, energy_id_),
-            as_scalar(transfer),
+            assign_value(
+                as_scalar(transfer), type_=(CURVE, VARIABLE), lower=0.0, upper=1.0
+            ),
             self.power_transfer,
-            type_=(CURVE, VARIABLE),
-            lower=0.0,
-            upper=1.0,
         )

@@ -10,8 +10,9 @@ from typing import TYPE_CHECKING
 from navigate.core import (
     Scalar,
     as_scalar,
-    command_assignment_to_dict,
-    command_assignment_to_tuple_dict,
+    assign_value,
+    write_matching_key_pairs,
+    write_matching_keys,
 )
 from navigate.core.node import Node
 from navigate.core.node_type import FORECAST, REGION, TIMETABLE, VARIABLE
@@ -75,12 +76,12 @@ class Region(Node):
         value
             The CAPEX cost of the process in USD/ton.
         """
-        command_assignment_to_dict(
+        write_matching_keys(
             process_name,
-            as_scalar(value),
+            assign_value(
+                as_scalar(value), type_=(FORECAST, TIMETABLE, VARIABLE), lower=0.0
+            ),
             self.process_capex,
-            type_=(FORECAST, TIMETABLE, VARIABLE),
-            lower=0.0,
         )
 
     def set_process_opex(self, process_name: str, value: TimetableArgument) -> None:
@@ -102,11 +103,10 @@ class Region(Node):
         value
             The OPEX cost of the process in USD/ton/year.
         """
-        command_assignment_to_dict(
+        write_matching_keys(
             process_name,
-            as_scalar(value),
+            assign_value(as_scalar(value), type_=(FORECAST, TIMETABLE, VARIABLE)),
             self.process_opex,
-            type_=(FORECAST, TIMETABLE, VARIABLE),
         )
 
     def set_process_energy(self, process_name: str, value: ForecastArgument) -> None:
@@ -125,12 +125,10 @@ class Region(Node):
         value
             The energy demand of the process in MWh/ton.
         """
-        command_assignment_to_dict(
+        write_matching_keys(
             process_name,
-            as_scalar(value),
+            assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
             self.process_energy,
-            type_=(FORECAST, VARIABLE),
-            lower=0.0,
         )
 
     def set_process_lifetime(self, process_name: str, value: ForecastArgument) -> None:
@@ -149,12 +147,10 @@ class Region(Node):
         value
             The lifetime of the process in years.
         """
-        command_assignment_to_dict(
+        write_matching_keys(
             process_name,
-            as_scalar(value),
+            assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
             self.process_lifetime,
-            type_=(FORECAST, VARIABLE),
-            lower=0.0,
         )
 
     def set_process_replacement(
@@ -175,13 +171,12 @@ class Region(Node):
         value
             The replacement fraction of the CAPEX repaid at EoL (end of lifetime).
         """
-        command_assignment_to_dict(
+        write_matching_keys(
             process_name,
-            as_scalar(value),
+            assign_value(
+                as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
+            ),
             self.process_replacement,
-            type_=(FORECAST, VARIABLE),
-            lower=0.0,
-            upper=1.0,
         )
 
     def set_process_wtt(
@@ -205,11 +200,10 @@ class Region(Node):
             The amount of emissions emitted during the production in ton emissions/ton
             fuel.
         """
-        command_assignment_to_tuple_dict(
+        write_matching_key_pairs(
             (process_name, emission_name),
-            as_scalar(value),
+            assign_value(as_scalar(value), type_=(FORECAST, VARIABLE)),
             self.process_wtt,
-            type_=(FORECAST, VARIABLE),
         )
 
     def set_source_capex(self, source_name: str, value: ForecastArgument) -> None:
@@ -228,12 +222,10 @@ class Region(Node):
         value
             The CAPEX cost of the source in USD/MWh.
         """
-        command_assignment_to_dict(
+        write_matching_keys(
             source_name,
-            as_scalar(value),
+            assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
             self.source_capex,
-            type_=(FORECAST, VARIABLE),
-            lower=0.0,
         )
 
     def set_source_opex(self, source_name: str, value: ForecastArgument) -> None:
@@ -252,12 +244,10 @@ class Region(Node):
         value
             The OPEX cost of the source in USD/MWh/year.
         """
-        command_assignment_to_dict(
+        write_matching_keys(
             source_name,
-            as_scalar(value),
+            assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
             self.source_opex,
-            type_=(FORECAST, VARIABLE),
-            lower=0.0,
         )
 
     def set_source_wtt(
@@ -280,11 +270,10 @@ class Region(Node):
         value
             The amount of emissions emitted by using a source in ton emission/MWh.
         """
-        command_assignment_to_tuple_dict(
+        write_matching_key_pairs(
             (source_name, emission_name),
-            as_scalar(value),
+            assign_value(as_scalar(value), type_=(FORECAST, VARIABLE)),
             self.source_wtt,
-            type_=(FORECAST, VARIABLE),
         )
 
     def set_feedstock_cost(self, feedstock_name: str, value: ForecastArgument) -> None:
@@ -303,12 +292,10 @@ class Region(Node):
         value
             The cost of a feedstock in USD/ton.
         """
-        command_assignment_to_dict(
+        write_matching_keys(
             feedstock_name,
-            as_scalar(value),
+            assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
             self.feedstock_cost,
-            type_=(FORECAST, VARIABLE),
-            lower=0.0,
         )
 
     def set_feedstock_wtt(
@@ -332,11 +319,10 @@ class Region(Node):
             The amount of emissions emitted by using a feedstock in ton emission/ton
             feedstock.
         """
-        command_assignment_to_tuple_dict(
+        write_matching_key_pairs(
             (feedstock_name, emission_name),
-            as_scalar(value),
+            assign_value(as_scalar(value), type_=(FORECAST, VARIABLE)),
             self.feedstock_wtt,
-            type_=(FORECAST, VARIABLE),
         )
 
     def set_transport_cost(self, transport_name: str, value: ForecastArgument) -> None:
@@ -355,12 +341,10 @@ class Region(Node):
         value
             The cost of the transport in USD/ton-nautical mile.
         """
-        command_assignment_to_dict(
+        write_matching_keys(
             transport_name,
-            as_scalar(value),
+            assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
             self.transport_cost,
-            type_=(FORECAST, VARIABLE),
-            lower=0.0,
         )
 
     def set_transport_wtt(
@@ -384,11 +368,10 @@ class Region(Node):
             The amount of emissions emitted by using a transport in ton
             emission/ton-nautical mile.
         """
-        command_assignment_to_tuple_dict(
+        write_matching_key_pairs(
             (transport_name, emission_name),
-            as_scalar(value),
+            assign_value(as_scalar(value), type_=(FORECAST, VARIABLE)),
             self.transport_wtt,
-            type_=(FORECAST, VARIABLE),
         )
 
     # internal methods -----------------------------------------------------------------

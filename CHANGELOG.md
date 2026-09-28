@@ -722,6 +722,17 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   parses its text and raises on construction; `Expression.initialize`,
   `Expression.is_initialized` and `navigate.core.expression.parse_reference_strings`
   are removed — read `reference_strings`. No effect on results.
+- When a command names a key that does not exist and also assigns an invalid
+  value, the value error is now reported, as boolean commands already do.
+  Assigning an invalid value to a non-existing key used to report the missing
+  key instead.
+- **Breaking** for code importing navigate as a library:
+  `navigate.core.assign.command_assignment_to_dict` is renamed
+  `write_matching_keys` and `command_assignment_to_tuple_dict` is renamed
+  `write_matching_key_pairs`. Both now take the value already validated —
+  validate it with `assign_value` first — and no longer take `scalar`,
+  `type_`, `lower`, `upper`, `inclusive_lower`, `inclusive_upper` or
+  `expression`. Results are unchanged.
 
 ### Removed
 - **Breaking** for input decks: the `BunkerLogistics` general node is

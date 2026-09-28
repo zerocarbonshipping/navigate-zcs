@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from navigate.core import Scalar, as_scalar, assign_value, command_assignment_to_dict
+from navigate.core import Scalar, as_scalar, assign_value, write_matching_keys
 from navigate.core.expectations import PlantExpectation
 from navigate.core.node import Node
 from navigate.core.node_type import (
@@ -249,8 +249,10 @@ class Plant(Node):
         value
             The transport mode used to transport the feedstock or process output.
         """
-        command_assignment_to_dict(
-            feed_name, value, self.feed_transport, scalar=False, type_=TRANSPORT
+        write_matching_keys(
+            feed_name,
+            assign_value(value, scalar=False, type_=TRANSPORT),
+            self.feed_transport,
         )
 
     def set_feed_distance(self, feed_name: str, value: ForecastArgument) -> None:
@@ -270,12 +272,10 @@ class Plant(Node):
         value
             The distance of transport in nautical miles.
         """
-        command_assignment_to_dict(
+        write_matching_keys(
             feed_name,
-            as_scalar(value),
+            assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
             self.feed_distance,
-            type_=(FORECAST, VARIABLE),
-            lower=0.0,
         )
 
     def set_fuel_transport(self, port_name: str, value: Transport) -> None:
@@ -297,8 +297,10 @@ class Plant(Node):
         value
             The transport mode used to deliver the produced fuel to the port.
         """
-        command_assignment_to_dict(
-            port_name, value, self.fuel_transport, scalar=False, type_=TRANSPORT
+        write_matching_keys(
+            port_name,
+            assign_value(value, scalar=False, type_=TRANSPORT),
+            self.fuel_transport,
         )
 
     def set_fuel_distance(self, port_name: str, value: ForecastArgument) -> None:
@@ -317,12 +319,10 @@ class Plant(Node):
         value
             The distance of transport in nautical miles.
         """
-        command_assignment_to_dict(
+        write_matching_keys(
             port_name,
-            as_scalar(value),
+            assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
             self.fuel_distance,
-            type_=(FORECAST, VARIABLE),
-            lower=0.0,
         )
 
     # internal methods -----------------------------------------------------------------

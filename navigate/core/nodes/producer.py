@@ -16,7 +16,7 @@ from navigate.core import (
     assign_list,
     assign_value,
     command_assignment_to_boolean_dict,
-    command_assignment_to_dict,
+    write_matching_keys,
 )
 from navigate.core.enum_ import ExtrapolateID
 from navigate.core.expectations import ProducerExpectation
@@ -283,14 +283,16 @@ class Producer(_AssetManager[Plant]):
         existing_pipeline
             Forecast of existing pipelines.
         """
-        command_assignment_to_dict(
+        write_matching_keys(
             plant_name,
-            existing_pipeline,
+            assign_value(
+                existing_pipeline,
+                scalar=False,
+                type_=FORECAST,
+                lower=0.0,
+                expression=False,
+            ),
             self.existing_pipelines,
-            scalar=False,
-            type_=FORECAST,
-            lower=0.0,
-            expression=False,
         )
 
     def set_allow_plant(self, plant_name: str, allow_plant: str) -> None:
@@ -331,12 +333,12 @@ class Producer(_AssetManager[Plant]):
         feed_constraint
             The amount of feed available in tons/year.
         """
-        command_assignment_to_dict(
+        write_matching_keys(
             feed_name,
-            as_scalar(feed_constraint),
+            assign_value(
+                as_scalar(feed_constraint), type_=(FORECAST, VARIABLE), lower=0.0
+            ),
             self.feed_constraints,
-            type_=(FORECAST, VARIABLE),
-            lower=0.0,
         )
 
     def set_export_distribution(
@@ -362,13 +364,15 @@ class Producer(_AssetManager[Plant]):
         export_distribution
             The relative weight of the port in the export of the fuel production.
         """
-        command_assignment_to_dict(
+        write_matching_keys(
             port_name,
-            as_scalar(export_distribution),
+            assign_value(
+                as_scalar(export_distribution),
+                type_=(FORECAST, VARIABLE),
+                lower=0.0,
+                upper=1.0,
+            ),
             self.export_distribution,
-            type_=(FORECAST, VARIABLE),
-            lower=0.0,
-            upper=1.0,
         )
 
     # internal methods -----------------------------------------------------------------

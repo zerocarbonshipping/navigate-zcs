@@ -63,6 +63,16 @@ class TestLiquidMarketGuard:
             plant.initialize()
 
 
+class TestCommandValueValidatedBeforeKeyMatch:
+    def test_invalid_value_on_a_missing_key_reports_the_value_error(self):
+        # the value is validated before the key is matched, so a command wrong
+        # in both ways reports the value error, not the missing key
+        plant = _make_plant()
+
+        with pytest.raises(ValueError, match=r"must be ≥ 0\.0"):
+            plant.set_fuel_distance("missing", -1.0)
+
+
 class TestNodeReferences:
     def test_fuel_rejects_an_expression(self):
         with pytest.raises(ValueError, match="nodes of type Fuel, but got expression"):
