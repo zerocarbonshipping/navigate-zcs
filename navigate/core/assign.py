@@ -213,8 +213,8 @@ def assign_list[T: Assignment](
     assignment
         List of values passed to the setter.
     length
-        Exact length the list should have or lower and upper bound. Any falsy
-        length makes no check, ``0`` as well as ``None``.
+        Exact length the list should have or lower and upper bound. ``None``
+        makes no check; an integer, ``0`` included, is an exact length.
     unique
         Whether all entries in the list must be unique.
     scalar
@@ -437,8 +437,8 @@ def assign_id_list[E: Enum](
     id_enum
         Enum class the assigned name is looked up in.
     length
-        Exact length the list should have or lower and upper bound. Any falsy
-        length makes no check, ``0`` as well as ``None``.
+        Exact length the list should have or lower and upper bound. ``None``
+        makes no check; an integer, ``0`` included, is an exact length.
 
     Returns
     -------
@@ -866,10 +866,10 @@ def _check_list_length(assignment: Sized, length: ListLength) -> None:
     assignment
         The list whose length is checked.
     length
-        Exact length, or lower and upper bound. Any falsy length makes no
-        check, ``0`` as well as ``None``.
+        Exact length, or lower and upper bound. ``None`` makes no check; an
+        integer, ``0`` included, is an exact length.
     """
-    if not length:
+    if length is None:
         return
 
     if isinstance(length, tuple):
