@@ -792,13 +792,46 @@ class Parser:
             self._command_queue.setdefault(node, []).append(ref)
 
         # recorded when queued, as a command a default pulled after the drain
-        # queues runs only on the next pass; each DEFINE-only command taking a
-        # calculator writes the one entry its arguments before the value name,
-        # so a later call naming the same entry replaces what the earlier held
+        # queues runs only on the next pass
         if NODE_COMMAND_SECTIONS[node_type][command] == SECTION_DEFINE:
-            entry = (command, *map(repr, inputs[:-1]))
             for node in target_nodes:
-                self._define_only_inputs.setdefault(node, {})[entry] = inputs
+                self._record_define_only_command(node, command, inputs)
+
+    def _record_define_only_command(
+        self, node: Node, command: str, inputs: list
+    ) -> None:
+        """
+        Record a DEFINE-only command's inputs, replacing the calls it overwrites.
+
+        Each DEFINE-only command taking a calculator writes the entries its
+        arguments before the value name, matching a wildcard against the keys
+        the way the setter does, so a later call replaces an earlier one whose
+        every key it matches.
+
+        Parameters
+        ----------
+        node
+            Node the command is queued on.
+        command
+            The command name.
+        inputs
+            The command's materialized arguments, the value last.
+        """
+        records = self._define_only_inputs.setdefault(node, {})
+        keys = inputs[:-1]
+
+        if any(isinstance(key, str) and name_contains_wildcards(key) for key in keys):
+            covered = [
+                entry
+                for entry, values in records.items()
+                if entry[0] == command and _keys_cover(keys, values[:-1])
+            ]
+            for entry in covered:
+                del records[entry]
+
+        # the entry is hashable whatever the arguments, while the record keeps
+        # them raw for a later wildcard to match
+        records[(command, *map(repr, keys))] = inputs
 
     # ══════════════════════════════════════════════════════════════════
     # Node declaration processing
@@ -1945,6 +1978,21 @@ def _contains_wildcard(value):
         return any(_contains_wildcard(element) for element in value)
 
     return isinstance(value, WildcardNodeReference)
+
+
+def _keys_cover(patterns: list, keys: list) -> bool:
+    """
+    Test whether command key arguments match every key an earlier call named.
+
+    A key holding wildcards itself is covered only by the identical pattern,
+    whose call replaces it by entry.
+    """
+    return len(patterns) == len(keys) and all(
+        isinstance(key, str)
+        and not name_contains_wildcards(key)
+        and bool(matching_keys(pattern, [key]))
+        for pattern, key in zip(patterns, keys, strict=True)
+    )
 
 
 def _transplant(node, copied):

@@ -66,6 +66,7 @@ VARIABLES = 'Variable "p" { Value = 1.0 }\nVariable "q" { Value = 1.0 }\n'
 # DEFINE-only
 EMISSION = 'Emission "e" {{ GlobalWarmingPotential = {value} }}\n'
 CO2 = 'Emission "co2" { GlobalWarmingPotential = 1.0 }\n'
+N2O = 'Emission "n2o" { GlobalWarmingPotential = 1.0 }\n'
 
 
 def _fleet(power_capacity="50", efficiency="0.5"):
@@ -81,6 +82,11 @@ Fuel "{name}" {{
     {commands}
 }}
 """
+
+
+def _two_ttw_calls(first, second):
+    # "p" goes to the entries the first key names, "q" to the second's
+    return f'set_ttw({first}, Variable("p"))\n    set_ttw({second}, Variable("q"))'
 
 
 def _events(target):
@@ -145,6 +151,29 @@ class TestCommand:
         define = VARIABLES + CO2 + _fuel("oil", commands)
 
         read_deck(define, events=_events("p"))
+
+    def test_a_wildcard_call_covering_the_entry_frees_the_calculator(self, read_deck):
+        define = VARIABLES + CO2 + N2O + _fuel("oil", _two_ttw_calls('"co2"', '"*"'))
+
+        read_deck(define, events=_events("p"))
+
+    @pytest.mark.parametrize(
+        ("first", "second"),
+        [('"*"', '"co2"'), ('"co2"', '"n2*"')],
+        ids=["narrower_override", "disjoint_wildcard"],
+    )
+    def test_a_call_leaves_the_entries_its_keys_do_not_cover_pinned(
+        self, read_deck, first, second
+    ):
+        # the n2o entry the wildcard wrote still holds "p", and "n2*" does not
+        # reach the co2 entry
+        define = VARIABLES + CO2 + N2O + _fuel("oil", _two_ttw_calls(first, second))
+
+        with pytest.raises(
+            AttributeAssignmentError,
+            match=_pinned_error(r'Variable\("p"\)', r'Fuel\("oil"\)', "set_ttw"),
+        ):
+            read_deck(define, events=_events("p"))
 
     @pytest.mark.parametrize(
         "value", ['Variable("p")', '<Variable("p")>'], ids=["reference", "expression"]
