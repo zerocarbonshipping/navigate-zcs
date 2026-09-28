@@ -240,7 +240,7 @@ def collapse_tuple_dict[K1: Hashable, K2: Hashable](
 
 def slice_list(
     result: list[FloatArray],
-    idx: Index = np.s_[:],
+    idx: Index,
 ) -> list[FloatLike]:
     """
     Slice each array in a list.
@@ -262,7 +262,7 @@ def slice_list(
 
 def slice_dict[K](
     result: dict[K, FloatArray],
-    idx: Index = np.s_[:],
+    idx: Index,
 ) -> dict[K, FloatLike]:
     """
     Slice each value in a dict.
@@ -284,7 +284,7 @@ def slice_dict[K](
 
 def slice_dict_list[K](
     result: dict[K, list[FloatArray]],
-    idx: Index = np.s_[:],
+    idx: Index,
 ) -> dict[K, list[FloatLike]]:
     """
     Slice each array in each list of a dict of lists.
