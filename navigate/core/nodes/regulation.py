@@ -49,7 +49,8 @@ class Regulation(_Policy):
 
         # flexibility cost belief
         self.flexibility_horizon: ForecastInput = Scalar(3.0)
-        self._flexibility_horizon_assigned: bool = False
+        # set on assignment, cleared once the unused-under-this-scheme warning fires
+        self._flexibility_horizon_unreported: bool = False
 
         # threshold
         self.vessel_threshold: dict[str, ForecastInput | None] = {}
@@ -212,7 +213,7 @@ class Regulation(_Policy):
         self.flexibility_horizon = assign_value(
             as_scalar(flexibility_horizon), type_=(FORECAST, VARIABLE), lower=0.0
         )
-        self._flexibility_horizon_assigned = True
+        self._flexibility_horizon_unreported = True
 
     # external methods (DSL commands) --------------------------------------------------
     def set_vessel_threshold(
@@ -310,7 +311,7 @@ class Regulation(_Policy):
                     " no vessel_threshold is defined."
                 )
 
-        if self._flexibility_horizon_assigned and (
+        if self._flexibility_horizon_unreported and (
             self.scheme != RegulationSchemeID.FLEXIBLE
         ):
             logger.warning(
@@ -318,6 +319,8 @@ class Regulation(_Policy):
                 self,
                 self.scheme.name,
             )
+
+            self._flexibility_horizon_unreported = False
 
     def initialize_dependencies(self, vessels: dict[str, Vessel]) -> None:
         """

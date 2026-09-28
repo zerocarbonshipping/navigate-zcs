@@ -10,6 +10,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from navigate.core.enum_ import RegulationSchemeID
 from navigate.core.expectations import RegulationExpectation
 from navigate.core.expression import Expression
 from navigate.core.nodes.curve import Curve
@@ -91,6 +92,46 @@ def test_flexibility_horizon_does_not_warn_when_assigned_under_flexible_scheme(c
         regulation.initialize()
 
     assert caplog.records == []
+
+
+def test_flexibility_horizon_warns_once_per_assignment_under_individual_scheme(caplog):
+    # the parser reruns check_consistency() on every EVENTS pass regardless of
+    # whether that pass touched the node, so a repeated pass must stay silent
+    regulation = _make_regulation("INDIVIDUAL", "ABSOLUTE", vessels=())
+    regulation.set_flexibility_horizon(5.0)
+
+    with caplog.at_level(logging.WARNING):
+        regulation.initialize()
+        regulation.reinitialize()
+
+    assert len(caplog.records) == 1
+
+    caplog.clear()
+    regulation.set_flexibility_horizon(6.0)
+
+    with caplog.at_level(logging.WARNING):
+        regulation.reinitialize()
+
+    assert len(caplog.records) == 1
+
+
+def test_flexibility_horizon_warns_once_if_scheme_stops_being_flexible(caplog):
+    # an assignment that was never reported as unused stays pending across passes,
+    # so it still warns once the scheme it was assigned under is no longer FLEXIBLE
+    regulation = _make_regulation("FLEXIBLE", "ABSOLUTE", vessels=())
+    regulation.set_flexibility_horizon(5.0)
+
+    with caplog.at_level(logging.WARNING):
+        regulation.initialize()
+
+    assert caplog.records == []
+
+    regulation.scheme = RegulationSchemeID.INDIVIDUAL
+
+    with caplog.at_level(logging.WARNING):
+        regulation.reinitialize()
+
+    assert len(caplog.records) == 1
 
 
 def test_calculate_profile_writes_policed_vessel_thresholds():
