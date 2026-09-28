@@ -215,7 +215,7 @@ class Route(Node):
         )
 
         if rescaled:
-            logger.info(
+            logger.warning(
                 "%s: 'ConditionDistribution' is rescaled proportionally to sum to 1.",
                 self,
             )
