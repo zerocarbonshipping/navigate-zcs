@@ -19,13 +19,10 @@ import numpy as np
 
 from navigate.core.expression import Expression
 from navigate.core.node import Node
-from navigate.core.node_type import (
-    CALCULATOR_TYPES,
-    AcceptedNodeTypes,
-    is_calculator,
-)
+from navigate.core.node_type import AcceptedNodeTypes, Calculator, is_calculator
 from navigate.core.scalar import Scalar
 from navigate.core.table_data import TableData
+from navigate.core.wrap import as_list
 from navigate.util import (
     ROUND_OFF,
     TOLERANCE,
@@ -45,14 +42,15 @@ _BOUND_ID = {"-INF": -np.inf, "INF": np.inf}
 # an exact length, or a lower and an upper bound either of which may be open
 type ListLength = int | tuple[int | None, int | None] | None
 
-# everything a validator may be handed for a single-valued attribute: a bare
-# float, or a value that already answers a getter. The alias is the contract
-# for typed callers, not a claim about what reaches the boundary at runtime:
-# the parser is untyped, so it hands every deck value in as 'Any' and a deck
-# can name any shape the grammar accepts - a bare string, a list, a TableData.
-# That is why the validators here keep runtime reject arms for values their
-# typed callers never pass.
-type Assignment = float | Scalar | Node | Expression
+# everything a validator may be handed for a single-valued attribute read
+# through a getter: a bare float, or a value that already answers a getter.
+# An attribute holding a node reference is typed by its node class instead.
+# The alias is the contract for typed callers, not a claim about what reaches
+# the boundary at runtime: the parser is untyped, so it hands every deck value
+# in as 'Any' and a deck can name any shape the grammar accepts - a bare
+# string, a list, a TableData. That is why the validators here keep runtime
+# reject arms for values their typed callers never pass.
+type Assignment = float | Scalar | Calculator | Expression
 
 # kind words for the values a setter can be handed; a value of no kind listed
 # here is echoed in the error instead, as its own text is what identifies it.
@@ -132,7 +130,7 @@ def assign_integer(
 def assign_value[T: Assignment](
     assignment: T,
     scalar: bool = True,
-    type_: AcceptedNodeTypes = None,
+    type_: AcceptedNodeTypes | None = None,
     lower: float = -np.inf,
     upper: float = np.inf,
     *,
@@ -143,10 +141,11 @@ def assign_value[T: Assignment](
     """
     Check whether a value assigned to an attribute satisfies its requirements.
 
-    Only applicable to attributes requiring a single value, not lists. A setter
-    passing scalar=False must pass a non-empty type_; that is an implementation
-    requirement, so it goes unchecked. A calculator or an expression is handed
-    the bounds and held to them each time it is evaluated.
+    Only applicable to attributes requiring a single value read through a
+    getter: a scalar, a calculator or an expression. An attribute holding a
+    node reference is checked by assign_reference instead. A calculator or an
+    expression is handed the bounds and held to them each time it is
+    evaluated.
 
     Parameters
     ----------
@@ -155,7 +154,7 @@ def assign_value[T: Assignment](
     scalar
         Whether the setter accepts scalars.
     type_
-        The node type(s) the attribute accepts a reference to.
+        The calculator type(s) the attribute accepts.
     lower
         Lower bound.
     upper
@@ -165,9 +164,7 @@ def assign_value[T: Assignment](
     inclusive_upper
         Upper bound is inclusive.
     expression
-        Whether the setter accepts expressions; one is accepted only where the
-        setter also accepts scalars or a calculator type, as only those are
-        evaluated.
+        Whether the setter accepts expressions.
 
     Returns
     -------
@@ -175,7 +172,7 @@ def assign_value[T: Assignment](
         The value that was passed, so a setter assigns what it validated.
     """
     if isinstance(assignment, Expression):
-        if not (expression and _evaluates(scalar, type_)):
+        if not expression:
             raise ValueError(_failed_value_message(assignment, scalar, type_))
 
         assignment.set_allowed_types(type_)
@@ -193,16 +190,17 @@ def assign_value[T: Assignment](
             inclusive_lower=inclusive_lower,
             inclusive_upper=inclusive_upper,
         )
-    elif isinstance(assignment, Node) and _accepts_reference(assignment, type_):
-        # a calculator answers a getter with a value of its own, so it is the
-        # only reference kind the attribute bounds have anything to clip
-        if is_calculator(assignment):
-            assignment.set_internal_bounds(
-                lower,
-                upper,
-                inclusive_lower=inclusive_lower,
-                inclusive_upper=inclusive_upper,
-            )
+    elif (
+        isinstance(assignment, Node)
+        and is_calculator(assignment)
+        and _accepts_reference(assignment, type_)
+    ):
+        assignment.set_internal_bounds(
+            lower,
+            upper,
+            inclusive_lower=inclusive_lower,
+            inclusive_upper=inclusive_upper,
+        )
     else:
         raise ValueError(_failed_value_message(assignment, scalar, type_))
 
@@ -212,9 +210,7 @@ def assign_value[T: Assignment](
 def assign_list[T: Assignment](
     assignment: list[T],
     length: ListLength = None,
-    unique: bool = False,
-    scalar: bool = True,
-    type_: AcceptedNodeTypes = None,
+    type_: AcceptedNodeTypes | None = None,
     lower: float = -np.inf,
     upper: float = np.inf,
     *,
@@ -225,7 +221,9 @@ def assign_list[T: Assignment](
     """
     Check whether a value assigned to an attribute satisfies its requirements.
 
-    Only applicable to attributes requiring a list of values.
+    Only applicable to attributes requiring a list of values read through a
+    getter, each checked as assign_value checks a single one; a list of node
+    references is checked by assign_reference_list instead.
 
     Parameters
     ----------
@@ -234,12 +232,8 @@ def assign_list[T: Assignment](
     length
         Exact length the list should have or lower and upper bound. ``None``
         makes no check; an integer, ``0`` included, is an exact length.
-    unique
-        Whether all entries in the list must be unique.
-    scalar
-        Whether the setter accepts scalars.
     type_
-        The node type(s) the attribute accepts a reference to.
+        The calculator type(s) the attribute accepts.
     lower
         Lower bound.
     upper
@@ -249,9 +243,7 @@ def assign_list[T: Assignment](
     inclusive_upper
         Upper bound is inclusive.
     expression
-        Whether the setter accepts expressions; one is accepted only where the
-        setter also accepts scalars or a calculator type, as only those are
-        evaluated.
+        Whether the setter accepts expressions.
 
     Returns
     -------
@@ -260,22 +252,82 @@ def assign_list[T: Assignment](
     """
     _check_list_length(assignment, length)
 
-    if unique:
-        _check_list_is_unique(assignment)
-
     for value in assignment:
         assign_value(
             value,
-            scalar,
-            type_,
-            lower,
-            upper,
+            type_=type_,
+            lower=lower,
+            upper=upper,
             inclusive_lower=inclusive_lower,
             inclusive_upper=inclusive_upper,
             expression=expression,
         )
 
     return assignment
+
+
+def assign_reference[N: Node](assignment: N, type_: AcceptedNodeTypes) -> N:
+    """
+    Check whether a node assigned to an attribute is of a type it references.
+
+    Only applicable to attributes holding a single node reference, which is
+    read as the node itself rather than through a getter.
+
+    Parameters
+    ----------
+    assignment
+        The value passed to the setter.
+    type_
+        The node type(s) the attribute accepts a reference to.
+
+    Returns
+    -------
+    Node
+        The node that was passed, so a setter assigns what it validated.
+    """
+    # an expression has nothing to evaluate it at a reference, so it is
+    # refused by kind like any other value that is not an accepted node
+    if not (isinstance(assignment, Node) and _accepts_reference(assignment, type_)):
+        raise ValueError(_only_allows(_node_types_phrase(type_), assignment))
+
+    return assignment
+
+
+def assign_reference_list[N: Node](
+    assignment: N | list[N], type_: AcceptedNodeTypes, *, unique: bool = False
+) -> list[N]:
+    """
+    Check whether the nodes assigned to an attribute are of a type it references.
+
+    Only applicable to attributes holding a list of node references, each
+    checked as assign_reference checks a single one. A deck may give a single
+    value where the attribute takes a list, so a bare node is accepted and
+    returned wrapped in a list.
+
+    Parameters
+    ----------
+    assignment
+        Value or list of values passed to the setter.
+    type_
+        The node type(s) the attribute accepts a reference to.
+    unique
+        Whether no node may be named twice in the list.
+
+    Returns
+    -------
+    list[Node]
+        The list that was passed, or the single value wrapped in one, so a
+        setter assigns what it validated.
+    """
+    references = as_list(assignment)
+
+    if unique:
+        _check_list_is_unique(references)
+
+    for reference in references:
+        assign_reference(reference, type_)
+
+    return references
 
 
 def assign_boolean(assignment: str) -> bool:
@@ -615,7 +667,7 @@ def command_assignment_to_boolean_dict[K: str | Enum](
         assignment_dict[name] = value
 
 
-def _accepts_reference(node: Node, type_: AcceptedNodeTypes) -> bool:
+def _accepts_reference(node: Node, type_: AcceptedNodeTypes | None) -> bool:
     """
     Check whether an attribute accepting 'type_' accepts a reference to a node.
 
@@ -640,37 +692,8 @@ def _accepts_reference(node: Node, type_: AcceptedNodeTypes) -> bool:
     return node.is_type(type_)
 
 
-def _evaluates(scalar: bool, type_: AcceptedNodeTypes) -> bool:
-    """
-    Check whether an attribute reads its value through a getter.
-
-    Only such an attribute evaluates an expression; one holding a node
-    reference reads the node itself.
-
-    Parameters
-    ----------
-    scalar
-        Whether the setter accepts scalars.
-    type_
-        The node type(s) the attribute accepts a reference to.
-
-    Returns
-    -------
-    bool
-        Whether the attribute accepts scalars or a calculator type.
-    """
-    if scalar:
-        return True
-
-    if type_ is None:
-        return False
-
-    types = type_ if isinstance(type_, tuple) else (type_,)
-    return any(accepted in CALCULATOR_TYPES for accepted in types)
-
-
 def _failed_value_message(
-    assignment: object, scalar: bool, type_: AcceptedNodeTypes
+    assignment: object, scalar: bool, type_: AcceptedNodeTypes | None
 ) -> str:
     """
     Build the error message for a value an attribute does not accept.
@@ -689,19 +712,13 @@ def _failed_value_message(
     str
         Error message of a failed error check.
     """
-    # a setter accepting no kind at all, and an empty 'type_', are
-    # implementation errors rather than deck errors, so neither the empty
-    # 'allowed' nor the empty subscript below is handled (see assign_value)
+    # a setter accepting no kind at all is an implementation error rather
+    # than a deck error, so the empty 'allowed' is not handled
     allowed = []
     if scalar:
         allowed.append("scalars")
     if type_ is not None:
-        if isinstance(type_, str):
-            allowed.append(f"nodes of type {type_}")
-        else:
-            allowed.append(
-                "nodes of type {} or {}".format(", ".join(type_[:-1]), type_[-1])
-            )
+        allowed.append(_node_types_phrase(type_))
 
     if len(allowed) == 1:
         joined = allowed[0]
@@ -709,6 +726,28 @@ def _failed_value_message(
         joined = ", ".join(allowed[:-1]) + " and " + allowed[-1]
 
     return _only_allows(joined, assignment)
+
+
+def _node_types_phrase(type_: AcceptedNodeTypes) -> str:
+    """
+    Spell the node types an attribute accepts, as its rejection names them.
+
+    Parameters
+    ----------
+    type_
+        The node type(s) the attribute accepts.
+
+    Returns
+    -------
+    str
+        The phrase naming the accepted node types.
+    """
+    # an empty tuple is an implementation error rather than a deck error, so
+    # the empty subscript below is not handled
+    if isinstance(type_, str):
+        return f"nodes of type {type_}"
+
+    return "nodes of type {} or {}".format(", ".join(type_[:-1]), type_[-1])
 
 
 def _only_allows(allowed: str, assignment: object) -> str:
@@ -844,7 +883,7 @@ def _check_list_length(assignment: Sized, length: ListLength) -> None:
         raise ValueError(f"List must contain exactly {length} values.")
 
 
-def _check_list_is_unique(assignment: Sequence[Assignment]) -> None:
+def _check_list_is_unique(assignment: Sequence[Node]) -> None:
     """
     Validate that no node is named twice in a list.
 
@@ -853,6 +892,8 @@ def _check_list_is_unique(assignment: Sequence[Assignment]) -> None:
     assignment
         The list whose node references are checked.
     """
+    # the parser hands the list in untyped, and an entry that is no node is
+    # refused by assign_reference once the names are known to be unique
     names = [entry.name for entry in assignment if isinstance(entry, Node)]
     if not list_is_unique(names):
         raise ValueError("requires all entries in the list to be unique")

@@ -7,7 +7,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from navigate.core import Scalar, as_scalar, assign_value, write_matching_keys
+from navigate.core import (
+    Scalar,
+    as_scalar,
+    assign_reference,
+    assign_value,
+    write_matching_keys,
+)
 from navigate.core.expectations import PlantExpectation
 from navigate.core.node import Node
 from navigate.core.node_type import (
@@ -81,7 +87,7 @@ class Plant(Node):
         fuel
             A Fuel node.
         """
-        self.fuel = assign_value(fuel, scalar=False, type_=FUEL)
+        self.fuel = assign_reference(fuel, FUEL)
 
     def set_process(self, process: Process) -> None:
         """
@@ -96,7 +102,7 @@ class Plant(Node):
         process
             A Process node.
         """
-        self.process = assign_value(process, scalar=False, type_=PROCESS)
+        self.process = assign_reference(process, PROCESS)
 
     def set_region(self, region: Region) -> None:
         """
@@ -111,7 +117,7 @@ class Plant(Node):
         region
             A Region node.
         """
-        self.region = assign_value(region, scalar=False, type_=REGION)
+        self.region = assign_reference(region, REGION)
 
     def set_source(self, source: Source) -> None:
         """
@@ -126,7 +132,7 @@ class Plant(Node):
         source
             A Source node.
         """
-        self.source = assign_value(source, scalar=False, type_=SOURCE)
+        self.source = assign_reference(source, SOURCE)
 
     def set_capacity(self, capacity: ForecastArgument) -> None:
         """
@@ -251,7 +257,7 @@ class Plant(Node):
         """
         write_matching_keys(
             feed_name,
-            assign_value(value, scalar=False, type_=TRANSPORT),
+            assign_reference(value, TRANSPORT),
             self.feed_transport,
         )
 
@@ -299,7 +305,7 @@ class Plant(Node):
         """
         write_matching_keys(
             port_name,
-            assign_value(value, scalar=False, type_=TRANSPORT),
+            assign_reference(value, TRANSPORT),
             self.fuel_transport,
         )
 

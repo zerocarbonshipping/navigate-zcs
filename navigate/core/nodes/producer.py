@@ -14,6 +14,7 @@ from navigate.core import (
     as_list,
     as_scalar,
     assign_list,
+    assign_reference_list,
     assign_value,
     command_assignment_to_boolean_dict,
     write_matching_keys,
@@ -106,9 +107,7 @@ class Producer(_AssetManager[Plant]):
         plants
             The list of plants that can be built.
         """
-        self.assets = assign_list(
-            as_list(plants), unique=True, scalar=False, type_=PLANT
-        )
+        self.assets = assign_reference_list(plants, PLANT, unique=True)
 
     def set_minimum_offtake_duration(
         self, minimum_offtake_duration: ForecastArgument

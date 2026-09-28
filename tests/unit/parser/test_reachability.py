@@ -733,7 +733,12 @@ class TestActivationEdges:
         # a site outside the scrubbed plain-list shape surfaces as its raw line
         classified = {("route.py", "ports"), ("_policy.py", "jurisdiction")}
 
-        site = re.compile(r".*type_=.*\bPORT\b.*")
+        # a reference site is an assign_reference(_list) call naming PORT, matched
+        # from the start of its line however the formatter wraps its arguments
+        site = re.compile(
+            r"^.*\bassign_reference(?:_list)?\((?:[^()]|\([^()]*\))*?\bPORT\b",
+            re.MULTILINE,
+        )
         list_attribute = re.compile(r"\s*self\.(\w+)\s*=\s*assign_\w+\(")
 
         core = Path(navigate.core.nodes.__file__).parents[1]

@@ -9,10 +9,10 @@ from typing import TYPE_CHECKING
 
 from navigate.core import (
     Scalar,
-    as_list,
     as_scalar,
     assign_id,
-    assign_list,
+    assign_reference,
+    assign_reference_list,
     assign_value,
 )
 from navigate.core.enum_ import FuelTypeID
@@ -250,7 +250,7 @@ class Vessel(Node):
         power_system
             The powersystem used to convert fuel to energy.
         """
-        self.power_system = assign_value(power_system, scalar=False, type_=POWER_SYSTEM)
+        self.power_system = assign_reference(power_system, POWER_SYSTEM)
 
     def set_tanks(self, tanks: list[Tank]) -> None:
         """
@@ -266,7 +266,7 @@ class Vessel(Node):
         tanks
             List of Tank nodes.
         """
-        self.tanks = assign_list(as_list(tanks), unique=True, scalar=False, type_=TANK)
+        self.tanks = assign_reference_list(tanks, TANK, unique=True)
 
     def set_route(self, route: Route) -> None:
         """
@@ -281,7 +281,7 @@ class Vessel(Node):
         route
             The route the vessel is sailing on.
         """
-        self.route = assign_value(route, scalar=False, type_=ROUTE)
+        self.route = assign_reference(route, ROUTE)
 
     def set_nominal_capacity(self, nominal_capacity: ScalarArgument) -> None:
         """

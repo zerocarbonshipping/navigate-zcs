@@ -20,6 +20,8 @@ from navigate.core.assign import (
     assign_integer,
     assign_list,
     assign_member,
+    assign_reference,
+    assign_reference_list,
     assign_value,
     command_assignment_to_boolean_dict,
     expand_id_wildcard,

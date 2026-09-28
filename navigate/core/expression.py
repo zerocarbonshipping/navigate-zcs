@@ -362,7 +362,7 @@ class Expression:
 
         return value
 
-    def set_allowed_types(self, allowed_types: AcceptedNodeTypes) -> None:
+    def set_allowed_types(self, allowed_types: AcceptedNodeTypes | None) -> None:
         """
         Set the node types the attribute holding the expression accepts.
 

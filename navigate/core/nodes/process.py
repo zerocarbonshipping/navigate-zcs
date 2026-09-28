@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from navigate.core import as_list, as_scalar, assign_list
+from navigate.core import as_list, as_scalar, assign_list, assign_reference_list
 from navigate.core.node import Node
 from navigate.core.node_type import FEEDSTOCK, FORECAST, PROCESS, VARIABLE
 
@@ -41,9 +41,7 @@ class Process(Node):
         feeds
             A list of feedstock and/or process.
         """
-        self.feeds = assign_list(
-            as_list(feeds), unique=True, scalar=False, type_=(FEEDSTOCK, PROCESS)
-        )
+        self.feeds = assign_reference_list(feeds, (FEEDSTOCK, PROCESS), unique=True)
 
     def set_conversions(self, conversion: list[ForecastArgument]) -> None:
         """
