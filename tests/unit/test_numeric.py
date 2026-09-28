@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Unit tests for navigate.util.numeric — inertia, growth, interpolation, lookup."""
+"""Unit tests for navigate.util.numeric — lookup, growth, inertia, belief smoothing."""
 
 from __future__ import annotations
 
@@ -12,11 +12,13 @@ from navigate.util import (
     YEAR,
     calculate_compound_growth,
     calculate_inertia,
+    derive_smoothing_alpha,
     find_nearest,
     find_nearest_index,
     get_increment_origin_index,
     get_increment_origin_indexes,
     interpolate_yearly_flow,
+    update_belief_path,
 )
 
 
@@ -120,3 +122,72 @@ class TestCalculateCompoundGrowth:
         assert result[1] == pytest.approx(105.0, rel=1e-6)
         # After two years: 100 * exp(2 * ln(1.05)) = 100 * 1.05^2
         assert result[2] == pytest.approx(100.0 * 1.05**2, rel=1e-6)
+
+
+class TestUpdateBeliefPath:
+    # 0.25 and every expected value below are exact in binary floating point,
+    # so the paths compare exactly
+    _alpha = 0.25
+
+    def test_never_updated_belief_adopts_raw(self):
+        belief = np.full(4, np.nan)
+        update_belief_path(np.array([1.0, 2.0, 3.0, 4.0]), belief, self._alpha, 0)
+        np.testing.assert_array_equal(belief, [1.0, 2.0, 3.0, 4.0])
+
+    def test_zero_prior_is_smoothed_not_readopted(self):
+        # a prior of exactly zero is evidence, so the onset ramps as alpha * raw:
+        # 0.25 * 8 = 2, 0.25 * 4 = 1, 0.25 * 12 = 3
+        belief = np.array([5.0, 0.0, 0.0, 0.0])
+        update_belief_path(np.array([9.0, 8.0, 4.0, 12.0]), belief, self._alpha, 1)
+        np.testing.assert_array_equal(belief, [5.0, 2.0, 1.0, 3.0])
+
+    def test_nonzero_prior_is_smoothed(self):
+        # 0.25 * 8 + 0.75 * 4 = 5, 0.25 * 0 + 0.75 * 8 = 6, 0.25 * 4 + 0.75 * 12 = 10
+        belief = np.array([7.0, 4.0, 8.0, 12.0])
+        update_belief_path(np.array([100.0, 8.0, 0.0, 4.0]), belief, self._alpha, 1)
+        np.testing.assert_array_equal(belief, [7.0, 5.0, 6.0, 10.0])
+
+    def test_entries_before_idx_are_untouched(self):
+        # neither a NaN nor a value before idx is written, whatever raw holds there
+        belief = np.array([np.nan, 3.0, np.nan, np.nan])
+        update_belief_path(np.array([1.0, 1.0, 6.0, 7.0]), belief, self._alpha, 2)
+        np.testing.assert_array_equal(belief, [np.nan, 3.0, 6.0, 7.0])
+
+    def test_onset_after_all_zero_update_ramps(self):
+        # first update: the price does not bind, belief becomes all zero; second
+        # update: the price binds at 4, belief moves to 0.25 * 4 = 1
+        belief = np.full(3, np.nan)
+        update_belief_path(np.zeros(3), belief, self._alpha, 0)
+        update_belief_path(np.array([0.0, 4.0, 4.0]), belief, self._alpha, 1)
+        np.testing.assert_array_equal(belief, [0.0, 1.0, 1.0])
+
+    def test_partially_nan_forward_slice_bootstraps_per_entry(self):
+        # the documented rule: a NaN entry adopts raw, the other is smoothed,
+        # 0.25 * 8 + 0.75 * 4 = 5
+        belief = np.array([4.0, np.nan])
+        update_belief_path(np.array([8.0, 8.0]), belief, self._alpha, 0)
+        np.testing.assert_array_equal(belief, [5.0, 8.0])
+
+
+class TestDeriveSmoothingAlpha:
+    @pytest.mark.parametrize(
+        ("timeline", "idx", "horizon", "expected"),
+        [
+            # docstring: 5-year horizon, 1-year steps → 1 / (1 + 5 / 1)
+            (np.array([0.0, YEAR, 2 * YEAR]), 1, 5.0, 1.0 / 6.0),
+            # docstring: 3-year horizon, 1-year steps → 1 / (1 + 3 / 1)
+            (np.array([0.0, YEAR, 2 * YEAR]), 1, 3.0, 0.25),
+            # 2-year horizon, half-year step → 1 / (1 + 2 / 0.5)
+            (np.array([0.0, YEAR / 2, YEAR]), 1, 2.0, 0.2),
+            # 3-year horizon, 2-year step → 1 / (1 + 3 / 2)
+            (np.array([0.0, 2 * YEAR, 4 * YEAR]), 2, 3.0, 0.4),
+            # zero horizon trusts the projection fully
+            (np.array([0.0, YEAR, 2 * YEAR]), 1, 0.0, 1.0),
+            # a zero-length step has no history to weigh against
+            (np.array([0.0, YEAR, YEAR]), 2, 3.0, 1.0),
+            # an index past the timeline trusts the projection fully
+            (np.array([0.0, YEAR, 2 * YEAR]), 3, 3.0, 1.0),
+        ],
+    )
+    def test_alpha(self, timeline, idx, horizon, expected):
+        assert derive_smoothing_alpha(idx, horizon, timeline) == pytest.approx(expected)
