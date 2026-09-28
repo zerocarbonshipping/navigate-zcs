@@ -88,7 +88,7 @@ test-examples:  ## Run simulations/examples
 	$(RUN) navigate simulations/examples/example_3/example_3.nav -d ./assumptions -s
 
 docs:  ## Stage content and build the documentation site (needs docs/requirements.txt installed)
-	$(MAKE) -C docs html
+	$(RUN) $(MAKE) -C docs html
 
 docs-clean:  ## Remove the documentation build output
 	$(MAKE) -C docs clean
