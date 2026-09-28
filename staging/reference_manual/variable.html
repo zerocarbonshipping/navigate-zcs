@@ -477,6 +477,7 @@ are physical properties such as mass densities lower heating values.</p>
 \[
 y = \min\left( \max\left( \text{Multiplier} \cdot (\text{Value} + \text{Addition}), \text{LowerBound} \right), \text{UpperBound} \right)
 \]</div>
+<p>An attribute that references the node holds <span class="math notranslate nohighlight">\(y\)</span> to its own minimum and maximum value as well: an inclusive one clamps <span class="math notranslate nohighlight">\(y\)</span>, and <span class="math notranslate nohighlight">\(y\)</span> reaching an exclusive one stops the run with an error. See <a class="reference internal" href="dsl_reference.html#assigning-attributes"><span class="std std-ref">Assigning attributes</span></a>.</p>
 <p>Example:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Variable</span> <span class="s2">"lower_heating_value_diesel"</span> <span class="p">{</span>
     <span class="n">Value</span> <span class="o">=</span> <span class="mf">42.7</span>
