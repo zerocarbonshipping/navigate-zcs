@@ -244,7 +244,9 @@ class Fleet(_AssetManager[Vessel]):
         Set the initial distribution of vessel types in the fleet.
 
         The list must have the same length as the list of vessels.
-        The list must sum to unity. If not, the list is rescaled proportionally.
+        The list should sum to unity. A positive total other than 1 is rescaled
+        proportionally; a list summing to 0, or an empty list, is rejected.
+        Without an InitialSplit, the split is uniform over the vessels.
 
         Examples
         --------

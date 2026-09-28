@@ -116,6 +116,15 @@ class TestRejectedValueIsADomainError:
         ):
             read_deck('Vessel "v" {\n    Capex = FLAT\n}\n')
 
+    def test_rejected_fraction_list_names_its_line(self, read_deck):
+        # define.inc opens with the four ModelDefinition lines of the fixture
+        with pytest.raises(
+            AttributeAssignmentError,
+            match=r"define\.inc', line 6: Fleet\(\"fleet\"\) attribute "
+            r"'InitialSplit' requires entries summing to more than 0\.$",
+        ):
+            read_deck('Fleet "fleet" {\n    InitialSplit = [0, 0]\n}\n')
+
     def test_rejected_command_value(self, read_deck):
         # the required attributes are checked before the commands run
         with pytest.raises(

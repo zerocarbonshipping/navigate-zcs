@@ -193,7 +193,9 @@ class Route(Node):
         """
         Set the fraction of time spent on the various legs of the trip.
 
-        The sum of the coefficients in the list must equal unity.
+        The sum of the coefficients in the list should equal unity. A positive
+        total other than 1 is rescaled proportionally; a list summing to 0, or
+        an empty list, is rejected.
 
         Only applicable if 'RouteType' is REGIONAL_TRIP.
 
