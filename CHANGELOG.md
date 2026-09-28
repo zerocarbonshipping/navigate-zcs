@@ -53,6 +53,23 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `get_remaining_cost_flow`).
 
 ### Changed
+- A smoothed price belief now ramps up when the price first appears after a
+  stretch of exactly zero, instead of adopting the new price in full. This
+  covers the flexibility cost of a `FLEXIBLE` regulation, smoothed over
+  `FlexibilityHorizon`, and a vessel's energy-scarcity beliefs, smoothed over
+  the fleet's `TechnologyHorizon` and `SpeedHorizon`. Both are shadow prices
+  of the bunkering LP, so they are exactly zero wherever their constraint
+  does not bind; a vessel type with no expected activity until it becomes
+  available has all-zero energy-scarcity prices, for instance. A belief whose
+  remaining path was all zero was treated as never set, and the first
+  non-zero price then replaced it unsmoothed. The belief now starts at the
+  smoothing weight times the price, `1 / (1 + horizon / time step)`, and
+  closes on it step by step as any other change does; only a belief that has
+  never been updated takes the price as it is. Results move only in runs that
+  hit this case, through technology uptake, speed and the flexibility-cost
+  expenses, and in the vessel report properties `InvestmentSignalTechnology`
+  and `InvestmentSignalSpeed`. No example or tutorial deck hits it, so their
+  results do not move (#25).
 - A wildcard node reference is expanded against the registered nodes of its
   type before the value reaches the attribute, where it used to be handed to
   the attribute as written and the matched nodes spliced into the stored list
@@ -854,23 +871,6 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   result moves.
 
 ### Fixed
-- A smoothed price belief now ramps up when the price first appears after a
-  stretch of exactly zero, instead of adopting the new price in full. This
-  covers the flexibility cost of a `FLEXIBLE` regulation, smoothed over
-  `FlexibilityHorizon`, and a vessel's energy-scarcity beliefs, smoothed over
-  the fleet's `TechnologyHorizon` and `SpeedHorizon`. Both are shadow prices
-  of the bunkering LP, so they are exactly zero wherever their constraint
-  does not bind; a vessel type with no expected activity until it becomes
-  available has all-zero energy-scarcity prices, for instance. A belief whose
-  remaining path was all zero was treated as never set, and the first
-  non-zero price then replaced it unsmoothed. The belief now starts at the
-  smoothing weight times the price, `1 / (1 + horizon / time step)`, and
-  closes on it step by step as any other change does; only a belief that has
-  never been updated takes the price as it is. Results move only in runs that
-  hit this case, through technology uptake, speed and the flexibility-cost
-  expenses, and in the vessel report properties `InvestmentSignalTechnology`
-  and `InvestmentSignalSpeed`. No example or tutorial deck hits it, so their
-  results do not move (#25).
 - The DSL reference's "Default nodes" and "Default modules" sections gave the
   default library's location as a fixed installation path, which no longer
   matches the parser. Both now give the real location,
