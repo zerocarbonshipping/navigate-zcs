@@ -11,6 +11,7 @@ location and the attribute assigned to.
 
 from __future__ import annotations
 
+import math
 from enum import Enum
 from typing import TYPE_CHECKING, Protocol
 
@@ -461,7 +462,8 @@ def assign_fraction_list(fractions: list[float]) -> tuple[list[float], bool]:
 
     Only applicable to attributes requiring a list of values summing to 1.
     Entries are floated first, so a list written as integers is rescaled the
-    same way as its float spelling.
+    same way as its float spelling; the guard has already rejected any entry,
+    or total, that does not float to a finite value.
 
     Parameters
     ----------
@@ -898,7 +900,11 @@ def _check_list_is_unique(assignment: Sequence[Assignment]) -> None:
 
 def _check_fraction_list(fractions: list[float]) -> None:
     """
-    Validate that an assignment is a list of non-negative plain numbers.
+    Validate that an assignment is a list of non-negative finite numbers.
+
+    Every entry must be a plain number that floats to a finite value, and the
+    float total must be finite too, so the rescale in assign_fraction_list
+    can neither overflow nor turn an entry into NaN.
 
     Parameters
     ----------
@@ -910,10 +916,36 @@ def _check_fraction_list(fractions: list[float]) -> None:
 
     # a non-number would reach the comparison below as a TypeError carrying no
     # deck line for the parser to report; int, and the bool that subclasses it,
-    # pass because assign_fraction_list floats every entry it is handed
+    # pass because assign_fraction_list floats every entry it is handed, so
+    # each entry is floated here first: an int too large for a float would
+    # otherwise escape that floating as an OverflowError, which the parser
+    # cannot locate either
+    floated = []
     for fraction in fractions:
         if not isinstance(fraction, (int, float)):
             raise ValueError(_only_allows("plain numbers", fraction))
 
-        if fraction < 0.0:
+        try:
+            value = float(fraction)
+        except OverflowError:
+            raise ValueError(
+                "only allows assignment of finite numbers, "
+                "but got a number too large for a float"
+            ) from None
+
+        # ahead of the sign check, which NaN passes because it never compares:
+        # an infinite entry would rescale to NaN, and a NaN entry stays one
+        if not math.isfinite(value):
+            raise ValueError(
+                f"only allows assignment of finite numbers, but got {value}"
+            )
+
+        if value < 0.0:
             raise ValueError("does not allow negative values")
+
+        floated.append(value)
+
+    # finite entries can still sum past the largest float, and the rescale
+    # divides by that sum
+    if not math.isfinite(sum(floated)):
+        raise ValueError("requires entries whose sum is finite")
