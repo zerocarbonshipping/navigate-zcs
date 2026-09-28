@@ -29,12 +29,17 @@ from navigate.exceptions import (
 from navigate.logging_ import log_time_step_breaker, print_preamble
 from navigate.parser._attributes import (
     GENERAL_NODE_REQUIRED_ATTRIBUTES,
+    NODE_ATTRIBUTE_SECTIONS,
     NODE_REQUIRED_ATTRIBUTES,
     check_general_node_attribute_is_allowed,
     check_node_attribute_is_allowed,
     instance_to_dsl_name,
 )
-from navigate.parser._commands import CommandReference, check_node_command_is_allowed
+from navigate.parser._commands import (
+    NODE_COMMAND_SECTIONS,
+    CommandReference,
+    check_node_command_is_allowed,
+)
 from navigate.parser._event import Event
 from navigate.parser._keywords import (
     DATE,
@@ -42,6 +47,7 @@ from navigate.parser._keywords import (
     GENERAL_NODE_GROUP,
     KEYWORD_SECTIONS,
     NODE_GROUP,
+    SECTION_DEFINE,
     SECTION_NAME,
     START,
     define_new_general_node,
@@ -84,7 +90,10 @@ from navigate.util import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Iterator
+
     from navigate.core.general_nodes._general_node import _GeneralNode
+    from navigate.core.node_type import Calculator
 
 logger = logging.getLogger(__name__)
 
@@ -162,6 +171,13 @@ class Parser:
         # the commands queued on each node, keyed by identity; drained in
         # registry order, first in first out per node
         self._command_queue: dict[Node, list[CommandReference]] = {}
+        # the values the deck handed each node's DEFINE-only attributes and
+        # commands, keyed by the entry they write: the deck attribute, or the
+        # command with its arguments before the value
+        self._define_only_inputs: dict[Node, dict[tuple[str, ...], list]] = {}
+        # every calculator a DEFINE-only input holds, keyed by identity, with
+        # the first node and deck attribute or command name holding it
+        self._pinned_calculators: dict[Calculator, tuple[Node, str]] = {}
 
         # section flags
         self._current_section = None
@@ -215,9 +231,11 @@ class Parser:
 
         self._current_section = SimulationSectionID.DEFINE
         self._update_dependencies()
+        self._pin_define_only_calculators()
 
         self._replace_start_keyword()
         self._timeline_is_consistent()
+        self._reject_events_changing_pinned_calculators()
 
         self._current_section = SimulationSectionID.EVENTS
         self._reading_events = True
@@ -726,6 +744,14 @@ class Parser:
 
         self._assigned_attributes.setdefault(node, set()).add(attribute)
 
+        # a general node accepts no node reference, so it holds no calculator
+        if (
+            isinstance(node, Node)
+            and NODE_ATTRIBUTE_SECTIONS[node.type][attribute] == SECTION_DEFINE
+        ):
+            # a re-assignment replaces what the attribute held
+            self._define_only_inputs.setdefault(node, {})[(attribute,)] = [value]
+
     def _queue_command(self, nodes, item, node_type):
         """
         Validate and queue a Command AST node on one or more nodes.
@@ -764,6 +790,48 @@ class Parser:
         target_nodes = nodes if isinstance(nodes, list) else [nodes]
         for node in target_nodes:
             self._command_queue.setdefault(node, []).append(ref)
+
+        # recorded when queued, as a command a default pulled after the drain
+        # queues runs only on the next pass
+        if NODE_COMMAND_SECTIONS[node_type][command] == SECTION_DEFINE:
+            for node in target_nodes:
+                self._record_define_only_command(node, command, inputs)
+
+    def _record_define_only_command(
+        self, node: Node, command: str, inputs: list
+    ) -> None:
+        """
+        Record a DEFINE-only command's inputs, replacing the calls it overwrites.
+
+        Each DEFINE-only command taking a calculator writes the entries its
+        arguments before the value name, matching a wildcard against the keys
+        the way the setter does, so a later call replaces an earlier one whose
+        every key it matches.
+
+        Parameters
+        ----------
+        node
+            Node the command is queued on.
+        command
+            The command name.
+        inputs
+            The command's materialized arguments, the value last.
+        """
+        records = self._define_only_inputs.setdefault(node, {})
+        keys = inputs[:-1]
+
+        if any(isinstance(key, str) and name_contains_wildcards(key) for key in keys):
+            covered = [
+                entry
+                for entry, values in records.items()
+                if entry[0] == command and _keys_cover(keys, values[:-1])
+            ]
+            for entry in covered:
+                del records[entry]
+
+        # the entry is hashable whatever the arguments, while the record keeps
+        # them raw for a later wildcard to match
+        records[(command, *map(repr, keys))] = inputs
 
     # ══════════════════════════════════════════════════════════════════
     # Node declaration processing
@@ -848,6 +916,11 @@ class Parser:
         # setter may store an input, such as an expression, that is later bound
         # in place to the node holding it
         command_queue = copy.deepcopy(self._command_queue.get(source, []), memo)
+        # through the same memo, so an expression recorded is the one the copy
+        # holds, which the reference walk binds
+        define_only_inputs = copy.deepcopy(
+            self._define_only_inputs.get(source, {}), memo
+        )
         if from_default:
             # drop the source's queue now, before anything is stored under
             # new_node: a self-copy transplants into the source itself, so
@@ -869,6 +942,7 @@ class Parser:
         self._assigned_attributes[new_node] = set(
             self._assigned_attributes.get(source, ())
         )
+        self._define_only_inputs[new_node] = define_only_inputs
         self._command_queue[new_node] = command_queue
 
         # the parser holds a pending assignment, not the source, so deepcopy
@@ -1347,6 +1421,120 @@ class Parser:
                     self._error_prefix() + f": '{cmd_ref.command}' {e!s}."
                 ) from None
 
+    def _pin_define_only_calculators(self) -> None:
+        """
+        Pin every calculator a DEFINE-only attribute or command input holds.
+
+        Runs once the DEFINE block is resolved and pruned, so a node the prune
+        removed pins nothing.
+        """
+        for node in self._get_all_nodes():
+            for entry, values in self._define_only_inputs.get(node, {}).items():
+                for calculator in self._held_calculators(values):
+                    self._pinned_calculators.setdefault(calculator, (node, entry[0]))
+
+    def _held_calculators(self, value) -> Iterator[Calculator]:
+        """
+        Yield the calculators a deck value holds, directly or through an expression.
+
+        Recurses lists only, as _materialize does. Any other node is not entered:
+        what it holds sits under attributes with sections of their own.
+        """
+        if isinstance(value, list):
+            for element in value:
+                yield from self._held_calculators(element)
+
+        elif isinstance(value, Expression):
+            # an expression read from a default pulled after the drain is
+            # resolved only on the next pass, so its references are looked up
+            # without binding it
+            references = value.node_references or [
+                self._find_node_reference(reference_string)
+                for reference_string in value.reference_strings
+            ]
+            yield from self._held_calculators(references)
+
+        elif isinstance(value, Node) and is_calculator(value):
+            yield value
+
+    def _find_node_reference(self, reference_string: str) -> Node | None:
+        """
+        Return the node a canonical reference string names, creating none.
+
+        Parameters
+        ----------
+        reference_string
+            A reference in canonical form, e.g. ``Variable("name")``.
+
+        Returns
+        -------
+        Node | None
+            The declared or deferred node, or None where no reference or
+            declaration has named it yet.
+        """
+        reference = parse_node_reference(reference_string)
+        if reference is None or reference[0] not in NODE_GROUP:
+            return None
+
+        node_type, name = reference
+        node = getattr(self.nodes, NODE_GROUP[node_type]).get(name)
+        if node is not None:
+            return node
+
+        entry = self._deferred.get(reference)
+        return None if entry is None else entry.node
+
+    def _reject_events_changing_pinned_calculators(self) -> None:
+        """
+        Raise for the first queued EVENTS statement changing a pinned calculator.
+
+        EVENTS cannot create nodes, so the calculators pinned after DEFINE are
+        all an EVENTS statement can reach.
+        """
+        for events in self._event_queue.values():
+            for event in events:
+                for statement in event.statements:
+                    self._reject_statement_changing_pinned_calculator(
+                        statement, event.deck_line
+                    )
+
+    def _reject_statement_changing_pinned_calculator(
+        self, statement, deck_line: int
+    ) -> None:
+        """
+        Raise if a queued EVENTS statement sets an attribute of a pinned calculator.
+
+        Parameters
+        ----------
+        statement
+            A queued EVENTS AST statement.
+        deck_line
+            Deck line of the event the statement is queued under.
+        """
+        if not isinstance(statement, NodeDeclaration):
+            return
+
+        assignments = [item for item in statement.body if isinstance(item, Assignment)]
+        group = getattr(self.nodes, NODE_GROUP[statement.node_type])
+        pinned = [
+            group[name]
+            for name in matching_keys(statement.name, group)
+            if group[name] in self._pinned_calculators
+        ]
+
+        if not (assignments and pinned):
+            return
+
+        calculator, item = pinned[0], assignments[0]
+        holder, holder_input = self._pinned_calculators[calculator]
+
+        raise AttributeAssignmentError(
+            self._error_prefix(item.source, deck_line)
+            + f": {calculator} does not allow setting attribute '{item.attribute}' "
+            f"in 'EVENTS', as {holder} holds it in '{holder_input}', which is "
+            "DEFINE-only."
+        )
+
     def _build_tables(self):
         """
         Build the tables set since the last pass, rebasing dated ones to the start.
@@ -1790,6 +1978,21 @@ def _contains_wildcard(value):
         return any(_contains_wildcard(element) for element in value)
 
     return isinstance(value, WildcardNodeReference)
+
+
+def _keys_cover(patterns: list, keys: list) -> bool:
+    """
+    Test whether command key arguments match every key an earlier call named.
+
+    A key holding wildcards itself is covered only by the identical pattern,
+    whose call replaces it by entry.
+    """
+    return len(patterns) == len(keys) and all(
+        isinstance(key, str)
+        and not name_contains_wildcards(key)
+        and bool(matching_keys(pattern, [key]))
+        for pattern, key in zip(patterns, keys, strict=True)
+    )
 
 
 def _transplant(node, copied):
