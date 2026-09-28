@@ -15,8 +15,8 @@ from navigate.core import (
     assign_list,
     assign_value,
     command_assignment_to_boolean_dict,
-    command_assignment_to_dict,
-    command_assignment_to_tuple_dict,
+    write_matching_key_pairs,
+    write_matching_keys,
 )
 from navigate.core.enum_ import PolicyScopeID
 from navigate.core.node import Node
@@ -237,11 +237,10 @@ class _Policy(Node):
         global_warming_potential
             Global warming potential in ton CO2eq/ton emission.
         """
-        command_assignment_to_dict(
+        write_matching_keys(
             emission_name,
-            as_scalar(global_warming_potential),
+            assign_value(as_scalar(global_warming_potential), type_=(CURVE, VARIABLE)),
             self.global_warming_potential,
-            type_=(CURVE, VARIABLE),
         )
 
     def set_fuel_wtt(
@@ -267,11 +266,10 @@ class _Policy(Node):
         emission_factor
             WTT emission factor in ton emission/ton fuel.
         """
-        command_assignment_to_tuple_dict(
+        write_matching_key_pairs(
             (fuel_name, emission_name),
-            as_scalar(emission_factor),
+            assign_value(as_scalar(emission_factor), type_=(FORECAST, VARIABLE)),
             self.fuel_wtt,
-            type_=(FORECAST, VARIABLE),
         )
 
     def set_fuel_ttw(
@@ -297,11 +295,10 @@ class _Policy(Node):
         emission_factor
             TTW emission factor in ton emission/ton fuel.
         """
-        command_assignment_to_tuple_dict(
+        write_matching_key_pairs(
             (fuel_name, emission_name),
-            as_scalar(emission_factor),
+            assign_value(as_scalar(emission_factor), type_=(FORECAST, VARIABLE)),
             self.fuel_ttw,
-            type_=(FORECAST, VARIABLE),
         )
 
     # internal methods -----------------------------------------------------------------

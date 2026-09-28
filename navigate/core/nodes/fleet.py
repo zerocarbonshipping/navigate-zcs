@@ -21,8 +21,8 @@ from navigate.core import (
     assign_member,
     assign_value,
     command_assignment_to_boolean_dict,
-    command_assignment_to_dict,
-    command_assignment_to_tuple_dict,
+    write_matching_key_pairs,
+    write_matching_keys,
 )
 from navigate.core.enum_ import (
     EnergyDemandTypeID,
@@ -670,12 +670,12 @@ class Fleet(_AssetManager[Vessel]):
             Cost of performing a fuel conversion from vessel type 'vessel_name_from' to
             'vessel_name_to'.
         """
-        command_assignment_to_tuple_dict(
+        write_matching_key_pairs(
             (vessel_name_from, vessel_name_to),
-            as_scalar(fuel_conversion_cost),
+            assign_value(
+                as_scalar(fuel_conversion_cost), type_=(FORECAST, VARIABLE), lower=0.0
+            ),
             self.fuel_conversion_cost,
-            type_=(FORECAST, VARIABLE),
-            lower=0.0,
         )
 
     def set_fuel_conversion_limit(
@@ -705,13 +705,15 @@ class Fleet(_AssetManager[Vessel]):
             Fraction in [0, 1] of the total fleet allowed to convert on this (from, to)
             pair per year.
         """
-        command_assignment_to_tuple_dict(
+        write_matching_key_pairs(
             (vessel_name_from, vessel_name_to),
-            as_scalar(fuel_conversion_limit),
+            assign_value(
+                as_scalar(fuel_conversion_limit),
+                type_=(FORECAST, VARIABLE),
+                lower=0.0,
+                upper=1.0,
+            ),
             self.fuel_conversion_limit,
-            type_=(FORECAST, VARIABLE),
-            lower=0.0,
-            upper=1.0,
         )
 
     def set_allow_vessel(self, vessel_name: str, allow_vessel: str) -> None:
@@ -812,14 +814,10 @@ class Fleet(_AssetManager[Vessel]):
         uptake_curve
             Curve with age on x-axis and uptake fraction on y-axis.
         """
-        command_assignment_to_tuple_dict(
+        write_matching_key_pairs(
             (vessel_name, technology_name),
-            uptake_curve,
+            assign_value(uptake_curve, scalar=False, type_=CURVE, lower=0.0, upper=1.0),
             self.initial_technology_share,
-            scalar=False,
-            type_=CURVE,
-            lower=0.0,
-            upper=1.0,
         )
 
     def set_newbuild_limit(self, vessel_name: str, limit: ForecastArgument) -> None:
@@ -842,13 +840,12 @@ class Fleet(_AssetManager[Vessel]):
         limit
             Maximum share in [0, 1].
         """
-        command_assignment_to_dict(
+        write_matching_keys(
             vessel_name,
-            as_scalar(limit),
+            assign_value(
+                as_scalar(limit), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
+            ),
             self.newbuild_limit,
-            type_=(FORECAST, VARIABLE),
-            lower=0.0,
-            upper=1.0,
         )
 
     def set_newbuild_technology_limit(
@@ -872,13 +869,12 @@ class Fleet(_AssetManager[Vessel]):
         limit
             Maximum yearly install share in [0, 1].
         """
-        command_assignment_to_dict(
+        write_matching_keys(
             technology_name,
-            as_scalar(limit),
+            assign_value(
+                as_scalar(limit), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
+            ),
             self.newbuild_technology_limit,
-            type_=(FORECAST, VARIABLE),
-            lower=0.0,
-            upper=1.0,
         )
 
     def set_retrofit_technology_limit(
@@ -902,13 +898,12 @@ class Fleet(_AssetManager[Vessel]):
         limit
             Maximum yearly retrofit share in [0, 1].
         """
-        command_assignment_to_dict(
+        write_matching_keys(
             technology_name,
-            as_scalar(limit),
+            assign_value(
+                as_scalar(limit), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
+            ),
             self.retrofit_technology_limit,
-            type_=(FORECAST, VARIABLE),
-            lower=0.0,
-            upper=1.0,
         )
 
     def set_operational_saving_sea(
@@ -932,15 +927,12 @@ class Fleet(_AssetManager[Vessel]):
         saving
             Fraction of energy saved.
         """
-        id_ = assign_id(energy_type, EnergyDemandTypeID)
-        command_assignment_to_dict(
-            id_,
-            as_scalar(saving),
-            self.operational_saving_sea,
-            type_=(FORECAST, VARIABLE),
-            lower=0.0,
-            upper=1.0,
+        value_ = assign_value(
+            as_scalar(saving), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
         )
+
+        id_ = assign_id(energy_type, EnergyDemandTypeID)
+        write_matching_keys(id_, value_, self.operational_saving_sea)
 
     def set_operational_saving_port(
         self, energy_type: str, saving: ForecastArgument
@@ -963,15 +955,12 @@ class Fleet(_AssetManager[Vessel]):
         saving
             Fraction of energy saved.
         """
-        id_ = assign_member(energy_type, EnergyDemandTypePortID)
-        command_assignment_to_dict(
-            id_,
-            as_scalar(saving),
-            self.operational_saving_port,
-            type_=(FORECAST, VARIABLE),
-            lower=0.0,
-            upper=1.0,
+        value_ = assign_value(
+            as_scalar(saving), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
         )
+
+        id_ = assign_member(energy_type, EnergyDemandTypePortID)
+        write_matching_keys(id_, value_, self.operational_saving_port)
 
     # internal methods -----------------------------------------------------------------
     def check_requirements(self) -> None:
@@ -1040,8 +1029,8 @@ class Fleet(_AssetManager[Vessel]):
             name = vessel.name
             # stays None when unset: a None cost marks the pair as not convertible
             self.fuel_conversion_cost.setdefault((name, name), None)
-            # placeholder self-pair so command_assignment_to_tuple_dict can validate
-            # cross-pair keys
+            # placeholder self-pair so write_matching_key_pairs can validate cross-pair
+            # keys
             self.fuel_conversion_limit.setdefault((name, name), Scalar(1.0))
             self.allow_vessel.setdefault(name, True)
             self.newbuild_available.setdefault(name, True)

@@ -19,7 +19,7 @@ from navigate.core import (
     assign_id,
     assign_list,
     assign_value,
-    command_assignment_to_tuple_dict,
+    write_matching_key_pairs,
 )
 from navigate.core.enum_ import RouteTypeID
 from navigate.core.node import Node
@@ -291,13 +291,10 @@ class Route(Node):
             Fraction of total sailing time spent traveling from 'port_from' to
             'port_to'.
         """
-        command_assignment_to_tuple_dict(
+        write_matching_key_pairs(
             (port_name_from, port_name_to),
-            as_scalar(fraction),
+            assign_value(as_scalar(fraction), type_=VARIABLE, lower=0.0, upper=1.0),
             self.voyage_distribution,
-            type_=VARIABLE,
-            lower=0.0,
-            upper=1.0,
         )
 
     # internal methods -----------------------------------------------------------------

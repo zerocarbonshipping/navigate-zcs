@@ -14,7 +14,7 @@ from navigate.core import (
     assign_boolean,
     assign_id,
     assign_value,
-    command_assignment_to_dict,
+    write_matching_keys,
 )
 from navigate.core.enum_ import RegulationMeasureID, RegulationSchemeID
 from navigate.core.expectations import RegulationExpectation
@@ -242,12 +242,10 @@ class Regulation(_Policy):
         threshold
             Threshold for a vessel.
         """
-        command_assignment_to_dict(
+        write_matching_keys(
             vessel_name,
-            as_scalar(threshold),
+            assign_value(as_scalar(threshold), type_=(FORECAST, VARIABLE), lower=0.0),
             self.vessel_threshold,
-            type_=(FORECAST, VARIABLE),
-            lower=0.0,
         )
 
     def set_vessel_capacity(self, vessel_name: str, capacity: ForecastArgument) -> None:
@@ -268,12 +266,10 @@ class Regulation(_Policy):
         capacity
             Capacity of a vessel.
         """
-        command_assignment_to_dict(
+        write_matching_keys(
             vessel_name,
-            as_scalar(capacity),
+            assign_value(as_scalar(capacity), type_=(FORECAST, VARIABLE), lower=0.0),
             self.vessel_capacity,
-            type_=(FORECAST, VARIABLE),
-            lower=0.0,
         )
 
     def set_allow_threshold_adjustment(self, allow_threshold_adjustment: str) -> None:

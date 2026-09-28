@@ -14,8 +14,8 @@ from navigate.core import (
     assign_id,
     assign_id_list,
     assign_value,
-    command_assignment_to_dict,
-    command_assignment_to_tuple_dict,
+    write_matching_key_pairs,
+    write_matching_keys,
 )
 from navigate.core.enum_ import FuelTypeID
 from navigate.core.node_type import CONVERTER, FORECAST, VARIABLE
@@ -185,19 +185,14 @@ class Converter(_Machinery):
         value
             Fraction of fuel mass escaping unburned.
         """
+        value_ = assign_value(as_scalar(value), type_=VARIABLE, lower=0.0, upper=1.0)
+
         id_ = assign_id(fuel_type, FuelTypeID)
 
         if id_ not in self.get_fuel_types():
             raise ValueError(f"received {fuel_type} which is not available for {self}.")
 
-        command_assignment_to_dict(
-            id_,
-            as_scalar(value),
-            self.slip_fraction,
-            type_=VARIABLE,
-            lower=0.0,
-            upper=1.0,
-        )
+        write_matching_keys(id_, value_, self.slip_fraction)
 
     def set_consumption_ttw(
         self, fuel_type: str, emission_name: str, value: ScalarArgument
@@ -223,6 +218,8 @@ class Converter(_Machinery):
         value
             Ton of emission emitted per ton of fuel consumed.
         """
+        value_ = assign_value(as_scalar(value), type_=VARIABLE, lower=0.0)
+
         id_ = assign_id(fuel_type, FuelTypeID)
 
         if id_ not in self.get_fuel_types():
@@ -234,9 +231,7 @@ class Converter(_Machinery):
         if key not in self.consumption_ttw:
             raise KeyError(f"{emission_name}")
 
-        command_assignment_to_tuple_dict(
-            key, as_scalar(value), self.consumption_ttw, type_=VARIABLE, lower=0.0
-        )
+        write_matching_key_pairs(key, value_, self.consumption_ttw)
 
     # internal methods -----------------------------------------------------------------
     def check_requirements(self) -> None:
