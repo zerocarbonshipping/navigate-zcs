@@ -172,7 +172,8 @@ class Parser:
         # registry order, first in first out per node
         self._command_queue: dict[Node, list[CommandReference]] = {}
         # the values the deck handed each node's DEFINE-only attributes and
-        # commands, keyed by deck attribute or command name
+        # commands, keyed by the entry they write: the deck attribute, or the
+        # command with its arguments before the value
         self._define_only_inputs: dict[Node, dict[tuple[str, ...], list]] = {}
         # every calculator a DEFINE-only input holds, keyed by identity, with
         # the first node and deck attribute or command name holding it
@@ -791,12 +792,13 @@ class Parser:
             self._command_queue.setdefault(node, []).append(ref)
 
         # recorded when queued, as a command a default pulled after the drain
-        # queues runs only on the next pass
+        # queues runs only on the next pass; each DEFINE-only command taking a
+        # calculator writes the one entry its arguments before the value name,
+        # so a later call naming the same entry replaces what the earlier held
         if NODE_COMMAND_SECTIONS[node_type][command] == SECTION_DEFINE:
+            entry = (command, *map(repr, inputs[:-1]))
             for node in target_nodes:
-                self._define_only_inputs.setdefault(node, {}).setdefault(
-                    (command,), []
-                ).append(inputs)
+                self._define_only_inputs.setdefault(node, {})[entry] = inputs
 
     # ══════════════════════════════════════════════════════════════════
     # Node declaration processing

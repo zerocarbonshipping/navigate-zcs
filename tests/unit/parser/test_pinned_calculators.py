@@ -138,6 +138,14 @@ class TestCommand:
         ):
             read_deck(define, events=_events("p"))
 
+    def test_a_command_writing_the_entry_again_frees_the_calculator(self, read_deck):
+        # the second call replaces the entry the first wrote, so nothing holds
+        # "p" once the commands have run
+        commands = 'set_ttw("co2", Variable("p"))\n    set_ttw("co2", 3.1)'
+        define = VARIABLES + CO2 + _fuel("oil", commands)
+
+        read_deck(define, events=_events("p"))
+
     @pytest.mark.parametrize(
         "value", ['Variable("p")', '<Variable("p")>'], ids=["reference", "expression"]
     )
