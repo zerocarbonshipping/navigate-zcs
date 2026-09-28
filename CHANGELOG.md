@@ -53,6 +53,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `get_remaining_cost_flow`).
 
 ### Changed
+- Rescaling `InitialSplit` (Fleet) or `ConditionDistribution` (Route) by more
+  than 1% to sum to 1 is now logged as a warning instead of an info message,
+  so it is counted and shown in the console's end-of-run warning summary
+  instead of only in the `.log` file.
 - An `InitialSplit` on a Fleet or a `ConditionDistribution` on a Route whose
   entries sum to 0 once rounded to five decimals (as `[1e-9, 0.0]` does), or
   that is empty, is now a deck error naming its line.

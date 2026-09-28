@@ -261,7 +261,7 @@ class Fleet(_AssetManager[Vessel]):
         self.initial_split, rescaled = assign_fraction_list(initial_split)
 
         if rescaled:
-            logger.info(
+            logger.warning(
                 "%s: 'InitialSplit' is rescaled proportionally to sum to 1.", self
             )
 
