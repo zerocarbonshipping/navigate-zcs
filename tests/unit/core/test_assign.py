@@ -32,6 +32,7 @@ from navigate.core.assign import (
     command_assignment_to_tuple_dict,
     expand_id_wildcard,
 )
+from navigate.core.bounds import Bounds
 from navigate.core.enum_ import (
     EnergyDemandTypeID,
     EnergyDemandTypePortID,
@@ -475,16 +476,48 @@ class TestAssignValue:
             assign_value(table, type_=(FORECAST, VARIABLE))
 
     @pytest.mark.parametrize(
-        "assignment",
-        [Expression('1 + Forecast("x")'), Variable("v")],
+        "make_assignment",
+        [lambda: Expression('1 + Forecast("x")'), lambda: Variable("v")],
         ids=["expression", "calculator_node"],
     )
-    def test_bounded_values_receive_the_attribute_bounds(self, assignment):
+    @pytest.mark.parametrize(
+        ("inclusive_lower", "inclusive_upper"),
+        [(False, True), (True, False)],
+        ids=["exclusive_lower", "exclusive_upper"],
+    )
+    def test_bounded_values_receive_the_attribute_bounds(
+        self, make_assignment, inclusive_lower, inclusive_upper
+    ):
+        # a fresh value per case, as a calculator merges the bounds it is offered
+        assignment = make_assignment()
         assign_value(
-            assignment, scalar=False, type_=(FORECAST, VARIABLE), lower=0.0, upper=5.0
+            assignment,
+            scalar=False,
+            type_=(FORECAST, VARIABLE),
+            lower=0.0,
+            upper=5.0,
+            inclusive_lower=inclusive_lower,
+            inclusive_upper=inclusive_upper,
         )
 
-        assert assignment.internal_bounds == (0.0, 5.0)
+        assert assignment.internal_bounds == Bounds(
+            0.0, 5.0, inclusive_lower, inclusive_upper
+        )
+
+    def test_a_calculator_at_an_exclusive_bound_fails_like_the_literal(self):
+        # the literal is refused at assignment, the calculator holding the same
+        # value once it is evaluated, both in the words _check_scalar uses
+        with pytest.raises(ValueError, match=r"must be > 0\.0, but got 0\.0"):
+            assign_value(0.0, lower=0.0, inclusive_lower=False)
+
+        variable = Variable("zero")
+        variable.set_value(0.0)
+        assign_value(variable, type_=VARIABLE, lower=0.0, inclusive_lower=False)
+
+        with pytest.raises(
+            ValueError, match=r'Variable\("zero"\): must be > 0\.0, but got 0\.0'
+        ):
+            variable.get()
 
     @pytest.mark.parametrize(
         ("arguments", "message"),

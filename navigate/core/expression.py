@@ -22,6 +22,7 @@ from typing import TYPE_CHECKING, Protocol, overload
 
 import numpy as np
 
+from navigate.core.bounds import Bounds
 from navigate.core.node_type import is_calculator
 
 if TYPE_CHECKING:
@@ -253,7 +254,7 @@ class Expression:
         self.text: str = text
         self.node_references: _References = []
         self.reference_location: str = ""
-        self.internal_bounds: tuple[float, float] = (-np.inf, np.inf)
+        self.internal_bounds: Bounds = Bounds()
 
         self._tree: _Evaluable
         self.reference_strings: list[str]
@@ -334,9 +335,21 @@ class Expression:
         float or FloatArray
             Expression value, clipped to the internal bounds and broadcast to
             the shape of the input.
+
+        Raises
+        ------
+        ValueError
+            If the value, or any entry of it, is at or beyond an exclusive
+            internal bound.
         """
         evaluated = self._tree.evaluate(self.node_references, x, y)
-        value = np.clip(evaluated, *self.internal_bounds)
+        bounds = self.internal_bounds
+
+        # the owner string is only worth building where a bound can actually raise
+        if bounds.exclusive:
+            bounds.check_exclusive(evaluated, f"{self._node}: Expression <{self.text}>")
+
+        value = np.clip(evaluated, bounds.lower, bounds.upper)
 
         # a float result is broadcast so an expression over scalars answers
         # an array input the way one over arrays does
@@ -362,9 +375,18 @@ class Expression:
             (allowed_types,) if isinstance(allowed_types, str) else allowed_types
         )
 
-    def set_internal_bounds(self, lower: float, upper: float) -> None:
+    def set_internal_bounds(
+        self,
+        lower: float,
+        upper: float,
+        *,
+        inclusive_lower: bool = True,
+        inclusive_upper: bool = True,
+    ) -> None:
         """
         Set the range every evaluated value is clipped to.
+
+        A value reaching an exclusive bound raises instead of being clipped.
 
         Parameters
         ----------
@@ -372,8 +394,12 @@ class Expression:
             Lower bound.
         upper
             Upper bound.
+        inclusive_lower
+            Whether the value may equal the lower bound.
+        inclusive_upper
+            Whether the value may equal the upper bound.
         """
-        self.internal_bounds = (lower, upper)
+        self.internal_bounds = Bounds(lower, upper, inclusive_lower, inclusive_upper)
 
     def check_consistency(self) -> None:
         """Check that the attribute accepts the node types the expression references."""

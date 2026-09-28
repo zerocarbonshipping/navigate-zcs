@@ -16,6 +16,8 @@ $$
 z = \min\left(\max\left(\text{Multiplier} \cdot (z(x, y) + \text{Addition}), \text{LowerBound}\right), \text{UpperBound}\right)
 $$
 
+An attribute that references the node holds $z$ to its own minimum and maximum value as well: an inclusive one clamps $z$, and $z$ reaching an exclusive one stops the run with an error. See [Assigning attributes](dsl_reference.md#assigning-attributes).
+
 Example:
 
 ```python

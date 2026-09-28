@@ -53,6 +53,19 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `get_remaining_cost_flow`).
 
 ### Changed
+- A Curve, Forecast, Surface, Timetable or Variable, or an expression, whose
+  value reaches an attribute's exclusive minimum or maximum now stops the run
+  with an error naming the node, instead of being clamped onto the bound. A
+  plant with `Capacity = Variable("zero")`, where the Variable's value is 0,
+  used to run with zero capacity although `Capacity = 0.0` is rejected; the
+  exclusive minimum 0 applies to `Capacity`, `Uptime` and `Lifetime` on a
+  Plant, `Lifetime` on a Vessel, Converter, PowerSystem, Tank and Technology,
+  `InitialVessels` and the four sensitivities on a Fleet, the two
+  sensitivities on a Producer, and `PortCalls`, `Distances` and `Speeds` on a
+  Route. An inclusive minimum or maximum still clamps, and a `LowerBound` or
+  `UpperBound` on the node that lies strictly inside the exclusive one still
+  clamps to itself. **Breaking** for decks whose calculator or expression
+  reaches such a bound; none ship with Navigate.
 - Rescaling `InitialSplit` (Fleet) or `ConditionDistribution` (Route) by more
   than 1% to sum to 1 is now logged as a warning instead of an info message,
   so it is counted and shown in the console's end-of-run warning summary

@@ -72,6 +72,8 @@ Where `x` depends on the specific attribute. Attributes are written in upper cam
   ```python
   Attribute = NodeType("node_name")
   ```
+  Where the attribute has a minimum or maximum value, it also holds for the value a referenced Curve, Forecast, Surface, Timetable, or Variable returns, and for the value of an expression, each time it is evaluated. An inclusive minimum or maximum clamps the value to it. A value that reaches an exclusive one, such as `0` where the minimum value is 0 (exclusive), stops the run with an error naming the node, just as the same number written as a float is rejected when the deck is loaded.
+
 **ID:**  
   ```python
   Attribute = SPECIFIC_ID
@@ -223,6 +225,8 @@ It is also possible to include Curves, Forecasts, Surfaces, Timetables, and Valu
 Attribute = <0.5 * Forecast("name_1") + Forecast("name_2")>
 set_command("key", <0.5 * Forecast("name_1") + Forecast("name_2")>)
 ```
+
+An expression's value is held to the attribute's minimum and maximum value the way a referenced node's is (see [Assigning attributes](#assigning-attributes)).
 
 An expression is accepted only where the value is used as a number: an attribute or command that accepts scalars, or one accepting a Curve, Forecast, Surface, Timetable, or Variable that it evaluates. Where a node is expected as such — a `Port` in `Jurisdiction`, a `Fuel` on a `Plant`, the Curves of `InitialAgeDistribution`, or the Forecast of `set_existing_pipeline`, which are read as tables — an expression is rejected when the deck is loaded, even one that only names the node:
 

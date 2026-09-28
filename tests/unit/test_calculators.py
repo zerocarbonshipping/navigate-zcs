@@ -9,6 +9,7 @@ Tests verify the correctness of:
     output = truncate(multiplier * (table(x) + addition))
   - Bound application: internal vs external bounds widen the envelope
   - Internal-bound tightening: the warning names the node it tightens
+  - Exclusive bounds: a value reaching one raises instead of being clamped
   - Convexity detection on piecewise-linear functions
   - _Table1D interpolation with transforms, reverse lookup, pickle round-trip
   - _Table2D bilinear interpolation, reverse lookup, convexity, pickle round-trip
@@ -25,12 +26,14 @@ import pickle
 import numpy as np
 import pytest
 
+from navigate.core.bounds import Bounds
 from navigate.core.expression import Expression
 from navigate.core.nodes._calculator import _Calculator
 from navigate.core.nodes._table1d import _Table1D
 from navigate.core.nodes._table2d import _Table2D
 from navigate.core.nodes.curve import Curve
 from navigate.core.nodes.surface import Surface
+from navigate.core.nodes.variable import Variable
 from navigate.core.table_data import TableData
 
 # ---------------------------------------------------------------------------
@@ -97,16 +100,14 @@ class TestBoundApplication:
     def test_truncate_clamps_to_applied_bounds(self):
         """Direct _truncate with manually set applied bounds."""
         c = _Calculator()
-        c._applied_lower_bound = 2.0
-        c._applied_upper_bound = 8.0
+        c._applied_bounds = Bounds(2.0, 8.0)
         assert c._truncate(1.0) == pytest.approx(2.0)
         assert c._truncate(5.0) == pytest.approx(5.0)
         assert c._truncate(10.0) == pytest.approx(8.0)
 
     def test_truncate_works_on_arrays(self):
         c = _Calculator()
-        c._applied_lower_bound = 2.0
-        c._applied_upper_bound = 8.0
+        c._applied_bounds = Bounds(2.0, 8.0)
         result = c._truncate(np.array([0.0, 5.0, 12.0]))
         np.testing.assert_array_almost_equal(result, [2.0, 5.0, 8.0])
 
@@ -176,6 +177,115 @@ class TestInternalBoundsWarning:
             v.set_internal_bounds(*second)
 
         assert [record.getMessage() for record in caplog.records] == [expected]
+
+
+def _variable(value):
+    variable = Variable("v")
+    variable.set_value(value)
+    return variable
+
+
+class TestExclusiveBounds:
+    """
+    A value reaching an exclusive internal bound raises; one inside passes.
+
+    The bound is exclusive only while it is the one applied: a public bound
+    strictly inside it clamps inclusively. Merging offers, a strictly tighter
+    one replaces the bound and its flag, and an equal exclusive one makes the
+    bound exclusive.
+    """
+
+    @pytest.mark.parametrize(
+        ("value", "bounds", "message"),
+        [
+            # 0 sits on the exclusive lower bound 0, -1 beyond it
+            (0.0, {"inclusive_lower": False}, r"must be > 0\.0, but got 0\.0"),
+            (-1.0, {"inclusive_lower": False}, r"must be > 0\.0, but got -1\.0"),
+            # mirror: 5 sits on the exclusive upper bound 5
+            (5.0, {"inclusive_upper": False}, r"must be < 5\.0, but got 5\.0"),
+        ],
+        ids=["lower_at_bound", "lower_beyond", "upper_at_bound"],
+    )
+    def test_value_at_or_beyond_an_exclusive_bound_raises(self, value, bounds, message):
+        v = _variable(value)
+        v.set_internal_bounds(0.0, 5.0, **bounds)
+
+        with pytest.raises(ValueError, match=rf'Variable\("v"\): {message}'):
+            v.get()
+
+    def test_value_inside_an_exclusive_bound_passes(self):
+        v = _variable(0.5)
+        v.set_internal_bounds(0.0, np.inf, inclusive_lower=False)
+        assert v.get() == pytest.approx(0.5)
+
+    def test_public_bound_inside_an_exclusive_bound_clamps(self):
+        # the public bound 1 is applied, not the exclusive 0, so -1 is clamped
+        # up to 1 instead of raising
+        v = _variable(-1.0)
+        v.set_internal_bounds(0.0, np.inf, inclusive_lower=False)
+        v.set_lower_bound(1.0)
+        assert v.get() == pytest.approx(1.0)
+
+    def test_public_bound_equal_to_an_exclusive_bound_stays_exclusive(self):
+        v = _variable(0.0)
+        v.set_internal_bounds(0.0, np.inf, inclusive_lower=False)
+        v.set_lower_bound(0.0)
+
+        with pytest.raises(ValueError, match=r"must be > 0\.0, but got 0\.0"):
+            v.get()
+
+    @pytest.mark.parametrize(
+        ("first", "second"),
+        [
+            # an equal exclusive offer makes the inclusive bound exclusive
+            ((0.0, True), (0.0, False)),
+            # an equal inclusive offer leaves the exclusive bound exclusive
+            ((0.0, False), (0.0, True)),
+        ],
+        ids=["exclusive_wins_a_tie", "exclusive_survives_a_tie"],
+    )
+    def test_merged_offers_tied_at_the_bound_stay_exclusive(self, first, second):
+        v = _variable(0.0)
+        for lower, inclusive_lower in (first, second):
+            v.set_internal_bounds(lower, np.inf, inclusive_lower=inclusive_lower)
+
+        with pytest.raises(ValueError, match=r"must be > 0\.0, but got 0\.0"):
+            v.get()
+
+    @pytest.mark.parametrize(
+        ("first", "second", "value", "expected"),
+        [
+            # a strictly tighter inclusive offer replaces bound and flag: 0 is
+            # clamped up to 1, where the exclusive 0 would have raised
+            ((0.0, False), (1.0, True), 0.0, 1.0),
+            ((0.0, False), (1.0, True), 1.0, 1.0),
+            # a looser exclusive offer is ignored: -2 is clamped up to 0
+            ((0.0, True), (-1.0, False), -2.0, 0.0),
+        ],
+        ids=[
+            "tighter_inclusive_clamps",
+            "tighter_inclusive_passes_its_bound",
+            "looser_exclusive_ignored",
+        ],
+    )
+    def test_merged_offers_that_clamp(self, first, second, value, expected):
+        v = _variable(value)
+        for lower, inclusive_lower in (first, second):
+            v.set_internal_bounds(lower, np.inf, inclusive_lower=inclusive_lower)
+
+        assert v.get() == pytest.approx(expected)
+
+    def test_table_entry_at_an_exclusive_bound_raises_for_an_array(self):
+        # y = 10 * x, so the entry at x = 0 is the one on the bound
+        curve = Curve("c")
+        curve.set_table(TableData(rows=CURVE_ROWS))
+        curve.build_table()
+        curve.set_internal_bounds(0.0, np.inf, inclusive_lower=False)
+
+        with pytest.raises(
+            ValueError, match=r'Curve\("c"\): must be > 0\.0, but got 0\.0'
+        ):
+            curve.get(np.array([1.0, 0.0, 2.0]))
 
 
 # ---------------------------------------------------------------------------

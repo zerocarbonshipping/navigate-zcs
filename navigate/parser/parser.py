@@ -1800,7 +1800,8 @@ def _transplant(node, copied):
     placeholder's, or the declaration a pulled file gave it — including a
     required attribute the copy has not been assigned. The bounds references
     imposed on the node are the one thing to keep: they are merged back after
-    the update, which brought the source's.
+    the update, which brought the source's, each keeping whether it is
+    exclusive.
 
     Parameters
     ----------
@@ -1820,6 +1821,11 @@ def _transplant(node, copied):
     node.__dict__.update(copied.__dict__)
 
     if bounds is not None:
-        node.set_internal_bounds(*bounds)
+        node.set_internal_bounds(
+            bounds.lower,
+            bounds.upper,
+            inclusive_lower=bounds.inclusive_lower,
+            inclusive_upper=bounds.inclusive_upper,
+        )
 
     return node
