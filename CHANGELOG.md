@@ -68,8 +68,13 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   never been updated takes the price as it is. Results move only in runs that
   hit this case, through technology uptake, speed and the flexibility-cost
   expenses, and in the vessel report properties `InvestmentSignalTechnology`
-  and `InvestmentSignalSpeed`. No example or tutorial deck hits it, so their
-  results do not move (#25).
+  and `InvestmentSignalSpeed`. In the reference scenario
+  `basecase_mid_regulation`, the ammonia and methanol ICE vessel types have
+  zero energy-scarcity prices until 2030; their onset is now smoothed, which
+  moves results from 2030 on by up to about 0.5% in energy by fuel type,
+  emissions and FuelEU flexibility expenses, with larger relative changes
+  only on fuels with small shares. Example and tutorial decks do not move
+  (#25).
 - A wildcard node reference is expanded against the registered nodes of its
   type before the value reaches the attribute, where it used to be handed to
   the attribute as written and the matched nodes spliced into the stored list
