@@ -35,10 +35,10 @@ class Increment:
         Levelized technology cost carried by the cohort, USD/year/vessel; fleet only.
     """
 
-    multiplier: float  # number of assets in the cohort
-    age: float  # age of the cohort, years
-    age_span: float  # width of the age bin the cohort spans, years
-    decided: float | None = None  # years since the cohort was decided
-    package_uptake: FloatArray | None = None  # cohort share per package, fleet only
-    baseline: float | None = None  # reference multiplier for scrapping, fleet only
-    technology_charter_rate: float = 0.0  # levelized cost, USD/year/vessel, fleet only
+    multiplier: float
+    age: float
+    age_span: float
+    decided: float | None = None
+    package_uptake: FloatArray | None = None
+    baseline: float | None = None
+    technology_charter_rate: float = 0.0
