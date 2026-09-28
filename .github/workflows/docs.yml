@@ -14,15 +14,14 @@ on:
 permissions:
   contents: read
 
-# A title or body edit gets its own group so it cannot cancel a real run.
+# A title or body edit re-runs the checks, so the latest result on a PR is never a skip.
 concurrency:
-  group: docs-${{ github.event.pull_request.number || github.run_id }}-${{ github.event.action == 'edited' && !github.event.changes.base && github.run_id || 'run' }}
+  group: docs-${{ github.event.pull_request.number || github.run_id }}
   cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: github.event.action != 'edited' || github.event.changes.base != null
     steps:
       - name: Checkout (full history for tags)
         uses: actions/checkout@v6
