@@ -175,6 +175,37 @@ class TestBroadcastAndBounds:
         expression.set_internal_bounds(0.0, 5.0)
         assert expression.get() == 0.0
 
+    @pytest.mark.parametrize(
+        ("text", "flags", "message"),
+        [
+            # 0 sits on the exclusive lower bound, -1 beyond it
+            ("0", {"inclusive_lower": False}, r"must be > 0\.0, but got 0\.0"),
+            ("-1", {"inclusive_lower": False}, r"must be > 0\.0, but got -1\.0"),
+            ("5", {"inclusive_upper": False}, r"must be < 5\.0, but got 5\.0"),
+        ],
+        ids=["lower_at_bound", "lower_beyond", "upper_at_bound"],
+    )
+    def test_exclusive_internal_bound_raises(self, text, flags, message):
+        expression = Expression(text)
+        expression.set_internal_bounds(0.0, 5.0, **flags)
+
+        with pytest.raises(ValueError, match=rf"Expression <{text}>: {message}"):
+            expression.get()
+
+    def test_exclusive_internal_bound_reports_the_extreme_entry(self):
+        # of the entries 2, 0 and -3 the lowest breaks the bound furthest
+        expression = Expression('Forecast("f")')
+        expression.node_references = [_EchoNode()]
+        expression.set_internal_bounds(0.0, np.inf, inclusive_lower=False)
+
+        with pytest.raises(ValueError, match=r"must be > 0\.0, but got -3\.0"):
+            expression.get(x=np.array([2.0, 0.0, -3.0]))
+
+    def test_value_inside_an_exclusive_bound_passes(self):
+        expression = Expression("0.5")
+        expression.set_internal_bounds(0.0, 5.0, inclusive_lower=False)
+        assert expression.get() == 0.5
+
 
 # ── rejected syntax ───────────────────────────────────────────────────────────
 

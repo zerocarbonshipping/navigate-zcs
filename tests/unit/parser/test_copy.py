@@ -12,12 +12,14 @@ queued on the source run on the copy too, each on its own inputs.
 
 from __future__ import annotations
 
+import numpy as np
 import pytest
 
 from navigate.core.enum_ import SimulationSectionID
 from navigate.core.expression import Expression
-from navigate.core.node_type import EMISSION
+from navigate.core.node_type import EMISSION, VARIABLE
 from navigate.core.nodes.emission import Emission
+from navigate.core.nodes.variable import Variable
 from navigate.parser._lark_parser import CopyStatement
 from navigate.parser.parser import Parser
 
@@ -114,6 +116,24 @@ def test_the_copy_target_keeps_the_bounds_imposed_before_its_declaration(read_de
     parser = read_deck(define)
 
     assert parser.nodes.variables["v"].get() == 0.0
+
+
+def test_the_copy_target_keeps_an_exclusive_bound_imposed_before_its_declaration():
+    # no root node assigning a Variable to an exclusive-bound attribute reads
+    # without a screen of setup, so the reference's bound is imposed directly;
+    # the 0.0 the copy brings along then sits on it instead of being clamped
+    parser = Parser()
+    parser._current_section = SimulationSectionID.DEFINE
+    placeholder = parser._node(VARIABLE, "v", location="")
+    placeholder.set_internal_bounds(0.0, np.inf, inclusive_lower=False)
+    source = Variable("base")
+    source.set_value(0.0)
+    parser.nodes.variables["base"] = source
+
+    parser._process_copy_node(CopyStatement(VARIABLE, "base", "v"))
+
+    with pytest.raises(ValueError, match=r"must be > 0\.0, but got 0\.0"):
+        parser.nodes.variables["v"].get()
 
 
 def test_a_copy_target_without_a_calculator_adopts_its_placeholder():

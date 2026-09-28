@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, overload
 import numpy as np
 
 from navigate.core import assign_bound, assign_value
+from navigate.core.bounds import Bounds
 from navigate.core.expression import Expression
 from navigate.util import ROUND_OFF
 
@@ -76,12 +77,10 @@ class _Calculator:
 
         # internal bounds are assigned when setting
         # attributes which have certain limits
-        self._internal_lower_bound: float = -np.inf
-        self._internal_upper_bound: float = np.inf
+        self._internal_bounds: Bounds = Bounds()
 
         # applied bounds used in truncating
-        self._applied_lower_bound: float = -np.inf
-        self._applied_upper_bound: float = np.inf
+        self._applied_bounds: Bounds = Bounds()
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_addition(self, addition: NumberInput) -> None:
@@ -144,23 +143,31 @@ class _Calculator:
 
     # internal methods -----------------------------------------------------------------
     @property
-    def internal_bounds(self) -> tuple[float, float]:
+    def internal_bounds(self) -> Bounds:
         """
         The tightest bounds any referencing attribute has imposed so far.
 
         Returns
         -------
-        tuple[float, float]
-            Lower and upper internal bound.
+        Bounds
+            Internal lower and upper bound, each with whether it is inclusive.
         """
-        return self._internal_lower_bound, self._internal_upper_bound
+        return self._internal_bounds
 
-    def set_internal_bounds(self, lower: float, upper: float) -> None:
+    def set_internal_bounds(
+        self,
+        lower: float,
+        upper: float,
+        *,
+        inclusive_lower: bool = True,
+        inclusive_upper: bool = True,
+    ) -> None:
         """
         Tighten the internal bounds of the calculator.
 
         Every attribute referencing the calculator offers its own bounds, so the
-        tightest offer across all of them wins and a looser one is ignored.
+        tightest offer across all of them wins and a looser one is ignored. An
+        offer equal to the current bound makes it exclusive if either is.
 
         Parameters
         ----------
@@ -168,34 +175,44 @@ class _Calculator:
             Internally applied lower bound.
         upper
             Internally applied upper bound.
+        inclusive_lower
+            Whether the calculated value may equal the lower bound.
+        inclusive_upper
+            Whether the calculated value may equal the upper bound.
         """
-        if lower > -np.inf:
-            if self._internal_lower_bound == -np.inf:
-                self._internal_lower_bound = lower
+        current = self._internal_bounds
+        merged_lower, merged_inclusive_lower = current.lower, current.inclusive_lower
+        merged_upper, merged_inclusive_upper = current.upper, current.inclusive_upper
 
-            elif lower > self._internal_lower_bound:
+        if lower > current.lower:
+            if current.lower > -np.inf:
                 logger.warning(
                     "%s: Internal lower bound tightened from %s to %s.",
                     self,
-                    self._internal_lower_bound,
+                    current.lower,
                     lower,
                 )
 
-                self._internal_lower_bound = lower
+            merged_lower, merged_inclusive_lower = lower, inclusive_lower
+        elif lower == current.lower:
+            merged_inclusive_lower = current.inclusive_lower and inclusive_lower
 
-        if upper < np.inf:
-            if self._internal_upper_bound == np.inf:
-                self._internal_upper_bound = upper
-
-            elif upper < self._internal_upper_bound:
+        if upper < current.upper:
+            if current.upper < np.inf:
                 logger.warning(
                     "%s: Internal upper bound tightened from %s to %s.",
                     self,
-                    self._internal_upper_bound,
+                    current.upper,
                     upper,
                 )
 
-                self._internal_upper_bound = upper
+            merged_upper, merged_inclusive_upper = upper, inclusive_upper
+        elif upper == current.upper:
+            merged_inclusive_upper = current.inclusive_upper and inclusive_upper
+
+        self._internal_bounds = Bounds(
+            merged_lower, merged_upper, merged_inclusive_lower, merged_inclusive_upper
+        )
 
         # called here in case internal bounds are set after the lower/upper bound
         self._assign_applied_bounds()
@@ -242,7 +259,10 @@ class _Calculator:
 
     def _truncate(self, value: FloatLike) -> FloatLike:
         """
-        Truncate a calculated value.
+        Truncate a calculated value to the applied bounds.
+
+        An inclusive bound clamps the value; one reaching an exclusive bound
+        raises instead of being clamped onto a value the bound forbids.
 
         Parameters
         ----------
@@ -253,10 +273,15 @@ class _Calculator:
         -------
         FloatLike
             Truncated value, in the shape of ``value``.
+
+        Raises
+        ------
+        ValueError
+            If the value, or any entry of it, is at or beyond an exclusive bound.
         """
-        return np.maximum(
-            np.minimum(value, self._applied_upper_bound), self._applied_lower_bound
-        )
+        bounds = self._applied_bounds
+        bounds.check_exclusive(value, self)
+        return np.maximum(np.minimum(value, bounds.upper), bounds.lower)
 
     def _assign_applied_bounds(self) -> None:
         """
@@ -264,13 +289,18 @@ class _Calculator:
 
         This method calculates the applied lower and upper bounds by comparing the
         user-defined bounds with internal ones. It ensures the applied bounds take
-        the minimum or maximum values based on the respective constraints.
+        the minimum or maximum values based on the respective constraints. An
+        exclusive internal bound stays exclusive only while it is the one applied:
+        a public bound strictly inside it clamps inclusively.
         """
-        self._applied_lower_bound = np.maximum(
-            self.lower_bound, self._internal_lower_bound
-        )
-        self._applied_upper_bound = np.minimum(
-            self.upper_bound, self._internal_upper_bound
+        internal = self._internal_bounds
+        public_lower_applies = self.lower_bound > internal.lower
+        public_upper_applies = self.upper_bound < internal.upper
+        self._applied_bounds = Bounds(
+            lower=np.maximum(self.lower_bound, internal.lower),
+            upper=np.minimum(self.upper_bound, internal.upper),
+            inclusive_lower=internal.inclusive_lower or public_lower_applies,
+            inclusive_upper=internal.inclusive_upper or public_upper_applies,
         )
 
     @staticmethod

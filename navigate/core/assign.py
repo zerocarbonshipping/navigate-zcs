@@ -137,7 +137,8 @@ def assign_value[T: Assignment](
 
     Only applicable to attributes requiring a single value, not lists. A setter
     passing scalar=False must pass a non-empty type_; that is an implementation
-    requirement, so it goes unchecked.
+    requirement, so it goes unchecked. A calculator or an expression is handed
+    the bounds and held to them each time it is evaluated.
 
     Parameters
     ----------
@@ -170,7 +171,12 @@ def assign_value[T: Assignment](
             raise ValueError(_failed_value_message(assignment, scalar, type_))
 
         assignment.set_allowed_types(type_)
-        assignment.set_internal_bounds(lower, upper)
+        assignment.set_internal_bounds(
+            lower,
+            upper,
+            inclusive_lower=inclusive_lower,
+            inclusive_upper=inclusive_upper,
+        )
     elif scalar and isinstance(assignment, (float, Scalar)):
         _check_scalar(
             assignment,
@@ -183,7 +189,12 @@ def assign_value[T: Assignment](
         # a calculator answers a getter with a value of its own, so it is the
         # only reference kind the attribute bounds have anything to clip
         if is_calculator(assignment):
-            assignment.set_internal_bounds(lower, upper)
+            assignment.set_internal_bounds(
+                lower,
+                upper,
+                inclusive_lower=inclusive_lower,
+                inclusive_upper=inclusive_upper,
+            )
     else:
         raise ValueError(_failed_value_message(assignment, scalar, type_))
 
