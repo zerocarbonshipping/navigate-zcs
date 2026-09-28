@@ -18,6 +18,7 @@ from navigate.core import (
     assign_fraction_list,
     assign_id,
     assign_list,
+    assign_reference_list,
     assign_value,
     write_matching_key_pairs,
 )
@@ -101,7 +102,7 @@ class Route(Node):
         ports
             A list of Port nodes.
         """
-        self.ports = assign_list(as_list(ports), scalar=False, type_=PORT)
+        self.ports = assign_reference_list(as_list(ports), PORT)
 
     def set_port_durations(self, port_durations: list[ForecastArgument]) -> None:
         """

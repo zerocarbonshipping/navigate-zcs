@@ -26,6 +26,8 @@ from navigate.core.assign import (
     assign_integer,
     assign_list,
     assign_member,
+    assign_reference,
+    assign_reference_list,
     assign_value,
     command_assignment_to_boolean_dict,
     expand_id_wildcard,
@@ -49,9 +51,12 @@ from navigate.core.node_type import (
     VARIABLE,
 )
 from navigate.core.nodes.curve import Curve
+from navigate.core.nodes.feedstock import Feedstock
 from navigate.core.nodes.fleet import Fleet
 from navigate.core.nodes.forecast import Forecast
 from navigate.core.nodes.fuel import Fuel
+from navigate.core.nodes.port import Port
+from navigate.core.nodes.process import Process
 from navigate.core.nodes.variable import Variable
 from navigate.core.scalar import Scalar
 from navigate.core.table_data import TableData
@@ -520,25 +525,6 @@ class TestAssignValue:
             variable.get()
 
     @pytest.mark.parametrize(
-        ("arguments", "message"),
-        [
-            ({"type_": PORT}, "only allows assignment of nodes of type Port"),
-            (
-                {"type_": (FEEDSTOCK, PROCESS)},
-                "only allows assignment of nodes of type Feedstock or Process",
-            ),
-        ],
-        ids=["single_type", "tuple_type"],
-    )
-    def test_expression_rejected_where_no_calculator_is_accepted(
-        self, arguments, message
-    ):
-        # a node reference is read as the node itself, never evaluated, so an
-        # expression there has nothing to evaluate it and is refused by kind
-        with pytest.raises(ValueError, match=f"{message}, but got expression"):
-            assign_value(Expression('Port("x")'), scalar=False, **arguments)
-
-    @pytest.mark.parametrize(
         "arguments",
         [{}, {"scalar": False, "type_": CURVE}],
         ids=["scalar", "calculator_type"],
@@ -585,20 +571,125 @@ class TestAssignList:
     def test_zero_length_accepts_an_empty_list(self):
         assert assign_list([], length=0) == []
 
+
+# ── assign_reference ──────────────────────────────────────────────────────────
+
+
+class TestAssignReference:
+    def test_accepted_node_returned_as_is(self):
+        fuel = Fuel("oil")
+        assert assign_reference(fuel, FUEL) is fuel
+
+    @pytest.mark.parametrize(
+        "node",
+        [Feedstock("f"), Process("p")],
+        ids=["first_member", "last_member"],
+    )
+    def test_tuple_type_accepts_any_member(self, node):
+        # the shape the Process feeds setter passes
+        assert assign_reference(node, (FEEDSTOCK, PROCESS)) is node
+
+    @pytest.mark.parametrize(
+        ("assignment", "type_", "message"),
+        [
+            (
+                Port("p"),
+                FUEL,
+                'only allows assignment of nodes of type Fuel, but got Port("p")',
+            ),
+            (
+                Fuel("oil"),
+                (FEEDSTOCK, PROCESS),
+                "only allows assignment of nodes of type Feedstock or Process, "
+                'but got Fuel("oil")',
+            ),
+            (
+                Variable("v"),
+                FUEL,
+                'only allows assignment of nodes of type Fuel, but got Variable("v")',
+            ),
+            (
+                1.0,
+                FUEL,
+                "only allows assignment of nodes of type Fuel, but got scalar",
+            ),
+            (
+                [Fuel("oil")],
+                FUEL,
+                "only allows assignment of nodes of type Fuel, but got list",
+            ),
+            (
+                TableData(rows=[[1.0, 2.0]]),
+                FUEL,
+                "only allows assignment of nodes of type Fuel, but got table",
+            ),
+            (
+                "oil",
+                FUEL,
+                "only allows assignment of nodes of type Fuel, but got oil",
+            ),
+        ],
+        ids=[
+            "wrong_type",
+            "tuple_non_member",
+            "calculator",
+            "float",
+            "list",
+            "table",
+            "token",
+        ],
+    )
+    def test_anything_but_an_accepted_node_rejected(self, assignment, type_, message):
+        # compared whole: the sentence a deck author reads must not drift
+        with pytest.raises(ValueError, match="nodes of type") as rejected:
+            assign_reference(assignment, type_)
+
+        assert str(rejected.value) == message
+
+    @pytest.mark.parametrize(
+        ("type_", "message"),
+        [
+            (PORT, "only allows assignment of nodes of type Port"),
+            (
+                (FEEDSTOCK, PROCESS),
+                "only allows assignment of nodes of type Feedstock or Process",
+            ),
+        ],
+        ids=["single_type", "tuple_type"],
+    )
+    def test_expression_rejected(self, type_, message):
+        # a node reference is read as the node itself, never evaluated, so an
+        # expression there has nothing to evaluate it and is refused by kind
+        with pytest.raises(ValueError, match=message) as rejected:
+            assign_reference(Expression('Port("x")'), type_)
+
+        assert str(rejected.value) == f"{message}, but got expression"
+
+
+# ── assign_reference_list ─────────────────────────────────────────────────────
+
+
+class TestAssignReferenceList:
     def test_duplicate_references_rejected(self):
         with pytest.raises(ValueError, match=r"requires all entries .* to be unique"):
-            assign_list(
-                [Fuel("oil"), Fuel("oil")], unique=True, scalar=False, type_=FUEL
-            )
+            assign_reference_list([Fuel("oil"), Fuel("oil")], FUEL, unique=True)
 
-    def test_expression_entry_rejected_where_no_calculator_is_accepted(self):
-        with pytest.raises(ValueError, match="nodes of type Port, but got expression"):
-            assign_list([Expression('Port("x")')], scalar=False, type_=PORT)
+    def test_uniqueness_checked_before_the_entries(self):
+        # a duplicate is reported ahead of an entry that is no node at all
+        with pytest.raises(ValueError, match=r"requires all entries .* to be unique"):
+            assign_reference_list([Fuel("oil"), Fuel("oil"), 1.0], FUEL, unique=True)
 
-    def test_uniqueness_ignores_floats(self):
-        # _check_list_is_unique only inspects node entries, so unique=True is a
-        # no-op for a list of numbers
-        assert assign_list([1.0, 1.0], unique=True) == [1.0, 1.0]
+    def test_duplicates_accepted_unless_unique(self):
+        fuels = [Fuel("oil"), Fuel("oil")]
+        assert assign_reference_list(fuels, FUEL) is fuels
+
+    def test_expression_entry_rejected(self):
+        with pytest.raises(ValueError, match="nodes of type Port") as rejected:
+            assign_reference_list([Expression('Port("x")')], PORT)
+
+        assert str(rejected.value) == (
+            "only allows assignment of nodes of type Port, but got expression"
+        )
 
 
 # ── assign_fraction_list ──────────────────────────────────────────────────────

@@ -19,6 +19,7 @@ from navigate.core import (
     assign_id,
     assign_list,
     assign_member,
+    assign_reference_list,
     assign_value,
     command_assignment_to_boolean_dict,
     write_matching_key_pairs,
@@ -138,9 +139,7 @@ class Fleet(_AssetManager[Vessel]):
         vessels
             The list of vessel types that exists for the fleet.
         """
-        self.assets = assign_list(
-            as_list(vessels), unique=True, scalar=False, type_=VESSEL
-        )
+        self.assets = assign_reference_list(as_list(vessels), VESSEL, unique=True)
 
     def set_memory(self, memory: ForecastArgument) -> None:
         """
@@ -287,8 +286,8 @@ class Fleet(_AssetManager[Vessel]):
         technologies
             The list of technologies that can be installed on vessels.
         """
-        self.technologies = assign_list(
-            as_list(technologies), unique=True, scalar=False, type_=TECHNOLOGY
+        self.technologies = assign_reference_list(
+            as_list(technologies), TECHNOLOGY, unique=True
         )
 
     def set_intra_fuel_sensitivity(

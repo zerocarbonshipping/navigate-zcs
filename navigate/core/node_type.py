@@ -61,8 +61,8 @@ CALCULATOR_TYPES = (CURVE, FORECAST, SURFACE, TIMETABLE, VARIABLE)
 # the node classes 'CALCULATOR_TYPES' names
 type Calculator = Curve | Forecast | Surface | Timetable | Variable
 
-# the node type(s) an attribute accepts; None where it accepts no reference
-type AcceptedNodeTypes = str | tuple[str, ...] | None
+# the node type(s) an attribute accepts
+type AcceptedNodeTypes = str | tuple[str, ...]
 
 
 def is_calculator(node: Node) -> TypeIs[Calculator]:

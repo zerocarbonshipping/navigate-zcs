@@ -12,7 +12,7 @@ from navigate.core import (
     as_scalar,
     assign_boolean,
     assign_id,
-    assign_list,
+    assign_reference_list,
     assign_value,
     command_assignment_to_boolean_dict,
     write_matching_key_pairs,
@@ -102,7 +102,7 @@ class _Policy(Node):
         ports
             List of Port nodes.
         """
-        self.jurisdiction = assign_list(as_list(ports), scalar=False, type_=PORT)
+        self.jurisdiction = assign_reference_list(as_list(ports), PORT)
 
     def set_emissions(self, emissions: list[Emission]) -> None:
         """
@@ -119,8 +119,8 @@ class _Policy(Node):
         emissions
             A list of Emission nodes.
         """
-        self.emissions = assign_list(
-            as_list(emissions), unique=True, scalar=False, type_=EMISSION
+        self.emissions = assign_reference_list(
+            as_list(emissions), EMISSION, unique=True
         )
 
     def set_fuels(self, fuels: list[Fuel]) -> None:
@@ -138,7 +138,7 @@ class _Policy(Node):
         fuels
             A list of Fuel nodes.
         """
-        self.fuels = assign_list(as_list(fuels), unique=True, scalar=False, type_=FUEL)
+        self.fuels = assign_reference_list(as_list(fuels), FUEL, unique=True)
 
     def set_scope(self, scope: str) -> None:
         """

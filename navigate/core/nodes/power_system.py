@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from navigate.core import assign_value
+from navigate.core import assign_reference
 from navigate.core.enum_ import EnergyDemandTypeID
 from navigate.core.node_type import CONVERTER, POWER_SYSTEM
 from navigate.core.nodes._machinery import _Machinery
@@ -43,7 +43,7 @@ class PowerSystem(_Machinery):
         propulsion
             A converter used to satisfy the propulsion demand.
         """
-        self.propulsion = assign_value(propulsion, scalar=False, type_=CONVERTER)
+        self.propulsion = assign_reference(propulsion, CONVERTER)
 
     def set_electrical(self, electrical: Converter) -> None:
         """
@@ -58,7 +58,7 @@ class PowerSystem(_Machinery):
         electrical
             A converter used to satisfy the electrical demand.
         """
-        self.electrical = assign_value(electrical, scalar=False, type_=CONVERTER)
+        self.electrical = assign_reference(electrical, CONVERTER)
 
     def set_heat(self, heat: Converter) -> None:
         """
@@ -73,7 +73,7 @@ class PowerSystem(_Machinery):
         heat
             A converter used to satisfy the heat demand.
         """
-        self.heat = assign_value(heat, scalar=False, type_=CONVERTER)
+        self.heat = assign_reference(heat, CONVERTER)
 
     # internal methods -----------------------------------------------------------------
     def check_consistency(self) -> None:

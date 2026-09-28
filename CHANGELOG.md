@@ -733,6 +733,17 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   validate it with `assign_value` first — and no longer take `scalar`,
   `type_`, `lower`, `upper`, `inclusive_lower`, `inclusive_upper` or
   `expression`. Results are unchanged.
+- **Breaking** for code importing navigate as a library: an attribute holding
+  a node reference is validated by the new `navigate.core.assign_reference`
+  and `navigate.core.assign_reference_list` in place of `assign_value` and
+  `assign_list` with `scalar=False`. `assign_value` and `assign_list` no
+  longer accept a node that is not a calculator, and `assign_list` no longer
+  takes `unique` or `scalar`; uniqueness is `assign_reference_list(...,
+  unique=True)`. `navigate.core.assign.Assignment` narrows to a float, a
+  `Scalar`, a calculator or an expression, and
+  `navigate.core.node_type.AcceptedNodeTypes` no longer includes `None`,
+  which the parameters allowing it now write out. Deck messages and results
+  are unchanged.
 
 ### Removed
 - **Breaking** for input decks: the `BunkerLogistics` general node is
