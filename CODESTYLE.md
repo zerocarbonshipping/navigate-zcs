@@ -37,7 +37,8 @@ style-only commits, and never add new entries.
 - An attribute definition carries the annotation alone and no trailing
   comment; a group comment heading a run of attributes stays. Anything worth
   saying about one attribute is either a why, under the Comments section, or
-  belongs in the class docstring.
+  belongs in the class docstring. The exception is an enum member, which
+  carries exactly one trailing comment stating what it stands for.
 - Access attributes directly; do not add getters or setters without a need a
   plain attribute cannot express. Sanctioned exceptions are listed in the
   repository-specific section below.

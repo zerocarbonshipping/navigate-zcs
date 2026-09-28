@@ -12,36 +12,36 @@ from enum import Enum, auto
 class SimulationSectionID(Enum):
     """The section of a deck a declaration is read in."""
 
-    DEFINE = auto()
-    EVENTS = auto()
+    DEFINE = auto()  # deck section where nodes are defined
+    EVENTS = auto()  # deck section where the timeline and attribute changes are read
 
 
 class FuelTypeID(Enum):
     """The molecule a fuel is based on, shared by every pathway producing it."""
 
-    AMMONIA = auto()
-    ELECTRICITY = auto()
-    ETHANOL = auto()
-    HYDROGEN = auto()
-    LPG = auto()
-    METHANE = auto()
-    METHANOL = auto()
-    OIL = auto()
+    AMMONIA = auto()  # ammonia-based fuel
+    ELECTRICITY = auto()  # not a fuel; represents battery-electric vessels
+    ETHANOL = auto()  # ethanol-based fuel
+    HYDROGEN = auto()  # hydrogen-based fuel
+    LPG = auto()  # liquefied petroleum gas, e.g. butane, propane
+    METHANE = auto()  # methane-based fuel, e.g. LNG, bio-methane
+    METHANOL = auto()  # methanol-based fuel
+    OIL = auto()  # oil- or diesel-based fuel
 
 
 class SourceDependencyID(Enum):
     """The dependency of an energy source on the electricity grid of its region."""
 
-    STANDALONE = auto()
-    CONNECTED = auto()
+    STANDALONE = auto()  # not connected to the region's electricity grid
+    CONNECTED = auto()  # connected to the region's electricity grid
 
 
 class EnergyDemandTypeID(Enum):
     """The kind of vessel energy demand a technology targets."""
 
-    PROPULSION = auto()
-    ELECTRICAL = auto()
-    HEAT = auto()
+    PROPULSION = auto()  # propulsive energy demand
+    ELECTRICAL = auto()  # electrical energy demand
+    HEAT = auto()  # heat energy demand
 
 
 # iteration order feeds LP variable/constraint creation order, which must be
@@ -52,8 +52,8 @@ EnergyDemandTypePortID = (EnergyDemandTypeID.ELECTRICAL, EnergyDemandTypeID.HEAT
 class RouteTypeID(Enum):
     """How a vessel moves between the ports of a route."""
 
-    ROUND_TRIP = auto()
-    REGIONAL_TRIP = auto()
+    ROUND_TRIP = auto()  # explicit ordered ports with a start/end, per-leg inputs
+    REGIONAL_TRIP = auto()  # no explicit ports; time split across speed/cargo bins
 
 
 class Interpolate1DID(Enum):
@@ -125,42 +125,42 @@ class SpeedAlignmentID(Enum):
 class ReportReduceID(Enum):
     """Which elements of a report property's tuple keys are reduced over."""
 
-    NONE = auto()
-    FIRST = auto()
-    SECOND = auto()
-    BOTH = auto()
+    NONE = auto()  # no reduction
+    FIRST = auto()  # reduce over the first tuple element
+    SECOND = auto()  # reduce over the second tuple element
+    BOTH = auto()  # reduce over both tuple elements
 
 
 class FileFormatID(Enum):
     """The file format a report is exported in."""
 
-    XLSX = auto()
-    CSV = auto()
+    XLSX = auto()  # single Excel workbook, one sheet per report table
+    CSV = auto()  # one CSV file per report table
 
 
 class SolverBackendID(Enum):
     """The solver backend the bunkering linear program is solved with."""
 
-    AUTOMATIC = auto()
-    GUROBI = auto()
-    HIGHS = auto()
+    AUTOMATIC = auto()  # use Gurobi if available, else HiGHS
+    GUROBI = auto()  # prefer Gurobi, falling back to HiGHS if unavailable
+    HIGHS = auto()  # always use HiGHS
 
 
 class SolverMethodID(Enum):
     """The solution method the solver backend applies to the linear program."""
 
     # integer values are Gurobi Method IDs (also mapped in solver_highs.py for HiGHS)
-    AUTOMATIC = -1
-    DETERMINISTIC = 4
-    NON_DETERMINISTIC = 3
+    AUTOMATIC = -1  # let the solver choose the method automatically
+    DETERMINISTIC = 4  # request the deterministic concurrent method
+    NON_DETERMINISTIC = 3  # request the concurrent method
 
 
 # internal enums -----------------------------------------------------------------------
 class BunkerScopeID(Enum):
     """Whether bunkering is solved for the existing fleet or the expected one."""
 
-    EXPECTED = auto()
-    EXISTING = auto()
+    EXPECTED = auto()  # forward-looking pass that informs investment decisions
+    EXISTING = auto()  # final pass solved for the fleet as it currently stands
 
 
 class UtilityID(Enum):
