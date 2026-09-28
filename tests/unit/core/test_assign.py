@@ -538,8 +538,9 @@ class TestAssignList:
             ([1.0, 2.0], 3, "must contain exactly 3 values"),
             ([1.0], (2, None), "must contain at least 2 values"),
             ([1.0, 2.0, 3.0], (None, 2), "must contain at most 2 values"),
+            ([1.0], 0, "must contain exactly 0 values"),
         ],
-        ids=["exact", "lower_bound", "upper_bound"],
+        ids=["exact", "lower_bound", "upper_bound", "zero"],
     )
     def test_length_violation(self, assignment, length, message):
         with pytest.raises(ValueError, match=message):
@@ -547,6 +548,9 @@ class TestAssignList:
 
     def test_default_length_skips_the_check(self):
         assert assign_list([1.0, 2.0], length=None) == [1.0, 2.0]
+
+    def test_zero_length_accepts_an_empty_list(self):
+        assert assign_list([], length=0) == []
 
     def test_duplicate_references_rejected(self):
         with pytest.raises(ValueError, match=r"requires all entries .* to be unique"):
