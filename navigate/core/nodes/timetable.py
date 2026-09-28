@@ -106,10 +106,15 @@ class Timetable(Node, _Table2D):
         self._current_time = time
 
     @overload
+    def get(self, x: float | None = None, y: float | None = None) -> float: ...
+
+    @overload
     def get(self, x: FloatArray, y: FloatLike | None = None) -> FloatArray: ...
 
     @overload
-    def get(self, x: float | None = None, y: FloatLike | None = None) -> float: ...
+    def get(
+        self, x: FloatLike | None = None, y: FloatLike | None = None
+    ) -> FloatLike: ...
 
     def get(self, x: FloatLike | None = None, y: FloatLike | None = None) -> FloatLike:
         """
