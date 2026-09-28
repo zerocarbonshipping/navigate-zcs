@@ -9,7 +9,6 @@ import re
 
 import numpy as np
 import pytest
-from lark.exceptions import VisitError
 
 from navigate.core import Expression
 from navigate.core.table_data import _DATE_FORMAT_ERROR
@@ -271,6 +270,14 @@ class TestValues:
     def test_value_parsing(self, source, check):
         assert check(_val(source))
 
+    def test_invalid_expression_body_raises_deck_format_error(self):
+        with pytest.raises(DeckFormatError) as exc_info:
+            parse_include_content('Vessel "v" {\n  A = <1 +>\n}')
+
+        message = str(exc_info.value)
+        assert "line 2" in message.lower()
+        assert "Error in expression" in message
+
 
 # ═════════════════════════════════════════════════════════════════════════════════
 # Commands
@@ -406,7 +413,7 @@ class TestOneStatementPerLine:
         ids=["two_statements", "two_body_items", "two_deck_blocks"],
     )
     def test_rejects_multiple_statements_per_line(self, parse_fn, source):
-        with pytest.raises(VisitError, match="same line"):
+        with pytest.raises(DeckFormatError, match="same line"):
             parse_fn(source)
 
     @pytest.mark.parametrize(

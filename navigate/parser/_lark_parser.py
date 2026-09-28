@@ -20,7 +20,7 @@ from importlib.resources import files
 from typing import Any
 
 from lark import Lark, Transformer, v_args
-from lark.exceptions import UnexpectedCharacters, UnexpectedToken
+from lark.exceptions import UnexpectedCharacters, UnexpectedToken, VisitError
 
 from navigate.core import Expression
 from navigate.core.table_data import TableData, parse_table_cells, string_to_date
@@ -283,7 +283,15 @@ class NavTransformer(Transformer):
         return NodeReference(node_type, name)
 
     def expression(self, meta, items):
-        return Expression(str(items[0])[1:-1])
+        text = str(items[0])[1:-1]
+        try:
+            return Expression(text)
+        except (ValueError, NotImplementedError) as error:
+            if self.file:
+                message = f"In file '{self.file}', line {meta.line}: {error}"
+            else:
+                message = f"Line {meta.line}: {error}"
+            raise DeckFormatError(message) from None
 
     def wildcard_value(self, meta, items):
         return str(items[0])
@@ -386,7 +394,13 @@ def _parse(parser, text: str, file: str):
         tree = parser.parse(text)
     except (UnexpectedToken, UnexpectedCharacters) as e:
         raise DeckFormatError(_format_parse_error(e, text, file)) from e
-    return _transformer.transform(tree)
+
+    try:
+        return _transformer.transform(tree)
+    except VisitError as e:
+        if isinstance(e.orig_exc, DeckFormatError):
+            raise e.orig_exc from None
+        raise
 
 
 def parse_include_content(text: str, file: str = "") -> list:

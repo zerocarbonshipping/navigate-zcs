@@ -637,6 +637,16 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   single value goes through `find_nearest_index`, which returns an `int`.
   `get_increment_origin_index` takes a single age and returns an `int`; an
   array of ages goes through `get_increment_origin_indexes`. No result moves.
+- An expression that does not parse is now reported when its file is read, as
+  a deck-format error naming the file and line, in place of an uncaught
+  `ValueError` that surfaced only as a raw Python traceback once the
+  reference walk reached the attribute holding it. Two statements on one
+  line, which escaped the same way as a `lark.exceptions.VisitError`, now
+  raise that same clean, formatted error.
+- **Breaking** for code importing navigate as a library: `Expression(text)`
+  parses its text and raises on construction; `Expression.initialize`,
+  `Expression.is_initialized` and `navigate.core.expression.parse_reference_strings`
+  are removed — read `reference_strings`. No effect on results.
 
 ### Removed
 - **Breaking** for input decks: the `BunkerLogistics` general node is
