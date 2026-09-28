@@ -514,15 +514,10 @@ To have a faster solving time, we change the <code class="docutils literal notra
 <section id="setup">
 <h2>Setup<a class="headerlink" href="#setup" title="Link to this heading">#</a></h2>
 <p>Run the cell below to install Navigate, prepare the sensitivities and run a reference scenario (you can choose yours among the ones available in the simulation folder by updating the SCENARIO variable at the top of the cell below).</p>
-<div class="cell tag_hide-input docutils container">
-<details class="admonition hide above-input">
-<summary aria-label="Toggle hidden content">
-<p class="collapsed admonition-title">Show code cell source</p>
-<p class="expanded admonition-title">Hide code cell source</p>
-</summary>
+<div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># ===========================================================================</span>
-<span class="c1">#  WHICH SCENARIO TO START FROM</span>
+<span class="c1">#  WHICH SCENARIO TO START FROM.  Run this cell, then the Setup cell below it.</span>
 <span class="c1">#</span>
 <span class="c1">#  Four reference scenarios are available in the default simulation folder.</span>
 <span class="c1">#  The main differences between scenarios are the assumptions taken for regulation.</span>
@@ -546,7 +541,18 @@ To have a faster solving time, we change the <code class="docutils literal notra
 <span class="n">SCENARIO</span> <span class="o">=</span> <span class="s2">"workshop_basecase_mid_regulation"</span>
 
 <span class="c1"># ===========================================================================</span>
-
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Setup</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
@@ -938,7 +944,7 @@ repeated in the code comments are a convenience copy of the same thing.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># ===========================================================================</span>
-<span class="c1">#  YOUR SCENARIO.  Set a lever, run the cell, read the answer below it.</span>
+<span class="c1">#  YOUR SCENARIO.  Set a lever, run this cell, then run the one below it.</span>
 <span class="c1">#</span>
 <span class="c1">#  Every number is a MULTIPLIER on what the deck already says, so 1.0 is the</span>
 <span class="c1">#  reference. The right-hand column is the value being multiplied, so you can</span>
@@ -961,7 +967,18 @@ repeated in the code comments are a convenience copy of the same thing.</p>
 <span class="c1">#  start, not a boundary - go outside them, but check the answer still makes</span>
 <span class="c1">#  sense when you do.</span>
 <span class="c1"># ===========================================================================</span>
-
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Run your scenario</span>
 <span class="n">LEVERS</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">"OIL_PRICE"</span><span class="p">,</span> <span class="n">OIL_PRICE</span><span class="p">,</span> <span class="s2">"fossil_fuel_oil_price_global"</span><span class="p">),</span>
           <span class="p">(</span><span class="s2">"GAS_PRICE"</span><span class="p">,</span> <span class="n">GAS_PRICE</span><span class="p">,</span> <span class="s2">"liquefied_natural_gas_price_global"</span><span class="p">),</span>
           <span class="p">(</span><span class="s2">"CARBON_PRICE"</span><span class="p">,</span> <span class="n">CARBON_PRICE</span><span class="p">,</span> <span class="s2">"eu_ets_carbon_credit_price"</span><span class="p">),</span>
@@ -1109,6 +1126,7 @@ repeated in the code comments are a convenience copy of the same thing.</p>
 </pre></div>
 </div>
 </div>
+</details>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Every lever is still 1.0, so this would just re-solve the reference.
 Change one of the numbers above and run this cell again.

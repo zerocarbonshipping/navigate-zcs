@@ -515,7 +515,8 @@ efficiency measures.</p>
 <p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Setup. Works both on Google Colab and in a local checkout of the repository.</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Setup</span>
+<span class="c1"># Setup. Works both on Google Colab and in a local checkout of the repository.</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
@@ -1366,7 +1367,8 @@ if you want more details.</p>
 <p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Parse the deck and solve it once</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">contextlib</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
@@ -1520,7 +1522,8 @@ if you want more details.</p>
 <p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># What the four configurations cost to build.</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Newbuild CAPEX, retrofit costs and cost of capital</span>
+<span class="c1"># What the four configurations cost to build.</span>
 <span class="c1">#</span>
 <span class="c1"># In this example, the HULL is identical by design - same 80,000 DWT Panamax - so the premium</span>
 <span class="c1"># for a dual-fuel ship is not in Vessel.CAPEX but in the machinery. The model charges three</span>
@@ -1725,7 +1728,8 @@ class. This deck fits six of them, each with its own cost and saving:</p>
 <p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># What each hull already carries before the model decides anything. Read off the</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Efficiency technology on offer, and what is already fitted</span>
+<span class="c1"># What each hull already carries before the model decides anything. Read off the</span>
 <span class="c1"># parsed deck: initial_technology_share maps (vessel, technology) to the library</span>
 <span class="c1"># Curve the deck pointed it at, or None for a measure with no observed uptake.</span>
 <span class="n">_fleet_node</span> <span class="o">=</span> <span class="n">manager</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">fleets</span><span class="p">[</span><span class="s2">"copper_trade"</span><span class="p">]</span>
@@ -1770,9 +1774,15 @@ class. This deck fits six of them, each with its own cost and saving:</p>
 <h3>How sharply the fleet owner reacts<a class="headerlink" href="#how-sharply-the-fleet-owner-reacts" title="Link to this heading">#</a></h3>
 <p>The <strong>decision sensitivities</strong> the <code class="docutils literal notranslate"><span class="pre">.nav</span></code> pulls in with <code class="docutils literal notranslate"><span class="pre">Load</span> <span class="pre">DefaultCalibration</span></code>
 set how sharply the fleet owner responds to a cost difference.</p>
-<div class="cell docutils container">
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># The sensitivities that govern how strongly an advantage translates into a</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title The decision sensitivities in this deck</span>
+<span class="c1"># The sensitivities that govern how strongly an advantage translates into a</span>
 <span class="c1"># change of fuel, of hull, or of equipment. These are plain attributes on the</span>
 <span class="c1"># Fleet.</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"Decision sensitivities (from DefaultCalibration):"</span><span class="p">)</span>
@@ -1786,6 +1796,7 @@ set how sharply the fleet owner responds to a cost difference.</p>
 </pre></div>
 </div>
 </div>
+</details>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Decision sensitivities (from DefaultCalibration):
   InterFuelSensitivity         0.75
@@ -1826,7 +1837,8 @@ line is the deck’s value, the dashed lines a less and a more decisive owner.</
 <p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># The two formulas above, drawn for a choice between two options only: the</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Figure: how a sensitivity turns a cost gap into shares</span>
+<span class="c1"># The two formulas above, drawn for a choice between two options only: the</span>
 <span class="c1"># share one option gets as its gap to the other grows. With more options the</span>
 <span class="c1"># odds ratios hold the same way, but the shares spread thinner.</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
@@ -1924,9 +1936,15 @@ line is the deck’s value, the dashed lines a less and a more decisive owner.</
 <h2>2. Data about the fuels<a class="headerlink" href="#data-about-the-fuels" title="Link to this heading">#</a></h2>
 <p>We assume that fossil fuels (fuel oil and LNG) have a flat price until 2050.</p>
 <p>Electricity is more than half of what an e-fuel costs to make, and up to about 80 %. It is assumed that it’s cost decreases in the future.</p>
-<div class="cell docutils container">
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span><span class="p">)</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">11</span><span class="p">,</span> <span class="mf">3.6</span><span class="p">))</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Figure: fossil fuel and electricity prices</span>
+<span class="n">fig</span><span class="p">,</span> <span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span><span class="p">)</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">11</span><span class="p">,</span> <span class="mf">3.6</span><span class="p">))</span>
 
 <span class="n">panel</span><span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="p">[(</span><span class="s2">"fossil_fuel_oil_price_global"</span><span class="p">,</span> <span class="s2">"Fuel oil"</span><span class="p">),</span>
             <span class="p">(</span><span class="s2">"liquefied_natural_gas_price_global"</span><span class="p">,</span> <span class="s2">"LNG"</span><span class="p">)],</span>
@@ -1940,6 +1958,7 @@ line is the deck’s value, the dashed lines a less and a more decisive owner.</
 </pre></div>
 </div>
 </div>
+</details>
 <div class="cell_output docutils container">
 <img alt="../_images/0bd496f09d747f5852ab4e7bfff0db89b84eba8491a8d594d1d297c151531cc3.png" src="../_images/0bd496f09d747f5852ab4e7bfff0db89b84eba8491a8d594d1d297c151531cc3.png" />
 </div>
@@ -1953,7 +1972,8 @@ line is the deck’s value, the dashed lines a less and a more decisive owner.</
 <p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Inputs only: every number here is read off the parsed deck, none from the run.</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Fuel production data, read off the deck</span>
+<span class="c1"># Inputs only: every number here is read off the parsed deck, none from the run.</span>
 <span class="n">_region</span> <span class="o">=</span> <span class="n">manager</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">regions</span><span class="p">[</span><span class="s2">"europe"</span><span class="p">]</span>     <span class="c1"># the process economics are the same in every region</span>
 <span class="c1"># the two hydrogen steps in blues</span>
 <span class="n">_STEPS</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">"electrolysis_stack_alkaline"</span><span class="p">,</span> <span class="s2">"electrolyser stack"</span><span class="p">,</span> <span class="n">BLUE</span><span class="p">),</span>
@@ -2109,7 +2129,8 @@ this one trade.</p>
 <p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># What the two feedstock ceilings allow. The ceilings only - what the run draws</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Figure: feedstock ceilings</span>
+<span class="c1"># What the two feedstock ceilings allow. The ceilings only - what the run draws</span>
 <span class="c1"># against them is a result, and is plotted in Part 3.</span>
 <span class="c1">#</span>
 <span class="c1"># A ceiling is a deck EXPRESSION rather than a plain Forecast, so it is resolved</span>
@@ -2193,7 +2214,8 @@ carries a penalty at the far one.</p>
 <p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Figure: bunker logistics</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
 
 <span class="n">text</span> <span class="o">=</span> <span class="p">(</span><span class="n">EXAMPLE</span> <span class="o">/</span> <span class="s2">"includes"</span> <span class="o">/</span> <span class="s2">"bunker_logistics.inc"</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span>
 
@@ -2283,7 +2305,8 @@ alternative fuel supplies.</p>
 <p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span><span class="p">)</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">11</span><span class="p">,</span> <span class="mf">3.6</span><span class="p">))</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Figure: regulation prices and targets</span>
+<span class="n">fig</span><span class="p">,</span> <span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span><span class="p">)</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">11</span><span class="p">,</span> <span class="mf">3.6</span><span class="p">))</span>
 
 <span class="n">panel</span><span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="p">[(</span><span class="s2">"eu_ets_carbon_credit_price"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)],</span>
       <span class="s2">"EU ETS allowance price"</span><span class="p">,</span> <span class="s2">"USD/ton CO2"</span><span class="p">)</span>
@@ -2341,7 +2364,8 @@ a cap. Breaching the cap leads to a <strong>760 USD/ton penalty</strong> which i
 <p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># What each regulation charges each fuel, and where each number comes from.</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Table: what each regulation charges each fuel</span>
+<span class="c1"># What each regulation charges each fuel, and where each number comes from.</span>
 <span class="c1"># The factors come from DECK_FACTORS, the copy Part 2's data-extraction cell took</span>
 <span class="c1"># of the Regulation nodes before solving (`set_fuel_ttw` / `set_fuel_wtt` in eu_ets.inc and fuel_eu.inc).</span>
 <span class="c1"># Where a regulation states no WTT of its own, Navigate derives one from the</span>
@@ -2560,7 +2584,8 @@ decisions, and once at the end of the year to commit.</p>
 <p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">run_case</span><span class="p">(</span><span class="n">tweak</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">probe_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">quiet</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Run the case and record what the actors believe</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">run_case</span><span class="p">(</span><span class="n">tweak</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">probe_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">quiet</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Parse the deck, optionally modify it, solve it, return the manager.</span>
 
 <span class="sd">    With `probe_fn`, `SimulationManager._perform_time_step` is wrapped for the</span>
@@ -2934,7 +2959,8 @@ terms for this year are already fixed.</p>
 <p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># What the year inherits, as two pictures rather than a list. Drawn by a function</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Stage 0 figure: what 2027 inherits</span>
+<span class="c1"># What the year inherits, as two pictures rather than a list. Drawn by a function</span>
 <span class="c1"># taking a step, so the 2040 section can put the same picture beside this one.</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">navigate.illustrations.plots._labels</span><span class="w"> </span><span class="kn">import</span> <span class="n">FUEL_TYPE_ORDER</span>
@@ -3064,7 +3090,8 @@ this year's regulatory terms:
 <p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.patches</span><span class="w"> </span><span class="kn">import</span> <span class="n">Patch</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Stage 1 figures: what the fleet expects to buy and to pay</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.patches</span><span class="w"> </span><span class="kn">import</span> <span class="n">Patch</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">navigate.illustrations.plots._labels</span><span class="w"> </span><span class="kn">import</span> <span class="n">FUEL_ORDER</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.ticker</span><span class="w"> </span><span class="kn">import</span> <span class="n">MaxNLocator</span>
@@ -3226,9 +3253,15 @@ The strip under the bars explains why a dual-fuel ship sometimes burns oil inste
 <li><p><strong>alternative on offer, oil still cheaper</strong>: the supply is there, but oil plus the expected compliance cost is cheaper</p></li>
 <li><p><strong>on its main fuel</strong>: oil is down to the minimum pilot share the engine needs</p></li>
 </ul>
-<div class="cell docutils container">
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Stage 1, one bar per year of the look-ahead. The strip is read off the LP: the supply</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Stage 1 figure: fuel mix per year, and why</span>
+<span class="c1"># Stage 1, one bar per year of the look-ahead. The strip is read off the LP: the supply</span>
 <span class="c1"># each port was expected to offer, which of the hull's supply caps bound, and whether</span>
 <span class="c1"># its dual-fuel engines burn more oil than their minimum pilot share.</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.patches</span><span class="w"> </span><span class="kn">import</span> <span class="n">Patch</span>
@@ -3327,6 +3360,7 @@ The strip under the bars explains why a dual-fuel ship sometimes burns oil inste
 </pre></div>
 </div>
 </div>
+</details>
 <div class="cell_output docutils container">
 <img alt="../_images/601b22372869aca4dce5cde92c81d6f41371077d0c796dfd9c617013b728cc7d.png" src="../_images/601b22372869aca4dce5cde92c81d6f41371077d0c796dfd9c617013b728cc7d.png" />
 </div>
@@ -3335,9 +3369,15 @@ The strip under the bars explains why a dual-fuel ship sometimes burns oil inste
 <section id="year-by-year-what-each-configuration-expects-to-pay">
 <h4>Year by year: what each configuration expects to pay<a class="headerlink" href="#year-by-year-what-each-configuration-expects-to-pay" title="Link to this heading">#</a></h4>
 <p>The cell below shows what each ship type would be expected to pay each year for fuel and compliance.</p>
-<div class="cell docutils container">
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Stage 1 in money, one bar per year ahead.</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Stage 1 figure: fuel and compliance cost per year</span>
+<span class="c1"># Stage 1 in money, one bar per year ahead.</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">patheffects</span>
 
 <span class="n">REG_LABEL</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"eu_ets"</span><span class="p">:</span> <span class="s2">"EU ETS"</span><span class="p">,</span> <span class="s2">"fuel_eu"</span><span class="p">:</span> <span class="s2">"FuelEU"</span><span class="p">}</span>
@@ -3402,6 +3442,7 @@ The strip under the bars explains why a dual-fuel ship sometimes burns oil inste
 </pre></div>
 </div>
 </div>
+</details>
 <div class="cell_output docutils container">
 <img alt="../_images/8b375cc5bcf06b7d0bdebd6ae53c0a05b157db3a302046503a0e42d6ff0e87c3.png" src="../_images/8b375cc5bcf06b7d0bdebd6ae53c0a05b157db3a302046503a0e42d6ff0e87c3.png" />
 </div>
@@ -3426,7 +3467,8 @@ conversions and order newbuilds</p></li>
 <p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># The four levers Stage 2 pulls, side by side. Each panel is one decision, taken</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Stage 2 figures: the four decisions</span>
+<span class="c1"># The four levers Stage 2 pulls, side by side. Each panel is one decision, taken</span>
 <span class="c1"># on this year's beliefs and without waiting for the other three.</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.patches</span><span class="w"> </span><span class="kn">import</span> <span class="n">Patch</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.lines</span><span class="w"> </span><span class="kn">import</span> <span class="n">Line2D</span>
@@ -3797,7 +3839,8 @@ output <em>is</em> the fleet’s available supply.</p>
 <p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"=== </span><span class="si">{</span><span class="n">FOCUS_YEARS</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">: what the producer saw, and did ===</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Stage 3 figures: what the producer saw, and did</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"=== </span><span class="si">{</span><span class="n">FOCUS_YEARS</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">: what the producer saw, and did ===</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">"the demand vector it read (this year's forward view, first year):"</span><span class="p">)</span>
 <span class="c1"># get_fuel_demand() is a mass in tons, so it takes each fuel's own heating value</span>
 <span class="c1"># to reach energy. Everything else in this cell is TJ/yr, so this has to be too.</span>
@@ -4083,7 +4126,8 @@ delivered.</p>
 <p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.colors</span><span class="w"> </span><span class="kn">import</span> <span class="n">to_rgba</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Stage 4 figures: expected against committed</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.colors</span><span class="w"> </span><span class="kn">import</span> <span class="n">to_rgba</span>
 
 <span class="n">plan</span> <span class="o">=</span> <span class="p">{}</span>
 <span class="k">for</span> <span class="p">(</span><span class="n">vessel</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">fuel</span><span class="p">),</span> <span class="n">tons</span> <span class="ow">in</span> <span class="n">snap</span><span class="p">[</span><span class="s2">"bunkered"</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -4631,7 +4675,8 @@ next year’s look-ahead.</p>
 <p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># What CHANGED between the two steps. The levers themselves are drawn further</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title What changed between 2027 and 2040</span>
+<span class="c1"># What CHANGED between the two steps. The levers themselves are drawn further</span>
 <span class="c1"># down, one stage at a time; these are the conditions the stages answered to.</span>
 <span class="n">late</span> <span class="o">=</span> <span class="n">snaps</span><span class="p">[</span><span class="n">STEP_LATE</span><span class="p">]</span>
 
@@ -4673,9 +4718,15 @@ next year’s look-ahead.</p>
 </div>
 <section id="stage-0-initialization-2027-vs-2040">
 <h3>Stage 0 — Initialization (2027 vs 2040)<a class="headerlink" href="#stage-0-initialization-2027-vs-2040" title="Link to this heading">#</a></h3>
-<div class="cell docutils container">
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Stage 0, both years. Same function, same scale: what the year inherits.</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Stage 0 figure, 2027 vs 2040</span>
+<span class="c1"># Stage 0, both years. Same function, same scale: what the year inherits.</span>
 <span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mf">11.5</span><span class="p">,</span> <span class="mf">7.4</span><span class="p">),</span>
                          <span class="n">gridspec_kw</span><span class="o">=</span><span class="p">{</span><span class="s2">"width_ratios"</span><span class="p">:</span> <span class="p">[</span><span class="mf">2.5</span><span class="p">,</span> <span class="mi">1</span><span class="p">]})</span>
 <span class="k">for</span> <span class="n">row</span><span class="p">,</span> <span class="n">step</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">((</span><span class="n">STEP_EARLY</span><span class="p">,</span> <span class="n">STEP_LATE</span><span class="p">)):</span>
@@ -4685,6 +4736,7 @@ next year’s look-ahead.</p>
 </pre></div>
 </div>
 </div>
+</details>
 <div class="cell_output docutils container">
 <img alt="../_images/35ae525936e395e07dd680cd36f411cedbe54aa8061becff0ba7d72896020fa1.png" src="../_images/35ae525936e395e07dd680cd36f411cedbe54aa8061becff0ba7d72896020fa1.png" />
 </div>
@@ -4699,7 +4751,8 @@ next year’s look-ahead.</p>
 <p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Stage 1, both years. The look-ahead's two outputs - what it expects to buy,</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Stage 1 figures, 2027 vs 2040</span>
+<span class="c1"># Stage 1, both years. The look-ahead's two outputs - what it expects to buy,</span>
 <span class="c1"># and what it expects that to cost.</span>
 <span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">13</span><span class="p">,</span> <span class="mf">4.8</span><span class="p">),</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">for</span> <span class="n">col</span><span class="p">,</span> <span class="n">step</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">((</span><span class="n">STEP_EARLY</span><span class="p">,</span> <span class="n">STEP_LATE</span><span class="p">)):</span>
@@ -4749,9 +4802,15 @@ next year’s look-ahead.</p>
 </section>
 <section id="stage-2-decide-2027-vs-2040">
 <h3>Stage 2 — Decide (2027 vs 2040)<a class="headerlink" href="#stage-2-decide-2027-vs-2040" title="Link to this heading">#</a></h3>
-<div class="cell docutils container">
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Stage 2, both years. Four panels per year will not fit across one row, so here</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Stage 2 figures, 2027 vs 2040</span>
+<span class="c1"># Stage 2, both years. Four panels per year will not fit across one row, so here</span>
 <span class="c1"># the YEAR IS THE COLUMN: 2027 on the left, 2040 on the right, each column in the</span>
 <span class="c1"># same order as the 2×2 above - technology, speed, scorecard, fleet.</span>
 <span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">13</span><span class="p">,</span> <span class="mf">14.5</span><span class="p">))</span>
@@ -4767,6 +4826,7 @@ next year’s look-ahead.</p>
 </pre></div>
 </div>
 </div>
+</details>
 <div class="cell_output docutils container">
 <img alt="../_images/0e6f16eda2cf3cb996602379dbcbf7598df9fa22e36e53cc844188a8dbfd37e4.png" src="../_images/0e6f16eda2cf3cb996602379dbcbf7598df9fa22e36e53cc844188a8dbfd37e4.png" />
 </div>
@@ -4774,9 +4834,15 @@ next year’s look-ahead.</p>
 </section>
 <section id="stage-3-the-producer-decides-too-2027-vs-2040">
 <h3>Stage 3 — The producer decides too (2027 vs 2040)<a class="headerlink" href="#stage-3-the-producer-decides-too-2027-vs-2040" title="Link to this heading">#</a></h3>
-<div class="cell docutils container">
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Stage 3, both years. This is the one to read closely: the e-fuel producer owns</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Stage 3 figures, 2027 vs 2040</span>
+<span class="c1"># Stage 3, both years. This is the one to read closely: the e-fuel producer owns</span>
 <span class="c1"># two sites for each of its fuels, so the delivered-cost axis splits each fuel's</span>
 <span class="c1"># build between them, and it has two fuels in demand, so the gap axis splits</span>
 <span class="c1"># across those. The biofuel producer has one plant and one fuel, so both axes</span>
@@ -4802,6 +4868,7 @@ next year’s look-ahead.</p>
 </pre></div>
 </div>
 </div>
+</details>
 <div class="cell_output docutils container">
 <img alt="../_images/5f092acd045f1a7c91d8f74d6631d9aefa4dce2a47b953f1cb66fe28e8ebb38e.png" src="../_images/5f092acd045f1a7c91d8f74d6631d9aefa4dce2a47b953f1cb66fe28e8ebb38e.png" />
 <img alt="../_images/478375fc33c37d47f02d6e9ef0d517f6983f118bc5b004440a0e53b8425855f4.png" src="../_images/478375fc33c37d47f02d6e9ef0d517f6983f118bc5b004440a0e53b8425855f4.png" />
@@ -4817,7 +4884,8 @@ next year’s look-ahead.</p>
 <p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Stage 4, both years: what was committed, then what had been expected of the</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Stage 4 figures, 2027 vs 2040</span>
+<span class="c1"># Stage 4, both years: what was committed, then what had been expected of the</span>
 <span class="c1"># same year. Both pairs share one tons scale, across both years and both halves.</span>
 <span class="k">for</span> <span class="n">drawer</span><span class="p">,</span> <span class="n">what</span> <span class="ow">in</span> <span class="p">((</span><span class="n">plot_expected_bill</span><span class="p">,</span> <span class="s2">"expected"</span><span class="p">),</span>
                      <span class="p">(</span><span class="n">plot_committed_bill</span><span class="p">,</span> <span class="s2">"committed"</span><span class="p">)):</span>
@@ -4872,7 +4940,8 @@ next year’s look-ahead.</p>
 <p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># One figure for the fleet: what it is at each date, and where each configuration</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Figure: fleet evolution</span>
+<span class="c1"># One figure for the fleet: what it is at each date, and where each configuration</span>
 <span class="c1"># came from.</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.colors</span><span class="w"> </span><span class="kn">import</span> <span class="n">to_rgba</span>
 
@@ -4964,7 +5033,8 @@ next year’s look-ahead.</p>
 <p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># What got fitted, and when.</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Figure: efficiency technology over time</span>
+<span class="c1"># What got fitted, and when.</span>
 <span class="c1">#</span>
 <span class="c1"># get_technology_uptake() is keyed by (vessel, technology) and each entry is that</span>
 <span class="c1"># CONFIGURATION's share, so adding them up gives a number that runs to 4.0 on a</span>
@@ -5033,7 +5103,8 @@ next year’s look-ahead.</p>
 <p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Navigate reports one levelized cost per plant (navigate/fuel/production.py).</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Figure: production cost of each fuel</span>
+<span class="c1"># Navigate reports one levelized cost per plant (navigate/fuel/production.py).</span>
 <span class="c1"># It is linear in the cost flows, so each part is the same calculation with only</span>
 <span class="c1"># that flow switched on, and the parts add up to the model's total.</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
@@ -5153,7 +5224,8 @@ next year’s look-ahead.</p>
 <p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fuels</span> <span class="o">=</span> <span class="n">fuel_frame</span><span class="p">(</span><span class="n">base</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Figure: energy bunkered by fuel</span>
+<span class="n">fuels</span> <span class="o">=</span> <span class="n">fuel_frame</span><span class="p">(</span><span class="n">base</span><span class="p">)</span>
 <span class="n">fuels</span> <span class="o">=</span> <span class="n">fuels</span><span class="p">[</span><span class="n">fuel_sorted</span><span class="p">(</span><span class="n">fuels</span><span class="o">.</span><span class="n">columns</span><span class="p">)]</span>      <span class="c1"># Navigate's own stacking order</span>
 <span class="n">_fc</span> <span class="o">=</span> <span class="p">[</span><span class="n">fuel_colour</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">fuels</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span>
 <span class="c1"># fuel_frame is in GJ; PJ keeps the axis to two digits, as the producer panels use</span>
@@ -5258,7 +5330,8 @@ next year’s look-ahead.</p>
 <p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># The same two ceilings as Part 2, now against what the run drew. Consumption is</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Figure: feedstock ceilings against what was used</span>
+<span class="c1"># The same two ceilings as Part 2, now against what the run drew. Consumption is</span>
 <span class="c1"># a run output - the profile aggregates it, and each constrained feed has one</span>
 <span class="c1"># producer in this deck, so the two line up. The ceilings are reused from</span>
 <span class="c1"># CEILINGS rather than recomputed: they are deck inputs and have not moved.</span>
@@ -5335,7 +5408,8 @@ retrofits, and a plant then takes several years to build.</p>
 <p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">FUEL</span> <span class="o">=</span> <span class="s2">"ammonia_electro"</span>        <span class="c1"># the largest e-fuel in the baseline; the others behave the same</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Figure: producers, siting, and supply against demand</span>
+<span class="n">FUEL</span> <span class="o">=</span> <span class="s2">"ammonia_electro"</span>        <span class="c1"># the largest e-fuel in the baseline; the others behave the same</span>
 
 <span class="c1"># one panel per row, so each gets the full width of the page</span>
 <span class="n">fig</span><span class="p">,</span> <span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span><span class="p">,</span> <span class="n">ax3</span><span class="p">)</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">11</span><span class="p">,</span> <span class="mf">13.5</span><span class="p">),</span>
@@ -5543,7 +5617,8 @@ over time.</p>
 <p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># The compliance panel borrows regulation_compliance.py's colours - COMPLIANT</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Figure: GHG intensity and emissions</span>
+<span class="c1"># The compliance panel borrows regulation_compliance.py's colours - COMPLIANT</span>
 <span class="c1"># and BREACH are that module's own green and red - but not its shading. The</span>
 <span class="c1"># library splits each measured value at the threshold and stacks the two halves;</span>
 <span class="c1"># here the GROUND is shaded instead, so four hulls can be drawn over it and</span>
@@ -5671,7 +5746,8 @@ discrete-choice model compares between configurations, so it is what explains <e
 <p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span><span class="p">)</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mf">4.2</span><span class="p">))</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Figure: what the trade cost</span>
+<span class="n">fig</span><span class="p">,</span> <span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span><span class="p">)</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mf">4.2</span><span class="p">))</span>
 
 <span class="c1"># USD per THOUSAND cargo-miles, which is what Navigate's own</span>
 <span class="c1"># fleet_investment_metric plot reports (divisor = 1./1e3) and what notebook 5</span>
@@ -5803,7 +5879,8 @@ ships, the owner decides what ships there are and what is fitted to them.</p>
 <p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># ===========================================================================</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Sensitivity analysis: the machinery (nothing to edit)</span>
+<span class="c1"># ===========================================================================</span>
 <span class="c1">#  The machinery. Nothing to edit here - the levers are in the next cell.</span>
 <span class="c1"># ===========================================================================</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">_style</span><span class="w"> </span><span class="kn">import</span> <span class="n">scen_colour</span>
@@ -6046,7 +6123,7 @@ technology.</p></li>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># ===========================================================================</span>
-<span class="c1">#  YOUR SCENARIO.  Set a lever, run the cell, read the answer below it.</span>
+<span class="c1">#  YOUR SCENARIO.  Set a lever, run this cell, then run the one below it.</span>
 <span class="c1">#</span>
 <span class="c1">#  Every number down to TRADE_GROWTH is a MULTIPLIER on what the deck already</span>
 <span class="c1">#  says, so 1.0 is the reference. The cell above printed what each 1.0 is worth</span>
@@ -6082,7 +6159,18 @@ technology.</p></li>
 <span class="n">FUEL_CONVERSION</span> <span class="o">=</span> <span class="mf">2.0</span>   <span class="c1">#  1.2 - 16       HIGHER is sharper: NPV against ship CAPEX</span>
 <span class="n">TECHNOLOGY</span>      <span class="o">=</span> <span class="mf">2.0</span>   <span class="c1">#  1.2 - 16       HIGHER is sharper: NPV on the measure</span>
 <span class="c1"># ===========================================================================</span>
-
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Run your scenario</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.ticker</span><span class="w"> </span><span class="kn">import</span> <span class="n">MaxNLocator</span>
 
 <span class="n">MULTIPLIERS</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">"OIL_PRICE"</span><span class="p">,</span> <span class="n">OIL_PRICE</span><span class="p">,</span> <span class="s2">"fossil_fuel_oil_price_global"</span><span class="p">),</span>
@@ -6227,6 +6315,7 @@ technology.</p></li>
 </pre></div>
 </div>
 </div>
+</details>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Every lever is still at its reference, so this would just re-solve it.
 Change one of the numbers above and run this cell again.

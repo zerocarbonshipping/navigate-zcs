@@ -487,7 +487,8 @@ draw across the ocean. Instead, the routes in the model represent an averaged pr
 <p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Setup. Works both on Google Colab and in a local checkout of the repository;</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Setup</span>
+<span class="c1"># Setup. Works both on Google Colab and in a local checkout of the repository;</span>
 <span class="c1"># the workshop overview explains the two ways to run these notebooks.</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
@@ -557,9 +558,15 @@ Navigate 1.0.0 is already installed.
 <section id="see-what-scenarios-are-available">
 <h2>See what scenarios are available<a class="headerlink" href="#see-what-scenarios-are-available" title="Link to this heading">#</a></h2>
 <p>Run this cell to check which of the Center’s pre-made scenarios are available in the simulation folder.</p>
-<div class="cell docutils container">
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title List the available scenarios</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 
 <span class="n">scenarios_dir</span> <span class="o">=</span> <span class="s2">"simulations/scenarios"</span>
 <span class="n">scenario_names</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
@@ -574,6 +581,7 @@ Navigate 1.0.0 is already installed.
 </pre></div>
 </div>
 </div>
+</details>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Available reference scenarios:
  - basecase_mid_regulation
@@ -595,7 +603,8 @@ Navigate 1.0.0 is already installed.
 <p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Compare the scenario decks</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
 <span class="n">deck_names</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"basecase_no_regulation"</span><span class="p">,</span> <span class="s2">"basecase_mid_regulation"</span><span class="p">,</span> <span class="s2">"basecase_strong_regulation"</span><span class="p">]</span>
 
@@ -736,7 +745,8 @@ what that included file asks for.</p>
 <p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Read the scenario assumptions</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
@@ -869,7 +879,8 @@ Since this step takes a while, run it at the beginning of the workshop and come 
 <p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Run the scenarios</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
@@ -952,7 +963,8 @@ for emissions, or <code class="docutils literal notranslate"><span class="pre">r
 <p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">glob</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Show the output plots</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">glob</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">IPython.display</span><span class="w"> </span><span class="kn">import</span> <span class="n">Image</span><span class="p">,</span> <span class="n">Markdown</span><span class="p">,</span> <span class="n">display</span>
 
 <span class="n">plots_dir</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"simulations/scenarios/</span><span class="si">{</span><span class="n">scenario</span><span class="si">}</span><span class="s2">/plots"</span>
@@ -1003,9 +1015,15 @@ for emissions, or <code class="docutils literal notranslate"><span class="pre">r
 <section id="inspect-the-exported-assumptions">
 <h2>Inspect the exported assumptions<a class="headerlink" href="#inspect-the-exported-assumptions" title="Link to this heading">#</a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">-e</span></code> flag exported the assumptions used for this run to Excel. Let’s preview the sheet names and a first look at the data.</p>
-<div class="cell docutils container">
+<div class="cell tag_hide-input docutils container">
+<details class="admonition hide above-input">
+<summary aria-label="Toggle hidden content">
+<p class="collapsed admonition-title">Show code cell source</p>
+<p class="expanded admonition-title">Hide code cell source</p>
+</summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">glob</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title List the exported assumption files</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">glob</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 
 <span class="n">excel_files</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="sa">f</span><span class="s2">"simulations/scenarios/</span><span class="si">{</span><span class="n">scenario</span><span class="si">}</span><span class="s2">/**/*.xlsx"</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -1021,6 +1039,7 @@ for emissions, or <code class="docutils literal notranslate"><span class="pre">r
 </pre></div>
 </div>
 </div>
+</details>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Exported Excel files found:
  - simulations/scenarios/basecase_mid_regulation\basecase_mid_regulation_assumptions.xlsx
@@ -1123,7 +1142,8 @@ attributable to regulatory stringency alone.</p>
 <p class="expanded admonition-title">Hide code cell source</p>
 </summary>
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">gzip</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># @title Figure: compare the three scenarios</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">gzip</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
