@@ -1207,6 +1207,17 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   index to scalar variable" error, and could not save a port report holding
   the bunker intensity, which was left with its header only. Decks that
   define an Emission are unaffected.
+- A `Variable` used as one `Technology`'s `set_power_transfer`, combined with
+  another technology's `Curve` transfer for the same source and sink energy
+  type, failed the run with a bare "setting an array element with a
+  sequence" error naming no deck line. The two transfers are stacked into
+  one array to sum them, and a `Variable` answered every load with the same
+  number instead of one value per load point the way a `Curve` does; the
+  mismatched shapes broke the stacking whenever more than one technology
+  transferred power between the same pair. A `Variable` now answers a load
+  the way a `Curve` or a plain number does, so the transfers sum as
+  intended. A pair every contributing technology transfers with a `Curve`,
+  a number, or a lone `Variable`, was unaffected.
 
 ## [1.0.0] - 2026-07-16
 

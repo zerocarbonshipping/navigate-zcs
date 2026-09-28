@@ -5,7 +5,9 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, overload
+
+import numpy as np
 
 from navigate.core import assign_value
 from navigate.core.node import Node
@@ -15,7 +17,7 @@ from navigate.exceptions import no_value_assigned_error
 
 if TYPE_CHECKING:
     from navigate.core.input_kinds import NumberInput
-    from navigate.util import FloatLike
+    from navigate.util import FloatArray, FloatLike
 
 
 class Variable(Node, _Calculator):
@@ -55,25 +57,39 @@ class Variable(Node, _Calculator):
         if self._value is None:
             no_value_assigned_error(self, "Value")
 
-    def get(self, x: FloatLike | None = None, y: FloatLike | None = None) -> float:
+    @overload
+    def get(self, x: FloatArray, y: FloatLike | None = None) -> FloatArray: ...
+
+    @overload
+    def get(self, x: float | None = None, y: FloatLike | None = None) -> float: ...
+
+    def get(self, x: FloatLike | None = None, y: FloatLike | None = None) -> FloatLike:
         """
         Return the variable value with the multiplier, addition, and truncation.
 
         Parameters
         ----------
         x
-            Dummy input variable for calculations with getters of 1 or 2 input.
+            Dummy first input matching the calculator getters; an array sets
+            the output shape.
         y
             Dummy input variable for calculations with getters of 2 input.
 
         Returns
         -------
-        float
-            Response variable.
+        float or FloatArray
+            Response variable, or an array of it in the shape of ``x``.
         """
         # unset only on a variable read before check_requirements has run
         if self._value is None:
             no_value_assigned_error(self, "Value")
 
         # the inputs are dummies, so every expression is evaluated without them
-        return self._transform(evaluate_number(self._value))
+        value = self._transform(evaluate_number(self._value))
+
+        # broadcasting is what keeps a Variable substitutable for a calculator
+        # node, whose getter answers an array input with an array
+        if isinstance(x, np.ndarray):
+            return np.full_like(x, value)
+
+        return value
