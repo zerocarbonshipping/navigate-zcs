@@ -53,6 +53,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `get_remaining_cost_flow`).
 
 ### Changed
+- **Breaking** for code importing navigate as a library:
+  `navigate.core.node_type.TypeCheckMixin` is removed; `Node` itself now
+  defines the `type` attribute and `is_type`. Simulation results are
+  unchanged.
 - A calculator (`Variable`, `Forecast`, `Curve`, `Timetable` or `Surface`)
   assigned in `DEFINE` to an attribute or command that `EVENTS` cannot change,
   directly or through an expression, can no longer be changed in `EVENTS`

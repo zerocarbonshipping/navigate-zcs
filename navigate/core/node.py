@@ -7,15 +7,12 @@ from __future__ import annotations
 
 from typing import final
 
-from navigate.core.node_type import TypeCheckMixin
 
-
-class Node(TypeCheckMixin):
+class Node:
     """Base class of the DSL nodes: a name and a type tag."""
 
     def __init__(self, name: str, type_: str) -> None:
-        super().__init__(type_)
-
+        self.type: str = type_
         self.name: str = name
 
     def __repr__(self) -> str:
@@ -68,3 +65,19 @@ class Node(TypeCheckMixin):
         Runs after the DEFINE block and again after every event read, because
         most attributes are SECTION_BOTH.
         """
+
+    def is_type(self, type_: str) -> bool:
+        """
+        Check whether the node was declared with the given DSL node-type keyword.
+
+        Parameters
+        ----------
+        type_
+            Node-type name to compare the type tag against.
+
+        Returns
+        -------
+        bool
+            True if the node carries that type.
+        """
+        return self.type == type_

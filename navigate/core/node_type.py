@@ -5,9 +5,9 @@
 Node-type names: the DSL keywords that declare nodes in `.nav`/`.inc` files.
 
 For regular nodes the name is also the value stored in the node's `type`
-attribute (via `TypeCheckMixin`), so the `is_*` type guards and the parser's
-per-type tables share a single vocabulary; general nodes carry no `type` and
-use theirs only as parser dispatch keys.
+attribute, so the `is_*` type guards and the parser's per-type tables share a
+single vocabulary; general nodes carry no `type` and use theirs only as
+parser dispatch keys.
 """
 
 from __future__ import annotations
@@ -63,29 +63,6 @@ type Calculator = Curve | Forecast | Surface | Timetable | Variable
 
 # the node type(s) an attribute accepts; None where it accepts no reference
 type AcceptedNodeTypes = str | tuple[str, ...] | None
-
-
-class TypeCheckMixin:
-    """Stores a node's type tag."""
-
-    def __init__(self, type_: str) -> None:
-        self.type: str = type_
-
-    def is_type(self, type_: str) -> bool:
-        """
-        Check whether the node was declared with the given DSL node-type keyword.
-
-        Parameters
-        ----------
-        type_
-            Node-type name to compare the type tag against.
-
-        Returns
-        -------
-        bool
-            True if the node carries that type.
-        """
-        return self.type == type_
 
 
 def is_calculator(node: Node) -> TypeIs[Calculator]:
