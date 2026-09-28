@@ -10,7 +10,7 @@ from navigate.core.node import Node
 from navigate.core.node_type import FORECAST, VARIABLE
 
 if TYPE_CHECKING:
-    from navigate.core.nodes.input_kinds import ForecastInput
+    from navigate.core.input_kinds import ForecastInput
 
 
 class _Machinery(Node):

@@ -15,8 +15,8 @@ if TYPE_CHECKING:
     from collections.abc import Iterable
 
     from navigate.core.expression import Expression
+    from navigate.core.input_kinds import ForecastInput
     from navigate.core.node import Node
-    from navigate.core.nodes.input_kinds import ForecastInput
     from navigate.util.types_ import FloatArray
 
 # these two aliases are the contract for typed callers, not a claim about what

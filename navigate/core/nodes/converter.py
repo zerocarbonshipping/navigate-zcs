@@ -24,8 +24,8 @@ from navigate.exceptions import no_value_assigned_error
 from navigate.util import list_is_unique
 
 if TYPE_CHECKING:
+    from navigate.core.input_kinds import ForecastInput, ScalarInput
     from navigate.core.nodes.emission import Emission
-    from navigate.core.nodes.input_kinds import ForecastInput, ScalarInput
 
 
 class Converter(_Machinery):

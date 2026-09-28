@@ -21,7 +21,7 @@ from navigate.core.nodes.curve import Curve
 from navigate.util import YEAR
 
 if TYPE_CHECKING:
-    from navigate.core.nodes.input_kinds import ForecastInput
+    from navigate.core.input_kinds import ForecastInput
     from navigate.core.nodes.plant import Plant
     from navigate.core.nodes.vessel import Vessel
 

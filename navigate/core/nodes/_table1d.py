@@ -16,7 +16,7 @@ from navigate.logging_ import log_extrapolate_bounds
 from navigate.util import is_strictly_increasing
 
 if TYPE_CHECKING:
-    from navigate.core.nodes.input_kinds import NumberInput
+    from navigate.core.input_kinds import NumberInput
     from navigate.util import FloatArray, FloatLike
 
 logger = logging.getLogger(__name__)

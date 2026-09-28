@@ -20,8 +20,8 @@ from navigate.core.node import Node
 from navigate.core.node_type import FUEL, VARIABLE
 
 if TYPE_CHECKING:
+    from navigate.core.input_kinds import ScalarInput
     from navigate.core.nodes.emission import Emission
-    from navigate.core.nodes.input_kinds import ScalarInput
 
 
 class Fuel(Node):

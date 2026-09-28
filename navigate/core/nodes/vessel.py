@@ -36,13 +36,13 @@ if TYPE_CHECKING:
 
     import numpy as np
 
-    from navigate.core.nodes.emission import Emission
-    from navigate.core.nodes.fuel import Fuel
-    from navigate.core.nodes.input_kinds import (
+    from navigate.core.input_kinds import (
         ForecastInput,
         ScalarInput,
         SurfaceInput,
     )
+    from navigate.core.nodes.emission import Emission
+    from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.power_system import PowerSystem
     from navigate.core.nodes.route import Route
     from navigate.core.nodes.tank import Tank

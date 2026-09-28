@@ -13,7 +13,7 @@ from navigate.core.node import Node
 from navigate.core.node_type import CURVE, EMISSION, VARIABLE
 
 if TYPE_CHECKING:
-    from navigate.core.nodes.input_kinds import CurveInput
+    from navigate.core.input_kinds import CurveInput
 
 
 class Emission(Node):

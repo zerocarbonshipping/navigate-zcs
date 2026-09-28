@@ -45,10 +45,10 @@ if TYPE_CHECKING:
     from numpy.typing import NDArray
 
     from navigate.core.expression import Expression
+    from navigate.core.input_kinds import ForecastInput, ScalarInput
     from navigate.core.nodes.curve import Curve
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
-    from navigate.core.nodes.input_kinds import ForecastInput, ScalarInput
     from navigate.core.nodes.technology import Technology
     from navigate.fleet.package import Package
 

@@ -23,10 +23,10 @@ from navigate.core.node_type import (
 from navigate.core.profiles import PlantProfile
 
 if TYPE_CHECKING:
+    from navigate.core.input_kinds import ForecastInput
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.feedstock import Feedstock
     from navigate.core.nodes.fuel import Fuel
-    from navigate.core.nodes.input_kinds import ForecastInput
     from navigate.core.nodes.port import Port
     from navigate.core.nodes.process import Process
     from navigate.core.nodes.region import Region

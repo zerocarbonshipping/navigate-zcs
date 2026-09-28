@@ -26,9 +26,9 @@ from navigate.exceptions import no_value_assigned_error
 if TYPE_CHECKING:
     from navigate.core.enum_ import LevySchemeID, RegulationSchemeID
     from navigate.core.expectations import LevyExpectation, RegulationExpectation
+    from navigate.core.input_kinds import CurveInput, ForecastInput, ScalarInput
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
-    from navigate.core.nodes.input_kinds import CurveInput, ForecastInput, ScalarInput
     from navigate.core.nodes.port import Port
     from navigate.core.nodes.vessel import Vessel
 

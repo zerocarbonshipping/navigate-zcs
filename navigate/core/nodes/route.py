@@ -30,7 +30,7 @@ from navigate.util import ROUND_OFF, divide_nonzero, unique_list
 
 if TYPE_CHECKING:
     from navigate.core.expression import Expression
-    from navigate.core.nodes.input_kinds import (
+    from navigate.core.input_kinds import (
         ForecastInput,
         NumberInput,
         ScalarInput,
