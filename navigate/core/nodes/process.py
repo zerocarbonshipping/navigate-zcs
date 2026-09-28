@@ -12,8 +12,8 @@ from navigate.core.node import Node
 from navigate.core.node_type import FEEDSTOCK, FORECAST, PROCESS, VARIABLE
 
 if TYPE_CHECKING:
+    from navigate.core.input_kinds import ForecastInput
     from navigate.core.nodes.feedstock import Feedstock
-    from navigate.core.nodes.input_kinds import ForecastInput
 
 
 class Process(Node):

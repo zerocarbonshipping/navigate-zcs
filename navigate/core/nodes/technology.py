@@ -20,7 +20,7 @@ from navigate.core.node_type import CURVE, TECHNOLOGY, VARIABLE
 from navigate.core.nodes._machinery import _Machinery
 
 if TYPE_CHECKING:
-    from navigate.core.nodes.input_kinds import CurveInput, ScalarInput
+    from navigate.core.input_kinds import CurveInput, ScalarInput
 
 PROPULSION, ELECTRICAL, HEAT = (
     EnergyDemandTypeID.PROPULSION,

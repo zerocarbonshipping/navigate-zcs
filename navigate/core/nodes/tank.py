@@ -13,7 +13,7 @@ from navigate.core.node_type import TANK, VARIABLE
 from navigate.core.nodes._machinery import _Machinery
 
 if TYPE_CHECKING:
-    from navigate.core.nodes.input_kinds import ScalarInput
+    from navigate.core.input_kinds import ScalarInput
 
 
 class Tank(_Machinery):

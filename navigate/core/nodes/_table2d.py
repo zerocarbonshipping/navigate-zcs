@@ -18,7 +18,7 @@ from navigate.util import is_strictly_increasing
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from navigate.core.nodes.input_kinds import NumberInput
+    from navigate.core.input_kinds import NumberInput
     from navigate.util import FloatArray, FloatLike
 
 logger = logging.getLogger(__name__)

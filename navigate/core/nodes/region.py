@@ -17,9 +17,9 @@ from navigate.core.node import Node
 from navigate.core.node_type import FORECAST, REGION, TIMETABLE, VARIABLE
 
 if TYPE_CHECKING:
+    from navigate.core.input_kinds import ForecastInput, TimetableInput
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.feedstock import Feedstock
-    from navigate.core.nodes.input_kinds import ForecastInput, TimetableInput
     from navigate.core.nodes.process import Process
     from navigate.core.nodes.source import Source
     from navigate.core.nodes.transport import Transport

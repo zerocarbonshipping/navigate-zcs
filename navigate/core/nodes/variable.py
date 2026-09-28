@@ -14,7 +14,7 @@ from navigate.core.nodes._calculator import _Calculator, evaluate_number
 from navigate.exceptions import no_value_assigned_error
 
 if TYPE_CHECKING:
-    from navigate.core.nodes.input_kinds import NumberInput
+    from navigate.core.input_kinds import NumberInput
     from navigate.util import FloatLike
 
 
