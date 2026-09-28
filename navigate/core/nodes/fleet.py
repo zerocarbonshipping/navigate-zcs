@@ -927,14 +927,12 @@ class Fleet(_AssetManager[Vessel]):
         saving
             Fraction of energy saved.
         """
-        id_ = assign_id(energy_type, EnergyDemandTypeID)
-        write_matching_keys(
-            id_,
-            assign_value(
-                as_scalar(saving), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
-            ),
-            self.operational_saving_sea,
+        value_ = assign_value(
+            as_scalar(saving), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
         )
+
+        id_ = assign_id(energy_type, EnergyDemandTypeID)
+        write_matching_keys(id_, value_, self.operational_saving_sea)
 
     def set_operational_saving_port(
         self, energy_type: str, saving: ForecastArgument
@@ -957,14 +955,12 @@ class Fleet(_AssetManager[Vessel]):
         saving
             Fraction of energy saved.
         """
-        id_ = assign_member(energy_type, EnergyDemandTypePortID)
-        write_matching_keys(
-            id_,
-            assign_value(
-                as_scalar(saving), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
-            ),
-            self.operational_saving_port,
+        value_ = assign_value(
+            as_scalar(saving), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
         )
+
+        id_ = assign_member(energy_type, EnergyDemandTypePortID)
+        write_matching_keys(id_, value_, self.operational_saving_port)
 
     # internal methods -----------------------------------------------------------------
     def check_requirements(self) -> None:

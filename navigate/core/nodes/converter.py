@@ -185,16 +185,14 @@ class Converter(_Machinery):
         value
             Fraction of fuel mass escaping unburned.
         """
+        value_ = assign_value(as_scalar(value), type_=VARIABLE, lower=0.0, upper=1.0)
+
         id_ = assign_id(fuel_type, FuelTypeID)
 
         if id_ not in self.get_fuel_types():
             raise ValueError(f"received {fuel_type} which is not available for {self}.")
 
-        write_matching_keys(
-            id_,
-            assign_value(as_scalar(value), type_=VARIABLE, lower=0.0, upper=1.0),
-            self.slip_fraction,
-        )
+        write_matching_keys(id_, value_, self.slip_fraction)
 
     def set_consumption_ttw(
         self, fuel_type: str, emission_name: str, value: ScalarArgument
@@ -220,6 +218,8 @@ class Converter(_Machinery):
         value
             Ton of emission emitted per ton of fuel consumed.
         """
+        value_ = assign_value(as_scalar(value), type_=VARIABLE, lower=0.0)
+
         id_ = assign_id(fuel_type, FuelTypeID)
 
         if id_ not in self.get_fuel_types():
@@ -231,11 +231,7 @@ class Converter(_Machinery):
         if key not in self.consumption_ttw:
             raise KeyError(f"{emission_name}")
 
-        write_matching_key_pairs(
-            key,
-            assign_value(as_scalar(value), type_=VARIABLE, lower=0.0),
-            self.consumption_ttw,
-        )
+        write_matching_key_pairs(key, value_, self.consumption_ttw)
 
     # internal methods -----------------------------------------------------------------
     def check_requirements(self) -> None:

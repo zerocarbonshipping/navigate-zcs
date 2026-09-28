@@ -101,12 +101,10 @@ class Technology(_Machinery):
         saving
             Fraction of the raw energy demand saved.
         """
+        value_ = assign_value(as_scalar(saving), type_=VARIABLE, lower=0.0)
+
         id_ = assign_id(energy_type, EnergyDemandTypeID)
-        write_matching_keys(
-            id_,
-            assign_value(as_scalar(saving), type_=VARIABLE, lower=0.0),
-            self.energy_saving,
-        )
+        write_matching_keys(id_, value_, self.energy_saving)
 
     def set_external_power(self, energy_type: str, power: ScalarArgument) -> None:
         """
@@ -128,12 +126,10 @@ class Technology(_Machinery):
         power
             External power supplied, in MW.
         """
+        value_ = assign_value(as_scalar(power), type_=VARIABLE, lower=0.0)
+
         id_ = assign_id(energy_type, EnergyDemandTypeID)
-        write_matching_keys(
-            id_,
-            assign_value(as_scalar(power), type_=VARIABLE, lower=0.0),
-            self.external_power,
-        )
+        write_matching_keys(id_, value_, self.external_power)
 
     def set_power_transfer(
         self, power_system_id: str, energy_id: str, transfer: CurveArgument
@@ -162,13 +158,13 @@ class Technology(_Machinery):
         transfer
             Power transferred, in MW, as a function of the source converter load.
         """
+        value_ = assign_value(
+            as_scalar(transfer), type_=(CURVE, VARIABLE), lower=0.0, upper=1.0
+        )
+
         power_system_id_ = assign_id(power_system_id, EnergyDemandTypeID)
         energy_id_ = assign_id(energy_id, EnergyDemandTypeID)
 
         write_matching_key_pairs(
-            (power_system_id_, energy_id_),
-            assign_value(
-                as_scalar(transfer), type_=(CURVE, VARIABLE), lower=0.0, upper=1.0
-            ),
-            self.power_transfer,
+            (power_system_id_, energy_id_), value_, self.power_transfer
         )
