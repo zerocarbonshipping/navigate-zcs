@@ -29,7 +29,13 @@ from navigate.util import is_non_strictly_increasing
 
 if TYPE_CHECKING:
     from navigate.core.increment import Increment
-    from navigate.core.input_kinds import ForecastInput, NumberInput, ScalarInput
+    from navigate.core.input_kinds import (
+        ForecastArgument,
+        ForecastInput,
+        NumberInput,
+        ScalarArgument,
+        ScalarInput,
+    )
     from navigate.core.nodes.feedstock import Feedstock
     from navigate.core.nodes.forecast import Forecast
     from navigate.core.nodes.fuel import Fuel
@@ -105,7 +111,7 @@ class Producer(_AssetManager[Plant]):
         )
 
     def set_minimum_offtake_duration(
-        self, minimum_offtake_duration: float | ForecastInput
+        self, minimum_offtake_duration: ForecastArgument
     ) -> None:
         """
         Set the minimum offtake duration required for building new plants.
@@ -125,7 +131,7 @@ class Producer(_AssetManager[Plant]):
         )
 
     def set_fuel_demand_sensitivity(
-        self, fuel_demand_sensitivity: float | ForecastInput
+        self, fuel_demand_sensitivity: ForecastArgument
     ) -> None:
         """
         Set the sensitivity of the fuel-pathway choice to expected demand.
@@ -153,7 +159,7 @@ class Producer(_AssetManager[Plant]):
         )
 
     def set_fuel_cost_sensitivity(
-        self, fuel_cost_sensitivity: float | ForecastInput
+        self, fuel_cost_sensitivity: ForecastArgument
     ) -> None:
         """
         Set the sensitivity of the plant choice to levelized cost of fuel (LCoF).
@@ -180,7 +186,7 @@ class Producer(_AssetManager[Plant]):
             inclusive_lower=False,
         )
 
-    def set_initial_capacity(self, initial_capacity: list[float | ScalarInput]) -> None:
+    def set_initial_capacity(self, initial_capacity: list[ScalarArgument]) -> None:
         """
         Set the list of initial capacity for each plant type in tons/day.
 
@@ -195,14 +201,12 @@ class Producer(_AssetManager[Plant]):
         initial_capacity
             List of initial production in tons/day.
         """
-        entries: list[float | ScalarInput] = as_list(initial_capacity)
+        entries: list[ScalarArgument] = as_list(initial_capacity)
         self._initial_capacity = assign_list(
             [as_scalar(entry) for entry in entries], type_=VARIABLE, lower=0.0
         )
 
-    def set_maximum_development(
-        self, maximum_development: float | ForecastInput
-    ) -> None:
+    def set_maximum_development(self, maximum_development: ForecastArgument) -> None:
         """
         Set the maximum number of plants that can be developed per year.
 
@@ -220,7 +224,7 @@ class Producer(_AssetManager[Plant]):
             as_scalar(maximum_development), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
-    def set_maximum_ramp_up(self, maximum_ramp_up: float | ForecastInput) -> None:
+    def set_maximum_ramp_up(self, maximum_ramp_up: ForecastArgument) -> None:
         """
         Set the maximum ramp-up of the development constraint's utilization per year.
 
@@ -281,7 +285,7 @@ class Producer(_AssetManager[Plant]):
         """
         command_assignment_to_dict(
             plant_name,
-            as_scalar(existing_pipeline),
+            existing_pipeline,
             self.existing_pipelines,
             scalar=False,
             type_=FORECAST,
@@ -310,7 +314,7 @@ class Producer(_AssetManager[Plant]):
         )
 
     def set_feed_constraint(
-        self, feed_name: str, feed_constraint: float | ForecastInput
+        self, feed_name: str, feed_constraint: ForecastArgument
     ) -> None:
         """
         Set a static feed (feedstock or process) constraint for the region, tons/year.
@@ -336,7 +340,7 @@ class Producer(_AssetManager[Plant]):
         )
 
     def set_export_distribution(
-        self, port_name: str, export_distribution: float | ForecastInput
+        self, port_name: str, export_distribution: ForecastArgument
     ) -> None:
         """
         Set the weight with which the fuel production is exported to a port.

@@ -23,7 +23,7 @@ from navigate.core.node_type import (
 from navigate.core.profiles import PlantProfile
 
 if TYPE_CHECKING:
-    from navigate.core.input_kinds import ForecastInput
+    from navigate.core.input_kinds import ForecastArgument, ForecastInput
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.feedstock import Feedstock
     from navigate.core.nodes.fuel import Fuel
@@ -128,7 +128,7 @@ class Plant(Node):
         """
         self.source = assign_value(source, scalar=False, type_=SOURCE)
 
-    def set_capacity(self, capacity: float | ForecastInput) -> None:
+    def set_capacity(self, capacity: ForecastArgument) -> None:
         """
         Set the production capacity of the plant in tons/day.
 
@@ -149,7 +149,7 @@ class Plant(Node):
             inclusive_lower=False,
         )
 
-    def set_uptime(self, uptime: float | ForecastInput) -> None:
+    def set_uptime(self, uptime: ForecastArgument) -> None:
         """
         Set the production uptime of the plant in time/time.
 
@@ -171,7 +171,7 @@ class Plant(Node):
             inclusive_lower=False,
         )
 
-    def set_lifetime(self, lifetime: float | ForecastInput) -> None:
+    def set_lifetime(self, lifetime: ForecastArgument) -> None:
         """
         Set the lifetime of the plant in years.
 
@@ -193,7 +193,7 @@ class Plant(Node):
             inclusive_lower=False,
         )
 
-    def set_lead_time(self, lead_time: float | ForecastInput) -> None:
+    def set_lead_time(self, lead_time: ForecastArgument) -> None:
         """
         Set the planning to production lead time of the plant in years.
 
@@ -211,7 +211,7 @@ class Plant(Node):
             as_scalar(lead_time), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
-    def set_cost_of_capital(self, cost_of_capital: float | ForecastInput) -> None:
+    def set_cost_of_capital(self, cost_of_capital: ForecastArgument) -> None:
         """
         Set the cost of capital used in calculating the finance costs of the plant.
 
@@ -253,7 +253,7 @@ class Plant(Node):
             feed_name, value, self.feed_transport, scalar=False, type_=TRANSPORT
         )
 
-    def set_feed_distance(self, feed_name: str, value: float | ForecastInput) -> None:
+    def set_feed_distance(self, feed_name: str, value: ForecastArgument) -> None:
         """
         Set the feedstock or process transport distance to the plant, nautical miles.
 
@@ -301,7 +301,7 @@ class Plant(Node):
             port_name, value, self.fuel_transport, scalar=False, type_=TRANSPORT
         )
 
-    def set_fuel_distance(self, port_name: str, value: float | ForecastInput) -> None:
+    def set_fuel_distance(self, port_name: str, value: ForecastArgument) -> None:
         """
         Set the distance the produced fuel is transported to a port, in nautical miles.
 

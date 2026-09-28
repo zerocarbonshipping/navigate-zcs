@@ -23,7 +23,7 @@ from navigate.core.nodes._policy import _Policy
 from navigate.core.profiles import RegulationProfile
 
 if TYPE_CHECKING:
-    from navigate.core.input_kinds import ForecastInput
+    from navigate.core.input_kinds import ForecastArgument, ForecastInput
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.vessel import Vessel
     from navigate.util import FloatArray
@@ -109,7 +109,7 @@ class Regulation(_Policy):
         """
         self.measure = assign_id(measure, RegulationMeasureID)
 
-    def set_intra_fraction(self, intra_fraction: float | ForecastInput) -> None:
+    def set_intra_fraction(self, intra_fraction: ForecastArgument) -> None:
         """
         Set the fraction of emissions counted for intra-jurisdiction travel.
 
@@ -128,7 +128,7 @@ class Regulation(_Policy):
             as_scalar(intra_fraction), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
         )
 
-    def set_inter_fraction(self, inter_fraction: float | ForecastInput) -> None:
+    def set_inter_fraction(self, inter_fraction: ForecastArgument) -> None:
         """
         Set the fraction of emissions counted for inter-jurisdiction travel.
 
@@ -148,7 +148,7 @@ class Regulation(_Policy):
             as_scalar(inter_fraction), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
         )
 
-    def set_extra_fraction(self, extra_fraction: float | ForecastInput) -> None:
+    def set_extra_fraction(self, extra_fraction: ForecastArgument) -> None:
         """
         Set the fraction of emissions counted for extra-jurisdiction travel.
 
@@ -167,7 +167,7 @@ class Regulation(_Policy):
             as_scalar(extra_fraction), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
         )
 
-    def set_remedial_cost(self, remedial_cost: float | ForecastInput) -> None:
+    def set_remedial_cost(self, remedial_cost: ForecastArgument) -> None:
         """
         Set the cost of purchasing a remedial compliance unit in USD/ton emission.
 
@@ -185,9 +185,7 @@ class Regulation(_Policy):
             as_scalar(remedial_cost), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
-    def set_flexibility_horizon(
-        self, flexibility_horizon: float | ForecastInput
-    ) -> None:
+    def set_flexibility_horizon(self, flexibility_horizon: ForecastArgument) -> None:
         """
         Set the decision horizon, in years, smoothing the flexibility-cost belief.
 
@@ -217,7 +215,7 @@ class Regulation(_Policy):
 
     # external methods (DSL commands) --------------------------------------------------
     def set_vessel_threshold(
-        self, vessel_name: str, threshold: float | ForecastInput
+        self, vessel_name: str, threshold: ForecastArgument
     ) -> None:
         """
         Set the threshold that a specific vessel must satisfy in the measure unit.
@@ -252,9 +250,7 @@ class Regulation(_Policy):
             lower=0.0,
         )
 
-    def set_vessel_capacity(
-        self, vessel_name: str, capacity: float | ForecastInput
-    ) -> None:
+    def set_vessel_capacity(self, vessel_name: str, capacity: ForecastArgument) -> None:
         """
         Set the capacity of a specific vessel for use in transport calculations.
 

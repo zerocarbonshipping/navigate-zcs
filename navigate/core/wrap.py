@@ -16,33 +16,24 @@ if TYPE_CHECKING:
 
     from navigate.core.expression import Expression
     from navigate.core.input_kinds import ForecastInput
-    from navigate.core.node import Node
+    from navigate.core.node_type import Calculator
     from navigate.util.types_ import FloatArray
-
-# these two aliases are the contract for typed callers, not a claim about what
-# reaches the boundary at runtime: the parser is untyped, so it hands every
-# deck value in as 'Any' and a deck can name any shape the grammar accepts -
-# a bare string, a list, a TableData. That is why the validators in 'assign'
-# keep runtime reject arms for values their typed callers never pass.
-
-# a value that already answers a getter passes the wrappers untouched; only a
-# bare float needs wrapping
-type WrappedAssignment = Scalar | Node | Expression
-
-# everything a setter may be handed for a single-valued attribute
-type Assignment = float | WrappedAssignment
 
 
 @overload
 def as_scalar(value: float) -> Scalar: ...
 @overload
-def as_scalar[T: WrappedAssignment](value: T) -> T: ...
-def as_scalar(value: Assignment) -> Assignment:
+def as_scalar[T: Calculator | Expression](value: T) -> T: ...
+def as_scalar(
+    value: float | Calculator | Expression,
+) -> Scalar | Calculator | Expression:
     """
     Wrap a value in a Scalar class if it is a float, otherwise return the value as is.
 
     The wrapping is necessary as Scalar provides a getter which takes two
-    arguments, similar to all calculator nodes.
+    arguments, similar to all calculator nodes. The parser hands deck values
+    in untyped, so anything that is not a float passes through unchanged for
+    the validators in 'assign' to accept or reject.
 
     Parameters
     ----------
@@ -51,8 +42,8 @@ def as_scalar(value: Assignment) -> Assignment:
 
     Returns
     -------
-    Assignment
-        Wrapped value.
+    Scalar | Calculator | Expression
+        The float wrapped in a Scalar, or the calculator or expression as is.
     """
     if isinstance(value, float):
         return Scalar(value)

@@ -53,6 +53,15 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `get_remaining_cost_flow`).
 
 ### Changed
+- **Breaking** for code importing navigate as a library:
+  `navigate.core.wrap.WrappedAssignment` is gone and
+  `navigate.core.wrap.Assignment` moves to `navigate.core.assign.Assignment`.
+  `as_scalar` is typed to take a float, a calculator or an expression, no
+  longer a `Scalar` or an arbitrary `Node`, which no setter hands it.
+  `navigate.core.input_kinds` gains `ScalarArgument`, `ForecastArgument`,
+  `CurveArgument`, `SurfaceArgument` and `TimetableArgument`, the kinds a
+  setter is handed before `as_scalar` wraps the float; the node setters take
+  them in place of `float | <kind>Input`. Simulation results are unchanged.
 - A calculator (`Variable`, `Forecast`, `Curve`, `Timetable` or `Surface`)
   assigned in `DEFINE` to an attribute or command that `EVENTS` cannot change,
   directly or through an expression, can no longer be changed in `EVENTS`

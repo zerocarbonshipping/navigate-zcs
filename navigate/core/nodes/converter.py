@@ -24,7 +24,12 @@ from navigate.exceptions import no_value_assigned_error
 from navigate.util import list_is_unique
 
 if TYPE_CHECKING:
-    from navigate.core.input_kinds import ForecastInput, ScalarInput
+    from navigate.core.input_kinds import (
+        ForecastArgument,
+        ForecastInput,
+        ScalarArgument,
+        ScalarInput,
+    )
     from navigate.core.nodes.emission import Emission
 
 
@@ -52,7 +57,7 @@ class Converter(_Machinery):
         self.slip_fraction: dict[FuelTypeID, ScalarInput] = {}
 
     # external methods (DSL attributes) ------------------------------------------------
-    def set_power_capacity(self, power_capacity: float | ScalarInput) -> None:
+    def set_power_capacity(self, power_capacity: ScalarArgument) -> None:
         """
         Set the maximum power capacity of the converter.
 
@@ -70,7 +75,7 @@ class Converter(_Machinery):
             as_scalar(power_capacity), type_=VARIABLE, lower=0.0
         )
 
-    def set_minimum_load(self, minimum_load: float | ScalarInput) -> None:
+    def set_minimum_load(self, minimum_load: ScalarArgument) -> None:
         """
         Set the minimum load as a fraction of power capacity.
 
@@ -124,7 +129,7 @@ class Converter(_Machinery):
             as_list(pilot_fuel_types), FuelTypeID, length=(1, None)
         )
 
-    def set_minimum_pilot_fuel(self, minimum_pilot_fuel: float | ForecastInput) -> None:
+    def set_minimum_pilot_fuel(self, minimum_pilot_fuel: ForecastArgument) -> None:
         """
         Set the minimum pilot fuel fraction required to utilize the converter in GJ/GJ.
 
@@ -145,7 +150,7 @@ class Converter(_Machinery):
             upper=1.0,
         )
 
-    def set_efficiency(self, efficiency: float | ScalarInput) -> None:
+    def set_efficiency(self, efficiency: ScalarArgument) -> None:
         """
         Set the energy conversion efficiency from potential to required kinetic energy.
 
@@ -164,7 +169,7 @@ class Converter(_Machinery):
         )
 
     # external methods (DSL commands) --------------------------------------------------
-    def set_slip_fraction(self, fuel_type: str, value: float | ScalarInput) -> None:
+    def set_slip_fraction(self, fuel_type: str, value: ScalarArgument) -> None:
         """
         Set the fraction of fuel mass escaping unburned (slip) for a specific fuel type.
 
@@ -195,7 +200,7 @@ class Converter(_Machinery):
         )
 
     def set_consumption_ttw(
-        self, fuel_type: str, emission_name: str, value: float | ScalarInput
+        self, fuel_type: str, emission_name: str, value: ScalarArgument
     ) -> None:
         """
         Set a consumption related emission for a specific fuel type in the converter.

@@ -147,13 +147,14 @@ The formatter owns spacing within statements; blank lines are yours:
 - Every attribute in a node `__init__` has a DSL setter whose docstring is
   what its reference-manual page is written from, so anything said about the
   attribute is said there.
-- The kinds a setter may store are named once, in
-  `navigate/core/input_kinds.py`, and used at every attribute
-  definition. The alias matches the setter's `type_=` argument, and an
+- The kinds a setter may be handed and store are named once, in
+  `navigate/core/input_kinds.py`, and used at every attribute definition and
+  setter parameter. The alias matches the setter's `type_=` argument, and an
   attribute still unset after construction spells it `<alias> | None` rather
-  than folding `None` into an alias. Setter parameters are annotated
-  `float | <alias>`, the unwrapped value the parser passes, while the
-  attributes carry the alias (`NumberInput`, stored unwrapped, is both).
+  than folding `None` into an alias. Attributes carry the storage kind
+  (`*Input`); setter parameters carry the matching argument kind
+  (`*Argument`), with `float` where the storage kind has `Scalar`, as the
+  setter wraps through `as_scalar`. `NumberInput` serves as both.
 - An attribute every deck must assign is listed as required in
   `navigate/parser/_attributes.py` and declared in `__init__` by annotation
   alone (`self.start_date: np.datetime64`), with no value and no `None`.

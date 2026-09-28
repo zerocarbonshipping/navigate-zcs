@@ -13,7 +13,7 @@ from navigate.core.node_type import TANK, VARIABLE
 from navigate.core.nodes._machinery import _Machinery
 
 if TYPE_CHECKING:
-    from navigate.core.input_kinds import ScalarInput
+    from navigate.core.input_kinds import ScalarArgument, ScalarInput
 
 
 class Tank(_Machinery):
@@ -46,7 +46,7 @@ class Tank(_Machinery):
             as_list(fuel_types), FuelTypeID, length=(1, None)
         )
 
-    def set_size(self, size: float | ScalarInput) -> None:
+    def set_size(self, size: ScalarArgument) -> None:
         """
         Set the volumetric size of the tank in cubic meter.
 

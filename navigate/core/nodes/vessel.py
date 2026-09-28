@@ -37,8 +37,11 @@ if TYPE_CHECKING:
     import numpy as np
 
     from navigate.core.input_kinds import (
+        ForecastArgument,
         ForecastInput,
+        ScalarArgument,
         ScalarInput,
+        SurfaceArgument,
         SurfaceInput,
     )
     from navigate.core.nodes.emission import Emission
@@ -92,7 +95,7 @@ class Vessel(Node):
         self.fleet_assignment: str | None = None
 
     # external methods (DSL attributes) ------------------------------------------------
-    def set_propulsion_load(self, propulsion_load: float | SurfaceInput) -> None:
+    def set_propulsion_load(self, propulsion_load: SurfaceArgument) -> None:
         """
         Set the propulsion load, in MW.
 
@@ -119,7 +122,7 @@ class Vessel(Node):
         )
 
     def set_electrical_load_at_sea(
-        self, electrical_load_at_sea: float | SurfaceInput
+        self, electrical_load_at_sea: SurfaceArgument
     ) -> None:
         """
         Set the electrical load at sea, in MW.
@@ -149,7 +152,7 @@ class Vessel(Node):
         )
 
     def set_electrical_load_in_port(
-        self, electrical_load_in_port: float | ScalarInput
+        self, electrical_load_in_port: ScalarArgument
     ) -> None:
         """
         Set the electrical load in port in MW.
@@ -169,7 +172,7 @@ class Vessel(Node):
             as_scalar(electrical_load_in_port), type_=VARIABLE, lower=0.0
         )
 
-    def set_heat_load_at_sea(self, heat_load_at_sea: float | SurfaceInput) -> None:
+    def set_heat_load_at_sea(self, heat_load_at_sea: SurfaceArgument) -> None:
         """
         Set the heat load at sea, in MW.
 
@@ -195,7 +198,7 @@ class Vessel(Node):
             as_scalar(heat_load_at_sea), type_=(CURVE, SURFACE, VARIABLE), lower=0.0
         )
 
-    def set_heat_load_in_port(self, heat_load_in_port: float | ScalarInput) -> None:
+    def set_heat_load_in_port(self, heat_load_in_port: ScalarArgument) -> None:
         """
         Set the heating load in port in MW.
 
@@ -280,7 +283,7 @@ class Vessel(Node):
         """
         self.route = assign_value(route, scalar=False, type_=ROUTE)
 
-    def set_nominal_capacity(self, nominal_capacity: float | ScalarInput) -> None:
+    def set_nominal_capacity(self, nominal_capacity: ScalarArgument) -> None:
         """
         Set the nominal cargo carrying capacity of the vessel.
 
@@ -305,7 +308,7 @@ class Vessel(Node):
             as_scalar(nominal_capacity), type_=VARIABLE, lower=0.0
         )
 
-    def set_lifetime(self, lifetime: float | ForecastInput) -> None:
+    def set_lifetime(self, lifetime: ForecastArgument) -> None:
         """
         Set the lifetime of the vessel in years.
 
@@ -327,7 +330,7 @@ class Vessel(Node):
             inclusive_lower=False,
         )
 
-    def set_lead_time(self, lead_time: float | ForecastInput) -> None:
+    def set_lead_time(self, lead_time: ForecastArgument) -> None:
         """
         Set the lead time of the vessel in years.
 
@@ -347,7 +350,7 @@ class Vessel(Node):
             as_scalar(lead_time), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
-    def set_capex(self, capex: float | ForecastInput) -> None:
+    def set_capex(self, capex: ForecastArgument) -> None:
         """
         Set the base CAPEX of building the vessel in USD.
 
@@ -365,7 +368,7 @@ class Vessel(Node):
             as_scalar(capex), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
-    def set_opex(self, opex: float | ForecastInput) -> None:
+    def set_opex(self, opex: ForecastArgument) -> None:
         """
         Set the base OPEX of maintaining the vessel in USD/year.
 
@@ -381,7 +384,7 @@ class Vessel(Node):
         """
         self.opex = assign_value(as_scalar(opex), type_=(FORECAST, VARIABLE), lower=0.0)
 
-    def set_cost_of_capital(self, cost_of_capital: float | ForecastInput) -> None:
+    def set_cost_of_capital(self, cost_of_capital: ForecastArgument) -> None:
         """
         Set the cost of capital used in calculating the finance costs of the vessel.
 
