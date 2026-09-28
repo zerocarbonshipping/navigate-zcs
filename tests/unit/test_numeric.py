@@ -185,6 +185,8 @@ class TestDeriveSmoothingAlpha:
             (np.array([0.0, YEAR, 2 * YEAR]), 1, 0.0, 1.0),
             # a zero-length step has no history to weigh against
             (np.array([0.0, YEAR, YEAR]), 2, 3.0, 1.0),
+            # the first step has no prior step to weigh against
+            (np.array([0.0, YEAR, 2 * YEAR]), 0, 3.0, 1.0),
             # an index past the timeline trusts the projection fully
             (np.array([0.0, YEAR, 2 * YEAR]), 3, 3.0, 1.0),
         ],
