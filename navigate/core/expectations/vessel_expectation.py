@@ -208,18 +208,20 @@ class VesselExpectation(_Expectation):
             EnergyDemandTypePortID, n_port
         )
 
-        # per-leg shadow-price belief paths (same shape as the raw pi dicts)
+        # per-leg shadow-price belief paths (same shape as the raw pi dicts),
+        # NaN until the first belief update: a dual is legitimately zero
+        # wherever its constraint does not bind, so zero cannot mark "no prior"
         self._belief_pi_sea_technology = self._default_dict_list_array(
-            EnergyDemandTypeID, n_leg_regional
+            EnergyDemandTypeID, n_leg_regional, default=np.nan
         )
         self._belief_pi_port_technology = self._default_dict_list_array(
-            EnergyDemandTypePortID, n_port
+            EnergyDemandTypePortID, n_port, default=np.nan
         )
         self._belief_pi_sea_speed = self._default_dict_list_array(
-            EnergyDemandTypeID, n_leg_regional
+            EnergyDemandTypeID, n_leg_regional, default=np.nan
         )
         self._belief_pi_port_speed = self._default_dict_list_array(
-            EnergyDemandTypePortID, n_port
+            EnergyDemandTypePortID, n_port, default=np.nan
         )
 
         # bunkering saved for inertia

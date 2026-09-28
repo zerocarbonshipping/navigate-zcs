@@ -221,14 +221,20 @@ def update_belief_path(
     Calendar-date belief update for a single per-leg path.
 
     Match is by calendar index, not look-ahead position, so a given future
-    year's belief evolves coherently as successive projections refine it. On
-    the first call the prior belief is all-zero, so the belief bootstraps to
-    the raw path; subsequent calls blend the new projection with the prior.
+    year's belief evolves coherently as successive projections refine it. A
+    belief that has never been updated bootstraps to the raw path; every later
+    call blends the new projection with the prior, including a prior that is
+    exactly zero, so a price that appears after a stretch of zeros ramps up
+    from ``alpha * raw`` rather than being adopted in full.
 
-    Precondition: an all-zero forward slice of ``belief`` is indistinguishable
-    from an uninitialized one and triggers the bootstrap (full adoption of the
-    new path, no smoothing). Callers whose smoothed quantity can legitimately
-    be all-zero over the remaining horizon must not use this helper as-is.
+    Contract: NaN marks an entry never updated, so a caller allocates
+    ``belief`` NaN-filled and passes a ``raw_path`` without NaN. The rule is
+    per entry: a NaN entry of ``belief[idx:]`` adopts the raw value, any other
+    entry is smoothed. Updated at non-decreasing ``idx``, the forward slice is
+    all-NaN on the first call and free of NaN after it, so a partially NaN
+    slice does not arise; were it to, each entry would still bootstrap on its
+    first observation. Entries before the first call's ``idx`` are never
+    written and stay NaN.
 
     Parameters
     ----------
@@ -236,7 +242,8 @@ def update_belief_path(
         Raw forward path from the latest LP solve. Values at ``s < idx`` are
         ignored.
     belief
-        Previous belief path. Same length as ``raw_path``. Modified in place.
+        Previous belief path, NaN where never updated. Same length as
+        ``raw_path``. Modified in place.
     alpha
         Smoothing weight. ``alpha = 1`` trusts the new projection fully;
         ``alpha = 0`` ignores it entirely.
@@ -247,12 +254,10 @@ def update_belief_path(
     belief_forward = belief[forward_slice]
     raw_forward = raw_path[forward_slice]
 
-    if (belief_forward == 0.0).all():
-        # bootstrap: no prior evidence, adopt the raw path directly.
-        belief[forward_slice] = raw_forward
-    else:
-        # exponential smoothing: blend new projection with the prior belief.
-        belief[forward_slice] = alpha * raw_forward + (1.0 - alpha) * belief_forward
+    # exponential smoothing blends the new projection with the prior belief;
+    # an entry with no prior (NaN) bootstraps to the raw value instead
+    smoothed = alpha * raw_forward + (1.0 - alpha) * belief_forward
+    belief[forward_slice] = np.where(np.isnan(belief_forward), raw_forward, smoothed)
 
 
 def derive_smoothing_alpha(

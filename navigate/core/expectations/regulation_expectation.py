@@ -7,8 +7,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import numpy as np
+
 from navigate.core.expectations._policy_expectation import _PolicyExpectation
-from navigate.core.initial_values import EMPTY_FLOAT
+from navigate.core.initial_values import EMPTY_FLOAT, EMPTY_NAN
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -24,7 +26,7 @@ class RegulationExpectation(_PolicyExpectation):
         super().__init__()
 
         self._flexibility_cost: FloatArray = EMPTY_FLOAT
-        self._belief_flexibility_cost: FloatArray = EMPTY_FLOAT
+        self._belief_flexibility_cost: FloatArray = EMPTY_NAN
         self._vessel_net_flexibility_units: dict[str, FloatArray] = {}
         self._remedial_cost: FloatArray = EMPTY_FLOAT
 
@@ -37,7 +39,9 @@ class RegulationExpectation(_PolicyExpectation):
         self._initialize_policy_expectation(emission_names)
 
         self._flexibility_cost = self._default_array()
-        self._belief_flexibility_cost = self._default_array()
+        # NaN until the first belief update: the flexibility cost is a shadow
+        # price, legitimately zero wherever the constraint does not bind
+        self._belief_flexibility_cost = self._default_array(default=np.nan)
         self._vessel_net_flexibility_units = self._default_dict_array(vessels)
         self._remedial_cost = self._default_array()
 
