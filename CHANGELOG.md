@@ -54,7 +54,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ### Changed
 - An `InitialSplit` on a Fleet or a `ConditionDistribution` on a Route whose
-  entries sum to 0, or that is empty, is now a deck error naming its line.
+  entries sum to 0 once rounded to five decimals (as `[1e-9, 0.0]` does), or
+  that is empty, is now a deck error naming its line.
   Such a list used to be accepted unchanged, since a zero total cannot be
   rescaled to 1, leaving a fleet with no split of its initial vessels over the
   vessel types or a route with no time on any leg. Omitting `InitialSplit`
