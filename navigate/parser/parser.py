@@ -173,7 +173,7 @@ class Parser:
         self._command_queue: dict[Node, list[CommandReference]] = {}
         # the values the deck handed each node's DEFINE-only attributes and
         # commands, keyed by deck attribute or command name
-        self._define_only_inputs: dict[Node, dict[str, list]] = {}
+        self._define_only_inputs: dict[Node, dict[tuple[str, ...], list]] = {}
         # every calculator a DEFINE-only input holds, keyed by identity, with
         # the first node and deck attribute or command name holding it
         self._pinned_calculators: dict[Calculator, tuple[Node, str]] = {}
@@ -749,7 +749,7 @@ class Parser:
             and NODE_ATTRIBUTE_SECTIONS[node.type][attribute] == SECTION_DEFINE
         ):
             # a re-assignment replaces what the attribute held
-            self._define_only_inputs.setdefault(node, {})[attribute] = [value]
+            self._define_only_inputs.setdefault(node, {})[(attribute,)] = [value]
 
     def _queue_command(self, nodes, item, node_type):
         """
@@ -789,6 +789,14 @@ class Parser:
         target_nodes = nodes if isinstance(nodes, list) else [nodes]
         for node in target_nodes:
             self._command_queue.setdefault(node, []).append(ref)
+
+        # recorded when queued, as a command a default pulled after the drain
+        # queues runs only on the next pass
+        if NODE_COMMAND_SECTIONS[node_type][command] == SECTION_DEFINE:
+            for node in target_nodes:
+                self._define_only_inputs.setdefault(node, {}).setdefault(
+                    (command,), []
+                ).append(inputs)
 
     # ══════════════════════════════════════════════════════════════════
     # Node declaration processing
@@ -1378,22 +1386,68 @@ class Parser:
                     self._error_prefix() + f": '{cmd_ref.command}' {e!s}."
                 ) from None
 
-            if NODE_COMMAND_SECTIONS[node.type][cmd_ref.command] == SECTION_DEFINE:
-                self._define_only_inputs.setdefault(node, {}).setdefault(
-                    cmd_ref.command, []
-                ).append(cmd_ref.inputs)
-
     def _pin_define_only_calculators(self) -> None:
         """
         Pin every calculator a DEFINE-only attribute or command input holds.
 
-        Runs once the DEFINE block is resolved and pruned, so every expression
-        names its nodes and a node the prune removed pins nothing.
+        Runs once the DEFINE block is resolved and pruned, so a node the prune
+        removed pins nothing.
         """
         for node in self._get_all_nodes():
-            for name, values in self._define_only_inputs.get(node, {}).items():
-                for calculator in _held_calculators(values):
-                    self._pinned_calculators.setdefault(calculator, (node, name))
+            for entry, values in self._define_only_inputs.get(node, {}).items():
+                for calculator in self._held_calculators(values):
+                    self._pinned_calculators.setdefault(calculator, (node, entry[0]))
+
+    def _held_calculators(self, value) -> Iterator[Calculator]:
+        """
+        Yield the calculators a deck value holds, directly or through an expression.
+
+        Recurses lists only, as _materialize does. Any other node is not entered:
+        what it holds sits under attributes with sections of their own.
+        """
+        if isinstance(value, list):
+            for element in value:
+                yield from self._held_calculators(element)
+
+        elif isinstance(value, Expression):
+            # an expression read from a default pulled after the drain is
+            # resolved only on the next pass, so its references are looked up
+            # without binding it
+            references = value.node_references or [
+                self._find_node_reference(reference_string)
+                for reference_string in value.reference_strings
+            ]
+            yield from self._held_calculators(references)
+
+        elif isinstance(value, Node) and is_calculator(value):
+            yield value
+
+    def _find_node_reference(self, reference_string: str) -> Node | None:
+        """
+        Return the node a canonical reference string names, creating none.
+
+        Parameters
+        ----------
+        reference_string
+            A reference in canonical form, e.g. ``Variable("name")``.
+
+        Returns
+        -------
+        Node | None
+            The declared or deferred node, or None where no reference or
+            declaration has named it yet.
+        """
+        reference = parse_node_reference(reference_string)
+        if reference is None or reference[0] not in NODE_GROUP:
+            return None
+
+        node_type, name = reference
+        node = getattr(self.nodes, NODE_GROUP[node_type]).get(name)
+        if node is not None:
+            return node
+
+        entry = self._deferred.get(reference)
+        return None if entry is None else entry.node
 
     def _reject_events_changing_pinned_calculators(self) -> None:
         """
@@ -1889,24 +1943,6 @@ def _contains_wildcard(value):
         return any(_contains_wildcard(element) for element in value)
 
     return isinstance(value, WildcardNodeReference)
-
-
-def _held_calculators(value) -> Iterator[Calculator]:
-    """
-    Yield the calculators a deck value holds, directly or through an expression.
-
-    Recurses lists only, as _materialize does. Any other node is not entered:
-    what it holds sits under attributes with sections of their own.
-    """
-    if isinstance(value, list):
-        for element in value:
-            yield from _held_calculators(element)
-
-    elif isinstance(value, Expression):
-        yield from value.node_references
-
-    elif isinstance(value, Node) and is_calculator(value):
-        yield value
 
 
 def _transplant(node, copied):

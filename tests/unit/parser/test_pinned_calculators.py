@@ -65,10 +65,22 @@ VARIABLES = 'Variable "p" { Value = 1.0 }\nVariable "q" { Value = 1.0 }\n'
 # an Emission is a top-level node too, and its GlobalWarmingPotential is
 # DEFINE-only
 EMISSION = 'Emission "e" {{ GlobalWarmingPotential = {value} }}\n'
+CO2 = 'Emission "co2" { GlobalWarmingPotential = 1.0 }\n'
 
 
 def _fleet(power_capacity="50", efficiency="0.5"):
     return FLEET.format(power_capacity=power_capacity, efficiency=efficiency)
+
+
+def _fuel(name, commands):
+    return f"""
+Fuel "{name}" {{
+    FuelType = OIL
+    LowerHeatingValue = 41.2
+    MassDensity = 0.9
+    {commands}
+}}
+"""
 
 
 def _events(target):
@@ -116,22 +128,38 @@ def test_the_error_names_the_event_line(read_deck):
         read_deck(define, events=_events("p"))
 
 
-def test_a_define_only_command_pins_the_calculator_it_is_given(read_deck):
-    define = VARIABLES + (
-        'Emission "co2" { GlobalWarmingPotential = 1.0 }\n'
-        'Fuel "oil" {\n'
-        "    FuelType = OIL\n"
-        "    LowerHeatingValue = 41.2\n"
-        "    MassDensity = 0.9\n"
-        '    set_ttw("co2", Variable("p"))\n'
-        "}\n"
-    )
+class TestCommand:
+    def test_a_define_only_command_pins_the_calculator_it_is_given(self, read_deck):
+        define = VARIABLES + CO2 + _fuel("oil", 'set_ttw("co2", Variable("p"))')
 
-    with pytest.raises(
-        AttributeAssignmentError,
-        match=_pinned_error(r'Variable\("p"\)', r'Fuel\("oil"\)', "set_ttw"),
-    ):
-        read_deck(define, events=_events("p"))
+        with pytest.raises(
+            AttributeAssignmentError,
+            match=_pinned_error(r'Variable\("p"\)', r'Fuel\("oil"\)', "set_ttw"),
+        ):
+            read_deck(define, events=_events("p"))
+
+    @pytest.mark.parametrize(
+        "value", ['Variable("p")', '<Variable("p")>'], ids=["reference", "expression"]
+    )
+    def test_a_command_a_late_default_queues_pins(self, tmp_path, read_deck, value):
+        # the reference walk after the commands pulls "lib" for the oil's
+        # command, and the file declares a Fuel whose command waits for the
+        # next pass; "p" is declared there too, as the prune would remove it
+        # from the deck before anything holds it
+        library = tmp_path / "data" / "defaults"
+        for branch in ("user", "installation"):
+            (library / branch / "Variable").mkdir(parents=True)
+        (library / "installation" / "Variable" / "lib.inc").write_text(
+            'Variable "lib" { Value = 1.0 }\nVariable "p" { Value = 1.0 }\n'
+            + _fuel("late", f'set_ttw("co2", {value})')
+        )
+        define = CO2 + _fuel("oil", 'set_ttw("co2", Variable("lib"))')
+
+        with pytest.raises(
+            AttributeAssignmentError,
+            match=_pinned_error(r'Variable\("p"\)', r'Fuel\("late"\)', "set_ttw"),
+        ):
+            read_deck(define, events=_events("p"))
 
 
 def test_a_wildcard_target_matching_a_pinned_calculator_is_rejected(read_deck):
