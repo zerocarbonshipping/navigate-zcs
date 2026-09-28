@@ -598,7 +598,7 @@ Europe (if regional).</p>
 </section>
 <section id="conditiondistribution">
 <h3>ConditionDistribution<a class="headerlink" href="#conditiondistribution" title="Link to this heading">#</a></h3>
-<p>This attribute sets the fraction of time spent on the various legs of the trip. Entries must be finite, non-negative numbers. The list should sum to 1; its total, rounded to five decimals, is rescaled proportionally when it is other than 1, and a deviation of more than 1% is logged at <code class="docutils literal notranslate"><span class="pre">INFO</span></code>. A list whose rounded total is 0 (an all-zero or empty list included), an <code class="docutils literal notranslate"><span class="pre">INF</span></code> entry, or a total too large to represent is an error. This is only applicable if ‘RouteType’ is REGIONAL_TRIP. Refer to the section ‘Conditions’.</p>
+<p>This attribute sets the fraction of time spent on the various legs of the trip. Entries must be finite, non-negative numbers. The list should sum to 1; its total, rounded to five decimals, is rescaled proportionally when it is other than 1, and a deviation of more than 1% is logged at <code class="docutils literal notranslate"><span class="pre">WARNING</span></code>. A list whose rounded total is 0 (an all-zero or empty list included), an <code class="docutils literal notranslate"><span class="pre">INF</span></code> entry, or a total too large to represent is an error. This is only applicable if ‘RouteType’ is REGIONAL_TRIP. Refer to the section ‘Conditions’.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: List of <code class="docutils literal notranslate"><span class="pre">Floats</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
