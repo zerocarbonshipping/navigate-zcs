@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import logging
 from unittest.mock import MagicMock
 
 import pytest
@@ -58,6 +59,38 @@ def test_initialize_ignores_excluded_vessels_without_threshold():
     regulation.set_vessel_threshold("v1", 10.0)
 
     regulation.initialize()
+
+
+def test_flexibility_horizon_warns_when_assigned_under_individual_scheme(caplog):
+    regulation = _make_regulation("INDIVIDUAL", "ABSOLUTE", vessels=())
+    regulation.set_flexibility_horizon(5.0)
+
+    with caplog.at_level(logging.WARNING):
+        regulation.initialize()
+
+    assert [record.getMessage() for record in caplog.records] == [
+        "Regulation(\"reg\"): 'FlexibilityHorizon' is assigned but is unused for"
+        " Scheme = INDIVIDUAL."
+    ]
+
+
+def test_flexibility_horizon_default_does_not_warn_under_individual_scheme(caplog):
+    regulation = _make_regulation("INDIVIDUAL", "ABSOLUTE", vessels=())
+
+    with caplog.at_level(logging.WARNING):
+        regulation.initialize()
+
+    assert caplog.records == []
+
+
+def test_flexibility_horizon_does_not_warn_when_assigned_under_flexible_scheme(caplog):
+    regulation = _make_regulation("FLEXIBLE", "ABSOLUTE", vessels=())
+    regulation.set_flexibility_horizon(5.0)
+
+    with caplog.at_level(logging.WARNING):
+        regulation.initialize()
+
+    assert caplog.records == []
 
 
 def test_calculate_profile_writes_policed_vessel_thresholds():

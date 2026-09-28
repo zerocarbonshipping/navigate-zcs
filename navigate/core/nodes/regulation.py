@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING
 
 from navigate.core import (
@@ -27,6 +28,8 @@ if TYPE_CHECKING:
     from navigate.core.nodes.vessel import Vessel
     from navigate.util import FloatArray
 
+logger = logging.getLogger(__name__)
+
 
 class Regulation(_Policy):
     """A regulation holding policed vessels to an emission threshold in its measure."""
@@ -46,6 +49,7 @@ class Regulation(_Policy):
 
         # flexibility cost belief
         self.flexibility_horizon: ForecastInput = Scalar(3.0)
+        self._flexibility_horizon_assigned: bool = False
 
         # threshold
         self.vessel_threshold: dict[str, ForecastInput | None] = {}
@@ -186,7 +190,9 @@ class Regulation(_Policy):
         """
         Set the decision horizon, in years, smoothing the flexibility-cost belief.
 
-        It enters the expected policy expenses of the policed vessels.
+        It enters the expected policy expenses of the policed vessels. Only applies
+        when 'Scheme' is FLEXIBLE; assigning it under any other scheme is unused and
+        logged as a warning.
 
         A longer horizon makes the belief respond more slowly to changes in the
         flexibility cost between outer time-steps, preventing small changes in future
@@ -206,6 +212,7 @@ class Regulation(_Policy):
         self.flexibility_horizon = assign_value(
             as_scalar(flexibility_horizon), type_=(FORECAST, VARIABLE), lower=0.0
         )
+        self._flexibility_horizon_assigned = True
 
     # external methods (DSL commands) --------------------------------------------------
     def set_vessel_threshold(
@@ -302,6 +309,15 @@ class Regulation(_Policy):
                     f'{self}: Vessel("{vessel_name}") is included in the regulation but'
                     " no vessel_threshold is defined."
                 )
+
+        if self._flexibility_horizon_assigned and (
+            self.scheme != RegulationSchemeID.FLEXIBLE
+        ):
+            logger.warning(
+                "%s: 'FlexibilityHorizon' is assigned but is unused for Scheme = %s.",
+                self,
+                self.scheme.name,
+            )
 
     def initialize_dependencies(self, vessels: dict[str, Vessel]) -> None:
         """

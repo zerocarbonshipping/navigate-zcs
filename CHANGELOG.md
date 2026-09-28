@@ -1207,6 +1207,12 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   index to scalar variable" error, and could not save a port report holding
   the bunker intensity, which was left with its header only. Decks that
   define an Emission are unaffected.
+- A `Regulation`'s `FlexibilityHorizon` is logged as a WARNING when assigned
+  on a scheme other than FLEXIBLE, naming the regulation and the scheme. It
+  is only read by the flexibility-cost belief that a FLEXIBLE scheme
+  computes, so assigning it under, for example, INDIVIDUAL was silently
+  ignored. It stays ignored; the value a FLEXIBLE regulation gets when the
+  attribute is unset is unchanged, so no result moves.
 
 ## [1.0.0] - 2026-07-16
 
