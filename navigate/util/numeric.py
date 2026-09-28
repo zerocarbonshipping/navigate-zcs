@@ -284,10 +284,12 @@ def derive_smoothing_alpha(
     Returns
     -------
     float
-        Smoothing parameter.
+        Smoothing parameter. 1.0 (the projection adopted in full) at
+        `idx = 0`, which has no preceding step, and for an index past the
+        end of the timeline.
     """
     horizon_idx = timeline.size - 1
-    if idx > horizon_idx:
+    if idx == 0 or idx > horizon_idx:
         return 1.0
 
     outer_step_years: float = (timeline[idx] - timeline[idx - 1]) / YEAR
