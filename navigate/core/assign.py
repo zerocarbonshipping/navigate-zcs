@@ -26,7 +26,6 @@ from navigate.core.node_type import (
 )
 from navigate.core.scalar import Scalar
 from navigate.core.table_data import TableData
-from navigate.core.wrap import Assignment
 from navigate.util import (
     ROUND_OFF,
     TOLERANCE,
@@ -45,6 +44,15 @@ _BOUND_ID = {"-INF": -np.inf, "INF": np.inf}
 
 # an exact length, or a lower and an upper bound either of which may be open
 type ListLength = int | tuple[int | None, int | None] | None
+
+# everything a validator may be handed for a single-valued attribute: a bare
+# float, or a value that already answers a getter. The alias is the contract
+# for typed callers, not a claim about what reaches the boundary at runtime:
+# the parser is untyped, so it hands every deck value in as 'Any' and a deck
+# can name any shape the grammar accepts - a bare string, a list, a TableData.
+# That is why the validators here keep runtime reject arms for values their
+# typed callers never pass.
+type Assignment = float | Scalar | Node | Expression
 
 # kind words for the values a setter can be handed; a value of no kind listed
 # here is echoed in the error instead, as its own text is what identifies it.
@@ -534,7 +542,7 @@ def command_assignment_to_dict[K: str | Enum, V: Assignment](
         Name of node, possibly including wildcards.
     assignment
         Value assigned to every matched entry, a float already wrapped in
-        a Scalar by the setter.
+        a Scalar by a setter that accepts scalars.
     assignment_dict
         The dictionary being assigned to.
     scalar
@@ -595,7 +603,7 @@ def command_assignment_to_tuple_dict[K1: str | Enum, K2: str | Enum, V: Assignme
         Tuple of node names, possibly including wildcards.
     assignment
         Value assigned to every matched entry, a float already wrapped in
-        a Scalar by the setter.
+        a Scalar by a setter that accepts scalars.
     assignment_dict
         The dictionary being assigned to.
     scalar

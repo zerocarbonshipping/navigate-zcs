@@ -26,7 +26,14 @@ from navigate.exceptions import no_value_assigned_error
 if TYPE_CHECKING:
     from navigate.core.enum_ import LevySchemeID, RegulationSchemeID
     from navigate.core.expectations import LevyExpectation, RegulationExpectation
-    from navigate.core.input_kinds import CurveInput, ForecastInput, ScalarInput
+    from navigate.core.input_kinds import (
+        CurveArgument,
+        CurveInput,
+        ForecastArgument,
+        ForecastInput,
+        ScalarArgument,
+        ScalarInput,
+    )
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.port import Port
@@ -170,7 +177,7 @@ class _Policy(Node):
         """
         self.include_slip = assign_boolean(include_slip)
 
-    def set_emissions_lifetime(self, emissions_lifetime: float | ScalarInput) -> None:
+    def set_emissions_lifetime(self, emissions_lifetime: ScalarArgument) -> None:
         """
         Set the emission lifetime used in the GWP calculation of emissions.
 
@@ -209,7 +216,7 @@ class _Policy(Node):
         )
 
     def set_global_warming_potential(
-        self, emission_name: str, global_warming_potential: float | CurveInput
+        self, emission_name: str, global_warming_potential: CurveArgument
     ) -> None:
         """
         Set the GWP used to translate tons of emissions into CO2-equivalent emissions.
@@ -238,7 +245,7 @@ class _Policy(Node):
         )
 
     def set_fuel_wtt(
-        self, fuel_name: str, emission_name: str, emission_factor: float | ForecastInput
+        self, fuel_name: str, emission_name: str, emission_factor: ForecastArgument
     ) -> None:
         """
         Set the WTT emission factor for a given fuel and emission.
@@ -268,7 +275,7 @@ class _Policy(Node):
         )
 
     def set_fuel_ttw(
-        self, fuel_name: str, emission_name: str, emission_factor: float | ForecastInput
+        self, fuel_name: str, emission_name: str, emission_factor: ForecastArgument
     ) -> None:
         """
         Set the TTW emission factor for a given fuel and emission.

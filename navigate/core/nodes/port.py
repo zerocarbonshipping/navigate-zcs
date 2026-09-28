@@ -25,7 +25,7 @@ from navigate.core.unit import MWH_TO_GJ
 if TYPE_CHECKING:
     import numpy as np
 
-    from navigate.core.input_kinds import ForecastInput
+    from navigate.core.input_kinds import ForecastArgument, ForecastInput
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
     from navigate.util import FloatArray
@@ -81,7 +81,7 @@ class Port(Node):
         """
         command_assignment_to_boolean_dict(fuel_name, value, self.bunkering_allowed)
 
-    def set_bunkering_limit(self, fuel_name: str, value: float | ForecastInput) -> None:
+    def set_bunkering_limit(self, fuel_name: str, value: ForecastArgument) -> None:
         """
         Set a limit for the fuel that can be bunkered in the port, tons/year.
 
@@ -105,9 +105,7 @@ class Port(Node):
             lower=0.0,
         )
 
-    def set_bunkering_inertia(
-        self, fuel_name: str, value: float | ForecastInput
-    ) -> None:
+    def set_bunkering_inertia(self, fuel_name: str, value: ForecastArgument) -> None:
         """
         Set the inertia of a fuel being bunkered in fraction/year.
 
@@ -135,7 +133,7 @@ class Port(Node):
             upper=1.0,
         )
 
-    def set_handling_cost(self, fuel_name: str, value: float | ForecastInput) -> None:
+    def set_handling_cost(self, fuel_name: str, value: ForecastArgument) -> None:
         """
         Set the storage and bunkering service cost for a fuel in the port, USD/ton.
 
@@ -161,7 +159,7 @@ class Port(Node):
         )
 
     def set_bunker_price_overwrite(
-        self, fuel_name: str, value: float | ForecastInput
+        self, fuel_name: str, value: ForecastArgument
     ) -> None:
         """
         Set an overwrite cost for a specific fuel in the port in USD/ton.
@@ -190,7 +188,7 @@ class Port(Node):
         )
 
     def set_bunker_wtt_overwrite(
-        self, fuel_name: str, emission_name: str, value: float | ForecastInput
+        self, fuel_name: str, emission_name: str, value: ForecastArgument
     ) -> None:
         """
         Set an overwrite WTT emissions for a fuel/emission pair, ton emission/ton fuel.
@@ -219,7 +217,7 @@ class Port(Node):
             type_=(FORECAST, VARIABLE),
         )
 
-    def set_shore_power_cost(self, value: float | ForecastInput) -> None:
+    def set_shore_power_cost(self, value: ForecastArgument) -> None:
         """
         Set the shore power electricity tariff in USD/MWh.
 
@@ -239,7 +237,7 @@ class Port(Node):
             as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
-    def set_shore_power_connection_share(self, value: float | ForecastInput) -> None:
+    def set_shore_power_connection_share(self, value: ForecastArgument) -> None:
         """
         Set the fraction of port time during which shore power connection is available.
 
@@ -260,7 +258,7 @@ class Port(Node):
         )
 
     def set_shore_power_emission_factor(
-        self, emission_name: str, value: float | ForecastInput
+        self, emission_name: str, value: ForecastArgument
     ) -> None:
         """
         Set the WTW emission factor for shore power electricity, ton emission/MWh.

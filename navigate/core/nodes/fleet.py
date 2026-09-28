@@ -45,7 +45,12 @@ if TYPE_CHECKING:
     from numpy.typing import NDArray
 
     from navigate.core.expression import Expression
-    from navigate.core.input_kinds import ForecastInput, ScalarInput
+    from navigate.core.input_kinds import (
+        ForecastArgument,
+        ForecastInput,
+        ScalarArgument,
+        ScalarInput,
+    )
     from navigate.core.nodes.curve import Curve
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
@@ -137,7 +142,7 @@ class Fleet(_AssetManager[Vessel]):
             as_list(vessels), unique=True, scalar=False, type_=VESSEL
         )
 
-    def set_memory(self, memory: float | ForecastInput) -> None:
+    def set_memory(self, memory: ForecastArgument) -> None:
         """
         Set the memory's exponential decay used in the newbuild uptake decision.
 
@@ -157,7 +162,7 @@ class Fleet(_AssetManager[Vessel]):
             as_scalar(memory), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
         )
 
-    def set_fixed_scrap_rate(self, fixed_scrap_rate: float | ForecastInput) -> None:
+    def set_fixed_scrap_rate(self, fixed_scrap_rate: ForecastArgument) -> None:
         """
         Set the fixed scrap rate of the fleet in fraction/year.
 
@@ -202,7 +207,7 @@ class Fleet(_AssetManager[Vessel]):
         """
         self.allow_secondary_scrapping = assign_boolean(allow_secondary_scrapping)
 
-    def set_trade_growth(self, trade_growth: float | ForecastInput) -> None:
+    def set_trade_growth(self, trade_growth: ForecastArgument) -> None:
         """
         Set trade-growth of the fleet, fraction/year.
 
@@ -220,7 +225,7 @@ class Fleet(_AssetManager[Vessel]):
             as_scalar(trade_growth), type_=(FORECAST, VARIABLE)
         )
 
-    def set_initial_vessels(self, initial_vessels: float | ScalarInput) -> None:
+    def set_initial_vessels(self, initial_vessels: ScalarArgument) -> None:
         """
         Set the initial amount of vessels in the fleet.
 
@@ -287,7 +292,7 @@ class Fleet(_AssetManager[Vessel]):
         )
 
     def set_intra_fuel_sensitivity(
-        self, intra_fuel_sensitivity: float | ForecastInput
+        self, intra_fuel_sensitivity: ForecastArgument
     ) -> None:
         """
         Set the within-fuel technology choice sensitivity to LCOT.
@@ -315,7 +320,7 @@ class Fleet(_AssetManager[Vessel]):
         )
 
     def set_inter_fuel_sensitivity(
-        self, inter_fuel_sensitivity: float | ForecastInput
+        self, inter_fuel_sensitivity: ForecastArgument
     ) -> None:
         """
         Set the fuel-type choice's sensitivity to levelized cost of transport (LCOT).
@@ -343,7 +348,7 @@ class Fleet(_AssetManager[Vessel]):
         )
 
     def set_technology_sensitivity(
-        self, technology_sensitivity: float | ForecastInput
+        self, technology_sensitivity: ForecastArgument
     ) -> None:
         """
         Set the sensitivity of the energy-saving technology package choice to its NPV.
@@ -370,9 +375,7 @@ class Fleet(_AssetManager[Vessel]):
             inclusive_lower=False,
         )
 
-    def set_technology_cost_of_capital(
-        self, cost_of_capital: float | ForecastInput
-    ) -> None:
+    def set_technology_cost_of_capital(self, cost_of_capital: ForecastArgument) -> None:
         """
         Set the cost of capital used for evaluating technology investments.
 
@@ -395,7 +398,7 @@ class Fleet(_AssetManager[Vessel]):
             as_scalar(cost_of_capital), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
-    def set_technology_horizon(self, technology_horizon: float | ForecastInput) -> None:
+    def set_technology_horizon(self, technology_horizon: ForecastArgument) -> None:
         """
         Set the decision horizon, in years, smoothing the energy-scarcity belief.
 
@@ -418,7 +421,7 @@ class Fleet(_AssetManager[Vessel]):
             as_scalar(technology_horizon), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
-    def set_speed_horizon(self, speed_horizon: float | ForecastInput) -> None:
+    def set_speed_horizon(self, speed_horizon: ForecastArgument) -> None:
         """
         Set the horizon, in years, of the energy-scarcity belief for speed management.
 
@@ -439,7 +442,7 @@ class Fleet(_AssetManager[Vessel]):
             as_scalar(speed_horizon), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
-    def set_retrofit_frequency(self, retrofit_frequency: float | ForecastInput) -> None:
+    def set_retrofit_frequency(self, retrofit_frequency: ForecastArgument) -> None:
         """
         Set how often a vessel can retrofit technology or perform a fuel conversion.
 
@@ -457,7 +460,7 @@ class Fleet(_AssetManager[Vessel]):
             as_scalar(retrofit_frequency), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
-    def set_orderbooks(self, orderbooks: list[float | ForecastInput]) -> None:
+    def set_orderbooks(self, orderbooks: list[ForecastArgument]) -> None:
         """
         Set the list of orderbooks used to determine newbuild uptake.
 
@@ -473,7 +476,7 @@ class Fleet(_AssetManager[Vessel]):
         orderbooks
             List of orderbooks.
         """
-        entries: list[float | ForecastInput] = as_list(orderbooks)
+        entries: list[ForecastArgument] = as_list(orderbooks)
         self.orderbooks = assign_list(
             [as_scalar(entry) for entry in entries],
             type_=(FORECAST, VARIABLE),
@@ -500,9 +503,7 @@ class Fleet(_AssetManager[Vessel]):
         """
         self.allow_speed_management = assign_boolean(allow_speed_management)
 
-    def set_maximum_speed_change(
-        self, maximum_speed_change: float | ForecastInput
-    ) -> None:
+    def set_maximum_speed_change(self, maximum_speed_change: ForecastArgument) -> None:
         """
         Set the maximum speed change per year during dynamic speed management.
 
@@ -568,7 +569,7 @@ class Fleet(_AssetManager[Vessel]):
         )
 
     def set_fuel_conversion_sensitivity(
-        self, fuel_conversion_sensitivity: float | ForecastInput
+        self, fuel_conversion_sensitivity: ForecastArgument
     ) -> None:
         """
         Set the sensitivity of the fuel-conversion choice to its NPV.
@@ -597,7 +598,7 @@ class Fleet(_AssetManager[Vessel]):
         )
 
     def set_fuel_conversion_minimum_age(
-        self, fuel_conversion_minimum_age: float | ForecastInput
+        self, fuel_conversion_minimum_age: ForecastArgument
     ) -> None:
         """
         Set the minimum age at which a vessel can perform a fuel conversion, in years.
@@ -649,7 +650,7 @@ class Fleet(_AssetManager[Vessel]):
         self,
         vessel_name_from: str,
         vessel_name_to: str,
-        fuel_conversion_cost: float | ForecastInput,
+        fuel_conversion_cost: ForecastArgument,
     ) -> None:
         """
         Set the cost of converting a vessel's fuel type from one to another, in USD.
@@ -681,7 +682,7 @@ class Fleet(_AssetManager[Vessel]):
         self,
         vessel_name_from: str,
         vessel_name_to: str,
-        fuel_conversion_limit: float | ForecastInput,
+        fuel_conversion_limit: ForecastArgument,
     ) -> None:
         """
         Set the per-pair cap on fuel conversions between two vessel types.
@@ -813,7 +814,7 @@ class Fleet(_AssetManager[Vessel]):
         """
         command_assignment_to_tuple_dict(
             (vessel_name, technology_name),
-            as_scalar(uptake_curve),
+            uptake_curve,
             self.initial_technology_share,
             scalar=False,
             type_=CURVE,
@@ -821,9 +822,7 @@ class Fleet(_AssetManager[Vessel]):
             upper=1.0,
         )
 
-    def set_newbuild_limit(
-        self, vessel_name: str, limit: float | ForecastInput
-    ) -> None:
+    def set_newbuild_limit(self, vessel_name: str, limit: ForecastArgument) -> None:
         """
         Set the maximum newbuild cargo-miles share deliverable by the given vessel type.
 
@@ -853,7 +852,7 @@ class Fleet(_AssetManager[Vessel]):
         )
 
     def set_newbuild_technology_limit(
-        self, technology_name: str, limit: float | ForecastInput
+        self, technology_name: str, limit: ForecastArgument
     ) -> None:
         """
         Set the maximum fleet fraction installing the technology on newbuilds per year.
@@ -883,7 +882,7 @@ class Fleet(_AssetManager[Vessel]):
         )
 
     def set_retrofit_technology_limit(
-        self, technology_name: str, limit: float | ForecastInput
+        self, technology_name: str, limit: ForecastArgument
     ) -> None:
         """
         Set the maximum fleet fraction that can retrofit to the technology per year.
@@ -913,7 +912,7 @@ class Fleet(_AssetManager[Vessel]):
         )
 
     def set_operational_saving_sea(
-        self, energy_type: str, saving: float | ForecastInput
+        self, energy_type: str, saving: ForecastArgument
     ) -> None:
         """
         Set the fraction of energy saved at sea through operational measures.
@@ -944,7 +943,7 @@ class Fleet(_AssetManager[Vessel]):
         )
 
     def set_operational_saving_port(
-        self, energy_type: str, saving: float | ForecastInput
+        self, energy_type: str, saving: ForecastArgument
     ) -> None:
         """
         Set the fraction of energy saved in port through operational measures.

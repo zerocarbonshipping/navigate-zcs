@@ -20,7 +20,7 @@ from navigate.core.node import Node
 from navigate.core.node_type import FUEL, VARIABLE
 
 if TYPE_CHECKING:
-    from navigate.core.input_kinds import ScalarInput
+    from navigate.core.input_kinds import ScalarArgument, ScalarInput
     from navigate.core.nodes.emission import Emission
 
 
@@ -80,7 +80,7 @@ class Fuel(Node):
         """
         self.liquid_market = assign_boolean(liquid_market)
 
-    def set_lower_heating_value(self, lower_heating_value: float | ScalarInput) -> None:
+    def set_lower_heating_value(self, lower_heating_value: ScalarArgument) -> None:
         """
         Set the lower heating value of the fuel in GJ/ton.
 
@@ -97,7 +97,7 @@ class Fuel(Node):
             as_scalar(lower_heating_value), type_=VARIABLE, lower=0.0
         )
 
-    def set_mass_density(self, mass_density: float | ScalarInput) -> None:
+    def set_mass_density(self, mass_density: ScalarArgument) -> None:
         """
         Set the mass density of the fuel.
 
@@ -115,7 +115,7 @@ class Fuel(Node):
         )
 
     # external methods (DSL commands) --------------------------------------------------
-    def set_ttw(self, emission_name: str, ttw: float | ScalarInput) -> None:
+    def set_ttw(self, emission_name: str, ttw: ScalarArgument) -> None:
         """
         Set the TTW emission factor for the stoichiometric conversion of fuel to energy.
 

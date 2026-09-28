@@ -10,7 +10,7 @@ from navigate.core.node import Node
 from navigate.core.node_type import FORECAST, VARIABLE
 
 if TYPE_CHECKING:
-    from navigate.core.input_kinds import ForecastInput
+    from navigate.core.input_kinds import ForecastArgument, ForecastInput
 
 
 class _Machinery(Node):
@@ -32,7 +32,7 @@ class _Machinery(Node):
         self.replacement: ForecastInput = Scalar(1.0)
 
     # external methods (DSL attributes) ------------------------------------------------
-    def set_capex(self, capex: float | ForecastInput) -> None:
+    def set_capex(self, capex: ForecastArgument) -> None:
         """
         Set the CAPEX related to installing the machinery.
 
@@ -50,7 +50,7 @@ class _Machinery(Node):
             as_scalar(capex), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
-    def set_opex(self, opex: float | ForecastInput) -> None:
+    def set_opex(self, opex: ForecastArgument) -> None:
         """
         Set the OPEX related to maintaining the machinery.
 
@@ -66,7 +66,7 @@ class _Machinery(Node):
         """
         self.opex = assign_value(as_scalar(opex), type_=(FORECAST, VARIABLE), lower=0.0)
 
-    def set_lifetime(self, lifetime: float | ForecastInput) -> None:
+    def set_lifetime(self, lifetime: ForecastArgument) -> None:
         """
         Set the lifetime of the machinery.
 
@@ -90,7 +90,7 @@ class _Machinery(Node):
             inclusive_lower=False,
         )
 
-    def set_replacement(self, replacement: float | ForecastInput) -> None:
+    def set_replacement(self, replacement: ForecastArgument) -> None:
         """
         Set the CAPEX replacement fraction to reinstall machinery at end of lifetime.
 

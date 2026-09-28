@@ -54,6 +54,15 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ### Changed
 - **Breaking** for code importing navigate as a library:
+  `navigate.core.wrap.WrappedAssignment` is gone and
+  `navigate.core.wrap.Assignment` moves to `navigate.core.assign.Assignment`.
+  `as_scalar` is typed to take a float, a calculator or an expression, no
+  longer a `Scalar` or an arbitrary `Node`, which no setter hands it.
+  `navigate.core.input_kinds` gains `ScalarArgument`, `ForecastArgument`,
+  `CurveArgument`, `SurfaceArgument` and `TimetableArgument`, the kinds a
+  setter is handed before `as_scalar` wraps the float; the node setters take
+  them in place of `float | <kind>Input`. Simulation results are unchanged.
+- **Breaking** for code importing navigate as a library:
   `navigate.core.node_type.TypeCheckMixin` is removed; `Node` itself now
   defines the `type` attribute and `is_type`. Simulation results are
   unchanged.

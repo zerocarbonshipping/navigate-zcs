@@ -31,8 +31,10 @@ from navigate.util import ROUND_OFF, divide_nonzero, unique_list
 if TYPE_CHECKING:
     from navigate.core.expression import Expression
     from navigate.core.input_kinds import (
+        ForecastArgument,
         ForecastInput,
         NumberInput,
+        ScalarArgument,
         ScalarInput,
     )
     from navigate.core.nodes.port import Port
@@ -101,7 +103,7 @@ class Route(Node):
         """
         self.ports = assign_list(as_list(ports), scalar=False, type_=PORT)
 
-    def set_port_durations(self, port_durations: list[float | ForecastInput]) -> None:
+    def set_port_durations(self, port_durations: list[ForecastArgument]) -> None:
         """
         Set the duration spent at each port call of the trip, days.
 
@@ -117,7 +119,7 @@ class Route(Node):
         port_durations
             A list of floats or Forecast nodes.
         """
-        entries: list[float | ForecastInput] = as_list(port_durations)
+        entries: list[ForecastArgument] = as_list(port_durations)
         self.port_durations = assign_list(
             [as_scalar(entry) for entry in entries],
             length=(1, None),
@@ -125,7 +127,7 @@ class Route(Node):
             lower=0.0,
         )
 
-    def set_time_at_sea(self, time_at_sea: float | ForecastInput) -> None:
+    def set_time_at_sea(self, time_at_sea: ForecastArgument) -> None:
         """
         Set the fraction of time spent at sea.
 
@@ -144,7 +146,7 @@ class Route(Node):
             as_scalar(time_at_sea), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
         )
 
-    def set_port_calls(self, port_calls: list[float | ForecastInput]) -> None:
+    def set_port_calls(self, port_calls: list[ForecastArgument]) -> None:
         """
         Set the number of port calls per port over the reference duration.
 
@@ -160,7 +162,7 @@ class Route(Node):
         port_calls
             A list of floats or Forecast nodes.
         """
-        entries: list[float | ForecastInput] = as_list(port_calls)
+        entries: list[ForecastArgument] = as_list(port_calls)
         self.port_calls = assign_list(
             [as_scalar(entry) for entry in entries],
             type_=(FORECAST, VARIABLE),
@@ -220,7 +222,7 @@ class Route(Node):
                 self,
             )
 
-    def set_speeds(self, speeds: list[float | ForecastInput]) -> None:
+    def set_speeds(self, speeds: list[ForecastArgument]) -> None:
         """
         Set the speed of the various legs of the trip, knots.
 
@@ -234,7 +236,7 @@ class Route(Node):
         speeds
             A list of floats or Forecast nodes.
         """
-        entries: list[float | ForecastInput] = as_list(speeds)
+        entries: list[ForecastArgument] = as_list(speeds)
         self.speeds = assign_list(
             [as_scalar(entry) for entry in entries],
             length=(1, None),
@@ -244,7 +246,7 @@ class Route(Node):
         )
 
     def set_capacity_utilizations(
-        self, capacity_utilizations: list[float | ForecastInput]
+        self, capacity_utilizations: list[ForecastArgument]
     ) -> None:
         """
         Set the capacity utilization of the various legs of the trip.
@@ -259,7 +261,7 @@ class Route(Node):
         capacity_utilizations
             A list of floats or Forecast nodes.
         """
-        entries: list[float | ForecastInput] = as_list(capacity_utilizations)
+        entries: list[ForecastArgument] = as_list(capacity_utilizations)
         self.capacity_utilizations = assign_list(
             [as_scalar(entry) for entry in entries],
             type_=(FORECAST, VARIABLE),
@@ -269,7 +271,7 @@ class Route(Node):
 
     # external methods (DSL commands) --------------------------------------------------
     def set_voyage_distribution(
-        self, port_name_from: str, port_name_to: str, fraction: float | ScalarInput
+        self, port_name_from: str, port_name_to: str, fraction: ScalarArgument
     ) -> None:
         """
         Set the fraction of sailing time spent traveling from 'port_from' to 'port_to'.

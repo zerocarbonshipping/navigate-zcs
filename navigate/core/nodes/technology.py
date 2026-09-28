@@ -20,7 +20,12 @@ from navigate.core.node_type import CURVE, TECHNOLOGY, VARIABLE
 from navigate.core.nodes._machinery import _Machinery
 
 if TYPE_CHECKING:
-    from navigate.core.input_kinds import CurveInput, ScalarInput
+    from navigate.core.input_kinds import (
+        CurveArgument,
+        CurveInput,
+        ScalarArgument,
+        ScalarInput,
+    )
 
 PROPULSION, ELECTRICAL, HEAT = (
     EnergyDemandTypeID.PROPULSION,
@@ -56,7 +61,7 @@ class Technology(_Machinery):
         }
 
     # external methods (DSL attributes) ------------------------------------------------
-    def set_shore_power_capacity(self, capacity: float | ScalarInput) -> None:
+    def set_shore_power_capacity(self, capacity: ScalarArgument) -> None:
         """
         Set the vessel-side shore power connection capacity in MW.
 
@@ -75,7 +80,7 @@ class Technology(_Machinery):
         )
 
     # external methods (DSL commands) --------------------------------------------------
-    def set_energy_saving(self, energy_type: str, saving: float | ScalarInput) -> None:
+    def set_energy_saving(self, energy_type: str, saving: ScalarArgument) -> None:
         """
         Set the fraction of the raw energy demand the technology saves.
 
@@ -101,7 +106,7 @@ class Technology(_Machinery):
             id_, as_scalar(saving), self.energy_saving, type_=VARIABLE, lower=0.0
         )
 
-    def set_external_power(self, energy_type: str, power: float | ScalarInput) -> None:
+    def set_external_power(self, energy_type: str, power: ScalarArgument) -> None:
         """
         Set the external power the technology supplies to an energy demand type, in MW.
 
@@ -127,7 +132,7 @@ class Technology(_Machinery):
         )
 
     def set_power_transfer(
-        self, power_system_id: str, energy_id: str, transfer: float | CurveInput
+        self, power_system_id: str, energy_id: str, transfer: CurveArgument
     ) -> None:
         """
         Set the power transferred from a source energy type to a sink energy type.

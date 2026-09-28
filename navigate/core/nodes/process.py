@@ -12,7 +12,7 @@ from navigate.core.node import Node
 from navigate.core.node_type import FEEDSTOCK, FORECAST, PROCESS, VARIABLE
 
 if TYPE_CHECKING:
-    from navigate.core.input_kinds import ForecastInput
+    from navigate.core.input_kinds import ForecastArgument, ForecastInput
     from navigate.core.nodes.feedstock import Feedstock
 
 
@@ -45,7 +45,7 @@ class Process(Node):
             as_list(feeds), unique=True, scalar=False, type_=(FEEDSTOCK, PROCESS)
         )
 
-    def set_conversions(self, conversion: list[float | ForecastInput]) -> None:
+    def set_conversions(self, conversion: list[ForecastArgument]) -> None:
         """
         Set the conversion factors required for turning the feed into fuel.
 
@@ -58,7 +58,7 @@ class Process(Node):
         conversion
             A list of conversion factors in tons of feed per tons of fuel.
         """
-        entries: list[float | ForecastInput] = as_list(conversion)
+        entries: list[ForecastArgument] = as_list(conversion)
         self.conversions = assign_list(
             [as_scalar(entry) for entry in entries],
             type_=(FORECAST, VARIABLE),

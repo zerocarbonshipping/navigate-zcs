@@ -17,7 +17,7 @@ from navigate.core.nodes._policy import _Policy
 from navigate.core.profiles import LevyProfile
 
 if TYPE_CHECKING:
-    from navigate.core.input_kinds import ForecastInput
+    from navigate.core.input_kinds import ForecastArgument, ForecastInput
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.vessel import Vessel
     from navigate.util import FloatArray
@@ -61,7 +61,7 @@ class Levy(_Policy):
         """
         self.scheme = assign_id(scheme, LevySchemeID)
 
-    def set_level(self, level: float | ForecastInput) -> None:
+    def set_level(self, level: ForecastArgument) -> None:
         """
         Set the levy level paid or received, depending on scheme, in USD/ton emission.
 
@@ -79,7 +79,7 @@ class Levy(_Policy):
             as_scalar(level), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
-    def set_lower_threshold(self, lower_threshold: float | ForecastInput) -> None:
+    def set_lower_threshold(self, lower_threshold: ForecastArgument) -> None:
         """
         Set the lower emission factor threshold of the levy in kg emissions / GJ.
 
@@ -100,7 +100,7 @@ class Levy(_Policy):
             as_scalar(lower_threshold), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
-    def set_upper_threshold(self, upper_threshold: float | ForecastInput) -> None:
+    def set_upper_threshold(self, upper_threshold: ForecastArgument) -> None:
         """
         Set the upper emission factor threshold of the levy in kg emissions / GJ.
 

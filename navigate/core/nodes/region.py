@@ -17,7 +17,12 @@ from navigate.core.node import Node
 from navigate.core.node_type import FORECAST, REGION, TIMETABLE, VARIABLE
 
 if TYPE_CHECKING:
-    from navigate.core.input_kinds import ForecastInput, TimetableInput
+    from navigate.core.input_kinds import (
+        ForecastArgument,
+        ForecastInput,
+        TimetableArgument,
+        TimetableInput,
+    )
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.feedstock import Feedstock
     from navigate.core.nodes.process import Process
@@ -54,9 +59,7 @@ class Region(Node):
         self.transport_wtt: dict[tuple[str, str], ForecastInput] = {}
 
     # external methods (DSL commands) --------------------------------------------------
-    def set_process_capex(
-        self, process_name: str, value: float | TimetableInput
-    ) -> None:
+    def set_process_capex(self, process_name: str, value: TimetableArgument) -> None:
         """
         Set the CAPEX associated with a production process in USD/ton.
 
@@ -80,9 +83,7 @@ class Region(Node):
             lower=0.0,
         )
 
-    def set_process_opex(
-        self, process_name: str, value: float | TimetableInput
-    ) -> None:
+    def set_process_opex(self, process_name: str, value: TimetableArgument) -> None:
         """
         Set the OPEX associated with a production process in USD/ton/year.
 
@@ -108,9 +109,7 @@ class Region(Node):
             type_=(FORECAST, TIMETABLE, VARIABLE),
         )
 
-    def set_process_energy(
-        self, process_name: str, value: float | ForecastInput
-    ) -> None:
+    def set_process_energy(self, process_name: str, value: ForecastArgument) -> None:
         """
         Set the energy demand required to run a production process in MWh/ton.
 
@@ -134,9 +133,7 @@ class Region(Node):
             lower=0.0,
         )
 
-    def set_process_lifetime(
-        self, process_name: str, value: float | ForecastInput
-    ) -> None:
+    def set_process_lifetime(self, process_name: str, value: ForecastArgument) -> None:
         """
         Set the lifetime of a production process in years.
 
@@ -161,7 +158,7 @@ class Region(Node):
         )
 
     def set_process_replacement(
-        self, process_name: str, value: float | ForecastInput
+        self, process_name: str, value: ForecastArgument
     ) -> None:
         """
         Set the replacement fraction of CAPEX repaid at the end of a process's lifetime.
@@ -188,7 +185,7 @@ class Region(Node):
         )
 
     def set_process_wtt(
-        self, process_name: str, emission_name: str, value: float | ForecastInput
+        self, process_name: str, emission_name: str, value: ForecastArgument
     ) -> None:
         """
         Set the WTT emissions from a production process, ton emission/ton fuel.
@@ -215,7 +212,7 @@ class Region(Node):
             type_=(FORECAST, VARIABLE),
         )
 
-    def set_source_capex(self, source_name: str, value: float | ForecastInput) -> None:
+    def set_source_capex(self, source_name: str, value: ForecastArgument) -> None:
         """
         Set the CAPEX associated with a source in USD/MWh.
 
@@ -239,7 +236,7 @@ class Region(Node):
             lower=0.0,
         )
 
-    def set_source_opex(self, source_name: str, value: float | ForecastInput) -> None:
+    def set_source_opex(self, source_name: str, value: ForecastArgument) -> None:
         """
         Set the OPEX associated with a source in USD/MWh/year.
 
@@ -264,7 +261,7 @@ class Region(Node):
         )
 
     def set_source_wtt(
-        self, source_name: str, emission_name: str, value: float | ForecastInput
+        self, source_name: str, emission_name: str, value: ForecastArgument
     ) -> None:
         """
         Set the WTT emissions of an emission type from using a source, ton emission/MWh.
@@ -290,9 +287,7 @@ class Region(Node):
             type_=(FORECAST, VARIABLE),
         )
 
-    def set_feedstock_cost(
-        self, feedstock_name: str, value: float | ForecastInput
-    ) -> None:
+    def set_feedstock_cost(self, feedstock_name: str, value: ForecastArgument) -> None:
         """
         Set the cost of a feedstock in USD/ton.
 
@@ -317,7 +312,7 @@ class Region(Node):
         )
 
     def set_feedstock_wtt(
-        self, feedstock_name: str, emission_name: str, value: float | ForecastInput
+        self, feedstock_name: str, emission_name: str, value: ForecastArgument
     ) -> None:
         """
         Set the WTT emissions from a feedstock, ton emission/ton feedstock.
@@ -344,9 +339,7 @@ class Region(Node):
             type_=(FORECAST, VARIABLE),
         )
 
-    def set_transport_cost(
-        self, transport_name: str, value: float | ForecastInput
-    ) -> None:
+    def set_transport_cost(self, transport_name: str, value: ForecastArgument) -> None:
         """
         Set the cost associated with a transport in USD/ton-nautical mile.
 
@@ -371,7 +364,7 @@ class Region(Node):
         )
 
     def set_transport_wtt(
-        self, transport_name: str, emission_name: str, value: float | ForecastInput
+        self, transport_name: str, emission_name: str, value: ForecastArgument
     ) -> None:
         """
         Set the WTT emissions from a transport, ton emission/ton-nautical mile.

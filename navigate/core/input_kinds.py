@@ -4,10 +4,13 @@
 """
 Input kinds: the value sets the DSL setters on the node classes accept.
 
-Each alias is the set one 'assign_value' call admits, and the comment above
-it gives the 'type_' argument that spells that set at the boundary. Every
-alias but the last carries 'Scalar' rather than 'float', because the setter
-wraps through 'as_scalar' before storing.
+Each calculator-backed attribute has two kinds. The storage kind ('*Input')
+is what 'assign_value' returns and the attribute holds; it carries 'Scalar'
+rather than 'float', because the setter wraps a bare number through
+'as_scalar' before storing. The argument kind ('*Argument') is what the
+setter is handed, before that wrap: the same set with 'float' in place of
+'Scalar'. The comment above each pair gives the 'type_' argument that spells
+the set at the boundary.
 """
 
 from __future__ import annotations
@@ -29,18 +32,25 @@ if TYPE_CHECKING:
 
 # setters passing type_ VARIABLE
 type ScalarInput = Scalar | Variable | Expression
+type ScalarArgument = float | Variable | Expression
 
 # setters passing type_ FORECAST or VARIABLE
 type ForecastInput = Scalar | Forecast | Variable | Expression
+type ForecastArgument = float | Forecast | Variable | Expression
 
 # setters passing type_ CURVE or VARIABLE
 type CurveInput = Scalar | Curve | Variable | Expression
+type CurveArgument = float | Curve | Variable | Expression
 
 # setters passing type_ CURVE, SURFACE, or VARIABLE
 type SurfaceInput = Scalar | Curve | Surface | Variable | Expression
+type SurfaceArgument = float | Curve | Surface | Variable | Expression
 
 # setters passing type_ FORECAST, TIMETABLE, or VARIABLE
 type TimetableInput = Scalar | Forecast | Timetable | Variable | Expression
+type TimetableArgument = float | Forecast | Timetable | Variable | Expression
 
-# setters passing type_ VARIABLE, storing the number handed to them unwrapped
+# the argument kind of plain-number setters, which pass no type_ and take no
+# calculator; a setter that stores its number unwrapped holds it as this kind
+# too
 type NumberInput = float | Expression
