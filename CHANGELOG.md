@@ -1068,6 +1068,13 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `Fleet.set_initial_split`. Only a Python caller could reach this, and no
   deck moves: the DSL grammar reads every number as a float, so the example
   written in a deck has always arrived as `[1.0]`.
+- An `INF` entry in a `Fleet`'s `InitialSplit` or a `Route`'s
+  `ConditionDistribution` stops the deck at its line, as
+  `only allows assignment of finite numbers, but got inf`. It used to be
+  accepted: the rescale turned that entry into a NaN fraction and every other
+  entry into zero, and the run carried on with them. A list whose entries are
+  each finite but whose total overflows is refused the same way, as
+  `requires entries whose sum is finite`. No committed deck moves.
 - `set_operational_saving_port` names the energy demands it accepts whenever
   it rejects one: both `PROPULSION`, a member the attribute does not hold, and
   an unknown token such as `BOGUS` now read `only allows assignment of

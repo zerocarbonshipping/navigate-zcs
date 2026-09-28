@@ -635,6 +635,30 @@ class TestAssignFractionList:
             assign_fraction_list([0.5, entry])
 
     @pytest.mark.parametrize(
+        ("fractions", "message"),
+        [
+            (
+                [10**400, 1],
+                "only allows assignment of finite numbers, "
+                "but got a number too large for a float",
+            ),
+            ([np.inf, 1.0], "only allows assignment of finite numbers, but got inf"),
+            ([-np.inf, 1.0], "only allows assignment of finite numbers, but got -inf"),
+            ([np.nan, 1.0], "only allows assignment of finite numbers, but got nan"),
+            ([1e308, 1e308], "requires entries whose sum is finite"),
+        ],
+        ids=["int_too_large", "inf", "negative_inf", "nan", "total_overflows"],
+    )
+    def test_non_finite_rejected(self, fractions, message):
+        # floating an int too large for a float used to escape as an
+        # OverflowError the parser cannot locate, an infinite entry or total
+        # rescaled to NaN, and NaN passes the sign check; the grammar reads
+        # INF, so a deck reaches the infinite case. The huge int is named
+        # rather than echoed, since its digits would swamp the deck error
+        with pytest.raises(ValueError, match=message):
+            assign_fraction_list(fractions)
+
+    @pytest.mark.parametrize(
         ("fractions", "expected", "is_rescaled"),
         [
             ([1, 1], [0.5, 0.5], True),
