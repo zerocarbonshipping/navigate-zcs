@@ -31,7 +31,7 @@ NodeType "node_name" {
 }
 ```
 
-The first time the node syntax is encountered in an `.inc` file is when it is defined. It is possible to access the node again using the same syntax to change the attributes of the node. This can be done both during the `DEFINE` section and the `EVENTS` section. However, certain attributes do not allow change during the `EVENTS` section and will throw an error if attempted. Notice that redefinition of attributes occurs in the order they are read. Meaning if an attribute is redefined further down in an `.inc` file or in a later `.inc` file it is the last read instance that will be the final value.
+The first time the node syntax is encountered in an `.inc` file is when it is defined. It is possible to access the node again using the same syntax to change the attributes of the node. This can be done both during the `DEFINE` section and the `EVENTS` section. However, certain attributes do not allow change during the `EVENTS` section and will throw an error if attempted. A calculator node, such as a `Variable` or a `Forecast`, assigned to such an attribute, or to a command that does not allow change during the `EVENTS` section, is fixed with it, whether assigned directly or through an expression: none of its own attributes can be changed during the `EVENTS` section either, and the deck is rejected when it is read if one is. A calculator held only by attributes that allow change in `EVENTS` can still be changed there. Notice that redefinition of attributes occurs in the order they are read. Meaning if an attribute is redefined further down in an `.inc` file or in a later `.inc` file it is the last read instance that will be the final value.
 
 ## Defining a general node
 
