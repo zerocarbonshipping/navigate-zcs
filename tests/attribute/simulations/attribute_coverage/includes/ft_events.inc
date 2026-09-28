@@ -259,19 +259,14 @@ Variable "var_efficiency" {
 	UpperBound = 1
 }
 
-Forecast "fc_trade_growth" {
+Forecast "fc_operational_saving" {
 	Addition = 0.005
 	Multiplier = 1.05
 	LowerBound = 0
 	UpperBound = 1
 }
 
-Surface "surface_load" {
-	Addition = 0.1
-	Multiplier = 1.0
-	LowerBound = 0
-	UpperBound = INF
-}
+# no Surface is updated: every attribute taking one is DEFINE-only, which fixes it
 
 Timetable "timetable_cost" {
 	Addition = 5
