@@ -463,7 +463,10 @@ def assign_fraction_list(fractions: list[float]) -> tuple[list[float], bool]:
     Only applicable to attributes requiring a list of values summing to 1.
     Entries are floated first, so a list written as integers is rescaled the
     same way as its float spelling; the guard has already rejected any entry,
-    or total, that does not float to a finite value.
+    or total, that does not float to a finite value. The entries must sum to
+    more than 0 once rounded to ``ROUND_OFF`` decimals, so an all-zero list
+    and an empty list are rejected: a zero total cannot be rescaled to 1. Any
+    other total than 1 is rescaled proportionally.
 
     Parameters
     ----------
@@ -475,6 +478,11 @@ def assign_fraction_list(fractions: list[float]) -> tuple[list[float], bool]:
     tuple[list[float], bool]
         The fractions, rescaled to sum to 1, and whether they were rescaled by
         more than one percent.
+
+    Raises
+    ------
+    ValueError
+        If the entries do not sum to more than 0.
     """
     _check_fraction_list(fractions)
 
@@ -483,7 +491,10 @@ def assign_fraction_list(fractions: list[float]) -> tuple[list[float], bool]:
     rescaled = False
     total = round(sum(fractions), ROUND_OFF)
 
-    if fractions and (total != 1.0) and (total > 0.0):
+    if not total > 0.0:
+        raise ValueError("requires entries summing to more than 0")
+
+    if total != 1.0:
         fractions = [fraction / total for fraction in fractions]
         rescaled = abs(total - 1) > 0.01
 

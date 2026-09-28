@@ -600,16 +600,16 @@ class TestAssignFractionList:
         assert passed == pytest.approx([0.4, 0.4])
 
     @pytest.mark.parametrize(
-        ("fractions", "expected"),
-        [([0.0, 0.0], [0.0, 0.0]), ([], [])],
-        ids=["all_zero", "empty"],
+        "fractions",
+        [[0.0, 0.0], [0, 0], [], [1e-9, 0.0]],
+        ids=["all_zero", "all_zero_integers", "empty", "below_rounding"],
     )
-    def test_nothing_to_rescale(self, fractions, expected):
-        # a zero total cannot be scaled to one, so the values stand as written
-        result, rescaled = assign_fraction_list(fractions)
-
-        assert result == expected
-        assert rescaled is False
+    def test_zero_total_rejected(self, fractions):
+        # a zero total cannot be rescaled to 1, and the total is rounded
+        # before the check, so a list too small to survive the rounding is
+        # no distribution either
+        with pytest.raises(ValueError, match="requires entries summing to more than 0"):
+            assign_fraction_list(fractions)
 
     def test_negative_rejected(self):
         with pytest.raises(ValueError, match="does not allow negative values"):
@@ -668,10 +668,9 @@ class TestAssignFractionList:
             ([1, 1], [0.5, 0.5], True),
             ([1], [1.0], False),
             ([1, 0], [1.0, 0.0], False),
-            ([0, 0], [0.0, 0.0], False),
             ([True, False], [1.0, 0.0], False),
         ],
-        ids=["rescales", "single", "unit_sum", "all_zero", "booleans"],
+        ids=["rescales", "single", "unit_sum", "booleans"],
     )
     def test_whole_number_entries_take_the_float_path(
         self, fractions, expected, is_rescaled

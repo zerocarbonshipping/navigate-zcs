@@ -53,6 +53,17 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `get_remaining_cost_flow`).
 
 ### Changed
+- An `InitialSplit` on a Fleet or a `ConditionDistribution` on a Route whose
+  entries sum to 0 once rounded to five decimals (as `[1e-9, 0.0]` does), or
+  that is empty, is now a deck error naming its line.
+  Such a list used to be accepted unchanged, since a zero total cannot be
+  rescaled to 1, leaving a fleet with no split of its initial vessels over the
+  vessel types or a route with no time on any leg. Omitting `InitialSplit`
+  still gives a uniform split over the vessels, as writing `InitialSplit = []`
+  used to. An empty `ConditionDistribution` is now rejected where it is
+  written, on a `ROUND_TRIP` too; on a `REGIONAL_TRIP` it was already rejected
+  later, by the check against the length of `Speeds`. **Breaking** for decks
+  that write such a list; none ship with Navigate.
 - A smoothed price belief now ramps up when the price first appears after a
   stretch of exactly zero, instead of adopting the new price in full. This
   covers the flexibility cost of a `FLEXIBLE` regulation, smoothed over
