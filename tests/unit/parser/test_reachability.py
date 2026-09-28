@@ -189,7 +189,7 @@ class TestFindUnreachable:
 
         assert find_unreachable(nodes, GeneralNodes(), event_queue, {}) == []
 
-    def test_events_expression_references_found_without_initializing(self):
+    def test_events_expression_references_found_without_resolving(self):
         nodes = self._fleet_chain()
         nodes.forecasts["a"] = Forecast("a")
         nodes.forecasts["b"] = Forecast("b")
@@ -206,7 +206,7 @@ class TestFindUnreachable:
         }
 
         assert find_unreachable(nodes, GeneralNodes(), event_queue, {}) == []
-        assert not expression.is_initialized()
+        assert expression.node_references == []
 
     def test_expression_on_attribute_keeps_reference(self):
         nodes = self._fleet_chain()

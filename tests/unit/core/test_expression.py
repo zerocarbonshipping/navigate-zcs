@@ -11,7 +11,7 @@ import pickle
 import numpy as np
 import pytest
 
-from navigate.core.expression import Expression, parse_reference_strings
+from navigate.core.expression import Expression
 
 
 class _StubNode:
@@ -33,12 +33,6 @@ class _EchoNode(_StubNode):
 
     def get(self, x=None, y=None):
         return x
-
-
-def _initialized(expression_text):
-    expression = Expression(expression_text)
-    expression.initialize(_StubNode())
-    return expression
 
 
 # ── arithmetic ────────────────────────────────────────────────────────────────
@@ -64,13 +58,13 @@ class TestArithmetic:
         ],
     )
     def test_evaluates(self, text, expected):
-        assert _initialized(text).get() == expected
+        assert Expression(text).get() == expected
 
     def test_huge_power_does_not_hang(self):
         # literals evaluate as floats, so this overflows immediately
         # instead of computing a 10-billion-digit integer
         with pytest.raises(OverflowError):
-            _initialized("10 ** 10 ** 10").get()
+            Expression("10 ** 10 ** 10").get()
 
 
 # ── node references ───────────────────────────────────────────────────────────
@@ -80,91 +74,76 @@ class TestNodeReferences:
     def test_full_lifecycle(self):
         expression = Expression('1 + Forecast("x")')
 
-        assert not expression.is_initialized()
-        expression.initialize(_StubNode())
-        assert expression.is_initialized()
-
         assert expression.reference_strings == ['Forecast("x")']
 
         expression.node_references = [_StubNode(2.0)]
         assert expression.get() == 3.0
 
-    def test_get_before_initialize_raises(self):
-        with pytest.raises(RuntimeError, match="before it was initialized"):
-            Expression('1 + Forecast("x")').get()
-
     def test_reference_only(self):
-        expression = _initialized('Forecast("x")')
+        expression = Expression('Forecast("x")')
         expression.node_references = [_StubNode(4.0)]
         assert expression.get() == 4.0
 
     def test_reference_arithmetic(self):
-        expression = _initialized('0.5 * Forecast("a") + Forecast("b")')
+        expression = Expression('0.5 * Forecast("a") + Forecast("b")')
         expression.node_references = [_StubNode(4.0), _StubNode(1.0)]
         assert expression.get() == 3.0
 
     def test_multiple_distinct_references_keep_order(self):
-        expression = _initialized('Forecast("a") - Variable("b")')
+        expression = Expression('Forecast("a") - Variable("b")')
         assert expression.reference_strings == ['Forecast("a")', 'Variable("b")']
 
         expression.node_references = [_StubNode(4.0), _StubNode(1.0)]
         assert expression.get() == 3.0
 
     def test_duplicate_reference_yields_entry_per_occurrence(self):
-        expression = _initialized('Forecast("x") + Forecast("x")')
+        expression = Expression('Forecast("x") + Forecast("x")')
         assert expression.reference_strings == ['Forecast("x")', 'Forecast("x")']
 
         expression.node_references = [_StubNode(2.0), _StubNode(2.0)]
         assert expression.get() == 4.0
 
     def test_reference_with_spacing_is_canonicalized(self):
-        expression = _initialized('Forecast( "x" )')
+        expression = Expression('Forecast( "x" )')
         assert expression.reference_strings == ['Forecast("x")']
 
     def test_single_quoted_reference_is_canonicalized(self):
-        expression = _initialized("Forecast('x')")
+        expression = Expression("Forecast('x')")
         assert expression.reference_strings == ['Forecast("x")']
 
     def test_x_is_passed_to_references(self):
-        expression = _initialized('Forecast("f")')
+        expression = Expression('Forecast("f")')
         expression.node_references = [_EchoNode()]
         assert expression.get(x=5.0) == 5.0
 
     def test_check_consistency_allows_matching_type(self):
         expression = Expression('1 + Forecast("x")')
         expression.set_allowed_types("Forecast")
-        expression.initialize(_StubNode())
         expression.check_consistency()
 
     def test_check_consistency_rejects_other_type(self):
         expression = Expression('1 + Forecast("x")')
         expression.set_allowed_types("Variable")
-        expression.initialize(_StubNode())
         with pytest.raises(ValueError, match="references unacceptable type"):
             expression.check_consistency()
 
     def test_check_consistency_rejects_references_when_disallowed(self):
-        expression = _initialized('1 + Forecast("x")')
+        expression = Expression('1 + Forecast("x")')
         with pytest.raises(ValueError, match="does not allow node references"):
             expression.check_consistency()
 
+    def test_resolve_binds_first_node_and_leaves_second_unbound(self):
+        expression = Expression("1 + 2")
+        first, second = _StubNode(), _StubNode()
 
-# ── reference-string parsing ──────────────────────────────────────────────────
+        def read_reference(reference_string, location):
+            raise AssertionError("no reference to read")
 
+        expression.resolve(first, read_reference)
+        expression.resolve(second, read_reference)
 
-class TestParseReferenceStrings:
-    def test_extracts_references_in_order(self):
-        assert parse_reference_strings('0.5 * Forecast("a") + Variable("b")') == [
-            'Forecast("a")',
-            'Variable("b")',
-        ]
-
-    def test_reference_free_text_yields_no_references(self):
-        assert parse_reference_strings("1 + 2") == []
-
-    @pytest.mark.parametrize("text", ["!!!", "Foo + 1", "Forecast(1)"])
-    def test_unparseable_text_yields_none(self, text):
-        assert parse_reference_strings(text) == []
+        assert expression._node is first
+        assert expression.node_references == []
 
 
 # ── broadcasting and bounds ───────────────────────────────────────────────────
@@ -172,27 +151,27 @@ class TestParseReferenceStrings:
 
 class TestBroadcastAndBounds:
     def test_scalar_broadcast_to_x(self):
-        value = _initialized("2").get(x=np.arange(3.0))
+        value = Expression("2").get(x=np.arange(3.0))
         np.testing.assert_array_equal(value, np.full(3, 2.0))
 
     def test_scalar_broadcast_to_y(self):
-        value = _initialized("2").get(y=np.arange(4.0))
+        value = Expression("2").get(y=np.arange(4.0))
         np.testing.assert_array_equal(value, np.full(4, 2.0))
 
     def test_ndarray_reference_passthrough(self):
-        expression = _initialized('2 * Forecast("f")')
+        expression = Expression('2 * Forecast("f")')
         expression.node_references = [_EchoNode()]
 
         value = expression.get(x=np.array([1.0, 2.0]))
         np.testing.assert_array_equal(value, np.array([2.0, 4.0]))
 
     def test_internal_bounds_clip_upper(self):
-        expression = _initialized("10")
+        expression = Expression("10")
         expression.set_internal_bounds(0.0, 5.0)
         assert expression.get() == 5.0
 
     def test_internal_bounds_clip_lower(self):
-        expression = _initialized("-10")
+        expression = Expression("-10")
         expression.set_internal_bounds(0.0, 5.0)
         assert expression.get() == 0.0
 
@@ -204,10 +183,9 @@ class TestRejectedSyntax:
     def test_import_os_system_payload_rejected(self, tmp_path, monkeypatch):
         # the arbitrary-code-execution payload that passed the old eval() guards
         monkeypatch.chdir(tmp_path)
-        expression = Expression("__import__('os').system('touch marker')")
 
         with pytest.raises((ValueError, NotImplementedError)):
-            expression.initialize(_StubNode())
+            Expression("__import__('os').system('touch marker')")
 
         assert not (tmp_path / "marker").exists()
 
@@ -255,7 +233,7 @@ class TestRejectedSyntax:
     )
     def test_rejected(self, text, exception, match):
         with pytest.raises(exception, match=match):
-            _initialized(text)
+            Expression(text)
 
 
 # ── copy and pickle semantics ─────────────────────────────────────────────────
@@ -263,14 +241,14 @@ class TestRejectedSyntax:
 
 class TestCopySemantics:
     def test_deepcopy_preserves_value(self):
-        expression = _initialized('1 + Forecast("x")')
+        expression = Expression('1 + Forecast("x")')
         expression.node_references = [_StubNode(2.0)]
 
         clone = copy.deepcopy(expression)
         assert clone.get() == 3.0
 
     def test_deepcopy_clone_is_independent_of_original(self):
-        expression = _initialized('Forecast("x")')
+        expression = Expression('Forecast("x")')
         expression.node_references = [_StubNode(2.0)]
 
         clone = copy.deepcopy(expression)
@@ -279,18 +257,8 @@ class TestCopySemantics:
         assert expression.get() == 2.0
         assert clone.get() == 5.0
 
-    def test_deepcopy_before_initialize_stays_uninitialized(self):
-        clone = copy.deepcopy(Expression('1 + Forecast("x")'))
-
-        assert not clone.is_initialized()
-
-    def test_pickle_round_trip_before_initialize_stays_uninitialized(self):
-        restored = pickle.loads(pickle.dumps(Expression('1 + Forecast("x")')))
-
-        assert not restored.is_initialized()
-
-    def test_pickle_round_trip_after_initialize(self):
-        expression = _initialized('2 * Forecast("x")')
+    def test_pickle_round_trip(self):
+        expression = Expression('2 * Forecast("x")')
         expression.node_references = [_StubNode(3.0)]
 
         restored = pickle.loads(pickle.dumps(expression))

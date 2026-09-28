@@ -8,7 +8,8 @@ They are written using the deck's ``<...>`` syntax. Expression bodies are parsed
 with the standard library ``ast`` module into a small internal tree that only
 supports numeric literals, the operators ``+ - * / **``, and node-reference calls
 such as ``Forecast("name")`` - they are never passed to ``eval()`` and cannot execute
-arbitrary code.
+arbitrary code. The text is parsed when the ``Expression`` is constructed, raising
+``ValueError`` or ``NotImplementedError`` for text that does not parse.
 """
 
 from __future__ import annotations
@@ -132,14 +133,10 @@ class _Builder:
     ----------
     text
         Expression body, as written in the deck.
-    owner
-        Node the expression is assigned to, named in the error messages; None
-        where the caller discards them.
     """
 
-    def __init__(self, text: str, owner: Node | None) -> None:
+    def __init__(self, text: str) -> None:
         self._text: str = text
-        self._owner: Node | None = owner
         self.reference_strings: list[str] = []
 
     def build(self) -> tuple[_Evaluable, list[str]]:
@@ -173,8 +170,8 @@ class _Builder:
 
         if isinstance(node_ast, ast.Name) and _CAPITALIZED_NAME.fullmatch(node_ast.id):
             raise NotImplementedError(
-                f"{self._owner}: Expression '{self._text}' is currently unable"
-                " to support references to attributes."
+                f"Expression '{self._text}' is currently unable to support"
+                " references to attributes."
             )
 
         raise self._error(f"unsupported syntax '{ast.unparse(node_ast)}'.")
@@ -239,9 +236,7 @@ class _Builder:
         return _Reference(len(self.reference_strings) - 1)
 
     def _error(self, detail: str) -> ValueError:
-        return ValueError(
-            f"{self._owner}: Error in expression <{self._text}>: {detail}"
-        )
+        return ValueError(f"Error in expression <{self._text}>: {detail}")
 
 
 class Expression:
@@ -256,35 +251,26 @@ class Expression:
 
     def __init__(self, text: str) -> None:
         self.text: str = text
-        self.reference_strings: list[str] = []
         self.node_references: _References = []
         self.reference_location: str = ""
         self.internal_bounds: tuple[float, float] = (-np.inf, np.inf)
 
-        self._tree: _Evaluable | None = None
+        self._tree: _Evaluable
+        self.reference_strings: list[str]
         self._node: Node | None = None
         self._allowed_types: tuple[str, ...] | None = None
+
+        self._tree, self.reference_strings = _Builder(text).build()
 
     def __repr__(self) -> str:
         return self.text
 
-    def initialize(self, node: Node) -> None:
-        """
-        Parse the expression text and build the internal evaluation tree.
-
-        Parameters
-        ----------
-        node
-            Node the expression is assigned to.
-        """
-        self._node = node
-        self._tree, self.reference_strings = _Builder(self.text, node).build()
-
     def resolve(self, node: Node, read_reference: Callable[[str, str], Node]) -> None:
         """
-        Initialize the expression, resolve its references and check their types.
+        Resolve the expression's references and check their types.
 
-        An expression already initialized is left as it is.
+        An expression already resolved is left as it is: the first node the
+        reference walk visits binds it.
 
         Parameters
         ----------
@@ -294,10 +280,10 @@ class Expression:
             Returns the node a canonical reference string names, given the
             string and the deck location the expression is read from.
         """
-        if self.is_initialized():
+        if self._node is not None:
             return
 
-        self.initialize(node)
+        self._node = node
         references = [
             read_reference(reference_string, self.reference_location)
             for reference_string in self.reference_strings
@@ -349,9 +335,6 @@ class Expression:
             Expression value, clipped to the internal bounds and broadcast to
             the shape of the input.
         """
-        if self._tree is None:
-            raise RuntimeError("Expression evaluated before it was initialized.")
-
         evaluated = self._tree.evaluate(self.node_references, x, y)
         value = np.clip(evaluated, *self.internal_bounds)
 
@@ -392,17 +375,6 @@ class Expression:
         """
         self.internal_bounds = (lower, upper)
 
-    def is_initialized(self) -> bool:
-        """
-        Check whether the expression text has been parsed.
-
-        Returns
-        -------
-        bool
-            True once the text has been built into an evaluator tree.
-        """
-        return self._tree is not None
-
     def check_consistency(self) -> None:
         """Check that the attribute accepts the node types the expression references."""
         if not self.reference_strings:
@@ -423,28 +395,3 @@ class Expression:
                     f"{self._node}: Expression <{self.text}> references unacceptable"
                     f" type {type_}."
                 )
-
-
-def parse_reference_strings(text: str) -> list[str]:
-    """
-    Extract the node reference strings from an expression text.
-
-    A text that does not parse yields none; the error surfaces when the
-    expression carrying it is initialized for real.
-
-    Parameters
-    ----------
-    text
-        Expression body, as written in the deck.
-
-    Returns
-    -------
-    list[str]
-        Canonical reference strings, e.g. 'Forecast("name")'.
-    """
-    try:
-        _, reference_strings = _Builder(text, None).build()
-    except (ValueError, NotImplementedError):
-        return []
-
-    return reference_strings
