@@ -432,12 +432,36 @@ class TestVariable:
         assert v.get() == pytest.approx(50.0)
 
     def test_get_ignores_dummy_args(self):
-        """get(x, y) signature accepts but ignores positional args."""
+        """get(x, y) signature accepts but ignores the value of positional args."""
         from navigate.core.nodes.variable import Variable
 
         v = Variable("test")
         v.set_value(7.0)
-        assert v.get(x=99.0, y=99.0) == pytest.approx(7.0)
+        result = v.get(x=99.0, y=99.0)
+        assert isinstance(result, float)
+        assert result == pytest.approx(7.0)
+
+    def test_no_input_returns_a_float(self):
+        from navigate.core.nodes.variable import Variable
+
+        v = Variable("test")
+        v.set_value(7.0)
+        assert isinstance(v.get(), float)
+
+    def test_array_x_broadcasts_the_value_to_its_shape(self):
+        """An array x broadcasts the transformed value, like Scalar.get."""
+        from navigate.core.nodes.variable import Variable
+
+        v = Variable("test")
+        v.set_value(5.0)
+        v.set_multiplier(2.0)
+        v.set_addition(3.0)
+        x = np.zeros((2, 3))
+        # output = 2 * (5 + 3) = 16, broadcast to x's shape
+        result = v.get(x)
+        assert isinstance(result, np.ndarray)
+        assert result.shape == x.shape
+        np.testing.assert_array_equal(result, np.full((2, 3), 16.0))
 
 
 # ---------------------------------------------------------------------------
