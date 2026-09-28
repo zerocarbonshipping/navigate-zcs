@@ -174,7 +174,7 @@ This attribute sets the level of the regulation being paid or received dependent
 
 ### FlexibilityHorizon
 
-This attribute sets the decision horizon, in years, used to smooth the belief of the flexibility cost that enters the expected policy expenses of the policed vessels.
+This attribute sets the decision horizon, in years, used to smooth the belief of the flexibility cost that enters the expected policy expenses of the policed vessels. It only applies when 'Scheme' is FLEXIBLE; assigning it under any other scheme is unused and logged as a warning.
 
 A longer horizon makes the belief respond more slowly to changes in the flexibility cost between outer time-steps, preventing small changes in future fuel availability from translating into expectations of large flexibility-cost differences.
 
