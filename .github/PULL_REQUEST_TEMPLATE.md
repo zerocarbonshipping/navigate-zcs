@@ -26,4 +26,5 @@ explain the difference. How does the new mechanic better represent the sector. -
       calculations have a unit test.
 - [ ] Documentation is updated where behavior changes (user manual,
       docstrings).
-- [ ] `CHANGELOG.md` has an entry for user-visible changes.
+- [ ] `CHANGELOG.md` is updated if the change needs an entry (see Changelog
+      in CONTRIBUTING.md).

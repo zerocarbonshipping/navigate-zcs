@@ -50,8 +50,28 @@ values, so that the provenance of the model inputs stays traceable.
   skips the whole-repo reformat commit.
 - Update documentation when behavior changes: the reference manual
   (`docs/reference_manual/`) for user-facing changes and docstrings for code changes.
-- Add an entry to `CHANGELOG.md` for user-visible changes. See the
-  [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format.
+
+### Changelog
+
+`CHANGELOG.md` records what a deck author or a reader of the output would
+notice: a DSL attribute, command, keyword, report property or plot added,
+renamed, removed or changed in meaning; a change in simulation results; a
+deck that used to run and now fails, or the reverse; the CLI and
+installation requirements; and the report, plot, console and log output. It
+also records bugs in any of these, including errors in the reference manual.
+The format is [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+
+Nothing else gets an entry: no refactor, move, rename or removal inside
+`navigate/`, and no change to what Python code can import. Typing, test,
+lint, CI, `make` and tooling changes get none either, and neither does a
+results-neutral change with no DSL or output effect. A pull request without
+an entry says so in its description.
+
+An entry is one to three lines. It states what the user sees and, for a
+rename or removal, what to write instead, and it ends with the issue number
+if there is one. It carries no "Breaking" label: Navigate does not keep
+backwards compatibility, and a release may break old decks. How the change
+works belongs in the pull request, not the changelog.
 
 ## Testing
 
