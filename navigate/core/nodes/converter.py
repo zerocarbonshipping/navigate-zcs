@@ -10,8 +10,8 @@ from typing import TYPE_CHECKING
 from navigate.core import (
     Scalar,
     as_scalar,
-    assign_id,
     assign_id_list,
+    assign_member,
     assign_value,
     write_matching_key_pairs,
     write_matching_keys,
@@ -184,10 +184,7 @@ class Converter(_Machinery):
         """
         value_ = assign_value(as_scalar(value), type_=VARIABLE, lower=0.0, upper=1.0)
 
-        id_ = assign_id(fuel_type, FuelTypeID)
-
-        if id_ not in self.get_fuel_types():
-            raise ValueError(f"received {fuel_type} which is not available for {self}.")
+        id_ = assign_member(fuel_type, tuple(self.get_fuel_types()))
 
         write_matching_keys(id_, value_, self.slip_fraction)
 
@@ -211,24 +208,15 @@ class Converter(_Machinery):
         fuel_type
             Type of fuel which has a consumption related emission when used.
         emission_name
-            Name of emission emitted as particles.
+            Name of emission emitted as particles, possibly including wildcards.
         value
             Ton of emission emitted per ton of fuel consumed.
         """
         value_ = assign_value(as_scalar(value), type_=VARIABLE, lower=0.0)
 
-        id_ = assign_id(fuel_type, FuelTypeID)
+        id_ = assign_member(fuel_type, tuple(self.get_fuel_types()))
 
-        if id_ not in self.get_fuel_types():
-            raise ValueError(f"received {fuel_type} which is not available for {self}.")
-
-        # necessary due to incoherent error thrown if
-        # passing a non-existing key to an empty dict
-        key = (id_, emission_name)
-        if key not in self.consumption_ttw:
-            raise KeyError(f"{emission_name}")
-
-        write_matching_key_pairs(key, value_, self.consumption_ttw)
+        write_matching_key_pairs((id_, emission_name), value_, self.consumption_ttw)
 
     # internal methods -----------------------------------------------------------------
     def check_requirements(self) -> None:

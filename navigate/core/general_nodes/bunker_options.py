@@ -80,7 +80,7 @@ class BunkerOptions(_GeneralNode):
             Tolerance used when transferring the BunkerAlgorithm solutions to profiles.
         """
         self.solution_tolerance = assign_value(
-            solution_tolerance, lower=0, inclusive_lower=False
+            solution_tolerance, lower=0, inclusive_lower=False, allow_expression=False
         )
 
     def set_threads(self, threads: float) -> None:
@@ -115,8 +115,8 @@ class BunkerOptions(_GeneralNode):
         fair_share_maximum_iterations
             Maximum iterations allowed for the sequential LP of the bunker algorithm.
         """
-        self.fair_share_maximum_iterations = int(
-            assign_value(fair_share_maximum_iterations, lower=1)
+        self.fair_share_maximum_iterations = assign_integer(
+            fair_share_maximum_iterations, lower=1
         )
 
     def set_fair_share_tolerance(self, fair_share_tolerance: float) -> None:
@@ -133,5 +133,8 @@ class BunkerOptions(_GeneralNode):
             Tolerance used when checking convergence of fair-share bunker solution.
         """
         self.fair_share_tolerance = assign_value(
-            fair_share_tolerance, lower=0.0, inclusive_lower=False
+            fair_share_tolerance,
+            lower=0.0,
+            inclusive_lower=False,
+            allow_expression=False,
         )
