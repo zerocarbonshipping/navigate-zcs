@@ -9,6 +9,7 @@ import pytest
 
 from navigate.core.enum_ import FuelTypeID
 from navigate.core.nodes.converter import Converter
+from navigate.core.nodes.emission import Emission
 
 
 def _make_converter() -> Converter:
@@ -16,6 +17,14 @@ def _make_converter() -> Converter:
     converter.set_power_capacity(10.0)
     converter.set_main_fuel_types(["OIL", "AMMONIA"])
     converter.set_efficiency(0.5)
+    return converter
+
+
+def _seeded_converter() -> Converter:
+    converter = _make_converter()
+    converter.initialize_dependencies(
+        {name: Emission(name) for name in ("carbon_dioxide", "nitrous_oxide")}
+    )
     return converter
 
 
@@ -63,3 +72,52 @@ class TestCommandValueValidatedBeforeKeyMatch:
 
         with pytest.raises(ValueError, match=r"must be ≥ 0\.0"):
             getattr(converter, setter_name)(*args)
+
+
+@pytest.mark.parametrize(
+    ("setter_name", "args"),
+    [
+        ("set_slip_fraction", ("METHANE", 0.03)),
+        ("set_consumption_ttw", ("METHANE", "carbon_dioxide", 0.001)),
+    ],
+    ids=["set_slip_fraction", "set_consumption_ttw"],
+)
+def test_a_fuel_type_the_converter_lacks_is_rejected_naming_the_declared_ones(
+    setter_name, args
+):
+    converter = _seeded_converter()
+
+    # the declared fuel types are listed in their MainFuelTypes order
+    with pytest.raises(
+        ValueError, match=r"only allows assignment of OIL, AMMONIA, but got METHANE$"
+    ):
+        getattr(converter, setter_name)(*args)
+
+
+class TestConsumptionTtwEmissionName:
+    """
+    The emission name is matched against the emissions the deck defines.
+
+    The parser seeds one entry per declared fuel type and defined emission
+    before the deck's commands run, so a wildcard reaches every emission of
+    the fuel type and a name matching none of them is refused.
+    """
+
+    def test_wildcard_assigns_every_emission_of_the_fuel_type(self):
+        converter = _seeded_converter()
+
+        converter.set_consumption_ttw("OIL", "*", 0.001)
+
+        values = {key: value.get() for key, value in converter.consumption_ttw.items()}
+        assert values == {
+            (FuelTypeID.OIL, "carbon_dioxide"): 0.001,
+            (FuelTypeID.OIL, "nitrous_oxide"): 0.001,
+            (FuelTypeID.AMMONIA, "carbon_dioxide"): 0.0,
+            (FuelTypeID.AMMONIA, "nitrous_oxide"): 0.0,
+        }
+
+    def test_unknown_emission_name_is_refused(self):
+        converter = _seeded_converter()
+
+        with pytest.raises(KeyError, match="sulphur_oxide"):
+            converter.set_consumption_ttw("OIL", "sulphur_oxide", 0.001)

@@ -157,7 +157,7 @@ This attribute sets the fraction of the potential energy that is converted to ki
 This command sets the emissions in the converter as a fraction of the amount of total fuel consumption. Hence, the command must specify a) the fuel type, b) the emission type, c) the fraction tons of emissions per ton of fuel consumed. The command is used to define emissions which does not pertain to the stoichiometric combustion process, but are converter specific, e.g., NOx or SOx.
 
 * **Primary key type**: ID ([FuelTypeID](appendix_ids.md#fueltypeid))
-* **Secondary key type**: String (Emission name)
+* **Secondary key type**: String (Emission name; supports wildcards)
 * **Data type**: `Float`, `Variable`
 * **Example values**:
   + `OIL, "nitrous_oxide", 0.001`

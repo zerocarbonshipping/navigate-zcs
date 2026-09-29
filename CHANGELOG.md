@@ -249,6 +249,17 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   is rescaled logs the rescale for every matched node, not just the first.
 - The fuel-conversion proposal walk skips an increment with no eligible
   destination instead of stopping there.
+- `FairShareMaximumIterations` rejects a non-integer such as `2.5` at its line
+  instead of truncating it, and an expression instead of ending in a Python
+  error.
+- An expression on `SolutionTolerance`, `FairShareTolerance` or
+  `EmissionsLifetime` on `ModelDefinition` is a deck error at its line instead
+  of failing the run.
+- `set_slip_fraction` and `set_consumption_ttw` name the fuel types the
+  Converter declares when they reject one:
+  `only allows assignment of METHANE, OIL, but got AMMONIA`.
+- `set_consumption_ttw` accepts a wildcard emission name, such as
+  `set_consumption_ttw(OIL, "*", 0.001)`, which it rejected.
 
 ## [1.0.0] - 2026-07-16
 

@@ -54,4 +54,6 @@ class ModelDefinition(_GeneralNode):
         emissions_lifetime
             Assignment read from input deck.
         """
-        self.emissions_lifetime = assign_value(emissions_lifetime, lower=0.0)
+        self.emissions_lifetime = assign_value(
+            emissions_lifetime, lower=0.0, allow_expression=False
+        )
