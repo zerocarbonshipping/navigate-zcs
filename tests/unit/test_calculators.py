@@ -30,9 +30,10 @@ from navigate.core.bounds import Bounds
 from navigate.core.expression import Expression
 from navigate.core.nodes._calculator import _Calculator
 from navigate.core.nodes._table1d import _Table1D
-from navigate.core.nodes._table2d import _Table2D
+from navigate.core.nodes._table2d import _Table2D, check_table2d_input
 from navigate.core.nodes.curve import Curve
 from navigate.core.nodes.surface import Surface
+from navigate.core.nodes.timetable import Timetable
 from navigate.core.nodes.variable import Variable
 from navigate.core.table_data import TableData
 
@@ -732,3 +733,67 @@ class TestTableSettingsOrder:
         curve.set_interpolate("PREVIOUS")
         with pytest.raises(ValueError, match="'Extrapolate' must not be LINEAR"):
             curve.build_table()
+
+
+# ---------------------------------------------------------------------------
+# 13. _Table2D — rejects fewer than two rows or columns
+# ---------------------------------------------------------------------------
+
+_MIN_SIZE_HEADER_ONLY_MATCH = (
+    r"'x' \(0\) and 'y' \(2\) must each be at least of length 2"
+)
+
+
+def _set_and_build_surface(rows):
+    # build_table too, as the parser drives it: a table that passed set_table
+    # must still build
+    surface = Surface("s")
+    surface.set_table(TableData(rows=rows))
+    surface.build_table()
+
+
+def _set_and_rebase_timetable(rows):
+    timetable = Timetable("t")
+    timetable.set_table(TableData(rows=rows))
+    timetable.replace_reference_table(np.datetime64("2024-01-01", "D"))
+
+
+class TestTable2DMinimumSize:
+    """A 2D table shorter than 2x2 is rejected with a located ValueError."""
+
+    @pytest.mark.parametrize(
+        ("rows", "match"),
+        [
+            pytest.param(
+                [[0.0, 1.0]],
+                _MIN_SIZE_HEADER_ONLY_MATCH,
+                id="header_only",
+            ),
+            pytest.param(
+                [[0.0, 1.0], [0.0, 5.0, 6.0]],
+                r"'x' \(1\) and 'y' \(2\) must each be at least of length 2",
+                id="single_data_row",
+            ),
+            pytest.param(
+                [[0.0], [0.0, 5.0], [1.0, 6.0]],
+                r"'x' \(2\) and 'y' \(1\) must each be at least of length 2",
+                id="single_y_column",
+            ),
+        ],
+    )
+    def test_surface_set_table_rejects_it(self, rows, match):
+        with pytest.raises(ValueError, match=match):
+            _set_and_build_surface(rows)
+
+    def test_timetable_replace_reference_table_rejects_a_header_only_table(self):
+        with pytest.raises(ValueError, match=_MIN_SIZE_HEADER_ONLY_MATCH):
+            _set_and_rebase_timetable([[0.0, 1.0]])
+
+    def test_check_table2d_input_rejects_a_flat_z_of_the_right_size(self):
+        # the old product-size check (x.size * y.size == z.size) accepted this
+        # flat z; only the shape check catches it
+        x = np.array([0.0, 1.0])
+        y = np.array([0.0, 1.0])
+        z = np.array([1.0, 2.0, 3.0, 4.0])
+        with pytest.raises(ValueError, match=r"must have shape \(2, 2\)"):
+            check_table2d_input(x, y, z)

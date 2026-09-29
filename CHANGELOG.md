@@ -1332,6 +1332,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   uses for `FairShareMaximumIterations` (50) and `FairShareTolerance` (1e-1),
   types `Threads` as an `Integer`, and marks the `SolutionTolerance` and
   `FairShareTolerance` minimums exclusive of 0, matching their setters.
+- A `Surface` or `Timetable` table holding only its header row now fails
+  with a deck error naming the node instead of a bare `IndexError`, and one
+  with a single data row or a single header value, previously accepted as
+  a degenerate table, is rejected the same way.
 - The `Route` reference-manual page and the `set_voyage_distribution`
   docstring no longer list `Forecast` among the accepted values; the parser
   rejects one. The distribution is read when the deck and each EVENTS block

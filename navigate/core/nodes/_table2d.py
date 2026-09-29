@@ -271,6 +271,9 @@ def check_table2d_input(x: FloatArray, y: FloatArray, z: FloatArray) -> None:
     """
     Validate the x, y, and z arrays used to build a 2D table.
 
+    'x' and 'y' must each hold at least two values, both strictly increasing,
+    and 'z' must be a 2-D array of shape ('x'.size, 'y'.size).
+
     Parameters
     ----------
     x
@@ -280,10 +283,15 @@ def check_table2d_input(x: FloatArray, y: FloatArray, z: FloatArray) -> None:
     z
         Array of array with z-values.
     """
-    if (x.size * y.size) != z.size:
+    if (x.size < 2) or (y.size < 2):
         raise ValueError(
-            f"'z' ({z.size}) must have a length equal to the product of 'x' ({x.size})"
-            f" and 'y' ({y.size}) ."
+            f"'x' ({x.size}) and 'y' ({y.size}) must each be at least of length 2."
+        )
+
+    if z.shape != (x.size, y.size):
+        raise ValueError(
+            f"'z' (shape {z.shape}) must have shape ({x.size}, {y.size}), matching"
+            " the length of 'x' and 'y'."
         )
 
     if not is_strictly_increasing(x):
