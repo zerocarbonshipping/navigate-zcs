@@ -266,13 +266,12 @@ def _calculate_import_from_producers(
                 if supplies[p][f][0] > 0.0:
                     port.profile.set_bunker_wtt(idx, f, e, wtt[0])
 
-    # the import of fuel to ports is adjusted to
-    # account for local bunkering limitations.
-    # Notice the rerouting of fuel to ports has
-    # no impact on the weighted averages of price
-    # and emissions as it is assumed that the fuel
-    # is rerouted equally from each plant and thus
-    # the maintains their relative share
+    # the import of fuel to ports is adjusted to account for local bunkering
+    # limits. A port that already imports the fuel keeps the price and WTT
+    # just written, on the assumption that the adjustment is rerouted equally
+    # from each of the port's supplying plants and so preserves their relative
+    # share; a port with no import receives none of the redistribution and its
+    # price and WTT stay at zero
     _align_export_with_bunkering_limits(supplies, fuels, ports, idx_)
 
     for p, port in ports.items():
@@ -404,10 +403,12 @@ def _align_finite_export_with_bunkering_limits(
     neither can take it, the surplus is dropped and the total bunkered import
     shrinks.
 
+    A port the producers' export distribution sends no fuel to receives none of the
+    redistributed surplus either, matching the infinite-import branch above it, which
+    honors a zero export share the same way.
+
     Notice that this method breaks with the fractions assigned in the export
-    distribution: unlike the infinite-import branch above it, which honors a zero
-    export share, a port the producers' export distribution sends nothing to can
-    still receive redistributed surplus here, whether it has a limit or not.
+    distribution.
 
     Parameters
     ----------
@@ -445,14 +446,20 @@ def _align_finite_export_with_bunkering_limits(
         # a port without a finite limit can never be over it, and a deficit
         # against an infinite limit does not exist; it is handled below instead
         has_limit = np.isfinite(limit)
-        unlimited[port_name] = ~has_limit
+
+        # a port the export distribution sends nothing to has no fuel to give up
+        # and registers no deficit either: its weighted price and WTT are left at
+        # zero upstream, so any share handed to it here could not be attributed
+        # to a real delivery
+        has_import = imported > 0.0
+        unlimited[port_name] = ~has_limit & has_import
 
         # calculate the gap between imported and bunkering limit
         # positive is a surplus and negative is a deficit
         gap = imported - limit
 
         surplus[port_name] = np.where(has_limit & (gap > 0.0), gap, 0.0)
-        deficit[port_name] = np.where(has_limit & (gap <= 0.0), -gap, 0.0)
+        deficit[port_name] = np.where(has_limit & (gap <= 0.0) & has_import, -gap, 0.0)
 
     # calculate the total surplus and deficit of the limited ports
     total_surplus = np.sum(list(surplus.values()), axis=0)
