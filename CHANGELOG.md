@@ -260,6 +260,11 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `only allows assignment of METHANE, OIL, but got AMMONIA`.
 - `set_consumption_ttw` accepts a wildcard emission name, such as
   `set_consumption_ttw(OIL, "*", 0.001)`, which it rejected.
+- An unconstrained producer (`MaximumDevelopment = INF`) exporting to a port
+  with no `BunkeringLimit` no longer yields NaN bunker price and WTT or an
+  `inf` `BunkerSupplyMass`: the price and WTT are the average over the
+  unconstrained plants only, and the port's supply mass is left unreported
+  rather than infinite, matching a liquid-market port with no limit.
 
 ## [1.0.0] - 2026-07-16
 

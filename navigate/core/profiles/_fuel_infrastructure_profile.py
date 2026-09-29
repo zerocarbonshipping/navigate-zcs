@@ -30,13 +30,9 @@ class _FuelInfrastructureProfile(_FuelEmissionProfile):
         self._bunker_mass = self._default_dict(fuels)
         self._bunkering_limit_mass = self._default_dict(fuels, default=np.nan)
 
-        for fuel_name, fuel in fuels.items():
-            if fuel.liquid_market:
-                self._bunker_supply_mass[fuel_name] = self._default_array(
-                    default=np.nan
-                )
-            else:
-                self._bunker_supply_mass[fuel_name] = self._default_array()
+        # a fuel whose supply is not written this time-step, liquid market or
+        # not, has none to report rather than zero
+        self._bunker_supply_mass = self._default_dict(fuels, default=np.nan)
 
     def add_fuel_infrastructure_profile(
         self, profile: _FuelInfrastructureProfile, idx: int | slice = np.s_[:]

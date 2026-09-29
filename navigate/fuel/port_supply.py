@@ -167,6 +167,14 @@ def _calculate_import_from_producers(
         for p in ports
     }
 
+    # each contributing plant's own supply and per-unit price/WTT, kept apart
+    # from the running totals above so an infinite-supply plant can be
+    # weighted equally against other infinite-supply plants where the totals
+    # would otherwise divide infinity by infinity
+    plant_supplies = {p: {f: [] for f in fuels} for p in ports}
+    plant_costs = {p: {f: [] for f in fuels} for p in ports}
+    plant_wtts = {p: {(f, e): [] for f in fuels for e in emissions} for p in ports}
+
     # if the bunkering of a fuel is disallowed
     # in certain ports the export of fuel is
     # rerouted elsewhere by equal fractions
@@ -220,27 +228,41 @@ def _calculate_import_from_producers(
                 supplies[p][f] += supply
 
                 # calculate the supply weighted price
-                prices[p][f] += supply * expectation.get_expected_delivered_cost(
-                    p, idx_
-                )
+                cost = expectation.get_expected_delivered_cost(p, idx_)
+                prices[p][f] += supply * cost
+
+                plant_supplies[p][f].append(supply)
+                plant_costs[p][f].append(cost)
 
                 # calculate the supply weighted WTT emissions
                 for e in emissions:
-                    wtts[p][(f, e)] += supply * expectation.get_expected_delivered_wtt(
-                        p, e, idx_
-                    )
+                    wtt = expectation.get_expected_delivered_wtt(p, e, idx_)
+                    wtts[p][(f, e)] += supply * wtt
+                    plant_wtts[p][(f, e)].append(wtt)
 
     # transfer the supply-weighted average price
     # and WTT to the ports before adjusting the
     # supply to account for local supply limits
     for p, port in ports.items():
         for f in fuels:
+            # an unconstrained producer's infinite supply turns the
+            # weighted average below into inf/inf; those positions are
+            # corrected below by weighting the infinite-supply plants
+            # equally instead, ignoring the finite-supply ones
+            infinite_supply = np.isinf(supplies[p][f])
+
             # check if the bunker price is overwritten on the port
             if port.bunker_price_overwrite[f] is not None:
                 price = port.expectation.get_bunker_price_overwrite(f, idx_)
             else:
                 # normalize the weighted average
                 price = divide_nonzero(prices[p][f], supplies[p][f])
+
+                if np.any(infinite_supply):
+                    equal_weighted = _weighted_average_over_plants(
+                        plant_supplies[p][f], plant_costs[p][f]
+                    )
+                    price = np.where(infinite_supply, equal_weighted, price)
 
             # add handling costs
             handling_cost = port.expectation.get_handling_cost(f, idx_)
@@ -258,6 +280,12 @@ def _calculate_import_from_producers(
                 else:
                     # normalize the weighted average
                     wtt = divide_nonzero(wtts[p][(f, e)], supplies[p][f])
+
+                    if np.any(infinite_supply):
+                        equal_weighted = _weighted_average_over_plants(
+                            plant_supplies[p][f], plant_wtts[p][(f, e)]
+                        )
+                        wtt = np.where(infinite_supply, equal_weighted, wtt)
 
                 # transfer the average bunker WTT
                 # to expectation and profile
@@ -283,9 +311,52 @@ def _calculate_import_from_producers(
             price = port.expectation.get_bunker_price(f, idx_)
             supplies[p][f] = np.where(price > TOLERANCE, supplies[p][f], 0.0)
 
-            # transfer the adjusted supply to the ports
+            # transfer the adjusted supply to the ports. a port with no
+            # bunkering limit keeps an infinite supply here, which the
+            # profile never reports, matching the liquid-market convention
             port.expectation.set_bunker_supply(idx, f, supplies[p][f])
-            port.profile.set_bunker_supply_mass(idx, f, supplies[p][f][0])
+
+            if np.isfinite(supplies[p][f][0]):
+                port.profile.set_bunker_supply_mass(idx, f, supplies[p][f][0])
+
+
+def _weighted_average_over_plants(
+    supplies: list[np.ndarray], values: list[np.ndarray]
+) -> np.ndarray:
+    """
+    Supply-weighted average of a per-plant value, across the plants supplying one port.
+
+    Mirrors navigate.policy.emission_coefficient._average_wtt_over_ports: at a
+    time-step where one or more plants report an infinite supply, those plants
+    dominate the market and are weighted equally, ignoring the finite-supply
+    plants; otherwise each plant is weighted by its own supply, with a supply
+    at or below tolerance carrying no weight.
+
+    The caller guarantees at least one plant, so 'supplies' and 'values' are
+    never empty.
+
+    Parameters
+    ----------
+    supplies
+        Each contributing plant's supply, one array per plant.
+    values
+        Each contributing plant's price or WTT, one array per plant, aligned
+        with 'supplies'.
+
+    Returns
+    -------
+    np.ndarray
+        The supply-weighted average value.
+    """
+    supply = np.stack(supplies)
+    value = np.stack(values)
+
+    weights = np.where(supply > TOLERANCE, supply, 0.0)
+
+    infinite = np.isinf(supply)
+    weights = np.where(infinite.any(axis=0), infinite, weights)
+
+    return divide_nonzero((weights * value).sum(axis=0), weights.sum(axis=0))
 
 
 def _calculate_export_normalization_factors(ports: dict[str, Port]) -> dict[str, float]:
