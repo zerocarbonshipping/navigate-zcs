@@ -85,6 +85,11 @@ class Port(Node):
         """
         Set a limit for the fuel that can be bunkered in the port, tons/year.
 
+        Fuel imported above the limit is redistributed to the other ports allowed to
+        bunker the fuel, in proportion to how far each is under its own limit; any
+        surplus the limited ports cannot absorb is split equally across the ports
+        with no limit set, and dropped where none exist.
+
         Examples
         --------
         - "fuel_name", 1e6

@@ -396,13 +396,18 @@ def _align_finite_export_with_bunkering_limits(
     """
     Redistribute the finite-import case.
 
-    Trim each over-limit port to its bunkering limit and spread the freed surplus across
-    the under-limit ports in proportion to their deficit.
+    Trims each over-limit port to its bunkering limit and spreads the freed surplus
+    across the under-limit ports in proportion to their deficit. A port with no
+    bunkering limit set never has a deficit of its own - a shortfall against an
+    infinite limit is meaningless - so whatever surplus the limited ports cannot
+    absorb is split equally across the unlimited, allowed ports instead. Where
+    neither can take it, the surplus is dropped and the total bunkered import
+    shrinks.
 
     Notice that this method breaks with the fractions assigned in the export
-    distribution.
-
-    TODO: make two-stage algorithm?
+    distribution: unlike the infinite-import branch above it, which honors a zero
+    export share, a port the producers' export distribution sends nothing to can
+    still receive redistributed surplus here, whether it has a limit or not.
 
     Parameters
     ----------
@@ -421,31 +426,35 @@ def _align_finite_export_with_bunkering_limits(
 
     surplus = {}
     deficit = {}
+    unlimited = {}
 
     for port_name, port in ports.items():
         # extract the imported amount and the bunkering limit
         imported = supplies[port_name][fuel_name][mask]
         limit = port.expectation.get_bunkering_limit(fuel_name, idx)[mask]
 
-        # set default arrays
-        surplus.setdefault(port_name, np.zeros_like(limit))
-        deficit.setdefault(port_name, np.zeros_like(limit))
+        # a disallowed port neither contributes to nor
+        # receives a share of the redistribution
+        surplus[port_name] = np.zeros_like(limit)
+        deficit[port_name] = np.zeros_like(limit)
+        unlimited[port_name] = np.zeros_like(limit, dtype=bool)
 
-        # if bunkering of the produced fuel
-        # is disallowed in the port then skip.
-        # Must be called after defaulting of
-        # surplus and deficit
         if not port.is_bunkering_allowed(fuel_name):
             continue
+
+        # a port without a finite limit can never be over it, and a deficit
+        # against an infinite limit does not exist; it is handled below instead
+        has_limit = np.isfinite(limit)
+        unlimited[port_name] = ~has_limit
 
         # calculate the gap between imported and bunkering limit
         # positive is a surplus and negative is a deficit
         gap = imported - limit
 
-        surplus[port_name] = np.where(gap > 0.0, gap, 0.0)
-        deficit[port_name] = np.where(gap <= 0.0, -gap, 0.0)
+        surplus[port_name] = np.where(has_limit & (gap > 0.0), gap, 0.0)
+        deficit[port_name] = np.where(has_limit & (gap <= 0.0), -gap, 0.0)
 
-    # calculate the total surplus and deficit
+    # calculate the total surplus and deficit of the limited ports
     total_surplus = np.sum(list(surplus.values()), axis=0)
     total_deficit = np.sum(list(deficit.values()), axis=0)
 
@@ -453,20 +462,24 @@ def _align_finite_export_with_bunkering_limits(
     if np.all(total_surplus == 0.0):
         return
 
-    # calculate the maximum fraction that
-    # can be redistributed if the surplus
-    # is larger than the deficit
+    # calculate the maximum fraction of the deficit that
+    # can be filled if the surplus is larger than the deficit
     scaling = np.minimum(divide_nonzero(total_deficit, total_surplus), 1.0)
 
-    # calculate the adjusted import
+    # trim every over-limit port to its bunkering limit, and fill every
+    # under-limit port's deficit in proportion to its share of the total deficit
     for port_name in ports:
-        if port_name in surplus:
-            # reduce the imported supply to the bunkering limit
-            supplies[port_name][fuel_name][mask] -= surplus[port_name]
+        supplies[port_name][fuel_name][mask] += -surplus[port_name] + (
+            divide_nonzero(deficit[port_name], total_deficit) * scaling * total_surplus
+        )
 
-        else:
-            # increase the imported supply proportional
-            # to the ports relative deficit
-            supplies[port_name][fuel_name][mask] += (
-                (deficit[port_name] / total_deficit) * scaling * total_surplus
-            )
+    # spread whatever surplus the limited ports could not absorb equally across
+    # the unlimited, allowed ports; it is dropped where none of those exist
+    remaining_surplus = np.maximum(total_surplus - total_deficit, 0.0)
+    n_unlimited = np.sum(list(unlimited.values()), axis=0)
+    share = divide_nonzero(remaining_surplus, n_unlimited)
+
+    for port_name in ports:
+        supplies[port_name][fuel_name][mask] += np.where(
+            unlimited[port_name], share, 0.0
+        )

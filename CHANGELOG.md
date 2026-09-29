@@ -260,6 +260,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `only allows assignment of METHANE, OIL, but got AMMONIA`.
 - `set_consumption_ttw` accepts a wildcard emission name, such as
   `set_consumption_ttw(OIL, "*", 0.001)`, which it rejected.
+- Fuel imported above a port's `set_bunkering_limit` is redistributed to the
+  other ports in proportion to their deficit instead of being silently
+  dropped; a port with no limit set absorbs whatever the limited ports could
+  not.
 
 ## [1.0.0] - 2026-07-16
 

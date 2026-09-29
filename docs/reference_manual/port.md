@@ -79,6 +79,8 @@ This command sets the costs related to storage and the service of bunkering of a
 
 This command sets a limitation for the amount of fuel that can be bunkered in the port in tons/year.
 
+Fuel imported above the limit is redistributed to the other ports allowed to bunker the fuel, in proportion to how far each is under its own limit; any surplus the limited ports cannot absorb is split equally across the ports with no limit set, and dropped where none exist.
+
 * **Primary key type**: String (Fuel name)
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
