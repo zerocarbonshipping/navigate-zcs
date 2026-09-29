@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Unit tests for Route voyage-distribution normalization and setter logging."""
+"""Unit tests for Route voyage-distribution, its accepted kinds, and setter logging."""
 
 from __future__ import annotations
 
@@ -12,13 +12,21 @@ import pytest
 
 from navigate.core import Scalar
 from navigate.core.enum_ import RouteTypeID
+from navigate.core.nodes.forecast import Forecast
 from navigate.core.nodes.route import Route
+from navigate.core.nodes.variable import Variable
 
 
 def _mock_port(name):
     port = MagicMock()
     port.name = name
     return port
+
+
+def _variable(value):
+    variable = Variable("v")
+    variable.set_value(value)
+    return variable
 
 
 def _make_regional_route(voyage_distribution):
@@ -81,6 +89,42 @@ class TestVoyageDistributionNormalization:
         # to_array orders as (origin, destination) pairs: aa, ba, ab, bb
         values = route.get_voyage_distribution(to_array=True)
         assert values == pytest.approx([0.0, 0.25, 0.75, 0.0])
+
+
+class TestSetVoyageDistributionAcceptedKinds:
+    """`set_voyage_distribution` accepts a float or a Variable, rejects a Forecast."""
+
+    def _make_route(self):
+        route = Route("r")
+        route.ports = [_mock_port("a"), _mock_port("b")]
+        route.initialize_dependencies()
+        return route
+
+    @pytest.mark.parametrize(
+        "make_fraction",
+        [lambda: 0.5, lambda: _variable(0.5)],
+        ids=["float", "variable"],
+    )
+    def test_accepted_kinds_are_stored_under_the_port_pair(self, make_fraction):
+        route = self._make_route()
+
+        route.set_voyage_distribution("a", "b", make_fraction())
+
+        assert route.voyage_distribution[("a", "b")].get(None, None) == pytest.approx(
+            0.5
+        )
+
+    def test_forecast_is_rejected_like_any_unaccepted_node_type(self):
+        route = self._make_route()
+
+        with pytest.raises(
+            ValueError,
+            match=(
+                r"only allows assignment of scalars and nodes of type Variable, "
+                r'but got Forecast\("f"\)'
+            ),
+        ):
+            route.set_voyage_distribution("a", "b", Forecast("f"))
 
 
 class TestSetConditionDistributionRescaleLogging:

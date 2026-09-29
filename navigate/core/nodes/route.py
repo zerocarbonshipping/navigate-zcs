@@ -277,10 +277,14 @@ class Route(Node):
         """
         Set the fraction of sailing time spent traveling from 'port_from' to 'port_to'.
 
+        The fraction is evaluated once when the deck's DEFINE block is read and
+        again whenever an EVENTS block is read, so it does not vary between
+        those reads.
+
         Examples
         --------
         - "port_name_from", "port_name_to", 0.5
-        - "port_name_from", "port_name_to", Forecast("name")
+        - "port_name_from", "port_name_to", Variable("name")
 
         Parameters
         ----------
