@@ -1431,35 +1431,65 @@ class Parser:
         command argument on a node the prune removed. One still held by a
         registry node's attribute or a queued command is a node that was never
         declared or pulled from the default library, yet would reach the
-        simulation.
+        simulation. The error names each holder: the entry records only the
+        first reference, which a later assignment may have overwritten.
         """
         if not self._deferred:
             return
 
-        held: set[Node] = set()
+        deferred = {entry.node for entry in self._deferred.values()}
+        # the holders of each deferred node, registry nodes first and queued
+        # commands after, each in the order it was registered or queued
+        holders: dict[Node, list[str]] = {}
+
         for node in self._get_all_nodes():
-            for _, attribute in get_attributes(node, exclude=REFERENCE_SCAN_EXCLUDE):
-                held.update(_held_nodes(attribute))
+            for attribute_name, attribute in get_attributes(
+                node, exclude=REFERENCE_SCAN_EXCLUDE
+            ):
+                held = deferred.intersection(_held_nodes(attribute))
+                if not held:
+                    continue
 
-        for commands in self._command_queue.values():
+                dsl_name = instance_to_dsl_name(node.type, attribute_name)
+                for held_node in held:
+                    holders.setdefault(held_node, []).append(
+                        f"{node} attribute '{dsl_name}'"
+                    )
+
+        for node, commands in self._command_queue.items():
             for command in commands:
-                held.update(_held_nodes(command.inputs))
+                held = deferred.intersection(_held_nodes(command.inputs))
+                if not held:
+                    continue
 
-        # the deferred entries keep the order the deck named them in, so the
-        # report reads in deck order
-        unresolved = [entry for entry in self._deferred.values() if entry.node in held]
+                location = self._error_prefix(command.source, command.deck_line)
+                for held_node in held:
+                    holders.setdefault(held_node, []).append(
+                        f"command '{command.command}' on {node} at {location}"
+                    )
+
+        # the deferred entries keep the order the deck first named them in, so
+        # the report reads in deck order
+        unresolved = [
+            entry for entry in self._deferred.values() if entry.node in holders
+        ]
 
         if not unresolved:
             return
 
-        lines = "".join(f"\n\t- {entry.location}: {entry.node}" for entry in unresolved)
+        lines = "".join(
+            f"\n\t- {entry.node}"
+            + "".join(f"\n\t  held by {holder}" for holder in holders[entry.node])
+            + f"\n\t  first referenced at {entry.location}"
+            for entry in unresolved
+        )
 
         raise DeckKeywordError(
             "Node reference(s) left unresolved, the node neither declared in the "
-            f"deck nor looked up in the default library:{lines}\nEach reference "
-            "sits where the parser does not resolve node references, for example "
-            "where a name string is expected, or was introduced after DEFINE "
-            "finished resolving references, as by a default file pulled only "
+            f"deck nor looked up in the default library:{lines}\nEach holder keeps "
+            "the node where the parser does not resolve node references, for "
+            "example where a name string is expected, or received it after DEFINE "
+            "finished resolving references, as from a default file pulled only "
             "then. Pass a name string where one is expected, or declare the node "
             "in the deck."
         )
