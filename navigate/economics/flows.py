@@ -8,118 +8,97 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.initial_values import EMPTY_FLOAT
 from navigate.core.unit import YEAR_TO_DAYS
 from navigate.util import ROUND_OFF, YEAR
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Iterable
 
     from navigate.core.nodes.converter import Converter
     from navigate.core.nodes.power_system import PowerSystem
     from navigate.core.nodes.region import Region
     from navigate.core.nodes.tank import Tank
     from navigate.core.nodes.technology import Technology
+    from navigate.util.types_ import FloatArray
 
 
 class Component:
-    """Convenience struct for storing cost/WTT flows, time context, and callables."""
+    """
+    Convenience struct for storing cost/WTT flows, time context, and callables.
 
-    def __init__(self) -> None:
+    Every flow spans the horizon `lead_time + lifetime` in calendar-year bins
+    anchored at `time_initial`. Operation commences at `time_commence`, after the
+    lead time, and ends at `time_end`, the end of the horizon. `replacement_cycle`
+    is None while the component lives as long as the asset; it is attached by
+    `initialize_process_component` or `initialize_machinery_component`.
 
-        # callables (locked via Region at anchor times)
-        self._lifetime: Callable[[float], float] | None = None
-        self._replacement: Callable[[float], float] = lambda t: 0.0
+    Parameters
+    ----------
+    lead_time
+        Asset lead time (years).
+    lifetime
+        Asset lifetime (years).
+    time_initial
+        Time of investment decision (days since start of simulation).
+    emissions
+        Names of the emissions to allocate a WTT flow for.
+    """
 
-        # time context shared across methods
-        self.lead_time: float | None = None  # lead time of the asset, years
-        self.time_initial: float | None = (
-            None  # time of investment decision, days since start of simulation
-        )
-        self.time_commence: float | None = (
-            None  # time of operation commencement, days since start of simulation
-        )
-        self.time_end: float | None = (
-            None  # time at cease of production, days since start of simulation
-        )
+    def __init__(
+        self,
+        lead_time: float,
+        lifetime: float,
+        time_initial: float,
+        emissions: Iterable[str] = (),
+    ) -> None:
 
         # flows
-        self._year_offset: np.ndarray = EMPTY_FLOAT
-        self.year_flow: np.ndarray = EMPTY_FLOAT
-        self.capex_flow: np.ndarray = EMPTY_FLOAT
-        self.opex_flow: np.ndarray = EMPTY_FLOAT
-        self.tied_capital_flow: np.ndarray = EMPTY_FLOAT
-        self.wtt_flow: dict[str, np.ndarray] = {}
+        self.capex_flow: FloatArray = _initialize_flow(lead_time, lifetime)
+        self.opex_flow: FloatArray = _initialize_flow(lead_time, lifetime)
+        self.tied_capital_flow: FloatArray = _initialize_flow(lead_time, lifetime)
+        self.wtt_flow: dict[str, FloatArray] = {
+            emission: _initialize_flow(lead_time, lifetime) for emission in emissions
+        }
 
-        # cached overlap schedules (computed during initialization)
-        self.constant_overlap: np.ndarray | None = None
-        self.staircase_segments: list[tuple[float, np.ndarray]] | None = None
-        self.replacement_times: list[float] | None = None
-
-    def initialize_flow(
-        self, lead_time: float, lifetime: float, time_initial: float, emissions=None
-    ) -> None:
-        """
-        Initialize flow containers and store shared time context.
-
-        Parameters
-        ----------
-        emissions
-            All emissions in the simulation.
-        lead_time
-            Asset lead time (years).
-        lifetime
-            Asset lifetime (years).
-        time_initial
-            Time of investment decision (days since start of simulation).
-        """
-        if emissions is None:
-            emissions = {}
-
-        self.capex_flow = _initialize_flow(lead_time, lifetime)
-        self.opex_flow = _initialize_flow(lead_time, lifetime)
-        self.tied_capital_flow = _initialize_flow(lead_time, lifetime)
-
-        for emission in emissions:
-            self.wtt_flow[emission] = _initialize_flow(lead_time, lifetime)
-
-        self.lead_time = lead_time
-        self._year_offset = np.arange(self.get_length(), dtype=float)
+        # time context shared across methods, set by _update_time_context
+        self.lead_time: float = lead_time
+        self._year_offset: FloatArray = np.arange(self.get_length(), dtype=float)
+        self.time_initial: float
+        self.time_commence: float
+        self.time_end: float
+        self.year_flow: FloatArray
+        self.constant_overlap: FloatArray
         self._update_time_context(time_initial)
+
+        self.replacement_cycle: _ReplacementCycle | None = None
 
     def initialize_process_component(self, region: Region, process_name: str) -> None:
 
         lifetime = region.process_lifetime[process_name]
-        if lifetime is not None:
-            self._lifetime = lambda time: lifetime.get(time)
+        if lifetime is None:
+            return
 
-        self._replacement = lambda time: region.process_replacement[process_name].get(
-            time
+        self.replacement_cycle = _ReplacementCycle(
+            lifetime=lambda time: lifetime.get(time),
+            replacement=lambda time: region.process_replacement[process_name].get(time),
+            component=self,
         )
-
-        self.compute_overlap_schedule()
 
     def initialize_machinery_component(
         self, machinery: Converter | PowerSystem | Tank | Technology
     ) -> None:
 
         lifetime = machinery.lifetime
-        if lifetime is not None:
-            self._lifetime = lambda time: lifetime.get(time)
-
-        self._replacement = lambda time: machinery.replacement.get(time)
-
-        self.compute_overlap_schedule()
-
-    def compute_overlap_schedule(self) -> None:
-        """Pre-compute the staircase overlap segments and replacement times."""
-        if self._lifetime is None:
+        if lifetime is None:
             return
 
-        self.staircase_segments = _compute_staircase_segments(self)
-        self.replacement_times = _compute_replacement_times(self)
+        self.replacement_cycle = _ReplacementCycle(
+            lifetime=lambda time: lifetime.get(time),
+            replacement=lambda time: machinery.replacement.get(time),
+            component=self,
+        )
 
-    def get_commence_index(self):
+    def get_commence_index(self) -> int:
         return _bin_index(self.time_commence, self.time_initial, self.get_length())
 
     def add_capex_flow(self, capex_flow: np.ndarray) -> None:
@@ -139,7 +118,7 @@ class Component:
         self.time_initial = time_initial
         self.time_commence = _future_time(time_initial, self.lead_time)
         self.time_end = _future_time(time_initial, self.get_length())
-        self.year_flow = _future_time(time_initial, self._year_offset)
+        self.year_flow = time_initial + self._year_offset * YEAR_TO_DAYS
         self.constant_overlap = (
             _overlap_year_bins(self.year_flow, self.time_commence, self.time_end)
             / YEAR_TO_DAYS
@@ -147,11 +126,12 @@ class Component:
 
     def reset_flow(self, time_initial: float) -> None:
         """
-        Zero all flow arrays and update time context, preserving array dimensions.
+        Zero all flow arrays and move the component to a new investment time.
 
-        After reset the Component is in the same state as a freshly allocated one
-        with the same lead_time/lifetime. The caller must follow up with
-        ``compute_overlap_schedule`` to recompute the overlap schedule.
+        The array dimensions are preserved, and the replacement cycle, if any, is
+        walked again over the new time context, so the component is in the same
+        state as a freshly constructed one with the same lead time, lifetime and
+        cycle callables.
         """
         self.capex_flow.fill(0)
         self.opex_flow.fill(0)
@@ -160,8 +140,14 @@ class Component:
             wtt.fill(0)
 
         self._update_time_context(time_initial)
-        self.staircase_segments = None
-        self.replacement_times = None
+
+        cycle = self.replacement_cycle
+        if cycle is not None:
+            self.replacement_cycle = _ReplacementCycle(
+                lifetime=cycle.lifetime,
+                replacement=cycle.replacement,
+                component=self,
+            )
 
     def add_component(self, component: Component) -> None:
         self.add_capex_flow(component.capex_flow)
@@ -174,17 +160,42 @@ class Component:
     def get_length(self) -> int:
         return self.capex_flow.size
 
-    def has_lifetime(self) -> bool:
-        return self._lifetime is not None
-
-    def get_lifetime(self, time: float) -> float:
-        return self._lifetime(time)
-
-    def get_replacement(self, time: float) -> float:
-        return self._replacement(time)
-
     def get_cost_flow(self) -> np.ndarray:
         return self.opex_flow + self.capex_flow
+
+
+class _ReplacementCycle:
+    """
+    Lifetime and replacement lookups of a component shorter-lived than its asset.
+
+    The staircase segments and replacement times are walked once, over the time
+    context the component holds at construction.
+
+    Parameters
+    ----------
+    lifetime
+        Callable returning the component lifetime (years) locked at a time (days).
+    replacement
+        Callable returning the replaceable share of the CAPEX locked at a time
+        (days).
+    component
+        Component whose time context the schedules are walked over.
+    """
+
+    def __init__(
+        self,
+        lifetime: Callable[[float], float],
+        replacement: Callable[[float], float],
+        component: Component,
+    ) -> None:
+        self.lifetime: Callable[[float], float] = lifetime
+        self.replacement: Callable[[float], float] = replacement
+        self.staircase_segments: list[tuple[float, FloatArray]] = (
+            _compute_staircase_segments(component, lifetime)
+        )
+        self.replacement_times: list[float] = _compute_replacement_times(
+            component, lifetime
+        )
 
 
 def build_production_flow(component: Component, production: float) -> np.ndarray:
@@ -308,7 +319,8 @@ def add_fixed_wtt(
     if not wtt_callables:
         return
 
-    if not component.has_lifetime():
+    cycle = component.replacement_cycle
+    if cycle is None:
         time_initial = component.time_initial
         overlap = component.constant_overlap
 
@@ -317,7 +329,7 @@ def add_fixed_wtt(
 
         return
 
-    segments = component.staircase_segments
+    segments = cycle.staircase_segments
     n = component.get_length()
     flows = {e: np.zeros(n, dtype=float) for e in wtt_callables}
 
@@ -599,7 +611,8 @@ def _add_recurring_capex_flow(
     """
     # recurring CAPEX only matters if the component
     # has a lifetime shorter than the asset lifetime
-    if not component.has_lifetime():
+    cycle = component.replacement_cycle
+    if cycle is None:
         return
 
     time_initial = component.time_initial
@@ -607,14 +620,14 @@ def _add_recurring_capex_flow(
 
     capex_flow = component.capex_flow
 
-    for time_replace in component.replacement_times:
+    for time_replace in cycle.replacement_times:
         # replacement CAPEX locked at replacement event
-        replace_t = component.get_replacement(time_replace)
+        replace_t = cycle.replacement(time_replace)
         capex_t = capex(time_replace) * replace_t
 
         # optionally scale by fraction of lifetime that fits to the horizon
         if partial:
-            lifetime_t = component.get_lifetime(time_replace)
+            lifetime_t = cycle.lifetime(time_replace)
             remaining_years = (time_end - time_replace) / YEAR_TO_DAYS
             if remaining_years < lifetime_t:
                 capex_t *= max(remaining_years, 0.0) / lifetime_t
@@ -625,7 +638,7 @@ def _add_recurring_capex_flow(
 
         # depreciate this replacement tranche over
         # lifetime locked at replacement year
-        lifetime_replace = component.get_lifetime(time_replace)
+        lifetime_replace = cycle.lifetime(time_replace)
         _add_straight_line_depreciation(component, idx, capex_t, lifetime_replace)
 
 
@@ -669,9 +682,10 @@ def _add_initial_tied_capital_flow(component: Component, delta: np.ndarray) -> N
 
     # split initial basis into non-replaceable
     # and replaceable tranches
-    if component.has_lifetime():
-        replace_t = component.get_replacement(time_initial)
-        lifetime_t = component.get_lifetime(time_initial)
+    cycle = component.replacement_cycle
+    if cycle is not None:
+        replace_t = cycle.replacement(time_initial)
+        lifetime_t = cycle.lifetime(time_initial)
     else:
         replace_t = 0.0
         lifetime_t = 0.0
@@ -732,7 +746,9 @@ def _add_straight_line_depreciation(
         tied_capital_flow[i] += remaining
 
 
-def _compute_staircase_segments(component: Component) -> list[tuple[float, np.ndarray]]:
+def _compute_staircase_segments(
+    component: Component, lifetime: Callable[[float], float]
+) -> list[tuple[float, FloatArray]]:
     """
     Walk the replacement timeline and compute each segment's normalized overlap.
 
@@ -745,11 +761,13 @@ def _compute_staircase_segments(component: Component) -> list[tuple[float, np.nd
     Parameters
     ----------
     component
-        Component whose lifetime/replacement schedule to walk.
+        Component whose time context to walk.
+    lifetime
+        Callable returning the component lifetime (years) locked at a time (days).
 
     Returns
     -------
-    list[tuple[float, np.ndarray]]
+    list[tuple[float, FloatArray]]
         One entry per replacement segment.
     """
     time_invest = component.time_initial
@@ -762,11 +780,11 @@ def _compute_staircase_segments(component: Component) -> list[tuple[float, np.nd
     xs = [time_commence]
     anchors = [time_invest]
 
-    time = _future_time(time_commence, component.get_lifetime(time_invest))
+    time = _future_time(time_commence, lifetime(time_invest))
     while time < time_end:
         xs.append(time)
         anchors.append(time)
-        time = _future_time(time, component.get_lifetime(time))
+        time = _future_time(time, lifetime(time))
 
     segments = []
     for i, x_start in enumerate(xs):
@@ -779,7 +797,9 @@ def _compute_staircase_segments(component: Component) -> list[tuple[float, np.nd
     return segments
 
 
-def _compute_replacement_times(component: Component) -> list[float]:
+def _compute_replacement_times(
+    component: Component, lifetime: Callable[[float], float]
+) -> list[float]:
     """
     Walk the replacement timeline and return each replacement time.
 
@@ -788,7 +808,9 @@ def _compute_replacement_times(component: Component) -> list[float]:
     Parameters
     ----------
     component
-        Component whose lifetime/replacement schedule to walk.
+        Component whose time context to walk.
+    lifetime
+        Callable returning the component lifetime (years) locked at a time (days).
 
     Returns
     -------
@@ -804,7 +826,7 @@ def _compute_replacement_times(component: Component) -> list[float]:
     time_anchor = time_invest
 
     while True:
-        lifetime_t = component.get_lifetime(time_anchor)
+        lifetime_t = lifetime(time_anchor)
         time_replace = _future_time(time_install, lifetime_t)
         if time_replace >= time_end:
             break
@@ -840,11 +862,12 @@ def _build_staircase_flow(
     # the asset lifetime, the staircase is a
     # constant value with zeros during lead time
     # and prorated value in the commencement year
-    if not component.has_lifetime():
+    cycle = component.replacement_cycle
+    if cycle is None:
         return _build_constant_flow(component, value(component.time_initial))
 
     out = np.zeros(component.get_length(), dtype=float)
-    for anchor_time, normalized_overlap in component.staircase_segments:
+    for anchor_time, normalized_overlap in cycle.staircase_segments:
         out += value(anchor_time) * normalized_overlap
 
     return out
@@ -906,7 +929,7 @@ def _build_variable_flow(
     return np.interp(year_flow, timeline, value) * (overlap_days / YEAR_TO_DAYS)
 
 
-def _future_time(time: float, years: int | float | np.ndarray) -> float | np.ndarray:
+def _future_time(time: float, years: float) -> float:
     """
     Add a year-based duration to an absolute time expressed in days.
 
@@ -951,7 +974,7 @@ def _bin_index(time: float, time_initial: float, n_years: int) -> int:
     return idx
 
 
-def _overlap_year_bins(times: float | np.ndarray, a: float, b: float) -> np.ndarray:
+def _overlap_year_bins(times: FloatArray, a: float, b: float) -> np.ndarray:
     """
     Vectorized overlap between [a, b) and each calendar bin [t_i, t_i + YEAR_TO_DAYS).
 
