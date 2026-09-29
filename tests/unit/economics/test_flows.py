@@ -52,8 +52,7 @@ class TestBuildOperatingFlows:
         # this helper while the production-cost levelization builds it through
         # Component; both must describe the same window for the levelized
         # delivered cost to be a consistent sum of the two
-        component = Component()
-        component.initialize_flow(
+        component = Component(
             lead_time=1.5, lifetime=3.0, time_initial=7.0 * YEAR_TO_DAYS
         )
 

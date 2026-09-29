@@ -159,8 +159,7 @@ def preprocess_packages(
     lifetime = int(np.ceil(max(v.lifetime.get() for v in vessels)))
 
     # Empty-package component and cost
-    empty_component = Component()
-    empty_component.initialize_flow(0.0, lifetime, time)
+    empty_component = Component(0.0, lifetime, time)
     packages[0].cost_flow = np.zeros(lifetime, dtype=float)
 
     last_package = packages[-1]
@@ -169,8 +168,7 @@ def preprocess_packages(
     for i, technology in enumerate(last_package.technologies):
         tech_component = _build_technology_component(technology, lifetime, time)
 
-        new_cumulative = Component()
-        new_cumulative.initialize_flow(0.0, lifetime, time)
+        new_cumulative = Component(0.0, lifetime, time)
         new_cumulative.add_component(cumulative_component)
         new_cumulative.add_component(tech_component)
         cumulative_component = new_cumulative
@@ -316,9 +314,7 @@ def _build_technology_component(
     technology: Technology, vessel_lifetime: float, time_initial: float
 ) -> Component:
 
-    component = Component()
-
-    component.initialize_flow(0.0, vessel_lifetime, time_initial)
+    component = Component(0.0, vessel_lifetime, time_initial)
     component.initialize_machinery_component(technology)
 
     capex = lambda time: technology.capex.get(time)

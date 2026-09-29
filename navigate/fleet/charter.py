@@ -268,12 +268,10 @@ def _initialize_vessel_component(
     Component
         An initialized component ready to receive cost flows.
     """
-    component = Component()
-
     # initialize containers
     lead_time = vessel.lead_time.get()
     lifetime = vessel.lifetime.get()
-    component.initialize_flow(lead_time, lifetime, time_initial)
+    component = Component(lead_time, lifetime, time_initial)
 
     # initialize callables
     if machinery is not None:

@@ -98,7 +98,6 @@ def calculate_plant_production_expectations(
         ):
             # reuse: zero flows, update time context, recompute overlap
             component.reset_flow(time)
-            component.compute_overlap_schedule()
         else:
             # full allocation (first iteration or dimension change)
             component = _initialize_process_component(
@@ -388,12 +387,10 @@ def _initialize_process_component(
     Component
         An initialized component ready to receive cost and emissions flows.
     """
-    component = Component()
-
     # initialize containers
     lead_time = plant.expectation.get_lead_time(idx)
     lifetime = plant.expectation.get_lifetime(idx)
-    component.initialize_flow(lead_time, lifetime, time_initial, emissions)
+    component = Component(lead_time, lifetime, time_initial, emissions)
 
     # initialize callables
     region = plant.region

@@ -403,8 +403,9 @@ class Region(Node):
             self.process_capex.setdefault(process_name, Scalar(0.0))
             self.process_opex.setdefault(process_name, Scalar(0.0))
             self.process_energy.setdefault(process_name, Scalar(0.0))
-            # stays None when unset: Component.initialize_process_component branches on
-            # it
+            # stays None when unset: a process without a lifetime lives as long as
+            # its plant, so Component.initialize_process_component attaches no
+            # replacement cycle
             self.process_lifetime.setdefault(process_name, None)
             self.process_replacement.setdefault(process_name, Scalar(0.0))
 

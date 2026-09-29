@@ -54,6 +54,19 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ### Changed
 - **Breaking** for code importing navigate as a library:
+  `navigate.economics.flows.Component` takes its time context at
+  construction, so `Component()` followed by
+  `initialize_flow(lead_time, lifetime, time_initial, emissions)` becomes
+  `Component(lead_time, lifetime, time_initial, emissions)`, with
+  `emissions` any iterable of emission names, and `initialize_flow` is gone.
+  The lifetime and replacement lookups and the schedules walked from them
+  move to one `Component.replacement_cycle`, `None` when the component lives
+  as long as its asset, so `has_lifetime`, `get_lifetime`,
+  `get_replacement`, `compute_overlap_schedule` and the `staircase_segments`
+  and `replacement_times` attributes are gone. `reset_flow` recomputes the
+  replacement schedule itself instead of leaving it to a follow-up
+  `compute_overlap_schedule`. Simulation results are unchanged.
+- **Breaking** for code importing navigate as a library:
   `navigate.core.wrap.WrappedAssignment` is gone and
   `navigate.core.wrap.Assignment` moves to `navigate.core.assign.Assignment`.
   `as_scalar` is typed to take a float, a calculator or an expression, no
