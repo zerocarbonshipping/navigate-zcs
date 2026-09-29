@@ -577,7 +577,7 @@ CO<sub>2</sub>-taxes and subsidy schemes.</p>
 </section>
 <section id="level">
 <h3>Level<a class="headerlink" href="#level" title="Link to this heading">#</a></h3>
-<p>This attribute determines the level of the penalty or subsidy proportional to the fuels absolute difference from the threshold.</p>
+<p>This attribute determines the level of the penalty or subsidy, paid per ton of emission by which a fuel differs from the threshold: the difference in emission intensity times the effective energy of the fuel, (1 − slip) · LHV (see <code class="docutils literal notranslate"><span class="pre">LowerThreshold</span></code>).</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>: <code class="docutils literal notranslate"><span class="pre">100</span></code></p></li>
@@ -589,6 +589,7 @@ CO<sub>2</sub>-taxes and subsidy schemes.</p>
 <section id="lowerthreshold">
 <h3>LowerThreshold<a class="headerlink" href="#lowerthreshold" title="Link to this heading">#</a></h3>
 <p>This attribute sets the lower emission intensity threshold of the levy. If ‘Scheme’ is SUBSIDY or BOTH, then values below the threshold are subsidized, if set to PENALTY or BOTH, then values above the threshold are penalized.</p>
+<p>The emission intensity is per GJ of effective energy, (1 − slip) · LHV: the lower heating value of the fuel net of the fraction its converter lets escape unburned (<code class="docutils literal notranslate"><span class="pre">set_slip_fraction</span></code> on the <code class="docutils literal notranslate"><span class="pre">Converter</span></code>). A levy applies per fuel at port, so the slip is averaged over the vessel’s converters able to burn the fuel, weighted by power capacity over efficiency. A <code class="docutils literal notranslate"><span class="pre">Regulation</span></code> with ‘Measure’ INTENSITY uses the same basis.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
@@ -604,7 +605,7 @@ CO<sub>2</sub>-taxes and subsidy schemes.</p>
 </section>
 <section id="upperthreshold">
 <h3>UpperThreshold<a class="headerlink" href="#upperthreshold" title="Link to this heading">#</a></h3>
-<p>This attribute sets the upper emission intensity threshold of the levy. The penalty is only paid for emissions between the lower and upper threshold. If not set, there is no upper cap on the penalty. Only relevant for ‘PENALTY’ and ‘BOTH’ schemes.</p>
+<p>This attribute sets the upper emission intensity threshold of the levy, per GJ of effective energy like <code class="docutils literal notranslate"><span class="pre">LowerThreshold</span></code>. The penalty is only paid for emissions between the lower and upper threshold. If not set, there is no upper cap on the penalty. Only relevant for ‘PENALTY’ and ‘BOTH’ schemes.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>

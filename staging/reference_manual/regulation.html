@@ -583,7 +583,7 @@ transport based regulation such as the IMO CII regulation.</p>
 <h3>Measure<a class="headerlink" href="#measure" title="Link to this heading">#</a></h3>
 <p>This attribute sets the emission measure of the regulation.</p>
 <p>If ‘ABSOLUTE’ the absolute emissions in tons/year are targeted.
-If ‘INTENSITY’ the emission intensity in kg/GJ are targeted.
+If ‘INTENSITY’ the emission intensity in kg/GJ are targeted, per GJ of effective energy, (1 − slip) · LHV: the lower heating value of the fuel net of the fraction the converter burning it lets escape unburned (<code class="docutils literal notranslate"><span class="pre">set_slip_fraction</span></code> on the <code class="docutils literal notranslate"><span class="pre">Converter</span></code>).
 If ‘TRANSPORT_NOMINAL’ the carbon intensity index in CO<sub>2</sub>-eq/nominal cargo-miles is targeted.
 If ‘TRANSPORT’ the carbon intensity index in CO<sub>2</sub>-eq/actual cargo-miles is targeted.</p>
 <ul class="simple">
