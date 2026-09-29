@@ -25,8 +25,7 @@ class _PolicyExpectation(_Expectation):
 
         # for levy the key is:       (port_name, fuel_name, emission_name)
         # for regulation the key is: (vessel_name, fuel_name, emission_name)
-        self._expected_wtt: dict[tuple[str, ...], FloatArray] = {}
-        self._existing_wtt: dict[tuple[str, ...], FloatArray] = {}
+        self._wtt: dict[tuple[str, ...], FloatArray] = {}
 
         # for levy the key is:       (vessel_name, fuel_name, emission_name)
         # for regulation the key is: (converter_name, fuel_name, emission_name)
@@ -35,8 +34,7 @@ class _PolicyExpectation(_Expectation):
 
         # for levy the key is:       (vessel_name, port_name, fuel_name)
         # for regulation the key is: (vessel_name, converter_name, fuel_name)
-        self._expected_coefficient: dict[tuple[str, ...], FloatArray] = {}
-        self._existing_coefficient: dict[tuple[str, ...], FloatArray] = {}
+        self._coefficient: dict[tuple[str, ...], FloatArray] = {}
 
     def _initialize_policy_expectation(self, emission_names: Iterable[str]) -> None:
 
@@ -47,13 +45,9 @@ class _PolicyExpectation(_Expectation):
     ) -> None:
         self._global_warming_potential[emission_name] = global_warming_potential
 
-    def set_expected_wtt(self, idx: int, key: tuple[str, ...], wtt: FloatLike) -> None:
-        self._expected_wtt.setdefault(key, self._default_array())
-        self._expected_wtt[key][idx:] = wtt
-
-    def set_existing_wtt(self, idx: int, key: tuple[str, ...], wtt: FloatLike) -> None:
-        self._existing_wtt.setdefault(key, self._default_array())
-        self._existing_wtt[key][idx:] = wtt
+    def set_wtt(self, idx: int, key: tuple[str, ...], wtt: FloatLike) -> None:
+        self._wtt.setdefault(key, self._default_array())
+        self._wtt[key][idx:] = wtt
 
     def set_ttw_consumption(
         self, idx: int, key: tuple[str, ...], ttw: FloatLike
@@ -65,32 +59,19 @@ class _PolicyExpectation(_Expectation):
         self._ttw_slip.setdefault(key, self._default_array())
         self._ttw_slip[key][idx:] = ttw
 
-    def set_expected_coefficient(
+    def set_coefficient(
         self, idx: int, key: tuple[str, ...], coefficient: FloatLike
     ) -> None:
-        self._expected_coefficient.setdefault(key, self._default_array())
-        self._expected_coefficient[key][idx:] = coefficient
-
-    def set_existing_coefficient(
-        self, idx: int, key: tuple[str, ...], coefficient: FloatLike
-    ) -> None:
-        self._existing_coefficient.setdefault(key, self._default_array())
-        self._existing_coefficient[key][idx:] = coefficient
+        self._coefficient.setdefault(key, self._default_array())
+        self._coefficient[key][idx:] = coefficient
 
     def get_global_warming_potential(self, emission_name: str) -> float:
         return self._global_warming_potential[emission_name]
 
-    def get_expected_wtt(self, key: tuple[str, ...], idx: Index) -> FloatLike:
+    def get_wtt(self, key: tuple[str, ...], idx: Index) -> FloatLike:
 
-        if key in self._expected_wtt:
-            return self._expected_wtt[key][idx]
-        else:
-            return 0.0
-
-    def get_existing_wtt(self, key: tuple[str, ...], idx: Index) -> FloatLike:
-
-        if key in self._existing_wtt:
-            return self._existing_wtt[key][idx]
+        if key in self._wtt:
+            return self._wtt[key][idx]
         else:
             return 0.0
 
@@ -108,18 +89,10 @@ class _PolicyExpectation(_Expectation):
         else:
             return 0.0
 
-    def get_expected_coefficient(self, key: tuple[str, ...], idx: int) -> float:
+    def get_coefficient(self, key: tuple[str, ...], idx: int) -> float:
 
-        if key in self._expected_coefficient:
-            coefficient: float = self._expected_coefficient[key][idx]
-            return coefficient
-        else:
-            return 0.0
-
-    def get_existing_coefficient(self, key: tuple[str, ...], idx: int) -> float:
-
-        if key in self._existing_coefficient:
-            coefficient: float = self._existing_coefficient[key][idx]
+        if key in self._coefficient:
+            coefficient: float = self._coefficient[key][idx]
             return coefficient
         else:
             return 0.0

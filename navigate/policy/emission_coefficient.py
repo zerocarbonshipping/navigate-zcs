@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.enum_ import BunkerScopeID, LevySchemeID, PolicyScopeID
+from navigate.core.enum_ import LevySchemeID, PolicyScopeID
 from navigate.core.unit import TON_PER_GJ_TO_GRAM_PR_MJ
 from navigate.util import TOLERANCE, divide_nonzero, list_intersection
 
@@ -28,7 +28,6 @@ def calculate_policy_emission_coefficients(
     regulations: dict[str, Regulation],
     levies: dict[str, Levy],
     vessels: dict[str, Vessel],
-    bunker_scope: BunkerScopeID,
     timeline: FloatArray,
     idx: int,
 ) -> None:
@@ -48,8 +47,6 @@ def calculate_policy_emission_coefficients(
         All levies in the simulation.
     vessels
         All vessels in the simulation.
-    bunker_scope
-        ID of the bunker scope.
     timeline
         Simulation timeline.
     idx
@@ -59,21 +56,18 @@ def calculate_policy_emission_coefficients(
         if not regulation.is_active():
             continue
 
-        _assign_regulation_emission_factors(
-            regulation, vessels, bunker_scope, timeline, idx
-        )
+        _assign_regulation_emission_factors(regulation, vessels, timeline, idx)
 
     for levy in levies.values():
         if not levy.is_active():
             continue
 
-        _assign_levy_emission_factors(levy, vessels, bunker_scope, timeline, idx)
+        _assign_levy_emission_factors(levy, vessels, timeline, idx)
 
 
 def _assign_regulation_emission_factors(
     regulation: Regulation,
     vessels: dict[str, Vessel],
-    bunker_scope: BunkerScopeID,
     timeline: FloatArray,
     idx: int,
 ) -> None:
@@ -86,8 +80,6 @@ def _assign_regulation_emission_factors(
         Regulation to calculate emission factor for.
     vessels
         All vessels in the simulation.
-    bunker_scope
-        ID of the bunker scope.
     timeline
         Simulation timeline.
     idx
@@ -96,18 +88,17 @@ def _assign_regulation_emission_factors(
     scope = regulation.scope
 
     if scope in (PolicyScopeID.WTT, PolicyScopeID.WTW):
-        _assign_regulation_wtt_factors(regulation, vessels, bunker_scope, timeline, idx)
+        _assign_regulation_wtt_factors(regulation, vessels, timeline, idx)
 
     if scope in (PolicyScopeID.TTW, PolicyScopeID.WTW):
         _assign_regulation_ttw_factors(regulation, vessels, timeline, idx)
 
-    _assign_regulation_emission_coefficients(regulation, vessels, bunker_scope, idx)
+    _assign_regulation_emission_coefficients(regulation, vessels, idx)
 
 
 def _assign_regulation_wtt_factors(
     regulation: Regulation,
     vessels: dict[str, Vessel],
-    bunker_scope: BunkerScopeID,
     timeline: FloatArray,
     idx: int,
 ) -> None:
@@ -120,8 +111,6 @@ def _assign_regulation_wtt_factors(
         Regulation to calculate emission factor for.
     vessels
         All vessels in the simulation.
-    bunker_scope
-        ID of the bunker scope.
     timeline
         Simulation timeline.
     idx
@@ -170,10 +159,7 @@ def _assign_regulation_wtt_factors(
 
                 factor = _apply_gwp(wtt, regulation, emission)
 
-                if bunker_scope == BunkerScopeID.EXPECTED:
-                    expectation.set_expected_wtt(idx, (vessel_name, *key), factor)
-                else:
-                    expectation.set_existing_wtt(idx, (vessel_name, *key), factor)
+                expectation.set_wtt(idx, (vessel_name, *key), factor)
 
 
 def _assign_regulation_ttw_factors(
@@ -244,7 +230,6 @@ def _assign_regulation_ttw_factors(
 def _assign_regulation_emission_coefficients(
     regulation: Regulation,
     vessels: dict[str, Vessel],
-    bunker_scope: BunkerScopeID,
     idx: int,
 ) -> None:
     """
@@ -256,8 +241,6 @@ def _assign_regulation_emission_coefficients(
         Regulation to calculate emission coefficients for.
     vessels
         All vessels in the simulation.
-    bunker_scope
-        ID of the bunker scope.
     idx
         Current time-step index.
     """
@@ -280,19 +263,12 @@ def _assign_regulation_emission_coefficients(
                 coefficient: FloatLike = 0.0
                 for emission in target_emissions:
                     coefficient += _calculate_regulation_emission_factor(
-                        regulation, vessel, converter, fuel, emission, bunker_scope, idx
+                        regulation, vessel, converter, fuel, emission, idx
                     )
 
                 key = (vessel_name, converter_name, fuel_name)
 
-                if bunker_scope == BunkerScopeID.EXPECTED:
-                    regulation.expectation.set_expected_coefficient(
-                        idx, key, coefficient
-                    )
-                else:
-                    regulation.expectation.set_existing_coefficient(
-                        idx, key, coefficient
-                    )
+                regulation.expectation.set_coefficient(idx, key, coefficient)
 
 
 def _calculate_regulation_emission_factor(
@@ -301,7 +277,6 @@ def _calculate_regulation_emission_factor(
     converter: Converter,
     fuel: Fuel,
     emission: Emission,
-    bunker_scope: BunkerScopeID,
     idx: int,
 ) -> FloatLike:
     """
@@ -321,8 +296,6 @@ def _calculate_regulation_emission_factor(
         Fuel with certain emissions impacted by the regulation.
     emission
         Emission for which the emission factor is calculated.
-    bunker_scope
-        ID of the bunker scope.
     idx
         Current time-step index.
 
@@ -339,13 +312,12 @@ def _calculate_regulation_emission_factor(
     key_wtt = (vessel_name, fuel_name, emission_name)
     key_ttw = (converter_name, fuel_name, emission_name)
 
-    return _calculate_emission_factor(regulation, key_wtt, key_ttw, bunker_scope, idx)
+    return _calculate_emission_factor(regulation, key_wtt, key_ttw, idx)
 
 
 def _assign_levy_emission_factors(
     levy: Levy,
     vessels: dict[str, Vessel],
-    bunker_scope: BunkerScopeID,
     timeline: FloatArray,
     idx: int,
 ) -> None:
@@ -358,8 +330,6 @@ def _assign_levy_emission_factors(
         Levy to calculate emission factor for.
     vessels
         All vessels in the simulation.
-    bunker_scope
-        ID of the bunker scope.
     timeline
         Simulation timeline.
     idx
@@ -368,17 +338,15 @@ def _assign_levy_emission_factors(
     scope = levy.scope
 
     if scope in (PolicyScopeID.WTT, PolicyScopeID.WTW):
-        _assign_levy_wtt_factors(levy, bunker_scope, timeline, idx)
+        _assign_levy_wtt_factors(levy, timeline, idx)
 
     if scope in (PolicyScopeID.TTW, PolicyScopeID.WTW):
         _assign_levy_ttw_factors(levy, vessels, timeline, idx)
 
-    _assign_levy_emission_coefficients(levy, vessels, bunker_scope, idx)
+    _assign_levy_emission_coefficients(levy, vessels, idx)
 
 
-def _assign_levy_wtt_factors(
-    levy: Levy, bunker_scope: BunkerScopeID, timeline: FloatArray, idx: int
-) -> None:
+def _assign_levy_wtt_factors(levy: Levy, timeline: FloatArray, idx: int) -> None:
     """
     Calculate and assign the WTT emission factor related to a given levy.
 
@@ -386,8 +354,6 @@ def _assign_levy_wtt_factors(
     ----------
     levy
         Levy to calculate emission factor for.
-    bunker_scope
-        ID of the bunker scope.
     timeline
         Simulation timeline.
     idx
@@ -426,10 +392,7 @@ def _assign_levy_wtt_factors(
 
                     factor = _apply_gwp(wtt, levy, emission)
 
-                if bunker_scope == BunkerScopeID.EXPECTED:
-                    expectation.set_expected_wtt(idx, (port_name, *key), factor)
-                else:
-                    expectation.set_existing_wtt(idx, (port_name, *key), factor)
+                expectation.set_wtt(idx, (port_name, *key), factor)
 
 
 def _assign_levy_ttw_factors(
@@ -488,7 +451,7 @@ def _assign_levy_ttw_factors(
 
 
 def _assign_levy_emission_coefficients(
-    levy: Levy, vessels: dict[str, Vessel], bunker_scope: BunkerScopeID, idx: int
+    levy: Levy, vessels: dict[str, Vessel], idx: int
 ) -> None:
     """
     Calculate and assign the emission coefficients related to a given levy.
@@ -499,8 +462,6 @@ def _assign_levy_emission_coefficients(
         Levy to calculate emission coefficients for.
     vessels
         All vessels in the simulation.
-    bunker_scope
-        ID of the bunker scope.
     idx
         Current time-step index.
     """
@@ -524,7 +485,7 @@ def _assign_levy_emission_coefficients(
                 coefficient: FloatLike = 0.0
                 for emission in target_emissions:
                     coefficient += _calculate_levy_emission_factor(
-                        levy, vessel, port, fuel, emission, bunker_scope, idx
+                        levy, vessel, port, fuel, emission, idx
                     )
 
                 coefficient = _calculate_threshold_adjusted_levy_emission_coefficient(
@@ -533,10 +494,7 @@ def _assign_levy_emission_coefficients(
 
                 key = (vessel_name, port_name, fuel_name)
 
-                if bunker_scope == BunkerScopeID.EXPECTED:
-                    levy.expectation.set_expected_coefficient(idx, key, coefficient)
-                else:
-                    levy.expectation.set_existing_coefficient(idx, key, coefficient)
+                levy.expectation.set_coefficient(idx, key, coefficient)
 
 
 def _calculate_levy_emission_factor(
@@ -545,7 +503,6 @@ def _calculate_levy_emission_factor(
     port: Port,
     fuel: Fuel,
     emission: Emission,
-    bunker_scope: BunkerScopeID,
     idx: int,
 ) -> FloatLike:
     """
@@ -567,8 +524,6 @@ def _calculate_levy_emission_factor(
         Fuel with certain emissions impacted by the levy.
     emission
         Emission for which the emission factor is calculated.
-    bunker_scope
-        ID of the bunker scope.
     idx
         Time-step index.
 
@@ -585,7 +540,7 @@ def _calculate_levy_emission_factor(
     key_wtt = (port_name, fuel_name, emission_name)
     key_ttw = (vessel_name, fuel_name, emission_name)
 
-    return _calculate_emission_factor(levy, key_wtt, key_ttw, bunker_scope, idx)
+    return _calculate_emission_factor(levy, key_wtt, key_ttw, idx)
 
 
 def _calculate_threshold_adjusted_levy_emission_coefficient(
@@ -803,7 +758,6 @@ def _calculate_emission_factor(
     policy: Levy | Regulation,
     key_wtt: tuple[str, ...],
     key_ttw: tuple[str, ...],
-    bunker_scope: BunkerScopeID,
     idx: int,
 ) -> FloatLike:
     """
@@ -819,8 +773,6 @@ def _calculate_emission_factor(
         The key to the WTT attribute of the policy profile.
     key_ttw
         The key to the TTW attributes of the policy profile.
-    bunker_scope
-        ID of the bunker scope.
     idx
         Time-step index.
 
@@ -833,11 +785,7 @@ def _calculate_emission_factor(
 
     expectation = policy.expectation
 
-    if bunker_scope == BunkerScopeID.EXPECTED:
-        wtt = expectation.get_expected_wtt(key_wtt, from_idx)
-    else:
-        wtt = expectation.get_existing_wtt(key_wtt, from_idx)
-
+    wtt = expectation.get_wtt(key_wtt, from_idx)
     ttw_consumption = expectation.get_ttw_consumption(key_ttw, from_idx)
     ttw_slip = expectation.get_ttw_slip(key_ttw, from_idx)
 

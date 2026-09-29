@@ -290,8 +290,8 @@ class SimulationManager:
             # supply for each individual vessel
             self._calculate_fair_share_fuel_supply(BunkerScopeID.EXPECTED)
 
-            # calculate the policy emission coefficients
-            self._calculate_policy_emission_coefficients(BunkerScopeID.EXPECTED)
+            # calculate the policy emission coefficients for the expected pass
+            self._calculate_policy_emission_coefficients()
 
             # the bunker LP takes energy demands as
             # given, so demands must fit the installed
@@ -348,8 +348,9 @@ class SimulationManager:
         # supply for each individual vessel
         self._calculate_fair_share_fuel_supply(BunkerScopeID.EXISTING)
 
-        # calculate the policy emission coefficients
-        self._calculate_policy_emission_coefficients(BunkerScopeID.EXISTING)
+        # recalculate the policy emission coefficients: this pass picks up
+        # this step's fuel import and fleet evolution
+        self._calculate_policy_emission_coefficients()
 
         # re-verify against the installed converter
         # power: the energy demands have been rewritten
@@ -463,14 +464,13 @@ class SimulationManager:
             timeit.default_timer() - start_time, self._idx
         )
 
-    def _calculate_policy_emission_coefficients(self, bunker_scope):
+    def _calculate_policy_emission_coefficients(self):
         start_time = timeit.default_timer()
 
         calculate_policy_emission_coefficients(
             self.nodes.regulations,
             self.nodes.levies,
             self.nodes.vessels,
-            bunker_scope,
             self.timeline,
             self._idx,
         )
