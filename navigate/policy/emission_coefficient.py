@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""WTT, TTW and overall emission coefficients of regulations and levies."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -19,6 +21,7 @@ if TYPE_CHECKING:
     from navigate.core.nodes.port import Port
     from navigate.core.nodes.regulation import Regulation
     from navigate.core.nodes.vessel import Vessel
+    from navigate.util.types_ import FloatArray, FloatLike
 
 
 def calculate_policy_emission_coefficients(
@@ -26,7 +29,7 @@ def calculate_policy_emission_coefficients(
     levies: dict[str, Levy],
     vessels: dict[str, Vessel],
     bunker_scope: BunkerScopeID,
-    timeline: np.ndarray,
+    timeline: FloatArray,
     idx: int,
 ) -> None:
     """
@@ -71,7 +74,7 @@ def _assign_regulation_emission_factors(
     regulation: Regulation,
     vessels: dict[str, Vessel],
     bunker_scope: BunkerScopeID,
-    timeline: np.ndarray,
+    timeline: FloatArray,
     idx: int,
 ) -> None:
     """
@@ -105,7 +108,7 @@ def _assign_regulation_wtt_factors(
     regulation: Regulation,
     vessels: dict[str, Vessel],
     bunker_scope: BunkerScopeID,
-    timeline: np.ndarray,
+    timeline: FloatArray,
     idx: int,
 ) -> None:
     """
@@ -130,7 +133,7 @@ def _assign_regulation_wtt_factors(
 
     # precompute user-supplied WTT once per (fuel, emission); these are
     # vessel-invariant, so evaluating them inside the vessel loop is wasted work.
-    wtt_supplied = {}
+    wtt_supplied: dict[tuple[str, str], FloatArray | None] = {}
     for fuel in regulation.fuels:
         for emission in target_emissions:
             key = (fuel.name, emission.name)
@@ -140,8 +143,6 @@ def _assign_regulation_wtt_factors(
             )
 
     for vessel_name, vessel in vessels.items():
-        # find the ports that overlap between the
-        # vessel route and the regulation jurisdiction
         ports = list_intersection(vessel.route.ports, regulation.jurisdiction)
 
         # the vessel does not operate in
@@ -160,12 +161,14 @@ def _assign_regulation_wtt_factors(
                 key = (fuel_name, emission_name)
 
                 # user-supplied WTT overrides the per-port average
-                if wtt_supplied[key] is not None:
-                    factor = wtt_supplied[key]
+                supplied_wtt = wtt_supplied[key]
+                wtt: FloatLike
+                if supplied_wtt is not None:
+                    wtt = supplied_wtt
                 else:
-                    factor = _average_wtt_over_ports(ports, fuel, emission, idx)
+                    wtt = _average_wtt_over_ports(ports, fuel, emission, idx)
 
-                factor = _apply_gwp(factor, regulation, emission)
+                factor = _apply_gwp(wtt, regulation, emission)
 
                 if bunker_scope == BunkerScopeID.EXPECTED:
                     expectation.set_expected_wtt(idx, (vessel_name, *key), factor)
@@ -174,7 +177,7 @@ def _assign_regulation_wtt_factors(
 
 
 def _assign_regulation_ttw_factors(
-    regulation: Regulation, vessels: dict[str, Vessel], timeline: np.ndarray, idx: int
+    regulation: Regulation, vessels: dict[str, Vessel], timeline: FloatArray, idx: int
 ) -> None:
     """
     Calculate and assign the TTW emission factors related to a given regulation.
@@ -218,6 +221,7 @@ def _assign_regulation_ttw_factors(
                 for converter in converters:
                     converter_name = converter.name
 
+                    ttw_consumption: FloatLike
                     if ttw_supplied is not None:
                         ttw_consumption = ttw_supplied
                         ttw_slip = 0.0  # TODO: change if deciding to split input
@@ -273,7 +277,7 @@ def _assign_regulation_emission_coefficients(
                 if fuel.fuel_type not in fuel_types:
                     continue
 
-                coefficient = 0.0
+                coefficient: FloatLike = 0.0
                 for emission in target_emissions:
                     coefficient += _calculate_regulation_emission_factor(
                         regulation, vessel, converter, fuel, emission, bunker_scope, idx
@@ -299,7 +303,7 @@ def _calculate_regulation_emission_factor(
     emission: Emission,
     bunker_scope: BunkerScopeID,
     idx: int,
-) -> np.ndarray:
+) -> FloatLike:
     """
     Calculate the emission factor, in ton emissions per ton fuel, for one emission.
 
@@ -324,7 +328,8 @@ def _calculate_regulation_emission_factor(
 
     Returns
     -------
-    Emission factor.
+    FloatLike
+        Emission factor, in ton emissions per ton fuel.
     """
     vessel_name = vessel.name
     converter_name = converter.name
@@ -341,7 +346,7 @@ def _assign_levy_emission_factors(
     levy: Levy,
     vessels: dict[str, Vessel],
     bunker_scope: BunkerScopeID,
-    timeline: np.ndarray,
+    timeline: FloatArray,
     idx: int,
 ) -> None:
     """
@@ -372,7 +377,7 @@ def _assign_levy_emission_factors(
 
 
 def _assign_levy_wtt_factors(
-    levy: Levy, bunker_scope: BunkerScopeID, timeline: np.ndarray, idx: int
+    levy: Levy, bunker_scope: BunkerScopeID, timeline: FloatArray, idx: int
 ) -> None:
     """
     Calculate and assign the WTT emission factor related to a given levy.
@@ -409,9 +414,11 @@ def _assign_levy_wtt_factors(
             for port in levy.jurisdiction:
                 port_name = port.name
 
+                factor: FloatLike
                 if not port.is_bunkering_allowed(fuel_name):
                     factor = np.nan
                 else:
+                    wtt: FloatLike
                     if wtt_supplied is not None:
                         wtt = wtt_supplied
                     else:
@@ -426,7 +433,7 @@ def _assign_levy_wtt_factors(
 
 
 def _assign_levy_ttw_factors(
-    levy: Levy, vessels: dict[str, Vessel], timeline: np.ndarray, idx: int
+    levy: Levy, vessels: dict[str, Vessel], timeline: FloatArray, idx: int
 ) -> None:
     """
     Calculate and assign the TTW emission factors related to a given levy.
@@ -461,6 +468,7 @@ def _assign_levy_ttw_factors(
                 key = (vessel_name, fuel_name, emission_name)
                 ttw = fuel_ttws[(fuel_name, emission_name)]
 
+                ttw_slip: FloatLike
                 if ttw is not None:
                     # user-supplied TTW applies uniformly with zero slip
                     ttw_consumption = ttw.get(timeline[idx:])
@@ -502,8 +510,6 @@ def _assign_levy_emission_coefficients(
         usable_fuels = vessel.usable_fuels
         target_fuels = _usable_target_fuels(levy, usable_fuels)
 
-        # find the ports that overlap between the
-        # vessel route and the levy jurisdiction
         ports = list_intersection(vessel.route.ports, levy.jurisdiction)
 
         for port in ports:
@@ -515,7 +521,7 @@ def _assign_levy_emission_coefficients(
                 if not port.is_bunkering_allowed(fuel_name):
                     continue
 
-                coefficient = 0.0
+                coefficient: FloatLike = 0.0
                 for emission in target_emissions:
                     coefficient += _calculate_levy_emission_factor(
                         levy, vessel, port, fuel, emission, bunker_scope, idx
@@ -541,7 +547,7 @@ def _calculate_levy_emission_factor(
     emission: Emission,
     bunker_scope: BunkerScopeID,
     idx: int,
-) -> np.ndarray:
+) -> FloatLike:
     """
     Calculate the emission factor, in ton emissions per ton fuel, for one emission.
 
@@ -568,7 +574,8 @@ def _calculate_levy_emission_factor(
 
     Returns
     -------
-    Emission factor.
+    FloatLike
+        Emission factor, in ton emissions per ton fuel.
     """
     vessel_name = vessel.name
     port_name = port.name
@@ -582,8 +589,8 @@ def _calculate_levy_emission_factor(
 
 
 def _calculate_threshold_adjusted_levy_emission_coefficient(
-    coefficient: float | np.ndarray, levy: Levy, fuel: Fuel
-) -> float | np.ndarray:
+    coefficient: FloatLike, levy: Levy, fuel: Fuel
+) -> FloatLike:
     """
     Calculate the threshold adjusted levy emission coefficient.
 
@@ -598,7 +605,8 @@ def _calculate_threshold_adjusted_levy_emission_coefficient(
 
     Returns
     -------
-    The reference adjusted emission coefficient in ton emission/ton fuel.
+    FloatLike
+        The reference adjusted emission coefficient in ton emission/ton fuel.
     """
     scheme = levy.scheme
 
@@ -641,7 +649,8 @@ def _calculate_converter_ttw(
 
     Returns
     -------
-    Consumption TTW and slip TTW.
+    tuple[float, float]
+        Consumption TTW and slip TTW.
     """
     emission_name = emission.name
     fuel_type = fuel.fuel_type
@@ -669,7 +678,7 @@ def _calculate_converter_ttw(
 
 def _average_wtt_over_ports(
     ports: list[Port], fuel: Fuel, emission: Emission, idx: int
-) -> float | np.ndarray:
+) -> FloatLike:
     """
     Estimate a converter's WTT emissions as a supply-weighted average over ports.
 
@@ -701,13 +710,14 @@ def _average_wtt_over_ports(
 
     Returns
     -------
-    Approximate converter WTT.
+    FloatLike
+        Approximate converter WTT.
     """
     fuel_name = fuel.name
     from_idx = np.s_[idx:]
 
-    supplies = []
-    wtts = []
+    supplies: list[FloatLike] = []
+    wtts: list[FloatLike] = []
 
     for port in ports:
         if not port.is_bunkering_allowed(fuel_name):
@@ -735,7 +745,7 @@ def _average_wtt_over_ports(
 
 def _average_ttw_over_converters(
     vessel: Vessel, fuel: Fuel, emission: Emission, include_slip: bool
-) -> tuple[float, float]:
+) -> tuple[FloatArray, FloatArray]:
     """
     Estimate a port's TTW emissions as a power/efficiency weighted average.
 
@@ -754,7 +764,8 @@ def _average_ttw_over_converters(
 
     Returns
     -------
-    Approximate consumption TTW and slip TTW tied to a port.
+    tuple[FloatArray, FloatArray]
+        Approximate consumption TTW and slip TTW tied to a port.
     """
     fuel_type = fuel.fuel_type
 
@@ -774,7 +785,6 @@ def _average_ttw_over_converters(
             converter, fuel, emission, include_slip
         )
 
-        # power-efficiency weight for the weighted average
         power = converter.power_capacity.get()
         efficiency = converter.efficiency.get()
         weight = power / efficiency
@@ -795,7 +805,7 @@ def _calculate_emission_factor(
     key_ttw: tuple[str, ...],
     bunker_scope: BunkerScopeID,
     idx: int,
-) -> np.ndarray:
+) -> FloatLike:
     """
     Calculate the emission factor from pre-defined WTT and TTW emission factors.
 
@@ -816,7 +826,8 @@ def _calculate_emission_factor(
 
     Returns
     -------
-    Emission factor.
+    FloatLike
+        Emission factor, in ton emissions per ton fuel.
     """
     from_idx = np.s_[idx:]
 
@@ -840,8 +851,8 @@ def _calculate_emission_factor(
 
 
 def _apply_gwp(
-    emission_factor: float | np.ndarray, policy: Levy | Regulation, emission: Emission
-) -> float | np.ndarray:
+    emission_factor: FloatLike, policy: Levy | Regulation, emission: Emission
+) -> FloatLike:
     """
     Convert an emission factor to CO2-equivalent units using the policy's GWP.
 
@@ -856,7 +867,8 @@ def _apply_gwp(
 
     Returns
     -------
-    GWP-weighted emission factor.
+    FloatLike
+        GWP-weighted emission factor.
     """
     gwp = policy.expectation.get_global_warming_potential(emission.name)
 
@@ -878,14 +890,15 @@ def _usable_target_fuels(
 
     Returns
     -------
-    Targeted fuels also usable by the vessel.
+    list[Fuel]
+        Targeted fuels also usable by the vessel.
     """
     return [fuel for fuel in policy.fuels if fuel.name in usable_fuels]
 
 
 def _get_port_bunker_wtt(
     port: Port, fuel: Fuel, emission: Emission, idx: int
-) -> np.ndarray:
+) -> FloatLike:
     """
     Extract the bunker WTT value at a port for a given fuel/emission, from `idx` onward.
 
@@ -902,7 +915,8 @@ def _get_port_bunker_wtt(
 
     Returns
     -------
-    Bunker WTT emissions from `idx` onward.
+    FloatLike
+        Bunker WTT emissions from `idx` onward.
     """
     from_idx = np.s_[idx:]
 

@@ -229,7 +229,7 @@ class TestTwoAxisUptake:
             inter_utility=UtilityID.LOWER_LOG_RATIO,
             intra_odds=1.0,
             inter_odds=1.0,
-            limits=[0.2, 0.3, 1.0],
+            limits=np.array([0.2, 0.3, 1.0]),
         )
         assert uptake.sum() == pytest.approx(1.0)
         assert uptake[0] == pytest.approx(0.2)
