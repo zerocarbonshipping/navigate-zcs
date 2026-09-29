@@ -505,7 +505,7 @@ It helps define various tolerances and iteration limits that guide how the model
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code></p></li>
 <li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">1e-6</span></code></p></li>
-<li><p><strong>Minimum value</strong>: 0</p></li>
+<li><p><strong>Minimum value</strong>: 0 (exclusive)</p></li>
 <li><p><strong>Default</strong>: 1e-6</p></li>
 </ul>
 </section>
@@ -514,7 +514,7 @@ It helps define various tolerances and iteration limits that guide how the model
 <p>This attribute sets the number of threads used by the LP solver to solve the bunker algorithm.</p>
 <p>Notice that ‘0’ corresponds to the solver’s default setting.</p>
 <ul class="simple">
-<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code></p></li>
+<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Integer</span></code></p></li>
 <li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">2</span></code></p></li>
 <li><p><strong>Minimum value</strong>: 0</p></li>
 <li><p><strong>Default</strong>: 2</p></li>
@@ -527,17 +527,17 @@ It helps define various tolerances and iteration limits that guide how the model
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Integer</span></code></p></li>
 <li><p>Example value: <code class="docutils literal notranslate"><span class="pre">10</span></code></p></li>
 <li><p><strong>Minimum value</strong>: 1</p></li>
-<li><p><strong>Default</strong>: 10</p></li>
+<li><p><strong>Default</strong>: 50</p></li>
 </ul>
 </section>
 <section id="fairsharetolerance">
 <h3>FairShareTolerance<a class="headerlink" href="#fairsharetolerance" title="Link to this heading">#</a></h3>
-<p>This attribute sets the fair-share tolerance of the bunker algorithm. The fair share tolerance is the tolerance related to how ‘fair’ the solution must be to be considered ‘fair’. Setting this to zero is not recommended due to potential numerical instability issues.</p>
+<p>This attribute sets the fair-share tolerance of the bunker algorithm. The fair share tolerance is the tolerance related to how ‘fair’ the solution must be to be considered ‘fair’. It must be greater than zero; a very small tolerance can make the fair-share iteration numerically unstable.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code></p></li>
 <li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">1e-2</span></code></p></li>
-<li><p><strong>Minimum value</strong>: 0</p></li>
-<li><p><strong>Default</strong>: 1e-2</p></li>
+<li><p><strong>Minimum value</strong>: 0 (exclusive)</p></li>
+<li><p><strong>Default</strong>: 1e-1</p></li>
 </ul>
 </section>
 </section>
