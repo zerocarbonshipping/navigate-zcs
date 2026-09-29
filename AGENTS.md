@@ -33,7 +33,8 @@ every change. The detail lives in the files it points to.
   users see it; it is written by hand, nothing generates it. Codebase
   internals never go there; they belong in the root files and the folder
   READMEs.
-- `CHANGELOG.md` — Keep a Changelog format; user-facing changes only.
+- `CHANGELOG.md` — Keep a Changelog format; what gets an entry is in
+  `CONTRIBUTING.md`.
 - `make help` — the list of targets.
 
 ## Layout
@@ -107,13 +108,8 @@ overwrite each other's files, and the test suites run decks too.
   configuration catches only the blanket forms, through `PGH`; a targeted
   suppression passes `make lint` and is still not written. Fix the code, or
   change the rule for everyone in the configuration.
-- `CHANGELOG.md` records user-facing changes only: deck behaviour, results,
-  the CLI, the output. Navigate is not a library, so a change to what
-  Python code can import gets no entry of its own. A breaking one is still
-  called out, in its own entry or in the entry for the change that caused
-  it: `**Breaking** for code importing navigate as a library:`, then the
-  symbols that moved and their new spelling, then what it does to results,
-  which is usually nothing.
+- `CHANGELOG.md` takes user-facing changes and bugs only; what gets an
+  entry, and its form, is under Changelog in `CONTRIBUTING.md`.
 - A change to an assumption value carries references or a justification.
 
 ## Filing an issue
