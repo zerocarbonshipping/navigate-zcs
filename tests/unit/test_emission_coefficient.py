@@ -8,9 +8,11 @@ Tests verify the correctness of:
   - _average_wtt_over_ports: supply-weighted averaging of port bunker WTT,
     including exclusion of zero-supply and bunkering-disallowed ports,
     per-time-step weighting, and the infinite-supply market regime.
-  - _calculate_threshold_adjusted_levy_emission_coefficient: the lower and
-    upper threshold are read at every future time step, not frozen at the
-    value cached for the current one.
+  - _calculate_threshold_adjusted_levy_emission_coefficient: the PENALTY,
+    SUBSIDY and upper-threshold capping arithmetic, given already-evaluated
+    threshold arrays.
+  - _assign_levy_emission_coefficients: the thresholds it evaluates once per
+    pass stay sliced to timeline[idx:], not the whole timeline.
 """
 
 from __future__ import annotations
@@ -22,6 +24,7 @@ import pytest
 
 from navigate.core.enum_ import LevySchemeID
 from navigate.policy.emission_coefficient import (
+    _assign_levy_emission_coefficients,
     _average_wtt_over_ports,
     _calculate_threshold_adjusted_levy_emission_coefficient,
 )
@@ -148,38 +151,13 @@ class TestInfiniteSupplyRegime:
 
 
 # ---------------------------------------------------------------------------
-# 4. Threshold-adjusted levy emission coefficient over a time-varying threshold
+# 4. Threshold-adjusted levy emission coefficient, given evaluated thresholds
 # ---------------------------------------------------------------------------
 
-TIMELINE = np.array([0.0, 365.0])
 
-
-class _StepThreshold:
-    """
-    Stand-in for a Forecast.
-
-    Bare ``get()`` answers the value cached at the current time step (its
-    first entry, in these tests); ``get(times)`` recomputes the value at each
-    of ``times``.
-    """
-
-    def __init__(self, values: list[float]) -> None:
-        self._values = values
-
-    def get(self, times=None):
-        if times is None:
-            return self._values[0]
-
-        return np.asarray(self._values, dtype=float)
-
-
-def _make_levy(scheme, lower_threshold, upper_threshold=None):
+def _make_levy(scheme):
     levy = MagicMock()
     levy.scheme = scheme
-    levy.lower_threshold = _StepThreshold(lower_threshold)
-    levy.upper_threshold = (
-        _StepThreshold(upper_threshold) if upper_threshold is not None else None
-    )
     return levy
 
 
@@ -190,20 +168,14 @@ def _make_fuel(lower_heating_value):
 
 
 class TestThresholdAdjustedLevyEmissionCoefficient:
-    def test_penalty_uses_the_threshold_at_each_future_time_step(self):
-        """
-        A future step must use its own threshold, not the value cached at idx.
-
-        Regression test: the coefficient used to read the threshold with a bare
-        `.get()`, which answers the value cached at the current time and froze
-        every future step to it.
-        """
-        levy = _make_levy(LevySchemeID.PENALTY, lower_threshold=[40.0, 90.0])
+    def test_penalty_clips_the_excess_below_the_lower_threshold(self):
+        levy = _make_levy(LevySchemeID.PENALTY)
         fuel = _make_fuel(40.0)
         coefficient = np.array([2.0, 3.0])  # ton emission / ton fuel
+        lower_threshold = np.array([40.0, 90.0])
 
         result = _calculate_threshold_adjusted_levy_emission_coefficient(
-            coefficient, levy, fuel, TIMELINE, idx=0
+            coefficient, levy, fuel, lower_threshold, upper_threshold=None
         )
 
         # g/MJ: [2, 3] / 40 * 1000 = [50, 75]; minus [40, 90] = [10, -15];
@@ -211,13 +183,14 @@ class TestThresholdAdjustedLevyEmissionCoefficient:
         # back to ton/ton fuel: * 40 / 1000
         assert result == pytest.approx([0.4, 0.0])
 
-    def test_subsidy_uses_the_threshold_at_each_future_time_step(self):
-        levy = _make_levy(LevySchemeID.SUBSIDY, lower_threshold=[20.0, 30.0])
+    def test_subsidy_clips_the_excess_above_the_lower_threshold(self):
+        levy = _make_levy(LevySchemeID.SUBSIDY)
         fuel = _make_fuel(40.0)
         coefficient = np.array([1.0, 1.0])
+        lower_threshold = np.array([20.0, 30.0])
 
         result = _calculate_threshold_adjusted_levy_emission_coefficient(
-            coefficient, levy, fuel, TIMELINE, idx=0
+            coefficient, levy, fuel, lower_threshold, upper_threshold=None
         )
 
         # g/MJ: [1, 1] / 40 * 1000 = [25, 25]; minus [20, 30] = [5, -5];
@@ -225,20 +198,92 @@ class TestThresholdAdjustedLevyEmissionCoefficient:
         # back to ton/ton fuel: * 40 / 1000
         assert result == pytest.approx([0.0, -0.2])
 
-    def test_upper_threshold_uses_the_threshold_at_each_future_time_step(self):
-        levy = _make_levy(
-            LevySchemeID.PENALTY,
-            lower_threshold=[10.0, 10.0],
-            upper_threshold=[50.0, 100.0],
-        )
+    def test_upper_threshold_caps_the_penalty(self):
+        levy = _make_levy(LevySchemeID.PENALTY)
         fuel = _make_fuel(40.0)
         coefficient = np.array([3.0, 3.0])
+        lower_threshold = np.array([10.0, 10.0])
+        upper_threshold = np.array([50.0, 100.0])
 
         result = _calculate_threshold_adjusted_levy_emission_coefficient(
-            coefficient, levy, fuel, TIMELINE, idx=0
+            coefficient, levy, fuel, lower_threshold, upper_threshold
         )
 
         # g/MJ: [3, 3] / 40 * 1000 = [75, 75]; minus lower [10, 10] = [65, 65];
         # capped at upper - lower = [40, 90]: [40, 65];
         # back to ton/ton fuel: * 40 / 1000
         assert result == pytest.approx([1.6, 2.6])
+
+
+# ---------------------------------------------------------------------------
+# 5. Levy emission coefficients: thresholds stay sliced to the remaining
+#    timeline once their evaluation moves out of the vessel/port/fuel loop
+# ---------------------------------------------------------------------------
+
+TIMELINE = np.array([0.0, 365.0, 730.0])
+
+
+class _ThresholdLookup:
+    """
+    Stand-in for a Forecast whose value depends on the times it is asked for.
+
+    Bare ``get()`` answers the value cached at the current time step; ``get(times)``
+    looks up each of ``times`` in a table, so a slice with the wrong times reads back
+    the wrong values, and one with the wrong length raises or fails a length check.
+    """
+
+    def __init__(self, table: dict[float, float], current: float) -> None:
+        self._table = table
+        self._current = current
+
+    def get(self, times=None):
+        if times is None:
+            return self._current
+
+        return np.array([self._table[time] for time in times], dtype=float)
+
+
+class TestAssignLevyEmissionCoefficientsSlicing:
+    def test_threshold_is_sliced_to_the_remaining_timeline(self):
+        """
+        The threshold, evaluated once before the loops, must cover only idx onward.
+
+        Regression test: moving the evaluation out of the vessel/port/fuel loop
+        must keep it reading timeline[idx:], not the whole timeline.
+        """
+        idx = 1  # timeline[idx:] == [365.0, 730.0]
+
+        fuel = _make_fuel(40.0)
+        fuel.name = "fuel_bio"
+
+        port = MagicMock()
+        port.name = "port1"
+        port.is_bunkering_allowed.return_value = True
+
+        vessel = MagicMock()
+        vessel.name = "vessel1"
+        vessel.usable_fuels = {"fuel_bio": fuel}
+        vessel.route.ports = [port]
+
+        levy = _make_levy(LevySchemeID.PENALTY)
+        levy.emissions = [EMISSION]
+        levy.fuels = [fuel]
+        levy.jurisdiction = [port]
+        levy.lower_threshold = _ThresholdLookup(
+            {0.0: 10.0, 365.0: 20.0, 730.0: 30.0}, current=10.0
+        )
+        levy.upper_threshold = None
+        levy.expectation.get_wtt.return_value = np.array([3.2, 3.2])
+        levy.expectation.get_ttw_consumption.return_value = 0.0
+        levy.expectation.get_ttw_slip.return_value = 0.0
+
+        _assign_levy_emission_coefficients(levy, {"vessel1": vessel}, TIMELINE, idx)
+
+        call_idx, key, coefficient = levy.expectation.set_coefficient.call_args[0]
+
+        # lower threshold at idx onward is [20, 30]; g/MJ: 3.2 / 40 * 1000 = 80
+        # for both steps; minus [20, 30] = [60, 50]; back to ton/ton fuel: * 40 / 1000
+        assert call_idx == idx
+        assert key == ("vessel1", "port1", "fuel_bio")
+        assert len(coefficient) == 2
+        assert coefficient == pytest.approx([2.4, 2.0])

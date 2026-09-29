@@ -472,6 +472,16 @@ def _assign_levy_emission_coefficients(
     """
     target_emissions = levy.emissions
 
+    # thresholds are levy-wide, not vessel/port/fuel-specific, so they are
+    # evaluated once per pass rather than inside the loops below
+    lower_threshold = levy.lower_threshold.get(timeline[idx:])
+    upper_threshold_obj = levy.upper_threshold
+    upper_threshold = (
+        upper_threshold_obj.get(timeline[idx:])
+        if upper_threshold_obj is not None
+        else None
+    )
+
     for vessel_name, vessel in vessels.items():
         usable_fuels = vessel.usable_fuels
         target_fuels = _usable_target_fuels(levy, usable_fuels)
@@ -494,7 +504,7 @@ def _assign_levy_emission_coefficients(
                     )
 
                 coefficient = _calculate_threshold_adjusted_levy_emission_coefficient(
-                    coefficient, levy, fuel, timeline, idx
+                    coefficient, levy, fuel, lower_threshold, upper_threshold
                 )
 
                 key = (vessel_name, port_name, fuel_name)
@@ -549,7 +559,11 @@ def _calculate_levy_emission_factor(
 
 
 def _calculate_threshold_adjusted_levy_emission_coefficient(
-    coefficient: FloatLike, levy: Levy, fuel: Fuel, timeline: FloatArray, idx: int
+    coefficient: FloatLike,
+    levy: Levy,
+    fuel: Fuel,
+    lower_threshold: FloatArray,
+    upper_threshold: FloatArray | None,
 ) -> FloatLike:
     """
     Calculate the threshold adjusted levy emission coefficient.
@@ -562,10 +576,12 @@ def _calculate_threshold_adjusted_levy_emission_coefficient(
         Levy to calculate emission coefficient for.
     fuel
         Fuel for which the emissions coefficient is calculated.
-    timeline
-        Simulation timeline.
-    idx
-        Current time-step index.
+    lower_threshold
+        Lower emission factor threshold, evaluated from the current time-step onward,
+        in kg emissions/GJ.
+    upper_threshold
+        Upper emission factor threshold, evaluated from the current time-step onward,
+        in kg emissions/GJ; None where the levy has no upper threshold.
 
     Returns
     -------
@@ -575,13 +591,6 @@ def _calculate_threshold_adjusted_levy_emission_coefficient(
     scheme = levy.scheme
 
     lhv = fuel.lower_heating_value.get()
-    lower_threshold = levy.lower_threshold.get(timeline[idx:])
-    upper_threshold_obj = levy.upper_threshold
-    upper_threshold = (
-        upper_threshold_obj.get(timeline[idx:])
-        if upper_threshold_obj is not None
-        else None
-    )
 
     coefficient_ref = (coefficient / lhv * TON_PER_GJ_TO_GRAM_PR_MJ) - lower_threshold
 
