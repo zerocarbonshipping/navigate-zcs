@@ -207,6 +207,9 @@ def test_redistribution(limits, imports, mask, allowed, expected):
 class _StubFuel:
     def __init__(self, name):
         self.name = name
+        # PortProfile.initialize reads this to pick the bunker-supply-mass
+        # default; every fuel here is a producer fuel, never liquid market
+        self.liquid_market = False
         # PortProfile.initialize reads this to convert mass to energy; a
         # value of 1.0 keeps mass and energy numerically identical
         self.lower_heating_value = Scalar(1.0)
@@ -292,9 +295,10 @@ class _StubPort:
             bunkering_limit={fuel_name: np.full_like(TIMELINE, bunkering_limit)},
         )
 
-        # a real PortProfile, not a stub: the profile is the report's own
-        # source of truth (the "no inf/nothing reported" guard is a property
-        # of PortProfile's own preallocated default, not of a hand-written one)
+        # a real PortProfile, not a stub: the write is unconditional (as on
+        # the liquid-market path's finite branch), so an unconstrained port's
+        # supply reaches the profile as np.inf, exactly as production code
+        # writes it
         self.profile = PortProfile()
         self.profile.initialize(
             timeline=TIMELINE,
@@ -308,13 +312,13 @@ class _StubPort:
 
 
 class TestCalculateImportFromProducers:
-    def test_infinite_production_at_an_unlimited_port_never_reaches_the_profile(self):
+    def test_infinite_production_at_an_unlimited_port_reports_infinite_supply(self):
         # an unconstrained producer (MaximumDevelopment = INF) reports infinite
         # expected production; the port has no bunkering limit set, so its
         # limit is the default np.inf too. The bunker price is well-defined
         # (the single exporting plant's own cost plus handling), so the
-        # supply is not zeroed by the price check, and reaches the port at
-        # np.inf — which the profile must never record.
+        # supply is not zeroed by the price check, and reaches the port and
+        # its profile as np.inf: the supply is genuinely unbounded.
         fuel_name = "fuel_x"
         port = _StubPort(fuel_name, handling_cost=5.0, bunkering_limit=np.inf)
         plant = _StubPlant(
@@ -350,9 +354,8 @@ class TestCalculateImportFromProducers:
         assert port.profile.get_bunker_price()[fuel_name][0] == 205.0
         assert port.profile.get_bunker_wtt()[(fuel_name, "co2")][0] == 0.05
 
-        # the profile never records the infinite supply: the entry stays at
-        # PortProfile's own preallocated "nothing reported" default (NaN)
-        assert np.isnan(port.profile.get_bunker_supply_mass()[fuel_name][0])
+        # the profile records the same infinite supply as the expectation
+        assert np.isinf(port.profile.get_bunker_supply_mass()[fuel_name][0])
 
     def test_infinite_plant_dominates_and_ignores_finite_plants(self):
         # two plants export the same fuel to the same port: one finite, one
@@ -403,7 +406,7 @@ class TestCalculateImportFromProducers:
         assert np.isinf(port.expectation.bunker_supply[fuel_name][0])
         assert port.expectation.bunker_price[fuel_name][0] == 300.0
         assert port.expectation.bunker_wtt[(fuel_name, "co2")][0] == 0.09
-        assert np.isnan(port.profile.get_bunker_supply_mass()[fuel_name][0])
+        assert np.isinf(port.profile.get_bunker_supply_mass()[fuel_name][0])
 
     def test_all_finite_plants_keep_the_supply_weighted_average(self):
         # with no infinite-supply plant, price and WTT are the classic
@@ -496,7 +499,7 @@ class TestCalculateImportFromProducers:
         # the full-share port is unaffected by its sibling's zero share
         assert np.isinf(port_a.expectation.bunker_supply[fuel_name][0])
         assert port_a.expectation.bunker_price[fuel_name][0] == 200.0
-        assert np.isnan(port_a.profile.get_bunker_supply_mass()[fuel_name][0])
+        assert np.isinf(port_a.profile.get_bunker_supply_mass()[fuel_name][0])
 
     def test_infinite_supply_plant_with_zero_delivered_cost_and_wtt(self):
         # an infinite-supply plant whose delivered cost or WTT happens to be
@@ -530,7 +533,7 @@ class TestCalculateImportFromProducers:
         # the plant's own (zero) cost plus the port's handling cost
         assert port.expectation.bunker_price[fuel_name][0] == 10.0
         assert port.expectation.bunker_wtt[(fuel_name, "co2")][0] == 0.0
-        assert np.isnan(port.profile.get_bunker_supply_mass()[fuel_name][0])
+        assert np.isinf(port.profile.get_bunker_supply_mass()[fuel_name][0])
 
 
 class TestMultiplyZeroSafe:

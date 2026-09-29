@@ -67,13 +67,14 @@ def test_manager_state_is_the_three_branches_plus_its_own_timings():
 
 class TestBunkerSupplyMassAggregation:
     """
-    Port and manager report an unconstrained bunker supply differently.
+    An unconstrained port's infinite bunker supply makes the global total infinite.
 
-    A port with no reported supply that step (an unconstrained supply, never
-    written as np.inf) carries NaN; the manager's own array starts at the
-    additive identity 0 so it can sum several ports, but a NaN port entry
-    still propagates into that sum instead of being skipped, since a finite
-    total would understate a true supply that is actually unbounded.
+    A port records its own supply as np.inf when a bunkering limit is absent
+    and an unconstrained producer supplies it; add_fuel_infrastructure_profile
+    aggregates every port into the manager with a plain +=, so that infinite
+    entry propagates by ordinary addition (0 + inf = inf), the same way a
+    genuinely unbounded total should read: as unbounded, not as some finite
+    number that only counts the ports that happened to have a limit.
     """
 
     @staticmethod
@@ -84,43 +85,8 @@ class TestBunkerSupplyMassAggregation:
         )
         return port
 
-    def test_a_fresh_port_reports_nan_until_written(self):
-        fuels = {"fuel_a": _fuel()}
-        port = self._port(fuels, np.array([0.0]))
-
-        assert np.isnan(port.get_bunker_supply_mass()["fuel_a"][0])
-
-    def test_a_fresh_manager_reports_zero_until_aggregated(self):
-        fuels = {"fuel_a": _fuel()}
-        manager = ManagerProfile()
-        manager.initialize(
-            timeline=np.array([0.0]),
-            emissions={},
-            feedstocks={},
-            fuels=fuels,
-            processes={},
-            emissions_lifetime=100.0,
-        )
-
-        assert manager.get_bunker_supply_mass()["fuel_a"][0] == 0.0
-
-    def test_one_unreported_port_makes_the_global_total_nan(self):
-        # fuel_a: both ports report a finite supply, so the global total is
-        # their ordinary sum. fuel_b: one port is unconstrained that step and
-        # reports nothing (NaN); the global total propagates that NaN rather
-        # than silently summing only the port that did report, which would
-        # understate an actually-unbounded total as a false precise number
-        fuels = {"fuel_a": _fuel(), "fuel_b": _fuel()}
-        timeline = np.array([0.0])
-
-        port_a = self._port(fuels, timeline)
-        port_a.set_bunker_supply_mass(0, "fuel_a", 100.0)
-        port_a.set_bunker_supply_mass(0, "fuel_b", 200.0)
-
-        port_b = self._port(fuels, timeline)
-        port_b.set_bunker_supply_mass(0, "fuel_a", 50.0)
-        # fuel_b left unwritten on port_b: unconstrained that step
-
+    @staticmethod
+    def _manager(fuels, timeline):
         manager = ManagerProfile()
         manager.initialize(
             timeline=timeline,
@@ -130,9 +96,36 @@ class TestBunkerSupplyMassAggregation:
             processes={},
             emissions_lifetime=100.0,
         )
+        return manager
+
+    def test_one_infinite_port_makes_the_global_total_infinite(self):
+        fuels = {"fuel_a": _fuel()}
+        timeline = np.array([0.0])
+
+        port_a = self._port(fuels, timeline)
+        port_a.set_bunker_supply_mass(0, "fuel_a", np.inf)
+
+        port_b = self._port(fuels, timeline)
+        port_b.set_bunker_supply_mass(0, "fuel_a", 50.0)
+
+        manager = self._manager(fuels, timeline)
         manager.add_fuel_infrastructure_profile(port_a)
         manager.add_fuel_infrastructure_profile(port_b)
 
-        total = manager.get_bunker_supply_mass()
-        assert total["fuel_a"][0] == 150.0
-        assert np.isnan(total["fuel_b"][0])
+        assert np.isinf(manager.get_bunker_supply_mass()["fuel_a"][0])
+
+    def test_finite_ports_aggregate_to_their_finite_sum(self):
+        fuels = {"fuel_a": _fuel()}
+        timeline = np.array([0.0])
+
+        port_a = self._port(fuels, timeline)
+        port_a.set_bunker_supply_mass(0, "fuel_a", 100.0)
+
+        port_b = self._port(fuels, timeline)
+        port_b.set_bunker_supply_mass(0, "fuel_a", 50.0)
+
+        manager = self._manager(fuels, timeline)
+        manager.add_fuel_infrastructure_profile(port_a)
+        manager.add_fuel_infrastructure_profile(port_b)
+
+        assert manager.get_bunker_supply_mass()["fuel_a"][0] == 150.0
