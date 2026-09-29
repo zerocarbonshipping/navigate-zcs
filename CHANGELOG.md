@@ -284,10 +284,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   price and WTT are the average over the unconstrained plants only. The
   port's `BunkerSupplyMass` is still reported as infinite, and the global
   total is infinite for a fuel any port reports it for.
-- A `Levy` whose `UpperThreshold` falls below its `LowerThreshold` at a later
-  time step now stops the run with an error naming the date; a pair of
-  crossing `Forecast`s used to turn the penalty into a subsidy from that step
-  on without an error (#335).
+- A `Levy` whose `UpperThreshold` falls below its `LowerThreshold` at any time
+  step stops the run with an error naming the date, instead of turning the
+  penalty into a subsidy from then on (#335).
 
 ## [1.0.0] - 2026-07-16
 

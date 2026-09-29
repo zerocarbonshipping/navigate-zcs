@@ -377,12 +377,12 @@ class SimulationManager:
             self._idx, timeit.default_timer() - self._computational_time
         )
 
-    def _check_dynamic_consistency(self):
+    def _check_dynamic_consistency(self) -> None:
         """Raise where a node's time-varying attributes contradict each other."""
+        times = self.timeline[self._idx :]
+        dates = self.dateline[self._idx :]
         for node in self.nodes.all_nodes():
-            node.check_dynamic_consistency(
-                self.timeline[self._idx :], self.dateline[self._idx :]
-            )
+            node.check_dynamic_consistency(times, dates)
 
     def _pre_assign_temporal(self):
         """Precalculate forecasts and assign time to timetables."""

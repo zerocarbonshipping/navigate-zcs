@@ -146,16 +146,26 @@ class Levy(_Policy):
     def check_dynamic_consistency(self, times: FloatArray, dates: DateArray) -> None:
         super().check_dynamic_consistency(times, dates)
 
-        if self.upper_threshold is not None:
-            lower = self.lower_threshold.get(times)
-            upper = self.upper_threshold.get(times)
-            crossed = np.flatnonzero(upper < lower)
-            if crossed.size:
-                i = crossed[0]
-                raise ValueError(
-                    f"{self}: 'UpperThreshold' must be >= 'LowerThreshold', but is "
-                    f"below it from {dates[i]} on."
-                )
+        # nothing to compare without an UpperThreshold; an inactive levy is
+        # checked once an event activates it, over timeline[idx:] from that
+        # step; a SUBSIDY scheme never reads upper_threshold in the levy
+        # coefficient
+        if self.upper_threshold is None:
+            return
+        if not self.is_active():
+            return
+        if self.scheme == LevySchemeID.SUBSIDY:
+            return
+
+        lower = self.lower_threshold.get(times)
+        upper = self.upper_threshold.get(times)
+        crossed = np.flatnonzero(upper < lower)
+        if crossed.size:
+            i = crossed[0]
+            raise ValueError(
+                f"{self}: 'UpperThreshold' must be >= 'LowerThreshold' at every "
+                f"time step, but is below it at {dates[i]}."
+            )
 
     def calculate_expectation(
         self,
