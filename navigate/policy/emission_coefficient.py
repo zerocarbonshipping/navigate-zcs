@@ -427,6 +427,7 @@ def _assign_levy_ttw_factors(
 
         for fuel in target_fuels:
             fuel_name = fuel.name
+            weights = _converter_weights(vessel, fuel)
 
             for emission in target_emissions:
                 emission_name = emission.name
@@ -443,7 +444,7 @@ def _assign_levy_ttw_factors(
                     # otherwise approximate as a power/efficiency weighted average
                     # across the converters in the vessel's power system
                     ttw_consumption, ttw_slip = _average_ttw_over_converters(
-                        vessel, fuel, emission, include_slip
+                        weights, fuel, emission, include_slip
                     )
 
                 factor_consumption = _apply_gwp(ttw_consumption, levy, emission)
@@ -490,6 +491,15 @@ def _assign_levy_emission_coefficients(
         target_fuels = _usable_target_fuels(levy, usable_fuels)
 
         ports = list_intersection(vessel.route.ports, levy.jurisdiction)
+        if not ports:
+            continue
+
+        effective_lhvs = {
+            fuel.name: _average_effective_lhv_over_converters(
+                _converter_weights(vessel, fuel), fuel
+            )
+            for fuel in target_fuels
+        }
 
         for port in ports:
             port_name = port.name
@@ -507,7 +517,11 @@ def _assign_levy_emission_coefficients(
                     )
 
                 coefficient = _calculate_threshold_adjusted_levy_emission_coefficient(
-                    coefficient, levy, fuel, lower_threshold, upper_threshold
+                    coefficient,
+                    levy,
+                    effective_lhvs[fuel_name],
+                    lower_threshold,
+                    upper_threshold,
                 )
 
                 key = (vessel_name, port_name, fuel_name)
@@ -564,12 +578,17 @@ def _calculate_levy_emission_factor(
 def _calculate_threshold_adjusted_levy_emission_coefficient(
     coefficient: FloatLike,
     levy: Levy,
-    fuel: Fuel,
+    effective_lhv: FloatLike,
     lower_threshold: FloatArray,
     upper_threshold: FloatArray | None,
 ) -> FloatLike:
     """
     Calculate the threshold adjusted levy emission coefficient.
+
+    The thresholds are intensities per GJ of effective energy, (1 - slip) * LHV, and
+    are converted to ton emission/ton fuel on that basis before they are applied. A
+    fuel whose converters slip all of it delivers no energy, so its thresholds are
+    zero and its whole coefficient is levied.
 
     Parameters
     ----------
@@ -577,8 +596,8 @@ def _calculate_threshold_adjusted_levy_emission_coefficient(
         Emission coefficient in ton emission/ton fuel.
     levy
         Levy to calculate emission coefficient for.
-    fuel
-        Fuel for which the emissions coefficient is calculated.
+    effective_lhv
+        Effective lower heating value of the fuel on the vessel, in GJ/ton fuel.
     lower_threshold
         Lower emission factor threshold, evaluated from the current time-step onward,
         in kg emissions/GJ.
@@ -593,9 +612,9 @@ def _calculate_threshold_adjusted_levy_emission_coefficient(
     """
     scheme = levy.scheme
 
-    lhv = fuel.lower_heating_value.get()
+    intensity_to_coefficient = effective_lhv / TON_PER_GJ_TO_GRAM_PR_MJ
 
-    coefficient_ref = (coefficient / lhv * TON_PER_GJ_TO_GRAM_PR_MJ) - lower_threshold
+    coefficient_ref = coefficient - lower_threshold * intensity_to_coefficient
 
     if scheme == LevySchemeID.PENALTY:
         coefficient_ref = np.maximum(coefficient_ref, 0.0)
@@ -603,9 +622,12 @@ def _calculate_threshold_adjusted_levy_emission_coefficient(
         coefficient_ref = np.minimum(coefficient_ref, 0.0)
 
     if scheme != LevySchemeID.SUBSIDY and upper_threshold is not None:
-        coefficient_ref = np.minimum(coefficient_ref, upper_threshold - lower_threshold)
+        coefficient_ref = np.minimum(
+            coefficient_ref,
+            (upper_threshold - lower_threshold) * intensity_to_coefficient,
+        )
 
-    return coefficient_ref * lhv / TON_PER_GJ_TO_GRAM_PR_MJ
+    return coefficient_ref
 
 
 def _calculate_converter_ttw(
@@ -724,18 +746,57 @@ def _average_wtt_over_ports(
     return divide_nonzero((weights * wtt).sum(axis=0), weights.sum(axis=0))
 
 
-def _average_ttw_over_converters(
-    vessel: Vessel, fuel: Fuel, emission: Emission, include_slip: bool
-) -> tuple[FloatArray, FloatArray]:
+def _converter_weights(vessel: Vessel, fuel: Fuel) -> list[tuple[Converter, float]]:
     """
-    Estimate a port's TTW emissions as a power/efficiency weighted average.
+    Weigh the vessel's converters that can burn a fuel by power over efficiency.
 
-    Averaged over the converters in the vessel's power system that can burn the fuel.
+    Converters that cannot burn the fuel are left out, so they carry no weight in an
+    average over the weights. A converter with zero efficiency delivers no energy and
+    so burns no fuel; it weighs zero.
 
     Parameters
     ----------
     vessel
         Vessel on which the fuel is spent.
+    fuel
+        Fuel being spent.
+
+    Returns
+    -------
+    list[tuple[Converter, float]]
+        Each converter able to burn the fuel with its weight, in MW.
+    """
+    fuel_type = fuel.fuel_type
+
+    weights: list[tuple[Converter, float]] = []
+    for converter in vessel.power_system.get_converters():
+        if fuel_type not in converter.get_fuel_types():
+            continue
+
+        power = converter.power_capacity.get()
+        efficiency = converter.efficiency.get()
+        weight = power / efficiency if efficiency > 0.0 else 0.0
+
+        weights.append((converter, weight))
+
+    return weights
+
+
+def _average_ttw_over_converters(
+    weights: list[tuple[Converter, float]],
+    fuel: Fuel,
+    emission: Emission,
+    include_slip: bool,
+) -> tuple[FloatArray, FloatArray]:
+    """
+    Estimate a vessel's TTW emissions as a power/efficiency weighted average.
+
+    Averaged over the converters in the vessel's power system that can burn the fuel.
+
+    Parameters
+    ----------
+    weights
+        Converters able to burn the fuel with their weights, from `_converter_weights`.
     fuel
         Fuel being spent.
     emission
@@ -746,29 +807,16 @@ def _average_ttw_over_converters(
     Returns
     -------
     tuple[FloatArray, FloatArray]
-        Approximate consumption TTW and slip TTW tied to a port.
+        Approximate consumption TTW and slip TTW of the vessel.
     """
-    fuel_type = fuel.fuel_type
-
     weighted_consumption_sum = 0.0
     weighted_slip_sum = 0.0
     weight_total = 0.0
 
-    for converter in vessel.power_system.get_converters():
-        # skip converters that cannot burn this fuel so they
-        # contribute no weight to the average; calling
-        # _calculate_converter_ttw would return zeros but still
-        # consume a weight and bias the result toward zero.
-        if fuel_type not in converter.get_fuel_types():
-            continue
-
+    for converter, weight in weights:
         consumption, slip = _calculate_converter_ttw(
             converter, fuel, emission, include_slip
         )
-
-        power = converter.power_capacity.get()
-        efficiency = converter.efficiency.get()
-        weight = power / efficiency
 
         weighted_consumption_sum += weight * consumption
         weighted_slip_sum += weight * slip
@@ -778,6 +826,39 @@ def _average_ttw_over_converters(
     ttw_slip = divide_nonzero(weighted_slip_sum, weight_total)
 
     return ttw_consumption, ttw_slip
+
+
+def _average_effective_lhv_over_converters(
+    weights: list[tuple[Converter, float]], fuel: Fuel
+) -> FloatArray:
+    """
+    Estimate a vessel's effective LHV of a fuel as a power/efficiency weighted average.
+
+    A vessel without weight on any converter able to burn the fuel has no slip to net
+    off, so it falls back to the fuel's LHV.
+
+    Parameters
+    ----------
+    weights
+        Converters able to burn the fuel with their weights, from `_converter_weights`.
+    fuel
+        Fuel being spent.
+
+    Returns
+    -------
+    FloatArray
+        Effective lower heating value, (1 - slip) * LHV, in GJ/ton fuel.
+    """
+    weighted_lhv_sum = 0.0
+    weight_total = 0.0
+
+    for converter, weight in weights:
+        weighted_lhv_sum += weight * converter.get_effective_lhv(fuel)
+        weight_total += weight
+
+    return divide_nonzero(
+        weighted_lhv_sum, weight_total, default=fuel.lower_heating_value.get()
+    )
 
 
 def _calculate_emission_factor(

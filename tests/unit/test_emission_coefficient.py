@@ -10,11 +10,14 @@ Tests verify the correctness of:
     per-time-step weighting, and the infinite-supply market regime.
   - _assign_regulation_wtt_factors: the average runs over every port on the
     vessel's route, jurisdiction or not, each port counted once.
+  - _average_effective_lhv_over_converters: power/efficiency-weighted
+    (1 - slip) * LHV over the converters able to burn the fuel.
   - _calculate_threshold_adjusted_levy_emission_coefficient: the PENALTY,
     SUBSIDY and upper-threshold capping arithmetic, given already-evaluated
-    threshold arrays.
+    threshold arrays and an effective LHV.
   - _assign_levy_emission_coefficients: the thresholds it evaluates once per
-    pass stay sliced to timeline[idx:], not the whole timeline.
+    pass stay sliced to timeline[idx:], not the whole timeline, and are
+    compared with, and converted back on, the vessel's effective LHV.
 """
 
 from __future__ import annotations
@@ -25,11 +28,17 @@ import numpy as np
 import pytest
 
 from navigate.core.enum_ import LevySchemeID
+from navigate.core.nodes.converter import Converter
+from navigate.core.nodes.emission import Emission
+from navigate.core.nodes.fuel import Fuel
+from navigate.core.nodes.levy import Levy
 from navigate.policy.emission_coefficient import (
     _assign_levy_emission_coefficients,
     _assign_regulation_wtt_factors,
+    _average_effective_lhv_over_converters,
     _average_wtt_over_ports,
     _calculate_threshold_adjusted_levy_emission_coefficient,
+    _converter_weights,
 )
 
 # ---------------------------------------------------------------------------
@@ -210,7 +219,128 @@ class TestRouteWidePortSelection:
 
 
 # ---------------------------------------------------------------------------
-# 5. Threshold-adjusted levy emission coefficient, given evaluated thresholds
+# 5. Effective heating value of a levy
+# ---------------------------------------------------------------------------
+
+# the ammonia converters weigh 15 / 0.5 = 30 MW and 4 / 0.4 = 10 MW; the oil
+# converter cannot burn ammonia and carries no weight
+AMMONIA_LHV = 50.0
+MAIN_SLIP = 0.02
+AUXILIARY_SLIP = 0.1
+
+
+def _make_converter(name, fuel_type, power, efficiency, slip):
+    converter = Converter(name)
+    converter.set_power_capacity(power)
+    converter.set_main_fuel_types(fuel_type)
+    converter.set_efficiency(efficiency)
+    converter.initialize_dependencies({})
+    converter.set_slip_fraction(fuel_type, slip)
+    converter.initialize()
+    return converter
+
+
+def _make_ammonia():
+    fuel = Fuel("ammonia")
+    fuel.set_fuel_type("AMMONIA")
+    fuel.set_lower_heating_value(AMMONIA_LHV)
+    return fuel
+
+
+def _make_vessel(fuel, main_slip, auxiliary_slip, port):
+    vessel = MagicMock()
+    vessel.name = "vessel"
+    vessel.usable_fuels = {fuel.name: fuel}
+    vessel.route.ports = [port]
+    vessel.power_system.get_converters.return_value = [
+        _make_converter("main", "AMMONIA", 15.0, 0.5, main_slip),
+        _make_converter("auxiliary", "AMMONIA", 4.0, 0.4, auxiliary_slip),
+        _make_converter("boiler", "OIL", 100.0, 0.5, 0.0),
+    ]
+    return vessel
+
+
+class TestEffectiveHeatingValue:
+    def test_effective_lhv_is_the_weighted_average_over_burning_converters(self):
+        fuel = _make_ammonia()
+        vessel = _make_vessel(fuel, MAIN_SLIP, AUXILIARY_SLIP, MagicMock())
+
+        weights = _converter_weights(vessel, fuel)
+        result = _average_effective_lhv_over_converters(weights, fuel)
+
+        # (30 * 0.98 * 50 + 10 * 0.9 * 50) / 40 = (1470 + 450) / 40 = 48
+        assert result == pytest.approx(48.0)
+
+    def test_zero_efficiency_converter_carries_no_weight(self):
+        fuel = _make_ammonia()
+        vessel = MagicMock()
+        vessel.power_system.get_converters.return_value = [
+            _make_converter("main", "AMMONIA", 15.0, 0.5, MAIN_SLIP),
+            _make_converter("idle", "AMMONIA", 4.0, 0.0, AUXILIARY_SLIP),
+        ]
+
+        weights = _converter_weights(vessel, fuel)
+        result = _average_effective_lhv_over_converters(weights, fuel)
+
+        # only the main converter weighs: 0.98 * 50 = 49
+        assert result == pytest.approx(49.0)
+
+    def test_no_weighted_converter_falls_back_to_the_lhv(self):
+        fuel = _make_ammonia()
+
+        result = _average_effective_lhv_over_converters([], fuel)
+
+        assert result == pytest.approx(AMMONIA_LHV)
+
+    @pytest.mark.parametrize(
+        ("main_slip", "auxiliary_slip", "expected"),
+        [
+            # effective LHV 48: 2.4 / 48 * 1000 = 50 g/MJ, 30 above the
+            # threshold, back to 30 * 48 / 1000 = 1.44 t/t
+            (MAIN_SLIP, AUXILIARY_SLIP, 1.44),
+            # no slip, the raw LHV 50: 2.4 / 50 * 1000 = 48 g/MJ, 28 above
+            # the threshold, back to 28 * 50 / 1000 = 1.4 t/t
+            (0.0, 0.0, 1.4),
+            # full slip, an effective LHV of 0: the fuel delivers no energy, so
+            # the threshold allows nothing and the whole 2.4 t/t is levied
+            (1.0, 1.0, 2.4),
+        ],
+        ids=["slip", "no_slip", "full_slip"],
+    )
+    def test_levy_threshold_is_measured_on_the_effective_lhv(
+        self, main_slip, auxiliary_slip, expected
+    ):
+        fuel = _make_ammonia()
+        emission = Emission("carbon_dioxide")
+        port = MagicMock()
+        port.name = "port"
+        port.is_bunkering_allowed.return_value = True
+        vessel = _make_vessel(fuel, main_slip, auxiliary_slip, port)
+
+        levy = Levy("levy")
+        levy.set_scheme("PENALTY")
+        levy.set_lower_threshold(20.0)
+        levy.fuels = [fuel]
+        levy.emissions = [emission]
+        levy.jurisdiction = [port]
+        levy.expectation.initialize(1, [emission.name])
+        levy.expectation.set_ttw_consumption(
+            0, (vessel.name, fuel.name, emission.name), 2.4
+        )
+
+        _assign_levy_emission_coefficients(
+            levy, {vessel.name: vessel}, timeline=np.array([0.0]), idx=0
+        )
+
+        result = levy.expectation.get_coefficient(
+            (vessel.name, port.name, fuel.name), 0
+        )
+        assert np.isfinite(result)
+        assert result == pytest.approx(expected)
+
+
+# ---------------------------------------------------------------------------
+# 6. Threshold-adjusted levy emission coefficient, given evaluated thresholds
 # ---------------------------------------------------------------------------
 
 
@@ -229,12 +359,11 @@ def _make_fuel(lower_heating_value):
 class TestThresholdAdjustedLevyEmissionCoefficient:
     def test_penalty_clips_the_excess_below_the_lower_threshold(self):
         levy = _make_levy(LevySchemeID.PENALTY)
-        fuel = _make_fuel(40.0)
         coefficient = np.array([2.0, 3.0])  # ton emission / ton fuel
         lower_threshold = np.array([40.0, 90.0])
 
         result = _calculate_threshold_adjusted_levy_emission_coefficient(
-            coefficient, levy, fuel, lower_threshold, upper_threshold=None
+            coefficient, levy, 40.0, lower_threshold, upper_threshold=None
         )
 
         # g/MJ: [2, 3] / 40 * 1000 = [50, 75]; minus [40, 90] = [10, -15];
@@ -244,12 +373,11 @@ class TestThresholdAdjustedLevyEmissionCoefficient:
 
     def test_subsidy_clips_the_excess_above_the_lower_threshold(self):
         levy = _make_levy(LevySchemeID.SUBSIDY)
-        fuel = _make_fuel(40.0)
         coefficient = np.array([1.0, 1.0])
         lower_threshold = np.array([20.0, 30.0])
 
         result = _calculate_threshold_adjusted_levy_emission_coefficient(
-            coefficient, levy, fuel, lower_threshold, upper_threshold=None
+            coefficient, levy, 40.0, lower_threshold, upper_threshold=None
         )
 
         # g/MJ: [1, 1] / 40 * 1000 = [25, 25]; minus [20, 30] = [5, -5];
@@ -259,13 +387,12 @@ class TestThresholdAdjustedLevyEmissionCoefficient:
 
     def test_upper_threshold_caps_the_penalty(self):
         levy = _make_levy(LevySchemeID.PENALTY)
-        fuel = _make_fuel(40.0)
         coefficient = np.array([3.0, 3.0])
         lower_threshold = np.array([10.0, 10.0])
         upper_threshold = np.array([50.0, 100.0])
 
         result = _calculate_threshold_adjusted_levy_emission_coefficient(
-            coefficient, levy, fuel, lower_threshold, upper_threshold
+            coefficient, levy, 40.0, lower_threshold, upper_threshold
         )
 
         # g/MJ: [3, 3] / 40 * 1000 = [75, 75]; minus lower [10, 10] = [65, 65];
@@ -275,7 +402,7 @@ class TestThresholdAdjustedLevyEmissionCoefficient:
 
 
 # ---------------------------------------------------------------------------
-# 6. Levy emission coefficients: thresholds stay sliced to the remaining
+# 7. Levy emission coefficients: thresholds stay sliced to the remaining
 #    timeline once their evaluation moves out of the vessel/port/fuel loop
 # ---------------------------------------------------------------------------
 
@@ -323,6 +450,8 @@ class TestAssignLevyEmissionCoefficientsSlicing:
         vessel.name = "vessel1"
         vessel.usable_fuels = {"fuel_bio": fuel}
         vessel.route.ports = [port]
+        # no converter weighs, so the effective LHV falls back to the fuel's raw LHV
+        vessel.power_system.get_converters.return_value = []
 
         levy = _make_levy(LevySchemeID.PENALTY)
         levy.emissions = [EMISSION]
