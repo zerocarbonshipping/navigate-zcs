@@ -66,11 +66,12 @@ def _make_levy(lower, upper=None, *, scheme=None, active=True):
         (lambda: 50.0, lambda: 30.0, "2024-01-01"),
     ],
 )
+# the rule applies to both PENALTY and BOTH; SUBSIDY is exempt (see the passing cases)
+@pytest.mark.parametrize("scheme", ["PENALTY", "BOTH"])
 def test_check_dynamic_consistency_raises_when_upper_falls_below_lower(
-    make_lower, make_upper, expected_date
+    scheme, make_lower, make_upper, expected_date
 ):
-    # the rule applies to PENALTY and BOTH; SUBSIDY is exempt (see the passing cases)
-    levy = _make_levy(make_lower(), make_upper(), scheme="PENALTY")
+    levy = _make_levy(make_lower(), make_upper(), scheme=scheme)
 
     with pytest.raises(
         ValueError, match=rf"'UpperThreshold'.*'LowerThreshold'.*{expected_date}"
