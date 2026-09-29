@@ -13,10 +13,11 @@ from navigate.core.increment import Increment
 from navigate.core.wrap import to_numpy
 from navigate.economics.decision import calculate_two_axis_uptake
 from navigate.fleet.technology_adoption import calculate_package_charter_rates
-from navigate.fleet.utils import calculate_increments, extract_cargo_miles
 from navigate.util import TOLERANCE, YEAR
 
 if TYPE_CHECKING:
+    from numpy.typing import NDArray
+
     from navigate.core.nodes.fleet import Fleet
     from navigate.core.nodes.vessel import Vessel
 
@@ -210,7 +211,7 @@ def calculate_inertia_increments(
     # notice that the inertia related reduction
     # of trade-gap was accounted for previously
     # by reducing the uptake shares
-    increments = calculate_increments(uptakes, cargo_miles, trade_gap)
+    increments = _calculate_increments(uptakes, cargo_miles, trade_gap)
 
     # apply the per-vessel newbuild-limit cap on inertia (no redistribution: unused
     # capacity rolls into the residual trade gap and is filled by the modelled DCM)
@@ -289,7 +290,9 @@ def calculate_modelled_newbuilds(
     modelled_uptakes = calculate_modelled_uptake(
         fleet, vessels, idx, cap_share=cap_share
     )
-    modelled_increments = calculate_increments(modelled_uptakes, cargo_miles, trade_gap)
+    modelled_increments = _calculate_increments(
+        modelled_uptakes, cargo_miles, trade_gap
+    )
 
     # expand back to full size of the vessel type list
     increments = np.zeros(len(fleet.assets))
@@ -386,3 +389,46 @@ def add_newbuilds(fleet: Fleet, increments: list[float], time_step: float):
             # set baseline if this is the first increment in the list
             if was_empty:
                 fleet.increments[v][0].baseline = increment
+
+
+def extract_cargo_miles(
+    vessels: list[Vessel], idx: int | slice
+) -> list[NDArray[np.float64]]:
+    """
+    Extract each vessel's cargo-miles at the given time index.
+
+    Parameters
+    ----------
+    vessels
+        Vessels to extract cargo-miles for.
+    idx
+        Time index or slice.
+
+    Returns
+    -------
+    list[NDArray[np.float64]]
+        Cargo-miles per vessel.
+    """
+    return [vessel.expectation.get_cargo_miles(idx) for vessel in vessels]
+
+
+def _calculate_increments(
+    uptakes: np.ndarray, cargo_miles: np.ndarray, trade_gap: float
+) -> np.ndarray:
+    """
+    Calculate the multiplier count at a given uptake share satisfying the trade-gap.
+
+    Parameters
+    ----------
+    uptakes
+        The uptake share of each vessel type.
+    cargo_miles
+        The yearly cargo-miles delivered by each vessel type.
+    trade_gap
+        The total trade-gap for the fleet.
+
+    Returns
+    -------
+    The number of multipliers for each vessel type that satisfies the trade-gap.
+    """
+    return uptakes * trade_gap / cargo_miles

@@ -19,25 +19,23 @@ from navigate.fleet import planning as fleet_planning
 from navigate.fleet.conversion import (
     _ConversionCandidate,
     _ConversionProposal,
+    is_retrofit_cycle,
     reconcile_fuel_conversion_caps,
 )
+from navigate.fleet.initialization import _calculate_projected_multipliers
 from navigate.fleet.planning import (
+    _calculate_increments,
     calculate_modelled_newbuilds,
     calculate_modelled_uptake,
     calculate_orderbook_newbuilds,
 )
+from navigate.fleet.residual_energy import net_energy_from_raw
 from navigate.fleet.technology_adoption import (
+    _get_remaining_lifetime,
     _reconcile_retrofit_technology_caps,
     _RetrofitProposal,
     _transfer_retrofit_uptake,
     reconcile_newbuild_technology_caps,
-)
-from navigate.fleet.utils import (
-    calculate_increments,
-    calculate_projected_multipliers,
-    get_remaining_lifetime,
-    is_retrofit_cycle,
-    net_energy_from_raw,
 )
 from navigate.util import YEAR
 
@@ -91,7 +89,7 @@ class TestCalculateProjectedMultipliers:
         ],
     )
     def test_scales_with_trade(self, multiplier, trade, expected):
-        result = calculate_projected_multipliers(multiplier, np.array(trade))
+        result = _calculate_projected_multipliers(multiplier, np.array(trade))
         np.testing.assert_array_almost_equal(result, expected)
 
 
@@ -107,7 +105,7 @@ class TestCalculateIncrements:
         ],
     )
     def test_increments(self, uptakes, cargo_miles, trade_gap, expected):
-        result = calculate_increments(
+        result = _calculate_increments(
             np.array(uptakes), np.array(cargo_miles), trade_gap
         )
         np.testing.assert_array_almost_equal(result, expected)
@@ -127,7 +125,7 @@ class TestGetRemainingLifetime:
     def test_remaining(self, age, expected):
         vessel = _make_vessel("v")
         vessel.lifetime = Scalar(25)
-        assert get_remaining_lifetime(vessel, age=age, dt=1.0) == expected
+        assert _get_remaining_lifetime(vessel, age=age, dt=1.0) == expected
 
 
 class TestNetEnergyFromRaw:

@@ -13,7 +13,6 @@ from navigate.fuel.planning import (
     calculate_constrained_uptakes,
     perform_pipeline_planning,
 )
-from navigate.fuel.utils import calculate_increment_production_interval
 from navigate.util import (
     TOLERANCE,
     YEAR,
@@ -54,7 +53,7 @@ def _accumulate_weighted_cost(
         decommission = delivery + lifetime * YEAR
 
         total_production = production[i] * inc.multiplier
-        interval = calculate_increment_production_interval(
+        interval = _calculate_increment_production_interval(
             total_production, delivery, decommission, inc.age_span * YEAR, times
         )
 
@@ -63,6 +62,109 @@ def _accumulate_weighted_cost(
 
         for e in emissions:
             wtt[e][p, :] += interval * expectation.get_production_wtt(e, origins[i])
+
+
+def _calculate_increment_production_interval(
+    production, delivery, decommission, time_step, times
+):
+    """
+    Calculate the production profile over time for a single increment.
+
+    Parameters
+    ----------
+    production : float
+        Production that will enter at the delivery date (sum of all plants being
+        delivered).
+    delivery : float
+        Time at which production was or will be delivered.
+    decommission : float
+        Time at which production will be decommissioned.
+    time_step : float
+        Time-step duration over which production was or will be delivered.
+    times : np.ndarray
+        Future times from the simulation timeline (timeline[idx:]).
+
+    Returns
+    -------
+    np.ndarray
+        The period over which production will be active and the amount of production.
+    """
+    # ignore small increments to avoid round-off issues
+    tol = 1e-5
+
+    end = times[-1]
+    output = np.zeros_like(times)
+
+    time_delivery = delivery - time_step
+    delivery_period = time_step
+
+    if delivery <= 0.0:
+        # if delivery is negative it is because it is an existing
+        # increment which has already been delivered and thus all
+        # production is assigned at t=0
+        t_delivery = 0
+        output[t_delivery] = production
+
+    else:
+        # the plants are delivered continuously over the
+        # length of the time-step with the first being
+        # delivered in 'delivery - time_step' time
+        t_delivery = np.argmax(time_delivery < times)
+
+        while delivery_period > tol:
+            # respect end of simulation boundary
+            if time_delivery >= end:
+                break
+
+            # calculate the fraction of production being
+            # delivered in the given time-step
+            end_point = np.minimum(times[t_delivery], delivery)
+            partial = end_point - time_delivery
+            scaling = partial / time_step
+
+            # calculate the expected production
+            # entering over the given time-step
+            output[t_delivery] = scaling * production
+
+            # update for next step in sequential allocation
+            t_delivery += 1
+            time_delivery += partial
+            delivery_period -= partial
+
+    # the plants are decommissioned continuously over
+    # the length of the time-step with the first being
+    # decommissioned in 'decommission - time_step' time
+    t_decom = np.argmax((decommission - time_step) < times)
+
+    # argmax returns -1 if decommission is
+    # never outside the timeline in which
+    # case decommission does not happen
+    if t_decom > t_delivery:
+        time_decommission = decommission - time_step
+        decommission_period = time_step
+
+        while decommission_period > tol:
+            # respect end of simulation boundary
+            if time_decommission >= end:
+                break
+
+            # calculate the fraction of production being
+            # delivered in the given time-step
+            end_point = np.minimum(times[t_decom], decommission)
+            partial = end_point - time_decommission
+            scaling = partial / time_step
+
+            # account for future decommissioning
+            # of the expected plant
+            # if t_decom < times.size:
+            output[t_decom] = -scaling * production
+
+            # update for next step in sequential allocation
+            t_decom += 1
+            time_decommission += partial
+            decommission_period -= partial
+
+    return np.cumsum(output)
 
 
 def perform_decommissioning(producer: Producer) -> None:
@@ -312,7 +414,7 @@ def calculate_evolution_expectation(producer: Producer, timeline, idx):
             total_production = maximum_development * constrained_uptakes[p] * production
 
             # calculate the period over which production will exist
-            newbuild_production = calculate_increment_production_interval(
+            newbuild_production = _calculate_increment_production_interval(
                 total_production, delivery, decommission, time_step, times
             )
 

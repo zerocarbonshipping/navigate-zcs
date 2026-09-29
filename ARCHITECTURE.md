@@ -128,8 +128,8 @@ before the commands run.
 ## Naming conventions
 
 - `fleet/` and `fuel/` mirror each other deliberately (`initialization.py`,
-  `evolution.py`, `planning.py`, `aggregation.py`, `utils.py`): same name,
-  same role in each domain.
+  `evolution.py`, `planning.py`, `aggregation.py`): same name, same role in
+  each domain.
 - A leading underscore on a module or class means package-private; anything
   used across package boundaries carries a public name.
 - Each package's `__init__.py` re-exports its externally consumed entry

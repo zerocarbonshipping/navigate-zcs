@@ -194,6 +194,25 @@ def verify_power_capacity(vessel: Vessel, idx: int) -> None:
         )
 
 
+def get_total_power_capacity(vessel: Vessel) -> float:
+    """
+    Total installed converter power capacity on a vessel.
+
+    Parameters
+    ----------
+    vessel
+        Vessel whose power-system converters are summed.
+
+    Returns
+    -------
+    Total installed power across the converters, MW.
+    """
+    return sum(
+        converter.power_capacity.get()
+        for converter in vessel.power_system.get_converters()
+    )
+
+
 def _find_capacity_violations(
     converter: Converter,
     demand_type: EnergyDemandTypeID,

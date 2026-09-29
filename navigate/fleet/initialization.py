@@ -12,6 +12,7 @@ import numpy as np
 from navigate.fleet.aggregation import transfer_multipliers_to_profile
 from navigate.fleet.evolution import calculate_evolution_expectation
 from navigate.fleet.package import preprocess_packages
+from navigate.fleet.planning import extract_cargo_miles
 from navigate.fleet.technology_adoption import (
     build_technology_packages,
     define_initial_technology,
@@ -19,14 +20,11 @@ from navigate.fleet.technology_adoption import (
     transfer_technology_uptake,
     update_residual_energy_demand,
 )
-from navigate.fleet.utils import (
-    calculate_projected_multipliers,
-    define_initial_split,
-    define_initial_trade,
-)
+from navigate.util import calculate_compound_growth
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
+    from navigate.util.types_ import FloatArray
 
 
 def initialize_existing_fleet(fleet: Fleet, timeline: np.ndarray) -> None:
@@ -62,11 +60,11 @@ def initialize_existing_fleet(fleet: Fleet, timeline: np.ndarray) -> None:
 
     # existing fleet; the initial split must be defined before the
     # age discretization because _get_initial_multiplier reads it
-    define_initial_split(fleet)
+    _define_initial_split(fleet)
     fleet.define_initial_age()
     fleet.define_initial_multipliers()
     define_initial_technology(fleet)
-    define_initial_trade(fleet, timeline)
+    _define_initial_trade(fleet, timeline)
 
     # order book
     fleet.orders_delivered = np.zeros((nv,))
@@ -81,7 +79,7 @@ def initialize_existing_fleet(fleet: Fleet, timeline: np.ndarray) -> None:
     # which is used to calculate fair-share emissions
     # for fleet level and global regulations
     multipliers = sum(fleet.get_multipliers())
-    fleet.projected_multipliers = calculate_projected_multipliers(
+    fleet.projected_multipliers = _calculate_projected_multipliers(
         multipliers, fleet.trade
     )
 
@@ -99,3 +97,81 @@ def initialize_existing_fleet(fleet: Fleet, timeline: np.ndarray) -> None:
 
     # set dynamic properties
     fleet.fuel_conversion_expenses = np.zeros_like(timeline)
+
+
+def _define_initial_split(fleet: Fleet) -> None:
+    """
+    Define the initial fraction of each vessel type in the fleet.
+
+    Parameters
+    ----------
+    fleet
+        Fleet to define the initial split for.
+    """
+    # if the initial split is not supplied
+    # by the user, then assume a uniform
+    # split on cargo-miles
+    if not fleet.initial_split:
+        nv = len(fleet.assets)
+        fleet.initial_split = [1.0 / nv for v in range(nv)]
+
+    # while the initial split of the entire
+    # existing fleet does not necessarily
+    # correspond to current trends in
+    # newbuilds, it is the best available proxy
+    # TODO: allow this to be user-defined
+    fleet.current_uptake = np.array(fleet.initial_split)
+
+
+def _define_initial_trade(fleet: Fleet, timeline: np.ndarray) -> None:
+    """
+    Define the initial trade of the fleet.
+
+    Projects it forward over the timeline using the user-supplied growth
+    rates.
+
+    Parameters
+    ----------
+    fleet
+        Fleet to define the trade for.
+    timeline
+        Simulation timeline.
+    """
+    idx = 0
+    cargo_miles = extract_cargo_miles(fleet.assets, idx)
+
+    multipliers = fleet.get_multipliers()
+    initial_trade = np.dot(multipliers, cargo_miles)
+    trade_growth = fleet.trade_growth.get(timeline)
+
+    # the initial trade is projected forward in
+    # time by calculating the compound growth
+    # from the user-supplied growth rates
+    fleet.trade = calculate_compound_growth(initial_trade, trade_growth, timeline)
+
+    # transfer to profile
+    fleet.profile.set_trade(idx, fleet.trade[idx])
+
+
+def _calculate_projected_multipliers(
+    multipliers: float, trade: FloatArray
+) -> FloatArray:
+    """
+    Calculate a naive projection of future number of multipliers.
+
+    This method does not take into account that different vessel types may
+    have varying nominal capacity or cargo utilization.
+
+    Parameters
+    ----------
+    multipliers
+        Sum of multipliers across vessel types.
+    trade
+        Trade forecast.
+
+    Returns
+    -------
+        Naive projection of future multipliers.
+    """
+    compound_growth: FloatArray = trade / trade[0]
+    return multipliers * compound_growth

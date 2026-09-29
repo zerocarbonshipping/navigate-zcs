@@ -26,7 +26,7 @@ from navigate.fleet.power import (
     calculate_technical_speed_limits,
     loads_are_convex,
 )
-from navigate.fleet.utils import net_energy_from_raw
+from navigate.fleet.residual_energy import net_energy_from_raw
 from navigate.util import YEAR
 
 if TYPE_CHECKING:

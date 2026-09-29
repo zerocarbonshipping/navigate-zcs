@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import logging
+from math import ceil
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -11,11 +12,7 @@ import numpy as np
 from navigate.core.enum_ import UtilityID
 from navigate.core.increment import Increment
 from navigate.economics.decision import calculate_two_axis_uptake
-from navigate.fuel.utils import (
-    calculate_constrained_shares,
-    calculate_uptake_inter_metric,
-    calculate_uptake_intra_metric,
-)
+from navigate.economics.metric import calculate_age_levelized_cost
 from navigate.util import YEAR, calculate_inertia, divide_nonzero
 
 if TYPE_CHECKING:
@@ -61,10 +58,10 @@ def perform_pipeline_planning(producer: Producer, timeline, time_step, idx):
     export_distribution = producer.expectation.get_export_distribution(idx=idx)
 
     for _p, plant in enumerate(producer.assets):
-        calculate_uptake_inter_metric(
+        _calculate_uptake_inter_metric(
             plant, demand, producer.minimum_offtake_duration, timeline, idx
         )
-        calculate_uptake_intra_metric(plant, export_distribution, idx)
+        _calculate_uptake_intra_metric(plant, export_distribution, idx)
 
     # extract the maximum number of newbuild
     # plants that may enter the pipeline
@@ -151,6 +148,138 @@ def perform_pipeline_planning(producer: Producer, timeline, time_step, idx):
     # set current uptake
     producer.current_uptake = divide_nonzero(
         increments, total_increments, default=1.0 / increments.size
+    )
+
+
+def _calculate_uptake_inter_metric(
+    plant, demand, minimum_offtake_duration, timeline, idx
+):
+    """
+    Calculate the business-case metric used to choose a fuel pathway.
+
+    This is based on the expected future gap between supply and demand and the number of
+    plants required to satisfy that gap.
+
+    Parameters
+    ----------
+    plant : Plant
+        Plant for which inter uptake metric is being calculated.
+    demand : dict[str, np.ndarray]
+        The expected demand per fuel pathway that is not satisfied by current supply.
+    minimum_offtake_duration : Scalar | calculator node
+        The minimum duration of offtake to justify building a plant.
+    timeline : np.ndarray
+        Simulation timeline.
+    idx : int
+        Current time-step index.
+    """
+    expectation = plant.expectation
+
+    # the discount rate of the plants are used
+    # to discount the future multipliers. The
+    # logic is that if the demand is dwindling
+    # over time it means less than the immediate
+    # demand as the production can be sold to
+    # other industries later on
+    discount_rate = plant.cost_of_capital.get()
+
+    # define the timeline at which to
+    # evaluate the future multipliers
+    evaluation_timeline = _get_plant_evaluation_timeline(plant, timeline, idx)
+
+    # extract the yearly production from a single plant
+    production = expectation.get_production(idx)
+
+    # recalculate the fair share of the
+    # demand for the fuel the plant can
+    # produce to fit with a business cost
+    # flow length
+    fuel = plant.fuel
+    fuel_name = fuel.name
+    lhv = fuel.lower_heating_value.get()
+    demand_int = np.interp(evaluation_timeline, timeline, demand[fuel_name], left=0.0)
+
+    # calculate the maximum equivalent
+    # multipliers over time
+    demand_multipliers = demand_int / production
+
+    # calculate the maximum number of multipliers
+    # which merit sufficient offtake
+    lifetime = plant.lifetime.get()
+
+    if minimum_offtake_duration is not None:
+        minimum_duration = minimum_offtake_duration.get()
+    else:
+        minimum_duration = lifetime
+
+    # the lowest equivalent multiplier within
+    # the sufficient offtake duration is used
+    # as maximum number of plants which it
+    # makes sense to sanction
+    to_ = min(min(ceil(minimum_duration), ceil(lifetime)), demand_int.size)
+    demand_newbuilds = max(np.amin(demand_multipliers[:to_]), 0)
+
+    # calculate the age-levelized demand (energy-based)
+    demand_energy = demand_int * lhv
+    metric = calculate_age_levelized_cost(demand_energy, lifetime, discount_rate)
+
+    # assign to expectations
+    expectation.set_demand_newbuilds(demand_newbuilds)
+    expectation.set_inter_fuel_metric(metric)
+
+
+def _calculate_uptake_intra_metric(plant, export_distribution, idx):
+    """
+    Calculate the business-case metric used to choose a plant within a fuel pathway.
+
+    This is based on the average delivered levelized cost of fuel for a given plant.
+
+    Parameters
+    ----------
+    plant : Plant
+         Plant for which intra uptake metric is being calculated.
+    export_distribution : dict[str, float]
+        Fraction of fuel production that is exported to each port.
+    idx : int
+        Current time-step index.
+    """
+    expectation = plant.expectation
+
+    # calculate the average exported levelized
+    # delivery cost across ports
+    metric = 0.0
+
+    for port_name, export in export_distribution.items():
+        lcof = expectation.get_levelized_delivered_cost(port_name, idx)
+        metric += export * lcof
+
+    expectation.set_intra_fuel_metric(metric)
+
+
+def _get_plant_evaluation_timeline(plant, timeline, idx):
+    """
+    Build the timeline at which cash flows should be evaluated.
+
+    Parameters
+    ----------
+    plant : Plant
+        Plant for which evaluation timeline is built.
+    timeline : np.ndarray
+        Simulation timeline.
+    idx : int
+        Current time-step index.
+
+    Returns
+    -------
+    np.ndarray
+        Evaluation timeline.
+    """
+    lifetime = plant.lifetime.get()
+    lead_time = plant.lead_time.get()
+
+    return (
+        np.arange(ceil(lead_time), ceil(lifetime + lead_time), dtype=np.float64) * YEAR
+        + timeline[idx]
     )
 
 
@@ -358,7 +487,7 @@ def calculate_constrained_uptakes(
         # shares based on the maximum allowable
         # share of each plant related to the
         # supply/demand gap
-        new_uptakes, _utilization = calculate_constrained_shares(uptakes, new_limits)
+        new_uptakes, _utilization = _calculate_constrained_shares(uptakes, new_limits)
 
         # if there is no change in uptakes from
         # the previous iteration the algorithm
@@ -369,6 +498,48 @@ def calculate_constrained_uptakes(
         current_uptakes = new_uptakes
 
     return current_uptakes
+
+
+def _calculate_constrained_shares(shares, maximums):
+    """
+    Redistribute discrete-choice shares that exceed their maximum allowed value.
+
+    Starts from the optimal allocation of a discrete choice model, redistributing shares
+    between options where an allocation exceeds its maximum allowed share.
+
+    Notice that this method redistributes the surplus from constrained shares to the
+    other shares proportionally to the deficit of each share. Meaning the bigger the gap
+    to the maximum the larger the fraction of the surplus it receives.
+
+    TODO: Is this desired or should it be a perfectly equal share between the buckets
+    with deficit?
+    TODO: This probably requires an iterative algorithm to ensure redistribution does
+    not break maximums.
+
+    Parameters
+    ----------
+    shares : np.ndarray
+        Uptake shares across all options, must sum to unity.
+    maximums : np.ndarray
+        Maximum possible share for each option. Does not need to sum to unity.
+
+    Returns
+    -------
+    tuple[np.ndarray, float]
+        Constrained uptake shares and the utilization share if the problem is
+        over-constrained.
+    """
+    surplus = np.maximum(shares - maximums, 0.0)
+    deficit = np.maximum(maximums - shares, 0.0)
+
+    unutilized = max(1.0 - np.sum(maximums), 0.0)
+
+    fraction = min(divide_nonzero(np.sum(surplus), np.sum(deficit)), 1.0)
+
+    has_surplus = surplus > 0.0
+    constrained_shares = np.where(has_surplus, maximums, shares + deficit * fraction)
+
+    return constrained_shares, 1.0 - unutilized
 
 
 def calculate_feed_uptake_limit_iteration(

@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.enum_ import FuelTypeID
-from navigate.fleet.utils import get_total_power_capacity
+from navigate.fleet.power import get_total_power_capacity
 from navigate.util import YEAR, get_increment_origin_index, interpolate_yearly_flow
 
 if TYPE_CHECKING:

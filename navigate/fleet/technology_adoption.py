@@ -33,6 +33,7 @@ import numpy as np
 from navigate.core.enum_ import EnergyDemandTypeID, EnergyDemandTypePortID, UtilityID
 from navigate.economics.decision import calculate_asset_shares
 from navigate.economics.flows import timeline_to_yearly
+from navigate.fleet.conversion import is_retrofit_cycle
 from navigate.fleet.marginal_saving import calculate_marginal_technology_saving
 from navigate.fleet.operation import (
     convert_to_regional_steps,
@@ -46,13 +47,11 @@ from navigate.fleet.package import (
     npv_for_retrofit_steps,
     preprocess_packages,
 )
-from navigate.fleet.residual_energy import calculate_residual_energy
-from navigate.fleet.utils import (
-    get_remaining_lifetime,
-    is_retrofit_cycle,
+from navigate.fleet.residual_energy import (
+    calculate_residual_energy,
     net_energy_from_raw,
 )
-from navigate.util import TOLERANCE, YEAR, divide_nonzero
+from navigate.util import ROUND_OFF, TOLERANCE, YEAR, divide_nonzero
 
 if TYPE_CHECKING:
     from numpy.typing import NDArray
@@ -574,7 +573,7 @@ def _propose_retrofits(
             if not is_retrofit_cycle(inc.age, retrofit_frequency, dt_years):
                 continue
 
-            remaining = get_remaining_lifetime(vessel, inc.age, inc.age_span)
+            remaining = _get_remaining_lifetime(vessel, inc.age, inc.age_span)
             if remaining <= 0:
                 continue
 
@@ -613,6 +612,11 @@ def _propose_retrofits(
             )
 
     return proposals
+
+
+def _get_remaining_lifetime(vessel: Vessel, age: float, dt: float) -> int:
+    lifetime = vessel.lifetime.get()
+    return max(0, int(round(lifetime - (age + dt / 2.0), ROUND_OFF)))
 
 
 def _reconcile_retrofit_technology_caps(
