@@ -99,7 +99,7 @@ This attribute defines whether emissions slip is included in the calculation of 
 
 ### Level
 
-This attribute determines the level of the penalty or subsidy proportional to the fuels absolute difference from the threshold.
+This attribute determines the level of the penalty or subsidy, paid per ton of emission by which a fuel differs from the threshold: the difference in emission intensity times the effective energy of the fuel, (1 − slip) · LHV (see `LowerThreshold`).
 
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**: `100`
@@ -111,6 +111,8 @@ This attribute determines the level of the penalty or subsidy proportional to th
 
 This attribute sets the lower emission intensity threshold of the levy. If ‘Scheme’ is SUBSIDY or BOTH, then values below the threshold are subsidized, if set to PENALTY or BOTH, then values above the threshold are penalized.
 
+The emission intensity is per GJ of effective energy, (1 − slip) · LHV: the lower heating value of the fuel net of the fraction its converter lets escape unburned (`set_slip_fraction` on the `Converter`). A levy applies per fuel at port, so the slip is averaged over the vessel's converters able to burn the fuel, weighted by power capacity over efficiency. A `Regulation` with ‘Measure’ INTENSITY uses the same basis.
+
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
   + `40`
@@ -121,7 +123,7 @@ This attribute sets the lower emission intensity threshold of the levy. If ‘Sc
 
 ### UpperThreshold
 
-This attribute sets the upper emission intensity threshold of the levy. The penalty is only paid for emissions between the lower and upper threshold. If not set, there is no upper cap on the penalty. Only relevant for ‘PENALTY’ and ‘BOTH’ schemes.
+This attribute sets the upper emission intensity threshold of the levy, per GJ of effective energy like `LowerThreshold`. The penalty is only paid for emissions between the lower and upper threshold. If not set, there is no upper cap on the penalty. Only relevant for ‘PENALTY’ and ‘BOTH’ schemes.
 
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:

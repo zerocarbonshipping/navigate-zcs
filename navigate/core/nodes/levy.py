@@ -84,7 +84,9 @@ class Levy(_Policy):
         Set the lower emission factor threshold of the levy in kg emissions / GJ.
 
         Emissions below this threshold are not penalized (for PENALTY/BOTH scheme) and
-        emissions above are not subsidized (for SUBSIDY/BOTH scheme).
+        emissions above are not subsidized (for SUBSIDY/BOTH scheme). The energy is the
+        effective energy, (1 - slip) * LHV, averaged over the vessel's converters able
+        to burn the fuel, weighted by power capacity over efficiency.
 
         Examples
         --------
@@ -106,7 +108,8 @@ class Levy(_Policy):
 
         Emissions above this threshold are not additionally penalized (for PENALTY/BOTH
         scheme). The penalty is only paid for emissions between the lower and upper
-        threshold. If not set, there is no upper cap on the penalty.
+        threshold. If not set, there is no upper cap on the penalty. The energy is the
+        effective energy, (1 - slip) * LHV, as for the lower threshold.
 
         Examples
         --------

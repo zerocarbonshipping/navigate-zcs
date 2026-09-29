@@ -17,26 +17,6 @@ from navigate.core.enum_ import RegulationMeasureID
 from navigate.core.unit import TON_TO_KG
 
 
-def _get_effective_lhv(converter: Converter, fuel: Fuel) -> float:
-    """
-    Effective LHV accounting for slip: (1 - slip) * LHV_raw.
-
-    Parameters
-    ----------
-    converter
-        Converter the fuel is consumed in.
-    fuel
-        Fuel being consumed.
-
-    Returns
-    -------
-    float
-        Effective lower heating value (GJ/ton fuel-in).
-    """
-    slip = converter.slip_fraction[fuel.fuel_type].get()
-    return (1.0 - slip) * fuel.lower_heating_value.get()
-
-
 def _calculate_emission_factor_ttw(
     converter: Converter, fuel: Fuel, emission: Emission
 ) -> float:
@@ -103,7 +83,7 @@ def calculate_effective_lhv(alg: BunkerAlgorithm, vessel: Vessel) -> None:
 
     for c, converter in get_converters(vessel).items():
         for f, fuel in alg.fuels_per_converter[(v, c)].items():
-            alg.effective_lhv[(v, c, f)] = _get_effective_lhv(converter, fuel)
+            alg.effective_lhv[(v, c, f)] = converter.get_effective_lhv(fuel)
 
 
 def calculate_emission_factors(alg: BunkerAlgorithm, vessel: Vessel) -> None:

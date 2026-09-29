@@ -96,6 +96,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - A regulation's default fuel WTT averages over every port on the vessel's
   route, each once, not only the jurisdiction ports, where it was 0 without
   supply. Results move where a route leaves the jurisdiction.
+- A `Levy`'s `LowerThreshold` and `UpperThreshold` are measured per GJ of
+  effective energy, (1 − slip) · LHV, as a `Regulation`'s intensity already
+  is, so a threshold covers fewer emissions per ton of a fuel with converter
+  slip, such as LNG.
 
 ### Removed
 - `BunkerLogistics`: write `LiquidMarket` on `Fuel`, and `set_fuel_transport`
@@ -266,6 +270,11 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - A producer's expected production has pipeline plants enter, and plants at
   the end of their lifetime leave, spread over a time-step, as delivery and
   decommissioning do, where it moved each batch at once. Results change.
+- Fuel a producer delivers above a port's `set_bunkering_limit` is
+  redistributed to the other ports in proportion to their deficit instead of
+  being silently dropped; a port with no limit set absorbs whatever the
+  limited ports could not, and a port the producer sends no fuel to receives
+  no share.
 - An unconstrained producer (`MaximumDevelopment = INF`) exporting to a port
   with no `BunkeringLimit` no longer yields NaN bunker price and WTT or an
   `inf` `BunkerSupplyMass`: the price and WTT are the average over the
