@@ -384,20 +384,10 @@ def _extract_properties(
                 continue
 
             if isinstance(property_, dict):
-                key1 = reduce in (ReportReduceID.FIRST, ReportReduceID.BOTH)
-                key2 = reduce in (ReportReduceID.SECOND, ReportReduceID.BOTH)
+                property_ = _reduce_dict(property_, reduce)
 
-                if property_:
-                    if is_single_dict(property_):
-                        if key1:
-                            property_ = sum_dict_results(property_)
-
-                    elif is_tuple_dict(property_):
-                        property_ = collapse_tuple_dict(property_, key1=key1, key2=key2)
-
-            elif isinstance(property_, list):
-                if reduce != ReportReduceID.NONE:
-                    property_ = np.add.reduce(property_)
+            elif isinstance(property_, list) and reduce != ReportReduceID.NONE:
+                property_ = np.add.reduce(property_)
 
             if property_ is not None:
                 yield attribute, property_
@@ -411,6 +401,48 @@ def _extract_properties(
                 e,
             )
             continue
+
+
+def _reduce_dict(property_: dict, reduce: ReportReduceID) -> dict | np.ndarray:
+    """
+    Apply a report reduction to a dict-valued profile result.
+
+    A tuple-keyed dict is collapsed by summing over the element(s) reduce
+    names, keyed by whichever element remains: FIRST sums over the first
+    element, keying the result by the second; SECOND sums over the second,
+    keying it by the first; BOTH sums over both elements into a single
+    array; NONE leaves the dict as-is. A single-key dict has only one
+    element to sum over, so FIRST and BOTH collapse it into a single array
+    and SECOND and NONE leave it unchanged. An empty dict is returned
+    unchanged.
+
+    Parameters
+    ----------
+    property_
+        Profile result to reduce.
+    reduce
+        Reduction to apply.
+
+    Returns
+    -------
+    dict | np.ndarray
+        Reduced result, in the form implied by reduce.
+    """
+    if not property_:
+        return property_
+
+    if is_single_dict(property_):
+        if reduce in (ReportReduceID.FIRST, ReportReduceID.BOTH):
+            return sum_dict_results(property_)
+
+        return property_
+
+    if is_tuple_dict(property_):
+        key1 = reduce in (ReportReduceID.SECOND, ReportReduceID.BOTH)
+        key2 = reduce in (ReportReduceID.FIRST, ReportReduceID.BOTH)
+        return collapse_tuple_dict(property_, key1=key1, key2=key2)
+
+    return property_
 
 
 def _get_alternative_path(base_path: str, counter: int) -> str:
