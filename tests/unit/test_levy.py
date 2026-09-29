@@ -69,7 +69,7 @@ def _make_levy(lower, upper=None, *, scheme=None, active=True):
 def test_check_dynamic_consistency_raises_when_upper_falls_below_lower(
     make_lower, make_upper, expected_date
 ):
-    # explicit PENALTY: the check must not depend on Levy's default scheme
+    # the rule applies to PENALTY and BOTH; SUBSIDY is exempt (see the passing cases)
     levy = _make_levy(make_lower(), make_upper(), scheme="PENALTY")
 
     with pytest.raises(
