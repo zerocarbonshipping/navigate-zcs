@@ -10,7 +10,7 @@ import numpy as np
 
 from navigate.economics.flows import build_operating_flows, get_flow_size
 from navigate.economics.metric import calculate_net_present_value
-from navigate.fleet.utils import get_total_power_capacity
+from navigate.fleet.power import get_total_power_capacity
 from navigate.util import TOLERANCE, divide_nonzero
 
 if TYPE_CHECKING:

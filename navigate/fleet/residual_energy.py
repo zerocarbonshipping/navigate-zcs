@@ -79,6 +79,32 @@ def calculate_residual_energy(
     return energy_sea, energy_port
 
 
+def net_energy_from_raw(
+    raw_energies: dict[EnergyDemandTypeID, list[float]],
+    savings: dict[EnergyDemandTypeID, list[float]],
+) -> dict[EnergyDemandTypeID, list[float]]:
+    """
+    Apply per-step savings fractions to raw energy demand, by energy type.
+
+    Parameters
+    ----------
+    raw_energies
+        Raw energy demand per step, keyed by energy demand type.
+    savings
+        Saving fraction per step, keyed by energy demand type.
+
+    Returns
+    -------
+    dict[EnergyDemandTypeID, list[float]]
+        Net energy demand per step, keyed by energy demand type.
+    """
+    out = {}
+    for k, raw in raw_energies.items():
+        sav = savings[k]
+        out[k] = [(1.0 - s) * e for e, s in zip(raw, sav, strict=True)]
+    return out
+
+
 def _iterate_legs_or_ports(
     vessel: Vessel,
     package: Package,

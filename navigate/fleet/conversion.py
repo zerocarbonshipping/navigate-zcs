@@ -27,7 +27,6 @@ from navigate.core.increment import Increment
 from navigate.economics.decision import calculate_asset_shares
 from navigate.economics.flows import expand_to_flow, trim_flow_to_lifetime
 from navigate.economics.metric import calculate_net_present_value
-from navigate.fleet.utils import is_retrofit_cycle
 from navigate.util import ROUND_OFF, YEAR
 
 if TYPE_CHECKING:
@@ -336,6 +335,17 @@ def apply_fuel_conversions(
 
     _apply_from_side(fleet, proposals, indices, idx, timeline)
     _apply_to_side(fleet, proposals, indices)
+
+
+def is_retrofit_cycle(
+    age: float, retrofit_frequency: float, time_step: float, decimals: int = 2
+) -> bool:
+    """Return whether the vessel is in a retrofit cycle."""
+    # check the increment is within a retrofit
+    # frequency period and not at age 0
+    age_ = round(age, decimals)
+    time_step_ = round(time_step, decimals)
+    return (age_ > time_step_) and ((age_ % retrofit_frequency) < time_step_)
 
 
 def _extract_conversion_source(
