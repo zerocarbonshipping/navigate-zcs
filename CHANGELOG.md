@@ -26,6 +26,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   requested; they used to produce no column.
 
 ### Changed
+- A `Levy`'s `LowerThreshold` and `UpperThreshold` are measured per GJ of
+  effective energy, (1 − slip) · LHV, as a `Regulation`'s intensity already
+  is, so a threshold covers fewer emissions per ton of a fuel with converter
+  slip, such as LNG.
 - A calculator (`Variable`, `Forecast`, `Curve`, `Timetable`, `Surface`)
   assigned in `DEFINE` to an attribute or command that `EVENTS` cannot change
   cannot be changed in `EVENTS` either; re-assigning its attributes there is a

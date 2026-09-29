@@ -107,7 +107,7 @@ This attribute defines whether emissions slip is included in the calculation of 
 This attribute sets the emission measure of the regulation.
 
 If 'ABSOLUTE' the absolute emissions in tons/year are targeted.
-If 'INTENSITY' the emission intensity in kg/GJ are targeted.
+If 'INTENSITY' the emission intensity in kg/GJ are targeted, per GJ of effective energy, (1 − slip) · LHV: the lower heating value of the fuel net of the fraction the converter burning it lets escape unburned (`set_slip_fraction` on the `Converter`).
 If 'TRANSPORT\_NOMINAL' the carbon intensity index in CO<sub>2</sub>-eq/nominal cargo-miles is targeted.
 If 'TRANSPORT' the carbon intensity index in CO<sub>2</sub>-eq/actual cargo-miles is targeted.
 

@@ -8,6 +8,10 @@ Tests verify the correctness of:
   - _average_wtt_over_ports: supply-weighted averaging of port bunker WTT,
     including exclusion of zero-supply and bunkering-disallowed ports,
     per-time-step weighting, and the infinite-supply market regime.
+  - _average_effective_lhv_over_converters: power/efficiency-weighted
+    (1 - slip) * LHV over the converters able to burn the fuel.
+  - _assign_levy_emission_coefficients: the levy thresholds are compared with,
+    and converted back on, the vessel's effective LHV.
 """
 
 from __future__ import annotations
@@ -17,7 +21,16 @@ from unittest.mock import MagicMock
 import numpy as np
 import pytest
 
-from navigate.policy.emission_coefficient import _average_wtt_over_ports
+from navigate.core.nodes.converter import Converter
+from navigate.core.nodes.emission import Emission
+from navigate.core.nodes.fuel import Fuel
+from navigate.core.nodes.levy import Levy
+from navigate.policy.emission_coefficient import (
+    _assign_levy_emission_coefficients,
+    _average_effective_lhv_over_converters,
+    _average_wtt_over_ports,
+    _converter_weights,
+)
 
 # ---------------------------------------------------------------------------
 # Shared fixtures
@@ -138,3 +151,104 @@ class TestInfiniteSupplyRegime:
 
         # t=0: infinite regime, only port a counts; t=1: supply-weighted
         assert result == pytest.approx([0.6, -0.9])
+
+
+# ---------------------------------------------------------------------------
+# 4. Effective heating value of a levy
+# ---------------------------------------------------------------------------
+
+# the ammonia converters weigh 15 / 0.5 = 30 MW and 4 / 0.4 = 10 MW; the oil
+# converter cannot burn ammonia and carries no weight
+AMMONIA_LHV = 50.0
+MAIN_SLIP = 0.02
+AUXILIARY_SLIP = 0.1
+
+
+def _make_converter(name, fuel_type, power, efficiency, slip):
+    converter = Converter(name)
+    converter.set_power_capacity(power)
+    converter.set_main_fuel_types(fuel_type)
+    converter.set_efficiency(efficiency)
+    converter.initialize_dependencies({})
+    converter.set_slip_fraction(fuel_type, slip)
+    converter.initialize()
+    return converter
+
+
+def _make_ammonia():
+    fuel = Fuel("ammonia")
+    fuel.set_fuel_type("AMMONIA")
+    fuel.set_lower_heating_value(AMMONIA_LHV)
+    return fuel
+
+
+def _make_vessel(fuel, main_slip, auxiliary_slip, port):
+    vessel = MagicMock()
+    vessel.name = "vessel"
+    vessel.usable_fuels = {fuel.name: fuel}
+    vessel.route.ports = [port]
+    vessel.power_system.get_converters.return_value = [
+        _make_converter("main", "AMMONIA", 15.0, 0.5, main_slip),
+        _make_converter("auxiliary", "AMMONIA", 4.0, 0.4, auxiliary_slip),
+        _make_converter("boiler", "OIL", 100.0, 0.5, 0.0),
+    ]
+    return vessel
+
+
+class TestEffectiveHeatingValue:
+    def test_effective_lhv_is_the_weighted_average_over_burning_converters(self):
+        fuel = _make_ammonia()
+        vessel = _make_vessel(fuel, MAIN_SLIP, AUXILIARY_SLIP, MagicMock())
+
+        weights = _converter_weights(vessel, fuel)
+        result = _average_effective_lhv_over_converters(weights, fuel)
+
+        # (30 * 0.98 * 50 + 10 * 0.9 * 50) / 40 = (1470 + 450) / 40 = 48
+        assert result == pytest.approx(48.0)
+
+    def test_no_weighted_converter_falls_back_to_the_lhv(self):
+        fuel = _make_ammonia()
+
+        result = _average_effective_lhv_over_converters([], fuel)
+
+        assert result == pytest.approx(AMMONIA_LHV)
+
+    @pytest.mark.parametrize(
+        ("main_slip", "auxiliary_slip", "expected"),
+        [
+            # effective LHV 48: 2.4 / 48 * 1000 = 50 g/MJ, 30 above the
+            # threshold, back to 30 * 48 / 1000 = 1.44 t/t
+            (MAIN_SLIP, AUXILIARY_SLIP, 1.44),
+            # no slip, the raw LHV 50: 2.4 / 50 * 1000 = 48 g/MJ, 28 above
+            # the threshold, back to 28 * 50 / 1000 = 1.4 t/t
+            (0.0, 0.0, 1.4),
+        ],
+        ids=["slip", "no_slip"],
+    )
+    def test_levy_threshold_is_measured_on_the_effective_lhv(
+        self, main_slip, auxiliary_slip, expected
+    ):
+        fuel = _make_ammonia()
+        emission = Emission("carbon_dioxide")
+        port = MagicMock()
+        port.name = "port"
+        port.is_bunkering_allowed.return_value = True
+        vessel = _make_vessel(fuel, main_slip, auxiliary_slip, port)
+
+        levy = Levy("levy")
+        levy.set_scheme("PENALTY")
+        levy.set_lower_threshold(20.0)
+        levy.fuels = [fuel]
+        levy.emissions = [emission]
+        levy.jurisdiction = [port]
+        levy.expectation.initialize(1, [emission.name])
+        levy.expectation.set_ttw_consumption(
+            0, (vessel.name, fuel.name, emission.name), 2.4
+        )
+
+        _assign_levy_emission_coefficients(levy, {vessel.name: vessel}, 0)
+
+        result = levy.expectation.get_coefficient(
+            (vessel.name, port.name, fuel.name), 0
+        )
+        assert result == pytest.approx(expected)
