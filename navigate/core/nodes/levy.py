@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.vessel import Vessel
     from navigate.core.types_ import ForecastArgument, ForecastInput
-    from navigate.util import FloatArray
+    from navigate.util import DateArray, FloatArray
 
 
 class Levy(_Policy):
@@ -126,19 +126,6 @@ class Levy(_Policy):
         )
 
     # internal methods -----------------------------------------------------------------
-    def check_consistency(self) -> None:
-        super().check_consistency()
-
-        if self.upper_threshold is not None:
-            upper = self.upper_threshold.get()
-            lower = self.lower_threshold.get()
-            # a Forecast answers nan until the first time step, so
-            # the check only applies to thresholds known up front
-            if not np.isnan(upper) and not np.isnan(lower) and upper < lower:
-                raise ValueError(
-                    f"{self}: 'UpperThreshold' must be >= 'LowerThreshold'."
-                )
-
     def initialize_dependencies(self, vessels: dict[str, Vessel]) -> None:
         """
         Initialize dependent dictionaries to allow wildcarding during command calls.
@@ -155,6 +142,20 @@ class Levy(_Policy):
 
     def initialize_profile(self, timeline: FloatArray) -> None:
         self.profile.initialize(timeline)
+
+    def check_dynamic_consistency(self, times: FloatArray, dates: DateArray) -> None:
+        super().check_dynamic_consistency(times, dates)
+
+        if self.upper_threshold is not None:
+            lower = self.lower_threshold.get(times)
+            upper = self.upper_threshold.get(times)
+            crossed = np.flatnonzero(upper < lower)
+            if crossed.size:
+                i = crossed[0]
+                raise ValueError(
+                    f"{self}: 'UpperThreshold' must be >= 'LowerThreshold', but is "
+                    f"below it from {dates[i]} on."
+                )
 
     def calculate_expectation(
         self,

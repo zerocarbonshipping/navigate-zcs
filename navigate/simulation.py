@@ -230,6 +230,11 @@ class SimulationManager:
         # progress of simulation
         print(f"Date: {self._date}")
 
+        # raise where a node's time-varying
+        # attributes contradict each other
+        # anywhere over the remaining timeline
+        self._check_dynamic_consistency()
+
         # temporal calculators are have time
         # assigned or precalculated value for
         # convenience to allow direct access
@@ -371,6 +376,13 @@ class SimulationManager:
         self.profile.set_total_time(
             self._idx, timeit.default_timer() - self._computational_time
         )
+
+    def _check_dynamic_consistency(self):
+        """Raise where a node's time-varying attributes contradict each other."""
+        for node in self.nodes.all_nodes():
+            node.check_dynamic_consistency(
+                self.timeline[self._idx :], self.dateline[self._idx :]
+            )
 
     def _pre_assign_temporal(self):
         """Precalculate forecasts and assign time to timetables."""
