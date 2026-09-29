@@ -67,6 +67,13 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   replacement schedule itself instead of leaving it to a follow-up
   `compute_overlap_schedule`. Simulation results are unchanged.
 - **Breaking** for code importing navigate as a library:
+  `navigate.economics.flows.timeline_to_yearly`'s first parameter is renamed
+  from `asset` to `vessel`, and it takes a vessel only.
+  `navigate.economics.flows.correct_flow_residual(lifetime, *costs)` becomes
+  `correct_flow_residual(lifetime, cost)`, correcting a single cost flow in
+  place. `navigate.economics.decision.softmax` takes a float array and no
+  longer converts a list. Simulation results are unchanged.
+- **Breaking** for code importing navigate as a library:
   `navigate.core.wrap.WrappedAssignment` is gone and
   `navigate.core.wrap.Assignment` moves to `navigate.core.assign.Assignment`.
   `as_scalar` is typed to take a float, a calculator or an expression, no
