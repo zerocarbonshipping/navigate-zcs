@@ -267,9 +267,6 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   time step of the bunkering expectation instead of holding the value cached
   at the current one; a time-varying threshold no longer freezes at today's
   value for the rest of the run.
-- A `Levy` whose `UpperThreshold` falls below `LowerThreshold` at a future
-  time step now stops the run with an error naming the levy and the time,
-  instead of silently turning a penalty into a subsidy.
 
 ## [1.0.0] - 2026-07-16
 

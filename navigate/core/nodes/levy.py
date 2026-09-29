@@ -166,20 +166,6 @@ class Levy(_Policy):
 
         times = timeline[idx:]
 
-        if self.upper_threshold is not None:
-            lower = self.lower_threshold.get(times)
-            upper = self.upper_threshold.get(times)
-            crossed = upper < lower
-
-            # a time-varying threshold can cross only at a future step, past
-            # what check_consistency sees of the cached current value
-            if np.any(crossed):
-                first_time = times[np.argmax(crossed)]
-                raise ValueError(
-                    f"{self}: 'UpperThreshold' must be >= 'LowerThreshold' at time"
-                    f" {round(first_time, 0)} days."
-                )
-
         self.expectation.set_level(idx, self.level.get(times))
 
         self._calculate_policy_expectations(
