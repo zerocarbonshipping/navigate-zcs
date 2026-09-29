@@ -68,7 +68,7 @@ This attribute sets the maximum iterations of the fair-share sequential LP of th
 
 ### FairShareTolerance
 
-This attribute sets the fair-share tolerance of the bunker algorithm. The fair share tolerance is the tolerance related to how ‘fair’ the solution must be to be considered ‘fair’. Setting this to zero is not recommended due to potential numerical instability issues.
+This attribute sets the fair-share tolerance of the bunker algorithm. The fair share tolerance is the tolerance related to how ‘fair’ the solution must be to be considered ‘fair’. It must be greater than zero; a very small tolerance can make the fair-share iteration numerically unstable.
 
 * **Data type**: `Float`
 * **Example value**: `1e-2`
