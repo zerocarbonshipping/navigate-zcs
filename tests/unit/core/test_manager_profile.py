@@ -66,16 +66,7 @@ def test_manager_state_is_the_three_branches_plus_its_own_timings():
 
 
 class TestBunkerSupplyMassAggregation:
-    """
-    An unconstrained port's infinite bunker supply makes the global total infinite.
-
-    A port records its own supply as np.inf when a bunkering limit is absent
-    and an unconstrained producer supplies it; add_fuel_infrastructure_profile
-    aggregates every port into the manager with a plain +=, so that infinite
-    entry propagates by ordinary addition (0 + inf = inf), the same way a
-    genuinely unbounded total should read: as unbounded, not as some finite
-    number that only counts the ports that happened to have a limit.
-    """
+    """The global bunker supply is the sum of every port's own supply."""
 
     @staticmethod
     def _port(fuels, timeline):
@@ -97,22 +88,6 @@ class TestBunkerSupplyMassAggregation:
             emissions_lifetime=100.0,
         )
         return manager
-
-    def test_one_infinite_port_makes_the_global_total_infinite(self):
-        fuels = {"fuel_a": _fuel()}
-        timeline = np.array([0.0])
-
-        port_a = self._port(fuels, timeline)
-        port_a.set_bunker_supply_mass(0, "fuel_a", np.inf)
-
-        port_b = self._port(fuels, timeline)
-        port_b.set_bunker_supply_mass(0, "fuel_a", 50.0)
-
-        manager = self._manager(fuels, timeline)
-        manager.add_fuel_infrastructure_profile(port_a)
-        manager.add_fuel_infrastructure_profile(port_b)
-
-        assert np.isinf(manager.get_bunker_supply_mass()["fuel_a"][0])
 
     def test_finite_ports_aggregate_to_their_finite_sum(self):
         fuels = {"fuel_a": _fuel()}

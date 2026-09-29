@@ -689,8 +689,8 @@ def _average_wtt_over_ports(
     may change over time (e.g. plants coming online). Ports without supply of
     the fuel carry no weight; otherwise they would dilute the average with a
     bunker WTT of 0 even though no fuel can be bunkered there. At time-steps
-    where one or more ports have an infinite supply (e.g. unconstrained
-    producers or liquid-market fuels) those ports dominate the market and are
+    where one or more ports have an infinite supply (a liquid-market fuel at a
+    port with no bunkering limit) those ports dominate the market and are
     weighted equally, ignoring the finite-supply ports.
 
     Where no port has supply above tolerance the result is 0. This is harmless:

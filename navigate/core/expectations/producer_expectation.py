@@ -62,7 +62,7 @@ class ProducerExpectation(_Expectation):
         self._pipeline_feed = self._default_dict_float(feeds)
         self._feed_gap = self._default_dict_array(feeds, default=np.inf)
 
-        self._development_potential = self._default_dict_float(fuels, default=np.inf)
+        self._development_potential = self._default_dict_float(fuels)
 
         self._fair_share_demand = self._default_dict_array(fuels)
 
