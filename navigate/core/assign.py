@@ -134,9 +134,9 @@ def assign_value[T: Assignment](
     upper: float = np.inf,
     *,
     allow_scalar: bool = True,
+    allow_expression: bool = True,
     inclusive_lower: bool = True,
     inclusive_upper: bool = True,
-    allow_expression: bool = True,
 ) -> T:
     """
     Check whether a value assigned to an attribute satisfies its requirements.
@@ -159,12 +159,12 @@ def assign_value[T: Assignment](
         Upper bound.
     allow_scalar
         Whether the setter accepts scalars.
+    allow_expression
+        Whether the setter accepts expressions.
     inclusive_lower
         Lower bound is inclusive.
     inclusive_upper
         Upper bound is inclusive.
-    allow_expression
-        Whether the setter accepts expressions.
 
     Returns
     -------
@@ -214,9 +214,9 @@ def assign_list[T: Assignment](
     lower: float = -np.inf,
     upper: float = np.inf,
     *,
+    allow_expression: bool = True,
     inclusive_lower: bool = True,
     inclusive_upper: bool = True,
-    allow_expression: bool = True,
 ) -> list[T]:
     """
     Check whether a value assigned to an attribute satisfies its requirements.
@@ -238,12 +238,12 @@ def assign_list[T: Assignment](
         Lower bound.
     upper
         Upper bound.
+    allow_expression
+        Whether the setter accepts expressions.
     inclusive_lower
         Lower bound is inclusive.
     inclusive_upper
         Upper bound is inclusive.
-    allow_expression
-        Whether the setter accepts expressions.
 
     Returns
     -------
@@ -258,9 +258,9 @@ def assign_list[T: Assignment](
             type_=type_,
             lower=lower,
             upper=upper,
+            allow_expression=allow_expression,
             inclusive_lower=inclusive_lower,
             inclusive_upper=inclusive_upper,
-            allow_expression=allow_expression,
         )
 
     return assignment
