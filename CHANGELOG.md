@@ -99,18 +99,24 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   and `set_fuel_distance` on `Plant`, priced at the region's
   `set_transport_cost`/`set_transport_wtt`. The examples lose their flat
   transport costs.
-- The `-e/--export-assumptions` CLI flag.
+- The `-e`/`--export-assumptions` CLI flag.
 - The `SharedThreshold` attribute of `Regulation`; write
   `set_vessel_threshold("*", <value>)`. The `SharedThreshold` report property
   remains, as the fleet-level effective target of a `FLEXIBLE` regulation.
 - The `CumulativeIntensityEquivalent*` and
   `CumulativeIntensityTotalEquivalent*` report properties.
-- Unused profile report properties, such as the volume-denominated and
-  non-GWP-equivalent ones; `docs/reference_manual/report.md` lists the rest.
+- Unused profile report properties:
+  - volume-denominated output, FuelType mass aggregation, fuel-quantity
+    cumulatives and non-GWP-equivalent emission variants;
+  - plant Ttw/Wtw and capacity, production and feed output;
+  - producer capacity, pipeline and source output;
+  - vessel Opex and activity output, policy emission factors, port bunker
+    Wtw, fleet scrap-age statistics and the levy level.
 - The `producer_changes` plot.
 - The debug plots `fuel_supply_demand_expectation`, `fleet_newbuild_sources`,
-  `fleet_fuel_conversion_sources` and `technology_install_sources`, with the
-  `InertiaNewbuilds` and `ModelledNewbuilds` report properties.
+  `fleet_fuel_conversion_sources`, `fleet_fuel_conversion_sources_normalized`,
+  `technology_install_sources` and `technology_install_sources_normalized`,
+  with the `InertiaNewbuilds` and `ModelledNewbuilds` report properties.
 - The belief fan in the `regulation_flexibility_cost` plot.
 - The `fleet_orderbook` plot and the `PrimaryScrap`, `SecondaryScrap` and
   `OrderbookNewbuilds` report properties; `Scrap` and `Newbuilds` remain.

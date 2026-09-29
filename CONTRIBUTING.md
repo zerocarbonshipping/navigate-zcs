@@ -67,8 +67,9 @@ lint, CI, `make` and tooling changes get none either, and neither does a
 results-neutral change with no DSL or output effect. A pull request without
 an entry says so in its description.
 
-An entry is one to three lines. It states what the user sees and, for a
-rename or removal, what to write instead, and it ends with the issue number
+An entry is one to three lines; related entries may share one bullet with a
+sub-list, each item one to three lines. It states what the user sees and, for
+a rename or removal, what to write instead, and it ends with the issue number
 if there is one. It carries no "Breaking" label: Navigate does not keep
 backwards compatibility, and a release may break old decks. How the change
 works belongs in the pull request, not the changelog.
