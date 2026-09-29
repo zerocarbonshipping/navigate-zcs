@@ -260,6 +260,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `only allows assignment of METHANE, OIL, but got AMMONIA`.
 - `set_consumption_ttw` accepts a wildcard emission name, such as
   `set_consumption_ttw(OIL, "*", 0.001)`, which it rejected.
+- A producer's expected production has pipeline plants enter, and plants at
+  the end of their lifetime leave, spread over a time-step, as delivery and
+  decommissioning do, where it moved each batch at once. Results change.
 - A `Levy`'s `LowerThreshold` and `UpperThreshold` are read at every future
   time step of the bunkering expectation instead of holding the value cached
   at the current one; a time-varying threshold no longer freezes at today's
