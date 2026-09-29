@@ -26,13 +26,19 @@ class _FuelInfrastructureProfile(_FuelEmissionProfile):
         self._bunker_supply_mass: dict[str, FloatArray] = {}
         self._bunkering_limit_mass: dict[str, FloatArray] = {}
 
-    def _initialize_fuel_infrastructure(self, fuels: dict[str, Fuel]) -> None:
+    def _initialize_fuel_infrastructure(
+        self, fuels: dict[str, Fuel], bunker_supply_mass_default: float = np.nan
+    ) -> None:
         self._bunker_mass = self._default_dict(fuels)
         self._bunkering_limit_mass = self._default_dict(fuels, default=np.nan)
 
-        # a fuel whose supply is not written this time-step, liquid market or
-        # not, has none to report rather than zero
-        self._bunker_supply_mass = self._default_dict(fuels, default=np.nan)
+        # a port's own fuel supply is not written this time-step, liquid market
+        # or not, has none to report rather than zero; ManagerProfile passes 0
+        # instead, since its array is a running sum across ports and needs the
+        # additive identity, not the "nothing reported" sentinel
+        self._bunker_supply_mass = self._default_dict(
+            fuels, default=bunker_supply_mass_default
+        )
 
     def add_fuel_infrastructure_profile(
         self, profile: _FuelInfrastructureProfile, idx: int | slice = np.s_[:]
@@ -50,6 +56,9 @@ class _FuelInfrastructureProfile(_FuelEmissionProfile):
         for fuel_name in self._bunker_mass:
             self._bunker_mass[fuel_name][idx] += profile._bunker_mass[fuel_name][idx]
 
+        # a port with no reported supply (unconstrained that step) carries
+        # NaN, which deliberately propagates into the total: a finite total
+        # would understate a true supply that is actually unbounded
         for fuel_name in self._bunker_supply_mass:
             self._bunker_supply_mass[fuel_name][idx] += profile._bunker_supply_mass[
                 fuel_name

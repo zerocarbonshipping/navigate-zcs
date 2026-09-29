@@ -71,7 +71,12 @@ class ManagerProfile(
         self._initialize_fuel_emission(emissions, emissions_lifetime)
         self._initialize_fuel_consumer(fuels, emissions, regulation_names, levy_names)
         self._initialize_fuel_producer(feedstocks, fuels, processes)
-        self._initialize_fuel_infrastructure(fuels)
+
+        # the manager's bunker-supply-mass is a running sum across every
+        # port's own value, added in add_fuel_infrastructure_profile; it
+        # starts at the additive identity rather than at "nothing reported"
+        self._initialize_fuel_infrastructure(fuels, bunker_supply_mass_default=0.0)
+
         self._initialize_vessel_aggregate()
         self._initialize_plant_aggregate()
 
