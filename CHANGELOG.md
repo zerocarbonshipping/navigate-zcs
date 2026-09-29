@@ -1328,6 +1328,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   computes, so assigning it under, for example, INDIVIDUAL was silently
   ignored. It stays ignored; the value a FLEXIBLE regulation gets when the
   attribute is unset is unchanged, so no result moves.
+- The `BunkerOptions` reference-manual page now states the defaults the code
+  uses for `FairShareMaximumIterations` (50) and `FairShareTolerance` (1e-1),
+  types `Threads` as an `Integer`, and marks the `SolutionTolerance` and
+  `FairShareTolerance` minimums exclusive of 0, matching their setters.
 
 ## [1.0.0] - 2026-07-16
 
