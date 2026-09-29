@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from navigate.core.nodes.vessel import Vessel
 
 from navigate.bunker.utils import get_converters
-from navigate.core.enum_ import BunkerScopeID, RegulationMeasureID
+from navigate.core.enum_ import RegulationMeasureID
 from navigate.core.unit import TON_TO_KG
 
 
@@ -158,7 +158,6 @@ def calculate_regulation_coefficients(alg: BunkerAlgorithm, vessel: Vessel) -> N
     active_regulations = alg.active_regulations
     effective_lhv = alg.effective_lhv
     fuels_per_converter = alg.fuels_per_converter
-    is_expected = alg.scope == BunkerScopeID.EXPECTED
     idx = alg.idx
 
     # evaluate the vessel thresholds once per build; non-policed vessels carry
@@ -174,11 +173,7 @@ def calculate_regulation_coefficients(alg: BunkerAlgorithm, vessel: Vessel) -> N
     alg.regulation_vessel_threshold.update(thresholds)
 
     factors = {
-        (v, c, f, r): (
-            regulation.expectation.get_expected_coefficient((v, c, f), idx)
-            if is_expected
-            else regulation.expectation.get_existing_coefficient((v, c, f), idx)
-        )
+        (v, c, f, r): regulation.expectation.get_coefficient((v, c, f), idx)
         for c in get_converters(vessel)
         for f in fuels_per_converter[v, c]
         for r, regulation in active_regulations.items()
@@ -247,18 +242,13 @@ def calculate_levy_coefficients(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     v = vessel.name
     ports = vessel.route.ports
     port_levies = alg.port_levies
-    is_expected = alg.scope == BunkerScopeID.EXPECTED
     idx = alg.idx
     usable_fuels = vessel.usable_fuels
 
     alg.cost_levy.update(
         {
             (v, port.name, f, levy.name): levy.expectation.get_level(idx)
-            * (
-                levy.expectation.get_expected_coefficient((v, port.name, f), idx)
-                if is_expected
-                else levy.expectation.get_existing_coefficient((v, port.name, f), idx)
-            )
+            * levy.expectation.get_coefficient((v, port.name, f), idx)
             for port in ports
             for levy in port_levies[port.name]
             for f in usable_fuels
