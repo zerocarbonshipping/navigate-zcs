@@ -84,8 +84,8 @@ from navigate.bunker.variables import (
     update_regulation_variables,
     update_vessel_variables,
 )
+from navigate.core import get_fuels_per_fuel_type
 from navigate.core.enum_ import BunkerScopeID
-from navigate.fleet.fuel_option import get_fuels_per_fuel_type
 from navigate.logging_ import log_fair_share_convergence
 from navigate.policy import policies_affecting_port
 
@@ -93,6 +93,7 @@ if TYPE_CHECKING:
     import numpy as np
 
     from navigate.core.enum_ import BunkerScopeID as BunkerScopeIDType
+    from navigate.core.enum_ import FuelTypeID
     from navigate.core.general_nodes.bunker_options import BunkerOptions
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.feedstock import Feedstock
@@ -134,7 +135,7 @@ class BunkerAlgorithm:
         # auxiliary
         self.vessels: dict[str, Vessel] = {}
         self.multipliers: dict[str, float] = {}
-        self.fuels_per_fuel_type: dict[str, list[Fuel]] = {}
+        self.fuels_per_fuel_type: dict[FuelTypeID, list[Fuel]] = {}
 
         # static converter-fuel maps, built on the first call to build
         # (see initialize_converter_fuel_maps)

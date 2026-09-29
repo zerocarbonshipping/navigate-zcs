@@ -18,7 +18,8 @@ behavior are documented in `docs/reference_manual/`.
   orchestration: each phase calls a domain entry point.
 - `core/` — the model definition: DSL value infrastructure (assignment
   validation, expressions, tables), the node classes (`core/nodes/`, one per
-  DSL keyword), singleton general nodes, `expectations/` (cross-module
+  DSL keyword), maps between nodes derived from static node attributes
+  (`node_maps.py`), singleton general nodes, `expectations/` (cross-module
   dynamic state) and `profiles/` (end-of-run output containers).
 - `parser/` — reads `.nav`/`.inc` decks into nodes (Lark grammar).
 - `fleet/` — the shipowner domain: voyage physics and energy demand,
@@ -45,7 +46,7 @@ core        → util
 economics   → core, util
 policy      → core, util
 fleet, fuel → core, economics, util
-bunker      → core, policy, util (+ fleet.fuel_option)
+bunker      → core, policy, util
 output      → core, util
 simulation  → everything
 ```

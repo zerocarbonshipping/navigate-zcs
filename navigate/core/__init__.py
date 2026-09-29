@@ -29,5 +29,6 @@ from navigate.core.assign import (
     write_matching_keys,
 )
 from navigate.core.expression import Expression
+from navigate.core.node_maps import get_fuels_per_fuel_type
 from navigate.core.scalar import Scalar
 from navigate.core.wrap import as_list, as_scalar

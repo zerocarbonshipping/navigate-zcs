@@ -23,29 +23,6 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-def get_fuels_per_fuel_type(fuels: dict[str, Fuel]) -> dict[FuelTypeID, list[Fuel]]:
-    """
-    Create a dict of all fuels available for bunkering for each fuel type.
-
-    Parameters
-    ----------
-    fuels
-        All fuels in the simulation, keyed by name.
-
-    Returns
-    -------
-    Dictionary of bunker fuels linked to a given fuel type.
-    """
-    # construct dict of fuels per fuel types
-    fuel_per_fuel_type = {id_: [] for id_ in FuelTypeID}
-
-    for fuel in fuels.values():
-        fuel_type = fuel.fuel_type
-        fuel_per_fuel_type[fuel_type].append(fuel)
-
-    return fuel_per_fuel_type
-
-
 def determine_fuel_type(vessel: Vessel) -> None:
     """
     Determine a vessel's representative fuel type.

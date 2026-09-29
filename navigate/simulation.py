@@ -9,6 +9,7 @@ import timeit
 from typing import TYPE_CHECKING
 
 from navigate.bunker import BunkerAlgorithm, calculate_fair_share_fuel_supply
+from navigate.core import get_fuels_per_fuel_type
 from navigate.core.enum_ import BunkerScopeID
 from navigate.core.profiles import ManagerProfile
 from navigate.fleet import (
@@ -20,7 +21,6 @@ from navigate.fleet import (
     determine_fuel_type,
     determine_usable_fuel_types,
     determine_usable_fuels,
-    get_fuels_per_fuel_type,
     initialize_existing_fleet,
     perform_fleet_evolution,
     perform_speed_management,
