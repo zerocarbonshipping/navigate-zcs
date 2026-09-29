@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Smoothed flexibility-cost beliefs of flexible regulations."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -9,11 +11,16 @@ from navigate.core.enum_ import RegulationSchemeID
 from navigate.util import derive_smoothing_alpha, update_belief_path
 
 if TYPE_CHECKING:
-    import numpy as np
+    from navigate.core.nodes.regulation import Regulation
+    from navigate.core.nodes.vessel import Vessel
+    from navigate.util.types_ import FloatArray
 
 
 def update_regulation_flexibility_beliefs(
-    regulations: dict, vessels: dict, timeline: np.ndarray, idx: int
+    regulations: dict[str, Regulation],
+    vessels: dict[str, Vessel],
+    timeline: FloatArray,
+    idx: int,
 ) -> None:
     """
     Update flexibility cost belief and apply expected expenses for flexible regulations.

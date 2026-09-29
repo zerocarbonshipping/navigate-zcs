@@ -88,11 +88,6 @@ class Forecast(Node, _Table1D):
     @overload
     def get(self, x: float | None = None, y: FloatLike | None = None) -> float: ...
 
-    @overload
-    def get(
-        self, x: FloatLike | None = None, y: FloatLike | None = None
-    ) -> FloatLike: ...
-
     def get(self, x: FloatLike | None = None, y: FloatLike | None = None) -> FloatLike:
         """
         Return the forecast value: recalculated at ``x`` if given, else cached.
