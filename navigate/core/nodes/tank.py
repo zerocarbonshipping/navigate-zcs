@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from navigate.core import as_list, as_scalar, assign_id_list, assign_value
+from navigate.core import as_scalar, assign_id_list, assign_value
 from navigate.core.enum_ import FuelTypeID
 from navigate.core.node_type import TANK, VARIABLE
 from navigate.core.nodes._machinery import _Machinery
@@ -27,7 +27,7 @@ class Tank(_Machinery):
         self.size: ScalarInput
 
     # external methods (DSL attributes) ------------------------------------------------
-    def set_fuel_types(self, fuel_types: list[str]) -> None:
+    def set_fuel_types(self, fuel_types: str | list[str]) -> None:
         """
         Set the fuel types that can be stored in the tank.
 
@@ -40,11 +40,9 @@ class Tank(_Machinery):
         Parameters
         ----------
         fuel_types
-            List of fuel types which can be stored in the tank.
+            Fuel type or list of fuel types which can be stored in the tank.
         """
-        self.fuel_types = assign_id_list(
-            as_list(fuel_types), FuelTypeID, length=(1, None)
-        )
+        self.fuel_types = assign_id_list(fuel_types, FuelTypeID, min_length=1)
 
     def set_size(self, size: ScalarArgument) -> None:
         """

@@ -9,7 +9,6 @@ from typing import TYPE_CHECKING
 
 from navigate.core import (
     Scalar,
-    as_list,
     as_scalar,
     assign_id,
     assign_id_list,
@@ -93,7 +92,7 @@ class Converter(_Machinery):
             as_scalar(minimum_load), type_=VARIABLE, lower=0.0, upper=1.0
         )
 
-    def set_main_fuel_types(self, main_fuel_types: list[str]) -> None:
+    def set_main_fuel_types(self, main_fuel_types: str | list[str]) -> None:
         """
         Set the main fuel types of the converter.
 
@@ -105,13 +104,11 @@ class Converter(_Machinery):
         Parameters
         ----------
         main_fuel_types
-            List of main fuel types of the converter.
+            Main fuel type or list of main fuel types of the converter.
         """
-        self.main_fuel_types = assign_id_list(
-            as_list(main_fuel_types), FuelTypeID, length=(1, None)
-        )
+        self.main_fuel_types = assign_id_list(main_fuel_types, FuelTypeID, min_length=1)
 
-    def set_pilot_fuel_types(self, pilot_fuel_types: list[str]) -> None:
+    def set_pilot_fuel_types(self, pilot_fuel_types: str | list[str]) -> None:
         """
         Set the pilot fuel types of the converter.
 
@@ -123,10 +120,10 @@ class Converter(_Machinery):
         Parameters
         ----------
         pilot_fuel_types
-            List of pilot fuel types of the converter.
+            Pilot fuel type or list of pilot fuel types of the converter.
         """
         self.pilot_fuel_types = assign_id_list(
-            as_list(pilot_fuel_types), FuelTypeID, length=(1, None)
+            pilot_fuel_types, FuelTypeID, min_length=1
         )
 
     def set_minimum_pilot_fuel(self, minimum_pilot_fuel: ForecastArgument) -> None:

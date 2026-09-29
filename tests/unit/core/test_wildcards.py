@@ -80,8 +80,8 @@ class TestAssignIdListWildcard:
         assert FuelTypeID.METHANOL in result
 
     def test_length_check_after_expansion(self):
-        with pytest.raises(ValueError, match="must contain exactly"):
-            assign_id_list(["*"], FuelTypeID, length=2)
+        result = assign_id_list(["M*"], FuelTypeID, min_length=2)
+        assert {FuelTypeID.METHANE, FuelTypeID.METHANOL} <= set(result)
 
     def test_no_wildcard_unchanged(self):
         result = assign_id_list(["HYDROGEN"], FuelTypeID)

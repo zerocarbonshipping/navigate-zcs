@@ -39,9 +39,6 @@ if TYPE_CHECKING:
 _BOOL_ID = {"FALSE": False, "TRUE": True}
 _BOUND_ID = {"-INF": -np.inf, "INF": np.inf}
 
-# an exact length, or a lower and an upper bound either of which may be open
-type ListLength = int | tuple[int | None, int | None] | None
-
 # everything a validator may be handed for a single-valued attribute read
 # through a getter: a bare float, or a value that already answers a getter.
 # An attribute holding a node reference is typed by its node class instead.
@@ -209,7 +206,7 @@ def assign_value[T: Assignment](
 
 def assign_list[T: Assignment](
     assignment: list[T],
-    length: ListLength = None,
+    min_length: int = 0,
     type_: AcceptedNodeTypes | None = None,
     lower: float = -np.inf,
     upper: float = np.inf,
@@ -229,9 +226,8 @@ def assign_list[T: Assignment](
     ----------
     assignment
         List of values passed to the setter.
-    length
-        Exact length the list should have or lower and upper bound. ``None``
-        makes no check; an integer, ``0`` included, is an exact length.
+    min_length
+        Fewest values the list may contain.
     type_
         The calculator type(s) the attribute accepts.
     lower
@@ -250,7 +246,7 @@ def assign_list[T: Assignment](
     list[Assignment]
         The list that was passed, so a setter assigns what it validated.
     """
-    _check_list_length(assignment, length)
+    _check_list_length(assignment, min_length)
 
     for value in assignment:
         assign_value(
@@ -491,25 +487,26 @@ def expand_id_wildcard[E: Enum](
 
 
 def assign_id_list[E: Enum](
-    assignment: list[str],
+    assignment: str | list[str],
     id_enum: type[E],
-    length: ListLength = None,
+    min_length: int = 0,
 ) -> list[E]:
     """
     Check whether an assigned ID satisfies an attribute's requirements.
 
-    Only applicable to attributes requiring a list of values. Supports wildcard
-    patterns which are expanded before the length check.
+    Only applicable to attributes requiring a list of values. A deck may give a
+    single ID where the attribute takes a list, so a bare ID is accepted and
+    wrapped in a list. Supports wildcard patterns which are expanded before the
+    length check.
 
     Parameters
     ----------
     assignment
-        List of values passed to the setter.
+        ID or list of IDs passed to the setter.
     id_enum
         Enum class the assigned name is looked up in.
-    length
-        Exact length the list should have or lower and upper bound. ``None``
-        makes no check; an integer, ``0`` included, is an exact length.
+    min_length
+        Fewest members the list may contain once wildcards are expanded.
 
     Returns
     -------
@@ -517,13 +514,13 @@ def assign_id_list[E: Enum](
         The members the assigned IDs name, with wildcards expanded.
     """
     expanded = []
-    for value in assignment:
+    for value in as_list(assignment):
         if isinstance(value, str) and name_contains_wildcards(value):
             expanded.extend(expand_id_wildcard(value, id_enum))
         else:
             expanded.append(assign_id(value, id_enum))
 
-    _check_list_length(expanded, length)
+    _check_list_length(expanded, min_length)
     return expanded
 
 
@@ -856,31 +853,19 @@ def _check_scalar(
         raise ValueError(f"must be < {upper}, but got {value}")
 
 
-def _check_list_length(assignment: Sized, length: ListLength) -> None:
+def _check_list_length(assignment: Sized, min_length: int) -> None:
     """
-    Validate a list's length against an exact length or a lower and upper bound.
+    Validate that a list contains at least a minimum number of values.
 
     Parameters
     ----------
     assignment
         The list whose length is checked.
-    length
-        Exact length, or lower and upper bound. ``None`` makes no check; an
-        integer, ``0`` included, is an exact length.
+    min_length
+        Fewest values the list may contain.
     """
-    if length is None:
-        return
-
-    if isinstance(length, tuple):
-        lower, upper = length
-
-        if (lower is not None) and (len(assignment) < lower):
-            raise ValueError(f"List must contain at least {lower} values.")
-
-        if (upper is not None) and (len(assignment) > upper):
-            raise ValueError(f"List must contain at most {upper} values.")
-    elif len(assignment) != length:
-        raise ValueError(f"List must contain exactly {length} values.")
+    if len(assignment) < min_length:
+        raise ValueError(f"List must contain at least {min_length} values.")
 
 
 def _check_list_is_unique(assignment: Sequence[Node]) -> None:

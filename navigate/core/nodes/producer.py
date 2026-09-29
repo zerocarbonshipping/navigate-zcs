@@ -93,7 +93,7 @@ class Producer(_AssetManager[Plant]):
         self.current_utilization: float | None = None
 
     # external methods (DSL attributes) ------------------------------------------------
-    def set_plants(self, plants: list[Plant]) -> None:
+    def set_plants(self, plants: Plant | list[Plant]) -> None:
         """
         Set the list of plant types that can be built.
 
@@ -105,7 +105,7 @@ class Producer(_AssetManager[Plant]):
         Parameters
         ----------
         plants
-            The list of plants that can be built.
+            Plant or list of plants that can be built.
         """
         self.assets = assign_reference_list(plants, PLANT, unique=True)
 
@@ -185,7 +185,9 @@ class Producer(_AssetManager[Plant]):
             inclusive_lower=False,
         )
 
-    def set_initial_capacity(self, initial_capacity: list[ScalarArgument]) -> None:
+    def set_initial_capacity(
+        self, initial_capacity: ScalarArgument | list[ScalarArgument]
+    ) -> None:
         """
         Set the list of initial capacity for each plant type in tons/day.
 
@@ -198,7 +200,7 @@ class Producer(_AssetManager[Plant]):
         Parameters
         ----------
         initial_capacity
-            List of initial production in tons/day.
+            Initial production or list of initial productions in tons/day.
         """
         entries: list[ScalarArgument] = as_list(initial_capacity)
         self._initial_capacity = assign_list(

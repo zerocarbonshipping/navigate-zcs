@@ -552,24 +552,27 @@ class TestAssignValue:
 
 class TestAssignList:
     @pytest.mark.parametrize(
-        ("assignment", "length", "message"),
+        ("assignment", "min_length", "message"),
         [
-            ([1.0, 2.0], 3, "must contain exactly 3 values"),
-            ([1.0], (2, None), "must contain at least 2 values"),
-            ([1.0, 2.0, 3.0], (None, 2), "must contain at most 2 values"),
-            ([1.0], 0, "must contain exactly 0 values"),
+            ([1.0, 2.0], 3, "must contain at least 3 values"),
+            ([], 1, "must contain at least 1 values"),
         ],
-        ids=["exact", "lower_bound", "upper_bound", "zero"],
+        ids=["one_short", "empty"],
     )
-    def test_length_violation(self, assignment, length, message):
+    def test_length_violation(self, assignment, min_length, message):
         with pytest.raises(ValueError, match=message):
-            assign_list(assignment, length=length)
+            assign_list(assignment, min_length=min_length)
 
-    def test_default_length_skips_the_check(self):
-        assert assign_list([1.0, 2.0], length=None) == [1.0, 2.0]
+    @pytest.mark.parametrize(
+        ("assignment", "min_length"),
+        [([1.0, 2.0], 2), ([1.0, 2.0, 3.0], 2), ([], 0)],
+        ids=["at_minimum", "above_minimum", "empty_at_zero"],
+    )
+    def test_length_at_or_above_the_minimum_is_accepted(self, assignment, min_length):
+        assert assign_list(assignment, min_length=min_length) == assignment
 
-    def test_zero_length_accepts_an_empty_list(self):
-        assert assign_list([], length=0) == []
+    def test_default_minimum_accepts_an_empty_list(self):
+        assert assign_list([]) == []
 
 
 # ── assign_reference ──────────────────────────────────────────────────────────

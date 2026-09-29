@@ -87,7 +87,7 @@ class _Policy(Node):
         """
         self.active = assign_boolean(active)
 
-    def set_jurisdiction(self, ports: list[Port]) -> None:
+    def set_jurisdiction(self, ports: Port | list[Port]) -> None:
         """
         Set the list of ports that are under the jurisdiction of the policy.
 
@@ -99,11 +99,11 @@ class _Policy(Node):
         Parameters
         ----------
         ports
-            List of Port nodes.
+            Port node or list of Port nodes.
         """
         self.jurisdiction = assign_reference_list(ports, PORT)
 
-    def set_emissions(self, emissions: list[Emission]) -> None:
+    def set_emissions(self, emissions: Emission | list[Emission]) -> None:
         """
         Set the emission(s) targeted by the policy.
 
@@ -116,11 +116,11 @@ class _Policy(Node):
         Parameters
         ----------
         emissions
-            A list of Emission nodes.
+            Emission node or list of Emission nodes.
         """
         self.emissions = assign_reference_list(emissions, EMISSION, unique=True)
 
-    def set_fuels(self, fuels: list[Fuel]) -> None:
+    def set_fuels(self, fuels: Fuel | list[Fuel]) -> None:
         """
         Set the fuel(s) targeted by the policy.
 
@@ -133,7 +133,7 @@ class _Policy(Node):
         Parameters
         ----------
         fuels
-            A list of Fuel nodes.
+            Fuel node or list of Fuel nodes.
         """
         self.fuels = assign_reference_list(fuels, FUEL, unique=True)
 

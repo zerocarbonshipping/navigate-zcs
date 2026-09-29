@@ -122,7 +122,7 @@ class Fleet(_AssetManager[Vessel]):
         self.package_to_technology_map: dict[int, int] = {}
 
     # external methods (DSL attributes) ------------------------------------------------
-    def set_vessels(self, vessels: list[Vessel]) -> None:
+    def set_vessels(self, vessels: Vessel | list[Vessel]) -> None:
         """
         Set the list of vessel types that exists for the fleet.
 
@@ -137,7 +137,7 @@ class Fleet(_AssetManager[Vessel]):
         Parameters
         ----------
         vessels
-            The list of vessel types that exists for the fleet.
+            Vessel type or list of vessel types that exist for the fleet.
         """
         self.assets = assign_reference_list(vessels, VESSEL, unique=True)
 
@@ -269,7 +269,7 @@ class Fleet(_AssetManager[Vessel]):
                 "%s: 'InitialSplit' is rescaled proportionally to sum to 1.", self
             )
 
-    def set_technologies(self, technologies: list[Technology]) -> None:
+    def set_technologies(self, technologies: Technology | list[Technology]) -> None:
         """
         Set the list of energy efficiency technologies that can be installed on vessels.
 
@@ -284,7 +284,7 @@ class Fleet(_AssetManager[Vessel]):
         Parameters
         ----------
         technologies
-            The list of technologies that can be installed on vessels.
+            Technology or list of technologies that can be installed on vessels.
         """
         self.technologies = assign_reference_list(technologies, TECHNOLOGY, unique=True)
 
@@ -457,7 +457,9 @@ class Fleet(_AssetManager[Vessel]):
             as_scalar(retrofit_frequency), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
-    def set_orderbooks(self, orderbooks: list[ForecastArgument]) -> None:
+    def set_orderbooks(
+        self, orderbooks: ForecastArgument | list[ForecastArgument]
+    ) -> None:
         """
         Set the list of orderbooks used to determine newbuild uptake.
 
@@ -471,7 +473,7 @@ class Fleet(_AssetManager[Vessel]):
         Parameters
         ----------
         orderbooks
-            List of orderbooks.
+            Orderbook or list of orderbooks.
         """
         entries: list[ForecastArgument] = as_list(orderbooks)
         self.orderbooks = assign_list(
