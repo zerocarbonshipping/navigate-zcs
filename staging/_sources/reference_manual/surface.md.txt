@@ -43,7 +43,7 @@ Surface "speed_power_draft_surface" {
 
 ### Table
 
-This attribute sets the table of x-, y- and z-values that the surface interpolates in. Both the x-values and the y-values must be strictly increasing, and the number of z-values must equal the number of x-values times the number of y-values. The syntax is described under [Assigning tables](dsl_reference.md#surface).
+This attribute sets the table of x-, y- and z-values that the surface interpolates in. There must be at least two x-values and two y-values, each strictly increasing, and the number of z-values must equal the number of x-values times the number of y-values. The syntax is described under [Assigning tables](dsl_reference.md#surface).
 
 * **Data type**: `Table`
 * **Default**: None. Must be defined by the user.
