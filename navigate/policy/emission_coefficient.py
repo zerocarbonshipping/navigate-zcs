@@ -559,8 +559,10 @@ def _calculate_threshold_adjusted_levy_emission_coefficient(
     """
     Calculate the threshold adjusted levy emission coefficient.
 
-    The thresholds are intensities per GJ of effective energy, (1 - slip) * LHV, so
-    the coefficient is compared with them, and converted back, on that basis.
+    The thresholds are intensities per GJ of effective energy, (1 - slip) * LHV, and
+    are converted to ton emission/ton fuel on that basis before they are applied. A
+    fuel whose converters slip all of it delivers no energy, so its thresholds are
+    zero and its whole coefficient is levied.
 
     Parameters
     ----------
@@ -578,15 +580,15 @@ def _calculate_threshold_adjusted_levy_emission_coefficient(
     """
     scheme = levy.scheme
 
+    intensity_to_coefficient = effective_lhv / TON_PER_GJ_TO_GRAM_PR_MJ
+
     lower_threshold = levy.lower_threshold.get()
     upper_threshold_obj = levy.upper_threshold
     upper_threshold = (
         upper_threshold_obj.get() if upper_threshold_obj is not None else None
     )
 
-    coefficient_ref = (
-        coefficient / effective_lhv * TON_PER_GJ_TO_GRAM_PR_MJ
-    ) - lower_threshold
+    coefficient_ref = coefficient - lower_threshold * intensity_to_coefficient
 
     if scheme == LevySchemeID.PENALTY:
         coefficient_ref = np.maximum(coefficient_ref, 0.0)
@@ -594,9 +596,12 @@ def _calculate_threshold_adjusted_levy_emission_coefficient(
         coefficient_ref = np.minimum(coefficient_ref, 0.0)
 
     if scheme != LevySchemeID.SUBSIDY and upper_threshold is not None:
-        coefficient_ref = np.minimum(coefficient_ref, upper_threshold - lower_threshold)
+        coefficient_ref = np.minimum(
+            coefficient_ref,
+            (upper_threshold - lower_threshold) * intensity_to_coefficient,
+        )
 
-    return coefficient_ref * effective_lhv / TON_PER_GJ_TO_GRAM_PR_MJ
+    return coefficient_ref
 
 
 def _calculate_converter_ttw(
@@ -717,7 +722,8 @@ def _converter_weights(vessel: Vessel, fuel: Fuel) -> list[tuple[Converter, floa
     Weigh the vessel's converters that can burn a fuel by power over efficiency.
 
     Converters that cannot burn the fuel are left out, so they carry no weight in an
-    average over the weights.
+    average over the weights. A converter with zero efficiency delivers no energy and
+    so burns no fuel; it weighs zero.
 
     Parameters
     ----------
@@ -733,11 +739,18 @@ def _converter_weights(vessel: Vessel, fuel: Fuel) -> list[tuple[Converter, floa
     """
     fuel_type = fuel.fuel_type
 
-    return [
-        (converter, converter.power_capacity.get() / converter.efficiency.get())
-        for converter in vessel.power_system.get_converters()
-        if fuel_type in converter.get_fuel_types()
-    ]
+    weights: list[tuple[Converter, float]] = []
+    for converter in vessel.power_system.get_converters():
+        if fuel_type not in converter.get_fuel_types():
+            continue
+
+        power = converter.power_capacity.get()
+        efficiency = converter.efficiency.get()
+        weight = power / efficiency if efficiency > 0.0 else 0.0
+
+        weights.append((converter, weight))
+
+    return weights
 
 
 def _average_ttw_over_converters(

@@ -206,6 +206,20 @@ class TestEffectiveHeatingValue:
         # (30 * 0.98 * 50 + 10 * 0.9 * 50) / 40 = (1470 + 450) / 40 = 48
         assert result == pytest.approx(48.0)
 
+    def test_zero_efficiency_converter_carries_no_weight(self):
+        fuel = _make_ammonia()
+        vessel = MagicMock()
+        vessel.power_system.get_converters.return_value = [
+            _make_converter("main", "AMMONIA", 15.0, 0.5, MAIN_SLIP),
+            _make_converter("idle", "AMMONIA", 4.0, 0.0, AUXILIARY_SLIP),
+        ]
+
+        weights = _converter_weights(vessel, fuel)
+        result = _average_effective_lhv_over_converters(weights, fuel)
+
+        # only the main converter weighs: 0.98 * 50 = 49
+        assert result == pytest.approx(49.0)
+
     def test_no_weighted_converter_falls_back_to_the_lhv(self):
         fuel = _make_ammonia()
 
@@ -222,8 +236,11 @@ class TestEffectiveHeatingValue:
             # no slip, the raw LHV 50: 2.4 / 50 * 1000 = 48 g/MJ, 28 above
             # the threshold, back to 28 * 50 / 1000 = 1.4 t/t
             (0.0, 0.0, 1.4),
+            # full slip, an effective LHV of 0: the fuel delivers no energy, so
+            # the threshold allows nothing and the whole 2.4 t/t is levied
+            (1.0, 1.0, 2.4),
         ],
-        ids=["slip", "no_slip"],
+        ids=["slip", "no_slip", "full_slip"],
     )
     def test_levy_threshold_is_measured_on_the_effective_lhv(
         self, main_slip, auxiliary_slip, expected
@@ -251,4 +268,5 @@ class TestEffectiveHeatingValue:
         result = levy.expectation.get_coefficient(
             (vessel.name, port.name, fuel.name), 0
         )
+        assert np.isfinite(result)
         assert result == pytest.approx(expected)
