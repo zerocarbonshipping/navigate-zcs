@@ -284,9 +284,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   price and WTT are the average over the unconstrained plants only. The
   port's `BunkerSupplyMass` is still reported as infinite, and the global
   total is infinite for a fuel any port reports it for.
-- A report property keyed by a two-element tuple, requested with `FIRST` or
-  `SECOND`, summed over the wrong element: `FIRST` kept the first element as
-  the column key instead of summing over it, and `SECOND` the reverse (#209).
+- A report property keyed by a two-element tuple summed over the wrong
+  element for `FIRST` and `SECOND`; the default report's `FuelConvertedPower`
+  now requests `SECOND` to keep its from-fuel columns as before (#209).
 
 ## [1.0.0] - 2026-07-16
 
