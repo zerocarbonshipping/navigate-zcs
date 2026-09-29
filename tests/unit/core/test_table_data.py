@@ -118,7 +118,6 @@ class TestBuildTable2D:
 
         np.testing.assert_array_equal(y, np.array([0.0, 1.0, 2.0]))
         np.testing.assert_array_equal(x, np.array([0.0, 10.0, 20.0]))
-        # check_table2d_input requires z.shape == (x.size, y.size)
         assert z.shape == (3, 3)
         np.testing.assert_array_equal(z[1], np.array([3.0, 4.0, 12.0]))
         assert x.dtype == y.dtype == z.dtype == np.float64
