@@ -20,7 +20,7 @@ from navigate.core.node_type import CURVE, TECHNOLOGY, VARIABLE
 from navigate.core.nodes._machinery import _Machinery
 
 if TYPE_CHECKING:
-    from navigate.core.input_kinds import (
+    from navigate.core.types_ import (
         CurveArgument,
         CurveInput,
         ScalarArgument,

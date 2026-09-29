@@ -14,7 +14,7 @@ from navigate.core.expression import Expression
 from navigate.util import ROUND_OFF
 
 if TYPE_CHECKING:
-    from navigate.core.input_kinds import NumberInput
+    from navigate.core.types_ import NumberInput
     from navigate.util import FloatArray, FloatLike
 
 logger = logging.getLogger(__name__)

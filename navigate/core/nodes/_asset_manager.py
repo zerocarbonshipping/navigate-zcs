@@ -21,9 +21,9 @@ from navigate.core.nodes.curve import Curve
 from navigate.util import YEAR
 
 if TYPE_CHECKING:
-    from navigate.core.input_kinds import ForecastArgument, ForecastInput
     from navigate.core.nodes.plant import Plant
     from navigate.core.nodes.vessel import Vessel
+    from navigate.core.types_ import ForecastArgument, ForecastInput
 
 
 class _AssetManager[A: Vessel | Plant](Node):

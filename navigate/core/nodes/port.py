@@ -25,9 +25,9 @@ from navigate.core.unit import MWH_TO_GJ
 if TYPE_CHECKING:
     import numpy as np
 
-    from navigate.core.input_kinds import ForecastArgument, ForecastInput
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
+    from navigate.core.types_ import ForecastArgument, ForecastInput
     from navigate.util import FloatArray
 
 logger = logging.getLogger(__name__)

@@ -46,16 +46,16 @@ if TYPE_CHECKING:
     from numpy.typing import NDArray
 
     from navigate.core.expression import Expression
-    from navigate.core.input_kinds import (
+    from navigate.core.nodes.curve import Curve
+    from navigate.core.nodes.emission import Emission
+    from navigate.core.nodes.fuel import Fuel
+    from navigate.core.nodes.technology import Technology
+    from navigate.core.types_ import (
         ForecastArgument,
         ForecastInput,
         ScalarArgument,
         ScalarInput,
     )
-    from navigate.core.nodes.curve import Curve
-    from navigate.core.nodes.emission import Emission
-    from navigate.core.nodes.fuel import Fuel
-    from navigate.core.nodes.technology import Technology
     from navigate.fleet.package import Package
 
 logger = logging.getLogger(__name__)

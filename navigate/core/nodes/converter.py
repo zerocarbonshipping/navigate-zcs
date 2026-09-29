@@ -23,13 +23,13 @@ from navigate.exceptions import no_value_assigned_error
 from navigate.util import list_is_unique
 
 if TYPE_CHECKING:
-    from navigate.core.input_kinds import (
+    from navigate.core.nodes.emission import Emission
+    from navigate.core.types_ import (
         ForecastArgument,
         ForecastInput,
         ScalarArgument,
         ScalarInput,
     )
-    from navigate.core.nodes.emission import Emission
 
 
 class Converter(_Machinery):

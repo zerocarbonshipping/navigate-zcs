@@ -30,18 +30,18 @@ from navigate.util import is_non_strictly_increasing
 
 if TYPE_CHECKING:
     from navigate.core.increment import Increment
-    from navigate.core.input_kinds import (
+    from navigate.core.nodes.feedstock import Feedstock
+    from navigate.core.nodes.forecast import Forecast
+    from navigate.core.nodes.fuel import Fuel
+    from navigate.core.nodes.port import Port
+    from navigate.core.nodes.process import Process
+    from navigate.core.types_ import (
         ForecastArgument,
         ForecastInput,
         NumberInput,
         ScalarArgument,
         ScalarInput,
     )
-    from navigate.core.nodes.feedstock import Feedstock
-    from navigate.core.nodes.forecast import Forecast
-    from navigate.core.nodes.fuel import Fuel
-    from navigate.core.nodes.port import Port
-    from navigate.core.nodes.process import Process
     from navigate.util import FloatArray
 
 logger = logging.getLogger(__name__)
