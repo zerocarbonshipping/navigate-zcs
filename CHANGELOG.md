@@ -93,6 +93,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - The minimum supported Python version is 3.13 (was 3.12).
 - `plot_data.pkl` files saved by earlier versions cannot be loaded with
   `--replot`; replot them with the version that produced them.
+- A regulation's default fuel WTT averages over every port on the vessel's
+  route, each once, not only the jurisdiction ports, where it was 0 without
+  supply. Results move where a route leaves the jurisdiction.
 
 ### Removed
 - `BunkerLogistics`: write `LiquidMarket` on `Fuel`, and `set_fuel_transport`
