@@ -30,7 +30,7 @@ import pytest
 from navigate.core.bounds import Bounds
 from navigate.core.expression import Expression
 from navigate.core.nodes._calculator import _Calculator
-from navigate.core.nodes._table1d import _Table1D
+from navigate.core.nodes._table1d import _Table1D, check_table1d_input
 from navigate.core.nodes._table2d import _Table2D, check_table2d_input
 from navigate.core.nodes.curve import Curve
 from navigate.core.nodes.surface import Surface
@@ -295,6 +295,27 @@ class TestExclusiveBounds:
             v.set_internal_bounds(lower, np.inf, inclusive_lower=inclusive_lower)
 
         assert v.get() == pytest.approx(expected)
+
+    @pytest.mark.parametrize(
+        ("value", "bounds", "message"),
+        [
+            (
+                np.array([1.0, np.nan, np.inf]),
+                Bounds(0.0, np.inf, True, False),
+                "must be finite, but got inf",
+            ),
+            (
+                np.array([np.nan, -2.0, 1.0]),
+                Bounds(0.0, np.inf, False, True),
+                r"must be > 0\.0, but got -2\.0",
+            ),
+        ],
+        ids=["inf_beside_nan", "below_beside_nan"],
+    )
+    def test_message_names_the_breaking_entry_beside_nan(self, value, bounds, message):
+        # a NaN entry breaks no bound, so it is not the value reported
+        with pytest.raises(ValueError, match=rf"^owner: {message}$"):
+            bounds.check_exclusive(value, "owner")
 
     def test_table_entry_at_an_exclusive_bound_raises_for_an_array(self):
         # y = 10 * x, so the entry at x = 0 is the one on the bound
@@ -817,3 +838,56 @@ class TestTable2DMinimumSize:
         z = np.array([1.0, 2.0, 3.0, 4.0])
         with pytest.raises(ValueError, match=r"must have shape \(2, 2\)"):
             check_table2d_input(x, y, z)
+
+
+# ---------------------------------------------------------------------------
+# Non-finite table input
+# ---------------------------------------------------------------------------
+
+INF = np.inf
+NAN = np.nan
+
+
+class TestNonFiniteTableInput:
+    """
+    A table rejects NaN anywhere and an infinite coordinate; an INF value passes.
+
+    Interpolating across an infinite coordinate gives NaN, and NaN passes every
+    bound, as a comparison with it is always false. An INF value is left to the
+    bounds of the attribute the table is assigned to.
+    """
+
+    @pytest.mark.parametrize(
+        ("x", "y", "match"),
+        [
+            ([0.0, INF], [1.0, 2.0], "'x' must be finite"),
+            ([-INF, 1.0], [1.0, 2.0], "'x' must be finite"),
+            ([0.0, NAN], [1.0, 2.0], "'x' must be finite"),
+            ([0.0, 1.0], [1.0, NAN], "'y' must not be NaN"),
+        ],
+        ids=["inf_x", "minus_inf_x", "nan_x", "nan_y"],
+    )
+    def test_1d_rejects(self, x, y, match):
+        with pytest.raises(ValueError, match=match):
+            check_table1d_input(np.array(x), np.array(y))
+
+    def test_1d_accepts_an_infinite_value(self):
+        assert check_table1d_input(np.array([0.0, 1.0]), np.array([1.0, INF])) is None
+
+    @pytest.mark.parametrize(
+        ("x", "y", "z", "match"),
+        [
+            ([0.0, INF], [0.0, 1.0], [[1.0, 2.0], [3.0, 4.0]], "'x' must be finite"),
+            ([0.0, 1.0], [NAN, 1.0], [[1.0, 2.0], [3.0, 4.0]], "'y' must be finite"),
+            ([0.0, 1.0], [0.0, 1.0], [[1.0, NAN], [3.0, 4.0]], "'z' must not be NaN"),
+        ],
+        ids=["inf_x", "nan_y", "nan_z"],
+    )
+    def test_2d_rejects(self, x, y, z, match):
+        with pytest.raises(ValueError, match=match):
+            check_table2d_input(np.array(x), np.array(y), np.array(z))
+
+    def test_2d_accepts_an_infinite_value(self):
+        x = np.array([0.0, 1.0])
+        z = np.array([[1.0, INF], [-INF, 4.0]])
+        assert check_table2d_input(x, x, z) is None

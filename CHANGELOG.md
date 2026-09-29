@@ -279,14 +279,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   time step of the bunkering expectation instead of holding the value cached
   at the current one; a time-varying threshold no longer freezes at today's
   value for the rest of the run.
-- `INF` and `-INF` are rejected where infinity has no meaning (#336):
-  - only `set_bunkering_limit`, `set_feed_constraint`, `MaximumSpeedChange`,
-    `UpperBound`, `LowerBound` and the values defining a calculator accept
-    them; any other attribute, or the table of a pipeline, orderbook or
-    initial age distribution, rejects them;
-  - `INF` in `Threads`, `FairShareMaximumIterations`, a Plant's `Lifetime` or
-    `MinimumOfftakeDuration` is reported the same way instead of crashing
-    with an OverflowError.
+- `INF` is rejected with the deck line where it has no meaning, instead of
+  giving NaN results or an OverflowError; only limits, bounds and calculator
+  values accept it, and tables reject `nan` and infinite coordinates (#336).
 
 ## [1.0.0] - 2026-07-16
 

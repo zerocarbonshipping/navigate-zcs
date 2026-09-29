@@ -346,7 +346,7 @@ class Expression:
         evaluated = self._tree.evaluate(self.node_references, x, y)
         bounds = self.internal_bounds
 
-        # the owner string is only worth building where a bound can actually raise
+        # inclusive bounds only clamp, so the check is skipped where both are
         if bounds.exclusive:
             bounds.check_exclusive(evaluated, f"{self._node}: Expression <{self.text}>")
 

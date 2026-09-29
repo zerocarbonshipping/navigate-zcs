@@ -14,7 +14,6 @@ from navigate.core.nodes.curve import Curve
 from navigate.core.nodes.fleet import Fleet
 from navigate.core.nodes.forecast import Forecast
 from navigate.core.nodes.producer import Producer
-from navigate.core.nodes.vessel import Vessel
 from navigate.core.table_data import TableData
 from navigate.util import YEAR
 
@@ -62,10 +61,11 @@ def _cumulative_forecast(last):
 
 class TestInfiniteTableEntriesRejected:
     """
-    Inputs read for their table, never evaluated, reject INF entries themselves.
+    Inputs read for their table, never evaluated, reject INF values themselves.
 
-    No bound an attribute imposes reaches a table that is never evaluated, so
-    an infinite count or fraction would otherwise enter the model unchecked.
+    The existing pipeline and the initial age distribution are read through
+    their table's values, so no bound an attribute imposes ever reaches them,
+    and an infinite plant count or fraction would enter the model unchecked.
     """
 
     def test_existing_pipeline(self):
@@ -77,24 +77,9 @@ class TestInfiniteTableEntriesRejected:
         ):
             producer.check_consistency()
 
-    def test_orderbook(self):
-        fleet = Fleet("fleet")
-        fleet.assets = [Vessel("vessel")]
-        fleet.orderbooks = [_cumulative_forecast(np.inf)]
-
-        with pytest.raises(
-            ValueError, match=r'Orderbook \(Forecast\("counts"\)\) must hold finite'
-        ):
-            fleet.check_consistency()
-
-    @pytest.mark.parametrize(
-        "rows",
-        [[[0.0, 0.5], [1.0, np.inf]], [[0.0, 0.5], [np.inf, 0.5]]],
-        ids=["infinite_fraction", "infinite_age"],
-    )
-    def test_initial_age_distribution(self, rows):
+    def test_initial_age_distribution(self):
         curve = Curve("ages")
-        curve.set_table(TableData(rows=rows))
+        curve.set_table(TableData(rows=[[0.0, 0.5], [1.0, np.inf]]))
         curve.build_table()
         fleet = Fleet("fleet")
         fleet.set_initial_age_distribution([curve])

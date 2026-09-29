@@ -213,7 +213,8 @@ class Producer(_AssetManager[Plant]):
         """
         Set the maximum number of plants that can be developed per year.
 
-        A large finite value leaves development unconstrained; INF is rejected.
+        A value far above any development the demand could call for, such as 1e6,
+        leaves development unconstrained; INF is rejected.
 
         Examples
         --------

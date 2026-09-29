@@ -110,7 +110,7 @@ The list must have a length corresponding to the number of plant types. Each ent
 
 This attribute sets the development constraint limiting the maximum number of plants which can be built per year.
 
-Assign a large finite value if an unconstrained scenario is required; `INF` is rejected.
+If an unconstrained scenario is required, assign a value far above any development the demand could call for, such as `1e6`; `INF` is rejected.
 
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:

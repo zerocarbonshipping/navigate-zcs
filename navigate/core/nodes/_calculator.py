@@ -285,9 +285,9 @@ class _Calculator:
         """
         bounds = self._applied_bounds
 
-        # the owner string is only worth building where a bound can actually raise
+        # inclusive bounds only clamp, so the check is skipped where both are
         if bounds.exclusive:
-            bounds.check_exclusive(value, str(self))
+            bounds.check_exclusive(value, self)
 
         return np.maximum(np.minimum(value, bounds.upper), bounds.lower)
 

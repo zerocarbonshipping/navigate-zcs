@@ -272,8 +272,10 @@ def check_table2d_input(x: FloatArray, y: FloatArray, z: FloatArray) -> None:
     """
     Validate the x, y, and z arrays used to build a 2D table.
 
-    'x' and 'y' must each hold at least two values, both strictly increasing,
-    and 'z' must be a 2-D array of shape ('x'.size, 'y'.size).
+    'x' and 'y' must each hold at least two finite values, both strictly
+    increasing, and 'z' must be a 2-D array of shape ('x'.size, 'y'.size). A 'z'
+    may be INF, and is checked by each attribute the table is assigned to when
+    it is evaluated, but never NaN, which no bound can reject.
 
     Parameters
     ----------
@@ -294,6 +296,15 @@ def check_table2d_input(x: FloatArray, y: FloatArray, z: FloatArray) -> None:
             f"'z' (shape {z.shape}) must have shape ({x.size}, {y.size}), matching"
             " the length of 'x' and 'y'."
         )
+
+    if not np.all(np.isfinite(x)):
+        raise ValueError("'x' must be finite.")
+
+    if not np.all(np.isfinite(y)):
+        raise ValueError("'y' must be finite.")
+
+    if np.any(np.isnan(z)):
+        raise ValueError("'z' must not be NaN.")
 
     if not is_strictly_increasing(x):
         raise ValueError("'x' must be strictly increasing.")

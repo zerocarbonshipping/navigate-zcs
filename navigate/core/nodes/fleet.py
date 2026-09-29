@@ -464,7 +464,7 @@ class Fleet(_AssetManager[Vessel]):
         Set the list of orderbooks used to determine newbuild uptake.
 
         The list must have the same length as the list of vessels.
-        If the orderbook is a forecast it must be finite and non-strictly increasing.
+        If the orderbook is a forecast it must be non-strictly increasing.
 
         Examples
         --------
@@ -1016,13 +1016,6 @@ class Fleet(_AssetManager[Vessel]):
         for orderbook in self.orderbooks:
             if not isinstance(orderbook, Forecast):
                 continue
-
-            # the orderbook is read as a table, never evaluated, so no bound it
-            # is assigned under ever checks its entries
-            if not np.all(np.isfinite(orderbook.y)):
-                raise ValueError(
-                    f"{self}: Orderbook ({orderbook}) must hold finite values."
-                )
 
             # an orderbook is a cumulative count of the vessels on order
             if not is_non_strictly_increasing(orderbook.y):

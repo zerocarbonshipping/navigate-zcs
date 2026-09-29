@@ -55,8 +55,11 @@ from navigate.core.nodes.feedstock import Feedstock
 from navigate.core.nodes.fleet import Fleet
 from navigate.core.nodes.forecast import Forecast
 from navigate.core.nodes.fuel import Fuel
+from navigate.core.nodes.plant import Plant
 from navigate.core.nodes.port import Port
 from navigate.core.nodes.process import Process
+from navigate.core.nodes.producer import Producer
+from navigate.core.nodes.surface import Surface
 from navigate.core.nodes.variable import Variable
 from navigate.core.scalar import Scalar
 from navigate.core.table_data import TableData
@@ -1056,3 +1059,90 @@ class TestCommandAssignmentToBooleanDict:
             command_assignment_to_boolean_dict(
                 "missing", "TRUE", {"oil": None}, allow_empty=True
             )
+
+
+# ── setters that accept infinity ──────────────────────────────────────────────
+
+
+def _bunkering_limit(value):
+    port = Port("p")
+    port.bunkering_limit = {"fuel": None}
+    port.set_bunkering_limit("fuel", value)
+    return port.bunkering_limit["fuel"].get()
+
+
+def _feed_constraint(value):
+    producer = Producer("p")
+    producer.feed_constraints = {"feed": None}
+    producer.set_feed_constraint("feed", value)
+    return producer.feed_constraints["feed"].get()
+
+
+def _maximum_speed_change(value):
+    fleet = Fleet("f")
+    fleet.set_maximum_speed_change(value)
+    return fleet.maximum_speed_change.get()
+
+
+def _below(value):
+    curve = Curve("c")
+    curve.set_below(value)
+    return curve._below
+
+
+def _above(value):
+    curve = Curve("c")
+    curve.set_above(value)
+    return curve._above
+
+
+def _outside(value):
+    surface = Surface("s")
+    surface.set_outside(value)
+    return surface._outside
+
+
+def _value(value):
+    variable = Variable("v")
+    variable.set_value(value)
+    return variable._value
+
+
+class TestInfinityOptIns:
+    """
+    Only the setters where infinity means something accept INF.
+
+    A limit reads INF as no limit, and a value defining a calculator is left to
+    the bounds of each attribute the calculator is assigned to; every other
+    setter rejects it.
+    """
+
+    @pytest.mark.parametrize(
+        "assign",
+        [_bunkering_limit, _feed_constraint, _maximum_speed_change],
+        ids=["bunkering_limit", "feed_constraint", "maximum_speed_change"],
+    )
+    def test_a_limit_accepts_inf(self, assign):
+        assert assign(np.inf) == np.inf
+
+    @pytest.mark.parametrize(
+        "assign",
+        [_below, _above, _outside, _value],
+        ids=["below", "above", "outside", "value"],
+    )
+    @pytest.mark.parametrize("value", [np.inf, -np.inf], ids=["inf", "minus_inf"])
+    def test_a_calculator_definition_accepts_either_infinity(self, assign, value):
+        assert assign(value) == value
+
+    @pytest.mark.parametrize(
+        "assign",
+        [
+            lambda value: Producer("p").set_maximum_development(value),
+            lambda value: Plant("p").set_capacity(value),
+            lambda value: Variable("v").set_addition(value),
+        ],
+        ids=["maximum_development", "capacity", "addition"],
+    )
+    def test_a_default_setter_rejects_inf(self, assign):
+        with pytest.raises(ValueError, match="must be finite, but got inf"):
+            assign(np.inf)

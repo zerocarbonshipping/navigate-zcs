@@ -111,17 +111,15 @@ class _AssetManager[A: Vessel | Plant](Node):
         raise NotImplementedError
 
     def _check_initial_age_distribution_is_finite(self) -> None:
-        """Reject an initial age distribution holding INF or -INF."""
+        """Reject an initial age distribution holding an INF or -INF fraction."""
         # its Curves are read as tables, never evaluated, so no bound they are
-        # assigned under ever checks their entries
+        # assigned under ever checks their fractions; the table itself rejects
+        # a non-finite age
         for distribution in self._initial_age_distribution:
             if not isinstance(distribution, Curve):
                 continue
 
-            if not (
-                np.all(np.isfinite(distribution.x))
-                and np.all(np.isfinite(distribution.y))
-            ):
+            if not np.all(np.isfinite(distribution.y)):
                 raise ValueError(
                     f"{self}: InitialAgeDistribution ({distribution}) must hold "
                     "finite values."

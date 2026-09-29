@@ -296,6 +296,10 @@ def check_table1d_input(x: FloatArray, y: FloatArray) -> None:
     """
     Validate the x and y arrays used to build a 1D table.
 
+    Every 'x' must be finite, as interpolating across an infinite one gives NaN.
+    A 'y' may be INF, and is checked by each attribute the table is assigned to
+    when it is evaluated, but never NaN, which no bound can reject.
+
     Parameters
     ----------
     x
@@ -308,6 +312,12 @@ def check_table1d_input(x: FloatArray, y: FloatArray) -> None:
             f"'x' ({x.size}) and 'y' ({y.size}) must be at least of length 2 and the"
             " same size."
         )
+
+    if not np.all(np.isfinite(x)):
+        raise ValueError("'x' must be finite.")
+
+    if np.any(np.isnan(y)):
+        raise ValueError("'y' must not be NaN.")
 
     if not is_strictly_increasing(x):
         raise ValueError("'x' must be strictly increasing.")

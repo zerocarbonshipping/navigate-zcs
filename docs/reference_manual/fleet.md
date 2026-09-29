@@ -227,7 +227,7 @@ This attribute sets the list of orderbooks used for determining the newbuild upt
 
 The list must have the same length as the list of vessels.
 
-If the orderbook is a forecast, it must be finite and non-strictly increasing (meaning that it cannot decrease as time progresses in the forecast).
+If the orderbook is a forecast, it must be non-strictly increasing (meaning that it cannot decrease as time progresses in the forecast).
 
 * **Data type**: List of `floats`, `Forecasts`, `Variables`
 * **Example values**:
