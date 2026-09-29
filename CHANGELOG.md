@@ -100,6 +100,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   effective energy, (1 − slip) · LHV, as a `Regulation`'s intensity already
   is, so a threshold covers fewer emissions per ton of a fuel with converter
   slip, such as LNG.
+- A deck whose node reference is never resolved, such as a node passed where
+  a name is expected, now stops at the referencing line instead of running
+  with the reference ignored (#148).
 
 ### Removed
 - `BunkerLogistics`: write `LiquidMarket` on `Fuel`, and `set_fuel_transport`

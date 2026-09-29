@@ -10,6 +10,9 @@ from-default Copy idiom, and the errors for references that cannot be resolved.
 
 from __future__ import annotations
 
+import logging
+import re
+
 import pytest
 
 from navigate.exceptions import DeckKeywordError
@@ -300,6 +303,84 @@ class TestUnresolvableReference:
             match=r'Default Variable\("v"\) is requested but no assumptions directory',
         ):
             Parser().read_deck(write_deck(HOST))
+
+
+def _line_of(path, text):
+    """Return the 1-based number of the first line of a file containing text."""
+    lines = path.read_text().splitlines()
+    return next(number for number, line in enumerate(lines, 1) if text in line)
+
+
+def _unresolved(file_name, line, reference):
+    """Match the never-resolved error's entry for a reference on a file line."""
+    return (
+        r"Node reference\(s\) left unresolved[^\n]*\n"
+        rf"\t- .*{re.escape(file_name)}', line {line}: {re.escape(reference)}\n"
+    )
+
+
+class TestNeverResolvedReference:
+    @pytest.mark.parametrize(
+        ("define", "reference"),
+        [
+            # add_plot keeps its argument in a set
+            ('Plot "p" {\n    add_plot(Variable("ghost"))\n}\n', 'Variable("ghost")'),
+            # add_fleet_property keys its report dictionary by the argument
+            (
+                'Report "r" {\n    add_fleet_property(Fleet("ghost"), CargoMiles)\n}\n',
+                'Fleet("ghost")',
+            ),
+        ],
+        ids=["plot_set", "report_dict_key"],
+    )
+    def test_node_where_a_name_is_expected_is_rejected(
+        self, tmp_path, read_library_deck, define, reference
+    ):
+        with pytest.raises(DeckKeywordError) as error:
+            read_library_deck(define)
+
+        line = _line_of(tmp_path / "define.inc", reference)
+        assert re.search(_unresolved("define.inc", line, reference), str(error.value))
+
+    @pytest.mark.parametrize(
+        "late_file",
+        [
+            DEFAULT + 'Emission "late" { GlobalWarmingPotential = Variable("w") }\n',
+            DEFAULT + 'Fuel "oil" { set_ttw("co2", Variable("w")) }\n',
+        ],
+        ids=["declared_node", "queued_command"],
+    )
+    def test_reference_read_after_define_resolved_is_rejected(
+        self, tmp_path, read_library_deck, late_file
+    ):
+        # v is a command argument, so it is pulled by the reference walk after
+        # the commands, and nothing walks what its file adds before EVENTS
+        with pytest.raises(DeckKeywordError) as error:
+            read_library_deck(COMMAND_HOST, installation={"v": late_file})
+
+        library_file = tmp_path / "data/defaults/installation/Variable/v.inc"
+        line = _line_of(library_file, 'Variable("w")')
+        assert re.search(_unresolved("v.inc", line, 'Variable("w")'), str(error.value))
+
+    def test_reference_a_later_assignment_overwrote_is_ignored(self, read_library_deck):
+        define = HOST + 'Emission "e" { GlobalWarmingPotential = 1.0 }\n'
+
+        parser = read_library_deck(define)
+
+        assert parser.nodes.emissions["e"].global_warming_potential.get() == 1.0
+
+    def test_command_argument_on_a_pruned_node_is_ignored(
+        self, read_library_deck, caplog
+    ):
+        # no Vessel mounts the converter, so the prune removes it with its
+        # queued command before any walk reaches the argument
+        define = 'Converter "ghost" {\n    set_slip_fraction(OIL, Variable("v"))\n}\n'
+
+        with caplog.at_level(logging.WARNING):
+            parser = read_library_deck(define)
+
+        assert "ghost" not in parser.nodes.converters
+        assert 'Converter("ghost")' in caplog.text
 
 
 class TestEventsTarget:
