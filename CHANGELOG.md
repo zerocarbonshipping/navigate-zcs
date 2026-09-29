@@ -1336,6 +1336,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   with a deck error naming the node instead of a bare `IndexError`, and one
   with a single data row or a single header value, previously accepted as
   a degenerate table, is rejected the same way.
+- The `Route` reference-manual page and the `set_voyage_distribution`
+  docstring no longer list `Forecast` among the accepted values; the parser
+  rejects one. The distribution is read when the deck and each EVENTS block
+  are read, so a Forecast could not vary it over time.
 
 ## [1.0.0] - 2026-07-16
 
