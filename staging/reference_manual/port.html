@@ -555,6 +555,7 @@ unrouted port is removed (see <a class="reference internal" href="dsl_reference.
 <section id="set-bunkering-limit">
 <h3>set_bunkering_limit<a class="headerlink" href="#set-bunkering-limit" title="Link to this heading">#</a></h3>
 <p>This command sets a limitation for the amount of fuel that can be bunkered in the port in tons/year.</p>
+<p>A Producer’s fuel imported above the limit is redistributed to the other ports allowed to bunker it, in proportion to how far each is under its own limit; a port the producer sends no fuel to receives no share. Any surplus the limited ports cannot absorb is split equally across the ports with no limit set, and dropped where none exist. A liquid-market fuel is unaffected: its supply is the limit itself.</p>
 <ul class="simple">
 <li><p><strong>Primary key type</strong>: String (Fuel name)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
