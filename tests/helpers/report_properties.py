@@ -11,8 +11,8 @@ the report-property checks over the reference manual.
 from __future__ import annotations
 
 from navigate.core.profiles._base_profile import _BaseProfile
-from navigate.core.report_properties import PROFILE_CLASSES
 from navigate.parser._commands import _REPORT_COMMANDS
+from navigate.parser._report_properties import PROFILE_CLASSES
 from navigate.util import attribute_to_setter
 
 assert set(PROFILE_CLASSES) == set(_REPORT_COMMANDS)

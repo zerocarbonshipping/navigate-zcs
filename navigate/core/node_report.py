@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from navigate.core.report_properties import resolve_getter
+from navigate.util import attribute_to_setter
 
 if TYPE_CHECKING:
     from navigate.core.enum_ import ReportReduceID
@@ -25,17 +25,12 @@ class NodeReport:
         self.getters: list[str] = []
         self.reductions: list[ReportReduceID] = []
 
-    def add_property(
-        self, command: str, attribute: str, reduction: ReportReduceID
-    ) -> None:
+    def add_property(self, attribute: str, reduction: ReportReduceID) -> None:
         """
         Record a report property, ignoring one already recorded for this node.
 
         Parameters
         ----------
-        command
-            Report command the property is requested through; it selects the
-            profile class the property must be a getter of.
         attribute
             Deck-facing attribute token naming the property to report.
         reduction
@@ -43,5 +38,5 @@ class NodeReport:
         """
         if attribute not in self.attributes:
             self.attributes.append(attribute)
-            self.getters.append(resolve_getter(command, attribute))
+            self.getters.append(attribute_to_setter(attribute, method="get"))
             self.reductions.append(reduction)

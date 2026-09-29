@@ -370,8 +370,8 @@ def _extract_properties(
 
     for attribute, getter, reduce in zip(attributes, getters, reductions, strict=True):
         try:
-            # the Report node resolved every getter against the profile class of
-            # its command when the deck was parsed
+            # the parser checked every getter against the profile class of its
+            # command when it read the deck
             property_ = getattr(profile, getter)()
 
             if isinstance(property_, dict):
