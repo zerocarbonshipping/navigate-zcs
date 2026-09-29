@@ -207,7 +207,7 @@ class _Table1D(_Calculator):
             case Interpolate1DID.NEAREST_UP:
                 return "nearest-up"
 
-    def _get_allow_extrapolate_internal(self) -> bool:
+    def _get_bounds_error_internal(self) -> bool:
         return self.extrapolate == ExtrapolateID.FALSE
 
     def _get_extrapolate_internal(self) -> float | str | None:
@@ -285,7 +285,7 @@ class _Table1D(_Calculator):
             x,
             y,
             kind=self._get_interpolate_internal(),
-            bounds_error=self._get_allow_extrapolate_internal(),
+            bounds_error=self._get_bounds_error_internal(),
             fill_value=self._get_extrapolate_internal(),
         )
 
