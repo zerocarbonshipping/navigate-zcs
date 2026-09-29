@@ -11,7 +11,7 @@ import numpy as np
 
 from navigate.core.enum_ import LevySchemeID, PolicyScopeID
 from navigate.core.unit import TON_PER_GJ_TO_GRAM_PR_MJ
-from navigate.util import TOLERANCE, divide_nonzero, list_intersection
+from navigate.util import TOLERANCE, divide_nonzero, list_intersection, unique_list
 
 if TYPE_CHECKING:
     from navigate.core.nodes.converter import Converter
@@ -105,6 +105,10 @@ def _assign_regulation_wtt_factors(
     """
     Calculate and assign the WTT emission factors related to a given regulation.
 
+    Unless the regulation supplies a WTT, a vessel's factor is averaged over every
+    port on its route, each counted once, as the vessel may bunker a fuel outside
+    the jurisdiction and burn it inside.
+
     Parameters
     ----------
     regulation
@@ -132,13 +136,12 @@ def _assign_regulation_wtt_factors(
             )
 
     for vessel_name, vessel in vessels.items():
-        ports = list_intersection(vessel.route.ports, regulation.jurisdiction)
-
-        # the vessel does not operate in
-        # the jurisdiction of the regulation
-        if not ports:
+        # a vessel with no route port in the jurisdiction is never policed (see
+        # vessel_is_policed), so its factors would never be read
+        if not regulation.in_jurisdiction_vessel[vessel_name]:
             continue
 
+        ports = unique_list(vessel.route.ports)
         usable_fuels = vessel.usable_fuels
         target_fuels = _usable_target_fuels(regulation, usable_fuels)
 
@@ -637,8 +640,8 @@ def _average_wtt_over_ports(
     """
     Estimate a converter's WTT emissions as a supply-weighted average over ports.
 
-    The ports are those on the vessel's route that intersect with the policy
-    jurisdiction and allow bunkering of the fuel.
+    The average runs over the given ports that allow bunkering of the fuel. A port
+    listed twice counts twice, so callers pass each port once.
 
     The weighting is evaluated per time-step, as the supply of a fuel at a port
     may change over time (e.g. plants coming online). Ports without supply of
@@ -648,6 +651,9 @@ def _average_wtt_over_ports(
     producers or liquid-market fuels) those ports dominate the market and are
     weighted equally, ignoring the finite-supply ports.
 
+    Where no port has supply above tolerance the result is 0. This is harmless:
+    with no port able to supply the fuel, no vessel can bunker it at that time.
+
     Relies on the import calculation having transferred bunker supply and WTT
     to the port expectations; the two are written together there, so the
     weights and the averaged values always stem from the same snapshot.
@@ -655,7 +661,7 @@ def _average_wtt_over_ports(
     Parameters
     ----------
     ports
-        List of ports in which the fuel can be bunkered in.
+        Ports on the vessel's route, each listed once.
     fuel
         Fuel being spent.
     emission

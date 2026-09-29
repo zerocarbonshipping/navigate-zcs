@@ -93,6 +93,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - The minimum supported Python version is 3.13 (was 3.12).
 - `plot_data.pkl` files saved by earlier versions cannot be loaded with
   `--replot`; replot them with the version that produced them.
+- A regulation's default fuel WTT averages over every port on the vessel's
+  route, each once, not only the jurisdiction ports, where it was 0 without
+  supply. Results move where a route leaves the jurisdiction.
 
 ### Removed
 - `BunkerLogistics`: write `LiquidMarket` on `Fuel`, and `set_fuel_transport`
@@ -260,6 +263,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `only allows assignment of METHANE, OIL, but got AMMONIA`.
 - `set_consumption_ttw` accepts a wildcard emission name, such as
   `set_consumption_ttw(OIL, "*", 0.001)`, which it rejected.
+- A producer's expected production has pipeline plants enter, and plants at
+  the end of their lifetime leave, spread over a time-step, as delivery and
+  decommissioning do, where it moved each batch at once. Results change.
 - An unconstrained producer (`MaximumDevelopment = INF`) exporting to a port
   with no `BunkeringLimit` no longer yields NaN bunker price and WTT or an
   `inf` `BunkerSupplyMass`: the price and WTT are the average over the
