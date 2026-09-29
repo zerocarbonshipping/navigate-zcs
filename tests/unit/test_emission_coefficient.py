@@ -8,6 +8,8 @@ Tests verify the correctness of:
   - _average_wtt_over_ports: supply-weighted averaging of port bunker WTT,
     including exclusion of zero-supply and bunkering-disallowed ports,
     per-time-step weighting, and the infinite-supply market regime.
+  - _assign_regulation_wtt_factors: the average runs over every port on the
+    vessel's route, jurisdiction or not, each port counted once.
   - _average_effective_lhv_over_converters: power/efficiency-weighted
     (1 - slip) * LHV over the converters able to burn the fuel.
   - _assign_levy_emission_coefficients: the levy thresholds are compared with,
@@ -27,6 +29,7 @@ from navigate.core.nodes.fuel import Fuel
 from navigate.core.nodes.levy import Levy
 from navigate.policy.emission_coefficient import (
     _assign_levy_emission_coefficients,
+    _assign_regulation_wtt_factors,
     _average_effective_lhv_over_converters,
     _average_wtt_over_ports,
     _converter_weights,
@@ -61,7 +64,7 @@ class TestZeroSupplyExclusion:
         """
         A port that allows bunkering but has no supply must carry no weight.
 
-        Regression test: a jurisdiction port without supply of a fuel has a
+        Regression test: a route port without supply of a fuel has a
         bunker WTT of 0 and previously diluted the average, halving e.g. the
         negative WTT of bio-fuels.
         """
@@ -154,7 +157,63 @@ class TestInfiniteSupplyRegime:
 
 
 # ---------------------------------------------------------------------------
-# 4. Effective heating value of a levy
+# 4. Route-wide port selection
+# ---------------------------------------------------------------------------
+
+VESSEL_NAME = "vessel"
+
+
+def _assigned_regulation_wtt(route_ports, jurisdiction):
+    """Run the regulation WTT assignment for one vessel and return its factor."""
+    regulation = MagicMock()
+    regulation.fuels = [FUEL]
+    regulation.emissions = [EMISSION]
+    regulation.fuel_wtt = {(FUEL.name, EMISSION.name): None}
+    regulation.jurisdiction = jurisdiction
+    regulation.in_jurisdiction_vessel = {VESSEL_NAME: True}
+    # a GWP of 1 makes the assigned factor the averaged WTT itself
+    regulation.expectation.get_global_warming_potential.return_value = 1.0
+
+    vessel = MagicMock()
+    vessel.route.ports = route_ports
+    vessel.usable_fuels = {FUEL.name: FUEL}
+
+    _assign_regulation_wtt_factors(
+        regulation, {VESSEL_NAME: vessel}, timeline=np.array([0.0]), idx=0
+    )
+
+    _, key, factor = regulation.expectation.set_wtt.call_args.args
+    assert key == (VESSEL_NAME, FUEL.name, EMISSION.name)
+    return factor
+
+
+class TestRouteWidePortSelection:
+    def test_supply_outside_jurisdiction_sets_the_wtt(self):
+        """
+        A vessel bunkering only outside the jurisdiction gets that port's WTT.
+
+        The jurisdiction port has no supply, so averaging over it alone would
+        give 0 instead of the WTT of the fuel the vessel actually bunkers.
+        """
+        inside = _make_port(allowed=True, supply=[0.0], wtt=[0.0])
+        outside = _make_port(allowed=True, supply=[50.0], wtt=[-0.9])
+
+        factor = _assigned_regulation_wtt([inside, outside], jurisdiction=[inside])
+
+        assert factor == pytest.approx([-0.9])
+
+    def test_port_visited_twice_counts_once(self):
+        a = _make_port(allowed=True, supply=[10.0], wtt=[-1.0])
+        b = _make_port(allowed=True, supply=[10.0], wtt=[0.2])
+
+        factor = _assigned_regulation_wtt([a, b, a], jurisdiction=[a, b])
+
+        # (10 * -1.0 + 10 * 0.2) / 20 = -0.4; counting a twice would give -0.6
+        assert factor == pytest.approx([-0.4])
+
+
+# ---------------------------------------------------------------------------
+# 5. Effective heating value of a levy
 # ---------------------------------------------------------------------------
 
 # the ammonia converters weigh 15 / 0.5 = 30 MW and 4 / 0.4 = 10 MW; the oil
