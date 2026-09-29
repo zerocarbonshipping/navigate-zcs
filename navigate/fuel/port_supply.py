@@ -245,24 +245,28 @@ def _calculate_import_from_producers(
     # supply to account for local supply limits
     for p, port in ports.items():
         for f in fuels:
-            # an unconstrained producer's infinite supply turns the
-            # weighted average below into inf/inf; those positions are
-            # corrected below by weighting the infinite-supply plants
-            # equally instead, ignoring the finite-supply ones
-            infinite_supply = np.isinf(supplies[p][f])
+            # an unconstrained producer's infinite supply would turn the
+            # weighted average below into inf/inf; at those positions the
+            # division is never evaluated (_divide_where_finite substitutes
+            # a safe placeholder first) and the equally-weighted average of
+            # the infinite-supply plants is used instead, so neither NaN nor
+            # inf is ever computed as an intermediate
+            finite_supply = np.isfinite(supplies[p][f])
 
             # check if the bunker price is overwritten on the port
             if port.bunker_price_overwrite[f] is not None:
                 price = port.expectation.get_bunker_price_overwrite(f, idx_)
             else:
                 # normalize the weighted average
-                price = divide_nonzero(prices[p][f], supplies[p][f])
+                price = _divide_where_finite(
+                    prices[p][f], supplies[p][f], finite_supply
+                )
 
-                if np.any(infinite_supply):
+                if not np.all(finite_supply):
                     equal_weighted = _weighted_average_over_plants(
                         plant_supplies[p][f], plant_costs[p][f]
                     )
-                    price = np.where(infinite_supply, equal_weighted, price)
+                    price = np.where(finite_supply, price, equal_weighted)
 
             # add handling costs
             handling_cost = port.expectation.get_handling_cost(f, idx_)
@@ -279,13 +283,15 @@ def _calculate_import_from_producers(
                     wtt = port.expectation.get_bunker_wtt_overwrite(f, e, idx_)
                 else:
                     # normalize the weighted average
-                    wtt = divide_nonzero(wtts[p][(f, e)], supplies[p][f])
+                    wtt = _divide_where_finite(
+                        wtts[p][(f, e)], supplies[p][f], finite_supply
+                    )
 
-                    if np.any(infinite_supply):
+                    if not np.all(finite_supply):
                         equal_weighted = _weighted_average_over_plants(
                             plant_supplies[p][f], plant_wtts[p][(f, e)]
                         )
-                        wtt = np.where(infinite_supply, equal_weighted, wtt)
+                        wtt = np.where(finite_supply, wtt, equal_weighted)
 
                 # transfer the average bunker WTT
                 # to expectation and profile
@@ -318,6 +324,37 @@ def _calculate_import_from_producers(
 
             if np.isfinite(supplies[p][f][0]):
                 port.profile.set_bunker_supply_mass(idx, f, supplies[p][f][0])
+
+
+def _divide_where_finite(
+    numerator: np.ndarray, denominator: np.ndarray, finite: np.ndarray
+) -> np.ndarray:
+    """
+    Supply-weighted division, computed only where the denominator is finite.
+
+    An infinite denominator would divide infinity by infinity; rather than let
+    that compute NaN and be overwritten, a safe placeholder is substituted at
+    those positions before dividing. The result there is meaningless and the
+    caller replaces it.
+
+    Parameters
+    ----------
+    numerator
+        The supply-weighted sum of a price or WTT.
+    denominator
+        The total supply.
+    finite
+        Where the total supply is finite.
+
+    Returns
+    -------
+    np.ndarray
+        The quotient where 'finite' holds; meaningless elsewhere.
+    """
+    safe_numerator = np.where(finite, numerator, 0.0)
+    safe_denominator = np.where(finite, denominator, 1.0)
+
+    return divide_nonzero(safe_numerator, safe_denominator)
 
 
 def _weighted_average_over_plants(
