@@ -263,6 +263,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `only allows assignment of METHANE, OIL, but got AMMONIA`.
 - `set_consumption_ttw` accepts a wildcard emission name, such as
   `set_consumption_ttw(OIL, "*", 0.001)`, which it rejected.
+- A producer's expected production has pipeline plants enter, and plants at
+  the end of their lifetime leave, spread over a time-step, as delivery and
+  decommissioning do, where it moved each batch at once. Results change.
 
 ## [1.0.0] - 2026-07-16
 

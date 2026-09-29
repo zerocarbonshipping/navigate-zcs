@@ -102,8 +102,7 @@ def _calculate_increment_production_interval(
         # if delivery is negative it is because it is an existing
         # increment which has already been delivered and thus all
         # production is assigned at t=0
-        t_delivery = 0
-        output[t_delivery] = production
+        output[0] = production
 
     else:
         # the plants are delivered continuously over the
@@ -134,37 +133,80 @@ def _calculate_increment_production_interval(
     # the plants are decommissioned continuously over
     # the length of the time-step with the first being
     # decommissioned in 'decommission - time_step' time
-    t_decom = np.argmax((decommission - time_step) < times)
+    time_decommission = decommission - time_step
+    t_decom = np.argmax(time_decommission < times)
+    decommission_period = time_step
 
-    # argmax returns -1 if decommission is
-    # never outside the timeline in which
-    # case decommission does not happen
-    if t_decom > t_delivery:
-        time_decommission = decommission - time_step
-        decommission_period = time_step
+    while decommission_period > tol:
+        # respect end of simulation boundary, which
+        # also covers decommissioning beyond the timeline
+        if time_decommission >= end:
+            break
 
-        while decommission_period > tol:
-            # respect end of simulation boundary
-            if time_decommission >= end:
-                break
+        # calculate the fraction of production being
+        # decommissioned in the given time-step
+        end_point = np.minimum(times[t_decom], decommission)
+        partial = end_point - time_decommission
+        scaling = partial / time_step
 
-            # calculate the fraction of production being
-            # delivered in the given time-step
-            end_point = np.minimum(times[t_decom], decommission)
-            partial = end_point - time_decommission
-            scaling = partial / time_step
+        # subtract rather than assign, as the time-step
+        # may also hold part of the increment's delivery
+        output[t_decom] -= scaling * production
 
-            # account for future decommissioning
-            # of the expected plant
-            # if t_decom < times.size:
-            output[t_decom] = -scaling * production
-
-            # update for next step in sequential allocation
-            t_decom += 1
-            time_decommission += partial
-            decommission_period -= partial
+        # update for next step in sequential allocation
+        t_decom += 1
+        time_decommission += partial
+        decommission_period -= partial
 
     return np.cumsum(output)
+
+
+def _calculate_increments_production(
+    incs: list[Increment],
+    production: np.ndarray,
+    lifetime: float,
+    today: float,
+    times: np.ndarray,
+) -> np.ndarray:
+    """
+    Calculate the combined production profile of a set of increments over time.
+
+    Each increment enters and exits uniformly over its age span, as pipeline
+    delivery and decommissioning move it.
+
+    Parameters
+    ----------
+    incs
+        Increments of one plant type, delivered or in the pipeline.
+    production
+        Production per plant of each increment, tons/year.
+    lifetime
+        Lifetime of the plant, years.
+    today
+        Current time, days.
+    times
+        Future times from the simulation timeline (timeline[idx:]), days.
+
+    Returns
+    -------
+    np.ndarray
+        Production at each of the times, tons/year.
+    """
+    total = np.zeros_like(times)
+
+    for inc, plant_production in zip(incs, production, strict=True):
+        delivery = today - inc.age * YEAR
+        decommission = delivery + lifetime * YEAR
+
+        total += _calculate_increment_production_interval(
+            plant_production * inc.multiplier,
+            delivery,
+            decommission,
+            inc.age_span * YEAR,
+            times,
+        )
+
+    return total
 
 
 def perform_decommissioning(producer: Producer) -> None:
@@ -212,7 +254,6 @@ def calculate_evolution_expectation(producer: Producer, timeline, idx):
     years = timeline / YEAR
     times = timeline[idx_]
     today = times[0]
-    future = (times - today) / YEAR
 
     if idx == 0:
         time_steps = np.insert((timeline[1:] - timeline[:-1]), 0, YEAR)
@@ -245,26 +286,14 @@ def calculate_evolution_expectation(producer: Producer, timeline, idx):
 
         # calculate the production capacity per increment
         decided = np.array([inc.decided for inc in incs])
-        multipliers = np.array([inc.multiplier for inc in incs])
-        ages = np.array([inc.age for inc in incs])
 
         origins = get_increment_origin_indexes(years, years[idx], decided)
         production = plant.expectation.get_production(origins)
 
-        # calculate cumulative decommissioning expectation
-        lifetime = plant.lifetime.get()
-        cum_production = np.cumsum(multipliers * production)
-        cum_decommissioning = np.interp(
-            future, (lifetime - ages), cum_production, left=0.0
+        # the current production less its expected decommissioning
+        existing[p, :] = _calculate_increments_production(
+            incs, production, plant.lifetime.get(), today, times
         )
-
-        # start the baseline with
-        # the current production
-        existing[p, :] = np.dot(multipliers, production)
-
-        # subtract from the baseline
-        # of current production
-        existing[p, :] -= cum_decommissioning
 
         _accumulate_weighted_cost(
             incs,
@@ -289,29 +318,17 @@ def calculate_evolution_expectation(producer: Producer, timeline, idx):
         if not len(pinc):
             continue
 
-        lifetime = plant.lifetime.get()
-
         # calculate the production capacity per increment
         decided = np.array([inc.decided for inc in pinc])
-        multipliers = np.array([inc.multiplier for inc in pinc])
-        ages = np.array([inc.age for inc in pinc])
 
         origins = get_increment_origin_indexes(years, years[idx], decided)
         production = plant.expectation.get_production(origins)
 
-        # calculate cumulative pipeline delivery expectation
-        # ages are negative; -ages gives time-to-delivery (ascending)
-        cum_production = np.cumsum(multipliers * production)
-        cum_pipeline = np.interp(future, -ages, cum_production, left=0.0)
-
-        # account for their future decommissioning
-        cum_decommissioning = np.interp(
-            future, lifetime - ages, cum_production, left=0.0
+        # the near-term arrival of the pipeline less
+        # its long-term decommissioning
+        pipeline[p, :] = _calculate_increments_production(
+            pinc, production, plant.lifetime.get(), today, times
         )
-
-        # add the near-term arrival of the pipeline and
-        # the long-term decommissioning of the pipeline
-        pipeline[p, :] = cum_pipeline - cum_decommissioning
 
         _accumulate_weighted_cost(
             pinc,
