@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Yearly cost, WTT and operating flows of assets, and the Component that holds them."""
+
 from __future__ import annotations
 
 from math import floor
@@ -19,6 +21,7 @@ if TYPE_CHECKING:
     from navigate.core.nodes.region import Region
     from navigate.core.nodes.tank import Tank
     from navigate.core.nodes.technology import Technology
+    from navigate.core.nodes.vessel import Vessel
     from navigate.util.types_ import FloatArray
 
 
@@ -73,7 +76,7 @@ class Component:
         self.replacement_cycle: _ReplacementCycle | None = None
 
     def initialize_process_component(self, region: Region, process_name: str) -> None:
-
+        """Attach the replacement cycle of a region process that has a lifetime."""
         lifetime = region.process_lifetime[process_name]
         if lifetime is None:
             return
@@ -87,7 +90,7 @@ class Component:
     def initialize_machinery_component(
         self, machinery: Converter | PowerSystem | Tank | Technology
     ) -> None:
-
+        """Attach the replacement cycle of a machinery item that has a lifetime."""
         lifetime = machinery.lifetime
         if lifetime is None:
             return
@@ -99,18 +102,23 @@ class Component:
         )
 
     def get_commence_index(self) -> int:
+        """Return the calendar-year bin in which operation commences."""
         return _bin_index(self.time_commence, self.time_initial, self.get_length())
 
-    def add_capex_flow(self, capex_flow: np.ndarray) -> None:
+    def add_capex_flow(self, capex_flow: FloatArray) -> None:
+        """Add a CAPEX flow to the component's CAPEX flow."""
         self.capex_flow += capex_flow
 
-    def add_opex_flow(self, opex_flow: np.ndarray) -> None:
+    def add_opex_flow(self, opex_flow: FloatArray) -> None:
+        """Add an OPEX flow to the component's OPEX flow."""
         self.opex_flow += opex_flow
 
-    def add_tied_capital_flow(self, tied_capital_flow: np.ndarray) -> None:
+    def add_tied_capital_flow(self, tied_capital_flow: FloatArray) -> None:
+        """Add a tied-capital flow to the component's tied-capital flow."""
         self.tied_capital_flow += tied_capital_flow
 
-    def add_wtt_flow(self, emission_name: str, wtt_flow: np.ndarray) -> None:
+    def add_wtt_flow(self, emission_name: str, wtt_flow: FloatArray) -> None:
+        """Add a WTT flow to the component's WTT flow of one emission."""
         self.wtt_flow[emission_name] += wtt_flow
 
     def _update_time_context(self, time_initial: float) -> None:
@@ -150,6 +158,7 @@ class Component:
             )
 
     def add_component(self, component: Component) -> None:
+        """Add every flow of another component of the same horizon to this one."""
         self.add_capex_flow(component.capex_flow)
         self.add_opex_flow(component.opex_flow)
         self.add_tied_capital_flow(component.tied_capital_flow)
@@ -158,9 +167,11 @@ class Component:
             self.add_wtt_flow(emission_name, emission_flow)
 
     def get_length(self) -> int:
+        """Return the number of calendar-year bins in the horizon."""
         return self.capex_flow.size
 
-    def get_cost_flow(self) -> np.ndarray:
+    def get_cost_flow(self) -> FloatArray:
+        """Return the total cost flow, OPEX plus CAPEX."""
         return self.opex_flow + self.capex_flow
 
 
@@ -198,7 +209,7 @@ class _ReplacementCycle:
         )
 
 
-def build_production_flow(component: Component, production: float) -> np.ndarray:
+def build_production_flow(component: Component, production: float) -> FloatArray:
     """
     Expand a fixed annual production (tons/year) into a calendar-year flow vector.
 
@@ -215,15 +226,15 @@ def build_production_flow(component: Component, production: float) -> np.ndarray
 
     Returns
     -------
-    np.ndarray
+    FloatArray
         Production flow per calendar year over the horizon `lead_time + lifetime`.
     """
     return _build_constant_flow(component, production)
 
 
 def build_cargo_flow(
-    component: Component, cargo: np.ndarray, timeline: np.ndarray
-) -> np.ndarray:
+    component: Component, cargo: FloatArray, timeline: FloatArray
+) -> FloatArray:
     """
     Expand a variable annual cargo-miles (cargo-miles/year) into a calendar-year flow.
 
@@ -242,7 +253,7 @@ def build_cargo_flow(
 
     Returns
     -------
-    np.ndarray
+    FloatArray
         Cargo-mile flow per calendar year over the horizon `lead_time + lifetime`.
     """
     return _build_variable_flow(component, cargo, timeline)
@@ -282,7 +293,7 @@ def add_fixed_opex(component: Component, value: Callable[[float], float]) -> Non
 def add_variable_opex(
     component: Component,
     metric: Callable[[float], float],
-    cost: Callable[[np.ndarray], np.ndarray],
+    cost: Callable[[FloatArray], FloatArray],
 ) -> None:
     """
     Add variable cost (metric * price) into the unified cost flow.
@@ -344,7 +355,7 @@ def add_fixed_wtt(
 def add_variable_wtt(
     component: Component,
     metric: Callable[[float], float],
-    wtt_callables: dict[str, Callable[[np.ndarray], np.ndarray]],
+    wtt_callables: dict[str, Callable[[FloatArray], FloatArray]],
 ) -> None:
     """
     Add variable WTT (metric * factor) for multiple emissions.
@@ -372,7 +383,7 @@ def add_variable_wtt(
         component.add_wtt_flow(emission_name, fixed * variable)
 
 
-def timeline_to_yearly(asset, idx, timeline):
+def timeline_to_yearly(vessel: Vessel, idx: int, timeline: FloatArray) -> FloatArray:
     """
     Define the yearly dates used to calculate a business case's cost-flow.
 
@@ -380,30 +391,29 @@ def timeline_to_yearly(asset, idx, timeline):
 
     Parameters
     ----------
-    asset : Vessel | Plant
-        Asset for which cost flow will be calculated.
-    idx : int
+    vessel
+        Vessel for which cost flow will be calculated.
+    idx
         Current time-step index.
-    timeline : np.ndarray
-        Simulation timeline.
+    timeline
+        Simulation timeline (days).
 
     Returns
     -------
-    np.ndarray
-        Yearly times (in days) for the lifetime of an asset.
+    FloatArray
+        Yearly times (in days) for the lifetime of the vessel.
     """
-    lifetime = asset.lifetime.get()
+    lifetime = vessel.lifetime.get()
 
     start = timeline[idx]
     end = start + lifetime * YEAR
 
-    # define interpolation timeline and time-step sizes
     times = np.arange(start, end, YEAR)
 
     return times
 
 
-def get_age_flow(lead_time: float, lifetime: float) -> np.ndarray:
+def get_age_flow(lead_time: float, lifetime: float) -> FloatArray:
     """
     Initialize a ones vector sized for an asset's yearly cost-flow.
 
@@ -418,13 +428,13 @@ def get_age_flow(lead_time: float, lifetime: float) -> np.ndarray:
 
     Returns
     -------
-    np.ndarray
+    FloatArray
         A vector of ones.
     """
     return np.ones(get_flow_shape(lead_time, lifetime), dtype=float)
 
 
-def build_operating_age_flow(lead_time: float, lifetime: float) -> np.ndarray:
+def build_operating_age_flow(lead_time: float, lifetime: float) -> FloatArray:
     """
     Build the per-calendar-year operating fraction over `lead_time + lifetime`.
 
@@ -444,7 +454,7 @@ def build_operating_age_flow(lead_time: float, lifetime: float) -> np.ndarray:
 
     Returns
     -------
-    np.ndarray
+    FloatArray
         Operating fraction per calendar-year bin over the horizon
         `lead_time + lifetime`.
     """
@@ -458,7 +468,7 @@ def build_operating_age_flow(lead_time: float, lifetime: float) -> np.ndarray:
 
 def build_operating_flows(
     time_initial: float, lead_time: float, lifetime: float
-) -> tuple[np.ndarray, np.ndarray]:
+) -> tuple[FloatArray, FloatArray]:
     """
     Build the lead-aware operating-year grid and overlap fractions at a given time.
 
@@ -478,11 +488,11 @@ def build_operating_flows(
 
     Returns
     -------
-    tuple[np.ndarray, np.ndarray]
+    tuple[FloatArray, FloatArray]
         Absolute year grid (days) and per-year operating fraction.
     """
     overlap = build_operating_age_flow(lead_time, lifetime)
-    year_flow = time_initial + np.arange(overlap.size) * YEAR_TO_DAYS
+    year_flow = time_initial + np.arange(overlap.size, dtype=float) * YEAR_TO_DAYS
 
     return year_flow, overlap
 
@@ -500,7 +510,7 @@ def get_flow_shape(lead_time: float, lifetime: float) -> tuple[int]:
 
     Returns
     -------
-    tuple
+    tuple[int]
         Shape of the vector required to hold a property.
     """
     return (get_flow_size(lead_time, lifetime),)
@@ -556,29 +566,19 @@ def _add_initial_capex_flow(
     capex_t = capex(time_initial)
 
     if lead_time > 0.0:
-        # calculate the timeline over which
-        # the initial CAPEX is spread
         full_years = int(np.floor(lead_time))
         fraction = full_years / lead_time
 
         if full_years > 0:
-            # evenly distribute CAPEX across over
-            # full-year lead time [0, full_years)
             delta[:full_years] += capex_t * fraction / max(full_years, 1)
 
-        # add residual CAPEX to the last
-        # partial year of construction
         delta[full_years] += capex_t * (1.0 - fraction)
 
     else:
         delta[0] += capex_t
 
-    # add the initial capex spread over
-    # lead time into the capex flow
     capex_flow += delta
 
-    # calculate the depreciation schedule
-    # of the tied capital
     _add_initial_tied_capital_flow(component, delta)
 
 
@@ -625,14 +625,12 @@ def _add_recurring_capex_flow(
         replace_t = cycle.replacement(time_replace)
         capex_t = capex(time_replace) * replace_t
 
-        # optionally scale by fraction of lifetime that fits to the horizon
         if partial:
             lifetime_t = cycle.lifetime(time_replace)
             remaining_years = (time_end - time_replace) / YEAR_TO_DAYS
             if remaining_years < lifetime_t:
                 capex_t *= max(remaining_years, 0.0) / lifetime_t
 
-        # deposit into the appropriate calendar bin
         idx = _bin_index(time_replace, time_initial, component.get_length())
         capex_flow[idx] += capex_t
 
@@ -642,7 +640,7 @@ def _add_recurring_capex_flow(
         _add_straight_line_depreciation(component, idx, capex_t, lifetime_replace)
 
 
-def _add_initial_tied_capital_flow(component: Component, delta: np.ndarray) -> None:
+def _add_initial_tied_capital_flow(component: Component, delta: FloatArray) -> None:
     """
     Add the tied capital depreciation for the initial CAPEX delta.
 
@@ -667,21 +665,14 @@ def _add_initial_tied_capital_flow(component: Component, delta: np.ndarray) -> N
     time_initial = component.time_initial
 
     tied_capital_flow = component.tied_capital_flow
-    year_flow = component.year_flow
 
     commence_idx = component.get_commence_index()
 
-    # calculate the tied up capital accrued over
-    # the construction period of the asset
     if commence_idx > 0:
         tied_capital_flow[:commence_idx] += np.cumsum(delta[:commence_idx])
 
-    # calculate the total capex that
-    # needs to be depreciated
     basis = delta.sum()
 
-    # split initial basis into non-replaceable
-    # and replaceable tranches
     cycle = component.replacement_cycle
     if cycle is not None:
         replace_t = cycle.replacement(time_initial)
@@ -693,8 +684,6 @@ def _add_initial_tied_capital_flow(component: Component, delta: np.ndarray) -> N
     basis_asset = basis * (1.0 - replace_t)
     basis_component = basis * replace_t
 
-    # define the time horizon over
-    # which the asset is depreciated
     year_flow = component.year_flow
     lifetime_full = (component.time_end - year_flow[commence_idx]) / YEAR_TO_DAYS
 
@@ -839,7 +828,7 @@ def _compute_replacement_times(
 
 def _build_staircase_flow(
     component: Component, value: Callable[[float], float]
-) -> np.ndarray:
+) -> FloatArray:
     """
     Build a piecewise-constant flow, locked at installation and each replacement.
 
@@ -855,7 +844,7 @@ def _build_staircase_flow(
 
     Returns
     -------
-    np.ndarray
+    FloatArray
         Piecewise constant flow vector.
     """
     # if the component lifetime is the same as
@@ -873,7 +862,7 @@ def _build_staircase_flow(
     return out
 
 
-def _build_constant_flow(component: Component, value: float) -> np.ndarray:
+def _build_constant_flow(component: Component, value: float) -> FloatArray:
     """
     Build a constant flow over the lifetime of a component.
 
@@ -890,15 +879,15 @@ def _build_constant_flow(component: Component, value: float) -> np.ndarray:
 
     Returns
     -------
-    np.ndarray
+    FloatArray
         Flow per calendar year over the horizon `lead_time + lifetime`.
     """
     return value * component.constant_overlap
 
 
 def _build_variable_flow(
-    component: Component, value: np.ndarray, timeline: np.ndarray
-) -> np.ndarray:
+    component: Component, value: FloatArray, timeline: FloatArray
+) -> FloatArray:
     """
     Build a variable flow over the lifetime of a component.
 
@@ -917,7 +906,7 @@ def _build_variable_flow(
 
     Returns
     -------
-    np.ndarray
+    FloatArray
         Flow per calendar year over the horizon `lead_time + lifetime`.
     """
     time_commence = component.time_commence
@@ -926,7 +915,10 @@ def _build_variable_flow(
 
     overlap_days = _overlap_year_bins(year_flow, time_commence, time_end)
 
-    return np.interp(year_flow, timeline, value) * (overlap_days / YEAR_TO_DAYS)
+    flow: FloatArray = np.interp(year_flow, timeline, value) * (
+        overlap_days / YEAR_TO_DAYS
+    )
+    return flow
 
 
 def _future_time(time: float, years: float) -> float:
@@ -974,7 +966,7 @@ def _bin_index(time: float, time_initial: float, n_years: int) -> int:
     return idx
 
 
-def _overlap_year_bins(times: FloatArray, a: float, b: float) -> np.ndarray:
+def _overlap_year_bins(times: FloatArray, a: float, b: float) -> FloatArray:
     """
     Vectorized overlap between [a, b) and each calendar bin [t_i, t_i + YEAR_TO_DAYS).
 
@@ -989,15 +981,16 @@ def _overlap_year_bins(times: FloatArray, a: float, b: float) -> np.ndarray:
 
     Returns
     -------
-    np.ndarray
-        Overlap length per bin in days (same length as `times_days` slice provided).
+    FloatArray
+        Overlap length per bin in days (same length as `times`).
     """
     left = np.maximum(times, a)
     right = np.minimum(times + YEAR_TO_DAYS, b)
-    return np.clip(right - left, 0.0, YEAR_TO_DAYS)
+    overlap: FloatArray = np.clip(right - left, 0.0, YEAR_TO_DAYS)
+    return overlap
 
 
-def _initialize_flow(lead_time: float, lifetime: float) -> np.ndarray:
+def _initialize_flow(lead_time: float, lifetime: float) -> FloatArray:
     """
     Initialize zeros with the necessary length for the yearly cost-flow of an asset.
 
@@ -1010,13 +1003,13 @@ def _initialize_flow(lead_time: float, lifetime: float) -> np.ndarray:
 
     Returns
     -------
-    np.ndarray
+    FloatArray
         A vector of zeros.
     """
     return np.zeros(get_flow_shape(lead_time, lifetime), dtype=float)
 
 
-def trim_flow_to_lifetime(flow: np.ndarray, lifetime: float) -> np.ndarray:
+def trim_flow_to_lifetime(flow: FloatArray, lifetime: float) -> FloatArray:
     """
     Trim a yearly flow to its first `lifetime` years, prorating a partial final year.
 
@@ -1029,7 +1022,7 @@ def trim_flow_to_lifetime(flow: np.ndarray, lifetime: float) -> np.ndarray:
 
     Returns
     -------
-    np.ndarray
+    FloatArray
         Trimmed copy; the input flow is left untouched.
     """
     trimmed = flow[: get_flow_size(lead_time=0.0, lifetime=lifetime)].copy()
@@ -1038,20 +1031,20 @@ def trim_flow_to_lifetime(flow: np.ndarray, lifetime: float) -> np.ndarray:
     return trimmed
 
 
-def expand_to_flow(lifetime, value):
+def expand_to_flow(lifetime: float, value: float) -> FloatArray:
     """
     Expand a yearly property of an asset to a flow over the lifetime of the asset.
 
     Parameters
     ----------
-    lifetime : float
-        Lifetime of an asset.
-    value : float
+    lifetime
+        Lifetime of an asset (years).
+    value
         Yearly value of operations.
 
     Returns
     -------
-    np.ndarray
+    FloatArray
         A vector filled with 'value'.
     """
     flow = np.full(get_flow_shape(lead_time=0.0, lifetime=lifetime), value)
@@ -1060,7 +1053,7 @@ def expand_to_flow(lifetime, value):
     return flow
 
 
-def correct_flow_residual(lifetime, *costs):
+def correct_flow_residual(lifetime: float, cost: FloatArray) -> None:
     """
     Correct the last year's cost when an asset's lifetime is not an integer.
 
@@ -1069,18 +1062,17 @@ def correct_flow_residual(lifetime, *costs):
 
     Parameters
     ----------
-    lifetime : float
-        Lifetime of the vessel.
-    costs : np.ndarray
-        List of cost-flows for which the last time-step should be corrected.
+    lifetime
+        Lifetime of the asset (years).
+    cost
+        Cost-flow whose last time-step is corrected in place.
     """
     partial, residual = get_flow_residual(lifetime)
     if partial:
-        for cost in costs:
-            cost[-1] *= residual
+        cost[-1] *= residual
 
 
-def get_flow_residual(lifetime):
+def get_flow_residual(lifetime: float) -> tuple[bool, float]:
     """
     Get the residual multiplier for a partial final year of operation.
 
@@ -1089,13 +1081,13 @@ def get_flow_residual(lifetime):
 
     Parameters
     ----------
-    lifetime : float
-        Lifetime of the vessel
+    lifetime
+        Lifetime of the asset (years).
 
     Returns
     -------
-    float
-        Residual cost multiplier.
+    tuple[bool, float]
+        Whether the final year is partial, and the residual cost multiplier.
     """
     lifetime = round(lifetime, ROUND_OFF)
     partial = lifetime < get_flow_size(lead_time=0.0, lifetime=lifetime)

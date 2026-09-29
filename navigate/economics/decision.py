@@ -129,7 +129,6 @@ def softmax(utilities: FloatArray) -> FloatArray:
     FloatArray
         Probability of choice per alternative.
     """
-    utilities = np.asarray(utilities, dtype=np.float64)
     exp = np.exp(utilities - np.max(utilities))
     probabilities: FloatArray = exp / np.sum(exp)
     return probabilities
