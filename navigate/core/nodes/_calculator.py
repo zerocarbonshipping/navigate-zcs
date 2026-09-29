@@ -280,7 +280,11 @@ class _Calculator:
             If the value, or any entry of it, is at or beyond an exclusive bound.
         """
         bounds = self._applied_bounds
-        bounds.check_exclusive(value, self)
+
+        # the owner string is only worth building where a bound can actually raise
+        if bounds.exclusive:
+            bounds.check_exclusive(value, str(self))
+
         return np.maximum(np.minimum(value, bounds.upper), bounds.lower)
 
     def _assign_applied_bounds(self) -> None:

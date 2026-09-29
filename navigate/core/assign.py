@@ -353,7 +353,7 @@ def assign_boolean(assignment: str) -> bool:
         raise ValueError(_only_allows("TRUE or FALSE", assignment)) from None
 
 
-def assign_date(assignment: object) -> np.datetime64:
+def assign_date(assignment: np.datetime64) -> np.datetime64:
     """
     Check whether the value assigned to a date attribute is a date.
 

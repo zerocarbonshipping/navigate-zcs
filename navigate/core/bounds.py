@@ -46,7 +46,7 @@ class Bounds:
         """Whether either bound excludes the value it equals."""
         return not (self.inclusive_lower and self.inclusive_upper)
 
-    def check_exclusive(self, value: FloatLike, owner: object) -> None:
+    def check_exclusive(self, value: FloatLike, owner: str) -> None:
         """
         Raise where a value reaches an exclusive bound.
 
@@ -57,8 +57,8 @@ class Bounds:
         value
             Value before clamping, a float or an array of them.
         owner
-            What the value belongs to, leading the error message; formatted
-            only when it raises.
+            Text leading the error message, naming the node or expression the
+            value belongs to.
 
         Raises
         ------
