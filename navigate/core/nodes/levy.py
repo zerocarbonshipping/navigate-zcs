@@ -164,9 +164,7 @@ class Levy(_Policy):
         if not self.active:
             return
 
-        times = timeline[idx:]
-
-        self.expectation.set_level(idx, self.level.get(times))
+        self.expectation.set_level(idx, self.level.get(timeline[idx:]))
 
         self._calculate_policy_expectations(
             self.expectation, emissions, emissions_lifetime
