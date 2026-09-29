@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Unit tests for navigate.fuel.port_supply — bunkering-limit redistribution."""
+"""Unit tests for navigate.fuel.port_supply: producer import and bunkering limits."""
 
 from __future__ import annotations
 
@@ -10,19 +10,39 @@ from types import SimpleNamespace
 import numpy as np
 import pytest
 
+from navigate.core import Scalar
+from navigate.core.profiles.port_profile import PortProfile
 from navigate.fuel.port_supply import (
     _align_finite_export_with_bunkering_limits,
     _calculate_import_from_producers,
+    _multiply_zero_safe,
 )
+
+TIMELINE = np.array([0.0])
+IDX = 0
 
 FUEL_NAME = "fuel_a"
 FUEL = SimpleNamespace(name=FUEL_NAME)
 EMISSION_NAME = "carbon_dioxide"
 EMISSIONS = {EMISSION_NAME: None}
-TIMELINE = np.array([0.0])
 
 
-class _StubExpectation:
+class _StubEmission:
+    def __init__(self):
+        self.global_warming_potential = Scalar(1.0)
+
+
+# the producer-import tests below use their own fuel/emission names, kept apart
+# from FUEL_NAME/EMISSIONS above so neither group's fixtures leak into the other
+PRODUCER_EMISSIONS = {"co2": _StubEmission()}
+
+
+# ---------------------------------------------------------------------------
+# _align_finite_export_with_bunkering_limits: surplus/deficit redistribution
+# ---------------------------------------------------------------------------
+
+
+class _LimitPortExpectation:
     def __init__(self, limit):
         self._limit = np.asarray(limit, dtype=float)
 
@@ -30,9 +50,9 @@ class _StubExpectation:
         return self._limit
 
 
-class _StubPort:
+class _LimitPort:
     def __init__(self, limit, allowed=True):
-        self.expectation = _StubExpectation(limit)
+        self.expectation = _LimitPortExpectation(limit)
         self._allowed = allowed
 
     def is_bunkering_allowed(self, fuel_name):
@@ -43,7 +63,7 @@ def _redistribute(limits, imports, mask, allowed=None):
     """Run the function under test and return each port's resulting import."""
     allowed = allowed or {}
 
-    ports = {name: _StubPort(limits[name], allowed.get(name, True)) for name in limits}
+    ports = {name: _LimitPort(limits[name], allowed.get(name, True)) for name in limits}
     supplies = {
         name: {FUEL_NAME: np.asarray(imports[name], dtype=float)} for name in limits
     }
@@ -176,6 +196,360 @@ def test_redistribution(limits, imports, mask, allowed, expected):
 
     for port_name, values in expected.items():
         assert result[port_name] == pytest.approx(values)
+
+
+# ---------------------------------------------------------------------------
+# _calculate_import_from_producers: infinite supply, price/WTT and the
+# profile guard
+# ---------------------------------------------------------------------------
+
+
+class _StubFuel:
+    def __init__(self, name):
+        self.name = name
+        # PortProfile.initialize reads this to pick the bunker-supply-mass
+        # default; every fuel here is a producer fuel, never liquid market
+        self.liquid_market = False
+        # PortProfile.initialize reads this to convert mass to energy; a
+        # value of 1.0 keeps mass and energy numerically identical
+        self.lower_heating_value = Scalar(1.0)
+
+
+class _StubPlantExpectation:
+    def __init__(self, cost, wtt):
+        self._cost = cost  # dict[port_name, np.ndarray]
+        self._wtt = wtt  # dict[(port_name, emission_name), np.ndarray]
+
+    def get_expected_delivered_cost(self, port_name, idx):
+        return self._cost[port_name][idx]
+
+    def get_expected_delivered_wtt(self, port_name, emission_name, idx):
+        return self._wtt[(port_name, emission_name)][idx]
+
+
+class _StubPlant:
+    def __init__(self, name, fuel_name, cost, wtt):
+        self.name = name
+        self.fuel = _StubFuel(fuel_name)
+        self.expectation = _StubPlantExpectation(cost, wtt)
+
+
+class _StubProducerExpectation:
+    def __init__(self, export_distribution, production):
+        self._export_distribution = export_distribution  # dict[port_name, array]
+        self._production = production  # dict[plant_name, array]
+
+    def get_export_distribution(self, idx):
+        return {p: value[idx] for p, value in self._export_distribution.items()}
+
+    def get_expected_production(self, plant_name, idx):
+        return self._production[plant_name][idx]
+
+
+class _StubProducer:
+    def __init__(self, plants, export_distribution, production):
+        self.plants = plants
+        self.expectation = _StubProducerExpectation(export_distribution, production)
+
+
+class _StubPortExpectation:
+    def __init__(self, handling_cost, bunkering_limit):
+        self._handling_cost = handling_cost  # dict[fuel_name, array]
+        self._bunkering_limit = bunkering_limit  # dict[fuel_name, array]
+        self.bunker_price = {}
+        self.bunker_wtt = {}
+        self.bunker_supply = {}
+
+    def get_handling_cost(self, fuel_name, idx):
+        return self._handling_cost[fuel_name][idx]
+
+    def get_bunkering_limit(self, fuel_name, idx):
+        return self._bunkering_limit[fuel_name][idx]
+
+    def get_bunker_price_overwrite(self, fuel_name, idx):
+        raise AssertionError("no port in these tests overwrites its bunker price")
+
+    def get_bunker_wtt_overwrite(self, fuel_name, emission_name, idx):
+        raise AssertionError("no port in these tests overwrites its bunker WTT")
+
+    def set_bunker_price(self, idx, fuel_name, price):
+        self.bunker_price[fuel_name] = price
+
+    def set_bunker_wtt(self, idx, fuel_name, emission_name, wtt):
+        self.bunker_wtt[(fuel_name, emission_name)] = wtt
+
+    def set_bunker_supply(self, idx, fuel_name, supply):
+        self.bunker_supply[fuel_name] = supply
+
+    def get_bunker_price(self, fuel_name, idx):
+        return self.bunker_price[fuel_name][idx]
+
+
+class _StubPort:
+    def __init__(self, fuel_name, handling_cost=0.0, bunkering_limit=np.inf):
+        self.bunkering_allowed = {fuel_name: True}
+        self.bunker_price_overwrite = {fuel_name: None}
+        self.bunker_wtt_overwrite = {(fuel_name, e): None for e in PRODUCER_EMISSIONS}
+        self.expectation = _StubPortExpectation(
+            handling_cost={fuel_name: np.full_like(TIMELINE, handling_cost)},
+            bunkering_limit={fuel_name: np.full_like(TIMELINE, bunkering_limit)},
+        )
+
+        # a real PortProfile, not a stub: the write is unconditional (as on
+        # the liquid-market path's finite branch), so an unconstrained port's
+        # supply reaches the profile as np.inf, exactly as production code
+        # writes it
+        self.profile = PortProfile()
+        self.profile.initialize(
+            timeline=TIMELINE,
+            emissions=PRODUCER_EMISSIONS,
+            fuels={fuel_name: _StubFuel(fuel_name)},
+            emissions_lifetime=100.0,
+        )
+
+    def is_bunkering_allowed(self, fuel_name):
+        return self.bunkering_allowed[fuel_name]
+
+
+class TestCalculateImportFromProducers:
+    def test_infinite_production_at_an_unlimited_port_reports_infinite_supply(self):
+        # an unconstrained producer (MaximumDevelopment = INF) reports infinite
+        # expected production; the port has no bunkering limit set, so its
+        # limit is the default np.inf too. The bunker price is well-defined
+        # (the single exporting plant's own cost plus handling), so the
+        # supply is not zeroed by the price check, and reaches the port and
+        # its profile as np.inf: the supply is genuinely unbounded.
+        fuel_name = "fuel_x"
+        port = _StubPort(fuel_name, handling_cost=5.0, bunkering_limit=np.inf)
+        plant = _StubPlant(
+            "plant_x",
+            fuel_name,
+            cost={"port_a": np.array([200.0])},
+            wtt={("port_a", "co2"): np.array([0.05])},
+        )
+        producer = _StubProducer(
+            plants=[plant],
+            export_distribution={"port_a": np.array([1.0])},
+            production={"plant_x": np.array([np.inf])},
+        )
+
+        _calculate_import_from_producers(
+            ports={"port_a": port},
+            producers={"producer_a": producer},
+            emissions=PRODUCER_EMISSIONS,
+            fuels={fuel_name: _StubFuel(fuel_name)},
+            timeline=TIMELINE,
+            idx=IDX,
+        )
+
+        # the expectation is internal state and may legitimately carry the
+        # unconstrained supply forward as infinite
+        assert np.isinf(port.expectation.bunker_supply[fuel_name][0])
+
+        # price and WTT are well-defined: the single infinite-supply plant's
+        # own cost/WTT, unaffected by the inf/inf that a plain supply-weighted
+        # average would have produced
+        assert port.expectation.bunker_price[fuel_name][0] == 205.0
+        assert port.expectation.bunker_wtt[(fuel_name, "co2")][0] == 0.05
+        assert port.profile.get_bunker_price()[fuel_name][0] == 205.0
+        assert port.profile.get_bunker_wtt()[(fuel_name, "co2")][0] == 0.05
+
+        # the profile records the same infinite supply as the expectation
+        assert np.isinf(port.profile.get_bunker_supply_mass()[fuel_name][0])
+
+    def test_infinite_plant_dominates_and_ignores_finite_plants(self):
+        # two plants export the same fuel to the same port: one finite, one
+        # from an unconstrained producer. The infinite plant's supply makes
+        # the port's total import infinite, so price and WTT are the
+        # equally-weighted average of the infinite-supply plants only,
+        # discarding the finite plant's contribution entirely (mirroring
+        # _average_wtt_over_ports's treatment of infinite-supply ports)
+        fuel_name = "fuel_x"
+        port = _StubPort(fuel_name, handling_cost=0.0, bunkering_limit=np.inf)
+
+        finite_plant = _StubPlant(
+            "plant_finite",
+            fuel_name,
+            cost={"port_a": np.array([100.0])},
+            wtt={("port_a", "co2"): np.array([0.01])},
+        )
+        infinite_plant = _StubPlant(
+            "plant_infinite",
+            fuel_name,
+            cost={"port_a": np.array([300.0])},
+            wtt={("port_a", "co2"): np.array([0.09])},
+        )
+
+        finite_producer = _StubProducer(
+            plants=[finite_plant],
+            export_distribution={"port_a": np.array([1.0])},
+            production={"plant_finite": np.array([1000.0])},
+        )
+        infinite_producer = _StubProducer(
+            plants=[infinite_plant],
+            export_distribution={"port_a": np.array([1.0])},
+            production={"plant_infinite": np.array([np.inf])},
+        )
+
+        _calculate_import_from_producers(
+            ports={"port_a": port},
+            producers={
+                "producer_finite": finite_producer,
+                "producer_infinite": infinite_producer,
+            },
+            emissions=PRODUCER_EMISSIONS,
+            fuels={fuel_name: _StubFuel(fuel_name)},
+            timeline=TIMELINE,
+            idx=IDX,
+        )
+
+        assert np.isinf(port.expectation.bunker_supply[fuel_name][0])
+        assert port.expectation.bunker_price[fuel_name][0] == 300.0
+        assert port.expectation.bunker_wtt[(fuel_name, "co2")][0] == 0.09
+        assert np.isinf(port.profile.get_bunker_supply_mass()[fuel_name][0])
+
+    def test_all_finite_plants_keep_the_supply_weighted_average(self):
+        # with no infinite-supply plant, price and WTT are the classic
+        # supply-weighted average across all exporting plants, and the
+        # finite supply reaches the profile unguarded
+        fuel_name = "fuel_x"
+        port = _StubPort(fuel_name, handling_cost=0.0, bunkering_limit=np.inf)
+
+        plant_a = _StubPlant(
+            "plant_a",
+            fuel_name,
+            cost={"port_a": np.array([100.0])},
+            wtt={("port_a", "co2"): np.array([0.02])},
+        )
+        plant_b = _StubPlant(
+            "plant_b",
+            fuel_name,
+            cost={"port_a": np.array([200.0])},
+            wtt={("port_a", "co2"): np.array([0.04])},
+        )
+
+        producer_a = _StubProducer(
+            plants=[plant_a],
+            export_distribution={"port_a": np.array([1.0])},
+            production={"plant_a": np.array([600.0])},
+        )
+        producer_b = _StubProducer(
+            plants=[plant_b],
+            export_distribution={"port_a": np.array([1.0])},
+            production={"plant_b": np.array([400.0])},
+        )
+
+        _calculate_import_from_producers(
+            ports={"port_a": port},
+            producers={"producer_a": producer_a, "producer_b": producer_b},
+            emissions=PRODUCER_EMISSIONS,
+            fuels={fuel_name: _StubFuel(fuel_name)},
+            timeline=TIMELINE,
+            idx=IDX,
+        )
+
+        # (600 * 100 + 400 * 200) / 1000 = 140.0
+        assert port.expectation.bunker_price[fuel_name][0] == 140.0
+        # (600 * 0.02 + 400 * 0.04) / 1000 = 0.028
+        assert np.isclose(port.expectation.bunker_wtt[(fuel_name, "co2")][0], 0.028)
+        assert port.expectation.bunker_supply[fuel_name][0] == 1000.0
+        assert port.profile.get_bunker_supply_mass()[fuel_name][0] == 1000.0
+
+    def test_zero_export_share_of_infinite_production_gives_zero_not_nan(self):
+        # a producer's export distribution can legitimately send an
+        # infinite-supply plant's production to one port and none at all to
+        # another; the zero share must annihilate the infinite production to
+        # zero, not the NaN a plain multiply would give
+        fuel_name = "fuel_x"
+        port_a = _StubPort(fuel_name, handling_cost=0.0, bunkering_limit=np.inf)
+        port_zero = _StubPort(fuel_name, handling_cost=0.0, bunkering_limit=np.inf)
+
+        plant = _StubPlant(
+            "plant_x",
+            fuel_name,
+            cost={"port_a": np.array([200.0]), "port_zero": np.array([50.0])},
+            wtt={
+                ("port_a", "co2"): np.array([0.05]),
+                ("port_zero", "co2"): np.array([0.01]),
+            },
+        )
+        producer = _StubProducer(
+            plants=[plant],
+            export_distribution={
+                "port_a": np.array([1.0]),
+                "port_zero": np.array([0.0]),
+            },
+            production={"plant_x": np.array([np.inf])},
+        )
+
+        _calculate_import_from_producers(
+            ports={"port_a": port_a, "port_zero": port_zero},
+            producers={"producer_a": producer},
+            emissions=PRODUCER_EMISSIONS,
+            fuels={fuel_name: _StubFuel(fuel_name)},
+            timeline=TIMELINE,
+            idx=IDX,
+        )
+
+        # the zero-share port gets none of the infinite production, exactly,
+        # and that finite zero reaches the profile unguarded
+        assert port_zero.expectation.bunker_supply[fuel_name][0] == 0.0
+        assert port_zero.profile.get_bunker_supply_mass()[fuel_name][0] == 0.0
+
+        # the full-share port is unaffected by its sibling's zero share
+        assert np.isinf(port_a.expectation.bunker_supply[fuel_name][0])
+        assert port_a.expectation.bunker_price[fuel_name][0] == 200.0
+        assert np.isinf(port_a.profile.get_bunker_supply_mass()[fuel_name][0])
+
+    def test_infinite_supply_plant_with_zero_delivered_cost_and_wtt(self):
+        # an infinite-supply plant whose delivered cost or WTT happens to be
+        # exactly zero (e.g. a free feedstock, or an emission-free e-fuel)
+        # must not produce NaN in the running sums; the equally-weighted
+        # average recovers its true (zero) cost/WTT from the per-plant lists
+        fuel_name = "fuel_x"
+        port = _StubPort(fuel_name, handling_cost=10.0, bunkering_limit=np.inf)
+        plant = _StubPlant(
+            "plant_x",
+            fuel_name,
+            cost={"port_a": np.array([0.0])},
+            wtt={("port_a", "co2"): np.array([0.0])},
+        )
+        producer = _StubProducer(
+            plants=[plant],
+            export_distribution={"port_a": np.array([1.0])},
+            production={"plant_x": np.array([np.inf])},
+        )
+
+        _calculate_import_from_producers(
+            ports={"port_a": port},
+            producers={"producer_a": producer},
+            emissions=PRODUCER_EMISSIONS,
+            fuels={fuel_name: _StubFuel(fuel_name)},
+            timeline=TIMELINE,
+            idx=IDX,
+        )
+
+        assert np.isinf(port.expectation.bunker_supply[fuel_name][0])
+        # the plant's own (zero) cost plus the port's handling cost
+        assert port.expectation.bunker_price[fuel_name][0] == 10.0
+        assert port.expectation.bunker_wtt[(fuel_name, "co2")][0] == 0.0
+        assert np.isinf(port.profile.get_bunker_supply_mass()[fuel_name][0])
+
+
+class TestMultiplyZeroSafe:
+    @pytest.mark.parametrize(
+        ("infinite_prone", "factor", "expected"),
+        [
+            pytest.param(np.inf, 0.0, 0.0, id="zero_factor_annihilates_infinity"),
+            pytest.param(np.inf, 5.0, np.inf, id="nonzero_factor_keeps_infinity"),
+            pytest.param(5.0, 0.0, 0.0, id="ordinary_zero_product"),
+            pytest.param(3.0, 2.0, 6.0, id="ordinary_finite_product"),
+        ],
+    )
+    def test_product(self, infinite_prone, factor, expected):
+        result = _multiply_zero_safe(np.array([infinite_prone]), np.array([factor]))
+
+        assert result[0] == expected
 
 
 # ---------------------------------------------------------------------------

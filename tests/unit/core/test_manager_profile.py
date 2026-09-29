@@ -5,12 +5,27 @@
 
 from __future__ import annotations
 
+from unittest.mock import MagicMock
+
+import numpy as np
+
+from navigate.core.enum_ import FuelTypeID
 from navigate.core.profiles._fuel_infrastructure_profile import (
     _FuelInfrastructureProfile,
 )
 from navigate.core.profiles._plant_aggregate_profile import _PlantAggregateProfile
 from navigate.core.profiles._vessel_aggregate_profile import _VesselAggregateProfile
 from navigate.core.profiles.manager_profile import ManagerProfile
+from navigate.core.profiles.port_profile import PortProfile
+
+
+def _fuel():
+    fuel = MagicMock()
+    fuel.fuel_type = FuelTypeID.OIL
+    fuel.liquid_market = False
+    fuel.lower_heating_value.get.return_value = 1.0
+    return fuel
+
 
 # the wall-clock breakdown of one simulation, read back through the manager's
 # get_*_time readers; no branch it aggregates declares any of it
@@ -48,3 +63,69 @@ def test_manager_state_is_the_three_branches_plus_its_own_timings():
     )
 
     assert set(vars(ManagerProfile())) == branches | TIMING_ATTRIBUTES
+
+
+class TestBunkerSupplyMassAggregation:
+    """
+    An unconstrained port's infinite bunker supply makes the global total infinite.
+
+    A port records its own supply as np.inf when a bunkering limit is absent
+    and an unconstrained producer supplies it; add_fuel_infrastructure_profile
+    aggregates every port into the manager with a plain +=, so that infinite
+    entry propagates by ordinary addition (0 + inf = inf), the same way a
+    genuinely unbounded total should read: as unbounded, not as some finite
+    number that only counts the ports that happened to have a limit.
+    """
+
+    @staticmethod
+    def _port(fuels, timeline):
+        port = PortProfile()
+        port.initialize(
+            timeline=timeline, emissions={}, fuels=fuels, emissions_lifetime=100.0
+        )
+        return port
+
+    @staticmethod
+    def _manager(fuels, timeline):
+        manager = ManagerProfile()
+        manager.initialize(
+            timeline=timeline,
+            emissions={},
+            feedstocks={},
+            fuels=fuels,
+            processes={},
+            emissions_lifetime=100.0,
+        )
+        return manager
+
+    def test_one_infinite_port_makes_the_global_total_infinite(self):
+        fuels = {"fuel_a": _fuel()}
+        timeline = np.array([0.0])
+
+        port_a = self._port(fuels, timeline)
+        port_a.set_bunker_supply_mass(0, "fuel_a", np.inf)
+
+        port_b = self._port(fuels, timeline)
+        port_b.set_bunker_supply_mass(0, "fuel_a", 50.0)
+
+        manager = self._manager(fuels, timeline)
+        manager.add_fuel_infrastructure_profile(port_a)
+        manager.add_fuel_infrastructure_profile(port_b)
+
+        assert np.isinf(manager.get_bunker_supply_mass()["fuel_a"][0])
+
+    def test_finite_ports_aggregate_to_their_finite_sum(self):
+        fuels = {"fuel_a": _fuel()}
+        timeline = np.array([0.0])
+
+        port_a = self._port(fuels, timeline)
+        port_a.set_bunker_supply_mass(0, "fuel_a", 100.0)
+
+        port_b = self._port(fuels, timeline)
+        port_b.set_bunker_supply_mass(0, "fuel_a", 50.0)
+
+        manager = self._manager(fuels, timeline)
+        manager.add_fuel_infrastructure_profile(port_a)
+        manager.add_fuel_infrastructure_profile(port_b)
+
+        assert manager.get_bunker_supply_mass()["fuel_a"][0] == 150.0
