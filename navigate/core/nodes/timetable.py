@@ -51,9 +51,9 @@ class Timetable(Node, _Table2D):
 
         The x-values are dates, or days since the start of the simulation. The
         table is held until 'replace_reference_table' rebases a dated table to
-        the start date and validates it: at that point both the x-values and the
-        y-values must be strictly increasing, and the number of z-values must
-        equal the number of x-values times the number of y-values.
+        the start date and validates it: at that point there must be at least
+        two x-values and two y-values, each strictly increasing, and the
+        z-values must fill a grid of their lengths.
 
         Parameters
         ----------

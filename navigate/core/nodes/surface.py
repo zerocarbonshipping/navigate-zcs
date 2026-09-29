@@ -41,10 +41,10 @@ class Surface(Node, _Table2D):
         """
         Set the table of x-, y- and z-values the surface interpolates in.
 
-        Both the x-values and the y-values must be strictly increasing, and the
-        number of z-values must equal the number of x-values times the number of
-        y-values. The table is built once the whole definition has been read, so
-        the order of the attributes within the definition does not matter.
+        There must be at least two x-values and two y-values, each strictly
+        increasing, and the z-values must fill a grid of their lengths. The
+        table is built once the whole definition has been read, so the order of
+        the attributes within the definition does not matter.
 
         Parameters
         ----------

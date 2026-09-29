@@ -1328,6 +1328,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   computes, so assigning it under, for example, INDIVIDUAL was silently
   ignored. It stays ignored; the value a FLEXIBLE regulation gets when the
   attribute is unset is unchanged, so no result moves.
+- A `Surface` or `Timetable` table with fewer than two data rows or two
+  header values now fails with a located deck error instead of a bare
+  `IndexError`.
 
 ## [1.0.0] - 2026-07-16
 

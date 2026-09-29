@@ -12,7 +12,8 @@ builders' float arrays as much as the dated ones pin their dates.
 The returned arrays are described positionally here — first, second, third —
 because ``dsl_reference.md`` and the code disagree on which one is "the
 x-axis". The consumers fix the meaning: ``check_table2d_input`` requires
-``z.size == x.size * y.size`` and ``Surface.get(x, y)`` indexes in that order.
+``z.shape == (x.size, y.size)`` and ``Surface.get(x, y)`` indexes in that
+order.
 """
 
 from __future__ import annotations
@@ -117,7 +118,7 @@ class TestBuildTable2D:
 
         np.testing.assert_array_equal(y, np.array([0.0, 1.0, 2.0]))
         np.testing.assert_array_equal(x, np.array([0.0, 10.0, 20.0]))
-        # check_table2d_input requires z.size == x.size * y.size
+        # check_table2d_input requires z.shape == (x.size, y.size)
         assert z.shape == (3, 3)
         np.testing.assert_array_equal(z[1], np.array([3.0, 4.0, 12.0]))
         assert x.dtype == y.dtype == z.dtype == np.float64
