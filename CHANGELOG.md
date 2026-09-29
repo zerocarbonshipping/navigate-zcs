@@ -280,10 +280,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   at the current one; a time-varying threshold no longer freezes at today's
   value for the rest of the run.
 - An unconstrained producer (`MaximumDevelopment = INF`) exporting to a port
-  with no `BunkeringLimit` no longer yields NaN bunker price and WTT or an
-  `inf` `BunkerSupplyMass`: the price and WTT are the average over the
-  unconstrained plants only, and the port's supply mass is left unreported
-  rather than infinite, matching a liquid-market port with no limit.
+  with no `BunkeringLimit` no longer yields NaN bunker price and WTT: the
+  price and WTT are the average over the unconstrained plants only. The
+  port's `BunkerSupplyMass` is still reported as infinite, and the global
+  total is infinite for a fuel any port reports it for.
 
 ## [1.0.0] - 2026-07-16
 
