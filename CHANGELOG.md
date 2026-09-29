@@ -275,6 +275,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   being silently dropped; a port with no limit set absorbs whatever the
   limited ports could not, and a port the producer sends no fuel to receives
   no share.
+- A `Levy`'s `LowerThreshold` and `UpperThreshold` are read at every future
+  time step of the bunkering expectation instead of holding the value cached
+  at the current one; a time-varying threshold no longer freezes at today's
+  value for the rest of the run.
 
 ## [1.0.0] - 2026-07-16
 
