@@ -411,7 +411,7 @@ class TestAssignValue:
 
     def test_scalar_rejected_when_not_allowed(self):
         with pytest.raises(ValueError, match="but got scalar"):
-            assign_value(5.0, scalar=False, type_=FORECAST)
+            assign_value(5.0, allow_scalar=False, type_=FORECAST)
 
     def test_date_rejected_by_default(self):
         with pytest.raises(ValueError, match="but got date"):
@@ -497,7 +497,7 @@ class TestAssignValue:
         assignment = make_assignment()
         assign_value(
             assignment,
-            scalar=False,
+            allow_scalar=False,
             type_=(FORECAST, VARIABLE),
             lower=0.0,
             upper=5.0,
@@ -526,7 +526,7 @@ class TestAssignValue:
 
     @pytest.mark.parametrize(
         "arguments",
-        [{}, {"scalar": False, "type_": CURVE}],
+        [{}, {"allow_scalar": False, "type_": CURVE}],
         ids=["scalar", "calculator_type"],
     )
     def test_expression_accepted_where_the_value_is_evaluated(self, arguments):
@@ -541,9 +541,9 @@ class TestAssignValue:
         ):
             assign_value(
                 Expression('Forecast("f")'),
-                scalar=False,
+                allow_scalar=False,
                 type_=FORECAST,
-                expression=False,
+                allow_expression=False,
             )
 
 

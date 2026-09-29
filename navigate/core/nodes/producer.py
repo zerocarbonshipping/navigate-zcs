@@ -286,10 +286,10 @@ class Producer(_AssetManager[Plant]):
             plant_name,
             assign_value(
                 existing_pipeline,
-                scalar=False,
+                allow_scalar=False,
                 type_=FORECAST,
                 lower=0.0,
-                expression=False,
+                allow_expression=False,
             ),
             self.existing_pipelines,
         )

@@ -813,7 +813,9 @@ class Fleet(_AssetManager[Vessel]):
         """
         write_matching_key_pairs(
             (vessel_name, technology_name),
-            assign_value(uptake_curve, scalar=False, type_=CURVE, lower=0.0, upper=1.0),
+            assign_value(
+                uptake_curve, allow_scalar=False, type_=CURVE, lower=0.0, upper=1.0
+            ),
             self.initial_technology_share,
         )
 

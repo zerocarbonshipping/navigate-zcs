@@ -101,7 +101,7 @@ class _AssetManager[A: Vessel | Plant](Node):
             [as_scalar(entry) for entry in entries],
             type_=CURVE,
             lower=0.0,
-            expression=False,
+            allow_expression=False,
         )
 
     # internal methods -----------------------------------------------------------------
