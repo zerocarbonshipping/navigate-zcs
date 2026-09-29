@@ -88,7 +88,7 @@ class Route(Node):
         """
         self.route_type = assign_id(route_type, RouteTypeID)
 
-    def set_ports(self, ports: list[Port]) -> None:
+    def set_ports(self, ports: Port | list[Port]) -> None:
         """
         Set the list of ports available for bunkering on the route.
 
@@ -100,11 +100,13 @@ class Route(Node):
         Parameters
         ----------
         ports
-            A list of Port nodes.
+            Port node or list of Port nodes.
         """
         self.ports = assign_reference_list(ports, PORT)
 
-    def set_port_durations(self, port_durations: list[ForecastArgument]) -> None:
+    def set_port_durations(
+        self, port_durations: ForecastArgument | list[ForecastArgument]
+    ) -> None:
         """
         Set the duration spent at each port call of the trip, days.
 
@@ -118,12 +120,12 @@ class Route(Node):
         Parameters
         ----------
         port_durations
-            A list of floats or Forecast nodes.
+            Float or Forecast node, or a list of them.
         """
         entries: list[ForecastArgument] = as_list(port_durations)
         self.port_durations = assign_list(
             [as_scalar(entry) for entry in entries],
-            length=(1, None),
+            min_length=1,
             type_=(FORECAST, VARIABLE),
             lower=0.0,
         )
@@ -147,7 +149,9 @@ class Route(Node):
             as_scalar(time_at_sea), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
         )
 
-    def set_port_calls(self, port_calls: list[ForecastArgument]) -> None:
+    def set_port_calls(
+        self, port_calls: ForecastArgument | list[ForecastArgument]
+    ) -> None:
         """
         Set the number of port calls per port over the reference duration.
 
@@ -161,7 +165,7 @@ class Route(Node):
         Parameters
         ----------
         port_calls
-            A list of floats or Forecast nodes.
+            Float or Forecast node, or a list of them.
         """
         entries: list[ForecastArgument] = as_list(port_calls)
         self.port_calls = assign_list(
@@ -171,7 +175,7 @@ class Route(Node):
             inclusive_lower=False,
         )
 
-    def set_distances(self, distances: list[NumberInput]) -> None:
+    def set_distances(self, distances: NumberInput | list[NumberInput]) -> None:
         """
         Set the distance of the various legs of the trip, nautical miles.
 
@@ -185,7 +189,7 @@ class Route(Node):
         Parameters
         ----------
         distances
-            A list of floats.
+            Float or list of floats.
         """
         entries: list[NumberInput] = as_list(distances)
         self.distances = assign_list(
@@ -223,7 +227,7 @@ class Route(Node):
                 self,
             )
 
-    def set_speeds(self, speeds: list[ForecastArgument]) -> None:
+    def set_speeds(self, speeds: ForecastArgument | list[ForecastArgument]) -> None:
         """
         Set the speed of the various legs of the trip, knots.
 
@@ -235,19 +239,19 @@ class Route(Node):
         Parameters
         ----------
         speeds
-            A list of floats or Forecast nodes.
+            Float or Forecast node, or a list of them.
         """
         entries: list[ForecastArgument] = as_list(speeds)
         self.speeds = assign_list(
             [as_scalar(entry) for entry in entries],
-            length=(1, None),
+            min_length=1,
             type_=(FORECAST, VARIABLE),
             lower=0.0,
             inclusive_lower=False,
         )
 
     def set_capacity_utilizations(
-        self, capacity_utilizations: list[ForecastArgument]
+        self, capacity_utilizations: ForecastArgument | list[ForecastArgument]
     ) -> None:
         """
         Set the capacity utilization of the various legs of the trip.
@@ -260,7 +264,7 @@ class Route(Node):
         Parameters
         ----------
         capacity_utilizations
-            A list of floats or Forecast nodes.
+            Float or Forecast node, or a list of them.
         """
         entries: list[ForecastArgument] = as_list(capacity_utilizations)
         self.capacity_utilizations = assign_list(

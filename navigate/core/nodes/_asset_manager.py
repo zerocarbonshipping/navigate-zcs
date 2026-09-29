@@ -94,7 +94,7 @@ class _AssetManager[A: Vessel | Plant](Node):
         Parameters
         ----------
         initial_age_distribution
-            List of Curve references for the age distribution of each asset type.
+            Curve reference or 0, or a list of them, one per asset type.
         """
         entries: list[float | Curve] = as_list(initial_age_distribution)
         self._initial_age_distribution = assign_list(

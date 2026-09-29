@@ -252,7 +252,7 @@ class Vessel(Node):
         """
         self.power_system = assign_reference(power_system, POWER_SYSTEM)
 
-    def set_tanks(self, tanks: list[Tank]) -> None:
+    def set_tanks(self, tanks: Tank | list[Tank]) -> None:
         """
         Set the list of tanks used for onboard fuel storage.
 
@@ -264,7 +264,7 @@ class Vessel(Node):
         Parameters
         ----------
         tanks
-            List of Tank nodes.
+            Tank node or list of Tank nodes.
         """
         self.tanks = assign_reference_list(tanks, TANK, unique=True)
 
