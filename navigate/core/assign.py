@@ -127,14 +127,14 @@ def assign_integer(
 
 def assign_value[T: Assignment](
     assignment: T,
-    scalar: bool = True,
     type_: AcceptedNodeTypes | None = None,
     lower: float = -np.inf,
     upper: float = np.inf,
     *,
+    allow_scalar: bool = True,
+    allow_expression: bool = True,
     inclusive_lower: bool = True,
     inclusive_upper: bool = True,
-    expression: bool = True,
 ) -> T:
     """
     Check whether a value assigned to an attribute satisfies its requirements.
@@ -149,20 +149,20 @@ def assign_value[T: Assignment](
     ----------
     assignment
         The value passed to the setter.
-    scalar
-        Whether the setter accepts scalars.
     type_
         The calculator type(s) the attribute accepts.
     lower
         Lower bound.
     upper
         Upper bound.
+    allow_scalar
+        Whether the setter accepts scalars.
+    allow_expression
+        Whether the setter accepts expressions.
     inclusive_lower
         Lower bound is inclusive.
     inclusive_upper
         Upper bound is inclusive.
-    expression
-        Whether the setter accepts expressions.
 
     Returns
     -------
@@ -170,8 +170,8 @@ def assign_value[T: Assignment](
         The value that was passed, so a setter assigns what it validated.
     """
     if isinstance(assignment, Expression):
-        if not expression:
-            raise ValueError(_failed_value_message(assignment, scalar, type_))
+        if not allow_expression:
+            raise ValueError(_failed_value_message(assignment, allow_scalar, type_))
 
         assignment.set_allowed_types(type_)
         assignment.set_internal_bounds(
@@ -180,7 +180,7 @@ def assign_value[T: Assignment](
             inclusive_lower=inclusive_lower,
             inclusive_upper=inclusive_upper,
         )
-    elif scalar and isinstance(assignment, (float, Scalar)):
+    elif allow_scalar and isinstance(assignment, (float, Scalar)):
         _check_scalar(
             assignment,
             lower=lower,
@@ -200,7 +200,7 @@ def assign_value[T: Assignment](
             inclusive_upper=inclusive_upper,
         )
     else:
-        raise ValueError(_failed_value_message(assignment, scalar, type_))
+        raise ValueError(_failed_value_message(assignment, allow_scalar, type_))
 
     return assignment
 
@@ -212,9 +212,9 @@ def assign_list[T: Assignment](
     lower: float = -np.inf,
     upper: float = np.inf,
     *,
+    allow_expression: bool = True,
     inclusive_lower: bool = True,
     inclusive_upper: bool = True,
-    expression: bool = True,
 ) -> list[T]:
     """
     Check whether a value assigned to an attribute satisfies its requirements.
@@ -235,12 +235,12 @@ def assign_list[T: Assignment](
         Lower bound.
     upper
         Upper bound.
+    allow_expression
+        Whether the setter accepts expressions.
     inclusive_lower
         Lower bound is inclusive.
     inclusive_upper
         Upper bound is inclusive.
-    expression
-        Whether the setter accepts expressions.
 
     Returns
     -------
@@ -255,9 +255,9 @@ def assign_list[T: Assignment](
             type_=type_,
             lower=lower,
             upper=upper,
+            allow_expression=allow_expression,
             inclusive_lower=inclusive_lower,
             inclusive_upper=inclusive_upper,
-            expression=expression,
         )
 
     return assignment
@@ -691,7 +691,7 @@ def _accepts_reference(node: Node, type_: AcceptedNodeTypes | None) -> bool:
 
 
 def _failed_value_message(
-    assignment: object, scalar: bool, type_: AcceptedNodeTypes | None
+    assignment: object, allow_scalar: bool, type_: AcceptedNodeTypes | None
 ) -> str:
     """
     Build the error message for a value an attribute does not accept.
@@ -700,7 +700,7 @@ def _failed_value_message(
     ----------
     assignment
         The value passed to the setter.
-    scalar
+    allow_scalar
         Whether the setter accepts scalars.
     type_
         The node type(s) the attribute accepts a reference to.
@@ -713,7 +713,7 @@ def _failed_value_message(
     # a setter accepting no kind at all is an implementation error rather
     # than a deck error, so the empty 'allowed' is not handled
     allowed = []
-    if scalar:
+    if allow_scalar:
         allowed.append("scalars")
     if type_ is not None:
         allowed.append(_node_types_phrase(type_))
