@@ -5,7 +5,8 @@
 Attribute bounds a value is held to, each end inclusive or exclusive.
 
 Used by the calculator nodes (`_Calculator`) and by `Expression`, the two
-kinds of value an attribute evaluates rather than checks once at assignment.
+kinds of value an attribute evaluates rather than checks once at assignment;
+`assign` rejects a scalar at an exclusive bound in the same words.
 """
 
 from __future__ import annotations
@@ -68,10 +69,37 @@ class Bounds:
         """
         if not self.inclusive_lower and np.any(value <= self.lower):
             raise ValueError(
-                f"{owner}: must be > {self.lower}, but got {np.min(value)}"
+                f"{owner}: {exclusive_bound_message('>', self.lower, np.min(value))}"
             )
 
         if not self.inclusive_upper and np.any(value >= self.upper):
             raise ValueError(
-                f"{owner}: must be < {self.upper}, but got {np.max(value)}"
+                f"{owner}: {exclusive_bound_message('<', self.upper, np.max(value))}"
             )
+
+
+def exclusive_bound_message(relation: str, bound: float, value: FloatLike) -> str:
+    """
+    Spell the rejection of a value at or beyond an exclusive bound.
+
+    An exclusive bound at infinity rejects only infinity itself, so its
+    rejection asks for a finite value rather than one below infinity.
+
+    Parameters
+    ----------
+    relation
+        Comparison the value must satisfy against the bound, '>' or '<'.
+    bound
+        The exclusive bound.
+    value
+        The rejected value.
+
+    Returns
+    -------
+    str
+        Message fragment the caller prefixes with the owner of the value.
+    """
+    if np.isinf(bound):
+        return f"must be finite, but got {value}"
+
+    return f"must be {relation} {bound}, but got {value}"

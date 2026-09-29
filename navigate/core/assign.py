@@ -17,6 +17,7 @@ from typing import TYPE_CHECKING, Protocol
 
 import numpy as np
 
+from navigate.core.bounds import exclusive_bound_message
 from navigate.core.expression import Expression
 from navigate.core.node import Node
 from navigate.core.node_type import AcceptedNodeTypes, is_calculator
@@ -90,6 +91,8 @@ def assign_integer(
     """
     Validate an integer assignment against bounds and return it as int.
 
+    Infinity is always rejected, as no integer is infinite.
+
     Parameters
     ----------
     assignment
@@ -109,6 +112,9 @@ def assign_integer(
         The value that was passed, as an int, so a setter assigns what it
         validated.
     """
+    inclusive_lower, inclusive_upper = _inclusive_flags(
+        lower, upper, inclusive_lower, inclusive_upper, allow_infinite=False
+    )
     _check_scalar(
         assignment,
         lower=lower,
@@ -133,6 +139,7 @@ def assign_value[T: Assignment](
     *,
     allow_scalar: bool = True,
     allow_expression: bool = True,
+    allow_infinite: bool = False,
     inclusive_lower: bool = True,
     inclusive_upper: bool = True,
 ) -> T:
@@ -143,7 +150,8 @@ def assign_value[T: Assignment](
     getter: a scalar, a calculator or an expression. An attribute holding a
     node reference is checked by assign_reference instead. A calculator or an
     expression is handed the bounds and held to them each time it is
-    evaluated.
+    evaluated. Unless infinity is allowed, an infinite bound is exclusive, so
+    INF and -INF are rejected where the attribute has no finite bound.
 
     Parameters
     ----------
@@ -159,6 +167,8 @@ def assign_value[T: Assignment](
         Whether the setter accepts scalars.
     allow_expression
         Whether the setter accepts expressions.
+    allow_infinite
+        Whether the setter accepts INF and -INF within its bounds.
     inclusive_lower
         Lower bound is inclusive.
     inclusive_upper
@@ -169,6 +179,10 @@ def assign_value[T: Assignment](
     Assignment
         The value that was passed, so a setter assigns what it validated.
     """
+    inclusive_lower, inclusive_upper = _inclusive_flags(
+        lower, upper, inclusive_lower, inclusive_upper, allow_infinite=allow_infinite
+    )
+
     if isinstance(assignment, Expression):
         if not allow_expression:
             raise ValueError(_failed_value_message(assignment, allow_scalar, type_))
@@ -213,6 +227,7 @@ def assign_list[T: Assignment](
     upper: float = np.inf,
     *,
     allow_expression: bool = True,
+    allow_infinite: bool = False,
     inclusive_lower: bool = True,
     inclusive_upper: bool = True,
 ) -> list[T]:
@@ -237,6 +252,8 @@ def assign_list[T: Assignment](
         Upper bound.
     allow_expression
         Whether the setter accepts expressions.
+    allow_infinite
+        Whether the setter accepts INF and -INF within its bounds.
     inclusive_lower
         Lower bound is inclusive.
     inclusive_upper
@@ -256,6 +273,7 @@ def assign_list[T: Assignment](
             lower=lower,
             upper=upper,
             allow_expression=allow_expression,
+            allow_infinite=allow_infinite,
             inclusive_lower=inclusive_lower,
             inclusive_upper=inclusive_upper,
         )
@@ -370,30 +388,48 @@ def assign_date(assignment: np.datetime64) -> np.datetime64:
     raise ValueError(_only_allows("dates", assignment))
 
 
-def assign_bound(assignment: float | str) -> float:
+def assign_bound(
+    assignment: float | str,
+    *,
+    inclusive_lower: bool = True,
+    inclusive_upper: bool = True,
+) -> float:
     """
     Check whether a bound assignment is a scalar or an infinity keyword.
+
+    A bound accepts infinity, INF meaning no upper bound and -INF no lower
+    one; the setter of each excludes the infinity on the other side through
+    the inclusive flags.
 
     Parameters
     ----------
     assignment
         Value passed to the setter.
+    inclusive_lower
+        Whether the bound may be -INF.
+    inclusive_upper
+        Whether the bound may be INF.
 
     Returns
     -------
     float
         The scalar itself, or the value of the keyword.
     """
-    if isinstance(assignment, float):
-        return assign_value(assignment)
+    if isinstance(assignment, str):
+        try:
+            assignment = _BOUND_ID[assignment]
+        except KeyError:
+            raise ValueError(_only_allows("scalars, -INF or INF", assignment)) from None
 
-    if not isinstance(assignment, str):
+    if not isinstance(assignment, float):
         raise ValueError(_only_allows("scalars, -INF or INF", assignment))
 
-    try:
-        return _BOUND_ID[assignment]
-    except KeyError:
-        raise ValueError(_only_allows("scalars, -INF or INF", assignment)) from None
+    return assign_value(
+        assignment,
+        allow_infinite=True,
+        inclusive_lower=inclusive_lower,
+        inclusive_upper=inclusive_upper,
+    )
 
 
 def assign_id[E: Enum](assignment: str, id_enum: type[E]) -> E:
@@ -805,6 +841,49 @@ def _value_kind(assignment: object) -> str:
     return str(assignment)
 
 
+def _inclusive_flags(
+    lower: float,
+    upper: float,
+    inclusive_lower: bool,
+    inclusive_upper: bool,
+    *,
+    allow_infinite: bool,
+) -> tuple[bool, bool]:
+    """
+    Resolve whether each bound is inclusive once infinity is allowed or not.
+
+    An exclusive bound at infinity rejects exactly infinity: a scalar when it
+    is assigned, a calculator or an expression each time it is evaluated.
+    Refusing infinity therefore only takes making each infinite bound
+    exclusive.
+
+    Parameters
+    ----------
+    lower
+        Lower bound.
+    upper
+        Upper bound.
+    inclusive_lower
+        Whether the setter asked for an inclusive lower bound.
+    inclusive_upper
+        Whether the setter asked for an inclusive upper bound.
+    allow_infinite
+        Whether the setter accepts INF and -INF within its bounds.
+
+    Returns
+    -------
+    tuple[bool, bool]
+        Whether the lower and the upper bound are inclusive.
+    """
+    if allow_infinite:
+        return inclusive_lower, inclusive_upper
+
+    return (
+        inclusive_lower and math.isfinite(lower),
+        inclusive_upper and math.isfinite(upper),
+    )
+
+
 def _check_scalar(
     assignment: float | Scalar,
     lower: float = -np.inf,
@@ -845,13 +924,13 @@ def _check_scalar(
         raise ValueError(f"must be ≥ {lower}, but got {value}")
 
     if not inclusive_lower and value <= lower:
-        raise ValueError(f"must be > {lower}, but got {value}")
+        raise ValueError(exclusive_bound_message(">", lower, value))
 
     if inclusive_upper and value > upper:
         raise ValueError(f"must be ≤ {upper}, but got {value}")
 
     if not inclusive_upper and value >= upper:
-        raise ValueError(f"must be < {upper}, but got {value}")
+        raise ValueError(exclusive_bound_message("<", upper, value))
 
 
 def _check_list_length(assignment: Sized, min_length: int) -> None:

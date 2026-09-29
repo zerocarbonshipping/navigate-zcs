@@ -96,14 +96,15 @@ class _Table1D(_Calculator):
 
         Only read when 'Extrapolate' is FLAT; the first y-value in the table is
         used when this is left unset. An expression is evaluated, without inputs,
-        each time the table is looked up below its first x-value.
+        each time the table is looked up below its first x-value. INF and -INF are
+        accepted here and checked by each attribute the calculator is assigned to.
 
         Parameters
         ----------
         below
             Flat extrapolation value below the table.
         """
-        self._below = assign_value(below)
+        self._below = assign_value(below, allow_infinite=True)
 
     def set_above(self, above: NumberInput) -> None:
         """
@@ -111,14 +112,15 @@ class _Table1D(_Calculator):
 
         Only read when 'Extrapolate' is FLAT; the last y-value in the table is
         used when this is left unset. An expression is evaluated, without inputs,
-        each time the table is looked up above its last x-value.
+        each time the table is looked up above its last x-value. INF and -INF are
+        accepted here and checked by each attribute the calculator is assigned to.
 
         Parameters
         ----------
         above
             Flat extrapolation value above the table.
         """
-        self._above = assign_value(above)
+        self._above = assign_value(above, allow_infinite=True)
 
     # internal methods -----------------------------------------------------------------
     def is_convex(self) -> bool:

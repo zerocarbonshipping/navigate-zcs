@@ -94,14 +94,15 @@ class _Table2D(_Calculator):
 
         Required when 'Extrapolate' is FLAT; the node's `check_consistency` rejects
         an unset value in that case. An expression is evaluated, without inputs,
-        each time the table is looked up.
+        each time the table is looked up. INF and -INF are accepted here and
+        checked by each attribute the calculator is assigned to.
 
         Parameters
         ----------
         outside
             Flat extrapolation value outside the table.
         """
-        self._outside = assign_value(outside)
+        self._outside = assign_value(outside, allow_infinite=True)
 
     # internal methods -----------------------------------------------------------------
     def is_convex(self) -> bool:

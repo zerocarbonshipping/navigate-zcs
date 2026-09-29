@@ -138,6 +138,8 @@ class Plant(Node):
         """
         Set the production capacity of the plant in tons/day.
 
+        INF is rejected.
+
         Examples
         --------
         - 3000

@@ -90,7 +90,7 @@ class Port(Node):
         limit; a port the producer sends no fuel to receives no share. Any surplus
         the limited ports cannot absorb is split equally across the ports with no
         limit set, and dropped where none exist. A liquid-market fuel is
-        unaffected: its supply is the limit itself.
+        unaffected: its supply is the limit itself. INF means no limit.
 
         Examples
         --------
@@ -106,7 +106,12 @@ class Port(Node):
         """
         write_matching_keys(
             fuel_name,
-            assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
+            assign_value(
+                as_scalar(value),
+                type_=(FORECAST, VARIABLE),
+                lower=0.0,
+                allow_infinite=True,
+            ),
             self.bunkering_limit,
         )
 

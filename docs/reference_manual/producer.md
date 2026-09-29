@@ -98,7 +98,7 @@ The list must have the same length as the list of plants.
 
 This attribute sets the initial age distribution of each plant type.
 
-The list must have a length corresponding to the number of plant types. Each entry is either a Curve reference (where the Curve's x-values are ages in increasing order and y-values are the corresponding fractions) or `0` for plant types with no custom distribution.
+The list must have a length corresponding to the number of plant types. Each entry is either a Curve reference (where the Curve's x-values are ages in increasing order and y-values are the corresponding fractions) or `0` for plant types with no custom distribution. The Curve's values must be finite.
 
 * **Data type**: List of `Curve` nodes and/or `0`
 * **Example values**:
@@ -110,7 +110,7 @@ The list must have a length corresponding to the number of plant types. Each ent
 
 This attribute sets the development constraint limiting the maximum number of plants which can be built per year.
 
-While this attribute can be unassigned the simulation is better behaved if it is assigned. It can just be assigned arbitrarily high if an unconstrained scenario is required.
+Assign a large finite value if an unconstrained scenario is required; `INF` is rejected.
 
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
@@ -150,7 +150,7 @@ This attribute sets the jump-start fraction used to initiate the supply/demand i
 
 This command sets an existing pipelines for a given plant used for determining the new plants from the pipeline.
 
-The pipeline forecast must be non-strictly increasing.
+The pipeline forecast must be finite and non-strictly increasing.
 
 * **Primary key type**: String (Plant name)
 * **Data type**: `Forecast`

@@ -68,6 +68,7 @@ Where `x` depends on the specific attribute. Attributes are written in upper cam
   ```python
   Attribute = 3.2
   ```
+  `INF` and `-INF` are accepted only where infinity has a meaning: by `set_bunkering_limit`, `set_feed_constraint` and `MaximumSpeedChange`, where `INF` means no limit, by `UpperBound` (`INF`) and `LowerBound` (`-INF`), and by the values that define a calculator (`Value`, `Below`, `Above`, `Outside` and table entries), which are checked against the attribute using the calculator. Every other attribute rejects them, and a referenced calculator or an expression evaluating to infinity there stops the run with an error naming the node. The tables of `set_existing_pipeline`, `Orderbooks` and `InitialAgeDistribution`, which are read as tables rather than evaluated, reject them too.
 **Node reference:**  
   ```python
   Attribute = NodeType("node_name")

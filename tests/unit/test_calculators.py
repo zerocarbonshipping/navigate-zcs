@@ -10,6 +10,7 @@ Tests verify the correctness of:
   - Bound application: internal vs external bounds widen the envelope
   - Internal-bound tightening: the warning names the node it tightens
   - Exclusive bounds: a value reaching one raises instead of being clamped
+  - Public bounds: each accepts the infinity on its own side only
   - Convexity detection on piecewise-linear functions
   - _Table1D interpolation with transforms, reverse lookup, pickle round-trip
   - _Table2D bilinear interpolation, reverse lookup, convexity, pickle round-trip
@@ -184,6 +185,25 @@ def _variable(value):
     variable = Variable("v")
     variable.set_value(value)
     return variable
+
+
+class TestPublicBounds:
+    """UpperBound takes INF for no upper bound, LowerBound -INF for no lower one."""
+
+    def test_infinity_on_the_bounded_side_is_accepted(self):
+        v = _variable(1.0)
+        v.set_lower_bound(-np.inf)
+        v.set_upper_bound(np.inf)
+        assert (v.lower_bound, v.upper_bound) == (-np.inf, np.inf)
+
+    @pytest.mark.parametrize(
+        ("setter", "value"),
+        [(Variable.set_upper_bound, -np.inf), (Variable.set_lower_bound, np.inf)],
+        ids=["upper_at_minus_inf", "lower_at_inf"],
+    )
+    def test_infinity_on_the_other_side_is_rejected(self, setter, value):
+        with pytest.raises(ValueError, match=f"must be finite, but got {value}"):
+            setter(_variable(1.0), value)
 
 
 class TestExclusiveBounds:
