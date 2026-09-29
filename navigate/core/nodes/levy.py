@@ -17,9 +17,9 @@ from navigate.core.nodes._policy import _Policy
 from navigate.core.profiles import LevyProfile
 
 if TYPE_CHECKING:
-    from navigate.core.input_kinds import ForecastArgument, ForecastInput
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.vessel import Vessel
+    from navigate.core.types_ import ForecastArgument, ForecastInput
     from navigate.util import FloatArray
 
 

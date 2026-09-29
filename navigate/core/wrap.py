@@ -15,8 +15,7 @@ if TYPE_CHECKING:
     from collections.abc import Iterable
 
     from navigate.core.expression import Expression
-    from navigate.core.input_kinds import ForecastInput
-    from navigate.core.node_type import Calculator
+    from navigate.core.types_ import Calculator, ForecastInput
     from navigate.util.types_ import FloatArray
 
 

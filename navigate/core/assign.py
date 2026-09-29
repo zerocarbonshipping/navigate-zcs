@@ -19,9 +19,10 @@ import numpy as np
 
 from navigate.core.expression import Expression
 from navigate.core.node import Node
-from navigate.core.node_type import AcceptedNodeTypes, Calculator, is_calculator
+from navigate.core.node_type import AcceptedNodeTypes, is_calculator
 from navigate.core.scalar import Scalar
 from navigate.core.table_data import TableData
+from navigate.core.types_ import Calculator
 from navigate.core.wrap import as_list
 from navigate.util import (
     ROUND_OFF,

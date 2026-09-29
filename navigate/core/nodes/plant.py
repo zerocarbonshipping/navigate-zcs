@@ -29,7 +29,6 @@ from navigate.core.node_type import (
 from navigate.core.profiles import PlantProfile
 
 if TYPE_CHECKING:
-    from navigate.core.input_kinds import ForecastArgument, ForecastInput
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.feedstock import Feedstock
     from navigate.core.nodes.fuel import Fuel
@@ -38,6 +37,7 @@ if TYPE_CHECKING:
     from navigate.core.nodes.region import Region
     from navigate.core.nodes.source import Source
     from navigate.core.nodes.transport import Transport
+    from navigate.core.types_ import ForecastArgument, ForecastInput
     from navigate.util import FloatArray
 
 

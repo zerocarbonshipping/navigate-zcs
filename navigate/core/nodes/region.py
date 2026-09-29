@@ -18,17 +18,17 @@ from navigate.core.node import Node
 from navigate.core.node_type import FORECAST, REGION, TIMETABLE, VARIABLE
 
 if TYPE_CHECKING:
-    from navigate.core.input_kinds import (
-        ForecastArgument,
-        ForecastInput,
-        TimetableArgument,
-        TimetableInput,
-    )
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.feedstock import Feedstock
     from navigate.core.nodes.process import Process
     from navigate.core.nodes.source import Source
     from navigate.core.nodes.transport import Transport
+    from navigate.core.types_ import (
+        ForecastArgument,
+        ForecastInput,
+        TimetableArgument,
+        TimetableInput,
+    )
 
 
 class Region(Node):

@@ -16,13 +16,11 @@ from typing import TYPE_CHECKING, TypeIs
 
 if TYPE_CHECKING:
     from navigate.core.node import Node
-    from navigate.core.nodes.curve import Curve
     from navigate.core.nodes.feedstock import Feedstock
-    from navigate.core.nodes.forecast import Forecast
     from navigate.core.nodes.process import Process
     from navigate.core.nodes.surface import Surface
-    from navigate.core.nodes.timetable import Timetable
     from navigate.core.nodes.variable import Variable
+    from navigate.core.types_ import Calculator
 
 CONVERTER = "Converter"
 CURVE = "Curve"
@@ -57,9 +55,6 @@ MODEL_DEFINITION = "ModelDefinition"
 
 
 CALCULATOR_TYPES = (CURVE, FORECAST, SURFACE, TIMETABLE, VARIABLE)
-
-# the node classes 'CALCULATOR_TYPES' names
-type Calculator = Curve | Forecast | Surface | Timetable | Variable
 
 # the node type(s) an attribute accepts
 type AcceptedNodeTypes = str | tuple[str, ...]

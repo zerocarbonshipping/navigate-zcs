@@ -149,7 +149,7 @@ The formatter owns spacing within statements; blank lines are yours:
   what its reference-manual page is written from, so anything said about the
   attribute is said there.
 - The kinds a setter may be handed and store are named once, in
-  `navigate/core/input_kinds.py`, and used at every attribute definition and
+  `navigate/core/types_.py`, and used at every attribute definition and
   setter parameter. The alias matches the setter's `type_=` argument, and an
   attribute still unset after construction spells it `<alias> | None` rather
   than folding `None` into an alias. Attributes carry the storage kind

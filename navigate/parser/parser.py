@@ -93,7 +93,7 @@ if TYPE_CHECKING:
     from collections.abc import Iterator
 
     from navigate.core.general_nodes._general_node import _GeneralNode
-    from navigate.core.node_type import Calculator
+    from navigate.core.types_ import Calculator
 
 logger = logging.getLogger(__name__)
 

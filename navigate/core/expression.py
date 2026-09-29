@@ -29,7 +29,8 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
     from navigate.core.node import Node
-    from navigate.core.node_type import AcceptedNodeTypes, Calculator
+    from navigate.core.node_type import AcceptedNodeTypes
+    from navigate.core.types_ import Calculator
     from navigate.util.types_ import FloatArray, FloatLike
 
 type _UnaryOperator = Callable[[FloatLike], FloatLike]

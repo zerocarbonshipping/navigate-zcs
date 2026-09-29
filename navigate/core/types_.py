@@ -2,7 +2,10 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Input kinds: the value sets the DSL setters on the node classes accept.
+Core type vocabulary: the calculator union and the setter input kinds.
+
+Aliases here are built over core classes; `navigate/util/types_.py` holds
+the dependency-free ones.
 
 Each calculator-backed attribute has two kinds. The storage kind ('*Input')
 is what 'assign_value' returns and the attribute holds; it carries 'Scalar'
@@ -25,6 +28,9 @@ if TYPE_CHECKING:
     from navigate.core.nodes.timetable import Timetable
     from navigate.core.nodes.variable import Variable
     from navigate.core.scalar import Scalar
+
+# the node classes 'CALCULATOR_TYPES' names
+type Calculator = Curve | Forecast | Surface | Timetable | Variable
 
 # 'Expression' is a member of every alias below: 'assign_value' accepts an
 # expression wherever the setter accepts scalars or a calculator type, and
