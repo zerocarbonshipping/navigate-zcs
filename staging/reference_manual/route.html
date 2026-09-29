@@ -651,15 +651,15 @@ Europe (if regional).</p>
 <h2>Commands<a class="headerlink" href="#commands" title="Link to this heading">#</a></h2>
 <section id="set-voyage-distribution">
 <h3>set_voyage_distribution<a class="headerlink" href="#set-voyage-distribution" title="Link to this heading">#</a></h3>
-<p>This command sets the fraction of total sailing time spent traveling from ‘port_from’ to ‘port_to’.</p>
+<p>This command sets the fraction of total sailing time spent traveling from ‘port_from’ to ‘port_to’. The fraction is evaluated once when the deck’s DEFINE block is read and again whenever an EVENTS block is read, so it does not vary between those reads.</p>
 <ul class="simple">
 <li><p><strong>Primary key type</strong>: String (Port name)</p></li>
 <li><p><strong>Secondary key type</strong>: String (Port name)</p></li>
-<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
+<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">&quot;port_name_from&quot;,</span> <span class="pre">&quot;port_name_to&quot;,</span> <span class="pre">0.5</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">&quot;port_name_from&quot;,</span> <span class="pre">&quot;port_name_to&quot;,</span> <span class="pre">Forecast(&quot;name&quot;)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;port_name_from&quot;,</span> <span class="pre">&quot;port_name_to&quot;,</span> <span class="pre">Variable(&quot;name&quot;)</span></code></p></li>
 </ul>
 </li>
 <li><p><strong>Unit</strong>: Fraction</p></li>

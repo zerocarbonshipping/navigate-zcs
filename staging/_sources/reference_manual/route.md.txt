@@ -162,13 +162,13 @@ This attribute sets the cargo capacity utilization of the various legs of the tr
 
 ### set\_voyage\_distribution
 
-This command sets the fraction of total sailing time spent traveling from 'port\_from' to 'port\_to'.
+This command sets the fraction of total sailing time spent traveling from 'port\_from' to 'port\_to'. The fraction is evaluated once when the deck's DEFINE block is read and again whenever an EVENTS block is read, so it does not vary between those reads.
 
 * **Primary key type**: String (Port name)
 * **Secondary key type**: String (Port name)
-* **Data type**: `Float`, `Forecast`, `Variable`
+* **Data type**: `Float`, `Variable`
 * **Example values**:
   + `"port_name_from", "port_name_to", 0.5`
-  + `"port_name_from", "port_name_to", Forecast("name")`
+  + `"port_name_from", "port_name_to", Variable("name")`
 * **Unit**: Fraction
 * **Default**: Determined through internal calculations.
