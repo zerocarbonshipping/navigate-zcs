@@ -3,9 +3,14 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import numpy as np
 
-from navigate.util import add_dicts
+from navigate.util import YEAR, add_dicts
+
+if TYPE_CHECKING:
+    from navigate.core.nodes.producer import Producer
 
 
 def calculate_constrained_fair_share_fuel_demand(fuels, producers, gap, idx):
@@ -141,6 +146,76 @@ def calculate_expected_fuel_supply(producers, idx):
             for producer in producers.values()
         )
     )
+
+
+def calculate_development_potential(
+    producer: Producer, time_step: float, idx: int
+) -> None:
+    """
+    Calculate the development potential of the producer per fuel type.
+
+    Parameters
+    ----------
+    producer
+        The producer instance.
+    time_step
+        Current time-step size.
+    idx
+        Current time-step index.
+    """
+    # account for potential ramp-up constraints
+    maximum_development = producer.maximum_development.get() * time_step / YEAR
+    ramp_up = producer.maximum_ramp_up.get() * time_step / YEAR
+    utilization = min(producer.current_utilization + ramp_up, 1.0)
+    maximum_development *= utilization
+
+    # pre-allocate containers
+    potential = dict.fromkeys(producer.fuels, 0.0)
+
+    for plant in producer.assets:
+        plant_name = plant.name
+        fuel_name = plant.fuel.name
+        production = plant.expectation.get_production(idx)
+
+        # if the plant has become disallowed
+        # it is removed from consideration
+        uptake = 1.0 if producer.allow_plant[plant_name] else 0.0
+
+        # calculate the potential if no
+        # feed constraints are included
+        if maximum_development < np.inf:
+            plant_potential = uptake * maximum_development
+        else:
+            plant_potential = np.inf
+
+        # loop over feed and reduce the
+        # plant potential in case a plant is
+        # restricted by feed
+        for feed_name, constraint in producer.feed_constraints.items():
+            if constraint is None:
+                continue
+
+            mass = producer.expectation.get_plant_feed_consumption(
+                plant_name, feed_name
+            )
+
+            if mass == 0.0:
+                continue
+
+            gap = producer.expectation.get_feed_gap(feed_name, idx)
+            potential_multipliers = uptake * gap / mass
+
+            if potential_multipliers < plant_potential:
+                plant_potential = potential_multipliers
+
+        # add the plant potential
+        potential[fuel_name] += plant_potential * production
+
+    # transfer the development potential per fuel
+    for fuel_name in producer.fuels:
+        # TODO: can easily loop over export distribution to include shares going to
+        # ports
+        producer.expectation.set_development_potential(fuel_name, potential[fuel_name])
 
 
 def _assign_fair_share_of_gap(producers, fair_share, gap, idx):
