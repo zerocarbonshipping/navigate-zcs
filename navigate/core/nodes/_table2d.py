@@ -199,7 +199,7 @@ class _Table2D(_Calculator):
             case Interpolate2DID.NEAREST:
                 return "nearest"
 
-    def _get_allow_extrapolate_internal(self) -> bool:
+    def _get_bounds_error_internal(self) -> bool:
         return self.extrapolate == ExtrapolateID.FALSE
 
     def _get_extrapolate_internal(self) -> NumberInput | None:
@@ -223,7 +223,7 @@ class _Table2D(_Calculator):
         self._is_convex = all(self._test_convexity(x, z[:, i]) for i, _ in enumerate(y))
 
         method = self._get_interpolate_internal()
-        bounds_error = self._get_allow_extrapolate_internal()
+        bounds_error = self._get_bounds_error_internal()
         fill_number = self._get_extrapolate_internal()
 
         def interp(x_: FloatLike, y_: FloatLike) -> FloatLike:
