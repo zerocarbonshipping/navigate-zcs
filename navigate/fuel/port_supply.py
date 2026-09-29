@@ -142,9 +142,10 @@ def _calculate_import_from_producers(
     Set supply-weighted bunker price, supply and WTT at each port for producer fuels.
 
     A port with no bunkering limit set that imports from an unconstrained
-    (infinite-production) producer never reports a BunkerSupplyMass: the
-    profile leaves that fuel unwritten instead of recording infinity, the
-    same convention the liquid-market import uses for an unlimited port.
+    (infinite-production) producer reports its BunkerSupplyMass as np.inf:
+    the price and WTT stay finite (the equally-weighted average of the
+    unconstrained plants), but the supply itself is genuinely unbounded and
+    is recorded as such, rather than being hidden from the report.
 
     Parameters
     ----------
@@ -330,13 +331,9 @@ def _calculate_import_from_producers(
             price = port.expectation.get_bunker_price(f, idx_)
             supplies[p][f] = np.where(price > TOLERANCE, supplies[p][f], 0.0)
 
-            # transfer the adjusted supply to the ports. a port with no
-            # bunkering limit keeps an infinite supply here, which the
-            # profile never reports, matching the liquid-market convention
+            # transfer the adjusted supply to the ports
             port.expectation.set_bunker_supply(idx, f, supplies[p][f])
-
-            if np.isfinite(supplies[p][f][0]):
-                port.profile.set_bunker_supply_mass(idx, f, supplies[p][f][0])
+            port.profile.set_bunker_supply_mass(idx, f, supplies[p][f][0])
 
 
 def _divide_where_finite(
