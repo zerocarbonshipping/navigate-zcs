@@ -5,8 +5,8 @@ from __future__ import annotations
 
 import numpy as np
 
+from navigate.core import get_fuels_per_fuel_type
 from navigate.core.enum_ import FuelTypeID
-from navigate.fleet.fuel_option import get_fuels_per_fuel_type
 from navigate.output.plots._colors import generate_color_dict
 from navigate.output.plots._figure import (
     format_axes,
