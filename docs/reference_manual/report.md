@@ -210,8 +210,8 @@ The properties are applicable for the following commands:
 |----------------------|--------------------|------------------------------------------------------------|
 | BunkerMass           | Ton/year           | Fuel bunkered in mass for all fuels.                       |
 | BunkerEnergy         | GJ/year            | Fuel bunkered in energy for all fuels.                     |
-| BunkerSupplyMass     | Ton/year           | Fuel available for bunkering in mass for all fuels.        |
-| BunkerSupplyEnergy   | GJ/year            | Fuel available for bunkering in energy for all fuels.      |
+| BunkerSupplyMass     | Ton/year           | Fuel available for bunkering in mass for all fuels. A port with no infrastructure limit set reports no value, rather than infinity, for a fuel an unconstrained producer supplies; the global total does the same for a fuel any port leaves unreported that step. |
+| BunkerSupplyEnergy   | GJ/year            | Fuel available for bunkering in energy for all fuels. Reported the same way as `BunkerSupplyMass`. |
 | BunkeringLimitMass   | Ton/year           | Infrastructure limit on bunkering in mass for all fuels.   |
 | BunkeringLimitEnergy | GJ/year            | Infrastructure limit on bunkering in energy for all fuels. |
 
