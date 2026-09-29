@@ -43,7 +43,7 @@ This attribute sets the tolerance of the solution for the bunker algorithm. The 
 
 * **Data type**: `Float`
 * **Example value**: `1e-6`
-* **Minimum value**: 0
+* **Minimum value**: 0 (exclusive)
 * **Default**: 1e-6
 
 ### Threads
@@ -52,7 +52,7 @@ This attribute sets the number of threads used by the LP solver to solve the bun
 
 Notice that '0' corresponds to the solver's default setting.
 
-* **Data type**: `Float`
+* **Data type**: `Integer`
 * **Example value**: `2`
 * **Minimum value**: 0
 * **Default**: 2
@@ -64,7 +64,7 @@ This attribute sets the maximum iterations of the fair-share sequential LP of th
 * **Data type**: `Integer`
 * Example value: `10`
 * **Minimum value**: 1
-* **Default**: 10
+* **Default**: 50
 
 ### FairShareTolerance
 
@@ -72,5 +72,5 @@ This attribute sets the fair-share tolerance of the bunker algorithm. The fair s
 
 * **Data type**: `Float`
 * **Example value**: `1e-2`
-* **Minimum value**: 0
-* **Default**: 1e-2
+* **Minimum value**: 0 (exclusive)
+* **Default**: 1e-1
