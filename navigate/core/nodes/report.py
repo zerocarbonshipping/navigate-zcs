@@ -87,7 +87,9 @@ class Report(Node):
             Reduction axis applied to the tuple keys of the property; None
             applies no reduction.
         """
-        self._add_property("global", self.manager_reports, attribute, reduce=reduce)
+        self._add_property(
+            "add_property", "global", self.manager_reports, attribute, reduce=reduce
+        )
 
     def add_fleet_property(
         self, fleet_name: str, attribute: str, reduce: str | None = None
@@ -113,7 +115,13 @@ class Report(Node):
             Reduction axis applied to the tuple keys of the property; None
             applies no reduction.
         """
-        self._add_property(fleet_name, self.fleet_reports, attribute, reduce=reduce)
+        self._add_property(
+            "add_fleet_property",
+            fleet_name,
+            self.fleet_reports,
+            attribute,
+            reduce=reduce,
+        )
 
     def add_levy_property(
         self, levy_name: str, attribute: str, reduce: str | None = None
@@ -139,7 +147,9 @@ class Report(Node):
             Reduction axis applied to the tuple keys of the property; None
             applies no reduction.
         """
-        self._add_property(levy_name, self.levy_reports, attribute, reduce=reduce)
+        self._add_property(
+            "add_levy_property", levy_name, self.levy_reports, attribute, reduce=reduce
+        )
 
     def add_plant_property(
         self, plant_name: str, attribute: str, reduce: str | None = None
@@ -165,7 +175,13 @@ class Report(Node):
             Reduction axis applied to the tuple keys of the property; None
             applies no reduction.
         """
-        self._add_property(plant_name, self.plant_reports, attribute, reduce=reduce)
+        self._add_property(
+            "add_plant_property",
+            plant_name,
+            self.plant_reports,
+            attribute,
+            reduce=reduce,
+        )
 
     def add_port_property(
         self, port_name: str, attribute: str, reduce: str | None = None
@@ -191,7 +207,9 @@ class Report(Node):
             Reduction axis applied to the tuple keys of the property; None
             applies no reduction.
         """
-        self._add_property(port_name, self.port_reports, attribute, reduce=reduce)
+        self._add_property(
+            "add_port_property", port_name, self.port_reports, attribute, reduce=reduce
+        )
 
     def add_producer_property(
         self, producer_name: str, attribute: str, reduce: str | None = None
@@ -218,7 +236,11 @@ class Report(Node):
             applies no reduction.
         """
         self._add_property(
-            producer_name, self.producer_reports, attribute, reduce=reduce
+            "add_producer_property",
+            producer_name,
+            self.producer_reports,
+            attribute,
+            reduce=reduce,
         )
 
     def add_regulation_property(
@@ -246,7 +268,11 @@ class Report(Node):
             applies no reduction.
         """
         self._add_property(
-            regulation_name, self.regulation_reports, attribute, reduce=reduce
+            "add_regulation_property",
+            regulation_name,
+            self.regulation_reports,
+            attribute,
+            reduce=reduce,
         )
 
     def add_vessel_property(
@@ -273,11 +299,18 @@ class Report(Node):
             Reduction axis applied to the tuple keys of the property; None
             applies no reduction.
         """
-        self._add_property(vessel_name, self.vessel_reports, attribute, reduce=reduce)
+        self._add_property(
+            "add_vessel_property",
+            vessel_name,
+            self.vessel_reports,
+            attribute,
+            reduce=reduce,
+        )
 
     # internal methods -----------------------------------------------------------------
     @staticmethod
     def _add_property(
+        command: str,
         node_name: str,
         assignment_dict: dict[str, NodeReport],
         attribute: str,
@@ -291,4 +324,4 @@ class Report(Node):
         if node_name not in assignment_dict:
             assignment_dict[node_name] = NodeReport()
 
-        assignment_dict[node_name].add_property(attribute, internal_reduce)
+        assignment_dict[node_name].add_property(command, attribute, internal_reduce)

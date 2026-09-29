@@ -4,11 +4,10 @@
 """
 The report-property appendix documents exactly the properties a report can carry.
 
-docs/reference_manual/report.md is hand-written with no autodoc, and report
-properties have no parser-side allow-list, so a table row and a profile getter
-can drift apart in either direction without anything failing: a stale row sends a
-deck writer after a column the report writer will skip with a logged error, and a
-getter no row names is a result nobody can find.
+docs/reference_manual/report.md is hand-written with no autodoc, so a table row
+and a profile getter can drift apart in either direction without anything else
+failing: a stale row sends a deck writer after a property the parser rejects, and
+a getter no row names is a result nobody can find.
 
 Both directions are checked here. Forward: every documented token resolves to a
 getter the report writer can call on the profile class of every command the table
@@ -26,9 +25,9 @@ from helpers.report_properties import (
     PLUMBING_GETTERS,
     PROFILE_CLASSES,
     getter_for,
-    is_argument_free,
     token_for,
 )
+from navigate.core.report_properties import is_argument_free
 
 TABLES = report_property_tables()
 

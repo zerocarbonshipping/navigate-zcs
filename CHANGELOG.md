@@ -38,7 +38,7 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   gives a uniform split.
 - `CAPEX`/`OPEX` are now `Capex`/`Opex`, and report properties end in
   `Wtt`/`Ttw`/`Wtw` (`TotalEquivalentWtt`). An old report property spelling
-  silently drops its column, with the reason only in the `.log`.
+  is a deck error at its line.
 - An undersized converter raises a `PowerCapacityError` naming the vessel,
   converter, leg or port and the required and installed power, instead of an
   LP infeasibility. The check is also tighter:
@@ -100,6 +100,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   effective energy, (1 − slip) · LHV, as a `Regulation`'s intensity already
   is, so a threshold covers fewer emissions per ton of a fuel with converter
   slip, such as LNG.
+- An `add_*_property` naming a property its command does not report stops the
+  parse at its line, instead of dropping the column with an error in the
+  `.log` (#105).
 
 ### Removed
 - `BunkerLogistics`: write `LiquidMarket` on `Fuel`, and `set_fuel_transport`

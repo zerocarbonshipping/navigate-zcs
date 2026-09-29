@@ -26,7 +26,7 @@ from navigate.output.report_writer import ROW_RESULT, _prepare_export, write_rep
 
 def _node_report(attribute="Lifetime"):
     report = NodeReport()
-    report.add_property(attribute, ReportReduceID.NONE)
+    report.add_property("add_vessel_property", attribute, ReportReduceID.NONE)
     return report
 
 
@@ -58,7 +58,7 @@ class TestWriteReportErrorContainment:
     @staticmethod
     def _report_and_manager():
         report = Report("output")
-        report.add_fleet_property("fleet", "Lifetime")
+        report.add_fleet_property("fleet", "CargoMiles")
         report.add_vessel_property("vessel", "Lifetime")
 
         manager = SimpleNamespace(

@@ -4,12 +4,11 @@
 """
 Report properties named in committed decks resolve to profile getters.
 
-Report properties have no parser-side allow-list: navigate.output.report_writer resolves
-the getter on the node's profile at write time and skips the column with a logged error
-when it is missing. This test pins the committed surface instead: every property token
-in a committed deck must map, via attribute_to_setter, to a getter on the profile class
-of the command it is passed to, callable without arguments the way the report writer
-calls it.
+The parser rejects a property token its command's profile class has no getter for, but
+only in a deck it reads, and no suite reads most of the committed .inc modules. This
+test holds every committed deck to the same rule: every property token must map, via
+attribute_to_setter, to a getter on the profile class of the command it is passed to,
+callable without arguments the way the report writer calls it.
 
 The deck scan is regex-based and expects single-line property calls, like the committed
 decks.
@@ -21,8 +20,9 @@ import re
 
 import pytest
 
-from helpers.report_properties import PROFILE_CLASSES, getter_for, is_argument_free
+from helpers.report_properties import PROFILE_CLASSES, getter_for
 from helpers.simulation import REPO_ROOT
+from navigate.core.report_properties import is_argument_free
 
 _PROPERTY_CALL = re.compile(
     r'\b({})\(\s*(?:"[^"]*"\s*,\s*)?([A-Za-z][A-Za-z0-9]*)'.format(
