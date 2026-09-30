@@ -21,6 +21,7 @@ if TYPE_CHECKING:
     from navigate.core.nodes.surface import Surface
     from navigate.core.nodes.vessel import Vessel
     from navigate.core.types_ import SurfaceInput
+    from navigate.util.types_ import FloatArray
 
 
 def calculate_speed_bounds(
@@ -58,7 +59,7 @@ def calculate_speed_bounds(
     return low, high
 
 
-def calculate_technical_speed_limits(vessel: Vessel) -> tuple[np.ndarray, np.ndarray]:
+def calculate_technical_speed_limits(vessel: Vessel) -> tuple[FloatArray, FloatArray]:
     """
     Calculate a vessel's minimum and maximum achievable speed from its propulsion load.
 
@@ -69,7 +70,7 @@ def calculate_technical_speed_limits(vessel: Vessel) -> tuple[np.ndarray, np.nda
 
     Returns
     -------
-    tuple[np.ndarray, np.ndarray]
+    tuple[FloatArray, FloatArray]
         Minimum speed per leg and maximum speed per leg.
     """
     load = vessel.propulsion_load
@@ -77,10 +78,10 @@ def calculate_technical_speed_limits(vessel: Vessel) -> tuple[np.ndarray, np.nda
     if isinstance(load, Expression):
         # an expression can only be evaluated, not read as a table, so it
         # cannot be reverse-looked-up; the other speed bounds govern instead
-        return -np.inf, np.inf
+        return _unbounded_speed_limits(vessel)
 
     if isinstance(load, Scalar) or is_variable(load):
-        return -np.inf, np.inf
+        return _unbounded_speed_limits(vessel)
 
     # must per definition be Curve or Surface
     else:
@@ -264,7 +265,24 @@ def _find_capacity_violations(
     return violations
 
 
-def _expand_speed_to_legs(vessel, speed: float | list[float]) -> np.ndarray:
+def _unbounded_speed_limits(vessel: Vessel) -> tuple[FloatArray, FloatArray]:
+    """
+    Give a vessel no technical speed limit, expanded to one value per leg.
+
+    Parameters
+    ----------
+    vessel
+        Vessel for which the speed limits are expanded to legs.
+
+    Returns
+    -------
+    tuple[FloatArray, FloatArray]
+        Minimum and maximum speed per leg, both unbounded.
+    """
+    return _expand_speed_to_legs(vessel, -np.inf), _expand_speed_to_legs(vessel, np.inf)
+
+
+def _expand_speed_to_legs(vessel: Vessel, speed: float | list[float]) -> FloatArray:
     a = np.asarray(speed, dtype=float)
 
     if a.ndim == 0:
