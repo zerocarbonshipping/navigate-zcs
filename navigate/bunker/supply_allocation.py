@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Estimate each vessel's fair share of the port fuel supply from its energy demand."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -16,11 +18,20 @@ from navigate.core.enum_ import (
 from navigate.util import divide_nonzero
 
 if TYPE_CHECKING:
+    from navigate.core.nodes.fleet import Fleet
+    from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.port import Port
     from navigate.core.nodes.vessel import Vessel
+    from navigate.util.types_ import FloatArray, FloatLike
 
 
-def calculate_fair_share_fuel_supply(fleets, fuels, ports, idx, scope):
+def calculate_fair_share_fuel_supply(
+    fleets: dict[str, Fleet],
+    fuels: dict[str, Fuel],
+    ports: dict[str, Port],
+    idx: int,
+    scope: BunkerScopeID,
+) -> None:
     """
     Calculate fair-share fuel supply from each port for every vessel in the simulation.
 
@@ -29,23 +40,21 @@ def calculate_fair_share_fuel_supply(fleets, fuels, ports, idx, scope):
 
     Parameters
     ----------
-    fleets : dict[str, Fleet]
+    fleets
         All fleets in the simulation.
-    fuels : dict[str, Fuel]
+    fuels
         All fuels in the simulation.
-    ports : dict[str, Port]
+    ports
         All ports in the simulation.
-    idx : int
+    idx
         Current time-step index.
-    scope : Enum
-        ID of whether this is for expected fuel cost or existing bunkering.
+    scope
+        Whether the fair shares are for existing or for expected bunkering.
     """
-    fair_share, _, _, vessels = _calculate_demand_based_fair_share_fuel_supply(
+    fair_share, vessels = _calculate_demand_based_fair_share_fuel_supply(
         fleets, ports, idx, scope
     )
 
-    # calculate fair-share for each vessel,
-    # port and fuel in tons of fuel
     for v, vessel in vessels.items():
         for port in vessel.route.ports:
             p = port.name
@@ -56,9 +65,11 @@ def calculate_fair_share_fuel_supply(fleets, fuels, ports, idx, scope):
 
                 fuel_type = fuel.fuel_type
 
+                # existing bunkering evaluates a single time step, where the shares
+                # are zero-dimensional arrays
                 if scope == BunkerScopeID.EXISTING:
                     vessel.expectation.set_fair_share_fuel_existing(
-                        p, f, fair_share[(v, p, fuel_type)]
+                        p, f, np.float64(fair_share[(v, p, fuel_type)])
                     )
                 else:
                     vessel.expectation.set_fair_share_fuel_expected(
@@ -66,66 +77,66 @@ def calculate_fair_share_fuel_supply(fleets, fuels, ports, idx, scope):
                     )
 
 
-def _calculate_demand_based_fair_share_fuel_supply(fleets, ports, idx, scope):
+def _calculate_demand_based_fair_share_fuel_supply(
+    fleets: dict[str, Fleet],
+    ports: dict[str, Port],
+    idx: int,
+    scope: BunkerScopeID,
+) -> tuple[dict[tuple[str, str, FuelTypeID], FloatArray], dict[str, Vessel]]:
     """
     Calculate the fair-share fuel type supply from each port for every vessel.
 
     Parameters
     ----------
-    fleets : dict[str, Fleet]
+    fleets
         All fleets in the simulation.
-    ports : dict[str, Port]
+    ports
         All ports in the simulation.
-    idx : int
+    idx
         Current time-step index.
-    scope : Enum
-        ID of whether this is for expected fuel cost or existing bunkering.
-
+    scope
+        Whether the fair shares are for existing or for expected bunkering; expected
+        bunkering evaluates the remaining timeline.
 
     Returns
     -------
-    tuple[dict, dict, dict, dict]
-        Fair-share of fuel type supply from each port for every vessel in the
-        simulation.
+    tuple[dict[tuple[str, str, FuelTypeID], FloatArray], dict[str, Vessel]]
+        Fair share of the fuel type supply per (vessel, port, fuel type), and every
+        vessel in the simulation by name.
     """
-    _idx = idx if scope == BunkerScopeID.EXISTING else np.s_[idx:]
+    time_index = idx if scope == BunkerScopeID.EXISTING else np.s_[idx:]
 
     vessels = {
         vessel.name: vessel for fleet in fleets.values() for vessel in fleet.vessels
     }
 
     multipliers = {
-        vessel.name: fleet.expectation.get_existing_multipliers(vessel.name, _idx)
+        vessel.name: fleet.expectation.get_existing_multipliers(vessel.name, time_index)
         if scope == BunkerScopeID.EXISTING
-        else fleet.expectation.get_expected_multipliers(vessel.name, _idx)
+        else fleet.expectation.get_expected_multipliers(vessel.name, time_index)
         for fleet in fleets.values()
         for vessel in fleet.vessels
     }
 
-    all_demand = {(v, p, ft): 0.0 for v in vessels for p in ports for ft in FuelTypeID}
+    all_demand: dict[tuple[str, str, FuelTypeID], FloatLike] = {
+        (v, p, ft): 0.0 for v in vessels for p in ports for ft in FuelTypeID
+    }
 
-    # calculate the individual maximum demand of
-    # every vessel in every port for every fuel type
     for v, vessel in vessels.items():
         for p, port in ports.items():
             type_demand = _calculate_fuel_type_demand_in_port_jurisdiction(
-                port, vessel, _idx
+                port, vessel, time_index
             )
 
             for ft, demand in type_demand.items():
                 all_demand[(v, p, ft)] = demand
 
-    # calculate total demand for
-    # each port and fuel type
-    total_demand = {(p, ft): 0.0 for p in ports for ft in FuelTypeID}
-    for p in ports:
-        for ft in FuelTypeID:
-            total_demand[(p, ft)] = sum(
-                all_demand[(v, p, ft)] * multipliers[v] for v in vessels
-            )
+    total_demand = {
+        (p, ft): sum(all_demand[(v, p, ft)] * multipliers[v] for v in vessels)
+        for p in ports
+        for ft in FuelTypeID
+    }
 
-    # calculate fair-share for each vessel,
-    # port and fuel in tons of fuel
     fair_share = {}
     for v, vessel in vessels.items():
         for port in vessel.route.ports:
@@ -138,39 +149,33 @@ def _calculate_demand_based_fair_share_fuel_supply(fleets, ports, idx, scope):
                 share = divide_nonzero(all_demand[(v, p, ft)], total_demand[(p, ft)])
                 fair_share[(v, p, ft)] = share
 
-    return fair_share, all_demand, multipliers, vessels
+    return fair_share, vessels
 
 
-def _calculate_fuel_type_demand_in_port_jurisdiction(port, vessel, idx):
+def _calculate_fuel_type_demand_in_port_jurisdiction(
+    port: Port, vessel: Vessel, idx: int | slice
+) -> dict[FuelTypeID, FloatLike]:
     """
     Calculate a vessel's potential energy demand per fuel type in port's jurisdiction.
 
     Parameters
     ----------
-    port : Port
+    port
         Port for which energy calculation is made.
-    vessel : Vessel
+    vessel
         Vessel operating in the jurisdiction of the port.
-    idx : int
-        Current time-step index.
+    idx
+        Time-step index, or the slice of the remaining timeline.
 
     Returns
     -------
-    dict[str, np.ndarray]
+    dict[FuelTypeID, FloatLike]
         Potential energy demand per fuel type.
     """
-    # calculate the total operational demand
-    # that must be satisfied within
-    # the jurisdiction of the port
-    # for each demand type
     raw_energy = _calculate_operational_demand_in_port_jurisdiction(vessel, port, idx)
 
-    # pre-allocate output container
-    fuel_type_demand = dict.fromkeys(FuelTypeID, 0.0)
+    fuel_type_demand: dict[FuelTypeID, FloatLike] = dict.fromkeys(FuelTypeID, 0.0)
 
-    # loop over converters and energy for propulsion,
-    # electrical, and heat respectively and add the
-    # potential demand corresponding to each fuel type
     for energy_id in EnergyDemandTypeID:
         converter = vessel.power_system.get_converter_by_energy_type(energy_id)
         energy = raw_energy[energy_id]
@@ -178,16 +183,13 @@ def _calculate_fuel_type_demand_in_port_jurisdiction(port, vessel, idx):
         main_fuel_types = converter.main_fuel_types
         pilot_fuel_types = converter.pilot_fuel_types
 
+        # a dual-fuel converter burns all but its minimum pilot fuel share as main
+        # fuel at most, and up to all of its energy as pilot fuel; a mono-fuel
+        # converter burns main fuel only
         if converter.is_dual_fuel():
-            # a dual-fuel vessel can use at most
-            # '100% - minimum pilot fuel' as it's
-            # main fuel, but can use up to 100%
-            # pilot fuel
             maximum_main_fuel = 1.0 - converter.minimum_pilot_fuel.get()
             maximum_pilot_fuel = 1.0
-
         else:
-            # a mono-fuel vessel can only use main fuel
             maximum_main_fuel = 1.0
             maximum_pilot_fuel = 0.0
 
@@ -201,8 +203,8 @@ def _calculate_fuel_type_demand_in_port_jurisdiction(port, vessel, idx):
 
 
 def _calculate_operational_demand_in_port_jurisdiction(
-    vessel: Vessel, port: Port, idx: int
-) -> dict[EnergyDemandTypeID, np.ndarray]:
+    vessel: Vessel, port: Port, idx: int | slice
+) -> dict[EnergyDemandTypeID, FloatArray]:
     """
     Calculate operational energy demand for a vessel within a port's jurisdiction.
 
@@ -213,11 +215,12 @@ def _calculate_operational_demand_in_port_jurisdiction(
     port
         Port for which energy calculation is made.
     idx
-        Current time-step index.
+        Time-step index, or the slice of the remaining timeline.
 
     Returns
     -------
-    Operational energy used within the port jurisdiction.
+    dict[EnergyDemandTypeID, FloatArray]
+        Operational energy used within the port jurisdiction.
     """
     expectation = vessel.expectation
 
@@ -232,18 +235,18 @@ def _calculate_operational_demand_in_port_jurisdiction(
 def _calculate_energy_in_port_jurisdiction(
     vessel: Vessel,
     port: Port,
-    energy_sea: dict[EnergyDemandTypeID, list[np.ndarray]],
-    energy_port: dict[EnergyDemandTypeID, list[np.ndarray]],
-) -> dict[EnergyDemandTypeID, np.ndarray]:
+    energy_sea: dict[EnergyDemandTypeID, list[FloatLike]],
+    energy_port: dict[EnergyDemandTypeID, list[FloatLike]],
+) -> dict[EnergyDemandTypeID, FloatArray]:
     """
     Calculate the energy demand or spend for a vessel within a port's jurisdiction.
 
     Parameters
     ----------
-    port
-        Port for which energy calculation is made.
     vessel
         Vessel operating under the jurisdiction of the regulation.
+    port
+        Port for which energy calculation is made.
     energy_sea
         Energy per leg at sea (either demand or spend).
     energy_port
@@ -251,22 +254,20 @@ def _calculate_energy_in_port_jurisdiction(
 
     Returns
     -------
-    Energy used within the port jurisdiction.
+    dict[EnergyDemandTypeID, FloatArray]
+        Energy used within the port jurisdiction.
     """
-    # scale the demand by the fraction of time
-    # spent in the jurisdiction of the port
     route = vessel.route
     route_type = route.route_type
     ports = route.ports
 
-    # pre-allocate
-    timeline_shape = energy_sea[EnergyDemandTypeID.PROPULSION][0].shape
+    timeline_shape = np.shape(energy_sea[EnergyDemandTypeID.PROPULSION][0])
     energy = {energy_id: np.zeros(timeline_shape) for energy_id in EnergyDemandTypeID}
 
     if port not in ports:
         return energy
 
-    # inter region travel (assume jurisdiction is split 50/50 for fairness)
+    # a voyage between two ports counts half to the jurisdiction of each
     jurisdiction_fraction = 0.5
 
     if route_type == RouteTypeID.REGIONAL_TRIP:
@@ -275,12 +276,10 @@ def _calculate_energy_in_port_jurisdiction(
 
         voyage_distribution = route.get_voyage_distribution()
 
-        # sum energy at sea
         for energy_id in EnergyDemandTypeID:
-            total_energy_sea = np.add.reduce(energy_sea[energy_id])
+            total_energy_sea = np.add.reduce(np.asarray(energy_sea[energy_id]))
 
             for (p_from, p_to), fraction in voyage_distribution.items():
-                # intra region travel
                 if (p_from == p_to) and p_from == port_name:
                     energy[energy_id] += total_energy_sea * fraction
 
@@ -289,26 +288,21 @@ def _calculate_energy_in_port_jurisdiction(
                         jurisdiction_fraction * total_energy_sea * fraction
                     )
 
-            # add energy in port
             if energy_id != EnergyDemandTypeID.PROPULSION:
                 energy[energy_id] += energy_port[energy_id][port_idx]
 
     else:
-        ports = route.ports
         n_legs = route.get_number_of_legs()
 
-        # sum energy at sea
         for energy_id in EnergyDemandTypeID:
             for p, route_port in enumerate(ports):
                 if route_port == port and energy_id != EnergyDemandTypeID.PROPULSION:
                     energy[energy_id] += energy_port[energy_id][p]
 
             for leg in range(n_legs):
-                # initial and end port
                 port_from = ports[leg]
-                port_to = ports[
-                    (leg + 1) % n_legs
-                ]  # periodical boundary condition wrapping around to the first port
+                # the last leg returns to the first port
+                port_to = ports[(leg + 1) % n_legs]
 
                 if (port_from == port) or (port_to == port):
                     energy[energy_id] += (

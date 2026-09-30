@@ -2,27 +2,24 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-HiGHS-backed solver module providing a gurobipy-compatible API.
+HiGHS backend of the solver facade, mirroring the gurobipy API the bunker uses.
 
-This module wraps the HiGHS open-source LP solver (via highspy) to provide
-the same interface as gurobipy for all features used by the bunker algorithm.
-This eliminates the need for a commercial Gurobi license.
-
-Consumers reach it through the backend-dispatching facade in
-``navigate.bunker.solver``, never directly.
+Consumers reach it through the facade in ``navigate.bunker.solver``, never directly.
 """
 
 from __future__ import annotations
 
 import contextlib
+from typing import TYPE_CHECKING
 
 import highspy
 import numpy as np
 from highspy import HighsBasisStatus, HighsModelStatus
 
-# ====================================================================================
-# Constants
-# ====================================================================================
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from navigate.util.types_ import FloatArray
 
 CONTINUOUS = "continuous"
 OPTIMAL = 1
@@ -35,49 +32,36 @@ EQUAL = "="
 LESS_EQUAL = "<"
 GREATER_EQUAL = ">"
 
-# Map old Gurobi SolverMethodID integer values to HiGHS solver options.
-# The optimize() method uses IPM when the model structure grows (addVar/addConstr)
-# to produce interior solutions for fair-share stability. Simplex warm-start is
-# used for data-only changes (RHS/obj/coeff/bounds). remove() does NOT trigger
-# IPM since it only changes bounds (neutralization). Basis extension is used to
-# warm-start IPM's crossover phase when the model grows.
-_METHOD_MAP = {
-    -1: "ipm",  # AUTOMATIC → hybrid IPM/simplex
-    3: "ipm",  # NON_DETERMINISTIC (interior point)
-    4: "ipm",  # DETERMINISTIC (concurrent in Gurobi → hybrid in HiGHS)
-}
-
-
-# ====================================================================================
-# LinExpr
-# ====================================================================================
-
 
 class LinExpr:
     """
-    A linear expression: sum of (coefficient * variable) pairs plus a constant.
+    A sum of coefficient-variable products plus a constant, mirroring gurobipy.LinExpr.
 
-    Mirrors the gurobipy.LinExpr interface for the subset of features used.
+    Parameters
+    ----------
+    coefficients
+        Coefficient of each term; without it and ``variables`` the expression is empty.
+    variables
+        Variable of each term, aligned with ``coefficients``.
     """
 
-    def __init__(self, coefficients=None, variables=None):
-        # _terms holds a list of (coefficient, Var) pairs
-        # _constant is a float accumulator
+    def __init__(
+        self,
+        coefficients: Sequence[float] | None = None,
+        variables: Sequence[Var] | None = None,
+    ) -> None:
+        self._terms: list[tuple[float, Var]] = []
+        self._constant: float = 0.0
         if coefficients is not None and variables is not None:
             self._terms = list(zip(coefficients, variables, strict=True))
-            self._constant = 0.0
-        else:
-            self._terms = []
-            self._constant = 0.0
 
-    def _copy(self):
-        expr = LinExpr()
-        expr._terms = list(self._terms)
-        expr._constant = self._constant
-        return expr
+    def _copy(self) -> LinExpr:
+        expression = LinExpr()
+        expression._terms = list(self._terms)
+        expression._constant = self._constant
+        return expression
 
-    # arithmetic -----------------------------------------------------------------------
-    def __add__(self, other):
+    def __add__(self, other: LinExpr | Var | float) -> LinExpr:
         result = self._copy()
         if isinstance(other, LinExpr):
             result._terms.extend(other._terms)
@@ -90,17 +74,19 @@ class LinExpr:
             return NotImplemented
         return result
 
-    def __radd__(self, other):
+    def __radd__(self, other: float) -> LinExpr:
         if isinstance(other, (int, float)):
             result = self._copy()
             result._constant += other
             return result
         return NotImplemented
 
-    def __sub__(self, other):
+    def __sub__(self, other: LinExpr | Var | float) -> LinExpr:
         result = self._copy()
         if isinstance(other, LinExpr):
-            result._terms.extend((-c, v) for c, v in other._terms)
+            result._terms.extend(
+                (-coefficient, variable) for coefficient, variable in other._terms
+            )
             result._constant -= other._constant
         elif isinstance(other, Var):
             result._terms.append((-1.0, other))
@@ -110,101 +96,100 @@ class LinExpr:
             return NotImplemented
         return result
 
-    def __rsub__(self, other):
+    def __rsub__(self, other: float) -> LinExpr:
         if isinstance(other, (int, float)):
             result = self.__neg__()
             result._constant += other
             return result
         return NotImplemented
 
-    def __mul__(self, scalar):
+    def __mul__(self, scalar: float) -> LinExpr:
         if isinstance(scalar, (int, float)):
             result = LinExpr()
-            result._terms = [(c * scalar, v) for c, v in self._terms]
+            result._terms = [
+                (coefficient * scalar, variable)
+                for coefficient, variable in self._terms
+            ]
             result._constant = self._constant * scalar
             return result
         return NotImplemented
 
-    def __rmul__(self, scalar):
+    def __rmul__(self, scalar: float) -> LinExpr:
         return self.__mul__(scalar)
 
-    def __neg__(self):
+    def __neg__(self) -> LinExpr:
         result = LinExpr()
-        result._terms = [(-c, v) for c, v in self._terms]
+        result._terms = [
+            (-coefficient, variable) for coefficient, variable in self._terms
+        ]
         result._constant = -self._constant
         return result
 
-    # comparison operators (create TempConstr) -----------------------------------------
-    def __le__(self, other):
+    def __le__(self, other: LinExpr | float) -> TempConstr:
         if isinstance(other, (int, float)):
             return TempConstr(self, LESS_EQUAL, float(other))
         if isinstance(other, LinExpr):
             return TempConstr(self - other, LESS_EQUAL, 0.0)
         return NotImplemented
 
-    def __ge__(self, other):
+    def __ge__(self, other: LinExpr | float) -> TempConstr:
         if isinstance(other, (int, float)):
             return TempConstr(self, GREATER_EQUAL, float(other))
         if isinstance(other, LinExpr):
             return TempConstr(self - other, GREATER_EQUAL, 0.0)
         return NotImplemented
 
-    # evaluation -----------------------------------------------------------------------
-    def getValue(self):
-        """Evaluate the expression using current solution values."""
-        return sum(c * v.X for c, v in self._terms) + self._constant
+    def getValue(self) -> float:
+        """
+        Evaluate the expression at the last solution.
 
-
-# ====================================================================================
-# TempConstr
-# ====================================================================================
+        Returns
+        -------
+        float
+            The expression's value.
+        """
+        return (
+            sum(coefficient * variable.X for coefficient, variable in self._terms)
+            + self._constant
+        )
 
 
 class TempConstr:
-    """Temporary constraint from comparison operators, passed to Model.addConstr()."""
+    """A pending ``lhs <sense> rhs`` from a comparison, passed to Model.addConstr."""
 
-    def __init__(self, lhs, sense, rhs):
-        self.lhs = lhs  # LinExpr
-        self.sense = sense  # EQUAL, LESS_EQUAL or GREATER_EQUAL
-        self.rhs = rhs  # float
-
-
-# ====================================================================================
-# Var
-# ====================================================================================
+    def __init__(self, lhs: LinExpr, sense: str, rhs: float) -> None:
+        self.lhs: LinExpr = lhs
+        self.sense: str = sense
+        self.rhs: float = rhs
 
 
 class Var:
-    """
-    Wrapper around a HiGHS column (variable).
+    """A HiGHS column, mirroring gurobipy.Var."""
 
-    Mirrors gurobipy.Var for the subset of features used.
-    """
+    def __init__(self, model: Model, col: int) -> None:
+        self._model: Model = model
+        self._col: int = col
 
-    def __init__(self, model, col):
-        self._model = model  # Model instance (for accessing HiGHS and solution)
-        self._col = col  # column index in HiGHS
-
-    # solution value -------------------------------------------------------------------
     @property
-    def X(self):
-        """Primal solution value."""
-        return self._model._col_values[self._col]
+    def X(self) -> float:
+        """Primal solution value at the last solve."""
+        value: float = self._model._col_values[self._col]
+        return value
 
-    # objective coefficient ------------------------------------------------------------
     @property
-    def Obj(self):
+    def Obj(self) -> float:
+        """Objective coefficient."""
         return self._model._col_costs[self._col]
 
     @Obj.setter
-    def Obj(self, value):
+    def Obj(self, value: float) -> None:
         value = float(value)
         self._model._col_costs[self._col] = value
         self._model._pending_obj[self._col] = value
 
-    # upper bound ----------------------------------------------------------------------
     @property
     def UB(self) -> float:
+        """Upper bound; the lower bound is always zero."""
         return self._model._col_upper_bounds[self._col]
 
     @UB.setter
@@ -213,81 +198,65 @@ class Var:
         self._model._col_upper_bounds[self._col] = value
         self._model._pending_ub[self._col] = value
 
-    # arithmetic (return LinExpr) ------------------------------------------------------
-    def _to_expr(self, coeff=1.0):
-        expr = LinExpr()
-        expr._terms = [(coeff, self)]
-        return expr
+    def _as_expression(self, coefficient: float = 1.0) -> LinExpr:
+        expression = LinExpr()
+        expression._terms = [(coefficient, self)]
+        return expression
 
-    def __add__(self, other):
-        return self._to_expr().__add__(other)
+    def __add__(self, other: LinExpr | Var | float) -> LinExpr:
+        return self._as_expression().__add__(other)
 
-    def __radd__(self, other):
+    def __radd__(self, other: float) -> LinExpr:
         if isinstance(other, (int, float)):
-            expr = self._to_expr()
-            expr._constant += other
-            return expr
-        if isinstance(other, LinExpr):
-            return other.__add__(self)
+            expression = self._as_expression()
+            expression._constant += other
+            return expression
         return NotImplemented
 
-    def __sub__(self, other):
-        return self._to_expr().__sub__(other)
+    def __sub__(self, other: LinExpr | Var | float) -> LinExpr:
+        return self._as_expression().__sub__(other)
 
-    def __rsub__(self, other):
+    def __rsub__(self, other: float) -> LinExpr:
         if isinstance(other, (int, float)):
-            expr = self._to_expr(-1.0)
-            expr._constant += other
-            return expr
-        if isinstance(other, LinExpr):
-            return other.__sub__(self)
+            expression = self._as_expression(-1.0)
+            expression._constant += other
+            return expression
         return NotImplemented
 
-    def __mul__(self, scalar):
+    def __mul__(self, scalar: float) -> LinExpr:
         if isinstance(scalar, (int, float)):
-            return self._to_expr(float(scalar))
+            return self._as_expression(float(scalar))
         return NotImplemented
 
-    def __rmul__(self, scalar):
+    def __rmul__(self, scalar: float) -> LinExpr:
         return self.__mul__(scalar)
 
-    def __neg__(self):
-        return self._to_expr(-1.0)
+    def __neg__(self) -> LinExpr:
+        return self._as_expression(-1.0)
 
-    # comparison operators (create TempConstr via LinExpr) -----------------------------
-    def __le__(self, other):
-        return self._to_expr().__le__(other)
+    def __le__(self, other: LinExpr | float) -> TempConstr:
+        return self._as_expression().__le__(other)
 
-    def __ge__(self, other):
-        return self._to_expr().__ge__(other)
-
-
-# ====================================================================================
-# Constr
-# ====================================================================================
+    def __ge__(self, other: LinExpr | float) -> TempConstr:
+        return self._as_expression().__ge__(other)
 
 
 class Constr:
-    """
-    Wrapper around a HiGHS row (constraint).
+    """A HiGHS row, mirroring gurobipy.Constr."""
 
-    Mirrors gurobipy.Constr for the subset of features used.
-    """
+    def __init__(self, model: Model, row: int, sense: str, rhs_value: float) -> None:
+        self._model: Model = model
+        self._row: int = row
+        self._sense: str = sense
+        self._rhs_value: float = rhs_value
 
-    def __init__(self, model, row, sense, rhs_value, name=""):
-        self._model = model
-        self._row = row
-        self._sense = sense  # EQUAL, LESS_EQUAL or GREATER_EQUAL
-        self._rhs_value = rhs_value
-        self._name = name
-
-    # RHS write (lowercase, as used in gurobipy) ---------------------------------------
     @property
-    def rhs(self):
+    def rhs(self) -> float:
+        """Right-hand side, written in gurobipy's lowercase spelling."""
         return self._rhs_value
 
     @rhs.setter
-    def rhs(self, value):
+    def rhs(self, value: float) -> None:
         value = float(value)
         self._rhs_value = value
         if self._sense == EQUAL:
@@ -297,159 +266,158 @@ class Constr:
         elif self._sense == GREATER_EQUAL:
             self._model._pending_rhs[self._row] = (value, highspy.kHighsInf)
 
-    # RHS read (uppercase, as used in gurobipy) ----------------------------------------
     @property
-    def RHS(self):
+    def RHS(self) -> float:
+        """Right-hand side, read in gurobipy's uppercase spelling."""
         return self._rhs_value
 
-    # dual value -----------------------------------------------------------------------
     @property
-    def Pi(self):
-        """Shadow price (dual value)."""
-        return self._model._row_duals[self._row]
-
-
-# ====================================================================================
-# Params
-# ====================================================================================
+    def Pi(self) -> float:
+        """Shadow price (dual value) at the last solve."""
+        value: float = self._model._row_duals[self._row]
+        return value
 
 
 class Params:
-    """Proxy for HiGHS solver options, using Gurobi parameter names."""
+    """HiGHS solver options under the gurobipy parameter names the bunker sets."""
 
-    def __init__(self, highs):
-        self._highs = highs
-        self._dual_reductions = 1
+    def __init__(self, highs: highspy.Highs) -> None:
+        self._highs: highspy.Highs = highs
+        self._output_flag: int
+        self._method: int
+        self._threads: int
+        self._feasibility_tolerance: float
+        self._optimality_tolerance: float
+        self._dual_reductions: int = 1
 
     @property
-    def OutputFlag(self):
+    def OutputFlag(self) -> int:
+        """Whether the solver logs to the console, 0 or 1."""
         return self._output_flag
 
     @OutputFlag.setter
-    def OutputFlag(self, value):
+    def OutputFlag(self, value: int) -> None:
         self._output_flag = value
         self._highs.setOptionValue("output_flag", bool(value))
 
     @property
-    def Method(self):
+    def Method(self) -> int:
+        """Gurobi method ID; HiGHS chooses its method per solve and does not read it."""
         return self._method
 
     @Method.setter
-    def Method(self, value):
+    def Method(self, value: int) -> None:
         self._method = value
-        # Store the mapped solver — optimize() will apply it dynamically
-        # based on whether warm-starting is possible.
-        self._solver = _METHOD_MAP.get(value, "ipm")
 
     @property
-    def Threads(self):
+    def Threads(self) -> int:
+        """Number of solver threads, 0 for automatic in both solvers."""
         return self._threads
 
     @Threads.setter
-    def Threads(self, value):
+    def Threads(self, value: int) -> None:
         self._threads = value
-        # HiGHS uses 0 for automatic, same as Gurobi
         self._highs.setOptionValue("threads", int(value))
 
     @property
-    def FeasibilityTol(self):
-        return self._feasibility_tol
+    def FeasibilityTol(self) -> float:
+        """Primal feasibility tolerance."""
+        return self._feasibility_tolerance
 
     @FeasibilityTol.setter
-    def FeasibilityTol(self, value):
-        self._feasibility_tol = value
+    def FeasibilityTol(self, value: float) -> None:
+        self._feasibility_tolerance = value
         self._highs.setOptionValue("primal_feasibility_tolerance", float(value))
 
     @property
-    def OptimalityTol(self):
-        return self._optimality_tol
+    def OptimalityTol(self) -> float:
+        """Dual feasibility tolerance."""
+        return self._optimality_tolerance
 
     @OptimalityTol.setter
-    def OptimalityTol(self, value):
-        self._optimality_tol = value
+    def OptimalityTol(self, value: float) -> None:
+        self._optimality_tolerance = value
         self._highs.setOptionValue("dual_feasibility_tolerance", float(value))
 
     @property
-    def DualReductions(self):
+    def DualReductions(self) -> int:
+        """Gurobi dual-reductions switch, 0 or 1; HiGHS has no equivalent."""
         return self._dual_reductions
 
     @DualReductions.setter
-    def DualReductions(self, value):
-        # No direct HiGHS equivalent. HiGHS handles infeasible/unbounded
-        # detection differently. Stored for compatibility but not applied.
+    def DualReductions(self, value: int) -> None:
         self._dual_reductions = value
-
-
-# ====================================================================================
-# Model
-# ====================================================================================
 
 
 class Model:
     """
-    HiGHS-backed LP model with a gurobipy-compatible interface.
+    A HiGHS linear program, mirroring the gurobipy.Model interface the bunker uses.
 
-    Provides the same API as gurobipy.Model for all features used by
-    the bunker algorithm: addVar, addConstr, addLConstr, chgCoeff, remove, optimize,
-    computeIIS, write, and solution/dual access.
+    Parameters
+    ----------
+    name
+        Model name, accepted as gurobipy accepts it; the HiGHS model stays unnamed.
     """
 
-    def __init__(self, name=""):
-        self._highs = highspy.Highs()
+    def __init__(self, name: str = "") -> None:
+        self._highs: highspy.Highs = highspy.Highs()
         self._highs.setOptionValue("output_flag", False)
 
-        self._num_cols = 0
-        self._num_rows = 0
+        self._num_cols: int = 0
+        self._num_rows: int = 0
+        self._constr_names: list[str] = []
 
-        # Track constraint metadata
-        self._constr_names = []  # row index -> name
-        self._constr_objects = []  # row index -> Constr object
+        # removed rows are neutralized, not deleted; recycleConstr reuses them,
+        # zeroing the non-zero columns tracked per row
+        self._removed_rows: set[int] = set()
+        self._recycled_rows: list[int] = []
+        self._row_coeffs: dict[int, set[int]] = {}
 
-        # Track removed items (neutralized, not deleted)
-        self._removed_cols = set()
-        self._removed_rows = set()
+        # solution of the last solve
+        self._col_values: FloatArray
+        self._row_duals: FloatArray
+        self._iis_row_flags: list[bool] | None = None
 
-        # Solution storage (populated after optimize())
-        self._col_values = None  # primal solution
-        self._row_duals = None  # dual values
+        # warm-start state: interior point runs when rows or columns were added
+        # since the last solve, a simplex warm start from the saved basis
+        # otherwise; remove() only changes bounds and so does not count as growth
+        self._basis: highspy.HighsBasis | None = None
+        self._model_grew: bool = True
 
-        # IIS storage
-        self._iis_row_flags = None
-
-        # Warm-start state. IPM is used when the model structure has grown
-        # (new variables/constraints added via addVar/addConstr). Simplex
-        # warm-start is used for all other solves (RHS/coeff/bound changes).
-        # remove() does NOT trigger IPM since it only changes bounds.
-        self._basis = None
-        self._model_grew = True  # True = new rows/cols since last solve
-
-        # Cached objective coefficients (avoids expensive getCol() calls)
-        self._col_costs = []
+        # cached objective coefficients spare expensive getCol() calls
+        self._col_costs: list[float] = []
 
         # cached column upper bounds; every column has lower bound 0
         self._col_upper_bounds: list[float] = []
 
-        # Deferred update buffers (flushed as batch calls at optimize())
-        self._pending_rhs = {}  # row_index -> (lb, ub)
-        self._pending_obj = {}  # col_index -> value
+        # deferred right-hand side, objective and upper-bound changes, applied
+        # when the model is next solved
+        self._pending_rhs: dict[int, tuple[float, float]] = {}
+        self._pending_obj: dict[int, float] = {}
         self._pending_ub: dict[int, float] = {}
 
-        # Last-written coefficients (skip redundant changeCoeff calls)
-        self._coeff_values = {}  # (row, col) -> value
+        # last-written coefficients, to skip redundant changeCoeff calls
+        self._coeff_values: dict[tuple[int, int], float] = {}
 
-        # Recycled constraint pool (neutralized rows available for reuse via
-        # recycleConstr)
-        self._recycled_rows = []
-        self._row_coeffs = {}  # row_index -> set of col_indices with non-zero coeffs
+        self.Params: Params = Params(self._highs)
 
-        # Params proxy
-        self.Params = Params(self._highs)
+    def addVar(self, vtype: str = CONTINUOUS, name: str = "") -> Var:
+        """
+        Add a non-negative continuous variable with a zero objective coefficient.
 
-    # ----------------------------------------------------------------------------------
-    # Variable management
-    # ----------------------------------------------------------------------------------
-    def addVar(self, vtype=CONTINUOUS, name=""):
-        """Add a non-negative continuous variable."""
+        Parameters
+        ----------
+        vtype
+            Variable type, accepted as gurobipy accepts it; every variable is
+            continuous.
+        name
+            Variable name, accepted as gurobipy accepts it; HiGHS columns stay unnamed.
+
+        Returns
+        -------
+        Var
+            The new variable.
+        """
         col = self._num_cols
         self._highs.addVar(0.0, highspy.kHighsInf)
         self._num_cols += 1
@@ -458,23 +426,21 @@ class Model:
         self._model_grew = True
         return Var(self, col)
 
-    # ----------------------------------------------------------------------------------
-    # Constraint management
-    # ----------------------------------------------------------------------------------
-    def addConstr(self, constr: TempConstr, name: str = ""):
+    def addConstr(self, constr: TempConstr, name: str = "") -> Constr:
         """
-        Add a constraint to the model.
+        Add a constraint built by a comparison operator.
 
         Parameters
         ----------
         constr
-            A temporary constraint created by a comparison operator on LinExpr or Var.
+            The comparison of a LinExpr or Var.
         name
             Constraint name.
 
         Returns
         -------
         Constr
+            The new constraint.
         """
         return self._add_row(constr.lhs, constr.sense, constr.rhs, name)
 
@@ -506,118 +472,119 @@ class Model:
         """Append a row for ``lhs <sense> rhs`` and return its constraint."""
         row = self._num_rows
 
-        # Separate the constant from the LHS and move it to the RHS
+        # the constant of the left-hand side moves to the right-hand side
         adjusted_rhs = rhs - lhs._constant
 
-        # Extract sparse row data
         indices = []
         values = []
-        for coeff, var in lhs._terms:
-            indices.append(var._col)
-            values.append(coeff)
+        for coefficient, variable in lhs._terms:
+            indices.append(variable._col)
+            values.append(coefficient)
 
-        # Set row bounds based on sense
         if sense == EQUAL:
-            lb = adjusted_rhs
-            ub = adjusted_rhs
+            lower_bound = adjusted_rhs
+            upper_bound = adjusted_rhs
         elif sense == LESS_EQUAL:
-            lb = -highspy.kHighsInf
-            ub = adjusted_rhs
+            lower_bound = -highspy.kHighsInf
+            upper_bound = adjusted_rhs
         elif sense == GREATER_EQUAL:
-            lb = adjusted_rhs
-            ub = highspy.kHighsInf
+            lower_bound = adjusted_rhs
+            upper_bound = highspy.kHighsInf
         else:
             raise ValueError(f"Unknown constraint sense: {sense}")
 
-        self._highs.addRow(lb, ub, len(indices), indices, values)
+        self._highs.addRow(lower_bound, upper_bound, len(indices), indices, values)
         self._num_rows += 1
         self._model_grew = True
 
-        # Track non-zero coefficients for this row (used by recycleConstr)
         if indices:
             self._row_coeffs[row] = set(indices)
 
-        constr_obj = Constr(self, row, sense, adjusted_rhs, name)
         self._constr_names.append(name)
-        self._constr_objects.append(constr_obj)
 
-        return constr_obj
+        return Constr(self, row, sense, adjusted_rhs)
 
-    # ----------------------------------------------------------------------------------
-    # Coefficient modification
-    # ----------------------------------------------------------------------------------
-    def chgCoeff(self, constr, var, value):
-        """Change a single coefficient in the constraint matrix."""
+    def chgCoeff(self, constr: Constr, var: Var, value: float) -> None:
+        """
+        Change one coefficient of the constraint matrix.
+
+        Parameters
+        ----------
+        constr
+            Constraint whose row holds the coefficient.
+        var
+            Variable whose column holds the coefficient.
+        value
+            New coefficient.
+        """
         row = constr._row
         col = var._col
         key = (row, col)
         value = float(value)
         if self._coeff_values.get(key) == value:
             return
+
         self._coeff_values[key] = value
         self._highs.changeCoeff(row, col, value)
 
-        # Track non-zero columns per row (used by recycleConstr)
         if value != 0.0:
-            row_set = self._row_coeffs.get(row)
-            if row_set is None:
+            row_cols = self._row_coeffs.get(row)
+            if row_cols is None:
                 self._row_coeffs[row] = {col}
             else:
-                row_set.add(col)
+                row_cols.add(col)
         else:
-            row_set = self._row_coeffs.get(row)
-            if row_set is not None:
-                row_set.discard(col)
+            row_cols = self._row_coeffs.get(row)
+            if row_cols is not None:
+                row_cols.discard(col)
 
-    # ----------------------------------------------------------------------------------
-    # Removal by neutralization
-    # ----------------------------------------------------------------------------------
-    def remove(self, item):
+    def remove(self, item: Var | Constr) -> None:
         """
-        Neutralize a variable or constraint.
+        Neutralize a variable or constraint, keeping its column or row in place.
 
-        Variables: bounds set to [0, 0], objective to 0 — forced to zero.
-        Constraints: bounds set to [-inf, inf] — always satisfied.
+        A variable is fixed to zero at zero cost; a constraint gets infinite bounds, so
+        it always holds, and its row becomes available to recycleConstr.
+
+        Parameters
+        ----------
+        item
+            The variable or constraint to neutralize.
         """
         if isinstance(item, Var):
-            self._removed_cols.add(item._col)
             self._highs.changeColBounds(item._col, 0.0, 0.0)
             self._highs.changeColCost(item._col, 0.0)
             self._col_costs[item._col] = 0.0
             self._col_upper_bounds[item._col] = 0.0
             self._pending_obj.pop(item._col, None)
             self._pending_ub.pop(item._col, None)
-        elif isinstance(item, Constr):
-            self._removed_rows.add(item._row)
-            self._recycled_rows.append(item._row)
-            self._highs.changeRowBounds(
-                item._row, -highspy.kHighsInf, highspy.kHighsInf
-            )
-            self._pending_rhs.pop(item._row, None)
-        else:
-            raise TypeError(f"Cannot remove object of type {type(item)}")
+            return
 
-    # ----------------------------------------------------------------------------------
-    # Constraint recycling
-    # ----------------------------------------------------------------------------------
-    def recycleConstr(self, constr: TempConstr, name: str = "", mark_grew: bool = True):
+        self._removed_rows.add(item._row)
+        self._recycled_rows.append(item._row)
+        self._highs.changeRowBounds(item._row, -highspy.kHighsInf, highspy.kHighsInf)
+        self._pending_rhs.pop(item._row, None)
+
+    def recycleConstr(
+        self, constr: TempConstr, name: str = "", mark_grew: bool = True
+    ) -> Constr:
         """
-        Reuse a neutralized row slot for a new constraint.
+        Reuse the row of a removed constraint for a new one.
 
-        If no recycled rows are available, falls back to addConstr().
+        Without a removed row to reuse, the constraint is added as a new row.
 
         Parameters
         ----------
         constr
-            A temporary constraint created by a comparison operator.
+            The comparison of a LinExpr or Var.
         name
             Constraint name.
         mark_grew
-            If True, mark the model as having grown (triggers IPM on next solve).
+            Whether the next solve treats the model as grown and runs interior point.
 
         Returns
         -------
         Constr
+            The new constraint.
         """
         if not self._recycled_rows:
             return self.addConstr(constr, name=name)
@@ -631,123 +598,100 @@ class Model:
 
         adjusted_rhs = rhs - lhs._constant
 
-        # Zero out all old coefficients on this row
+        change_coefficient = self._highs.changeCoeff
+
         old_cols = self._row_coeffs.get(row)
         if old_cols:
-            changeCoeff = self._highs.changeCoeff
             for col in old_cols:
-                changeCoeff(row, col, 0.0)
+                change_coefficient(row, col, 0.0)
                 self._coeff_values.pop((row, col), None)
             old_cols.clear()
 
-        # Write new coefficients
         new_cols = set()
-        changeCoeff = self._highs.changeCoeff
-        for coeff, var in lhs._terms:
-            col = var._col
-            changeCoeff(row, col, coeff)
-            self._coeff_values[(row, col)] = coeff
+        for coefficient, variable in lhs._terms:
+            col = variable._col
+            change_coefficient(row, col, coefficient)
+            self._coeff_values[(row, col)] = coefficient
             new_cols.add(col)
 
         if new_cols:
             self._row_coeffs[row] = new_cols
 
-        # Set row bounds based on sense
         if sense == EQUAL:
-            lb = adjusted_rhs
-            ub = adjusted_rhs
+            lower_bound = adjusted_rhs
+            upper_bound = adjusted_rhs
         elif sense == LESS_EQUAL:
-            lb = -highspy.kHighsInf
-            ub = adjusted_rhs
+            lower_bound = -highspy.kHighsInf
+            upper_bound = adjusted_rhs
         elif sense == GREATER_EQUAL:
-            lb = adjusted_rhs
-            ub = highspy.kHighsInf
+            lower_bound = adjusted_rhs
+            upper_bound = highspy.kHighsInf
         else:
             raise ValueError(f"Unknown constraint sense: {sense}")
 
-        self._highs.changeRowBounds(row, lb, ub)
+        self._highs.changeRowBounds(row, lower_bound, upper_bound)
 
         if mark_grew:
             self._model_grew = True
-            # Set recycled row to kBasic (matches addConstr behavior)
+            # a recycled row enters the basis as a new row does
             if self._basis is not None:
                 with contextlib.suppress(IndexError, AttributeError):
                     self._basis.row_status[row] = HighsBasisStatus.kBasic
 
-        constr_obj = Constr(self, row, sense, adjusted_rhs, name)
         self._constr_names[row] = name
-        self._constr_objects[row] = constr_obj
 
-        return constr_obj
+        return Constr(self, row, sense, adjusted_rhs)
 
-    # ----------------------------------------------------------------------------------
-    # Solve
-    # ----------------------------------------------------------------------------------
-    def _flush_pending(self):
-        """Flush deferred RHS, Obj and UB changes as batch HiGHS calls."""
-        if self._pending_rhs:
-            rows = list(self._pending_rhs.keys())
-            bounds = list(self._pending_rhs.values())
-            n = len(rows)
-            indices = np.array(rows, dtype=np.int32)
-            lb = np.array([b[0] for b in bounds], dtype=np.float64)
-            ub = np.array([b[1] for b in bounds], dtype=np.float64)
-            self._highs.changeRowsBounds(n, indices, lb, ub)
-            self._pending_rhs.clear()
+    def _flush_pending(self) -> None:
+        """Apply the deferred right-hand side, objective and upper-bound changes."""
+        for row, (lower_bound, upper_bound) in self._pending_rhs.items():
+            self._highs.changeRowBounds(row, lower_bound, upper_bound)
+        self._pending_rhs.clear()
 
         if self._pending_obj:
             cols = list(self._pending_obj.keys())
-            vals = list(self._pending_obj.values())
-            n = len(cols)
+            costs = list(self._pending_obj.values())
             indices = np.array(cols, dtype=np.int32)
-            values = np.array(vals, dtype=np.float64)
-            self._highs.changeColsCost(n, indices, values)
+            values = np.array(costs, dtype=np.float64)
+            self._highs.changeColsCost(len(cols), indices, values)
             self._pending_obj.clear()
 
         if self._pending_ub:
             cols = list(self._pending_ub.keys())
-            n = len(cols)
             indices = np.array(cols, dtype=np.int32)
-            lb = np.zeros(n, dtype=np.float64)
-            ub = np.array(list(self._pending_ub.values()), dtype=np.float64)
-            self._highs.changeColsBounds(n, indices, lb, ub)
+            lower_bounds = np.zeros(len(cols), dtype=np.float64)
+            upper_bounds = np.array(list(self._pending_ub.values()), dtype=np.float64)
+            self._highs.changeColsBounds(len(cols), indices, lower_bounds, upper_bounds)
             self._pending_ub.clear()
 
-    def optimize(self):
+    def optimize(self) -> None:
         """
-        Solve the LP and store the solution.
+        Solve the linear program and store its solution.
 
-        Strategy:
-        - When model has grown (addVar/addConstr called): IPM with crossover.
-          Uses basis extension to warm-start IPM's crossover phase. This
-          produces interior solutions needed for fair-share stability.
-        - When only RHS/obj/coeff/bounds changed (fair-share iterations,
-          remove): simplex with warm-start from previous basis. Very fast
-          since only a few pivots are needed.
-        - Automatic IPM fallback if simplex returns non-optimal.
+        When rows or columns were added since the last solve, interior point with
+        crossover runs, warm-started from the saved basis extended to the new size;
+        its interior solutions keep the fair-share iterations stable. When only data
+        changed, simplex warm-starts from the saved basis, which needs few pivots,
+        and falls back to interior point if it ends non-optimal.
         """
-        # flush deferred RHS, objective and bound changes as batch calls
         self._flush_pending()
 
         if self._model_grew or self._basis is None:
-            # Model structure changed — use IPM for interior solution.
-            # If we have a prior basis, extend it for crossover warm-start.
             if self._basis is not None:
                 basis = self._basis
                 old_cols = len(basis.col_status)
                 old_rows = len(basis.row_status)
                 if old_cols < self._num_cols or old_rows < self._num_rows:
-                    ext = highspy.HighsBasis()
-                    ext.col_status = list(basis.col_status) + [
+                    extended = highspy.HighsBasis()
+                    extended.col_status = list(basis.col_status) + [
                         HighsBasisStatus.kLower
                     ] * (self._num_cols - old_cols)
-                    ext.row_status = list(basis.row_status) + [
+                    extended.row_status = list(basis.row_status) + [
                         HighsBasisStatus.kBasic
                     ] * (self._num_rows - old_rows)
-                    ext.valid = True
-                    self._highs.setBasis(ext)
+                    extended.valid = True
+                    self._highs.setBasis(extended)
                 else:
-                    # Sizes match — set basis directly
                     basis.valid = True
                     self._highs.setBasis(basis)
 
@@ -757,37 +701,30 @@ class Model:
             self._highs.run()
             self._model_grew = False
         else:
-            # Only data changed — simplex warm-start (fast).
             self._highs.setOptionValue("solver", "simplex")
             self._highs.setOptionValue("run_crossover", "off")
             self._highs.setOptionValue("presolve", "off")
             self._highs.setBasis(self._basis)
             self._highs.run()
 
-            # Safety net: if simplex returns non-optimal, fall back to IPM.
             if self._highs.getModelStatus() != HighsModelStatus.kOptimal:
                 self._highs.setOptionValue("solver", "ipm")
                 self._highs.setOptionValue("run_crossover", "on")
                 self._highs.setOptionValue("presolve", "on")
                 self._highs.run()
 
-        # Save basis for next warm-start
         try:
             self._basis = self._highs.getBasis()
         except Exception:
             self._basis = None
 
-        # Extract solution as numpy arrays
-        sol = self._highs.getSolution()
-        self._col_values = np.array(sol.col_value)
-        self._row_duals = np.array(sol.row_dual)
+        solution = self._highs.getSolution()
+        self._col_values = np.array(solution.col_value)
+        self._row_duals = np.array(solution.row_dual)
 
-    # ----------------------------------------------------------------------------------
-    # Solution status
-    # ----------------------------------------------------------------------------------
     @property
-    def Status(self):
-        """Map HiGHS model status to wrapper constants."""
+    def Status(self) -> int:
+        """Status of the last solve as OPTIMAL, INFEASIBLE or INF_OR_UNBD."""
         status = self._highs.getModelStatus()
 
         if status == HighsModelStatus.kOptimal:
@@ -796,49 +733,44 @@ class Model:
         if status == HighsModelStatus.kInfeasible:
             return INFEASIBLE
 
-        if status in (
-            HighsModelStatus.kUnbounded,
-            HighsModelStatus.kUnboundedOrInfeasible,
-        ):
-            return INF_OR_UNBD
-
-        # For other statuses (e.g. not set, error), treat as infeasible/unbounded
+        # unbounded, and every status without a solution such as an error
         return INF_OR_UNBD
 
-    # ----------------------------------------------------------------------------------
-    # IIS (Irreducible Infeasible Subset)
-    # ----------------------------------------------------------------------------------
-    def computeIIS(self):
-        """Compute the Irreducible Infeasible Subset."""
-        self._iis_row_flags = [False] * self._num_rows
+    def computeIIS(self) -> None:
+        """
+        Compute an irreducible infeasible subset of the constraints.
 
+        Where HiGHS cannot compute one, every constraint not removed counts as a
+        member.
+        """
         try:
             _, iis = self._highs.getIis()
-            iis_row_indices = set(iis.row_index_)
-
-            for i in range(self._num_rows):
-                self._iis_row_flags[i] = i in iis_row_indices
-
+            iis_rows = set(iis.row_index_)
+            self._iis_row_flags = [row in iis_rows for row in range(self._num_rows)]
         except Exception:
-            # Fallback: mark all non-removed constraints as potentially in IIS
-            for i in range(self._num_rows):
-                self._iis_row_flags[i] = i not in self._removed_rows
+            self._iis_row_flags = [
+                row not in self._removed_rows for row in range(self._num_rows)
+            ]
 
     @property
-    def IISConstr(self):
-        """List of booleans indicating which constraints are in the IIS."""
+    def IISConstr(self) -> list[bool]:
+        """Whether each constraint is in the IIS, all False before computeIIS()."""
         if self._iis_row_flags is None:
             return [False] * self._num_rows
         return list(self._iis_row_flags)
 
     @property
-    def ConstrName(self):
-        """List of constraint names."""
+    def ConstrName(self) -> list[str]:
+        """Name of each constraint, in row order."""
         return list(self._constr_names)
 
-    # ----------------------------------------------------------------------------------
-    # Model export
-    # ----------------------------------------------------------------------------------
-    def write(self, filename):
-        """Write the model to a file (LP or MPS format, determined by extension)."""
+    def write(self, filename: str) -> None:
+        """
+        Write the model to a file, in the format its extension names (LP or MPS).
+
+        Parameters
+        ----------
+        filename
+            Path of the file.
+        """
         self._highs.writeModel(filename)

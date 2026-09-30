@@ -1,19 +1,22 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Remove the LP variables and constraints of vessels, fuels and regulations gone."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from navigate.bunker.bunker_algorithm import BunkerAlgorithm
-
 import numpy as np
+
+if TYPE_CHECKING:
+    import navigate.bunker.solver as gp
+    from navigate.bunker.bunker_algorithm import BunkerAlgorithm
 
 
 def remove_redundant_vessel(alg: BunkerAlgorithm, v: str) -> None:
     """
-    Remove all parameters related to a redundant vessel.
+    Remove a vessel, its pre-computed values and its LP variables and constraints.
 
     Parameters
     ----------
@@ -22,33 +25,29 @@ def remove_redundant_vessel(alg: BunkerAlgorithm, v: str) -> None:
     v
         Name of vessel being removed from the model.
     """
-    # remove all non-model related attributes
     del alg.vessels[v]
     del alg.multipliers[v]
 
-    # clean up pre-computed values
     for key in list(alg.effective_lhv):
         if key[0] == v:
             del alg.effective_lhv[key]
 
-    # remove primary variables
-    remove_model_attribute_and_dict_element(alg, v, alg.bunker)
-    remove_model_attribute_and_dict_element(alg, v, alg.spend_sea)
-    remove_model_attribute_and_dict_element(alg, v, alg.spend_port)
-    remove_model_attribute_and_dict_element(alg, v, alg.mass_tank)
-    remove_model_attribute_and_dict_element(alg, v, alg.shore_power)
+    _remove_vessel_elements(alg, v, alg.bunker)
+    _remove_vessel_elements(alg, v, alg.spend_sea)
+    _remove_vessel_elements(alg, v, alg.spend_port)
+    _remove_vessel_elements(alg, v, alg.mass_tank)
+    _remove_vessel_elements(alg, v, alg.shore_power)
 
-    # remove primary constraints
-    remove_model_attribute_and_dict_element(alg, v, alg.energy_conservation_sea)
-    remove_model_attribute_and_dict_element(alg, v, alg.energy_conservation_port)
-    remove_model_attribute_and_dict_element(alg, v, alg.pilot_fuel_sea)
-    remove_model_attribute_and_dict_element(alg, v, alg.pilot_fuel_port)
-    remove_model_attribute_and_dict_element(alg, v, alg.mass_conservation)
-    remove_model_attribute_and_dict_element(alg, v, alg.mass_sufficient)
-    remove_model_attribute_and_dict_element(alg, v, alg.tank_capacity)
-    remove_model_attribute_and_dict_element(alg, v, alg.bunker_equals_spent)
-    remove_model_attribute_and_dict_element(alg, v, alg.fuel_inertia)
-    remove_model_attribute_and_dict_element(alg, v, alg.fair_share_fuel)
+    _remove_vessel_elements(alg, v, alg.energy_conservation_sea)
+    _remove_vessel_elements(alg, v, alg.energy_conservation_port)
+    _remove_vessel_elements(alg, v, alg.pilot_fuel_sea)
+    _remove_vessel_elements(alg, v, alg.pilot_fuel_port)
+    _remove_vessel_elements(alg, v, alg.mass_conservation)
+    _remove_vessel_elements(alg, v, alg.mass_sufficient)
+    _remove_vessel_elements(alg, v, alg.tank_capacity)
+    _remove_vessel_elements(alg, v, alg.bunker_equals_spent)
+    _remove_vessel_elements(alg, v, alg.fuel_inertia)
+    _remove_vessel_elements(alg, v, alg.fair_share_fuel)
 
 
 def remove_redundant_fuels_from_ports(alg: BunkerAlgorithm) -> None:
@@ -60,42 +59,32 @@ def remove_redundant_fuels_from_ports(alg: BunkerAlgorithm) -> None:
     alg
         The algorithm instance.
     """
-    # remove vessel variables
     for v, p, f in list(alg.bunker.keys()):
         port = alg.vessels[v].route.ports[p]
 
-        if not port.is_bunkering_allowed(f) and (v, p, f) in alg.bunker:
-            # remove bunker variable
+        if not port.is_bunkering_allowed(f):
             alg.model.remove(alg.bunker[v, p, f])
             del alg.bunker[v, p, f]
 
-    # remove vessel constraints
-    for v, p, f in list(alg.fuel_inertia.keys()):
-        # notice 'p' is the port name, not the port index
-        port = alg.ports[p]
+    for v, port_name, f in list(alg.fuel_inertia.keys()):
+        if not alg.ports[port_name].is_bunkering_allowed(f):
+            alg.model.remove(alg.fuel_inertia[v, port_name, f])
+            del alg.fuel_inertia[v, port_name, f]
 
-        if not port.is_bunkering_allowed(f) and (v, p, f) in alg.fuel_inertia:
-            # remove fuel inertia constraint
-            alg.model.remove(alg.fuel_inertia[v, p, f])
-            del alg.fuel_inertia[v, p, f]
-
-    # remove fair-share constraints
-    for v, p, f in list(alg.fair_share_fuel.keys()):
-        # notice 'p' is the port name, not the port index
-        port = alg.ports[p]
+    for v, port_name, f in list(alg.fair_share_fuel.keys()):
+        port = alg.ports[port_name]
 
         available = port.is_bunkering_allowed(f)
         supply = port.expectation.get_bunker_supply(f, alg.idx)
 
-        redundant = (not available) or (not np.isfinite(supply))
-        if redundant and (v, p, f) in alg.fair_share_fuel:
-            alg.model.remove(alg.fair_share_fuel[v, p, f])
-            del alg.fair_share_fuel[v, p, f]
+        if (not available) or (not np.isfinite(supply)):
+            alg.model.remove(alg.fair_share_fuel[v, port_name, f])
+            del alg.fair_share_fuel[v, port_name, f]
 
 
 def remove_redundant_regulations(alg: BunkerAlgorithm) -> None:
     """
-    Remove redundant slack variables and constraint related to regulations.
+    Remove the remedial factors and threshold constraints of regulations gone.
 
     Parameters
     ----------
@@ -104,52 +93,37 @@ def remove_redundant_regulations(alg: BunkerAlgorithm) -> None:
     """
     for key in list(alg.remedial_factor_individual.keys()):
         if key not in alg.regulation_rhs_individual:
-            # remove variable
             alg.model.remove(alg.remedial_factor_individual[key])
             del alg.remedial_factor_individual[key]
 
-            # remove constraint
             alg.model.remove(alg.regulation_threshold_individual[key])
             del alg.regulation_threshold_individual[key]
 
-    for key in list(alg.remedial_factor_flexibility.keys()):
-        if key not in alg.regulation_total_rhs_flexibility:
-            # remove variable
-            alg.model.remove(alg.remedial_factor_flexibility[key])
-            del alg.remedial_factor_flexibility[key]
+    for r in list(alg.remedial_factor_flexibility.keys()):
+        if r not in alg.regulation_total_rhs_flexibility:
+            alg.model.remove(alg.remedial_factor_flexibility[r])
+            del alg.remedial_factor_flexibility[r]
 
-            # remove constraint
-            alg.model.remove(alg.regulation_threshold_flexibility[key])
-            del alg.regulation_threshold_flexibility[key]
+            alg.model.remove(alg.regulation_threshold_flexibility[r])
+            del alg.regulation_threshold_flexibility[r]
 
 
-def remove_model_attribute_and_dict_element(
-    alg: BunkerAlgorithm,
-    to_remove: str | tuple,
-    container: dict,
-    positions: tuple[int, ...] = (0,),
+def _remove_vessel_elements[E: (gp.Var, gp.Constr)](
+    alg: BunkerAlgorithm, v: str, container: dict[tuple, E]
 ) -> None:
     """
-    Remove a variable or constraint from the LP model and delete it from its dict.
+    Remove a vessel's variables or constraints from the LP model and their dict.
 
     Parameters
     ----------
     alg
         The algorithm instance.
-    to_remove
-        Part of a key to match against ``container``'s tuple keys.
+    v
+        Name of the vessel, the first element of the keys removed.
     container
-        Dict from which to remove elements.
-    positions
-        Positions in the dict keys that should match 'to_remove'.
+        Variable or constraint dict of one family on the algorithm.
     """
-    if not isinstance(to_remove, tuple):
-        to_remove = (to_remove,)
-
-    for key, attribute in list(container.items()):
-        if all(
-            to == key[position]
-            for to, position in zip(to_remove, positions, strict=True)
-        ):
-            alg.model.remove(attribute)
+    for key, element in list(container.items()):
+        if key[0] == v:
+            alg.model.remove(element)
             del container[key]

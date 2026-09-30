@@ -1,18 +1,20 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Solve the bunkering LP and act on a solve that did not end optimal."""
+
 from __future__ import annotations
 
 import os
 import timeit
 from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from navigate.bunker.bunker_algorithm import BunkerAlgorithm
-
 import navigate.bunker.solver as gp
 from navigate.core.enum_ import BunkerScopeID
 from navigate.exceptions import InfeasibleLPError
+
+if TYPE_CHECKING:
+    from navigate.bunker.bunker_algorithm import BunkerAlgorithm
 
 
 def optimize(alg: BunkerAlgorithm) -> None:
@@ -35,19 +37,24 @@ def optimize(alg: BunkerAlgorithm) -> None:
 
 def check_solution(alg: BunkerAlgorithm) -> None:
     """
-    Check the solution of the LP model after a call to 'model.optimize'.
+    Check the solution of the LP model after a solve.
 
-    If the model is infeasible, the IIS is calculated and an LP file with the limiting
-    constraints are exported.
+    An infeasible model raises, after its IIS is computed and the model and its
+    limiting constraints are written as LP files to the output directory. A model
+    reported infeasible or unbounded is solved again with dual reductions off, which
+    tells the two apart.
 
     Parameters
     ----------
     alg
         The algorithm instance.
+
+    Raises
+    ------
+    InfeasibleLPError
+        If the model is infeasible.
     """
-    # set the dual reductions to 1,
-    # in case it was previously set 0
-    # due to an infeasible or unbounded error
+    # dual reductions go back on after a solve that switched them off
     alg.model.Params.DualReductions = 1
 
     status = alg.model.Status
@@ -55,7 +62,7 @@ def check_solution(alg: BunkerAlgorithm) -> None:
     if status == gp.OPTIMAL:
         return
 
-    elif status == gp.INFEASIBLE:
+    if status == gp.INFEASIBLE:
         alg.model.computeIIS()
         iis = [
             alg.model.ConstrName[i]
@@ -63,19 +70,15 @@ def check_solution(alg: BunkerAlgorithm) -> None:
             if infeasible
         ]
 
-        directory = alg.output_directory or ""
-        alg.model.write(os.path.join(directory, "bunkering_infeasible.ilp"))
-        alg.model.write(os.path.join(directory, "bunkering_infeasible.lp"))
+        alg.model.write(os.path.join(alg.output_directory, "bunkering_infeasible.ilp"))
+        alg.model.write(os.path.join(alg.output_directory, "bunkering_infeasible.lp"))
 
-        # error message for fleet bunkering
         scope = "existing" if alg.scope == BunkerScopeID.EXISTING else "expected"
         raise InfeasibleLPError(
-            "Optimal bunkering was infeasible for {} bunkering"
-            " due to the IIS limiting constraint: {}.".format(scope, ", ".join(iis))
+            f"Optimal bunkering was infeasible for {scope} bunkering"
+            f" due to the IIS limiting constraint: {', '.join(iis)}."
         )
 
-    elif status == gp.INF_OR_UNBD:
-        # set the dual reduction parameter to 0 and reoptimize to get a more conclusive
-        # result
+    if status == gp.INF_OR_UNBD:
         alg.model.Params.DualReductions = 0
         optimize(alg)
