@@ -125,6 +125,8 @@ The emission intensity is per GJ of effective energy, (1 − slip) · LHV: the l
 
 This attribute sets the upper emission intensity threshold of the levy, per GJ of effective energy like `LowerThreshold`. The penalty is only paid for emissions between the lower and upper threshold. If not set, there is no upper cap on the penalty. Only relevant for ‘PENALTY’ and ‘BOTH’ schemes.
 
+`UpperThreshold` must not fall below `LowerThreshold` at any time step of a `PENALTY` or `BOTH` levy that is active; the run stops with an error naming the first date where it does.
+
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
   + `91.2`

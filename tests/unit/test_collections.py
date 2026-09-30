@@ -54,6 +54,8 @@ class TestSumDictResults:
 
 
 class TestCollapseTupleDict:
+    """key1/key2 name the part kept; report_writer maps ReportReduceID onto them."""
+
     @pytest.fixture
     def result(self):
         return {

@@ -38,7 +38,7 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   gives a uniform split.
 - `CAPEX`/`OPEX` are now `Capex`/`Opex`, and report properties end in
   `Wtt`/`Ttw`/`Wtw` (`TotalEquivalentWtt`). An old report property spelling
-  silently drops its column, with the reason only in the `.log`.
+  is a deck error at its line.
 - An undersized converter raises a `PowerCapacityError` naming the vessel,
   converter, leg or port and the required and installed power, instead of an
   LP infeasibility. The check is also tighter:
@@ -100,6 +100,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   effective energy, (1 − slip) · LHV, as a `Regulation`'s intensity already
   is, so a threshold covers fewer emissions per ton of a fuel with converter
   slip, such as LNG.
+- An `add_*_property` naming a property its command does not report stops the
+  parse at its line, instead of dropping the column with an error in the
+  `.log` (#105).
 
 ### Removed
 - `BunkerLogistics`: write `LiquidMarket` on `Fuel`, and `set_fuel_transport`
@@ -282,6 +285,12 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - `INF` is rejected with the deck line where it has no meaning, instead of
   giving NaN results or an OverflowError; only limits, bounds and calculator
   values accept it, and tables reject `nan` and infinite coordinates (#336).
+- A report property keyed by a two-element tuple summed over the wrong
+  element for `FIRST` and `SECOND`; the default report's `FuelConvertedPower`
+  now requests `SECOND` to keep its from-fuel columns as before (#209).
+- A `Levy` whose `UpperThreshold` falls below its `LowerThreshold` at any time
+  step stops the run with an error naming the date, instead of turning the
+  penalty into a subsidy from then on (#335).
 
 ## [1.0.0] - 2026-07-16
 

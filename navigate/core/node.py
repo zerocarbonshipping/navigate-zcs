@@ -5,7 +5,10 @@
 
 from __future__ import annotations
 
-from typing import final
+from typing import TYPE_CHECKING, final
+
+if TYPE_CHECKING:
+    from navigate.util import DateArray, FloatArray
 
 
 class Node:
@@ -64,6 +67,25 @@ class Node:
 
         Runs after the DEFINE block and again after every event read, because
         most attributes are SECTION_BOTH.
+        """
+
+    def check_dynamic_consistency(self, times: FloatArray, dates: DateArray) -> None:
+        """
+        Raise where time-varying attributes contradict each other over the future.
+
+        `check_consistency` sees only a node's cached values, so two attributes
+        that agree now but cross later go unchecked; this hook sees the
+        remaining timeline instead. Runs once per time step, before the
+        expectations are calculated, called by the simulation rather than the
+        parser: it is not part of `initialize`/`reinitialize`.
+
+        Parameters
+        ----------
+        times
+            Remaining simulation times, in days since the start, as `.get()`
+            takes them.
+        dates
+            Dates matching `times`, one per element.
         """
 
     def is_type(self, type_: str) -> bool:
