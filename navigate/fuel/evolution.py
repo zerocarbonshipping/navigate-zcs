@@ -355,7 +355,7 @@ def calculate_evolution_expectation(producer: Producer, timeline, idx):
     uniform = np.zeros_like(producer.current_uptake)
     uniform[allowed] = 1.0 / total
 
-    jump_start = producer.jump_start_fraction
+    jump_start = producer.jump_start_fraction.get()
     uptakes = (1.0 - jump_start) * producer.current_uptake + jump_start * uniform
 
     # define the uptake limits when constraining the uptake for feed

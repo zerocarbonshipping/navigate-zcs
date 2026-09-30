@@ -102,7 +102,7 @@ Producer "producer_global" {
 	FuelCostSensitivity = 0.5
 	MaximumDevelopment = 5
 	MaximumRampUp = 0.5
-	JumpStartFraction = 0.1
+	JumpStartFraction = <0.05 * 2>
 	set_existing_pipeline("plant_methanol", Forecast("fc_pipeline"))
 	set_allow_plant("plant_methanol", TRUE)
 	set_feed_constraint("water", 1e6)

@@ -294,6 +294,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - A `Levy` whose `UpperThreshold` falls below its `LowerThreshold` at any time
   step stops the run with an error naming the date, instead of turning the
   penalty into a subsidy from then on (#335).
+- A `Producer`'s `JumpStartFraction` now also accepts a `Variable`, and an
+  expression assigned to it is evaluated where the producer's evolution
+  expectation reads it, instead of crashing with a `TypeError` (#348).
 
 ## [1.0.0] - 2026-07-16
 
