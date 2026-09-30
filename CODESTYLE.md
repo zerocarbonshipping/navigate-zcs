@@ -130,7 +130,8 @@ The formatter owns spacing within statements; blank lines are yours:
 - DSL setters are public-facing API and always carry a docstring; the node
   lifecycle methods (`initialize`, `reinitialize`, `check_requirements`,
   `apply_defaults`, `apply_command_defaults`, `check_consistency`,
-  `initialize_dependencies`, `calculate_expectation`, `calculate_profile`)
+  `check_dynamic_consistency`, `initialize_dependencies`,
+  `calculate_expectation`, `calculate_profile`)
   need none — the docstring check is waived for `navigate/core/nodes/` to
   allow this.
 - All Python identifiers, including DSL command names, are pure snake_case

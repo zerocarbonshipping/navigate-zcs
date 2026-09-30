@@ -290,6 +290,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - A report property keyed by a two-element tuple summed over the wrong
   element for `FIRST` and `SECOND`; the default report's `FuelConvertedPower`
   now requests `SECOND` to keep its from-fuel columns as before (#209).
+- A `Levy` whose `UpperThreshold` falls below its `LowerThreshold` at any time
+  step stops the run with an error naming the date, instead of turning the
+  penalty into a subsidy from then on (#335).
 
 ## [1.0.0] - 2026-07-16
 

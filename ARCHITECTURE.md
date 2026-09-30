@@ -111,6 +111,12 @@ What each hook holds:
   dictionaries into the form the node reads.
 - `check_consistency()` raises where attributes contradict each other and
   warns where one is unused.
+- `check_dynamic_consistency(times, dates)` raises where time-varying
+  attributes contradict each other anywhere over the remaining timeline. Not
+  part of `initialize()`/`reinitialize()`: `SimulationManager` calls it once
+  per time step, before the expectations, over `timeline[idx:]` and
+  `dateline[idx:]`, because a Forecast's value over the future is only known
+  against the timeline, which `check_consistency()` does not see.
 
 The cadences differ because no deck can unassign a required attribute or
 create a node after DEFINE, while a `SECTION_BOTH` attribute may be
