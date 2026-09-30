@@ -694,7 +694,7 @@ def _make_fleet_for_modelled_uptakes(
     vessels = []
     for i, (fuel, rate) in enumerate(zip(fuel_types, freight_rates, strict=True)):
         v = _make_vessel(f"v{i}")
-        v.fuel_type = fuel
+        v.primary_fuel_type = fuel
         exp = MagicMock()
         exp.get_freight_rate.return_value = rate
         v.expectation = exp

@@ -55,7 +55,7 @@ def fleet(manager):
 @pytest.fixture(scope="module")
 def market_shares(fleet):
     """Fleet-wide market share series per fuel type (vessel counts, every time step)."""
-    fuel_types = {vessel.name: FuelTypeID(vessel.fuel_type) for vessel in fleet.vessels}
+    fuel_types = {vessel.name: vessel.primary_fuel_type for vessel in fleet.vessels}
     existing = fleet.profile.get_existing_vessels()
 
     total = np.sum(list(existing.values()), axis=0)

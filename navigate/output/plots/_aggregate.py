@@ -73,7 +73,7 @@ def merge_fleet_evolution(dateline, fleet):
         FLEET_LABEL,
         items_fn=lambda f: f.vessels,
         series_fn=lambda profile: profile.get_existing_vessels(),
-        fuel_type_fn=lambda vessel: vessel.fuel_type,
+        fuel_type_fn=lambda vessel: vessel.primary_fuel_type,
         threshold=1.0,
         normalize=False,
     )
@@ -148,7 +148,7 @@ def merge_fleet_changes(dateline, fleet, scrap=True):
         FLEET_LABEL,
         items_fn=lambda f: f.vessels,
         series_fn=series_fn,
-        fuel_type_fn=lambda vessel: vessel.fuel_type,
+        fuel_type_fn=lambda vessel: vessel.primary_fuel_type,
         threshold=TOLERANCE,
     )
 

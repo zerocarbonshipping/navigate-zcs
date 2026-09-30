@@ -4,7 +4,7 @@
 """
 Determine the fuel options of a vessel from its power system and tanks.
 
-Covers the representative fuel type, the usable fuel types, and the usable
+Covers the primary fuel type, the usable fuel types, and the usable
 fuels, based on the simulation fuels grouped by fuel type.
 """
 
@@ -25,11 +25,12 @@ logger = logging.getLogger(__name__)
 
 def determine_fuel_type(vessel: Vessel) -> None:
     """
-    Determine a vessel's representative fuel type.
+    Set a vessel's primary fuel type, the one every reader takes as its fuel type.
 
-    Based on the sum of power capacity for the main fuel types across all
-    converters in the power system. If multiple fuel types have the same
-    power capacity, the one with the largest tank is chosen.
+    The fuel type assigned through the DSL wins. Otherwise it is the main fuel type
+    with the largest power capacity summed across all converters in the power
+    system; if multiple fuel types have the same power capacity, the one with the
+    largest tank is chosen.
 
     TODO: The tank size should optimally be weighted by the LHV, but it might vary
     within a given fuel type
@@ -37,10 +38,10 @@ def determine_fuel_type(vessel: Vessel) -> None:
     Parameters
     ----------
     vessel
-        Vessel to determine the representative fuel type for; skipped if already set
-        through the DSL.
+        Vessel to set the primary fuel type on.
     """
     if vessel.fuel_type is not None:
+        vessel.primary_fuel_type = vessel.fuel_type
         return
 
     power_system = vessel.power_system
@@ -107,7 +108,7 @@ def determine_fuel_type(vessel: Vessel) -> None:
     else:
         fuel_type = power_fuel_type[max_power][0]
 
-    vessel.fuel_type = fuel_type
+    vessel.primary_fuel_type = fuel_type
 
 
 def determine_usable_fuel_types(vessel: Vessel) -> None:

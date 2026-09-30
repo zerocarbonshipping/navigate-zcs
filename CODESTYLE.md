@@ -146,22 +146,25 @@ The formatter owns spacing within statements; blank lines are yours:
   inputs are DSL attributes, documented in the DSL reference). The
   caller-instantiated classes - `Scalar` and the calculators - document
   constructor parameters in the class docstring per the shared rule.
-- Every attribute in a node `__init__` has a DSL setter whose docstring is
-  what its reference-manual page is written from, so anything said about the
-  attribute is said there.
+- Every attribute under a node's external variables group has a DSL setter
+  whose docstring is what its reference-manual page is written from, so
+  anything said about the attribute is said there. The internal variables
+  group holds what the model sets, and has no DSL setter.
 - The kinds a setter may be handed and store are named once, in
   `navigate/core/types_.py`, and used at every attribute definition and
   setter parameter. The alias matches the setter's `type_=` argument, and an
-  attribute still unset after construction spells it `<alias> | None` rather
-  than folding `None` into an alias. Attributes carry the storage kind
-  (`*Input`); setter parameters carry the matching argument kind
-  (`*Argument`), with `float` where the storage kind has `Scalar`, as the
-  setter wraps through `as_scalar`. `NumberInput` serves as both.
+  optional attribute still unset after construction spells it
+  `<alias> | None` rather than folding `None` into an alias. Attributes carry
+  the storage kind (`*Input`); setter parameters carry the matching argument
+  kind (`*Argument`), with `float` where the storage kind has `Scalar`, as
+  the setter wraps through `as_scalar`. `NumberInput` serves as both.
 - An attribute every deck must assign is listed as required in
   `navigate/parser/_attributes.py` and declared in `__init__` by annotation
   alone (`self.start_date: np.datetime64`), with no value and no `None`.
   The parser guarantees it is set before any node reads it, so neither
-  `check_requirements` nor any reader tests it again. An attribute required
+  `check_requirements` nor any reader tests it again. An internal attribute
+  that a fixed initialization step sets before any reader runs is declared
+  the same way (`self.primary_fuel_type: FuelTypeID`). An attribute required
   only under a condition on other attributes stays `<alias> | None` and is
   tested in `check_requirements`.
 

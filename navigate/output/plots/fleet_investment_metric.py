@@ -36,7 +36,7 @@ def plot_fleet_investment_metric(manager, directory):
                 active, vessel.profile.get_instantaneous_freight_rate(), np.nan
             )
 
-            color = FUEL_TYPE_COLOR[vessel.fuel_type]
+            color = FUEL_TYPE_COLOR[vessel.primary_fuel_type]
 
             ax.plot(
                 dateline[1:],

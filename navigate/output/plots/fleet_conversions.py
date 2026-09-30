@@ -29,13 +29,13 @@ def _vessel_series_by_fuel_type(series, vessel_map):
         name
         for name, values in series.items()
         if not np.all(np.abs(values) < TOLERANCE)
-        and vessel_map[name].fuel_type in order
+        and vessel_map[name].primary_fuel_type in order
     ]
-    names.sort(key=lambda name: order[vessel_map[name].fuel_type])
+    names.sort(key=lambda name: order[vessel_map[name].primary_fuel_type])
 
     return (
         [series[name] for name in names],
-        [FUEL_TYPE_COLOR[vessel_map[name].fuel_type] for name in names],
+        [FUEL_TYPE_COLOR[vessel_map[name].primary_fuel_type] for name in names],
     )
 
 

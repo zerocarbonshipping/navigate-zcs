@@ -66,7 +66,7 @@ def transfer_bunker(alg: BunkerAlgorithm) -> None:
             # transfer to vessel profile
             vessel.profile.add_consumed_mass(f, bunker.X, idx=alg.idx)
             vessel.profile.add_converter_mass(
-                vessel.fuel_type, f, bunker.X, idx=alg.idx
+                vessel.primary_fuel_type, f, bunker.X, idx=alg.idx
             )
             vessel.profile.add_fuel_expenses(f, fuel_expenses, alg.idx)
 

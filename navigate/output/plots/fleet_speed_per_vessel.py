@@ -57,8 +57,8 @@ def plot_fleet_speed_per_vessel(manager, directory):
         # plot the actual speed per vessel
         for vessel in fleet.vessels:
             actual = vessel.profile.get_actual_speed()
-            label = FUEL_TYPE_LABEL[vessel.fuel_type]
-            color = FUEL_TYPE_COLOR[vessel.fuel_type]
+            label = FUEL_TYPE_LABEL[vessel.primary_fuel_type]
+            color = FUEL_TYPE_COLOR[vessel.primary_fuel_type]
 
             ax.plot(dateline, actual, label=label, color=color, lw=2.0)
 
