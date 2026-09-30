@@ -78,18 +78,6 @@ class VesselExpectation(_Expectation):
         self._energy_conservation_rhs_port: dict[
             EnergyDemandTypeID, list[FloatArray]
         ] = {}
-        self._energy_conservation_sarhslow_sea: dict[
-            EnergyDemandTypeID, list[FloatArray]
-        ] = {}
-        self._energy_conservation_sarhslow_port: dict[
-            EnergyDemandTypeID, list[FloatArray]
-        ] = {}
-        self._energy_conservation_sarhsup_sea: dict[
-            EnergyDemandTypeID, list[FloatArray]
-        ] = {}
-        self._energy_conservation_sarhsup_port: dict[
-            EnergyDemandTypeID, list[FloatArray]
-        ] = {}
 
         # per-leg, per-energy-type smoothed shadow-price beliefs (same shape as the raw
         # pi dicts above). Tech-horizon belief is amortised over the decision horizon
@@ -193,18 +181,6 @@ class VesselExpectation(_Expectation):
             EnergyDemandTypeID, n_leg_regional
         )
         self._energy_conservation_rhs_port = self._default_dict_list_array(
-            EnergyDemandTypePortID, n_port
-        )
-        self._energy_conservation_sarhslow_sea = self._default_dict_list_array(
-            EnergyDemandTypeID, n_leg_regional
-        )
-        self._energy_conservation_sarhslow_port = self._default_dict_list_array(
-            EnergyDemandTypePortID, n_port
-        )
-        self._energy_conservation_sarhsup_sea = self._default_dict_list_array(
-            EnergyDemandTypeID, n_leg_regional
-        )
-        self._energy_conservation_sarhsup_port = self._default_dict_list_array(
             EnergyDemandTypePortID, n_port
         )
 
@@ -420,26 +396,6 @@ class VesselExpectation(_Expectation):
     ) -> None:
         self._energy_conservation_rhs_port[energy_id][port][idx] = rhs
 
-    def set_energy_conservation_sarhslow_sea(
-        self, idx: int, energy_id: EnergyDemandTypeID, leg: int, sarhslow: float
-    ) -> None:
-        self._energy_conservation_sarhslow_sea[energy_id][leg][idx] = sarhslow
-
-    def set_energy_conservation_sarhslow_port(
-        self, idx: int, energy_id: EnergyDemandTypeID, port: int, sarhslow: float
-    ) -> None:
-        self._energy_conservation_sarhslow_port[energy_id][port][idx] = sarhslow
-
-    def set_energy_conservation_sarhsup_sea(
-        self, idx: int, energy_id: EnergyDemandTypeID, leg: int, sarhsup: float
-    ) -> None:
-        self._energy_conservation_sarhsup_sea[energy_id][leg][idx] = sarhsup
-
-    def set_energy_conservation_sarhsup_port(
-        self, idx: int, energy_id: EnergyDemandTypeID, port: int, sarhsup: float
-    ) -> None:
-        self._energy_conservation_sarhsup_port[energy_id][port][idx] = sarhsup
-
     def add_bunker_mass_expected(
         self, port_name: str, fuel_name: str, mass: float
     ) -> None:
@@ -632,26 +588,6 @@ class VesselExpectation(_Expectation):
         self,
     ) -> dict[EnergyDemandTypeID, list[FloatArray]]:
         return self._energy_conservation_rhs_port
-
-    def get_energy_conservation_sarhslow_sea(
-        self,
-    ) -> dict[EnergyDemandTypeID, list[FloatArray]]:
-        return self._energy_conservation_sarhslow_sea
-
-    def get_energy_conservation_sarhslow_port(
-        self,
-    ) -> dict[EnergyDemandTypeID, list[FloatArray]]:
-        return self._energy_conservation_sarhslow_port
-
-    def get_energy_conservation_sarhsup_sea(
-        self,
-    ) -> dict[EnergyDemandTypeID, list[FloatArray]]:
-        return self._energy_conservation_sarhsup_sea
-
-    def get_energy_conservation_sarhsup_port(
-        self,
-    ) -> dict[EnergyDemandTypeID, list[FloatArray]]:
-        return self._energy_conservation_sarhsup_port
 
     def get_belief_pi_sea_technology(
         self,

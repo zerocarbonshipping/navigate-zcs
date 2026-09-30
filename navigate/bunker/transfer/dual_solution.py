@@ -3,13 +3,10 @@
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from navigate.bunker.bunker_algorithm import BunkerAlgorithm
-
-logger = logging.getLogger(__name__)
 
 
 def transfer_dual_solution(alg: BunkerAlgorithm) -> None:
@@ -21,10 +18,6 @@ def transfer_dual_solution(alg: BunkerAlgorithm) -> None:
     alg
         The algorithm instance.
     """
-    # only compute ranging for debug logging (expensive)
-    # SARHSLow/SARHSUp are used in marginal_saving.py
-    transfer_ranging = logger.getEffectiveLevel() <= logging.DEBUG
-
     for (
         v,
         port_start,
@@ -40,8 +33,7 @@ def transfer_dual_solution(alg: BunkerAlgorithm) -> None:
         # per vessel, it needs to be divided by the number of vessels
         shadow_price = constr.Pi / alg.multipliers[v]
 
-        # the energy requirement (rhs) and energy polytope in
-        # which the shadow price is valid is given per vessel
+        # the energy requirement (rhs) is given per vessel
         rhs = constr.RHS
 
         vessel.expectation.set_energy_conservation_pi_sea(
@@ -49,22 +41,13 @@ def transfer_dual_solution(alg: BunkerAlgorithm) -> None:
         )
         vessel.expectation.set_energy_conservation_rhs_sea(alg.idx, energy_id, leg, rhs)
 
-        if transfer_ranging:
-            vessel.expectation.set_energy_conservation_sarhslow_sea(
-                alg.idx, energy_id, leg, constr.SARHSLow
-            )
-            vessel.expectation.set_energy_conservation_sarhsup_sea(
-                alg.idx, energy_id, leg, constr.SARHSUp
-            )
-
     for (v, p, energy_id), constr in alg.energy_conservation_port.items():
         # the shadow price has been scaled with the number of vessels
         # in the objective function, so in order to get the impact
         # per vessel, it needs to be divided by the number of vessels
         shadow_price = constr.Pi / alg.multipliers[v]
 
-        # the energy requirement (rhs) and energy polytope in
-        # which the shadow price is valid is given per vessel
+        # the energy requirement (rhs) is given per vessel
         rhs = constr.RHS
 
         vessel = alg.vessels[v]
@@ -72,11 +55,3 @@ def transfer_dual_solution(alg: BunkerAlgorithm) -> None:
             alg.idx, energy_id, p, shadow_price
         )
         vessel.expectation.set_energy_conservation_rhs_port(alg.idx, energy_id, p, rhs)
-
-        if transfer_ranging:
-            vessel.expectation.set_energy_conservation_sarhslow_port(
-                alg.idx, energy_id, p, constr.SARHSLow
-            )
-            vessel.expectation.set_energy_conservation_sarhsup_port(
-                alg.idx, energy_id, p, constr.SARHSUp
-            )
