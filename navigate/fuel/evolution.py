@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Producer evolution: decommissioning, delivery, feed availability and outlook."""
+
 from __future__ import annotations
 
 import logging
@@ -22,23 +24,27 @@ from navigate.util import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Collection
+
+    from navigate.core.nodes.plant import Plant
     from navigate.core.nodes.producer import Producer
+    from navigate.util.types_ import FloatArray, IntArray
 
 logger = logging.getLogger(__name__)
 
 
 def _accumulate_weighted_cost(
     incs: list[Increment],
-    plant,
-    origins: np.ndarray,
-    production: np.ndarray,
+    plant: Plant,
+    origins: IntArray,
+    production: FloatArray,
     today: float,
-    times: np.ndarray,
-    emissions: list,
+    times: FloatArray,
+    emissions: Collection[str],
     p: int,
-    cost: np.ndarray,
-    weight: np.ndarray,
-    wtt: dict[str, np.ndarray],
+    cost: FloatArray,
+    weight: FloatArray,
+    wtt: dict[str, FloatArray],
 ) -> None:
     """
     Accumulate weighted production cost and emissions for a set of increments.
@@ -65,29 +71,33 @@ def _accumulate_weighted_cost(
 
 
 def _calculate_increment_production_interval(
-    production, delivery, decommission, time_step, times
-):
+    production: float,
+    delivery: float,
+    decommission: float,
+    time_step: float,
+    times: FloatArray,
+) -> FloatArray:
     """
     Calculate the production profile over time for a single increment.
 
     Parameters
     ----------
-    production : float
+    production
         Production that will enter at the delivery date (sum of all plants being
-        delivered).
-    delivery : float
-        Time at which production was or will be delivered.
-    decommission : float
-        Time at which production will be decommissioned.
-    time_step : float
-        Time-step duration over which production was or will be delivered.
-    times : np.ndarray
-        Future times from the simulation timeline (timeline[idx:]).
+        delivered), tons/year.
+    delivery
+        Time at which production was or will be delivered, days.
+    decommission
+        Time at which production will be decommissioned, days.
+    time_step
+        Time-step duration over which production was or will be delivered, days.
+    times
+        Future times from the simulation timeline (timeline[idx:]), days.
 
     Returns
     -------
-    np.ndarray
-        The period over which production will be active and the amount of production.
+    FloatArray
+        The production active at each of the times, tons/year.
     """
     # ignore small increments to avoid round-off issues
     tol = 1e-5
@@ -99,61 +109,47 @@ def _calculate_increment_production_interval(
     delivery_period = time_step
 
     if delivery <= 0.0:
-        # if delivery is negative it is because it is an existing
-        # increment which has already been delivered and thus all
-        # production is assigned at t=0
+        # an existing increment is already delivered, so all its production is
+        # assigned at t=0
         output[0] = production
 
     else:
-        # the plants are delivered continuously over the
-        # length of the time-step with the first being
-        # delivered in 'delivery - time_step' time
+        # the plants are delivered continuously over the time step, the first in
+        # 'delivery - time_step' time
         t_delivery = np.argmax(time_delivery < times)
 
         while delivery_period > tol:
-            # respect end of simulation boundary
             if time_delivery >= end:
                 break
 
-            # calculate the fraction of production being
-            # delivered in the given time-step
             end_point = np.minimum(times[t_delivery], delivery)
             partial = end_point - time_delivery
             scaling = partial / time_step
-
-            # calculate the expected production
-            # entering over the given time-step
             output[t_delivery] = scaling * production
 
-            # update for next step in sequential allocation
             t_delivery += 1
             time_delivery += partial
             delivery_period -= partial
 
-    # the plants are decommissioned continuously over
-    # the length of the time-step with the first being
-    # decommissioned in 'decommission - time_step' time
+    # the plants are decommissioned continuously over the time step, the first in
+    # 'decommission - time_step' time
     time_decommission = decommission - time_step
     t_decom = np.argmax(time_decommission < times)
     decommission_period = time_step
 
     while decommission_period > tol:
-        # respect end of simulation boundary, which
-        # also covers decommissioning beyond the timeline
+        # the end of the simulation also covers decommissioning beyond the timeline
         if time_decommission >= end:
             break
 
-        # calculate the fraction of production being
-        # decommissioned in the given time-step
         end_point = np.minimum(times[t_decom], decommission)
         partial = end_point - time_decommission
         scaling = partial / time_step
 
-        # subtract rather than assign, as the time-step
-        # may also hold part of the increment's delivery
+        # subtract rather than assign, as the time step may also hold part of the
+        # increment's delivery
         output[t_decom] -= scaling * production
 
-        # update for next step in sequential allocation
         t_decom += 1
         time_decommission += partial
         decommission_period -= partial
@@ -163,11 +159,11 @@ def _calculate_increment_production_interval(
 
 def _calculate_increments_production(
     incs: list[Increment],
-    production: np.ndarray,
+    production: FloatArray,
     lifetime: float,
     today: float,
-    times: np.ndarray,
-) -> np.ndarray:
+    times: FloatArray,
+) -> FloatArray:
     """
     Calculate the combined production profile of a set of increments over time.
 
@@ -189,7 +185,7 @@ def _calculate_increments_production(
 
     Returns
     -------
-    np.ndarray
+    FloatArray
         Production at each of the times, tons/year.
     """
     total = np.zeros_like(times)
@@ -222,7 +218,6 @@ def perform_decommissioning(producer: Producer) -> None:
         incs = producer.increments[a]
         lifetime = asset.lifetime.get()
 
-        # remove all increments past their lifetime
         producer.increments[a] = [inc for inc in incs if inc.age < lifetime]
 
         # partially decommission increments whose age_span spans the lifetime boundary
@@ -235,7 +230,9 @@ def perform_decommissioning(producer: Producer) -> None:
                 inc.age_span = lifetime - inc.age
 
 
-def calculate_evolution_expectation(producer: Producer, timeline, idx):
+def calculate_evolution_expectation(
+    producer: Producer, timeline: FloatArray, idx: int
+) -> None:
     """
     Calculate the expected future evolution of production.
 
@@ -245,9 +242,9 @@ def calculate_evolution_expectation(producer: Producer, timeline, idx):
     ----------
     producer
         The producer.
-    timeline : np.ndarray
-        Simulation timeline.
-    idx : int
+    timeline
+        Simulation timeline, days.
+    idx
         Current time-step index.
     """
     idx_ = np.s_[idx:]
@@ -264,19 +261,13 @@ def calculate_evolution_expectation(producer: Producer, timeline, idx):
 
     n = len(producer.assets)
 
-    # need a list of emissions names which is extracted
-    # from the expectation of an arbitrary plant
+    # every plant carries the same emissions, so an arbitrary one names them
     emissions = producer.assets[0].expectation.get_emissions() if n > 0 else []
 
-    # pre-allocating containers for calculation of
-    # average expected production cost and emissions
     cost = np.zeros((n, times.size))
     wtt = {emission_name: np.zeros((n, times.size)) for emission_name in emissions}
     weight = np.zeros((n, times.size))
 
-    # loop over plant types and subtract
-    # expected future decommissioning from the
-    # baseline to establish the future baseline
     existing = np.zeros((n, times.size))
 
     for p, plant in enumerate(producer.assets):
@@ -284,13 +275,10 @@ def calculate_evolution_expectation(producer: Producer, timeline, idx):
         if not len(incs):
             continue
 
-        # calculate the production capacity per increment
         decided = np.array([inc.decided for inc in incs])
-
         origins = get_increment_origin_indexes(years, years[idx], decided)
-        production = plant.expectation.get_production(origins)
+        production = np.asarray(plant.expectation.get_production(origins))
 
-        # the current production less its expected decommissioning
         existing[p, :] = _calculate_increments_production(
             incs, production, plant.lifetime.get(), today, times
         )
@@ -309,8 +297,6 @@ def calculate_evolution_expectation(producer: Producer, timeline, idx):
             wtt,
         )
 
-    # loop over plant types and add
-    # the pipeline to the baseline
     pipeline = np.zeros((n, times.size))
 
     for p, plant in enumerate(producer.assets):
@@ -318,14 +304,10 @@ def calculate_evolution_expectation(producer: Producer, timeline, idx):
         if not len(pinc):
             continue
 
-        # calculate the production capacity per increment
         decided = np.array([inc.decided for inc in pinc])
-
         origins = get_increment_origin_indexes(years, years[idx], decided)
-        production = plant.expectation.get_production(origins)
+        production = np.asarray(plant.expectation.get_production(origins))
 
-        # the near-term arrival of the pipeline less
-        # its long-term decommissioning
         pipeline[p, :] = _calculate_increments_production(
             pinc, production, plant.lifetime.get(), today, times
         )
@@ -344,10 +326,9 @@ def calculate_evolution_expectation(producer: Producer, timeline, idx):
             wtt,
         )
 
-    # if no initial production exists, the supply/demand interaction
-    # is never initiated due to no expected supply and thus no expected
-    # demand. This is accounted for by introducing a partially uniform
-    # uptake expectation weighted by the jump-start fraction
+    # without initial production the supply/demand interaction never starts, as
+    # no supply is expected and thus no demand; a partially uniform uptake
+    # expectation weighted by the jump-start fraction starts it
     allowed = np.array(
         [producer.allow_plant[plant.name] for plant in producer.assets], dtype=bool
     )
@@ -358,17 +339,14 @@ def calculate_evolution_expectation(producer: Producer, timeline, idx):
     jump_start = producer.jump_start_fraction.get()
     uptakes = (1.0 - jump_start) * producer.current_uptake + jump_start * uniform
 
-    # define the uptake limits when constraining the uptake for feed
     uptake_limits = np.zeros_like(uptakes)
     uptake_limits[allowed] = 1.0
 
-    # similarly if no development has previously occurred it
-    # is necessary to jump-start the expectation process
+    # likewise, without previous development the expectation needs a minimum of
+    # development potential to jump-start production
     if producer.current_utilization > 0.0:
         utilization = producer.current_utilization
     else:
-        # a minimum of development potential is required
-        # to jump-start production from the producer
         utilization = jump_start
 
     newbuild = np.zeros((n, times.size))
@@ -377,30 +355,22 @@ def calculate_evolution_expectation(producer: Producer, timeline, idx):
     }
 
     for t, time in enumerate(times):
-        # skip the time-step since t=0 has already been
-        # added to the pipeline during the current
-        # time-step's pipeline planning
+        # t=0 is already in the pipeline from the current time step's planning
         if t == 0:
             continue
 
         time_step = time_steps[t]
         year_step = year_steps[t]
 
-        # the utilization is only accounted for if the model
-        # is ramp-up constrained. Otherwise, the model is unable
-        # to increase the utilization over time in case the
-        # demand is equal to the supply
+        # the utilization is only accounted for if the model is ramp-up
+        # constrained; otherwise the model cannot increase the utilization over
+        # time when the demand equals the supply
         ramp_up = producer.maximum_ramp_up.get(time) * year_step
         utilization = min(utilization + ramp_up, 1.0)
 
-        # calculate the number of plants that can be
-        # developed at the given future time-step
         maximum_development = (
             utilization * producer.maximum_development.get(time) * year_step
         )
-
-        # extract the added feed consumption
-        # at the given future time-step
         consumption = slice_dict(feed_consumption, t)
 
         constrained_uptakes = calculate_constrained_uptakes(
@@ -416,59 +386,45 @@ def calculate_evolution_expectation(producer: Producer, timeline, idx):
             lifetime = plant.lifetime.get(time)
             lead_time = plant.lead_time.get(time)
 
-            # calculate the delivery and the decommission time
-            # of the last expected increment, remembering that
-            # increments enter uniformly over the time-step
+            # the delivery and decommission times of the last expected increment,
+            # as increments enter uniformly over the time step
             delivery = time + lead_time * YEAR
             decommission = delivery + lifetime * YEAR
 
-            # production is extracted at time 't' since the
-            # production capacity of the plant is locked at
-            # the time it is decided to build it, not the
-            # day it is delivered
+            # the production capacity of a plant is locked when it is decided, not
+            # when it is delivered, so production is read at time 't'
             expectation = plant.expectation
-            production = expectation.get_production(idx + t)
-            total_production = maximum_development * constrained_uptakes[p] * production
+            plant_production = float(expectation.get_production(idx + t))
+            total_production = (
+                maximum_development * constrained_uptakes[p] * plant_production
+            )
 
-            # calculate the period over which production will exist
             newbuild_production = _calculate_increment_production_interval(
                 total_production, delivery, decommission, time_step, times
             )
-
-            # add the production to the total newbuild production
             newbuild[p, :] += newbuild_production
 
-            # calculate the impact the new production will
-            # have on the expected production costs
             newbuild_cost = expectation.get_levelized_production_cost(idx + t)
             cost[p, :] += newbuild_production * newbuild_cost
             weight[p, :] += newbuild_production
 
-            # calculate the impact the new production will
-            # have on the expected production emissions
             for e in emissions:
                 newbuild_wtt = expectation.get_production_wtt(e, idx + t)
                 wtt[e][p, :] += newbuild_production * newbuild_wtt
 
-            # update the additional feed consumption
-            # dict to account for what has been added as
-            # new production
             conversions = expectation.get_feed_masses(idx + t)
             for feed_name, conversion in conversions.items():
-                # the feed gap moves everything forward by
-                # 'lead_time' duration to look at the gap of what
-                # can be put in the pipeline at 't', not what the
-                # gap will be in 't+lead_time' years
+                # the feed gap moves everything forward by the lead time: it is the
+                # gap of what can enter the pipeline at 't', not the gap at
+                # 't + lead_time'
                 feed_consumption[feed_name][t:] += total_production * conversion
 
-    # normalize the weighted averages by the weight
     cost_avg = divide_nonzero(cost, weight)
     wtt_avg = {
         emission_name: divide_nonzero(unit_wtt, weight)
         for emission_name, unit_wtt in wtt.items()
     }
 
-    # transfer expected production
     for p, plant in enumerate(producer.assets):
         producer.expectation.set_existing_production(idx, plant.name, existing[p, :])
         producer.expectation.set_pipeline_production(idx, plant.name, pipeline[p, :])
@@ -476,14 +432,12 @@ def calculate_evolution_expectation(producer: Producer, timeline, idx):
 
     supply = existing[:, 0] + pipeline[:, 0] + newbuild[:, 0]
 
-    # transfer expected production cost and emissions
     for p, plant in enumerate(producer.assets):
         plant.expectation.set_expected_production_cost(idx, cost_avg[p, :])
 
         for e in plant.expectation.get_emissions():
             plant.expectation.set_expected_production_wtt(idx, e, wtt_avg[e][p, :])
 
-    # transfer expectation to profile
     for p, plant in enumerate(producer.assets):
         if supply[p] > TOLERANCE:
             plant.profile.set_instantaneous_cost(idx, cost_avg[p, 0])
@@ -515,8 +469,7 @@ def perform_pipeline_delivery(producer: Producer) -> None:
             increment = pinc_i.multiplier
 
             if pinc_i.age >= 0.0:
-                # fully delivered: age already represents
-                # time since delivery, no sign-flipping needed
+                # fully delivered: the age already counts the time since delivery
                 incs.append(
                     Increment(
                         increment, pinc_i.age, pinc_i.age_span, decided=pinc_i.decided
@@ -526,37 +479,32 @@ def perform_pipeline_delivery(producer: Producer) -> None:
                 last_idx = i
 
             else:
-                # deliver plants from the ongoing
-                # increment if the earliest-entered part
-                # has crossed zero (based on an assumption
-                # of plants entering uniformly over
-                # a time-step)
+                # the ongoing increment delivers the part that has crossed zero, as
+                # plants enter uniformly over a time step
                 if pinc_i.age + pinc_i.age_span > 0.0:
                     alpha = -pinc_i.age / pinc_i.age_span
                     remaining = increment * alpha
                     delivered = increment - remaining
                     delivered_dt = pinc_i.age + pinc_i.age_span
 
-                    # add a new increment for the delivered
-                    # portion. 'decided' is kept consistent
-                    # with the original increment to ensure
-                    # later use of origin index remains consistent
+                    # the delivered portion keeps the original 'decided', so its
+                    # origin index stays that of the original increment
                     incs.append(
                         Increment(delivered, 0.0, delivered_dt, decided=pinc_i.decided)
                     )
 
-                    # shrink the pipeline portion and truncate
-                    # the time-step to maintain the assumption
-                    # of uniformity
+                    # shrink the pipeline portion and truncate its age span, to keep
+                    # the plants entering uniformly
                     pinc_i.multiplier = remaining
                     pinc_i.age_span = -pinc_i.age
 
-        # remove the delivered increments from the pipeline
         if last_idx is not None:
             producer.pipeline[p] = pinc[(last_idx + 1) :]
 
 
-def calculate_feed_availability(producer: Producer, timeline, idx) -> None:
+def calculate_feed_availability(
+    producer: Producer, timeline: FloatArray, idx: int
+) -> None:
     """
     Calculate the gap between feed used and the available feed supply.
 
@@ -566,46 +514,37 @@ def calculate_feed_availability(producer: Producer, timeline, idx) -> None:
     ----------
     producer
         The producer instance.
-    timeline : np.ndarray
-        Simulation timeline.
-    idx : int
+    timeline
+        Simulation timeline, days.
+    idx
         Current time-step index.
     """
-    # reset additive properties of expectations
-    # to prepare for adding up feed demand
+    # the existing and pipeline feed below are summed from zero
     producer.expectation.reset_additive_properties()
 
     times = timeline[idx:]
     years = timeline / YEAR
     today = years[idx]
 
-    # create a map of the feed used in
-    # production per plant and feed
-    # this is used later for constraining
-    # uptake shares based on feed
+    # the feed used per plant and feed constrains the uptake shares later on
     for feed_name, constraint in producer.feed_constraints.items():
         if constraint is None:
             continue
 
         for plant in producer.assets:
-            plant_name = plant.name
             expectation = plant.expectation
+            current_production = float(expectation.get_production(idx))
+            current_conversion = float(expectation.get_feed_mass(feed_name, idx))
+            mass = current_production * current_conversion
 
-            # calculate the feed used per plant
-            production = expectation.get_production(idx)
-            conversion = expectation.get_feed_mass(feed_name, idx)
-            mass = production * conversion
+            producer.expectation.set_plant_feed_consumption(plant.name, feed_name, mass)
 
-            producer.expectation.set_plant_feed_consumption(plant_name, feed_name, mass)
-
-    # add the existing production currently on stream
     for p, plant in enumerate(producer.assets):
         incs = producer.increments[p]
         if not len(incs):
             continue
 
-        # if the increments will be decommissioned before
-        # the new plants are built, they are not counted
+        # increments decommissioned before new plants could be built do not count
         lifetime = plant.lifetime.get()
         lead_time = plant.lead_time.get()
         ages = np.array([inc.age for inc in incs])
@@ -620,9 +559,8 @@ def calculate_feed_availability(producer: Producer, timeline, idx) -> None:
         existing_increments = multipliers[continued]
         existing_decided = decided_arr[continued]
 
-        # find the index of the first increment which is
-        # continued and account for partial decommissioning
-        # related to a continuous model
+        # the first continued increment may be partly decommissioned, as the
+        # model is continuous
         start = np.argmax(continued)
 
         for i in range(start, continued.size):
@@ -637,8 +575,7 @@ def calculate_feed_availability(producer: Producer, timeline, idx) -> None:
                 existing_increments = np.append(existing_increments, remaining)
                 existing_decided = np.append(existing_decided, decided_arr[i])
 
-        # extract the production capacity and use of
-        # feed at the time the plants were built
+        # production and feed use are those of when the plants were built
         expectation = plant.expectation
         origins = get_increment_origin_indexes(years, today, existing_decided)
         production = expectation.get_production(origins)
@@ -648,7 +585,6 @@ def calculate_feed_availability(producer: Producer, timeline, idx) -> None:
             feed_mass = np.sum(production * conversion * existing_increments)
             producer.expectation.add_existing_feed(feed_name, feed_mass)
 
-    # add the planned future production from the pipeline
     for p, plant in enumerate(producer.assets):
         pinc = producer.pipeline[p]
         if not len(pinc):
@@ -667,15 +603,12 @@ def calculate_feed_availability(producer: Producer, timeline, idx) -> None:
             feed_mass = np.sum(production * conversion * multipliers)
             producer.expectation.add_pipeline_feed(feed_name, feed_mass)
 
-    # calculate the availability gap
     for feed_name, constraint in producer.feed_constraints.items():
         if constraint is None:
             continue
 
-        # calculate the minimum lead time across all plants and
-        # use the future constraint for the availability gap.
-        # Minimum is used as opposed to average to ensure
-        # guaranteed consistency with the constraint
+        # the availability gap uses the constraint one minimum lead time ahead;
+        # the minimum across plants guarantees consistency with the constraint
         lead_times = [
             plant.lead_time.get()
             for plant in producer.assets
@@ -687,26 +620,17 @@ def calculate_feed_availability(producer: Producer, timeline, idx) -> None:
             continue
 
         minimum_lead_time = np.amin(lead_times)
-
-        # calculate future supply
         supply = constraint.get(times + minimum_lead_time * YEAR)
 
-        # calculate demand from existing plants
-        # and plants already in the pipeline
         existing = producer.expectation.get_existing_feed(feed_name)
         pipeline = producer.expectation.get_pipeline_feed(feed_name)
         demand = existing + pipeline
 
-        # calculate the supply-demand gap
         gap = supply - demand
 
-        # it is possible to have an over-demand of
-        # feed if the model is initialized with
-        # an initial capacity of plants which uses
-        # more feed than the constraint allows.
-        # This is not corrected for internally, but
-        # instead flagged via a warning as it indicates
-        # an issue in the input data.
+        # an initial capacity of plants using more feed than the constraint allows
+        # over-demands the feed; this signals an issue in the input data, so it is
+        # flagged with a warning rather than corrected for internally
         # TODO: Remove if scrapping for negatives gets implemented
         if gap[0] < -TOLERANCE:
             logger.warning(
@@ -716,12 +640,12 @@ def calculate_feed_availability(producer: Producer, timeline, idx) -> None:
                 feed_name,
             )
 
-            gap = 0.0
+            gap = np.zeros_like(gap)
 
         producer.expectation.set_feed_gap(idx, feed_name, gap)
 
 
-def define_existing_pipeline(producer: Producer, timeline: np.ndarray) -> None:
+def define_existing_pipeline(producer: Producer, timeline: FloatArray) -> None:
     """
     Define the initial number of plants of each type in the production pipeline.
 
@@ -733,9 +657,8 @@ def define_existing_pipeline(producer: Producer, timeline: np.ndarray) -> None:
     producer
         Producer to define the pipeline for.
     timeline
-        Simulation timeline.
+        Simulation timeline, days.
     """
-    # pre-allocate internal pipeline to appropriate length
     for _p in range(len(producer.assets)):
         producer.pipeline.append([])
 
@@ -743,45 +666,33 @@ def define_existing_pipeline(producer: Producer, timeline: np.ndarray) -> None:
         if pipeline is None:
             continue
 
-        # extract the planned capacity
-        # and the dates at which it will
-        # arrive from the pipeline
         planned_delivery = pipeline.x
         planned_capacity = pipeline.y
 
-        # interpolate with the timeline
-        # to ensure exact overlap with
-        # simulation dates
+        # interpolating on the timeline makes the deliveries overlap the
+        # simulation dates exactly
         planned_capacity = np.interp(timeline, planned_delivery, planned_capacity)
 
-        # calculate the increments in which
-        # the planned capacity arrives
         incremental_delivery = timeline / YEAR
         incremental_capacity = np.insert(
             np.diff(planned_capacity), 0, planned_capacity[0]
         )
 
-        # remove zero increments
         non_zeros = incremental_capacity > 0.0
         incremental_delivery = incremental_delivery[non_zeros]
         incremental_capacity = incremental_capacity[non_zeros]
 
-        # calculate the increment time-step sizes
-        # at which increments entered. It is assumed
-        # that the first multiplier increment was
-        # entered over a year
+        # the first increment is assumed to have entered over a year
         incremental_dt = np.insert(np.diff(incremental_delivery), 0, 1.0)
 
-        # recalculate incremental capacity
-        # to number of plant increments
         plant = producer.assets[p]
         capacity = plant.capacity.get()
         incremental_plants = incremental_capacity / capacity
 
-        # calculate the time since each project was FID'ed
+        # a project was decided one lead time before its delivery
         lead_time = plant.lead_time.get()
 
-        # pipeline uses negative ages (not yet delivered)
+        # the pipeline uses negative ages, as its plants are not yet delivered
         producer.pipeline[p] = [
             Increment(multiplier=m, age=-d, age_span=t, decided=lead_time - d)
             for m, d, t in zip(
@@ -789,11 +700,9 @@ def define_existing_pipeline(producer: Producer, timeline: np.ndarray) -> None:
             )
         ]
 
-        # assign to profile
         producer.profile.set_development(0, np.sum(incremental_plants))
 
-    # define the current uptake by an inertia
-    # based average over the pipeline
+    # the current uptake is an inertia-weighted average over the pipeline
     n = len(producer.assets)
     sum_weights = 0.0
     uptake = np.zeros((n,), dtype=np.float64)
@@ -817,22 +726,19 @@ def define_existing_pipeline(producer: Producer, timeline: np.ndarray) -> None:
         uptake, np.sum(uptake), default=1.0 / uptake.size
     )
 
-    # the latest value of the development constraint
-    # is used rather than an average over backwards
-    # extrapolation. This is done as it difficult to
-    # define the backwards period due to inconsistency
-    # between pipeline and lead time and the potentially
-    # varying lead time of different plants
+    # the latest value of the development constraint is used, since the period
+    # to average it back over is hard to define: the pipeline and the lead time
+    # are inconsistent, and the lead time varies between plants
     maximum_development = producer.maximum_development.get()
     average_development = divide_nonzero(np.sum(uptake), sum_weights)
 
     producer.current_utilization = min(
-        divide_nonzero(average_development, maximum_development), 1.0
+        float(divide_nonzero(average_development, maximum_development)), 1.0
     )
 
 
 def calculate_export_expectation(
-    producer: Producer, timeline: np.ndarray, idx: int
+    producer: Producer, timeline: FloatArray, idx: int
 ) -> None:
     """
     Calculate the producer's expected export distribution over the remaining timeline.
@@ -842,7 +748,7 @@ def calculate_export_expectation(
     producer
         Producer to calculate the export distribution for.
     timeline
-        Simulation timeline.
+        Simulation timeline, days.
     idx
         Current time-step index.
     """
@@ -851,7 +757,6 @@ def calculate_export_expectation(
     if not producer.export_distribution:
         return
 
-    # calculate export distribution
     exports = {
         port_name: export.get(times)
         for port_name, export in producer.export_distribution.items()
@@ -867,7 +772,7 @@ def calculate_export_expectation(
         )
 
 
-def perform_progression(producer: Producer, timeline: np.ndarray, idx: int) -> None:
+def perform_progression(producer: Producer, timeline: FloatArray, idx: int) -> None:
     """
     Progress the existing production in time.
 
@@ -878,26 +783,17 @@ def perform_progression(producer: Producer, timeline: np.ndarray, idx: int) -> N
     producer
         The producer instance.
     timeline
-        Simulation timeline.
+        Simulation timeline, days.
     idx
         Current time-step index.
     """
-    # decommission plants which are
-    # past their technical lifetime
     perform_decommissioning(producer)
-
-    # deliver plants from the pipeline
-    # which have passed their lead time
     perform_pipeline_delivery(producer)
-
-    # calculate the gap between feed used
-    # in current and pipeline production
-    # and the available supply
     calculate_feed_availability(producer, timeline, idx)
 
 
 def perform_planning(
-    producer: Producer, timeline: np.ndarray, time_step: float, idx: int
+    producer: Producer, timeline: FloatArray, time_step: float, idx: int
 ) -> None:
     """
     Plan new plants into the pipeline from the fuel supply/demand gap.
@@ -909,23 +805,15 @@ def perform_planning(
     producer
         The producer instance.
     timeline
-        Simulation timeline.
+        Simulation timeline, days.
     time_step
-        Current time-step size.
+        Current time-step size, days.
     idx
         Current time-step index.
     """
-    # add new plants to the pipeline
-    # based on fuel supply/ demand gap
     perform_pipeline_planning(producer, timeline, time_step, idx)
 
-    # the feed gap needs to be updated
-    # again prior to calculation the evolution
-    # expectation to account newly added plants
-    # to the pipeline
+    # the feed gap is updated again before the evolution expectation, to account
+    # for the plants just added to the pipeline
     calculate_feed_availability(producer, timeline, idx)
-
-    # calculate the expected evolution
-    # of fuel supply for use to quantify
-    # the next supply/demand gap
     calculate_evolution_expectation(producer, timeline, idx)
