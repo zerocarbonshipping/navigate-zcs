@@ -3,21 +3,17 @@
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING
-
-import numpy as np
 
 from navigate.fleet.operation import convert_to_regional_steps
 from navigate.fleet.residual_energy import calculate_residual_energy
-from navigate.util import TOLERANCE
 
 if TYPE_CHECKING:
+    import numpy as np
+
     from navigate.core.enum_ import EnergyDemandTypeID, EnergyDemandTypePortID
     from navigate.core.nodes.vessel import Vessel
     from navigate.fleet.package import Package
-
-logger = logging.getLogger(__name__)
 
 
 def get_smoothed_energy_duals_technology(
@@ -97,10 +93,6 @@ def calculate_marginal_technology_saving(
     with low savings potential the evaluation may occur outside the optimal polytype and
     thus the shadow price may underestimate the impact.
 
-    In debug mode, the function checks whether the residual energy falls outside the
-    polytope region where the shadow prices are valid, and logs the fraction of
-    instances that extrapolate.
-
     Parameters
     ----------
     vessel
@@ -132,14 +124,6 @@ def calculate_marginal_technology_saving(
     baseline_energy_port = vessel.expectation.get_operational_energy_port()
 
     shadow_price_sea, shadow_price_port = get_smoothed_energy_duals_technology(vessel)
-
-    _check_heuristic_consistency(
-        vessel,
-        residual_energy_sea,
-        residual_energy_port,
-        idx,
-        msg="Technology installation",
-    )
 
     return _calculate_marginal_saving(
         residual_energy_sea,
@@ -174,10 +158,6 @@ def calculate_marginal_speed_saving(
     for the impact of current technology uptake in order to match the baseline energy
     requirement.
 
-    In debug mode, the function checks whether the residual energy falls outside the
-    polytope region where the shadow prices are valid, and logs the fraction of
-    instances that extrapolate.
-
     Parameters
     ----------
     vessel
@@ -205,10 +185,6 @@ def calculate_marginal_speed_saving(
     baseline_energy_port = vessel.expectation.get_energy_conservation_rhs_port()
 
     shadow_price_sea, shadow_price_port = smoothed_duals
-
-    _check_heuristic_consistency(
-        vessel, residual_energy_sea, residual_energy_port, idx, msg="Speed management"
-    )
 
     return _calculate_marginal_saving(
         residual_energy_sea,
@@ -336,111 +312,3 @@ def _calculate_dual_variable_saving(
         The cost saved.
     """
     return shadow_price * (energy_baseline - energy_residual)
-
-
-def _check_heuristic_consistency(
-    vessel: Vessel,
-    residual_energy_sea: dict[EnergyDemandTypeID, list[float | np.ndarray]],
-    residual_energy_port: dict[EnergyDemandTypeID, list[float | np.ndarray]],
-    idx: int | slice,
-    msg: str,
-) -> None:
-    """
-    Check how often residual energies fall outside the shadow prices' validity region.
-
-    The vessel expectation provides lower and upper bounds (polytope bounds) within
-    which the shadow prices are considered valid. This function evaluates residual
-    energies at sea and in port against these bounds and returns the fraction of
-    instances that lie outside the bounds.
-
-    Parameters
-    ----------
-    vessel
-        Vessel providing polytope lower/upper bounds for sea and port energy
-        requirements.
-    residual_energy_sea
-        Residual energy requirements at sea per energy demand type and step.
-    residual_energy_port
-        Residual energy requirements in port per energy demand type and step.
-    idx
-        Time-step index.
-    msg
-        Additional information to log.
-    """
-    if logger.getEffectiveLevel() != logging.DEBUG:
-        return
-
-    energy_low = vessel.expectation.get_energy_conservation_sarhslow_sea()
-    energy_high = vessel.expectation.get_energy_conservation_sarhsup_sea()
-    total_sea, outside_sea = _check_polytopes(
-        residual_energy_sea, energy_low, energy_high, idx
-    )
-
-    energy_low = vessel.expectation.get_energy_conservation_sarhslow_port()
-    energy_high = vessel.expectation.get_energy_conservation_sarhsup_port()
-    total_port, outside_port = _check_polytopes(
-        residual_energy_port, energy_low, energy_high, idx
-    )
-
-    total = total_sea + total_port
-    outside = outside_sea + outside_port
-
-    fraction = outside / total
-
-    if fraction > 0.0:
-        logging.debug(
-            "%s: %s evaluation extrapolated outside polytype in : %.1f%% of instances.",
-            vessel,
-            msg,
-            fraction * 100,
-        )
-
-
-def _check_polytopes(
-    energies_residual: dict[EnergyDemandTypeID, list[float | np.ndarray]],
-    energies_low: dict[EnergyDemandTypeID, list[np.ndarray]],
-    energies_high: dict[EnergyDemandTypeID, list[np.ndarray]],
-    idx: int | slice,
-) -> tuple[int, int]:
-    """
-    Count how many residual-energy instances lie inside vs. outside polytope bounds.
-
-    For each energy demand type and step, the residual energy is compared to the
-    provided lower and upper bounds (with numerical tolerance). An instance is
-    considered outside if it is below the lower bound or at the upper bound.
-
-    Parameters
-    ----------
-    energies_residual
-        Residual energy requirements per energy demand type and step.
-    energies_low
-        Lower polytope bounds per energy demand type and step.
-    energies_high
-        Upper polytope bounds per energy demand type and step.
-    idx
-        Time-step index.
-
-    Returns
-    -------
-    tuple[int, int]
-        A tuple `(total, outside)` where `total` is the number of evaluated instances
-        and `outside` is the number of instances outside the bounds.
-    """
-    inside = 0
-    outside = 0
-
-    for energy_id, energy_residual in energies_residual.items():
-        for step, _energy in enumerate(energy_residual):
-            energy_low = energies_low[energy_id][step][idx]
-            energy_high = energies_high[energy_id][step][idx]
-
-            # check if the residual energy is within the
-            # polytope for which the shadow price is valid
-            below = np.any(energy_residual < energy_low + TOLERANCE)
-            above = np.any(energy_residual > energy_high + TOLERANCE)
-            outside = below | above
-
-            inside += np.sum(~outside)
-            outside += np.sum(outside)
-
-    return int(inside + outside), outside

@@ -329,19 +329,6 @@ class Constr:
         """Shadow price (dual value)."""
         return self._model._row_duals[self._row]
 
-    # sensitivity analysis (ranging) ---------------------------------------------------
-    @property
-    def SARHSLow(self):
-        """Lower bound of the RHS sensitivity range."""
-        self._model._ensure_ranging()
-        return self._model._ranging_rhs_low[self._row]
-
-    @property
-    def SARHSUp(self):
-        """Upper bound of the RHS sensitivity range."""
-        self._model._ensure_ranging()
-        return self._model._ranging_rhs_up[self._row]
-
 
 # ====================================================================================
 # Params
@@ -425,7 +412,7 @@ class Model:
 
     Provides the same API as gurobipy.Model for all features used by
     the bunker algorithm: addVar, addConstr, chgCoeff, remove, optimize,
-    computeIIS, write, and solution/dual/ranging access.
+    computeIIS, write, and solution/dual access.
     """
 
     def __init__(self, name=""):
@@ -446,11 +433,6 @@ class Model:
         # Solution storage (populated after optimize())
         self._col_values = None  # primal solution
         self._row_duals = None  # dual values
-
-        # Ranging (computed lazily after optimize())
-        self._ranging_computed = False
-        self._ranging_rhs_low = None
-        self._ranging_rhs_up = None
 
         # IIS storage
         self._iis_row_flags = None
@@ -725,10 +707,6 @@ class Model:
           since only a few pivots are needed.
         - Automatic IPM fallback if simplex returns non-optimal.
         """
-        self._ranging_computed = False
-        self._ranging_rhs_low = None
-        self._ranging_rhs_up = None
-
         # Flush deferred RHS and objective changes as batch calls
         self._flush_pending()
 
@@ -807,25 +785,6 @@ class Model:
 
         # For other statuses (e.g. not set, error), treat as infeasible/unbounded
         return INF_OR_UNBD
-
-    # ----------------------------------------------------------------------------------
-    # Ranging (sensitivity analysis)
-    # ----------------------------------------------------------------------------------
-    def _ensure_ranging(self):
-        """Compute ranging if not already done since last optimize()."""
-        if self._ranging_computed:
-            return
-
-        try:
-            _status, ranging_info = self._highs.getRanging()
-
-            self._ranging_rhs_low = np.array(ranging_info.row_bound_dn.value_)
-            self._ranging_rhs_up = np.array(ranging_info.row_bound_up.value_)
-        except Exception:
-            self._ranging_rhs_low = np.full(self._num_rows, float("nan"))
-            self._ranging_rhs_up = np.full(self._num_rows, float("nan"))
-
-        self._ranging_computed = True
 
     # ----------------------------------------------------------------------------------
     # IIS (Irreducible Infeasible Subset)
