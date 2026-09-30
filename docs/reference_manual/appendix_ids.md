@@ -121,9 +121,9 @@ ReportReduceID is used for reducing tuples in the reports for easier data manipu
 | ID | Description |
 | --- | --- |
 | NONE | This means no reduction of the tuple(s) |
-| FIRST | This means reduction over the first element of the tuple(s) |
-| SECOND | This means reduction over the second element of the tuple(s) |
-| BOTH | This means reduction over both elements of the tuple(s) |
+| FIRST | This means reduction over the first element of the tuple(s); the resulting columns are keyed by the second element |
+| SECOND | This means reduction over the second element of the tuple(s); the resulting columns are keyed by the first element |
+| BOTH | This means reduction over both elements of the tuple(s), into a single column |
 
 ## RouteTypeID
 

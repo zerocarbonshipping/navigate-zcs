@@ -14,6 +14,7 @@ from types import SimpleNamespace
 
 import numpy as np
 import openpyxl as xl
+import pytest
 
 from navigate.core.enum_ import ReportReduceID
 from navigate.core.node_registry import Nodes
@@ -21,7 +22,12 @@ from navigate.core.node_report import NodeReport
 from navigate.core.nodes.report import Report
 from navigate.core.nodes.vessel import Vessel
 from navigate.output import report_writer
-from navigate.output.report_writer import ROW_RESULT, _prepare_export, write_report
+from navigate.output.report_writer import (
+    ROW_RESULT,
+    _prepare_export,
+    _reduce_dict,
+    write_report,
+)
 
 
 def _node_report(attribute="Lifetime"):
@@ -52,6 +58,63 @@ class TestPrepareExport:
             "Report 'output': property request 'ghost' on sheet 'Vessels'"
             in caplog.text
         )
+
+
+class TestReduceDict:
+    """The appendix_ids.md ReportReduceID contract, applied to a dict property."""
+
+    @pytest.fixture
+    def tuple_dict(self):
+        return {
+            ("oil", "co2"): np.array([1.0]),
+            ("oil", "ch4"): np.array([2.0]),
+            ("lng", "co2"): np.array([4.0]),
+        }
+
+    @pytest.fixture
+    def single_dict(self):
+        return {"oil": np.array([1.0]), "lng": np.array([2.0])}
+
+    def test_first_sums_over_the_first_element_keyed_by_the_second(self, tuple_dict):
+        result = _reduce_dict(tuple_dict, ReportReduceID.FIRST)
+
+        assert result.keys() == {"co2", "ch4"}
+        np.testing.assert_array_equal(result["co2"], [5.0])
+        np.testing.assert_array_equal(result["ch4"], [2.0])
+
+    def test_second_sums_over_the_second_element_keyed_by_the_first(self, tuple_dict):
+        result = _reduce_dict(tuple_dict, ReportReduceID.SECOND)
+
+        assert result.keys() == {"oil", "lng"}
+        np.testing.assert_array_equal(result["oil"], [3.0])
+        np.testing.assert_array_equal(result["lng"], [4.0])
+
+    def test_both_sums_over_both_elements_into_one_array(self, tuple_dict):
+        result = _reduce_dict(tuple_dict, ReportReduceID.BOTH)
+
+        np.testing.assert_array_equal(result, [7.0])
+
+    def test_none_leaves_the_tuple_dict_unchanged(self, tuple_dict):
+        assert _reduce_dict(tuple_dict, ReportReduceID.NONE) == tuple_dict
+
+    def test_first_sums_a_single_key_dict_into_one_array(self, single_dict):
+        result = _reduce_dict(single_dict, ReportReduceID.FIRST)
+
+        np.testing.assert_array_equal(result, [3.0])
+
+    def test_both_sums_a_single_key_dict_into_one_array(self, single_dict):
+        result = _reduce_dict(single_dict, ReportReduceID.BOTH)
+
+        np.testing.assert_array_equal(result, [3.0])
+
+    def test_second_leaves_a_single_key_dict_unchanged(self, single_dict):
+        assert _reduce_dict(single_dict, ReportReduceID.SECOND) == single_dict
+
+    def test_none_leaves_a_single_key_dict_unchanged(self, single_dict):
+        assert _reduce_dict(single_dict, ReportReduceID.NONE) == single_dict
+
+    def test_empty_dict_is_unchanged(self):
+        assert _reduce_dict({}, ReportReduceID.FIRST) == {}
 
 
 class TestWriteReportErrorContainment:
