@@ -38,6 +38,10 @@ This attribute sets the file format used to export the report.
 
 ## Commands
 
+Each command reports only the properties listed for it in the
+[Report Properties](#appendix---report-node-properties) section; naming any
+other property is a deck error at its line.
+
 ### add\_property
 
 This command adds a specified global property to the report.
