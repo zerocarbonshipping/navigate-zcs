@@ -547,7 +547,7 @@ Examples are air lubrication,  wind assisted propulsion or shaft generators resp
 </section>
 <section id="shorepowercapacity">
 <h3>ShorePowerCapacity<a class="headerlink" href="#shorepowercapacity" title="Link to this heading">#</a></h3>
-<p>This attribute sets the vessel-side shore power connection capacity. A vessel’s shore power use in a port is capped at the combined capacity of its technologies over its time in port, or at the port’s <code class="docutils literal notranslate"><span class="pre">ShorePowerConnectionShare</span></code> of its electrical demand in port if that is lower.</p>
+<p>This attribute sets the vessel-side shore power connection capacity. A vessel’s shore power use in a port is capped at the port’s <code class="docutils literal notranslate"><span class="pre">ShorePowerConnectionShare</span></code> of its time in port, times the lesser of the combined capacity of its technologies and its electrical load in port.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>

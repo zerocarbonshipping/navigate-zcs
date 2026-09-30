@@ -502,7 +502,7 @@ unrouted port is removed (see <a class="reference internal" href="dsl_reference.
 </section>
 <section id="shorepowerconnectionshare">
 <h3>ShorePowerConnectionShare<a class="headerlink" href="#shorepowerconnectionshare" title="Link to this heading">#</a></h3>
-<p>This attribute sets the fraction of the time in port during which a shore power connection is available. A value of 0 means shore power is not available in the port. A vessel’s shore power use in the port is capped at this share of its electrical demand in port, or at its <code class="docutils literal notranslate"><span class="pre">ShorePowerCapacity</span></code> over its time in port if that is lower.</p>
+<p>This attribute sets the fraction of the time in port during which a shore power connection is available. A value of 0 means shore power is not available in the port. A vessel’s shore power use in the port is capped at this share of its time in port, times the lesser of its combined <code class="docutils literal notranslate"><span class="pre">ShorePowerCapacity</span></code> and its electrical load in port.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>

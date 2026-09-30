@@ -38,7 +38,7 @@ This attribute sets the shore power electricity tariff in the port in USD/MWh. I
 
 ### ShorePowerConnectionShare
 
-This attribute sets the fraction of the time in port during which a shore power connection is available. A value of 0 means shore power is not available in the port. A vessel's shore power use in the port is capped at this share of its electrical demand in port, or at its `ShorePowerCapacity` over its time in port if that is lower.
+This attribute sets the fraction of the time in port during which a shore power connection is available. A value of 0 means shore power is not available in the port. A vessel's shore power use in the port is capped at this share of its time in port, times the lesser of its combined `ShorePowerCapacity` and its electrical load in port.
 
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
