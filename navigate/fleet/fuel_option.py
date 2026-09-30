@@ -29,8 +29,8 @@ def determine_fuel_type(vessel: Vessel) -> None:
 
     The fuel type assigned through the DSL wins. Otherwise it is the main fuel type
     with the largest power capacity summed across all converters in the power
-    system; if multiple fuel types have the same power capacity, the one with the
-    largest tank is chosen.
+    system; a tie between fuel types is broken by the size of the tanks that store
+    them.
 
     TODO: The tank size should optimally be weighted by the LHV, but it might vary
     within a given fuel type
