@@ -1141,8 +1141,6 @@ def _transfer_residual_energy(
         idx, {d: float(arr.sum()) for d, arr in avg_residual_port.items()}
     )
 
-    # convert_to_regional_steps takes one value per leg per demand type; unpack the
-    # per-leg array into the same list shape every other caller passes
     regional_sea = convert_to_regional_steps(
         vessel, {d: list(arr) for d, arr in avg_residual_sea.items()}
     )
