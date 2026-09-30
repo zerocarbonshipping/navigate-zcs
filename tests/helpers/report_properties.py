@@ -10,36 +10,10 @@ the report-property checks over the reference manual.
 
 from __future__ import annotations
 
-import inspect
-from typing import TYPE_CHECKING
-
-from navigate.core.profiles import (
-    FleetProfile,
-    LevyProfile,
-    ManagerProfile,
-    PlantProfile,
-    PortProfile,
-    ProducerProfile,
-    RegulationProfile,
-    VesselProfile,
-)
 from navigate.core.profiles._base_profile import _BaseProfile
 from navigate.parser._commands import _REPORT_COMMANDS
+from navigate.parser._report_properties import PROFILE_CLASSES
 from navigate.util import attribute_to_setter
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
-
-PROFILE_CLASSES = {
-    "add_property": ManagerProfile,
-    "add_fleet_property": FleetProfile,
-    "add_levy_property": LevyProfile,
-    "add_plant_property": PlantProfile,
-    "add_port_property": PortProfile,
-    "add_producer_property": ProducerProfile,
-    "add_regulation_property": RegulationProfile,
-    "add_vessel_property": VesselProfile,
-}
 
 assert set(PROFILE_CLASSES) == set(_REPORT_COMMANDS)
 
@@ -52,32 +26,6 @@ assert not PLUMBING_GETTERS, (
     " timeline a profile is sized to, and otherwise expect a report property to"
     " name it"
 )
-
-
-def is_argument_free(function: Callable[..., object]) -> bool:
-    """
-    Check whether the report writer can call a bound getter without arguments.
-
-    ``report_writer._extract_properties`` calls ``getattr(profile, getter)()``, so
-    every parameter past ``self`` must carry a default or be variadic.
-
-    Parameters
-    ----------
-    function : callable
-        The unbound getter read off the profile class.
-
-    Returns
-    -------
-    bool :
-        Whether the getter takes no required argument beyond ``self``.
-    """
-    parameters = list(inspect.signature(function).parameters.values())[1:]
-
-    return all(
-        p.default is not inspect.Parameter.empty
-        or p.kind in (inspect.Parameter.VAR_POSITIONAL, inspect.Parameter.VAR_KEYWORD)
-        for p in parameters
-    )
 
 
 def getter_for(token: str) -> str:

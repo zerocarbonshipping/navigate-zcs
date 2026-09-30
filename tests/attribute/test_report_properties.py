@@ -4,12 +4,10 @@
 """
 Report properties named in committed decks resolve to profile getters.
 
-Report properties have no parser-side allow-list: navigate.output.report_writer resolves
-the getter on the node's profile at write time and skips the column with a logged error
-when it is missing. This test pins the committed surface instead: every property token
-in a committed deck must map, via attribute_to_setter, to a getter on the profile class
-of the command it is passed to, callable without arguments the way the report writer
-calls it.
+The parser rejects a property token its command's profile class has no getter for, but
+only in a deck it reads, and no suite reads most of the committed .inc modules. This
+test holds every committed deck to the same rule by calling the parser's check on every
+property token a committed deck passes to a report command.
 
 The deck scan is regex-based and expects single-line property calls, like the committed
 decks.
@@ -21,8 +19,9 @@ import re
 
 import pytest
 
-from helpers.report_properties import PROFILE_CLASSES, getter_for, is_argument_free
+from helpers.report_properties import PROFILE_CLASSES
 from helpers.simulation import REPO_ROOT
+from navigate.parser._report_properties import check_report_property
 
 _PROPERTY_CALL = re.compile(
     r'\b({})\(\s*(?:"[^"]*"\s*,\s*)?([A-Za-z][A-Za-z0-9]*)'.format(
@@ -53,15 +52,4 @@ def _deck_properties():
 
 @pytest.mark.parametrize(("command", "token"), _deck_properties())
 def test_deck_report_properties_resolve(command, token):
-    profile_class = PROFILE_CLASSES[command]
-    getter_name = getter_for(token)
-
-    assert hasattr(profile_class, getter_name), (
-        f"'{token}' does not resolve: {profile_class.__name__} has no getter "
-        f"'{getter_name}'"
-    )
-
-    assert is_argument_free(getattr(profile_class, getter_name)), (
-        f"'{token}' resolves to {profile_class.__name__}.{getter_name}, which the "
-        f"report writer cannot call without arguments"
-    )
+    check_report_property(command, token)
