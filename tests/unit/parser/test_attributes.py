@@ -125,6 +125,16 @@ class TestRejectedValueIsADomainError:
         ):
             read_deck('Fleet "fleet" {\n    InitialSplit = [0, 0]\n}\n')
 
+    def test_rejected_infinity_names_its_line(self, read_deck):
+        # infinite production has no meaning, so the parser reports the
+        # deck line where the evaluation would otherwise produce NaN costs
+        with pytest.raises(
+            AttributeAssignmentError,
+            match=r"define\.inc', line 6: Producer\(\"p\"\) attribute "
+            r"'MaximumDevelopment' must be finite, but got inf\.$",
+        ):
+            read_deck('Producer "p" {\n    MaximumDevelopment = INF\n}\n')
+
     def test_rejected_command_value(self, read_deck):
         # the required attributes are checked before the commands run
         with pytest.raises(

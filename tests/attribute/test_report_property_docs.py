@@ -4,17 +4,16 @@
 """
 The report-property appendix documents exactly the properties a report can carry.
 
-docs/reference_manual/report.md is hand-written with no autodoc, and report
-properties have no parser-side allow-list, so a table row and a profile getter
-can drift apart in either direction without anything failing: a stale row sends a
-deck writer after a column the report writer will skip with a logged error, and a
-getter no row names is a result nobody can find.
+docs/reference_manual/report.md is hand-written with no autodoc, so a table row
+and a profile getter can drift apart in either direction without anything else
+failing: a stale row sends a deck writer after a property the parser rejects, and
+a getter no row names is a result nobody can find.
 
-Both directions are checked here. Forward: every documented token resolves to a
-getter the report writer can call on the profile class of every command the table
-is listed under. Reverse: every getter reachable from a token is documented under
-every command whose profile class exposes it. The corpus is the manual;
-test_report_properties.py holds the committed decks to the same getters.
+Both directions are checked here. Forward: every documented token passes the
+parser's check for every command the table is listed under. Reverse: every getter
+reachable from a token is documented under every command whose profile class
+exposes it. The corpus is the manual; test_report_properties.py holds the
+committed decks to the same check.
 """
 
 from __future__ import annotations
@@ -26,9 +25,9 @@ from helpers.report_properties import (
     PLUMBING_GETTERS,
     PROFILE_CLASSES,
     getter_for,
-    is_argument_free,
     token_for,
 )
+from navigate.parser._report_properties import check_report_property
 
 TABLES = report_property_tables()
 
@@ -68,9 +67,6 @@ def _resolvable_properties():
             if getter in PLUMBING_GETTERS:
                 continue
 
-            if not is_argument_free(getattr(profile_class, getter)):
-                continue
-
             token = token_for(getter)
 
             # a getter whose token reads back as another getter is reachable from
@@ -85,19 +81,7 @@ def _resolvable_properties():
 
 @pytest.mark.parametrize(("command", "token"), _documented_properties())
 def test_documented_property_resolves(command, token):
-    profile_class = PROFILE_CLASSES[command]
-    getter = getter_for(token)
-
-    assert hasattr(profile_class, getter), (
-        f"'{token}' is documented for {command} but {profile_class.__name__} has no"
-        f" getter '{getter}'"
-    )
-
-    assert is_argument_free(getattr(profile_class, getter)), (
-        f"'{token}' is documented for {command} but resolves to"
-        f" {profile_class.__name__}.{getter}, which the report writer cannot call"
-        " without arguments"
-    )
+    check_report_property(command, token)
 
 
 @pytest.mark.parametrize(("command", "token"), _resolvable_properties())

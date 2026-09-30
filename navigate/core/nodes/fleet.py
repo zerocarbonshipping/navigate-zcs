@@ -506,6 +506,8 @@ class Fleet(_AssetManager[Vessel]):
         """
         Set the maximum speed change per year during dynamic speed management.
 
+        INF means no limit.
+
         Examples
         --------
         - 0.5
@@ -517,7 +519,10 @@ class Fleet(_AssetManager[Vessel]):
             The maximum speed change permissible.
         """
         self.maximum_speed_change = assign_value(
-            as_scalar(maximum_speed_change), type_=(FORECAST, VARIABLE), lower=0.0
+            as_scalar(maximum_speed_change),
+            type_=(FORECAST, VARIABLE),
+            lower=0.0,
+            allow_infinite=True,
         )
 
     def set_speed_alignment(self, speed_alignment: str) -> None:
@@ -996,6 +1001,8 @@ class Fleet(_AssetManager[Vessel]):
                 f"InitialAgeDistribution ({len(self._initial_age_distribution)}) "
                 "must correspond."
             )
+
+        self._check_initial_age_distribution_is_finite()
 
         if not self.orderbooks:
             return

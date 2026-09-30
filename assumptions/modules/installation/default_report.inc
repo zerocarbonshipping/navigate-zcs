@@ -28,7 +28,7 @@ Report "report_default" {
 	add_property(ConsumedEnergy)
 	add_property(InstalledPower)
 	add_property(NewbuildPower)
-	add_property(FuelConvertedPower, FIRST)
+	add_property(FuelConvertedPower, SECOND)
 	add_property(TotalFuelExpenses)
 	add_property(TotalLevyExpenses)
 	add_property(RegulationExpenses)

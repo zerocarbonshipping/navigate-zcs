@@ -6,8 +6,9 @@ Every profile getter is reachable from a report-property token.
 
 attribute_to_setter keeps only [A-Z][a-z]* runs, so the token a getter is written
 as in a deck can read back as a different getter: get_co2_mass would spell as
-Co2Mass and read back as get_co_mass, silently resolving to the wrong result or to
-nothing. Nothing in the parser guards this, so a digit in a getter name is caught
+Co2Mass and read back as get_co_mass. The parser rejects a token that reads back as
+no getter, but not one that reads back as a different getter, and a getter no token
+reads back as is unreachable from any deck, so a digit in a getter name is caught
 here instead of by a reader of a report column.
 """
 

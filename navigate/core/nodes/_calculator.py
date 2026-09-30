@@ -117,12 +117,14 @@ class _Calculator:
         """
         Set the publicly defined lower bound of the calculator.
 
+        -INF means no lower bound; INF is rejected.
+
         Parameters
         ----------
         lower_bound
             Lower bound of calculated value.
         """
-        self.lower_bound = assign_bound(lower_bound)
+        self.lower_bound = assign_bound(lower_bound, inclusive_upper=False)
 
         # called here in case the lower bound is changed during time-stepping
         self._assign_applied_bounds()
@@ -131,12 +133,14 @@ class _Calculator:
         """
         Set the publicly defined upper bound of the calculator.
 
+        INF means no upper bound; -INF is rejected.
+
         Parameters
         ----------
         upper_bound
             Upper bound of calculated value.
         """
-        self.upper_bound = assign_bound(upper_bound)
+        self.upper_bound = assign_bound(upper_bound, inclusive_lower=False)
 
         # called here in case the upper bound is changed during time-stepping
         self._assign_applied_bounds()
@@ -281,9 +285,9 @@ class _Calculator:
         """
         bounds = self._applied_bounds
 
-        # the owner string is only worth building where a bound can actually raise
+        # inclusive bounds only clamp, so the check is skipped where both are
         if bounds.exclusive:
-            bounds.check_exclusive(value, str(self))
+            bounds.check_exclusive(value, self)
 
         return np.maximum(np.minimum(value, bounds.upper), bounds.lower)
 

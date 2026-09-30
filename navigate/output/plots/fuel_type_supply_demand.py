@@ -85,9 +85,7 @@ def plot_fuel_type_supply_demand(manager, directory):
         if values:
             maximum = max(maximum, max(np.amax(value) for value in values))
 
-        fuel_supply_max = np.amax(fuel_supply)
-        if not np.isinf(fuel_supply_max):
-            maximum = max(maximum, fuel_supply_max)
+        maximum = max(maximum, np.amax(fuel_supply))
 
         # save output
         all_values[fuel_type] = values

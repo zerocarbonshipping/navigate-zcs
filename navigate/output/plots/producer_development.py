@@ -3,8 +3,6 @@
 
 from __future__ import annotations
 
-import numpy as np
-
 from navigate.output.plots._colors import CENTER_COLORS_GREEN
 from navigate.output.plots._figure import (
     format_axes,
@@ -39,8 +37,7 @@ def _plot_producer_development(manager, directory, cumulative=False):
             dateline, development, label="Planned", color=CENTER_COLORS_GREEN[3], lw=2.0
         )
 
-        if np.any(np.isfinite(development_constraint)):
-            ax.plot(dateline, development_constraint, "k--", label="Constraint", lw=2.0)
+        ax.plot(dateline, development_constraint, "k--", label="Constraint", lw=2.0)
 
         legend = ax.legend(**LEGEND_OPTIONS)
         ax.set_title(producer.name)

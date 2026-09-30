@@ -141,12 +141,6 @@ def _calculate_import_from_producers(
     """
     Set supply-weighted bunker price, supply and WTT at each port for producer fuels.
 
-    A port with no bunkering limit set that imports from an unconstrained
-    (infinite-production) producer reports its BunkerSupplyMass as np.inf:
-    the price and WTT stay finite (the equally-weighted average of the
-    unconstrained plants), but the supply itself is genuinely unbounded and
-    is recorded as such, rather than being hidden from the report.
-
     Parameters
     ----------
     ports
@@ -172,14 +166,6 @@ def _calculate_import_from_producers(
         p: {(f, e): np.zeros_like(times) for f in fuels for e in emissions}
         for p in ports
     }
-
-    # each contributing plant's own supply and per-unit price/WTT, kept apart
-    # from the running totals above so an infinite-supply plant can be
-    # weighted equally against other infinite-supply plants where the totals
-    # would otherwise divide infinity by infinity
-    plant_supplies = {p: {f: [] for f in fuels} for p in ports}
-    plant_costs = {p: {f: [] for f in fuels} for p in ports}
-    plant_wtts = {p: {(f, e): [] for f in fuels for e in emissions} for p in ports}
 
     # if the bunkering of a fuel is disallowed
     # in certain ports the export of fuel is
@@ -226,62 +212,32 @@ def _calculate_import_from_producers(
 
                 normalized_export = export / export_normalization[f]
 
-                # weight each plant's production by its normalized export
-                # fraction. an unconstrained producer reports infinite
-                # production here; a zero export share then annihilates it
-                # to zero rather than the NaN a plain multiply would give.
-                # the resulting infinite supply is capped per port later in
-                # _align_export_with_bunkering_limits.
-                supply = _multiply_zero_safe(production, normalized_export)
+                # weight each plant's production by its normalized export fraction
+                supply = production * normalized_export
                 supplies[p][f] += supply
 
-                # calculate the supply weighted price. a zero delivered cost
-                # on an infinite-supply plant is likewise annihilated here;
-                # _weighted_average_over_plants recovers that plant's own
-                # cost from plant_costs below instead of this running sum
-                cost = expectation.get_expected_delivered_cost(p, idx_)
-                prices[p][f] += _multiply_zero_safe(supply, cost)
-
-                plant_supplies[p][f].append(supply)
-                plant_costs[p][f].append(cost)
+                # calculate the supply weighted price
+                prices[p][f] += supply * expectation.get_expected_delivered_cost(
+                    p, idx_
+                )
 
                 # calculate the supply weighted WTT emissions
                 for e in emissions:
-                    wtt = expectation.get_expected_delivered_wtt(p, e, idx_)
-                    wtts[p][(f, e)] += _multiply_zero_safe(supply, wtt)
-                    plant_wtts[p][(f, e)].append(wtt)
+                    wtts[p][(f, e)] += supply * expectation.get_expected_delivered_wtt(
+                        p, e, idx_
+                    )
 
     # transfer the supply-weighted average price
     # and WTT to the ports before adjusting the
     # supply to account for local supply limits
     for p, port in ports.items():
         for f in fuels:
-            # an unconstrained producer's infinite supply would turn the
-            # weighted average below into inf/inf; at those positions the
-            # division is never evaluated (_divide_where_finite substitutes
-            # a safe placeholder first) and the equally-weighted average of
-            # the infinite-supply plants is used instead, so neither NaN nor
-            # inf is ever computed as an intermediate. np.isinf, not
-            # np.isfinite, names the case being handled: a NaN supply (from
-            # upstream data, not this function) is left to divide_nonzero's
-            # own zero-denominator default instead of being treated as if it
-            # were the unconstrained case
-            infinite_supply = np.isinf(supplies[p][f])
-
             # check if the bunker price is overwritten on the port
             if port.bunker_price_overwrite[f] is not None:
                 price = port.expectation.get_bunker_price_overwrite(f, idx_)
             else:
                 # normalize the weighted average
-                price = _divide_where_finite(
-                    prices[p][f], supplies[p][f], ~infinite_supply
-                )
-
-                if np.any(infinite_supply):
-                    equal_weighted = _weighted_average_over_plants(
-                        plant_supplies[p][f], plant_costs[p][f]
-                    )
-                    price = np.where(infinite_supply, equal_weighted, price)
+                price = divide_nonzero(prices[p][f], supplies[p][f])
 
             # add handling costs
             handling_cost = port.expectation.get_handling_cost(f, idx_)
@@ -298,15 +254,7 @@ def _calculate_import_from_producers(
                     wtt = port.expectation.get_bunker_wtt_overwrite(f, e, idx_)
                 else:
                     # normalize the weighted average
-                    wtt = _divide_where_finite(
-                        wtts[p][(f, e)], supplies[p][f], ~infinite_supply
-                    )
-
-                    if np.any(infinite_supply):
-                        equal_weighted = _weighted_average_over_plants(
-                            plant_supplies[p][f], plant_wtts[p][(f, e)]
-                        )
-                        wtt = np.where(infinite_supply, equal_weighted, wtt)
+                    wtt = divide_nonzero(wtts[p][(f, e)], supplies[p][f])
 
                 # transfer the average bunker WTT
                 # to expectation and profile
@@ -321,7 +269,8 @@ def _calculate_import_from_producers(
     # from each of the port's supplying plants and so preserves their relative
     # share; a port with no import receives none of the redistribution and its
     # price and WTT stay at zero
-    _align_export_with_bunkering_limits(supplies, fuels, ports, idx_)
+    for fuel in fuels.values():
+        _align_export_with_bunkering_limits(supplies, fuel, ports, idx_)
 
     for p, port in ports.items():
         for f in fuels:
@@ -334,110 +283,6 @@ def _calculate_import_from_producers(
             # transfer the adjusted supply to the ports
             port.expectation.set_bunker_supply(idx, f, supplies[p][f])
             port.profile.set_bunker_supply_mass(idx, f, supplies[p][f][0])
-
-
-def _divide_where_finite(
-    numerator: np.ndarray, denominator: np.ndarray, not_infinite: np.ndarray
-) -> np.ndarray:
-    """
-    Supply-weighted division, skipping the positions an infinite supply marks.
-
-    An infinite denominator would divide infinity by infinity; rather than let
-    that compute NaN and be overwritten, a safe placeholder is substituted at
-    those positions before dividing. The result there is meaningless and the
-    caller replaces it with the equally-weighted average of the infinite-supply
-    plants. A NaN denominator (never produced by this module; only possible
-    from a further upstream error) is not one of those positions: it is passed
-    through unchanged, and divide_nonzero's own zero-or-negative-denominator
-    guard defaults it instead of computing an invalid division.
-
-    Parameters
-    ----------
-    numerator
-        The supply-weighted sum of a price or WTT.
-    denominator
-        The total supply.
-    not_infinite
-        Where the total supply is not infinite.
-
-    Returns
-    -------
-    np.ndarray
-        The quotient where 'not_infinite' holds; meaningless elsewhere.
-    """
-    safe_numerator = np.where(not_infinite, numerator, 0.0)
-    safe_denominator = np.where(not_infinite, denominator, 1.0)
-
-    return divide_nonzero(safe_numerator, safe_denominator)
-
-
-def _multiply_zero_safe(infinite_prone: np.ndarray, factor: np.ndarray) -> np.ndarray:
-    """
-    Elementwise product where the first operand may be infinite and the second zero.
-
-    A zero factor annihilates an infinite value instead of producing NaN: a zero
-    export share of an infinite production, or a zero cost/WTT weighted by an
-    infinite supply, is defined as zero, not indeterminate.
-
-    Parameters
-    ----------
-    infinite_prone
-        The operand that may be infinite (a production or a supply).
-    factor
-        The operand that may be exactly zero (an export share, cost or WTT).
-
-    Returns
-    -------
-    np.ndarray
-        The elementwise product, with 0 x inf treated as 0.
-    """
-    safe = np.where(np.isinf(infinite_prone) & (factor == 0.0), 0.0, infinite_prone)
-
-    return safe * factor
-
-
-def _weighted_average_over_plants(
-    supplies: list[np.ndarray], values: list[np.ndarray]
-) -> np.ndarray:
-    """
-    Supply-weighted average of a per-plant value, across the plants supplying one port.
-
-    Mirrors navigate.policy.emission_coefficient._average_wtt_over_ports: at a
-    time-step where one or more plants report an infinite supply, those plants
-    dominate the market and are weighted equally, ignoring the finite-supply
-    plants; otherwise each plant is weighted by its own supply, with a supply
-    at or below tolerance carrying no weight.
-
-    The caller guarantees at least one plant, so 'supplies' and 'values' are
-    never empty.
-
-    Parameters
-    ----------
-    supplies
-        Each contributing plant's supply, one array per plant.
-    values
-        Each contributing plant's price or WTT, one array per plant, aligned
-        with 'supplies'.
-
-    Returns
-    -------
-    np.ndarray
-        The supply-weighted average value.
-    """
-    supply = np.stack(supplies)
-    value = np.stack(values)
-
-    weights = np.where(supply > TOLERANCE, supply, 0.0)
-
-    # at a column with an infinite plant, every weight becomes the 0/1
-    # indicator below before the multiply two lines down runs, so a
-    # finite-supply plant's zero weight there never multiplies against an
-    # infinite value; at a column with none, weights stay the finite supply
-    # from above, so the multiply never sees inf x 0 either
-    infinite = np.isinf(supply)
-    weights = np.where(infinite.any(axis=0), infinite, weights)
-
-    return divide_nonzero((weights * value).sum(axis=0), weights.sum(axis=0))
 
 
 def _calculate_export_normalization_factors(ports: dict[str, Port]) -> dict[str, float]:
@@ -475,90 +320,24 @@ def _calculate_export_normalization_factors(ports: dict[str, Port]) -> dict[str,
 
 
 def _align_export_with_bunkering_limits(
-    supplies: dict[str, dict[str, float | np.ndarray]],
-    fuels: dict[str, Fuel],
-    ports: dict[str, Port],
-    idx: int | slice,
-) -> None:
-    """
-    Align exports with port bunkering limits.
-
-    The bunkering of a certain fuel in a given port may be limited by the port; in that
-    case no more fuel than can be bunkered should be exported to that port and the
-    surplus distributed to the other ports.
-
-    TODO: This method surely must break with the export distribution assigned on the
-    producer. May be acceptable.
-
-    Parameters
-    ----------
-    supplies
-        Imported supply not accounting for bunker limits.
-    fuels
-        All fuels assigned to a plant and which can be bunkered in at least one port.
-    ports
-        All ports in the simulation.
-    idx
-        Current time-step index.
-    """
-    for fuel_name, fuel in fuels.items():
-        # calculate the total import across all ports
-        total_import = sum(supplies[port_name][fuel_name] for port_name in ports)
-
-        # if the import to any port is infinite it
-        # means there is an infinite production
-        # potential and thus each port will be
-        # assigned its limit
-        infinite_mask = np.isinf(total_import)
-
-        if np.any(infinite_mask):
-            for port_name, port in ports.items():
-                if not port.is_bunkering_allowed(fuel_name):
-                    continue
-
-                # if a port has zero import it must be
-                # because the export distribution to that
-                # port was set to zero for all producers.
-                # This limitation is honored.
-                active_mask = infinite_mask & (supplies[port_name][fuel_name] > 0.0)
-
-                # extract the limit and assign it
-                limit = port.expectation.get_bunkering_limit(fuel_name, idx)
-                supplies[port_name][fuel_name][active_mask] = limit[active_mask]
-
-        # if the import is finite across all ports then a two-stage approach
-        # is used in the redistribution of fuel between ports. First all
-        # limit-constrained ports have a fair-redistribution after which the
-        # remainder is distributed equally to unlimited ports
-        finite_mask = ~np.isinf(total_import)
-
-        if np.any(finite_mask):
-            _align_finite_export_with_bunkering_limits(
-                supplies, fuel, ports, idx, finite_mask
-            )
-
-
-def _align_finite_export_with_bunkering_limits(
-    supplies: dict[str, dict[str, float | np.ndarray]],
+    supplies: dict[str, dict[str, np.ndarray]],
     fuel: Fuel,
     ports: dict[str, Port],
     idx: int | slice,
-    mask: np.ndarray,
 ) -> None:
     """
-    Redistribute the finite-import case.
+    Align the exports of one fuel with the port bunkering limits.
 
-    Trims each over-limit port to its bunkering limit and spreads the freed surplus
+    The bunkering of a fuel in a given port may be limited by the port; in that case
+    no more fuel than can be bunkered should be exported to that port. Each
+    over-limit port is trimmed to its bunkering limit and the freed surplus is spread
     across the under-limit ports in proportion to their deficit. A port with no
     bunkering limit set never has a deficit of its own - a shortfall against an
     infinite limit is meaningless - so whatever surplus the limited ports cannot
     absorb is split equally across the unlimited, allowed ports instead. Where
     neither can take it, the surplus is dropped and the total bunkered import
-    shrinks.
-
-    A port the producers' export distribution sends no fuel to receives none of the
-    redistributed surplus either, matching the infinite-import branch above it, which
-    honors a zero export share the same way.
+    shrinks. A port the producers' export distribution sends no fuel to receives
+    none of the redistributed surplus either.
 
     Notice that this method breaks with the fractions assigned in the export
     distribution.
@@ -566,15 +345,13 @@ def _align_finite_export_with_bunkering_limits(
     Parameters
     ----------
     supplies
-        Imported supply not accounting for bunker limits.
+        Imported supply not accounting for bunker limits, adjusted in place.
     fuel
-        Fuels assigned to a plant and which can be bunkered in at least one port.
+        Fuel assigned to a plant and which can be bunkered in at least one port.
     ports
         All ports in the simulation.
     idx
         Current time-step index.
-    mask
-        Array index.
     """
     fuel_name = fuel.name
 
@@ -584,8 +361,8 @@ def _align_finite_export_with_bunkering_limits(
 
     for port_name, port in ports.items():
         # extract the imported amount and the bunkering limit
-        imported = supplies[port_name][fuel_name][mask]
-        limit = port.expectation.get_bunkering_limit(fuel_name, idx)[mask]
+        imported = supplies[port_name][fuel_name]
+        limit = port.expectation.get_bunkering_limit(fuel_name, idx)
 
         # a disallowed port neither contributes to nor
         # receives a share of the redistribution
@@ -629,7 +406,7 @@ def _align_finite_export_with_bunkering_limits(
     # trim every over-limit port to its bunkering limit, and fill every
     # under-limit port's deficit in proportion to its share of the total deficit
     for port_name in ports:
-        supplies[port_name][fuel_name][mask] += -surplus[port_name] + (
+        supplies[port_name][fuel_name] += -surplus[port_name] + (
             divide_nonzero(deficit[port_name], total_deficit) * scaling * total_surplus
         )
 
@@ -640,6 +417,4 @@ def _align_finite_export_with_bunkering_limits(
     share = divide_nonzero(remaining_surplus, n_unlimited)
 
     for port_name in ports:
-        supplies[port_name][fuel_name][mask] += np.where(
-            unlimited[port_name], share, 0.0
-        )
+        supplies[port_name][fuel_name] += np.where(unlimited[port_name], share, 0.0)

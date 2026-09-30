@@ -38,6 +38,10 @@ This attribute sets the file format used to export the report.
 
 ## Commands
 
+Each command reports only the properties listed for it in the
+[Report Properties](#appendix---report-node-properties) section; naming any
+other property is a deck error at its line.
+
 ### add\_property
 
 This command adds a specified global property to the report.
@@ -210,8 +214,8 @@ The properties are applicable for the following commands:
 |----------------------|--------------------|------------------------------------------------------------|
 | BunkerMass           | Ton/year           | Fuel bunkered in mass for all fuels.                       |
 | BunkerEnergy         | GJ/year            | Fuel bunkered in energy for all fuels.                     |
-| BunkerSupplyMass     | Ton/year           | Fuel available for bunkering in mass for all fuels. A port with no infrastructure limit set reports infinity for a fuel an unconstrained producer supplies; the global total is infinity for a fuel any port reports it for. |
-| BunkerSupplyEnergy   | GJ/year            | Fuel available for bunkering in energy for all fuels. Reported the same way as `BunkerSupplyMass`. |
+| BunkerSupplyMass     | Ton/year           | Fuel available for bunkering in mass for all fuels.        |
+| BunkerSupplyEnergy   | GJ/year            | Fuel available for bunkering in energy for all fuels.      |
 | BunkeringLimitMass   | Ton/year           | Infrastructure limit on bunkering in mass for all fuels.   |
 | BunkeringLimitEnergy | GJ/year            | Infrastructure limit on bunkering in energy for all fuels. |
 
