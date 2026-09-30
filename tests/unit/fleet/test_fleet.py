@@ -22,7 +22,6 @@ from navigate.fleet.conversion import (
     is_retrofit_cycle,
     reconcile_fuel_conversion_caps,
 )
-from navigate.fleet.initialization import _calculate_projected_multipliers
 from navigate.fleet.planning import (
     _calculate_increments,
     calculate_modelled_newbuilds,
@@ -75,22 +74,6 @@ class TestIsRetrofitCycle:
     )
     def test_cycle(self, age, frequency, dt, expected):
         assert is_retrofit_cycle(age, frequency, dt) is expected
-
-
-class TestCalculateProjectedMultipliers:
-    """Test _calculate_projected_multipliers."""
-
-    @pytest.mark.parametrize(
-        ("multiplier", "trade", "expected"),
-        [
-            (50.0, [100.0, 100.0, 100.0], [50.0, 50.0, 50.0]),
-            (10.0, [100.0, 200.0], [10.0, 20.0]),
-            (20.0, [50.0], [20.0]),
-        ],
-    )
-    def test_scales_with_trade(self, multiplier, trade, expected):
-        result = _calculate_projected_multipliers(multiplier, np.array(trade))
-        np.testing.assert_array_almost_equal(result, expected)
 
 
 class TestCalculateIncrements:
@@ -706,11 +689,11 @@ def _make_fleet_for_modelled_uptakes(
 class TestModelledUptakesCapProjection:
     """Per-vessel `cap_share` projected onto the two-level (inter/intra fuel) DCM."""
 
-    def test_no_cap_baseline(self):
-        # Uniform uptake with no caps: two same-fuel vessels get equal shares
-        # (0.5 each).
+    def test_non_binding_caps_give_uniform_shares(self):
+        # Uniform uptake with caps of one, which never bind: two same-fuel vessels
+        # get equal shares (0.5 each).
         fleet, vessels = _make_fleet_for_modelled_uptakes(["x", "x"], [1.0, 1.0])
-        uptake = calculate_modelled_uptake(fleet, vessels, idx=0, cap_share=None)
+        uptake = calculate_modelled_uptake(fleet, vessels, idx=0, cap_share=np.ones(2))
         np.testing.assert_array_almost_equal(uptake, [0.5, 0.5])
 
     def test_same_fuel_caps_sum(self):
@@ -826,7 +809,7 @@ def _spy_on_modelled_uptake(monkeypatch) -> dict:
     """Replace `calculate_modelled_uptake` with a zero-uptake spy on the cap_share."""
     captured = {}
 
-    def fake_uptake(fleet, vessels, idx, cap_share=None):
+    def fake_uptake(fleet, vessels, idx, cap_share):
         captured["cap_share"] = cap_share
         return np.zeros(len(vessels))
 

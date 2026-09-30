@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Residual energy demand of a vessel after the effects of a technology package."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -10,11 +12,13 @@ import numpy as np
 from navigate.core.unit import MWD_TO_GJ
 
 if TYPE_CHECKING:
-    from navigate.core import Scalar
+    from collections.abc import Mapping, Sequence
+
     from navigate.core.enum_ import EnergyDemandTypeID
-    from navigate.core.nodes.curve import Curve
     from navigate.core.nodes.vessel import Vessel
+    from navigate.core.types_ import CurveInput
     from navigate.fleet.package import Package
+    from navigate.util.types_ import FloatLike
 
 
 def calculate_residual_energy(
@@ -22,47 +26,31 @@ def calculate_residual_energy(
     package: Package,
     idx: int | slice,
 ) -> tuple[
-    dict[EnergyDemandTypeID, list[float | np.ndarray]],
-    dict[EnergyDemandTypeID, list[float | np.ndarray]],
+    dict[EnergyDemandTypeID, list[FloatLike]],
+    dict[EnergyDemandTypeID, list[FloatLike]],
 ]:
     """
-    Calculate the residual energy demand for a vessel at sea and in port.
+    Calculate a vessel's residual energy demand at sea and in port with a package.
 
-    This function computes the vessel's time-resolved residual energy demand by
-    combining: (i) raw operational energy demand, (ii) compound savings from efficiency
-    technologies, and (iii) external/alternative power contributions. It evaluates the
-    operational profile separately for sea and port phases, applies technology uptakes,
-    and accounts for power transfers across energy systems.
-
-    Internally, the function:
-      1. Retrieves time axes and raw demands for sea and port phases.
-      2. Uses the precomputed compound technology effects from the Package:
-         - energy savings (multiplicative efficiency across technologies)
-         - installed/available external power (additive, weighted by uptakes)
-      3. Iterates over each step (leg/port call) to produce residuals by energy type,
-         including cross-system transfers based on converter loads and
-         technology-defined power transfer characteristics.
-
-    The result is two lists (sea, port), each containing a dictionary per step with
-    residual energy time series for the energy demand types present in that phase.
-
+    The package's combined savings and external powers reduce the operational energy
+    demand of each leg and port, and its power transfers move energy between the
+    energy demand types by the converter loads.
 
     Parameters
     ----------
     vessel
-        The vessel object providing operational expectations and power
-        system properties.
+        Vessel providing the operational energy demand and the power system.
     package
-        Package containing precomputed savings, powers, and transfer curves.
+        Package holding the precomputed savings, powers and transfer curves.
     idx
-        Time index or slice selecting the operational window.
+        Time-step index or slice of the evaluation.
 
     Returns
     -------
-    tuple
-        A tuple of two lists:
-          - Residual energy at sea: list of dictionaries keyed by energy demand type.
-          - Residual energy in port: list of dictionaries keyed by energy demand type.
+    dict[EnergyDemandTypeID, list[FloatLike]]
+        Residual energy at sea per energy demand type and leg, GJ/year.
+    dict[EnergyDemandTypeID, list[FloatLike]]
+        Residual energy in port per energy demand type and port, GJ/year.
     """
     times_sea = vessel.expectation.get_time_sea(idx)
     times_port = vessel.expectation.get_time_port(idx)
@@ -73,32 +61,31 @@ def calculate_residual_energy(
         return raw_demand_sea, raw_demand_port
 
     energy_sea = _iterate_legs_or_ports(vessel, package, times_sea, raw_demand_sea)
-
     energy_port = _iterate_legs_or_ports(vessel, package, times_port, raw_demand_port)
 
     return energy_sea, energy_port
 
 
 def net_energy_from_raw(
-    raw_energies: dict[EnergyDemandTypeID, list[float]],
-    savings: dict[EnergyDemandTypeID, list[float]],
-) -> dict[EnergyDemandTypeID, list[float]]:
+    raw_energies: Mapping[EnergyDemandTypeID, Sequence[FloatLike]],
+    savings: Mapping[EnergyDemandTypeID, Sequence[FloatLike]],
+) -> dict[EnergyDemandTypeID, list[FloatLike]]:
     """
-    Apply per-step savings fractions to raw energy demand, by energy type.
+    Apply per-step saving fractions to the raw energy demand of each energy type.
 
     Parameters
     ----------
     raw_energies
-        Raw energy demand per step, keyed by energy demand type.
+        Raw energy demand per energy demand type and step, GJ/year.
     savings
-        Saving fraction per step, keyed by energy demand type.
+        Saving per energy demand type and step, fraction.
 
     Returns
     -------
-    dict[EnergyDemandTypeID, list[float]]
-        Net energy demand per step, keyed by energy demand type.
+    dict[EnergyDemandTypeID, list[FloatLike]]
+        Net energy demand per energy demand type and step, GJ/year.
     """
-    out = {}
+    out: dict[EnergyDemandTypeID, list[FloatLike]] = {}
     for k, raw in raw_energies.items():
         sav = savings[k]
         out[k] = [(1.0 - s) * e for e, s in zip(raw, sav, strict=True)]
@@ -108,48 +95,43 @@ def net_energy_from_raw(
 def _iterate_legs_or_ports(
     vessel: Vessel,
     package: Package,
-    durations: list[np.ndarray],
-    raw_demands: dict[EnergyDemandTypeID, list[np.ndarray]],
-) -> dict[EnergyDemandTypeID, list[float | np.ndarray]]:
+    durations: Sequence[FloatLike],
+    raw_demands: Mapping[EnergyDemandTypeID, Sequence[FloatLike]],
+) -> dict[EnergyDemandTypeID, list[FloatLike]]:
     """
-    Iterate over legs or ports and compute residual energy for each step.
+    Calculate the residual energy of each leg or port.
 
-    For each time step, the algorithm:
-      1. Converts compound external power to energy over the step duration and subtracts
-         it from the raw demand after applying compound savings.
-      2. Converts the resulting residual energy back to power to determine per-system
-         loads via the vessel's converters.
-      3. Applies cross-system power transfers between all available source/sink energy
-         types, integrates those transfers over the duration, and subtracts from the
-         residuals (non-negatively).
-
-    Only energy types present in the input raw demands for the given context (e.g.,
-    PROPULSION is not present in port) contribute to step-level residuals and loads;
-    transfers are applied against the computed residuals accordingly.
-
+    Per step, the combined saving and the external energy over the step's duration
+    reduce the demand; with power transfers, the residual power sets each
+    converter's load, and the power the transfers move over the duration reduces the
+    sink's residual, floored at zero. Only the energy demand types of the given
+    demands take part: there is no propulsion in port.
 
     Parameters
     ----------
     vessel
-        The vessel being analyzed.
+        Vessel whose converters set the loads.
     package
-        Package of technologies installed on the vessel.
+        Package installed on the vessel.
     durations
-        Time arrays per step; used to convert between power and energy.
+        Time spent on each step, days/year.
     raw_demands
-        Raw energy demand per energy type and step for the selected context.
+        Operational energy demand per energy demand type and step, GJ/year.
 
     Returns
     -------
-        One entry per step: a dictionary mapping energy demand type to residual energy.
+    dict[EnergyDemandTypeID, list[FloatLike]]
+        Residual energy per energy demand type and step, GJ/year.
     """
     keys = list(raw_demands.keys())
     n_steps = len(durations)
-    residual_energy_all = {energy_id: [] for energy_id in keys}
+    residual_energy_all: dict[EnergyDemandTypeID, list[FloatLike]] = {
+        energy_id: [] for energy_id in keys
+    }
 
     for i in range(n_steps):
-        residual_energy = {}
-        loads = {}
+        residual_energy: dict[EnergyDemandTypeID, FloatLike] = {}
+        loads: dict[EnergyDemandTypeID, FloatLike] = {}
         duration = durations[i]
 
         for energy_id in keys:
@@ -175,7 +157,7 @@ def _iterate_legs_or_ports(
                 if sink_energy_id not in residual_energy:
                     continue
 
-                transfer_energy = 0.0
+                transfer_energy: FloatLike = 0.0
 
                 for power_system_id in keys:
                     if power_system_id not in loads:
@@ -201,70 +183,49 @@ def _iterate_legs_or_ports(
     return residual_energy_all
 
 
-def _calculate_power_transfer(
-    curves: list[Curve | Scalar], load: np.ndarray
-) -> np.ndarray:
+def _calculate_power_transfer(curves: list[CurveInput], load: FloatLike) -> FloatLike:
     """
-    Compute power transfer from pre-filtered non-zero curves.
-
-    Only called for (src, dst) pairs known to have at least one non-zero
-    contributing technology.  No dict lookups or tuple hashing required.
+    Sum the power the transfer curves of one (source, sink) pair move at a load.
 
     Parameters
     ----------
     curves
-        Non-zero Curve/Scalar objects for this (source, sink) pair.
+        Non-zero transfer curves of the pair.
     load
-        Source system load used as input to each transfer response.
+        Load of the source converter, fraction.
 
     Returns
     -------
-    np.ndarray
-        Power transferred from source to sink for the given load.
+    FloatLike
+        Power transferred from source to sink, MW.
     """
     powers = np.array([curve.get(load) for curve in curves])
-    return np.sum(powers, axis=0, dtype=float)
+    transfer: FloatLike = np.sum(powers, axis=0, dtype=float)
+    return transfer
 
 
 def _calculate_converter_load(
-    vessel: Vessel, power_system_id: EnergyDemandTypeID, residual_power: np.ndarray
-) -> np.ndarray:
-    """
-    Convert residual power to per-converter load.
-
-    Retrieves the converter capacity for the given energy system and normalizes the
-    residual power by that capacity to obtain the converter load.
-    """
+    vessel: Vessel, power_system_id: EnergyDemandTypeID, residual_power: FloatLike
+) -> FloatLike:
+    """Return the load of the converter serving a demand, fraction of capacity."""
     converter = vessel.power_system.get_converter_by_energy_type(power_system_id)
     capacity = converter.power_capacity.get()
     return residual_power / capacity
 
 
 def _raw_to_residual_energy(
-    raw_energy: np.ndarray, saving: float, external_power: np.ndarray
-) -> np.ndarray:
-    """
-    Convert raw energy to residual energy after savings and external power.
-
-    Applies the compound saving to the raw demand, subtracts external energy, and clamps
-    the result to non-negative values.
-    """
-    return np.maximum(raw_energy * (1.0 - saving) - external_power, 0.0)
+    raw_energy: FloatLike, saving: float, external_power: FloatLike
+) -> FloatLike:
+    """Reduce the raw energy by the saving and the external energy, floored at zero."""
+    residual: FloatLike = np.maximum(raw_energy * (1.0 - saving) - external_power, 0.0)
+    return residual
 
 
-def _power_to_energy(power: float | np.ndarray, duration: np.ndarray) -> np.ndarray:
-    """
-    Power-to-energy conversion over the provided duration.
-
-    Multiplies power by duration and unit conversion to obtain energy.
-    """
+def _power_to_energy(power: FloatLike, duration: FloatLike) -> FloatLike:
+    """Convert a power, MW, over a duration, days, to energy, GJ."""
     return power * duration * MWD_TO_GJ
 
 
-def _energy_to_power(energy: np.ndarray, duration: np.ndarray) -> np.ndarray:
-    """
-    Energy-to-power conversion over the provided duration.
-
-    Divides energy by duration and unit conversion to obtain power.
-    """
+def _energy_to_power(energy: FloatLike, duration: FloatLike) -> FloatLike:
+    """Convert an energy, GJ, over a duration, days, to power, MW."""
     return energy / (duration * MWD_TO_GJ)

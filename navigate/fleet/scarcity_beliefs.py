@@ -1,37 +1,45 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Smoothed shadow-price beliefs of each vessel and the investment signals from them."""
+
 from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import numpy as np
 
 from navigate.util import derive_smoothing_alpha, update_belief_path
 
+if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence
+
+    from navigate.core.enum_ import EnergyDemandTypeID
+    from navigate.core.nodes.fleet import Fleet
+    from navigate.util.types_ import FloatArray
+
 
 def update_vessel_scarcity_beliefs(
-    fleets: dict, timeline: np.ndarray, idx: int
+    fleets: dict[str, Fleet], timeline: FloatArray, idx: int
 ) -> None:
     """
-    Update per-leg shadow-price beliefs for every vessel.
+    Update every vessel's per-leg shadow-price beliefs.
 
-    Each (energy-demand-type, leg) array of LP duals is smoothed independently
-    via exponential moving average, in place on the expectation's per-leg
-    belief arrays. Two parallel belief sets are maintained: a slower one for
-    technology decisions (amortised over `technology_horizon`) and a faster
-    one for operational speed management (`speed_horizon`).
-
-    Per-leg smoothing preserves the LP's directional structure across legs
-    (where shadow prices may differ in sign and magnitude) while damping
-    year-to-year volatility at each leg individually.
+    Each (energy-demand-type, leg) array of LP duals is smoothed on its own by an
+    exponential moving average, in place on the expectation's belief arrays. A slower
+    belief serves technology decisions, amortised over `technology_horizon`, and a
+    faster one operational speed management, over `speed_horizon`. Smoothing each leg
+    on its own keeps the LP's structure across legs, where shadow prices may differ
+    in sign and magnitude, while damping each leg's year-to-year volatility.
 
     Parameters
     ----------
     fleets
-        Mapping of fleet id to fleet object.
+        All fleets in the simulation.
     timeline
-        Simulation timeline in days.
+        Simulation timeline, days.
     idx
-        Current outer time-step index.
+        Current time-step index.
     """
     for fleet in fleets.values():
         tech_horizon = fleet.technology_horizon.get()
@@ -63,20 +71,19 @@ def update_vessel_scarcity_beliefs(
             )
 
 
-def record_investment_signals(fleets: dict, idx: int) -> None:
+def record_investment_signals(fleets: dict[str, Fleet], idx: int) -> None:
     """
-    Store a per-vessel scalar proxy of the investment-signal magnitude.
+    Store each vessel's investment signal: its beliefs' energy-weighted average dual.
 
-    Collapses the multi-key smoothed energy-conservation duals into one
-    energy-weighted average per vessel (USD/GJ), separately for the technology-
-    and speed-horizon beliefs, and writes them to the vessel profile for output.
+    The technology and speed beliefs each give one signal, USD/GJ, written to the
+    vessel profile for output.
 
     Parameters
     ----------
     fleets
-        Mapping of fleet id to fleet object.
+        All fleets in the simulation.
     idx
-        Current outer time-step index.
+        Current time-step index.
     """
     for fleet in fleets.values():
         for vessel in fleet.vessels:
@@ -106,35 +113,35 @@ def record_investment_signals(fleets: dict, idx: int) -> None:
 
 
 def _energy_weighted_signal(
-    belief_sea: dict,
-    belief_port: dict,
-    rhs_sea: dict,
-    rhs_port: dict,
+    belief_sea: Mapping[EnergyDemandTypeID, Sequence[FloatArray]],
+    belief_port: Mapping[EnergyDemandTypeID, Sequence[FloatArray]],
+    rhs_sea: Mapping[EnergyDemandTypeID, Sequence[FloatArray]],
+    rhs_port: Mapping[EnergyDemandTypeID, Sequence[FloatArray]],
     idx: int,
 ) -> float:
     """
-    Collapse per-(energy-type, leg) belief duals into one energy-weighted scalar.
+    Collapse the per-(energy-type, leg) belief duals into one energy-weighted average.
 
-    Each leg/port dual at `idx` is weighted by its energy-conservation RHS (the
-    energy demand the dual prices), combining sea and port contributions. The
-    result is the marginal value of energy the vessel faces, in USD/GJ.
+    Each leg and port dual is weighted by its energy-conservation RHS, the energy
+    demand it prices, so the result is the marginal value of energy the vessel faces.
 
     Parameters
     ----------
     belief_sea
-        Smoothed sea duals, keyed by energy-demand-type, valued by per-leg arrays.
+        Smoothed duals at sea per energy demand type and leg, USD/GJ.
     belief_port
-        Smoothed port duals, same structure indexed by port.
+        Smoothed duals in port per energy demand type and port, USD/GJ.
     rhs_sea
-        Energy-conservation RHS for sea, same structure as `belief_sea`.
+        Energy-conservation RHS at sea, shaped as `belief_sea`, GJ/year.
     rhs_port
-        Energy-conservation RHS for port, same structure as `belief_port`.
+        Energy-conservation RHS in port, shaped as `belief_port`, GJ/year.
     idx
-        Current outer time-step index.
+        Current time-step index.
 
     Returns
     -------
-    Energy-weighted average dual at `idx`, or ``np.nan`` when there is no demand.
+    float
+        Energy-weighted average dual, USD/GJ, or ``np.nan`` when there is no demand.
     """
     weighted_sum = 0.0
     weight_total = 0.0
@@ -154,25 +161,25 @@ def _energy_weighted_signal(
 
 
 def _smooth_pi_dict(
-    raw_dict: dict,
-    belief_dict: dict,
+    raw_dict: Mapping[EnergyDemandTypeID, Sequence[FloatArray]],
+    belief_dict: Mapping[EnergyDemandTypeID, Sequence[FloatArray]],
     alpha: float,
     idx: int,
 ) -> None:
     """
-    Apply per-leg EMA smoothing to every array in a pi dict, in place.
+    Smooth every per-leg array of a belief dict towards the raw duals, in place.
 
     Parameters
     ----------
     raw_dict
-        Raw LP-dual dict keyed by energy-demand-type, valued by per-leg arrays.
+        Raw LP duals per energy demand type and leg, USD/GJ.
     belief_dict
-        Belief dict of the same shape; modified in place.
+        Beliefs of the same shape; updated in place.
     alpha
-        EMA weight on the new raw projection. ``alpha = 1`` trusts the latest
-        projection fully; ``alpha = 0`` ignores it.
+        EMA weight on the new raw projection, fraction: ``alpha = 1`` trusts the
+        latest projection fully, ``alpha = 0`` ignores it.
     idx
-        Current outer time-step index. Only ``s >= idx`` are updated.
+        Current time-step index; only the time-steps from it on are updated.
     """
     for energy_id, raw_legs in raw_dict.items():
         belief_legs = belief_dict[energy_id]

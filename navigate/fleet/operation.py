@@ -36,43 +36,75 @@ if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
     from navigate.core.nodes.route import Route
     from navigate.core.nodes.vessel import Vessel
-    from navigate.util.types_ import FloatLike
+    from navigate.core.types_ import ForecastInput
+    from navigate.util.types_ import FloatArray, FloatLike
 
 
 @dataclass
 class Operations:
+    """
+    Annualized operational profile of one vessel at given speeds.
+
+    Parameters
+    ----------
+    distribution
+        Share of the sea time on each leg, fraction.
+    speeds
+        Speed on each leg, knots.
+    capacity_utilizations
+        Capacity utilization on each leg, fraction.
+    distances
+        Distance sailed on each leg, nautical miles/year.
+    times_sea
+        Time at sea on each leg, days/year.
+    times_port
+        Time in each port, days/year.
+    time_at_sea
+        Share of the year spent at sea, fraction.
+    voyages
+        Voyages per year; one for a regional route.
+    miles
+        Distance sailed, nautical miles/year.
+    cargo_miles
+        Cargo-miles delivered, cargo-miles/year.
+    cargo_miles_leg
+        Cargo-miles delivered on each leg, cargo-miles/year.
+    cargo_miles_leg_nominal
+        Cargo-miles on each leg at full capacity utilization, cargo-miles/year.
+    energy_sea
+        Energy demand at sea per energy demand type, one value per leg, GJ/year.
+    energy_port
+        Energy demand in port per energy demand type, one value per port, GJ/year.
+    """
+
     # operations
-    distribution: np.ndarray = field(default_factory=lambda: np.empty(0))
-    speeds: np.ndarray = field(default_factory=lambda: np.empty(0))
-    capacity_utilizations: np.ndarray = field(default_factory=lambda: np.empty(0))
-    distances: np.ndarray = field(default_factory=lambda: np.empty(0))
+    distribution: FloatArray = field(default_factory=lambda: np.empty(0))
+    speeds: FloatArray = field(default_factory=lambda: np.empty(0))
+    capacity_utilizations: FloatArray = field(default_factory=lambda: np.empty(0))
+    distances: FloatArray = field(default_factory=lambda: np.empty(0))
 
     # voyage
-    times_sea: np.ndarray = field(default_factory=lambda: np.empty(0))
-    times_port: np.ndarray = field(default_factory=lambda: np.empty(0))
+    times_sea: FloatArray = field(default_factory=lambda: np.empty(0))
+    times_port: FloatArray = field(default_factory=lambda: np.empty(0))
     time_at_sea: float = 0.0
     voyages: float = 0.0
 
     # cargo
     miles: float = 0.0
     cargo_miles: float = 0.0
-    cargo_miles_leg: np.ndarray = field(default_factory=lambda: np.empty(0))
-    cargo_miles_leg_nominal: np.ndarray = field(default_factory=lambda: np.empty(0))
+    cargo_miles_leg: FloatArray = field(default_factory=lambda: np.empty(0))
+    cargo_miles_leg_nominal: FloatArray = field(default_factory=lambda: np.empty(0))
 
     # energy
-    energy_sea: dict[EnergyDemandTypeID, list[float | np.ndarray]] = field(
-        default_factory=dict
-    )
-    energy_port: dict[EnergyDemandTypeID, list[float | np.ndarray]] = field(
-        default_factory=dict
-    )
+    energy_sea: dict[EnergyDemandTypeID, FloatArray] = field(default_factory=dict)
+    energy_port: dict[EnergyDemandTypeID, FloatArray] = field(default_factory=dict)
 
 
 def update_operational_profile(
     vessel: Vessel, allow_speed_management: bool, idx: int
 ) -> None:
     """
-    Update the operational profile of a vessel based on its current speeds and route.
+    Update a vessel's operational profile at its current speeds.
 
     Parameters
     ----------
@@ -84,18 +116,16 @@ def update_operational_profile(
         Current time-step index.
     """
     if idx > 0 and allow_speed_management:
-        # if the fleet allows speed management, the best proxy for the vessel's speed
-        # is the speed at the previous time-step
-        speeds = to_numpy(vessel.expectation.get_speeds(idx - 1))
+        # under speed management, the previous time-step's speed is the best proxy
+        speeds = np.array(
+            [float(speed) for speed in vessel.expectation.get_speeds(idx - 1)]
+        )
 
     else:
-        # if the fleet does not allow speed management, use the reference speed from the
-        # route
         speeds = to_numpy(vessel.route.speeds)
 
-        # the reference speed may exceed the propulsion converter's maximum power
-        # capacity or fall below the minimum load required; if so, truncate it to the
-        # limits
+        # the route's reference speed may exceed the propulsion converter's power
+        # capacity or fall below its minimum load
         speeds_min, speeds_max = calculate_technical_speed_limits(vessel)
         speeds = np.clip(speeds, speeds_min, speeds_max)
 
@@ -103,22 +133,20 @@ def update_operational_profile(
     transfer_operational_profile(vessel, operations, idx)
 
 
-def calculate_operational_profile(vessel: Vessel, speeds: np.ndarray) -> Operations:
+def calculate_operational_profile(vessel: Vessel, speeds: FloatArray) -> Operations:
     """
-    Evaluate the operational profile for a vessel at given speeds.
+    Evaluate a vessel's operational profile at given speeds.
 
-    The calculation is route-type specific:
-      - ROUND_TRIP: derives voyages/year from voyage duration and scales to annual
-        totals.
-      - REGIONAL: uses a reference operational pattern and applies endogenous sea/port
-        split.
+    A round trip scales one voyage to the voyages per year; a regional route splits
+    the year between sea and port from its reference pattern, as the module
+    docstring describes.
 
     Parameters
     ----------
     vessel
-        Vessel for which the operational profile is evaluated.
+        Vessel whose operational profile is evaluated.
     speeds
-        Speeds per leg (knots).
+        Speed on each leg, knots.
 
     Returns
     -------
@@ -141,18 +169,17 @@ def transfer_operational_profile(
     vessel: Vessel, operations: Operations, idx: int
 ) -> None:
     """
-    Transfer an evaluated Operations profile into vessel expectation and vessel profile.
+    Store an evaluated operational profile on the vessel's expectation and profile.
 
     Parameters
     ----------
     vessel
-        Vessel for which results are stored.
+        Vessel whose results are stored.
     operations
-        Operations object containing evaluated annualized results.
+        Evaluated annualized operational profile.
     idx
-        Simulation index at which the results are stored.
+        Current time-step index.
     """
-    # transfer expectations
     vessel.expectation.set_voyages(idx, operations.voyages)
     vessel.expectation.set_speeds(idx, operations.speeds)
     vessel.expectation.set_time_sea(idx, operations.times_sea)
@@ -165,7 +192,6 @@ def transfer_operational_profile(
     vessel.expectation.set_raw_energy_sea(idx, operations.energy_sea)
     vessel.expectation.set_raw_energy_port(idx, operations.energy_port)
 
-    # calculate the total energy across legs for transfer to output
     total_energy_sea = {
         energy_id: np.sum(energy) for energy_id, energy in operations.energy_sea.items()
     }
@@ -174,13 +200,12 @@ def transfer_operational_profile(
         for energy_id, energy in operations.energy_port.items()
     }
 
-    # transfer results to vessel profile
     vessel.profile.set_cargo_miles(idx, operations.cargo_miles)
     vessel.profile.set_raw_energy_sea(idx, total_energy_sea)
     vessel.profile.set_raw_energy_port(idx, total_energy_port)
 
-    # the reference speed must be calculated specifically in case speed management is
-    # activated
+    # the reference speed is recalculated from the route, as speed management may have
+    # moved the operated speeds away from it
     reference_speeds = to_numpy(vessel.route.speeds)
     reference_speed = np.average(reference_speeds, weights=operations.distribution)
     vessel.profile.set_reference_speed(idx, reference_speed)
@@ -191,14 +216,14 @@ def convert_to_regional_steps(
     energy_sea: Mapping[EnergyDemandTypeID, Sequence[FloatLike]],
 ) -> dict[EnergyDemandTypeID, list[FloatLike]]:
     """
-    Redistribute sea energy demand into regional steps based on the voyage distribution.
+    Redistribute the sea energy demand onto regional steps by the voyage distribution.
 
     Parameters
     ----------
     vessel
         Vessel whose route defines the regional legs and voyage distribution.
     energy_sea
-        Energy demand at sea per energy demand type, one value per leg.
+        Energy demand at sea per energy demand type, one value per leg, GJ/year.
 
     Returns
     -------
@@ -228,16 +253,14 @@ def convert_to_regional_steps(
 
 def _calculate_trip(operations: Operations, vessel: Vessel) -> None:
     """
-    Compute annual sea/port time and distances for a route, storing them in Operations.
-
-    The implementation depends on route type (round-trip vs regional).
+    Calculate the annual sea and port times and distances of the vessel's route.
 
     Parameters
     ----------
     operations
-        Operations container to be populated.
+        Operational profile to populate.
     vessel
-        Vessel providing the route definition with sailing/port parameters.
+        Vessel whose route is evaluated.
     """
     route = vessel.route
     route_type = route.route_type
@@ -245,24 +268,25 @@ def _calculate_trip(operations: Operations, vessel: Vessel) -> None:
 
     if route_type == RouteTypeID.ROUND_TRIP:
         _calculate_round_trip(operations, route)
-    else:
-        _calculate_regional_trip(operations, route)
+    elif route.time_at_sea is not None:
+        # a regional trip always has a time at sea, as its requirements check
+        # enforces
+        _calculate_regional_trip(operations, route, route.time_at_sea)
 
 
 def _calculate_round_trip(operations: Operations, route: Route) -> None:
     """
-    Compute annualized operational profile for a round-trip route.
+    Calculate the annualized operational profile of a round-trip route.
 
-    Per-voyage sea times are derived from distances and per-leg speeds, port times are
-    taken from port durations, and voyages/year is computed from total voyage duration.
-    All quantities are scaled to annual totals.
+    One voyage's sea and port times are scaled by the voyages per year that fit its
+    duration.
 
     Parameters
     ----------
     operations
-        Operations container to be populated.
+        Operational profile to populate.
     route
-        Round-trip route definition.
+        Round-trip route.
     """
     speeds = operations.speeds
 
@@ -274,8 +298,6 @@ def _calculate_round_trip(operations: Operations, route: Route) -> None:
     distribution = divide_nonzero(times_sea, total_time_sea)
     time_at_sea = total_time_sea / YEAR
 
-    # calculate voyages per year in order to rescale durations and distances to
-    # the times and distances covered in a year
     total_time_port = np.sum(times_port)
     voyage_duration = total_time_sea + total_time_port
     voyages = YEAR / voyage_duration
@@ -288,30 +310,35 @@ def _calculate_round_trip(operations: Operations, route: Route) -> None:
     operations.voyages = voyages
 
 
-def _calculate_regional_trip(operations: Operations, route: Route) -> None:
+def _calculate_regional_trip(
+    operations: Operations, route: Route, reference_time_at_sea: ForecastInput
+) -> None:
     """
-    Calculate the annualized operational profile for a regional-trip route.
+    Calculate the annualized operational profile of a regional-trip route.
 
-    Enforces a 365-day annual time budget while letting the sea/port split respond
-    endogenously to speed; see the module docstring for the feedback mechanism.
+    The sea and port times fill the year and their split responds to speed, as the
+    module docstring describes.
 
     Parameters
     ----------
     operations
-        Operations on which operational profile results are stored.
+        Operational profile to populate.
     route
-        Route supplying the reference operational parameters.
+        Route supplying the reference operational pattern.
+    reference_time_at_sea
+        Reference share of the year spent at sea, fraction.
     """
-    days_per_call, miles_between_calls = _calculate_regional_reference(route)
+    days_per_call, miles_between_calls = _calculate_regional_reference(
+        route, reference_time_at_sea
+    )
 
     speeds = operations.speeds
     distribution_sea = to_numpy(route.condition_distribution)
     speed_mean = np.average(speeds, weights=distribution_sea)
     miles_per_day = speed_mean * DAY_TO_HOURS
 
-    # calculate the total time at sea as a function of the port time budget defined by
-    # the reference pattern: YEAR = sea_days + port_days = sea_days * (1 +
-    # port_days_per_sea_day)
+    # the reference pattern fixes the port days per sea day, and
+    # YEAR = sea_days + port_days = sea_days * (1 + port_days_per_sea_day)
     port_days_per_sea_day = days_per_call / miles_between_calls * miles_per_day
     total_time_sea = YEAR / (1.0 + port_days_per_sea_day)
     time_at_sea = total_time_sea / YEAR
@@ -335,56 +362,61 @@ def _calculate_regional_trip(operations: Operations, route: Route) -> None:
     operations.voyages = 1.0
 
 
-def _calculate_regional_reference(route: Route) -> tuple[float, float]:
+def _calculate_regional_reference(
+    route: Route, reference_time_at_sea: ForecastInput
+) -> tuple[float, float]:
     """
-    Derive reference (absent speed management) scalars for a regional-trip route.
+    Derive the port days per call and sea miles between calls of a regional route.
 
-    Returns the port-days per call and sea-miles between calls implied by the route's
-    exogenous reference pattern; see the module docstring for how these anchor the
-    endogenous sea/port split.
+    Both follow from the route's reference pattern, absent speed management; the
+    module docstring describes how they anchor the sea and port split.
 
     Parameters
     ----------
     route
-        Route supplying the reference operational parameters.
+        Route supplying the reference operational pattern.
+    reference_time_at_sea
+        Reference share of the year spent at sea, fraction.
 
     Returns
     -------
-    days_per_call
-        Port days per call implied by reference time at sea and total port calls.
-    miles_between_calls
-        Sea miles between calls implied by reference speeds, sea distribution and sea
-        time.
+    float
+        Port days per call.
+    float
+        Sea miles between calls, nautical miles.
     """
     distribution = to_numpy(route.condition_distribution)
     speeds = to_numpy(route.speeds)
 
-    time_at_sea = route.time_at_sea.get()
+    time_at_sea = reference_time_at_sea.get()
     total_time_sea = time_at_sea * YEAR
     total_time_port = (1.0 - time_at_sea) * YEAR
 
     port_calls = to_numpy(route.port_calls)
     total_calls = np.sum(port_calls)
-    days_per_call = divide_nonzero(total_time_port, total_calls)
+    # numpy scalars keep numpy division in the caller, which divides by
+    # miles_between_calls: a route without port calls gives nan there, not a
+    # ZeroDivisionError
+    days_per_call = np.float64(divide_nonzero(total_time_port, total_calls))
 
     times_sea = total_time_sea * distribution
     distances = speeds * times_sea * DAY_TO_HOURS
     miles = np.sum(distances)
-    miles_between_calls = divide_nonzero(miles, total_calls)
+    miles_between_calls = np.float64(divide_nonzero(miles, total_calls))
 
     return days_per_call, miles_between_calls
 
 
 def _calculate_cargo_miles(operations: Operations, vessel: Vessel) -> None:
     """
-    Compute annual miles and cargo-miles from annual distances and capacity utilization.
+    Calculate the annual miles and cargo-miles from the distances and utilizations.
 
     Parameters
     ----------
     operations
-        Operations container with annual distances and capacity utilizations.
+        Operational profile holding the annual distances and capacity utilizations.
     vessel
-        Vessel providing the nominal cargo capacity used for cargo-mile calculation.
+        Vessel providing the nominal cargo capacity.
     """
     capacity = vessel.nominal_capacity.get()
     distances = operations.distances
@@ -401,14 +433,14 @@ def _calculate_cargo_miles(operations: Operations, vessel: Vessel) -> None:
 
 def _calculate_energy_sea(operations: Operations, vessel: Vessel) -> None:
     """
-    Compute annual energy demand at sea for propulsion, electrical, and heat loads.
+    Calculate the annual energy demand at sea: propulsion, electrical and heat.
 
     Parameters
     ----------
     operations
-        Operations container with speeds, capacity utilization, and annual sea times.
+        Operational profile holding the speeds, utilizations and annual sea times.
     vessel
-        Vessel providing load models at sea.
+        Vessel providing the loads at sea.
     """
     speeds = operations.speeds
     capacity_utilizations = operations.capacity_utilizations
@@ -431,14 +463,14 @@ def _calculate_energy_sea(operations: Operations, vessel: Vessel) -> None:
 
 def _calculate_energy_port(operations: Operations, vessel: Vessel) -> None:
     """
-    Compute annual energy demand in port for electrical and heat loads.
+    Calculate the annual energy demand in port of the electrical and heat loads.
 
     Parameters
     ----------
     operations
-        Operations container with annual port times by port.
+        Operational profile holding the annual time in each port.
     vessel
-        Vessel providing port load models.
+        Vessel providing the loads in port.
     """
     times_port = operations.times_port
 
@@ -453,7 +485,7 @@ def _calculate_energy_port(operations: Operations, vessel: Vessel) -> None:
     )
 
 
-def _load_to_energy(load: float | np.ndarray, time: np.ndarray) -> np.ndarray:
+def _load_to_energy(load: FloatLike, time: FloatArray) -> FloatArray:
     """
     Calculate the energy required to operate at a given load for a given duration.
 
@@ -462,12 +494,12 @@ def _load_to_energy(load: float | np.ndarray, time: np.ndarray) -> np.ndarray:
     load
         Load level of the engine, MW.
     time
-        Time spent at a given load level, days.
+        Time spent at the load level, days.
 
     Returns
     -------
-    np.ndarray
-        Energy required to operate at the given load level for the given duration.
+    FloatArray
+        Energy required at the load level over the time, GJ.
     """
     return load * time * MWD_TO_GJ
 
@@ -479,7 +511,7 @@ def transfer_operational_saving_to_vessels(fleet: Fleet) -> None:
     Parameters
     ----------
     fleet
-        The fleet instance.
+        Fleet whose saving fractions are transferred.
     """
     saving_sea = {d: fleet.operational_saving_sea[d].get() for d in EnergyDemandTypeID}
     saving_port = {

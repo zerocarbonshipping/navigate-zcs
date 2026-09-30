@@ -1,12 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""
-Determine the fuel options of a vessel from its power system and tanks.
-
-Covers the primary fuel type, the usable fuel types, and the usable
-fuels, based on the simulation fuels grouped by fuel type.
-"""
+"""Primary fuel type, usable fuel types and usable fuels of each vessel."""
 
 from __future__ import annotations
 
@@ -45,7 +40,7 @@ def determine_fuel_type(vessel: Vessel) -> None:
         return
 
     power_system = vessel.power_system
-    fuel_type_power = {}
+    fuel_type_power: dict[FuelTypeID, float] = {}
 
     for converter in power_system.get_converters():
         main_fuel_types = converter.main_fuel_types
@@ -58,7 +53,7 @@ def determine_fuel_type(vessel: Vessel) -> None:
             else:
                 fuel_type_power[fuel_type] = power_capacity
 
-    # reverse the list
+    # invert the mapping to the fuel types of each power capacity
     power_capacities = unique_list(fuel_type_power.values())
     power_fuel_type = {}
 
@@ -67,12 +62,10 @@ def determine_fuel_type(vessel: Vessel) -> None:
             key for key, value in fuel_type_power.items() if value == power
         ]
 
-    # find the fuel types with the highest power
     max_power = max(power_capacities)
 
     if len(power_fuel_type[max_power]) > 1:
-        # if multiple fuel types with same power
-        # base the primary type on the tank size
+        # a tie in power capacity is broken by the tank size
         tanks = vessel.tanks
         fuel_type_size = {
             fuel_type: tank.size.get()
@@ -80,7 +73,6 @@ def determine_fuel_type(vessel: Vessel) -> None:
             for fuel_type in tank.get_fuel_types()
         }
 
-        # reduce the list of possibly fuel types
         usable_fuel_types = [
             fuel_type
             for fuel_type in power_fuel_type[max_power]
@@ -92,8 +84,7 @@ def determine_fuel_type(vessel: Vessel) -> None:
             if type_ not in fuel_type_size:
                 continue
 
-            # notice that if multiple tanks have the same size
-            # the first encountered fuel type is chosen
+            # a tie in tank size keeps the first fuel type
             if fuel_type_size[type_] > fuel_type_size[fuel_type]:
                 fuel_type = type_
 
@@ -136,7 +127,6 @@ def determine_usable_fuel_types(vessel: Vessel) -> None:
         for fuel_type in converter.get_fuel_types()
     ]
 
-    # check the tanks allow for storage of fuels used in the converters
     for converter in vessel.power_system.get_converters():
         main_fuel_types = converter.main_fuel_types
         pilot_fuel_types = converter.pilot_fuel_types
@@ -187,7 +177,6 @@ def determine_usable_fuels(
         for fuel in fuels:
             vessel.usable_fuels.setdefault(fuel.name, fuel)
 
-    # check that the vessel can bunker
     if not vessel.usable_fuels:
         raise ValueError(
             f"{vessel}: No overlap between the fuel types of the PowerSystem,"

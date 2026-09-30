@@ -8,13 +8,12 @@ Technologies are CAPEX-sorted into cumulative packages (``build_technology_packa
 the package is the unit of choice. ``perform_technology_installation`` runs four phases
 per fleet and time-step:
 
-1. ``_propose_newbuild_uptake`` / ``_propose_retrofits`` — unconstrained MNL choices per
-   vessel.
-2. ``_reconcile_retrofit_technology_caps`` — scale the retrofit proposals against the
-   caps.
-3. ``_apply_retrofits`` — mutate per-increment uptake and the carried charge.
-4. ``_transfer_retrofit_uptake`` / ``transfer_technology_charter_rate`` — profile
-   writes.
+1. ``_propose_newbuild_uptake`` and ``_propose_retrofits`` make the unconstrained MNL
+   choices per vessel.
+2. ``_reconcile_retrofit_technology_caps`` scales the retrofit proposals to the caps.
+3. ``_apply_retrofits`` updates the per-increment uptake and the carried charge.
+4. ``_transfer_retrofit_uptake`` and ``transfer_technology_charter_rate`` write the
+   profile.
 
 The retrofit phases communicate through ``_RetrofitProposal`` objects. Newbuild uptake
 is reconciled later, in ``perform_fleet_evolution``
@@ -54,60 +53,89 @@ from navigate.fleet.residual_energy import (
 from navigate.util import ROUND_OFF, TOLERANCE, YEAR, divide_nonzero
 
 if TYPE_CHECKING:
-    from numpy.typing import NDArray
+    from collections.abc import Mapping, Sequence
 
     from navigate.core.increment import VesselIncrement
     from navigate.core.nodes.fleet import Fleet
     from navigate.core.nodes.technology import Technology
     from navigate.core.nodes.vessel import Vessel
+    from navigate.core.types_ import ForecastInput
+    from navigate.util.types_ import FloatArray, FloatLike
 
 logger = logging.getLogger(__name__)
 
 
 @dataclass
 class _AdoptionBasis:
-    """Per-vessel invariants of one technology-adoption pass (newbuild and retrofit)."""
+    """
+    Per-vessel invariants of one technology-adoption pass, newbuild and retrofit.
+
+    Parameters
+    ----------
+    vessel
+        Vessel type of the pass.
+    vessel_idx
+        Index of the vessel in ``fleet.assets`` and ``fleet.increments``.
+    packages_saving
+        Marginal-saving cash flow of each package, USD/year.
+    discount_rate
+        Discount rate of the adoption decision: the technology cost of capital,
+        falling back to the vessel's, fraction.
+    vessel_discount_rate
+        Vessel cost of capital, fraction; it levelizes the carried retrofit charge
+        consistently with the freight-rate NPVs, while the adoption decision keeps
+        the technology rate.
+    capex_npv
+        Summed ship CAPEX NPV, USD; it non-dimensionalizes the NPVs in the DCM.
+    """
 
     vessel: Vessel
-    vessel_idx: int  # index into fleet.assets and fleet.increments
-    packages_saving: list[np.ndarray]  # marginal-saving cash flow per package
-
-    # adoption-decision rate: technology cost of capital, falling back to the vessel's
+    vessel_idx: int
+    packages_saving: list[FloatArray]
     discount_rate: float
-
-    # vessel cost of capital: levelizes the carried retrofit charge for consistency with
-    # the freight-rate NPVs; the adoption decision keeps the technology rate
     vessel_discount_rate: float
-
-    capex_npv: float  # summed ship CAPEX NPV, non-dimensionalizes the NPVs in the DCM
+    capex_npv: float
 
 
 @dataclass
 class _RetrofitProposal:
-    """MNL retrofit jumps for the eligible share of one (vessel, increment, package)."""
+    """
+    MNL retrofit jumps for the eligible share of one (vessel, increment, package).
 
-    # index into fleet.assets; groups proposals per vessel in the transfer
+    Parameters
+    ----------
+    vessel_idx
+        Index of the vessel in ``fleet.assets``; it groups the proposals per vessel in
+        the transfer.
+    increment
+        Age cohort whose ``package_uptake`` the apply step updates.
+    package_idx
+        Package the eligible share sits at.
+    choices
+        MNL shares over the retrofit steps, fraction: ``choices[0]`` stays and
+        ``choices[k]`` jumps to ``package_idx + k``; the cap reconciliation rescales
+        it in place.
+    eligible_share
+        Share of the increment at ``package_idx`` at propose time, fraction.
+    annual_costs
+        Levelized charge of each retrofit step, USD/year per vessel.
+    """
+
     vessel_idx: int
 
-    # age cohort whose package_uptake the apply step mutates; safe to hold, as nothing
-    # mutates the fleet.increments list structure between propose and transfer (list
-    # mutation lives in perform_fleet_evolution)
+    # holding the cohort is safe: nothing changes the structure of the
+    # fleet.increments lists between propose and transfer, as that happens in
+    # perform_fleet_evolution
     increment: VesselIncrement
 
-    # package the eligible share currently sits at
     package_idx: int
+    choices: FloatArray
 
-    # MNL shares over retrofit steps: choices[0] is stay, choices[k] jumps to
-    # package_idx + k; rescaled in place by the cap reconciliation
-    choices: np.ndarray
-
-    # share of the increment sitting at package_idx at propose time; equals the live
-    # value at apply time because proposals apply in decreasing package order (earlier
-    # applies only add to higher packages)
+    # equals the live share at apply time, as proposals apply in decreasing package
+    # order and an apply only adds to higher packages
     eligible_share: float
 
-    # levelized yearly charge per retrofit step, USD/year per vessel
-    annual_costs: np.ndarray
+    annual_costs: FloatArray
 
     @property
     def eligible_count(self) -> float:
@@ -124,20 +152,27 @@ class _RetrofitProposal:
         ----------
         technology_idx
             Index of the technology in the CAPEX-sorted order.
+
+        Returns
+        -------
+        int
+            Index into ``choices`` of the first step reaching the technology.
         """
         return technology_idx - self.package_idx + 1
 
     def cap_contribution(self, technology_idx: int) -> _CapContribution | None:
         """
-        Return this proposal's contribution to the technology cap.
-
-        Refers to the technology at `technology_idx`; returns None when
-        none of its retrofit steps reaches that technology.
+        Return this proposal's contribution to the cap of one technology.
 
         Parameters
         ----------
         technology_idx
             Index of the technology in the CAPEX-sorted order.
+
+        Returns
+        -------
+        _CapContribution | None
+            The contribution, or None when no retrofit step reaches the technology.
         """
         start = self.first_adopting_step(technology_idx)
         if not 0 < start < len(self.choices):
@@ -148,17 +183,26 @@ class _RetrofitProposal:
 
 @dataclass
 class _CapContribution:
-    """One share vector's contribution to a technology's cap aggregate."""
+    """
+    One share vector's contribution to a technology's cap aggregate.
 
-    shares: (
-        np.ndarray
-    )  # retrofit choices or newbuild uptake; tail scaled in place when the cap binds
-    start: int  # first index adopting the capped technology
-    weight: (
-        float  # vessels behind the vector: eligible_count (retrofit) or newbuild count
-    )
+    It caches ``adopting_share``, the sum of ``shares[start:]``, for the scale pass.
 
-    # sum of shares[start:], cached at construction and reused by the scale pass
+    Parameters
+    ----------
+    shares
+        Retrofit choices or newbuild uptake, fraction; the tail is scaled in place
+        when the cap binds.
+    start
+        First index adopting the capped technology.
+    weight
+        Vessels behind the vector: the eligible count of a retrofit or the newbuild
+        count, number of vessels.
+    """
+
+    shares: FloatArray
+    start: int
+    weight: float
     adopting_share: float = field(init=False)
 
     def __post_init__(self) -> None:
@@ -167,16 +211,25 @@ class _CapContribution:
 
 @dataclass
 class _TechnologyEffect:
-    """Uptake-weighted technology effect on a vessel type, over (increment, package)."""
+    """
+    Uptake-weighted technology effect on a vessel type, over (increment, package).
 
-    saving_sea: dict[
-        EnergyDemandTypeID, np.ndarray
-    ]  # weighted saving per leg: operational minus residual
-    saving_port: dict[
-        EnergyDemandTypePortID, np.ndarray
-    ]  # weighted saving per port call
-    weight: float = 0.0  # total uptake weight, normalizes the averages
-    shore_capacity: float = 0.0  # weighted shore-power capacity
+    Parameters
+    ----------
+    saving_sea
+        Weighted saving on each leg, operational minus residual energy, GJ/year.
+    saving_port
+        Weighted saving at each port call, GJ/year.
+    weight
+        Total uptake weight, which normalizes the averages, number of vessels.
+    shore_capacity
+        Weighted shore power capacity, MW.
+    """
+
+    saving_sea: dict[EnergyDemandTypeID, FloatArray]
+    saving_port: dict[EnergyDemandTypeID, FloatArray]
+    weight: float = 0.0
+    shore_capacity: float = 0.0
 
 
 def build_technology_packages(
@@ -185,17 +238,18 @@ def build_technology_packages(
     """
     Sort technologies by CAPEX and organize them into cumulative packages.
 
-    The packages run from empty to full. The returned map goes from
-    package index to the technology index in the original list.
-
     Parameters
     ----------
     technologies
-        List of technologies to organize into packages.
+        Technologies to organize into packages.
 
     Returns
     -------
-    Tuple of (packages, package_to_technology_map).
+    list[Package]
+        Packages from empty to full.
+    dict[int, int]
+        Map from a package index to the index, in ``technologies``, of the technology
+        that package adds.
     """
     sorted_pairs = sorted(enumerate(technologies), key=lambda p: p[1].capex.get())
     sorted_techs = [t for _, t in sorted_pairs]
@@ -209,24 +263,24 @@ def build_technology_packages(
 
 def calculate_package_charter_rates(
     packages: list[Package], vessel: Vessel
-) -> np.ndarray:
+) -> FloatArray:
     """
-    Levelized USD/year charge per package for an install at build, over vessel lifetime.
+    Levelize each package's cost, installed at build, over the vessel lifetime.
 
-    Levelized at the vessel cost of capital so the charge is consistent with the
+    The vessel cost of capital levelizes it, so the charge is consistent with the
     freight-rate NPVs it feeds; the adoption decision keeps its own discount rate.
 
     Parameters
     ----------
     packages
-        All technology packages (from empty to full), with cost flows computed
-        by ``preprocess_packages``.
+        All technology packages, from empty to full, with the cost flows of
+        ``preprocess_packages``.
     vessel
         Vessel whose lifetime and cost of capital govern the levelization.
 
     Returns
     -------
-    np.ndarray
+    FloatArray
         Constant yearly charge per package, USD/year.
     """
     lifetime = vessel.lifetime.get()
@@ -250,7 +304,7 @@ def define_initial_technology(fleet: Fleet) -> None:
     Parameters
     ----------
     fleet
-        The fleet to initialize technology for.
+        Fleet to initialize technology for.
     """
     n_pkgs = fleet.get_number_of_packages()
     n_vessels = len(fleet.assets)
@@ -277,9 +331,9 @@ def _seed_vessel_initial_uptake(fleet: Fleet, vessel: Vessel, vessel_idx: int) -
     Parameters
     ----------
     fleet
-        The fleet owning the vessel.
+        Fleet owning the vessel.
     vessel
-        The vessel to seed initial uptake for.
+        Vessel to seed the initial uptake for.
     vessel_idx
         Index of `vessel` in `fleet.assets`.
     """
@@ -292,7 +346,6 @@ def _seed_vessel_initial_uptake(fleet: Fleet, vessel: Vessel, vessel_idx: int) -
     package_rates = calculate_package_charter_rates(fleet.technology_packages, vessel)
 
     for inc in fleet.increments[vessel_idx]:
-        # build per-technology shares for this increment's age
         shares = np.zeros(len(fleet.technologies))
         for t, tech in enumerate(fleet.technologies):
             curve = fleet.initial_technology_share.get((vessel_name, tech.name))
@@ -322,8 +375,8 @@ def _seed_vessel_initial_uptake(fleet: Fleet, vessel: Vessel, vessel_idx: int) -
 
 
 def _shares_to_package_mix(
-    technologies: list[Technology], packages: list[Package], shares: np.ndarray
-) -> tuple[np.ndarray, set[str]]:
+    technologies: list[Technology], packages: list[Package], shares: FloatArray
+) -> tuple[FloatArray, set[str]]:
     """
     Convert per-technology shares into per-package shares.
 
@@ -333,15 +386,18 @@ def _shares_to_package_mix(
     Parameters
     ----------
     technologies
-        List of technologies corresponding to the shares array.
+        Technologies the shares refer to.
     packages
-        List of packages (sorted by size, empty package at index 0).
+        Packages sorted by size, the empty package at index 0.
     shares
-        Per-technology uptake shares.
+        Uptake share of each technology, fraction.
 
     Returns
     -------
-    Tuple of (package mix array, set of truncated technology names).
+    FloatArray
+        Share of each package, fraction.
+    set[str]
+        Names of the technologies whose shares were truncated.
     """
     tech_to_idx = {t: i for i, t in enumerate(technologies)}
     tech_names = [t.name for t in technologies]
@@ -349,7 +405,6 @@ def _shares_to_package_mix(
     remaining = shares.astype(float, copy=True)
     pkg_shares = np.zeros(len(packages), dtype=float)
 
-    # allocate from largest package to smallest, skipping empty package at index 0
     for p in range(len(packages) - 1, 0, -1):
         pkg = packages[p]
         idxs = [tech_to_idx[t] for t in pkg]
@@ -362,31 +417,31 @@ def _shares_to_package_mix(
         name for name, val in zip(tech_names, remaining, strict=True) if val > 0
     }
 
-    # empty package gets whatever makes the total sum to 1
     pkg_shares[0] = 1.0 - pkg_shares[1:].sum()
     return pkg_shares, truncated_techs
 
 
 def _calculate_packages_saving(
-    vessel: Vessel, packages: list[Package], timeline: NDArray[np.float64], idx: int
-) -> list[NDArray[np.float64]]:
+    vessel: Vessel, packages: list[Package], timeline: FloatArray, idx: int
+) -> list[FloatArray]:
     """
-    Calculate the marginal energy saving for each technology package.
+    Calculate each technology package's marginal saving on the vessel's year grid.
 
     Parameters
     ----------
     vessel
-        The vessel to calculate savings for.
+        Vessel to calculate the savings for.
     packages
-        The list of technology packages.
+        All technology packages.
     timeline
-        Simulation timeline.
+        Simulation timeline, days.
     idx
         Current time-step index.
 
     Returns
     -------
-    List of saving arrays, one per package.
+    list[FloatArray]
+        Saving flow of each package, USD/year.
     """
     idx_ = np.s_[idx:]
     times = timeline[idx_]
@@ -402,38 +457,43 @@ def _calculate_packages_saving(
 
 
 def perform_technology_installation(
-    fleet: Fleet, timeline: np.ndarray, time_step: float, idx: int
+    fleet: Fleet, timeline: FloatArray, time_step: float, idx: int
 ) -> None:
     """
-    Perform technology installation for all vessels in the fleet.
+    Install technologies on the fleet's newbuilds and existing vessels.
 
     Runs the phases described in the module docstring.
 
     Parameters
     ----------
     fleet
-        The fleet to perform technology installation for.
+        Fleet whose vessels install technologies.
     timeline
-        Simulation timeline.
+        Simulation timeline, days.
     time_step
-        Current time-step size.
+        Current time-step size, days.
     idx
         Current time-step index.
     """
-    if not fleet.technologies:
+    # a fleet with technologies always has a technology sensitivity, as its
+    # requirements check enforces
+    technology_sensitivity = fleet.technology_sensitivity
+    if not fleet.technologies or technology_sensitivity is None:
         return
 
     preprocess_packages(fleet.technology_packages, fleet.assets, timeline[idx])
 
-    # Pre-newbuild fleet count: denominator for both retrofit and newbuild-technology
-    # caps.
+    # the fleet count before newbuilds is the denominator of both the retrofit and the
+    # newbuild technology caps
     multipliers_total = float(sum(fleet.get_multipliers()))
 
     proposals = []
     for v, vessel in enumerate(fleet.assets):
         basis = _extract_adoption_basis(fleet, vessel, v, timeline, idx)
-        fleet.newbuild_package_uptake[v] = _propose_newbuild_uptake(fleet, basis)
-        proposals += _propose_retrofits(fleet, basis, time_step)
+        fleet.newbuild_package_uptake[v] = _propose_newbuild_uptake(
+            fleet, basis, technology_sensitivity
+        )
+        proposals += _propose_retrofits(fleet, basis, technology_sensitivity, time_step)
 
     _reconcile_retrofit_technology_caps(fleet, proposals, time_step, multipliers_total)
     _apply_retrofits(proposals)
@@ -448,7 +508,7 @@ def _extract_adoption_basis(
     fleet: Fleet,
     vessel: Vessel,
     vessel_idx: int,
-    timeline: NDArray[np.float64],
+    timeline: FloatArray,
     idx: int,
 ) -> _AdoptionBasis:
     """
@@ -457,19 +517,20 @@ def _extract_adoption_basis(
     Parameters
     ----------
     fleet
-        The fleet owning the vessel.
+        Fleet owning the vessel.
     vessel
         Vessel type the basis is built for.
     vessel_idx
         Index of `vessel` in `fleet.assets`.
     timeline
-        Simulation timeline.
+        Simulation timeline, days.
     idx
         Current time-step index.
 
     Returns
     -------
-    The basis bundle.
+    _AdoptionBasis
+        The basis bundle.
     """
     if fleet.technology_cost_of_capital:
         discount_rate = fleet.technology_cost_of_capital.get()
@@ -480,8 +541,8 @@ def _extract_adoption_basis(
         vessel, fleet.technology_packages, timeline, idx
     )
 
-    # NPV is non-dimensionalized by the summed ship CAPEX so the sensitivity is
-    # unit-free.
+    # the NPV is non-dimensionalized by the summed ship CAPEX so the sensitivity is
+    # unit-free
     capex_npv = vessel.expectation.get_capex_npv(idx)
 
     return _AdoptionBasis(
@@ -494,24 +555,29 @@ def _extract_adoption_basis(
     )
 
 
-def _propose_newbuild_uptake(fleet: Fleet, basis: _AdoptionBasis) -> np.ndarray:
+def _propose_newbuild_uptake(
+    fleet: Fleet, basis: _AdoptionBasis, technology_sensitivity: ForecastInput
+) -> FloatArray:
     """
-    Unconstrained MNL choice over newbuild packages for one vessel type.
+    Make the unconstrained MNL choice over newbuild packages for one vessel type.
 
-    Reconciled against the per-technology caps later in ``perform_fleet_evolution``
-    (``reconcile_newbuild_technology_caps``), once newbuild counts per vessel type are
+    ``reconcile_newbuild_technology_caps`` reconciles it to the per-technology caps
+    later in ``perform_fleet_evolution``, once the newbuild counts per vessel type are
     known.
 
     Parameters
     ----------
     fleet
-        The fleet owning the vessel.
+        Fleet owning the vessel.
     basis
         Per-vessel invariants of the adoption pass.
+    technology_sensitivity
+        Odds ratio of the adoption choice.
 
     Returns
     -------
-    MNL share vector over newbuild packages.
+    FloatArray
+        MNL share of each newbuild package, fraction.
     """
     npv = npv_for_newbuilds(
         basis.packages_saving, fleet.technology_packages, basis.discount_rate
@@ -519,7 +585,7 @@ def _propose_newbuild_uptake(fleet: Fleet, basis: _AdoptionBasis) -> np.ndarray:
     choices, msg = calculate_asset_shares(
         npv,
         UtilityID.SIGNED_REFERENCE,
-        fleet.technology_sensitivity.get(),
+        technology_sensitivity.get(),
         reference=basis.capex_npv,
     )
 
@@ -532,33 +598,38 @@ def _propose_newbuild_uptake(fleet: Fleet, basis: _AdoptionBasis) -> np.ndarray:
 
 
 def _propose_retrofits(
-    fleet: Fleet, basis: _AdoptionBasis, time_step: float
+    fleet: Fleet,
+    basis: _AdoptionBasis,
+    technology_sensitivity: ForecastInput,
+    time_step: float,
 ) -> list[_RetrofitProposal]:
     """
-    Walk every (age-increment, package) pair of the basis vessel.
+    Propose unconstrained MNL retrofit jumps for every (increment, package) pair.
 
-    Proposes unconstrained MNL retrofit jumps; the reconciler downstream
-    scales them against the per-technology caps.
+    The reconciliation downstream scales them to the per-technology caps.
 
     Parameters
     ----------
     fleet
-        The fleet owning the vessel.
+        Fleet owning the vessel.
     basis
         Per-vessel invariants of the adoption pass.
+    technology_sensitivity
+        Odds ratio of the adoption choice.
     time_step
-        Current time-step size in dateline units.
+        Current time-step size, days.
 
     Returns
     -------
-    One proposal per (age-increment, package) pair with vessels eligible to move, in
-    decreasing package order — the order `_apply_retrofits` relies on.
+    list[_RetrofitProposal]
+        One proposal per (increment, package) pair with vessels eligible to move, in
+        decreasing package order, which `_apply_retrofits` relies on.
     """
     vessel = basis.vessel
     n_packages = len(fleet.technology_packages)
 
     retrofit_frequency = fleet.retrofit_frequency.get()
-    technology_sensitivity = fleet.technology_sensitivity.get()
+    sensitivity = technology_sensitivity.get()
     dt_years = time_step / YEAR
 
     proposals = []
@@ -586,7 +657,7 @@ def _propose_retrofits(
             choices, _ = calculate_asset_shares(
                 npv,
                 UtilityID.SIGNED_REFERENCE,
-                technology_sensitivity,
+                sensitivity,
                 reference=basis.capex_npv,
             )
             annual_costs = annual_costs_for_retrofit_steps(
@@ -621,34 +692,30 @@ def _reconcile_retrofit_technology_caps(
     multipliers_total: float,
 ) -> None:
     """
-    Scale per-proposal retrofit `choices` to respect the per-technology cap.
+    Scale the proposals' retrofit `choices` to the per-technology caps.
 
-    For every technology, the aggregate count of retrofits adopting it
-    this timestep must not exceed `limit · multipliers_total · time_step /
-    YEAR`.
+    For every technology, the retrofits adopting it this time-step must not exceed
+    `limit * multipliers_total * time_step / YEAR`. The cap aggregate weights each
+    proposal's tail sum by its `eligible_count`, the count `_apply_retrofits` will
+    produce, and the displaced share moves to the stay option (see
+    `_scale_tails_to_cap`).
 
-    The cap aggregate weights each proposal's tail-sum by its `eligible_count`, matching
-    the count `_apply_retrofits` will produce. Displaced mass moves to the stay option
-    (see `_scale_tails_to_cap`).
-
-    Iterates technologies from outermost to innermost in the CAPEX-sorted package order.
-    Scaling a single proposal's tail (`choices[k_start:]`) reduces retrofits for *all*
-    technologies introduced by those steps, so processing the outer technologies first
+    The technologies run from outermost to innermost in the CAPEX-sorted package
+    order: scaling one proposal's tail, `choices[k_start:]`, reduces the retrofits of
+    every technology those steps introduce, so taking the outer technologies first
     keeps the inner-technology aggregates monotonic.
 
     Parameters
     ----------
     fleet
-        The fleet whose retrofit caps are being enforced.
+        Fleet whose retrofit caps are enforced.
     proposals
-        Output of `_propose_retrofits`. Mutated in place: each proposal's `choices`
-        vector is rescaled when one of the technologies it covers has a binding cap.
+        Output of `_propose_retrofits`; each proposal's `choices` is rescaled in place
+        when a technology it covers has a binding cap.
     time_step
-        Current time-step size; combined with `YEAR` to convert per-year limits into
-        per-step caps.
+        Current time-step size, days.
     multipliers_total
-        Sum of pre-newbuild fleet multipliers — the denominator for the per-technology
-        cap (`cap = limit · multipliers_total · time_step / YEAR`).
+        Number of vessels in the fleet before newbuilds.
     """
     if multipliers_total <= 0.0 or not proposals or not fleet.technology_packages:
         return
@@ -673,33 +740,28 @@ def _reconcile_retrofit_technology_caps(
 
 
 def reconcile_newbuild_technology_caps(
-    fleet: Fleet, increments: np.ndarray, time_step: float, multipliers_total: float
+    fleet: Fleet, increments: FloatArray, time_step: float, multipliers_total: float
 ) -> None:
     """
-    Scale `fleet.newbuild_package_uptake` to respect the per-technology cap.
+    Scale `fleet.newbuild_package_uptake` to the per-technology caps.
 
-    For every technology, the aggregate count of newbuild installs of it
-    this timestep must not exceed `limit · multipliers_total · time_step /
-    YEAR`.
-
-    Iterates technologies from outermost to innermost in the CAPEX-sorted package order,
-    mirroring the retrofit reconciliation. Displaced probability moves to the
-    no-technology package (see `_scale_tails_to_cap`), preserving the invariant that
-    each per-vessel uptake vector sums to 1.
+    For every technology, the newbuild installs of it this time-step must not exceed
+    `limit * multipliers_total * time_step / YEAR`. The technologies run from
+    outermost to innermost in the CAPEX-sorted package order, as in the retrofit
+    reconciliation, and the displaced share moves to the no-technology package (see
+    `_scale_tails_to_cap`), so each vessel's uptake still sums to 1.
 
     Parameters
     ----------
     fleet
-        The fleet whose newbuild caps are being enforced.
+        Fleet whose newbuild caps are enforced.
     increments
-        Per-vessel newbuild counts for the current timestep. Used to weight each
-        vessel's contribution to the aggregate when checking the cap.
+        Newbuilds of each vessel type this time-step, number of vessels; they weight
+        each vessel's contribution to the cap aggregate.
     time_step
-        Current time-step size; combined with `YEAR` to convert per-year limits into
-        per-step caps.
+        Current time-step size, days.
     multipliers_total
-        Sum of pre-newbuild fleet multipliers — the denominator for the per-technology
-        cap (`cap = limit · multipliers_total · time_step / YEAR`).
+        Number of vessels in the fleet before newbuilds.
     """
     if multipliers_total <= 0.0 or not fleet.technology_packages:
         return
@@ -732,23 +794,20 @@ def _scale_tails_to_cap(contributions: list[_CapContribution], cap: float) -> No
     """
     Scale the contributions' adopting tails so their weighted aggregate fits the cap.
 
-    Model choice — where displaced mass goes
-    ----------------------------------------
-    When a cap binds, the displaced share of every contribution is moved to `shares[0]`
-    (the "stay" / no-technology option), not to the nearest feasible package below. For
-    a cumulative package list `[none, A, A+B]` with a binding cap on B, demand for `A+B`
-    in excess of the cap is sent to `none`, even when A's own cap has slack — it is
-    *not* reallocated to the `A`-only package. The package is the unit of choice in the
-    DCM upstream; if decision makers ranked `A+B` highest and B is rationed, the model
-    reads that as "defer this cycle" (retrofits) or "build without technology"
-    (newbuilds) rather than "fall back to a package they did not pick".
+    When the cap binds, every contribution's displaced share goes to `shares[0]`, the
+    stay or no-technology option. With the cumulative packages `[none, A, A+B]` and a
+    binding cap on B, the excess demand for `A+B` goes to `none` even when A's own cap
+    has slack: the package is the unit of choice in the DCM, so a rationed first
+    choice reads as deferring this cycle for a retrofit, or building without
+    technology for a newbuild.
 
     Parameters
     ----------
     contributions
-        The share vectors adopting the capped technology, with cached tail sums.
+        Share vectors adopting the capped technology, with cached tail sums.
     cap
-        Maximum weighted aggregate of adopting shares this time-step.
+        Largest weighted aggregate of adopting shares this time-step, number of
+        vessels.
     """
     aggregate = 0.0
     for contribution in contributions:
@@ -804,24 +863,20 @@ def _transfer_retrofit_uptake(
     fleet: Fleet, proposals: list[_RetrofitProposal], idx: int
 ) -> None:
     """
-    Aggregate the per-(vessel, technology) retrofit count from the proposals.
+    Write each (vessel, technology) retrofit count to the profile.
 
-    The proposals are already reconciled and applied. Writes the count to
-    the profile as a fraction of that vessel's existing multiplier.
-
-    Layout matches `transfer_technology_uptake`: per-technology, per-vessel, per-step.
-    The stored value is the share of vessel-type `v`'s existing fleet that retrofitted
-    to `technology` this step, directly comparable to `set_retrofit_technology_limit ·
-    time_step / YEAR`.
+    The stored value, laid out as in `transfer_technology_uptake`, is the share of the
+    vessel type's existing fleet that retrofitted to the technology this time-step,
+    directly comparable to `set_retrofit_technology_limit * time_step / YEAR`.
 
     Parameters
     ----------
     fleet
-        The fleet whose retrofit uptake is being recorded.
+        Fleet whose retrofit uptake is recorded.
     proposals
-        Reconciled and applied retrofit proposal list.
+        Reconciled and applied retrofit proposals.
     idx
-        Current time-step index, used for the profile write.
+        Current time-step index.
     """
     if not fleet.technology_packages or not proposals:
         return
@@ -830,7 +885,7 @@ def _transfer_retrofit_uptake(
     if not sorted_technologies:
         return
 
-    retrofit_counts = {}
+    retrofit_counts: dict[tuple[int, int], float] = {}
     for proposal in proposals:
         weight = proposal.eligible_count
         if weight <= 0.0:
@@ -841,10 +896,8 @@ def _transfer_retrofit_uptake(
             if k_start >= len(proposal.choices):
                 break
 
-            # `choices` is post-reconciliation post-application; the tail-sum has not
-            # been mutated by `_apply_retrofits` because that function only reads
-            # choices and rewrites the per-increment package_uptake — the proposal
-            # vector itself is preserved.
+            # `_apply_retrofits` only reads `choices`, so the reconciled tail sums
+            # are intact
             key = (proposal.vessel_idx, i)
             retrofit_counts[key] = retrofit_counts.get(key, 0.0) + weight * float(
                 np.sum(proposal.choices[k_start:])
@@ -854,7 +907,7 @@ def _transfer_retrofit_uptake(
         multipliers_total = float(sum(inc.multiplier for inc in fleet.increments[v]))
         for i, technology in enumerate(sorted_technologies):
             count = retrofit_counts.get((v, i), 0.0)
-            share = divide_nonzero(count, multipliers_total)
+            share = float(divide_nonzero(count, multipliers_total))
             fleet.profile.set_retrofit_technology_uptake(
                 idx, vessel.name, technology.name, share
             )
@@ -864,16 +917,16 @@ def transfer_technology_charter_rate(fleet: Fleet, idx: int) -> None:
     """
     Transfer the fleet-average carried charge to each vessel's expectation and profile.
 
-    The average is the multiplier-weighted mean of the per-increment carried charges, in
-    USD/year per vessel. It feeds the investment freight rate within the same timestep
-    (the cargo charter runs after technology installation) and accumulates on the
-    profile as the realized series the instantaneous freight rate is post-processed
-    from.
+    The average is the multiplier-weighted mean of the per-increment carried charges,
+    USD/year per vessel. It feeds the investment freight rate within the same
+    time-step, as the cargo charter runs after technology installation, and the
+    profile keeps it as the realized series the instantaneous freight rate is
+    post-processed from.
 
     Parameters
     ----------
     fleet
-        The fleet whose carried charges are aggregated.
+        Fleet whose carried charges are aggregated.
     idx
         Current time-step index.
     """
@@ -884,7 +937,7 @@ def transfer_technology_charter_rate(fleet: Fleet, idx: int) -> None:
             total += inc.multiplier * inc.technology_charter_rate
             weight += inc.multiplier
 
-        average = divide_nonzero(total, weight)
+        average = float(divide_nonzero(total, weight))
 
         vessel.expectation.set_technology_charter_rate(idx, average)
         vessel.profile.set_technology_cost(idx, average)
@@ -892,12 +945,12 @@ def transfer_technology_charter_rate(fleet: Fleet, idx: int) -> None:
 
 def transfer_technology_uptake(fleet: Fleet, idx: int) -> None:
     """
-    Transfer technology uptake data to the fleet profile.
+    Transfer the newbuild and fleet-average technology uptake to the fleet profile.
 
     Parameters
     ----------
     fleet
-        The fleet to transfer uptake data for.
+        Fleet whose uptake is transferred.
     idx
         Current time-step index.
     """
@@ -906,21 +959,19 @@ def transfer_technology_uptake(fleet: Fleet, idx: int) -> None:
             t = fleet.package_to_technology_map[p]
             technology = fleet.technologies[t]
 
-            # transfer newbuild uptake
             nb_uptake = np.sum(fleet.newbuild_package_uptake[v][p:])
             fleet.profile.set_newbuild_technology_uptake(
                 idx, vessel.name, technology.name, nb_uptake
             )
 
-            # transfer average fleet uptake
-            avg_uptake = 0.0
+            weighted_uptake = 0.0
             weight = 0.0
             for inc in fleet.increments[v]:
                 inc_uptake = float(np.sum(inc.package_uptake[p:]))
-                avg_uptake += inc_uptake * inc.multiplier
+                weighted_uptake += inc_uptake * inc.multiplier
                 weight += inc.multiplier
 
-            avg_uptake = divide_nonzero(avg_uptake, weight)
+            avg_uptake = float(divide_nonzero(weighted_uptake, weight))
             fleet.profile.set_technology_uptake(
                 idx, vessel.name, technology.name, avg_uptake
             )
@@ -928,22 +979,19 @@ def transfer_technology_uptake(fleet: Fleet, idx: int) -> None:
 
 def update_residual_energy_demand(fleet: Fleet, idx: int) -> None:
     """
-    Update the residual energy demand for all vessels after technology installation.
+    Update every vessel's residual energy demand after technology installation.
 
     Parameters
     ----------
     fleet
-        The fleet to update residual energy demand for.
+        Fleet whose vessels are updated.
     idx
         Current time-step index.
     """
-    # Transfer fleet-level operational savings to each vessel expectation
     transfer_operational_saving_to_vessels(fleet)
 
     for v, vessel in enumerate(fleet.assets):
         op_sea, op_port = _apply_operational_savings(vessel, idx)
-
-        # Pre-compute arrays for use in saving/residual calculations
         op_sea_arr = {d: np.asarray(op_sea[d], dtype=float) for d in EnergyDemandTypeID}
         op_port_arr = {
             d: np.asarray(op_port[d], dtype=float) for d in EnergyDemandTypePortID
@@ -958,26 +1006,28 @@ def update_residual_energy_demand(fleet: Fleet, idx: int) -> None:
 def _apply_operational_savings(
     vessel: Vessel, idx: int
 ) -> tuple[
-    dict[EnergyDemandTypeID, list[np.ndarray]],
-    dict[EnergyDemandTypePortID, list[np.ndarray]],
+    dict[EnergyDemandTypeID, list[FloatArray]],
+    dict[EnergyDemandTypeID, list[FloatArray]],
 ]:
     """
     Apply the operational saving fractions to the vessel's raw energy demand.
 
-    Covers zero-cost reductions such as JIT and weather routing. Stores the
-    result on expectation and profile.
+    The operational savings are zero-cost reductions such as JIT and weather routing.
+    The result is stored on the expectation and the profile.
 
     Parameters
     ----------
     vessel
-        The vessel to apply operational savings for.
+        Vessel to apply the operational savings for.
     idx
         Current time-step index.
 
     Returns
     -------
-    Tuple of (operational energy at sea per leg, operational energy in port per port
-    call).
+    dict[EnergyDemandTypeID, list[FloatArray]]
+        Operational energy at sea per energy demand type and leg, GJ/year.
+    dict[EnergyDemandTypeID, list[FloatArray]]
+        Operational energy in port per energy demand type and port call, GJ/year.
     """
     expectation = vessel.expectation
 
@@ -1019,34 +1069,34 @@ def _accumulate_technology_effect(
     fleet: Fleet,
     vessel_idx: int,
     vessel: Vessel,
-    op_sea_arr: dict[EnergyDemandTypeID, np.ndarray],
-    op_port_arr: dict[EnergyDemandTypePortID, np.ndarray],
+    op_sea_arr: dict[EnergyDemandTypeID, FloatArray],
+    op_port_arr: dict[EnergyDemandTypeID, FloatArray],
     idx: int,
 ) -> _TechnologyEffect:
     """
     Accumulate the uptake-weighted technology effect over (increment, package) pairs.
 
-    Technology savings are computed relative to operational energy: saving = operational
-    - residual.
+    A technology saving is the operational energy less the residual energy.
 
     Parameters
     ----------
     fleet
-        The fleet owning the increments and technology packages.
+        Fleet owning the increments and technology packages.
     vessel_idx
         Index of `vessel` in `fleet.assets`.
     vessel
-        The vessel to accumulate the effect for.
+        Vessel to accumulate the effect for.
     op_sea_arr
-        Operational energy at sea per demand type, one array over legs.
+        Operational energy at sea per demand type, one array over legs, GJ/year.
     op_port_arr
-        Operational energy in port per demand type, one array over ports.
+        Operational energy in port per demand type, one array over ports, GJ/year.
     idx
         Current time-step index.
 
     Returns
     -------
-    The accumulated effect.
+    _TechnologyEffect
+        The accumulated effect.
     """
     route = vessel.route
     n_legs = route.get_number_of_legs()
@@ -1087,27 +1137,24 @@ def _accumulate_technology_effect(
 
 def _transfer_residual_energy(
     vessel: Vessel,
-    op_sea_arr: dict[EnergyDemandTypeID, np.ndarray],
-    op_port_arr: dict[EnergyDemandTypePortID, np.ndarray],
+    op_sea_arr: dict[EnergyDemandTypeID, FloatArray],
+    op_port_arr: dict[EnergyDemandTypeID, FloatArray],
     effect: _TechnologyEffect,
     idx: int,
 ) -> None:
     """
-    Average the accumulated technology effect.
-
-    Writes the resulting shore power capacity and residual energy demand
-    to the vessel's expectation and profile.
+    Store the averaged technology effect's shore power and residual energy demand.
 
     Parameters
     ----------
     vessel
-        The vessel to write results for.
+        Vessel to store the results for.
     op_sea_arr
-        Operational energy at sea per demand type, one array over legs.
+        Operational energy at sea per demand type, one array over legs, GJ/year.
     op_port_arr
-        Operational energy in port per demand type, one array over ports.
+        Operational energy in port per demand type, one array over ports, GJ/year.
     effect
-        The accumulated technology effect.
+        Accumulated technology effect.
     idx
         Current time-step index.
     """
@@ -1116,8 +1163,7 @@ def _transfer_residual_energy(
     )
     vessel.expectation.set_shore_power_capacity(idx, avg_shore_capacity)
 
-    # If there is no effective uptake/weight, leave residual = operational (no
-    # technology change)
+    # without any uptake weight the residual energy stays the operational energy
     if effect.weight <= 0.0:
         avg_residual_sea = op_sea_arr
         avg_residual_port = op_port_arr
@@ -1147,21 +1193,18 @@ def _transfer_residual_energy(
     vessel.expectation.set_regional_energy_sea(idx, regional_sea)
 
 
-def approximate_missing_technology(fleets: dict, idx: int) -> None:
+def approximate_missing_technology(fleets: dict[str, Fleet], idx: int) -> None:
     """
-    Estimate energy-efficiency savings for fleets that cannot retrofit technologies.
+    Estimate the energy-efficiency savings of the fleets that cannot retrofit.
 
-    Uses the fleet-average savings of those that can, and applies them to
-    the energy demand at sea and in port of every fleet allowing the
-    approximation.
-
-    Costs are ignored in this calculation, so the costs of energy efficiency
-    improvements are underestimated.
+    The average saving of the fleets that can retrofit applies to the energy demand
+    of every fleet allowing the approximation. It carries no cost, so the cost of the
+    efficiency improvements is underestimated.
 
     Parameters
     ----------
     fleets
-        Mapping of fleet name to fleet object.
+        All fleets in the simulation.
     idx
         Current time-step index.
     """
@@ -1178,22 +1221,24 @@ def approximate_missing_technology(fleets: dict, idx: int) -> None:
 
 
 def _average_retrofit_savings(
-    fleets: dict, idx: int
-) -> tuple[dict[EnergyDemandTypeID, float], dict[EnergyDemandTypePortID, float]]:
+    fleets: dict[str, Fleet], idx: int
+) -> tuple[dict[EnergyDemandTypeID, float], dict[EnergyDemandTypeID, float]]:
     """
-    Energy-weighted average technology saving fractions over retrofit-capable fleets.
+    Calculate the energy-weighted average technology saving of retrofit-capable fleets.
 
     Parameters
     ----------
     fleets
-        Mapping of fleet name to fleet object.
+        All fleets in the simulation.
     idx
         Current time-step index.
 
     Returns
     -------
-    Tuple of (average saving fraction at sea, average saving fraction in port), per
-    demand type.
+    dict[EnergyDemandTypeID, float]
+        Average saving at sea per demand type, fraction.
+    dict[EnergyDemandTypeID, float]
+        Average saving in port per demand type, fraction.
     """
     average_saving_sea = dict.fromkeys(EnergyDemandTypeID, 0.0)
     average_saving_port = dict.fromkeys(EnergyDemandTypePortID, 0.0)
@@ -1238,11 +1283,11 @@ def _average_retrofit_savings(
 
 
 def _accumulate_energy_weighted_saving(
-    raw_energy: dict,
-    savings: dict,
+    raw_energy: Mapping[EnergyDemandTypeID, Sequence[FloatLike]],
+    savings: Mapping[EnergyDemandTypeID, Sequence[float]],
     multiplier: float,
-    saving_totals: dict,
-    weight_totals: dict,
+    saving_totals: dict[EnergyDemandTypeID, float],
+    weight_totals: dict[EnergyDemandTypeID, float],
 ) -> None:
     """
     Accumulate one vessel's energy-weighted saving fractions into the running totals.
@@ -1250,10 +1295,10 @@ def _accumulate_energy_weighted_saving(
     Parameters
     ----------
     raw_energy
-        Raw energy demand per demand type, one value per leg or port call; forms the
-        accumulation weight together with `multiplier`.
+        Raw energy demand per demand type, one value per leg or port call, GJ/year;
+        with `multiplier`, it weights the accumulation.
     savings
-        Saving fraction per demand type, one value per leg or port call.
+        Saving per demand type, one value per leg or port call, fraction.
     multiplier
         Number of vessels of this type.
     saving_totals
@@ -1263,7 +1308,7 @@ def _accumulate_energy_weighted_saving(
     """
     for k in saving_totals:
         for leg, raw in enumerate(raw_energy[k]):
-            weight = raw * multiplier
+            weight = float(raw) * multiplier
             saving_totals[k] += savings[k][leg] * weight
             weight_totals[k] += weight
 
@@ -1271,22 +1316,20 @@ def _accumulate_energy_weighted_saving(
 def _apply_approximated_saving(
     vessel: Vessel,
     average_saving_sea: dict[EnergyDemandTypeID, float],
-    average_saving_port: dict[EnergyDemandTypePortID, float],
+    average_saving_port: dict[EnergyDemandTypeID, float],
     idx: int,
 ) -> None:
     """
-    Apply the fleet-average saving fractions to one vessel's operational energy.
-
-    Stores the net energy demand on expectation and profile.
+    Apply the fleet-average savings to one vessel's operational energy and store it.
 
     Parameters
     ----------
     vessel
-        The vessel to apply the approximated savings to.
+        Vessel to apply the approximated savings to.
     average_saving_sea
-        Average saving fraction at sea per demand type.
+        Average saving at sea per demand type, fraction.
     average_saving_port
-        Average saving fraction in port per demand type.
+        Average saving in port per demand type, fraction.
     idx
         Current time-step index.
     """
@@ -1313,7 +1356,9 @@ def _apply_approximated_saving(
     vessel.expectation.set_energy_port(idx, net_port)
     vessel.expectation.set_regional_energy_sea(idx, regional_sea)
 
-    vessel.profile.set_energy_sea(idx, {k: float(np.sum(net_sea[k])) for k in net_sea})
+    vessel.profile.set_energy_sea(
+        idx, {k: float(np.sum(np.asarray(net_sea[k]))) for k in net_sea}
+    )
     vessel.profile.set_energy_port(
-        idx, {k: float(np.sum(net_port[k])) for k in net_port}
+        idx, {k: float(np.sum(np.asarray(net_port[k]))) for k in net_port}
     )

@@ -1,43 +1,49 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Marginal cost saving of a technology package or a speed change."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
+
+import numpy as np
 
 from navigate.fleet.operation import convert_to_regional_steps
 from navigate.fleet.residual_energy import calculate_residual_energy
 
 if TYPE_CHECKING:
-    import numpy as np
+    from collections.abc import Mapping, Sequence
 
-    from navigate.core.enum_ import EnergyDemandTypeID, EnergyDemandTypePortID
+    from navigate.core.enum_ import EnergyDemandTypeID
     from navigate.core.nodes.vessel import Vessel
     from navigate.fleet.package import Package
+    from navigate.util.types_ import FloatArray, FloatLike
 
 
 def get_smoothed_energy_duals_technology(
     vessel: Vessel,
 ) -> tuple[
-    dict[EnergyDemandTypeID, list[np.ndarray]],
-    dict[EnergyDemandTypePortID, list[np.ndarray]],
+    dict[EnergyDemandTypeID, list[FloatArray]],
+    dict[EnergyDemandTypeID, list[FloatArray]],
 ]:
     """
-    Return per-leg shadow-price beliefs amortised over the technology horizon.
+    Return the per-leg shadow-price beliefs amortised over the technology horizon.
 
-    The belief is maintained per (energy-demand-type, leg) by direct EMA
-    smoothing of the raw LP duals, so the returned arrays preserve the LP's
-    per-leg directional structure with year-to-year volatility damped.
+    Each (energy-demand-type, leg) belief is an EMA of the raw LP duals, so it keeps
+    the LP's per-leg structure with the year-to-year volatility damped.
 
     Parameters
     ----------
     vessel
-        Vessel whose beliefs are read via its expectation.
+        Vessel whose beliefs are read.
 
     Returns
     -------
-    Tuple of (smoothed_pi_sea, smoothed_pi_port) in the same dict/list/array
-    structure as the raw duals.
+    dict[EnergyDemandTypeID, list[FloatArray]]
+        Smoothed shadow prices at sea per energy demand type and leg, USD/GJ.
+    dict[EnergyDemandTypeID, list[FloatArray]]
+        Smoothed shadow prices in port per energy demand type and port, USD/GJ.
     """
     expectation = vessel.expectation
     return (
@@ -49,24 +55,26 @@ def get_smoothed_energy_duals_technology(
 def get_smoothed_energy_duals_speed(
     vessel: Vessel,
 ) -> tuple[
-    dict[EnergyDemandTypeID, list[np.ndarray]],
-    dict[EnergyDemandTypePortID, list[np.ndarray]],
+    dict[EnergyDemandTypeID, list[FloatArray]],
+    dict[EnergyDemandTypeID, list[FloatArray]],
 ]:
     """
-    Return per-leg shadow-price beliefs amortised over the speed horizon.
+    Return the per-leg shadow-price beliefs amortised over the speed horizon.
 
-    Uses a shorter horizon than the technology variant, matched to the
+    The speed horizon is shorter than the technology horizon, matched to the
     timescale of operational speed-management decisions.
 
     Parameters
     ----------
     vessel
-        Vessel whose beliefs are read via its expectation.
+        Vessel whose beliefs are read.
 
     Returns
     -------
-    Tuple of (smoothed_pi_sea, smoothed_pi_port) in the same dict/list/array
-    structure as the raw duals.
+    dict[EnergyDemandTypeID, list[FloatArray]]
+        Smoothed shadow prices at sea per energy demand type and leg, USD/GJ.
+    dict[EnergyDemandTypeID, list[FloatArray]]
+        Smoothed shadow prices in port per energy demand type and port, USD/GJ.
     """
     expectation = vessel.expectation
     return expectation.get_belief_pi_sea_speed(), expectation.get_belief_pi_port_speed()
@@ -74,110 +82,99 @@ def get_smoothed_energy_duals_speed(
 
 def calculate_marginal_technology_saving(
     vessel: Vessel, package: Package, idx: slice
-) -> float | np.ndarray:
+) -> FloatArray:
     """
-    Calculate the marginal cost saving from installing a set of technologies.
+    Calculate the marginal cost saving of installing a technology package.
 
-    The saving is computed by evaluating the dual-variable contribution of changing the
-    vessel's energy requirements from the baseline to the residual energy after
-    technology impacts. The calculation aggregates savings at sea and in port.
-
-    The baseline energy requirement is defined as the raw energy requirement. This is
-    used because the do-nothing-case for installation of technology is defined with
-    NPV=0. If using the RHS of the energy conservation equation from the most recent
-    solve of the expected bunker solution, this would lead to negative savings for the
-    the lower order technology packages which have lower savings than the current
-    average uptake.
-
-    Notice that the use of raw energy as the baseline means that for technology packages
-    with low savings potential the evaluation may occur outside the optimal polytype and
-    thus the shadow price may underestimate the impact.
+    The change from the baseline energy to the residual energy after the package is
+    valued at the smoothed shadow prices, summed at sea and in port. The baseline is
+    the operational energy before any technology, so that installing nothing is an
+    NPV=0 business case and a package saving less than the current average uptake
+    still saves. For a package with a low saving potential the evaluation may then
+    fall outside the optimal polytope, and the shadow price may underestimate the
+    impact.
 
     Parameters
     ----------
     vessel
-        Vessel for which the marginal technology saving is evaluated.
+        Vessel on which the package is evaluated.
     package
-        Package containing precomputed savings, powers, and transfer curves.
+        Package holding the precomputed savings, powers and transfer curves.
     idx
-        Time-step indeces.
+        Time-steps of the evaluation.
 
     Returns
     -------
-    np.ndarray
-        The marginal cost saving per time in `timeline`.
+    FloatArray
+        Marginal cost saving at each of the time-steps, USD/year.
     """
-    # calculate the residual energy after installing
-    # the technologies on a per-leg basis and convert
-    # to regional steps to allow evaluation with
-    # shadow prices given on a regoinal-steps basis
+    # the shadow prices are given per regional step, so the per-leg residual energy
+    # is converted to regional steps
     residual_energy_sea, residual_energy_port = calculate_residual_energy(
         vessel, package, idx
     )
     residual_energy_sea = convert_to_regional_steps(vessel, residual_energy_sea)
 
-    # use operational energy (prior to technology installation)
-    # as a baseline so that the do-nothing case of not
-    # installing any technologies corresponds to an
-    # NPV=0 business case
-    baseline_energy_sea = vessel.expectation.get_regional_operational_energy_sea()
-    baseline_energy_port = vessel.expectation.get_operational_energy_port()
+    baseline_energy_sea = _as_step_arrays(
+        vessel.expectation.get_regional_operational_energy_sea()
+    )
+    baseline_energy_port = _as_step_arrays(
+        vessel.expectation.get_operational_energy_port()
+    )
 
     shadow_price_sea, shadow_price_port = get_smoothed_energy_duals_technology(vessel)
 
-    return _calculate_marginal_saving(
-        residual_energy_sea,
-        residual_energy_port,
-        baseline_energy_sea,
-        baseline_energy_port,
-        shadow_price_sea,
-        shadow_price_port,
-        idx,
+    # a slice of time-steps always yields an array
+    return np.asarray(
+        _calculate_marginal_saving(
+            residual_energy_sea,
+            residual_energy_port,
+            baseline_energy_sea,
+            baseline_energy_port,
+            shadow_price_sea,
+            shadow_price_port,
+            idx,
+        )
     )
 
 
 def calculate_marginal_speed_saving(
     vessel: Vessel,
-    residual_energy_sea: dict[EnergyDemandTypeID, list[float | np.ndarray]],
-    residual_energy_port: dict[EnergyDemandTypeID, list[float | np.ndarray]],
+    residual_energy_sea: Mapping[EnergyDemandTypeID, Sequence[FloatLike]],
+    residual_energy_port: Mapping[EnergyDemandTypeID, Sequence[FloatLike]],
     idx: int,
     smoothed_duals: tuple[
-        dict[EnergyDemandTypeID, list[np.ndarray]],
-        dict[EnergyDemandTypeID, list[np.ndarray]],
+        Mapping[EnergyDemandTypeID, Sequence[FloatArray]],
+        Mapping[EnergyDemandTypeID, Sequence[FloatArray]],
     ],
-) -> float | np.ndarray:
+) -> float:
     """
-    Calculate the marginal cost saving from a speed change.
+    Calculate the marginal cost saving of a speed change.
 
-    The saving is computed by evaluating the dual-variable contribution of changing the
-    vessel's energy requirements from the baseline (used in the optimal polytype /
-    bunker solution) to the provided residual energy under the speed change. The
-    calculation aggregates savings at sea and in port.
-
-    Notice that the `residual_energy_sea` and `residual_energy_port` must be corrected
-    for the impact of current technology uptake in order to match the baseline energy
-    requirement.
+    The change from the energy of the last bunker solve, the optimal polytope's
+    reference, to the residual energy at the new speed is valued at the smoothed
+    shadow prices, summed at sea and in port. The residual energies must include the
+    effect of the current technology uptake to match that reference.
 
     Parameters
     ----------
     vessel
-        Vessel for which the marginal speed saving is evaluated.
+        Vessel whose speed changes.
     residual_energy_sea
-        Residual energy requirements at sea per energy demand type and leg.
+        Residual energy at sea per energy demand type and leg, GJ/year.
     residual_energy_port
-        Residual energy requirements in port per energy demand type and port.
+        Residual energy in port per energy demand type and port, GJ/year.
     idx
         Current time-step index.
     smoothed_duals
-        Precomputed (shadow_price_sea, shadow_price_port) from
-        ``get_smoothed_energy_duals_speed``. Threaded as an argument because
-        this function is invoked inside the speed optimisation loop and the
-        beliefs do not change across objective evaluations.
+        Shadow prices at sea and in port from ``get_smoothed_energy_duals_speed``,
+        passed in because the speed optimisation calls this for every objective
+        evaluation and the beliefs do not change between them.
 
     Returns
     -------
     float
-        The marginal cost saving.
+        Marginal cost saving, USD/year.
     """
     residual_energy_sea = convert_to_regional_steps(vessel, residual_energy_sea)
 
@@ -186,50 +183,52 @@ def calculate_marginal_speed_saving(
 
     shadow_price_sea, shadow_price_port = smoothed_duals
 
-    return _calculate_marginal_saving(
-        residual_energy_sea,
-        residual_energy_port,
-        baseline_energy_sea,
-        baseline_energy_port,
-        shadow_price_sea,
-        shadow_price_port,
-        idx,
+    return float(
+        _calculate_marginal_saving(
+            residual_energy_sea,
+            residual_energy_port,
+            baseline_energy_sea,
+            baseline_energy_port,
+            shadow_price_sea,
+            shadow_price_port,
+            idx,
+        )
     )
 
 
 def _calculate_marginal_saving(
-    residual_energy_sea: dict[EnergyDemandTypeID, list[float | np.ndarray]],
-    residual_energy_port: dict[EnergyDemandTypeID, list[float | np.ndarray]],
-    baseline_energy_sea: dict[EnergyDemandTypeID, list[float | np.ndarray]],
-    baseline_energy_port: dict[EnergyDemandTypeID, list[float | np.ndarray]],
-    shadow_price_sea: dict[EnergyDemandTypeID, list[np.ndarray]],
-    shadow_price_port: dict[EnergyDemandTypeID, list[np.ndarray]],
+    residual_energy_sea: Mapping[EnergyDemandTypeID, Sequence[FloatLike]],
+    residual_energy_port: Mapping[EnergyDemandTypeID, Sequence[FloatLike]],
+    baseline_energy_sea: Mapping[EnergyDemandTypeID, Sequence[FloatArray]],
+    baseline_energy_port: Mapping[EnergyDemandTypeID, Sequence[FloatArray]],
+    shadow_price_sea: Mapping[EnergyDemandTypeID, Sequence[FloatArray]],
+    shadow_price_port: Mapping[EnergyDemandTypeID, Sequence[FloatArray]],
     idx: int | slice,
-) -> float | np.ndarray:
+) -> FloatLike:
     """
-    Calculate total marginal saving by summing savings at sea and in port.
+    Sum the marginal savings at sea and in port.
 
     Parameters
     ----------
     residual_energy_sea
-        Residual energy requirements at sea per energy demand type and leg.
+        Residual energy at sea per energy demand type and leg, GJ/year.
     residual_energy_port
-        Residual energy requirements in port per energy demand type and port.
+        Residual energy in port per energy demand type and port, GJ/year.
     baseline_energy_sea
-        Baseline energy requirements at sea per energy demand type and leg.
+        Baseline energy at sea per energy demand type and leg, GJ/year.
     baseline_energy_port
-        Baseline energy requirements in port per energy demand type and port.
+        Baseline energy in port per energy demand type and port, GJ/year.
     shadow_price_sea
-        Shadow prices at sea, smoothed via the scarcity belief layer.
+        Smoothed shadow prices at sea, USD/GJ.
     shadow_price_port
-        Shadow prices in port, smoothed via the scarcity belief layer.
+        Smoothed shadow prices in port, USD/GJ.
     idx
-        Time-step index.
+        Time-step index or slice.
 
     Returns
     -------
-    float | np.ndarray
-        Total marginal cost saving (sea + port).
+    FloatLike
+        Marginal cost saving at sea and in port, USD/year.
     """
     savings_sea = _iterate_steps(
         residual_energy_sea, baseline_energy_sea, shadow_price_sea, idx
@@ -242,36 +241,31 @@ def _calculate_marginal_saving(
 
 
 def _iterate_steps(
-    energies_residual: dict[EnergyDemandTypeID, list[float | np.ndarray]],
-    energies_baseline: dict[EnergyDemandTypeID, list[float | np.ndarray]],
-    shadow_prices: dict[EnergyDemandTypeID, list[np.ndarray]],
+    energies_residual: Mapping[EnergyDemandTypeID, Sequence[FloatLike]],
+    energies_baseline: Mapping[EnergyDemandTypeID, Sequence[FloatArray]],
+    shadow_prices: Mapping[EnergyDemandTypeID, Sequence[FloatArray]],
     idx: int | slice,
-) -> float | np.ndarray:
+) -> FloatLike:
     """
-    Accumulate dual-variable savings across all energy demand types and steps.
-
-    For each energy demand type and step, the saving is computed as the shadow price
-    times the reduction in energy requirement from baseline to residual. The
-    contributions are summed across all types and steps.
+    Sum the dual-variable savings over all energy demand types and steps.
 
     Parameters
     ----------
     energies_residual
-        Residual energy requirements per energy demand type and step.
+        Residual energy per energy demand type and step, GJ/year.
     energies_baseline
-        Baseline energy requirements per energy demand type and step.
+        Baseline energy per energy demand type and step, GJ/year.
     shadow_prices
-        Shadow prices for changing the energy requirement per energy demand type and
-        step.
+        Shadow prices per energy demand type and step, USD/GJ.
     idx
-        Time-step indec.
+        Time-step index or slice.
 
     Returns
     -------
-    float | np.ndarray
-        Sum of dual-variable savings over all energy types and steps.
+    FloatLike
+        Summed saving, USD/year.
     """
-    savings = 0.0
+    savings: FloatLike = 0.0
 
     for energy_id, energy_residual in energies_residual.items():
         for step, energy_residual_step in enumerate(energy_residual):
@@ -286,29 +280,50 @@ def _iterate_steps(
 
 
 def _calculate_dual_variable_saving(
-    energy_residual: float | np.ndarray,
-    energy_baseline: float | np.ndarray,
-    shadow_price: float | np.ndarray,
-) -> float | np.ndarray:
+    energy_residual: FloatLike,
+    energy_baseline: FloatLike,
+    shadow_price: FloatLike,
+) -> FloatLike:
     """
-    Calculate the cost saved by changing energy from the baseline to residual energy.
+    Calculate the cost saved by changing the energy from the baseline to the residual.
 
-    Notice that the saving can be negative in case the residual energy is higher than
-    the baseline. This happens e.g., if speed is increased.
+    The saving is negative when the residual exceeds the baseline, as at a higher
+    speed.
 
     Parameters
     ----------
     energy_residual
-        Residual energy after impact from changed speed or installation of technologies.
+        Energy after the speed change or the technology installation, GJ/year.
     energy_baseline
-        Energy required during call to `BunkerAlgorithm` and thus the reference energy
-        for the optimal polytype.
+        Reference energy of the optimal polytope, GJ/year.
     shadow_price
-        Shadow price for changing the energy requirement.
+        Shadow price of the energy requirement, USD/GJ.
 
     Returns
     -------
-    float | np.ndarray
-        The cost saved.
+    FloatLike
+        Cost saved, USD/year.
     """
     return shadow_price * (energy_baseline - energy_residual)
+
+
+def _as_step_arrays(
+    energies: Mapping[EnergyDemandTypeID, Sequence[FloatLike]],
+) -> dict[EnergyDemandTypeID, list[FloatArray]]:
+    """
+    Narrow a whole-timeline energy read to one array per step, for time indexing.
+
+    Parameters
+    ----------
+    energies
+        Energy per energy demand type and step over the whole timeline, GJ/year.
+
+    Returns
+    -------
+    dict[EnergyDemandTypeID, list[FloatArray]]
+        The same arrays, typed as arrays.
+    """
+    return {
+        energy_id: [np.asarray(energy) for energy in steps]
+        for energy_id, steps in energies.items()
+    }

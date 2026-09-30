@@ -370,7 +370,7 @@ class TestAddNewbuildsCharterRate:
         fleet.newbuild_package_uptake = [np.array([0.75, 0.25])]
         fleet.increments = [[]]
 
-        add_newbuilds(fleet, [3.0], time_step=YEAR)
+        add_newbuilds(fleet, np.array([3.0]), time_step=YEAR)
 
         increment = fleet.increments[0][0]
         expected = 0.25 * levelize_package_cost(flow, 10.0, DISCOUNT)

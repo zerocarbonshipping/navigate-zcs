@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""End-of-run fleet profiles and the achieved investment metrics of each vessel."""
+
 from __future__ import annotations
 
 import logging
@@ -15,6 +17,7 @@ from navigate.util import TOLERANCE, divide_nonzero
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
+    from navigate.core.nodes.vessel import Vessel
     from navigate.util.types_ import FloatArray
 
 logger = logging.getLogger(__name__)
@@ -62,10 +65,7 @@ def _transfer_in_fleet_flags(fleet: Fleet) -> None:
 
 def _transfer_fuel_consumer_profiles(fleet: Fleet) -> None:
     """
-    Accumulate the multiplier-weighted vessel consumer profiles.
-
-    Covers emissions, energy, and fuel expenses, transferred onto the fleet
-    profile.
+    Add the multiplier-weighted vessel emissions, energy and fuel expenses to the fleet.
 
     Parameters
     ----------
@@ -82,7 +82,7 @@ def _transfer_fuel_consumer_profiles(fleet: Fleet) -> None:
 
 def _transfer_fuel_conversion_expenses(fleet: Fleet) -> None:
     """
-    Transfer the running technology retrofit and fuel conversion expenses.
+    Transfer the fleet's fuel conversion expenses to its profile.
 
     Parameters
     ----------
@@ -266,9 +266,8 @@ def transfer_transport_work(fleet: Fleet) -> None:
         np.array([vessel.expectation.get_cargo_miles() for vessel in fleet.assets]).T
     )
 
-    # one dot product per step over the vessel axis: a single matrix product
-    # may reduce the vessel axis in a different order and drift in the last
-    # bit, breaking bit-for-bit comparison of runs against per-step transfers
+    # one dot product per step fixes the order in which the vessel axis is reduced,
+    # so runs compare bit for bit with the per-step transfers
     cargo_miles = np.array(
         [
             np.dot(multipliers[idx], vessel_cargo_miles[idx])
@@ -283,16 +282,18 @@ def transfer_transport_work(fleet: Fleet) -> None:
     fleet.profile.set_baseline_energy(np.s_[:], baseline)
 
 
-def post_process_investment_metric(fleets, timeline):
+def post_process_investment_metric(
+    fleets: dict[str, Fleet], timeline: FloatArray
+) -> None:
     """
-    Calculate the investment metric using the post-processed fuel costs.
+    Calculate each vessel's achieved charter and freight rates from the realized costs.
 
     Parameters
     ----------
-    fleets : dict[str, Fleet]
+    fleets
         All fleets in the simulation.
-    timeline : np.ndarray
-        Full timeline of the simulation.
+    timeline
+        Simulation timeline, days.
     """
     for fleet in fleets.values():
         for vessel in fleet.vessels:
@@ -300,14 +301,8 @@ def post_process_investment_metric(fleets, timeline):
 
             for idx, time in enumerate(timeline):
                 discount = vessel.cost_of_capital.get(time)
-
-                # extract the charter rate of the
-                # asset excluding fuel expenses
                 asset_charter_npv = vessel.expectation.get_asset_charter_npv(idx)
 
-                # reconstruct the achieved operating cost-flow (fuel, levy, regulation,
-                # technology) on the operating-year grid (zero during construction lead
-                # time); None when the vessel lacks bunkering data over the horizon
                 result = _calculate_total_vessel_operating_expenses(
                     vessel, idx, timeline
                 )
@@ -316,7 +311,6 @@ def post_process_investment_metric(fleets, timeline):
 
                 operating_cost_flow, year_flow, overlap = result
 
-                # calculate the NPV of operating expenses and the total vessel NPV
                 operating_npv = calculate_net_present_value(
                     operating_cost_flow, discount
                 )
@@ -326,23 +320,20 @@ def post_process_investment_metric(fleets, timeline):
                 # using the same grid as the fuel flow
                 age_npv = calculate_net_present_value(overlap, discount)
 
-                # NPV of cargo delivery over the same operating-year grid as the
-                # cost (zero during lead time), not over the full simulation timeline
+                # the cargo delivery shares the cost's operating-year grid, zero during
+                # the lead time
                 cargo = (
                     np.interp(year_flow, timeline, vessel.expectation.get_cargo_miles())
                     * overlap
                 )
                 cargo_npv = calculate_net_present_value(cargo, discount)
 
-                # calculate the achieved charter and freight rate
                 cargo_charter_rate = cost_npv / age_npv
                 freight_rate = cost_npv / cargo_npv
 
                 profile.set_cargo_charter_rate(idx, cargo_charter_rate)
                 profile.set_instantaneous_freight_rate(idx, freight_rate)
 
-        # aggregate a fleet-level instantaneous freight rate from the
-        # per-vessel achieved charter rates and cargo-miles delivered
         _aggregate_fleet_freight_rate(fleet, timeline)
 
 
@@ -361,16 +352,14 @@ def _aggregate_fleet_freight_rate(fleet: Fleet, timeline: FloatArray) -> None:
     fleet
         Fleet whose vessels are aggregated.
     timeline
-        Full timeline of the simulation.
+        Simulation timeline, days.
     """
     multipliers = fleet.profile.get_existing_vessels()
     cost_weighted = np.zeros(timeline.size)
     cargo_weighted = np.zeros(timeline.size)
 
-    # one ordered `+=` per vessel over the time axis, so each step's sums receive
-    # their float64 additions in one fixed vessel order: stacking the vessels and
-    # reducing over that axis may reorder the additions and drift in the last
-    # bit, breaking bit-for-bit comparison of runs
+    # one ordered `+=` per vessel over the time axis keeps each step's float64
+    # additions in one fixed vessel order, so runs compare bit for bit
     for vessel in fleet.vessels:
         multiplier = multipliers[vessel.name]
 
@@ -389,33 +378,32 @@ def _aggregate_fleet_freight_rate(fleet: Fleet, timeline: FloatArray) -> None:
     )
 
 
-def _calculate_total_vessel_operating_expenses(vessel, idx, timeline):
+def _calculate_total_vessel_operating_expenses(
+    vessel: Vessel, idx: int, timeline: FloatArray
+) -> tuple[FloatArray, FloatArray, FloatArray] | None:
     """
-    Assign the fuel, levy, regulation, and technology expenses for a vessel.
-
-    The vessel belongs to the fleet at a given time of the simulation.
+    Build a vessel's achieved fuel, levy, regulation and technology cost flow.
 
     Parameters
     ----------
-    vessel : Vessel
-        Class Vessel.
-    idx : int
-        Time-step index that cost is starting at.
-    timeline : np.ndarray
-        Full timeline of the simulation.
+    vessel
+        Vessel whose operating expenses are built.
+    idx
+        Time-step index the cost flow starts at.
+    timeline
+        Simulation timeline, days.
 
     Returns
     -------
-    tuple[np.ndarray, np.ndarray, np.ndarray] | None
-        The total operating cost flow, the operating-year grid (days), and the per-year
-        operating fraction (shared with the caller); None when the vessel lacks
-        bunkering data over the horizon.
+    tuple[FloatArray, FloatArray, FloatArray] | None
+        The operating cost flow, USD/year, the operating-year grid, days, and the
+        operating fraction of each year; None when the vessel lacks bunkering data
+        over the horizon.
     """
     profile = vessel.profile
 
-    # the cost requires bunkering knowledge over the construction lead time
-    # plus the operational lifetime. If a vessel has become inactive it will
-    # not have been part of the bunkering algorithm and so lacks the data.
+    # the cost needs bunkering data over the lead time and the lifetime, which a
+    # vessel that left the fleet lacks, as the bunkering algorithm no longer ran it
     lifetime = profile.get_lifetime()[idx]
     lead_time = profile.get_lead_time()[idx]
     idx_to = min(

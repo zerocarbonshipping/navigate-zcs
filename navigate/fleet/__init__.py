@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""The fleet domain: operation, speed, charter, evolution and technology adoption."""
+
 from __future__ import annotations
 
 from navigate.fleet.aggregation import calculate_fleet_profile

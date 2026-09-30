@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Per-step fleet cost transfers and fuel-type demand and supply totals."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -14,10 +16,11 @@ from navigate.util import YEAR, get_increment_origin_index, interpolate_yearly_f
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
     from navigate.core.nodes.fuel import Fuel
+    from navigate.util.types_ import FloatArray
 
 
 def calculate_fleet_profile(
-    fleet: Fleet, fuels: dict[str, Fuel], timeline: np.ndarray, idx: int
+    fleet: Fleet, fuels: dict[str, Fuel], timeline: FloatArray, idx: int
 ) -> None:
     """
     Calculate the per-step fleet state: cost transfers and fuel-type totals.
@@ -34,7 +37,7 @@ def calculate_fleet_profile(
     fuels
         All fuels in the simulation.
     timeline
-        Simulation timeline.
+        Simulation timeline, days.
     idx
         Current time-step index.
     """
@@ -45,7 +48,7 @@ def calculate_fleet_profile(
     _transfer_fuel_type_demand(fleet, idx)
 
 
-def _transfer_increment_expenses(fleet: Fleet, timeline: np.ndarray, idx: int) -> None:
+def _transfer_increment_expenses(fleet: Fleet, timeline: FloatArray, idx: int) -> None:
     """
     Transfer the running vessel expenses per increment.
 
@@ -57,7 +60,7 @@ def _transfer_increment_expenses(fleet: Fleet, timeline: np.ndarray, idx: int) -
     fleet
         Fleet instance.
     timeline
-        Simulation timeline.
+        Simulation timeline, days.
     idx
         Current time-step index.
     """
@@ -66,17 +69,11 @@ def _transfer_increment_expenses(fleet: Fleet, timeline: np.ndarray, idx: int) -
 
     for v, vessel in enumerate(fleet.assets):
         for inc in fleet.increments[v]:
-            # find the cost profile corresponding to a vessel entering
-            # the fleet at 'age' years ago. Notice here that if the
-            # vessel was part of the initial fleet, the cost profile
-            # from a vessel at age 0 is used. This is the best available
-            # approximation as historical data is unknown
+            # the cost profile is that of a vessel entering the fleet 'age' years
+            # ago; an increment of the initial fleet uses the profile at the
+            # simulation start, as historical cost data is unknown
             origin = get_increment_origin_index(years, current_year, inc.age)
-
-            # calculate instantaneous charter rate
             cost = vessel.expectation.get_asset_charter_rate(origin)
-
-            # calculate remaining tied up capital
             tied_capital_flow = vessel.expectation.get_tied_capital(origin)
             tied_capital = interpolate_yearly_flow(tied_capital_flow, inc.age)
 
@@ -129,8 +126,8 @@ def _gather_fuel_type_demand(fleet: Fleet) -> None:
     fleet
         Fleet instance.
     """
-    # the reset must come after fleet evolution, which
-    # reads the previous step's totals
+    # the reset must come after fleet evolution, which reads the previous step's
+    # totals
     fleet.expectation.reset_fuel_type_totals()
 
     for v, vessel in enumerate(fleet.assets):
@@ -139,27 +136,18 @@ def _gather_fuel_type_demand(fleet: Fleet) -> None:
         if multiplier == 0.0:
             continue
 
-        # modelling assuming simplified power system
         power_system = vessel.power_system
         converters = power_system.get_converters()
 
         for converter in converters:
-            # extract the spend energy for the
-            # given converter from the latest
-            # existing bunkering solution
             converter_demand = vessel.expectation.get_spend_energy(converter.name)
-
-            # scale by the number of vessels
             fleet_demand = converter_demand * multiplier
 
-            # extract minimum pilot fuel
             if converter.is_dual_fuel():
                 pilot_fuel_share = converter.minimum_pilot_fuel.get()
             else:
                 pilot_fuel_share = 0.0
 
-            # loop over each main and pilot
-            # fuel type and add the demand
             for fuel_type in converter.main_fuel_types:
                 fleet.expectation.add_fuel_type_demand(
                     fuel_type, (1.0 - pilot_fuel_share) * fleet_demand
@@ -170,8 +158,7 @@ def _gather_fuel_type_demand(fleet: Fleet) -> None:
                     fuel_type, pilot_fuel_share * fleet_demand
                 )
 
-        # resetting the previously spend energy
-        # values to avoid lingering solutions
+        # clear the spend energy so no later step reads this solution's values
         vessel.expectation.reset_spend_energy()
 
 
@@ -196,8 +183,6 @@ def _gather_fuel_type_supply(fleet: Fleet, fuels: dict[str, Fuel], idx: int) -> 
         if multiplier == 0.0:
             continue
 
-        fair_shares = vessel.expectation.get_fair_share_fuels_existing()
-
         ports = vessel.route.ports
 
         for port in ports:
@@ -211,21 +196,14 @@ def _gather_fuel_type_supply(fleet: Fleet, fuels: dict[str, Fuel], idx: int) -> 
                 supply_mass = float(port.expectation.get_bunker_supply(fuel_name, idx))
                 supply_energy = supply_mass * fuel.lower_heating_value.get()
 
-                key = (port_name, fuel_name)
-                if key in fair_shares:
-                    if np.isinf(supply_energy):
-                        fair_share_supply = np.inf
-
-                    else:
-                        fair_share = fair_shares[key]
-                        fair_share_supply = supply_energy * fair_share * multiplier
+                if np.isinf(supply_energy):
+                    fair_share_supply = np.inf
 
                 else:
-                    # the fair-share of a certain fuel type
-                    # in a port will not have been calculated
-                    # if no vessels with that fuel type operate
-                    # in the jurisdiction of the port
-                    fair_share_supply = 0.0
+                    fair_share = vessel.expectation.get_fair_share_fuel_existing(
+                        port_name, fuel_name
+                    )
+                    fair_share_supply = supply_energy * fair_share * multiplier
 
                 fleet.expectation.add_fuel_type_supply(fuel_type, fair_share_supply)
 
@@ -254,7 +232,7 @@ def transfer_multipliers_to_profile(fleet: Fleet, idx: int) -> None:
     Parameters
     ----------
     fleet
-        The fleet instance.
+        Fleet instance.
     idx
         Current time-step index.
     """
