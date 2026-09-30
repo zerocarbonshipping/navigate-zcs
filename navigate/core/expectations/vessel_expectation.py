@@ -539,12 +539,10 @@ class VesselExpectation(_Expectation):
         total: FloatLike = np.add.reduce(energies)
         return total
 
-    def get_energy_saving_sea(
-        self, idx: int
-    ) -> dict[EnergyDemandTypeID, list[FloatArray]]:
+    def get_energy_saving_sea(self, idx: int) -> dict[EnergyDemandTypeID, list[float]]:
         return {
             energy_id: [
-                1.0 - divide_nonzero(energy[idx], raw_energy[idx], default=1.0)
+                1.0 - float(divide_nonzero(energy[idx], raw_energy[idx], default=1.0))
                 for (energy, raw_energy) in zip(
                     self._energy_sea[energy_id],
                     self._raw_energy_sea[energy_id],
@@ -554,12 +552,10 @@ class VesselExpectation(_Expectation):
             for energy_id in self._energy_sea
         }
 
-    def get_energy_saving_port(
-        self, idx: int
-    ) -> dict[EnergyDemandTypeID, list[FloatArray]]:
+    def get_energy_saving_port(self, idx: int) -> dict[EnergyDemandTypeID, list[float]]:
         return {
             energy_id: [
-                1.0 - divide_nonzero(energy[idx], raw_energy[idx], default=1.0)
+                1.0 - float(divide_nonzero(energy[idx], raw_energy[idx], default=1.0))
                 for (energy, raw_energy) in zip(
                     self._energy_port[energy_id],
                     self._raw_energy_port[energy_id],

@@ -689,7 +689,7 @@ def _make_fleet_for_modelled_uptakes(
 class TestModelledUptakesCapProjection:
     """Per-vessel `cap_share` projected onto the two-level (inter/intra fuel) DCM."""
 
-    def test_no_cap_baseline(self):
+    def test_non_binding_caps_give_uniform_shares(self):
         # Uniform uptake with caps of one, which never bind: two same-fuel vessels
         # get equal shares (0.5 each).
         fleet, vessels = _make_fleet_for_modelled_uptakes(["x", "x"], [1.0, 1.0])

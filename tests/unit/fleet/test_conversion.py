@@ -259,6 +259,21 @@ class TestProposeFuelConversions:
         limits = [call.kwargs["limits"][0] for call in dcm.call_args_list]
         np.testing.assert_almost_equal(limits, [0.75, 0.25])
 
+    def test_zero_energy_destination_is_not_supply_capped(self):
+        # a destination type needing no energy draws no fuel, so the supply cap
+        # cannot bind: numpy division gives an unbounded vessel count and the
+        # limit saturates at one; the expectation hands back a numpy scalar
+        fleet = _oil_to_ammonia_fleet()
+        fleet.assets[1].expectation.get_total_energy.return_value = np.float64(0.0)
+
+        with (
+            np.errstate(divide="ignore"),
+            patch(_DCM, return_value=_SHARES) as dcm,
+        ):
+            propose_fuel_conversions(fleet, idx=3, time_step=YEAR)
+
+        assert dcm.call_args.kwargs["limits"] == [1.0, 1.0]
+
     @pytest.mark.parametrize(
         "build_fleet",
         [

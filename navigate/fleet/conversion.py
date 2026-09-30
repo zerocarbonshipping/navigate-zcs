@@ -559,7 +559,9 @@ def _evaluate_candidate(
         return None
 
     discount_rate = vessel_to.cost_of_capital.get()
-    energy_per_vessel = float(vessel_to.expectation.get_total_energy(idx))
+    # a numpy scalar keeps numpy division: a zero energy gives an unbounded
+    # vessel count, not a ZeroDivisionError
+    energy_per_vessel = np.float64(vessel_to.expectation.get_total_energy(idx))
     maximum_vessels = supply / energy_per_vessel
     limit = min(maximum_vessels / multiplier, 1.0)
 

@@ -1284,7 +1284,7 @@ def _average_retrofit_savings(
 
 def _accumulate_energy_weighted_saving(
     raw_energy: Mapping[EnergyDemandTypeID, Sequence[FloatLike]],
-    savings: Mapping[EnergyDemandTypeID, Sequence[FloatArray]],
+    savings: Mapping[EnergyDemandTypeID, Sequence[float]],
     multiplier: float,
     saving_totals: dict[EnergyDemandTypeID, float],
     weight_totals: dict[EnergyDemandTypeID, float],
@@ -1309,7 +1309,7 @@ def _accumulate_energy_weighted_saving(
     for k in saving_totals:
         for leg, raw in enumerate(raw_energy[k]):
             weight = float(raw) * multiplier
-            saving_totals[k] += float(savings[k][leg]) * weight
+            saving_totals[k] += savings[k][leg] * weight
             weight_totals[k] += weight
 
 

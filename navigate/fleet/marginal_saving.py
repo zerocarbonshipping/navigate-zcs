@@ -82,7 +82,7 @@ def get_smoothed_energy_duals_speed(
 
 def calculate_marginal_technology_saving(
     vessel: Vessel, package: Package, idx: slice
-) -> FloatLike:
+) -> FloatArray:
     """
     Calculate the marginal cost saving of installing a technology package.
 
@@ -105,7 +105,7 @@ def calculate_marginal_technology_saving(
 
     Returns
     -------
-    FloatLike
+    FloatArray
         Marginal cost saving at each of the time-steps, USD/year.
     """
     # the shadow prices are given per regional step, so the per-leg residual energy
@@ -124,14 +124,17 @@ def calculate_marginal_technology_saving(
 
     shadow_price_sea, shadow_price_port = get_smoothed_energy_duals_technology(vessel)
 
-    return _calculate_marginal_saving(
-        residual_energy_sea,
-        residual_energy_port,
-        baseline_energy_sea,
-        baseline_energy_port,
-        shadow_price_sea,
-        shadow_price_port,
-        idx,
+    # a slice of time-steps always yields an array
+    return np.asarray(
+        _calculate_marginal_saving(
+            residual_energy_sea,
+            residual_energy_port,
+            baseline_energy_sea,
+            baseline_energy_port,
+            shadow_price_sea,
+            shadow_price_port,
+            idx,
+        )
     )
 
 

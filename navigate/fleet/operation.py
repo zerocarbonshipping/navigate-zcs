@@ -394,12 +394,15 @@ def _calculate_regional_reference(
 
     port_calls = to_numpy(route.port_calls)
     total_calls = np.sum(port_calls)
-    days_per_call = float(divide_nonzero(total_time_port, total_calls))
+    # numpy scalars keep numpy division in the caller, which divides by
+    # miles_between_calls: a route without port calls gives nan there, not a
+    # ZeroDivisionError
+    days_per_call = np.float64(divide_nonzero(total_time_port, total_calls))
 
     times_sea = total_time_sea * distribution
     distances = speeds * times_sea * DAY_TO_HOURS
     miles = np.sum(distances)
-    miles_between_calls = float(divide_nonzero(miles, total_calls))
+    miles_between_calls = np.float64(divide_nonzero(miles, total_calls))
 
     return days_per_call, miles_between_calls
 
