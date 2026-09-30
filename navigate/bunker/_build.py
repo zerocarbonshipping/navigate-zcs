@@ -12,19 +12,19 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Literal
 
+import navigate.bunker.solver as gp
+
 if TYPE_CHECKING:
     from navigate.bunker.bunker_algorithm import BunkerAlgorithm
-
-import navigate.bunker.solver as gp
 
 # the model's spelling of each sense get_constraint accepts
 _MODEL_SENSES = {"==": gp.EQUAL, "<=": gp.LESS_EQUAL, ">=": gp.GREATER_EQUAL}
 
 
-def add_variable(
+def add_variable[K: (tuple, str)](
     alg: BunkerAlgorithm,
-    container: dict[tuple | str, gp.Var],
-    key: tuple | str,
+    container: dict[K, gp.Var],
+    key: K,
     name: str,
 ) -> None:
     """
@@ -79,7 +79,8 @@ def get_constraint(
 
     Returns
     -------
-    The existing or newly created constraint.
+    gp.Constr
+        The existing or newly created constraint.
     """
     if key in container:
         return container[key]
@@ -112,7 +113,8 @@ def _full_name(name: str, key: tuple | str) -> str:
 
     Returns
     -------
-    The family name and key elements joined by underscores.
+    str
+        The family name and key elements joined by underscores.
     """
     if not isinstance(key, tuple):
         key = (key,)

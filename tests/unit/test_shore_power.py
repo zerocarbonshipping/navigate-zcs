@@ -69,6 +69,7 @@ class TestShoreRegulationCoefficient:
         v = "vessel_1"
         r = "reg_1"
         algo.idx = 0
+        algo.time = 0.0
         algo.scope = BunkerScopeID.EXISTING
         algo.emissions = {name: _make_emission(name) for name in shore_ef}
         algo.shore_power = {(v, 0): MagicMock()} if has_shore_power else {}

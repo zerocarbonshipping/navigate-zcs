@@ -1,21 +1,23 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Set the objective coefficients of the vessel and regulation LP variables."""
+
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING
+
+import numpy as np
+
+import navigate.core.enum_ as enum_
+from navigate.core.enum_ import BunkerScopeID
+from navigate.core.unit import MWD_TO_GJ
+from navigate.util import TOLERANCE
 
 if TYPE_CHECKING:
     from navigate.bunker.bunker_algorithm import BunkerAlgorithm
     from navigate.core.nodes.vessel import Vessel
-
-import logging
-
-import navigate.core.enum_ as enum_
-from navigate.bunker.utils import extract_times
-from navigate.core.enum_ import BunkerScopeID
-from navigate.core.unit import MWD_TO_GJ
-from navigate.util import TOLERANCE
 
 logger = logging.getLogger(__name__)
 
@@ -36,53 +38,40 @@ def update_vessel_objectives(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     ports = vessel.route.ports
     port_levies = alg.port_levies
 
-    # add bunkering costs
     for p, port in enumerate(ports):
         port_name = port.name
         levies = port_levies[port_name]
 
         for f, fuel in vessel.usable_fuels.items():
-            if port.is_bunkering_allowed(f):
-                price = port.expectation.get_bunker_price(f, alg.idx)
+            if not port.is_bunkering_allowed(f):
+                continue
 
-                # calculate the cost across all levies
-                cost_levy = sum(
-                    alg.cost_levy[(v, port_name, f, levy.name)]
-                    for levy in levies
-                    if levy.vessel_is_policed(v)
-                )
+            price = np.float64(port.expectation.get_bunker_price(f, alg.idx))
+            cost_levy = sum(
+                alg.cost_levy[(v, port_name, f, levy.name)]
+                for levy in levies
+                if levy.vessel_is_policed(v)
+            )
+            total_price = price + cost_levy
 
-                # calculate the total price for fuel and levies
-                total_price = price + cost_levy
+            alg.bunker[v, p, f].Obj = multiplier * total_price
 
-                # update the objective function coefficient
-                # of the specific bunker variable
-                obj = multiplier * total_price
-                alg.bunker[v, p, f].Obj = obj
+            # a zero price on available supply is typically unintended
+            if (alg.scope == BunkerScopeID.EXISTING) and (total_price <= TOLERANCE):
+                supply = port.expectation.get_bunker_supply(f, alg.idx)
 
-                # in case the price is zero and there is
-                # available supply, then log a warning
-                # as this is typically unintended
-                if (alg.scope == BunkerScopeID.EXISTING) and (total_price <= TOLERANCE):
-                    supply = port.expectation.get_bunker_supply(f, alg.idx)
+                if supply > 0.0:
+                    logger.warning(
+                        "The bunker price of %s for %s in %s is negative or zero (%s).",
+                        fuel,
+                        vessel,
+                        port,
+                        round(total_price, 1),
+                    )
 
-                    if supply > 0.0:
-                        logger.warning(
-                            "The bunker price of %s for %s in %s is negative or zero "
-                            "(%s).",
-                            fuel,
-                            vessel,
-                            port,
-                            round(total_price, 1),
-                        )
-
-    # add shore power costs and bounds
-    _, time_port = extract_times(vessel, alg.idx)
+    time_port = vessel.expectation.get_time_port(alg.idx)
     vessel_capacity = vessel.expectation.get_shore_power_capacity(alg.idx)
-
-    # electrical demand at each port for share-based upper bound
-    demands_port = vessel.expectation.get_energy_port(idx=alg.idx)
-    electrical_demand = demands_port.get(
+    electrical_demand = vessel.expectation.get_energy_port(idx=alg.idx).get(
         enum_.EnergyDemandTypeID.ELECTRICAL, [0.0] * len(ports)
     )
 
@@ -92,16 +81,17 @@ def update_vessel_objectives(alg: BunkerAlgorithm, vessel: Vessel) -> None:
         if key not in alg.shore_power:
             continue
 
-        cost = port.expectation.get_shore_power_cost(alg.idx)
-        connection_share = port.expectation.get_shore_power_connection_share(alg.idx)
+        cost = float(port.expectation.get_shore_power_cost(alg.idx))
+        connection_share = float(
+            port.expectation.get_shore_power_connection_share(alg.idx)
+        )
 
-        # upper bound: min of capacity-based limit and share-based demand limit
-        capacity_ub = vessel_capacity * time_port[p] * MWD_TO_GJ
-        share_ub = connection_share * electrical_demand[p]
-        ub = min(capacity_ub, share_ub)
-        alg.shore_power[key].UB = float(ub)
+        # shore power covers at most what the vessel's connection delivers over its
+        # time in port, and at most the port's connection share of its demand
+        capacity_bound = vessel_capacity * float(time_port[p]) * MWD_TO_GJ
+        share_bound = connection_share * float(electrical_demand[p])
+        alg.shore_power[key].UB = min(capacity_bound, share_bound)
 
-        # objective coefficient
         alg.shore_power[key].Obj = multiplier * cost
 
 

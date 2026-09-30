@@ -2,19 +2,16 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Solver module -- uses Gurobi if licensed, otherwise HiGHS.
+Solver facade of the bunker algorithm: Gurobi when licensed, HiGHS otherwise.
 
-Tries to import gurobipy and verify a valid commercial license.
-If Gurobi is available and licensed, uses it directly (with a thin
-Model subclass for ConstrName/IISConstr compatibility).
-Otherwise, falls back to the HiGHS open-source solver.
-
-The active backend can be overridden via ``set_solver_preference()``
-before any Model objects are created. Models and linear expressions are
-created through ``create_model()`` and ``create_linear_expression()``, which
-dispatch on the active backend; the HiGHS classes, whose interface the
-Gurobi objects share, serve as the static types for annotations only, and
-are never instantiated or checked against at runtime.
+Whether gurobipy is installed and licensed is checked at import;
+``set_solver_preference()`` picks the backend before any model is created.
+Models and linear expressions are created through ``create_model()`` and
+``create_linear_expression()``, which dispatch on the active backend. mypy.ini
+skips gurobipy's bundled stubs (see ``[mypy-gurobipy.*]``), so the HiGHS
+classes, whose interface the Gurobi objects share, are the one static contract
+both backends are checked against; they are imported for annotations only,
+never instantiated or checked against at runtime.
 
 Usage:
     import navigate.bunker.solver as gp
@@ -28,9 +25,6 @@ import contextlib
 import logging
 from typing import TYPE_CHECKING, Literal
 
-# ---------------------------------------------------------------------------
-# HiGHS backend (always available)
-# ---------------------------------------------------------------------------
 from navigate.bunker import solver_highs as _highs
 from navigate.core.enum_ import SolverBackendID
 
@@ -44,17 +38,14 @@ if TYPE_CHECKING:
 
 _logger = logging.getLogger(__name__)
 
-# ---------------------------------------------------------------------------
-# Detect Gurobi availability at import time (does NOT choose the backend yet)
-# ---------------------------------------------------------------------------
 _GUROBI_AVAILABLE = False
 
 try:
     import gurobipy as _grb
 
-    # gurobipy can be pip-installed without a license.
-    # Creating an Env and starting it is the only reliable license check.
-    # empty=True suppresses the Gurobi banner on stdout.
+    # gurobipy installs without a license, and starting an environment is the
+    # only reliable license check; an empty environment keeps the banner off
+    # stdout
     _test_env = _grb.Env(empty=True)
     _test_env.setParam("OutputFlag", 0)
     _test_env.start()
@@ -62,60 +53,44 @@ try:
     del _test_env
     _GUROBI_AVAILABLE = True
 
-except ImportError:
-    pass
-
 except Exception:
+    # gurobipy is missing or unlicensed
     pass
 
 
-# ---------------------------------------------------------------------------
-# Gurobi backend (only if licensed)
-# ---------------------------------------------------------------------------
 if _GUROBI_AVAILABLE:
 
     class _GurobiModel(_grb.Model):
-        """Thin subclass adding model-level ConstrName/IISConstr lists."""
+        """A gurobipy model with model-level ConstrName and IISConstr lists."""
 
-        def __init__(self, name=""):
-            self._gurobi_env = _grb.Env(empty=True)
+        def __init__(self, name: str) -> None:
+            self._gurobi_env: _grb.Env = _grb.Env(empty=True)
             self._gurobi_env.setParam("OutputFlag", 0)
             self._gurobi_env.start()
             super().__init__(name, env=self._gurobi_env)
 
         @property
-        def ConstrName(self):
-            """List of constraint names (all constraints in model order)."""
+        def ConstrName(self) -> list[str]:
+            """Name of each constraint, in model order."""
             return [c.ConstrName for c in self.getConstrs()]
 
         @property
-        def IISConstr(self):
-            """List of booleans for IIS membership (all constraints in model order)."""
+        def IISConstr(self) -> list[bool]:
+            """Whether each constraint is in the IIS, in model order."""
             return [bool(c.IISConstr) for c in self.getConstrs()]
 
-        def __del__(self):
+        def __del__(self) -> None:
             with contextlib.suppress(Exception):
                 super().__del__()
             with contextlib.suppress(Exception):
                 self._gurobi_env.dispose()
 
 
-# ---------------------------------------------------------------------------
-# Static types
-# ---------------------------------------------------------------------------
-# gurobipy is untyped, so the HiGHS classes stand for both backends in
-# annotations (see the TYPE_CHECKING import above); the Gurobi objects
-# provide the same interface but are never checked against these classes
-# at runtime.
-
 # constraint senses, spelled as gurobipy spells them for both backends
 EQUAL = _highs.EQUAL
 LESS_EQUAL = _highs.LESS_EQUAL
 GREATER_EQUAL = _highs.GREATER_EQUAL
 
-# ---------------------------------------------------------------------------
-# Active backend selection
-# ---------------------------------------------------------------------------
 # bound by _configure(); the values differ per backend
 _active_backend: Literal["gurobi", "highs"]
 CONTINUOUS: str
@@ -124,8 +99,8 @@ INFEASIBLE: int
 INF_OR_UNBD: int
 
 
-def _configure(preference):
-    """Bind module-level solver names according to *preference*."""
+def _configure(preference: SolverBackendID) -> None:
+    """Bind the module-level solver names to the backend *preference* selects."""
     global CONTINUOUS, OPTIMAL, INFEASIBLE, INF_OR_UNBD
     global _active_backend
 
@@ -144,7 +119,8 @@ def _configure(preference):
                 "backend."
             )
 
-    else:  # AUTOMATIC
+    else:
+        # automatic
         if _GUROBI_AVAILABLE:
             use_gurobi = True
             _logger.info("Gurobi license verified -- using Gurobi solver backend.")
@@ -165,7 +141,7 @@ def _configure(preference):
         _active_backend = "highs"
 
 
-def set_solver_preference(preference: SolverBackendID):
+def set_solver_preference(preference: SolverBackendID) -> None:
     """
     Reconfigure the solver backend.
 
@@ -222,12 +198,13 @@ def create_linear_expression(
     """
     if _active_backend == "gurobi":
         if coefficients is None or variables is None:
-            return _grb.LinExpr()
-
-        return _grb.LinExpr(coefficients, variables)
+            expression: LinExpr = _grb.LinExpr()
+        else:
+            expression = _grb.LinExpr(coefficients, variables)
+        return expression
 
     return _highs.LinExpr(coefficients, variables)
 
 
-# Initial configuration: auto-detect (preserves original default behaviour).
+# automatic detection holds until a deck sets a preference
 _configure(SolverBackendID.AUTOMATIC)

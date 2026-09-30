@@ -1,14 +1,13 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Iterate the bunkering LP until the vessels' shares of the port fuel supply settle."""
+
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from navigate.bunker.bunker_algorithm import BunkerAlgorithm
-
 import logging
+from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 import numpy as np
 from numpy.linalg import norm
@@ -21,7 +20,35 @@ from navigate.bunker.optimize import optimize
 from navigate.bunker.utils import get_port_name_to_indices
 from navigate.core.enum_ import BunkerScopeID
 
+if TYPE_CHECKING:
+    from navigate.bunker.bunker_algorithm import BunkerAlgorithm
+    from navigate.core.nodes.vessel import Vessel
+    from navigate.util.types_ import FloatArray
+
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class FairShareSolutions:
+    """
+    The bunker solutions of consecutive fair-share iterations, in one key order.
+
+    Parameters
+    ----------
+    keys
+        Bunker variable keys, in the order of the arrays.
+    previous
+        Bunker solution of the previous iteration, tons.
+    new
+        Bunker solution of the latest iteration, tons.
+    difference
+        Absolute difference between the two solutions, tons.
+    """
+
+    keys: list[tuple]
+    previous: FloatArray
+    new: FloatArray
+    difference: FloatArray
 
 
 def perform_fair_share_iteration(alg: BunkerAlgorithm) -> bool:
@@ -41,7 +68,6 @@ def perform_fair_share_iteration(alg: BunkerAlgorithm) -> bool:
     update_fair_share_allocation(alg)
     update_fair_share_constraints(alg)
 
-    # solve the updated model
     optimize(alg)
 
     converged = calculate_fair_share_solution_convergence(alg)
@@ -111,60 +137,43 @@ def perform_flexibility_unit_cost_evaluation(alg: BunkerAlgorithm) -> None:
 
 def initialize_fair_share_allocation(alg: BunkerAlgorithm) -> None:
     """
-    Initialize fair-share allocation variables and containers.
+    Initialize the fair-share allocations and convergence state of a solve.
 
     Parameters
     ----------
     alg
         The algorithm instance.
     """
-    # initialize the container for
-    # fair-share convergence statistics
     alg.fair_share_convergence_statistics = {}
 
-    # reset fair-share containers previous time-step
     alg.previous_bunker = {}
     alg.allocation_fuel = {}
     alg.previously_released_fuel = {}
 
-    # reset pre-allocated convergence arrays (keys may have changed)
-    alg.fair_share_bunker_keys = None
-    alg.fair_share_solution_previous = None
-    alg.fair_share_solution_new = None
-    alg.fair_share_difference = None
+    # the bunker keys may differ from those of the previous solve
+    alg.fair_share_solutions = None
 
-    # allocate new initial fair-share
     for v, p, f in alg.bunker:
         vessel = alg.vessels[v]
         port = vessel.route.ports[p]
 
-        supply = port.expectation.get_bunker_supply(f, alg.idx)
+        supply = np.float64(port.expectation.get_bunker_supply(f, alg.idx))
 
-        # no constraint has been defined,
-        # or it has been defined at a late
-        # date or has been removed later
+        # an infinite supply has no fair-share constraint: none was defined, or
+        # it starts later or was removed
         if not np.isfinite(supply):
             continue
 
         port_name = port.name
         key = (v, port_name, f)
 
-        # if the port is a duplicate for that route,
-        # it only needs to be defined once
+        # a port the route calls more than once is allocated once
         if key in alg.allocation_fuel:
             continue
 
-        if alg.scope == BunkerScopeID.EXISTING:
-            fair_share = vessel.expectation.get_fair_share_fuel_existing(port_name, f)
-        else:
-            fair_share = vessel.expectation.get_fair_share_fuel_expected(
-                port_name, f, alg.idx
-            )
-
         alg.previously_released_fuel[key] = False
-        alg.allocation_fuel[key] = fair_share * supply
+        alg.allocation_fuel[key] = _get_fair_share(alg, vessel, port_name, f) * supply
 
-    # initialize fair-share convergence statistics
     alg.fair_share_convergence_statistics.setdefault("Non-zero (%)", [])
     alg.fair_share_convergence_statistics.setdefault("Norm", [])
     alg.fair_share_convergence_statistics.setdefault("Max", [])
@@ -180,14 +189,10 @@ def update_fair_share_constraints(alg: BunkerAlgorithm) -> None:
         The algorithm instance.
     """
     for vessel in alg.vessels.values():
-        # limit the individual fuel availability
-        # of a vessel to its fair-share of the total
         update_fair_share_fuel_constraints(alg, vessel)
 
-        # define vessel level inertia.
-        # It has to be defined after
-        # fair-share in order not to
-        # clash with allocations
+        # the inertia constraints follow the fair-share constraints, so they do not
+        # clash with the allocations
         update_fuel_inertia_constraints(alg, vessel)
 
 
@@ -215,29 +220,28 @@ def update_fair_share_allocation(alg: BunkerAlgorithm) -> None:
         v: get_port_name_to_indices(vessel.route) for v, vessel in alg.vessels.items()
     }
 
-    consumed_by_unbounded = {}  # (port_name, f), consumed supply by unbounded vessels
-    bounded_fair_share = {}  # (port_name, f), sum of fair_share*multiplier, bounded
-    is_bounded = {}  # (v, port_name, f), bool
-    previous_bunker = {}  # (v, port_name, f), float, consumption over port indices
+    # supply consumed by the unbounded vessels, and fair share times multiplier
+    # summed over the bounded vessels, per (port name, fuel)
+    consumed_by_unbounded: dict[tuple[str, str], float] = {}
+    bounded_fair_share: dict[tuple[str, str], float] = {}
 
-    # ----- pass 1: classify and aggregate -----
+    # per (vessel, port name, fuel)
+    is_bounded: dict[tuple[str, str, str], bool] = {}
+    previous_bunker: dict[tuple[str, str, str], float] = {}
+
     for v, port_name, f in alg.allocation_fuel:
         vessel = alg.vessels[v]
-        port = alg.ports[port_name]
         key_vpf = (v, port_name, f)
         key_pf = (port_name, f)
 
-        # find all port indices that correspond to the given port
         port_indices = port_name_to_indices[v][port_name]
         previous_bunker[key_vpf] = sum(
             alg.previous_bunker[(v, p, f)] for p in port_indices
         )
 
-        # the vessel is considered bounded if it has
-        # a non-zero share of the supply, has a demand
-        # for additional supply (non-zero shadow price)
-        # and has not previously released a part of
-        # its fair-share
+        # a vessel is bounded when it holds a non-zero share of the supply, wants
+        # more of it (a non-zero shadow price) and has not released part of its
+        # fair share before
         constraint = alg.fair_share_fuel[key_vpf]
         in_use = alg.allocation_fuel[key_vpf] > tol
         attractive = abs(constraint.Pi) > tol
@@ -245,29 +249,15 @@ def update_fair_share_allocation(alg: BunkerAlgorithm) -> None:
         is_bounded[key_vpf] = (not previously_released) and in_use and attractive
 
         if is_bounded[key_vpf]:
-            if alg.scope == BunkerScopeID.EXPECTED:
-                fair_share = vessel.expectation.get_fair_share_fuel_expected(
-                    port_name, f, alg.idx
-                )
-            else:
-                fair_share = vessel.expectation.get_fair_share_fuel_existing(
-                    port_name, f
-                )
-
-            # add up the total fraction of fair-share
-            # in use by bounded vessels
+            fair_share = _get_fair_share(alg, vessel, port_name, f)
             bounded_fair_share.setdefault(key_pf, 0.0)
             bounded_fair_share[key_pf] += fair_share * alg.multipliers[v]
         else:
-            # add up the total consumption of the supply
-            # by unbounded vessels, that are using a
-            # partial amount of their supply
             consumed_by_unbounded.setdefault(key_pf, 0.0)
             consumed_by_unbounded[key_pf] += (
                 previous_bunker[key_vpf] * alg.multipliers[v]
             )
 
-    # ----- pass 2: update allocations -----
     for v, port_name, f in alg.allocation_fuel:
         vessel = alg.vessels[v]
         port = alg.ports[port_name]
@@ -275,22 +265,11 @@ def update_fair_share_allocation(alg: BunkerAlgorithm) -> None:
         key_pf = (port_name, f)
 
         if is_bounded[key_vpf]:
-            if alg.scope == BunkerScopeID.EXPECTED:
-                fair_share = vessel.expectation.get_fair_share_fuel_expected(
-                    port_name, f, alg.idx
-                )
-            else:
-                fair_share = vessel.expectation.get_fair_share_fuel_existing(
-                    port_name, f
-                )
+            fair_share = _get_fair_share(alg, vessel, port_name, f)
 
-            # calculate the residual supply not
-            # in use by the unbounded vessels
-            supply = port.expectation.get_bunker_supply(f, alg.idx)
+            supply = np.float64(port.expectation.get_bunker_supply(f, alg.idx))
             remaining_supply = supply - consumed_by_unbounded.get(key_pf, 0.0)
 
-            # redistrbute the unused supply
-            # to those that are bounded
             total_bounded = bounded_fair_share[key_pf]
             if total_bounded > tol:
                 alg.allocation_fuel[key_vpf] = (
@@ -299,20 +278,16 @@ def update_fair_share_allocation(alg: BunkerAlgorithm) -> None:
             else:
                 alg.allocation_fuel[key_vpf] = 0.0
 
-        else:
-            # only tighten allocation when there are
-            # bounded vessels that can absorb the freed
-            # supply. If no vessel is bounded for this
-            # port-fuel, releasing would lose supply
-            # with no one to redistribute it to.
-            if key_pf in bounded_fair_share:
-                alg.previously_released_fuel[key_vpf] = True
-                alg.allocation_fuel[key_vpf] = previous_bunker[key_vpf]
+        elif key_pf in bounded_fair_share:
+            # a released allocation is tightened only where a bounded vessel can
+            # absorb the freed supply; otherwise releasing it would lose the supply
+            alg.previously_released_fuel[key_vpf] = True
+            alg.allocation_fuel[key_vpf] = previous_bunker[key_vpf]
 
 
 def update_fair_share_solution(alg: BunkerAlgorithm) -> None:
     """
-    Update the fair share solution values for the internal state.
+    Store the bunker solution as the previous one of the next iteration.
 
     Parameters
     ----------
@@ -321,11 +296,10 @@ def update_fair_share_solution(alg: BunkerAlgorithm) -> None:
     """
     alg.previous_bunker = {key: bunker.X for key, bunker in alg.bunker.items()}
 
-    # update pre-allocated arrays for convergence check
-    if alg.fair_share_bunker_keys is not None:
-        solution_previous = alg.fair_share_solution_previous
-        for i, key in enumerate(alg.fair_share_bunker_keys):
-            solution_previous[i] = alg.previous_bunker[key]
+    solutions = alg.fair_share_solutions
+    if solutions is not None:
+        for i, key in enumerate(solutions.keys):
+            solutions.previous[i] = alg.previous_bunker[key]
 
 
 def calculate_fair_share_solution_convergence(alg: BunkerAlgorithm) -> bool:
@@ -345,39 +319,62 @@ def calculate_fair_share_solution_convergence(alg: BunkerAlgorithm) -> bool:
     bunker = alg.bunker
     tol = alg.options.fair_share_tolerance
 
-    # lazy initialization of pre-allocated arrays
-    if alg.fair_share_bunker_keys is None:
-        alg.fair_share_bunker_keys = list(bunker.keys())
-        n = len(alg.fair_share_bunker_keys)
-        alg.fair_share_solution_previous = np.empty(n)
-        alg.fair_share_solution_new = np.empty(n)
-        alg.fair_share_difference = np.empty(n)
-        for i, key in enumerate(alg.fair_share_bunker_keys):
-            alg.fair_share_solution_previous[i] = alg.previous_bunker[key]
+    solutions = alg.fair_share_solutions
+    if solutions is None:
+        keys = list(bunker.keys())
+        n = len(keys)
+        solutions = FairShareSolutions(keys, np.empty(n), np.empty(n), np.empty(n))
+        for i, key in enumerate(keys):
+            solutions.previous[i] = alg.previous_bunker[key]
+        alg.fair_share_solutions = solutions
 
-    solution_previous = alg.fair_share_solution_previous
-    solution_new = alg.fair_share_solution_new
-    difference = alg.fair_share_difference
+    difference = solutions.difference
 
-    for i, key in enumerate(alg.fair_share_bunker_keys):
-        solution_new[i] = bunker[key].X
+    for i, key in enumerate(solutions.keys):
+        solutions.new[i] = bunker[key].X
 
-    np.subtract(solution_previous, solution_new, out=difference)
+    np.subtract(solutions.previous, solutions.new, out=difference)
     np.abs(difference, out=difference)
 
-    # calculate the fraction of non-zeros
     non_zero = np.count_nonzero(difference >= tol)
     non_zero_fraction = float(non_zero) / float(difference.size)
 
-    # calculate convergence criteria
     norm_ = norm(difference)
-    converged = norm_ < tol
+    converged = bool(norm_ < tol)
 
-    # calculate additional statistics
-    alg.fair_share_convergence_statistics["Non-zero (%)"].append(
-        int(non_zero_fraction * 100.0)
-    )
-    alg.fair_share_convergence_statistics["Norm"].append(float(norm_))
-    alg.fair_share_convergence_statistics["Max"].append(float(np.max(difference)))
+    statistics = alg.fair_share_convergence_statistics
+    statistics["Non-zero (%)"].append(int(non_zero_fraction * 100.0))
+    statistics["Norm"].append(float(norm_))
+    statistics["Max"].append(float(np.max(difference)))
 
     return converged
+
+
+def _get_fair_share(
+    alg: BunkerAlgorithm, vessel: Vessel, port_name: str, fuel_name: str
+) -> float:
+    """
+    Return a vessel's fair share of a port's fuel supply in the algorithm's scope.
+
+    Parameters
+    ----------
+    alg
+        The algorithm instance.
+    vessel
+        Vessel holding the fair share.
+    port_name
+        Name of the port supplying the fuel.
+    fuel_name
+        Name of the fuel.
+
+    Returns
+    -------
+    float
+        Fraction of the port's supply of the fuel.
+    """
+    if alg.scope == BunkerScopeID.EXISTING:
+        return vessel.expectation.get_fair_share_fuel_existing(port_name, fuel_name)
+
+    return np.float64(
+        vessel.expectation.get_fair_share_fuel_expected(port_name, fuel_name, alg.idx)
+    )

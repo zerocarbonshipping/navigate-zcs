@@ -1,9 +1,15 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Compute the per-time-step LHV, emission and policy coefficients of the LP."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
+
+from navigate.bunker.utils import get_converters
+from navigate.core.enum_ import RegulationMeasureID
+from navigate.core.unit import TON_TO_KG
 
 if TYPE_CHECKING:
     from navigate.bunker.bunker_algorithm import BunkerAlgorithm
@@ -11,10 +17,6 @@ if TYPE_CHECKING:
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.vessel import Vessel
-
-from navigate.bunker.utils import get_converters
-from navigate.core.enum_ import RegulationMeasureID
-from navigate.core.unit import TON_TO_KG
 
 
 def _calculate_emission_factor_ttw(
@@ -141,15 +143,15 @@ def calculate_regulation_coefficients(alg: BunkerAlgorithm, vessel: Vessel) -> N
     idx = alg.idx
 
     # evaluate the vessel thresholds once per build; non-policed vessels carry
-    # a threshold of zero (their emission terms never enter a constraint)
-    thresholds = {
-        (r, v): (
-            regulation.vessel_threshold[v].get(alg.time)
-            if regulation.vessel_is_policed(v)
-            else 0.0
-        )
-        for r, regulation in active_regulations.items()
-    }
+    # a threshold of zero (their emission terms never enter a constraint), and
+    # check_consistency guarantees every policed vessel a threshold
+    thresholds: dict[tuple[str, str], float] = {}
+    for r, regulation in active_regulations.items():
+        threshold = regulation.vessel_threshold[v]
+        if regulation.vessel_is_policed(v) and threshold is not None:
+            thresholds[(r, v)] = threshold.get(alg.time)
+        else:
+            thresholds[(r, v)] = 0.0
     alg.regulation_vessel_threshold.update(thresholds)
 
     factors = {
@@ -186,8 +188,8 @@ def calculate_regulation_coefficients(alg: BunkerAlgorithm, vessel: Vessel) -> N
             shore_power_emission_factor = 0.0
             for emission in regulation.emissions:
                 emission_name = emission.name
-                emission_factor = port_expectation.get_shore_power_emission_factor(
-                    emission_name, idx
+                emission_factor = float(
+                    port_expectation.get_shore_power_emission_factor(emission_name, idx)
                 )
                 emission_factor *= regulation.expectation.get_global_warming_potential(
                     emission_name

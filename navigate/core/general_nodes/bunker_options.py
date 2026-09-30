@@ -59,7 +59,8 @@ class BunkerOptions(_GeneralNode):
         Parameters
         ----------
         solver_method
-            LP solver method used by HiGHS to solve LP's in the bunker algorithm.
+            LP solution method, passed to Gurobi as its Method parameter; the HiGHS
+            backend ignores it.
         """
         self.solver_method = assign_id(solver_method, SolverMethodID)
 
