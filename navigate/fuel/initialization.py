@@ -14,12 +14,11 @@ from navigate.fuel.evolution import (
 )
 
 if TYPE_CHECKING:
-    import numpy as np
-
     from navigate.core.nodes.producer import Producer
+    from navigate.util.types_ import FloatArray
 
 
-def initialize_existing_producer(producer: Producer, timeline: np.ndarray) -> None:
+def initialize_existing_producer(producer: Producer, timeline: FloatArray) -> None:
     """
     Initialize the existing producer.
 
@@ -41,28 +40,23 @@ def initialize_existing_producer(producer: Producer, timeline: np.ndarray) -> No
 
     idx = 0
 
-    # existing producer
     producer.define_initial_capacity()
     producer.define_initial_age()
     producer.define_initial_decided()
     producer.define_initial_multipliers()
 
-    # clean up zero multipliers to reduce overhead
-    # and avoid round-off error issue when calculating
-    # increment average properties
+    # zero multipliers are dropped to reduce overhead and to avoid round-off
+    # errors in the increment average properties
     for a in range(len(producer.increments)):
         producer.increments[a] = [
             inc for inc in producer.increments[a] if inc.multiplier > 0.0
         ]
 
-    # existing pipeline
     define_existing_pipeline(producer, timeline)
 
-    # calculate the initial producer evolution expectation
     calculate_feed_availability(producer, timeline, idx)
     calculate_evolution_expectation(producer, timeline, idx)
 
-    # store all possible production fuels for convenience
     for plant in producer.assets:
         fuel = plant.fuel
         producer.fuels.setdefault(fuel.name, fuel)

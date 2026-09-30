@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""The fuel-supply domain: production, delivery, port supply and producer planning."""
+
 from __future__ import annotations
 
 from navigate.fuel.aggregation import calculate_producer_profile

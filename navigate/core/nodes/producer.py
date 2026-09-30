@@ -91,7 +91,7 @@ class Producer(_AssetManager[Plant]):
         self.fuels: dict[str, Fuel] = {}
 
         # dynamic variables
-        self.current_utilization: float | None = None
+        self.current_utilization: float = 0.0
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_plants(self, plants: Plant | list[Plant]) -> None:

@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Transfer of each producer's expectations to its end-of-run profile."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -16,10 +18,11 @@ from navigate.util import (
 
 if TYPE_CHECKING:
     from navigate.core.nodes.producer import Producer
+    from navigate.util.types_ import FloatArray
 
 
 def calculate_producer_profile(
-    producer: Producer, timeline: np.ndarray, idx: int
+    producer: Producer, timeline: FloatArray, idx: int
 ) -> None:
     """
     Calculate the producer profile for a given time step.
@@ -60,7 +63,7 @@ def _transfer_feed_constraints(producer: Producer, idx: int) -> None:
 
 
 def _transfer_production_and_feed_mass(
-    producer: Producer, years: np.ndarray, today: float, idx: int
+    producer: Producer, years: FloatArray, today: float, idx: int
 ) -> None:
     """
     Transfer the produced fuel mass and consumed feed mass per plant.
@@ -96,14 +99,13 @@ def _transfer_production_and_feed_mass(
         producer.profile.add_production_mass(fuel_name, production, idx)
 
         conversions = expectation.get_feed_masses(origins)
-
         for feed_name, conversion in conversions.items():
             feed_mass = np.sum(production_unit * conversion * multipliers)
             producer.profile.add_feed_mass(feed_name, feed_mass, idx)
 
 
 def _transfer_plant_tied_capital(
-    producer: Producer, years: np.ndarray, today: float, idx: int
+    producer: Producer, years: FloatArray, today: float, idx: int
 ) -> None:
     """
     Transfer the remaining tied-up capital per plant increment.
@@ -122,14 +124,11 @@ def _transfer_plant_tied_capital(
     for p, plant in enumerate(producer.assets):
         incs = producer.increments[p]
         for inc in incs:
-            # find the cost profile corresponding to a plant entering
-            # production at 'age' years ago. Notice here that if the
-            # plant was part of the initial production, the cost profile
-            # from a plant at age 0 is used. This is the best available
-            # approximation as historical data is unknown
+            # the cost profile is that of a plant entering production 'age' years
+            # ago; a plant of the initial production uses the profile of a plant at
+            # age 0, the best available approximation as historical data is unknown
             origin = get_increment_origin_index(years, today, inc.age)
 
-            # calculate remaining tied up capital
             tied_capital_flow = plant.expectation.get_tied_capital(origin)
             tied_capital = interpolate_yearly_flow(tied_capital_flow, inc.age)
 

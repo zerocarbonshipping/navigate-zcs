@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Levelized production cost, WTT emissions and feed use of each plant."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -20,7 +22,7 @@ from navigate.economics.metric import calculate_levelized_cost
 from navigate.util import YEAR
 
 if TYPE_CHECKING:
-    import numpy as np
+    from collections.abc import Callable
 
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.feedstock import Feedstock
@@ -28,10 +30,12 @@ if TYPE_CHECKING:
     from navigate.core.nodes.process import Process
     from navigate.core.nodes.region import Region
     from navigate.core.nodes.source import Source
+    from navigate.core.types_ import ForecastInput
+    from navigate.util.types_ import FloatArray
 
 
 def calculate_plant_production_expectations(
-    plant: Plant, emissions: dict[str, Emission], timeline: np.ndarray, idx: int
+    plant: Plant, emissions: dict[str, Emission], timeline: FloatArray, idx: int
 ) -> None:
     """
     Calculate all properties related to the production of fuels from a given plant.
@@ -71,16 +75,10 @@ def calculate_plant_production_expectations(
     idx
         Current time-step index in the simulation timeline.
     """
-    # calculate the production
-    # output from the plant
     _calculate_plant_production(plant, timeline, idx)
 
-    # extract the top-level process used
-    # in the plant to produce fuel and
-    # start the recursive traversal
     process = plant.process
 
-    # track previous dimensions for component reuse
     prev_lead_time = None
     prev_lifetime = None
     component = None
@@ -96,10 +94,10 @@ def calculate_plant_production_expectations(
             and lead_time == prev_lead_time
             and lifetime == prev_lifetime
         ):
-            # reuse: zero flows, update time context, recompute overlap
+            # the flow sizes depend on the lead time and lifetime alone, so an
+            # unchanged pair reuses the component instead of reallocating it
             component.reset_flow(time)
         else:
-            # full allocation (first iteration or dimension change)
             component = _initialize_process_component(
                 plant=plant,
                 process=process,
@@ -110,8 +108,6 @@ def calculate_plant_production_expectations(
             prev_lead_time = lead_time
             prev_lifetime = lifetime
 
-        # calculate the cost flow and
-        # emissions flow of the plant
         _calculate_recursive_process(
             component=component,
             plant=plant,
@@ -120,22 +116,15 @@ def calculate_plant_production_expectations(
             conversion=1.0,
             idx=t,
         )
-
-        # calculate the final cost and
-        # emissions per ton of fuel
         _calculate_unit_properties(component=component, plant=plant, idx=t)
 
-    # transfer the cost that is used at the
-    # time of investment for the plant
     plant.profile.set_investment_cost(
-        idx, plant.expectation.get_levelized_production_cost(idx)
+        idx, float(plant.expectation.get_levelized_production_cost(idx))
     )
 
-    # transfer the WTT that is used at the
-    # time of investment for the plant
     for e in emissions:
         plant.profile.set_investment_wtt(
-            idx, e, plant.expectation.get_production_wtt(e, idx)
+            idx, e, float(plant.expectation.get_production_wtt(e, idx))
         )
 
 
@@ -159,36 +148,28 @@ def _calculate_unit_properties(component: Component, plant: Plant, idx: int) -> 
     idx
         Current time-step index in the simulation timeline.
     """
-    # calculate the production flow of the plant
-    production = plant.expectation.get_production(idx)
+    production = float(plant.expectation.get_production(idx))
     production_flow = build_production_flow(component=component, production=production)
 
-    # calculate the levelized cost
     cost_flow = component.get_cost_flow()
     discount_rate = plant.cost_of_capital.get(component.time_initial)
     levelized_cost = calculate_levelized_cost(cost_flow, production_flow, discount_rate)
     plant.expectation.set_levelized_production_cost(idx, levelized_cost)
 
-    # assign the tied up capital
     commence_idx = component.get_commence_index()
     tied_capital = component.tied_capital_flow[commence_idx:]
     plant.expectation.set_tied_capital(idx, tied_capital)
 
-    # calculate the emission factor
-    emissions_flow = component.wtt_flow
-
-    # index in the emissions flow vector
-    # where the plant production commences
     idx_commence = component.get_commence_index()
     production_commence = production_flow[idx_commence]
 
-    for e, emission_flow in emissions_flow.items():
+    for e, emission_flow in component.wtt_flow.items():
         emission_commence = emission_flow[idx_commence]
         wtt = emission_commence / production_commence
         plant.expectation.set_production_wtt(idx, e, wtt)
 
 
-def _calculate_plant_production(plant: Plant, timeline: np.ndarray, idx: int) -> None:
+def _calculate_plant_production(plant: Plant, timeline: FloatArray, idx: int) -> None:
     """
     Compute future production primitives (lifetime, lead time, size, production).
 
@@ -209,14 +190,9 @@ def _calculate_plant_production(plant: Plant, timeline: np.ndarray, idx: int) ->
     lifetime = plant.lifetime.get(times)
     lead_time = plant.lead_time.get(times)
 
-    # convert production capacity
-    # from tons/day to tons/year
     size = plant.capacity.get(times)
     capacity = size * YEAR
 
-    # scale the production capacity
-    # with the uptake to get the actual
-    # delivered production per year
     uptime = plant.uptime.get(times)
     production = capacity * uptime
 
@@ -244,8 +220,8 @@ def _calculate_recursive_process(
         standalone or connected.
     (4) Adds transport-related costs and emissions for process outputs.
     (5) Iterates over each feedstock/conversion branch:
-        • If a leaf feedstock, adds acquisition and transport costs/emissions.
-        • If a nested process, continues recursion with the extended conversion.
+        - If a leaf feedstock, adds acquisition and transport costs/emissions.
+        - If a nested process, continues recursion with the extended conversion.
 
     The accumulated flows are stored in `component` and later transformed into unit
     metrics.
@@ -266,62 +242,40 @@ def _calculate_recursive_process(
     idx
         Current time-step index in the simulation timeline.
     """
-    # pre-resolve shared lookups once for all cost/emission functions
     region = plant.region
     source = plant.source
     expectation = plant.expectation
-    production = expectation.get_production(idx)
+    production = float(expectation.get_production(idx))
 
-    # save the conversion factor for later use
     expectation.add_feed_mass(idx, process.name, conversion)
 
-    # calculate cost and emissions related
-    # to the production process
     _calculate_process_cost(
         component, plant, process, region, production, conversion, idx
     )
     _calculate_process_emissions(
         component, process, emissions, region, production, conversion
     )
-
-    # calculate cost and emissions related to the
-    # energy source used to power the process
     _calculate_energy_cost(component, process, region, source, production, conversion)
     _calculate_energy_emissions(
         component, process, emissions, region, source, production, conversion
     )
-
-    # calculate the cost and emissions related
-    # to transporting output from the process
     _calculate_transport_cost(component, plant, process, region, production, conversion)
     _calculate_transport_emissions(
         component, plant, process, emissions, region, production, conversion
     )
 
-    # loop over the feedstocks used in the process
     for feed, feed_conversion in zip(process.feeds, process.conversions, strict=True):
-        # extend the recursive conversion factor
         conversion_feed = conversion * feed_conversion.get(component.time_initial)
 
         if is_feedstock(feed):
-            # if the feed is of type feedstock and not
-            # a process, then the end of the recursive
-            # tree is met in this direction
-
-            # save the conversion factor for later use
             expectation.add_feed_mass(idx, feed.name, conversion_feed)
 
-            # calculate the cost and emissions related
-            # to acquiring feedstock for the process
             _calculate_feedstock_cost(
                 component, feed, region, production, conversion_feed
             )
             _calculate_feedstock_emissions(
                 component, feed, emissions, region, production, conversion_feed
             )
-
-            # calculate the cost and emissions related
-            # to transporting feedstock for the process
             _calculate_transport_cost(
                 component, plant, feed, region, production, conversion_feed
             )
@@ -330,12 +284,8 @@ def _calculate_recursive_process(
             )
 
         elif is_process(feed):
-            # if the feed is of type process,
-            # continue traversing the recursive
-            # process tree
-
-            # initialize a component for the subprocess
-            # to account for unique lifetime/replacement
+            # a subprocess gets its own component, since its lifetime and
+            # replacement cycle differ from those of its parent
             subcomponent = _initialize_process_component(
                 plant=plant,
                 process=feed,
@@ -343,9 +293,6 @@ def _calculate_recursive_process(
                 time_initial=component.time_initial,
                 idx=idx,
             )
-
-            # calculate the cost and emissions related to the
-            # subprocess and add them to the overall plant
             _calculate_recursive_process(
                 subcomponent, plant, feed, emissions, conversion_feed, idx
             )
@@ -363,10 +310,10 @@ def _initialize_process_component(
     Create and initialize the aggregation `Component` for a plant at a start time.
 
     The component is prepared with:
-    • Flow containers sized to the plant's lead time and lifetime at the current index.
-    • Callable hooks linking region- and process-specific lookups used by downstream
+    - Flow containers sized to the plant's lead time and lifetime at the current index.
+    - Callable hooks linking region- and process-specific lookups used by downstream
       calculators.
-    • Emission streams to ensure consistent accumulation during recursion.
+    - Emission streams to ensure consistent accumulation during recursion.
 
     Parameters
     ----------
@@ -387,15 +334,10 @@ def _initialize_process_component(
     Component
         An initialized component ready to receive cost and emissions flows.
     """
-    # initialize containers
-    lead_time = plant.expectation.get_lead_time(idx)
-    lifetime = plant.expectation.get_lifetime(idx)
+    lead_time = float(plant.expectation.get_lead_time(idx))
+    lifetime = float(plant.expectation.get_lifetime(idx))
     component = Component(lead_time, lifetime, time_initial, emissions)
-
-    # initialize callables
-    region = plant.region
-    p = process.name
-    component.initialize_process_component(region, p)
+    component.initialize_process_component(plant.region, process.name)
 
     return component
 
@@ -435,17 +377,15 @@ def _calculate_process_cost(
     idx
         Current time-step index in the simulation timeline.
     """
-    size = plant.expectation.get_size(idx)
-    p = process.name
+    size = float(plant.expectation.get_size(idx))
+    capex_rate = region.process_capex[process.name]
+    opex_rate = region.process_opex[process.name]
 
-    capex_obj = region.process_capex[p]
-    opex_obj = region.process_opex[p]
-    capex = lambda time, _c=capex_obj: (
-        _c.get(time, size * conversion) * production * conversion
-    )
-    opex = lambda time, _o=opex_obj: (
-        _o.get(time, size * conversion) * production * conversion
-    )
+    def capex(time: float) -> float:
+        return capex_rate.get(time, size * conversion) * production * conversion
+
+    def opex(time: float) -> float:
+        return opex_rate.get(time, size * conversion) * production * conversion
 
     add_capex_flow(component=component, capex=capex)
     add_fixed_opex(component=component, value=opex)
@@ -483,15 +423,11 @@ def _calculate_process_emissions(
     conversion
         Cumulative mass conversion factor reflecting upstream inputs per unit fuel.
     """
-    p = process.name
 
-    wtt_callables = {}
-    for e in emissions:
-        wtt_obj = region.process_wtt[(p, e)]
-        wtt_callables[e] = lambda time, _w=wtt_obj: (
-            _w.get(time) * production * conversion
-        )
+    def wtt(rate: ForecastInput) -> Callable[[float], float]:
+        return lambda time: rate.get(time) * production * conversion
 
+    wtt_callables = {e: wtt(region.process_wtt[(process.name, e)]) for e in emissions}
     add_fixed_wtt(component=component, wtt_callables=wtt_callables)
 
 
@@ -527,39 +463,34 @@ def _calculate_energy_cost(
     conversion
         Cumulative mass conversion factor used to scale energy demand to fuel output.
     """
-    s = source.name
-    p = process.name
+    energy_rate = region.process_energy[process.name]
 
-    energy_obj = region.process_energy[p]
-    energy = lambda time, _e=energy_obj: _e.get(time) * production * conversion
+    def energy(time: float) -> float:
+        return energy_rate.get(time) * production * conversion
 
     if source.dependency == SourceDependencyID.STANDALONE:
-        # if the energy source is standalone
-        # the costs are defined, at the time
-        # of construction. While the energy
-        # demand may change with replacement
-        # of the technology, the energy cost
-        # is fixed at the time of investment
-        # when the standalone source is built
-
+        # a standalone source is built with the plant, so its unit cost is locked
+        # at the time of investment even as a replaced process changes the energy
+        # demand
         time_invest = component.time_initial
-        capex_val = region.source_capex[s].get(time_invest)
-        opex_val = region.source_opex[s].get(time_invest)
-        capex = lambda time: capex_val * energy(time)
-        opex = lambda time: opex_val * energy(time)
+        capex_rate = region.source_capex[source.name].get(time_invest)
+        opex_rate = region.source_opex[source.name].get(time_invest)
+
+        def capex(time: float) -> float:
+            return capex_rate * energy(time)
+
+        def opex(time: float) -> float:
+            return opex_rate * energy(time)
 
         add_capex_flow(component=component, capex=capex)
         add_fixed_opex(component=component, value=opex)
 
     elif source.dependency == SourceDependencyID.CONNECTED:
-        # if the energy source is connected the
-        # energy consumption is defined at the
-        # time of construction but the energy
-        # cost is variable over time
-
-        opex_obj = region.source_opex[s]
-        opex = lambda time, _o=opex_obj: _o.get(time)
-        add_variable_opex(component=component, metric=energy, cost=opex)
+        # a connected source is bought at the prevailing price, so only the energy
+        # demand is locked at construction
+        add_variable_opex(
+            component=component, metric=energy, cost=region.source_opex[source.name].get
+        )
 
 
 def _calculate_energy_emissions(
@@ -597,43 +528,34 @@ def _calculate_energy_emissions(
     conversion
         Cumulative mass conversion factor used to scale energy demand.
     """
-    s = source.name
-    p = process.name
+    energy_rate = region.process_energy[process.name]
 
-    energy_obj = region.process_energy[p]
-    energy = lambda time, _e=energy_obj: _e.get(time) * production * conversion
+    def energy(time: float) -> float:
+        return energy_rate.get(time) * production * conversion
 
     if source.dependency == SourceDependencyID.STANDALONE:
-        # if the energy source is standalone
-        # the emissions are are defined, at
-        # the time of construction. While
-        # the energy demand may change with
-        # replacement of the technology, the
-        # energy emissions is fixed at the
-        # time of investment when the standalone
-        # source is built
-
+        # a standalone source is built with the plant, so its emission factor is
+        # locked at the time of investment even as a replaced process changes the
+        # energy demand
         time_invest = component.time_initial
-        wtt_callables = {}
-        for e in emissions:
-            wtt_val = region.source_wtt[(s, e)].get(time_invest)
-            wtt_callables[e] = lambda time, _wv=wtt_val: _wv * energy(time)
 
-        add_fixed_wtt(component=component, wtt_callables=wtt_callables)
+        def fixed_wtt(rate: float) -> Callable[[float], float]:
+            return lambda time: rate * energy(time)
+
+        fixed_wtt_callables = {
+            e: fixed_wtt(region.source_wtt[(source.name, e)].get(time_invest))
+            for e in emissions
+        }
+        add_fixed_wtt(component=component, wtt_callables=fixed_wtt_callables)
 
     elif source.dependency == SourceDependencyID.CONNECTED:
-        # if the energy source is connected the
-        # energy consumption is defined at the
-        # time of construction but the energy
-        # emissions are variable over time
-
-        wtt_callables = {}
-        for e in emissions:
-            wtt_obj = region.source_wtt[(s, e)]
-            wtt_callables[e] = lambda time, _w=wtt_obj: _w.get(time)
-
+        # a connected source emits at the prevailing factor, so only the energy
+        # demand is locked at construction
+        variable_wtt_callables: dict[str, Callable[[FloatArray], FloatArray]] = {
+            e: region.source_wtt[(source.name, e)].get for e in emissions
+        }
         add_variable_wtt(
-            component=component, metric=energy, wtt_callables=wtt_callables
+            component=component, metric=energy, wtt_callables=variable_wtt_callables
         )
 
 
@@ -666,11 +588,13 @@ def _calculate_feedstock_cost(
     conversion
         Cumulative mass conversion factor representing required input per unit fuel.
     """
-    f = feedstock.name
+    cost_rate = region.feedstock_cost[feedstock.name]
 
-    cost_obj = region.feedstock_cost[f]
-    metric = lambda time: conversion
-    cost = lambda time, _c=cost_obj: _c.get(time) * production
+    def metric(time: float) -> float:
+        return conversion
+
+    def cost(time: FloatArray) -> FloatArray:
+        return cost_rate.get(time) * production
 
     add_variable_opex(component=component, metric=metric, cost=cost)
 
@@ -706,15 +630,16 @@ def _calculate_feedstock_emissions(
     conversion
         Cumulative mass conversion factor representing input mass per unit fuel.
     """
-    f = feedstock.name
 
-    metric = lambda time: conversion
+    def metric(time: float) -> float:
+        return conversion
 
-    wtt_callables = {}
-    for e in emissions:
-        wtt_obj = region.feedstock_wtt[(f, e)]
-        wtt_callables[e] = lambda time, _w=wtt_obj: _w.get(time) * production
+    def wtt(rate: ForecastInput) -> Callable[[FloatArray], FloatArray]:
+        return lambda time: rate.get(time) * production
 
+    wtt_callables = {
+        e: wtt(region.feedstock_wtt[(feedstock.name, e)]) for e in emissions
+    }
     add_variable_wtt(component=component, metric=metric, wtt_callables=wtt_callables)
 
 
@@ -752,19 +677,17 @@ def _calculate_transport_cost(
         Cumulative mass conversion factor representing transported mass per unit fuel.
     """
     delivery = plant.feed_deliveries[feed.name]
-
-    # if transport is undefined then no
-    # transport costs can be assigned
     if delivery is None:
         return
 
-    transport, distance_input = delivery
-    t = transport.name
+    transport, distance = delivery
+    cost_rate = region.transport_cost[transport.name]
 
-    cost_obj = region.transport_cost[t]
-    metric = lambda time: conversion
-    distance = lambda time, _d=distance_input: _d.get(time) * production
-    cost = lambda time, _c=cost_obj: _c.get(time) * distance(time)
+    def metric(time: float) -> float:
+        return conversion
+
+    def cost(time: FloatArray) -> FloatArray:
+        return cost_rate.get(time) * (distance.get(time) * production)
 
     add_variable_opex(component=component, metric=metric, cost=cost)
 
@@ -807,23 +730,18 @@ def _calculate_transport_emissions(
         Cumulative mass conversion factor representing transported mass per unit fuel.
     """
     delivery = plant.feed_deliveries[feed.name]
-
-    # if transport is undefined then no
-    # transport emissions can be assigned
     if delivery is None:
         return
 
-    transport, distance_input = delivery
-    t = transport.name
+    transport, distance = delivery
 
-    metric = lambda time: conversion
-    distance = lambda time, _d=distance_input: _d.get(time)
+    def metric(time: float) -> float:
+        return conversion
 
-    wtt_callables = {}
-    for e in emissions:
-        wtt_obj = region.transport_wtt[(t, e)]
-        wtt_callables[e] = lambda time, _w=wtt_obj: (
-            _w.get(time) * distance(time) * production
-        )
+    def wtt(rate: ForecastInput) -> Callable[[FloatArray], FloatArray]:
+        return lambda time: rate.get(time) * distance.get(time) * production
 
+    wtt_callables = {
+        e: wtt(region.transport_wtt[(transport.name, e)]) for e in emissions
+    }
     add_variable_wtt(component=component, metric=metric, wtt_callables=wtt_callables)
