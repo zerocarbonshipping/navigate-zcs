@@ -247,9 +247,9 @@ class Port(Node):
         Set the fraction of port time during which shore power connection is available.
 
         A value of 0.0 (the default) means shore power is not available at this port.
-        A vessel's shore power use here is capped at this share of its electrical
-        demand in port, or at its shore power capacity over its time in port if that
-        is lower.
+        A vessel's shore power use here is capped at this share of its time in port,
+        times the lesser of its combined shore power capacity and its electrical load
+        in port.
 
         Examples
         --------

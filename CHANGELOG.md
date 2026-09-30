@@ -308,6 +308,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `ShorePowerCapacity` and the port's `ShorePowerConnectionShare`, as with
   Gurobi; it could cover all port electrical demand. Results change where the
   cap binds (#364).
+- Where a vessel's combined `ShorePowerCapacity` is below its electrical
+  load in port, shore power is now also limited to the port's
+  `ShorePowerConnectionShare` of the time in port, so results change there
+  (#372).
 
 ## [1.0.0] - 2026-07-16
 

@@ -86,11 +86,11 @@ def update_vessel_objectives(alg: BunkerAlgorithm, vessel: Vessel) -> None:
             port.expectation.get_shore_power_connection_share(alg.idx)
         )
 
-        # shore power covers at most what the vessel's connection delivers over its
-        # time in port, and at most the port's connection share of its demand
+        # shore power flows only for the connected share of the time in port, at the
+        # lesser of the connection's capacity and the constant load
         capacity_bound = vessel_capacity * float(time_port[p]) * MWD_TO_GJ
-        share_bound = connection_share * float(electrical_demand[p])
-        alg.shore_power[key].UB = min(capacity_bound, share_bound)
+        demand_bound = float(electrical_demand[p])
+        alg.shore_power[key].UB = connection_share * min(capacity_bound, demand_bound)
 
         alg.shore_power[key].Obj = multiplier * cost
 
