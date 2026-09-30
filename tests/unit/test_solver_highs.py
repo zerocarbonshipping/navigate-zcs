@@ -57,7 +57,26 @@ def test_upper_bound_caps_variable_across_solves(upper_bounds, expected_solution
         )
 
 
-def test_upper_bound_change_keeps_simplex_warm_start():
+def test_optimum_below_upper_bound_is_not_raised_to_it():
+    # min x + 2y subject to x + y >= 2: x is the cheaper way to cover the
+    # demand, so x = 2 and y = 0; the cap of 5 does not bind, and a lower bound
+    # raised to the cap would force x = 5 instead
+    model = solver_highs.Model()
+    x = model.addVar()
+    y = model.addVar()
+    x.Obj = 1.0
+    y.Obj = 2.0
+    model.addConstr(x + y >= 2.0)
+
+    x.UB = 5.0
+    model.optimize()
+    solution = (x.X, y.X)
+
+    assert model.Status == solver_highs.OPTIMAL
+    assert solution == pytest.approx((2.0, 0.0), abs=SOLUTION_TOLERANCE)
+
+
+def test_upper_bound_change_does_not_mark_model_grown():
     model, x, _ = _build_capped_sum()
     model.optimize()
 

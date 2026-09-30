@@ -306,7 +306,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   longer crashes the run with an `AttributeError` (#365).
 - With the HiGHS solver, shore power in port is capped by the vessel's
   `ShorePowerCapacity` and the port's `ShorePowerConnectionShare`, as with
-  Gurobi; it could cover all port electrical demand. Results change (#364).
+  Gurobi; it could cover all port electrical demand. Results change where the
+  cap binds (#364).
 
 ## [1.0.0] - 2026-07-16
 

@@ -204,11 +204,11 @@ class Var:
 
     # upper bound ----------------------------------------------------------------------
     @property
-    def UB(self):
+    def UB(self) -> float:
         return self._model._col_upper_bounds[self._col]
 
     @UB.setter
-    def UB(self, value):
+    def UB(self, value: float) -> None:
         value = float(value)
         self._model._col_upper_bounds[self._col] = value
         self._model._pending_ub[self._col] = value
@@ -426,13 +426,13 @@ class Model:
         # Cached objective coefficients (avoids expensive getCol() calls)
         self._col_costs = []
 
-        # Cached column upper bounds; every column has lower bound 0
-        self._col_upper_bounds = []
+        # cached column upper bounds; every column has lower bound 0
+        self._col_upper_bounds: list[float] = []
 
         # Deferred update buffers (flushed as batch calls at optimize())
         self._pending_rhs = {}  # row_index -> (lb, ub)
         self._pending_obj = {}  # col_index -> value
-        self._pending_ub = {}  # col_index -> upper bound
+        self._pending_ub: dict[int, float] = {}
 
         # Last-written coefficients (skip redundant changeCoeff calls)
         self._coeff_values = {}  # (row, col) -> value
@@ -726,7 +726,7 @@ class Model:
           since only a few pivots are needed.
         - Automatic IPM fallback if simplex returns non-optimal.
         """
-        # Flush deferred RHS, objective and bound changes as batch calls
+        # flush deferred RHS, objective and bound changes as batch calls
         self._flush_pending()
 
         if self._model_grew or self._basis is None:

@@ -65,6 +65,10 @@ class Technology(_Machinery):
         """
         Set the vessel-side shore power connection capacity in MW.
 
+        A vessel's shore power use in a port is capped at the combined capacity of its
+        technologies over its time in port, or at the port's shore power connection
+        share of its electrical demand in port if that is lower.
+
         Examples
         --------
         - 4.0
