@@ -436,9 +436,12 @@ class TestCalculateImportFromProducers:
 
 
 class _ImportPortExpectation:
-    def __init__(self, limit, handling_cost):
+    def __init__(self, limit, handling_cost, overwrite=None):
         self._limit = np.asarray(limit, dtype=float)
         self._handling_cost = np.asarray(handling_cost, dtype=float)
+        self._overwrite = (
+            None if overwrite is None else np.asarray(overwrite, dtype=float)
+        )
         self.price = None
         self.supply = None
 
@@ -447,6 +450,9 @@ class _ImportPortExpectation:
 
     def get_handling_cost(self, fuel_name, idx):
         return self._handling_cost.copy()
+
+    def get_bunker_price_overwrite(self, fuel_name, idx):
+        return self._overwrite
 
     def set_bunker_price(self, idx, fuel_name, price):
         self.price = price
@@ -473,11 +479,11 @@ class _ImportPortProfile:
 
 
 class _ImportPort:
-    def __init__(self, limit, handling_cost=(0.0,)):
+    def __init__(self, limit, handling_cost=(0.0,), overwrite=None):
         self.bunkering_allowed = {FUEL_NAME: True}
-        self.bunker_price_overwrite = {FUEL_NAME: None}
+        self.bunker_price_overwrite = {FUEL_NAME: overwrite}
         self.bunker_wtt_overwrite = {(FUEL_NAME, EMISSION_NAME): None}
-        self.expectation = _ImportPortExpectation(limit, handling_cost)
+        self.expectation = _ImportPortExpectation(limit, handling_cost, overwrite)
         self.profile = _ImportPortProfile()
 
     def is_bunkering_allowed(self, fuel_name):
@@ -561,3 +567,39 @@ def test_zero_import_ports_are_excluded_even_with_a_survivable_price():
     assert recipient.expectation.supply == pytest.approx([20.0])
     assert empty_limited.expectation.supply == pytest.approx([0.0])
     assert empty_unlimited.expectation.supply == pytest.approx([0.0])
+
+
+# ---------------------------------------------------------------------------
+# _calculate_import_from_producers: the price overwrite is stored state
+# ---------------------------------------------------------------------------
+
+
+def test_producer_import_does_not_mutate_the_stored_price_overwrite():
+    # a port that overwrites its bunker price takes the same view-returning
+    # getter on the producer-import path as on the liquid-market path; the
+    # handling cost must not be added onto that view here either
+    timeline = np.array([0.0, 1.0])
+    overwrite = [40.0, 40.0]
+    port = _ImportPort(
+        limit=[np.inf, np.inf], handling_cost=[5.0, 5.0], overwrite=overwrite
+    )
+    stored_before = port.expectation._overwrite.copy()
+
+    plant = _ImportPlant("plant", delivered_cost=100.0)
+    producer = _ImportProducer(
+        plants=[plant],
+        export_distribution={"port_a": 1.0},
+        production=np.array([1.0, 1.0]),
+    )
+
+    _calculate_import_from_producers(
+        {"port_a": port},
+        {"producer": producer},
+        EMISSIONS,
+        {FUEL_NAME: FUEL},
+        timeline,
+        0,
+    )
+
+    assert port.expectation._overwrite == pytest.approx(stored_before)
+    assert port.expectation.price == pytest.approx([45.0, 45.0])

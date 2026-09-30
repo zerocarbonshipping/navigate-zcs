@@ -12,6 +12,7 @@ import pytest
 
 from navigate.core import Scalar
 from navigate.fuel.planning import perform_pipeline_planning
+from navigate.util import YEAR
 
 # a daily-stepped horizon long enough to cover every plant's evaluation
 # timeline (lead time 0, lifetime 5 years) starting at idx 0
@@ -24,6 +25,13 @@ FUEL_B = "fuel_b"
 
 PRODUCTION = 100.0  # tons/year, both plants
 INITIAL_DEMAND = 1000.0  # tons/year, both fuels
+
+# both plants split the producer's uptake 50/50 (current_uptake below), and
+# inertia of 1.0 carries that split forward undecayed and unconstrained, so
+# each plant's inertia increment is half of the step's whole development
+# limit: current_utilization (1.0) * maximum_development.get() (10.0) *
+# time_step / YEAR
+INERTIA_INCREMENT = 0.5 * (1.0 * 10.0 * TIME_STEP / YEAR)
 
 
 class _PlanningPlantExpectation:
@@ -124,7 +132,22 @@ class TestPerformPipelinePlanning:
             fuel_name: values.copy() for fuel_name, values in fair_share_demand.items()
         }
 
+        # fair-share demand is uniform across the timeline, so interpolating
+        # it onto a plant's evaluation horizon returns that same uniform
+        # value; the per-plant metric then divides by the plant's own
+        # production, so subtracting the inertia-covered production from
+        # demand first should show up here as a lower demand_newbuilds - an
+        # implementation that dropped the subtraction, leaving demand and
+        # its stored array both untouched, would still pass the assertions
+        # above but fail this one
+        expected_demand_newbuilds = INITIAL_DEMAND / PRODUCTION - INERTIA_INCREMENT
+
         perform_pipeline_planning(producer, TIMELINE, TIME_STEP, IDX)
 
         for fuel_name, before in stored_before.items():
             assert fair_share_demand[fuel_name] == pytest.approx(before)
+
+        for plant in producer.assets:
+            assert plant.expectation._demand_newbuilds == pytest.approx(
+                expected_demand_newbuilds
+            )
