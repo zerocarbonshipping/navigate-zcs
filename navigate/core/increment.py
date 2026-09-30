@@ -26,7 +26,7 @@ class Increment:
     age_span
         Width in years of the age bin the cohort spans.
     decided
-        Years since the cohort was decided, None until it is assigned.
+        Years since the cohort was decided; plants only.
     package_uptake
         Share of the cohort on each technology package; fleet only.
     baseline
@@ -38,7 +38,7 @@ class Increment:
     multiplier: float
     age: float
     age_span: float
-    decided: float | None = None
+    decided: float = 0.0
     package_uptake: FloatArray | None = None
     baseline: float | None = None
     technology_charter_rate: float = 0.0

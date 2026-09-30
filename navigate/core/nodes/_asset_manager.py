@@ -222,8 +222,7 @@ class _AssetManager[A: Vessel | Plant](Node):
         for incs in increment_lists:
             for inc in incs:
                 inc.age += dt
-                if inc.decided is not None:
-                    inc.decided += dt
+                inc.decided += dt
 
     def update_increment_ages(self, time_step: float) -> None:
         """
