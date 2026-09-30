@@ -147,7 +147,7 @@ class SolverBackendID(Enum):
 
 
 class SolverMethodID(Enum):
-    """The solution method the solver backend applies to the linear program."""
+    """The solution method, applied as Gurobi's Method parameter; HiGHS ignores it."""
 
     # integer values are Gurobi Method IDs; the HiGHS backend does not read them
     AUTOMATIC = -1  # let the solver choose the method automatically

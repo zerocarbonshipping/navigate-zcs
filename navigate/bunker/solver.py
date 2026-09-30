@@ -7,10 +7,11 @@ Solver facade of the bunker algorithm: Gurobi when licensed, HiGHS otherwise.
 Whether gurobipy is installed and licensed is checked at import;
 ``set_solver_preference()`` picks the backend before any model is created.
 Models and linear expressions are created through ``create_model()`` and
-``create_linear_expression()``, which dispatch on the active backend. gurobipy is
-untyped, so the HiGHS classes, whose interface the Gurobi objects share, serve as
-the static types for both; they are imported for annotations only, never
-instantiated or checked against at runtime.
+``create_linear_expression()``, which dispatch on the active backend. mypy.ini
+skips gurobipy's bundled stubs (see ``[mypy-gurobipy.*]``), so the HiGHS
+classes, whose interface the Gurobi objects share, are the one static contract
+both backends are checked against; they are imported for annotations only,
+never instantiated or checked against at runtime.
 
 Usage:
     import navigate.bunker.solver as gp
