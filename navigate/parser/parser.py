@@ -231,6 +231,7 @@ class Parser:
 
         self._current_section = SimulationSectionID.DEFINE
         self._update_dependencies()
+        self._reject_unresolved_references()
         self._pin_define_only_calculators()
 
         self._replace_start_keyword()
@@ -1421,6 +1422,78 @@ class Parser:
                     self._error_prefix() + f": '{cmd_ref.command}' {e!s}."
                 ) from None
 
+    def _reject_unresolved_references(self) -> None:
+        """
+        Raise for the deferred nodes a surviving node or queued command still holds.
+
+        A deferred entry left once DEFINE is resolved is one no reference walk
+        saw. Most are harmless: a reference a later assignment overwrote, or a
+        command argument on a node the prune removed. One still held by a
+        registry node's attribute or a queued command is a node that was never
+        declared or pulled from the default library, yet would reach the
+        simulation. The error names each holder: the entry records only the
+        first reference, which a later assignment may have overwritten.
+        """
+        if not self._deferred:
+            return
+
+        deferred = {entry.node for entry in self._deferred.values()}
+        # the holders of each deferred node, registry nodes first and queued
+        # commands after, each in the order it was registered or queued
+        holders: dict[Node, list[str]] = {}
+
+        for node in self._get_all_nodes():
+            for attribute_name, attribute in get_attributes(
+                node, exclude=REFERENCE_SCAN_EXCLUDE
+            ):
+                held = deferred.intersection(_held_nodes(attribute))
+                if not held:
+                    continue
+
+                dsl_name = instance_to_dsl_name(node.type, attribute_name)
+                for held_node in held:
+                    holders.setdefault(held_node, []).append(
+                        f"{node} attribute '{dsl_name}'"
+                    )
+
+        for node, commands in self._command_queue.items():
+            for command in commands:
+                held = deferred.intersection(_held_nodes(command.inputs))
+                if not held:
+                    continue
+
+                location = self._error_prefix(command.source, command.deck_line)
+                for held_node in held:
+                    holders.setdefault(held_node, []).append(
+                        f"command '{command.command}' on {node} at {location}"
+                    )
+
+        # the deferred entries keep the order the deck first named them in, so
+        # the report reads in deck order
+        unresolved = [
+            entry for entry in self._deferred.values() if entry.node in holders
+        ]
+
+        if not unresolved:
+            return
+
+        lines = "".join(
+            f"\n\t- {entry.node}"
+            + "".join(f"\n\t  held by {holder}" for holder in holders[entry.node])
+            + f"\n\t  first referenced at {entry.location}"
+            for entry in unresolved
+        )
+
+        raise DeckKeywordError(
+            "Node reference(s) left unresolved, the node neither declared in the "
+            f"deck nor looked up in the default library:{lines}\nEach holder keeps "
+            "the node where the parser does not resolve node references, for "
+            "example where a name string is expected, or received it after DEFINE "
+            "finished resolving references, as from a default file pulled only "
+            "then. Pass a name string where one is expected, or declare the node "
+            "in the deck."
+        )
+
     def _pin_define_only_calculators(self) -> None:
         """
         Pin every calculator a DEFINE-only attribute or command input holds.
@@ -1978,6 +2051,31 @@ def _contains_wildcard(value):
         return any(_contains_wildcard(element) for element in value)
 
     return isinstance(value, WildcardNodeReference)
+
+
+def _held_nodes(value) -> Iterator[Node]:
+    """
+    Yield every node a value holds, in whatever container a setter stored it.
+
+    Wider than Parser._replace_references_on_attribute, which enters only the
+    shapes a setter stores a resolvable reference in, so a node kept in a set,
+    a tuple or a dictionary key is one no reference walk reaches. A held node
+    is not entered, as what it holds sits under its own attributes.
+    """
+    if isinstance(value, Node):
+        yield value
+
+    elif isinstance(value, (list, tuple, set, frozenset)):
+        for element in value:
+            yield from _held_nodes(element)
+
+    elif isinstance(value, dict):
+        for key, element in value.items():
+            yield from _held_nodes(key)
+            yield from _held_nodes(element)
+
+    elif isinstance(value, Expression):
+        yield from _held_nodes(value.node_references)
 
 
 def _keys_cover(patterns: list, keys: list) -> bool:

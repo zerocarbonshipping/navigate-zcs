@@ -103,6 +103,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - An `add_*_property` naming a property its command does not report stops the
   parse at its line, instead of dropping the column with an error in the
   `.log` (#105).
+- A deck whose node reference is never resolved, such as a node passed where
+  a name is expected, now stops at the referencing line instead of running
+  with the reference ignored (#148).
 
 ### Removed
 - `BunkerLogistics`: write `LiquidMarket` on `Fuel`, and `set_fuel_transport`
