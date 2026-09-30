@@ -751,20 +751,19 @@ def _calculate_transport_cost(
     conversion
         Cumulative mass conversion factor representing transported mass per unit fuel.
     """
-    f = feed.name
-    transport = plant.feed_transport[f]
+    delivery = plant.feed_deliveries[feed.name]
 
     # if transport is undefined then no
     # transport costs can be assigned
-    if transport is None:
+    if delivery is None:
         return
 
+    transport, distance_input = delivery
     t = transport.name
 
-    dist_obj = plant.feed_distance[f]
     cost_obj = region.transport_cost[t]
     metric = lambda time: conversion
-    distance = lambda time, _d=dist_obj: _d.get(time) * production
+    distance = lambda time, _d=distance_input: _d.get(time) * production
     cost = lambda time, _c=cost_obj: _c.get(time) * distance(time)
 
     add_variable_opex(component=component, metric=metric, cost=cost)
@@ -807,20 +806,18 @@ def _calculate_transport_emissions(
     conversion
         Cumulative mass conversion factor representing transported mass per unit fuel.
     """
-    f = feed.name
-
-    transport = plant.feed_transport[f]
+    delivery = plant.feed_deliveries[feed.name]
 
     # if transport is undefined then no
-    # transport costs can be assigned
-    if transport is None:
+    # transport emissions can be assigned
+    if delivery is None:
         return
 
+    transport, distance_input = delivery
     t = transport.name
 
-    dist_obj = plant.feed_distance[f]
     metric = lambda time: conversion
-    distance = lambda time, _d=dist_obj: _d.get(time)
+    distance = lambda time, _d=distance_input: _d.get(time)
 
     wtt_callables = {}
     for e in emissions:

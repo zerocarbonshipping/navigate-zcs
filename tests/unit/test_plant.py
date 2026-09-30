@@ -16,6 +16,8 @@ from navigate.core.nodes.source import Source
 from navigate.core.nodes.transport import Transport
 
 PORTS = {"port_a": None, "port_b": None}
+FEEDSTOCKS = {"water": None, "biomass": None}
+PROCESSES = {"electrolysis": None}
 
 
 def _make_plant() -> Plant:
@@ -25,7 +27,7 @@ def _make_plant() -> Plant:
     plant.region = Region("region")
     plant.source = Source("source")
     plant.set_capacity(100.0)
-    plant.initialize_dependencies({}, PORTS, {})
+    plant.initialize_dependencies(FEEDSTOCKS, PORTS, PROCESSES)
     return plant
 
 
@@ -39,10 +41,35 @@ class TestFuelTransport:
 
     def test_transport_without_distance_defaults_to_zero(self):
         plant = _make_plant()
-        plant.set_fuel_transport("port_a", Transport("truck"))
+        truck = Transport("truck")
+        plant.set_fuel_transport("port_a", truck)
         plant.initialize()
 
-        assert plant.fuel_distance["port_a"].get() == 0.0
+        transport, distance = plant.fuel_deliveries["port_a"]
+        assert transport is truck
+        assert distance.get() == 0.0
+        assert plant.fuel_deliveries["port_b"] is None
+
+    def test_event_reassignment_rebuilds_deliveries(self):
+        # an event read reruns reinitialize: the deliveries must follow the
+        # reassigned distance on port_a and the transport newly given to port_b,
+        # which carries no distance and so is delivered over zero miles
+        plant = _make_plant()
+        truck, ship = Transport("truck"), Transport("ship")
+        plant.set_fuel_transport("port_a", truck)
+        plant.set_fuel_distance("port_a", 500.0)
+        plant.initialize()
+
+        plant.set_fuel_distance("port_a", 800.0)
+        plant.set_fuel_transport("port_b", ship)
+        plant.reinitialize()
+
+        transport_a, distance_a = plant.fuel_deliveries["port_a"]
+        transport_b, distance_b = plant.fuel_deliveries["port_b"]
+        assert transport_a is truck
+        assert distance_a.get() == 800.0
+        assert transport_b is ship
+        assert distance_b.get() == 0.0
 
     def test_wildcard_assigns_every_port(self):
         plant = _make_plant()
@@ -52,6 +79,44 @@ class TestFuelTransport:
 
         assert all(transport is not None for transport in plant.fuel_transport.values())
         assert all(distance.get() == 500.0 for distance in plant.fuel_distance.values())
+        assert all(
+            delivery is not None and delivery[1].get() == 500.0
+            for delivery in plant.fuel_deliveries.values()
+        )
+
+    def test_event_distance_replaces_zero_default(self):
+        # a transport first read without a distance is delivered over zero
+        # miles; a distance an event assigns later must take its place
+        plant = _make_plant()
+        plant.set_fuel_transport("port_a", Transport("truck"))
+        plant.initialize()
+        assert plant.fuel_deliveries["port_a"][1].get() == 0.0
+
+        plant.set_fuel_distance("port_a", 300.0)
+        plant.reinitialize()
+
+        assert plant.fuel_deliveries["port_a"][1].get() == 300.0
+
+
+class TestFeedTransport:
+    def test_deliveries_cover_feedstocks_and_processes(self):
+        # a feed key is a feedstock or a process name; each is paired on its
+        # own: a transport with its distance, a transport alone with zero, and
+        # a name without a transport with None
+        plant = _make_plant()
+        truck, pipeline = Transport("truck"), Transport("pipeline")
+        plant.set_feed_transport("water", truck)
+        plant.set_feed_distance("water", 100.0)
+        plant.set_feed_transport("electrolysis", pipeline)
+        plant.initialize()
+
+        water_transport, water_distance = plant.feed_deliveries["water"]
+        process_transport, process_distance = plant.feed_deliveries["electrolysis"]
+        assert water_transport is truck
+        assert water_distance.get() == 100.0
+        assert process_transport is pipeline
+        assert process_distance.get() == 0.0
+        assert plant.feed_deliveries["biomass"] is None
 
 
 class TestLiquidMarketGuard:
