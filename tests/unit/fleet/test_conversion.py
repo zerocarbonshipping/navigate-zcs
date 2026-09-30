@@ -12,7 +12,7 @@ import pytest
 
 from navigate.core import Scalar
 from navigate.core.enum_ import FuelTypeID, UtilityID
-from navigate.core.increment import Increment
+from navigate.core.increment import VesselIncrement
 from navigate.core.nodes.fleet import Fleet
 from navigate.economics.flows import expand_to_flow
 from navigate.economics.metric import calculate_net_present_value
@@ -78,7 +78,7 @@ def _oil_to_ammonia_fleet(
         {FuelTypeID.AMMONIA: supply},
     )
     fleet.increments[0] = [
-        Increment(multiplier, age, 1.0, package_uptake=np.array([1.0]))
+        VesselIncrement(multiplier, age, 1.0, package_uptake=np.array([1.0]))
     ]
     return fleet
 
@@ -221,8 +221,8 @@ class TestProposeFuelConversions:
         fleet = _oil_to_ammonia_fleet()
         fleet.assets[1].lifetime = Scalar(12.0)
         fleet.increments[0] = [
-            Increment(4.0, 10.0, 1.0, package_uptake=np.array([1.0])),
-            Increment(4.0, 10.0, 5.0, package_uptake=np.array([1.0])),
+            VesselIncrement(4.0, 10.0, 1.0, package_uptake=np.array([1.0])),
+            VesselIncrement(4.0, 10.0, 5.0, package_uptake=np.array([1.0])),
         ]
 
         with patch(_DCM, return_value=_SHARES) as dcm:
@@ -249,8 +249,8 @@ class TestProposeFuelConversions:
         # conversions encumber 20 units, leaving the older increment (10 / 10) / 4
         fleet = _oil_to_ammonia_fleet(supply=30.0)
         fleet.increments[0] = [
-            Increment(4.0, 15.0, 1.0, package_uptake=np.array([1.0])),
-            Increment(4.0, 10.0, 1.0, package_uptake=np.array([1.0])),
+            VesselIncrement(4.0, 15.0, 1.0, package_uptake=np.array([1.0])),
+            VesselIncrement(4.0, 10.0, 1.0, package_uptake=np.array([1.0])),
         ]
 
         with patch(_DCM, return_value=(np.array([0.5, 0.5]), "")) as dcm:
@@ -290,7 +290,7 @@ class TestApplyFuelConversionExpenses:
         fleet.assets = [vessel_a, vessel_b]
         fleet.profile = MagicMock()
         fleet.increments = [
-            [Increment(10.0, 5.0, 1.0, package_uptake=np.array([1.0, 0.0]))],
+            [VesselIncrement(10.0, 5.0, 1.0, package_uptake=np.array([1.0, 0.0]))],
             [],
         ]
 
@@ -321,7 +321,7 @@ class TestApplyFuelConversionExpenses:
         fleet.assets = [vessel_a, vessel_b]
         fleet.profile = MagicMock()
         fleet.increments = [
-            [Increment(10.0, 5.0, 1.0, package_uptake=np.array([1.0, 0.0]))],
+            [VesselIncrement(10.0, 5.0, 1.0, package_uptake=np.array([1.0, 0.0]))],
             [],
         ]
 

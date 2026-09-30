@@ -32,6 +32,7 @@ from navigate.core.enum_ import (
     SpeedAlignmentID,
 )
 from navigate.core.expectations import FleetExpectation
+from navigate.core.increment import VesselIncrement
 from navigate.core.node_type import CURVE, FLEET, FORECAST, TECHNOLOGY, VARIABLE, VESSEL
 from navigate.core.nodes._asset_manager import _AssetManager
 from navigate.core.nodes.forecast import Forecast
@@ -61,7 +62,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class Fleet(_AssetManager[Vessel]):
+class Fleet(_AssetManager[Vessel, VesselIncrement]):
     """A segment of vessel types with its newbuild, scrap and retrofit decisions."""
 
     def __init__(self, name: str) -> None:
@@ -1089,6 +1090,14 @@ class Fleet(_AssetManager[Vessel]):
     def _get_initial_multiplier(self, index: int) -> float:
         return self.initial_split[index] * self.initial_vessels.get()
 
+    def _new_increment(self, age: float, age_span: float) -> VesselIncrement:
+        return VesselIncrement(
+            multiplier=0.0,
+            age=age,
+            age_span=age_span,
+            package_uptake=np.zeros(self.get_number_of_packages()),
+        )
+
     def _adjust_lifetime_for_age(self, lifetime: float) -> float:
         if self.fixed_scrap_rate is not None:
             scrap_rate = self.fixed_scrap_rate.get()
@@ -1101,6 +1110,11 @@ class Fleet(_AssetManager[Vessel]):
 
     def can_fuel_convert(self) -> bool:
         return any(value is not None for value in self.fuel_conversion_cost.values())
+
+    def get_number_of_packages(self) -> int:
+        # the packages are cumulative and start from the empty one, so their count
+        # is known from the technologies before the packages themselves are built
+        return len(self.technologies) + 1
 
     # public domain name for the inherited assets list
     @property

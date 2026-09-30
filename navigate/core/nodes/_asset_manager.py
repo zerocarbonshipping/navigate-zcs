@@ -14,19 +14,19 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core import Scalar, as_list, as_scalar, assign_list, assign_value
-from navigate.core.increment import Increment
 from navigate.core.node import Node
 from navigate.core.node_type import CURVE, FORECAST, VARIABLE
 from navigate.core.nodes.curve import Curve
 from navigate.util import YEAR
 
 if TYPE_CHECKING:
+    from navigate.core.increment import Increment
     from navigate.core.nodes.plant import Plant
     from navigate.core.nodes.vessel import Vessel
     from navigate.core.types_ import ForecastArgument, ForecastInput
 
 
-class _AssetManager[A: Vessel | Plant](Node):
+class _AssetManager[A: Vessel | Plant, I: Increment](Node):
     """Track asset-type increments via a discrete-choice investment model."""
 
     def __init__(self, name: str, type_: str) -> None:
@@ -43,12 +43,12 @@ class _AssetManager[A: Vessel | Plant](Node):
         self.assets: list[A] = []
 
         # internal variables -----------------------------------------------------------
-        self.increments: list[list[Increment]] = []
+        self.increments: list[list[I]] = []
 
         # every store registered here ages together in update_increment_ages; subclasses
         # append their extra stores. Registration holds references: a registered store
         # must never be rebound, only have its inner lists replaced.
-        self._increment_stores: list[list[list[Increment]]] = [self.increments]
+        self._increment_stores: list[list[list[I]]] = [self.increments]
 
         self.current_uptake: np.ndarray = np.empty(0)
 
@@ -110,6 +110,10 @@ class _AssetManager[A: Vessel | Plant](Node):
         """Return the total initial multiplier for asset type at *index*."""
         raise NotImplementedError
 
+    def _new_increment(self, age: float, age_span: float) -> I:
+        """Return an empty increment of *age* and *age_span*, both in years."""
+        raise NotImplementedError
+
     def _check_initial_age_distribution_is_finite(self) -> None:
         """Reject an initial age distribution holding an INF or -INF fraction."""
         # its Curves are read as tables, never evaluated, so no bound they are
@@ -130,12 +134,12 @@ class _AssetManager[A: Vessel | Plant](Node):
         """
         Define the age distribution of the existing assets.
 
-        Creates empty Increment lists with ages and age_span populated.
+        Creates empty increment lists with ages and age_span populated.
         """
         assets = self.assets
 
         for a, asset in enumerate(assets):
-            increments: list[Increment] = []
+            increments: list[I] = []
 
             if self._get_initial_multiplier(a) > 0.0:
                 distribution = (
@@ -161,9 +165,7 @@ class _AssetManager[A: Vessel | Plant](Node):
 
                 for i in range(ages.size):
                     increments.append(
-                        Increment(
-                            multiplier=0.0, age=float(ages[i]), age_span=float(dts[i])
-                        )
+                        self._new_increment(float(ages[i]), float(dts[i]))
                     )
 
             self.increments.append(increments)
@@ -207,8 +209,7 @@ class _AssetManager[A: Vessel | Plant](Node):
 
     # shared runtime methods
 
-    @staticmethod
-    def _age_increments(increment_lists: list[list[Increment]], dt: float) -> None:
+    def _age_increments(self, increment_lists: list[list[I]], dt: float) -> None:
         """
         Age every increment in the given lists by *dt* years.
 
@@ -222,7 +223,6 @@ class _AssetManager[A: Vessel | Plant](Node):
         for incs in increment_lists:
             for inc in incs:
                 inc.age += dt
-                inc.decided += dt
 
     def update_increment_ages(self, time_step: float) -> None:
         """

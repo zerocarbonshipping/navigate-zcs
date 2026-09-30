@@ -23,6 +23,7 @@ from navigate.core import (
 )
 from navigate.core.enum_ import ExtrapolateID
 from navigate.core.expectations import ProducerExpectation
+from navigate.core.increment import PlantIncrement
 from navigate.core.node_type import FORECAST, PLANT, PRODUCER, VARIABLE
 from navigate.core.nodes._asset_manager import _AssetManager
 from navigate.core.nodes.plant import Plant
@@ -31,7 +32,6 @@ from navigate.exceptions import no_value_assigned_error
 from navigate.util import is_non_strictly_increasing
 
 if TYPE_CHECKING:
-    from navigate.core.increment import Increment
     from navigate.core.nodes.feedstock import Feedstock
     from navigate.core.nodes.forecast import Forecast
     from navigate.core.nodes.fuel import Fuel
@@ -48,7 +48,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class Producer(_AssetManager[Plant]):
+class Producer(_AssetManager[Plant, PlantIncrement]):
     """A fuel producer: its buildable plants, pipeline, constraints and exports."""
 
     def __init__(self, name: str) -> None:
@@ -84,7 +84,7 @@ class Producer(_AssetManager[Plant]):
 
         # pipeline increments (Producer-specific, separate from active increments in
         # _AssetManager)
-        self.pipeline: list[list[Increment]] = []
+        self.pipeline: list[list[PlantIncrement]] = []
         self._increment_stores.append(self.pipeline)
 
         # static variables
@@ -524,6 +524,19 @@ class Producer(_AssetManager[Plant]):
             plant,
         )
         return 0.0
+
+    def _new_increment(self, age: float, age_span: float) -> PlantIncrement:
+        # define_initial_decided sets the decided time before anything reads it
+        return PlantIncrement(multiplier=0.0, age=age, age_span=age_span, decided=0.0)
+
+    def _age_increments(
+        self, increment_lists: list[list[PlantIncrement]], dt: float
+    ) -> None:
+        # the time since decision dates the plant attributes a cohort was decided with
+        for incs in increment_lists:
+            for inc in incs:
+                inc.age += dt
+                inc.decided += dt
 
     def can_produce(self, fuel_name: str) -> bool:
         return fuel_name in self.fuels

@@ -12,7 +12,7 @@ import pytest
 
 from navigate.core import Scalar
 from navigate.core.enum_ import EnergyDemandTypeID
-from navigate.core.increment import Increment
+from navigate.core.increment import VesselIncrement
 from navigate.core.node_type import FLEET, VESSEL
 from navigate.core.nodes.fleet import Fleet
 from navigate.fleet import planning as fleet_planning
@@ -335,11 +335,11 @@ def _make_fleet_for_retrofit(
     }
     # Default: every increment fully at package 0 (current = 1.0 for package_idx=0
     # proposals). Tests that exercise stratified vessels overwrite the package_uptake on
-    # a specific Increment directly.
+    # a specific VesselIncrement directly.
     n_packages = len(technology_names) + 1
     fleet.increments = [
         [
-            Increment(
+            VesselIncrement(
                 multiplier=float(m),
                 age=0.0,
                 age_span=1.0,

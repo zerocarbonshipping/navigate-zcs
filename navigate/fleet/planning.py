@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.enum_ import UtilityID
-from navigate.core.increment import Increment
+from navigate.core.increment import VesselIncrement
 from navigate.core.wrap import to_numpy
 from navigate.economics.decision import calculate_two_axis_uptake
 from navigate.fleet.technology_adoption import calculate_package_charter_rates
@@ -377,7 +377,7 @@ def add_newbuilds(fleet: Fleet, increments: list[float], time_step: float):
             # Per definition the new increments have an age of 0.
             was_empty = not fleet.increments[v]
             fleet.increments[v].append(
-                Increment(
+                VesselIncrement(
                     increment,
                     0.0,
                     time_step / YEAR,

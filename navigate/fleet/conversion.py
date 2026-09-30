@@ -23,7 +23,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.enum_ import FuelTypeID, UtilityID
-from navigate.core.increment import Increment
+from navigate.core.increment import VesselIncrement
 from navigate.economics.decision import calculate_asset_shares
 from navigate.economics.flows import expand_to_flow, trim_flow_to_lifetime
 from navigate.economics.metric import calculate_net_present_value
@@ -652,8 +652,8 @@ def _apply_to_side(
 
 
 def _insert_converted_increment(
-    increments_to: list[Increment],
-    increment_from: Increment,
+    increments_to: list[VesselIncrement],
+    increment_from: VesselIncrement,
     count: float,
     age: float,
     dt: float,
@@ -687,7 +687,7 @@ def _insert_converted_increment(
     # perform_fuel_conversions)
     increments_to.insert(
         idx_to,
-        Increment(
+        VesselIncrement(
             count,
             age,
             dt,
