@@ -88,6 +88,24 @@ class TestCalculatePlantLogisticsExpectations:
         if set_transport:
             plant.set_fuel_transport("port_a", Transport("truck"))
             plant.set_fuel_distance("port_a", DISTANCE)
+        plant.apply_command_defaults()
+
+        calculate_plant_logistics_expectations(
+            {"plant": plant}, ports, EMISSIONS, TIMELINE, 0
+        )
+
+        assert np.all(plant.expectation.get_levelized_delivery_cost("port_a") == 0.0)
+        assert np.all(
+            plant.expectation.get_delivery_wtt("port_a", "carbon_dioxide") == 0.0
+        )
+
+    def test_transport_without_distance_delivers_at_no_cost(self):
+        # a transport assigned without a distance is delivered over zero miles,
+        # so neither cost nor emissions accrue although the port is eligible
+        ports = {"port_a": _StubPort(bunkering_allowed=True)}
+        plant = _make_plant(ports)
+        plant.set_fuel_transport("port_a", Transport("truck"))
+        plant.apply_command_defaults()
 
         calculate_plant_logistics_expectations(
             {"plant": plant}, ports, EMISSIONS, TIMELINE, 0
@@ -105,6 +123,7 @@ class TestCalculatePlantLogisticsExpectations:
         plant = _make_plant(ports)
         plant.set_fuel_transport("port_a", Transport("truck"))
         plant.set_fuel_distance("port_a", DISTANCE)
+        plant.apply_command_defaults()
 
         calculate_plant_logistics_expectations(
             {"plant": plant}, ports, EMISSIONS, TIMELINE, 0
@@ -134,6 +153,7 @@ class TestCalculatePlantLogisticsExpectations:
         )
         plant.set_fuel_transport("port_a", Transport("truck"))
         plant.set_fuel_distance("port_a", DISTANCE)
+        plant.apply_command_defaults()
 
         calculate_plant_logistics_expectations(
             {"plant": plant}, ports, EMISSIONS, TIMELINE, 0
@@ -158,6 +178,7 @@ class TestCalculatePlantLogisticsExpectations:
         plant.expectation.set_lead_time(1, 3.0)
         plant.set_fuel_transport("port_a", Transport("truck"))
         plant.set_fuel_distance("port_a", DISTANCE)
+        plant.apply_command_defaults()
 
         calculate_plant_logistics_expectations(
             {"plant": plant}, ports, EMISSIONS, TIMELINE, 0
@@ -174,6 +195,7 @@ class TestCalculatePlantLogisticsExpectations:
         for plant, distance in ((near, DISTANCE), (far, 2 * DISTANCE)):
             plant.set_fuel_transport("port_a", Transport("truck"))
             plant.set_fuel_distance("port_a", distance)
+            plant.apply_command_defaults()
 
         calculate_plant_logistics_expectations(
             {"near": near, "far": far}, ports, EMISSIONS, TIMELINE, 0

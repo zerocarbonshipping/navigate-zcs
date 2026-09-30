@@ -63,10 +63,10 @@ def calculate_plant_logistics_expectations(
         # without a transport assignment no delivery cost
         # or emissions accrue: the expectation defaults are zero
         deliveries = [
-            (port_name, plant.fuel_transport[port_name])
+            (port_name, delivery)
             for port_name, port in ports.items()
             if port.is_bunkering_allowed(fuel_name)
-            and plant.fuel_transport[port_name] is not None
+            and (delivery := plant.fuel_deliveries[port_name]) is not None
         ]
 
         if not deliveries:
@@ -82,18 +82,14 @@ def calculate_plant_logistics_expectations(
             year_flow, overlap = build_operating_flows(time, lead_time, lifetime)
             discount_rate = plant.cost_of_capital.get(time)
 
-            for port_name, transport in deliveries:
+            for port_name, (transport, distance) in deliveries:
                 key = (region.name, transport.name, t, lead_time, lifetime)
                 if key not in cost_rates:
                     cost_rates[key] = region.transport_cost[transport.name].get(
                         year_flow
                     )
 
-                cost_flow = (
-                    cost_rates[key]
-                    * plant.fuel_distance[port_name].get(year_flow)
-                    * overlap
-                )
+                cost_flow = cost_rates[key] * distance.get(year_flow) * overlap
                 levelized_cost = calculate_levelized_cost(
                     cost_flow, overlap, discount_rate
                 )
@@ -103,8 +99,8 @@ def calculate_plant_logistics_expectations(
 
         # emissions are undiscounted and thus can
         # be assigned as instantaneous values
-        for port_name, transport in deliveries:
-            distance = plant.fuel_distance[port_name].get(times)
+        for port_name, (transport, distance) in deliveries:
+            distance_values = distance.get(times)
 
             for emission_name in emissions:
                 key = (region.name, transport.name, emission_name)
@@ -114,5 +110,5 @@ def calculate_plant_logistics_expectations(
                     ].get(times)
 
                 plant.expectation.set_delivery_wtt(
-                    idx, port_name, emission_name, wtt_rates[key] * distance
+                    idx, port_name, emission_name, wtt_rates[key] * distance_values
                 )

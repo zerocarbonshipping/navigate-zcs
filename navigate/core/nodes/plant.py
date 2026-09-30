@@ -67,6 +67,9 @@ class Plant(Node):
         self.fuel_distance: dict[str, ForecastInput | None] = {}
 
         # internal variables -----------------------------------------------------------
+        self.feed_deliveries: dict[str, tuple[Transport, ForecastInput] | None] = {}
+        self.fuel_deliveries: dict[str, tuple[Transport, ForecastInput] | None] = {}
+
         self.expectation: PlantExpectation = PlantExpectation()
         self.profile: PlantProfile = PlantProfile()
 
@@ -335,8 +338,15 @@ class Plant(Node):
 
     # internal methods -----------------------------------------------------------------
     def apply_command_defaults(self) -> None:
-        self._default_distances(self.feed_transport, self.feed_distance)
-        self._default_distances(self.fuel_transport, self.fuel_distance)
+        # the deliveries are the resolved form of the command dictionaries, so
+        # they are rebuilt here, on every pass a command can have reassigned a
+        # transport or a distance
+        self.feed_deliveries = self._pair_deliveries(
+            self.feed_transport, self.feed_distance
+        )
+        self.fuel_deliveries = self._pair_deliveries(
+            self.fuel_transport, self.fuel_distance
+        )
 
     def check_consistency(self) -> None:
 
@@ -350,14 +360,26 @@ class Plant(Node):
         self._require_transport_where_distance(self.fuel_transport, self.fuel_distance)
 
     @staticmethod
-    def _default_distances(
+    def _pair_deliveries(
         transports: dict[str, Transport | None],
         distances: dict[str, ForecastInput | None],
-    ) -> None:
-        """Give a transported route with no distance assigned a distance of zero."""
+    ) -> dict[str, tuple[Transport, ForecastInput] | None]:
+        """
+        Pair each transport with its distance, zero where none is assigned.
+
+        A name without a transport maps to None.
+        """
+        deliveries: dict[str, tuple[Transport, ForecastInput] | None] = {}
         for name, transport in transports.items():
-            if (transport is not None) and (distances[name] is None):
-                distances[name] = Scalar(0.0)
+            distance = distances[name]
+            if transport is None:
+                deliveries[name] = None
+            elif distance is None:
+                deliveries[name] = (transport, Scalar(0.0))
+            else:
+                deliveries[name] = (transport, distance)
+
+        return deliveries
 
     def _require_transport_where_distance(
         self,
