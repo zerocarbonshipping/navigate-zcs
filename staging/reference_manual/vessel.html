@@ -498,6 +498,7 @@ are a mono-fuel capesize bulk carrier and a dual-fuel methanol handy-max tanker.
 <section id="propulsionload">
 <h3>PropulsionLoad<a class="headerlink" href="#propulsionload" title="Link to this heading">#</a></h3>
 <p>This attribute sets the propulsion load level in MW. This is the power required to propel the vessel (at a given speed and draft potentially). The cargo utilization is used as a proxy for a vessel’s draft, i.e., high cargo utilization is indicative of a higher draft. If a float is assigned the load level is independent of speed and draft, if a Curve is assigned the load level is only a function of speed and if a Surface is assigned it is both a function of speed and draft.</p>
+<p>An expression assigned to this attribute is evaluated for the load, but it sets no technical speed limit and counts as non-convex, so the vessel’s speed optimization logs a warning.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Curve</span></code>, <code class="docutils literal notranslate"><span class="pre">Surface</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
@@ -517,6 +518,7 @@ are a mono-fuel capesize bulk carrier and a dual-fuel methanol handy-max tanker.
 <section id="electricalloadatsea">
 <h3>ElectricalLoadAtSea<a class="headerlink" href="#electricalloadatsea" title="Link to this heading">#</a></h3>
 <p>This attribute defines the electrical load level at sea in MW. This is the power required to run auxiliary systems on the vessel at sea at a given speed and cargo utilization. If a float is assigned the load level is independent of speed and draft, if a Curve is assigned the load level is only a function of speed and if a Surface is assigned it is both a function of speed and draft.</p>
+<p>An expression assigned to this attribute is evaluated for the load, but it sets no technical speed limit and counts as non-convex, so the vessel’s speed optimization logs a warning.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Curve</span></code>, <code class="docutils literal notranslate"><span class="pre">Surface</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
@@ -547,6 +549,7 @@ are a mono-fuel capesize bulk carrier and a dual-fuel methanol handy-max tanker.
 <section id="heatloadatsea">
 <h3>HeatLoadAtSea<a class="headerlink" href="#heatloadatsea" title="Link to this heading">#</a></h3>
 <p>This attribute defines the heat load level at sea in MW. This is the power required to produce heat on the vessel at sea at a given speed and cargo utilization. If a float is assigned the load level is independent of speed and draft, if a Curve is assigned the load level is only a function of speed and if a Surface is assigned it is both a function of speed and draft.</p>
+<p>An expression assigned to this attribute is evaluated for the load, but it sets no technical speed limit and counts as non-convex, so the vessel’s speed optimization logs a warning.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Curve</span></code>, <code class="docutils literal notranslate"><span class="pre">Surface</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
