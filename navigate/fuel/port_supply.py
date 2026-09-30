@@ -84,11 +84,15 @@ def _calculate_import_from_liquid_market(
             allowed = port.is_bunkering_allowed(f)
 
             if port.bunker_price_overwrite[f] is not None:
-                price = np.asarray(port.expectation.get_bunker_price_overwrite(f, idx_))
+                base_price = np.asarray(
+                    port.expectation.get_bunker_price_overwrite(f, idx_)
+                )
             else:
-                price = np.zeros(port.expectation.get_shape(idx))
+                base_price = np.zeros(port.expectation.get_shape(idx))
 
-            price += port.expectation.get_handling_cost(f, idx_)
+            # the overwrite getter returns a view into stored state, so the
+            # handling cost is added out of place rather than onto it
+            price = base_price + port.expectation.get_handling_cost(f, idx_)
             port.expectation.set_bunker_price(idx, f, price)
 
             if allowed:
@@ -206,11 +210,15 @@ def _calculate_import_from_producers(
     for p, port in ports.items():
         for f in fuels:
             if port.bunker_price_overwrite[f] is not None:
-                price = np.asarray(port.expectation.get_bunker_price_overwrite(f, idx_))
+                base_price = np.asarray(
+                    port.expectation.get_bunker_price_overwrite(f, idx_)
+                )
             else:
-                price = divide_nonzero(prices[p][f], supplies[p][f])
+                base_price = divide_nonzero(prices[p][f], supplies[p][f])
 
-            price += port.expectation.get_handling_cost(f, idx_)
+            # the overwrite getter returns a view into stored state, so the
+            # handling cost is added out of place rather than onto it
+            price = base_price + port.expectation.get_handling_cost(f, idx_)
             port.expectation.set_bunker_price(idx, f, price)
 
             if supplies[p][f][0] > 0.0:
