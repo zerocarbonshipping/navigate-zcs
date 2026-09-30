@@ -31,9 +31,12 @@ from navigate.fleet.power import calculate_technical_speed_limits
 from navigate.util import YEAR, divide_nonzero
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence
+
     from navigate.core.nodes.fleet import Fleet
     from navigate.core.nodes.route import Route
     from navigate.core.nodes.vessel import Vessel
+    from navigate.util.types_ import FloatLike
 
 
 @dataclass
@@ -185,8 +188,8 @@ def transfer_operational_profile(
 
 def convert_to_regional_steps(
     vessel: Vessel,
-    energy_sea: dict[EnergyDemandTypeID, list[float | np.ndarray] | np.ndarray],
-) -> dict[EnergyDemandTypeID, list[float | np.ndarray]]:
+    energy_sea: Mapping[EnergyDemandTypeID, Sequence[FloatLike]],
+) -> dict[EnergyDemandTypeID, list[FloatLike]]:
     """
     Redistribute sea energy demand into regional steps based on the voyage distribution.
 
@@ -199,16 +202,19 @@ def convert_to_regional_steps(
 
     Returns
     -------
-    Energy demand at sea redistributed across regional legs; the input unchanged if the
-    route is not a regional trip.
+    dict[EnergyDemandTypeID, list[FloatLike]]
+        Energy demand at sea redistributed across regional legs; a fresh copy of the
+        input, per leg, if the route is not a regional trip.
     """
     route = vessel.route
 
     if route.route_type != RouteTypeID.REGIONAL_TRIP:
-        return energy_sea
+        return {demand_type: list(energy) for demand_type, energy in energy_sea.items()}
 
     n_leg = route.get_number_of_regional_legs()
-    out_sea = {demand_type: [0.0 for _ in range(n_leg)] for demand_type in energy_sea}
+    out_sea: dict[EnergyDemandTypeID, list[FloatLike]] = {
+        demand_type: [0.0 for _ in range(n_leg)] for demand_type in energy_sea
+    }
     sailing_fractions = route.get_voyage_distribution(to_array=True)
 
     for energy_id, energy in energy_sea.items():

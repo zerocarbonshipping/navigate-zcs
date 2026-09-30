@@ -16,10 +16,9 @@ from navigate.fleet.technology_adoption import calculate_package_charter_rates
 from navigate.util import TOLERANCE, YEAR
 
 if TYPE_CHECKING:
-    from numpy.typing import NDArray
-
     from navigate.core.nodes.fleet import Fleet
     from navigate.core.nodes.vessel import Vessel
+    from navigate.util.types_ import FloatArray
 
 logger = logging.getLogger(__name__)
 
@@ -67,7 +66,7 @@ def calculate_orderbook_newbuilds(
         ]
     )
 
-    cargo_miles = np.array(extract_cargo_miles(fleet.assets, idx=idx))
+    cargo_miles = extract_cargo_miles(fleet.assets, idx=idx)
 
     # first deliver orders which were postponed
     postponed_before = fleet.orders_postponed.copy()
@@ -268,7 +267,7 @@ def calculate_modelled_newbuilds(
     index = np.array(index)
 
     # extract the cargo-miles per active vessel
-    cargo_miles = np.array(extract_cargo_miles(vessels, idx))
+    cargo_miles = extract_cargo_miles(vessels, idx)
 
     # calculate the inertia based increments of each vessel
     inertia_increments, cap_count_subset = calculate_inertia_increments(
@@ -391,25 +390,42 @@ def add_newbuilds(fleet: Fleet, increments: list[float], time_step: float):
                 fleet.increments[v][0].baseline = increment
 
 
-def extract_cargo_miles(
-    vessels: list[Vessel], idx: int | slice
-) -> list[NDArray[np.float64]]:
+def extract_cargo_miles(vessels: list[Vessel], idx: int) -> FloatArray:
     """
-    Extract each vessel's cargo-miles at the given time index.
+    Extract each vessel's cargo-miles at a single time-step index.
 
     Parameters
     ----------
     vessels
         Vessels to extract cargo-miles for.
     idx
-        Time index or slice.
+        Time-step index.
 
     Returns
     -------
-    list[NDArray[np.float64]]
-        Cargo-miles per vessel.
+    FloatArray
+        Cargo-miles per vessel at the given time-step.
     """
-    return [vessel.expectation.get_cargo_miles(idx) for vessel in vessels]
+    return np.array([vessel.expectation.get_cargo_miles(idx) for vessel in vessels])
+
+
+def extract_cargo_miles_timeline(vessels: list[Vessel], idx: slice) -> list[FloatArray]:
+    """
+    Extract each vessel's cargo-miles across a slice of the timeline.
+
+    Parameters
+    ----------
+    vessels
+        Vessels to extract cargo-miles for.
+    idx
+        Timeline slice.
+
+    Returns
+    -------
+    list[FloatArray]
+        Cargo-miles per vessel over the timeline slice.
+    """
+    return [np.asarray(vessel.expectation.get_cargo_miles(idx)) for vessel in vessels]
 
 
 def _calculate_increments(

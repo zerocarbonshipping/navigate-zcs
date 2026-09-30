@@ -14,6 +14,7 @@ from navigate.fleet.planning import (
     calculate_modelled_newbuilds,
     calculate_orderbook_newbuilds,
     extract_cargo_miles,
+    extract_cargo_miles_timeline,
 )
 from navigate.util import ROUND_OFF, TOLERANCE, YEAR, calculate_inertia, divide_nonzero
 
@@ -441,7 +442,7 @@ def calculate_evolution_expectation(
 
     # in order to take speed expectations into account
     # the multipliers need to be transformed into cargo-miles
-    cargo_miles = extract_cargo_miles(fleet.assets, idx_)
+    cargo_miles = extract_cargo_miles_timeline(fleet.assets, idx_)
     existing_trade = np.zeros_like(existing)
     for v in range(nv):
         existing_trade[v, :] = existing[v, :] * cargo_miles[v]

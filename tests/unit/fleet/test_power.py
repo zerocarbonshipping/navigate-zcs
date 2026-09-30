@@ -27,6 +27,7 @@ from navigate.core.enum_ import (
     EnergyDemandTypePortID,
 )
 from navigate.core.expectations.vessel_expectation import VesselExpectation
+from navigate.core.nodes.variable import Variable
 from navigate.core.unit import MWD_TO_GJ
 from navigate.exceptions import PowerCapacityError
 from navigate.fleet.power import (
@@ -329,15 +330,21 @@ class TestSimulationGating:
 
 
 class TestCalculateTechnicalSpeedLimits:
-    """An expression's shape cannot be reverse-looked-up, so it sets no limit."""
+    """A propulsion load with no speed-power curve sets no technical limit, per leg."""
 
-    def test_expression_propulsion_load_gives_no_technical_limit(self):
-        vessel = SimpleNamespace(propulsion_load=Expression("1 + 2"))
+    @pytest.mark.parametrize(
+        "load",
+        [Expression("1 + 2"), Scalar(1.0), Variable("v")],
+        ids=["expression", "scalar", "variable"],
+    )
+    def test_curveless_propulsion_load_gives_no_technical_limit(self, load):
+        route = SimpleNamespace(get_number_of_legs=lambda: 3)
+        vessel = SimpleNamespace(propulsion_load=load, route=route)
 
         speed_min, speed_max = calculate_technical_speed_limits(vessel)
 
-        assert speed_min == -np.inf
-        assert speed_max == np.inf
+        np.testing.assert_array_equal(speed_min, np.full(3, -np.inf))
+        np.testing.assert_array_equal(speed_max, np.full(3, np.inf))
 
 
 class TestLoadsAreConvex:
