@@ -606,6 +606,7 @@ CO<sub>2</sub>-taxes and subsidy schemes.</p>
 <section id="upperthreshold">
 <h3>UpperThreshold<a class="headerlink" href="#upperthreshold" title="Link to this heading">#</a></h3>
 <p>This attribute sets the upper emission intensity threshold of the levy, per GJ of effective energy like <code class="docutils literal notranslate"><span class="pre">LowerThreshold</span></code>. The penalty is only paid for emissions between the lower and upper threshold. If not set, there is no upper cap on the penalty. Only relevant for ‘PENALTY’ and ‘BOTH’ schemes.</p>
+<p><code class="docutils literal notranslate"><span class="pre">UpperThreshold</span></code> must not fall below <code class="docutils literal notranslate"><span class="pre">LowerThreshold</span></code> at any time step of a <code class="docutils literal notranslate"><span class="pre">PENALTY</span></code> or <code class="docutils literal notranslate"><span class="pre">BOTH</span></code> levy that is active; the run stops with an error naming the first date where it does.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
