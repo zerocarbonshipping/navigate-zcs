@@ -12,9 +12,9 @@ Otherwise, falls back to the HiGHS open-source solver.
 The active backend can be overridden via ``set_solver_preference()``
 before any Model objects are created. Models and linear expressions are
 created through ``create_model()`` and ``create_linear_expression()``, which
-dispatch on the active backend; the classes exported here are those of the
-HiGHS backend, whose interface the Gurobi objects share, and serve as the
-static types.
+dispatch on the active backend; the HiGHS classes, whose interface the
+Gurobi objects share, serve as the static types for annotations only, and
+are never instantiated or checked against at runtime.
 
 Usage:
     import navigate.bunker.solver as gp
@@ -36,6 +36,11 @@ from navigate.core.enum_ import SolverBackendID
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
+
+    from navigate.bunker.solver_highs import Constr as Constr
+    from navigate.bunker.solver_highs import LinExpr as LinExpr
+    from navigate.bunker.solver_highs import Model as Model
+    from navigate.bunker.solver_highs import Var as Var
 
 _logger = logging.getLogger(__name__)
 
@@ -99,12 +104,9 @@ if _GUROBI_AVAILABLE:
 # Static types
 # ---------------------------------------------------------------------------
 # gurobipy is untyped, so the HiGHS classes stand for both backends in
-# annotations; the Gurobi objects provide the same interface.
-Model = _highs.Model
-Var = _highs.Var
-Constr = _highs.Constr
-LinExpr = _highs.LinExpr
-TempConstr = _highs.TempConstr
+# annotations (see the TYPE_CHECKING import above); the Gurobi objects
+# provide the same interface but are never checked against these classes
+# at runtime.
 
 # constraint senses, spelled as gurobipy spells them for both backends
 EQUAL = _highs.EQUAL
@@ -175,11 +177,6 @@ def set_solver_preference(preference: SolverBackendID):
         AUTOMATIC (default), GUROBI, or HIGHS.
     """
     _configure(preference)
-
-
-def get_active_backend() -> Literal["gurobi", "highs"]:
-    """Return ``"gurobi"`` or ``"highs"`` for the currently active backend."""
-    return _active_backend
 
 
 def create_model(name: str) -> Model:

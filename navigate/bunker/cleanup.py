@@ -126,7 +126,7 @@ def remove_redundant_regulations(alg: BunkerAlgorithm) -> None:
 def remove_model_attribute_and_dict_element(
     alg: BunkerAlgorithm,
     to_remove: str | tuple,
-    tuple_dict: dict,
+    container: dict,
     positions: tuple[int, ...] = (0,),
 ) -> None:
     """
@@ -137,8 +137,8 @@ def remove_model_attribute_and_dict_element(
     alg
         The algorithm instance.
     to_remove
-        Part of a key to a tuple dictionary.
-    tuple_dict
+        Part of a key to match against ``container``'s tuple keys.
+    container
         Dict from which to remove elements.
     positions
         Positions in the dict keys that should match 'to_remove'.
@@ -146,10 +146,10 @@ def remove_model_attribute_and_dict_element(
     if not isinstance(to_remove, tuple):
         to_remove = (to_remove,)
 
-    for key, attribute in list(tuple_dict.items()):
+    for key, attribute in list(container.items()):
         if all(
             to == key[position]
             for to, position in zip(to_remove, positions, strict=True)
         ):
             alg.model.remove(attribute)
-            del tuple_dict[key]
+            del container[key]

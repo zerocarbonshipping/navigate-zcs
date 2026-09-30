@@ -250,10 +250,6 @@ class Var:
     def __ge__(self, other):
         return self._to_expr().__ge__(other)
 
-    # set iteration order over variables follows these hashes
-    def __hash__(self):
-        return id(self)
-
 
 # ====================================================================================
 # Constr
