@@ -258,6 +258,7 @@ class Producer(_AssetManager[Plant]):
         Examples
         --------
         - 0.1
+        - Variable("name")
 
         Parameters
         ----------
@@ -265,7 +266,7 @@ class Producer(_AssetManager[Plant]):
             The jump-start fraction for supply/demand interaction.
         """
         self.jump_start_fraction = assign_value(
-            as_scalar(jump_start_fraction), lower=0.0, upper=1.0
+            as_scalar(jump_start_fraction), type_=VARIABLE, lower=0.0, upper=1.0
         )
 
     # external methods (DSL commands) --------------------------------------------------
