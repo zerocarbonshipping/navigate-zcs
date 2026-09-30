@@ -301,6 +301,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   or `HeatLoadAtSea` no longer crashes the run with an `AttributeError` at the
   first time step; it sets no technical speed limit and counts as non-convex,
   which logs the existing "does not have convex load functions" warning.
+- With the HiGHS solver, a non-compliant `Regulation` with
+  `AllowThresholdAdjustment = TRUE` and a measure other than `INTENSITY` no
+  longer crashes the run with an `AttributeError` (#365).
 
 ## [1.0.0] - 2026-07-16
 

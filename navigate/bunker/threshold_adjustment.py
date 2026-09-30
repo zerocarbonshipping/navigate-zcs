@@ -227,7 +227,7 @@ def _update_regulation_rhs_for_adjustment(
                     new_rhs = adjusted_threshold * vessel_measure
 
                 alg.regulation_rhs_individual[key] = new_rhs
-                alg.regulation_threshold_individual[key].RHS = new_rhs
+                alg.regulation_threshold_individual[key].rhs = new_rhs
 
         elif regulation.scheme == RegulationSchemeID.FLEXIBLE:
             if r not in alg.regulation_threshold_flexibility:
@@ -255,7 +255,7 @@ def _update_regulation_rhs_for_adjustment(
                 total_rhs += vessel_rhs * alg.multipliers[v]
 
             alg.regulation_total_rhs_flexibility[r] = total_rhs
-            alg.regulation_threshold_flexibility[r].RHS = total_rhs
+            alg.regulation_threshold_flexibility[r].rhs = total_rhs
 
 
 def _rebuild_regulation_constraints_for_adjustment(
