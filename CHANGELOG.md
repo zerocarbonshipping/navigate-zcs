@@ -297,6 +297,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - A `Producer`'s `JumpStartFraction` now also accepts a `Variable`, and an
   expression assigned to it is evaluated where the producer's evolution
   expectation reads it, instead of crashing with a `TypeError` (#348).
+- An expression assigned to a `Vessel`'s `PropulsionLoad`, `ElectricalLoadAtSea`
+  or `HeatLoadAtSea` no longer crashes the run with an `AttributeError` at the
+  first time step; it sets no technical speed limit and counts as non-convex,
+  which logs the existing "does not have convex load functions" warning.
 
 ## [1.0.0] - 2026-07-16
 

@@ -2,11 +2,15 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Tests for the converter power-capacity verification.
+Tests for converter power-capacity verification and vessel load-function checks.
 
-The check asserts, per leg and per port, that the energy a converter delivers
-cannot exceed its power capacity times the time spent on the step. Port demands
-must fit the onboard converter alone: shore power gives no allowance.
+The power-capacity check asserts, per leg and per port, that the energy a
+converter delivers cannot exceed its power capacity times the time spent on
+the step. Port demands must fit the onboard converter alone: shore power gives
+no allowance.
+
+The load-function checks decide, from a vessel's propulsion, electrical, and
+heat loads, its technical speed limits and whether its loads are convex.
 """
 
 from __future__ import annotations
@@ -16,7 +20,7 @@ from types import SimpleNamespace
 import numpy as np
 import pytest
 
-from navigate.core import Scalar
+from navigate.core import Expression, Scalar
 from navigate.core.enum_ import (
     BunkerScopeID,
     EnergyDemandTypeID,
@@ -25,7 +29,11 @@ from navigate.core.enum_ import (
 from navigate.core.expectations.vessel_expectation import VesselExpectation
 from navigate.core.unit import MWD_TO_GJ
 from navigate.exceptions import PowerCapacityError
-from navigate.fleet.power import verify_power_capacity
+from navigate.fleet.power import (
+    calculate_technical_speed_limits,
+    loads_are_convex,
+    verify_power_capacity,
+)
 from navigate.simulation import SimulationManager
 from navigate.util import TOLERANCE
 
@@ -318,3 +326,43 @@ class TestSimulationGating:
 
         with pytest.raises(PowerCapacityError):
             SimulationManager._verify_power_capacity(manager, BunkerScopeID.EXPECTED)
+
+
+class TestCalculateTechnicalSpeedLimits:
+    """An expression's shape cannot be reverse-looked-up, so it sets no limit."""
+
+    def test_expression_propulsion_load_gives_no_technical_limit(self):
+        vessel = SimpleNamespace(propulsion_load=Expression("1 + 2"))
+
+        speed_min, speed_max = calculate_technical_speed_limits(vessel)
+
+        assert speed_min == -np.inf
+        assert speed_max == np.inf
+
+
+class TestLoadsAreConvex:
+    """An expression's shape is unknown, so it is treated as non-convex."""
+
+    @pytest.mark.parametrize(
+        "expression_attribute",
+        ["propulsion_load", "electrical_load_at_sea", "heat_load_at_sea"],
+    )
+    def test_any_expression_load_is_not_convex(self, expression_attribute):
+        loads = {
+            "propulsion_load": Scalar(1.0),
+            "electrical_load_at_sea": Scalar(1.0),
+            "heat_load_at_sea": Scalar(1.0),
+        }
+        loads[expression_attribute] = Expression("1 + 2")
+        vessel = SimpleNamespace(**loads)
+
+        assert loads_are_convex(vessel) is False
+
+    def test_all_scalar_loads_are_convex(self):
+        vessel = SimpleNamespace(
+            propulsion_load=Scalar(1.0),
+            electrical_load_at_sea=Scalar(1.0),
+            heat_load_at_sea=Scalar(1.0),
+        )
+
+        assert loads_are_convex(vessel) is True

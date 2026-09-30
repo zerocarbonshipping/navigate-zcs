@@ -106,6 +106,10 @@ class Vessel(Node):
         (knots). If a Surface is assigned it should return power (MW) as a function of
         speed (knots) and cargo utilization (-).
 
+        An expression assigned to this attribute is evaluated for the load, but it
+        sets no technical speed limit and counts as non-convex, so the vessel's speed
+        optimization logs a warning.
+
         Examples
         --------
         - 16.5
@@ -133,6 +137,10 @@ class Vessel(Node):
         If a Curve is assigned it should return power (MW) as a function of speed
         (knots). If a Surface is assigned it should return power (MW) as a function of
         speed (knots) and cargo utilization (-).
+
+        An expression assigned to this attribute is evaluated for the load, but it
+        sets no technical speed limit and counts as non-convex, so the vessel's speed
+        optimization logs a warning.
 
         Examples
         --------
@@ -182,6 +190,10 @@ class Vessel(Node):
         If a Curve is assigned it should return power (MW) as a function of speed
         (knots). If a Surface is assigned it should return power (MW) as a function of
         speed (knots) and cargo utilization (-).
+
+        An expression assigned to this attribute is evaluated for the load, but it
+        sets no technical speed limit and counts as non-convex, so the vessel's speed
+        optimization logs a warning.
 
         Examples
         --------
