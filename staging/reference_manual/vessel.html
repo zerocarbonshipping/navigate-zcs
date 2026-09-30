@@ -583,7 +583,7 @@ are a mono-fuel capesize bulk carrier and a dual-fuel methanol handy-max tanker.
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">ID</span></code></p></li>
 <li><p><strong>Legal values</strong>: <a class="reference internal" href="appendix_ids.html#fueltypeid"><span class="std std-ref">FuelTypeID</span></a></p></li>
-<li><p><strong>Default</strong>: If not assigned, the value is defaulted to the main fuel type of the largest converter in the power system.</p></li>
+<li><p><strong>Default</strong>: If not assigned, the value is defaulted to the main fuel type with the largest power capacity summed over the converters in the power system. A tie between fuel types is broken by the size of the tanks that store them.</p></li>
 </ul>
 </section>
 <section id="powersystem">
