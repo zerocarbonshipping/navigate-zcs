@@ -62,7 +62,7 @@ This attribute sets the energy source which is used to generate power for the pl
 
 ### Capacity 
 
-This attribute sets the production capacity of the plant in tons/day.
+This attribute sets the production capacity of the plant in tons/day. `INF` is rejected.
 
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:

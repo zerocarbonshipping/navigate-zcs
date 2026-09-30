@@ -68,11 +68,13 @@ Where `x` depends on the specific attribute. Attributes are written in upper cam
   ```python
   Attribute = 3.2
   ```
+  `INF` and `-INF` are accepted only where infinity has a meaning: by `set_bunkering_limit`, `set_feed_constraint` and `MaximumSpeedChange`, where `INF` means no limit, by `UpperBound` (`INF`) and `LowerBound` (`-INF`), and by the values that define a calculator (`Value`, `Below`, `Above`, `Outside` and the values of a table), which are checked against each attribute using the calculator, as described under node references. Every other attribute rejects them when the deck is loaded. The coordinates of a table must be finite, and no table cell may be `nan`; the values of the tables of `set_existing_pipeline` and `InitialAgeDistribution`, which are read as tables rather than evaluated, must be finite too.
+
 **Node reference:**  
   ```python
   Attribute = NodeType("node_name")
   ```
-  Where the attribute has a minimum or maximum value, it also holds for the value a referenced Curve, Forecast, Surface, Timetable, or Variable returns, and for the value of an expression, each time it is evaluated. An inclusive minimum or maximum clamps the value to it. A value that reaches an exclusive one, such as `0` where the minimum value is 0 (exclusive), stops the run with an error naming the node, just as the same number written as a float is rejected when the deck is loaded.
+  Where the attribute has a minimum or maximum value, it also holds for the value a referenced Curve, Forecast, Surface, Timetable, or Variable returns, and for the value of an expression, each time it is evaluated. An inclusive minimum or maximum clamps the value to it. A value that reaches an exclusive one, such as `0` where the minimum value is 0 (exclusive), stops the run with an error naming the node, just as the same number written as a float is rejected when the deck is loaded. An attribute that rejects `INF` and `-INF` treats a side without a minimum or maximum as an exclusive bound at infinity: a value reaching infinity there stops the run the same way, while on a side with an inclusive minimum or maximum it is clamped, so a Forecast at `INF` assigned to `Uptime` evaluates to 1. A calculator referenced by several attributes is held to the strictest bound among them, so a Variable used both in `set_bunkering_limit` and by an attribute that rejects `INF` cannot be `INF`.
 
 **ID:**  
   ```python

@@ -570,7 +570,7 @@ for large scale methanol, ammonia, methane, and diesel plants and regional marke
 <section id="initialagedistribution">
 <h3>InitialAgeDistribution<a class="headerlink" href="#initialagedistribution" title="Link to this heading">#</a></h3>
 <p>This attribute sets the initial age distribution of each plant type.</p>
-<p>The list must have a length corresponding to the number of plant types. Each entry is either a Curve reference (where the Curve’s x-values are ages in increasing order and y-values are the corresponding fractions) or <code class="docutils literal notranslate"><span class="pre">0</span></code> for plant types with no custom distribution.</p>
+<p>The list must have a length corresponding to the number of plant types. Each entry is either a Curve reference (where the Curve’s x-values are ages in increasing order and y-values are the corresponding fractions) or <code class="docutils literal notranslate"><span class="pre">0</span></code> for plant types with no custom distribution. The Curve’s values must be finite.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: List of <code class="docutils literal notranslate"><span class="pre">Curve</span></code> nodes and/or <code class="docutils literal notranslate"><span class="pre">0</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
@@ -585,7 +585,7 @@ for large scale methanol, ammonia, methane, and diesel plants and regional marke
 <section id="maximumdevelopment">
 <h3>MaximumDevelopment<a class="headerlink" href="#maximumdevelopment" title="Link to this heading">#</a></h3>
 <p>This attribute sets the development constraint limiting the maximum number of plants which can be built per year.</p>
-<p>While this attribute can be unassigned the simulation is better behaved if it is assigned. It can just be assigned arbitrarily high if an unconstrained scenario is required.</p>
+<p>If an unconstrained scenario is required, assign a value far above any development the demand could call for, such as <code class="docutils literal notranslate"><span class="pre">1e6</span></code>; <code class="docutils literal notranslate"><span class="pre">INF</span></code> is rejected.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
@@ -637,7 +637,7 @@ for large scale methanol, ammonia, methane, and diesel plants and regional marke
 <section id="set-existing-pipeline">
 <h3>set_existing_pipeline<a class="headerlink" href="#set-existing-pipeline" title="Link to this heading">#</a></h3>
 <p>This command sets an existing pipelines for a given plant used for determining the new plants from the pipeline.</p>
-<p>The pipeline forecast must be non-strictly increasing.</p>
+<p>The pipeline forecast must be finite and non-strictly increasing.</p>
 <ul class="simple">
 <li><p><strong>Primary key type</strong>: String (Plant name)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Forecast</span></code></p></li>
