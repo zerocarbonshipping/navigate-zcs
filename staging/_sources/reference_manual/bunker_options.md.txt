@@ -31,7 +31,7 @@ This attribute selects the solver backend for the bunker algorithm. It can also 
 
 ### SolverMethod
 
-This attribute selects the LP solution method used by the solver backend.
+This attribute selects the LP solution method. It is passed to Gurobi as its `Method` parameter; the HiGHS backend ignores it.
 
 * **Data type**: `ID`
 * **Legal values**: [SolverMethodID](appendix_ids.md#solvermethodid)

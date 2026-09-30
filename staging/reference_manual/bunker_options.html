@@ -492,7 +492,7 @@ It helps define various tolerances and iteration limits that guide how the model
 </section>
 <section id="solvermethod">
 <h3>SolverMethod<a class="headerlink" href="#solvermethod" title="Link to this heading">#</a></h3>
-<p>This attribute selects the LP solution method used by the solver backend.</p>
+<p>This attribute selects the LP solution method. It is passed to Gurobi as its <code class="docutils literal notranslate"><span class="pre">Method</span></code> parameter; the HiGHS backend ignores it.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">ID</span></code></p></li>
 <li><p><strong>Legal values</strong>: <a class="reference internal" href="appendix_ids.html#solvermethodid"><span class="std std-ref">SolverMethodID</span></a></p></li>
