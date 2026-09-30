@@ -202,6 +202,17 @@ class Var:
         self._model._col_costs[self._col] = value
         self._model._pending_obj[self._col] = value
 
+    # upper bound ----------------------------------------------------------------------
+    @property
+    def UB(self) -> float:
+        return self._model._col_upper_bounds[self._col]
+
+    @UB.setter
+    def UB(self, value: float) -> None:
+        value = float(value)
+        self._model._col_upper_bounds[self._col] = value
+        self._model._pending_ub[self._col] = value
+
     # arithmetic (return LinExpr) ------------------------------------------------------
     def _to_expr(self, coeff=1.0):
         expr = LinExpr()
@@ -415,9 +426,13 @@ class Model:
         # Cached objective coefficients (avoids expensive getCol() calls)
         self._col_costs = []
 
+        # cached column upper bounds; every column has lower bound 0
+        self._col_upper_bounds: list[float] = []
+
         # Deferred update buffers (flushed as batch calls at optimize())
         self._pending_rhs = {}  # row_index -> (lb, ub)
         self._pending_obj = {}  # col_index -> value
+        self._pending_ub: dict[int, float] = {}
 
         # Last-written coefficients (skip redundant changeCoeff calls)
         self._coeff_values = {}  # (row, col) -> value
@@ -439,6 +454,7 @@ class Model:
         self._highs.addVar(0.0, highspy.kHighsInf)
         self._num_cols += 1
         self._col_costs.append(0.0)
+        self._col_upper_bounds.append(highspy.kHighsInf)
         self._model_grew = True
         return Var(self, col)
 
@@ -568,7 +584,9 @@ class Model:
             self._highs.changeColBounds(item._col, 0.0, 0.0)
             self._highs.changeColCost(item._col, 0.0)
             self._col_costs[item._col] = 0.0
+            self._col_upper_bounds[item._col] = 0.0
             self._pending_obj.pop(item._col, None)
+            self._pending_ub.pop(item._col, None)
         elif isinstance(item, Constr):
             self._removed_rows.add(item._row)
             self._recycled_rows.append(item._row)
@@ -666,7 +684,7 @@ class Model:
     # Solve
     # ----------------------------------------------------------------------------------
     def _flush_pending(self):
-        """Flush deferred RHS and Obj changes as batch HiGHS calls."""
+        """Flush deferred RHS, Obj and UB changes as batch HiGHS calls."""
         if self._pending_rhs:
             rows = list(self._pending_rhs.keys())
             bounds = list(self._pending_rhs.values())
@@ -686,6 +704,15 @@ class Model:
             self._highs.changeColsCost(n, indices, values)
             self._pending_obj.clear()
 
+        if self._pending_ub:
+            cols = list(self._pending_ub.keys())
+            n = len(cols)
+            indices = np.array(cols, dtype=np.int32)
+            lb = np.zeros(n, dtype=np.float64)
+            ub = np.array(list(self._pending_ub.values()), dtype=np.float64)
+            self._highs.changeColsBounds(n, indices, lb, ub)
+            self._pending_ub.clear()
+
     def optimize(self):
         """
         Solve the LP and store the solution.
@@ -699,7 +726,7 @@ class Model:
           since only a few pivots are needed.
         - Automatic IPM fallback if simplex returns non-optimal.
         """
-        # Flush deferred RHS and objective changes as batch calls
+        # flush deferred RHS, objective and bound changes as batch calls
         self._flush_pending()
 
         if self._model_grew or self._basis is None:
