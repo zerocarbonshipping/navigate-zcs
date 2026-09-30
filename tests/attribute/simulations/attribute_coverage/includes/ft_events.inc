@@ -149,9 +149,11 @@ Regulation "reg_absolute" {
 	InterFraction = 0.4
 	ExtraFraction = 0.1
 	RemedialCost = 150
-	AllowThresholdAdjustment = FALSE
-	set_vessel_threshold("vessel_oil", 4500)
-	set_vessel_threshold("vessel_methane", 4500)
+	AllowThresholdAdjustment = TRUE
+	# a threshold far below every vessel's emissions keeps the regulation
+	# non-compliant, so the threshold adjustment runs
+	set_vessel_threshold("vessel_oil", 1)
+	set_vessel_threshold("vessel_methane", 1)
 	set_global_warming_potential("methane", 28)
 	set_fuel_wtt("hfo", "carbon_dioxide", 0.65)
 	set_fuel_ttw("hfo", "carbon_dioxide", 3.2)
