@@ -136,9 +136,10 @@ This attribute sets the maximum ramp-up for the utilization of the development c
 
 This attribute sets the jump-start fraction used to initiate the supply/demand interaction if there has been no production.
 
-* **Data type**: `Float`
+* **Data type**: `Float`, `Variable`
 * **Example values**:
   + `0.1`
+  + `Variable("name")`
 * **Unit**: Fraction
 * **Minimum value**: 0
 * **Maximum value**: 1
