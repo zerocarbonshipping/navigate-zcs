@@ -49,7 +49,6 @@ class Port(Node):
         self.handling_cost: dict[str, ForecastInput] = {}
 
         # bunker overwrite
-        self.liquid_market_fuel: dict[str, bool] = {}
         self.bunker_price_overwrite: dict[str, ForecastInput | None] = {}
         self.bunker_wtt_overwrite: dict[tuple[str, str], ForecastInput | None] = {}
 
@@ -61,6 +60,8 @@ class Port(Node):
         # internal variables -----------------------------------------------------------
         self.expectation: PortExpectation = PortExpectation()
         self.profile: PortProfile = PortProfile()
+
+        self.liquid_market_fuel: dict[str, bool] = {}
 
     # external methods (DSL commands) --------------------------------------------------
     def set_bunkering_allowed(self, fuel_name: str, value: str) -> None:

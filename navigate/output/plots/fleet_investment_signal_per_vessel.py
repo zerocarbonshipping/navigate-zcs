@@ -60,8 +60,8 @@ def _plot_investment_signal_per_vessel(
         signals = []
         for vessel in fleet.vessels:
             signal = signal_getter(vessel.profile)
-            label = FUEL_TYPE_LABEL[vessel.fuel_type]
-            color = FUEL_TYPE_COLOR[vessel.fuel_type]
+            label = FUEL_TYPE_LABEL[vessel.primary_fuel_type]
+            color = FUEL_TYPE_COLOR[vessel.primary_fuel_type]
 
             ax.plot(dateline, signal, label=label, color=color, lw=2.0)
             signals.append(signal)

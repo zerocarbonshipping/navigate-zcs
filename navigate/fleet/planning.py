@@ -333,7 +333,7 @@ def calculate_modelled_uptake(
     np.ndarray
         The uptake shares of each vessel type based on the discrete choice model.
     """
-    fuel_types = [vessel.fuel_type for vessel in vessels]
+    fuel_types = [vessel.primary_fuel_type for vessel in vessels]
     metrics = [vessel.expectation.get_freight_rate(idx) for vessel in vessels]
 
     return calculate_two_axis_uptake(

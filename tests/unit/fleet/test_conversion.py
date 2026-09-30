@@ -36,7 +36,7 @@ def _vessel(
 ) -> MagicMock:
     vessel = MagicMock()
     vessel.name = name
-    vessel.fuel_type = fuel_type
+    vessel.primary_fuel_type = fuel_type
     vessel.lifetime = Scalar(lifetime)
     vessel.cost_of_capital = Scalar(cost_of_capital)
     vessel.expectation.get_fuel_cost_flow.return_value = fuel_cost_flow

@@ -241,7 +241,7 @@ def propose_fuel_conversions(
                 supply_excess[source.fuel_type] += (
                     candidate.count * source.energy_per_vessel
                 )
-                supply_excess[vessels[name_to].fuel_type] -= (
+                supply_excess[vessels[name_to].primary_fuel_type] -= (
                     candidate.count * candidate.energy_per_vessel
                 )
 
@@ -378,7 +378,7 @@ def _extract_conversion_source(
 
     return _ConversionSource(
         vessel_from.name,
-        vessel_from.fuel_type,
+        vessel_from.primary_fuel_type,
         vessel_from.expectation.get_total_energy(idx),
         vessel_from.expectation.get_fuel_cost_flow(),
         vessel_from.expectation.get_capex_npv(idx),
@@ -439,7 +439,7 @@ def _evaluate_increment(
             avg_age,
             remaining_lifetime_from,
             multiplier,
-            supply_excess[vessel_to.fuel_type],
+            supply_excess[vessel_to.primary_fuel_type],
             idx,
         )
         if candidate is not None:

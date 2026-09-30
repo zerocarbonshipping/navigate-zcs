@@ -110,12 +110,14 @@ def _transfer_power_totals(fleet: Fleet) -> None:
         power = get_total_power_capacity(vessel)
 
         fleet.profile.add_installed_power(
-            vessel.fuel_type, power * existing_vessels[vessel_name]
+            vessel.primary_fuel_type, power * existing_vessels[vessel_name]
         )
         fleet.profile.add_newbuild_power(
-            vessel.fuel_type, power * newbuilds[vessel_name]
+            vessel.primary_fuel_type, power * newbuilds[vessel_name]
         )
-        fleet.profile.add_scrapped_power(vessel.fuel_type, power * scrap[vessel_name])
+        fleet.profile.add_scrapped_power(
+            vessel.primary_fuel_type, power * scrap[vessel_name]
+        )
 
 
 def _transfer_fuel_converted_power(fleet: Fleet) -> None:
@@ -156,7 +158,9 @@ def _transfer_fuel_converted_power(fleet: Fleet) -> None:
             )
 
         fleet.profile.add_fuel_converted_power(
-            vessel_from.fuel_type, vessel_to.fuel_type, power_from * converted
+            vessel_from.primary_fuel_type,
+            vessel_to.primary_fuel_type,
+            power_from * converted,
         )
 
 

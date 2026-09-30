@@ -66,7 +66,7 @@ def plot_regulation_flexibility(manager, directory):
         patches.extend(line)
 
         for v, compliance in vessel_compliance.items():
-            color = FUEL_TYPE_COLOR[vessels[v].fuel_type]
+            color = FUEL_TYPE_COLOR[vessels[v].primary_fuel_type]
             line = ax.plot(dateline, compliance, color=color, alpha=0.5, lw=1.0)
 
         patches.extend(line)

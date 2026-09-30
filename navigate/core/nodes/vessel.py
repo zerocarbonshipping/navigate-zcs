@@ -88,6 +88,7 @@ class Vessel(Node):
         self.profile: VesselProfile = VesselProfile()
 
         # convenience variables
+        self.primary_fuel_type: FuelTypeID
         self.usable_fuel_types: list[FuelTypeID] = []
         self.usable_fuels: dict[str, Fuel] = {}
 
@@ -233,8 +234,10 @@ class Vessel(Node):
         """
         Set the primary main fuel type of the vessel.
 
-        If not assigned, the value is defaulted during initialization based on the
-        assigned PowerSystem.
+        If not assigned, the vessel's primary fuel type is derived during
+        initialization: the main fuel type with the largest power capacity summed over
+        the converters in the PowerSystem. A tie between fuel types is broken by the
+        size of the tanks that store them.
 
         Examples
         --------
