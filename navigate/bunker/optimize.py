@@ -41,8 +41,12 @@ def check_solution(alg: BunkerAlgorithm) -> None:
 
     An infeasible model raises, after its IIS is computed and the model and its
     limiting constraints are written as LP files to the output directory. A model
-    reported infeasible or unbounded is solved again with dual reductions off, which
-    tells the two apart.
+    reported infeasible or unbounded is solved again with dual reductions off and
+    checked again; every other status returns without raising. On Gurobi, a re-solve
+    that reports the model unbounded therefore returns as well. The HiGHS backend
+    reports every status but optimal and infeasible as infeasible or unbounded and
+    does not apply the dual-reductions switch, so such a model is solved again to the
+    same status until the recursion limit is reached.
 
     Parameters
     ----------

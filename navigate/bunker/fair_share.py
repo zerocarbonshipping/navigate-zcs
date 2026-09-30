@@ -278,9 +278,9 @@ def update_fair_share_allocation(alg: BunkerAlgorithm) -> None:
             else:
                 alg.allocation_fuel[key_vpf] = 0.0
 
-        # a released allocation is tightened only where a bounded vessel can absorb
-        # the freed supply; otherwise releasing it would lose the supply
         elif key_pf in bounded_fair_share:
+            # a released allocation is tightened only where a bounded vessel can
+            # absorb the freed supply; otherwise releasing it would lose the supply
             alg.previously_released_fuel[key_vpf] = True
             alg.allocation_fuel[key_vpf] = previous_bunker[key_vpf]
 

@@ -37,10 +37,13 @@ class LinExpr:
     """
     A sum of coefficient-variable products plus a constant, mirroring gurobipy.LinExpr.
 
+    The expression has terms only when both ``coefficients`` and ``variables`` are
+    given; with either one missing, it is empty.
+
     Parameters
     ----------
     coefficients
-        Coefficient of each term; without it and ``variables`` the expression is empty.
+        Coefficient of each term, aligned with ``variables``.
     variables
         Variable of each term, aligned with ``coefficients``.
     """
@@ -733,7 +736,7 @@ class Model:
         if status == HighsModelStatus.kInfeasible:
             return INFEASIBLE
 
-        # unbounded, and every status without a solution such as an error
+        # every other status, such as unbounded, an error or a reached limit
         return INF_OR_UNBD
 
     def computeIIS(self) -> None:
