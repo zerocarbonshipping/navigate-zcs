@@ -40,7 +40,6 @@ if TYPE_CHECKING:
     from navigate.core.types_ import (
         ForecastArgument,
         ForecastInput,
-        NumberInput,
         ScalarArgument,
         ScalarInput,
     )
@@ -70,7 +69,7 @@ class Producer(_AssetManager[Plant]):
         # constraints
         self.maximum_development: ForecastInput
         self.feed_constraints: dict[str, ForecastInput | None] = {}
-        self.jump_start_fraction: NumberInput = 0.1
+        self.jump_start_fraction: ScalarInput = Scalar(0.1)
         self.maximum_ramp_up: ForecastInput = Scalar(1.0)
 
         # export
@@ -248,7 +247,7 @@ class Producer(_AssetManager[Plant]):
             as_scalar(maximum_ramp_up), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
         )
 
-    def set_jump_start_fraction(self, jump_start_fraction: NumberInput) -> None:
+    def set_jump_start_fraction(self, jump_start_fraction: ScalarArgument) -> None:
         """
         Set the jump-start fraction for supply/demand interaction absent production.
 
@@ -266,7 +265,7 @@ class Producer(_AssetManager[Plant]):
             The jump-start fraction for supply/demand interaction.
         """
         self.jump_start_fraction = assign_value(
-            jump_start_fraction, lower=0.0, upper=1.0
+            as_scalar(jump_start_fraction), lower=0.0, upper=1.0
         )
 
     # external methods (DSL commands) --------------------------------------------------
