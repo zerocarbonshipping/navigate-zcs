@@ -41,8 +41,10 @@ from navigate.core.node_type import (
     VARIABLE,
     VESSEL,
 )
+from navigate.core.nodes.report import Report
 from navigate.exceptions import CommandError
 from navigate.parser._keywords import SECTION_BOTH, SECTION_DEFINE, SECTION_NAME
+from navigate.parser._report_properties import check_report_command
 from navigate.util import name_contains_wildcards
 
 if TYPE_CHECKING:
@@ -242,6 +244,9 @@ class CommandReference:
     def execute(self, node):
         method = getattr(node, self.command)
         self._check_command(node, method)
+
+        if isinstance(node, Report):
+            check_report_command(self.command, method, self.inputs)
 
         expanded = _expand_inputs(self.command, self.inputs)
         for combo in expanded:

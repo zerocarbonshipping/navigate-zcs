@@ -370,18 +370,9 @@ def _extract_properties(
 
     for attribute, getter, reduce in zip(attributes, getters, reductions, strict=True):
         try:
-            if hasattr(profile, getter):
-                property_ = getattr(profile, getter)()
-
-            else:
-                logger.error(
-                    "Report '%s': Skipping property '%s' for node '%s': not a valid "
-                    "property.",
-                    report_name,
-                    attribute,
-                    node_name,
-                )
-                continue
+            # the parser checked every getter against the profile class of its
+            # command when it read the deck
+            property_ = getattr(profile, getter)()
 
             if isinstance(property_, dict):
                 property_ = _reduce_dict(property_, reduce)
