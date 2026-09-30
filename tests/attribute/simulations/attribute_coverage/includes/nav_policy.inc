@@ -33,16 +33,18 @@ Regulation "reg_absolute" {
 	InterFraction = 0.5
 	ExtraFraction = 0.0
 	RemedialCost = Variable("var_remedial")
-	AllowThresholdAdjustment = FALSE
+	AllowThresholdAdjustment = TRUE
 	set_include_vessel("*", TRUE)
 	set_global_warming_potential("carbon_dioxide", 1)
 	set_global_warming_potential("methane", 25)
 	set_fuel_wtt("hfo", "carbon_dioxide", 0.62)
 	set_fuel_ttw("hfo", "carbon_dioxide", 3.114)
-	set_vessel_threshold("vessel_oil", 5000)
-	set_vessel_threshold("vessel_methane", 5000)
-	set_vessel_threshold("vessel_methanol", 5000)
-	set_vessel_threshold("vessel_ammonia", 5000)
+	# a threshold far below every vessel's emissions keeps the regulation
+	# non-compliant, so the threshold adjustment runs
+	set_vessel_threshold("vessel_oil", 1)
+	set_vessel_threshold("vessel_methane", 1)
+	set_vessel_threshold("vessel_methanol", 1)
+	set_vessel_threshold("vessel_ammonia", 1)
 }
 
 # INTENSITY + FLEXIBLE — covers wildcard thresholds, Emissions/Fuels lists
@@ -63,16 +65,20 @@ Regulation "reg_intensity" {
 	set_vessel_threshold("vessel_methanol", 60)
 }
 
-# TRANSPORT_NOMINAL + INDIVIDUAL — covers set_vessel_capacity
+# TRANSPORT_NOMINAL + FLEXIBLE — covers set_vessel_capacity
 Regulation "reg_transport" {
 	Measure = TRANSPORT_NOMINAL
-	Scheme = INDIVIDUAL
+	Scheme = FLEXIBLE
 	Scope = WTW
 	Emissions = Emission("*")
 	Fuels = Fuel("*")
 	Jurisdiction = [Port("port_a")]
 	Active = TRUE
+	# without a remedial cost the fleet does not abate and stays above its
+	# thresholds, so the regulation is non-compliant and the threshold
+	# adjustment runs
 	RemedialCost = 0
+	AllowThresholdAdjustment = TRUE
 	set_include_vessel("*", TRUE)
 	set_vessel_threshold("vessel_oil", 10)
 	set_vessel_threshold("vessel_methane", 10)
