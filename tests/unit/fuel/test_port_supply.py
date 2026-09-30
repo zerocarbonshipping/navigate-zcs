@@ -14,6 +14,7 @@ from navigate.core import Scalar
 from navigate.core.profiles.port_profile import PortProfile
 from navigate.fuel.port_supply import (
     _align_export_with_bunkering_limits,
+    _calculate_import_from_liquid_market,
     _calculate_import_from_producers,
 )
 
@@ -184,6 +185,82 @@ def test_redistribution(limits, imports, allowed, expected):
 
     for port_name, values in expected.items():
         assert result[port_name] == pytest.approx(values)
+
+
+# ---------------------------------------------------------------------------
+# _calculate_import_from_liquid_market: the price overwrite is stored state
+# ---------------------------------------------------------------------------
+
+
+class _OverwritePortExpectation:
+    def __init__(self, overwrite, handling_cost, bunkering_limit):
+        self._overwrite = {FUEL_NAME: np.asarray(overwrite, dtype=float)}
+        self._handling_cost = {FUEL_NAME: np.asarray(handling_cost, dtype=float)}
+        self._bunkering_limit = {FUEL_NAME: np.asarray(bunkering_limit, dtype=float)}
+        self.price = None
+        self.supply = None
+
+    def get_shape(self, start=0):
+        return self._handling_cost[FUEL_NAME][start:].shape
+
+    def get_bunker_price_overwrite(self, fuel_name, idx):
+        return self._overwrite[fuel_name][idx]
+
+    def get_handling_cost(self, fuel_name, idx):
+        return self._handling_cost[fuel_name][idx]
+
+    def get_bunkering_limit(self, fuel_name, idx):
+        return self._bunkering_limit[fuel_name][idx]
+
+    def set_bunker_price(self, idx, fuel_name, price):
+        self.price = price
+
+    def set_bunker_supply(self, idx, fuel_name, supply):
+        self.supply = supply
+
+    def set_bunker_wtt(self, idx, fuel_name, emission_name, wtt):
+        pass
+
+
+class _OverwritePortProfile:
+    def set_bunker_price(self, idx, fuel_name, price):
+        pass
+
+    def set_bunker_supply_mass(self, idx, fuel_name, mass):
+        pass
+
+    def set_bunker_wtt(self, idx, fuel_name, emission_name, wtt):
+        pass
+
+
+class _OverwritePort:
+    def __init__(self, overwrite, handling_cost, bunkering_limit=(np.inf, np.inf)):
+        self.bunkering_allowed = {FUEL_NAME: True}
+        self.bunker_price_overwrite = {FUEL_NAME: overwrite}
+        self.bunker_wtt_overwrite = {(FUEL_NAME, EMISSION_NAME): None}
+        self.expectation = _OverwritePortExpectation(
+            overwrite, handling_cost, bunkering_limit
+        )
+        self.profile = _OverwritePortProfile()
+
+    def is_bunkering_allowed(self, fuel_name):
+        return self.bunkering_allowed[fuel_name]
+
+
+def test_liquid_market_import_does_not_mutate_the_stored_price_overwrite():
+    # get_bunker_price_overwrite hands back a slice of the port's stored
+    # overwrite array; adding the handling cost onto it must not leave that
+    # slice changed
+    overwrite = [40.0, 40.0]
+    port = _OverwritePort(overwrite=overwrite, handling_cost=[5.0, 5.0])
+    stored_before = port.expectation._overwrite[FUEL_NAME].copy()
+
+    _calculate_import_from_liquid_market(
+        {"port_a": port}, {FUEL_NAME: FUEL}, EMISSIONS, idx=0
+    )
+
+    assert port.expectation._overwrite[FUEL_NAME] == pytest.approx(stored_before)
+    assert port.expectation.price == pytest.approx([45.0, 45.0])
 
 
 # ---------------------------------------------------------------------------

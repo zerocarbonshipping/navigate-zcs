@@ -46,12 +46,15 @@ def perform_pipeline_planning(
     inertia_increments = calculate_inertia_increments(producer, time_step, idx)
 
     # the production just added through inertia already covers part of the
-    # supply/demand gap
-    demand = producer.expectation.get_fair_share_demand()
+    # supply/demand gap. get_fair_share_demand returns the stored arrays, so the
+    # dict is copied here and subtraction stays out of place, leaving the stored
+    # demand untouched
+    demand = dict(producer.expectation.get_fair_share_demand())
 
     for p, plant in enumerate(producer.assets):
         production = plant.expectation.get_production(idx) * inertia_increments[p]
-        demand[plant.fuel.name] -= production
+        fuel_name = plant.fuel.name
+        demand[fuel_name] = demand[fuel_name] - production
 
     export_distribution = producer.expectation.get_export_distribution(idx=idx)
 
