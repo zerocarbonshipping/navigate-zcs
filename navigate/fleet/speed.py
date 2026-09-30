@@ -32,6 +32,7 @@ from navigate.util import YEAR
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
     from navigate.core.nodes.vessel import Vessel
+    from navigate.util.types_ import FloatArray
 
 logger = logging.getLogger(__name__)
 
@@ -41,10 +42,10 @@ class SpeedResult:
     vessel: Vessel
     mu_ref: float = 0.0
     mu_optimal: float = 0.0
-    deltas_ref: np.ndarray = field(default_factory=lambda: np.empty(0))
-    speed_min: np.ndarray = field(default_factory=lambda: np.empty(0))
-    speed_max: np.ndarray = field(default_factory=lambda: np.empty(0))
-    distribution: np.ndarray = field(default_factory=lambda: np.empty(0))
+    deltas_ref: FloatArray = field(default_factory=lambda: np.empty(0))
+    speed_min: FloatArray = field(default_factory=lambda: np.empty(0))
+    speed_max: FloatArray = field(default_factory=lambda: np.empty(0))
+    distribution: FloatArray = field(default_factory=lambda: np.empty(0))
     maximum_change: float = 0.0
 
 
@@ -193,7 +194,7 @@ def _optimize_vessel_speed(
     if np.isnan(mu_ref):
         # if the mean speed has not been previously assigned,
         # use the distribution weighted reference speed instead
-        speeds_current = expectation.get_speeds(idx)
+        speeds_current = [float(speed) for speed in expectation.get_speeds(idx)]
         mu_ref = float(np.average(speeds_current, weights=distribution))
 
     # calculate the bounds that are applied to truncate
@@ -201,7 +202,7 @@ def _optimize_vessel_speed(
     speed_min, speed_max = calculate_technical_speed_limits(vessel)
     mu_low, mu_high = calculate_speed_bounds(speed_min, speed_max, speeds_reference)
 
-    fuel_ref = expectation.get_total_fuel_expenses(idx)
+    fuel_ref = float(expectation.get_total_fuel_expenses(idx))
     charter_rate = expectation.get_asset_charter_rate(idx)
     savings_sea = expectation.get_energy_saving_sea(idx)
     savings_port = expectation.get_energy_saving_port(idx)
@@ -332,7 +333,7 @@ def _finalize_vessel_speed(result: SpeedResult, mu_target: float, idx: int) -> N
 
 def _calculate_reference_speed_deltas(
     vessel: Vessel,
-) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+) -> tuple[FloatArray, FloatArray, FloatArray]:
     """
     Calculate reference speed deltas per leg based on the route's speed distribution.
 
@@ -349,7 +350,7 @@ def _calculate_reference_speed_deltas(
 
     Returns
     -------
-    tuple[np.ndarray, np.ndarray, np.ndarray]
+    tuple[FloatArray, FloatArray, FloatArray]
         Speed deltas per leg, distribution of time spent at each leg, expected speeds at
         each leg.
     """
@@ -366,8 +367,8 @@ def _calculate_reference_speed_deltas(
 
 
 def _mean_to_speeds(
-    mu: float, deltas_ref: np.ndarray, speeds_min: np.ndarray, speeds_max: np.ndarray
-) -> np.ndarray:
+    mu: float, deltas_ref: FloatArray, speeds_min: FloatArray, speeds_max: FloatArray
+) -> FloatArray:
     """
     Convert the mean speed into a speed per leg based on the reference speed deltas.
 
@@ -386,7 +387,7 @@ def _mean_to_speeds(
 
     Returns
     -------
-    np.ndarray
+    FloatArray
         Speed per leg.
     """
     return np.clip(mu + deltas_ref, speeds_min, speeds_max)

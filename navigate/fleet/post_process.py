@@ -15,6 +15,7 @@ from navigate.util import TOLERANCE, divide_nonzero
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
+    from navigate.core.nodes.vessel import Vessel
     from navigate.util.types_ import FloatArray
 
 logger = logging.getLogger(__name__)
@@ -283,7 +284,9 @@ def transfer_transport_work(fleet: Fleet) -> None:
     fleet.profile.set_baseline_energy(np.s_[:], baseline)
 
 
-def post_process_investment_metric(fleets, timeline):
+def post_process_investment_metric(
+    fleets: dict[str, Fleet], timeline: FloatArray
+) -> None:
     """
     Calculate the investment metric using the post-processed fuel costs.
 
@@ -389,7 +392,9 @@ def _aggregate_fleet_freight_rate(fleet: Fleet, timeline: FloatArray) -> None:
     )
 
 
-def _calculate_total_vessel_operating_expenses(vessel, idx, timeline):
+def _calculate_total_vessel_operating_expenses(
+    vessel: Vessel, idx: int, timeline: FloatArray
+) -> tuple[FloatArray, FloatArray, FloatArray] | None:
     """
     Assign the fuel, levy, regulation, and technology expenses for a vessel.
 
@@ -406,7 +411,7 @@ def _calculate_total_vessel_operating_expenses(vessel, idx, timeline):
 
     Returns
     -------
-    tuple[np.ndarray, np.ndarray, np.ndarray] | None
+    tuple[FloatArray, FloatArray, FloatArray] | None
         The total operating cost flow, the operating-year grid (days), and the per-year
         operating fraction (shared with the caller); None when the vessel lacks
         bunkering data over the horizon.

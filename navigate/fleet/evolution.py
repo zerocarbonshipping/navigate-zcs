@@ -20,11 +20,13 @@ from navigate.util import ROUND_OFF, TOLERANCE, YEAR, calculate_inertia, divide_
 
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
+    from navigate.core.types_ import ForecastInput
+    from navigate.util.types_ import FloatArray
 
 logger = logging.getLogger(__name__)
 
 
-def perform_primary_scrapping(fleet: Fleet, idx: int, time_step: float):
+def perform_primary_scrapping(fleet: Fleet, idx: int, time_step: float) -> None:
     """
     Perform primary scrapping.
 
@@ -44,10 +46,10 @@ def perform_primary_scrapping(fleet: Fleet, idx: int, time_step: float):
     if fleet.fixed_scrap_rate is None:
         perform_age_based_scrapping(fleet, idx)
     else:
-        perform_fixed_rate_scrapping(fleet, time_step, idx)
+        perform_fixed_rate_scrapping(fleet, fleet.fixed_scrap_rate, time_step, idx)
 
 
-def perform_secondary_scrapping(fleet: Fleet, trade_gap: float, idx: int):
+def perform_secondary_scrapping(fleet: Fleet, trade_gap: float, idx: int) -> float:
     """
     Perform secondary scrapping.
 
@@ -88,7 +90,7 @@ def perform_secondary_scrapping(fleet: Fleet, trade_gap: float, idx: int):
     return scrapped_capacity
 
 
-def perform_age_based_scrapping(fleet: Fleet, idx: int):
+def perform_age_based_scrapping(fleet: Fleet, idx: int) -> None:
     """
     Perform scrapping based on the age of the vessels.
 
@@ -154,7 +156,9 @@ def perform_age_based_scrapping(fleet: Fleet, idx: int):
         fleet.profile.add_scrap(vessel.name, scrapped_vessels, idx)
 
 
-def perform_fixed_rate_scrapping(fleet: Fleet, time_step: float, idx: int):
+def perform_fixed_rate_scrapping(
+    fleet: Fleet, fixed_scrap_rate: ForecastInput, time_step: float, idx: int
+) -> None:
     """
     Perform scrapping based on a fixed rate.
 
@@ -166,13 +170,15 @@ def perform_fixed_rate_scrapping(fleet: Fleet, time_step: float, idx: int):
     ----------
     fleet
         The fleet instance.
+    fixed_scrap_rate
+        Share of the fleet's trade scrapped per year.
     time_step
         Current time-step size.
     idx
         Current time-step index.
     """
     # calculate the targeted scrap in trade
-    scrap_rate = fleet.fixed_scrap_rate.get() * time_step / YEAR
+    scrap_rate = fixed_scrap_rate.get() * time_step / YEAR
     target_scrap = scrap_rate * _get_cargo_miles(fleet, idx)
 
     # scrap vessels matching the targeted trade
@@ -198,7 +204,9 @@ def perform_fixed_rate_scrapping(fleet: Fleet, time_step: float, idx: int):
             )
 
 
-def perform_fixed_trade_scrapping(fleet: Fleet, trade_gap: float, idx: int):
+def perform_fixed_trade_scrapping(
+    fleet: Fleet, trade_gap: float, idx: int
+) -> tuple[float, float | None]:
     """
     Perform scrapping based on a fixed amount of trade.
 
@@ -222,7 +230,7 @@ def perform_fixed_trade_scrapping(fleet: Fleet, trade_gap: float, idx: int):
     # ages across all vessels and a second with
     # the indices of increments with that age
     # (may contain multiple increment indices)
-    age_to_group: dict[float, list] = {}
+    age_to_group: dict[float, list[tuple[int, int]]] = {}
 
     for v in range(len(fleet.assets)):
         increment_ages = np.round([inc.age for inc in fleet.increments[v]], ROUND_OFF)
@@ -323,7 +331,7 @@ def perform_fixed_trade_scrapping(fleet: Fleet, trade_gap: float, idx: int):
     return initial_trade - trade_gap, youngest_age
 
 
-def clean_up_multipliers(fleet: Fleet):
+def clean_up_multipliers(fleet: Fleet) -> None:
     """
     Merge and remove fleet increments.
 
@@ -385,7 +393,7 @@ def clean_up_multipliers(fleet: Fleet):
 
 
 def calculate_evolution_expectation(
-    fleet: Fleet, timeline: np.ndarray, idx: int
+    fleet: Fleet, timeline: FloatArray, idx: int
 ) -> None:
     """
     Calculate the expected evolution of multipliers over the timeline.
@@ -524,7 +532,7 @@ def calculate_evolution_expectation(
 
 
 def perform_fleet_evolution(
-    fleet: Fleet, timeline: np.ndarray, time_step: float, idx: int
+    fleet: Fleet, timeline: FloatArray, time_step: float, idx: int
 ) -> None:
     """
     Evolve the fleet forward in time.
@@ -644,4 +652,4 @@ def _get_cargo_miles(fleet: Fleet, idx: int) -> float:
     multipliers = fleet.get_multipliers()
     cargo_miles = extract_cargo_miles(fleet.assets, idx)
 
-    return np.dot(multipliers, cargo_miles)
+    return float(np.dot(multipliers, cargo_miles))

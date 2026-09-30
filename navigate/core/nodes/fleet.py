@@ -44,8 +44,6 @@ from navigate.util import is_non_strictly_increasing
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from numpy.typing import NDArray
-
     from navigate.core.expression import Expression
     from navigate.core.nodes.curve import Curve
     from navigate.core.nodes.emission import Emission
@@ -58,6 +56,7 @@ if TYPE_CHECKING:
         ScalarInput,
     )
     from navigate.fleet.package import Package
+    from navigate.util.types_ import FloatArray
 
 logger = logging.getLogger(__name__)
 
@@ -113,12 +112,12 @@ class Fleet(_AssetManager[Vessel, VesselIncrement]):
         self.expectation: FleetExpectation = FleetExpectation()
         self.profile: FleetProfile = FleetProfile()
 
-        self.projected_multipliers: NDArray[np.float64] | None = None
-        self.fuel_conversion_expenses: NDArray[np.float64] | None = None
-        self.trade: NDArray[np.float64] = np.ndarray(0)
-        self.newbuild_package_uptake: list[NDArray[np.float64]] = []
-        self.orders_delivered: NDArray[np.float64] = np.empty(0)
-        self.orders_postponed: NDArray[np.float64] = np.empty(0)
+        self.projected_multipliers: FloatArray = np.empty(0)
+        self.fuel_conversion_expenses: FloatArray = np.empty(0)
+        self.trade: FloatArray = np.ndarray(0)
+        self.newbuild_package_uptake: list[FloatArray] = []
+        self.orders_delivered: FloatArray = np.empty(0)
+        self.orders_postponed: FloatArray = np.empty(0)
         self.technology_packages: list[Package] = []
         self.package_to_technology_map: dict[int, int] = {}
 

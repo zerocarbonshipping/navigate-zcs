@@ -14,10 +14,11 @@ from navigate.util import YEAR, get_increment_origin_index, interpolate_yearly_f
 if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
     from navigate.core.nodes.fuel import Fuel
+    from navigate.util.types_ import FloatArray
 
 
 def calculate_fleet_profile(
-    fleet: Fleet, fuels: dict[str, Fuel], timeline: np.ndarray, idx: int
+    fleet: Fleet, fuels: dict[str, Fuel], timeline: FloatArray, idx: int
 ) -> None:
     """
     Calculate the per-step fleet state: cost transfers and fuel-type totals.
@@ -45,7 +46,7 @@ def calculate_fleet_profile(
     _transfer_fuel_type_demand(fleet, idx)
 
 
-def _transfer_increment_expenses(fleet: Fleet, timeline: np.ndarray, idx: int) -> None:
+def _transfer_increment_expenses(fleet: Fleet, timeline: FloatArray, idx: int) -> None:
     """
     Transfer the running vessel expenses per increment.
 
@@ -196,8 +197,6 @@ def _gather_fuel_type_supply(fleet: Fleet, fuels: dict[str, Fuel], idx: int) -> 
         if multiplier == 0.0:
             continue
 
-        fair_shares = vessel.expectation.get_fair_share_fuels_existing()
-
         ports = vessel.route.ports
 
         for port in ports:
@@ -211,21 +210,14 @@ def _gather_fuel_type_supply(fleet: Fleet, fuels: dict[str, Fuel], idx: int) -> 
                 supply_mass = float(port.expectation.get_bunker_supply(fuel_name, idx))
                 supply_energy = supply_mass * fuel.lower_heating_value.get()
 
-                key = (port_name, fuel_name)
-                if key in fair_shares:
-                    if np.isinf(supply_energy):
-                        fair_share_supply = np.inf
-
-                    else:
-                        fair_share = fair_shares[key]
-                        fair_share_supply = supply_energy * fair_share * multiplier
+                if np.isinf(supply_energy):
+                    fair_share_supply = np.inf
 
                 else:
-                    # the fair-share of a certain fuel type
-                    # in a port will not have been calculated
-                    # if no vessels with that fuel type operate
-                    # in the jurisdiction of the port
-                    fair_share_supply = 0.0
+                    fair_share = vessel.expectation.get_fair_share_fuel_existing(
+                        port_name, fuel_name
+                    )
+                    fair_share_supply = supply_energy * fair_share * multiplier
 
                 fleet.expectation.add_fuel_type_supply(fuel_type, fair_share_supply)
 

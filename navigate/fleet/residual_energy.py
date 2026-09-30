@@ -10,11 +10,13 @@ import numpy as np
 from navigate.core.unit import MWD_TO_GJ
 
 if TYPE_CHECKING:
-    from navigate.core import Scalar
+    from collections.abc import Mapping, Sequence
+
     from navigate.core.enum_ import EnergyDemandTypeID
-    from navigate.core.nodes.curve import Curve
     from navigate.core.nodes.vessel import Vessel
+    from navigate.core.types_ import CurveInput
     from navigate.fleet.package import Package
+    from navigate.util.types_ import FloatLike
 
 
 def calculate_residual_energy(
@@ -22,8 +24,8 @@ def calculate_residual_energy(
     package: Package,
     idx: int | slice,
 ) -> tuple[
-    dict[EnergyDemandTypeID, list[float | np.ndarray]],
-    dict[EnergyDemandTypeID, list[float | np.ndarray]],
+    dict[EnergyDemandTypeID, list[FloatLike]],
+    dict[EnergyDemandTypeID, list[FloatLike]],
 ]:
     """
     Calculate the residual energy demand for a vessel at sea and in port.
@@ -80,9 +82,9 @@ def calculate_residual_energy(
 
 
 def net_energy_from_raw(
-    raw_energies: dict[EnergyDemandTypeID, list[float]],
-    savings: dict[EnergyDemandTypeID, list[float]],
-) -> dict[EnergyDemandTypeID, list[float]]:
+    raw_energies: Mapping[EnergyDemandTypeID, Sequence[FloatLike]],
+    savings: Mapping[EnergyDemandTypeID, Sequence[FloatLike]],
+) -> dict[EnergyDemandTypeID, list[FloatLike]]:
     """
     Apply per-step savings fractions to raw energy demand, by energy type.
 
@@ -95,10 +97,10 @@ def net_energy_from_raw(
 
     Returns
     -------
-    dict[EnergyDemandTypeID, list[float]]
+    dict[EnergyDemandTypeID, list[FloatLike]]
         Net energy demand per step, keyed by energy demand type.
     """
-    out = {}
+    out: dict[EnergyDemandTypeID, list[FloatLike]] = {}
     for k, raw in raw_energies.items():
         sav = savings[k]
         out[k] = [(1.0 - s) * e for e, s in zip(raw, sav, strict=True)]
@@ -108,9 +110,9 @@ def net_energy_from_raw(
 def _iterate_legs_or_ports(
     vessel: Vessel,
     package: Package,
-    durations: list[np.ndarray],
-    raw_demands: dict[EnergyDemandTypeID, list[np.ndarray]],
-) -> dict[EnergyDemandTypeID, list[float | np.ndarray]]:
+    durations: Sequence[FloatLike],
+    raw_demands: Mapping[EnergyDemandTypeID, Sequence[FloatLike]],
+) -> dict[EnergyDemandTypeID, list[FloatLike]]:
     """
     Iterate over legs or ports and compute residual energy for each step.
 
@@ -145,11 +147,13 @@ def _iterate_legs_or_ports(
     """
     keys = list(raw_demands.keys())
     n_steps = len(durations)
-    residual_energy_all = {energy_id: [] for energy_id in keys}
+    residual_energy_all: dict[EnergyDemandTypeID, list[FloatLike]] = {
+        energy_id: [] for energy_id in keys
+    }
 
     for i in range(n_steps):
-        residual_energy = {}
-        loads = {}
+        residual_energy: dict[EnergyDemandTypeID, FloatLike] = {}
+        loads: dict[EnergyDemandTypeID, FloatLike] = {}
         duration = durations[i]
 
         for energy_id in keys:
@@ -175,7 +179,7 @@ def _iterate_legs_or_ports(
                 if sink_energy_id not in residual_energy:
                     continue
 
-                transfer_energy = 0.0
+                transfer_energy: FloatLike = 0.0
 
                 for power_system_id in keys:
                     if power_system_id not in loads:
@@ -201,9 +205,7 @@ def _iterate_legs_or_ports(
     return residual_energy_all
 
 
-def _calculate_power_transfer(
-    curves: list[Curve | Scalar], load: np.ndarray
-) -> np.ndarray:
+def _calculate_power_transfer(curves: list[CurveInput], load: FloatLike) -> FloatLike:
     """
     Compute power transfer from pre-filtered non-zero curves.
 
@@ -213,22 +215,23 @@ def _calculate_power_transfer(
     Parameters
     ----------
     curves
-        Non-zero Curve/Scalar objects for this (source, sink) pair.
+        Non-zero transfer responses for this (source, sink) pair.
     load
         Source system load used as input to each transfer response.
 
     Returns
     -------
-    np.ndarray
+    FloatLike
         Power transferred from source to sink for the given load.
     """
     powers = np.array([curve.get(load) for curve in curves])
-    return np.sum(powers, axis=0, dtype=float)
+    transfer: FloatLike = np.sum(powers, axis=0, dtype=float)
+    return transfer
 
 
 def _calculate_converter_load(
-    vessel: Vessel, power_system_id: EnergyDemandTypeID, residual_power: np.ndarray
-) -> np.ndarray:
+    vessel: Vessel, power_system_id: EnergyDemandTypeID, residual_power: FloatLike
+) -> FloatLike:
     """
     Convert residual power to per-converter load.
 
@@ -241,18 +244,19 @@ def _calculate_converter_load(
 
 
 def _raw_to_residual_energy(
-    raw_energy: np.ndarray, saving: float, external_power: np.ndarray
-) -> np.ndarray:
+    raw_energy: FloatLike, saving: float, external_power: FloatLike
+) -> FloatLike:
     """
     Convert raw energy to residual energy after savings and external power.
 
     Applies the compound saving to the raw demand, subtracts external energy, and clamps
     the result to non-negative values.
     """
-    return np.maximum(raw_energy * (1.0 - saving) - external_power, 0.0)
+    residual: FloatLike = np.maximum(raw_energy * (1.0 - saving) - external_power, 0.0)
+    return residual
 
 
-def _power_to_energy(power: float | np.ndarray, duration: np.ndarray) -> np.ndarray:
+def _power_to_energy(power: FloatLike, duration: FloatLike) -> FloatLike:
     """
     Power-to-energy conversion over the provided duration.
 
@@ -261,7 +265,7 @@ def _power_to_energy(power: float | np.ndarray, duration: np.ndarray) -> np.ndar
     return power * duration * MWD_TO_GJ
 
 
-def _energy_to_power(energy: np.ndarray, duration: np.ndarray) -> np.ndarray:
+def _energy_to_power(energy: FloatLike, duration: FloatLike) -> FloatLike:
     """
     Energy-to-power conversion over the provided duration.
 

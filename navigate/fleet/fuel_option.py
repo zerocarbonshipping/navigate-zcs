@@ -45,7 +45,7 @@ def determine_fuel_type(vessel: Vessel) -> None:
         return
 
     power_system = vessel.power_system
-    fuel_type_power = {}
+    fuel_type_power: dict[FuelTypeID, float] = {}
 
     for converter in power_system.get_converters():
         main_fuel_types = converter.main_fuel_types

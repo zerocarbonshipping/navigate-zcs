@@ -24,6 +24,7 @@ if TYPE_CHECKING:
     from navigate.core.nodes.plant import Plant
     from navigate.core.nodes.vessel import Vessel
     from navigate.core.types_ import ForecastArgument, ForecastInput
+    from navigate.util.types_ import FloatArray
 
 
 class _AssetManager[A: Vessel | Plant, I: Increment](Node):
@@ -50,7 +51,7 @@ class _AssetManager[A: Vessel | Plant, I: Increment](Node):
         # must never be rebound, only have its inner lists replaced.
         self._increment_stores: list[list[list[I]]] = [self.increments]
 
-        self.current_uptake: np.ndarray = np.empty(0)
+        self.current_uptake: FloatArray = np.empty(0)
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_inertia(self, inertia: ForecastArgument) -> None:

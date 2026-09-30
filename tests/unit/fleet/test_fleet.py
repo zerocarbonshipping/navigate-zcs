@@ -707,10 +707,10 @@ class TestModelledUptakesCapProjection:
     """Per-vessel `cap_share` projected onto the two-level (inter/intra fuel) DCM."""
 
     def test_no_cap_baseline(self):
-        # Uniform uptake with no caps: two same-fuel vessels get equal shares
-        # (0.5 each).
+        # Uniform uptake with caps of one, which never bind: two same-fuel vessels
+        # get equal shares (0.5 each).
         fleet, vessels = _make_fleet_for_modelled_uptakes(["x", "x"], [1.0, 1.0])
-        uptake = calculate_modelled_uptake(fleet, vessels, idx=0, cap_share=None)
+        uptake = calculate_modelled_uptake(fleet, vessels, idx=0, cap_share=np.ones(2))
         np.testing.assert_array_almost_equal(uptake, [0.5, 0.5])
 
     def test_same_fuel_caps_sum(self):
@@ -826,7 +826,7 @@ def _spy_on_modelled_uptake(monkeypatch) -> dict:
     """Replace `calculate_modelled_uptake` with a zero-uptake spy on the cap_share."""
     captured = {}
 
-    def fake_uptake(fleet, vessels, idx, cap_share=None):
+    def fake_uptake(fleet, vessels, idx, cap_share):
         captured["cap_share"] = cap_share
         return np.zeros(len(vessels))
 

@@ -15,7 +15,7 @@ from navigate.core.profiles._fuel_consumer_profile import _FuelConsumerProfile
 from navigate.util import divide_nonzero
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    from collections.abc import Mapping, Sequence
 
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
@@ -160,37 +160,37 @@ class VesselProfile(_FuelConsumerProfile):
         self._investment_signal_speed[idx] = investment_signal
 
     def set_raw_energy_sea(
-        self, idx: int, energy: dict[EnergyDemandTypeID, FloatArray]
+        self, idx: int, energy: Mapping[EnergyDemandTypeID, float]
     ) -> None:
         for energy_id in EnergyDemandTypeID:
             self._raw_energy_sea[energy_id][idx] = energy[energy_id]
 
     def set_raw_energy_port(
-        self, idx: int, energy: dict[EnergyDemandTypeID, FloatArray]
+        self, idx: int, energy: Mapping[EnergyDemandTypeID, float]
     ) -> None:
         for energy_id in EnergyDemandTypePortID:
             self._raw_energy_port[energy_id][idx] = energy[energy_id]
 
     def set_operational_energy_sea(
-        self, idx: int, energy: dict[EnergyDemandTypeID, FloatArray]
+        self, idx: int, energy: Mapping[EnergyDemandTypeID, float]
     ) -> None:
         for energy_id in EnergyDemandTypeID:
             self._operational_energy_sea[energy_id][idx] = energy[energy_id]
 
     def set_operational_energy_port(
-        self, idx: int, energy: dict[EnergyDemandTypeID, FloatArray]
+        self, idx: int, energy: Mapping[EnergyDemandTypeID, float]
     ) -> None:
         for energy_id in EnergyDemandTypePortID:
             self._operational_energy_port[energy_id][idx] = energy[energy_id]
 
     def set_energy_sea(
-        self, idx: int, energy: dict[EnergyDemandTypeID, FloatArray]
+        self, idx: int, energy: Mapping[EnergyDemandTypeID, float]
     ) -> None:
         for energy_id in EnergyDemandTypeID:
             self._energy_sea[energy_id][idx] = energy[energy_id]
 
     def set_energy_port(
-        self, idx: int, energy: dict[EnergyDemandTypeID, FloatArray]
+        self, idx: int, energy: Mapping[EnergyDemandTypeID, float]
     ) -> None:
         for energy_id in EnergyDemandTypePortID:
             self._energy_port[energy_id][idx] = energy[energy_id]

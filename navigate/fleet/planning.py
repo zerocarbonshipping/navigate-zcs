@@ -24,8 +24,8 @@ logger = logging.getLogger(__name__)
 
 
 def calculate_orderbook_newbuilds(
-    fleet: Fleet, trade_gap: float, cap_count: np.ndarray, idx: int
-):
+    fleet: Fleet, trade_gap: float, cap_count: FloatArray, idx: int
+) -> tuple[FloatArray, float, FloatArray]:
     """
     Calculate the number of vessels per type entering the fleet from the orderbook.
 
@@ -145,8 +145,8 @@ def calculate_orderbook_newbuilds(
 
 def log_orderbook_deferral(
     fleet: Fleet,
-    delivered_counts: np.ndarray,
-    attempted_counts: np.ndarray,
+    delivered_counts: FloatArray,
+    attempted_counts: FloatArray,
     reason: str,
 ) -> None:
     """
@@ -181,11 +181,11 @@ def log_orderbook_deferral(
 
 def calculate_inertia_increments(
     fleet: Fleet,
-    uptakes: np.ndarray,
-    cargo_miles: np.ndarray,
+    uptakes: FloatArray,
+    cargo_miles: FloatArray,
     trade_gap: float,
-    cap_count: np.ndarray,
-) -> tuple[np.ndarray, np.ndarray]:
+    cap_count: FloatArray,
+) -> tuple[FloatArray, FloatArray]:
     """
     Calculate the newbuild increments built due to inertia from the previous uptake.
 
@@ -232,8 +232,8 @@ def calculate_inertia_increments(
 
 
 def calculate_modelled_newbuilds(
-    fleet: Fleet, trade_gap: float, cap_count: np.ndarray, idx: int
-):
+    fleet: Fleet, trade_gap: float, cap_count: FloatArray, idx: int
+) -> tuple[FloatArray, float]:
     """
     Calculate the number and type of vessels that enter the fleet for a given trade gap.
 
@@ -254,7 +254,7 @@ def calculate_modelled_newbuilds(
     A vector of newbuild increments and the delivered capacity.
     """
     # extract allowed vessels and index map
-    index, vessels = zip(
+    allowed_indices, allowed_vessels = zip(
         *(
             (i, vessel)
             for i, vessel in enumerate(fleet.assets)
@@ -264,7 +264,8 @@ def calculate_modelled_newbuilds(
     )
 
     # make it a valid array index to numpy
-    index = np.array(index)
+    index = np.array(allowed_indices)
+    vessels = list(allowed_vessels)
 
     # extract the cargo-miles per active vessel
     cargo_miles = extract_cargo_miles(vessels, idx)
@@ -308,8 +309,8 @@ def calculate_modelled_newbuilds(
 
 
 def calculate_modelled_uptake(
-    fleet: Fleet, vessels: list[Vessel], idx: int, cap_share: np.ndarray | None = None
-) -> np.ndarray:
+    fleet: Fleet, vessels: list[Vessel], idx: int, cap_share: FloatArray
+) -> FloatArray:
     """
     Calculate each vessel type's relative uptake share.
 
@@ -324,12 +325,12 @@ def calculate_modelled_uptake(
     idx
         Time-step index.
     cap_share
-        Optional per-vessel upper bound on cm-share of `trade_gap` (each in [0, 1]),
-        derived from a vessel-count cap. Length matches `vessels`. None disables limits.
+        Per-vessel upper bound on cm-share of `trade_gap` (each in [0, 1]), derived
+        from a vessel-count cap. Length matches `vessels`.
 
     Returns
     -------
-    np.ndarray
+    FloatArray
         The uptake shares of each vessel type based on the discrete choice model.
     """
     fuel_types = [vessel.primary_fuel_type for vessel in vessels]
@@ -348,7 +349,7 @@ def calculate_modelled_uptake(
     )
 
 
-def add_newbuilds(fleet: Fleet, increments: list[float], time_step: float):
+def add_newbuilds(fleet: Fleet, increments: FloatArray, time_step: float) -> None:
     """
     Add the newbuild increments to the lists tracking multiplier increments.
 
@@ -429,8 +430,8 @@ def extract_cargo_miles_timeline(vessels: list[Vessel], idx: slice) -> list[Floa
 
 
 def _calculate_increments(
-    uptakes: np.ndarray, cargo_miles: np.ndarray, trade_gap: float
-) -> np.ndarray:
+    uptakes: FloatArray, cargo_miles: FloatArray, trade_gap: float
+) -> FloatArray:
     """
     Calculate the multiplier count at a given uptake share satisfying the trade-gap.
 

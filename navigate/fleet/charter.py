@@ -17,14 +17,17 @@ from navigate.economics.flows import (
 from navigate.economics.metric import calculate_net_present_value
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from navigate.core.nodes.converter import Converter
     from navigate.core.nodes.power_system import PowerSystem
     from navigate.core.nodes.tank import Tank
     from navigate.core.nodes.vessel import Vessel
+    from navigate.util.types_ import FloatArray
 
 
 def calculate_vessel_charter_properties(
-    vessel: Vessel, timeline: np.ndarray, idx: int
+    vessel: Vessel, timeline: FloatArray, idx: int
 ) -> None:
     """
     Calculate all properties related to the vessel asset charter at a given time-step.
@@ -68,7 +71,7 @@ def calculate_vessel_charter_properties(
 
 
 def calculate_cargo_charter_properties(
-    vessel: Vessel, timeline: np.ndarray, idx: int
+    vessel: Vessel, timeline: FloatArray, idx: int
 ) -> None:
     """
     Calculate cargo-owner-facing charter properties at a given time-step.
@@ -164,7 +167,7 @@ def _calculate_vessel_unit_properties(
 
 
 def _calculate_cargo_unit_properties(
-    vessel: Vessel, component: Component, timeline: np.ndarray, idx: int
+    vessel: Vessel, component: Component, timeline: FloatArray, idx: int
 ) -> None:
     """
     Aggregate fuel cost flows into operator and cargo-owner unit metrics per time-step.
@@ -220,7 +223,7 @@ def _calculate_cargo_unit_properties(
     cargo_charter_rate = cost_npv / age_npv
 
     # calculate the cargo-delivery flow of the vessel
-    cargo_miles = vessel.expectation.get_cargo_miles()
+    cargo_miles = np.asarray(vessel.expectation.get_cargo_miles())
 
     cargo_flow = build_cargo_flow(
         component=component, cargo=cargo_miles, timeline=timeline
@@ -294,11 +297,8 @@ def _calculate_base_cost(vessel: Vessel, component: Component) -> None:
     component
         The root component that accumulates vessel cost flows.
     """
-    capex = lambda time: vessel.capex.get(time)
-    opex = lambda time: vessel.opex.get(time)
-
-    add_capex_flow(component=component, capex=capex)
-    add_fixed_opex(component=component, value=opex)
+    add_capex_flow(component=component, capex=vessel.capex.get)
+    add_fixed_opex(component=component, value=vessel.opex.get)
 
 
 def _calculate_power_system_cost(vessel: Vessel, component: Component) -> None:
@@ -321,25 +321,28 @@ def _calculate_power_system_cost(vessel: Vessel, component: Component) -> None:
         vessel=vessel, machinery=power_system, time_initial=component.time_initial
     )
 
-    capex = lambda time: power_system.capex.get(time)
-    opex = lambda time: power_system.opex.get(time)
-
-    add_capex_flow(component=subcomponent, capex=capex)
-    add_fixed_opex(component=subcomponent, value=opex)
+    add_capex_flow(component=subcomponent, capex=power_system.capex.get)
+    add_fixed_opex(component=subcomponent, value=power_system.opex.get)
     component.add_component(subcomponent)
 
 
-def _scaled_cost_callables(machinery, scale: float) -> tuple:
+def _scaled_cost_callables(
+    machinery: Converter | Tank, scale: float
+) -> tuple[Callable[[float], float], Callable[[float], float]]:
     """
     Return (capex, opex) callables for the machinery, scaled by its capacity.
 
     Binding machinery and scale as function parameters keeps each callable tied
     to its own machinery when created inside a loop.
     """
-    return (
-        lambda time: machinery.capex.get(time) * scale,
-        lambda time: machinery.opex.get(time) * scale,
-    )
+
+    def capex(time: float) -> float:
+        return machinery.capex.get(time) * scale
+
+    def opex(time: float) -> float:
+        return machinery.opex.get(time) * scale
+
+    return capex, opex
 
 
 def _calculate_converter_cost(vessel: Vessel, component: Component) -> None:
@@ -397,7 +400,7 @@ def _calculate_tank_cost(vessel: Vessel, component: Component) -> None:
 
 
 def _calculate_fuel_cost(
-    vessel: Vessel, component: Component, timeline: np.ndarray, idx: int
+    vessel: Vessel, component: Component, timeline: FloatArray, idx: int
 ) -> None:
     """
     Add fuel costs as variable OPEX into the component's cost flow for a time-step.
@@ -421,7 +424,10 @@ def _calculate_fuel_cost(
     _idx = np.s_[idx:]
     expenses = vessel.expectation.get_total_fuel_expenses(_idx)
 
-    metric = lambda time: 1.0
-    cost = lambda time: np.interp(time, timeline[idx:], expenses)
+    def metric(time: float) -> float:
+        return 1.0
+
+    def cost(time: FloatArray) -> FloatArray:
+        return np.interp(time, timeline[idx:], expenses)
 
     add_variable_opex(component=component, metric=metric, cost=cost)

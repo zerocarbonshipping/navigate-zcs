@@ -21,13 +21,13 @@ if TYPE_CHECKING:
     from navigate.core.nodes.surface import Surface
     from navigate.core.nodes.vessel import Vessel
     from navigate.core.types_ import SurfaceInput
-    from navigate.util.types_ import FloatArray
+    from navigate.util.types_ import FloatArray, FloatLike
 
 
 def calculate_speed_bounds(
-    speeds_min: np.ndarray,
-    speeds_max: np.ndarray,
-    speeds: np.ndarray,
+    speeds_min: FloatArray,
+    speeds_max: FloatArray,
+    speeds: FloatArray,
 ) -> tuple[float, float]:
     """
     Calculate a vessel's minimum and maximum mean speed from its technical bounds.
@@ -118,10 +118,10 @@ def calculate_technical_speed_limits(vessel: Vessel) -> tuple[FloatArray, FloatA
         # ensure the minimum and maximum speeds
         # are given per leg because the capacity
         # utilization can impact the power limit
-        speed_minimum = _expand_speed_to_legs(vessel, speed_minimum)
-        speed_maximum = _expand_speed_to_legs(vessel, speed_maximum)
+        speeds_minimum = _expand_speed_to_legs(vessel, speed_minimum)
+        speeds_maximum = _expand_speed_to_legs(vessel, speed_maximum)
 
-        return speed_minimum, speed_maximum
+        return speeds_minimum, speeds_maximum
 
 
 def loads_are_convex(vessel: Vessel) -> bool:
@@ -173,8 +173,8 @@ def verify_power_capacity(vessel: Vessel, idx: int) -> None:
     expectation = vessel.expectation
     power_system = vessel.power_system
 
-    times_sea = expectation.get_time_sea(idx)
-    times_port = expectation.get_time_port(idx)
+    times_sea = [float(time) for time in expectation.get_time_sea(idx)]
+    times_port = [float(time) for time in expectation.get_time_port(idx)]
     energies_sea = expectation.get_energy_sea(idx=idx)
     energies_port = expectation.get_energy_port(idx=idx)
 
@@ -189,7 +189,11 @@ def verify_power_capacity(vessel: Vessel, idx: int) -> None:
         for demand_type in demand_types:
             converter = power_system.get_converter_by_energy_type(demand_type)
             violations += _find_capacity_violations(
-                converter, demand_type, energies[demand_type], times, step_label
+                converter,
+                demand_type,
+                [float(energy) for energy in energies[demand_type]],
+                times,
+                step_label,
             )
 
     if violations:
@@ -282,7 +286,7 @@ def _unbounded_speed_limits(vessel: Vessel) -> tuple[FloatArray, FloatArray]:
     return _expand_speed_to_legs(vessel, -np.inf), _expand_speed_to_legs(vessel, np.inf)
 
 
-def _expand_speed_to_legs(vessel: Vessel, speed: float | list[float]) -> FloatArray:
+def _expand_speed_to_legs(vessel: Vessel, speed: FloatLike) -> FloatArray:
     a = np.asarray(speed, dtype=float)
 
     if a.ndim == 0:
@@ -294,7 +298,7 @@ def _expand_speed_to_legs(vessel: Vessel, speed: float | list[float]) -> FloatAr
 
 def _calculate_speed_extremum(
     vessel: Vessel, power: float, load: Curve | Surface
-) -> float | list[float]:
+) -> FloatLike | None:
     """
     Calculate the vessel speed at which a given minimum or maximum power is reached.
 
@@ -309,16 +313,15 @@ def _calculate_speed_extremum(
 
     Returns
     -------
-    float | list[float]
-        The speed(s) at which the power is reached.
+    FloatLike | None
+        The speed at which the power is reached, one per capacity utilization for
+        a surface, or `None` when the load is not strictly increasing.
     """
     if is_surface(load):
         utilization = to_numpy(vessel.route.capacity_utilizations)
-        speed = load.reverse_lookup(power, y=utilization)
-    else:
-        speed = load.reverse_lookup(power)
+        return load.reverse_lookup(power, y=utilization)
 
-    return speed
+    return load.reverse_lookup(power)
 
 
 def _load_is_convex(load: SurfaceInput) -> bool:

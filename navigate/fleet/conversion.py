@@ -30,9 +30,10 @@ from navigate.economics.metric import calculate_net_present_value
 from navigate.util import ROUND_OFF, YEAR
 
 if TYPE_CHECKING:
-    from navigate.core import Scalar
     from navigate.core.nodes.fleet import Fleet
     from navigate.core.nodes.vessel import Vessel
+    from navigate.core.types_ import ForecastInput
+    from navigate.util.types_ import FloatArray
 
 
 @dataclass
@@ -67,15 +68,15 @@ class _ConversionSource:
     name: str
     fuel_type: FuelTypeID
     energy_per_vessel: float
-    fuel_cost_flow: np.ndarray
+    fuel_cost_flow: FloatArray
     capex_npv: (
         float  # summed ship CAPEX, non-dimensionalizes the conversion NPV in the DCM
     )
-    conversion_costs: dict[str, Scalar]  # keyed by destination vessel-type name
+    conversion_costs: dict[str, ForecastInput]  # keyed by destination vessel-type name
 
 
 def perform_fuel_conversions(
-    fleet: Fleet, idx: int, timeline: np.ndarray, time_step: float
+    fleet: Fleet, idx: int, timeline: FloatArray, time_step: float
 ) -> None:
     """
     Evaluate the business case of a fuel conversion from one vessel type to another.
@@ -281,7 +282,7 @@ def reconcile_fuel_conversion_caps(
     if existing_total <= 0.0:
         return
 
-    pair_proposed = {}
+    pair_proposed: dict[tuple[str, str], float] = {}
     for proposal in proposals:
         for name_to, candidate in proposal.candidates.items():
             pair = (proposal.name_from, name_to)
@@ -307,7 +308,7 @@ def reconcile_fuel_conversion_caps(
 
 
 def apply_fuel_conversions(
-    fleet: Fleet, proposals: list[_ConversionProposal], idx: int, timeline: np.ndarray
+    fleet: Fleet, proposals: list[_ConversionProposal], idx: int, timeline: FloatArray
 ) -> None:
     """
     Apply the finalised conversion counts to the fleet.
@@ -379,7 +380,7 @@ def _extract_conversion_source(
     return _ConversionSource(
         vessel_from.name,
         vessel_from.primary_fuel_type,
-        vessel_from.expectation.get_total_energy(idx),
+        float(vessel_from.expectation.get_total_energy(idx)),
         vessel_from.expectation.get_fuel_cost_flow(),
         vessel_from.expectation.get_capex_npv(idx),
         conversion_costs,
@@ -471,7 +472,7 @@ def _evaluate_increment(
 
 def _evaluate_candidate(
     vessel_to: Vessel,
-    conversion_cost: Scalar,
+    conversion_cost: ForecastInput,
     source: _ConversionSource,
     avg_age: float,
     remaining_lifetime_from: float,
@@ -514,7 +515,7 @@ def _evaluate_candidate(
         return None
 
     discount_rate = vessel_to.cost_of_capital.get()
-    energy_per_vessel = vessel_to.expectation.get_total_energy(idx)
+    energy_per_vessel = float(vessel_to.expectation.get_total_energy(idx))
     maximum_vessels = supply / energy_per_vessel
     limit = min(maximum_vessels / multiplier, 1.0)
 
@@ -548,7 +549,7 @@ def _apply_from_side(
     proposals: list[_ConversionProposal],
     indices: dict[str, int],
     idx: int,
-    timeline: np.ndarray,
+    timeline: FloatArray,
 ) -> None:
     """
     Decrement source-side multipliers, write the profile, and book transition expenses.
@@ -590,7 +591,7 @@ def _apply_from_side(
 
 
 def _book_conversion_expenses(
-    expenses_ahead: np.ndarray, years_ahead: np.ndarray, candidate: _ConversionCandidate
+    expenses_ahead: FloatArray, years_ahead: FloatArray, candidate: _ConversionCandidate
 ) -> None:
     """
     Book the levelized charge over the service window.

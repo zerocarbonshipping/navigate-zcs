@@ -15,7 +15,7 @@ from navigate.core.initial_values import EMPTY_FLOAT
 from navigate.util import divide_nonzero, slice_dict_list, slice_list
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping, Sequence
+    from collections.abc import Iterable, Mapping
     from typing import SupportsIndex
 
     from navigate.core.nodes.fuel import Fuel
@@ -252,13 +252,13 @@ class VesselExpectation(_Expectation):
         self._cargo_miles[idx:] = cargo_miles
 
     def set_cargo_miles_per_leg(
-        self, idx: int, cargo_miles_leg: Sequence[FloatLike]
+        self, idx: int, cargo_miles_leg: Iterable[FloatLike]
     ) -> None:
         for i, cargo_miles in enumerate(cargo_miles_leg):
             self._cargo_miles_leg[i][idx:] = cargo_miles
 
     def set_cargo_miles_per_leg_nominal(
-        self, idx: int, cargo_miles_leg_nominal: Sequence[FloatLike]
+        self, idx: int, cargo_miles_leg_nominal: Iterable[FloatLike]
     ) -> None:
         for i, cargo_miles_nominal in enumerate(cargo_miles_leg_nominal):
             self._cargo_miles_leg_nominal[i][idx:] = cargo_miles_nominal
@@ -278,22 +278,22 @@ class VesselExpectation(_Expectation):
     def get_speed_anchor_optimal(self) -> float:
         return self._speed_anchor_optimal
 
-    def set_speeds(self, idx: int, speeds: Sequence[FloatLike]) -> None:
+    def set_speeds(self, idx: int, speeds: Iterable[FloatLike]) -> None:
         for i, speed in enumerate(speeds):
             self._speeds[i][idx] = speed
 
-    def set_time_sea(self, idx: int, time_sea: Sequence[FloatLike]) -> None:
+    def set_time_sea(self, idx: int, time_sea: Iterable[FloatLike]) -> None:
         for i, time in enumerate(time_sea):
             self._time_sea[i][idx:] = time
 
-    def set_time_port(self, idx: int, time_port: Sequence[FloatLike]) -> None:
+    def set_time_port(self, idx: int, time_port: Iterable[FloatLike]) -> None:
         for i, time in enumerate(time_port):
             self._time_port[i][idx:] = time
 
     def set_raw_energy_sea(
         self,
         idx: int,
-        raw_energy_sea: Mapping[EnergyDemandTypeID, Sequence[FloatLike]],
+        raw_energy_sea: Mapping[EnergyDemandTypeID, Iterable[FloatLike]],
     ) -> None:
         for key, values in raw_energy_sea.items():
             for leg, value in enumerate(values):
@@ -302,7 +302,7 @@ class VesselExpectation(_Expectation):
     def set_raw_energy_port(
         self,
         idx: int,
-        raw_energy_port: Mapping[EnergyDemandTypeID, Sequence[FloatLike]],
+        raw_energy_port: Mapping[EnergyDemandTypeID, Iterable[FloatLike]],
     ) -> None:
         for key, values in raw_energy_port.items():
             for port, value in enumerate(values):
@@ -311,7 +311,7 @@ class VesselExpectation(_Expectation):
     def set_operational_energy_sea(
         self,
         idx: int,
-        operational_energy_sea: Mapping[EnergyDemandTypeID, Sequence[FloatLike]],
+        operational_energy_sea: Mapping[EnergyDemandTypeID, Iterable[FloatLike]],
     ) -> None:
         for key, values in operational_energy_sea.items():
             for leg, value in enumerate(values):
@@ -320,7 +320,7 @@ class VesselExpectation(_Expectation):
     def set_operational_energy_port(
         self,
         idx: int,
-        operational_energy_port: Mapping[EnergyDemandTypeID, Sequence[FloatLike]],
+        operational_energy_port: Mapping[EnergyDemandTypeID, Iterable[FloatLike]],
     ) -> None:
         for key, values in operational_energy_port.items():
             for port, value in enumerate(values):
@@ -343,14 +343,14 @@ class VesselExpectation(_Expectation):
         return self._operational_saving_fraction_port
 
     def set_energy_sea(
-        self, idx: int, energy_sea: Mapping[EnergyDemandTypeID, Sequence[FloatLike]]
+        self, idx: int, energy_sea: Mapping[EnergyDemandTypeID, Iterable[FloatLike]]
     ) -> None:
         for key, values in energy_sea.items():
             for leg, value in enumerate(values):
                 self._energy_sea[key][leg][idx:] = value
 
     def set_energy_port(
-        self, idx: int, energy_port: Mapping[EnergyDemandTypeID, Sequence[FloatLike]]
+        self, idx: int, energy_port: Mapping[EnergyDemandTypeID, Iterable[FloatLike]]
     ) -> None:
         for key, values in energy_port.items():
             for leg, value in enumerate(values):
@@ -360,7 +360,7 @@ class VesselExpectation(_Expectation):
         self,
         idx: int,
         regional_operational_energy_sea: Mapping[
-            EnergyDemandTypeID, Sequence[FloatLike]
+            EnergyDemandTypeID, Iterable[FloatLike]
         ],
     ) -> None:
         for key, values in regional_operational_energy_sea.items():
@@ -370,7 +370,7 @@ class VesselExpectation(_Expectation):
     def set_regional_energy_sea(
         self,
         idx: int,
-        regional_energy_sea: Mapping[EnergyDemandTypeID, Sequence[FloatLike]],
+        regional_energy_sea: Mapping[EnergyDemandTypeID, Iterable[FloatLike]],
     ) -> None:
         for key, values in regional_energy_sea.items():
             for leg, value in enumerate(values):

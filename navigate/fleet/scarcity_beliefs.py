@@ -3,13 +3,22 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import numpy as np
 
 from navigate.util import derive_smoothing_alpha, update_belief_path
 
+if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence
+
+    from navigate.core.enum_ import EnergyDemandTypeID
+    from navigate.core.nodes.fleet import Fleet
+    from navigate.util.types_ import FloatArray
+
 
 def update_vessel_scarcity_beliefs(
-    fleets: dict, timeline: np.ndarray, idx: int
+    fleets: dict[str, Fleet], timeline: FloatArray, idx: int
 ) -> None:
     """
     Update per-leg shadow-price beliefs for every vessel.
@@ -63,7 +72,7 @@ def update_vessel_scarcity_beliefs(
             )
 
 
-def record_investment_signals(fleets: dict, idx: int) -> None:
+def record_investment_signals(fleets: dict[str, Fleet], idx: int) -> None:
     """
     Store a per-vessel scalar proxy of the investment-signal magnitude.
 
@@ -106,10 +115,10 @@ def record_investment_signals(fleets: dict, idx: int) -> None:
 
 
 def _energy_weighted_signal(
-    belief_sea: dict,
-    belief_port: dict,
-    rhs_sea: dict,
-    rhs_port: dict,
+    belief_sea: Mapping[EnergyDemandTypeID, Sequence[FloatArray]],
+    belief_port: Mapping[EnergyDemandTypeID, Sequence[FloatArray]],
+    rhs_sea: Mapping[EnergyDemandTypeID, Sequence[FloatArray]],
+    rhs_port: Mapping[EnergyDemandTypeID, Sequence[FloatArray]],
     idx: int,
 ) -> float:
     """
@@ -154,8 +163,8 @@ def _energy_weighted_signal(
 
 
 def _smooth_pi_dict(
-    raw_dict: dict,
-    belief_dict: dict,
+    raw_dict: Mapping[EnergyDemandTypeID, Sequence[FloatArray]],
+    belief_dict: Mapping[EnergyDemandTypeID, Sequence[FloatArray]],
     alpha: float,
     idx: int,
 ) -> None:

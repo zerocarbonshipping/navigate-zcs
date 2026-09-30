@@ -36,36 +36,33 @@ if TYPE_CHECKING:
     from navigate.core.nodes.fleet import Fleet
     from navigate.core.nodes.route import Route
     from navigate.core.nodes.vessel import Vessel
-    from navigate.util.types_ import FloatLike
+    from navigate.core.types_ import ForecastInput
+    from navigate.util.types_ import FloatArray, FloatLike
 
 
 @dataclass
 class Operations:
     # operations
-    distribution: np.ndarray = field(default_factory=lambda: np.empty(0))
-    speeds: np.ndarray = field(default_factory=lambda: np.empty(0))
-    capacity_utilizations: np.ndarray = field(default_factory=lambda: np.empty(0))
-    distances: np.ndarray = field(default_factory=lambda: np.empty(0))
+    distribution: FloatArray = field(default_factory=lambda: np.empty(0))
+    speeds: FloatArray = field(default_factory=lambda: np.empty(0))
+    capacity_utilizations: FloatArray = field(default_factory=lambda: np.empty(0))
+    distances: FloatArray = field(default_factory=lambda: np.empty(0))
 
     # voyage
-    times_sea: np.ndarray = field(default_factory=lambda: np.empty(0))
-    times_port: np.ndarray = field(default_factory=lambda: np.empty(0))
+    times_sea: FloatArray = field(default_factory=lambda: np.empty(0))
+    times_port: FloatArray = field(default_factory=lambda: np.empty(0))
     time_at_sea: float = 0.0
     voyages: float = 0.0
 
     # cargo
     miles: float = 0.0
     cargo_miles: float = 0.0
-    cargo_miles_leg: np.ndarray = field(default_factory=lambda: np.empty(0))
-    cargo_miles_leg_nominal: np.ndarray = field(default_factory=lambda: np.empty(0))
+    cargo_miles_leg: FloatArray = field(default_factory=lambda: np.empty(0))
+    cargo_miles_leg_nominal: FloatArray = field(default_factory=lambda: np.empty(0))
 
     # energy
-    energy_sea: dict[EnergyDemandTypeID, list[float | np.ndarray]] = field(
-        default_factory=dict
-    )
-    energy_port: dict[EnergyDemandTypeID, list[float | np.ndarray]] = field(
-        default_factory=dict
-    )
+    energy_sea: dict[EnergyDemandTypeID, FloatArray] = field(default_factory=dict)
+    energy_port: dict[EnergyDemandTypeID, FloatArray] = field(default_factory=dict)
 
 
 def update_operational_profile(
@@ -86,7 +83,9 @@ def update_operational_profile(
     if idx > 0 and allow_speed_management:
         # if the fleet allows speed management, the best proxy for the vessel's speed
         # is the speed at the previous time-step
-        speeds = to_numpy(vessel.expectation.get_speeds(idx - 1))
+        speeds = np.array(
+            [float(speed) for speed in vessel.expectation.get_speeds(idx - 1)]
+        )
 
     else:
         # if the fleet does not allow speed management, use the reference speed from the
@@ -103,7 +102,7 @@ def update_operational_profile(
     transfer_operational_profile(vessel, operations, idx)
 
 
-def calculate_operational_profile(vessel: Vessel, speeds: np.ndarray) -> Operations:
+def calculate_operational_profile(vessel: Vessel, speeds: FloatArray) -> Operations:
     """
     Evaluate the operational profile for a vessel at given speeds.
 
@@ -245,8 +244,10 @@ def _calculate_trip(operations: Operations, vessel: Vessel) -> None:
 
     if route_type == RouteTypeID.ROUND_TRIP:
         _calculate_round_trip(operations, route)
-    else:
-        _calculate_regional_trip(operations, route)
+    elif route.time_at_sea is not None:
+        # a regional trip always has a time at sea, as its requirements check
+        # enforces
+        _calculate_regional_trip(operations, route, route.time_at_sea)
 
 
 def _calculate_round_trip(operations: Operations, route: Route) -> None:
@@ -288,7 +289,9 @@ def _calculate_round_trip(operations: Operations, route: Route) -> None:
     operations.voyages = voyages
 
 
-def _calculate_regional_trip(operations: Operations, route: Route) -> None:
+def _calculate_regional_trip(
+    operations: Operations, route: Route, reference_time_at_sea: ForecastInput
+) -> None:
     """
     Calculate the annualized operational profile for a regional-trip route.
 
@@ -301,8 +304,12 @@ def _calculate_regional_trip(operations: Operations, route: Route) -> None:
         Operations on which operational profile results are stored.
     route
         Route supplying the reference operational parameters.
+    reference_time_at_sea
+        Reference fraction of the year spent at sea.
     """
-    days_per_call, miles_between_calls = _calculate_regional_reference(route)
+    days_per_call, miles_between_calls = _calculate_regional_reference(
+        route, reference_time_at_sea
+    )
 
     speeds = operations.speeds
     distribution_sea = to_numpy(route.condition_distribution)
@@ -335,7 +342,9 @@ def _calculate_regional_trip(operations: Operations, route: Route) -> None:
     operations.voyages = 1.0
 
 
-def _calculate_regional_reference(route: Route) -> tuple[float, float]:
+def _calculate_regional_reference(
+    route: Route, reference_time_at_sea: ForecastInput
+) -> tuple[float, float]:
     """
     Derive reference (absent speed management) scalars for a regional-trip route.
 
@@ -347,6 +356,8 @@ def _calculate_regional_reference(route: Route) -> tuple[float, float]:
     ----------
     route
         Route supplying the reference operational parameters.
+    reference_time_at_sea
+        Reference fraction of the year spent at sea.
 
     Returns
     -------
@@ -359,18 +370,18 @@ def _calculate_regional_reference(route: Route) -> tuple[float, float]:
     distribution = to_numpy(route.condition_distribution)
     speeds = to_numpy(route.speeds)
 
-    time_at_sea = route.time_at_sea.get()
+    time_at_sea = reference_time_at_sea.get()
     total_time_sea = time_at_sea * YEAR
     total_time_port = (1.0 - time_at_sea) * YEAR
 
     port_calls = to_numpy(route.port_calls)
     total_calls = np.sum(port_calls)
-    days_per_call = divide_nonzero(total_time_port, total_calls)
+    days_per_call = float(divide_nonzero(total_time_port, total_calls))
 
     times_sea = total_time_sea * distribution
     distances = speeds * times_sea * DAY_TO_HOURS
     miles = np.sum(distances)
-    miles_between_calls = divide_nonzero(miles, total_calls)
+    miles_between_calls = float(divide_nonzero(miles, total_calls))
 
     return days_per_call, miles_between_calls
 
@@ -453,7 +464,7 @@ def _calculate_energy_port(operations: Operations, vessel: Vessel) -> None:
     )
 
 
-def _load_to_energy(load: float | np.ndarray, time: np.ndarray) -> np.ndarray:
+def _load_to_energy(load: FloatLike, time: FloatArray) -> FloatArray:
     """
     Calculate the energy required to operate at a given load for a given duration.
 
@@ -466,7 +477,7 @@ def _load_to_energy(load: float | np.ndarray, time: np.ndarray) -> np.ndarray:
 
     Returns
     -------
-    np.ndarray
+    FloatArray
         Energy required to operate at the given load level for the given duration.
     """
     return load * time * MWD_TO_GJ

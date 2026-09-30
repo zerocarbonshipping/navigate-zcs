@@ -27,7 +27,7 @@ if TYPE_CHECKING:
     from navigate.util.types_ import FloatArray
 
 
-def initialize_existing_fleet(fleet: Fleet, timeline: np.ndarray) -> None:
+def initialize_existing_fleet(fleet: Fleet, timeline: FloatArray) -> None:
     """
     Initialize the existing fleet.
 
@@ -123,7 +123,7 @@ def _define_initial_split(fleet: Fleet) -> None:
     fleet.current_uptake = np.array(fleet.initial_split)
 
 
-def _define_initial_trade(fleet: Fleet, timeline: np.ndarray) -> None:
+def _define_initial_trade(fleet: Fleet, timeline: FloatArray) -> None:
     """
     Define the initial trade of the fleet.
 

@@ -5,22 +5,25 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import numpy as np
+
 from navigate.fleet.operation import convert_to_regional_steps
 from navigate.fleet.residual_energy import calculate_residual_energy
 
 if TYPE_CHECKING:
-    import numpy as np
+    from collections.abc import Mapping, Sequence
 
-    from navigate.core.enum_ import EnergyDemandTypeID, EnergyDemandTypePortID
+    from navigate.core.enum_ import EnergyDemandTypeID
     from navigate.core.nodes.vessel import Vessel
     from navigate.fleet.package import Package
+    from navigate.util.types_ import FloatArray, FloatLike
 
 
 def get_smoothed_energy_duals_technology(
     vessel: Vessel,
 ) -> tuple[
-    dict[EnergyDemandTypeID, list[np.ndarray]],
-    dict[EnergyDemandTypePortID, list[np.ndarray]],
+    dict[EnergyDemandTypeID, list[FloatArray]],
+    dict[EnergyDemandTypeID, list[FloatArray]],
 ]:
     """
     Return per-leg shadow-price beliefs amortised over the technology horizon.
@@ -49,8 +52,8 @@ def get_smoothed_energy_duals_technology(
 def get_smoothed_energy_duals_speed(
     vessel: Vessel,
 ) -> tuple[
-    dict[EnergyDemandTypeID, list[np.ndarray]],
-    dict[EnergyDemandTypePortID, list[np.ndarray]],
+    dict[EnergyDemandTypeID, list[FloatArray]],
+    dict[EnergyDemandTypeID, list[FloatArray]],
 ]:
     """
     Return per-leg shadow-price beliefs amortised over the speed horizon.
@@ -74,7 +77,7 @@ def get_smoothed_energy_duals_speed(
 
 def calculate_marginal_technology_saving(
     vessel: Vessel, package: Package, idx: slice
-) -> float | np.ndarray:
+) -> FloatLike:
     """
     Calculate the marginal cost saving from installing a set of technologies.
 
@@ -104,7 +107,7 @@ def calculate_marginal_technology_saving(
 
     Returns
     -------
-    np.ndarray
+    FloatLike
         The marginal cost saving per time in `timeline`.
     """
     # calculate the residual energy after installing
@@ -120,8 +123,12 @@ def calculate_marginal_technology_saving(
     # as a baseline so that the do-nothing case of not
     # installing any technologies corresponds to an
     # NPV=0 business case
-    baseline_energy_sea = vessel.expectation.get_regional_operational_energy_sea()
-    baseline_energy_port = vessel.expectation.get_operational_energy_port()
+    baseline_energy_sea = _as_step_arrays(
+        vessel.expectation.get_regional_operational_energy_sea()
+    )
+    baseline_energy_port = _as_step_arrays(
+        vessel.expectation.get_operational_energy_port()
+    )
 
     shadow_price_sea, shadow_price_port = get_smoothed_energy_duals_technology(vessel)
 
@@ -138,14 +145,14 @@ def calculate_marginal_technology_saving(
 
 def calculate_marginal_speed_saving(
     vessel: Vessel,
-    residual_energy_sea: dict[EnergyDemandTypeID, list[float | np.ndarray]],
-    residual_energy_port: dict[EnergyDemandTypeID, list[float | np.ndarray]],
+    residual_energy_sea: Mapping[EnergyDemandTypeID, Sequence[FloatLike]],
+    residual_energy_port: Mapping[EnergyDemandTypeID, Sequence[FloatLike]],
     idx: int,
     smoothed_duals: tuple[
-        dict[EnergyDemandTypeID, list[np.ndarray]],
-        dict[EnergyDemandTypeID, list[np.ndarray]],
+        Mapping[EnergyDemandTypeID, Sequence[FloatArray]],
+        Mapping[EnergyDemandTypeID, Sequence[FloatArray]],
     ],
-) -> float | np.ndarray:
+) -> float:
     """
     Calculate the marginal cost saving from a speed change.
 
@@ -186,26 +193,28 @@ def calculate_marginal_speed_saving(
 
     shadow_price_sea, shadow_price_port = smoothed_duals
 
-    return _calculate_marginal_saving(
-        residual_energy_sea,
-        residual_energy_port,
-        baseline_energy_sea,
-        baseline_energy_port,
-        shadow_price_sea,
-        shadow_price_port,
-        idx,
+    return float(
+        _calculate_marginal_saving(
+            residual_energy_sea,
+            residual_energy_port,
+            baseline_energy_sea,
+            baseline_energy_port,
+            shadow_price_sea,
+            shadow_price_port,
+            idx,
+        )
     )
 
 
 def _calculate_marginal_saving(
-    residual_energy_sea: dict[EnergyDemandTypeID, list[float | np.ndarray]],
-    residual_energy_port: dict[EnergyDemandTypeID, list[float | np.ndarray]],
-    baseline_energy_sea: dict[EnergyDemandTypeID, list[float | np.ndarray]],
-    baseline_energy_port: dict[EnergyDemandTypeID, list[float | np.ndarray]],
-    shadow_price_sea: dict[EnergyDemandTypeID, list[np.ndarray]],
-    shadow_price_port: dict[EnergyDemandTypeID, list[np.ndarray]],
+    residual_energy_sea: Mapping[EnergyDemandTypeID, Sequence[FloatLike]],
+    residual_energy_port: Mapping[EnergyDemandTypeID, Sequence[FloatLike]],
+    baseline_energy_sea: Mapping[EnergyDemandTypeID, Sequence[FloatArray]],
+    baseline_energy_port: Mapping[EnergyDemandTypeID, Sequence[FloatArray]],
+    shadow_price_sea: Mapping[EnergyDemandTypeID, Sequence[FloatArray]],
+    shadow_price_port: Mapping[EnergyDemandTypeID, Sequence[FloatArray]],
     idx: int | slice,
-) -> float | np.ndarray:
+) -> FloatLike:
     """
     Calculate total marginal saving by summing savings at sea and in port.
 
@@ -228,7 +237,7 @@ def _calculate_marginal_saving(
 
     Returns
     -------
-    float | np.ndarray
+    FloatLike
         Total marginal cost saving (sea + port).
     """
     savings_sea = _iterate_steps(
@@ -242,11 +251,11 @@ def _calculate_marginal_saving(
 
 
 def _iterate_steps(
-    energies_residual: dict[EnergyDemandTypeID, list[float | np.ndarray]],
-    energies_baseline: dict[EnergyDemandTypeID, list[float | np.ndarray]],
-    shadow_prices: dict[EnergyDemandTypeID, list[np.ndarray]],
+    energies_residual: Mapping[EnergyDemandTypeID, Sequence[FloatLike]],
+    energies_baseline: Mapping[EnergyDemandTypeID, Sequence[FloatArray]],
+    shadow_prices: Mapping[EnergyDemandTypeID, Sequence[FloatArray]],
     idx: int | slice,
-) -> float | np.ndarray:
+) -> FloatLike:
     """
     Accumulate dual-variable savings across all energy demand types and steps.
 
@@ -268,10 +277,10 @@ def _iterate_steps(
 
     Returns
     -------
-    float | np.ndarray
+    FloatLike
         Sum of dual-variable savings over all energy types and steps.
     """
-    savings = 0.0
+    savings: FloatLike = 0.0
 
     for energy_id, energy_residual in energies_residual.items():
         for step, energy_residual_step in enumerate(energy_residual):
@@ -286,10 +295,10 @@ def _iterate_steps(
 
 
 def _calculate_dual_variable_saving(
-    energy_residual: float | np.ndarray,
-    energy_baseline: float | np.ndarray,
-    shadow_price: float | np.ndarray,
-) -> float | np.ndarray:
+    energy_residual: FloatLike,
+    energy_baseline: FloatLike,
+    shadow_price: FloatLike,
+) -> FloatLike:
     """
     Calculate the cost saved by changing energy from the baseline to residual energy.
 
@@ -308,7 +317,29 @@ def _calculate_dual_variable_saving(
 
     Returns
     -------
-    float | np.ndarray
+    FloatLike
         The cost saved.
     """
     return shadow_price * (energy_baseline - energy_residual)
+
+
+def _as_step_arrays(
+    energies: Mapping[EnergyDemandTypeID, Sequence[FloatLike]],
+) -> dict[EnergyDemandTypeID, list[FloatArray]]:
+    """
+    Narrow a whole-timeline energy read to one array per step, for time indexing.
+
+    Parameters
+    ----------
+    energies
+        Energy per energy demand type and step, each step read over the whole timeline.
+
+    Returns
+    -------
+    dict[EnergyDemandTypeID, list[FloatArray]]
+        The same arrays, typed as arrays.
+    """
+    return {
+        energy_id: [np.asarray(energy) for energy in steps]
+        for energy_id, steps in energies.items()
+    }
