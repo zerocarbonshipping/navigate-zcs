@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core import Scalar
+from navigate.core import Expression, Scalar
 from navigate.core.enum_ import EnergyDemandTypeID, EnergyDemandTypePortID
 from navigate.core.node_type import is_surface, is_variable
 from navigate.core.unit import MWD_TO_GJ
@@ -19,8 +19,8 @@ if TYPE_CHECKING:
     from navigate.core.nodes.converter import Converter
     from navigate.core.nodes.curve import Curve
     from navigate.core.nodes.surface import Surface
-    from navigate.core.nodes.variable import Variable
     from navigate.core.nodes.vessel import Vessel
+    from navigate.core.types_ import SurfaceInput
 
 
 def calculate_speed_bounds(
@@ -73,6 +73,11 @@ def calculate_technical_speed_limits(vessel: Vessel) -> tuple[np.ndarray, np.nda
         Minimum speed per leg and maximum speed per leg.
     """
     load = vessel.propulsion_load
+
+    if isinstance(load, Expression):
+        # an expression can only be evaluated, not read as a table, so it
+        # cannot be reverse-looked-up; the other speed bounds govern instead
+        return -np.inf, np.inf
 
     if isinstance(load, Scalar) or is_variable(load):
         return -np.inf, np.inf
@@ -298,7 +303,7 @@ def _calculate_speed_extremum(
     return speed
 
 
-def _load_is_convex(load: Scalar | Variable | Curve | Surface) -> bool:
+def _load_is_convex(load: SurfaceInput) -> bool:
     """
     Check whether a propulsion, electrical, or heat load is based on a convex function.
 
@@ -312,6 +317,11 @@ def _load_is_convex(load: Scalar | Variable | Curve | Surface) -> bool:
     bool
         Whether the load level is based on a convex function.
     """
+    if isinstance(load, Expression):
+        # an expression can only be evaluated, not read as a table, so its
+        # convexity is unknown
+        return False
+
     if isinstance(load, Scalar) or is_variable(load):
         return True
 

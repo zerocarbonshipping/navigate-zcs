@@ -39,6 +39,8 @@ Vessel "bulk_carrier_capesize_oil" {
 
 This attribute sets the propulsion load level in MW. This is the power required to propel the vessel (at a given speed and draft potentially). The cargo utilization is used as a proxy for a vessel’s draft, i.e., high cargo utilization is indicative of a higher draft. If a float is assigned the load level is independent of speed and draft, if a Curve is assigned the load level is only a function of speed and if a Surface is assigned it is both a function of speed and draft.
 
+An expression assigned to this attribute is evaluated for the load, but it sets no technical speed limit and counts as non-convex, so the vessel's speed optimization logs a warning.
+
 * **Data type**: `Float`, `Curve`, `Surface`, `Variable`
 * **Example values**:
   + `16.5`
@@ -53,6 +55,8 @@ This attribute sets the propulsion load level in MW. This is the power required 
 ### ElectricalLoadAtSea
 
 This attribute defines the electrical load level at sea in MW. This is the power required to run auxiliary systems on the vessel at sea at a given speed and cargo utilization. If a float is assigned the load level is independent of speed and draft, if a Curve is assigned the load level is only a function of speed and if a Surface is assigned it is both a function of speed and draft.
+
+An expression assigned to this attribute is evaluated for the load, but it sets no technical speed limit and counts as non-convex, so the vessel's speed optimization logs a warning.
 
 * **Data type**: `Float`, `Curve`, `Surface`, `Variable`
 * **Example values**:
@@ -78,6 +82,8 @@ This attribute sets the electrical load level in port in MW. This is the power r
 ### HeatLoadAtSea
 
 This attribute defines the heat load level at sea in MW. This is the power required to produce heat on the vessel at sea at a given speed and cargo utilization. If a float is assigned the load level is independent of speed and draft, if a Curve is assigned the load level is only a function of speed and if a Surface is assigned it is both a function of speed and draft.
+
+An expression assigned to this attribute is evaluated for the load, but it sets no technical speed limit and counts as non-convex, so the vessel's speed optimization logs a warning.
 
 * **Data type**: `Float`, `Curve`, `Surface`, `Variable`
 * **Example values**:
