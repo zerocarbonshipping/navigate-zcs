@@ -22,7 +22,6 @@ from navigate.fleet.conversion import (
     is_retrofit_cycle,
     reconcile_fuel_conversion_caps,
 )
-from navigate.fleet.initialization import _calculate_projected_multipliers
 from navigate.fleet.planning import (
     _calculate_increments,
     calculate_modelled_newbuilds,
@@ -75,22 +74,6 @@ class TestIsRetrofitCycle:
     )
     def test_cycle(self, age, frequency, dt, expected):
         assert is_retrofit_cycle(age, frequency, dt) is expected
-
-
-class TestCalculateProjectedMultipliers:
-    """Test _calculate_projected_multipliers."""
-
-    @pytest.mark.parametrize(
-        ("multiplier", "trade", "expected"),
-        [
-            (50.0, [100.0, 100.0, 100.0], [50.0, 50.0, 50.0]),
-            (10.0, [100.0, 200.0], [10.0, 20.0]),
-            (20.0, [50.0], [20.0]),
-        ],
-    )
-    def test_scales_with_trade(self, multiplier, trade, expected):
-        result = _calculate_projected_multipliers(multiplier, np.array(trade))
-        np.testing.assert_array_almost_equal(result, expected)
 
 
 class TestCalculateIncrements:

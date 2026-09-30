@@ -112,7 +112,6 @@ class Fleet(_AssetManager[Vessel, VesselIncrement]):
         self.expectation: FleetExpectation = FleetExpectation()
         self.profile: FleetProfile = FleetProfile()
 
-        self.projected_multipliers: FloatArray = np.empty(0)
         self.fuel_conversion_expenses: FloatArray = np.empty(0)
         self.trade: FloatArray = np.ndarray(0)
         self.newbuild_package_uptake: list[FloatArray] = []

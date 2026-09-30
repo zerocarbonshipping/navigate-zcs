@@ -29,10 +29,7 @@ if TYPE_CHECKING:
 
 def initialize_existing_fleet(fleet: Fleet, timeline: FloatArray) -> None:
     """
-    Initialize the existing fleet.
-
-    This means discretizing the existing fleet in time, by splitting the
-    initial number of vessels into individual increments with varying age.
+    Initialize the existing fleet, splitting its vessels into increments of varying age.
 
     Must be called exactly once per fleet: discretization appends to the increment
     stores.
@@ -42,7 +39,7 @@ def initialize_existing_fleet(fleet: Fleet, timeline: FloatArray) -> None:
     fleet
         Fleet to initialize.
     timeline
-        Simulation timeline.
+        Simulation timeline, days.
     """
     for vessel in fleet.assets:
         vessel.set_fleet_assignment(fleet.name)
@@ -58,44 +55,31 @@ def initialize_existing_fleet(fleet: Fleet, timeline: FloatArray) -> None:
     )
     preprocess_packages(fleet.technology_packages, fleet.assets, timeline[idx])
 
-    # existing fleet; the initial split must be defined before the
-    # age discretization because _get_initial_multiplier reads it
+    # the initial split must be defined before the age discretization, as
+    # _get_initial_multiplier reads it
     _define_initial_split(fleet)
     fleet.define_initial_age()
     fleet.define_initial_multipliers()
     define_initial_technology(fleet)
     _define_initial_trade(fleet, timeline)
 
-    # order book
     fleet.orders_delivered = np.zeros((nv,))
     fleet.orders_postponed = np.zeros((nv,))
 
-    # initialize baseline for partial age-based scrapping
+    # the oldest cohort holds the baseline of partial age-based scrapping
     for incs in fleet.increments:
         if incs:
             incs[0].baseline = incs[0].multiplier
 
-    # calculate a naive projection of multipliers
-    # which is used to calculate fair-share emissions
-    # for fleet level and global regulations
-    multipliers = sum(fleet.get_multipliers())
-    fleet.projected_multipliers = _calculate_projected_multipliers(
-        multipliers, fleet.trade
-    )
-
-    # calculate the initial effect from technology
     update_residual_energy_demand(fleet, idx)
 
-    # calculate the initial fleet evolution expectation
     fleet.expectation.set_uptakes(idx, fleet.current_uptake)
     calculate_evolution_expectation(fleet, timeline, idx)
 
-    # initialize technology effect
     transfer_multipliers_to_profile(fleet, idx)
     transfer_technology_uptake(fleet, idx)
     transfer_technology_charter_rate(fleet, idx)
 
-    # set dynamic properties
     fleet.fuel_conversion_expenses = np.zeros_like(timeline)
 
 
@@ -108,34 +92,27 @@ def _define_initial_split(fleet: Fleet) -> None:
     fleet
         Fleet to define the initial split for.
     """
-    # if the initial split is not supplied
-    # by the user, then assume a uniform
-    # split on cargo-miles
+    # without a supplied initial split, the cargo-miles are split uniformly
     if not fleet.initial_split:
         nv = len(fleet.assets)
         fleet.initial_split = [1.0 / nv for v in range(nv)]
 
-    # while the initial split of the entire
-    # existing fleet does not necessarily
-    # correspond to current trends in
-    # newbuilds, it is the best available proxy
+    # the initial split of the existing fleet need not match the current newbuild
+    # trend, but it is the best available proxy for it
     # TODO: allow this to be user-defined
     fleet.current_uptake = np.array(fleet.initial_split)
 
 
 def _define_initial_trade(fleet: Fleet, timeline: FloatArray) -> None:
     """
-    Define the initial trade of the fleet.
-
-    Projects it forward over the timeline using the user-supplied growth
-    rates.
+    Project the fleet's trade over the timeline by compound growth from its start.
 
     Parameters
     ----------
     fleet
         Fleet to define the trade for.
     timeline
-        Simulation timeline.
+        Simulation timeline, days.
     """
     idx = 0
     cargo_miles = extract_cargo_miles(fleet.assets, idx)
@@ -143,35 +120,6 @@ def _define_initial_trade(fleet: Fleet, timeline: FloatArray) -> None:
     multipliers = fleet.get_multipliers()
     initial_trade = np.dot(multipliers, cargo_miles)
     trade_growth = fleet.trade_growth.get(timeline)
-
-    # the initial trade is projected forward in
-    # time by calculating the compound growth
-    # from the user-supplied growth rates
     fleet.trade = calculate_compound_growth(initial_trade, trade_growth, timeline)
 
-    # transfer to profile
     fleet.profile.set_trade(idx, fleet.trade[idx])
-
-
-def _calculate_projected_multipliers(
-    multipliers: float, trade: FloatArray
-) -> FloatArray:
-    """
-    Calculate a naive projection of future number of multipliers.
-
-    This method does not take into account that different vessel types may
-    have varying nominal capacity or cargo utilization.
-
-    Parameters
-    ----------
-    multipliers
-        Sum of multipliers across vessel types.
-    trade
-        Trade forecast.
-
-    Returns
-    -------
-        Naive projection of future multipliers.
-    """
-    compound_growth: FloatArray = trade / trade[0]
-    return multipliers * compound_growth

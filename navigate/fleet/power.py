@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Power capacity, technical speed limits and load convexity of each vessel."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -35,16 +37,16 @@ def calculate_speed_bounds(
     Parameters
     ----------
     speeds_min
-        Minimum speed per leg.
+        Minimum speed per leg, knots.
     speeds_max
-        Maximum speed per leg.
+        Maximum speed per leg, knots.
     speeds
-        Speed per leg.
+        Speed per leg, knots.
 
     Returns
     -------
     tuple[float, float]
-        Minimum and maximum mean speed achievable by the vessel.
+        Minimum and maximum mean speed achievable by the vessel, knots.
     """
     low = np.min(speeds_min)
     high = np.max(speeds_max)
@@ -52,7 +54,8 @@ def calculate_speed_bounds(
     if np.isfinite(low) and np.isfinite(high) and (low < high):
         return low, high
 
-    # fallback: use reference distribution envelope
+    # technical bounds that are infinite or inverted fall back on the envelope of the
+    # given speeds
     low = np.min(speeds)
     high = np.max(speeds)
 
@@ -63,15 +66,18 @@ def calculate_technical_speed_limits(vessel: Vessel) -> tuple[FloatArray, FloatA
     """
     Calculate a vessel's minimum and maximum achievable speed from its propulsion load.
 
-    Notice that the technical minimum/maximum speed is only defined as a function of the
-    propulsion load. Meaning that if a minimum load is defined for the electrical or
-    heat converter, this information is ignored although this could in theory be the
-    bindind speed constraint in extreme cases.
+    Only the propulsion load sets the limits: a minimum load on the electrical or heat
+    converter is ignored, although in extreme cases it could bind the speed.
+
+    Parameters
+    ----------
+    vessel
+        Vessel whose speed limits are calculated.
 
     Returns
     -------
     tuple[FloatArray, FloatArray]
-        Minimum speed per leg and maximum speed per leg.
+        Minimum and maximum speed per leg, knots.
     """
     load = vessel.propulsion_load
 
@@ -83,41 +89,30 @@ def calculate_technical_speed_limits(vessel: Vessel) -> tuple[FloatArray, FloatA
     if isinstance(load, Scalar) or is_variable(load):
         return _unbounded_speed_limits(vessel)
 
-    # must per definition be Curve or Surface
     else:
+        # the load is a Curve or a Surface
         converter = vessel.power_system.propulsion
         power_maximum = converter.power_capacity.get()
         minimum_load = converter.minimum_load
 
-        # the minimum speed can either be found
-        # as a fraction of the power or simply using
-        # the lowest value in the speed-power curve
         if minimum_load is not None:
             power_minimum = minimum_load.get() * power_maximum
             speed_minimum = _calculate_speed_extremum(vessel, power_minimum, load)
 
         else:
-            # use minimum from speed-power curve/surface
             speed_minimum = load.x[0]
 
-        # calculate the maximum speed in case the
-        # maximum power is lower than the maximum
-        # of the speed-power curve/surface
+        # the power capacity may cap the speed below the load's largest speed
         speed_maximum = _calculate_speed_extremum(vessel, power_maximum, load)
 
-        # in case the propulsion load is not
-        # defined by a strictly increasing
-        # function, the reverse lookup returns
-        # None which has to be handled
+        # the reverse lookup returns None for a load that is not strictly increasing
         if speed_minimum is None:
             speed_minimum = load.x[0]
 
         if speed_maximum is None:
             speed_maximum = load.x[-1]
 
-        # ensure the minimum and maximum speeds
-        # are given per leg because the capacity
-        # utilization can impact the power limit
+        # the limits are per leg, as the capacity utilization moves the power limit
         speeds_minimum = _expand_speed_to_legs(vessel, speed_minimum)
         speeds_maximum = _expand_speed_to_legs(vessel, speed_maximum)
 
@@ -126,20 +121,20 @@ def calculate_technical_speed_limits(vessel: Vessel) -> tuple[FloatArray, FloatA
 
 def loads_are_convex(vessel: Vessel) -> bool:
     """
-    Check whether all loads at sea are based on a convex function.
+    Check whether every load at sea is convex.
 
-    This is necessary since both the propulsion load, electrical load, and
-    heat load at sea can depend on the speed and capacity utilization.
+    The propulsion, electrical and heat loads at sea can all depend on the speed and
+    capacity utilization.
 
     Parameters
     ----------
     vessel
-        Vessel for which loads are checked.
+        Vessel whose loads are checked.
 
     Returns
     -------
     bool
-        Whether all loads are based on a convex function.
+        Whether every load at sea is convex.
     """
     propulsion = _load_is_convex(vessel.propulsion_load)
     electrical = _load_is_convex(vessel.electrical_load_at_sea)
@@ -206,7 +201,7 @@ def verify_power_capacity(vessel: Vessel, idx: int) -> None:
 
 def get_total_power_capacity(vessel: Vessel) -> float:
     """
-    Total installed converter power capacity on a vessel.
+    Return the total installed converter power capacity of a vessel.
 
     Parameters
     ----------
@@ -215,7 +210,8 @@ def get_total_power_capacity(vessel: Vessel) -> float:
 
     Returns
     -------
-    Total installed power across the converters, MW.
+    float
+        Total installed power across the converters, MW.
     """
     return sum(
         converter.power_capacity.get()
@@ -240,15 +236,16 @@ def _find_capacity_violations(
     demand_type
         Energy demand type being verified.
     energies
-        Energy demand per step (GJ).
+        Energy demand per step, GJ/year.
     times
-        Time spent on each step (days).
+        Time spent on each step, days/year.
     step_label
-        Name of the step dimension ("leg" or "port") used in violation messages.
+        Name of the step dimension, "leg" or "port", used in violation messages.
 
     Returns
     -------
-    One message per step whose demand exceeds the deliverable energy.
+    list[str]
+        One message per step whose demand exceeds the deliverable energy.
     """
     power_capacity = converter.power_capacity.get()
     violations = []
@@ -305,17 +302,17 @@ def _calculate_speed_extremum(
     Parameters
     ----------
     vessel
-        Vessel for which speed extremum is calculated.
+        Vessel whose speed extremum is calculated.
     power
-        Either minimum or maximum power of the converter.
+        Minimum or maximum power of the converter, MW.
     load
-        Propulsion load function of the vessel.
+        Propulsion load of the vessel.
 
     Returns
     -------
     FloatLike | None
-        The speed at which the power is reached, one per capacity utilization for
-        a surface, or `None` when the load is not strictly increasing.
+        The speed at which the power is reached, knots, one per capacity utilization
+        for a surface, or `None` when the load is not strictly increasing.
     """
     if is_surface(load):
         utilization = to_numpy(vessel.route.capacity_utilizations)
@@ -326,7 +323,7 @@ def _calculate_speed_extremum(
 
 def _load_is_convex(load: SurfaceInput) -> bool:
     """
-    Check whether a propulsion, electrical, or heat load is based on a convex function.
+    Check whether a propulsion, electrical or heat load is convex.
 
     Parameters
     ----------
@@ -336,7 +333,7 @@ def _load_is_convex(load: SurfaceInput) -> bool:
     Returns
     -------
     bool
-        Whether the load level is based on a convex function.
+        Whether the load is convex.
     """
     if isinstance(load, Expression):
         # an expression can only be evaluated, not read as a table, so its
@@ -346,6 +343,6 @@ def _load_is_convex(load: SurfaceInput) -> bool:
     if isinstance(load, Scalar) or is_variable(load):
         return True
 
-    # must per definition be Curve or Surface
     else:
+        # the load is a Curve or a Surface
         return load.is_convex()

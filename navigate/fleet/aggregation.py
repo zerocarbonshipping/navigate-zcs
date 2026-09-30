@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Per-step fleet cost transfers and fuel-type demand and supply totals."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -35,7 +37,7 @@ def calculate_fleet_profile(
     fuels
         All fuels in the simulation.
     timeline
-        Simulation timeline.
+        Simulation timeline, days.
     idx
         Current time-step index.
     """
@@ -58,7 +60,7 @@ def _transfer_increment_expenses(fleet: Fleet, timeline: FloatArray, idx: int) -
     fleet
         Fleet instance.
     timeline
-        Simulation timeline.
+        Simulation timeline, days.
     idx
         Current time-step index.
     """
@@ -67,17 +69,11 @@ def _transfer_increment_expenses(fleet: Fleet, timeline: FloatArray, idx: int) -
 
     for v, vessel in enumerate(fleet.assets):
         for inc in fleet.increments[v]:
-            # find the cost profile corresponding to a vessel entering
-            # the fleet at 'age' years ago. Notice here that if the
-            # vessel was part of the initial fleet, the cost profile
-            # from a vessel at age 0 is used. This is the best available
-            # approximation as historical data is unknown
+            # the cost profile is that of a vessel entering the fleet 'age' years
+            # ago; an increment of the initial fleet uses the profile at the
+            # simulation start, as historical cost data is unknown
             origin = get_increment_origin_index(years, current_year, inc.age)
-
-            # calculate instantaneous charter rate
             cost = vessel.expectation.get_asset_charter_rate(origin)
-
-            # calculate remaining tied up capital
             tied_capital_flow = vessel.expectation.get_tied_capital(origin)
             tied_capital = interpolate_yearly_flow(tied_capital_flow, inc.age)
 
@@ -130,8 +126,8 @@ def _gather_fuel_type_demand(fleet: Fleet) -> None:
     fleet
         Fleet instance.
     """
-    # the reset must come after fleet evolution, which
-    # reads the previous step's totals
+    # the reset must come after fleet evolution, which reads the previous step's
+    # totals
     fleet.expectation.reset_fuel_type_totals()
 
     for v, vessel in enumerate(fleet.assets):
@@ -140,27 +136,18 @@ def _gather_fuel_type_demand(fleet: Fleet) -> None:
         if multiplier == 0.0:
             continue
 
-        # modelling assuming simplified power system
         power_system = vessel.power_system
         converters = power_system.get_converters()
 
         for converter in converters:
-            # extract the spend energy for the
-            # given converter from the latest
-            # existing bunkering solution
             converter_demand = vessel.expectation.get_spend_energy(converter.name)
-
-            # scale by the number of vessels
             fleet_demand = converter_demand * multiplier
 
-            # extract minimum pilot fuel
             if converter.is_dual_fuel():
                 pilot_fuel_share = converter.minimum_pilot_fuel.get()
             else:
                 pilot_fuel_share = 0.0
 
-            # loop over each main and pilot
-            # fuel type and add the demand
             for fuel_type in converter.main_fuel_types:
                 fleet.expectation.add_fuel_type_demand(
                     fuel_type, (1.0 - pilot_fuel_share) * fleet_demand
@@ -171,8 +158,7 @@ def _gather_fuel_type_demand(fleet: Fleet) -> None:
                     fuel_type, pilot_fuel_share * fleet_demand
                 )
 
-        # resetting the previously spend energy
-        # values to avoid lingering solutions
+        # clear the spend energy so no later step reads this solution's values
         vessel.expectation.reset_spend_energy()
 
 
@@ -246,7 +232,7 @@ def transfer_multipliers_to_profile(fleet: Fleet, idx: int) -> None:
     Parameters
     ----------
     fleet
-        The fleet instance.
+        Fleet instance.
     idx
         Current time-step index.
     """

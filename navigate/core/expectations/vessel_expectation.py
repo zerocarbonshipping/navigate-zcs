@@ -620,9 +620,6 @@ class VesselExpectation(_Expectation):
     def get_fair_share_fuel_existing(self, port_name: str, fuel_name: str) -> float:
         return self._fair_share_fuel_existing[(port_name, fuel_name)]
 
-    def get_fair_share_fuels_existing(self) -> dict[tuple[str, str], float]:
-        return self._fair_share_fuel_existing
-
     def get_fair_share_fuel_expected(
         self, port_name: str, fuel_name: str, idx: Index = np.s_[:]
     ) -> FloatLike:
