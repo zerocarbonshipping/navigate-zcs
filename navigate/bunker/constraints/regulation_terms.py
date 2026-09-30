@@ -152,15 +152,15 @@ def calculate_regulation_emission_term(
             *weights, strict=True
         )
 
-        constraints = gp.LinExpr(constraint_weights, variables)
-        emissions = gp.LinExpr(emission_weights, variables)
-        energy = gp.LinExpr(energy_weights, variables)
+        constraints = gp.create_linear_expression(constraint_weights, variables)
+        emissions = gp.create_linear_expression(emission_weights, variables)
+        energy = gp.create_linear_expression(energy_weights, variables)
 
     else:
         # no port or leg of the route is regulated
-        constraints = gp.LinExpr()
-        emissions = gp.LinExpr()
-        energy = gp.LinExpr()
+        constraints = gp.create_linear_expression()
+        emissions = gp.create_linear_expression()
+        energy = gp.create_linear_expression()
 
     return constraints, emissions, energy
 

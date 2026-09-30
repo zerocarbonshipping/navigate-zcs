@@ -17,6 +17,9 @@ if TYPE_CHECKING:
 
 import navigate.bunker.solver as gp
 
+# the model's spelling of each sense get_constraint accepts
+_MODEL_SENSES = {"==": gp.EQUAL, "<=": gp.LESS_EQUAL, ">=": gp.GREATER_EQUAL}
+
 
 def add_variable(
     alg: BunkerAlgorithm,
@@ -42,9 +45,7 @@ def add_variable(
     if key in container:
         return
 
-    container[key] = alg.model.addVar(
-        vtype=gp.GRB.CONTINUOUS, name=_full_name(name, key)
-    )
+    container[key] = alg.model.addVar(vtype=gp.CONTINUOUS, name=_full_name(name, key))
 
 
 def get_constraint(
@@ -83,17 +84,15 @@ def get_constraint(
     if key in container:
         return container[key]
 
-    full_name = _full_name(name, key)
-
-    if sense == "==":
-        constraint = alg.model.addConstr(gp.LinExpr() == 0.0, name=full_name)
-    elif sense == "<=":
-        constraint = alg.model.addConstr(gp.LinExpr() <= 0.0, name=full_name)
-    elif sense == ">=":
-        constraint = alg.model.addConstr(gp.LinExpr() >= 0.0, name=full_name)
-    else:
+    if sense not in _MODEL_SENSES:
         raise ValueError(f"Unknown constraint sense '{sense}'.")
 
+    constraint = alg.model.addLConstr(
+        gp.create_linear_expression(),
+        _MODEL_SENSES[sense],
+        0.0,
+        name=_full_name(name, key),
+    )
     container[key] = constraint
     return constraint
 

@@ -57,7 +57,7 @@ known-first-party = ["helpers"]
 [lint.per-file-ignores]
 "__init__.py" = ["F401"]
 # external solver APIs dictate the naming in the shims
-"navigate/bunker/solver.py" = ["N802", "N811", "N816"]
+"navigate/bunker/solver.py" = ["N802"]
 "navigate/bunker/solver_highs.py" = ["N802", "N806"]
 "tests/unit/test_bunker_build.py" = ["N802"]
 # expectation, profile, and node lifecycle methods carry no docstrings; the

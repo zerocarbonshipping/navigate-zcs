@@ -8,9 +8,8 @@ This module wraps the HiGHS open-source LP solver (via highspy) to provide
 the same interface as gurobipy for all features used by the bunker algorithm.
 This eliminates the need for a commercial Gurobi license.
 
-Usage:
-    import navigate.bunker.solver as gp
-    from navigate.bunker.solver import GRB
+Consumers reach it through the backend-dispatching facade in
+``navigate.bunker.solver``, never directly.
 """
 
 from __future__ import annotations
@@ -30,9 +29,11 @@ OPTIMAL = 1
 INFEASIBLE = 2
 INF_OR_UNBD = 3
 
-_SENSE_EQ = "=="
-_SENSE_LE = "<="
-_SENSE_GE = ">="
+# constraint senses, spelled as gurobipy's GRB.EQUAL, GRB.LESS_EQUAL and
+# GRB.GREATER_EQUAL
+EQUAL = "="
+LESS_EQUAL = "<"
+GREATER_EQUAL = ">"
 
 # Map old Gurobi SolverMethodID integer values to HiGHS solver options.
 # The optimize() method uses IPM when the model structure grows (addVar/addConstr)
@@ -48,21 +49,6 @@ _METHOD_MAP = {
 
 
 # ====================================================================================
-# GRB namespace (mirrors gurobipy.GRB constants)
-# ====================================================================================
-
-
-class _GRB:
-    CONTINUOUS = CONTINUOUS
-    OPTIMAL = OPTIMAL
-    INFEASIBLE = INFEASIBLE
-    INF_OR_UNBD = INF_OR_UNBD
-
-
-GRB = _GRB()
-
-
-# ====================================================================================
 # LinExpr
 # ====================================================================================
 
@@ -73,8 +59,6 @@ class LinExpr:
 
     Mirrors the gurobipy.LinExpr interface for the subset of features used.
     """
-
-    __hash__ = None  # unhashable, like gurobipy LinExpr
 
     def __init__(self, coefficients=None, variables=None):
         # _terms holds a list of (coefficient, Var) pairs
@@ -151,23 +135,18 @@ class LinExpr:
         return result
 
     # comparison operators (create TempConstr) -----------------------------------------
-    def __eq__(self, other):
-        if isinstance(other, (int, float)):
-            return TempConstr(self, _SENSE_EQ, float(other))
-        return NotImplemented
-
     def __le__(self, other):
         if isinstance(other, (int, float)):
-            return TempConstr(self, _SENSE_LE, float(other))
+            return TempConstr(self, LESS_EQUAL, float(other))
         if isinstance(other, LinExpr):
-            return TempConstr(self - other, _SENSE_LE, 0.0)
+            return TempConstr(self - other, LESS_EQUAL, 0.0)
         return NotImplemented
 
     def __ge__(self, other):
         if isinstance(other, (int, float)):
-            return TempConstr(self, _SENSE_GE, float(other))
+            return TempConstr(self, GREATER_EQUAL, float(other))
         if isinstance(other, LinExpr):
-            return TempConstr(self - other, _SENSE_GE, 0.0)
+            return TempConstr(self - other, GREATER_EQUAL, 0.0)
         return NotImplemented
 
     # evaluation -----------------------------------------------------------------------
@@ -186,7 +165,7 @@ class TempConstr:
 
     def __init__(self, lhs, sense, rhs):
         self.lhs = lhs  # LinExpr
-        self.sense = sense  # "==", "<=", ">="
+        self.sense = sense  # EQUAL, LESS_EQUAL or GREATER_EQUAL
         self.rhs = rhs  # float
 
 
@@ -271,17 +250,6 @@ class Var:
     def __ge__(self, other):
         return self._to_expr().__ge__(other)
 
-    def __eq__(self, other):
-        # Only support constraint creation (comparison with numbers)
-        if isinstance(other, (int, float)):
-            return self._to_expr().__eq__(other)
-        # For identity comparison (used in dict lookups etc.), fall back to object
-        # identity
-        return NotImplemented
-
-    def __hash__(self):
-        return id(self)
-
 
 # ====================================================================================
 # Constr
@@ -298,7 +266,7 @@ class Constr:
     def __init__(self, model, row, sense, rhs_value, name=""):
         self._model = model
         self._row = row
-        self._sense = sense  # "==", "<=", ">="
+        self._sense = sense  # EQUAL, LESS_EQUAL or GREATER_EQUAL
         self._rhs_value = rhs_value
         self._name = name
 
@@ -311,11 +279,11 @@ class Constr:
     def rhs(self, value):
         value = float(value)
         self._rhs_value = value
-        if self._sense == _SENSE_EQ:
+        if self._sense == EQUAL:
             self._model._pending_rhs[self._row] = (value, value)
-        elif self._sense == _SENSE_LE:
+        elif self._sense == LESS_EQUAL:
             self._model._pending_rhs[self._row] = (-highspy.kHighsInf, value)
-        elif self._sense == _SENSE_GE:
+        elif self._sense == GREATER_EQUAL:
             self._model._pending_rhs[self._row] = (value, highspy.kHighsInf)
 
     # RHS read (uppercase, as used in gurobipy) ----------------------------------------
@@ -411,7 +379,7 @@ class Model:
     HiGHS-backed LP model with a gurobipy-compatible interface.
 
     Provides the same API as gurobipy.Model for all features used by
-    the bunker algorithm: addVar, addConstr, chgCoeff, remove, optimize,
+    the bunker algorithm: addVar, addConstr, addLConstr, chgCoeff, remove, optimize,
     computeIIS, write, and solution/dual access.
     """
 
@@ -492,11 +460,35 @@ class Model:
         -------
         Constr
         """
-        row = self._num_rows
+        return self._add_row(constr.lhs, constr.sense, constr.rhs, name)
 
-        lhs = constr.lhs
-        sense = constr.sense
-        rhs = constr.rhs
+    def addLConstr(
+        self, lhs: LinExpr, sense: str, rhs: float, name: str = ""
+    ) -> Constr:
+        """
+        Add a linear constraint given by its sides and sense.
+
+        Parameters
+        ----------
+        lhs
+            Left-hand side expression.
+        sense
+            One of EQUAL, LESS_EQUAL or GREATER_EQUAL.
+        rhs
+            Right-hand side constant.
+        name
+            Constraint name.
+
+        Returns
+        -------
+        Constr
+            The new constraint.
+        """
+        return self._add_row(lhs, sense, rhs, name)
+
+    def _add_row(self, lhs: LinExpr, sense: str, rhs: float, name: str) -> Constr:
+        """Append a row for ``lhs <sense> rhs`` and return its constraint."""
+        row = self._num_rows
 
         # Separate the constant from the LHS and move it to the RHS
         adjusted_rhs = rhs - lhs._constant
@@ -509,13 +501,13 @@ class Model:
             values.append(coeff)
 
         # Set row bounds based on sense
-        if sense == _SENSE_EQ:
+        if sense == EQUAL:
             lb = adjusted_rhs
             ub = adjusted_rhs
-        elif sense == _SENSE_LE:
+        elif sense == LESS_EQUAL:
             lb = -highspy.kHighsInf
             ub = adjusted_rhs
-        elif sense == _SENSE_GE:
+        elif sense == GREATER_EQUAL:
             lb = adjusted_rhs
             ub = highspy.kHighsInf
         else:
@@ -643,13 +635,13 @@ class Model:
             self._row_coeffs[row] = new_cols
 
         # Set row bounds based on sense
-        if sense == _SENSE_EQ:
+        if sense == EQUAL:
             lb = adjusted_rhs
             ub = adjusted_rhs
-        elif sense == _SENSE_LE:
+        elif sense == LESS_EQUAL:
             lb = -highspy.kHighsInf
             ub = adjusted_rhs
-        elif sense == _SENSE_GE:
+        elif sense == GREATER_EQUAL:
             lb = adjusted_rhs
             ub = highspy.kHighsInf
         else:
@@ -823,13 +815,3 @@ class Model:
     def write(self, filename):
         """Write the model to a file (LP or MPS format, determined by extension)."""
         self._highs.writeModel(filename)
-
-
-# ====================================================================================
-# tupledict (compatibility alias)
-# ====================================================================================
-
-
-def tupledict():
-    """Return a plain dict; the code only uses standard dict operations on tupledict."""
-    return {}
