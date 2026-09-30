@@ -109,7 +109,7 @@ def update_pilot_fuel_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> None:
 def _apply_pilot_fuel_coefficients(
     alg: BunkerAlgorithm,
     constraint: gp.Constr,
-    spend: gp.tupledict,
+    spend: dict[tuple, gp.Var],
     v: str,
     c: str,
     indices: tuple,

@@ -10,32 +10,32 @@ Model subclass for ConstrName/IISConstr compatibility).
 Otherwise, falls back to the HiGHS open-source solver.
 
 The active backend can be overridden via ``set_solver_preference()``
-before any Model objects are created.
+before any Model objects are created. Models and linear expressions are
+created through ``create_model()`` and ``create_linear_expression()``, which
+dispatch on the active backend; the classes exported here are those of the
+HiGHS backend, whose interface the Gurobi objects share, and serve as the
+static types.
 
 Usage:
     import navigate.bunker.solver as gp
-    from navigate.bunker.solver import GRB
+
+    model = gp.create_model("existing")
 """
 
 from __future__ import annotations
 
 import contextlib
 import logging
+from typing import TYPE_CHECKING, Literal
 
 # ---------------------------------------------------------------------------
 # HiGHS backend (always available)
 # ---------------------------------------------------------------------------
-from navigate.bunker.solver_highs import CONTINUOUS as _highs_CONTINUOUS
-from navigate.bunker.solver_highs import GRB as _highs_GRB
-from navigate.bunker.solver_highs import INF_OR_UNBD as _highs_INF_OR_UNBD
-from navigate.bunker.solver_highs import INFEASIBLE as _highs_INFEASIBLE
-from navigate.bunker.solver_highs import OPTIMAL as _highs_OPTIMAL
-from navigate.bunker.solver_highs import Constr as _highs_Constr
-from navigate.bunker.solver_highs import LinExpr as _highs_LinExpr
-from navigate.bunker.solver_highs import Model as _highs_Model
-from navigate.bunker.solver_highs import Var as _highs_Var
-from navigate.bunker.solver_highs import tupledict as _highs_tupledict
+from navigate.bunker import solver_highs as _highs
 from navigate.core.enum_ import SolverBackendID
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 _logger = logging.getLogger(__name__)
 
@@ -68,18 +68,6 @@ except Exception:
 # Gurobi backend (only if licensed)
 # ---------------------------------------------------------------------------
 if _GUROBI_AVAILABLE:
-    _grb_GRB = _grb.GRB
-    _grb_LinExpr = _grb.LinExpr
-    _grb_Constr = _grb.Constr
-    _grb_Var = _grb.Var
-    _grb_CONTINUOUS = _grb_GRB.CONTINUOUS
-    _grb_OPTIMAL = _grb_GRB.OPTIMAL
-    _grb_INFEASIBLE = _grb_GRB.INFEASIBLE
-    _grb_INF_OR_UNBD = _grb_GRB.INF_OR_UNBD
-
-    def _grb_tupledict():
-        """Return a gurobipy tupledict."""
-        return _grb.tupledict()
 
     class _GurobiModel(_grb.Model):
         """Thin subclass adding model-level ConstrName/IISConstr lists."""
@@ -108,26 +96,34 @@ if _GUROBI_AVAILABLE:
 
 
 # ---------------------------------------------------------------------------
+# Static types
+# ---------------------------------------------------------------------------
+# gurobipy is untyped, so the HiGHS classes stand for both backends in
+# annotations; the Gurobi objects provide the same interface.
+Model = _highs.Model
+Var = _highs.Var
+Constr = _highs.Constr
+LinExpr = _highs.LinExpr
+TempConstr = _highs.TempConstr
+
+# constraint senses, spelled as gurobipy spells them for both backends
+EQUAL = _highs.EQUAL
+LESS_EQUAL = _highs.LESS_EQUAL
+GREATER_EQUAL = _highs.GREATER_EQUAL
+
+# ---------------------------------------------------------------------------
 # Active backend selection
 # ---------------------------------------------------------------------------
-_active_backend = None  # "gurobi" or "highs", set by _configure()
-
-# Module-level names that consumers import.  Initialised by _configure().
-GRB = None
-LinExpr = None
-Constr = None
-Var = None
-Model = None
-tupledict = None
-CONTINUOUS = None
-OPTIMAL = None
-INFEASIBLE = None
-INF_OR_UNBD = None
+# bound by _configure(); the values differ per backend
+_active_backend: Literal["gurobi", "highs"]
+CONTINUOUS: str
+OPTIMAL: int
+INFEASIBLE: int
+INF_OR_UNBD: int
 
 
 def _configure(preference):
     """Bind module-level solver names according to *preference*."""
-    global GRB, LinExpr, Constr, Var, Model, tupledict
     global CONTINUOUS, OPTIMAL, INFEASIBLE, INF_OR_UNBD
     global _active_backend
 
@@ -154,28 +150,16 @@ def _configure(preference):
             _logger.info("Gurobi not available -- using HiGHS solver backend.")
 
     if use_gurobi:
-        GRB = _grb_GRB
-        LinExpr = _grb_LinExpr
-        Constr = _grb_Constr
-        Var = _grb_Var
-        Model = _GurobiModel
-        tupledict = _grb_tupledict
-        CONTINUOUS = _grb_CONTINUOUS
-        OPTIMAL = _grb_OPTIMAL
-        INFEASIBLE = _grb_INFEASIBLE
-        INF_OR_UNBD = _grb_INF_OR_UNBD
+        CONTINUOUS = _grb.GRB.CONTINUOUS
+        OPTIMAL = _grb.GRB.OPTIMAL
+        INFEASIBLE = _grb.GRB.INFEASIBLE
+        INF_OR_UNBD = _grb.GRB.INF_OR_UNBD
         _active_backend = "gurobi"
     else:
-        GRB = _highs_GRB
-        LinExpr = _highs_LinExpr
-        Constr = _highs_Constr
-        Var = _highs_Var
-        Model = _highs_Model
-        tupledict = _highs_tupledict
-        CONTINUOUS = _highs_CONTINUOUS
-        OPTIMAL = _highs_OPTIMAL
-        INFEASIBLE = _highs_INFEASIBLE
-        INF_OR_UNBD = _highs_INF_OR_UNBD
+        CONTINUOUS = _highs.CONTINUOUS
+        OPTIMAL = _highs.OPTIMAL
+        INFEASIBLE = _highs.INFEASIBLE
+        INF_OR_UNBD = _highs.INF_OR_UNBD
         _active_backend = "highs"
 
 
@@ -193,9 +177,59 @@ def set_solver_preference(preference: SolverBackendID):
     _configure(preference)
 
 
-def get_active_backend():
+def get_active_backend() -> Literal["gurobi", "highs"]:
     """Return ``"gurobi"`` or ``"highs"`` for the currently active backend."""
     return _active_backend
+
+
+def create_model(name: str) -> Model:
+    """
+    Create an empty LP model on the active backend.
+
+    Parameters
+    ----------
+    name
+        Name of the model.
+
+    Returns
+    -------
+    Model
+        The new model.
+    """
+    if _active_backend == "gurobi":
+        return _GurobiModel(name)
+
+    return _highs.Model(name)
+
+
+def create_linear_expression(
+    coefficients: Sequence[float] | None = None,
+    variables: Sequence[Var] | None = None,
+) -> LinExpr:
+    """
+    Create a linear expression on the active backend.
+
+    Without coefficients and variables the expression is empty.
+
+    Parameters
+    ----------
+    coefficients
+        Coefficient of each term.
+    variables
+        Variable of each term, aligned with ``coefficients``.
+
+    Returns
+    -------
+    LinExpr
+        The sum of the coefficient-variable products.
+    """
+    if _active_backend == "gurobi":
+        if coefficients is None or variables is None:
+            return _grb.LinExpr()
+
+        return _grb.LinExpr(coefficients, variables)
+
+    return _highs.LinExpr(coefficients, variables)
 
 
 # Initial configuration: auto-detect (preserves original default behaviour).

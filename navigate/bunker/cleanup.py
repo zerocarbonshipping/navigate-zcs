@@ -141,7 +141,7 @@ def remove_model_attribute_and_dict_element(
     tuple_dict
         Dict from which to remove elements.
     positions
-        Positions in the tupledict keys that should match 'to_remove'.
+        Positions in the dict keys that should match 'to_remove'.
     """
     if not isinstance(to_remove, tuple):
         to_remove = (to_remove,)

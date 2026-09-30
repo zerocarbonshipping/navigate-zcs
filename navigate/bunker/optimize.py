@@ -52,10 +52,10 @@ def check_solution(alg: BunkerAlgorithm) -> None:
 
     status = alg.model.Status
 
-    if status == gp.GRB.OPTIMAL:
+    if status == gp.OPTIMAL:
         return
 
-    elif status == gp.GRB.INFEASIBLE:
+    elif status == gp.INFEASIBLE:
         alg.model.computeIIS()
         iis = [
             alg.model.ConstrName[i]
@@ -74,7 +74,7 @@ def check_solution(alg: BunkerAlgorithm) -> None:
             " due to the IIS limiting constraint: {}.".format(scope, ", ".join(iis))
         )
 
-    elif status == gp.GRB.INF_OR_UNBD:
+    elif status == gp.INF_OR_UNBD:
         # set the dual reduction parameter to 0 and reoptimize to get a more conclusive
         # result
         alg.model.Params.DualReductions = 0

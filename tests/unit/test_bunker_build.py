@@ -20,7 +20,7 @@ from navigate.bunker.variables import update_vessel_variables
 
 
 class _StubModel:
-    """Records addVar/addConstr calls; each returns a fresh sentinel object."""
+    """Records addVar/addLConstr calls; each returns a fresh sentinel object."""
 
     def __init__(self):
         self.added_variables = []
@@ -30,8 +30,8 @@ class _StubModel:
         self.added_variables.append((vtype, name))
         return object()
 
-    def addConstr(self, constr, name):
-        self.added_constraints.append((constr, name))
+    def addLConstr(self, lhs, sense, rhs, name):
+        self.added_constraints.append((sense, name))
         return object()
 
 
@@ -46,9 +46,7 @@ def test_add_variable_creates_named_continuous_variable_under_key():
 
     add_variable(alg, container, ("vessel_a", 2, "ammonia"), "bunker")
 
-    assert alg.model.added_variables == [
-        (gp.GRB.CONTINUOUS, "bunker_vessel_a_2_ammonia")
-    ]
+    assert alg.model.added_variables == [(gp.CONTINUOUS, "bunker_vessel_a_2_ammonia")]
     assert list(container) == [("vessel_a", 2, "ammonia")]
 
 
@@ -89,17 +87,17 @@ def test_get_constraint_creates_named_constraint_under_key():
     assert container[("vessel_a", 2, "tank_b")] is constraint
 
 
-@pytest.mark.skipif(
-    gp.get_active_backend() != "highs", reason="inspects the HiGHS TempConstr"
+@pytest.mark.parametrize(
+    ("sense", "model_sense"),
+    [("==", gp.EQUAL), ("<=", gp.LESS_EQUAL), (">=", gp.GREATER_EQUAL)],
 )
-@pytest.mark.parametrize("sense", ["==", "<=", ">="])
-def test_get_constraint_builds_row_with_requested_sense(sense):
+def test_get_constraint_builds_row_with_requested_sense(sense, model_sense):
     alg = _StubAlgorithm()
 
     get_constraint(alg, {}, ("vessel_a",), sense, "family")
 
-    ((temp_constraint, _),) = alg.model.added_constraints
-    assert temp_constraint.sense == sense
+    ((recorded_sense, _),) = alg.model.added_constraints
+    assert recorded_sense == model_sense
 
 
 def test_get_constraint_returns_existing_constraint():

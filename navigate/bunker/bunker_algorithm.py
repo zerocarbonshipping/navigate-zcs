@@ -198,33 +198,33 @@ class BunkerAlgorithm:
         self.model: gp.Model | None = None
 
         # vessel variables
-        self.bunker: gp.tupledict | None = None
-        self.spend_sea: gp.tupledict | None = None
-        self.spend_port: gp.tupledict | None = None
-        self.mass_tank: gp.tupledict | None = None
-        self.shore_power: gp.tupledict | None = None
+        self.bunker: dict[tuple, gp.Var] | None = None
+        self.spend_sea: dict[tuple, gp.Var] | None = None
+        self.spend_port: dict[tuple, gp.Var] | None = None
+        self.mass_tank: dict[tuple, gp.Var] | None = None
+        self.shore_power: dict[tuple, gp.Var] | None = None
 
         # regulation variables
-        self.remedial_factor_individual: gp.tupledict | None = None
-        self.remedial_factor_flexibility: gp.tupledict | None = None
+        self.remedial_factor_individual: dict[tuple, gp.Var] | None = None
+        self.remedial_factor_flexibility: dict[str, gp.Var] | None = None
 
         # vessel constraints
-        self.energy_conservation_sea: gp.tupledict | None = None
-        self.energy_conservation_port: gp.tupledict | None = None
-        self.pilot_fuel_sea: gp.tupledict | None = None
-        self.pilot_fuel_port: gp.tupledict | None = None
-        self.mass_conservation: gp.tupledict | None = None
-        self.mass_sufficient: gp.tupledict | None = None
-        self.tank_capacity: gp.tupledict | None = None
-        self.bunker_equals_spent: gp.tupledict | None = None
-        self.fuel_inertia: gp.tupledict | None = None
+        self.energy_conservation_sea: dict[tuple, gp.Constr] | None = None
+        self.energy_conservation_port: dict[tuple, gp.Constr] | None = None
+        self.pilot_fuel_sea: dict[tuple, gp.Constr] | None = None
+        self.pilot_fuel_port: dict[tuple, gp.Constr] | None = None
+        self.mass_conservation: dict[tuple, gp.Constr] | None = None
+        self.mass_sufficient: dict[tuple, gp.Constr] | None = None
+        self.tank_capacity: dict[tuple, gp.Constr] | None = None
+        self.bunker_equals_spent: dict[tuple, gp.Constr] | None = None
+        self.fuel_inertia: dict[tuple, gp.Constr] | None = None
 
         # regulation constraints
-        self.regulation_threshold_individual: gp.tupledict | None = None
-        self.regulation_threshold_flexibility: gp.tupledict | None = None
+        self.regulation_threshold_individual: dict[tuple, gp.Constr] | None = None
+        self.regulation_threshold_flexibility: dict[str, gp.Constr] | None = None
 
         # fair-share constraints
-        self.fair_share_fuel: gp.tupledict | None = None
+        self.fair_share_fuel: dict[tuple, gp.Constr] | None = None
 
         # timing -----------------------------------------------------------------------
         self.build_time: float = 0.0
@@ -459,7 +459,7 @@ class BunkerAlgorithm:
         # initialize LP model
         model_name = "existing" if self.scope == BunkerScopeID.EXISTING else "expected"
 
-        self.model = gp.Model(model_name)
+        self.model = gp.create_model(model_name)
 
         self.model.Params.OutputFlag = 0  # suppress solver console output
         self.model.Params.Method = (
@@ -470,27 +470,27 @@ class BunkerAlgorithm:
         self.model.Params.OptimalityTol = self.options.solution_tolerance
 
         # initialize primary LP variables
-        self.bunker = gp.tupledict()
-        self.spend_sea = gp.tupledict()
-        self.spend_port = gp.tupledict()
-        self.mass_tank = gp.tupledict()
-        self.shore_power = gp.tupledict()
-        self.remedial_factor_individual = gp.tupledict()
-        self.remedial_factor_flexibility = gp.tupledict()
+        self.bunker = {}
+        self.spend_sea = {}
+        self.spend_port = {}
+        self.mass_tank = {}
+        self.shore_power = {}
+        self.remedial_factor_individual = {}
+        self.remedial_factor_flexibility = {}
 
         # initialize primary LP constraints
-        self.energy_conservation_sea = gp.tupledict()
-        self.energy_conservation_port = gp.tupledict()
-        self.pilot_fuel_sea = gp.tupledict()
-        self.pilot_fuel_port = gp.tupledict()
-        self.mass_conservation = gp.tupledict()
-        self.mass_sufficient = gp.tupledict()
-        self.tank_capacity = gp.tupledict()
-        self.bunker_equals_spent = gp.tupledict()
-        self.fuel_inertia = gp.tupledict()
-        self.fair_share_fuel = gp.tupledict()
-        self.regulation_threshold_individual = gp.tupledict()
-        self.regulation_threshold_flexibility = gp.tupledict()
+        self.energy_conservation_sea = {}
+        self.energy_conservation_port = {}
+        self.pilot_fuel_sea = {}
+        self.pilot_fuel_port = {}
+        self.mass_conservation = {}
+        self.mass_sufficient = {}
+        self.tank_capacity = {}
+        self.bunker_equals_spent = {}
+        self.fuel_inertia = {}
+        self.fair_share_fuel = {}
+        self.regulation_threshold_individual = {}
+        self.regulation_threshold_flexibility = {}
 
     def _reset_dynamic_properties(self) -> None:
         """
