@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Tests for the carried levelized technology charge (Increment.technology_charter_rate).
+Tests for the levelized technology charge (VesselIncrement.technology_charter_rate).
 
 Verifies:
   - Levelization identity: discounting the constant charge over its window reproduces
@@ -21,7 +21,7 @@ from unittest.mock import MagicMock
 import numpy as np
 
 from navigate.core import Scalar
-from navigate.core.increment import Increment
+from navigate.core.increment import VesselIncrement
 from navigate.core.node import Node
 from navigate.core.node_type import CURVE
 from navigate.core.nodes.fleet import Fleet
@@ -163,7 +163,7 @@ class TestCalculatePackageCharterRates:
 
 class TestApplyRetrofits:
     def test_moved_share_accumulates_annuity(self):
-        increment = Increment(
+        increment = VesselIncrement(
             multiplier=10.0,
             age=5.0,
             age_span=1.0,
@@ -182,7 +182,7 @@ class TestApplyRetrofits:
         )
 
     def test_partial_current_scales_charge(self):
-        increment = Increment(
+        increment = VesselIncrement(
             multiplier=10.0,
             age=5.0,
             age_span=1.0,
@@ -211,14 +211,14 @@ class TestCleanUpMultipliersCharterRate:
         fleet.newbuild_package_uptake = [np.zeros(2)]
         fleet.increments = [
             [
-                Increment(
+                VesselIncrement(
                     2.0,
                     5.0,
                     1.0,
                     package_uptake=np.array([1.0, 0.0]),
                     technology_charter_rate=10.0,
                 ),
-                Increment(
+                VesselIncrement(
                     6.0,
                     5.0,
                     1.0,
@@ -249,7 +249,7 @@ class TestConversionCarriesCharterRate:
         fleet.profile = MagicMock()
         fleet.increments = [
             [
-                Increment(
+                VesselIncrement(
                     10.0,
                     5.0,
                     1.0,
@@ -320,8 +320,20 @@ class TestTransferTechnologyCharterRate:
         fleet.assets = [vessel]
         fleet.increments = [
             [
-                Increment(2.0, 5.0, 1.0, technology_charter_rate=10.0),
-                Increment(6.0, 8.0, 1.0, technology_charter_rate=30.0),
+                VesselIncrement(
+                    2.0,
+                    5.0,
+                    1.0,
+                    package_uptake=np.array([1.0]),
+                    technology_charter_rate=10.0,
+                ),
+                VesselIncrement(
+                    6.0,
+                    8.0,
+                    1.0,
+                    package_uptake=np.array([1.0]),
+                    technology_charter_rate=30.0,
+                ),
             ]
         ]
 
@@ -379,7 +391,9 @@ class TestDefineInitialTechnologySeeding:
             _make_cost_package([], np.zeros(10)),
             _make_cost_package([tech], flow),
         ]
-        fleet.increments = [[Increment(5.0, 3.0, 1.0)]]
+        fleet.increments = [
+            [VesselIncrement(5.0, 3.0, 1.0, package_uptake=np.zeros(2))]
+        ]
         fleet.initial_technology_share = {("v0", "t0"): _ShareCurve(0.4)}
 
         define_initial_technology(fleet)

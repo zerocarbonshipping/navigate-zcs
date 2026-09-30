@@ -56,7 +56,7 @@ from navigate.util import ROUND_OFF, TOLERANCE, YEAR, divide_nonzero
 if TYPE_CHECKING:
     from numpy.typing import NDArray
 
-    from navigate.core.increment import Increment
+    from navigate.core.increment import VesselIncrement
     from navigate.core.nodes.fleet import Fleet
     from navigate.core.nodes.technology import Technology
     from navigate.core.nodes.vessel import Vessel
@@ -92,7 +92,7 @@ class _RetrofitProposal:
     # age cohort whose package_uptake the apply step mutates; safe to hold, as nothing
     # mutates the fleet.increments list structure between propose and transfer (list
     # mutation lives in perform_fleet_evolution)
-    increment: Increment
+    increment: VesselIncrement
 
     # package the eligible share currently sits at
     package_idx: int
@@ -252,17 +252,12 @@ def define_initial_technology(fleet: Fleet) -> None:
     fleet
         The fleet to initialize technology for.
     """
-    n_pkgs = len(fleet.technologies) + 1
+    n_pkgs = fleet.get_number_of_packages()
     n_vessels = len(fleet.assets)
 
     fleet.newbuild_package_uptake = [
         np.zeros(n_pkgs, dtype=float) for _ in range(n_vessels)
     ]
-
-    # initialize package_uptake on each increment
-    for v in range(n_vessels):
-        for inc in fleet.increments[v]:
-            inc.package_uptake = np.zeros(n_pkgs, dtype=float)
 
     if all(share is None for share in fleet.initial_technology_share.values()):
         return

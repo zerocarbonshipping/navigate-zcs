@@ -25,7 +25,7 @@ import numpy as np
 from navigate.core import Scalar
 from navigate.core.enum_ import FuelTypeID
 from navigate.core.expectations import FleetExpectation
-from navigate.core.increment import Increment
+from navigate.core.increment import VesselIncrement
 from navigate.core.nodes.fleet import Fleet
 from navigate.fleet.aggregation import calculate_fleet_profile
 from navigate.util import YEAR
@@ -49,11 +49,15 @@ def _converter(name: str, main_fuel_type: FuelTypeID) -> MagicMock:
     return converter
 
 
-def _fleet(vessel: MagicMock, increment: Increment | None = None) -> Fleet:
+def _fleet(vessel: MagicMock, increment: VesselIncrement | None = None) -> Fleet:
     fleet = Fleet.__new__(Fleet)
     fleet.assets = [vessel]
     fleet.increments = [
-        [increment if increment is not None else Increment(4.0, 2.0, 1.0)]
+        [
+            increment
+            if increment is not None
+            else VesselIncrement(4.0, 2.0, 1.0, package_uptake=np.array([1.0]))
+        ]
     ]
     fleet.profile = MagicMock()
     fleet.expectation = FleetExpectation()
@@ -134,7 +138,16 @@ class TestFleetProfileTechnologyExpenses:
         vessel = _vessel()
         vessel.power_system.get_converters.return_value = []
 
-        fleet = _fleet(vessel, Increment(4.0, 2.0, 1.0, technology_charter_rate=12.0))
+        fleet = _fleet(
+            vessel,
+            VesselIncrement(
+                4.0,
+                2.0,
+                1.0,
+                package_uptake=np.array([1.0]),
+                technology_charter_rate=12.0,
+            ),
+        )
         calculate_fleet_profile(fleet, fuels={}, timeline=np.arange(4.0) * YEAR, idx=1)
 
         fleet.profile.add_technology_expenses.assert_called_once_with(12.0 * 4.0, 1)

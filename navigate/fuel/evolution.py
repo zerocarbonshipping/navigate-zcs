@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.increment import Increment
+from navigate.core.increment import PlantIncrement
 from navigate.fuel.planning import (
     calculate_constrained_uptakes,
     perform_pipeline_planning,
@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 
 
 def _accumulate_weighted_cost(
-    incs: list[Increment],
+    incs: list[PlantIncrement],
     plant: Plant,
     origins: IntArray,
     production: FloatArray,
@@ -158,7 +158,7 @@ def _calculate_increment_production_interval(
 
 
 def _calculate_increments_production(
-    incs: list[Increment],
+    incs: list[PlantIncrement],
     production: FloatArray,
     lifetime: float,
     today: float,
@@ -471,7 +471,7 @@ def perform_pipeline_delivery(producer: Producer) -> None:
             if pinc_i.age >= 0.0:
                 # fully delivered: the age already counts the time since delivery
                 incs.append(
-                    Increment(
+                    PlantIncrement(
                         increment, pinc_i.age, pinc_i.age_span, decided=pinc_i.decided
                     )
                 )
@@ -490,7 +490,9 @@ def perform_pipeline_delivery(producer: Producer) -> None:
                     # the delivered portion keeps the original 'decided', so its
                     # origin index stays that of the original increment
                     incs.append(
-                        Increment(delivered, 0.0, delivered_dt, decided=pinc_i.decided)
+                        PlantIncrement(
+                            delivered, 0.0, delivered_dt, decided=pinc_i.decided
+                        )
                     )
 
                     # shrink the pipeline portion and truncate its age span, to keep
@@ -694,7 +696,7 @@ def define_existing_pipeline(producer: Producer, timeline: FloatArray) -> None:
 
         # the pipeline uses negative ages, as its plants are not yet delivered
         producer.pipeline[p] = [
-            Increment(multiplier=m, age=-d, age_span=t, decided=lead_time - d)
+            PlantIncrement(multiplier=m, age=-d, age_span=t, decided=lead_time - d)
             for m, d, t in zip(
                 incremental_plants, incremental_delivery, incremental_dt, strict=True
             )

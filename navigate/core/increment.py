@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Define the asset increment container, used across the fleet and fuel domains."""
+"""Define the asset cohorts, used by the Fleet (vessels) and Producer (plants) nodes."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 @dataclass(slots=True)
 class Increment:
     """
-    Represent one cohort of assets, vessels or plants, that entered service together.
+    Represent one cohort of assets that entered service together.
 
     Parameters
     ----------
@@ -25,20 +25,55 @@ class Increment:
         Age of the cohort in years, negative while it is still undelivered.
     age_span
         Width in years of the age bin the cohort spans.
-    decided
-        Years since the cohort was decided; plants only.
-    package_uptake
-        Share of the cohort on each technology package; fleet only.
-    baseline
-        Reference multiplier for partial age-based scrapping; fleet only.
-    technology_charter_rate
-        Levelized technology cost carried by the cohort, USD/year/vessel; fleet only.
     """
 
     multiplier: float
     age: float
     age_span: float
-    decided: float = 0.0
-    package_uptake: FloatArray | None = None
+
+
+@dataclass(slots=True)
+class VesselIncrement(Increment):
+    """
+    Represent one cohort of vessels, with the technology it carries.
+
+    Parameters
+    ----------
+    multiplier
+        Number of vessels in the cohort.
+    age
+        Age of the cohort in years.
+    age_span
+        Width in years of the age bin the cohort spans.
+    package_uptake
+        Share of the cohort on each technology package, one entry per package.
+    baseline
+        Reference multiplier for partial age-based scrapping; only the oldest cohort
+        of a vessel type can hold one, and None marks a cohort that does not.
+    technology_charter_rate
+        Levelized technology cost carried by the cohort, USD/year/vessel.
+    """
+
+    package_uptake: FloatArray
     baseline: float | None = None
     technology_charter_rate: float = 0.0
+
+
+@dataclass(slots=True)
+class PlantIncrement(Increment):
+    """
+    Represent one cohort of plants, with the time since it was decided.
+
+    Parameters
+    ----------
+    multiplier
+        Number of plants in the cohort.
+    age
+        Age of the cohort in years, negative while it is still in the pipeline.
+    age_span
+        Width in years of the age bin the cohort spans.
+    decided
+        Years since the cohort was decided.
+    """
+
+    decided: float

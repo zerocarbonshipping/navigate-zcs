@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.enum_ import UtilityID
-from navigate.core.increment import Increment
+from navigate.core.increment import PlantIncrement
 from navigate.economics.decision import calculate_two_axis_uptake
 from navigate.economics.metric import calculate_age_levelized_cost
 from navigate.util import YEAR, calculate_inertia, divide_nonzero
@@ -126,7 +126,7 @@ def perform_pipeline_planning(
         else:
             i = 0
 
-        pinc.insert(i, Increment(increments[p], new_age, dt, decided=0.0))
+        pinc.insert(i, PlantIncrement(increments[p], new_age, dt, decided=0.0))
 
     total_increments = np.sum(increments)
     producer.profile.set_development(idx, total_increments)

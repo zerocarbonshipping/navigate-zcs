@@ -12,7 +12,7 @@ import numpy as np
 import pytest
 
 from navigate.core import Scalar
-from navigate.core.increment import Increment
+from navigate.core.increment import PlantIncrement
 from navigate.fuel.evolution import (
     _calculate_increments_production,
     perform_decommissioning,
@@ -30,7 +30,7 @@ LIFETIME = 20.0  # years
 REL_TOL = 1e-9
 
 
-def _make_producer(increment: Increment, *, delivered: bool) -> SimpleNamespace:
+def _make_producer(increment: PlantIncrement, *, delivered: bool) -> SimpleNamespace:
     """Carry one plant type holding one increment, in the pipeline or delivered."""
     return SimpleNamespace(
         assets=[SimpleNamespace(lifetime=Scalar(LIFETIME))],
@@ -39,7 +39,7 @@ def _make_producer(increment: Increment, *, delivered: bool) -> SimpleNamespace:
     )
 
 
-def _forecast_next_step(increment: Increment, production: float, step: float):
+def _forecast_next_step(increment: PlantIncrement, production: float, step: float):
     """Forecast the increment's production one time-step of `step` days ahead."""
     times = np.array([TODAY, TODAY + step])
     forecast = _calculate_increments_production(
@@ -75,7 +75,7 @@ def _production_after_step(producer: SimpleNamespace, production: float) -> floa
 def test_pipeline_forecast_matches_delivery(
     age, age_span, multiplier, production, step, expected
 ):
-    increment = Increment(multiplier, age, age_span, decided=0.0)
+    increment = PlantIncrement(multiplier, age, age_span, decided=0.0)
     forecast = _forecast_next_step(increment, production, step)
 
     producer = _make_producer(replace(increment), delivered=False)
@@ -114,7 +114,7 @@ def test_pipeline_forecast_matches_delivery(
 def test_existing_forecast_matches_decommissioning(
     age, age_span, multiplier, production, step, expected
 ):
-    increment = Increment(multiplier, age, age_span, decided=age)
+    increment = PlantIncrement(multiplier, age, age_span, decided=age)
     forecast = _forecast_next_step(increment, production, step)
 
     producer = _make_producer(replace(increment), delivered=True)
