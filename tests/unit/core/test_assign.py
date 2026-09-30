@@ -55,8 +55,11 @@ from navigate.core.nodes.feedstock import Feedstock
 from navigate.core.nodes.fleet import Fleet
 from navigate.core.nodes.forecast import Forecast
 from navigate.core.nodes.fuel import Fuel
+from navigate.core.nodes.plant import Plant
 from navigate.core.nodes.port import Port
 from navigate.core.nodes.process import Process
+from navigate.core.nodes.producer import Producer
+from navigate.core.nodes.surface import Surface
 from navigate.core.nodes.variable import Variable
 from navigate.core.scalar import Scalar
 from navigate.core.table_data import TableData
@@ -223,6 +226,22 @@ class TestAssignBound:
     @pytest.mark.parametrize("assignment", [-2.0, 0.0, 1e30])
     def test_scalar_returned(self, assignment):
         assert assign_bound(assignment) == assignment
+
+    @pytest.mark.parametrize(
+        ("assignment", "flags", "message"),
+        [
+            (-np.inf, {"inclusive_lower": False}, "must be finite, but got -inf"),
+            ("-INF", {"inclusive_lower": False}, "must be finite, but got -inf"),
+            (np.inf, {"inclusive_upper": False}, "must be finite, but got inf"),
+            ("INF", {"inclusive_upper": False}, "must be finite, but got inf"),
+        ],
+        ids=["minus_inf", "minus_inf_keyword", "inf", "inf_keyword"],
+    )
+    def test_excluded_infinity_rejected(self, assignment, flags, message):
+        # a bound refuses the infinity on the side it does not bound, whether
+        # the deck spells it as a number or as a keyword
+        with pytest.raises(ValueError, match=message):
+            assign_bound(assignment, **flags)
 
     @pytest.mark.parametrize(
         "assignment",
@@ -395,6 +414,21 @@ class TestAssignInteger:
         with pytest.raises(ValueError, match=r"must be > 1\.0"):
             assign_integer(1.0, lower=1.0, inclusive_lower=False)
 
+    @pytest.mark.parametrize(
+        ("assignment", "bounds", "message"),
+        [
+            (np.inf, {}, "must be finite, but got inf"),
+            (-np.inf, {}, "must be finite, but got -inf"),
+            (np.inf, {"lower": 1.0}, "must be finite, but got inf"),
+        ],
+        ids=["inf", "minus_inf", "inf_above_a_finite_lower"],
+    )
+    def test_infinity_rejected_as_a_value_error(self, assignment, bounds, message):
+        # no integer is infinite, and rounding infinity raises an OverflowError,
+        # which carries no deck line for the parser to report
+        with pytest.raises(ValueError, match=message):
+            assign_integer(assignment, **bounds)
+
 
 # ── assign_value ──────────────────────────────────────────────────────────────
 
@@ -509,6 +543,109 @@ class TestAssignValue:
             0.0, 5.0, inclusive_lower, inclusive_upper
         )
 
+    @pytest.mark.parametrize(
+        ("assignment", "arguments", "message"),
+        [
+            (np.inf, {}, "must be finite, but got inf"),
+            (-np.inf, {}, "must be finite, but got -inf"),
+            (Scalar(np.inf), {}, "must be finite, but got inf"),
+            (np.inf, {"lower": 0.0}, "must be finite, but got inf"),
+            (-np.inf, {"upper": 1.0}, "must be finite, but got -inf"),
+            # allowing infinity does not lift a finite bound
+            (-np.inf, {"lower": 0.0, "allow_infinite": True}, r"must be ≥ 0\.0"),
+        ],
+        ids=[
+            "inf",
+            "minus_inf",
+            "wrapped_inf",
+            "inf_above_a_finite_lower",
+            "minus_inf_below_a_finite_upper",
+            "minus_inf_below_a_finite_lower_when_allowed",
+        ],
+    )
+    def test_infinity_rejected(self, assignment, arguments, message):
+        with pytest.raises(ValueError, match=message):
+            assign_value(assignment, **arguments)
+
+    @pytest.mark.parametrize(
+        ("assignment", "arguments"),
+        [
+            (np.inf, {"allow_infinite": True}),
+            (-np.inf, {"allow_infinite": True}),
+            (np.inf, {"lower": 0.0, "allow_infinite": True}),
+            # a finite bound keeps the inclusive flag the setter asked for
+            (0.0, {"lower": 0.0}),
+            (1.0, {"upper": 1.0}),
+            (1e300, {}),
+        ],
+        ids=[
+            "inf_allowed",
+            "minus_inf_allowed",
+            "inf_allowed_above_a_finite_lower",
+            "on_a_finite_lower",
+            "on_a_finite_upper",
+            "large_finite",
+        ],
+    )
+    def test_accepted(self, assignment, arguments):
+        assert assign_value(assignment, **arguments) == assignment
+
+    @pytest.mark.parametrize(
+        "make_assignment",
+        [lambda: Expression('1 + Forecast("x")'), lambda: Variable("v")],
+        ids=["expression", "calculator_node"],
+    )
+    @pytest.mark.parametrize(
+        ("allow_infinite", "inclusive"),
+        [(False, False), (True, True)],
+        ids=["refused", "allowed"],
+    )
+    def test_infinite_bounds_are_exclusive_unless_infinity_is_allowed(
+        self, make_assignment, allow_infinite, inclusive
+    ):
+        assignment = make_assignment()
+        assign_value(
+            assignment,
+            allow_scalar=False,
+            type_=(FORECAST, VARIABLE),
+            allow_infinite=allow_infinite,
+        )
+
+        assert assignment.internal_bounds == Bounds(
+            -np.inf, np.inf, inclusive, inclusive
+        )
+
+    @pytest.mark.parametrize("value", [np.inf, -np.inf], ids=["inf", "minus_inf"])
+    def test_an_infinite_calculator_fails_where_infinity_is_refused(self, value):
+        variable = Variable("unlimited")
+        variable.set_value(value)
+        assign_value(variable, type_=VARIABLE)
+
+        with pytest.raises(
+            ValueError,
+            match=rf'Variable\("unlimited"\): must be finite, but got {value}',
+        ):
+            variable.get()
+
+    def test_an_infinite_calculator_passes_where_infinity_is_allowed(self):
+        variable = Variable("unlimited")
+        variable.set_value(np.inf)
+        assign_value(variable, type_=VARIABLE, lower=0.0, allow_infinite=True)
+
+        assert variable.get() == np.inf
+
+    def test_an_infinite_expression_fails_where_infinity_is_refused(self):
+        # the expression answers what the variable it references holds, and
+        # the variable itself is referenced by no attribute that refuses it
+        variable = Variable("unlimited")
+        variable.set_value(np.inf)
+        expression = Expression('2 * Variable("unlimited")')
+        expression.node_references = [variable]
+        assign_value(expression, type_=VARIABLE, lower=0.0)
+
+        with pytest.raises(ValueError, match="must be finite, but got inf"):
+            expression.get()
+
     def test_a_calculator_at_an_exclusive_bound_fails_like_the_literal(self):
         # the literal is refused at assignment, the calculator holding the same
         # value once it is evaluated, both in the words _check_scalar uses
@@ -573,6 +710,15 @@ class TestAssignList:
 
     def test_default_minimum_accepts_an_empty_list(self):
         assert assign_list([]) == []
+
+    @pytest.mark.parametrize("value", [np.inf, -np.inf], ids=["inf", "minus_inf"])
+    def test_infinite_entry_rejected_by_default(self, value):
+        with pytest.raises(ValueError, match=f"must be finite, but got {value}"):
+            assign_list([1.0, value])
+
+    @pytest.mark.parametrize("value", [np.inf, -np.inf], ids=["inf", "minus_inf"])
+    def test_infinite_entry_accepted_where_allowed(self, value):
+        assert assign_list([1.0, value], allow_infinite=True) == [1.0, value]
 
 
 # ── assign_reference ──────────────────────────────────────────────────────────
@@ -913,3 +1059,90 @@ class TestCommandAssignmentToBooleanDict:
             command_assignment_to_boolean_dict(
                 "missing", "TRUE", {"oil": None}, allow_empty=True
             )
+
+
+# ── setters that accept infinity ──────────────────────────────────────────────
+
+
+def _bunkering_limit(value):
+    port = Port("p")
+    port.bunkering_limit = {"fuel": None}
+    port.set_bunkering_limit("fuel", value)
+    return port.bunkering_limit["fuel"].get()
+
+
+def _feed_constraint(value):
+    producer = Producer("p")
+    producer.feed_constraints = {"feed": None}
+    producer.set_feed_constraint("feed", value)
+    return producer.feed_constraints["feed"].get()
+
+
+def _maximum_speed_change(value):
+    fleet = Fleet("f")
+    fleet.set_maximum_speed_change(value)
+    return fleet.maximum_speed_change.get()
+
+
+def _below(value):
+    curve = Curve("c")
+    curve.set_below(value)
+    return curve._below
+
+
+def _above(value):
+    curve = Curve("c")
+    curve.set_above(value)
+    return curve._above
+
+
+def _outside(value):
+    surface = Surface("s")
+    surface.set_outside(value)
+    return surface._outside
+
+
+def _value(value):
+    variable = Variable("v")
+    variable.set_value(value)
+    return variable._value
+
+
+class TestInfinityOptIns:
+    """
+    Only the setters where infinity means something accept INF.
+
+    A limit reads INF as no limit, and a value defining a calculator is left to
+    the bounds of each attribute the calculator is assigned to; every other
+    setter rejects it.
+    """
+
+    @pytest.mark.parametrize(
+        "assign",
+        [_bunkering_limit, _feed_constraint, _maximum_speed_change],
+        ids=["bunkering_limit", "feed_constraint", "maximum_speed_change"],
+    )
+    def test_a_limit_accepts_inf(self, assign):
+        assert assign(np.inf) == np.inf
+
+    @pytest.mark.parametrize(
+        "assign",
+        [_below, _above, _outside, _value],
+        ids=["below", "above", "outside", "value"],
+    )
+    @pytest.mark.parametrize("value", [np.inf, -np.inf], ids=["inf", "minus_inf"])
+    def test_a_calculator_definition_accepts_either_infinity(self, assign, value):
+        assert assign(value) == value
+
+    @pytest.mark.parametrize(
+        "assign",
+        [
+            lambda value: Producer("p").set_maximum_development(value),
+            lambda value: Plant("p").set_capacity(value),
+            lambda value: Variable("v").set_addition(value),
+        ],
+        ids=["maximum_development", "capacity", "addition"],
+    )
+    def test_a_default_setter_rejects_inf(self, assign):
+        with pytest.raises(ValueError, match="must be finite, but got inf"):
+            assign(np.inf)

@@ -85,7 +85,7 @@ class _AssetManager[A: Vessel | Plant](Node):
         The list must have a length corresponding to the number of asset types. Each
         entry is either a Curve reference (where the Curve's x-values are ages in
         increasing order and y-values are the corresponding fractions) or 0 for asset
-        types with no custom distribution.
+        types with no custom distribution. The Curve's values must be finite.
 
         Examples
         --------
@@ -109,6 +109,21 @@ class _AssetManager[A: Vessel | Plant](Node):
     def _get_initial_multiplier(self, index: int) -> float:
         """Return the total initial multiplier for asset type at *index*."""
         raise NotImplementedError
+
+    def _check_initial_age_distribution_is_finite(self) -> None:
+        """Reject an initial age distribution holding an INF or -INF fraction."""
+        # its Curves are read as tables, never evaluated, so no bound they are
+        # assigned under ever checks their fractions; the table itself rejects
+        # a non-finite age
+        for distribution in self._initial_age_distribution:
+            if not isinstance(distribution, Curve):
+                continue
+
+            if not np.all(np.isfinite(distribution.y)):
+                raise ValueError(
+                    f"{self}: InitialAgeDistribution ({distribution}) must hold "
+                    "finite values."
+                )
 
     # shared increment initialization
     def define_initial_age(self) -> None:

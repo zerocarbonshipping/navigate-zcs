@@ -94,14 +94,15 @@ class _Table2D(_Calculator):
 
         Required when 'Extrapolate' is FLAT; the node's `check_consistency` rejects
         an unset value in that case. An expression is evaluated, without inputs,
-        each time the table is looked up.
+        each time the table is looked up. INF and -INF are accepted here and
+        checked by each attribute the calculator is assigned to.
 
         Parameters
         ----------
         outside
             Flat extrapolation value outside the table.
         """
-        self._outside = assign_value(outside)
+        self._outside = assign_value(outside, allow_infinite=True)
 
     # internal methods -----------------------------------------------------------------
     def is_convex(self) -> bool:
@@ -271,8 +272,10 @@ def check_table2d_input(x: FloatArray, y: FloatArray, z: FloatArray) -> None:
     """
     Validate the x, y, and z arrays used to build a 2D table.
 
-    'x' and 'y' must each hold at least two values, both strictly increasing,
-    and 'z' must be a 2-D array of shape ('x'.size, 'y'.size).
+    'x' and 'y' must each hold at least two finite values, both strictly
+    increasing, and 'z' must be a 2-D array of shape ('x'.size, 'y'.size). A 'z'
+    may be INF, and is checked by each attribute the table is assigned to when
+    it is evaluated, but never NaN, which no bound can reject.
 
     Parameters
     ----------
@@ -293,6 +296,15 @@ def check_table2d_input(x: FloatArray, y: FloatArray, z: FloatArray) -> None:
             f"'z' (shape {z.shape}) must have shape ({x.size}, {y.size}), matching"
             " the length of 'x' and 'y'."
         )
+
+    if not np.all(np.isfinite(x)):
+        raise ValueError("'x' must be finite.")
+
+    if not np.all(np.isfinite(y)):
+        raise ValueError("'y' must be finite.")
+
+    if np.any(np.isnan(z)):
+        raise ValueError("'z' must not be NaN.")
 
     if not is_strictly_increasing(x):
         raise ValueError("'x' must be strictly increasing.")

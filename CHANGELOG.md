@@ -282,11 +282,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   time step of the bunkering expectation instead of holding the value cached
   at the current one; a time-varying threshold no longer freezes at today's
   value for the rest of the run.
-- An unconstrained producer (`MaximumDevelopment = INF`) exporting to a port
-  with no `BunkeringLimit` no longer yields NaN bunker price and WTT: the
-  price and WTT are the average over the unconstrained plants only. The
-  port's `BunkerSupplyMass` is still reported as infinite, and the global
-  total is infinite for a fuel any port reports it for.
+- `INF` is rejected with the deck line where it has no meaning, instead of
+  giving NaN results or an OverflowError; only limits, bounds and calculator
+  values accept it, and tables reject `nan` and infinite coordinates (#336).
 - A report property keyed by a two-element tuple summed over the wrong
   element for `FIRST` and `SECOND`; the default report's `FuelConvertedPower`
   now requests `SECOND` to keep its from-fuel columns as before (#209).

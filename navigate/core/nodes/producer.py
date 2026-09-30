@@ -9,6 +9,8 @@ import itertools
 import logging
 from typing import TYPE_CHECKING
 
+import numpy as np
+
 from navigate.core import (
     Scalar,
     as_list,
@@ -211,6 +213,9 @@ class Producer(_AssetManager[Plant]):
         """
         Set the maximum number of plants that can be developed per year.
 
+        A value far above any development the demand could call for, such as 1e6,
+        leaves development unconstrained; INF is rejected.
+
         Examples
         --------
         - 0.1
@@ -271,7 +276,7 @@ class Producer(_AssetManager[Plant]):
         """
         Set an existing pipeline for a plant, used to determine new plants from it.
 
-        The pipeline forecast must be non-strictly increasing.
+        The pipeline forecast must be finite and non-strictly increasing.
 
         Examples
         --------
@@ -322,6 +327,8 @@ class Producer(_AssetManager[Plant]):
         """
         Set a static feed (feedstock or process) constraint for the region, tons/year.
 
+        INF means no constraint.
+
         Examples
         --------
         - "feed_name", 1e6
@@ -337,7 +344,10 @@ class Producer(_AssetManager[Plant]):
         write_matching_keys(
             feed_name,
             assign_value(
-                as_scalar(feed_constraint), type_=(FORECAST, VARIABLE), lower=0.0
+                as_scalar(feed_constraint),
+                type_=(FORECAST, VARIABLE),
+                lower=0.0,
+                allow_infinite=True,
             ),
             self.feed_constraints,
         )
@@ -399,9 +409,18 @@ class Producer(_AssetManager[Plant]):
                 f" ({len(self._initial_age_distribution)}) must correspond."
             )
 
+        self._check_initial_age_distribution_is_finite()
+
         for pipeline in self.existing_pipelines.values():
             if pipeline is None:
                 continue
+
+            # the pipeline is read as a table, never evaluated, so no bound it
+            # is assigned under ever checks its entries
+            if not np.all(np.isfinite(pipeline.y)):
+                raise ValueError(
+                    f"{self}: Pipeline ({pipeline}) must hold finite values."
+                )
 
             # a pipeline is a cumulative count of the plants committed to
             if not is_non_strictly_increasing(pipeline.y):

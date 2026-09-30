@@ -183,10 +183,7 @@ def calculate_development_potential(
 
         # calculate the potential if no
         # feed constraints are included
-        if maximum_development < np.inf:
-            plant_potential = uptake * maximum_development
-        else:
-            plant_potential = np.inf
+        plant_potential = uptake * maximum_development
 
         # loop over feed and reduce the
         # plant potential in case a plant is

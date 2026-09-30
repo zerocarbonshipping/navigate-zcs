@@ -43,14 +43,15 @@ class Variable(Node, _Calculator):
         Set the value of the variable.
 
         An expression is evaluated each time the variable is read, without
-        inputs.
+        inputs. INF and -INF are accepted here and checked, like any value, by
+        each attribute the variable is assigned to.
 
         Parameters
         ----------
         value
             Value of the variable.
         """
-        self._value = assign_value(value)
+        self._value = assign_value(value, allow_infinite=True)
 
     # internal methods -----------------------------------------------------------------
     def check_requirements(self) -> None:
