@@ -495,7 +495,7 @@ class Parser:
             elif self._current_event is not None:
                 # the reachability pass indexes a queued declaration by its node
                 # type before the event is read, so a type with no registry group
-                # is rejected here.
+                # is rejected here
                 if isinstance(statement, NodeDeclaration):
                     self._check_keyword_known(statement.node_type)
                     self._check_node_type_has_group(statement.node_type)
