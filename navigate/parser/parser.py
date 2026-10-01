@@ -454,6 +454,10 @@ class Parser:
                 self._read_date(statement)
 
             elif self._current_event is not None:
+                # the reachability pass indexes a queued declaration by its node
+                # type before the event is read, so an unknown type is rejected here.
+                if isinstance(statement, NodeDeclaration):
+                    self._check_keyword_known(statement.node_type)
                 self._current_event.add_statement(statement)
 
             else:
@@ -1041,20 +1045,23 @@ class Parser:
             )
 
     def _check_keyword(self, keyword, name=None):
-        if keyword in KEYWORD_SECTIONS:
-            if self._current_section not in KEYWORD_SECTIONS[keyword]:
-                if self._reading_default:
-                    raise DeckKeywordError(
-                        f'Unable to reference {keyword}("{name}") as it is not '
-                        f"previously defined."
-                    )
-                else:
-                    raise DeckKeywordError(
-                        self._error_prefix()
-                        + f": '{keyword}' is not an allowed keyword in section "
-                        f"{SECTION_NAME[self._current_section]}."
-                    )
-        else:
+        self._check_keyword_known(keyword)
+
+        if self._current_section not in KEYWORD_SECTIONS[keyword]:
+            if self._reading_default:
+                raise DeckKeywordError(
+                    f'Unable to reference {keyword}("{name}") as it is not '
+                    f"previously defined."
+                )
+            else:
+                raise DeckKeywordError(
+                    self._error_prefix()
+                    + f": '{keyword}' is not an allowed keyword in section "
+                    f"{SECTION_NAME[self._current_section]}."
+                )
+
+    def _check_keyword_known(self, keyword):
+        if keyword not in KEYWORD_SECTIONS:
             raise DeckKeywordError(
                 self._error_prefix() + f": \n'{keyword}' is not a recognized keyword. "
                 "Check the attributes and commands for spelling"

@@ -316,6 +316,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   longer crashes the run with a `ZeroDivisionError` when it regulates nothing
   of a policed vessel, as with `IntraFraction`, `InterFraction` and
   `ExtraFraction` all 0 (#376).
+- A statement with an unknown node type inside an EVENTS timeline is rejected
+  with a deck error naming the line, instead of crashing with a `KeyError`
+  (#386).
 
 ## [1.0.0] - 2026-07-16
 
