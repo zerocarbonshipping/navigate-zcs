@@ -340,8 +340,10 @@
    "metadata": {},
    "source": [
     "If the next cell produces a plot, your environment is working and you are ready to move on to\n",
-    "[Session 2, the vessel case study](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/02-vessel-case-study.ipynb). The link opens it in\n",
-    "Colab; if you are running locally, open it from `docs/workshop/` instead."
+    "[Session 2, the vessel case study](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/02-run-a-simple-case.ipynb). The link opens it in\n",
+    "Colab; if you are running locally, open it from `docs/workshop/` instead.\n",
+    "\n",
+    "[Session 5](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/05-run-our-reference-scenarios.ipynb)'s \"Run the scenarios\" cell takes about twenty minutes, so it is worth starting it early in a separate Colab tab and coming back to it.\n"
    ]
   },
   {
@@ -444,15 +446,16 @@
    "source": [
     "## Workshop sessions\n",
     "\n",
-    "**Next: [Session 2: Understand the Navigate logic](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/02-vessel-case-study.ipynb)**\n",
+    "**Next: [Session 2: Run a simple case](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/02-run-a-simple-case.ipynb)**\n",
     "\n",
     "Each link below opens the notebook in Google Colab.\n",
     "\n",
     "1. **Test set-up** (this session)\n",
-    "2. [Understand the Navigate logic](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/02-vessel-case-study.ipynb)\n",
-    "3. [Build your own case](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/03-build-your-own-case.ipynb) (you can read it in Colab; its prompts need Navigate installed on your own machine)\n",
-    "4. [Run scenarios and sensitivity analysis](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/04-build-your-own-whatif.ipynb)\n",
-    "5. [Run our reference scenarios](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/05-run-a-reference-scenario.ipynb)"
+    "2. [Run a simple case](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/02-run-a-simple-case.ipynb)\n",
+    "3. [Understand Navigate with an example](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/03-understand-navigate.ipynb)\n",
+    "4. [Run a global case](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/04-run-a-global-case.ipynb)\n",
+    "5. [Run our reference scenarios](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/05-run-our-reference-scenarios.ipynb)\n",
+    "6. [Build your own case](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/06-build-your-own-case.ipynb) (you can read it in Colab; its prompts need Navigate installed on your own machine)"
    ]
   }
  ],

@@ -7,7 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Session 4: Run scenarios and sensitivity analysis &#8212; Navigate</title>
+    <title>Session 4: Run a global case &#8212; Navigate</title>
   
   
   
@@ -46,7 +46,7 @@
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=fd10adb8"></script>
     <script src="../_static/design-tabs.js?v=f930bc37"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'workshop/04-build-your-own-whatif';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'workshop/04-run-a-global-case';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.22.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://zerocarbonshipping.github.io/navigate-zcs/_static/switcher.json';
@@ -59,8 +59,8 @@
     <script src="../_static/version-banner.js?v=bdf8961d"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Session 5: Run our reference scenarios" href="05-run-a-reference-scenario.html" />
-    <link rel="prev" title="Session 3: Build your own case" href="03-build-your-own-case.html" />
+    <link rel="next" title="Session 5: Run our reference scenarios" href="05-run-our-reference-scenarios.html" />
+    <link rel="prev" title="Session 3: Understand Navigate with an example" href="03-understand-navigate.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="1.0.0" />
@@ -379,14 +379,14 @@
   <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="01-setup-and-quicktest.html">Session 1: Test set-up</a></li>
-<li class="toctree-l1"><a class="reference internal" href="02-vessel-case-study.html">Session 2: Understand the Navigate logic</a></li>
+<li class="toctree-l1"><a class="reference internal" href="02-run-a-simple-case.html">Session 2: Run a simple case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="03-understand-navigate.html">Session 3: Understand Navigate with an example</a></li>
 
 
 
-
-<li class="toctree-l1"><a class="reference internal" href="03-build-your-own-case.html">Session 3: Build your own case</a></li>
-<li class="toctree-l1 current active"><a aria-current="page" class="current reference internal" href="#">Session 4: Run scenarios and sensitivity analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="05-run-a-reference-scenario.html">Session 5: Run our reference scenarios</a></li>
+<li class="toctree-l1 current active"><a aria-current="page" class="current reference internal" href="#">Session 4: Run a global case</a></li>
+<li class="toctree-l1"><a class="reference internal" href="05-run-our-reference-scenarios.html">Session 5: Run our reference scenarios</a></li>
+<li class="toctree-l1"><a class="reference internal" href="06-build-your-own-case.html">Session 6: Build your own case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References &amp; further reading</a></li>
 </ul>
 </div>
@@ -431,7 +431,7 @@
     
     <li class="breadcrumb-item"><a href="index.html" class="nav-link">Workshop</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Session 4: Run scenarios and sensitivity analysis</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Session 4: Run a global case</span></li>
   </ul>
 </nav>
 </div>
@@ -450,12 +450,12 @@
                   
   <blockquote>
 <div><p><strong>Recommended: run this notebook in Google Colab, nothing to install.</strong></p>
-<p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/04-build-your-own-whatif.ipynb"><img alt="Open In Colab" src="https://colab.research.google.com/assets/colab-badge.svg" /></a></p>
+<p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/04-run-a-global-case.ipynb"><img alt="Open In Colab" src="https://colab.research.google.com/assets/colab-badge.svg" /></a></p>
 <p>Just click on the “Open in Colab” button and follow along. Click the ▶ button on each cell (or press Shift+Enter) to see the results and move on to the next one.</p>
 <p>The documentation website shows pre-run results you can check if you don’t want to or can’t use Colab.</p>
 </div></blockquote>
-<section class="tex2jax_ignore mathjax_ignore" id="session-4-run-scenarios-and-sensitivity-analysis">
-<h1>Session 4: Run scenarios and sensitivity analysis<a class="headerlink" href="#session-4-run-scenarios-and-sensitivity-analysis" title="Link to this heading">#</a></h1>
+<section class="tex2jax_ignore mathjax_ignore" id="session-4-run-a-global-case">
+<h1>Session 4: Run a global case<a class="headerlink" href="#session-4-run-a-global-case" title="Link to this heading">#</a></h1>
 <p>Navigate ships a set of <strong>reference scenarios</strong> under
 <code class="docutils literal notranslate"><span class="pre">simulations/scenarios/</span></code> which are full decks built and maintained by the Center,
 using its own assumptions (see
@@ -471,7 +471,7 @@ Global-Fuel-Standard-style mechanism named <code class="docutils literal notrans
 <p><em>The reference scenario’s geography: five fuel-supply regions, the 2050 electricity
 cost that feeds them, the production pathways each can host, and the EU jurisdiction
 the ETS and FuelEU reach.</em></p>
-<p>This deck is different from the single-voyage illustrative case in <a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/02-vessel-case-study.ipynb">Session 2</a>.
+<p>This deck is different from the single-voyage illustrative case in <a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/02-run-a-simple-case.ipynb">Session 2</a>.
 One big difference is that here, 23 fleets sail 23 routes with no endpoints, and bunkering is
 aggregated into just two ports, one EU and one rest-of-world. So there is no line to
 draw across the ocean. Instead, the routes in the model represent an averaged profile for the fleet.</p>
@@ -536,7 +536,7 @@ draw across the ocean. Instead, the routes in the model represent an averaged pr
     <span class="o">%</span><span class="k">pip</span> install -q .
     <span class="nb">print</span><span class="p">(</span><span class="s2">"Installed Navigate."</span><span class="p">)</span>
 
-<span class="c1"># The workshop's colours, shared with notebook 2 so the two cannot drift apart.</span>
+<span class="c1"># The workshop's colours, shared with notebook 3 so the two cannot drift apart.</span>
 <span class="n">_STYLE_DIR</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="s2">"docs/workshop"</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">())</span>
 <span class="k">if</span> <span class="n">_STYLE_DIR</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="p">:</span>
     <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">_STYLE_DIR</span><span class="p">)</span>
@@ -765,7 +765,7 @@ what that included file asks for.</p>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">forecast_to_frame</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">nodes</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""A Forecast node's resolved (date, value) table, as in notebook 2."""</span>
+<span class="w">    </span><span class="sd">"""A Forecast node's resolved (date, value) table, as in notebook 3."""</span>
     <span class="n">node</span> <span class="o">=</span> <span class="n">nodes</span><span class="o">.</span><span class="n">forecasts</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">"date"</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">get_x_date</span><span class="p">()),</span>
                          <span class="s2">"value"</span><span class="p">:</span> <span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">calculate</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">get_x</span><span class="p">()]})</span>
@@ -870,7 +870,7 @@ what the two regulation scenarios ask for, by 2050:
 </section>
 <section id="the-sensitivity-analysis">
 <h2>The sensitivity analysis<a class="headerlink" href="#the-sensitivity-analysis" title="Link to this heading">#</a></h2>
-<p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/05-run-a-reference-scenario.ipynb">Session 5</a> runs the Center’s reference scenarios exactly as they are. This one
+<p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/05-run-our-reference-scenarios.ipynb">Session 5</a> runs the Center’s reference scenarios exactly as they are. This one
 lets you change the assumptions behind one of them and watch the answer move.</p>
 <blockquote>
 <div><p><strong>These numbers are for comparing, not for quoting</strong></p>
@@ -882,7 +882,7 @@ sound but the absolute figures are different from the Center’s base simulation
 </section>
 <section id="why-this-runs-in-a-minute-or-two">
 <h2>Why this runs in a minute or two<a class="headerlink" href="#why-this-runs-in-a-minute-or-two" title="Link to this heading">#</a></h2>
-<p>The reference scenarios in <a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/05-run-a-reference-scenario.ipynb">Session 5</a> take between six and twenty-two minutes
+<p>The reference scenarios in <a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/05-run-our-reference-scenarios.ipynb">Session 5</a> take between six and twenty-two minutes
 each.
 To have a faster solving time, we change the <code class="docutils literal notranslate"><span class="pre">EVENTS</span></code> block in this simulation to reduce the number of time steps.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Start</span>
@@ -1014,7 +1014,7 @@ To have a faster solving time, we change the <code class="docutils literal notra
     <span class="o">%</span><span class="k">pip</span> install -q .
     <span class="nb">print</span><span class="p">(</span><span class="s2">"Installed Navigate."</span><span class="p">)</span>
 
-<span class="c1"># The workshop's colours, shared with notebooks 2 and 5.</span>
+<span class="c1"># The workshop's colours, shared with notebooks 3 and 5.</span>
 <span class="n">_STYLE_DIR</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="s2">"docs/workshop"</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">())</span>
 <span class="k">if</span> <span class="n">_STYLE_DIR</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="p">:</span>
     <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">_STYLE_DIR</span><span class="p">)</span>
@@ -1556,21 +1556,22 @@ Change one of the numbers above and run this cell again.
 <ul class="simple">
 <li><p>editing the deck in <code class="docutils literal notranslate"><span class="pre">simulations/scenarios/workshop_whatif/</span></code> itself,</p></li>
 <li><p>keeping your own variants under <code class="docutils literal notranslate"><span class="pre">simulations/user/</span></code>,</p></li>
-<li><p>building a case from scratch as <a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/03-build-your-own-case.ipynb">Session 3</a> describes (needs a local checkout rather than Colab)</p></li>
+<li><p>building a case from scratch as <a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/06-build-your-own-case.ipynb">Session 6</a> describes (needs a local checkout rather than Colab)</p></li>
 <li><p>you can also check out our Horizon-zcs tool on GitHub for global sensitivity analysis (which is what we are using for our own analyses)</p></li>
 </ul>
 </section>
 <section id="workshop-sessions">
 <h2>Workshop sessions<a class="headerlink" href="#workshop-sessions" title="Link to this heading">#</a></h2>
-<p><strong>Next: <a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/05-run-a-reference-scenario.ipynb">Session 5: Run our reference scenarios</a></strong></p>
+<p><strong>Next: <a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/05-run-our-reference-scenarios.ipynb">Session 5: Run our reference scenarios</a></strong></p>
 <p>Each link opens the notebook in Google Colab, in a fresh session, so run it
 from the top.</p>
 <ol class="arabic simple">
 <li><p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/01-setup-and-quicktest.ipynb">Test set-up</a></p></li>
-<li><p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/02-vessel-case-study.ipynb">Understand the Navigate logic</a></p></li>
-<li><p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/03-build-your-own-case.ipynb">Build your own case</a> (you can read it in Colab; its prompts need Navigate installed on your own machine)</p></li>
-<li><p><strong>Run scenarios and sensitivity analysis</strong> (this session)</p></li>
-<li><p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/05-run-a-reference-scenario.ipynb">Run our reference scenarios</a></p></li>
+<li><p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/02-run-a-simple-case.ipynb">Run a simple case</a></p></li>
+<li><p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/03-understand-navigate.ipynb">Understand Navigate with an example</a></p></li>
+<li><p><strong>Run a global case</strong> (this session)</p></li>
+<li><p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/05-run-our-reference-scenarios.ipynb">Run our reference scenarios</a></p></li>
+<li><p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/06-build-your-own-case.ipynb">Build your own case</a> (you can read it in Colab; its prompts need Navigate installed on your own machine)</p></li>
 </ol>
 </section>
 </section>
@@ -1586,16 +1587,16 @@ from the top.</p>
                   
 <div class="prev-next-area">
     <a class="left-prev"
-       href="03-build-your-own-case.html"
+       href="03-understand-navigate.html"
        title="previous page">
       <i class="fa-solid fa-angle-left"></i>
       <div class="prev-next-info">
         <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title">Session 3: Build your own case</p>
+        <p class="prev-next-title">Session 3: Understand Navigate with an example</p>
       </div>
     </a>
     <a class="right-next"
-       href="05-run-a-reference-scenario.html"
+       href="05-run-our-reference-scenarios.html"
        title="next page">
       <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
@@ -1637,7 +1638,7 @@ from the top.</p>
   <div class="sidebar-secondary-item">
 
   <div class="tocsection sourcelink">
-    <a href="../_sources/workshop/04-build-your-own-whatif.ipynb.txt">
+    <a href="../_sources/workshop/04-run-a-global-case.ipynb.txt">
       <i class="fa-solid fa-file-lines"></i> Show Source
     </a>
   </div>
