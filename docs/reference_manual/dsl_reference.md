@@ -300,6 +300,8 @@ This can be used to import nodes with a different name than default name.
 
 This removal only undoes the pull the `Copy` itself made. If a separate `Type("node_copy_from")` reference appears anywhere else in the deck, that reference pulls the source from the default library again as its own, independent node, so both `"node_copy_from"` and `"node_copy_to"` end up registered as separate nodes.
 
+A general node, such as `ModelDefinition` or `BunkerOptions`, cannot be copied: a deck holds exactly one instance of each, so there is never a second name for a copy to take. A `Copy` naming one of these is rejected when the deck is read.
+
 ## Wildcards
 
 Navigate accepts glob-style wildcards in node names and identifiers, letting a single pattern stand in for many concrete values. Two wildcard characters are supported:

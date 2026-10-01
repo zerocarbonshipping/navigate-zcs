@@ -153,14 +153,18 @@ def test_a_copy_target_without_a_calculator_adopts_its_placeholder():
 
 
 @pytest.mark.parametrize("node_type", [MODEL_DEFINITION, BUNKER_OPTIONS])
-def test_a_general_node_type_is_rejected_instead_of_crashing(node_type):
+def test_a_general_node_type_is_rejected_instead_of_crashing(read_deck, node_type):
     # a general node has no registry group to copy into, so the check runs
-    # before any lookup against one
-    parser = Parser()
-    parser._current_section = SimulationSectionID.DEFINE
-
-    with pytest.raises(DeckKeywordError, match=f"'{node_type}' cannot be copied"):
-        parser._process_copy_node(CopyStatement(node_type, "a", "b"))
+    # before any lookup against one; the deck error names the include file
+    # and line the Copy statement sits on
+    with pytest.raises(
+        DeckKeywordError,
+        match=(
+            rf"Error in deck file, line \d+, include file '.*', line \d+: "
+            rf"'{node_type}' cannot be copied\."
+        ),
+    ):
+        read_deck(f'Copy {node_type} "a" "b"\n')
 
 
 @pytest.mark.parametrize(
