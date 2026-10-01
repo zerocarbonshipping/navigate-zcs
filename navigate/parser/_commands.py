@@ -358,9 +358,9 @@ def _expand_inputs(command: str, inputs: list) -> Iterable[tuple]:
 
 
 # methods ------------------------------------------------------------------------------
-def check_node_command_is_allowed(node_type, command_name, section):
+def check_node_command_is_allowed(node_type, command_name, section) -> None:
     """
-    Check whether a node type may use a command in a section.
+    Raise if a node type may not use a command in a section.
 
     Parameters
     ----------
@@ -370,21 +370,13 @@ def check_node_command_is_allowed(node_type, command_name, section):
         The name of the command.
     section : Enum
         The section (DEFINE or EVENTS) at which the command is used.
-
-    Returns
-    -------
-    bool
-        Whether the command is allowed.
     """
     allowed_commands = NODE_COMMAND_SECTIONS[node_type]
 
     if command_name in allowed_commands:
         allowed_sections = allowed_commands[command_name]
 
-        if section in allowed_sections:
-            return True
-
-        else:
+        if section not in allowed_sections:
             raise CommandError(
                 f"Nodes of type '{node_type}' does not allow use of command "
                 f"'{command_name}' in '{SECTION_NAME[section]}'"
