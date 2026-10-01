@@ -3,7 +3,7 @@
 
 """Read and write one notebook cell at a time, as a plain text file.
 
-Notebook 2 carries the case map as a 135 KB base64 PNG in markdown - the only
+Notebook 3 carries the case map as a 135 KB base64 PNG in markdown - the only
 form that renders in Colab, JupyterLab, Sphinx and GitHub without running a cell
 (see map_to_notebook.py). The cost is a 258 KB .ipynb that generic notebook
 tooling will not open, and that no editor or assistant can load whole.
@@ -99,7 +99,7 @@ def check_syntax(src):
     Notebook cells legitimately use `%time`, `!unzip` and friends, which are not
     Python - IPython rewrites them before execution. A plain ast.parse rejects
     the whole cell over one such line, which would mean this tool refuses to
-    write any cell containing a magic (notebook 2 has two). Blank the magic
+    write any cell containing a magic (notebook 3 has two). Blank the magic
     lines out, keeping their indentation so block structure survives, and check
     everything else. A cell magic (`%%…`) on the first line makes the entire
     cell non-Python, so there is nothing to check.

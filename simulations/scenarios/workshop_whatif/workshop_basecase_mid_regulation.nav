@@ -3,7 +3,7 @@
 
 # basecase_mid_regulation on a coarse timeline. Identical DEFINE block; only the
 # time step differs. Its numbers are therefore NOT comparable with the yearly
-# basecases - see docs/workshop/04-build-your-own-whatif.ipynb.
+# basecases - see docs/workshop/04-run-a-global-case.ipynb.
 
 DEFINE {
 	Load DefaultModelDefinition

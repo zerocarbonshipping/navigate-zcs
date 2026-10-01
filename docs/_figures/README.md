@@ -6,19 +6,19 @@ the small tool for editing those notebooks. This folder is **not** documentation
 
 ## The workshop maps
 
-Three notebooks open with a map, and all travel the same way. The SVG in
+Four notebooks open with a map, and all travel the same way. The SVG in
 `docs/_static/` is the **source of truth** in each case:
 
 | map | SVG | notebook |
 |---|---|---|
-| `example_4` | `example_4_map.svg` (940x470) | `02-vessel-case-study.ipynb` |
-| `reference_scenario` | `reference_scenario_map.svg` (940x376) | `04-build-your-own-whatif.ipynb` and `05-run-a-reference-scenario.ipynb` |
+| `example_4` | `example_4_map.svg` (940x470) | `02-run-a-simple-case.ipynb` and `03-understand-navigate.ipynb` |
+| `reference_scenario` | `reference_scenario_map.svg` (940x376) | `04-run-a-global-case.ipynb` and `05-run-our-reference-scenarios.ipynb` |
 
 Rasterise, then embed, from the repository root:
 
 ```bash
 python docs/_figures/render_map_png.py                      # -> docs/_figures/example_4_map.png
-python docs/_figures/map_to_notebook.py                     # -> notebook 2 cell 2, as base64 PNG
+python docs/_figures/map_to_notebook.py                     # -> notebooks 2 and 3, as base64 PNG
 
 python docs/_figures/render_map_png.py reference_scenario   # -> docs/_figures/reference_scenario_map.png
 python docs/_figures/map_to_notebook.py reference_scenario  # -> notebooks 4 and 5, as base64 PNG
@@ -52,10 +52,10 @@ Both were constants once, and both are wrong for one of the two maps:
 
 - **The raster size is the SVG's own `viewBox`.** The maps are different heights,
   and a hardcoded size silently rescales or crops one of them.
-- **The line ending is whichever the notebook already uses.** Notebook 2 is CRLF
+- **The line ending is whichever the notebook already uses.** Notebook 3 is CRLF
   on disk and notebook 5 is LF. `Path.write_text` writes the *running platform's*
   ending, so it would rewrite all 1,265 lines of notebook 5 on Windows and all
-  6,500 of notebook 2 on Linux, for nothing.
+  6,500 of notebook 3 on Linux, for nothing.
 
 ### The 138,000-character line, and why it has to stay
 
@@ -116,7 +116,7 @@ cell alone:
 
 ```bash
 python docs/_figures/fig_to_notebook.py docs/_figures/Regulation_example_4.png \
-       docs/workshop/02-vessel-case-study.ipynb 84278b62 \
+       docs/workshop/03-understand-navigate.ipynb 84278b62 \
        --alt "screen-reader description" --caption "one line under the image"
 ```
 
@@ -126,9 +126,9 @@ alone. **Repeat the same `--colors` and `--max-width`**, or the image silently
 changes size:
 
 ```bash
-# the regulation figure in notebook 2, in its own cell under the section title
+# the regulation figure in notebook 3, in its own cell under the section title
 python docs/_figures/fig_to_notebook.py docs/_figures/Regulation_example_4.png \
-       docs/workshop/02-vessel-case-study.ipynb ae9ec5ab \
+       docs/workshop/03-understand-navigate.ipynb ae9ec5ab \
        --update --max-width 2000 --colors 128
 ```
 
@@ -150,20 +150,20 @@ crisp and the hatched area shows no banding, at 240 KB rather than 304 KB.
 It writes a single-entry, single-line payload for the reason in the section
 above. Do not hand-edit an embedded image; re-run the script.
 
-## Editing notebook 2 — `nbcell.py`
+## Editing notebook 3 — `nbcell.py`
 
-Notebook 2 is 258 KB, half of it the map. That is too big for most tools to load
+Notebook 3 is 258 KB, half of it the map. That is too big for most tools to load
 whole, so edit it one cell at a time instead:
 
 ```bash
-python docs/_figures/nbcell.py list docs/workshop/02-vessel-case-study.ipynb
-python docs/_figures/nbcell.py find docs/workshop/02-vessel-case-study.ipynb "CASES = {"
-python docs/_figures/nbcell.py get  docs/workshop/02-vessel-case-study.ipynb e77ec445 -o cell.py
+python docs/_figures/nbcell.py list docs/workshop/03-understand-navigate.ipynb
+python docs/_figures/nbcell.py find docs/workshop/03-understand-navigate.ipynb "CASES = {"
+python docs/_figures/nbcell.py get  docs/workshop/03-understand-navigate.ipynb e77ec445 -o cell.py
 # edit cell.py with anything
-python docs/_figures/nbcell.py set  docs/workshop/02-vessel-case-study.ipynb e77ec445 -i cell.py
+python docs/_figures/nbcell.py set  docs/workshop/03-understand-navigate.ipynb e77ec445 -i cell.py
 
 # add a new cell after (or --before) an existing one
-python docs/_figures/nbcell.py insert docs/workshop/02-vessel-case-study.ipynb e77ec445 \
+python docs/_figures/nbcell.py insert docs/workshop/03-understand-navigate.ipynb e77ec445 \
        -i new_cell.md --type markdown
 ```
 

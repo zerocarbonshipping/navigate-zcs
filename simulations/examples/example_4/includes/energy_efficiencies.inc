@@ -6,7 +6,7 @@
 #
 # The library also offers air lubrication for this class. It is left out: with it
 # in, the look-ahead bunkering LP stalls under the "Chilean power x1.4" case in
-# Part 4 - a solver problem, not a modelling choice.
+# Session 2's sensitivity analysis - a solver problem, not a modelling choice.
 
 Fleet "copper_trade" {
 

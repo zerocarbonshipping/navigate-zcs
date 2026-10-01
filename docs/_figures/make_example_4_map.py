@@ -3,7 +3,7 @@
 Run from anywhere:  python docs/_figures/make_example_4_map.py
 
 Writes docs/_static/example_4_map.svg, which is the source of truth for the map
-at the top of docs/workshop/02-vessel-case-study.ipynb. The notebook itself
+at the top of docs/workshop/03-understand-navigate.ipynb. The notebook itself
 carries a base64 PNG rather than this SVG, because Jupyter's and Colab's trust
 models strip SVG from untrusted notebooks. To push a change all the way through:
 
