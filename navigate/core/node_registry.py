@@ -118,7 +118,7 @@ class Nodes:
 
 @dataclass
 class GeneralNodes:
-    """The at-most-one-per-deck nodes, each unset until the deck defines it."""
+    """The at-most-one-per-deck nodes, built once the DEFINE pass has checked them."""
 
-    bunker_options: BunkerOptions | None = None
-    model_definition: ModelDefinition | None = None
+    bunker_options: BunkerOptions
+    model_definition: ModelDefinition

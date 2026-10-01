@@ -93,6 +93,7 @@ if TYPE_CHECKING:
     from collections.abc import Iterable, Iterator, Sized
 
     from navigate.core.general_nodes._general_node import _GeneralNode
+    from navigate.core.general_nodes.model_definition import ModelDefinition
     from navigate.core.types_ import Calculator
     from navigate.util.types_ import DateArray
 
@@ -122,12 +123,22 @@ class _PendingAssignment:
     deck_line: int
 
 
+@dataclass
+class _DeclaredGeneralNodes:
+    """The general nodes the deck has declared so far."""
+
+    bunker_options: BunkerOptions | None = None
+    model_definition: ModelDefinition | None = None
+
+
 class Parser:
     def __init__(self):
         """Read and process Navigate input decks (.nav and .inc files)."""
-        # nodes
+        # nodes; the general nodes are held as the deck declares them, and
+        # become the record once the DEFINE pass has checked them
         self.nodes = Nodes()
-        self.general_nodes = GeneralNodes()
+        self._declared_general_nodes: _DeclaredGeneralNodes = _DeclaredGeneralNodes()
+        self.general_nodes: GeneralNodes
 
         # event queue; the events queued under START are held apart from the
         # dated ones until the start date is known
@@ -898,10 +909,6 @@ class Parser:
                     + f": '{type(item).__name__}' is not a valid keyword."
                 )
 
-        setattr(
-            self.general_nodes, GENERAL_NODE_GROUP[declaration.node_type], general_node
-        )
-
     def _process_copy_node(self, statement):
         """Process a CopyStatement AST node."""
         self._check_allow_new_node("copy")
@@ -1026,12 +1033,12 @@ class Parser:
         group[name] = node
         return [node]
 
-    def _retrieve_general_node(self, type_: str):
+    def _retrieve_general_node(self, type_: str) -> _GeneralNode:
         field = GENERAL_NODE_GROUP[type_]
-        general_node = getattr(self.general_nodes, field)
+        general_node: _GeneralNode | None = getattr(self._declared_general_nodes, field)
         if general_node is None:
             general_node = define_new_general_node(type_)
-            setattr(self.general_nodes, field, general_node)
+            setattr(self._declared_general_nodes, field, general_node)
         return general_node
 
     def _check_allow_new_node(self, action):
@@ -1132,19 +1139,25 @@ class Parser:
     # Semantic passes
     # ══════════════════════════════════════════════════════════════════
 
-    def _initialize_general_nodes(self):
-        if self.general_nodes.model_definition is None:
+    def _initialize_general_nodes(self) -> None:
+        """Check the declared general nodes and build the general-node record."""
+        model_definition = self._declared_general_nodes.model_definition
+        if model_definition is None:
             raise DeckFormatError(
                 "Error in simulation: 'ModelDefinition' must be defined."
             )
 
         self._check_required_attributes(
-            self.general_nodes.model_definition,
-            GENERAL_NODE_REQUIRED_ATTRIBUTES[MODEL_DEFINITION],
+            model_definition, GENERAL_NODE_REQUIRED_ATTRIBUTES[MODEL_DEFINITION]
         )
 
-        if self.general_nodes.bunker_options is None:
-            self.general_nodes.bunker_options = BunkerOptions()
+        bunker_options = self._declared_general_nodes.bunker_options
+        if bunker_options is None:
+            bunker_options = BunkerOptions()
+
+        self.general_nodes = GeneralNodes(
+            bunker_options=bunker_options, model_definition=model_definition
+        )
 
     def _check_required_node_attributes(self) -> None:
         for node in self._get_all_nodes():
