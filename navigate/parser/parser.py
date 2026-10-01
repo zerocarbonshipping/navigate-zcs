@@ -90,10 +90,11 @@ from navigate.util import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable, Iterator
+    from collections.abc import Iterable, Iterator, Sized
 
     from navigate.core.general_nodes._general_node import _GeneralNode
     from navigate.core.types_ import Calculator
+    from navigate.util.types_ import DateArray
 
 logger = logging.getLogger(__name__)
 
@@ -128,16 +129,19 @@ class Parser:
         self.nodes = Nodes()
         self.general_nodes = GeneralNodes()
 
-        # event queue
-        self.dates = []
-        self._event_queue = {}
+        # event queue; the events queued under START are held apart from the
+        # dated ones until the start date is known
+        self.dates: DateArray
+        self._start_events: list[Event] = []
+        self._event_queue: dict[np.datetime64, list[Event]] = {}
         self._idx_date = 0
-        self._current_date = None
-        self._current_event = None
+        self._current_event: Event | None = None
+
+        # timeline state
+        self._timeline_open: bool = False
+        self._last_date: np.datetime64 | None = None
 
         # paths
-        self._exe_directory = None
-        self._deck_path = None
         self.deck_directory = None
         self.deck_name = None
         self._user_default_directory = None
@@ -146,8 +150,6 @@ class Parser:
         self._installation_module_directory = None
 
         # dynamic flags
-        self._reading_events = False
-        self._place_in_queue = False
         self._reading_default = False
         self._pruned_nodes = set()
         self._copy_source_names = set()
@@ -181,9 +183,11 @@ class Parser:
         # the first node and deck attribute or command name holding it
         self._pinned_calculators: dict[Calculator, tuple[Node, str]] = {}
 
-        # section flags
-        self._current_section = None
-        self._finished_sections = []
+        # section flags; the current section outlives the open block, as it
+        # also selects the pass once every block is read
+        self._open_section: SimulationSectionID | None = None
+        self._current_section: SimulationSectionID
+        self._finished_sections: list[SimulationSectionID] = []
 
         # source tracking — set per include-file processing pass
         self._current_deck_line = 0
@@ -212,7 +216,6 @@ class Parser:
         except FileNotFoundError:
             raise FileNotFoundError(f"Unable to locate {path}.") from None
 
-        self._deck_path = path
         self.deck_directory = str(path.parent)
         self.deck_name = path.stem
         self._define_internal_directories(data_dir=data_dir)
@@ -241,7 +244,6 @@ class Parser:
         self._reject_events_changing_pinned_calculators()
 
         self._current_section = SimulationSectionID.EVENTS
-        self._reading_events = True
 
     @classmethod
     def parse_plot_nodes(cls, path, data_dir=None):
@@ -288,13 +290,11 @@ class Parser:
             self._current_deck_line = directive.source.line
 
             if isinstance(directive, IncludeDirective):
-                logger.debug(
-                    '[%s] Include "%s"', self._current_section.name, directive.path
-                )
+                logger.debug('[%s] Include "%s"', section.name, directive.path)
                 self._read_include_file(directive.path)
 
             elif isinstance(directive, LoadModuleDirective):
-                logger.debug("[%s] Load %s", self._current_section.name, directive.name)
+                logger.debug("[%s] Load %s", section.name, directive.name)
                 self._load_module(directive)
 
         self._end_reading_section()
@@ -308,8 +308,6 @@ class Parser:
         np.datetime64
             Date of the next event in the timeline.
         """
-        self._reading_events = True
-
         date, events = self._next_event()
 
         if (self._idx_date > 1) and (date is not None):
@@ -319,8 +317,6 @@ class Parser:
                 date,
                 timedelta_to_days(date - self.dates[0]),
             )
-
-        self._current_date = date
 
         for event in events:
             self._read_event(event)
@@ -359,7 +355,6 @@ class Parser:
     # ── internal directories ──────────────────────────────────────────
 
     def _define_internal_directories(self, data_dir: Path | None = None) -> None:
-        self._exe_directory = os.path.dirname(os.path.abspath(__file__))
         if data_dir:
             data_dir = Path(data_dir).resolve()
             self._user_default_directory = str(data_dir / "defaults/user")
@@ -458,7 +453,7 @@ class Parser:
             elif isinstance(statement, DateStatement):
                 self._read_date(statement)
 
-            elif self._place_in_queue:
+            elif self._current_event is not None:
                 self._current_event.add_statement(statement)
 
             else:
@@ -494,8 +489,6 @@ class Parser:
 
     def _read_event(self, event):
         """Process stored AST statements from a queued event."""
-        self._reading_events = True
-        self._current_event = event
         self._current_deck_line = event.deck_line
         self._current_source = event.source
 
@@ -503,21 +496,19 @@ class Parser:
             self._current_source = getattr(statement, "source", self._current_source)
             self._process_event_statement(statement)
 
-        self._current_event = None
-        self._reading_events = False
-
     def _begin_reading_section(self, section):
         self._check_section(section)
+        self._open_section = section
         self._current_section = section
-        logger.debug("Reading section %s", self._current_section.name)
+        logger.debug("Reading section %s", section.name)
 
     def _check_section(self, section):
-        if self._current_section is not None:
+        if self._open_section is not None:
             raise DeckFormatError(
                 self._deck_error_prefix()
                 + (
                     f": Unable to begin {SECTION_NAME[section]} while reading "
-                    f"{SECTION_NAME[self._current_section]}."
+                    f"{SECTION_NAME[self._open_section]}."
                 )
             )
 
@@ -543,11 +534,10 @@ class Parser:
             )
 
     def _end_reading_section(self):
-        if self._current_section is not None:
-            self._finished_sections.append(self._current_section)
-            self._current_section = None
-            self._reading_events = False
-            self._place_in_queue = False
+        if self._open_section is not None:
+            self._finished_sections.append(self._open_section)
+            self._open_section = None
+            self._current_event = None
         else:
             raise DeckFormatError(
                 self._deck_error_prefix()
@@ -566,23 +556,22 @@ class Parser:
         self._check_keyword(START)
         self._check_timeline_change()
 
-        if self._current_date is not None:
+        if self._timeline_open:
             raise DeckFormatError(
                 self._error_prefix()
                 + ": Unable to start a new timeline while one is in progress."
             )
 
-        self._reading_events = True
-        self._place_in_queue = True
-        self._assign_current_event(START)
+        self._last_date = None
+        self._start_events.append(self._open_event())
 
     def _end_timeline(self):
         self._check_keyword(END)
         self._check_timeline_change()
 
-        self._reading_events = False
-        self._place_in_queue = False
-        self._current_date = None
+        self._timeline_open = False
+        self._last_date = None
+        self._current_event = None
 
     def _read_date(self, statement):
         """Process a DateStatement AST node."""
@@ -596,28 +585,26 @@ class Parser:
         self._progress_is_chronological(date)
         self._assign_current_event(date)
 
-    def _assign_current_event(self, date):
-        if not self._place_in_queue:
-            self._reading_events = False
-            self._place_in_queue = True
+    def _assign_current_event(self, date: np.datetime64) -> None:
+        self._last_date = date
+        self._event_queue.setdefault(date, []).append(self._open_event())
 
+    def _open_event(self) -> Event:
+        """Open the event the statements read next are queued into."""
         event = Event(source=self._current_source, deck_line=self._current_deck_line)
-
-        if date not in self._event_queue:
-            self.dates.append(date)
-            self._event_queue[date] = [event]
-        else:
-            self._event_queue[date].append(event)
-
-        self._current_date = date
+        self._timeline_open = True
         self._current_event = event
+        return event
+
+    def _queued_events(self) -> list[Event]:
+        """Return every queued event, the START events first."""
+        return [
+            *self._start_events,
+            *(event for events in self._event_queue.values() for event in events),
+        ]
 
     def _progress_is_chronological(self, date):
-        if (
-            (self._current_date is not None)
-            and (not isinstance(self._current_date, str))
-            and date <= self._current_date
-        ):
+        if self._last_date is not None and date <= self._last_date:
             raise DeckFormatError(
                 self._error_prefix()
                 + ": Dates must be ordered chronologically within individual "
@@ -627,26 +614,24 @@ class Parser:
     def _replace_start_keyword(self):
         start_date = self.general_nodes.model_definition.start_date
 
-        self.dates = np.array(
-            [start_date if d == START else d for d in self.dates], dtype="datetime64[D]"
-        )
-        self.dates = np.unique(self.dates)
+        queued_dates = [*self._event_queue]
+        if self._start_events:
+            queued_dates.append(start_date)
 
-        if START in self._event_queue:
-            if start_date not in self._event_queue:
-                start_events = []
-            else:
-                start_events = self._event_queue.pop(start_date)
+        dates = np.unique(np.array(queued_dates, dtype="datetime64[D]"))
 
+        if self._start_events:
             self._event_queue[start_date] = [
-                *self._event_queue.pop(START),
-                *start_events,
+                *self._start_events,
+                *self._event_queue.pop(start_date, []),
             ]
+            self._start_events = []
 
-        else:
-            if start_date not in self.dates:
-                self.dates = np.insert(self.dates, 0, start_date)
-                self._event_queue[start_date] = []
+        elif start_date not in dates:
+            dates = np.insert(dates, 0, start_date)
+            self._event_queue[start_date] = []
+
+        self.dates = dates
 
     def _timeline_is_consistent(self):
         start_date = self.general_nodes.model_definition.start_date
@@ -1122,7 +1107,7 @@ class Parser:
     def includes_necessary_information(self):
         # a Fleet requires Vessels, a Vessel a Route and a Route Ports, so a
         # deck with a Fleet has vessels and ports; emissions may be absent
-        checks = [
+        checks: list[tuple[Sized, str]] = [
             (self.dates, "timeline"),
             (self.nodes.fleets, "Fleets"),
             (self.nodes.fuels, "Fuels"),
@@ -1197,8 +1182,6 @@ class Parser:
         lifecycle hooks, whose requirement checks, the required attributes'
         among them, run on the DEFINE pass only.
         """
-        self._reading_events = True
-
         self._flush_pending_assignments()
         self._replace_references()
         self._build_tables()
@@ -1222,12 +1205,10 @@ class Parser:
 
         self._initialize_nodes()
 
-        self._reading_events = False
-
     def _prune_unreachable_nodes(self):
         """Remove every node no chain of references connects to a root."""
         unreachable = find_unreachable(
-            self.nodes, self.general_nodes, self._event_queue, self._command_queue
+            self.nodes, self.general_nodes, self._queued_events(), self._command_queue
         )
 
         if not unreachable:
@@ -1380,15 +1361,14 @@ class Parser:
 
         dropped = 0
 
-        for events in self._event_queue.values():
-            for event in events:
-                kept = [
-                    statement
-                    for statement in event.statements
-                    if not self._targets_only_pruned(statement, pruned_names_by_type)
-                ]
-                dropped += len(event.statements) - len(kept)
-                event.statements = kept
+        for event in self._queued_events():
+            kept = [
+                statement
+                for statement in event.statements
+                if not self._targets_only_pruned(statement, pruned_names_by_type)
+            ]
+            dropped += len(event.statements) - len(kept)
+            event.statements = kept
 
         return dropped
 
