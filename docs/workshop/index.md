@@ -17,10 +17,10 @@ The aim of this workshop is to work through practical cases with the Navigate mo
 1. **Get introduced and set up**: sanity-check your environment with a tiny, fast-running deck ([Session 1](01-setup-and-quicktest.ipynb))
 2. **Understand the model logic**, with a simple case ([Session 2](02-vessel-case-study.ipynb))
 3. **Build your own case with an AI assistant**: example prompts that turn a description of your case into a working model ([Session 3](03-build-your-own-case.ipynb))
-4. **Run our reference scenarios**: pre-made assumptions set and models maintained by the Center ([Session 4](04-run-a-reference-scenario.ipynb))
-5. **Simple sensitivity analysis**: pick one of four reference
+4. **Simple sensitivity analysis**: pick one of four reference
    cases, move some of the assumptions behind it (fuel
-   prices, regulatory stringency,...) and see how results change ([Session 5](05-build-your-own-whatif.ipynb))
+   prices, regulatory stringency,...) and see how results change ([Session 4](04-build-your-own-whatif.ipynb))
+5. **Run our reference scenarios**: pre-made assumptions set and models maintained by the Center ([Session 5](05-run-a-reference-scenario.ipynb))
 
 To understand the details behind Navigate you can also check our [Tutorials](../tutorials/index.md) and
 [Reference Manual](../reference_manual/index.md).
@@ -69,7 +69,7 @@ interpreted as forecasts, benchmarks, recommendations, or investment advice.
 01-setup-and-quicktest
 02-vessel-case-study
 03-build-your-own-case
-04-run-a-reference-scenario
-05-build-your-own-whatif
+04-build-your-own-whatif
+05-run-a-reference-scenario
 references
 ```

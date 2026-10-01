@@ -58,7 +58,7 @@ myst_enable_extensions = [
     "colon_fence",
 ]
 
-# Never execute notebooks during a docs build: workshop notebook 4 runs three
+# Never execute notebooks during a docs build: workshop notebook 5 runs three
 # reference scenarios of up to twenty minutes each, and the rest of the docs site
 # never executes example code either (docs/tutorials/*.md show .nav/.inc
 # listings as static text). Notebooks render with whatever output cells they
