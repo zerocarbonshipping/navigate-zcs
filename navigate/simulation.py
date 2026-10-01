@@ -62,6 +62,8 @@ if TYPE_CHECKING:
     import argparse
     from pathlib import Path
 
+    from navigate.core.node_registry import GeneralNodes
+
 logger = logging.getLogger(__name__)
 
 
@@ -91,7 +93,7 @@ class SimulationManager:
         # parser -----------------------------------------------------------------------
         self.parser = Parser()
         self.nodes = self.parser.nodes
-        self.general_nodes = self.parser.general_nodes
+        self.general_nodes: GeneralNodes
 
         # code timing ------------------------------------------------------------------
         self._computational_time = None
@@ -109,6 +111,7 @@ class SimulationManager:
         """
         # read the simulation deck
         self.parser.read_deck(path, data_dir=args.data_dir)
+        self.general_nodes = self.parser.general_nodes
 
         # apply CLI solver override (takes precedence over deck setting)
         if getattr(args, "solver", None) is not None:

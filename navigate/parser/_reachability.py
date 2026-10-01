@@ -101,9 +101,6 @@ def find_unreachable(
     for field in GENERAL_NODE_GROUP.values():
         general_node = getattr(general_nodes, field)
 
-        if general_node is None:
-            continue
-
         for _, attribute in get_attributes(
             general_node, exclude=REFERENCE_SCAN_EXCLUDE
         ):
