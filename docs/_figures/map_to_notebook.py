@@ -34,8 +34,8 @@ VS Code notebook editor while every Python-side check still passed.
 A markdown link destination cannot contain a newline, so there is no split that
 survives both readers. One long line it is.
 
-Line endings are PRESERVED, not imposed. The two notebooks do not agree -
-notebook 2 is CRLF on disk and notebook 4 is LF - and `Path.write_text` would
+Line endings are PRESERVED, not imposed. The notebooks do not agree -
+notebook 2 is CRLF on disk and notebooks 4 and 5 are LF - and `Path.write_text` would
 write the running platform's ending to both, rewriting every line of one of
 them for nothing.
 """
@@ -49,13 +49,13 @@ HERE = pathlib.Path(__file__).resolve().parent
 WORKSHOP = HERE.parent / "workshop"
 
 # Each map: the PNG stem (shared with docs/_static/<stem>.svg and written by
-# render_map_png.py), the notebook that carries it, its alt text, and the
+# render_map_png.py), the notebooks that carry it, its alt text, and the
 # prefix that locates the cell. The alt text IS the locator, so changing it
 # here without re-running this script orphans the cell.
 MAPS = {
     "example_4": {
         "stem": "example_4_map",
-        "notebook": "02-vessel-case-study.ipynb",
+        "notebooks": ["02-vessel-case-study.ipynb"],
         "alt": ("Map of the Chile to Rotterdam copper trade: the two bunker "
                 "ports, a fleet of ships on the voyage via the Panama Canal, "
                 "and the fuel production sites in Patagonia and southern "
@@ -65,7 +65,9 @@ MAPS = {
     },
     "reference_scenario": {
         "stem": "reference_scenario_map",
-        "notebook": "04-run-a-reference-scenario.ipynb",
+        # Session 4 opens with Session 5's introduction, map included
+        "notebooks": ["04-build-your-own-whatif.ipynb",
+                      "05-run-a-reference-scenario.ipynb"],
         "alt": ("Map of the Navigate reference scenario: five fuel-supply "
                 "regions shaded by their 2050 electricity cost, with Europe "
                 "ringed as the EU ETS and FuelEU jurisdiction"),
@@ -74,9 +76,9 @@ MAPS = {
 }
 
 
-def embed(spec, dry_run=False):
+def embed(spec, notebook, dry_run=False):
     png = HERE / f"{spec['stem']}.png"
-    notebook = WORKSHOP / spec["notebook"]
+    notebook = WORKSHOP / notebook
     if not png.exists():
         raise SystemExit(f"no rendered PNG at {png}; run render_map_png.py first")
 
@@ -145,7 +147,9 @@ def main():
     parser.add_argument("--dry-run", action="store_true",
                         help="report what would happen and write nothing")
     args = parser.parse_args()
-    embed(MAPS[args.map], dry_run=args.dry_run)
+    spec = MAPS[args.map]
+    for notebook in spec["notebooks"]:
+        embed(spec, notebook, dry_run=args.dry_run)
 
 
 if __name__ == "__main__":

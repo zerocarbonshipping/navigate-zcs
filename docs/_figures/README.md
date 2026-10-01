@@ -6,13 +6,13 @@ the small tool for editing those notebooks. This folder is **not** documentation
 
 ## The workshop maps
 
-Two notebooks open with a map, and both travel the same way. The SVG in
+Three notebooks open with a map, and all travel the same way. The SVG in
 `docs/_static/` is the **source of truth** in each case:
 
 | map | SVG | notebook |
 |---|---|---|
 | `example_4` | `example_4_map.svg` (940x470) | `02-vessel-case-study.ipynb` |
-| `reference_scenario` | `reference_scenario_map.svg` (940x376) | `04-run-a-reference-scenario.ipynb` |
+| `reference_scenario` | `reference_scenario_map.svg` (940x376) | `04-build-your-own-whatif.ipynb` and `05-run-a-reference-scenario.ipynb` |
 
 Rasterise, then embed, from the repository root:
 
@@ -21,7 +21,7 @@ python docs/_figures/render_map_png.py                      # -> docs/_figures/e
 python docs/_figures/map_to_notebook.py                     # -> notebook 2 cell 2, as base64 PNG
 
 python docs/_figures/render_map_png.py reference_scenario   # -> docs/_figures/reference_scenario_map.png
-python docs/_figures/map_to_notebook.py reference_scenario  # -> notebook 4 cell 2, as base64 PNG
+python docs/_figures/map_to_notebook.py reference_scenario  # -> notebooks 4 and 5, as base64 PNG
 ```
 
 Both default to `example_4`, so the original two-argument-free invocations still
@@ -53,8 +53,8 @@ Both were constants once, and both are wrong for one of the two maps:
 - **The raster size is the SVG's own `viewBox`.** The maps are different heights,
   and a hardcoded size silently rescales or crops one of them.
 - **The line ending is whichever the notebook already uses.** Notebook 2 is CRLF
-  on disk and notebook 4 is LF. `Path.write_text` writes the *running platform's*
-  ending, so it would rewrite all 1,265 lines of notebook 4 on Windows and all
+  on disk and notebook 5 is LF. `Path.write_text` writes the *running platform's*
+  ending, so it would rewrite all 1,265 lines of notebook 5 on Windows and all
   6,500 of notebook 2 on Linux, for nothing.
 
 ### The 138,000-character line, and why it has to stay
