@@ -707,6 +707,7 @@ Only the copied node itself is duplicated: the nodes it references are shared, s
 <p>If the node being copied from does not already exist in the simulation then it is removed after the import and only the node of the name “node_copy_to” remains.
 This can be used to import nodes with a different name than default name.</p>
 <p>This removal only undoes the pull the <code class="docutils literal notranslate"><span class="pre">Copy</span></code> itself made. If a separate <code class="docutils literal notranslate"><span class="pre">Type(&quot;node_copy_from&quot;)</span></code> reference appears anywhere else in the deck, that reference pulls the source from the default library again as its own, independent node, so both <code class="docutils literal notranslate"><span class="pre">&quot;node_copy_from&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;node_copy_to&quot;</span></code> end up registered as separate nodes.</p>
+<p>A general node, such as <code class="docutils literal notranslate"><span class="pre">ModelDefinition</span></code> or <code class="docutils literal notranslate"><span class="pre">BunkerOptions</span></code>, cannot be copied: a deck holds exactly one instance of each, so there is never a second name for a copy to take. A <code class="docutils literal notranslate"><span class="pre">Copy</span></code> naming one of these is rejected when the deck is read.</p>
 </section>
 <section id="wildcards">
 <h2>Wildcards<a class="headerlink" href="#wildcards" title="Link to this heading">#</a></h2>
