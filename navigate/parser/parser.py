@@ -885,6 +885,10 @@ class Parser:
         """Process a CopyStatement AST node."""
         self._check_allow_new_node("copy")
         self._check_keyword(statement.node_type)
+        if statement.node_type in GENERAL_NODE_GROUP:
+            raise DeckKeywordError(
+                self._error_prefix() + f": '{statement.node_type}' cannot be copied."
+            )
 
         self._check_node_name_is_available(statement.node_type, statement.copy_to)
 

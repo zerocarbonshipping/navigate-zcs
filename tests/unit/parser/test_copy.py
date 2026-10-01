@@ -17,9 +17,10 @@ import pytest
 
 from navigate.core.enum_ import SimulationSectionID
 from navigate.core.expression import Expression
-from navigate.core.node_type import EMISSION, VARIABLE
+from navigate.core.node_type import BUNKER_OPTIONS, EMISSION, MODEL_DEFINITION, VARIABLE
 from navigate.core.nodes.emission import Emission
 from navigate.core.nodes.variable import Variable
+from navigate.exceptions import DeckKeywordError
 from navigate.parser._lark_parser import CopyStatement
 from navigate.parser.parser import Parser
 
@@ -149,6 +150,17 @@ def test_a_copy_target_without_a_calculator_adopts_its_placeholder():
 
     assert parser.nodes.emissions["dst"] is placeholder
     assert placeholder.global_warming_potential.get() == 2.0
+
+
+@pytest.mark.parametrize("node_type", [MODEL_DEFINITION, BUNKER_OPTIONS])
+def test_a_general_node_type_is_rejected_instead_of_crashing(node_type):
+    # a general node has no registry group to copy into, so the check runs
+    # before any lookup against one
+    parser = Parser()
+    parser._current_section = SimulationSectionID.DEFINE
+
+    with pytest.raises(DeckKeywordError, match=f"'{node_type}' cannot be copied"):
+        parser._process_copy_node(CopyStatement(node_type, "a", "b"))
 
 
 @pytest.mark.parametrize(
