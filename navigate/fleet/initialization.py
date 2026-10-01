@@ -23,8 +23,39 @@ from navigate.fleet.technology_adoption import (
 from navigate.util import calculate_compound_growth
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
+
     from navigate.core.nodes.fleet import Fleet
+    from navigate.core.nodes.vessel import Vessel
     from navigate.util.types_ import FloatArray
+
+
+def assign_vessels_to_fleets(fleets: Iterable[Fleet]) -> None:
+    """
+    Assign every vessel to the fleet that lists it.
+
+    Parameters
+    ----------
+    fleets
+        All fleets of the simulation.
+
+    Raises
+    ------
+    ValueError
+        If a vessel is listed in more than one fleet.
+    """
+    first_fleet_names: dict[Vessel, str] = {}
+
+    for fleet in fleets:
+        for vessel in fleet.assets:
+            if vessel in first_fleet_names:
+                raise ValueError(
+                    f'Fleet("{fleet.name}"): {vessel} is already assigned to a'
+                    f' different fleet, Fleet("{first_fleet_names[vessel]}").'
+                )
+
+            first_fleet_names[vessel] = fleet.name
+            vessel.fleet_assignment = fleet.name
 
 
 def initialize_existing_fleet(fleet: Fleet, timeline: FloatArray) -> None:
@@ -41,9 +72,6 @@ def initialize_existing_fleet(fleet: Fleet, timeline: FloatArray) -> None:
     timeline
         Simulation timeline, days.
     """
-    for vessel in fleet.assets:
-        vessel.set_fleet_assignment(fleet.name)
-
     idx = 0
     nv = len(fleet.assets)
 

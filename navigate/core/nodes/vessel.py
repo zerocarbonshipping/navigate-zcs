@@ -91,9 +91,7 @@ class Vessel(Node):
         self.primary_fuel_type: FuelTypeID
         self.usable_fuel_types: list[FuelTypeID] = []
         self.usable_fuels: dict[str, Fuel] = {}
-
-        # cross-check variables
-        self.fleet_assignment: str | None = None
+        self.fleet_assignment: str
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_propulsion_load(self, propulsion_load: SurfaceArgument) -> None:
@@ -457,25 +455,3 @@ class Vessel(Node):
         """
         self.profile.set_lifetime(idx, self.lifetime.get())
         self.profile.set_lead_time(idx, self.lead_time.get())
-
-    def set_fleet_assignment(self, fleet_name: str) -> None:
-        """
-        Assign the vessel to a fleet, rejecting a second assignment elsewhere.
-
-        Parameters
-        ----------
-        fleet_name
-            Name of the fleet the vessel is assigned to.
-
-        Raises
-        ------
-        ValueError
-            If the vessel is already assigned to a different fleet.
-        """
-        if self.fleet_assignment is not None:
-            raise ValueError(
-                f'Fleet("{fleet_name}"): {self} is already assigned to a different'
-                f' fleet, Fleet("{self.fleet_assignment}").'
-            )
-
-        self.fleet_assignment = fleet_name

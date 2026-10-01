@@ -14,6 +14,7 @@ from navigate.core.enum_ import BunkerScopeID
 from navigate.core.profiles import ManagerProfile
 from navigate.fleet import (
     approximate_missing_technology,
+    assign_vessels_to_fleets,
     calculate_cargo_charter_properties,
     calculate_evolution_expectation,
     calculate_fleet_profile,
@@ -870,6 +871,8 @@ class SimulationManager:
             determine_fuel_type(vessel)
             determine_usable_fuel_types(vessel)
             determine_usable_fuels(vessel, fuel_by_fuel_type)
+
+        assign_vessels_to_fleets(self.nodes.fleets.values())
 
         for fleet in self.nodes.fleets.values():
             initialize_existing_fleet(fleet, self.timeline)

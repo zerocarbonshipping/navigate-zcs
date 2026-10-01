@@ -19,7 +19,10 @@ from navigate.fleet.fuel_option import (
     determine_usable_fuel_types,
     determine_usable_fuels,
 )
-from navigate.fleet.initialization import initialize_existing_fleet
+from navigate.fleet.initialization import (
+    assign_vessels_to_fleets,
+    initialize_existing_fleet,
+)
 from navigate.fleet.operation import update_operational_profile
 from navigate.fleet.post_process import (
     post_process_fleet_profile,
