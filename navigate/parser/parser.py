@@ -135,8 +135,8 @@ class Parser:
         self._idx_date = 0
         self._current_event: Event | None = None
 
-        # timeline flags
-        self._timeline_open = False
+        # timeline state
+        self._timeline_open: bool = False
         self._last_date: np.datetime64 | None = None
 
         # paths
