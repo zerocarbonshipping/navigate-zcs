@@ -44,8 +44,11 @@ from navigate.parser._scan import (
 from navigate.util import matching_keys
 
 if TYPE_CHECKING:
+    from collections.abc import Iterable
+
     from navigate.core.node_registry import GeneralNodes, Nodes
     from navigate.parser._commands import CommandReference
+    from navigate.parser._event import Event
 
 ROOT_TYPES = (EMISSION, FLEET, FUEL, LEVY, PLOT, PRODUCER, REGULATION, REPORT)
 ROOT_GROUPS = tuple(NODE_GROUP[node_type] for node_type in ROOT_TYPES)
@@ -60,7 +63,7 @@ ACTIVATION_EDGES = {PORT: ((ROUTE, "ports"),)}
 def find_unreachable(
     nodes: Nodes,
     general_nodes: GeneralNodes,
-    event_queue: dict,
+    events: Iterable[Event],
     command_queue: dict[Node, list[CommandReference]],
 ) -> list[tuple[str, str]]:
     """
@@ -72,8 +75,8 @@ def find_unreachable(
         The registry of declared nodes.
     general_nodes
         The general nodes, whose references count as roots.
-    event_queue
-        The parser's queued EVENTS statements, keyed by date.
+    events
+        The events the parser queued, START and dated alike.
     command_queue
         The parser's queued commands, keyed by the node they run on.
 
@@ -82,7 +85,7 @@ def find_unreachable(
     Sorted (node type, node name) pairs of the unreachable nodes; empty when
     every node is reachable.
     """
-    event_edges = _collect_event_edges(event_queue, nodes)
+    event_edges = _collect_event_edges(events, nodes)
 
     # frontier of (node type, node name) keys whose references are unexpanded
     pending = set()
@@ -220,7 +223,7 @@ def _iter_references(value, nodes: Nodes):
                 yield reference
 
 
-def _collect_event_edges(event_queue: dict, nodes: Nodes) -> dict:
+def _collect_event_edges(events: Iterable[Event], nodes: Nodes) -> dict:
     """
     Collect the node references inside queued EVENTS statements as edges.
 
@@ -229,8 +232,8 @@ def _collect_event_edges(event_queue: dict, nodes: Nodes) -> dict:
 
     Parameters
     ----------
-    event_queue
-        The parser's queued EVENTS statements, keyed by date.
+    events
+        The events the parser queued, START and dated alike.
     nodes
         The registry, used to expand target names and wildcard references.
 
@@ -243,28 +246,27 @@ def _collect_event_edges(event_queue: dict, nodes: Nodes) -> dict:
     """
     edges = {}
 
-    for events in event_queue.values():
-        for event in events:
-            for statement in event.statements:
-                if not isinstance(statement, NodeDeclaration):
-                    continue
+    for event in events:
+        for statement in event.statements:
+            if not isinstance(statement, NodeDeclaration):
+                continue
 
-                target_names = matching_keys(
-                    statement.name, getattr(nodes, NODE_GROUP[statement.node_type])
+            target_names = matching_keys(
+                statement.name, getattr(nodes, NODE_GROUP[statement.node_type])
+            )
+
+            if not target_names:
+                continue
+
+            references = _statement_references(statement, nodes)
+
+            if not references:
+                continue
+
+            for target_name in target_names:
+                edges.setdefault((statement.node_type, target_name), set()).update(
+                    references
                 )
-
-                if not target_names:
-                    continue
-
-                references = _statement_references(statement, nodes)
-
-                if not references:
-                    continue
-
-                for target_name in target_names:
-                    edges.setdefault((statement.node_type, target_name), set()).update(
-                        references
-                    )
 
     return edges
 
