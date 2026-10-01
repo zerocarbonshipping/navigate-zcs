@@ -54,16 +54,16 @@ class TestInstanceToDslName:
 class TestCheckNodeAttributeIsAllowed:
     def test_valid_attribute_both_sections(self):
         """Lifetime is allowed for Vessel in both DEFINE and EVENTS."""
-        assert check_node_attribute_is_allowed(
+        check_node_attribute_is_allowed(
             "Vessel", "Lifetime", SimulationSectionID.DEFINE
         )
-        assert check_node_attribute_is_allowed(
+        check_node_attribute_is_allowed(
             "Vessel", "Lifetime", SimulationSectionID.EVENTS
         )
 
     def test_valid_attribute_define_only(self):
         """FuelType is DEFINE-only for Vessel."""
-        assert check_node_attribute_is_allowed(
+        check_node_attribute_is_allowed(
             "Vessel", "FuelType", SimulationSectionID.DEFINE
         )
 
@@ -84,7 +84,7 @@ class TestCheckNodeAttributeIsAllowed:
 
 class TestCheckGeneralNodeAttributeIsAllowed:
     def test_model_definition_start_date(self):
-        assert check_general_node_attribute_is_allowed(
+        check_general_node_attribute_is_allowed(
             "ModelDefinition", "StartDate", SimulationSectionID.DEFINE
         )
 

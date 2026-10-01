@@ -90,7 +90,7 @@ from navigate.util import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator, Sized
+    from collections.abc import Iterable, Iterator, Sized
 
     from navigate.core.general_nodes._general_node import _GeneralNode
     from navigate.core.types_ import Calculator
@@ -113,7 +113,9 @@ class _Deferred:
 class _PendingAssignment:
     """An assignment held back until its wildcard can be expanded."""
 
-    node: Node
+    # a general node's assignment may carry a wildcard value too, which also
+    # waits here until the registry can expand it
+    node: Node | _GeneralNode
     attribute: str
     value: object
     source: SourceLocation
@@ -655,52 +657,86 @@ class Parser:
     # Node body processing — shared helpers
     # ══════════════════════════════════════════════════════════════════
 
-    def _apply_assignment(self, nodes, item, node_type, is_general=False):
+    def _apply_assignment(
+        self, nodes: list[Node], item: Assignment, node_type: str
+    ) -> None:
         """
-        Validate and apply an Assignment AST node to one or more nodes.
+        Validate and apply an Assignment AST node to one or more declared nodes.
 
         Parameters
         ----------
-        nodes : list[Node] or single node
-            Target node(s).
-        item : Assignment
+        nodes
+            Target nodes.
+        item
             The assignment AST node.
-        node_type : str
+        node_type
             Node type string for validation.
-        is_general : bool
-            Whether this is a general node (uses different validation).
         """
         self._current_source = item.source
-        attribute = item.attribute
 
         try:
-            if is_general:
-                check_general_node_attribute_is_allowed(
-                    node_type, attribute, self._current_section
-                )
-            else:
-                check_node_attribute_is_allowed(
-                    node_type, attribute, self._current_section
-                )
-
+            check_node_attribute_is_allowed(
+                node_type, item.attribute, self._current_section
+            )
         except AttributeAssignmentError as e:
             raise AttributeAssignmentError(self._error_prefix() + f": {e!s}.") from None
 
+        self._dispatch_assignment(nodes, item)
+
+    def _apply_general_node_assignment(
+        self, general_node: _GeneralNode, item: Assignment, node_type: str
+    ) -> None:
+        """
+        Validate and apply an Assignment AST node to a general node.
+
+        Parameters
+        ----------
+        general_node
+            Target general node.
+        item
+            The assignment AST node.
+        node_type
+            General node type string for validation.
+        """
+        self._current_source = item.source
+
+        try:
+            check_general_node_attribute_is_allowed(
+                node_type, item.attribute, self._current_section
+            )
+        except AttributeAssignmentError as e:
+            raise AttributeAssignmentError(self._error_prefix() + f": {e!s}.") from None
+
+        self._dispatch_assignment([general_node], item)
+
+    def _dispatch_assignment(
+        self, targets: Iterable[Node | _GeneralNode], item: Assignment
+    ) -> None:
+        """
+        Materialize an assignment's value and hand it to each validated target.
+
+        Parameters
+        ----------
+        targets
+            The nodes, or the one general node, the assignment applies to; its
+            attribute allowance is already checked.
+        item
+            The assignment AST node.
+        """
+        attribute = item.attribute
         value = self._materialize(item.value)
         deck_line = self._current_deck_line
-
-        target_nodes = nodes if isinstance(nodes, list) else [nodes]
 
         # a glob matches against the finished registry, so the assignment waits
         if _contains_wildcard(value):
             self._pending_assignments += [
-                _PendingAssignment(node, attribute, value, item.source, deck_line)
-                for node in target_nodes
+                _PendingAssignment(target, attribute, value, item.source, deck_line)
+                for target in targets
             ]
             return
 
-        for node in target_nodes:
-            self._call_setter(node, attribute, value, item.source, deck_line)
+        for target in targets:
+            self._call_setter(target, attribute, value, item.source, deck_line)
 
     def _call_setter(self, node, attribute, value, source, deck_line):
         """
@@ -853,8 +889,8 @@ class Parser:
                     + f": '{declaration.node_type}' does not support commands."
                 )
             elif item_type is Assignment:
-                self._apply_assignment(
-                    general_node, item, declaration.node_type, is_general=True
+                self._apply_general_node_assignment(
+                    general_node, item, declaration.node_type
                 )
             else:
                 raise DeckKeywordError(
@@ -921,7 +957,8 @@ class Parser:
             # so every holder sees the copy
             existing = group.get(statement.copy_to)
         if existing is not None:
-            new_node = _transplant(existing, new_node)
+            _transplant(existing, new_node)
+            new_node = existing
 
         # the copy carries the source's assignments and queued commands, and
         # only those
@@ -2073,7 +2110,7 @@ def _keys_cover(patterns: list, keys: list) -> bool:
     )
 
 
-def _transplant(node, copied):
+def _transplant(node: Node, copied: Node) -> None:
     """
     Move a copy's state into the node already held under the copy's name.
 
@@ -2086,15 +2123,11 @@ def _transplant(node, copied):
 
     Parameters
     ----------
-    node : Node
-        The node earlier references, or the pulled file, put under the name.
-    copied : Node
+    node
+        The node earlier references, or the pulled file, put under the name;
+        mutated in place to carry the copy's state.
+    copied
         The freshly copied node, discarded afterwards.
-
-    Returns
-    -------
-    Node
-        The node, now carrying the copy's state.
     """
     bounds = node.internal_bounds if is_calculator(node) else None
 
@@ -2108,5 +2141,3 @@ def _transplant(node, copied):
             inclusive_lower=bounds.inclusive_lower,
             inclusive_upper=bounds.inclusive_upper,
         )
-
-    return node

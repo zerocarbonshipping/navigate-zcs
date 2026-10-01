@@ -8,7 +8,8 @@ Provides the single source of truth for both .nav (deck) and .inc (include)
 file syntax.  The grammar lives in ``grammar.lark``; this module contains:
 
 * AST dataclasses for deck directives and include statements
-* ``NavTransformer`` — converts Lark parse-trees into AST nodes
+* ``_NavTransformer`` and its two start-rule subclasses — convert Lark
+  parse-trees into AST nodes
 * ``parse_include_content()`` / ``parse_deck_content()`` — public API
 """
 
@@ -19,7 +20,7 @@ from dataclasses import dataclass, field
 from importlib.resources import files
 from typing import Any
 
-from lark import Lark, Transformer, v_args
+from lark import Lark, Token, Transformer, v_args
 from lark.exceptions import UnexpectedCharacters, UnexpectedToken, VisitError
 
 from navigate.core import Expression
@@ -162,18 +163,39 @@ class Command:
 # Lark Transformer
 # ═════════════════════════════════════════════════════════════════════════
 
+# the include parser's start rule ("start") yields one of these per top-level
+# statement; the deck parser's start rule ("deck") yields DefineBlock |
+# EventsBlock instead, handled directly where it is used
+type Statement = (
+    NodeDeclaration
+    | GeneralNodeDeclaration
+    | CopyStatement
+    | ImportStatement
+    | DateStatement
+    | StartTimeline
+    | EndTimeline
+)
+
 
 # noinspection PyMethodMayBeStatic
 @v_args(meta=True)
-class NavTransformer(Transformer):
+class _NavTransformer[ReturnT](Transformer[Token, ReturnT]):
     """
     Convert Lark parse trees to Navigate AST nodes.
 
-    The ``file`` attribute is set before each transform call so that
-    every produced ``SourceLocation`` carries the originating file path.
+    Holds the rules shared by the deck and include grammars; a subclass per
+    start rule adds the one entry-point method fixing ``ReturnT``, and is
+    built fresh for each parse so its ``file`` cannot leak between calls.
+
+    Parameters
+    ----------
+    file
+        Path reported in every ``SourceLocation`` this instance produces.
     """
 
-    file: str = ""
+    def __init__(self, file: str) -> None:
+        super().__init__()
+        self.file: str = file
 
     def _loc(self, meta) -> SourceLocation:
         return SourceLocation(file=self.file, line=meta.line)
@@ -193,10 +215,6 @@ class NavTransformer(Transformer):
 
     # ── deck ──────────────────────────────────────────────────────
 
-    def deck(self, meta, items):
-        self._check_one_statement_per_line(list(items))
-        return list(items)
-
     def define_block(self, meta, items):
         return DefineBlock(list(items), source=self._loc(meta))
 
@@ -212,11 +230,6 @@ class NavTransformer(Transformer):
         return LoadModuleDirective(name, source=self._loc(meta))
 
     # ── include statements ────────────────────────────────────────
-
-    def start(self, meta, items):
-        statements = list(items)
-        self._check_one_statement_per_line(statements)
-        return statements
 
     def node_declaration(self, meta, items):
         body = list(items[2:])
@@ -317,6 +330,25 @@ class NavTransformer(Transformer):
         return str(items[0])
 
 
+@v_args(meta=True)
+class _DeckTransformer(_NavTransformer[list[DefineBlock | EventsBlock]]):
+    """Transform a parsed .nav deck's top rule into its DEFINE/EVENTS blocks."""
+
+    def deck(self, meta, items):
+        self._check_one_statement_per_line(list(items))
+        return list(items)
+
+
+@v_args(meta=True)
+class _IncludeTransformer(_NavTransformer[list[Statement]]):
+    """Transform a parsed .inc file's top rule into its statements."""
+
+    def start(self, meta, items):
+        statements = list(items)
+        self._check_one_statement_per_line(statements)
+        return statements
+
+
 # ═════════════════════════════════════════════════════════════════════════
 # Public API
 # ═════════════════════════════════════════════════════════════════════════
@@ -337,8 +369,6 @@ _deck_parser = Lark(
     maybe_placeholders=False,
     start="deck",
 )
-
-_transformer = NavTransformer()
 
 _FRIENDLY = {
     "NAME": "a name",
@@ -388,24 +418,25 @@ def _format_parse_error(e, source: str, file: str) -> str:
     return ", ".join(parts[:2]) + "".join(parts[2:])
 
 
-def _parse(parser, text: str, file: str):
-    _transformer.file = file
+def _parse[ReturnT](
+    parser: Lark, transformer: _NavTransformer[ReturnT], text: str
+) -> ReturnT:
     try:
         tree = parser.parse(text)
     except (UnexpectedToken, UnexpectedCharacters) as e:
-        raise DeckFormatError(_format_parse_error(e, text, file)) from e
+        raise DeckFormatError(_format_parse_error(e, text, transformer.file)) from e
 
     try:
-        return _transformer.transform(tree)
+        return transformer.transform(tree)
     except VisitError as e:
         if isinstance(e.orig_exc, DeckFormatError):
             raise e.orig_exc from None
         raise
 
 
-def parse_include_content(text: str, file: str = "") -> list:
-    return _parse(_inc_parser, text, file)
+def parse_include_content(text: str, file: str = "") -> list[Statement]:
+    return _parse(_inc_parser, _IncludeTransformer(file), text)
 
 
-def parse_deck_content(text: str, file: str = "") -> list:
-    return _parse(_deck_parser, text, file)
+def parse_deck_content(text: str, file: str = "") -> list[DefineBlock | EventsBlock]:
+    return _parse(_deck_parser, _DeckTransformer(file), text)

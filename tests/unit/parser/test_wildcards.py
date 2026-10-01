@@ -191,7 +191,7 @@ class TestWildcardNodeReferenceExpansion:
         parser.nodes.routes["r"] = route
 
         parser._apply_assignment(
-            route,
+            [route],
             Assignment("Ports", WildcardNodeReference("Port", "*"), SourceLocation()),
             "Route",
         )
