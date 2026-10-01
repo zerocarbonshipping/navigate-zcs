@@ -1,27 +1,34 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Transfer the compliance, allowance and units of each regulation to its profile."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from navigate.bunker.bunker_algorithm import BunkerAlgorithm
+import numpy as np
 
 from navigate.core.enum_ import BunkerScopeID, RegulationMeasureID, RegulationSchemeID
 from navigate.util import divide_nonzero
 
+if TYPE_CHECKING:
+    from navigate.bunker.bunker_algorithm import BunkerAlgorithm
+    from navigate.bunker.transfer.regulation_properties import RegulationProperties
 
-def transfer_regulation_measure(alg: BunkerAlgorithm, properties: dict) -> None:
+
+def transfer_regulation_measure(
+    alg: BunkerAlgorithm, properties: RegulationProperties
+) -> None:
     """
-    Transfer regulation compliance measures.
+    Transfer the compliance, allowance and units of each active regulation.
 
     Parameters
     ----------
     alg
         The algorithm instance.
     properties
-        Pre-computed regulation emission properties.
+        Emissions, measure and allowance of each (regulation, vessel) pair.
     """
     for r, regulation in alg.regulations.items():
         if not regulation.is_active():
@@ -45,8 +52,7 @@ def transfer_regulation_measure(alg: BunkerAlgorithm, properties: dict) -> None:
             total_measure += multiplier * vessel_measure
             total_rhs += multiplier * vessel_rhs
 
-            # if the vessel has no ports overlapping with the
-            # regulation then the measure is zero and thus ignored
+            # a vessel with no port in the jurisdiction has a zero measure
             if not (vessel_measure > 0.0):
                 continue
 
@@ -58,13 +64,11 @@ def transfer_regulation_measure(alg: BunkerAlgorithm, properties: dict) -> None:
                 regulation.profile.set_vessel_units(alg.idx, v, vessel_emissions)
 
         if alg.scope == BunkerScopeID.EXISTING:
-            # set allowed and achieved units
             regulation.profile.set_shared_allowance(alg.idx, total_rhs)
             regulation.profile.set_shared_units(alg.idx, total_emissions)
 
-            # shared compliance and threshold only make sense for absolute
-            # emissions and energy intensity since transport based intensity
-            # is not guaranteed to have the same unit
+            # shared compliance and threshold only make sense for absolute emissions
+            # and energy intensity: transport-based intensities need not share a unit
             if regulation.measure in (
                 RegulationMeasureID.ABSOLUTE,
                 RegulationMeasureID.INTENSITY,
@@ -76,10 +80,9 @@ def transfer_regulation_measure(alg: BunkerAlgorithm, properties: dict) -> None:
                     ),
                 )
 
-                # the fleet-level effective target of a flexible regulation:
-                # the measure-weighted mean of the per-vessel thresholds
-                # (equal to the uniform value when thresholds are assigned
-                # via a wildcard)
+                # the fleet-level effective target of a flexible regulation: the
+                # measure-weighted mean of the per-vessel thresholds, equal to the
+                # uniform value when the thresholds are assigned via a wildcard
                 if regulation.scheme == RegulationSchemeID.FLEXIBLE:
                     regulation.profile.set_shared_threshold(
                         alg.idx,
@@ -96,5 +99,5 @@ def _normalize_by_measure(
     if measure == RegulationMeasureID.ABSOLUTE:
         return value
 
-    # division by zero occurs if no vessels are policed
-    return divide_nonzero(value, total_measure)
+    # the pooled measure is zero when no vessel is policed
+    return np.float64(divide_nonzero(value, total_measure))

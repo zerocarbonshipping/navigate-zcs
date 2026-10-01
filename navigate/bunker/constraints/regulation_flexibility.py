@@ -1,16 +1,19 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Add the fleet-pooled threshold constraints of FLEXIBLE-scheme regulations."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from navigate.bunker.bunker_algorithm import BunkerAlgorithm
-
+import navigate.bunker.solver as gp
 from navigate.bunker.constraints.regulation_terms import (
     calculate_regulation_emission_term,
 )
+
+if TYPE_CHECKING:
+    from navigate.bunker.bunker_algorithm import BunkerAlgorithm
 
 
 def update_flexibility_regulation_threshold_constraints(alg: BunkerAlgorithm) -> None:
@@ -41,7 +44,7 @@ def update_flexibility_regulation_threshold_constraints(alg: BunkerAlgorithm) ->
     for r, rhs in alg.regulation_total_rhs_flexibility.items():
         regulation = alg.regulations[r]
 
-        terms = 0.0
+        terms = gp.create_linear_expression()
 
         for v, vessel in alg.vessels.items():
             if not regulation.vessel_is_policed(v):
@@ -52,7 +55,7 @@ def update_flexibility_regulation_threshold_constraints(alg: BunkerAlgorithm) ->
             )
             terms += coefficients_v * alg.multipliers[v]
 
-            # save terms for later
+            # kept for evaluating the regulation properties after the solve
             alg.regulation_emission_terms[(r, v)] = emissions_v
             alg.regulation_energy_terms[(r, v)] = energy_v
 

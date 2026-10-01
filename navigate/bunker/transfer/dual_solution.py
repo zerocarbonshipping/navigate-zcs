@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Transfer the energy-conservation shadow prices and demands to the vessels."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -11,7 +13,7 @@ if TYPE_CHECKING:
 
 def transfer_dual_solution(alg: BunkerAlgorithm) -> None:
     """
-    Transfer shadow prices and RHS values from energy conservation constraints.
+    Transfer the shadow prices and right-hand sides of the energy-conservation rows.
 
     Parameters
     ----------
@@ -24,16 +26,12 @@ def transfer_dual_solution(alg: BunkerAlgorithm) -> None:
         port_end,
         energy_id,
     ), constr in alg.energy_conservation_sea.items():
-        # convert a local leg-port pair index to the global leg idx
         vessel = alg.vessels[v]
         leg = vessel.route.local_to_global_leg_idx(port_start, port_end)
 
-        # the shadow price has been scaled with the number of vessels
-        # in the objective function, so in order to get the impact
-        # per vessel, it needs to be divided by the number of vessels
+        # the objective scales the shadow price by the number of vessels, so
+        # dividing by it gives the impact per vessel; the rhs is already per vessel
         shadow_price = constr.Pi / alg.multipliers[v]
-
-        # the energy requirement (rhs) is given per vessel
         rhs = constr.RHS
 
         vessel.expectation.set_energy_conservation_pi_sea(
@@ -42,12 +40,9 @@ def transfer_dual_solution(alg: BunkerAlgorithm) -> None:
         vessel.expectation.set_energy_conservation_rhs_sea(alg.idx, energy_id, leg, rhs)
 
     for (v, p, energy_id), constr in alg.energy_conservation_port.items():
-        # the shadow price has been scaled with the number of vessels
-        # in the objective function, so in order to get the impact
-        # per vessel, it needs to be divided by the number of vessels
+        # the objective scales the shadow price by the number of vessels, so
+        # dividing by it gives the impact per vessel; the rhs is already per vessel
         shadow_price = constr.Pi / alg.multipliers[v]
-
-        # the energy requirement (rhs) is given per vessel
         rhs = constr.RHS
 
         vessel = alg.vessels[v]

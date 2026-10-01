@@ -1,17 +1,20 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Add the constraints that fuel spend and shore power cover each energy demand."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
+
+from navigate.bunker._build import get_constraint
+from navigate.core.enum_ import EnergyDemandTypeID
 
 if TYPE_CHECKING:
     from navigate.bunker.bunker_algorithm import BunkerAlgorithm
     from navigate.core.nodes.converter import Converter
     from navigate.core.nodes.vessel import Vessel
-
-from navigate.bunker._build import get_constraint
-from navigate.core.enum_ import EnergyDemandTypeID
+    from navigate.util.types_ import FloatLike
 
 
 def update_energy_conservation_constraints(
@@ -101,8 +104,8 @@ def _update_sea_energy_conservation(
     v: str,
     energy_type: EnergyDemandTypeID,
     converter: Converter,
-    demands: dict,
-    leg_idx: tuple,
+    demands: dict[EnergyDemandTypeID, list[FloatLike]],
+    leg_idx: tuple[tuple[int, int], ...],
 ) -> None:
     """
     Create or update the sea energy-conservation rows of one energy demand.
@@ -118,7 +121,7 @@ def _update_sea_energy_conservation(
     converter
         Converter serving the demand.
     demands
-        Sea energy demands per type; one value per leg.
+        Sea energy demands per type, in GJ; one value per leg.
     leg_idx
         Leg indices of the vessel's route.
     """
@@ -136,7 +139,7 @@ def _update_sea_energy_conservation(
         constraint = get_constraint(
             alg, alg.energy_conservation_sea, key, "==", "energy_conservation_at_sea"
         )
-        constraint.rhs = demand[leg]
+        constraint.rhs = float(demand[leg])
 
         for f in fuels:
             change_coefficient(
@@ -151,7 +154,7 @@ def _update_port_energy_conservation(
     v: str,
     energy_type: EnergyDemandTypeID,
     converter: Converter,
-    demands: dict,
+    demands: dict[EnergyDemandTypeID, list[FloatLike]],
     port_idx: range,
 ) -> None:
     """
@@ -168,7 +171,7 @@ def _update_port_energy_conservation(
     converter
         Converter serving the demand.
     demands
-        Port energy demands per type; one value per port.
+        Port energy demands per type, in GJ; one value per port.
     port_idx
         Port indices of the vessel's route.
     """
@@ -186,7 +189,7 @@ def _update_port_energy_conservation(
         constraint = get_constraint(
             alg, alg.energy_conservation_port, key, "==", "energy_conservation_in_port"
         )
-        constraint.rhs = demand[p]
+        constraint.rhs = float(demand[p])
 
         for f in fuels:
             change_coefficient(

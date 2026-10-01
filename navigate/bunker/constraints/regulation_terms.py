@@ -1,14 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Build the regulated expressions and right-hand sides of regulation constraints."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from navigate.bunker.bunker_algorithm import BunkerAlgorithm
-    from navigate.core.nodes.regulation import Regulation
-    from navigate.core.nodes.vessel import Vessel
 
 import navigate.bunker.solver as gp
 import navigate.core.enum_ as enum_
@@ -21,10 +18,15 @@ from navigate.policy import (
     leg_jurisdiction_fraction,
 )
 
+if TYPE_CHECKING:
+    from navigate.bunker.bunker_algorithm import BunkerAlgorithm
+    from navigate.core.nodes.regulation import Regulation
+    from navigate.core.nodes.vessel import Vessel
+
 
 def calculate_regulation_emission_term(
     alg: BunkerAlgorithm, vessel: Vessel, regulation: Regulation
-) -> tuple:
+) -> tuple[gp.LinExpr, gp.LinExpr, gp.LinExpr]:
     r"""
     Calculate the three regulated linear expressions of a vessel under a regulation.
 
@@ -53,23 +55,20 @@ def calculate_regulation_emission_term(
 
     Returns
     -------
-    tuple[LinExpr, LinExpr, LinExpr]
+    tuple[gp.LinExpr, gp.LinExpr, gp.LinExpr]
         Constraint expression, emission expression, and energy expression.
     """
     v = vessel.name
     r = regulation.name
 
-    # extract the various coefficients needed
     coefficients = alg.regulation_spend_coefficient
     emission_factors = alg.regulation_emission_factor
     effective_lhv = alg.effective_lhv
 
-    # extract the converters and fuels of the vessel
     converters = get_converters(vessel)
     port_converters = get_port_converters(vessel)
     fuels_per_converter = alg.fuels_per_converter
 
-    # extract route information for the regulations
     route = vessel.route
     ports = route.ports
 
@@ -169,24 +168,24 @@ def get_regulation_vessel_threshold(
     alg: BunkerAlgorithm, regulation: Regulation, v: str
 ) -> float:
     """
-    Get the regulation threshold for a vessel at the current algorithm time.
+    Get a vessel's threshold under a regulation at the current time-step.
 
-    The values are evaluated once per build in 'calculate_regulation_coefficients';
-    non-policed vessels carry a threshold of zero.
+    The thresholds are evaluated once per build in
+    ``calculate_regulation_coefficients``; non-policed vessels carry zero.
 
     Parameters
     ----------
     alg
         The algorithm instance.
     regulation
-        The regulation object.
+        Regulation being considered.
     v
         Vessel name.
 
     Returns
     -------
     float
-        The threshold value.
+        Threshold of the vessel, in the unit of the regulation's threshold.
     """
     return alg.regulation_vessel_threshold[(regulation.name, v)]
 
@@ -195,21 +194,23 @@ def get_regulation_vessel_rhs(
     alg: BunkerAlgorithm, regulation: Regulation, v: str
 ) -> tuple[float, float]:
     """
-    Calculate the right-hand side (RHS) value for a regulation equation for a vessel.
+    Calculate a vessel's threshold right-hand side and measure under a regulation.
 
     Parameters
     ----------
     alg
         The algorithm instance.
     regulation
-        The regulation object containing the details and measure type.
+        Regulation being considered.
     v
-        The identifier of the vessel for which the RHS is calculated.
+        Vessel name.
 
     Returns
     -------
     tuple[float, float]
-        The computed RHS and measure value based on the provided regulation and vessel.
+        Right-hand side of the vessel's threshold constraint, and the vessel's
+        measure: 1 for ABSOLUTE, 0 for INTENSITY, and the capacity-scaled cargo
+        miles in the jurisdiction for the transport measures.
     """
     vessel = alg.vessels[v]
     threshold = get_regulation_vessel_threshold(alg, regulation, v)
@@ -221,9 +222,8 @@ def get_regulation_vessel_rhs(
         rhs = threshold
 
     elif measure == RegulationMeasureID.INTENSITY:
-        # notice that the rhs of an intensity regulation is zero
-        # because the threshold is moved inside the coefficient
-        # since the energy is a function of the bunker solution
+        # the energy of an intensity regulation depends on the bunker solution, so
+        # its threshold sits inside the spend coefficient and the rhs is zero
         vessel_measure = 0.0
         rhs = 0.0
 
@@ -255,7 +255,7 @@ def get_regulation_vessel_rhs(
 
 def update_regulation_individual_rhs(alg: BunkerAlgorithm) -> None:
     """
-    Update right-hand side values for individual regulations specific to each vessel.
+    Update the per-vessel right-hand sides and measures of INDIVIDUAL regulations.
 
     Parameters
     ----------
@@ -277,7 +277,7 @@ def update_regulation_individual_rhs(alg: BunkerAlgorithm) -> None:
 
 def update_regulation_flexibility_rhs(alg: BunkerAlgorithm) -> None:
     """
-    Update the right-hand side (RHS) for regulations marked as flexible.
+    Update the pooled right-hand sides and vessel measures of FLEXIBLE regulations.
 
     Parameters
     ----------

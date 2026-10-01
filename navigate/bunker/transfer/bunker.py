@@ -1,19 +1,23 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Transfer the bunkered fuel mass to the vessel, port, levy and fleet results."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from navigate.bunker.bunker_algorithm import BunkerAlgorithm
+import numpy as np
 
 from navigate.core.enum_ import BunkerScopeID
+
+if TYPE_CHECKING:
+    from navigate.bunker.bunker_algorithm import BunkerAlgorithm
 
 
 def transfer_bunker(alg: BunkerAlgorithm) -> None:
     """
-    Transfer bunker variable solutions to vessel/port expectations and profiles.
+    Transfer the bunker solution to the vessel, port, levy and fleet results.
 
     Parameters
     ----------
@@ -24,8 +28,7 @@ def transfer_bunker(alg: BunkerAlgorithm) -> None:
         fleet_name: dict.fromkeys(alg.fuels, 0.0) for fleet_name in alg.fleets
     }
 
-    # precompute levy levels (independent of vessel/fuel) to avoid redundant getter
-    # calls
+    # the levy levels depend on neither vessel nor fuel, so each is read once
     levy_level_cache = {}
     if alg.scope == BunkerScopeID.EXISTING:
         for levies in alg.port_levies.values():
@@ -34,61 +37,49 @@ def transfer_bunker(alg: BunkerAlgorithm) -> None:
                 if name not in levy_level_cache:
                     levy_level_cache[name] = levy.expectation.get_level(alg.idx)
 
-    # transfer bunker solution
     for (v, p, f), bunker in alg.bunker.items():
         if alg.options.solution_tolerance > bunker.X:
             continue
 
-        # extract relevant nodes
         vessel = alg.vessels[v]
         port = vessel.route.ports[p]
         port_name = port.name
 
-        # add the demand to the fleet
         fleet_name = vessel.fleet_assignment
         fleet_demand[fleet_name][f] += bunker.X * alg.multipliers[v]
 
-        # calculate the fuel expenses
         fuel_energy = alg.fuels[f].lower_heating_value.get() * bunker.X
+        price = np.float64(port.expectation.get_bunker_price(f, alg.idx))
 
-        # transfer bunkered values for
-        # future inertia calculations
+        # kept for the inertia floor of the next time-step
         vessel.expectation.add_bunker_mass_expected(port_name, f, bunker.X)
 
         if alg.scope == BunkerScopeID.EXISTING:
-            # calculate fuel expenses
-            fuel_expenses = port.expectation.get_bunker_price(f, alg.idx) * bunker.X
+            fuel_expenses = price * bunker.X
 
-            # transfer bunkered values for
-            # future inertia calculations
+            # kept for the inertia floor of the next time-step
             vessel.expectation.add_bunker_mass_existing(port_name, f, bunker.X)
 
-            # transfer to vessel profile
             vessel.profile.add_consumed_mass(f, bunker.X, idx=alg.idx)
             vessel.profile.add_converter_mass(
                 vessel.primary_fuel_type, f, bunker.X, idx=alg.idx
             )
             vessel.profile.add_fuel_expenses(f, fuel_expenses, alg.idx)
-
-            # transfer to port profile
             port.profile.add_bunker_mass(f, alg.multipliers[v] * bunker.X, alg.idx)
 
         else:
-            # calculate fuel expenses
-            fuel_expenses = port.expectation.get_bunker_price(f, alg.idx) * bunker.X
+            fuel_expenses = price * bunker.X
             vessel.expectation.add_total_energy(alg.idx, fuel_energy)
             vessel.expectation.add_fuel_expenses(alg.idx, fuel_expenses)
 
-        # transfer emissions
         for emission_name in alg.emissions:
             if alg.scope == BunkerScopeID.EXISTING:
-                emission_factor = port.expectation.get_bunker_wtt(
-                    f, emission_name, alg.idx
+                emission_factor = np.float64(
+                    port.expectation.get_bunker_wtt(f, emission_name, alg.idx)
                 )
                 wtt_emissions = emission_factor * bunker.X
                 vessel.profile.add_wtt(f, emission_name, wtt_emissions, idx=alg.idx)
 
-        # transfer levy penalties and subsidies
         for levy in alg.port_levies[port_name]:
             if not levy.vessel_is_policed(v):
                 continue
@@ -99,12 +90,10 @@ def transfer_bunker(alg: BunkerAlgorithm) -> None:
                 levy.profile.add_collected(collected * alg.multipliers[v], alg.idx)
                 vessel.profile.add_levy_expenses(f, collected, alg.idx)
 
-                # track per-vessel levy emission units (collected / level)
                 level = levy_level_cache[levy.name]
                 if level > 0.0:
                     vessel.profile.add_levy_units(levy.name, collected / level, alg.idx)
 
-    # transfer the fleet fuel demand
     if alg.scope == BunkerScopeID.EXPECTED:
         for fleet_name, fleet in alg.fleets.items():
             for f, demand in fleet_demand[fleet_name].items():
