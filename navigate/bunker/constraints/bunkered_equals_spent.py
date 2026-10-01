@@ -1,15 +1,17 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Add the constraint that all fuel bunkered over a vessel's route is spent on it."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from navigate.bunker._build import get_constraint
+
 if TYPE_CHECKING:
     from navigate.bunker.bunker_algorithm import BunkerAlgorithm
     from navigate.core.nodes.vessel import Vessel
-
-from navigate.bunker._build import get_constraint
 
 
 def update_bunkered_equals_spent_constraint(

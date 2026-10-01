@@ -1,19 +1,23 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Transfer the shore-power solution to the vessel results."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from navigate.bunker.bunker_algorithm import BunkerAlgorithm
+import numpy as np
 
 from navigate.core.enum_ import BunkerScopeID
+
+if TYPE_CHECKING:
+    from navigate.bunker.bunker_algorithm import BunkerAlgorithm
 
 
 def transfer_shore_power(alg: BunkerAlgorithm) -> None:
     """
-    Transfer shore power solutions to vessel/port expectations.
+    Transfer the shore-power solution to the vessel expectations and profiles.
 
     Parameters
     ----------
@@ -30,19 +34,17 @@ def transfer_shore_power(alg: BunkerAlgorithm) -> None:
         port = vessel.route.ports[p]
         shore_energy_gj = shore_power_variable.X
 
-        # cost
-        cost = port.expectation.get_shore_power_cost(alg.idx)
+        cost = np.float64(port.expectation.get_shore_power_cost(alg.idx))
         shore_cost = cost * shore_energy_gj
 
         if alg.scope == BunkerScopeID.EXISTING:
-            # transfer to vessel profile
             vessel.profile.add_shore_power_energy(shore_energy_gj, alg.idx)
             vessel.profile.add_shore_power_expenses(shore_cost, alg.idx)
 
-            # WTW emissions
+            # the shore-power emission factors are well-to-wake
             for e in alg.emissions:
-                emission_factor = port.expectation.get_shore_power_emission_factor(
-                    e, alg.idx
+                emission_factor = np.float64(
+                    port.expectation.get_shore_power_emission_factor(e, alg.idx)
                 )
                 emission_mass = emission_factor * shore_energy_gj
                 vessel.profile.add_shore_power_emission(e, emission_mass, alg.idx)

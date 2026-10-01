@@ -1,26 +1,27 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Transfer the remedial units and expenses of INDIVIDUAL-scheme regulations."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from navigate.core.enum_ import BunkerScopeID
+
 if TYPE_CHECKING:
     from navigate.bunker.bunker_algorithm import BunkerAlgorithm
-
-from navigate.core.enum_ import BunkerScopeID
 
 
 def transfer_regulation_individual(alg: BunkerAlgorithm) -> None:
     """
-    Transfer individual regulation remedial factors.
+    Transfer the remedial units and expenses of INDIVIDUAL-scheme regulations.
 
     Parameters
     ----------
     alg
         The algorithm instance.
     """
-    # transfer regulation solution
     for (r, v), remedial_factor in alg.remedial_factor_individual.items():
         regulation = alg.regulations[r]
         vessel = alg.vessels[v]
@@ -28,27 +29,24 @@ def transfer_regulation_individual(alg: BunkerAlgorithm) -> None:
         if not regulation.vessel_is_policed(v):
             continue
 
-        # calculate the remedial units across all vessels
+        # the variable holds the units of one vessel; the regulation totals cover all
+        # the vessels it represents
         remedial_units = remedial_factor.X * alg.multipliers[v]
 
-        # calculate the remedial revenue and
-        # individual vessel contribution
+        # the objective coefficient carries the multiplier, so dividing it out gives
+        # the remedial cost per unit
         remedial_expenses = (remedial_factor.Obj / alg.multipliers[v]) * remedial_units
         vessel_remediation = remedial_expenses / alg.multipliers[v]
 
         if alg.scope == BunkerScopeID.EXISTING:
-            # transfer to regulation
             regulation.profile.add_remedial_units(remedial_units, alg.idx)
             regulation.profile.add_remedial_expenses(remedial_expenses, alg.idx)
-
-            # transfer to vessel (remedial_factor.X is per-ship remedial units)
             vessel.profile.add_remedial_units(r, remedial_factor.X, alg.idx)
             vessel.profile.add_remedial_expenses(vessel_remediation, alg.idx)
 
         else:
             vessel.expectation.add_policy_expenses(alg.idx, vessel_remediation)
 
-        # transfer adjusted thresholds if threshold adjustment is enabled
         if (
             alg.scope == BunkerScopeID.EXISTING
             and regulation.allow_threshold_adjustment

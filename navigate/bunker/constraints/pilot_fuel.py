@@ -1,17 +1,19 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Add the constraints that dual-fuel converters burn their minimum pilot-fuel share."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
+
+from navigate.bunker._build import get_constraint
+from navigate.bunker.utils import get_converters, get_port_converters
 
 if TYPE_CHECKING:
     import navigate.bunker.solver as gp
     from navigate.bunker.bunker_algorithm import BunkerAlgorithm
     from navigate.core.nodes.vessel import Vessel
-
-from navigate.bunker._build import get_constraint
-from navigate.bunker.utils import get_converters, get_port_converters
 
 
 def update_pilot_fuel_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> None:
@@ -64,11 +66,10 @@ def update_pilot_fuel_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> None:
             if fuel.name in usable_fuels
         ]
 
-        # at sea
         for port_start, port_end in leg_idx:
-            key = (v, c, port_start, port_end)
+            sea_key = (v, c, port_start, port_end)
             constraint = get_constraint(
-                alg, alg.pilot_fuel_sea, key, ">=", "pilot_fuel_at_sea"
+                alg, alg.pilot_fuel_sea, sea_key, ">=", "pilot_fuel_at_sea"
             )
 
             _apply_pilot_fuel_coefficients(
@@ -86,11 +87,10 @@ def update_pilot_fuel_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> None:
         if c not in port_converters:
             continue
 
-        # in port
         for p in port_idx:
-            key = (v, c, p)
+            port_key = (v, c, p)
             constraint = get_constraint(
-                alg, alg.pilot_fuel_port, key, ">=", "pilot_fuel_in_port"
+                alg, alg.pilot_fuel_port, port_key, ">=", "pilot_fuel_in_port"
             )
 
             _apply_pilot_fuel_coefficients(
@@ -112,9 +112,9 @@ def _apply_pilot_fuel_coefficients(
     spend: dict[tuple, gp.Var],
     v: str,
     c: str,
-    indices: tuple,
-    pilot_fuels: list,
-    main_fuels: list,
+    indices: tuple[int, ...],
+    pilot_fuels: list[str],
+    main_fuels: list[str],
     fraction: float,
 ) -> None:
     """

@@ -1,16 +1,18 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Add the per-vessel threshold constraints of INDIVIDUAL-scheme regulations."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from navigate.bunker.bunker_algorithm import BunkerAlgorithm
-
 from navigate.bunker.constraints.regulation_terms import (
     calculate_regulation_emission_term,
 )
+
+if TYPE_CHECKING:
+    from navigate.bunker.bunker_algorithm import BunkerAlgorithm
 
 
 def update_individual_regulation_threshold_constraints(alg: BunkerAlgorithm) -> None:
@@ -50,7 +52,7 @@ def update_individual_regulation_threshold_constraints(alg: BunkerAlgorithm) -> 
         )
         lhs = coefficients - alg.remedial_factor_individual[r, v]
 
-        # save terms for later
+        # kept for evaluating the regulation properties after the solve
         alg.regulation_emission_terms[(r, v)] = emissions
         alg.regulation_energy_terms[(r, v)] = energy
 

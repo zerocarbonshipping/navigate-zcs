@@ -1,15 +1,17 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Add the constraints balancing tank fuel mass from port to port on round trips."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from navigate.bunker._build import get_constraint
+
 if TYPE_CHECKING:
     from navigate.bunker.bunker_algorithm import BunkerAlgorithm
     from navigate.core.nodes.vessel import Vessel
-
-from navigate.bunker._build import get_constraint
 
 
 def update_mass_conservation_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> None:
@@ -37,7 +39,7 @@ def update_mass_conservation_constraints(alg: BunkerAlgorithm, vessel: Vessel) -
         Vessel for which constraints are updated.
     """
     v = vessel.name
-    voyages = vessel.expectation.get_voyages(alg.idx)
+    voyages = float(vessel.expectation.get_voyages(alg.idx))
     change_coefficient = alg.model.chgCoeff
     mass_tank = alg.mass_tank
     bunker = alg.bunker

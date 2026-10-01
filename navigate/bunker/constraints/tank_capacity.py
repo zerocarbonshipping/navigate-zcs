@@ -1,15 +1,17 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Add the constraints that the fuel stored in each tank fits its volume."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from navigate.bunker._build import get_constraint
+
 if TYPE_CHECKING:
     from navigate.bunker.bunker_algorithm import BunkerAlgorithm
     from navigate.core.nodes.vessel import Vessel
-
-from navigate.bunker._build import get_constraint
 
 
 def update_tank_capacity_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> None:

@@ -1,17 +1,19 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Add the constraints capping a vessel's bunkering at its fair share of port supply."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from navigate.bunker.bunker_algorithm import BunkerAlgorithm
-    from navigate.core.nodes.vessel import Vessel
-
 import numpy as np
 
 from navigate.bunker._build import get_constraint
+
+if TYPE_CHECKING:
+    from navigate.bunker.bunker_algorithm import BunkerAlgorithm
+    from navigate.core.nodes.vessel import Vessel
 
 
 def update_fair_share_fuel_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> None:
@@ -46,10 +48,10 @@ def update_fair_share_fuel_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> 
             if not port.is_bunkering_allowed(f):
                 continue
 
-            supply = port.expectation.get_bunker_supply(f, alg.idx)
+            supply = np.float64(port.expectation.get_bunker_supply(f, alg.idx))
 
-            # the fuel is either not initially constrained
-            # or the constraint has been removed
+            # an infinite supply was either never constrained or its constraint has
+            # been removed
             if not np.isfinite(supply):
                 continue
 
