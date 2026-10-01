@@ -387,8 +387,8 @@
 
 
 <li class="toctree-l1"><a class="reference internal" href="03-build-your-own-case.html">Session 3: Build your own case</a></li>
-<li class="toctree-l1"><a class="reference internal" href="04-run-a-reference-scenario.html">Session 4: Run our reference scenarios</a></li>
-<li class="toctree-l1"><a class="reference internal" href="05-build-your-own-whatif.html">Session 5: Sensitivity analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="04-build-your-own-whatif.html">Session 4: Sensitivity analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="05-run-a-reference-scenario.html">Session 5: Run our reference scenarios</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">References &amp; further reading</a></li>
 </ul>
 </div>
@@ -1443,7 +1443,7 @@ if you want more details.</p>
 
 <span class="c1"># One house style for every figure in the workshop. It lives in</span>
 <span class="c1"># docs/workshop/_style.py rather than in this cell, so that this notebook and</span>
-<span class="c1"># notebook 4 cannot drift apart - which is exactly what had happened. The</span>
+<span class="c1"># notebook 5 cannot drift apart - which is exactly what had happened. The</span>
 <span class="c1"># colours are Navigate's own, and that file explains the one thing about them</span>
 <span class="c1"># that surprises people: the hue says how a fuel was MADE, not which molecule it</span>
 <span class="c1"># is, so bio-methanol and e-methanol are deliberately different colours.</span>
@@ -5671,7 +5671,7 @@ over time.</p>
            <span class="n">loc</span><span class="o">=</span><span class="s2">"upper center"</span><span class="p">,</span> <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.18</span><span class="p">))</span>
 
 <span class="c1"># ---- 2. what it all adds up to ---------------------------------------------</span>
-<span class="c1"># The same series notebook 5 plots for the whole world fleet, here for one</span>
+<span class="c1"># The same series notebook 4 plots for the whole world fleet, here for one</span>
 <span class="c1"># trade: WELL-TO-WAKE, so how each fuel was made counts too, not just the</span>
 <span class="c1"># funnel. Every lever in Part 4 is ultimately aimed at this line.</span>
 <span class="c1"># Mt, not kt: get_best_unit_mass picks Mt/year at this fleet's magnitude, so</span>
@@ -5980,7 +5980,7 @@ ships, the owner decides what ships there are and what is fitted to them.</p>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">summarise</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""One solve, read the way notebook 5 reads its fleets."""</span>
+<span class="w">    </span><span class="sd">"""One solve, read the way notebook 4 reads its fleets."""</span>
     <span class="n">fleet</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">fleets</span><span class="p">[</span><span class="s2">"copper_trade"</span><span class="p">]</span>
     <span class="n">years</span> <span class="o">=</span> <span class="n">years_of</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
     <span class="n">wtw</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span>
@@ -6342,8 +6342,8 @@ from the top.</p>
 <li><p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/01-setup-and-quicktest.ipynb">Test set-up</a></p></li>
 <li><p><strong>Understand the Navigate logic</strong> (this session)</p></li>
 <li><p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/03-build-your-own-case.ipynb">Build your own case</a> (you can read it in Colab; its prompts need Navigate installed on your own machine)</p></li>
-<li><p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/04-run-a-reference-scenario.ipynb">Run our reference scenarios</a></p></li>
-<li><p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/05-build-your-own-whatif.ipynb">Sensitivity analysis</a></p></li>
+<li><p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/04-build-your-own-whatif.ipynb">Sensitivity analysis</a></p></li>
+<li><p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/05-run-a-reference-scenario.ipynb">Run our reference scenarios</a></p></li>
 </ol>
 </section>
 </section>
