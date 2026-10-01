@@ -362,9 +362,9 @@ def instance_to_dsl_name(node_type, attribute_name):
     return attribute_name
 
 
-def check_node_attribute_is_allowed(node_type, attribute_name, section):
+def check_node_attribute_is_allowed(node_type, attribute_name, section) -> None:
     """
-    Check whether a node type may set an attribute in a section.
+    Raise if a node type may not set an attribute in a section.
 
     Parameters
     ----------
@@ -374,21 +374,13 @@ def check_node_attribute_is_allowed(node_type, attribute_name, section):
         The name of the attribute.
     section : Enum
         The section (DEFINE or EVENTS) at which the attribute is read.
-
-    Returns
-    -------
-    bool
-        Whether the attribute is allowed.
     """
     allowed_attributes = NODE_ATTRIBUTE_SECTIONS[node_type]
 
     if attribute_name in allowed_attributes:
         allowed_sections = allowed_attributes[attribute_name]
 
-        if section in allowed_sections:
-            return True
-
-        else:
+        if section not in allowed_sections:
             raise AttributeAssignmentError(
                 f"Nodes of type '{node_type}' does not allow setting"
                 f" attribute '{attribute_name}' in '{SECTION_NAME[section]}'"
@@ -400,9 +392,9 @@ def check_node_attribute_is_allowed(node_type, attribute_name, section):
         )
 
 
-def check_general_node_attribute_is_allowed(type_, attribute_name, section):
+def check_general_node_attribute_is_allowed(type_, attribute_name, section) -> None:
     """
-    Check whether a general node type may set an attribute in a section.
+    Raise if a general node type may not set an attribute in a section.
 
     Parameters
     ----------
@@ -412,21 +404,13 @@ def check_general_node_attribute_is_allowed(type_, attribute_name, section):
         The name of the attribute.
     section : Enum
         The section (DEFINE or EVENTS) at which the attribute is read.
-
-    Returns
-    -------
-    bool
-        Whether the attribute is allowed.
     """
     allowed_attributes = GENERAL_NODE_ATTRIBUTE_SECTIONS[type_]
 
     if attribute_name in allowed_attributes:
         allowed_sections = allowed_attributes[attribute_name]
 
-        if section in allowed_sections:
-            return True
-
-        else:
+        if section not in allowed_sections:
             raise AttributeAssignmentError(
                 f"'{type_}' does not allow setting attribute '{attribute_name}' in "
                 f"'{SECTION_NAME[section]}'"

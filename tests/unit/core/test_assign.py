@@ -7,7 +7,7 @@ Tests for navigate.core.assign, the validation boundary behind every setter.
 CODESTYLE's "Input validation and dynamic access" makes this module the one
 place that checks deck input, so these pin the messages and the accept/reject
 rules the DSL reference promises. Messages are sentence fragments because
-``Parser._apply_assignment`` prefixes them with the node and attribute.
+``Parser._call_setter`` prefixes them with the node and attribute.
 """
 
 from __future__ import annotations
