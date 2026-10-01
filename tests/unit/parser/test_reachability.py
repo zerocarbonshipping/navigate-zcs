@@ -19,6 +19,8 @@ import pytest
 import navigate.core.nodes
 from helpers.simulation import default_assumptions_dir
 from navigate.core import Expression
+from navigate.core.general_nodes.bunker_options import BunkerOptions
+from navigate.core.general_nodes.model_definition import ModelDefinition
 from navigate.core.node_registry import GeneralNodes, Nodes
 from navigate.core.node_type import CURVE, LEVY, PORT, VESSEL
 from navigate.core.nodes.converter import Converter
@@ -45,6 +47,12 @@ from navigate.parser._node_reference import NodeReference, WildcardNodeReference
 from navigate.parser._reachability import ACTIVATION_EDGES, find_unreachable
 from navigate.parser.parser import Parser
 from navigate.util import attribute_to_instance_name
+
+
+def _general_nodes():
+    return GeneralNodes(
+        bunker_options=BunkerOptions(), model_definition=ModelDefinition()
+    )
 
 
 def _event_with(statements):
@@ -86,7 +94,7 @@ class TestFindUnreachable:
     def test_full_chain_is_reachable(self):
         nodes = self._fleet_chain()
 
-        assert find_unreachable(nodes, GeneralNodes(), [], {}) == []
+        assert find_unreachable(nodes, _general_nodes(), [], {}) == []
 
     def test_orphan_chain_pruned_transitively_shared_node_kept(self):
         nodes = self._fleet_chain()
@@ -97,7 +105,7 @@ class TestFindUnreachable:
         orphan_vessel.route = orphan_route
         orphan_route.ports = [nodes.ports["port"], orphan_port]
 
-        unreachable = find_unreachable(nodes, GeneralNodes(), [], {})
+        unreachable = find_unreachable(nodes, _general_nodes(), [], {})
 
         assert unreachable == [
             ("Port", "orphan_port"),
@@ -121,7 +129,7 @@ class TestFindUnreachable:
         process_c.feeds = [process_d]
         process_d.feeds = [process_c]
 
-        assert find_unreachable(nodes, GeneralNodes(), [], {}) == [
+        assert find_unreachable(nodes, _general_nodes(), [], {}) == [
             ("Process", "c"),
             ("Process", "d"),
         ]
@@ -143,7 +151,7 @@ class TestFindUnreachable:
             )
         ]
 
-        assert find_unreachable(nodes, GeneralNodes(), events, {}) == []
+        assert find_unreachable(nodes, _general_nodes(), events, {}) == []
 
         nodes.vessels["ghost"] = Vessel("ghost")
         events = [
@@ -159,7 +167,7 @@ class TestFindUnreachable:
             )
         ]
 
-        unreachable = find_unreachable(nodes, GeneralNodes(), events, {})
+        unreachable = find_unreachable(nodes, _general_nodes(), events, {})
 
         assert unreachable == [("Curve", "curve"), ("Vessel", "ghost")]
 
@@ -181,7 +189,7 @@ class TestFindUnreachable:
             )
         ]
 
-        assert find_unreachable(nodes, GeneralNodes(), events, {}) == []
+        assert find_unreachable(nodes, _general_nodes(), events, {}) == []
 
     def test_events_expression_references_found_without_resolving(self):
         nodes = self._fleet_chain()
@@ -197,7 +205,7 @@ class TestFindUnreachable:
             )
         ]
 
-        assert find_unreachable(nodes, GeneralNodes(), events, {}) == []
+        assert find_unreachable(nodes, _general_nodes(), events, {}) == []
         assert expression.node_references == []
 
     def test_expression_on_attribute_keeps_reference(self):
@@ -206,7 +214,7 @@ class TestFindUnreachable:
 
         nodes.vessels["vessel"].propulsion_load = Expression('Variable("x")')
 
-        assert find_unreachable(nodes, GeneralNodes(), [], {}) == []
+        assert find_unreachable(nodes, _general_nodes(), [], {}) == []
 
     def test_queued_command_input_keeps_reference(self):
         nodes = self._fleet_chain()
@@ -222,7 +230,7 @@ class TestFindUnreachable:
             ]
         }
 
-        assert find_unreachable(nodes, GeneralNodes(), [], command_queue) == []
+        assert find_unreachable(nodes, _general_nodes(), [], command_queue) == []
 
     def test_jurisdiction_reference_does_not_activate_port(self):
         nodes = self._fleet_chain()
@@ -231,7 +239,9 @@ class TestFindUnreachable:
 
         levy.jurisdiction = [jur_port]
 
-        assert find_unreachable(nodes, GeneralNodes(), [], {}) == [("Port", "jur_port")]
+        assert find_unreachable(nodes, _general_nodes(), [], {}) == [
+            ("Port", "jur_port")
+        ]
 
     def test_routed_port_in_jurisdiction_is_reachable(self):
         nodes = self._fleet_chain()
@@ -239,7 +249,7 @@ class TestFindUnreachable:
 
         levy.jurisdiction = [nodes.ports["port"]]
 
-        assert find_unreachable(nodes, GeneralNodes(), [], {}) == []
+        assert find_unreachable(nodes, _general_nodes(), [], {}) == []
 
     def test_expression_reference_does_not_activate_port(self):
         nodes = self._fleet_chain()
@@ -247,7 +257,7 @@ class TestFindUnreachable:
 
         nodes.vessels["vessel"].propulsion_load = Expression('0.5 * Port("expr_port")')
 
-        assert find_unreachable(nodes, GeneralNodes(), [], {}) == [
+        assert find_unreachable(nodes, _general_nodes(), [], {}) == [
             ("Port", "expr_port")
         ]
 
@@ -269,7 +279,7 @@ class TestFindUnreachable:
             )
         ]
 
-        assert find_unreachable(nodes, GeneralNodes(), events, {}) == [
+        assert find_unreachable(nodes, _general_nodes(), events, {}) == [
             ("Port", "jur_port")
         ]
 
