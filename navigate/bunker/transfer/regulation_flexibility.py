@@ -35,24 +35,18 @@ def transfer_regulation_flexibility(alg: BunkerAlgorithm, properties: dict) -> N
 
         # calculate the flexibility units required
         # or surplus units generated per vessel
-        non_compliance_factor = {}
         non_compliance_units = {}
-        surplus_factor = {}
         surplus_units = {}
         for v in alg.vessels:
             if not regulation.vessel_is_policed(v):
                 continue
 
             # extract the emitted emissions and the allowed emissions
-            vessel_emissions, vessel_measure, vessel_rhs = properties[(r, v)]
+            vessel_emissions, _, vessel_rhs = properties[(r, v)]
 
             # calculate the units associated with the factors
             non_compliance_units[v] = max(vessel_emissions - vessel_rhs, 0.0)
             surplus_units[v] = max(vessel_rhs - vessel_emissions, 0.0)
-
-            # calculate the non-compliance and surplus factors
-            non_compliance_factor[v] = non_compliance_units[v] / vessel_measure
-            surplus_factor[v] = surplus_units[v] / vessel_measure
 
         total_non_compliance_units = sum(
             unit * alg.multipliers[v] for v, unit in non_compliance_units.items()
@@ -81,7 +75,7 @@ def transfer_regulation_flexibility(alg: BunkerAlgorithm, properties: dict) -> N
         # fraction to all vessels with non-compliance
         remedial_units = {}
         flexibility_units = {}
-        for v in non_compliance_factor:
+        for v in non_compliance_units:
             remedial_units[v] = non_compliance_units[v] * remedial_scaling
             flexibility_units[v] = non_compliance_units[v] * (1.0 - remedial_scaling)
 

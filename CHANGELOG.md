@@ -312,6 +312,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   load in port, shore power is now also limited to the port's
   `ShorePowerConnectionShare` of the time in port, so results change there
   (#372).
+- A `FLEXIBLE` `INTENSITY` `Regulation` with a numeric vessel threshold no
+  longer crashes the run with a `ZeroDivisionError` when it regulates nothing
+  of a policed vessel, as with `IntraFraction`, `InterFraction` and
+  `ExtraFraction` all 0 (#376).
 
 ## [1.0.0] - 2026-07-16
 
