@@ -1,6 +1,13 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""
+The Parser: reads a deck and its include files into nodes and a timeline of events.
+
+SimulationManager builds one to read the deck and to step through the timeline;
+replot builds one to read Plot nodes from an include file.
+"""
+
 from __future__ import annotations
 
 import copy
@@ -19,6 +26,7 @@ from navigate.core.general_nodes.bunker_options import BunkerOptions
 from navigate.core.node import Node
 from navigate.core.node_registry import GeneralNodes, Nodes
 from navigate.core.node_type import MODEL_DEFINITION, is_calculator
+from navigate.core.table_data import string_to_date
 from navigate.exceptions import (
     AttributeAssignmentError,
     CommandError,
@@ -52,6 +60,7 @@ from navigate.parser._keywords import (
     START,
     define_new_general_node,
     define_new_node,
+    node_group,
 )
 from navigate.parser._lark_parser import (
     Assignment,
@@ -60,7 +69,6 @@ from navigate.parser._lark_parser import (
     DateStatement,
     DefineBlock,
     EndTimeline,
-    EventsBlock,
     GeneralNodeDeclaration,
     ImportStatement,
     IncludeDirective,
@@ -70,7 +78,6 @@ from navigate.parser._lark_parser import (
     StartTimeline,
     parse_deck_content,
     parse_include_content,
-    string_to_date,
 )
 from navigate.parser._node_reference import NodeReference, WildcardNodeReference
 from navigate.parser._reachability import ROOT_TYPES, find_unreachable
@@ -90,11 +97,23 @@ from navigate.util import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable, Iterator, Sized
+    from collections.abc import Callable, Iterable, Iterator, Sized
 
     from navigate.core.general_nodes._general_node import _GeneralNode
     from navigate.core.general_nodes.model_definition import ModelDefinition
+    from navigate.core.nodes.curve import Curve
+    from navigate.core.nodes.forecast import Forecast
+    from navigate.core.nodes.plot import Plot
+    from navigate.core.nodes.surface import Surface
+    from navigate.core.nodes.timetable import Timetable
     from navigate.core.types_ import Calculator
+    from navigate.parser._lark_parser import (
+        DeckBlock,
+        DeckValue,
+        EventStatement,
+        MaterializedValue,
+        Statement,
+    )
     from navigate.util.types_ import DateArray
 
 logger = logging.getLogger(__name__)
@@ -118,7 +137,7 @@ class _PendingAssignment:
     # waits here until the registry can expand it
     node: Node | _GeneralNode
     attribute: str
-    value: object
+    value: MaterializedValue
     source: SourceLocation
     deck_line: int
 
@@ -132,11 +151,12 @@ class _DeclaredGeneralNodes:
 
 
 class Parser:
-    def __init__(self):
-        """Read and process Navigate input decks (.nav and .inc files)."""
+    """Read and process Navigate input decks (.nav and .inc files)."""
+
+    def __init__(self) -> None:
         # nodes; the general nodes are held as the deck declares them, and
         # become the record once the DEFINE pass has checked them
-        self.nodes = Nodes()
+        self.nodes: Nodes = Nodes()
         self._declared_general_nodes: _DeclaredGeneralNodes = _DeclaredGeneralNodes()
         self.general_nodes: GeneralNodes
 
@@ -145,25 +165,26 @@ class Parser:
         self.dates: DateArray
         self._start_events: list[Event] = []
         self._event_queue: dict[np.datetime64, list[Event]] = {}
-        self._idx_date = 0
+        self._idx_date: int = 0
         self._current_event: Event | None = None
 
         # timeline state
         self._timeline_open: bool = False
         self._last_date: np.datetime64 | None = None
 
-        # paths
-        self.deck_directory = None
-        self.deck_name = None
-        self._user_default_directory = None
-        self._user_module_directory = None
-        self._installation_default_directory = None
-        self._installation_module_directory = None
+        # paths; the deck's are set when it is read, the assumptions folders only
+        # when a data folder is given
+        self.deck_directory: str | None = None
+        self.deck_name: str
+        self._user_default_directory: str | None = None
+        self._user_module_directory: str | None = None
+        self._installation_default_directory: str | None = None
+        self._installation_module_directory: str | None = None
 
         # dynamic flags
-        self._reading_default = False
-        self._pruned_nodes = set()
-        self._copy_source_names = set()
+        self._reading_default: bool = False
+        self._pruned_nodes: set[tuple[str, str]] = set()
+        self._copy_source_names: set[tuple[str, str]] = set()
         # names of the defaults whose user or installation file is being read,
         # so a nested pull of the same node can tell it re-entered; names are
         # unique across node types, so the name alone identifies the node
@@ -189,24 +210,23 @@ class Parser:
         # the values the deck handed each node's DEFINE-only attributes and
         # commands, keyed by the entry they write: the deck attribute, or the
         # command with its arguments before the value
-        self._define_only_inputs: dict[Node, dict[tuple[str, ...], list]] = {}
+        self._define_only_inputs: dict[
+            Node, dict[tuple[str, ...], list[MaterializedValue]]
+        ] = {}
         # every calculator a DEFINE-only input holds, keyed by identity, with
         # the first node and deck attribute or command name holding it
         self._pinned_calculators: dict[Calculator, tuple[Node, str]] = {}
 
-        # section flags; the current section outlives the open block, as it
-        # also selects the pass once every block is read
-        self._open_section: SimulationSectionID | None = None
+        # section flags; the current section outlives its block, as it also
+        # selects the pass once every block is read
         self._current_section: SimulationSectionID
         self._finished_sections: list[SimulationSectionID] = []
 
-        # source tracking — set per include-file processing pass
-        self._current_deck_line = 0
-        self._current_source = SourceLocation()
+        # source tracking, set per include-file processing pass
+        self._current_deck_line: int = 0
+        self._current_source: SourceLocation = SourceLocation()
 
-    # ══════════════════════════════════════════════════════════════════
-    # Deck (.nav) reading — Lark-based
-    # ══════════════════════════════════════════════════════════════════
+    # deck (.nav) reading --------------------------------------------------------------
 
     def read_deck(self, path: Path, data_dir: Path | None = None) -> None:
         """
@@ -257,7 +277,9 @@ class Parser:
         self._current_section = SimulationSectionID.EVENTS
 
     @classmethod
-    def parse_plot_nodes(cls, path, data_dir=None):
+    def parse_plot_nodes(
+        cls, path: Path, data_dir: Path | None = None
+    ) -> dict[str, Plot]:
         """
         Parse Plot nodes from a standalone include (.inc) file.
 
@@ -266,9 +288,9 @@ class Parser:
 
         Parameters
         ----------
-        path : str or Path
+        path
             Path to the .inc file containing one or more Plot node declarations.
-        data_dir : Path or None
+        data_dir
             Assumptions data folder (only required if the include imports nodes).
 
         Returns
@@ -277,23 +299,23 @@ class Parser:
             Parsed Plot nodes keyed by name.
         """
         parser = cls()
-        parser._define_internal_directories(
-            data_dir=data_dir
-        )  # no-op if data_dir is None
+        parser._define_internal_directories(data_dir=data_dir)
         parser._current_section = SimulationSectionID.DEFINE
         parser._read_include_file(str(path))
+
+        # no dependency pass runs here, so the queued add_plot commands are
+        # drained directly
         for node in parser.nodes.plots.values():
-            parser._execute_node_commands(node)  # runs queued add_plot(...) commands
+            parser._execute_node_commands(node)
+
         return parser.nodes.plots
 
-    def _process_deck_block(self, block):
+    def _process_deck_block(self, block: DeckBlock) -> None:
         """Process a single Define or Events block from the deck AST."""
         if isinstance(block, DefineBlock):
             section = SimulationSectionID.DEFINE
-        elif isinstance(block, EventsBlock):
-            section = SimulationSectionID.EVENTS
         else:
-            raise DeckFormatError(f"Unknown deck block type: {type(block).__name__}")
+            section = SimulationSectionID.EVENTS
 
         self._begin_reading_section(section)
 
@@ -308,16 +330,17 @@ class Parser:
                 logger.debug("[%s] Load %s", section.name, directive.name)
                 self._load_module(directive)
 
-        self._end_reading_section()
+        self._end_reading_section(section)
 
-    def progress_timeline(self):
+    def progress_timeline(self) -> np.datetime64 | None:
         """
         Progress the timeline to the next date and process events.
 
         Returns
         -------
-        np.datetime64
-            Date of the next event in the timeline.
+        np.datetime64 | None
+            Date of the next event in the timeline, or None once every date is
+            read.
         """
         date, events = self._next_event()
 
@@ -336,56 +359,63 @@ class Parser:
 
         return date
 
-    # ── error formatting ──────────────────────────────────────────────
+    # error formatting -----------------------------------------------------------------
 
     def _error_prefix(
         self, source: SourceLocation | None = None, deck_line: int | None = None
-    ):
+    ) -> str:
         """
         Build an error prefix string from source location.
 
         Parameters
         ----------
-        source : SourceLocation, optional
-            Include file location.  Falls back to ``self._current_source``.
-        deck_line : int, optional
-            Deck line.  Falls back to ``self._current_deck_line``.
+        source
+            Include file location; falls back to ``self._current_source``.
+        deck_line
+            Deck line; falls back to ``self._current_deck_line``.
+
+        Returns
+        -------
+        str
+            The deck line and include-file location, as far as they are known.
         """
         source = source or self._current_source
-        dl = deck_line if deck_line is not None else self._current_deck_line
+        line = deck_line if deck_line is not None else self._current_deck_line
         parts = []
-        if dl:
-            parts.append(f"Error in deck file, line {dl}")
+        if line:
+            parts.append(f"Error in deck file, line {line}")
         if source.file:
             parts.append(f"include file '{source.file}', line {source.line}")
         return ", ".join(parts) if parts else "Parser error"
 
-    def _deck_error_prefix(self):
+    def _deck_error_prefix(self) -> str:
         return f"Error in deck file, line {self._current_deck_line}"
 
-    # ── internal directories ──────────────────────────────────────────
+    # internal directories -------------------------------------------------------------
 
     def _define_internal_directories(self, data_dir: Path | None = None) -> None:
-        if data_dir:
-            data_dir = Path(data_dir).resolve()
-            self._user_default_directory = str(data_dir / "defaults/user")
-            self._user_module_directory = str(data_dir / "modules/user")
-            self._installation_default_directory = str(
-                data_dir / "defaults/installation"
-            )
-            self._installation_module_directory = str(data_dir / "modules/installation")
+        if not data_dir:
+            return
 
-    # ══════════════════════════════════════════════════════════════════
-    # Include / Import
-    # ══════════════════════════════════════════════════════════════════
+        assumptions_directory = Path(data_dir).resolve()
+        self._user_default_directory = str(assumptions_directory / "defaults/user")
+        self._user_module_directory = str(assumptions_directory / "modules/user")
+        self._installation_default_directory = str(
+            assumptions_directory / "defaults/installation"
+        )
+        self._installation_module_directory = str(
+            assumptions_directory / "modules/installation"
+        )
 
-    def _read_include_file(self, path):
+    # include and import ---------------------------------------------------------------
+
+    def _read_include_file(self, path: str) -> None:
         """
         Read, parse, and process an include file.
 
         Parameters
         ----------
-        path : str
+        path
             Path of include file (relative to deck directory).
         """
         if not os.path.isabs(path):
@@ -411,13 +441,13 @@ class Parser:
         finally:
             self._current_source = source
 
-    def _load_module(self, directive):
+    def _load_module(self, directive: LoadModuleDirective) -> None:
         """
         Load a module referenced in the deck file.
 
         Parameters
         ----------
-        directive : LoadModuleDirective
+        directive
             The parsed Load directive.
         """
         if not self._user_module_directory or not self._installation_module_directory:
@@ -438,22 +468,20 @@ class Parser:
         found = self._read_default_folder(
             file_name, self._installation_module_directory
         )
-        if found:
-            logger.debug(
-                "Module '%s' was retrieved from the Installation Module folder.",
-                directive.name,
-            )
-        else:
+        if not found:
             raise DeckKeywordError(f"No module with name '{directive.name}' was found.")
 
-    # ══════════════════════════════════════════════════════════════════
-    # AST statement processing
-    # ══════════════════════════════════════════════════════════════════
+        logger.debug(
+            "Module '%s' was retrieved from the Installation Module folder.",
+            directive.name,
+        )
 
-    def _process_statements(self, statements):
+    # statement processing -------------------------------------------------------------
+
+    def _process_statements(self, statements: list[Statement]) -> None:
         """Walk a list of AST statements from a parsed .inc file."""
         for statement in statements:
-            self._current_source = getattr(statement, "source", self._current_source)
+            self._current_source = statement.source
 
             if isinstance(statement, StartTimeline):
                 self._start_timeline()
@@ -470,59 +498,46 @@ class Parser:
             else:
                 self._process_event_statement(statement)
 
-    _EVENT_DISPATCH: ClassVar[dict[type, str]] = {
+    _EVENT_DISPATCH: ClassVar[dict[type[EventStatement], str]] = {
         GeneralNodeDeclaration: "_process_general_node_declaration",
         NodeDeclaration: "_process_node_declaration",
         ImportStatement: "_process_import_node",
         CopyStatement: "_process_copy_node",
     }
 
-    def _process_event_statement(self, statement):
+    def _process_event_statement(self, statement: EventStatement) -> None:
         """Process a single AST statement (node declaration, copy, import)."""
-        handler_name = self._EVENT_DISPATCH.get(type(statement))
-        if handler_name is None:
-            raise DeckKeywordError(self._error_prefix() + ": Action not recognized.")
-        getattr(self, handler_name)(statement)
+        handler: Callable[[EventStatement], None] = getattr(
+            self, self._EVENT_DISPATCH[type(statement)]
+        )
+        handler(statement)
 
-    # ══════════════════════════════════════════════════════════════════
-    # Event queue & timeline
-    # ══════════════════════════════════════════════════════════════════
+    # event queue and timeline ---------------------------------------------------------
 
-    def _next_event(self):
-        if self._idx_date < len(self.dates):
-            date = self.dates[self._idx_date]
-        else:
+    def _next_event(self) -> tuple[np.datetime64 | None, list[Event]]:
+        if self._idx_date >= len(self.dates):
             return None, []
 
+        date = self.dates[self._idx_date]
         events = self._event_queue.get(date, [])
         self._idx_date += 1
         return date, events
 
-    def _read_event(self, event):
+    def _read_event(self, event: Event) -> None:
         """Process stored AST statements from a queued event."""
         self._current_deck_line = event.deck_line
         self._current_source = event.source
 
         for statement in event.statements:
-            self._current_source = getattr(statement, "source", self._current_source)
+            self._current_source = statement.source
             self._process_event_statement(statement)
 
-    def _begin_reading_section(self, section):
+    def _begin_reading_section(self, section: SimulationSectionID) -> None:
         self._check_section(section)
-        self._open_section = section
         self._current_section = section
         logger.debug("Reading section %s", section.name)
 
-    def _check_section(self, section):
-        if self._open_section is not None:
-            raise DeckFormatError(
-                self._deck_error_prefix()
-                + (
-                    f": Unable to begin {SECTION_NAME[section]} while reading "
-                    f"{SECTION_NAME[self._open_section]}."
-                )
-            )
-
+    def _check_section(self, section: SimulationSectionID) -> None:
         if section in self._finished_sections:
             raise DeckFormatError(
                 self._deck_error_prefix()
@@ -544,18 +559,11 @@ class Parser:
                 ).format(", ".join(SECTION_NAME.values()))
             )
 
-    def _end_reading_section(self):
-        if self._open_section is not None:
-            self._finished_sections.append(self._open_section)
-            self._open_section = None
-            self._current_event = None
-        else:
-            raise DeckFormatError(
-                self._deck_error_prefix()
-                + ": Unable to end section, no section is defined."
-            )
+    def _end_reading_section(self, section: SimulationSectionID) -> None:
+        self._finished_sections.append(section)
+        self._current_event = None
 
-    def _check_timeline_change(self):
+    def _check_timeline_change(self) -> None:
         if self._reading_default:
             raise DeckFormatError(
                 f"Error while retrieving default, include file "
@@ -563,7 +571,7 @@ class Parser:
                 + ": Unable to alter timeline while retrieving default nodes."
             )
 
-    def _start_timeline(self):
+    def _start_timeline(self) -> None:
         self._check_keyword(START)
         self._check_timeline_change()
 
@@ -576,7 +584,7 @@ class Parser:
         self._last_date = None
         self._start_events.append(self._open_event())
 
-    def _end_timeline(self):
+    def _end_timeline(self) -> None:
         self._check_keyword(END)
         self._check_timeline_change()
 
@@ -584,7 +592,7 @@ class Parser:
         self._last_date = None
         self._current_event = None
 
-    def _read_date(self, statement):
+    def _read_date(self, statement: DateStatement) -> None:
         """Process a DateStatement AST node."""
         self._check_keyword(DATE)
         self._check_timeline_change()
@@ -614,7 +622,7 @@ class Parser:
             *(event for events in self._event_queue.values() for event in events),
         ]
 
-    def _progress_is_chronological(self, date):
+    def _progress_is_chronological(self, date: np.datetime64) -> None:
         if self._last_date is not None and date <= self._last_date:
             raise DeckFormatError(
                 self._error_prefix()
@@ -622,7 +630,7 @@ class Parser:
                 "include files."
             )
 
-    def _replace_start_keyword(self):
+    def _replace_start_keyword(self) -> None:
         start_date = self.general_nodes.model_definition.start_date
 
         queued_dates = [*self._event_queue]
@@ -644,7 +652,7 @@ class Parser:
 
         self.dates = dates
 
-    def _timeline_is_consistent(self):
+    def _timeline_is_consistent(self) -> None:
         start_date = self.general_nodes.model_definition.start_date
 
         msg = ""
@@ -664,9 +672,7 @@ class Parser:
             )
             raise DeckFormatError(msg)
 
-    # ══════════════════════════════════════════════════════════════════
-    # Node body processing — shared helpers
-    # ══════════════════════════════════════════════════════════════════
+    # node body processing, shared helpers ---------------------------------------------
 
     def _apply_assignment(
         self, nodes: list[Node], item: Assignment, node_type: str
@@ -749,25 +755,35 @@ class Parser:
         for target in targets:
             self._call_setter(target, attribute, value, item.source, deck_line)
 
-    def _call_setter(self, node, attribute, value, source, deck_line):
+    def _call_setter(
+        self,
+        node: Node | _GeneralNode,
+        attribute: str,
+        value: MaterializedValue,
+        source: SourceLocation,
+        deck_line: int,
+    ) -> None:
         """
         Hand a value to the setter of the deck attribute that names it.
 
         Parameters
         ----------
-        node : Node
+        node
             Node the assignment targets.
-        attribute : str
+        attribute
             Deck-facing attribute token.
         value
             The value to assign, with every reference already a node.
-        source : SourceLocation
+        source
             Include-file location of the assignment.
-        deck_line : int
+        deck_line
             Deck line of the assignment.
         """
         try:
-            getattr(node, attribute_to_setter(attribute))(value)
+            setter: Callable[[MaterializedValue], None] = getattr(
+                node, attribute_to_setter(attribute)
+            )
+            setter(value)
 
         except ValueError as e:
             raise AttributeAssignmentError(
@@ -785,17 +801,17 @@ class Parser:
             # a re-assignment replaces what the attribute held
             self._define_only_inputs.setdefault(node, {})[(attribute,)] = [value]
 
-    def _queue_command(self, nodes, item, node_type):
+    def _queue_command(self, nodes: list[Node], item: Command, node_type: str) -> None:
         """
         Validate and queue a Command AST node on one or more nodes.
 
         Parameters
         ----------
-        nodes : list[Node] or single node
-            Target node(s).
-        item : Command
+        nodes
+            Target nodes.
+        item
             The command AST node.
-        node_type : str
+        node_type
             Node type string for validation.
         """
         self._current_source = item.source
@@ -807,7 +823,7 @@ class Parser:
         except CommandError as e:
             raise CommandError(self._error_prefix() + f": {e!s}.") from None
 
-        inputs = self._materialize(item.args)
+        inputs = [self._materialize(argument) for argument in item.args]
 
         if _contains_wildcard(inputs):
             raise CommandError(
@@ -816,22 +832,21 @@ class Parser:
                 "argument."
             )
 
-        ref = CommandReference(
+        command_reference = CommandReference(
             command, inputs, source=item.source, deck_line=self._current_deck_line
         )
 
-        target_nodes = nodes if isinstance(nodes, list) else [nodes]
-        for node in target_nodes:
-            self._command_queue.setdefault(node, []).append(ref)
+        for node in nodes:
+            self._command_queue.setdefault(node, []).append(command_reference)
 
         # recorded when queued, as a command a default pulled after the drain
         # queues runs only on the next pass
         if NODE_COMMAND_SECTIONS[node_type][command] == SECTION_DEFINE:
-            for node in target_nodes:
+            for node in nodes:
                 self._record_define_only_command(node, command, inputs)
 
     def _record_define_only_command(
-        self, node: Node, command: str, inputs: list
+        self, node: Node, command: str, inputs: list[MaterializedValue]
     ) -> None:
         """
         Record a DEFINE-only command's inputs, replacing the calls it overwrites.
@@ -866,50 +881,38 @@ class Parser:
         # them raw for a later wildcard to match
         records[(command, *map(repr, keys))] = inputs
 
-    # ══════════════════════════════════════════════════════════════════
-    # Node declaration processing
-    # ══════════════════════════════════════════════════════════════════
+    # node declaration processing ------------------------------------------------------
 
-    def _process_node_declaration(self, declaration):
+    def _process_node_declaration(self, declaration: NodeDeclaration) -> None:
         """Process a NodeDeclaration AST node."""
         self._check_keyword(declaration.node_type, name=declaration.name)
         nodes = self._retrieve_nodes(declaration.node_type, declaration.name)
 
         for item in declaration.body:
-            item_type = type(item)
-            if item_type is Command:
+            if isinstance(item, Command):
                 self._queue_command(nodes, item, declaration.node_type)
-            elif item_type is Assignment:
-                self._apply_assignment(nodes, item, declaration.node_type)
             else:
-                raise DeckKeywordError(
-                    self._error_prefix(item.source)
-                    + f": '{type(item).__name__}' is not a valid keyword."
-                )
+                self._apply_assignment(nodes, item, declaration.node_type)
 
-    def _process_general_node_declaration(self, declaration):
+    def _process_general_node_declaration(
+        self, declaration: GeneralNodeDeclaration
+    ) -> None:
         """Process a GeneralNodeDeclaration AST node."""
         self._check_keyword(declaration.node_type)
         general_node = self._retrieve_general_node(declaration.node_type)
 
         for item in declaration.body:
-            item_type = type(item)
-            if item_type is Command:
+            if isinstance(item, Command):
                 raise CommandError(
                     self._error_prefix(item.source)
                     + f": '{declaration.node_type}' does not support commands."
                 )
-            elif item_type is Assignment:
-                self._apply_general_node_assignment(
-                    general_node, item, declaration.node_type
-                )
-            else:
-                raise DeckKeywordError(
-                    self._error_prefix(item.source)
-                    + f": '{type(item).__name__}' is not a valid keyword."
-                )
 
-    def _process_copy_node(self, statement):
+            self._apply_general_node_assignment(
+                general_node, item, declaration.node_type
+            )
+
+    def _process_copy_node(self, statement: CopyStatement) -> None:
         """Process a CopyStatement AST node."""
         self._check_allow_new_node("copy")
         self._check_keyword(statement.node_type)
@@ -920,7 +923,7 @@ class Parser:
 
         self._check_node_name_is_available(statement.node_type, statement.copy_to)
 
-        group = getattr(self.nodes, NODE_GROUP[statement.node_type])
+        group = node_group(self.nodes, statement.node_type)
         source_key = (statement.node_type, statement.copy_from)
 
         from_default = statement.copy_from not in group
@@ -994,7 +997,7 @@ class Parser:
 
         group[statement.copy_to] = new_node
 
-    def _process_import_node(self, statement):
+    def _process_import_node(self, statement: ImportStatement) -> None:
         """Process an ImportStatement AST node."""
         self._check_allow_new_node("import")
         self._check_keyword(statement.node_type)
@@ -1007,12 +1010,10 @@ class Parser:
                 statement.node_type, statement.name, self._error_prefix()
             )
 
-    # ══════════════════════════════════════════════════════════════════
-    # Node retrieval / creation
-    # ══════════════════════════════════════════════════════════════════
+    # node retrieval and creation ------------------------------------------------------
 
-    def _retrieve_nodes(self, node_type, name):
-        group = getattr(self.nodes, NODE_GROUP[node_type])
+    def _retrieve_nodes(self, node_type: str, name: str) -> list[Node]:
+        group = node_group(self.nodes, node_type)
 
         if name_contains_wildcards(name):
             regex = wildcard_to_regex(name)
@@ -1022,6 +1023,7 @@ class Parser:
                     f"{self._error_prefix()}: No node of type '{node_type}' matches "
                     f"the wildcard expression '{name}'."
                 )
+
             return nodes
 
         if name in group:
@@ -1045,33 +1047,35 @@ class Parser:
             setattr(self._declared_general_nodes, field, general_node)
         return general_node
 
-    def _check_allow_new_node(self, action):
+    def _check_allow_new_node(self, action: str) -> None:
         if self._current_section != SimulationSectionID.DEFINE:
             raise DeckKeywordError(
                 self._error_prefix() + f": Unable to {action} new nodes outside DEFINE."
             )
 
-    def _check_keyword(self, keyword, name=None):
-        if keyword in KEYWORD_SECTIONS:
-            if self._current_section not in KEYWORD_SECTIONS[keyword]:
-                if self._reading_default:
-                    raise DeckKeywordError(
-                        f'Unable to reference {keyword}("{name}") as it is not '
-                        f"previously defined."
-                    )
-                else:
-                    raise DeckKeywordError(
-                        self._error_prefix()
-                        + f": '{keyword}' is not an allowed keyword in section "
-                        f"{SECTION_NAME[self._current_section]}."
-                    )
-        else:
+    def _check_keyword(self, keyword: str, name: str | None = None) -> None:
+        if keyword not in KEYWORD_SECTIONS:
             raise DeckKeywordError(
                 self._error_prefix() + f": \n'{keyword}' is not a recognized keyword. "
                 "Check the attributes and commands for spelling"
             )
 
-    def _check_node_name_is_available(self, node_type, name):
+        if self._current_section in KEYWORD_SECTIONS[keyword]:
+            return
+
+        if self._reading_default:
+            raise DeckKeywordError(
+                f'Unable to reference {keyword}("{name}") as it is not '
+                f"previously defined."
+            )
+
+        raise DeckKeywordError(
+            self._error_prefix()
+            + f": '{keyword}' is not an allowed keyword in section "
+            f"{SECTION_NAME[self._current_section]}."
+        )
+
+    def _check_node_name_is_available(self, node_type: str, name: str) -> None:
         if name in self._get_all_node_names():
             raise DeckKeywordError(
                 self._error_prefix()
@@ -1079,7 +1083,7 @@ class Parser:
                 f"by a different node."
             )
 
-    def _read_import_node_wildcard(self, node_type, name_pattern):
+    def _read_import_node_wildcard(self, node_type: str, name_pattern: str) -> None:
         if not self._user_default_directory or not self._installation_default_directory:
             raise DeckKeywordError(
                 self._deck_error_prefix()
@@ -1091,11 +1095,12 @@ class Parser:
         user_dir = os.path.join(self._user_default_directory, node_type)
         install_dir = os.path.join(self._installation_default_directory, node_type)
 
-        matched_names = {}
+        matched_names: dict[str, str] = {}
 
         for directory in (user_dir, install_dir):
             if not os.path.isdir(directory):
                 continue
+
             for file_name in _get_files_in_directory(directory):
                 basename = os.path.splitext(file_name)[0]
                 if pattern.match(basename) and basename not in matched_names:
@@ -1111,37 +1116,29 @@ class Parser:
             self._check_node_name_is_available(node_type, name)
             self._retrieve_node_from_default(node_type, name, self._error_prefix())
 
-    # ══════════════════════════════════════════════════════════════════
-    # Collection helpers
-    # ══════════════════════════════════════════════════════════════════
+    # collection helpers ---------------------------------------------------------------
 
-    def includes_necessary_information(self):
+    def includes_necessary_information(self) -> None:
+        """Raise if the read deck defines no Fleet or no Fuel to simulate."""
         # a Fleet requires Vessels, a Vessel a Route and a Route Ports, so a
-        # deck with a Fleet has vessels and ports; emissions may be absent
+        # deck with a Fleet has vessels and ports; emissions may be absent, and
+        # the timeline always holds the start date
         checks: list[tuple[Sized, str]] = [
-            (self.dates, "timeline"),
             (self.nodes.fleets, "Fleets"),
             (self.nodes.fuels, "Fuels"),
         ]
         missing = [label for collection, label in checks if len(collection) == 0]
         if missing:
-            msg = "".join(
-                f"\t- No {m} are defined.\n"
-                if m != "timeline"
-                else "\t- No timeline is defined.\n"
-                for m in missing
-            )
+            msg = "".join(f"\t- No {label} are defined.\n" for label in missing)
             raise DeckKeywordError(f"Unable to run a simulation:\n{msg}")
 
-    def _get_all_nodes(self):
+    def _get_all_nodes(self) -> list[Node]:
         return list(self.nodes.all_nodes())
 
-    def _get_all_node_names(self):
+    def _get_all_node_names(self) -> list[str]:
         return list(self.nodes.all_names())
 
-    # ══════════════════════════════════════════════════════════════════
-    # Semantic passes
-    # ══════════════════════════════════════════════════════════════════
+    # semantic passes ------------------------------------------------------------------
 
     def _initialize_general_nodes(self) -> None:
         """Check the declared general nodes and build the general-node record."""
@@ -1188,7 +1185,7 @@ class Parser:
             if attribute not in assigned:
                 no_value_assigned_error(node, attribute)
 
-    def _update_dependencies(self):
+    def _update_dependencies(self) -> None:
         """
         Replace references, execute commands, initialize nodes.
 
@@ -1222,7 +1219,7 @@ class Parser:
 
         self._initialize_nodes()
 
-    def _prune_unreachable_nodes(self):
+    def _prune_unreachable_nodes(self) -> None:
         """Remove every node no chain of references connects to a root."""
         unreachable = find_unreachable(
             self.nodes, self.general_nodes, self._queued_events(), self._command_queue
@@ -1232,7 +1229,7 @@ class Parser:
             return
 
         for node_type, name in unreachable:
-            group = getattr(self.nodes, NODE_GROUP[node_type])
+            group = node_group(self.nodes, node_type)
             self._command_queue.pop(group[name], None)
             del group[name]
 
@@ -1259,7 +1256,9 @@ class Parser:
         if scrubbed:
             self._warn_scrubbed_references(scrubbed)
 
-    def _handle_unreachable(self, reported: list, dropped_statements: int) -> None:
+    def _handle_unreachable(
+        self, reported: list[tuple[str, str]], dropped_statements: int
+    ) -> None:
         """
         Warn about the pruned nodes.
 
@@ -1292,7 +1291,7 @@ class Parser:
             dropped,
         )
 
-    def _scrub_references_to_pruned(self) -> list:
+    def _scrub_references_to_pruned(self) -> list[tuple[Node, str, list[Node]]]:
         """
         Remove pruned-node references from list-valued attributes on surviving nodes.
 
@@ -1304,17 +1303,18 @@ class Parser:
 
         Returns
         -------
-        (node, instance-attribute name, removed nodes) records for every
-        attribute that lost references.
+        list[tuple[Node, str, list[Node]]]
+            (node, instance-attribute name, removed nodes) records for every
+            attribute that lost references.
         """
 
-        def is_pruned(element):
+        def is_pruned(element: object) -> bool:
             return (
                 isinstance(element, Node)
                 and (element.type, element.name) in self._pruned_nodes
             )
 
-        records = []
+        records: list[tuple[Node, str, list[Node]]] = []
 
         for node in self._get_all_nodes():
             for attribute_name, attribute in get_attributes(
@@ -1323,9 +1323,13 @@ class Parser:
                 if not isinstance(attribute, list):
                     continue
 
-                kept, removed = [], []
+                kept: list[object] = []
+                removed: list[Node] = []
                 for element in attribute:
-                    (removed if is_pruned(element) else kept).append(element)
+                    if is_pruned(element):
+                        removed.append(element)
+                    else:
+                        kept.append(element)
 
                 if removed:
                     setattr(node, attribute_name, kept)
@@ -1333,7 +1337,9 @@ class Parser:
 
         return records
 
-    def _warn_scrubbed_references(self, scrubbed: list) -> None:
+    def _warn_scrubbed_references(
+        self, scrubbed: list[tuple[Node, str, list[Node]]]
+    ) -> None:
         """
         Warn about references to pruned nodes removed from surviving nodes.
 
@@ -1370,9 +1376,10 @@ class Parser:
 
         Returns
         -------
-        Number of statements dropped.
+        int
+            Number of statements dropped.
         """
-        pruned_names_by_type = {}
+        pruned_names_by_type: dict[str, set[str]] = {}
         for node_type, name in self._pruned_nodes:
             pruned_names_by_type.setdefault(node_type, set()).add(name)
 
@@ -1389,7 +1396,9 @@ class Parser:
 
         return dropped
 
-    def _targets_only_pruned(self, statement, pruned_names_by_type: dict) -> bool:
+    def _targets_only_pruned(
+        self, statement: EventStatement, pruned_names_by_type: dict[str, set[str]]
+    ) -> bool:
         """
         Whether a queued statement's target names only pruned nodes.
 
@@ -1399,6 +1408,12 @@ class Parser:
             A queued EVENTS AST statement.
         pruned_names_by_type
             Pruned node names grouped by node type.
+
+        Returns
+        -------
+        bool
+            True if the statement declares nodes and its target name matches
+            pruned nodes only.
         """
         if not isinstance(statement, NodeDeclaration):
             return False
@@ -1409,22 +1424,22 @@ class Parser:
             return False
 
         return not matching_keys(
-            statement.name, getattr(self.nodes, NODE_GROUP[statement.node_type])
+            statement.name, node_group(self.nodes, statement.node_type)
         )
 
-    def _execute_commands(self):
+    def _execute_commands(self) -> None:
         # a command queued after this drain, by a default pulled during the
         # later reference walk, waits for the next pass
         for node in self._get_all_nodes():
             self._execute_node_commands(node)
 
-    def _execute_node_commands(self, node):
-        for cmd_ref in self._command_queue.pop(node, []):
-            self._current_deck_line = cmd_ref.deck_line
-            self._current_source = cmd_ref.source
+    def _execute_node_commands(self, node: Node) -> None:
+        for command_reference in self._command_queue.pop(node, []):
+            self._current_deck_line = command_reference.deck_line
+            self._current_source = command_reference.source
 
             try:
-                cmd_ref.execute(node)
+                command_reference.execute(node)
 
             except CommandError as e:
                 raise CommandError(self._error_prefix() + f": {e!s}.") from None
@@ -1447,13 +1462,13 @@ class Parser:
 
                 raise CommandError(
                     self._error_prefix()
-                    + f": '{cmd_ref.command}' attempts to reference non-existing "
-                    f"name(s) {e!s}.{hint}"
+                    + f": '{command_reference.command}' attempts to reference "
+                    f"non-existing name(s) {e!s}.{hint}"
                 ) from None
 
             except ValueError as e:
                 raise CommandError(
-                    self._error_prefix() + f": '{cmd_ref.command}' {e!s}."
+                    self._error_prefix() + f": '{command_reference.command}' {e!s}."
                 ) from None
 
     def _reject_unresolved_references(self) -> None:
@@ -1540,7 +1555,7 @@ class Parser:
                 for calculator in self._held_calculators(values):
                     self._pinned_calculators.setdefault(calculator, (node, entry[0]))
 
-    def _held_calculators(self, value) -> Iterator[Calculator]:
+    def _held_calculators(self, value: MaterializedValue) -> Iterator[Calculator]:
         """
         Yield the calculators a deck value holds, directly or through an expression.
 
@@ -1551,15 +1566,17 @@ class Parser:
             for element in value:
                 yield from self._held_calculators(element)
 
+        elif isinstance(value, Expression) and value.node_references:
+            yield from value.node_references
+
         elif isinstance(value, Expression):
             # an expression read from a default pulled after the drain is
             # resolved only on the next pass, so its references are looked up
             # without binding it
-            references = value.node_references or [
-                self._find_node_reference(reference_string)
-                for reference_string in value.reference_strings
-            ]
-            yield from self._held_calculators(references)
+            for reference_string in value.reference_strings:
+                node = self._find_node_reference(reference_string)
+                if node is not None and is_calculator(node):
+                    yield node
 
         elif isinstance(value, Node) and is_calculator(value):
             yield value
@@ -1584,7 +1601,7 @@ class Parser:
             return None
 
         node_type, name = reference
-        node = getattr(self.nodes, NODE_GROUP[node_type]).get(name)
+        node = node_group(self.nodes, node_type).get(name)
         if node is not None:
             return node
 
@@ -1606,7 +1623,7 @@ class Parser:
                     )
 
     def _reject_statement_changing_pinned_calculator(
-        self, statement, deck_line: int
+        self, statement: EventStatement, deck_line: int
     ) -> None:
         """
         Raise if a queued EVENTS statement sets an attribute of a pinned calculator.
@@ -1622,11 +1639,12 @@ class Parser:
             return
 
         assignments = [item for item in statement.body if isinstance(item, Assignment)]
-        group = getattr(self.nodes, NODE_GROUP[statement.node_type])
+        group = node_group(self.nodes, statement.node_type)
+        targets = [group[name] for name in matching_keys(statement.name, group)]
         pinned = [
-            group[name]
-            for name in matching_keys(statement.name, group)
-            if group[name] in self._pinned_calculators
+            node
+            for node in targets
+            if is_calculator(node) and node in self._pinned_calculators
         ]
 
         if not (assignments and pinned):
@@ -1642,7 +1660,7 @@ class Parser:
             "DEFINE-only."
         )
 
-    def _build_tables(self):
+    def _build_tables(self) -> None:
         """
         Build the tables set since the last pass, rebasing dated ones to the start.
 
@@ -1651,19 +1669,27 @@ class Parser:
         """
         start_date = self.general_nodes.model_definition.start_date
 
-        for node in (*self.nodes.forecasts.values(), *self.nodes.timetables.values()):
+        dated_tables: list[Forecast | Timetable] = [
+            *self.nodes.forecasts.values(),
+            *self.nodes.timetables.values(),
+        ]
+        for dated_table in dated_tables:
             try:
-                node.replace_reference_table(start_date)
+                dated_table.replace_reference_table(start_date)
             except ValueError as e:
-                raise AttributeAssignmentError(f"{node}: {e!s}") from None
+                raise AttributeAssignmentError(f"{dated_table}: {e!s}") from None
 
-        for node in (*self.nodes.curves.values(), *self.nodes.surfaces.values()):
+        tables: list[Curve | Surface] = [
+            *self.nodes.curves.values(),
+            *self.nodes.surfaces.values(),
+        ]
+        for table in tables:
             try:
-                node.build_table()
+                table.build_table()
             except ValueError as e:
-                raise AttributeAssignmentError(f"{node}: {e!s}") from None
+                raise AttributeAssignmentError(f"{table}: {e!s}") from None
 
-    def _initialize_nodes(self):
+    def _initialize_nodes(self) -> None:
         """
         Run the lifecycle hooks over every node.
 
@@ -1685,7 +1711,7 @@ class Parser:
             else:
                 node.reinitialize()
 
-    def _initialize_dependent_dicts(self):
+    def _initialize_dependent_dicts(self) -> None:
         for converter in self.nodes.converters.values():
             converter.initialize_dependencies(self.nodes.emissions)
 
@@ -1726,15 +1752,15 @@ class Parser:
         for route in self.nodes.routes.values():
             route.initialize_dependencies()
 
-    def _replace_references(self):
+    def _replace_references(self) -> None:
         for node in self._get_all_nodes():
             self._replace_references_on_node(node)
 
-    def _replace_references_on_node(self, node):
+    def _replace_references_on_node(self, node: Node) -> None:
         for _, attribute in get_attributes(node, exclude=REFERENCE_SCAN_EXCLUDE):
             self._replace_references_on_attribute(node, attribute)
 
-    def _replace_references_on_attribute(self, node, attribute):
+    def _replace_references_on_attribute(self, node: Node, attribute: object) -> None:
         # the container shapes stay in lockstep with
         # _reachability._iter_references, which states how the two walks differ
         if isinstance(attribute, Node):
@@ -1754,7 +1780,7 @@ class Parser:
             attribute.resolve(node, self._read_node_reference)
             self._replace_references_on_attribute(node, attribute.node_references)
 
-    def _flush_pending_assignments(self):
+    def _flush_pending_assignments(self) -> None:
         """Expand the wildcards of the held-back assignments and apply them."""
         while self._pending_assignments:
             pending = self._pending_assignments
@@ -1767,7 +1793,9 @@ class Parser:
                     entry.node, entry.attribute, value, entry.source, entry.deck_line
                 )
 
-    def _expand_wildcards(self, value, location):
+    def _expand_wildcards(
+        self, value: MaterializedValue, location: str
+    ) -> MaterializedValue:
         """
         Replace every wildcard in a materialized value with the nodes it matches.
 
@@ -1775,23 +1803,25 @@ class Parser:
         ----------
         value
             A materialized assignment value.
-        location : str
+        location
             Error prefix of the line the value was read at.
 
         Returns
         -------
-        The value with nodes in place of wildcards: a bare wildcard becomes the
-        list of its matches, and one inside a list is spliced into that list.
+        MaterializedValue
+            The value with nodes in place of wildcards: a bare wildcard becomes
+            the list of its matches, and one inside a list is spliced into that
+            list.
         """
         if isinstance(value, WildcardNodeReference):
-            return self._expand_wildcard_node_reference(value, location)
+            return [*self._expand_wildcard_node_reference(value, location)]
 
         if not isinstance(value, list):
             return value
 
         # the recursion mirrors _materialize's, so no wildcard the grammar can
         # nest reaches a setter
-        expanded = []
+        expanded: list[MaterializedValue] = []
         for element in value:
             if isinstance(element, WildcardNodeReference):
                 expanded += self._expand_wildcard_node_reference(element, location)
@@ -1815,11 +1845,12 @@ class Parser:
 
         Returns
         -------
-        Matched nodes from the registry.
+        list[Node]
+            Matched nodes from the registry.
         """
         node_type = wildcard_ref.type
         pattern = wildcard_ref.name
-        group = getattr(self.nodes, NODE_GROUP[node_type])
+        group = node_group(self.nodes, node_type)
 
         try:
             matched_names = retrieve_keys(pattern, group)
@@ -1830,7 +1861,9 @@ class Parser:
 
         return [group[name] for name in matched_names]
 
-    def _retrieve_node_from_default(self, node_type, name, location):
+    def _retrieve_node_from_default(
+        self, node_type: str, name: str, location: str
+    ) -> None:
         if not self._user_default_directory or not self._installation_default_directory:
             raise DeckKeywordError(
                 self._deck_error_prefix()
@@ -1857,7 +1890,7 @@ class Parser:
         reading_default = self._reading_default
         self._reading_default = True
         try:
-            found_in = None
+            found_in: str | None = None
 
             # a user file pulling its own node overlays the installation one,
             # so the nested pull skips the user branch
@@ -1892,8 +1925,7 @@ class Parser:
                 found_in,
             )
 
-            group = getattr(self.nodes, NODE_GROUP[node_type])
-            if name not in group:
+            if name not in node_group(self.nodes, node_type):
                 raise DeckKeywordError(
                     f"{location}: A file with name '{name}' was found, but not"
                     f" containing a node with type '{node_type}' and similar name."
@@ -1901,7 +1933,7 @@ class Parser:
         finally:
             self._reading_default = reading_default
 
-    def _read_default_folder(self, name, directory):
+    def _read_default_folder(self, name: str, directory: str) -> bool:
         # a branch without a folder for the type holds no defaults of it
         if not os.path.isdir(directory):
             return False
@@ -1916,9 +1948,9 @@ class Parser:
 
         return False
 
-    # ── node references ───────────────────────────────────────────────
+    # node references ------------------------------------------------------------------
 
-    def _node(self, node_type, name, location):
+    def _node(self, node_type: str, name: str, location: str) -> Node:
         """
         Return the node a ``Type("name")`` reference names.
 
@@ -1930,13 +1962,18 @@ class Parser:
 
         Parameters
         ----------
-        node_type : str
+        node_type
             The reference's node type.
-        name : str
+        name
             The referenced node name.
-        location : str
+        location
             Error prefix of the referencing line, reported if neither a
             declaration nor a default file provides the node.
+
+        Returns
+        -------
+        Node
+            The declared node, or the deferred one standing in for it.
         """
         if node_type not in NODE_GROUP:
             raise DeckKeywordError(
@@ -1946,7 +1983,7 @@ class Parser:
         key = (node_type, name)
 
         if key not in self._provisional:
-            node = getattr(self.nodes, NODE_GROUP[node_type]).get(name)
+            node = node_group(self.nodes, node_type).get(name)
             if node is not None:
                 return node
 
@@ -1957,7 +1994,7 @@ class Parser:
 
         return entry.node
 
-    def _adopt(self, node_type, name):
+    def _adopt(self, node_type: str, name: str) -> Node | None:
         """
         Return the deferred node a declaration of ``(node_type, name)`` fills.
 
@@ -1972,7 +2009,7 @@ class Parser:
         entry = self._deferred.pop(key, None)
         return None if entry is None else entry.node
 
-    def _materialize(self, value):
+    def _materialize(self, value: DeckValue) -> MaterializedValue:
         """
         Replace every node reference in a parsed value with the node it names.
 
@@ -1984,7 +2021,8 @@ class Parser:
 
         Returns
         -------
-        The value with nodes in place of references.
+        MaterializedValue
+            The value with nodes in place of references.
         """
         if isinstance(value, NodeReference):
             return self._node(value.type, value.name, self._error_prefix())
@@ -1999,13 +2037,13 @@ class Parser:
 
         return value
 
-    def _pull_deferred(self, entry):
+    def _pull_deferred(self, entry: _Deferred) -> None:
         """
         Fill a node no declaration provided from the default library.
 
         Parameters
         ----------
-        entry : _Deferred
+        entry
             The deferred node and the location of the line that referenced it.
         """
         node = entry.node
@@ -2014,16 +2052,21 @@ class Parser:
         self._flush_pending_assignments()
         self._replace_references_on_node(node)
 
-    def _read_node_reference(self, reference_string, location):
+    def _read_node_reference(self, reference_string: str, location: str) -> Node:
         """
         Return the node an Expression's canonical reference string names.
 
         Parameters
         ----------
-        reference_string : str
+        reference_string
             A reference in canonical form, e.g. ``Forecast("name")``.
-        location : str
+        location
             Error prefix of the expression's line.
+
+        Returns
+        -------
+        Node
+            The declared node, or the deferred one standing in for it.
         """
         reference = parse_node_reference(reference_string)
         if reference is None:
@@ -2054,7 +2097,7 @@ def _no_assumptions_directory(subject: str) -> str:
     )
 
 
-def _get_files_in_directory(directory):
+def _get_files_in_directory(directory: str) -> list[str]:
     """
     List file names in the top level directory, excluding helper/placeholder files.
 
@@ -2062,24 +2105,25 @@ def _get_files_in_directory(directory):
 
     Parameters
     ----------
-    directory : str
+    directory
         Directory of where to look for files.
 
     Returns
     -------
-    list[str] :
+    list[str]
         List of file names.
     """
     ignored = frozenset({".gitkeep"})
 
     return [
-        f
-        for f in os.listdir(directory)
-        if os.path.isfile(os.path.join(directory, f)) and f not in ignored
+        file_name
+        for file_name in os.listdir(directory)
+        if os.path.isfile(os.path.join(directory, file_name))
+        and file_name not in ignored
     ]
 
 
-def _contains_wildcard(value):
+def _contains_wildcard(value: MaterializedValue) -> bool:
     """Test whether a materialized value is, or holds, a wildcard reference."""
     if isinstance(value, list):
         return any(_contains_wildcard(element) for element in value)
@@ -2087,7 +2131,7 @@ def _contains_wildcard(value):
     return isinstance(value, WildcardNodeReference)
 
 
-def _held_nodes(value) -> Iterator[Node]:
+def _held_nodes(value: object) -> Iterator[Node]:
     """
     Yield every node a value holds, in whatever container a setter stored it.
 
@@ -2112,15 +2156,18 @@ def _held_nodes(value) -> Iterator[Node]:
         yield from _held_nodes(value.node_references)
 
 
-def _keys_cover(patterns: list, keys: list) -> bool:
+def _keys_cover(
+    patterns: list[MaterializedValue], keys: list[MaterializedValue]
+) -> bool:
     """
     Test whether command key arguments match every key an earlier call named.
 
     A key holding wildcards itself is covered only by the identical pattern,
-    whose call replaces it by entry.
+    whose call replaces it by entry; a key matches only a string pattern.
     """
     return len(patterns) == len(keys) and all(
-        isinstance(key, str)
+        isinstance(pattern, str)
+        and isinstance(key, str)
         and not name_contains_wildcards(key)
         and bool(matching_keys(pattern, [key]))
         for pattern, key in zip(patterns, keys, strict=True)
@@ -2146,15 +2193,19 @@ def _transplant(node: Node, copied: Node) -> None:
     copied
         The freshly copied node, discarded afterwards.
     """
-    bounds = node.internal_bounds if is_calculator(node) else None
+    if not is_calculator(node):
+        node.__dict__.clear()
+        node.__dict__.update(copied.__dict__)
+        return
+
+    bounds = node.internal_bounds
 
     node.__dict__.clear()
     node.__dict__.update(copied.__dict__)
 
-    if bounds is not None:
-        node.set_internal_bounds(
-            bounds.lower,
-            bounds.upper,
-            inclusive_lower=bounds.inclusive_lower,
-            inclusive_upper=bounds.inclusive_upper,
-        )
+    node.set_internal_bounds(
+        bounds.lower,
+        bounds.upper,
+        inclusive_lower=bounds.inclusive_lower,
+        inclusive_upper=bounds.inclusive_upper,
+    )

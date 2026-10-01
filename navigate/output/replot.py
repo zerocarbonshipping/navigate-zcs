@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 
 def replot(
-    path: Path, plot_inc: Path | str | None = None, data_dir: Path | str | None = None
+    path: Path, plot_inc: Path | None = None, data_dir: Path | None = None
 ) -> None:
     from navigate.output.plot_data import PlotData
     from navigate.output.plots.render import render_plots
@@ -50,9 +50,7 @@ def replot(
         )
 
 
-def _plot_configs_from_include(
-    plot_inc: Path | str, data_dir: Path | str | None
-) -> list[dict]:
+def _plot_configs_from_include(plot_inc: Path, data_dir: Path | None) -> list[dict]:
     from navigate.parser.parser import Parser
 
     plot_nodes = Parser.parse_plot_nodes(plot_inc, data_dir=data_dir)

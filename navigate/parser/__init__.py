@@ -1,7 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-# classes
+"""The deck reader: the Parser reads a deck (.nav) and its include files (.inc)."""
+
 from __future__ import annotations
 
 from navigate.parser.parser import Parser

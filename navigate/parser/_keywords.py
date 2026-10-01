@@ -1,7 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""The DSL keywords: each node type's class, registry group and allowed sections."""
+
 from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from navigate.core.enum_ import SimulationSectionID
 from navigate.core.general_nodes.bunker_options import BunkerOptions
@@ -63,16 +67,25 @@ from navigate.core.nodes.transport import Transport
 from navigate.core.nodes.variable import Variable
 from navigate.core.nodes.vessel import Vessel
 
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from navigate.core.general_nodes._general_node import _GeneralNode
+    from navigate.core.node import Node
+    from navigate.core.node_registry import Nodes
+
 # event-timeline keywords; the values mirror the literals in grammar.lark
 DATE = "Date"
 END = "End"
 START = "Start"
 
-SECTION_DEFINE = [SimulationSectionID.DEFINE]
-SECTION_EVENTS = [SimulationSectionID.EVENTS]
-SECTION_BOTH = [SimulationSectionID.DEFINE, SimulationSectionID.EVENTS]
+type AllowedSections = tuple[SimulationSectionID, ...]
 
-NODE_CLASS = {
+SECTION_DEFINE: AllowedSections = (SimulationSectionID.DEFINE,)
+SECTION_EVENTS: AllowedSections = (SimulationSectionID.EVENTS,)
+SECTION_BOTH: AllowedSections = (SimulationSectionID.DEFINE, SimulationSectionID.EVENTS)
+
+NODE_CLASS: dict[str, Callable[[str], Node]] = {
     CONVERTER: Converter,
     CURVE: Curve,
     EMISSION: Emission,
@@ -101,9 +114,12 @@ NODE_CLASS = {
     VESSEL: Vessel,
 }
 
-GENERAL_NODE_CLASS = {BUNKER_OPTIONS: BunkerOptions, MODEL_DEFINITION: ModelDefinition}
+GENERAL_NODE_CLASS: dict[str, type[_GeneralNode]] = {
+    BUNKER_OPTIONS: BunkerOptions,
+    MODEL_DEFINITION: ModelDefinition,
+}
 
-NODE_GROUP = {
+NODE_GROUP: dict[str, str] = {
     CONVERTER: "converters",
     CURVE: "curves",
     EMISSION: "emissions",
@@ -132,13 +148,12 @@ NODE_GROUP = {
     VESSEL: "vessels",
 }
 
-GENERAL_NODE_GROUP = {
+GENERAL_NODE_GROUP: dict[str, str] = {
     BUNKER_OPTIONS: "bunker_options",
     MODEL_DEFINITION: "model_definition",
 }
 
-
-KEYWORD_SECTIONS = {
+KEYWORD_SECTIONS: dict[str, AllowedSections] = {
     CONVERTER: SECTION_BOTH,
     CURVE: SECTION_BOTH,
     EMISSION: SECTION_DEFINE,
@@ -174,16 +189,65 @@ KEYWORD_SECTIONS = {
     END: SECTION_EVENTS,
 }
 
-SECTION_NAME = {
+SECTION_NAME: dict[SimulationSectionID, str] = {
     SimulationSectionID.DEFINE: "DEFINE",
     SimulationSectionID.EVENTS: "EVENTS",
 }
 
 
 # methods ------------------------------------------------------------------------------
-def define_new_node(node_type, node_name):
-    return NODE_CLASS[node_type](node_name)
+def define_new_node(node_type: str, name: str) -> Node:
+    """
+    Construct a node of a node type.
+
+    Parameters
+    ----------
+    node_type
+        The node type keyword.
+    name
+        The node name.
+
+    Returns
+    -------
+    Node
+        The new node, with no attribute assigned.
+    """
+    return NODE_CLASS[node_type](name)
 
 
-def define_new_general_node(type_):
+def define_new_general_node(type_: str) -> _GeneralNode:
+    """
+    Construct a general node of a general node type.
+
+    Parameters
+    ----------
+    type_
+        The general node type keyword.
+
+    Returns
+    -------
+    _GeneralNode
+        The new general node, with no attribute assigned.
+    """
     return GENERAL_NODE_CLASS[type_]()
+
+
+def node_group(nodes: Nodes, node_type: str) -> dict[str, Node]:
+    """
+    Look up the registry group holding the nodes of a node type.
+
+    Parameters
+    ----------
+    nodes
+        The node registry.
+    node_type
+        The node type keyword.
+
+    Returns
+    -------
+    dict[str, Node]
+        The group, keyed by node name; the registry's own dict, so writes to
+        it change the registry.
+    """
+    group: dict[str, Node] = getattr(nodes, NODE_GROUP[node_type])
+    return group
