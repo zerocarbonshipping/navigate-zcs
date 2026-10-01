@@ -10,7 +10,7 @@ Used by the parser's reference resolution and the reachability analysis.
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -31,11 +31,13 @@ def parse_node_reference(reference_string: str) -> tuple[str, str] | None:
 
     Returns
     -------
-    ``(node type, node name)``, or ``None`` when the text is not a reference.
+    tuple[str, str] | None
+        ``(node type, node name)``, or ``None`` when the text is not a reference.
     """
     match = _NODE_REFERENCE_PATTERN.match(reference_string)
     if match is None:
         return None
+
     return match.group(1), match.group(3)
 
 
@@ -50,7 +52,9 @@ REFERENCE_SCAN_EXCLUDE = (
 )
 
 
-def get_attributes(instance: object, exclude: tuple = ()) -> Iterator[tuple[str, Any]]:
+def get_attributes(
+    instance: object, exclude: tuple[str, ...] = ()
+) -> Iterator[tuple[str, object]]:
     """
     Extract all attributes from the instance except built-ins and those in 'exclude'.
 
@@ -62,11 +66,12 @@ def get_attributes(instance: object, exclude: tuple = ()) -> Iterator[tuple[str,
     instance
         Instance from which to extract attributes.
     exclude
-        Tuple of strings with attributes to exclude from the list.
+        Names of the attributes to leave out.
 
     Returns
     -------
-    Generator of (name, attribute) pairs.
+    Iterator[tuple[str, object]]
+        The (name, attribute) pairs.
     """
     attributes = list(instance.__dict__.items())
     return (

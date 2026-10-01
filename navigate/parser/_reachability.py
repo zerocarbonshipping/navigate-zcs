@@ -33,7 +33,7 @@ from navigate.core.node_type import (
     REPORT,
     ROUTE,
 )
-from navigate.parser._keywords import GENERAL_NODE_GROUP, NODE_GROUP
+from navigate.parser._keywords import GENERAL_NODE_GROUP, NODE_GROUP, node_group
 from navigate.parser._lark_parser import Assignment, Command, NodeDeclaration
 from navigate.parser._node_reference import NodeReference, WildcardNodeReference
 from navigate.parser._scan import (
@@ -44,20 +44,19 @@ from navigate.parser._scan import (
 from navigate.util import matching_keys
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
+    from collections.abc import Iterable, Iterator
 
     from navigate.core.node_registry import GeneralNodes, Nodes
     from navigate.parser._commands import CommandReference
     from navigate.parser._event import Event
 
 ROOT_TYPES = (EMISSION, FLEET, FUEL, LEVY, PLOT, PRODUCER, REGULATION, REPORT)
-ROOT_GROUPS = tuple(NODE_GROUP[node_type] for node_type in ROOT_TYPES)
 
 # the (owner type, instance attribute) edges that activate a restricted node
 # type; an entry is needed only where a non-activating reference kind exists:
 # a Levy/Regulation Jurisdiction filters routed ports and must not pull an
 # unrouted port into the fuel-supply aggregation
-ACTIVATION_EDGES = {PORT: ((ROUTE, "ports"),)}
+ACTIVATION_EDGES: dict[str, tuple[tuple[str, str], ...]] = {PORT: ((ROUTE, "ports"),)}
 
 
 def find_unreachable(
@@ -82,17 +81,18 @@ def find_unreachable(
 
     Returns
     -------
-    Sorted (node type, node name) pairs of the unreachable nodes; empty when
-    every node is reachable.
+    list[tuple[str, str]]
+        Sorted (node type, node name) pairs of the unreachable nodes; empty when
+        every node is reachable.
     """
     event_edges = _collect_event_edges(events, nodes)
 
     # frontier of (node type, node name) keys whose references are unexpanded
-    pending = set()
+    pending: set[tuple[str, str]] = set()
 
-    for group_name in ROOT_GROUPS:
+    for node_type in ROOT_TYPES:
         pending.update(
-            (node.type, node.name) for node in getattr(nodes, group_name).values()
+            (node.type, node.name) for node in node_group(nodes, node_type).values()
         )
 
     # general nodes can neither be referenced nor targeted by events, so
@@ -106,7 +106,7 @@ def find_unreachable(
         ):
             pending.update(_activating_references(None, attribute, nodes))
 
-    reachable = set()
+    reachable: set[tuple[str, str]] = set()
 
     while pending:
         node_type, name = pending.pop()
@@ -116,7 +116,7 @@ def find_unreachable(
 
         reachable.add((node_type, name))
 
-        node = getattr(nodes, NODE_GROUP[node_type]).get(name)
+        node = node_group(nodes, node_type).get(name)
 
         if node is None:
             continue
@@ -133,18 +133,20 @@ def find_unreachable(
 
         pending.update(event_edges.get((node_type, name), ()))
 
-    unreachable = []
-    for node_type, group_name in NODE_GROUP.items():
+    unreachable: list[tuple[str, str]] = []
+    for node_type in NODE_GROUP:
         unreachable.extend(
             (node_type, name)
-            for name in getattr(nodes, group_name)
+            for name in node_group(nodes, node_type)
             if (node_type, name) not in reachable
         )
 
     return sorted(unreachable)
 
 
-def _activating_references(edge, value, nodes: Nodes):
+def _activating_references(
+    edge: tuple[str, str] | None, value: object, nodes: Nodes
+) -> Iterator[tuple[str, str]]:
     """
     Yield the references in a value that activate their target.
 
@@ -154,7 +156,7 @@ def _activating_references(edge, value, nodes: Nodes):
 
     Parameters
     ----------
-    edge : tuple | None
+    edge
         (owner type, instance-attribute name) the value sits under; ``None``
         where the value sits under no node attribute (a general node, a
         queued command, a queued EVENTS body). Only a declared edge activates
@@ -172,7 +174,7 @@ def _activating_references(edge, value, nodes: Nodes):
             yield node_type, name
 
 
-def _iter_references(value, nodes: Nodes):
+def _iter_references(value: object, nodes: Nodes) -> Iterator[tuple[str, str]]:
     """
     Yield the (node type, node name) of every node reference in a value.
 
@@ -199,7 +201,7 @@ def _iter_references(value, nodes: Nodes):
         The registry, used to expand wildcard references.
     """
     if isinstance(value, WildcardNodeReference):
-        for name in matching_keys(value.name, getattr(nodes, NODE_GROUP[value.type])):
+        for name in matching_keys(value.name, node_group(nodes, value.type)):
             yield value.type, name
 
     elif isinstance(value, (Node, NodeReference)):
@@ -220,7 +222,9 @@ def _iter_references(value, nodes: Nodes):
                 yield reference
 
 
-def _collect_event_edges(events: Iterable[Event], nodes: Nodes) -> dict:
+def _collect_event_edges(
+    events: Iterable[Event], nodes: Nodes
+) -> dict[tuple[str, str], set[tuple[str, str]]]:
     """
     Collect the node references inside queued EVENTS statements as edges.
 
@@ -236,12 +240,13 @@ def _collect_event_edges(events: Iterable[Event], nodes: Nodes) -> dict:
 
     Returns
     -------
-    (target type, target name) mapped to the set of referenced
-    (node type, node name) pairs. Target names absent from the registry are
-    skipped; executing such a statement raises, since EVENTS cannot declare
-    nodes.
+    dict[tuple[str, str], set[tuple[str, str]]]
+        (target type, target name) mapped to the set of referenced
+        (node type, node name) pairs. Target names absent from the registry are
+        skipped; executing such a statement raises, since EVENTS cannot declare
+        nodes.
     """
-    edges = {}
+    edges: dict[tuple[str, str], set[tuple[str, str]]] = {}
 
     for event in events:
         for statement in event.statements:
@@ -249,7 +254,7 @@ def _collect_event_edges(events: Iterable[Event], nodes: Nodes) -> dict:
                 continue
 
             target_names = matching_keys(
-                statement.name, getattr(nodes, NODE_GROUP[statement.node_type])
+                statement.name, node_group(nodes, statement.node_type)
             )
 
             if not target_names:
@@ -268,7 +273,9 @@ def _collect_event_edges(events: Iterable[Event], nodes: Nodes) -> dict:
     return edges
 
 
-def _statement_references(statement: NodeDeclaration, nodes: Nodes) -> set:
+def _statement_references(
+    statement: NodeDeclaration, nodes: Nodes
+) -> set[tuple[str, str]]:
     """
     Collect the node references in a queued statement's body.
 
@@ -281,9 +288,10 @@ def _statement_references(statement: NodeDeclaration, nodes: Nodes) -> set:
 
     Returns
     -------
-    The referenced (node type, node name) pairs.
+    set[tuple[str, str]]
+        The referenced (node type, node name) pairs.
     """
-    references = set()
+    references: set[tuple[str, str]] = set()
 
     # every activation edge is DEFINE-only (pinned by a unit test), so a
     # queued body can never sit on one and no edge is passed

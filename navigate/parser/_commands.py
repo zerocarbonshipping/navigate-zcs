@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""The deck commands of each node type, the sections allowing each, and their queue."""
+
 from __future__ import annotations
 
 import inspect
@@ -48,8 +50,13 @@ from navigate.parser._report_properties import check_report_command
 from navigate.util import name_contains_wildcards
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable
+    from collections.abc import Callable, Iterable
     from enum import Enum
+
+    from navigate.core.enum_ import SimulationSectionID
+    from navigate.core.node import Node
+    from navigate.parser._keywords import AllowedSections
+    from navigate.parser._lark_parser import MaterializedValue, SourceLocation
 
 # per-command wildcard domains. tuple indices correspond to the method's
 # string arguments (excluding self), and an argument beyond the end of the
@@ -68,7 +75,7 @@ _WILDCARD_DOMAINS: dict[str, tuple[type[Enum] | tuple[Enum, ...], ...]] = {
 }
 
 # high-level class commands to multiple nodes ------------------------------------------
-_POLICY_COMMANDS = {
+_POLICY_COMMANDS: dict[str, AllowedSections] = {
     "set_include_vessel": SECTION_BOTH,
     "set_global_warming_potential": SECTION_BOTH,
     "set_fuel_wtt": SECTION_BOTH,
@@ -76,20 +83,17 @@ _POLICY_COMMANDS = {
 }
 
 # nodes --------------------------------------------------------------------------------
-_ALTERNATIVE_POWER_COMMANDS = {}
-
-_CONVERTER_COMMANDS = {
+_CONVERTER_COMMANDS: dict[str, AllowedSections] = {
     "set_slip_fraction": SECTION_BOTH,
     "set_consumption_ttw": SECTION_BOTH,
 }
 
-_CURVE_COMMANDS = {}
-_EFFICIENCY_COMMANDS = {}
-_EMISSION_COMMANDS = {}
+_CURVE_COMMANDS: dict[str, AllowedSections] = {}
+_EMISSION_COMMANDS: dict[str, AllowedSections] = {}
 
-_FEEDSTOCK_COMMANDS = {}
+_FEEDSTOCK_COMMANDS: dict[str, AllowedSections] = {}
 
-_FLEET_COMMANDS = {
+_FLEET_COMMANDS: dict[str, AllowedSections] = {
     "set_fuel_conversion_cost": SECTION_BOTH,
     "set_fuel_conversion_limit": SECTION_BOTH,
     "set_allow_vessel": SECTION_BOTH,
@@ -103,21 +107,21 @@ _FLEET_COMMANDS = {
     "set_newbuild_limit": SECTION_BOTH,
 }
 
-_FORECAST_COMMANDS = {}
-_FUEL_COMMANDS = {"set_ttw": SECTION_DEFINE}
+_FORECAST_COMMANDS: dict[str, AllowedSections] = {}
+_FUEL_COMMANDS: dict[str, AllowedSections] = {"set_ttw": SECTION_DEFINE}
 
-_LEVY_COMMANDS = {**_POLICY_COMMANDS}
+_LEVY_COMMANDS: dict[str, AllowedSections] = {**_POLICY_COMMANDS}
 
-_PLANT_COMMANDS = {
+_PLANT_COMMANDS: dict[str, AllowedSections] = {
     "set_feed_transport": SECTION_BOTH,
     "set_feed_distance": SECTION_BOTH,
     "set_fuel_transport": SECTION_BOTH,
     "set_fuel_distance": SECTION_BOTH,
 }
 
-_PLOT_COMMANDS = {"add_plot": SECTION_DEFINE}
+_PLOT_COMMANDS: dict[str, AllowedSections] = {"add_plot": SECTION_DEFINE}
 
-_PORT_COMMANDS = {
+_PORT_COMMANDS: dict[str, AllowedSections] = {
     "set_bunkering_allowed": SECTION_BOTH,
     "set_bunkering_limit": SECTION_BOTH,
     "set_bunkering_inertia": SECTION_BOTH,
@@ -127,17 +131,17 @@ _PORT_COMMANDS = {
     "set_shore_power_emission_factor": SECTION_BOTH,
 }
 
-_POWER_SYSTEM_COMMANDS = {}
-_PROCESS_COMMANDS = {}
+_POWER_SYSTEM_COMMANDS: dict[str, AllowedSections] = {}
+_PROCESS_COMMANDS: dict[str, AllowedSections] = {}
 
-_PRODUCER_COMMANDS = {
+_PRODUCER_COMMANDS: dict[str, AllowedSections] = {
     "set_existing_pipeline": SECTION_DEFINE,
     "set_allow_plant": SECTION_BOTH,
     "set_feed_constraint": SECTION_BOTH,
     "set_export_distribution": SECTION_BOTH,
 }
 
-_REGION_COMMANDS = {
+_REGION_COMMANDS: dict[str, AllowedSections] = {
     "set_process_capex": SECTION_BOTH,
     "set_process_opex": SECTION_BOTH,
     "set_process_energy": SECTION_BOTH,
@@ -153,13 +157,13 @@ _REGION_COMMANDS = {
     "set_transport_wtt": SECTION_BOTH,
 }
 
-_REGULATION_COMMANDS = {
+_REGULATION_COMMANDS: dict[str, AllowedSections] = {
     **_POLICY_COMMANDS,
     "set_vessel_threshold": SECTION_BOTH,
     "set_vessel_capacity": SECTION_BOTH,
 }
 
-_REPORT_COMMANDS = {
+_REPORT_COMMANDS: dict[str, AllowedSections] = {
     "add_property": SECTION_DEFINE,
     "add_fleet_property": SECTION_DEFINE,
     "add_levy_property": SECTION_DEFINE,
@@ -170,25 +174,25 @@ _REPORT_COMMANDS = {
     "add_vessel_property": SECTION_DEFINE,
 }
 
-_ROUTE_COMMANDS = {"set_voyage_distribution": SECTION_BOTH}
+_ROUTE_COMMANDS: dict[str, AllowedSections] = {"set_voyage_distribution": SECTION_BOTH}
 
-_SOURCE_COMMANDS = {}
-_SURFACE_COMMANDS = {}
-_TANK_COMMANDS = {}
+_SOURCE_COMMANDS: dict[str, AllowedSections] = {}
+_SURFACE_COMMANDS: dict[str, AllowedSections] = {}
+_TANK_COMMANDS: dict[str, AllowedSections] = {}
 
-_TECHNOLOGY_COMMANDS = {
+_TECHNOLOGY_COMMANDS: dict[str, AllowedSections] = {
     "set_energy_saving": SECTION_BOTH,
     "set_external_power": SECTION_BOTH,
     "set_power_transfer": SECTION_BOTH,
 }
 
-_TIMETABLE_COMMANDS = {}
-_TRANSPORT_COMMANDS = {}
-_VARIABLE_COMMANDS = {}
-_VESSEL_COMMANDS = {}
+_TIMETABLE_COMMANDS: dict[str, AllowedSections] = {}
+_TRANSPORT_COMMANDS: dict[str, AllowedSections] = {}
+_VARIABLE_COMMANDS: dict[str, AllowedSections] = {}
+_VESSEL_COMMANDS: dict[str, AllowedSections] = {}
 
 # assemble dicts -----------------------------------------------------------------------
-NODE_COMMAND_SECTIONS = {
+NODE_COMMAND_SECTIONS: dict[str, dict[str, AllowedSections]] = {
     CONVERTER: _CONVERTER_COMMANDS,
     CURVE: _CURVE_COMMANDS,
     EMISSION: _EMISSION_COMMANDS,
@@ -225,24 +229,38 @@ class CommandReference:
 
     Parameters
     ----------
-    command : str
+    command
         Method name to call on the node.
-    inputs : list
-        Positional arguments for the method.
-    source : SourceLocation
+    inputs
+        Positional arguments for the method, every node reference a node.
+    source
         Source location of the command in the include file.
-    deck_line : int
+    deck_line
         Line in the .nav file of the enclosing INCLUDE directive.
     """
 
-    def __init__(self, command, inputs, source, deck_line=0):
-        self.command = command
-        self.inputs = inputs
-        self._source = source
-        self._deck_line = deck_line
+    def __init__(
+        self,
+        command: str,
+        inputs: list[MaterializedValue],
+        source: SourceLocation,
+        deck_line: int = 0,
+    ) -> None:
+        self.command: str = command
+        self.inputs: list[MaterializedValue] = inputs
+        self._source: SourceLocation = source
+        self._deck_line: int = deck_line
 
-    def execute(self, node):
-        method = getattr(node, self.command)
+    def execute(self, node: Node) -> None:
+        """
+        Run the command on a node, once per combination its wildcards expand to.
+
+        Parameters
+        ----------
+        node
+            The node the command is queued on.
+        """
+        method: Callable[..., None] = getattr(node, self.command)
         self._check_command(node, method)
 
         if isinstance(node, Report):
@@ -253,48 +271,54 @@ class CommandReference:
             method(*combo)
 
     @property
-    def source(self):
+    def source(self) -> SourceLocation:
+        """
+        The location of the command in its include file.
+
+        Returns
+        -------
+        SourceLocation
+            The include-file location.
+        """
         return self._source
 
     @property
-    def deck_line(self):
+    def deck_line(self) -> int:
+        """
+        The deck line of the INCLUDE directive the command was read under.
+
+        Returns
+        -------
+        int
+            The line in the .nav file.
+        """
         return self._deck_line
 
-    def _check_command(self, node, method):
-        # extract a list of parameters
-        method_inputs = inspect.signature(method).parameters
+    def _check_command(self, node: Node, method: Callable[..., None]) -> None:
+        parameters = inspect.signature(method).parameters.values()
 
-        # find the args and kwargs
         args = [
-            method_inputs[p].name
-            for p in method_inputs
-            if method_inputs[p].default is inspect.Parameter.empty
+            parameter.name
+            for parameter in parameters
+            if parameter.default is inspect.Parameter.empty
         ]
-
         kwargs = [
-            method_inputs[p].name
-            for p in method_inputs
-            if method_inputs[p].default is not inspect.Parameter.empty
+            parameter.name
+            for parameter in parameters
+            if parameter.default is not inspect.Parameter.empty
         ]
 
         n_args = len(args)
         n_kwargs = len(kwargs)
-
-        # check that the number of provided inputs
-        # corresponding to the required inputs,
-        # otherwise throw and error.
         n_given = len(self.inputs)
 
         if n_given < n_args:
-            # join inputs
             input_names = ""
             for input_ in args[:-1]:
                 input_names += f"'{input_}', "
 
-            # remove last comma and space if only two inputs
+            # two names are joined by "and" alone, without a comma
             input_names = input_names[:-2] + " " if len(args) < 3 else input_names
-
-            # add the last input name
             input_names += f"and '{args[-1]}'"
 
             raise CommandError(
@@ -308,18 +332,15 @@ class CommandReference:
                 )
             )
 
-        elif n_given > (n_args + n_kwargs):
+        if n_given > (n_args + n_kwargs):
             all_inputs = args + kwargs
 
-            # join inputs
             input_names = ""
             for input_ in all_inputs[:-1]:
                 input_names += f"'{input_}', "
 
-            # remove last comma and space if only two inputs
+            # two names are joined by "and" alone, without a comma
             input_names = input_names[:-2] + " " if len(all_inputs) < 3 else input_names
-
-            # add the last input name
             input_names += f"and '{all_inputs[-1]}'"
 
             raise CommandError(
@@ -334,7 +355,9 @@ class CommandReference:
             )
 
 
-def _expand_inputs(command: str, inputs: list) -> Iterable[tuple]:
+def _expand_inputs(
+    command: str, inputs: list[MaterializedValue]
+) -> Iterable[tuple[MaterializedValue, ...]]:
     """
     Expand wildcard arguments against their registered enum domains.
 
@@ -346,43 +369,44 @@ def _expand_inputs(command: str, inputs: list) -> Iterable[tuple]:
     if not domains:
         return (tuple(inputs),)
 
-    arg_options = []
-    for i, inp in enumerate(inputs):
-        domain = domains[i] if i < len(domains) else None
-        if domain and isinstance(inp, str) and name_contains_wildcards(inp):
-            arg_options.append([m.name for m in expand_id_wildcard(inp, domain)])
+    argument_options: list[list[MaterializedValue]] = []
+    for index, argument in enumerate(inputs):
+        domain = domains[index] if index < len(domains) else None
+        if domain and isinstance(argument, str) and name_contains_wildcards(argument):
+            argument_options.append(
+                [member.name for member in expand_id_wildcard(argument, domain)]
+            )
         else:
-            arg_options.append([inp])
+            argument_options.append([argument])
 
-    return product(*arg_options)
+    return product(*argument_options)
 
 
 # methods ------------------------------------------------------------------------------
-def check_node_command_is_allowed(node_type, command_name, section) -> None:
+def check_node_command_is_allowed(
+    node_type: str, command_name: str, section: SimulationSectionID
+) -> None:
     """
     Raise if a node type may not use a command in a section.
 
     Parameters
     ----------
-    node_type : str
+    node_type
         The node type.
-    command_name : str
+    command_name
         The name of the command.
-    section : Enum
+    section
         The section (DEFINE or EVENTS) at which the command is used.
     """
     allowed_commands = NODE_COMMAND_SECTIONS[node_type]
 
-    if command_name in allowed_commands:
-        allowed_sections = allowed_commands[command_name]
-
-        if section not in allowed_sections:
-            raise CommandError(
-                f"Nodes of type '{node_type}' does not allow use of command "
-                f"'{command_name}' in '{SECTION_NAME[section]}'"
-            )
-
-    else:
+    if command_name not in allowed_commands:
         raise CommandError(
             f"Nodes of type '{node_type}' has no command '{command_name}'"
+        )
+
+    if section not in allowed_commands[command_name]:
+        raise CommandError(
+            f"Nodes of type '{node_type}' does not allow use of command "
+            f"'{command_name}' in '{SECTION_NAME[section]}'"
         )
