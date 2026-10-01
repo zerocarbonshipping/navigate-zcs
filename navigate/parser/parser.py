@@ -493,6 +493,12 @@ class Parser:
                 self._read_date(statement)
 
             elif self._current_event is not None:
+                # the reachability pass indexes a queued declaration by its node
+                # type before the event is read, so a type with no registry group
+                # is rejected here.
+                if isinstance(statement, NodeDeclaration):
+                    self._check_keyword_known(statement.node_type)
+                    self._check_node_type_has_group(statement.node_type)
                 self._current_event.add_statement(statement)
 
             else:
@@ -886,6 +892,7 @@ class Parser:
     def _process_node_declaration(self, declaration: NodeDeclaration) -> None:
         """Process a NodeDeclaration AST node."""
         self._check_keyword(declaration.node_type, name=declaration.name)
+        self._check_node_type_has_group(declaration.node_type)
         nodes = self._retrieve_nodes(declaration.node_type, declaration.name)
 
         for item in declaration.body:
@@ -1054,11 +1061,7 @@ class Parser:
             )
 
     def _check_keyword(self, keyword: str, name: str | None = None) -> None:
-        if keyword not in KEYWORD_SECTIONS:
-            raise DeckKeywordError(
-                self._error_prefix() + f": \n'{keyword}' is not a recognized keyword. "
-                "Check the attributes and commands for spelling"
-            )
+        self._check_keyword_known(keyword)
 
         if self._current_section in KEYWORD_SECTIONS[keyword]:
             return
@@ -1074,6 +1077,20 @@ class Parser:
             + f": '{keyword}' is not an allowed keyword in section "
             f"{SECTION_NAME[self._current_section]}."
         )
+
+    def _check_keyword_known(self, keyword: str) -> None:
+        if keyword not in KEYWORD_SECTIONS:
+            raise DeckKeywordError(
+                self._error_prefix() + f": \n'{keyword}' is not a recognized keyword. "
+                "Check the attributes and commands for spelling"
+            )
+
+    def _check_node_type_has_group(self, node_type: str) -> None:
+        if node_type not in NODE_GROUP:
+            raise DeckKeywordError(
+                self._error_prefix()
+                + f": '{node_type}' is a general node and is declared without a name."
+            )
 
     def _check_node_name_is_available(self, node_type: str, name: str) -> None:
         if name in self._get_all_node_names():
