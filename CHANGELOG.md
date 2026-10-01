@@ -318,9 +318,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `ExtraFraction` all 0 (#376).
 - A `Copy` of `ModelDefinition` or `BunkerOptions` is rejected with a deck
   error naming the line, instead of crashing with a `KeyError` (#382).
-- A statement with an unknown node type inside an EVENTS timeline is rejected
-  with a deck error naming the line, instead of crashing with a `KeyError`
-  (#386).
+- A statement with an unknown node type, or a general node declared with a name,
+  is rejected with a deck error naming the line in DEFINE or EVENTS, instead of
+  crashing with a `KeyError` (#386).
 
 ## [1.0.0] - 2026-07-16
 

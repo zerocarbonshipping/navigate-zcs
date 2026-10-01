@@ -466,9 +466,11 @@ class Parser:
 
             elif self._current_event is not None:
                 # the reachability pass indexes a queued declaration by its node
-                # type before the event is read, so an unknown type is rejected here.
+                # type before the event is read, so a type with no registry group
+                # is rejected here.
                 if isinstance(statement, NodeDeclaration):
                     self._check_keyword_known(statement.node_type)
+                    self._check_node_type_has_group(statement.node_type)
                 self._current_event.add_statement(statement)
 
             else:
@@ -877,6 +879,7 @@ class Parser:
     def _process_node_declaration(self, declaration):
         """Process a NodeDeclaration AST node."""
         self._check_keyword(declaration.node_type, name=declaration.name)
+        self._check_node_type_has_group(declaration.node_type)
         nodes = self._retrieve_nodes(declaration.node_type, declaration.name)
 
         for item in declaration.body:
@@ -1076,6 +1079,13 @@ class Parser:
             raise DeckKeywordError(
                 self._error_prefix() + f": \n'{keyword}' is not a recognized keyword. "
                 "Check the attributes and commands for spelling"
+            )
+
+    def _check_node_type_has_group(self, node_type):
+        if node_type not in NODE_GROUP:
+            raise DeckKeywordError(
+                self._error_prefix()
+                + f": '{node_type}' is a general node and is declared without a name."
             )
 
     def _check_node_name_is_available(self, node_type, name):
