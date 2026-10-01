@@ -65,6 +65,25 @@ Regulation "reg_intensity" {
 	set_vessel_threshold("vessel_methanol", 60)
 }
 
+# INTENSITY + FLEXIBLE with every fraction 0 — a policed vessel with no
+# regulated term against a literal threshold has a zero measure in the
+# flexibility transfer (issue #376)
+Regulation "reg_intensity_unregulated" {
+	Measure = INTENSITY
+	Scheme = FLEXIBLE
+	Scope = TTW
+	Emissions = Emission("carbon_dioxide")
+	Fuels = Fuel("*")
+	Jurisdiction = Port("port_a")
+	Active = TRUE
+	IntraFraction = 0
+	InterFraction = 0
+	ExtraFraction = 0
+	RemedialCost = 100
+	set_include_vessel("*", TRUE)
+	set_vessel_threshold("*", 89.0)
+}
+
 # TRANSPORT_NOMINAL + FLEXIBLE — covers set_vessel_capacity
 Regulation "reg_transport" {
 	Measure = TRANSPORT_NOMINAL
