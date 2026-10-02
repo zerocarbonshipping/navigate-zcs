@@ -43,6 +43,18 @@ The label must be given as a quoted string, e.g. `add_plot("global_fuel_consumed
 
 * Label: All available plot labels are listed in the [Plot Labels](#appendix---plot-node-labels) section.
 
+## Notes
+
+Three plots show one panel, or stack layer, per fuel type the deck actually uses, in a
+fixed order, rather than a fixed set of panels; a plot with nothing to show for a deck
+writes no file, rather than an empty image.
+
+* `fuel_type_supply_demand` shows a panel for a fuel type with a declared `Fuel`, or used
+  in some `Converter`'s `MainFuelTypes` or `PilotFuelTypes`.
+* `global_fuel_type_consumed` shows a layer for a fuel type with a declared `Fuel`.
+* `engine_pilot_fuel_share` shows a panel for a fuel type that is the `FuelType` of a
+  `Vessel` with at least one dual-fuel converter, i.e. one whose `PilotFuelTypes` is set.
+
 ## Appendix - Plot Node Labels
 
 The labels below are the values accepted by the `add_plot` command on a `Plot` node. Each label must be passed as a quoted string, e.g. `add_plot("global_fuel_consumed")`.
