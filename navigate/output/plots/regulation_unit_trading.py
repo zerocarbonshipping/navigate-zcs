@@ -40,10 +40,10 @@ def plot_regulation_unit_trading(manager, directory):
             ),
             symbol=False,
         )
-        non_compliance_units /= divisor
-        surplus_units /= divisor
-        flexibility_units /= divisor
-        remedial_units /= divisor
+        non_compliance_units = non_compliance_units / divisor
+        surplus_units = surplus_units / divisor
+        flexibility_units = flexibility_units / divisor
+        remedial_units = remedial_units / divisor
 
         unit = f"{prefix} units/year"
 
