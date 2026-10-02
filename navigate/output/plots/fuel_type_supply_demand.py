@@ -28,10 +28,24 @@ def plot_fuel_type_supply_demand(manager, directory):
     dateline = manager.dateline
     ports = manager.nodes.ports
     fuels = manager.nodes.fuels
+    converters = manager.nodes.converters
     profile = manager.profile
 
     fuel_type_to_fuels = get_fuels_per_fuel_type(fuels)
-    fuel_types = [ft for ft in FUEL_TYPE_ORDER if fuel_type_to_fuels[ft]]
+
+    # a converter can carry demand for a fuel type with no declared Fuel (fleet
+    # aggregation sums demand by MainFuelTypes/PilotFuelTypes alone), so a panel
+    # also appears for a type no Fuel declares but some converter does
+    converter_fuel_types = {
+        fuel_type
+        for converter in converters.values()
+        for fuel_type in converter.get_fuel_types()
+    }
+    fuel_types = [
+        ft
+        for ft in FUEL_TYPE_ORDER
+        if fuel_type_to_fuels[ft] or ft in converter_fuel_types
+    ]
 
     if not fuel_types:
         return
