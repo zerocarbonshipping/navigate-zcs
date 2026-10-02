@@ -1,12 +1,13 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Fuel supply against demand, one panel per fuel type a deck uses."""
+
 from __future__ import annotations
 
 import numpy as np
 
 from navigate.core import get_fuels_per_fuel_type
-from navigate.core.enum_ import FuelTypeID
 from navigate.output.plots._colors import generate_color_dict
 from navigate.output.plots._figure import (
     format_axes,
@@ -14,35 +15,55 @@ from navigate.output.plots._figure import (
     save_figure,
     subplot_grid,
 )
+from navigate.output.plots._illu_util import trim_axes
 from navigate.output.plots._labels import (
     FUEL_COLOR,
     FUEL_LABEL,
     FUEL_TYPE_LABEL,
+    FUEL_TYPE_ORDER,
     default_label,
 )
 from navigate.output.plots._style import LEGEND_OPTIONS
 from navigate.output.plots._units import get_best_unit_energy
 
 
+def _select_fuel_types(fuel_type_to_fuels, converters):
+    """
+    Fuel types with a declared Fuel or a converter using them, in FUEL_TYPE_ORDER.
+
+    A converter can carry demand for a fuel type with no declared Fuel (fleet
+    aggregation sums demand by MainFuelTypes/PilotFuelTypes alone), so a panel
+    also appears for a type no Fuel declares but some converter does.
+    """
+    converter_fuel_types = {
+        fuel_type
+        for converter in converters.values()
+        for fuel_type in converter.get_fuel_types()
+    }
+    return [
+        fuel_type
+        for fuel_type in FUEL_TYPE_ORDER
+        if fuel_type_to_fuels[fuel_type] or fuel_type in converter_fuel_types
+    ]
+
+
 def plot_fuel_type_supply_demand(manager, directory):
+    """Plot fuel supply against demand for each fuel type a deck uses."""
     dateline = manager.dateline
     ports = manager.nodes.ports
     fuels = manager.nodes.fuels
+    converters = manager.nodes.converters
     profile = manager.profile
 
-    fuel_types = [
-        FuelTypeID.OIL,
-        FuelTypeID.METHANE,
-        FuelTypeID.METHANOL,
-        FuelTypeID.AMMONIA,
-    ]
     fuel_type_to_fuels = get_fuels_per_fuel_type(fuels)
+    fuel_types = _select_fuel_types(fuel_type_to_fuels, converters)
+
+    if not fuel_types:
+        return
 
     fuel_type_demand = profile.get_fuel_type_demand()
     production_type_energy = profile.get_production_type_energy()
     port_bunkering = [port.profile.get_bunker_energy() for port in ports.values()]
-
-    fig, axes = subplot_grid(len(fuel_types))  # , sharey=True)
 
     # containers for saving results. Needed for intermediate calculation of optimal unit
     all_values = {}
@@ -101,6 +122,8 @@ def plot_fuel_type_supply_demand(manager, directory):
     else:
         return
 
+    fig, axes = subplot_grid(len(fuel_types))  # , sharey=True)
+
     for ax, fuel_type in zip(axes, fuel_types, strict=False):
         values = [value / divisor for value in all_values[fuel_type]]
         colors = all_colors[fuel_type]
@@ -135,5 +158,7 @@ def plot_fuel_type_supply_demand(manager, directory):
         ax.set_title(FUEL_TYPE_LABEL[fuel_type])
         legend = ax.legend(patches, leg_labels, **LEGEND_OPTIONS)
         format_axes(ax, len(fuel_types), dateline, legend)
+
+    trim_axes(axes, len(fuel_types))
 
     save_figure(fig, directory, "fuel_type_supply_demand.png")

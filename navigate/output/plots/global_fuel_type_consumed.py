@@ -1,10 +1,13 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Fuel consumed over time, stacked by fuel type a deck uses."""
+
 from __future__ import annotations
 
 import numpy as np
 
+from navigate.core import get_fuels_per_fuel_type
 from navigate.output.plots._aggregate import unpack_fuel_type_series
 from navigate.output.plots._colors import SHORE_POWER_COLOR
 from navigate.output.plots._figure import (
@@ -18,13 +21,32 @@ from navigate.output.plots._style import LEGEND_OPTIONS
 from navigate.output.plots._units import get_best_unit_energy
 
 
-def plot_global_fuel_type_consumed(manager, directory):
-    dateline = manager.dateline
+def _select_fuel_types(fuel_type_to_fuels):
+    """
+    Fuel types with a declared Fuel, in FUEL_TYPE_ORDER.
 
-    fig, ax = single_panel()
+    get_fuel_type_energy() is built from bunkered fuel mass, which is keyed only
+    by declared Fuel names, so it is exactly zero for a type no Fuel declares.
+    """
+    return [fuel_type for fuel_type in FUEL_TYPE_ORDER if fuel_type_to_fuels[fuel_type]]
+
+
+def plot_global_fuel_type_consumed(manager, directory):
+    """Plot fuel consumed over time, stacked by fuel type a deck uses."""
+    dateline = manager.dateline
+    fuels = manager.nodes.fuels
 
     fuel_type_consumed = manager.profile.get_fuel_type_energy()
-    fuel_type_consumed = {ft: fuel_type_consumed[ft] for ft in FUEL_TYPE_ORDER}
+    fuel_type_to_fuels = get_fuels_per_fuel_type(fuels)
+    fuel_type_consumed = {
+        fuel_type: fuel_type_consumed[fuel_type]
+        for fuel_type in _select_fuel_types(fuel_type_to_fuels)
+    }
+
+    if not fuel_type_consumed:
+        return
+
+    fig, ax = single_panel()
 
     shore_power = manager.profile.get_shore_power_energy()
 

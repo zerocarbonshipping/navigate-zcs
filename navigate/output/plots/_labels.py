@@ -52,6 +52,7 @@ FLEET_LABEL = {
 FUEL_TYPE_LABEL = {
     FuelTypeID.AMMONIA: "Ammonia",
     FuelTypeID.ELECTRICITY: "Electricity",
+    FuelTypeID.ETHANOL: "Ethanol",
     FuelTypeID.HYDROGEN: "Hydrogen",
     FuelTypeID.LPG: "LPG",
     FuelTypeID.METHANE: "Methane",
@@ -63,6 +64,7 @@ FUEL_TYPE_LABEL = {
 FUEL_TYPE_COLOR = {
     FuelTypeID.AMMONIA: CENTER_COLORS_BLUE[4],
     FuelTypeID.ELECTRICITY: CENTER_COLORS_GREEN[3],
+    FuelTypeID.ETHANOL: CENTER_COLORS_RED[6],
     FuelTypeID.HYDROGEN: CENTER_COLORS_YELLOW[5],
     FuelTypeID.LPG: CENTER_COLORS_GREY[4],
     FuelTypeID.METHANE: CENTER_COLORS_RED[4],
@@ -72,13 +74,14 @@ FUEL_TYPE_COLOR = {
 
 
 # Canonical fuel-type stacking / grouping order: fossil fuels first, then the
-# green fuels, with hydrogen and electricity last. Used by every plot that stacks
-# or groups by fuel type.
+# green fuels (the two alcohols adjacent), with hydrogen and electricity last.
+# Used by every plot that stacks or groups by fuel type.
 FUEL_TYPE_ORDER = (
     FuelTypeID.OIL,
     FuelTypeID.LPG,
     FuelTypeID.METHANE,
     FuelTypeID.METHANOL,
+    FuelTypeID.ETHANOL,
     FuelTypeID.AMMONIA,
     FuelTypeID.HYDROGEN,
     FuelTypeID.ELECTRICITY,
