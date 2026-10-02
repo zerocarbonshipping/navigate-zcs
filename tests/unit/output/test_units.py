@@ -45,6 +45,36 @@ def test_find_best_metric_prefix_default_offset():
     assert find_best_metric_prefix(2.0, default=6) == (1, "M")
 
 
+@pytest.mark.parametrize(
+    ("value", "default", "divisor", "prefix"),
+    [
+        # 0.5 GJ is below the GJ input unit: the divisor used to truncate to
+        # int(1e6 / 1e9) == 0; it now scales the value up to 500 MJ instead.
+        (0.5, 9, 1e-3, "M"),
+        # 0.5 MW: the same below-input-unit truncation at a smaller default.
+        (0.5, 6, 1e-3, "k"),
+        # a zero value used to hit the same truncation (int(1 / 1e9) == 0),
+        # dividing by it; it now divides by 1e-9, leaving a zero value zero.
+        (0.0, 9, 1e-9, ""),
+    ],
+)
+def test_find_best_metric_prefix_below_input_unit(value, default, divisor, prefix):
+    assert find_best_metric_prefix(value, default=default) == (divisor, prefix)
+
+
+@pytest.mark.parametrize(
+    ("value", "default", "divisor", "prefix"),
+    [
+        (2.5e10, 0, 1e9, "G"),
+        (5e3, 6, 1e3, "G"),
+    ],
+)
+def test_find_best_metric_prefix_default_offset_unchanged(
+    value, default, divisor, prefix
+):
+    assert find_best_metric_prefix(value, default=default) == (divisor, prefix)
+
+
 def test_get_best_unit_rate_suffix():
     assert get_best_unit(2.0e6) == (1000000, "M", "/year")
     assert get_best_unit(2.0e6, rate=False) == (1000000, "M", "")

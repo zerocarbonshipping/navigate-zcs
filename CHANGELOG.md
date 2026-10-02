@@ -321,6 +321,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - A statement with an unknown node type, or a general node declared with a name,
   is rejected with a deck error naming the line in DEFINE or EVENTS, instead of
   crashing with a `KeyError` (#386).
+- Plots of a quantity below one input unit, such as under 1 GJ or 1 MW,
+  showed zero or empty axes, or a wrong unit, instead of scaling up to a
+  smaller prefix (#389).
 
 ## [1.0.0] - 2026-07-16
 
