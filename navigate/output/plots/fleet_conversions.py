@@ -18,7 +18,7 @@ from navigate.output.plots._labels import (
     FUEL_TYPE_ORDER,
     extract_label,
 )
-from navigate.util import TOLERANCE, collapse_tuple_dict, dates_to_years
+from navigate.util import TOLERANCE, dates_to_years, sum_by_first_key, sum_by_second_key
 
 
 def _vessel_series_by_fuel_type(series, vessel_map):
@@ -63,11 +63,11 @@ def plot_fleet_conversions_cumulative(manager, directory):
 
         vessel_map = {vessel.name: vessel for vessel in fleets[fleet_name].vessels}
 
-        conversions_from = collapse_tuple_dict(conversions, key1=True)
+        conversions_from = sum_by_first_key(conversions)
         conversions_from = {
             key: -conversion for key, conversion in conversions_from.items()
         }
-        conversions_to = collapse_tuple_dict(conversions, key2=True)
+        conversions_to = sum_by_second_key(conversions)
 
         values_from, colors_from = _vessel_series_by_fuel_type(
             conversions_from, vessel_map

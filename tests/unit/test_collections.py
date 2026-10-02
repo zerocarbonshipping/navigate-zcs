@@ -10,10 +10,11 @@ import pytest
 
 from navigate.util import (
     add_dicts,
-    collapse_tuple_dict,
     slice_dict,
     slice_dict_list,
     slice_list,
+    sum_by_first_key,
+    sum_by_second_key,
     sum_dict_results,
 )
 
@@ -52,9 +53,19 @@ class TestSumDictResults:
         )
         np.testing.assert_array_equal(result, [4.0, 6.0])
 
+    def test_sums_tuple_keyed_arrays(self):
+        result = sum_dict_results(
+            {
+                ("a", "x"): np.array([1.0, 2.0]),
+                ("a", "y"): np.array([10.0, 20.0]),
+                ("b", "x"): np.array([100.0, 200.0]),
+            }
+        )
+        np.testing.assert_array_equal(result, [111.0, 222.0])
 
-class TestCollapseTupleDict:
-    """key1/key2 name the part kept; report_writer maps ReportReduceID onto them."""
+
+class TestSumByFirstKey:
+    """report_writer calls this for ReportReduceID.SECOND."""
 
     @pytest.fixture
     def result(self):
@@ -64,24 +75,29 @@ class TestCollapseTupleDict:
             ("b", "x"): np.array([100.0, 200.0]),
         }
 
-    def test_no_collapse_returns_dict_unchanged(self, result):
-        assert collapse_tuple_dict(result) == result
-
     def test_collapse_over_secondary_keys(self, result):
-        collapsed = collapse_tuple_dict(result, key1=True)
+        collapsed = sum_by_first_key(result)
         assert collapsed.keys() == {"a", "b"}
         np.testing.assert_array_equal(collapsed["a"], [11.0, 22.0])
         np.testing.assert_array_equal(collapsed["b"], [100.0, 200.0])
 
+
+class TestSumBySecondKey:
+    """report_writer calls this for ReportReduceID.FIRST."""
+
+    @pytest.fixture
+    def result(self):
+        return {
+            ("a", "x"): np.array([1.0, 2.0]),
+            ("a", "y"): np.array([10.0, 20.0]),
+            ("b", "x"): np.array([100.0, 200.0]),
+        }
+
     def test_collapse_over_primary_keys(self, result):
-        collapsed = collapse_tuple_dict(result, key2=True)
+        collapsed = sum_by_second_key(result)
         assert collapsed.keys() == {"x", "y"}
         np.testing.assert_array_equal(collapsed["x"], [101.0, 202.0])
         np.testing.assert_array_equal(collapsed["y"], [10.0, 20.0])
-
-    def test_collapse_both(self, result):
-        collapsed = collapse_tuple_dict(result, key1=True, key2=True)
-        np.testing.assert_array_equal(collapsed, [111.0, 222.0])
 
 
 class TestSliceList:

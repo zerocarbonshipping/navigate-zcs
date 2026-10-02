@@ -23,11 +23,12 @@ import openpyxl as xl
 
 from navigate.core.enum_ import FileFormatID, ReportReduceID
 from navigate.util import (
-    collapse_tuple_dict,
     dates_to_days,
     is_single_dict,
     is_tuple_dict,
     matching_keys,
+    sum_by_first_key,
+    sum_by_second_key,
     sum_dict_results,
 )
 
@@ -429,9 +430,16 @@ def _reduce_dict(property_: dict, reduce: ReportReduceID) -> dict | np.ndarray:
         return property_
 
     if is_tuple_dict(property_):
-        key1 = reduce in (ReportReduceID.SECOND, ReportReduceID.BOTH)
-        key2 = reduce in (ReportReduceID.FIRST, ReportReduceID.BOTH)
-        return collapse_tuple_dict(property_, key1=key1, key2=key2)
+        if reduce is ReportReduceID.FIRST:
+            return sum_by_second_key(property_)
+
+        if reduce is ReportReduceID.SECOND:
+            return sum_by_first_key(property_)
+
+        if reduce is ReportReduceID.BOTH:
+            return sum_dict_results(property_)
+
+        return property_
 
     return property_
 
