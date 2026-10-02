@@ -13,6 +13,7 @@ from navigate.output.plots._figure import (
     save_figure,
     subplot_grid,
 )
+from navigate.output.plots._illu_util import trim_axes
 from navigate.output.plots._labels import (
     FUEL_COLOR,
     FUEL_LABEL,
@@ -147,5 +148,7 @@ def plot_fuel_type_supply_demand(manager, directory):
         ax.set_title(FUEL_TYPE_LABEL[fuel_type])
         legend = ax.legend(patches, leg_labels, **LEGEND_OPTIONS)
         format_axes(ax, len(fuel_types), dateline, legend)
+
+    trim_axes(axes, len(fuel_types))
 
     save_figure(fig, directory, "fuel_type_supply_demand.png")
