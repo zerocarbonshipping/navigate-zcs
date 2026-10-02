@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Fuel supply against demand, one panel per fuel type a deck uses."""
+
 from __future__ import annotations
 
 import numpy as np
