@@ -25,7 +25,28 @@ from navigate.output.plots._style import LEGEND_OPTIONS
 from navigate.output.plots._units import get_best_unit_energy
 
 
+def _select_fuel_types(fuel_type_to_fuels, converters):
+    """
+    Fuel types with a declared Fuel or a converter using them, in FUEL_TYPE_ORDER.
+
+    A converter can carry demand for a fuel type with no declared Fuel (fleet
+    aggregation sums demand by MainFuelTypes/PilotFuelTypes alone), so a panel
+    also appears for a type no Fuel declares but some converter does.
+    """
+    converter_fuel_types = {
+        fuel_type
+        for converter in converters.values()
+        for fuel_type in converter.get_fuel_types()
+    }
+    return [
+        fuel_type
+        for fuel_type in FUEL_TYPE_ORDER
+        if fuel_type_to_fuels[fuel_type] or fuel_type in converter_fuel_types
+    ]
+
+
 def plot_fuel_type_supply_demand(manager, directory):
+    """Plot fuel supply against demand for each fuel type a deck uses."""
     dateline = manager.dateline
     ports = manager.nodes.ports
     fuels = manager.nodes.fuels
@@ -33,20 +54,7 @@ def plot_fuel_type_supply_demand(manager, directory):
     profile = manager.profile
 
     fuel_type_to_fuels = get_fuels_per_fuel_type(fuels)
-
-    # a converter can carry demand for a fuel type with no declared Fuel (fleet
-    # aggregation sums demand by MainFuelTypes/PilotFuelTypes alone), so a panel
-    # also appears for a type no Fuel declares but some converter does
-    converter_fuel_types = {
-        fuel_type
-        for converter in converters.values()
-        for fuel_type in converter.get_fuel_types()
-    }
-    fuel_types = [
-        ft
-        for ft in FUEL_TYPE_ORDER
-        if fuel_type_to_fuels[ft] or ft in converter_fuel_types
-    ]
+    fuel_types = _select_fuel_types(fuel_type_to_fuels, converters)
 
     if not fuel_types:
         return
