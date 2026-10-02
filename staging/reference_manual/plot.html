@@ -506,6 +506,20 @@ The folder is created automatically if it does not already exist.</p>
 </ul>
 </section>
 </section>
+<section id="notes">
+<h2>Notes<a class="headerlink" href="#notes" title="Link to this heading">#</a></h2>
+<p>Three plots show one panel, or stack layer, per fuel type the deck declares or uses, as
+follows, each in a fixed order; a plot with nothing to show for a deck writes no file,
+rather than an empty image.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">fuel_type_supply_demand</span></code> shows a panel for a fuel type with a declared <code class="docutils literal notranslate"><span class="pre">Fuel</span></code>, or used
+in some <code class="docutils literal notranslate"><span class="pre">Converter</span></code>’s <code class="docutils literal notranslate"><span class="pre">MainFuelTypes</span></code> or <code class="docutils literal notranslate"><span class="pre">PilotFuelTypes</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">global_fuel_type_consumed</span></code> shows a layer for a fuel type with a declared <code class="docutils literal notranslate"><span class="pre">Fuel</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">engine_pilot_fuel_share</span></code> shows a panel for a <code class="docutils literal notranslate"><span class="pre">Vessel</span></code> whose <code class="docutils literal notranslate"><span class="pre">FuelType</span></code> is a
+<code class="docutils literal notranslate"><span class="pre">MainFuelTypes</span></code> entry of one of its dual-fuel converters, i.e. those with
+<code class="docutils literal notranslate"><span class="pre">PilotFuelTypes</span></code> set.</p></li>
+</ul>
+</section>
 <section id="appendix-plot-node-labels">
 <h2>Appendix - Plot Node Labels<a class="headerlink" href="#appendix-plot-node-labels" title="Link to this heading">#</a></h2>
 <p>The labels below are the values accepted by the <code class="docutils literal notranslate"><span class="pre">add_plot</span></code> command on a <code class="docutils literal notranslate"><span class="pre">Plot</span></code> node. Each label must be passed as a quoted string, e.g. <code class="docutils literal notranslate"><span class="pre">add_plot(&quot;global_fuel_consumed&quot;)</span></code>.</p>
@@ -727,6 +741,7 @@ The folder is created automatically if it does not already exist.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#add-plot">add_plot</a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#notes">Notes</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#appendix-plot-node-labels">Appendix - Plot Node Labels</a></li>
 </ul>
   </nav></div>
