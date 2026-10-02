@@ -20,19 +20,32 @@ from navigate.output.plots._labels import (
 )
 
 
-def plot_engine_pilot_fuel_share(manager, directory):
-    dateline = manager.dateline
-    converters = manager.nodes.converters
+def _select_fuel_types(vessels):
+    """
+    Primary fuel types of vessels with a dual-fuel converter, in FUEL_TYPE_ORDER.
 
-    # a fuel type gets a panel when some converter both burns it as a main fuel
-    # and is dual-fuel, i.e. can draw on it as a pilot fuel
-    pilot_fuel_main_types = {
-        fuel_type
-        for converter in converters.values()
-        if converter.is_dual_fuel()
-        for fuel_type in converter.main_fuel_types
+    get_pilot_fuel_share() keys its data by vessel.primary_fuel_type (every fuel
+    a vessel bunkers is recorded under that single type, see
+    navigate.bunker.transfer.bunker.transfer_bunker), not by any converter's own
+    main fuel type, so the panel selection must use the same key.
+    """
+    vessel_types = {
+        vessel.primary_fuel_type
+        for vessel in vessels.values()
+        if any(
+            converter.is_dual_fuel()
+            for converter in vessel.power_system.get_converters()
+        )
     }
-    relevant_fuel_types = [ft for ft in FUEL_TYPE_ORDER if ft in pilot_fuel_main_types]
+    return [fuel_type for fuel_type in FUEL_TYPE_ORDER if fuel_type in vessel_types]
+
+
+def plot_engine_pilot_fuel_share(manager, directory):
+    """Plot pilot fuel share per primary fuel type with a dual-fuel vessel."""
+    dateline = manager.dateline
+    vessels = manager.nodes.vessels
+
+    relevant_fuel_types = _select_fuel_types(vessels)
 
     if not relevant_fuel_types:
         return
@@ -51,16 +64,17 @@ def plot_engine_pilot_fuel_share(manager, directory):
     # converters. Too simplistic.
     minimum_share = dict.fromkeys(pilot_fuel_share, 0.0)
 
-    for converter in converters.values():
-        # assume single main fuel
-        main_fuel_type = converter.main_fuel_types[0]
+    for vessel in vessels.values():
+        fuel_type = vessel.primary_fuel_type
 
-        if main_fuel_type in relevant_fuel_types:
-            # assume share is constant
-            min_share = converter.minimum_pilot_fuel.get()
-            minimum_share[main_fuel_type] = max(
-                minimum_share[main_fuel_type], min_share
-            )
+        if fuel_type not in relevant_fuel_types:
+            continue
+
+        for converter in vessel.power_system.get_converters():
+            if converter.is_dual_fuel():
+                # assume share is constant
+                min_share = converter.minimum_pilot_fuel.get()
+                minimum_share[fuel_type] = max(minimum_share[fuel_type], min_share)
 
     fig, axes = subplot_grid(len(pilot_fuel_share))
 
