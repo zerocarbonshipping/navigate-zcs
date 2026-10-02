@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Pilot fuel share, one panel per primary fuel type with a dual-fuel vessel."""
+
 from __future__ import annotations
 
 import numpy as np
@@ -22,26 +24,54 @@ from navigate.output.plots._labels import (
 
 def _select_fuel_types(vessels):
     """
-    Primary fuel types of vessels with a dual-fuel converter, in FUEL_TYPE_ORDER.
+    Primary fuel types of vessels with a matching dual-fuel converter.
 
-    get_pilot_fuel_share() keys its data by vessel.primary_fuel_type (every fuel
-    a vessel bunkers is recorded under that single type, see
-    navigate.bunker.transfer.bunker.transfer_bunker), not by any converter's own
-    main fuel type, so the panel selection must use the same key.
+    In FUEL_TYPE_ORDER. get_pilot_fuel_share() keys its data by
+    vessel.primary_fuel_type (every fuel a vessel bunkers is recorded under
+    that single type, see navigate.bunker.transfer.bunker.transfer_bunker). A
+    vessel counts when one of its own converters is dual-fuel and lists the
+    vessel's primary type among its main fuel types, keeping the resulting
+    share and its minimum comparable.
     """
     vessel_types = {
         vessel.primary_fuel_type
         for vessel in vessels.values()
         if any(
             converter.is_dual_fuel()
+            and vessel.primary_fuel_type in converter.main_fuel_types
             for converter in vessel.power_system.get_converters()
         )
     }
     return [fuel_type for fuel_type in FUEL_TYPE_ORDER if fuel_type in vessel_types]
 
 
+def _minimum_pilot_share(vessels, fuel_types):
+    """
+    Per fuel type, the largest MinimumPilotFuel among matching converters.
+
+    Assumes it is constant and similar for all converters. Too simplistic.
+    For each vessel whose primary type is in fuel_types, its own converters
+    that are dual-fuel and list that primary type among their main fuel types
+    contribute their MinimumPilotFuel; the maximum is kept per type.
+    """
+    minimum_share = dict.fromkeys(fuel_types, 0.0)
+
+    for vessel in vessels.values():
+        fuel_type = vessel.primary_fuel_type
+
+        if fuel_type not in minimum_share:
+            continue
+
+        for converter in vessel.power_system.get_converters():
+            if converter.is_dual_fuel() and fuel_type in converter.main_fuel_types:
+                min_share = converter.minimum_pilot_fuel.get()
+                minimum_share[fuel_type] = max(minimum_share[fuel_type], min_share)
+
+    return minimum_share
+
+
 def plot_engine_pilot_fuel_share(manager, directory):
-    """Plot pilot fuel share per primary fuel type with a dual-fuel vessel."""
+    """Plot pilot fuel share per primary fuel type with a matching dual-fuel vessel."""
     dateline = manager.dateline
     vessels = manager.nodes.vessels
 
@@ -60,21 +90,7 @@ def plot_engine_pilot_fuel_share(manager, directory):
         for fuel_type in relevant_fuel_types
     }
 
-    # find minimum pilot fuel. Assuming it is constant and similar for all
-    # converters. Too simplistic.
-    minimum_share = dict.fromkeys(pilot_fuel_share, 0.0)
-
-    for vessel in vessels.values():
-        fuel_type = vessel.primary_fuel_type
-
-        if fuel_type not in relevant_fuel_types:
-            continue
-
-        for converter in vessel.power_system.get_converters():
-            if converter.is_dual_fuel():
-                # assume share is constant
-                min_share = converter.minimum_pilot_fuel.get()
-                minimum_share[fuel_type] = max(minimum_share[fuel_type], min_share)
+    minimum_share = _minimum_pilot_share(vessels, relevant_fuel_types)
 
     fig, axes = subplot_grid(len(pilot_fuel_share))
 
