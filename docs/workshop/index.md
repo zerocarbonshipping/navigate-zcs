@@ -15,7 +15,7 @@ The aim of this workshop is to work through practical cases with the Navigate mo
 ## What you'll do
 
 1. **Run a simple case**: one trade, its emissions, the fuel it bunkers and what moving the cargo costs, then change the inputs and see what happens ([Session 1](01-run-a-simple-case.ipynb))
-2. **Understand Navigate with an example**: how the same case is built, the data behind it, how the model solves it step by step, and its results in detail ([Session 2](02-understand-navigate.ipynb))
+2. **Understand Navigate**: how the same case is built, the data behind it, how the model solves it step by step, and its results in detail ([Session 2](02-understand-navigate.ipynb))
 3. **Run a global case**: pick one of four reference
    cases, move some of the assumptions behind it (fuel
    prices, regulatory stringency,...) and see how results change ([Session 3](03-run-a-global-case.ipynb))

@@ -12,7 +12,7 @@ Four notebooks open with a map, and all travel the same way. The SVG in
 | map | SVG | notebook |
 |---|---|---|
 | `example_4` | `example_4_map.svg` (940x470) | `01-run-a-simple-case.ipynb` and `02-understand-navigate.ipynb` |
-| `reference_scenario` | `reference_scenario_map.svg` (940x376) | `03-run-a-global-case.ipynb` and `04-run-our-reference-scenarios.ipynb` |
+| `reference_scenario` | `reference_scenario_map.svg` (780x376) | `03-run-a-global-case.ipynb` and `04-run-our-reference-scenarios.ipynb` |
 
 Rasterise, then embed, from the repository root:
 
