@@ -15,7 +15,6 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from navigate.core.node_registry import GeneralNodes, Nodes
     from navigate.core.profiles.manager_profile import ManagerProfile
-    from navigate.simulation import SimulationManager
     from navigate.util.types_ import DateArray, FloatArray
 
 logger = logging.getLogger(__name__)
@@ -23,7 +22,7 @@ logger = logging.getLogger(__name__)
 _STRIPPED_NODE_DICTS = ("plots", "reports")
 
 
-@dataclass
+@dataclass(eq=False, repr=False)
 class PlotData:
     """Container that captures all simulation state needed by plot functions."""
 
@@ -36,7 +35,7 @@ class PlotData:
     plot_configs: list[dict]
 
     @classmethod
-    def from_manager(cls, manager: SimulationManager) -> PlotData:
+    def from_manager(cls, manager) -> PlotData:
         """
         Create a PlotData instance from a completed SimulationManager.
 
