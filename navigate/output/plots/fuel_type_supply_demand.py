@@ -65,8 +65,6 @@ def plot_fuel_type_supply_demand(manager, directory):
     production_type_energy = profile.get_production_type_energy()
     port_bunkering = [port.profile.get_bunker_energy() for port in ports.values()]
 
-    fig, axes = subplot_grid(len(fuel_types))  # , sharey=True)
-
     # containers for saving results. Needed for intermediate calculation of optimal unit
     all_values = {}
     all_colors = {}
@@ -123,6 +121,8 @@ def plot_fuel_type_supply_demand(manager, directory):
         divisor, unit = get_best_unit_energy(maximum, default=9)
     else:
         return
+
+    fig, axes = subplot_grid(len(fuel_types))  # , sharey=True)
 
     for ax, fuel_type in zip(axes, fuel_types, strict=False):
         values = [value / divisor for value in all_values[fuel_type]]
