@@ -6,9 +6,7 @@ plot_global_fuel_type_consumed's fuel-type selection rule.
 
 Shows a stack layer only for a fuel type the deck declares a Fuel for.
 get_fuel_type_energy() is built from bunkered fuel mass, which is keyed only
-by declared Fuel names, so it is exactly zero for a type no Fuel declares --
-unlike fuel_type_supply_demand's demand side, no converter-only type ever
-carries real data here (#393, #399).
+by declared Fuel names, so it is exactly zero for a type no Fuel declares.
 """
 
 from __future__ import annotations

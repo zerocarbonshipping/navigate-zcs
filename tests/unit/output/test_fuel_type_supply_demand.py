@@ -8,7 +8,7 @@ Shows a panel for a fuel type the deck declares a Fuel for, or that some
 converter uses as a main or pilot fuel even without a declared Fuel -- fleet
 aggregation sums demand by MainFuelTypes/PilotFuelTypes alone
 (navigate/fleet/aggregation.py), so a converter can carry non-zero demand for
-a type no Fuel declares (#393, #399).
+a type no Fuel declares.
 """
 
 from __future__ import annotations
