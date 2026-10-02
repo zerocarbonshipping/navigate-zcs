@@ -2,31 +2,41 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Colour palettes and per-series colour assignment for the plots.
+Color palettes and per-series color assignment for the plots.
 
 Holds the raw palettes (Center-brand scales, the shore-power accent, the
-Matlab/Matplotlib default scheme) together with the logic that assigns a colour
+Matlab/Matplotlib default scheme) together with the logic that assigns a color
 to each plotted entity: preferring the caller-supplied domain defaults, then the
-generic scheme, then generated fallback colours.
+generic scheme, then generated fallback colors.
 """
 
 from __future__ import annotations
 
 import math
+from typing import TYPE_CHECKING
 
 import numpy as np
 
-# --------------------------------------------------------------------------------------
-# Default colouring scheme - first 7 from Matlab default, next 10 from
-# Matplotlib default
-DEFAULT_COLOURS = [
-    np.array([0.0, 114.0, 189.0]) / 255.0,
-    np.array([217.0, 83.0, 25.0]) / 255.0,
-    np.array([237.0, 177.0, 32.0]) / 255.0,
-    np.array([126.0, 47.0, 142.0]) / 255.0,
-    np.array([119.0, 172.0, 48.0]) / 255.0,
-    np.array([77.0, 190.0, 238.0]) / 255.0,
-    np.array([162.0, 20.0, 47.0]) / 255.0,
+if TYPE_CHECKING:
+    from collections.abc import Collection, Mapping
+
+    from matplotlib.typing import ColorType
+
+
+def rgb(red: float, green: float, blue: float) -> tuple[float, float, float]:
+    """Scale 0-255 color channels to the unit interval matplotlib reads."""
+    return red / 255.0, green / 255.0, blue / 255.0
+
+
+# first 7 from the Matlab default scheme, next 10 from the Matplotlib default
+_FALLBACK_COLORS: list[ColorType] = [
+    rgb(0.0, 114.0, 189.0),
+    rgb(217.0, 83.0, 25.0),
+    rgb(237.0, 177.0, 32.0),
+    rgb(126.0, 47.0, 142.0),
+    rgb(119.0, 172.0, 48.0),
+    rgb(77.0, 190.0, 238.0),
+    rgb(162.0, 20.0, 47.0),
     "#1f77b4",
     "#ff7f0e",
     "#2ca02c",
@@ -41,64 +51,64 @@ DEFAULT_COLOURS = [
 
 
 CENTER_COLORS_BLUE = [
-    np.array([232.0, 248.0, 252.0]) / 255.0,
-    np.array([212.0, 238.0, 250.0]) / 255.0,
-    np.array([184.0, 228.0, 244.0]) / 255.0,
-    np.array([150.0, 200.0, 228.0]) / 255.0,
-    np.array([104.0, 164.0, 194.0]) / 255.0,
-    np.array([60.0, 94.0, 134.0]) / 255.0,
-    np.array([44.0, 64.0, 104.0]) / 255.0,
+    rgb(232.0, 248.0, 252.0),
+    rgb(212.0, 238.0, 250.0),
+    rgb(184.0, 228.0, 244.0),
+    rgb(150.0, 200.0, 228.0),
+    rgb(104.0, 164.0, 194.0),
+    rgb(60.0, 94.0, 134.0),
+    rgb(44.0, 64.0, 104.0),
 ]
 
 
 CENTER_COLORS_GREEN = [
-    np.array([238.0, 250.0, 232.0]) / 255.0,
-    np.array([220.0, 240.0, 214.0]) / 255.0,
-    np.array([184.0, 224.0, 194.0]) / 255.0,
-    np.array([110.0, 164.0, 154.0]) / 255.0,
-    np.array([68.0, 122.0, 122.0]) / 255.0,
-    np.array([40.0, 100.0, 100.0]) / 255.0,
-    np.array([35.0, 70.0, 75.0]) / 255.0,
+    rgb(238.0, 250.0, 232.0),
+    rgb(220.0, 240.0, 214.0),
+    rgb(184.0, 224.0, 194.0),
+    rgb(110.0, 164.0, 154.0),
+    rgb(68.0, 122.0, 122.0),
+    rgb(40.0, 100.0, 100.0),
+    rgb(35.0, 70.0, 75.0),
 ]
 
 
 CENTER_COLORS_GREY = [
-    np.array([242.0, 242.0, 242.0]) / 255.0,
-    np.array([220.0, 220.0, 220.0]) / 255.0,
-    np.array([190.0, 190.0, 190.0]) / 255.0,
-    np.array([140.0, 140.0, 140.0]) / 255.0,
-    np.array([88.0, 88.0, 88.0]) / 255.0,
-    np.array([65.0, 65.0, 65.0]) / 255.0,
-    np.array([50.0, 50.0, 50.0]) / 255.0,
+    rgb(242.0, 242.0, 242.0),
+    rgb(220.0, 220.0, 220.0),
+    rgb(190.0, 190.0, 190.0),
+    rgb(140.0, 140.0, 140.0),
+    rgb(88.0, 88.0, 88.0),
+    rgb(65.0, 65.0, 65.0),
+    rgb(50.0, 50.0, 50.0),
 ]
 
 
 CENTER_COLORS_RED = [
-    np.array([254.0, 238.0, 234.0]) / 255.0,
-    np.array([250.0, 224.0, 218.0]) / 255.0,
-    np.array([250.0, 200.0, 194.0]) / 255.0,
-    np.array([224.0, 164.0, 164.0]) / 255.0,
-    np.array([194.0, 128.0, 128.0]) / 255.0,
-    np.array([158.0, 88.0, 88.0]) / 255.0,
-    np.array([128.0, 64.0, 64.0]) / 255.0,
+    rgb(254.0, 238.0, 234.0),
+    rgb(250.0, 224.0, 218.0),
+    rgb(250.0, 200.0, 194.0),
+    rgb(224.0, 164.0, 164.0),
+    rgb(194.0, 128.0, 128.0),
+    rgb(158.0, 88.0, 88.0),
+    rgb(128.0, 64.0, 64.0),
 ]
 
 
 CENTER_COLORS_YELLOW = [
-    np.array([252.0, 248.0, 228.0]) / 255.0,
-    np.array([252.0, 238.0, 200.0]) / 255.0,
-    np.array([250.0, 230.0, 170.0]) / 255.0,
-    np.array([250.0, 214.0, 144.0]) / 255.0,
-    np.array([232.0, 194.0, 124.0]) / 255.0,
-    np.array([188.0, 142.0, 84.0]) / 255.0,
-    np.array([162.0, 112.0, 60.0]) / 255.0,
+    rgb(252.0, 248.0, 228.0),
+    rgb(252.0, 238.0, 200.0),
+    rgb(250.0, 230.0, 170.0),
+    rgb(250.0, 214.0, 144.0),
+    rgb(232.0, 194.0, 124.0),
+    rgb(188.0, 142.0, 84.0),
+    rgb(162.0, 112.0, 60.0),
 ]
 
 
-SHORE_POWER_COLOR = np.array([250.0, 230.0, 170.0]) / 255.0  # #fae6aa
+SHORE_POWER_COLOR = rgb(250.0, 230.0, 170.0)  # #fae6aa
 
 
-GENERIC_COLOR_SCHEME = [
+_GENERIC_COLOR_SCHEME = [
     *CENTER_COLORS_BLUE,
     *CENTER_COLORS_GREEN,
     *CENTER_COLORS_GREY,
@@ -107,16 +117,17 @@ GENERIC_COLOR_SCHEME = [
 ]
 
 
-def default_color(i):
-    return DEFAULT_COLOURS[i % len(DEFAULT_COLOURS)]
+def _fallback_color(index: int) -> ColorType:
+    return _FALLBACK_COLORS[index % len(_FALLBACK_COLORS)]
 
 
-def center_color_saturation(n, shift=False):
+def center_color_saturation(count: int) -> list[tuple[float, float, float]]:
+    count_max = 35
 
-    n_max = 35  # number of colors in Center color scale
-
-    if n > n_max:
-        raise ValueError(f"The maximum number of colors is {n_max}, you requested {n}.")
+    if count > count_max:
+        raise ValueError(
+            f"The maximum number of colors is {count_max}, you requested {count}."
+        )
 
     initial = 0
     step = 1
@@ -128,95 +139,89 @@ def center_color_saturation(n, shift=False):
         CENTER_COLORS_GREY,
     ]
 
-    if n < 10:
-        initial = 3 if shift else 2
-
+    if count < 10:
+        initial = 2
         step = 3
 
-        if n < 5:
-            color_types = color_types[:n]
+        if count < 5:
+            color_types = color_types[:count]
 
-    elif 10 <= n < 15:
-        initial = 1 + shift if shift else 1
-
+    elif 10 <= count < 15:
+        initial = 1
         step = 2
 
-    elif 15 <= n < 20:
+    elif 15 <= count < 20:
         initial = 0
         step = 2
 
-    elif 20 <= n < 25 or 25 <= n < 30:
+    elif 20 <= count < 30:
         initial = 1
         step = 1
 
-    else:
-        pass
-
-    idx = initial
+    shade = initial
     i = 0
     colors = []
 
-    while i < n:
+    while i < count:
         j = 0
-        while (j < len(color_types)) and (i + j < n):
-            colors.append(color_types[j][idx])
+        while (j < len(color_types)) and (i + j < count):
+            colors.append(color_types[j][shade])
             j += 1
 
         i += j
-        idx += step
+        shade += step
 
     return colors
 
 
-def generate_color_dict(nodes, default_dict):
+def generate_color_dict(
+    names: Collection[str], default_dict: Mapping[str, ColorType]
+) -> dict[str, ColorType]:
+    """Color each name by its default, else by the next unused generic color."""
+    chosen: dict[str, ColorType] = {}
+    colors_used: list[ColorType] = []
 
-    if not isinstance(nodes, dict):
-        nodes = {node.name: node for node in nodes}
+    for name in names:
+        if name in default_dict:
+            chosen[name] = default_dict[name]
+            colors_used.append(default_dict[name])
 
-    out_dict = dict.fromkeys(nodes)
-    colors_used = []
+    # start in the middle of the scheme and move down, then up, so the most
+    # appropriate colors are used first
+    scheme_size = len(_GENERIC_COLOR_SCHEME)
+    order = [
+        *range(math.floor(scheme_size / 2), 0, -1),
+        *range(math.ceil(scheme_size / 2), scheme_size, 1),
+    ]
 
-    # use default values where applicable
-    for key in nodes:
-        if key in default_dict:
-            out_dict[key] = default_dict[key]
-            colors_used.append(default_dict[key])
+    fallback_count = 0
+    for name in names:
+        if name in default_dict:
+            continue
 
-    # for all which did not have an applicable default, assign the best alternative
-    no_success_count = 0
-    for key, _node in nodes.items():
-        if key not in default_dict:
-            scheme = GENERIC_COLOR_SCHEME
+        color_chosen: ColorType | None = None
+        for i in order:
+            color = _GENERIC_COLOR_SCHEME[i]
 
-            # build a range that starts in the middle and
-            # moves down, then upwards, in order to use
-            # the most appropriate colors first
-            n = len(scheme)
-            order = [*range(math.floor(n / 2), 0, -1), *range(math.ceil(n / 2), n, 1)]
+            if _color_is_used(color, colors_used):
+                continue
 
-            color_chosen = None
-            for i in order:
-                color = scheme[i]
+            color_chosen = color
+            break
 
-                if _color_is_used(color, colors_used):
-                    continue
+        if color_chosen is None:
+            color_chosen = _fallback_color(fallback_count)
+            fallback_count += 1
 
-                color_chosen = color
-                break
+        chosen[name] = color_chosen
+        colors_used.append(color_chosen)
 
-            # if all colors are already in use, pick a default color
-            if color_chosen is None:
-                color_chosen = default_color(no_success_count)
-                no_success_count += 1
-
-            out_dict[key] = color_chosen
-            colors_used.append(color_chosen)
-
-    return out_dict
+    # callers read the colors positionally, so they follow the order of names
+    return {name: chosen[name] for name in names}
 
 
-def _color_is_used(color, colors):
+def _color_is_used(color: ColorType, colors: list[ColorType]) -> bool:
     if not colors:
         return False
 
-    return np.any(np.all(color == colors, axis=1))
+    return bool(np.any(np.all(np.asarray(color) == np.asarray(colors), axis=1)))

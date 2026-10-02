@@ -5,6 +5,8 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import numpy as np
 
 from navigate.core import get_fuels_per_fuel_type
@@ -20,8 +22,15 @@ from navigate.output.plots._labels import FUEL_TYPE_ORDER
 from navigate.output.plots._style import LEGEND_OPTIONS
 from navigate.output.plots._units import get_best_unit_energy
 
+if TYPE_CHECKING:
+    from navigate.core.enum_ import FuelTypeID
+    from navigate.core.nodes.fuel import Fuel
+    from navigate.output.plot_data import PlotData
 
-def _select_fuel_types(fuel_type_to_fuels):
+
+def _select_fuel_types(
+    fuel_type_to_fuels: dict[FuelTypeID, list[Fuel]],
+) -> list[FuelTypeID]:
     """
     Fuel types with a declared Fuel, in FUEL_TYPE_ORDER.
 
@@ -31,12 +40,12 @@ def _select_fuel_types(fuel_type_to_fuels):
     return [fuel_type for fuel_type in FUEL_TYPE_ORDER if fuel_type_to_fuels[fuel_type]]
 
 
-def plot_global_fuel_type_consumed(manager, directory):
+def plot_global_fuel_type_consumed(plot_data: PlotData, directory: str) -> None:
     """Plot fuel consumed over time, stacked by fuel type a deck uses."""
-    dateline = manager.dateline
-    fuels = manager.nodes.fuels
+    dateline = plot_data.dateline
+    fuels = plot_data.nodes.fuels
 
-    fuel_type_consumed = manager.profile.get_fuel_type_energy()
+    fuel_type_consumed = plot_data.profile.get_fuel_type_energy()
     fuel_type_to_fuels = get_fuels_per_fuel_type(fuels)
     fuel_type_consumed = {
         fuel_type: fuel_type_consumed[fuel_type]
@@ -48,20 +57,18 @@ def plot_global_fuel_type_consumed(manager, directory):
 
     fig, ax = single_panel()
 
-    shore_power = manager.profile.get_shore_power_energy()
+    shore_power = plot_data.profile.get_shore_power_energy()
 
     divisor, unit = get_best_unit_energy(
-        np.amax(sum(list(fuel_type_consumed.values())) + shore_power), default=9
+        np.amax(sum(list(fuel_type_consumed.values())) + shore_power), unit_order=9
     )
     fuel_type_consumed = {
         fuel_type: demand / divisor for fuel_type, demand in fuel_type_consumed.items()
     }
     shore_power_scaled = shore_power / divisor
 
-    # merge into required fuels
     values, labels, colors = unpack_fuel_type_series(fuel_type_consumed)
 
-    # add shore power as separate layer
     if np.any(shore_power_scaled > 0.0):
         values.append(shore_power_scaled)
         labels.append("Shore Power")

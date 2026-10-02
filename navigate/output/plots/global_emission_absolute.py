@@ -1,7 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Plot the global WTW CO2-equivalent emissions."""
+
 from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from navigate.output.plots._figure import (
     format_axes,
@@ -11,14 +15,17 @@ from navigate.output.plots._figure import (
 from navigate.output.plots._style import LEGEND_OPTIONS
 from navigate.output.plots._units import get_best_unit_mass
 
+if TYPE_CHECKING:
+    from navigate.output.plot_data import PlotData
 
-def plot_global_emission_absolute(manager, directory):
-    dateline = manager.dateline
+
+def plot_global_emission_absolute(plot_data: PlotData, directory: str) -> None:
+    """Plot the global WTW CO2-equivalent emissions."""
+    dateline = plot_data.dateline
 
     fig, ax = single_panel()
 
-    profile = manager.profile
-    wtw = profile.get_total_equivalent_wtw()
+    wtw = plot_data.profile.get_total_equivalent_wtw()
 
     divisor, unit = get_best_unit_mass(wtw.max())
     wtw /= divisor

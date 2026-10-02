@@ -1,7 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Plot the WTW emission intensity per plant, one figure per region."""
+
 from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -11,32 +15,37 @@ from navigate.output.plots._figure import (
     save_figure,
     subplot_grid,
 )
-from navigate.output.plots._illu_util import trim_axes
 from navigate.output.plots._labels import FUEL_COLOR
+from navigate.output.plots._layout import trim_axes
+
+if TYPE_CHECKING:
+    from navigate.output.plot_data import PlotData
 
 
-def plot_plant_production_emissions(manager, directory):
-
-    dateline = manager.dateline
-    fuels = manager.nodes.fuels
-    regions = manager.nodes.regions
-    plants = manager.nodes.plants
-    emissions = manager.nodes.emissions
-    emissions_lifetime = manager.general_nodes.model_definition.emissions_lifetime
+def plot_plant_production_emissions(plot_data: PlotData, directory: str) -> None:
+    """Plot the WTW emission intensity per plant, one figure per region."""
+    dateline = plot_data.dateline
+    fuels = plot_data.nodes.fuels
+    regions = plot_data.nodes.regions
+    plants = plot_data.nodes.plants
+    emissions = plot_data.nodes.emissions
+    emissions_lifetime = plot_data.general_nodes.model_definition.emissions_lifetime
 
     colors = generate_color_dict(fuels, FUEL_COLOR)
 
     for region_name, region in regions.items():
-        plants_region = [plant for plant in plants.values() if plant.region is region]
-        plants_region = sorted(plants_region, key=lambda x: x.name)
-        n = len(plants_region)
+        plants_region = sorted(
+            (plant for plant in plants.values() if plant.region is region),
+            key=lambda plant: plant.name,
+        )
 
         if not plants_region:
             continue
 
-        fig, axes = subplot_grid(n)
+        plant_count = len(plants_region)
 
-        # track min/max
+        fig, axes = subplot_grid(plant_count)
+
         y_min = 0.0
         y_max = 0.0
 
@@ -59,7 +68,6 @@ def plot_plant_production_emissions(manager, directory):
                 (profile.get_total_equivalent_instantaneous_wtt() + ttw) / lhv * 1e3, 5
             )
 
-            # update axes limits
             investment_lim = np.where(np.isnan(investment), 0.0, investment)
             instantaneous_lim = np.where(np.isnan(instantaneous), 0.0, instantaneous)
             y_min = min(y_min, np.amin(investment_lim), np.amin(instantaneous_lim))
@@ -84,11 +92,11 @@ def plot_plant_production_emissions(manager, directory):
             ax.set_title(plant.name)
             ax.set_ylabel("WTW [kgCO$_2$-eq/GJ]")
             legend = ax.legend()
-            format_axes(ax, n, dateline, legend, y_lim=(None, None))
+            format_axes(ax, plant_count, dateline, legend, y_lim=(None, None))
 
         for ax in axes:
-            ax.set_ylim((y_min * 1.05, y_max * 1.05))
+            ax.set_ylim(y_min * 1.05, y_max * 1.05)
 
-        trim_axes(axes, n)
+        trim_axes(axes, plant_count)
 
         save_figure(fig, directory, f"plant_production_emissions_{region_name}.png")

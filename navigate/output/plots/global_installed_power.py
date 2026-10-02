@@ -1,7 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Plot the global installed engine power by fuel type."""
+
 from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -19,19 +23,25 @@ from navigate.output.plots._labels import FUEL_TYPE_ORDER
 from navigate.output.plots._style import LEGEND_OPTIONS
 from navigate.output.plots._units import find_best_metric_prefix
 
+if TYPE_CHECKING:
+    from navigate.output.plot_data import PlotData
 
-def plot_global_installed_power(manager, directory):
-    dateline = manager.dateline
+
+def plot_global_installed_power(plot_data: PlotData, directory: str) -> None:
+    """Plot the global installed engine power by fuel type."""
+    dateline = plot_data.dateline
 
     fig, ax = single_panel()
 
-    installed_power = manager.profile.get_installed_power()
-    engine_power = {ft: installed_power[ft] for ft in FUEL_TYPE_ORDER}
+    installed_power = plot_data.profile.get_installed_power()
+    engine_power = {
+        fuel_type: installed_power[fuel_type] for fuel_type in FUEL_TYPE_ORDER
+    }
 
     remove_below_threshold(engine_power, 1.0)
 
     divisor, prefix = find_best_metric_prefix(
-        np.amax(sum(list(engine_power.values()))), default=6
+        np.amax(sum(list(engine_power.values()))), unit_order=6
     )
     engine_power = {
         fuel_type: power / divisor for fuel_type, power in engine_power.items()

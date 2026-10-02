@@ -1,7 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Plot the weighted average vessel age per fuel type."""
+
 from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -10,40 +14,44 @@ from navigate.output.plots._figure import (
     save_figure,
     subplot_grid,
 )
-from navigate.output.plots._illu_util import (
-    trim_axes,
-)
 from navigate.output.plots._labels import (
     FUEL_TYPE_COLOR,
     FUEL_TYPE_LABEL,
 )
+from navigate.output.plots._layout import trim_axes
+
+if TYPE_CHECKING:
+    from navigate.output.plot_data import PlotData
 
 
-def plot_engine_age(manager, directory):
-    dateline = manager.dateline
+def plot_engine_age(plot_data: PlotData, directory: str) -> None:
+    """Plot the weighted average vessel age per fuel type."""
+    dateline = plot_data.dateline
 
-    weighted_avg_age = manager.profile.get_weighted_average_age()
+    weighted_average_age = plot_data.profile.get_weighted_average_age()
 
-    # Filter out fuel types with no vessels (all-zero age)
-    weighted_avg_age = {
-        ft: age for ft, age in weighted_avg_age.items() if np.any(age > 0.0)
+    # a fuel type without vessels has an age of zero throughout
+    weighted_average_age = {
+        fuel_type: age
+        for fuel_type, age in weighted_average_age.items()
+        if np.any(age > 0.0)
     }
 
-    if not weighted_avg_age:
+    if not weighted_average_age:
         return
 
-    fig, axes = subplot_grid(len(weighted_avg_age))
+    fig, axes = subplot_grid(len(weighted_average_age))
 
-    y_max = max(np.nanmax(age) for age in weighted_avg_age.values())
+    y_max = max(np.nanmax(age) for age in weighted_average_age.values())
 
-    for ax, fuel_type in zip(axes, weighted_avg_age, strict=False):
-        age = weighted_avg_age[fuel_type]
+    for ax, fuel_type in zip(axes, weighted_average_age, strict=False):
+        age = weighted_average_age[fuel_type]
         ax.plot(dateline, age, color=FUEL_TYPE_COLOR[fuel_type], lw=2.0)
         ax.set_ylabel("Average age [years]")
         ax.set_title(f"{FUEL_TYPE_LABEL[fuel_type]} vessels")
-        format_axes(ax, len(weighted_avg_age), dateline, legend=None)
-        ax.set_ylim([0.0, y_max * 1.05])
+        format_axes(ax, len(weighted_average_age), dateline)
+        ax.set_ylim(0.0, y_max * 1.05)
 
-    trim_axes(axes, len(weighted_avg_age))
+    trim_axes(axes, len(weighted_average_age))
 
     save_figure(fig, directory, "engine_age.png")

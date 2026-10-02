@@ -1,7 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Plot the remedial and flexibility cost of flexible regulations."""
+
 from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from navigate.core.enum_ import RegulationSchemeID
 from navigate.output.plots._colors import (
@@ -14,11 +18,14 @@ from navigate.output.plots._figure import (
     single_panel,
 )
 
+if TYPE_CHECKING:
+    from navigate.output.plot_data import PlotData
 
-def plot_regulation_flexibility_cost(manager, directory):
 
-    dateline = manager.dateline
-    regulations = manager.nodes.regulations
+def plot_regulation_flexibility_cost(plot_data: PlotData, directory: str) -> None:
+    """Plot the remedial and flexibility cost of flexible regulations."""
+    dateline = plot_data.dateline
+    regulations = plot_data.nodes.regulations
 
     for regulation_name, regulation in regulations.items():
         if regulation.scheme != RegulationSchemeID.FLEXIBLE:
@@ -48,7 +55,7 @@ def plot_regulation_flexibility_cost(manager, directory):
         legend = ax.legend()
 
         ax.set_ylabel("Cost [USD/tCO$_2$-eq.]")
-        ax.set_ylim([0.0, None])
+        ax.set_ylim(0.0, None)
 
         ax.grid(True, lw=0.3, alpha=0.5)
         format_axes(ax, 1, dateline, legend, y_lim=(None, None))

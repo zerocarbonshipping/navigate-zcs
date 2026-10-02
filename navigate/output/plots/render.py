@@ -1,30 +1,37 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Render the registered plots of a run into PNG files."""
+
 from __future__ import annotations
 
 import logging
 import os
 import timeit
 from math import floor
+from typing import TYPE_CHECKING
 
 import matplotlib.pyplot as plt
 
 from navigate.output.plots._registry import PLOT_LABELS, PLOTS, plot_label
 from navigate.output.plots._style import initialize_matplotlib
 
+if TYPE_CHECKING:
+    from navigate.core.nodes.plot import Plot
+    from navigate.output.plot_data import PlotData
+
 logger = logging.getLogger(__name__)
 
 
-def generate_plots(plot, plot_data):
+def generate_plots(plot: Plot, plot_data: PlotData) -> None:
     """
     Render the plots requested by one Plot node from exported plot data.
 
     Parameters
     ----------
-    plot : Plot
+    plot
         Plot node holding the output directory and selected plot labels.
-    plot_data : PlotData
+    plot_data
         The plot data container with simulation state.
     """
     directory = (
@@ -36,18 +43,30 @@ def generate_plots(plot, plot_data):
     render_plots(plot_data, directory=directory, selected_plots=selected_plots)
 
 
-def render_plots(manager, directory=None, selected_plots=None):
+def render_plots(
+    plot_data: PlotData, directory: str | None, selected_plots: set[str] | None
+) -> None:
+    """
+    Render the selected plots into a directory, logging each plot that fails.
+
+    Parameters
+    ----------
+    plot_data
+        The plot data container with simulation state.
+    directory
+        Output directory; None renders into ``plots`` beside the deck.
+    selected_plots
+        Labels of the plots to render; None renders every plot.
+    """
     initialize_matplotlib()
     start = timeit.default_timer()
 
     if directory is None:
-        directory = os.path.join(manager.deck_directory, "plots")
+        directory = os.path.join(plot_data.deck_directory, "plots")
 
     os.makedirs(directory, exist_ok=True)
 
-    dateline = manager.dateline
-
-    if dateline.size < 2:
+    if plot_data.dateline.size < 2:
         return
 
     if selected_plots is not None:
@@ -56,15 +75,16 @@ def render_plots(manager, directory=None, selected_plots=None):
 
     plot_errors = 0
 
-    for func in PLOTS:
-        label = plot_label(func)
+    for plot_function in PLOTS:
+        label = plot_label(plot_function)
         if selected_plots is not None and label not in selected_plots:
             continue
+
         try:
-            func(manager, directory)
-        except Exception as e:
+            plot_function(plot_data, directory)
+        except Exception as error:
             plot_errors += 1
-            logger.error("Plot '%s' failed: %s", label, e)
+            logger.error("Plot '%s' failed: %s", label, error)
             plt.close("all")
 
     if plot_errors > 0:
@@ -74,7 +94,7 @@ def render_plots(manager, directory=None, selected_plots=None):
     logger.info("Plots generated successfully.")
 
 
-def _print_elapsed_time(elapsed, section):
+def _print_elapsed_time(elapsed: float, section: str) -> None:
     minutes = floor(elapsed / 60.0)
     seconds = int(elapsed - minutes * 60.0)
 

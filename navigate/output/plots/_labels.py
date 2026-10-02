@@ -2,16 +2,16 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Domain-entity display labels and colour palettes used across the plots.
+Domain-entity display labels and color palettes used across the plots.
 
 Maps model entity names / fuel types to their human-readable labels and plot
-colours. Rendering configuration (fonts, save/legend options, matplotlib setup)
+colors. Rendering configuration (fonts, save/legend options, matplotlib setup)
 lives in :mod:`navigate.output.plots._style`.
 """
 
 from __future__ import annotations
 
-import numpy as np
+from typing import TYPE_CHECKING
 
 from navigate.core.enum_ import FuelTypeID
 from navigate.output.plots._colors import (
@@ -20,7 +20,13 @@ from navigate.output.plots._colors import (
     CENTER_COLORS_GREY,
     CENTER_COLORS_RED,
     CENTER_COLORS_YELLOW,
+    rgb,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
+
+    from navigate.core.node import Node
 
 FLEET_LABEL = {
     "tanker_7500_dwt": "Tanker 7.5K DWT",
@@ -73,9 +79,9 @@ FUEL_TYPE_COLOR = {
 }
 
 
-# Canonical fuel-type stacking / grouping order: fossil fuels first, then the
-# green fuels (the two alcohols adjacent), with hydrogen and electricity last.
-# Used by every plot that stacks or groups by fuel type.
+# canonical fuel-type stacking / grouping order: fossil fuels first, then the
+# green fuels (the two alcohols adjacent), with hydrogen and electricity last;
+# used by every plot that stacks or groups by fuel type.
 FUEL_TYPE_ORDER = (
     FuelTypeID.OIL,
     FuelTypeID.LPG,
@@ -109,26 +115,26 @@ FUEL_LABEL = {
 
 
 FUEL_COLOR = {
-    "ammonia_blue": np.array([150.0, 200.0, 228.0]) / 255.0,
-    "ammonia_electro": np.array([110.0, 164.0, 154.0]) / 255.0,
-    "ammonia_grey": np.array([220.0, 220.0, 220.0]) / 255.0,
-    "diesel_electro": np.array([40.0, 100.0, 100.0]) / 255.0,
+    "ammonia_blue": rgb(150.0, 200.0, 228.0),
+    "ammonia_electro": rgb(110.0, 164.0, 154.0),
+    "ammonia_grey": rgb(220.0, 220.0, 220.0),
+    "diesel_electro": rgb(40.0, 100.0, 100.0),
     "electricity": CENTER_COLORS_GREEN[1],
-    "oil_bio": np.array([158.0, 88.0, 88.0]) / 255.0,
-    "fatty_acid_methyl_ester": np.array([250.0, 200.0, 194.0]) / 255.0,
-    "liquefied_petroleum_gas": np.array([140.0, 140.0, 140.0]) / 255.0,
-    "liquefied_natural_gas": np.array([220.0, 220.0, 220.0]) / 255.0,
-    "heavy_fuel_oil": np.array([65.0, 65.0, 65.0]) / 255.0,
-    "fossil_fuel_oil": np.array([65.0, 65.0, 65.0]) / 255.0,
-    "methane_bio": np.array([224, 164.0, 164.0]) / 255.0,
-    "methane_electro": np.array([184.0, 224.0, 194.0]) / 255.0,
-    "methanol_bio": np.array([194.0, 128.0, 128.0]) / 255.0,
-    "methanol_electro": np.array([68.0, 122.0, 122.0]) / 255.0,
-    "ethanol_bio": np.array([128.0, 64.0, 64.0]) / 255.0,
+    "oil_bio": rgb(158.0, 88.0, 88.0),
+    "fatty_acid_methyl_ester": rgb(250.0, 200.0, 194.0),
+    "liquefied_petroleum_gas": rgb(140.0, 140.0, 140.0),
+    "liquefied_natural_gas": rgb(220.0, 220.0, 220.0),
+    "heavy_fuel_oil": rgb(65.0, 65.0, 65.0),
+    "fossil_fuel_oil": rgb(65.0, 65.0, 65.0),
+    "methane_bio": rgb(224.0, 164.0, 164.0),
+    "methane_electro": rgb(184.0, 224.0, 194.0),
+    "methanol_bio": rgb(194.0, 128.0, 128.0),
+    "methanol_electro": rgb(68.0, 122.0, 122.0),
+    "ethanol_bio": rgb(128.0, 64.0, 64.0),
 }
 
 
-# Canonical stacking order for individual (merged) fuels: fossil first, then bio,
+# canonical stacking order for individual (merged) fuels: fossil first, then bio,
 # then blue/electro, with electricity last. Mirrors FUEL_TYPE_ORDER one level down
 # and is a subset of the FUEL_LABEL / FUEL_COLOR keys.
 FUEL_ORDER = (
@@ -166,9 +172,9 @@ FEEDSTOCK_LABEL = {
 FEEDSTOCK_COLOR = {
     "carbon_dioxide_biogenic": CENTER_COLORS_GREEN[3],
     "demineralized_water": CENTER_COLORS_BLUE[2],
-    "feedstock_bioethanol_fermentation": np.array([194.0, 128.0, 128.0]) / 255.0,
-    "feedstock_biomethanol_gasification": np.array([158.0, 88.0, 88.0]) / 255.0,
-    "feedstock_biogas": np.array([224.0, 164.0, 164.0]) / 255.0,
+    "feedstock_bioethanol_fermentation": rgb(194.0, 128.0, 128.0),
+    "feedstock_biomethanol_gasification": rgb(158.0, 88.0, 88.0),
+    "feedstock_biogas": rgb(224.0, 164.0, 164.0),
     "crude_oil": CENTER_COLORS_GREY[5],
     "natural_gas": CENTER_COLORS_GREY[3],
     "used_cooking_oil": CENTER_COLORS_YELLOW[2],
@@ -176,12 +182,9 @@ FEEDSTOCK_COLOR = {
 }
 
 
-def extract_label(node, default_dict):
+def extract_label(node: Node, default_dict: Mapping[str, str]) -> str:
     return default_label(node.name, default_dict)
 
 
-def default_label(key, default_dict):
-    if key in default_dict:
-        return default_dict[key]
-    else:
-        return key
+def default_label(key: str, default_dict: Mapping[str, str]) -> str:
+    return default_dict.get(key, key)

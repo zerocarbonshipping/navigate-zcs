@@ -1,7 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Plot the global fuel, levy and regulation expenses."""
+
 from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -20,13 +24,18 @@ from navigate.output.plots._figure import (
 from navigate.output.plots._style import LEGEND_OPTIONS
 from navigate.output.plots._units import get_best_unit_cost
 
+if TYPE_CHECKING:
+    from navigate.output.plot_data import PlotData
 
-def _plot_global_fuel_related_expenses(manager, directory, cumulative=False):
-    dateline = manager.dateline
+
+def _plot_global_fuel_related_expenses(
+    plot_data: PlotData, directory: str, cumulative: bool
+) -> None:
+    dateline = plot_data.dateline
 
     fig, ax = single_panel()
 
-    profile = manager.profile
+    profile = plot_data.profile
     fuel_expenses = profile.get_total_fuel_expenses()
     levy_expenses = profile.get_total_levy_expenses()
     regulation_expenses = profile.get_regulation_expenses()
@@ -34,11 +43,11 @@ def _plot_global_fuel_related_expenses(manager, directory, cumulative=False):
     values = [fuel_expenses, levy_expenses, regulation_expenses]
 
     if cumulative:
-        values = [to_cumulative(dateline, v) for v in values]
+        values = [to_cumulative(dateline, value) for value in values]
 
     divisor, unit = get_best_unit_cost(np.amax(sum(values)), rate=not cumulative)
 
-    values = [v / divisor for v in values]
+    values = [value / divisor for value in values]
     labels = ["Fuel", "Levy", "Regulation"]
     colors = [CENTER_COLORS_GREEN[3], CENTER_COLORS_YELLOW[3], CENTER_COLORS_RED[3]]
 
@@ -57,9 +66,13 @@ def _plot_global_fuel_related_expenses(manager, directory, cumulative=False):
     save_figure(fig, directory, f"global_fuel_related_expenses{suffix}.png")
 
 
-def plot_global_fuel_related_expenses(manager, directory):
-    _plot_global_fuel_related_expenses(manager, directory, cumulative=False)
+def plot_global_fuel_related_expenses(plot_data: PlotData, directory: str) -> None:
+    """Plot the yearly global fuel, levy and regulation expenses."""
+    _plot_global_fuel_related_expenses(plot_data, directory, cumulative=False)
 
 
-def plot_global_fuel_related_expenses_cumulative(manager, directory):
-    _plot_global_fuel_related_expenses(manager, directory, cumulative=True)
+def plot_global_fuel_related_expenses_cumulative(
+    plot_data: PlotData, directory: str
+) -> None:
+    """Plot the cumulative global fuel, levy and regulation expenses."""
+    _plot_global_fuel_related_expenses(plot_data, directory, cumulative=True)

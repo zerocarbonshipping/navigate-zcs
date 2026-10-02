@@ -1,7 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Plot the global shore power share of the port energy."""
+
 from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from navigate.output.plots._colors import SHORE_POWER_COLOR
 from navigate.output.plots._figure import (
@@ -11,13 +15,17 @@ from navigate.output.plots._figure import (
 )
 from navigate.util import divide_nonzero
 
+if TYPE_CHECKING:
+    from navigate.output.plot_data import PlotData
 
-def plot_global_shore_power_share(manager, directory):
-    dateline = manager.dateline
+
+def plot_global_shore_power_share(plot_data: PlotData, directory: str) -> None:
+    """Plot the global shore power share of the port energy."""
+    dateline = plot_data.dateline
 
     fig, ax = single_panel()
 
-    profile = manager.profile
+    profile = plot_data.profile
     shore_power = profile.get_shore_power_energy()
     port_energy = profile.get_total_energy_port()
 

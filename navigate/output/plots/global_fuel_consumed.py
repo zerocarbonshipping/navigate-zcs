@@ -1,7 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Plot the global energy consumed per fuel, with shore power."""
+
 from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -16,29 +20,31 @@ from navigate.output.plots._figure import (
 from navigate.output.plots._style import LEGEND_OPTIONS
 from navigate.output.plots._units import get_best_unit_energy
 
+if TYPE_CHECKING:
+    from navigate.output.plot_data import PlotData
 
-def plot_global_fuel_consumed(manager, directory):
-    dateline = manager.dateline
+
+def plot_global_fuel_consumed(plot_data: PlotData, directory: str) -> None:
+    """Plot the global energy consumed per fuel, with shore power."""
+    dateline = plot_data.dateline
 
     fig, ax = single_panel()
 
-    fuels = manager.nodes.fuels
+    fuels = plot_data.nodes.fuels
 
-    fuel_consumed = manager.profile.get_consumed_energy()
-    shore_power = manager.profile.get_shore_power_energy()
+    fuel_consumed = plot_data.profile.get_consumed_energy()
+    shore_power = plot_data.profile.get_shore_power_energy()
 
     divisor, unit = get_best_unit_energy(
-        np.amax(sum(list(fuel_consumed.values())) + shore_power), default=9
+        np.amax(sum(list(fuel_consumed.values())) + shore_power), unit_order=9
     )
     fuel_consumed = {
         fuel_name: consumed / divisor for fuel_name, consumed in fuel_consumed.items()
     }
     shore_power_scaled = shore_power / divisor
 
-    # merge into required fuels
     values, labels, colors = merge_fuels_for_plot(dateline, fuels, fuel_consumed)
 
-    # add shore power as separate layer
     if np.any(shore_power_scaled > 0.0):
         values.append(shore_power_scaled)
         labels.append("Shore Power")

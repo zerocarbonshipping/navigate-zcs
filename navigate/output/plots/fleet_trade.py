@@ -1,32 +1,41 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Plot the modelled against the target trade per fleet."""
+
 from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import matplotlib.lines as mlines
 import numpy as np
 
+from navigate.output.plots._colors import rgb
 from navigate.output.plots._figure import (
     format_axes,
     save_figure,
     subplot_grid,
 )
-from navigate.output.plots._illu_util import trim_axes
 from navigate.output.plots._labels import FLEET_LABEL, extract_label
+from navigate.output.plots._layout import trim_axes
 from navigate.output.plots._style import LEGEND_OPTIONS
 from navigate.output.plots._units import get_best_unit_cargo_miles
 
+if TYPE_CHECKING:
+    from navigate.output.plot_data import PlotData
 
-def plot_fleet_trade(manager, directory):
-    dateline = manager.dateline
-    fleets = manager.nodes.fleets
+
+def plot_fleet_trade(plot_data: PlotData, directory: str) -> None:
+    """Plot the modelled against the target trade per fleet."""
+    dateline = plot_data.dateline
+    fleets = plot_data.nodes.fleets
 
     fig, axes = subplot_grid(len(fleets))
 
     fleet_label = "Modelled"
     assumed_label = "Target"
-    fleet_color = np.array([60.0, 94.0, 134.0]) / 255.0
-    assumed_color = np.array([194.0, 128.0, 128.0]) / 255.0
+    fleet_color = rgb(60.0, 94.0, 134.0)
+    assumed_color = rgb(194.0, 128.0, 128.0)
 
     fleet_trades = [fleet.profile.get_trade() for fleet in fleets.values()]
     assumed_trades = [fleet.trade for fleet in fleets.values()]
@@ -44,7 +53,6 @@ def plot_fleet_trade(manager, directory):
     for ax, fleet, fleet_trade, assumed_trade in zip(
         axes, fleets.values(), fleet_trades, assumed_trades, strict=False
     ):
-        # plot stacks
         stack = ax.stackplot(
             dateline, fleet_trade, labels=[fleet_label], colors=[fleet_color], alpha=0.8
         )

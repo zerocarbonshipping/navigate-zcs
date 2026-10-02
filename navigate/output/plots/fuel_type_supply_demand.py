@@ -5,6 +5,8 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import numpy as np
 
 from navigate.core import get_fuels_per_fuel_type
@@ -15,7 +17,6 @@ from navigate.output.plots._figure import (
     save_figure,
     subplot_grid,
 )
-from navigate.output.plots._illu_util import trim_axes
 from navigate.output.plots._labels import (
     FUEL_COLOR,
     FUEL_LABEL,
@@ -23,11 +24,25 @@ from navigate.output.plots._labels import (
     FUEL_TYPE_ORDER,
     default_label,
 )
+from navigate.output.plots._layout import trim_axes
 from navigate.output.plots._style import LEGEND_OPTIONS
 from navigate.output.plots._units import get_best_unit_energy
 
+if TYPE_CHECKING:
+    from matplotlib.artist import Artist
+    from matplotlib.typing import ColorType
 
-def _select_fuel_types(fuel_type_to_fuels, converters):
+    from navigate.core.enum_ import FuelTypeID
+    from navigate.core.nodes.converter import Converter
+    from navigate.core.nodes.fuel import Fuel
+    from navigate.output.plot_data import PlotData
+    from navigate.util.types_ import FloatArray
+
+
+def _select_fuel_types(
+    fuel_type_to_fuels: dict[FuelTypeID, list[Fuel]],
+    converters: dict[str, Converter],
+) -> list[FuelTypeID]:
     """
     Fuel types with a declared Fuel or a converter using them, in FUEL_TYPE_ORDER.
 
@@ -47,13 +62,13 @@ def _select_fuel_types(fuel_type_to_fuels, converters):
     ]
 
 
-def plot_fuel_type_supply_demand(manager, directory):
+def plot_fuel_type_supply_demand(plot_data: PlotData, directory: str) -> None:
     """Plot fuel supply against demand for each fuel type a deck uses."""
-    dateline = manager.dateline
-    ports = manager.nodes.ports
-    fuels = manager.nodes.fuels
-    converters = manager.nodes.converters
-    profile = manager.profile
+    dateline = plot_data.dateline
+    ports = plot_data.nodes.ports
+    fuels = plot_data.nodes.fuels
+    converters = plot_data.nodes.converters
+    profile = plot_data.profile
 
     fuel_type_to_fuels = get_fuels_per_fuel_type(fuels)
     fuel_types = _select_fuel_types(fuel_type_to_fuels, converters)
@@ -65,64 +80,55 @@ def plot_fuel_type_supply_demand(manager, directory):
     production_type_energy = profile.get_production_type_energy()
     port_bunkering = [port.profile.get_bunker_energy() for port in ports.values()]
 
-    # containers for saving results. Needed for intermediate calculation of optimal unit
-    all_values = {}
-    all_colors = {}
-    all_labels = {}
-
-    all_demand = {}
-    all_fuel_supply = {}
+    # the series are kept until their overall maximum sets the shared unit
+    all_values: dict[FuelTypeID, list[FloatArray]] = {}
+    all_colors: dict[FuelTypeID, list[ColorType]] = {}
+    all_labels: dict[FuelTypeID, list[str]] = {}
+    all_demand: dict[FuelTypeID, FloatArray] = {}
+    all_fuel_supply: dict[FuelTypeID, FloatArray] = {}
 
     maximum = 0.0
 
     for fuel_type in fuel_types:
         usable_fuels = fuel_type_to_fuels[fuel_type]
-        fuel_spend = {}
+        fuel_spend: dict[str, FloatArray] = {}
         fuel_demand = fuel_type_demand[fuel_type]
         fuel_supply = production_type_energy[fuel_type]
 
-        # calculate the total fuel spend
         for bunkering in port_bunkering:
             for fuel in usable_fuels:
-                if not fuel.liquid_market:
-                    fuel_name = fuel.name
+                if fuel.liquid_market or fuel.name not in bunkering:
+                    continue
 
-                    # add fuel spend; the sum owns its array so the in-place
-                    # accumulation never writes into a port's bunkering dict
-                    if fuel_name in bunkering:
-                        if fuel_name in fuel_spend:
-                            fuel_spend[fuel_name] += bunkering[fuel_name]
-                        else:
-                            fuel_spend[fuel_name] = bunkering[fuel_name].copy()
+                # the sum owns its array so the in-place accumulation never
+                # writes into a port's bunkering dict
+                if fuel.name in fuel_spend:
+                    fuel_spend[fuel.name] += bunkering[fuel.name]
+                else:
+                    fuel_spend[fuel.name] = bunkering[fuel.name].copy()
 
-        # plot spend
         values = list(fuel_spend.values())
-        fuels_used = {fuel_name: fuels[fuel_name] for fuel_name in fuel_spend}
-        colors = list(generate_color_dict(fuels_used, FUEL_COLOR).values())
+        colors = list(generate_color_dict(fuel_spend, FUEL_COLOR).values())
         labels = [default_label(fuel_name, FUEL_LABEL) for fuel_name in fuel_spend]
 
-        # calculate optimal unit
         maximum = max(maximum, np.amax(fuel_demand))
         if values:
             maximum = max(maximum, max(np.amax(value) for value in values))
 
         maximum = max(maximum, np.amax(fuel_supply))
 
-        # save output
         all_values[fuel_type] = values
         all_colors[fuel_type] = colors
         all_labels[fuel_type] = labels
-
         all_demand[fuel_type] = fuel_demand
-
         all_fuel_supply[fuel_type] = fuel_supply
 
-    if maximum > 0.0:
-        divisor, unit = get_best_unit_energy(maximum, default=9)
-    else:
+    if maximum <= 0.0:
         return
 
-    fig, axes = subplot_grid(len(fuel_types))  # , sharey=True)
+    divisor, unit = get_best_unit_energy(maximum, unit_order=9)
+
+    fig, axes = subplot_grid(len(fuel_types))
 
     for ax, fuel_type in zip(axes, fuel_types, strict=False):
         values = [value / divisor for value in all_values[fuel_type]]
@@ -132,31 +138,29 @@ def plot_fuel_type_supply_demand(manager, directory):
         fuel_demand = all_demand[fuel_type] / divisor
         fuel_supply = all_fuel_supply[fuel_type] / divisor
 
-        patches = []
+        handles: list[Artist] = []
 
         if values:
             stack = plot_stack_with_lines(
                 ax, dateline, values, labels, colors, alpha=0.5
             )
-            patches.extend(stack)
+            handles.extend(stack)
 
-        # plot fuel demand
         line_demand = ax.plot(
             dateline, fuel_demand, label="Demand", ls=(0, (5, 3)), color="r", lw=2
         )
-
-        patches.extend(line_demand)
-        leg_labels = [*labels, "Demand"]
+        handles.extend(line_demand)
+        legend_labels = [*labels, "Demand"]
 
         line_supply = ax.plot(
             dateline, fuel_supply, label="Supply", ls=(0, (5, 3)), color="b", lw=2
         )
-        patches.extend(line_supply)
-        leg_labels.append("Supply")
+        handles.extend(line_supply)
+        legend_labels.append("Supply")
 
         ax.set_ylabel(f"Fuel [{unit}]")
         ax.set_title(FUEL_TYPE_LABEL[fuel_type])
-        legend = ax.legend(patches, leg_labels, **LEGEND_OPTIONS)
+        legend = ax.legend(handles, legend_labels, **LEGEND_OPTIONS)
         format_axes(ax, len(fuel_types), dateline, legend)
 
     trim_axes(axes, len(fuel_types))

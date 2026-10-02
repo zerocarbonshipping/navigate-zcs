@@ -1,7 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Plot the non-compliance and surplus units of flexible regulations."""
+
 from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -14,11 +18,14 @@ from navigate.output.plots._figure import (
 )
 from navigate.output.plots._units import find_best_metric_prefix
 
+if TYPE_CHECKING:
+    from navigate.output.plot_data import PlotData
 
-def plot_regulation_unit_trading(manager, directory):
 
-    dateline = manager.dateline
-    regulations = manager.nodes.regulations
+def plot_regulation_unit_trading(plot_data: PlotData, directory: str) -> None:
+    """Plot the non-compliance and surplus units of flexible regulations."""
+    dateline = plot_data.dateline
+    regulations = plot_data.nodes.regulations
 
     for regulation_name, regulation in regulations.items():
         if regulation.scheme != RegulationSchemeID.FLEXIBLE:

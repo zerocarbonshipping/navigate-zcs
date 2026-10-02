@@ -1,7 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Plot the actual speed of each vessel per fleet."""
+
 from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -11,19 +15,22 @@ from navigate.output.plots._figure import (
     save_figure,
     subplot_grid,
 )
-from navigate.output.plots._illu_util import trim_axes
 from navigate.output.plots._labels import (
     FLEET_LABEL,
     FUEL_TYPE_COLOR,
     FUEL_TYPE_LABEL,
     extract_label,
 )
+from navigate.output.plots._layout import trim_axes
+
+if TYPE_CHECKING:
+    from navigate.output.plot_data import PlotData
 
 
-def plot_fleet_speed_per_vessel(manager, directory):
-    dateline = manager.dateline
-
-    fleets = manager.nodes.fleets
+def plot_fleet_speed_per_vessel(plot_data: PlotData, directory: str) -> None:
+    """Plot the actual speed of each vessel per fleet."""
+    dateline = plot_data.dateline
+    fleets = plot_data.nodes.fleets
     relevant_fleets = {
         fleet_name: fleet
         for fleet_name, fleet in fleets.items()
@@ -44,7 +51,6 @@ def plot_fleet_speed_per_vessel(manager, directory):
         minimum[0] = np.nan
         maximum[0] = np.nan
 
-        # plot min/max speeds
         ax.fill_between(
             dateline,
             minimum,
@@ -54,7 +60,6 @@ def plot_fleet_speed_per_vessel(manager, directory):
             alpha=0.3,
         )
 
-        # plot the actual speed per vessel
         for vessel in fleet.vessels:
             actual = vessel.profile.get_actual_speed()
             label = FUEL_TYPE_LABEL[vessel.primary_fuel_type]
@@ -64,8 +69,8 @@ def plot_fleet_speed_per_vessel(manager, directory):
 
         ax.set_ylabel("Vessel speed [knots]")
         ax.set_title(extract_label(fleet, FLEET_LABEL))
-        leg = ax.legend()
-        format_axes(ax, len(relevant_fleets), dateline, legend=leg)
+        legend = ax.legend()
+        format_axes(ax, len(relevant_fleets), dateline, legend)
 
     trim_axes(axes, len(relevant_fleets))
 

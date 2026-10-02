@@ -1,7 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Plot the feed consumption against the constraint, one figure per producer."""
+
 from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -12,33 +16,33 @@ from navigate.output.plots._figure import (
     save_figure,
     subplot_grid,
 )
-from navigate.output.plots._illu_util import (
-    trim_axes,
-)
 from navigate.output.plots._labels import (
     FEEDSTOCK_COLOR,
     FEEDSTOCK_LABEL,
     extract_label,
 )
+from navigate.output.plots._layout import trim_axes
 from navigate.output.plots._units import get_best_unit_mass
 from navigate.util import divide_nonzero
 
+if TYPE_CHECKING:
+    from navigate.output.plot_data import PlotData
+    from navigate.util.types_ import FloatArray
 
-def plot_producer_feed_consumption(manager, directory):
-    dateline = manager.dateline
 
-    producers = manager.nodes.producers
-    feedstocks = manager.nodes.feedstocks
-    processes = manager.nodes.processes
-    feeds = {**feedstocks, **processes}
-
-    colors = generate_color_dict(feeds, FEEDSTOCK_COLOR)
+def plot_producer_feed_consumption(plot_data: PlotData, directory: str) -> None:
+    """Plot the feed consumption against the constraint, one figure per producer."""
+    dateline = plot_data.dateline
+    producers = plot_data.nodes.producers
 
     if not producers:
         return
 
+    feeds = {**plot_data.nodes.feedstocks, **plot_data.nodes.processes}
+    colors = generate_color_dict(feeds, FEEDSTOCK_COLOR)
+
     for producer_name, producer in producers.items():
-        results = {}
+        results: dict[str, tuple[FloatArray, FloatArray]] = {}
         profile = producer.profile
         feed_mass = profile.get_feed_mass()
         feed_constraint = profile.get_feed_constraint()
@@ -80,7 +84,7 @@ def plot_producer_feed_consumption(manager, directory):
             )
 
             ax.set_ylabel(f"Feed [{unit}]")
-            ax.set_title(f"{extract_label(feeds[feed_name], FEEDSTOCK_LABEL)}")
+            ax.set_title(extract_label(feeds[feed_name], FEEDSTOCK_LABEL))
             legend = ax.legend()
             format_axes(ax, len(results), dateline, legend)
 

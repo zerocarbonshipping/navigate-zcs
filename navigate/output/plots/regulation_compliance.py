@@ -1,7 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Plot the compliance against the threshold, one figure per regulation."""
+
 from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -15,21 +19,24 @@ from navigate.output.plots._figure import (
     save_figure,
     subplot_grid,
 )
-from navigate.output.plots._illu_util import (
+from navigate.output.plots._layout import (
     get_font_sizes,
     set_font_sizes,
     trim_axes,
 )
-from navigate.output.plots._style import (
-    LEGEND_OPTIONS,
-)
+from navigate.output.plots._style import LEGEND_OPTIONS
 from navigate.output.plots._units import find_best_metric_prefix
 
+if TYPE_CHECKING:
+    from matplotlib.artist import Artist
 
-def plot_regulation_compliance(manager, directory):
+    from navigate.output.plot_data import PlotData
 
-    dateline = manager.dateline
-    regulations = manager.nodes.regulations
+
+def plot_regulation_compliance(plot_data: PlotData, directory: str) -> None:
+    """Plot the compliance against the threshold, one figure per regulation."""
+    dateline = plot_data.dateline
+    regulations = plot_data.nodes.regulations
 
     for regulation_name, regulation in regulations.items():
         scheme = regulation.scheme
@@ -41,7 +48,6 @@ def plot_regulation_compliance(manager, directory):
             compliance = profile.get_vessel_compliance()
             thresholds = profile.get_vessel_threshold()
 
-            # retrieve adjusted thresholds for the compliance coloring
             if has_threshold_adjustment:
                 adjusted = profile.get_adjusted_vessel_threshold()
                 adjusted = {
@@ -64,17 +70,13 @@ def plot_regulation_compliance(manager, directory):
                 compliance = {regulation_name: profile.get_shared_units()}
                 thresholds = {regulation_name: profile.get_shared_allowance()}
 
-            # retrieve the adjusted shared threshold directly
             adjusted = {}
             if has_threshold_adjustment:
                 shared_adjusted = profile.get_adjusted_shared_threshold()
                 if np.any(np.isfinite(shared_adjusted)):
                     adjusted = {regulation_name: shared_adjusted}
 
-        if not thresholds:
-            continue
-
-        # screen out nans
+        # a threshold that is never finite does not apply
         relevant_names = [
             name for name, value in thresholds.items() if np.any(np.isfinite(value))
         ]
@@ -85,12 +87,12 @@ def plot_regulation_compliance(manager, directory):
             name: value for name, value in compliance.items() if name in relevant_names
         }
 
-        n = len(thresholds)
+        threshold_count = len(thresholds)
 
-        if n == 0:
+        if threshold_count == 0:
             continue
 
-        fig, axes = subplot_grid(n, sharex=True)
+        fig, axes = subplot_grid(threshold_count, sharex=True)
 
         for ax, (name, threshold) in zip(axes, thresholds.items(), strict=False):
             if name not in compliance:
@@ -98,10 +100,9 @@ def plot_regulation_compliance(manager, directory):
 
             measured = compliance[name]
 
-            # use adjusted threshold for compliance coloring if available
+            # an adjusted threshold, where set, decides what counts as compliant
             effective_threshold = adjusted.get(name, threshold)
 
-            # split the measured values into compliant and in breach
             compliant = np.minimum(measured, effective_threshold)
             non_compliant = np.maximum(measured - effective_threshold, 0.0)
 
@@ -156,15 +157,14 @@ def plot_regulation_compliance(manager, directory):
                 labels.append("Non-compliant")
                 colors.append(CENTER_COLORS_RED[3])
 
-            patches = []
+            handles: list[Artist] = []
 
             stack = plot_stack_with_lines(
                 ax, dateline, values, labels, colors, alpha=0.5
             )
+            handles.extend(stack)
 
-            patches.extend(stack)
-
-            # plot the adjusted threshold as the primary line if available
+            # an adjusted threshold is the primary line, over the original one
             if name in adjusted:
                 line = ax.plot(
                     dateline,
@@ -174,9 +174,8 @@ def plot_regulation_compliance(manager, directory):
                     label="Adjusted Threshold",
                     lw=2,
                 )
-                patches.extend(line)
-                # overlay the original threshold as a thinner grey dashed line
-                line_orig = ax.plot(
+                handles.extend(line)
+                line_original = ax.plot(
                     dateline,
                     threshold,
                     color="grey",
@@ -185,8 +184,8 @@ def plot_regulation_compliance(manager, directory):
                     lw=1.5,
                     alpha=0.7,
                 )
-                patches.extend(line_orig)
-                leg_labels = [*labels, "Adjusted Threshold", "Original Threshold"]
+                handles.extend(line_original)
+                legend_labels = [*labels, "Adjusted Threshold", "Original Threshold"]
             else:
                 line = ax.plot(
                     dateline,
@@ -196,18 +195,18 @@ def plot_regulation_compliance(manager, directory):
                     label="Threshold",
                     lw=2,
                 )
-                patches.extend(line)
-                leg_labels = [*labels, "Threshold"]
+                handles.extend(line)
+                legend_labels = [*labels, "Threshold"]
 
-            ax.set_xlim([dateline[0], dateline[-1]])
+            ax.set_xlim(dateline[0], dateline[-1])
 
             if len(thresholds) > 1:
-                ax.set_title(name)  # TODO: add back if multiple global regulations
+                ax.set_title(name)
 
             ax.grid(True, lw=0.3, alpha=0.5)
 
-            if n <= 9:
-                ax.legend(patches, leg_labels, **LEGEND_OPTIONS)
+            if threshold_count <= 9:
+                ax.legend(handles, legend_labels, **LEGEND_OPTIONS)
 
             set_font_sizes(ax, *get_font_sizes(len(axes)))
 

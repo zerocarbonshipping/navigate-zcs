@@ -1,7 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Plot the global energy demand by demand type."""
+
 from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -19,28 +23,34 @@ from navigate.output.plots._figure import (
 )
 from navigate.output.plots._style import LEGEND_OPTIONS
 from navigate.output.plots._units import get_best_unit_energy
-from navigate.util import add_dicts
+
+if TYPE_CHECKING:
+    from navigate.output.plot_data import PlotData
 
 
-def plot_global_energy_demand(manager, directory):
-    dateline = manager.dateline
+def plot_global_energy_demand(plot_data: PlotData, directory: str) -> None:
+    """Plot the global energy demand by demand type."""
+    dateline = plot_data.dateline
 
     fig, ax = single_panel()
 
-    profile = manager.profile
-    energies = add_dicts(profile.get_energy_sea(), profile.get_energy_port())
-    propulsion = energies[EnergyDemandTypeID.PROPULSION]
-    electrical = energies[EnergyDemandTypeID.ELECTRICAL]
-    heat = energies[EnergyDemandTypeID.HEAT]
+    profile = plot_data.profile
+    energy_sea = profile.get_energy_sea()
+    energy_port = profile.get_energy_port()
+
+    # in port, vessels demand electrical energy and heat only
+    propulsion = energy_sea[EnergyDemandTypeID.PROPULSION]
+    electrical = (
+        energy_sea[EnergyDemandTypeID.ELECTRICAL]
+        + energy_port[EnergyDemandTypeID.ELECTRICAL]
+    )
+    heat = energy_sea[EnergyDemandTypeID.HEAT] + energy_port[EnergyDemandTypeID.HEAT]
 
     divisor, unit = get_best_unit_energy(
-        np.amax(propulsion + electrical + heat), default=9
+        np.amax(propulsion + electrical + heat), unit_order=9
     )
-    propulsion /= divisor
-    electrical /= divisor
-    heat /= divisor
 
-    values = [propulsion, electrical, heat]
+    values = [propulsion / divisor, electrical / divisor, heat / divisor]
     labels = ["Propulsion", "Electrical", "Heat"]
     colors = [CENTER_COLORS_BLUE[3], CENTER_COLORS_GREEN[3], CENTER_COLORS_RED[3]]
 

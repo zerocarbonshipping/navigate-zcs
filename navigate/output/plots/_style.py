@@ -6,7 +6,7 @@ Rendering configuration for the plots.
 
 Covers the matplotlib setup, fonts, and shared save/legend options.
 
-Domain-entity display labels and colour palettes live in
+Domain-entity display labels and color palettes live in
 :mod:`navigate.output.plots._labels`. The catalogue of selectable plot
 labels is derived from :mod:`navigate.output.plots._registry`.
 """
@@ -20,7 +20,7 @@ from navigate.output.plots._fonts import setup_font
 _initialized = False
 
 
-def initialize_matplotlib():
+def initialize_matplotlib() -> None:
     """Set up matplotlib backend and custom fonts. Safe to call multiple times."""
     global _initialized
     if _initialized:

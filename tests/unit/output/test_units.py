@@ -39,40 +39,37 @@ def test_find_best_metric_prefix_word_scale():
     assert find_best_metric_prefix(3.0e9, symbol=False) == (1000000000, "billion")
 
 
-def test_find_best_metric_prefix_default_offset():
-    # default is the value's existing order of magnitude: a value already given in
-    # millions (default=6) is picked up as 'M' with a relative divisor of 1.
-    assert find_best_metric_prefix(2.0, default=6) == (1, "M")
+def test_find_best_metric_prefix_unit_order():
+    # unit_order is the order of magnitude of the value's unit: a value already
+    # given in millions (unit_order=6) is picked up as 'M' with a relative
+    # divisor of 1.
+    assert find_best_metric_prefix(2.0, unit_order=6) == (1, "M")
 
 
 @pytest.mark.parametrize(
-    ("value", "default", "divisor", "prefix"),
+    ("value", "unit_order", "divisor", "prefix"),
     [
-        # 0.5 GJ is below the GJ input unit: the divisor used to truncate to
-        # int(1e6 / 1e9) == 0; it now scales the value up to 500 MJ instead.
+        # 0.5 GJ is below the GJ input unit: the divisor scales it up to 500 MJ
         (0.5, 9, 1e-3, "M"),
-        # 0.5 MW: the same below-input-unit truncation at a smaller default.
+        # 0.5 MW is below the MW input unit: the divisor scales it up to 500 kW
         (0.5, 6, 1e-3, "k"),
-        # a zero value used to hit the same truncation (int(1 / 1e9) == 0),
-        # dividing by it; it now divides by 1e-9, leaving a zero value zero.
+        # a zero value takes no prefix and a nonzero divisor, so it stays zero
         (0.0, 9, 1e-9, ""),
     ],
 )
-def test_find_best_metric_prefix_below_input_unit(value, default, divisor, prefix):
-    assert find_best_metric_prefix(value, default=default) == (divisor, prefix)
+def test_find_best_metric_prefix_below_input_unit(value, unit_order, divisor, prefix):
+    assert find_best_metric_prefix(value, unit_order=unit_order) == (divisor, prefix)
 
 
 @pytest.mark.parametrize(
-    ("value", "default", "divisor", "prefix"),
+    ("value", "unit_order", "divisor", "prefix"),
     [
         (2.5e10, 0, 1e9, "G"),
         (5e3, 6, 1e3, "G"),
     ],
 )
-def test_find_best_metric_prefix_default_offset_unchanged(
-    value, default, divisor, prefix
-):
-    assert find_best_metric_prefix(value, default=default) == (divisor, prefix)
+def test_find_best_metric_prefix_above_input_unit(value, unit_order, divisor, prefix):
+    assert find_best_metric_prefix(value, unit_order=unit_order) == (divisor, prefix)
 
 
 def test_get_best_unit_rate_suffix():

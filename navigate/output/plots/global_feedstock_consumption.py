@@ -1,7 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Plot the consumption against the constraint per feedstock."""
+
 from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -12,21 +16,24 @@ from navigate.output.plots._figure import (
     save_figure,
     subplot_grid,
 )
-from navigate.output.plots._illu_util import trim_axes
 from navigate.output.plots._labels import (
     FEEDSTOCK_COLOR,
     FEEDSTOCK_LABEL,
     extract_label,
 )
+from navigate.output.plots._layout import trim_axes
 from navigate.output.plots._units import get_best_unit_mass
 from navigate.util import divide_nonzero
 
+if TYPE_CHECKING:
+    from navigate.output.plot_data import PlotData
 
-def plot_global_feedstock_consumption(manager, directory):
-    dateline = manager.dateline
 
-    feedstocks = manager.nodes.feedstocks
-    profile = manager.profile
+def plot_global_feedstock_consumption(plot_data: PlotData, directory: str) -> None:
+    """Plot the consumption against the constraint per feedstock."""
+    dateline = plot_data.dateline
+    feedstocks = plot_data.nodes.feedstocks
+    profile = plot_data.profile
 
     if not feedstocks:
         return
@@ -62,7 +69,7 @@ def plot_global_feedstock_consumption(manager, directory):
             )
 
         ax.set_ylabel(f"Feedstock [{unit}]")
-        ax.set_title(f"{extract_label(feedstocks[feedstock_name], FEEDSTOCK_LABEL)}")
+        ax.set_title(extract_label(feedstocks[feedstock_name], FEEDSTOCK_LABEL))
         legend = ax.legend()
         format_axes(ax, len(feedstocks), dateline, legend)
 
