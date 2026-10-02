@@ -28,7 +28,7 @@ def plot_engine_pilot_fuel_share(manager, directory):
     # the default library has no ethanol converter, so this panel is drawn only
     # when the deck declares one, next to methanol
     if any(
-        converter.main_fuel_types[0] == FuelTypeID.ETHANOL
+        FuelTypeID.ETHANOL in converter.main_fuel_types
         for converter in converters.values()
     ):
         relevant_fuel_types.append(FuelTypeID.ETHANOL)
