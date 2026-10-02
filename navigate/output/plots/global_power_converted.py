@@ -17,9 +17,10 @@ from navigate.output.plots._style import LEGEND_OPTIONS
 from navigate.output.plots._units import find_best_metric_prefix
 from navigate.util import (
     TOLERANCE,
-    collapse_tuple_dict,
     dates_to_years,
     divide_nonzero,
+    sum_by_first_key,
+    sum_by_second_key,
 )
 
 
@@ -43,11 +44,11 @@ def _plot_global_power_converted(manager, directory, cumulative=False):
     }
     unit = f"{prefix}W"
 
-    conversions_from = collapse_tuple_dict(converted_power, key1=True)
+    conversions_from = sum_by_first_key(converted_power)
     conversions_from = {
         key: -conversion for key, conversion in conversions_from.items()
     }
-    conversions_to = collapse_tuple_dict(converted_power, key2=True)
+    conversions_to = sum_by_second_key(converted_power)
 
     values_from, labels_from, colors_from = unpack_fuel_type_series(conversions_from)
     values_to, labels_to, colors_to = unpack_fuel_type_series(conversions_to)

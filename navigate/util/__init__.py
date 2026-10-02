@@ -7,7 +7,6 @@ from __future__ import annotations
 
 from navigate.util.collections import (
     add_dicts,
-    collapse_tuple_dict,
     define_index_map,
     is_single_dict,
     is_tuple_dict,
@@ -16,6 +15,8 @@ from navigate.util.collections import (
     slice_dict,
     slice_dict_list,
     slice_list,
+    sum_by_first_key,
+    sum_by_second_key,
     sum_dict_results,
     unique_list,
 )

@@ -180,62 +180,54 @@ def sum_dict_results[K](result: dict[K, FloatArray]) -> FloatArray:
     return summed
 
 
-def collapse_tuple_dict[K1: Hashable, K2: Hashable](
+def sum_by_first_key[K1: Hashable, K2: Hashable](
     result: dict[tuple[K1, K2], FloatArray],
-    key1: bool = False,
-    key2: bool = False,
-) -> (
-    FloatArray
-    | dict[K1, FloatArray]
-    | dict[K2, FloatArray]
-    | dict[tuple[K1, K2], FloatArray]
-):
+) -> dict[K1, FloatArray]:
     """
-    Sum a tuple dict over the key part its flags do not keep.
-
-    One flag keys the result by that part and sums over the other; both
-    flags sum every entry into a single array; neither returns the dict
-    as-is.
+    Sum a tuple dict's values over the second key, keyed by the first.
 
     Parameters
     ----------
     result
         Profile result given as a tuple dict.
-    key1
-        Whether to key the result by the primary keys, summing over the
-        secondary keys.
-    key2
-        Whether to key the result by the secondary keys, summing over the
-        primary keys.
 
     Returns
     -------
-    dict | FloatArray
-        Desired form of result from tuple dict; dicts are keyed by the kept
-        key part.
+    dict[K1, FloatArray]
+        Dict keyed by the first tuple element, summed over the second.
     """
-    if key1 and key2:
-        return sum_dict_results(result)
+    primary_keys = unique_list([key for (key, _) in result])
+    return {
+        key: sum_dict_results(
+            {k2: value for (k1, k2), value in result.items() if k1 == key}
+        )
+        for key in primary_keys
+    }
 
-    if key1:
-        primary_keys = unique_list([key for (key, _) in result])
-        return {
-            key: sum_dict_results(
-                {k2: value for (k1, k2), value in result.items() if k1 == key}
-            )
-            for key in primary_keys
-        }
 
-    if key2:
-        secondary_keys = unique_list([key for (_, key) in result])
-        return {
-            key: sum_dict_results(
-                {k1: value for (k1, k2), value in result.items() if k2 == key}
-            )
-            for key in secondary_keys
-        }
+def sum_by_second_key[K1: Hashable, K2: Hashable](
+    result: dict[tuple[K1, K2], FloatArray],
+) -> dict[K2, FloatArray]:
+    """
+    Sum a tuple dict's values over the first key, keyed by the second.
 
-    return result
+    Parameters
+    ----------
+    result
+        Profile result given as a tuple dict.
+
+    Returns
+    -------
+    dict[K2, FloatArray]
+        Dict keyed by the second tuple element, summed over the first.
+    """
+    secondary_keys = unique_list([key for (_, key) in result])
+    return {
+        key: sum_dict_results(
+            {k1: value for (k1, k2), value in result.items() if k2 == key}
+        )
+        for key in secondary_keys
+    }
 
 
 def slice_list(
