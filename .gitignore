@@ -131,8 +131,6 @@ dmypy.json
 /tutorials/**/*.xlsx
 !/tutorials/_static/**
 
-# Workshop quicktest deck, written by notebook 1 when run locally
-/quicktest/
 
 # Test outputs
 /tests/**/plots*/

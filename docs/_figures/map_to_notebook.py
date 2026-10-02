@@ -35,7 +35,7 @@ A markdown link destination cannot contain a newline, so there is no split that
 survives both readers. One long line it is.
 
 Line endings are PRESERVED, not imposed. The notebooks do not agree -
-notebook 3 is CRLF on disk and notebooks 4 and 5 are LF - and `Path.write_text` would
+notebook 2 is CRLF on disk and notebooks 3 and 4 are LF - and `Path.write_text` would
 write the running platform's ending to both, rewriting every line of one of
 them for nothing.
 """
@@ -55,8 +55,8 @@ WORKSHOP = HERE.parent / "workshop"
 MAPS = {
     "example_4": {
         "stem": "example_4_map",
-        # Session 2 introduces the case, Session 3 opens with the same map
-        "notebooks": ["02-run-a-simple-case.ipynb", "03-understand-navigate.ipynb"],
+        # Session 1 introduces the case, Session 2 opens with the same map
+        "notebooks": ["01-run-a-simple-case.ipynb", "02-understand-navigate.ipynb"],
         "alt": ("Map of the Chile to Rotterdam copper trade: the two bunker "
                 "ports, a fleet of ships on the voyage via the Panama Canal, "
                 "and the fuel production sites in Patagonia and southern "
@@ -66,9 +66,9 @@ MAPS = {
     },
     "reference_scenario": {
         "stem": "reference_scenario_map",
-        # Session 4 opens with Session 5's introduction, map included
-        "notebooks": ["04-run-a-global-case.ipynb",
-                      "05-run-our-reference-scenarios.ipynb"],
+        # Session 3 opens with Session 4's introduction, map included
+        "notebooks": ["03-run-a-global-case.ipynb",
+                      "04-run-our-reference-scenarios.ipynb"],
         "alt": ("Map of the Navigate reference scenario: five fuel-supply "
                 "regions shaded by their 2050 electricity cost, with Europe "
                 "ringed as the EU ETS and FuelEU jurisdiction"),
