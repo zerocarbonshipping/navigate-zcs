@@ -24,7 +24,15 @@ def plot_engine_pilot_fuel_share(manager, directory):
     dateline = manager.dateline
     converters = manager.nodes.converters
 
-    relevant_fuel_types = [FuelTypeID.METHANE, FuelTypeID.METHANOL, FuelTypeID.AMMONIA]
+    relevant_fuel_types = [FuelTypeID.METHANE, FuelTypeID.METHANOL]
+    # the default library has no ethanol converter, so this panel is drawn only
+    # when the deck declares one, next to methanol
+    if any(
+        converter.main_fuel_types[0] == FuelTypeID.ETHANOL
+        for converter in converters.values()
+    ):
+        relevant_fuel_types.append(FuelTypeID.ETHANOL)
+    relevant_fuel_types.append(FuelTypeID.AMMONIA)
 
     fleet_pilot_fuel_share = manager.profile.get_pilot_fuel_share()
     pilot_fuel_share = {

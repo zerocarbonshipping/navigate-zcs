@@ -30,13 +30,18 @@ def plot_fuel_type_supply_demand(manager, directory):
     fuels = manager.nodes.fuels
     profile = manager.profile
 
+    fuel_type_to_fuels = get_fuels_per_fuel_type(fuels)
+
     fuel_types = [
         FuelTypeID.OIL,
         FuelTypeID.METHANE,
         FuelTypeID.METHANOL,
-        FuelTypeID.AMMONIA,
     ]
-    fuel_type_to_fuels = get_fuels_per_fuel_type(fuels)
+    # the default library has no ethanol fuel, so this panel is drawn only when
+    # the deck declares one, next to methanol
+    if fuel_type_to_fuels[FuelTypeID.ETHANOL]:
+        fuel_types.append(FuelTypeID.ETHANOL)
+    fuel_types.append(FuelTypeID.AMMONIA)
 
     fuel_type_demand = profile.get_fuel_type_demand()
     production_type_energy = profile.get_production_type_energy()

@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import numpy as np
 
+from navigate.core.enum_ import FuelTypeID
 from navigate.output.plots._aggregate import unpack_fuel_type_series
 from navigate.output.plots._colors import SHORE_POWER_COLOR
 from navigate.output.plots._figure import (
@@ -25,6 +26,11 @@ def plot_global_fuel_type_consumed(manager, directory):
 
     fuel_type_consumed = manager.profile.get_fuel_type_energy()
     fuel_type_consumed = {ft: fuel_type_consumed[ft] for ft in FUEL_TYPE_ORDER}
+
+    # the default library has no ethanol fuel, so its legend row is drawn only
+    # when ethanol is consumed
+    if not np.any(fuel_type_consumed[FuelTypeID.ETHANOL]):
+        del fuel_type_consumed[FuelTypeID.ETHANOL]
 
     shore_power = manager.profile.get_shore_power_energy()
 

@@ -324,6 +324,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - Plots of a quantity below one input unit, such as under 1 GJ or 1 MW,
   showed zero or empty axes, or a wrong unit, instead of scaling up to a
   smaller prefix (#389).
+- A deck with an `ETHANOL` fuel, converter, tank or vessel no longer fails
+  about a dozen plots with `KeyError: <FuelTypeID.ETHANOL: 3>`, or silently
+  drops it from a stack, legend or market-share total (#393).
 
 ## [1.0.0] - 2026-07-16
 
