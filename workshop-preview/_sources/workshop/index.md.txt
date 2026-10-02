@@ -3,7 +3,7 @@ SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Car
 SPDX-License-Identifier: CC-BY-4.0
 -->
 
-# Workshop
+# Use Navigate
 
 The aim of this workshop is to work through practical cases with the Navigate model to get a sense of:
 
@@ -14,16 +14,15 @@ The aim of this workshop is to work through practical cases with the Navigate mo
 
 ## What you'll do
 
-1. **Get introduced and set up**: sanity-check your environment with a tiny, fast-running deck ([Session 1](01-setup-and-quicktest.ipynb))
-2. **Run a simple case**: one trade, its emissions, the fuel it bunkers and what moving the cargo costs, then change the inputs and see what happens ([Session 2](02-run-a-simple-case.ipynb))
-3. **Understand Navigate with an example**: how the same case is built, the data behind it, how the model solves it step by step, and its results in detail ([Session 3](03-understand-navigate.ipynb))
-4. **Run a global case**: pick one of four reference
+1. **Run a simple case**: one trade, its emissions, the fuel it bunkers and what moving the cargo costs, then change the inputs and see what happens ([Session 1](01-run-a-simple-case.ipynb))
+2. **Understand Navigate with an example**: how the same case is built, the data behind it, how the model solves it step by step, and its results in detail ([Session 2](02-understand-navigate.ipynb))
+3. **Run a global case**: pick one of four reference
    cases, move some of the assumptions behind it (fuel
-   prices, regulatory stringency,...) and see how results change ([Session 4](04-run-a-global-case.ipynb))
-5. **Run our reference scenarios**: pre-made assumptions set and models maintained by the Center ([Session 5](05-run-our-reference-scenarios.ipynb))
-6. **Build your own case with an AI assistant**: example prompts that turn a description of your case into a working model ([Session 6](06-build-your-own-case.ipynb))
+   prices, regulatory stringency,...) and see how results change ([Session 3](03-run-a-global-case.ipynb))
+4. **Run our reference scenarios**: pre-made assumptions set and models maintained by the Center ([Session 4](04-run-our-reference-scenarios.ipynb))
+5. **Build your own case with an AI assistant**: example prompts that turn a description of your case into a working model ([Session 5](05-build-your-own-case.ipynb))
 
-[Session 5](05-run-our-reference-scenarios.ipynb)'s "Run the scenarios" cell takes about twenty minutes, so it is worth starting it early in a separate Colab tab and coming back to it.
+[Session 4](04-run-our-reference-scenarios.ipynb)'s "Run the scenarios" cell takes about twenty minutes, so it is worth starting it early in a separate Colab tab and coming back to it.
 
 To understand the details behind Navigate you can also check our [Tutorials](../tutorials/index.md) and
 [Reference Manual](../reference_manual/index.md).
@@ -32,9 +31,9 @@ To understand the details behind Navigate you can also check our [Tutorials](../
 
 ### Option 1 (recommended): Google Colab, nothing to install
 
-Every session here except [Session 6](06-build-your-own-case.ipynb) opens with an **Open in Colab** badge. Click it and the notebook runs in your browser: no installation, nothing on your laptop. You need a free Google account to use it.
+Every session here except [Session 5](05-build-your-own-case.ipynb) opens with an **Open in Colab** badge. Click it and the notebook runs in your browser: no installation, nothing on your laptop. You need a free Google account to use it.
 
-For Session 6 you will need to install Navigate on your own machine.
+For Session 5 you will need to install Navigate on your own machine.
 
 Note for Colab: a session is discarded after a period of
 inactivity. If cells suddenly start failing on imports or missing files,
@@ -69,11 +68,10 @@ interpreted as forecasts, benchmarks, recommendations, or investment advice.
 ```{toctree}
 :titlesonly:
 
-01-setup-and-quicktest
-02-run-a-simple-case
-03-understand-navigate
-04-run-a-global-case
-05-run-our-reference-scenarios
-06-build-your-own-case
+01-run-a-simple-case
+02-understand-navigate
+03-run-a-global-case
+04-run-our-reference-scenarios
+05-build-your-own-case
 references
 ```
