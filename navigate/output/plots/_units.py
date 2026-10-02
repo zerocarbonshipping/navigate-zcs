@@ -79,7 +79,7 @@ def find_best_metric_prefix(value, default=0, symbol=True):
 
     prefix = prefix_symbol if symbol else prefix_short
 
-    return int(divisor / 10**default), prefix
+    return divisor / 10**default, prefix
 
 
 def get_best_unit(value, rate=True, default=0, symbol=True):
