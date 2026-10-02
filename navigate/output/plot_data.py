@@ -9,32 +9,33 @@ import logging
 import os
 import pickle
 import timeit
+from dataclasses import dataclass
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from navigate.core.node_registry import GeneralNodes, Nodes
+    from navigate.core.profiles.manager_profile import ManagerProfile
+    from navigate.util.types_ import DateArray, FloatArray
 
 logger = logging.getLogger(__name__)
 
 _STRIPPED_NODE_DICTS = ("plots", "reports")
 
 
+@dataclass(eq=False, repr=False)
 class PlotData:
-    """
-    Container that captures all simulation state needed by plot functions.
+    """Container that captures all simulation state needed by plot functions."""
 
-    Stores references to manager data after simulation completes, enabling
-    plot generation without re-running the simulation. Can be serialized
-    to disk via pickle for later replotting.
-    """
-
-    def __init__(self):
-        self.dateline = None
-        self.timeline = None
-        self.profile = None
-        self.nodes = None
-        self.general_nodes = None
-        self.deck_directory = None
-        self.plot_configs = []
+    dateline: DateArray
+    timeline: FloatArray
+    profile: ManagerProfile
+    nodes: Nodes
+    general_nodes: GeneralNodes
+    deck_directory: str
+    plot_configs: list[dict]
 
     @classmethod
-    def from_manager(cls, manager):
+    def from_manager(cls, manager) -> PlotData:
         """
         Create a PlotData instance from a completed SimulationManager.
 
@@ -48,14 +49,7 @@ class PlotData:
         PlotData
             A new PlotData instance with references to manager state.
         """
-        plot_data = cls()
-        plot_data.dateline = manager.dateline
-        plot_data.timeline = manager.timeline
-        plot_data.profile = manager.profile
-        plot_data.nodes = manager.nodes
-        plot_data.general_nodes = manager.general_nodes
-        plot_data.deck_directory = manager.parser.deck_directory
-        plot_data.plot_configs = [
+        plot_configs = [
             {
                 "name": name,
                 "directory": node.directory,
@@ -63,19 +57,26 @@ class PlotData:
             }
             for name, node in manager.nodes.plots.items()
         ]
-        return plot_data
+        return cls(
+            dateline=manager.dateline,
+            timeline=manager.timeline,
+            profile=manager.profile,
+            nodes=manager.nodes,
+            general_nodes=manager.general_nodes,
+            deck_directory=manager.parser.deck_directory,
+            plot_configs=plot_configs,
+        )
 
-    def __getstate__(self):
+    def __getstate__(self) -> dict:
         """Strip node dicts not needed for plotting before pickling."""
         state = self.__dict__.copy()
-        if state.get("nodes") is not None:
-            nodes = copy.copy(state["nodes"])
-            for attr in _STRIPPED_NODE_DICTS:
-                setattr(nodes, attr, {})
-            state["nodes"] = nodes
+        nodes = copy.copy(state["nodes"])
+        for attr in _STRIPPED_NODE_DICTS:
+            setattr(nodes, attr, {})
+        state["nodes"] = nodes
         return state
 
-    def save(self, directory=None):
+    def save(self, directory: str | None = None) -> None:
         """
         Serialize PlotData to a gzip-compressed pickle file.
 
@@ -101,7 +102,7 @@ class PlotData:
         )
 
     @classmethod
-    def load(cls, path):
+    def load(cls, path: str) -> PlotData:
         """
         Load PlotData from a gzip-compressed pickle file.
 
