@@ -6,7 +6,6 @@ from __future__ import annotations
 import numpy as np
 
 from navigate.core import get_fuels_per_fuel_type
-from navigate.core.enum_ import FuelTypeID
 from navigate.output.plots._colors import generate_color_dict
 from navigate.output.plots._figure import (
     format_axes,
@@ -18,6 +17,7 @@ from navigate.output.plots._labels import (
     FUEL_COLOR,
     FUEL_LABEL,
     FUEL_TYPE_LABEL,
+    FUEL_TYPE_ORDER,
     default_label,
 )
 from navigate.output.plots._style import LEGEND_OPTIONS
@@ -31,17 +31,10 @@ def plot_fuel_type_supply_demand(manager, directory):
     profile = manager.profile
 
     fuel_type_to_fuels = get_fuels_per_fuel_type(fuels)
+    fuel_types = [ft for ft in FUEL_TYPE_ORDER if fuel_type_to_fuels[ft]]
 
-    fuel_types = [
-        FuelTypeID.OIL,
-        FuelTypeID.METHANE,
-        FuelTypeID.METHANOL,
-    ]
-    # the default library has no ethanol fuel, so this panel is drawn only when
-    # the deck declares one, next to methanol
-    if fuel_type_to_fuels[FuelTypeID.ETHANOL]:
-        fuel_types.append(FuelTypeID.ETHANOL)
-    fuel_types.append(FuelTypeID.AMMONIA)
+    if not fuel_types:
+        return
 
     fuel_type_demand = profile.get_fuel_type_demand()
     production_type_energy = profile.get_production_type_energy()

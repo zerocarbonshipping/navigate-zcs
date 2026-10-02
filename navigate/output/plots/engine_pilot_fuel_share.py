@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import numpy as np
 
-from navigate.core.enum_ import FuelTypeID
 from navigate.output.plots._figure import (
     format_axes,
     save_figure,
@@ -17,6 +16,7 @@ from navigate.output.plots._illu_util import (
 from navigate.output.plots._labels import (
     FUEL_TYPE_COLOR,
     FUEL_TYPE_LABEL,
+    FUEL_TYPE_ORDER,
 )
 
 
@@ -24,15 +24,18 @@ def plot_engine_pilot_fuel_share(manager, directory):
     dateline = manager.dateline
     converters = manager.nodes.converters
 
-    relevant_fuel_types = [FuelTypeID.METHANE, FuelTypeID.METHANOL]
-    # the default library has no ethanol converter, so this panel is drawn only
-    # when the deck declares one, next to methanol
-    if any(
-        FuelTypeID.ETHANOL in converter.main_fuel_types
+    # a fuel type gets a panel when some converter both burns it as a main fuel
+    # and is dual-fuel, i.e. can draw on it as a pilot fuel
+    pilot_fuel_main_types = {
+        fuel_type
         for converter in converters.values()
-    ):
-        relevant_fuel_types.append(FuelTypeID.ETHANOL)
-    relevant_fuel_types.append(FuelTypeID.AMMONIA)
+        if converter.is_dual_fuel()
+        for fuel_type in converter.main_fuel_types
+    }
+    relevant_fuel_types = [ft for ft in FUEL_TYPE_ORDER if ft in pilot_fuel_main_types]
+
+    if not relevant_fuel_types:
+        return
 
     fleet_pilot_fuel_share = manager.profile.get_pilot_fuel_share()
     pilot_fuel_share = {

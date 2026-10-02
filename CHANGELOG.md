@@ -328,8 +328,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   labelled its y-axis without the unit prefix, such as "units/year" instead
   of "thousand units/year" (#394).
 - A deck with an `ETHANOL` fuel, converter, tank or vessel no longer fails
-  about a dozen plots with `KeyError: <FuelTypeID.ETHANOL: 3>`, or silently
-  drops it from a stack, legend or market-share total (#393).
+  about a dozen plots with `KeyError: <FuelTypeID.ETHANOL: 3>`. The fuel-type
+  supply/demand, pilot-fuel share and fuel-type consumption plots now show
+  the fuel types the deck uses, in the standard order, instead of a fixed
+  list with empty panels or legend rows for the types it does not (#393).
 
 ## [1.0.0] - 2026-07-16
 
