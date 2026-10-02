@@ -1,7 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Plot the shore power share of the port energy per fleet."""
+
 from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from navigate.output.plots._colors import SHORE_POWER_COLOR
 from navigate.output.plots._figure import (
@@ -9,15 +13,19 @@ from navigate.output.plots._figure import (
     save_figure,
     subplot_grid,
 )
-from navigate.output.plots._illu_util import trim_axes
 from navigate.output.plots._labels import FLEET_LABEL, extract_label
+from navigate.output.plots._layout import trim_axes
 from navigate.util import divide_nonzero
 
+if TYPE_CHECKING:
+    from navigate.output.plot_data import PlotData
 
-def plot_fleet_shore_power_share(manager, directory):
-    dateline = manager.dateline
 
-    fleets = manager.nodes.fleets
+def plot_fleet_shore_power_share(plot_data: PlotData, directory: str) -> None:
+    """Plot the shore power share of the port energy per fleet."""
+    dateline = plot_data.dateline
+    fleets = plot_data.nodes.fleets
+
     fig, axes = subplot_grid(len(fleets), sharey=True)
 
     for ax, fleet in zip(axes, fleets.values(), strict=False):

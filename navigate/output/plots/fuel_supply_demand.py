@@ -1,7 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Plot the consumption against the production per fuel."""
+
 from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -12,23 +16,24 @@ from navigate.output.plots._figure import (
     save_figure,
     subplot_grid,
 )
-from navigate.output.plots._illu_util import (
-    trim_axes,
-)
 from navigate.output.plots._labels import (
     FUEL_COLOR,
     FUEL_LABEL,
     extract_label,
 )
+from navigate.output.plots._layout import trim_axes
 from navigate.output.plots._units import get_best_unit_energy
 from navigate.util import divide_nonzero
 
+if TYPE_CHECKING:
+    from navigate.output.plot_data import PlotData
 
-def plot_fuel_supply_demand(manager, directory):
-    dateline = manager.dateline
 
-    fuels = manager.nodes.fuels
-    profile = manager.profile
+def plot_fuel_supply_demand(plot_data: PlotData, directory: str) -> None:
+    """Plot the consumption against the production per fuel."""
+    dateline = plot_data.dateline
+    fuels = plot_data.nodes.fuels
+    profile = plot_data.profile
 
     fig, axes = subplot_grid(len(fuels))
 
@@ -46,7 +51,7 @@ def plot_fuel_supply_demand(manager, directory):
             production = np.zeros_like(consumed)
 
         maximum = max(np.amax(consumed), np.amax(production))
-        divisor, unit = get_best_unit_energy(maximum, default=9)
+        divisor, unit = get_best_unit_energy(maximum, unit_order=9)
 
         plot_stack_with_lines(
             ax,

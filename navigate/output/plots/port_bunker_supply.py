@@ -1,7 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Plot the bunkered fuel against supply and limit, one figure per port."""
+
 from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -12,25 +16,27 @@ from navigate.output.plots._figure import (
     save_figure,
     subplot_grid,
 )
-from navigate.output.plots._illu_util import (
-    trim_axes,
-)
 from navigate.output.plots._labels import (
     FUEL_COLOR,
     FUEL_LABEL,
     default_label,
 )
+from navigate.output.plots._layout import trim_axes
 from navigate.output.plots._units import get_best_unit_mass
 from navigate.util import divide_nonzero
 
+if TYPE_CHECKING:
+    from navigate.output.plot_data import PlotData
 
-def plot_port_bunker_supply(manager, directory):
-    dateline = manager.dateline
 
-    ports = manager.nodes.ports
-    fuels = manager.nodes.fuels
+def plot_port_bunker_supply(plot_data: PlotData, directory: str) -> None:
+    """Plot the bunkered fuel against supply and limit, one figure per port."""
+    dateline = plot_data.dateline
+    ports = plot_data.nodes.ports
     fuels = {
-        fuel_name: fuel for fuel_name, fuel in fuels.items() if not fuel.liquid_market
+        fuel_name: fuel
+        for fuel_name, fuel in plot_data.nodes.fuels.items()
+        if not fuel.liquid_market
     }
 
     if not fuels:
@@ -50,7 +56,6 @@ def plot_port_bunker_supply(manager, directory):
             bunkered = bunker_mass[fuel_name]
             supply = bunker_supply_mass[fuel_name]
             limit = bunkering_limit_mass[fuel_name]
-
             limit = np.where(np.isinf(limit), np.nan, limit)
 
             max_limit = 0.0 if np.all(np.isnan(limit)) else np.nanmax(limit)

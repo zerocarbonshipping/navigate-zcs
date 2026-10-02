@@ -1,7 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Plot the plant development per producer, yearly and cumulative."""
+
 from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from navigate.output.plots._colors import CENTER_COLORS_GREEN
 from navigate.output.plots._figure import (
@@ -11,18 +15,21 @@ from navigate.output.plots._figure import (
 )
 from navigate.output.plots._style import LEGEND_OPTIONS
 
+if TYPE_CHECKING:
+    from navigate.output.plot_data import PlotData
 
-def _plot_producer_development(manager, directory, cumulative=False):
 
-    dateline = manager.dateline
-    producers = manager.nodes.producers
+def _plot_producer_development(
+    plot_data: PlotData, directory: str, cumulative: bool
+) -> None:
+    dateline = plot_data.dateline
+    producers = plot_data.nodes.producers
 
     if not producers:
         return
 
     fig, axes = subplot_grid(len(producers))
 
-    # cumulate fuel spent over all fleets
     for ax, producer in zip(axes, producers.values(), strict=False):
         profile = producer.profile
 
@@ -36,7 +43,6 @@ def _plot_producer_development(manager, directory, cumulative=False):
         ax.plot(
             dateline, development, label="Planned", color=CENTER_COLORS_GREEN[3], lw=2.0
         )
-
         ax.plot(dateline, development_constraint, "k--", label="Constraint", lw=2.0)
 
         legend = ax.legend(**LEGEND_OPTIONS)
@@ -47,18 +53,18 @@ def _plot_producer_development(manager, directory, cumulative=False):
         else:
             ax.set_ylabel("Development [plants/year]")
 
-        format_axes(ax, len(producers), dateline, legend=legend)
+        format_axes(ax, len(producers), dateline, legend)
 
-    save_figure(
-        fig,
-        directory,
-        "producer_development{}.png".format("_cumulative" if cumulative else ""),
-    )
+    suffix = "_cumulative" if cumulative else ""
+
+    save_figure(fig, directory, f"producer_development{suffix}.png")
 
 
-def plot_producer_development(manager, directory):
-    _plot_producer_development(manager, directory, cumulative=False)
+def plot_producer_development(plot_data: PlotData, directory: str) -> None:
+    """Plot the yearly plant development per producer against its constraint."""
+    _plot_producer_development(plot_data, directory, cumulative=False)
 
 
-def plot_producer_development_cumulative(manager, directory):
-    _plot_producer_development(manager, directory, cumulative=True)
+def plot_producer_development_cumulative(plot_data: PlotData, directory: str) -> None:
+    """Plot the cumulative plant development per producer against its constraint."""
+    _plot_producer_development(plot_data, directory, cumulative=True)

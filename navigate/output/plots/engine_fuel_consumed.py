@@ -1,7 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Plot the fuels consumed by the engines of each fuel type."""
+
 from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -15,19 +19,23 @@ from navigate.output.plots._figure import (
     save_figure,
     subplot_grid,
 )
-from navigate.output.plots._illu_util import (
-    trim_axes,
-)
 from navigate.output.plots._labels import FUEL_TYPE_LABEL
+from navigate.output.plots._layout import trim_axes
 from navigate.output.plots._style import LEGEND_OPTIONS
 from navigate.output.plots._units import get_best_unit_energy
 
+if TYPE_CHECKING:
+    from matplotlib.legend import Legend
 
-def plot_engine_fuel_consumed(manager, directory):
-    dateline = manager.dateline
+    from navigate.output.plot_data import PlotData
 
-    fuels = manager.nodes.fuels
-    engine_fuel_consumed = manager.profile.get_converter_energy()
+
+def plot_engine_fuel_consumed(plot_data: PlotData, directory: str) -> None:
+    """Plot the fuels consumed by the engines of each fuel type."""
+    dateline = plot_data.dateline
+
+    fuels = plot_data.nodes.fuels
+    engine_fuel_consumed = plot_data.profile.get_converter_energy()
 
     for consumed in engine_fuel_consumed.values():
         remove_below_threshold(consumed, 1.0)
@@ -38,32 +46,28 @@ def plot_engine_fuel_consumed(manager, directory):
         if consumed
     }
 
-    max_ = max(
+    maximum = max(
         np.amax(sum(list(consumed.values())))
         for consumed in engine_fuel_consumed.values()
     )
-    divisor, unit = get_best_unit_energy(max_, default=9)
+    divisor, unit = get_best_unit_energy(maximum, unit_order=9)
 
     fig, axes = subplot_grid(len(engine_fuel_consumed))
 
     for ax, fuel_type in zip(axes, engine_fuel_consumed, strict=False):
-        fuel_consumed = engine_fuel_consumed[fuel_type]
         fuel_consumed = {
             fuel_name: consumed / divisor
-            for fuel_name, consumed in fuel_consumed.items()
+            for fuel_name, consumed in engine_fuel_consumed[fuel_type].items()
         }
 
-        # merge into required fuels
         values, labels, colors = merge_fuels_for_plot(dateline, fuels, fuel_consumed)
 
-        legend = None
+        legend: Legend | None = None
         if values:
             stack = plot_stack_with_lines(ax, dateline, values, labels, colors)
-
             legend = ax.legend(stack[::-1], labels[::-1], **LEGEND_OPTIONS)
 
         ax.set_ylabel(f"Fuel consumed [{unit}]")
-
         ax.set_title(f"{FUEL_TYPE_LABEL[fuel_type]} vessels")
         format_axes(ax, len(engine_fuel_consumed), dateline, legend)
 

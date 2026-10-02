@@ -1,7 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Plot the bunker price of each fuel, one figure per port."""
+
 from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -11,15 +15,17 @@ from navigate.output.plots._figure import (
     save_figure,
     subplot_grid,
 )
-from navigate.output.plots._illu_util import (
-    trim_axes,
-)
+from navigate.output.plots._layout import trim_axes
+
+if TYPE_CHECKING:
+    from navigate.output.plot_data import PlotData
 
 
-def plot_port_bunker_price(manager, directory):
-    dateline = manager.dateline
-    fuels = manager.nodes.fuels
-    ports = manager.nodes.ports
+def plot_port_bunker_price(plot_data: PlotData, directory: str) -> None:
+    """Plot the bunker price of each fuel, one figure per port."""
+    dateline = plot_data.dateline
+    fuels = plot_data.nodes.fuels
+    ports = plot_data.nodes.ports
 
     for port_name, port in ports.items():
         bunker_price = port.profile.get_bunker_price()
@@ -28,7 +34,7 @@ def plot_port_bunker_price(manager, directory):
             for fuel in fuels.values()
         }
 
-        # remove unavailable time of fuel
+        # a zero price marks a time step the fuel is unavailable
         fuel_costs = {
             fuel_name: np.where(cost == 0.0, np.nan, cost)
             for fuel_name, cost in fuel_costs.items()
@@ -43,20 +49,20 @@ def plot_port_bunker_price(manager, directory):
 
         min_value = 0.0
 
-        for ax, value, color, title in zip(axes, values, colors, titles, strict=False):
-            for i in range(len(value)):
-                ax.plot(dateline, value[i], color=color[i], lw=2.5)
-                min_value = min(min_value, np.amin(value[i]))
+        for ax, group_values, group_colors, title in zip(
+            axes, values, colors, titles, strict=False
+        ):
+            for value, color in zip(group_values, group_colors, strict=True):
+                ax.plot(dateline, value, color=color, lw=2.5)
+                min_value = min(min_value, np.amin(value))
 
             ax.set_ylabel("Bunker price [USD/GJ]")
-            legend = None  # ax.legend(loc='upper right', **LEGEND_OPTIONS)
-
             ax.set_title(title, color="k")
-            format_axes(ax, len(values), dateline, legend, y_lim=None)
+            format_axes(ax, len(values), dateline, y_lim=None)
 
         if min_value == 0.0:
             for ax in axes:
-                ax.set_ylim((0.0, None))
+                ax.set_ylim(0.0, None)
 
         trim_axes(axes, len(titles))
 

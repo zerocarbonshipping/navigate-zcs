@@ -1,7 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Plot the engine power converted between fuel types."""
+
 from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import matplotlib.patches as mpatches
 import numpy as np
@@ -23,13 +27,17 @@ from navigate.util import (
     sum_by_second_key,
 )
 
+if TYPE_CHECKING:
+    from navigate.output.plot_data import PlotData
 
-def _plot_global_power_converted(manager, directory, cumulative=False):
-    dateline = manager.dateline
+
+def plot_global_power_converted_cumulative(plot_data: PlotData, directory: str) -> None:
+    """Plot the cumulative engine power converted from and to each fuel type."""
+    dateline = plot_data.dateline
 
     fig, ax = single_panel()
 
-    converted_power = manager.profile.get_fuel_converted_power()
+    converted_power = plot_data.profile.get_fuel_converted_power()
     converted_power = {
         key: value
         for key, value in converted_power.items()
@@ -37,40 +45,30 @@ def _plot_global_power_converted(manager, directory, cumulative=False):
     }
 
     divisor, prefix = find_best_metric_prefix(
-        np.amax(np.sum(list(converted_power.values()))), default=6
+        np.amax(np.sum(list(converted_power.values()))), unit_order=6
     )
     converted_power = {
         key: divide_nonzero(power, divisor) for key, power in converted_power.items()
     }
     unit = f"{prefix}W"
 
-    conversions_from = sum_by_first_key(converted_power)
     conversions_from = {
-        key: -conversion for key, conversion in conversions_from.items()
+        key: -conversion
+        for key, conversion in sum_by_first_key(converted_power).items()
     }
     conversions_to = sum_by_second_key(converted_power)
 
     values_from, labels_from, colors_from = unpack_fuel_type_series(conversions_from)
     values_to, labels_to, colors_to = unpack_fuel_type_series(conversions_to)
 
-    if cumulative:
-        dt = np.diff(dates_to_years(dateline))
-        values_from = [np.cumsum(v[1:] * dt) for v in values_from]
-        values_to = [np.cumsum(v[1:] * dt) for v in values_to]
+    time_steps = np.diff(dates_to_years(dateline))
+    values_from = [np.cumsum(value[1:] * time_steps) for value in values_from]
+    values_to = [np.cumsum(value[1:] * time_steps) for value in values_to]
 
-    else:
-        values_from = [v[1:] for v in values_from]
-        values_to = [v[1:] for v in values_to]
+    plot_stack_with_lines(ax, dateline[1:], values_from, labels_from, colors_from)
+    plot_stack_with_lines(ax, dateline[1:], values_to, labels_to, colors_to)
 
-    # plot stacks
-    stack = plot_stack_with_lines(
-        ax, dateline[1:], values_from, labels_from, colors_from
-    )
-    stack.append(
-        plot_stack_with_lines(ax, dateline[1:], values_to, labels_to, colors_to)
-    )
-
-    # create proxy artist for legend
+    # one legend entry per fuel type, whether converted from or to
     unique_labels = [*labels_from]
     unique_colors = [*colors_from]
 
@@ -79,7 +77,6 @@ def _plot_global_power_converted(manager, directory, cumulative=False):
             unique_labels.append(label)
             unique_colors.append(color)
 
-    # plot zero line
     ax.plot([dateline[1], dateline[-1]], [0.0, 0.0], c="k", lw=2)
 
     ax.set_ylabel(f"Converted power [{unit}]")
@@ -92,10 +89,4 @@ def _plot_global_power_converted(manager, directory, cumulative=False):
 
     format_axes(ax, 1, dateline[1:], legend, y_lim=(None, None))
 
-    suffix = "_cumulative" if cumulative else ""
-
-    save_figure(fig, directory, f"global_power_converted{suffix}.png")
-
-
-def plot_global_power_converted_cumulative(manager, directory):
-    _plot_global_power_converted(manager, directory, cumulative=True)
+    save_figure(fig, directory, "global_power_converted_cumulative.png")

@@ -5,6 +5,8 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import numpy as np
 
 from navigate.output.plots._figure import (
@@ -12,17 +14,20 @@ from navigate.output.plots._figure import (
     save_figure,
     subplot_grid,
 )
-from navigate.output.plots._illu_util import (
-    trim_axes,
-)
 from navigate.output.plots._labels import (
     FUEL_TYPE_COLOR,
     FUEL_TYPE_LABEL,
     FUEL_TYPE_ORDER,
 )
+from navigate.output.plots._layout import trim_axes
+
+if TYPE_CHECKING:
+    from navigate.core.enum_ import FuelTypeID
+    from navigate.core.nodes.vessel import Vessel
+    from navigate.output.plot_data import PlotData
 
 
-def _select_fuel_types(vessels):
+def _select_fuel_types(vessels: dict[str, Vessel]) -> list[FuelTypeID]:
     """
     Primary fuel types of vessels with a matching dual-fuel converter.
 
@@ -45,7 +50,9 @@ def _select_fuel_types(vessels):
     return [fuel_type for fuel_type in FUEL_TYPE_ORDER if fuel_type in vessel_types]
 
 
-def _minimum_pilot_share(vessels, fuel_types):
+def _minimum_pilot_share(
+    vessels: dict[str, Vessel], fuel_types: list[FuelTypeID]
+) -> dict[FuelTypeID, float]:
     """
     Per fuel type, the largest MinimumPilotFuel among matching converters.
 
@@ -64,23 +71,25 @@ def _minimum_pilot_share(vessels, fuel_types):
 
         for converter in vessel.power_system.get_converters():
             if converter.is_dual_fuel() and fuel_type in converter.main_fuel_types:
-                min_share = converter.minimum_pilot_fuel.get()
-                minimum_share[fuel_type] = max(minimum_share[fuel_type], min_share)
+                converter_minimum = converter.minimum_pilot_fuel.get()
+                minimum_share[fuel_type] = max(
+                    minimum_share[fuel_type], converter_minimum
+                )
 
     return minimum_share
 
 
-def plot_engine_pilot_fuel_share(manager, directory):
+def plot_engine_pilot_fuel_share(plot_data: PlotData, directory: str) -> None:
     """Plot pilot fuel share per primary fuel type with a matching dual-fuel vessel."""
-    dateline = manager.dateline
-    vessels = manager.nodes.vessels
+    dateline = plot_data.dateline
+    vessels = plot_data.nodes.vessels
 
     relevant_fuel_types = _select_fuel_types(vessels)
 
     if not relevant_fuel_types:
         return
 
-    fleet_pilot_fuel_share = manager.profile.get_pilot_fuel_share()
+    fleet_pilot_fuel_share = plot_data.profile.get_pilot_fuel_share()
     pilot_fuel_share = {
         fuel_type: np.where(
             fleet_pilot_fuel_share[fuel_type] > 0.0,
@@ -115,7 +124,7 @@ def plot_engine_pilot_fuel_share(manager, directory):
         format_axes(ax, len(pilot_fuel_share), dateline, legend)
 
     for ax in axes:
-        ax.set_ylim([0.0, 100.0])
+        ax.set_ylim(0.0, 100.0)
 
     trim_axes(axes, len(pilot_fuel_share))
 

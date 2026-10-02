@@ -1,9 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Plot the shared and individual compliance of flexible intensity regulations."""
+
 from __future__ import annotations
 
-import numpy as np
+from typing import TYPE_CHECKING
 
 from navigate.core.enum_ import RegulationMeasureID, RegulationSchemeID
 from navigate.output.plots._colors import CENTER_COLORS_GREEN
@@ -14,14 +16,18 @@ from navigate.output.plots._figure import (
 )
 from navigate.output.plots._labels import FUEL_TYPE_COLOR
 from navigate.output.plots._style import LEGEND_OPTIONS
-from navigate.output.plots._units import find_best_metric_prefix
+
+if TYPE_CHECKING:
+    from matplotlib.lines import Line2D
+
+    from navigate.output.plot_data import PlotData
 
 
-def plot_regulation_flexibility(manager, directory):
-
-    dateline = manager.dateline
-    regulations = manager.nodes.regulations
-    vessels = manager.nodes.vessels
+def plot_regulation_flexibility(plot_data: PlotData, directory: str) -> None:
+    """Plot the shared and individual compliance of flexible intensity regulations."""
+    dateline = plot_data.dateline
+    regulations = plot_data.nodes.regulations
+    vessels = plot_data.nodes.vessels
 
     for regulation_name, regulation in regulations.items():
         if regulation.measure != RegulationMeasureID.INTENSITY:
@@ -30,32 +36,20 @@ def plot_regulation_flexibility(manager, directory):
         if regulation.scheme != RegulationSchemeID.FLEXIBLE:
             continue
 
-        shared_threshold = regulation.profile.get_shared_threshold()
-        shared_compliance = regulation.profile.get_shared_compliance()
-        vessel_compliance = regulation.profile.get_vessel_compliance()
-
+        profile = regulation.profile
+        shared_threshold = profile.get_shared_threshold()
+        shared_compliance = profile.get_shared_compliance()
         vessel_compliance = {
-            v: c
-            for v, c in vessel_compliance.items()
-            if regulation.vessel_is_policed(v)
+            vessel_name: compliance
+            for vessel_name, compliance in profile.get_vessel_compliance().items()
+            if regulation.vessel_is_policed(vessel_name)
         }
 
         fig, ax = single_panel()
 
-        measure = regulation.measure
-        if measure == RegulationMeasureID.ABSOLUTE:
-            _divisor, prefix = find_best_metric_prefix(
-                np.amax(np.maximum(shared_threshold, shared_compliance))
-            )
-            unit = f"{prefix}ton/year"
-
-        else:
-            unit = ""
-
-        # plot shared threshold and compliance
-        patches = []
+        handles: list[Line2D] = []
         line = ax.plot(dateline, shared_threshold, label="Threshold", color="k", lw=2.0)
-        patches.extend(line)
+        handles.extend(line)
         line = ax.plot(
             dateline,
             shared_compliance,
@@ -63,29 +57,18 @@ def plot_regulation_flexibility(manager, directory):
             color=CENTER_COLORS_GREEN[3],
             lw=2.0,
         )
-        patches.extend(line)
+        handles.extend(line)
 
-        for v, compliance in vessel_compliance.items():
-            color = FUEL_TYPE_COLOR[vessels[v].primary_fuel_type]
+        for vessel_name, compliance in vessel_compliance.items():
+            color = FUEL_TYPE_COLOR[vessels[vessel_name].primary_fuel_type]
             line = ax.plot(dateline, compliance, color=color, alpha=0.5, lw=1.0)
 
-        patches.extend(line)
+        handles.extend(line)
         labels = ["Threshold", "Compliance", "Ind. compliance"]
-        legend = ax.legend(patches, labels, **LEGEND_OPTIONS)
+        legend = ax.legend(handles, labels, **LEGEND_OPTIONS)
 
-        if measure == RegulationMeasureID.ABSOLUTE:
-            ax.set_ylabel(f"Absolute [{unit}]")
-
-        elif measure == RegulationMeasureID.INTENSITY:
-            ax.set_ylabel("Intensity [kg/GJ]")
-
-        elif measure == RegulationMeasureID.TRANSPORT:
-            ax.set_ylabel("Transport [g/cargo-mile]")
-
-        elif measure == RegulationMeasureID.TRANSPORT_NOMINAL:
-            ax.set_ylabel("Transport [g/nominal cargo-mile]")
-
-        ax.set_ylim([0.0, None])
+        ax.set_ylabel("Intensity [kg/GJ]")
+        ax.set_ylim(0.0, None)
 
         ax.grid(True, lw=0.3, alpha=0.5)
         format_axes(ax, 1, dateline, legend)

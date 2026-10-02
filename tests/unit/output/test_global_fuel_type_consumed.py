@@ -40,12 +40,12 @@ def test_select_fuel_types_empty_when_no_fuel_declared():
 
 
 def test_plot_writes_no_file_with_no_fuel_types(tmp_path):
-    manager = SimpleNamespace(
+    plot_data = SimpleNamespace(
         dateline=None,
         nodes=SimpleNamespace(fuels={}),
         profile=SimpleNamespace(get_fuel_type_energy=lambda: {}),
     )
 
-    plot_global_fuel_type_consumed(manager, str(tmp_path))
+    plot_global_fuel_type_consumed(plot_data, str(tmp_path))
 
     assert not (tmp_path / "global_fuel_type_consumed.png").exists()

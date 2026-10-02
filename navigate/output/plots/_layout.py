@@ -1,59 +1,59 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Subplot grid shape, axes trimming and font sizing for the plot figures."""
+
 from __future__ import annotations
 
 import math
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from matplotlib.axes import Axes
+    from matplotlib.text import Text
 
 
-def subplot_layout(n):
-    r = round(math.sqrt(n))
-    c = math.ceil(n / r)
-    return r, c
+def subplot_layout(n: int) -> tuple[int, int]:
+    rows = round(math.sqrt(n))
+    columns = math.ceil(n / rows)
+    return rows, columns
 
 
-def set_font_sizes(ax, font_size=12, legend_size=10):
+def set_font_sizes(ax: Axes, font_size: float, legend_size: float) -> None:
+    items: list[Text] = [ax.title, ax.xaxis.label, ax.yaxis.label]
 
-    # title and axis labels
-    items = [ax.title, ax.xaxis.label, ax.yaxis.label]
-
-    # offset text (e.g. scientific notation)
     items += [ax.xaxis.get_offset_text(), ax.yaxis.get_offset_text()]
 
-    # add z-axis texts if 3D
-    if ax.name == "3d":
-        items += [ax.zaxis.label, ax.zaxis.get_offset_text()]
-
-    # tick labels
     items += ax.get_xticklabels() + ax.get_yticklabels()
 
-    # change all non-legend texts
     for item in items:
         item.set_fontsize(font_size)
 
-    # legend
     legend = ax.get_legend()
     if legend is not None:
         for item in legend.get_texts():
             item.set_fontsize(legend_size)
 
 
-def trim_axes(axes, n):
-    """Reduce *axs* to *N* Axes. All further Axes are removed from the figure."""
+def trim_axes(axes: list[Axes], n: int) -> None:
+    """Remove the axes beyond the first *n* from their figure."""
     for ax in axes[n:]:
         ax.remove()
 
-    return axes[:n]
 
-
-def get_font_sizes(n):
+def get_font_sizes(n: int) -> tuple[float, float]:
     """
     Return (label, legend) font sizes scaled down with the number of axes.
 
     Parameters
     ----------
-    n : int
+    n
         Number of axes on the figure.
+
+    Returns
+    -------
+    tuple[float, float]
+        Label and legend font sizes, points; never below 7.
     """
     labels = 25.0
     legend = 25.0
@@ -66,7 +66,6 @@ def get_font_sizes(n):
         labels -= 0.8333 * (n - 6) + 1.0 * (6 - 1)
         legend -= 0.8333 * (n - 6) + 1.0 * (6 - 1)
 
-    # anything below 7 is eligible
     labels = max(labels, 7.0)
     legend = max(legend, 7.0)
 

@@ -4,12 +4,14 @@
 """
 Domain data-shaping for stacked plots.
 
-Merges per-vessel / per-plant / per-fuel model results into the ordered
-(values, labels, colours, title) tuples the plot modules stack, applying the
-canonical fuel-type ordering and dropping negligible contributions.
+Merges per-vessel and per-fuel model results into the ordered values, labels
+and colors the plot modules stack, applying the canonical fuel-type ordering
+and dropping negligible contributions.
 """
 
 from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -32,10 +34,18 @@ from navigate.util import (
     dates_to_years,
 )
 
+if TYPE_CHECKING:
+    from matplotlib.typing import ColorType
 
-def merge_fuels_for_plot(dateline, fuels, fuel_demand):
+    from navigate.core.enum_ import FuelTypeID
+    from navigate.core.nodes.fleet import Fleet
+    from navigate.core.nodes.fuel import Fuel
+    from navigate.util.types_ import DateArray, FloatArray
 
-    # limit to fuels that actually have demand
+
+def merge_fuels_for_plot(
+    dateline: DateArray, fuels: dict[str, Fuel], fuel_demand: dict[str, FloatArray]
+) -> tuple[list[FloatArray], list[str], list[ColorType]]:
     fuels = {
         fuel_name: fuel for fuel_name, fuel in fuels.items() if fuel_name in fuel_demand
     }
@@ -49,7 +59,6 @@ def merge_fuels_for_plot(dateline, fuels, fuel_demand):
         for name in fuels
     }
 
-    # drop fuels with negligible demand
     remove_below_threshold(demand, TOLERANCE)
 
     # canonical order first, then any remaining fuels not listed in FUEL_ORDER
@@ -65,58 +74,82 @@ def merge_fuels_for_plot(dateline, fuels, fuel_demand):
     return ordered_values, ordered_labels, ordered_colors
 
 
-def merge_fleet_evolution(dateline, fleet):
-
+def merge_fleet_evolution(
+    dateline: DateArray, fleet: Fleet
+) -> tuple[list[FloatArray], list[str], list[ColorType], str]:
     return _merge_by_fuel_type(
         dateline,
         fleet,
-        FLEET_LABEL,
-        items_fn=lambda f: f.vessels,
-        series_fn=lambda profile: profile.get_existing_vessels(),
-        fuel_type_fn=lambda vessel: vessel.primary_fuel_type,
+        fleet.profile.get_existing_vessels(),
         threshold=1.0,
         normalize=False,
     )
 
 
-def _make_fuel_type_zeros(dateline):
+def merge_fleet_scrap(
+    dateline: DateArray, fleet: Fleet
+) -> tuple[list[FloatArray], list[str], list[ColorType], str]:
+    """Stack the fleet's yearly scrapped vessels by fuel type, as negative values."""
+    return _merge_by_fuel_type(
+        dateline,
+        fleet,
+        {name: -scrapped for name, scrapped in fleet.profile.get_scrap().items()},
+        threshold=TOLERANCE,
+        normalize=True,
+    )
+
+
+def merge_fleet_newbuilds(
+    dateline: DateArray, fleet: Fleet
+) -> tuple[list[FloatArray], list[str], list[ColorType], str]:
+    """Stack the fleet's yearly newbuild vessels by fuel type."""
+    return _merge_by_fuel_type(
+        dateline,
+        fleet,
+        fleet.profile.get_newbuilds(),
+        threshold=TOLERANCE,
+        normalize=True,
+    )
+
+
+def _make_fuel_type_zeros(dateline: DateArray) -> dict[FuelTypeID, FloatArray]:
     """Create a dict of zero arrays keyed by FuelTypeID in standard plotting order."""
-    return {ft: np.zeros_like(dateline, dtype=np.float64) for ft in FUEL_TYPE_ORDER}
+    return {
+        fuel_type: np.zeros_like(dateline, dtype=np.float64)
+        for fuel_type in FUEL_TYPE_ORDER
+    }
 
 
-def unpack_fuel_type_series(values):
-    """Split {FuelTypeID: array} dict into parallel (values, labels, colours) lists."""
+def unpack_fuel_type_series(
+    values: dict[FuelTypeID, FloatArray],
+) -> tuple[list[FloatArray], list[str], list[ColorType]]:
+    """Split {FuelTypeID: array} dict into parallel (values, labels, colors) lists."""
     return (
         list(values.values()),
-        [FUEL_TYPE_LABEL[ft] for ft in values],
-        [FUEL_TYPE_COLOR[ft] for ft in values],
+        [FUEL_TYPE_LABEL[fuel_type] for fuel_type in values],
+        [FUEL_TYPE_COLOR[fuel_type] for fuel_type in values],
     )
 
 
 def _merge_by_fuel_type(
-    dateline,
-    entity,
-    label_dict,
-    items_fn,
-    series_fn,
-    fuel_type_fn,
-    threshold,
-    normalize=True,
-):
+    dateline: DateArray,
+    fleet: Fleet,
+    series: dict[str, FloatArray],
+    threshold: float,
+    normalize: bool,
+) -> tuple[list[FloatArray], list[str], list[ColorType], str]:
     """
-    Accumulate per-item series into a fuel-type-keyed stack.
+    Accumulate the per-vessel series of a fleet into a fuel-type-keyed stack.
 
-    Shared by merge_fleet_evolution and merge_fleet_changes. series_fn reads the
-    {item name: series} dict off the entity's profile once for all items.
-    Flows (newbuilds / scrap / decommissions) are normalized to a per-year rate; stocks
-    (existing vessels) pass normalize=False. Negligible fuel types are dropped and the
-    result is the (values, labels, colours, title) tuple the plot modules stack.
+    Flows (newbuilds / scrap) are normalized to a per-year rate; stocks
+    (existing vessels) pass normalize=False. Negligible fuel types are dropped
+    and the result is the (values, labels, colors, title) tuple the plot
+    modules stack.
     """
-    series = series_fn(entity.profile)
     values = _make_fuel_type_zeros(dateline)
 
-    for item in items_fn(entity):
-        values[fuel_type_fn(item)] += series[item.name]
+    for vessel in fleet.vessels:
+        values[vessel.primary_fuel_type] += series[vessel.name]
 
     # normalize the owned accumulators: the series are profile storage and
     # must not be mutated
@@ -128,53 +161,36 @@ def _merge_by_fuel_type(
     remove_below_threshold(values, threshold)
 
     actual_values, actual_labels, actual_colors = unpack_fuel_type_series(values)
-    title = extract_label(entity, label_dict)
+    title = extract_label(fleet, FLEET_LABEL)
 
     return actual_values, actual_labels, actual_colors, title
 
 
-def merge_fleet_changes(dateline, fleet, scrap=True):
-
-    if scrap:
-        series_fn = lambda profile: {
-            name: -scrapped for name, scrapped in profile.get_scrap().items()
-        }
-    else:
-        series_fn = lambda profile: profile.get_newbuilds()
-
-    return _merge_by_fuel_type(
-        dateline,
-        fleet,
-        FLEET_LABEL,
-        items_fn=lambda f: f.vessels,
-        series_fn=series_fn,
-        fuel_type_fn=lambda vessel: vessel.primary_fuel_type,
-        threshold=TOLERANCE,
-    )
-
-
-def group_series_by_fuel_type(series, fuel_type_of, color_of):
+def merge_fuel_costs(
+    fuel_costs: dict[str, FloatArray], fuels: dict[str, Fuel]
+) -> tuple[list[list[FloatArray]], list[list[ColorType]], list[str]]:
     """
-    Group a {name: array} dict into per-fuel-type subplot lists.
+    Group the fuel costs into per-fuel-type subplot lists.
 
-    Returns parallel (values, colours, titles) lists -- one entry per fuel type that
+    Returns parallel (values, colors, titles) lists -- one entry per fuel type that
     has data -- in canonical FUEL_TYPE_ORDER. Near-zero series are skipped and empty
     fuel-type groups are dropped.
     """
-    index_of = {ft: i for i, ft in enumerate(FUEL_TYPE_ORDER)}
-    values = [[] for _ in FUEL_TYPE_ORDER]
-    colors = [[] for _ in FUEL_TYPE_ORDER]
+    fuel_colors = generate_color_dict(fuels, FUEL_COLOR)
 
-    for name, result in series.items():
+    index_of = {fuel_type: i for i, fuel_type in enumerate(FUEL_TYPE_ORDER)}
+    values: list[list[FloatArray]] = [[] for _ in FUEL_TYPE_ORDER]
+    colors: list[list[ColorType]] = [[] for _ in FUEL_TYPE_ORDER]
+
+    for name, result in fuel_costs.items():
         if np.all(np.abs(result) < TOLERANCE):
             continue
 
-        i = index_of.get(fuel_type_of(name))
-        if i is not None:
-            values[i].append(result)
-            colors[i].append(color_of(name))
+        i = index_of[fuels[name].fuel_type]
+        values[i].append(result)
+        colors[i].append(fuel_colors[name])
 
-    titles = [FUEL_TYPE_LABEL[ft] for ft in FUEL_TYPE_ORDER]
+    titles = [FUEL_TYPE_LABEL[fuel_type] for fuel_type in FUEL_TYPE_ORDER]
 
     keep = [i for i, group in enumerate(values) if group]
 
@@ -185,33 +201,20 @@ def group_series_by_fuel_type(series, fuel_type_of, color_of):
     )
 
 
-def merge_fuel_costs(fuel_costs, fuels):
-
-    colors = generate_color_dict(fuels, FUEL_COLOR)
-
-    return group_series_by_fuel_type(
-        fuel_costs,
-        fuel_type_of=lambda name: fuels[name].fuel_type,
-        color_of=lambda name: colors[name],
-    )
-
-
-def remove_below_threshold(values, threshold):
+def remove_below_threshold[K](values: dict[K, FloatArray], threshold: float) -> None:
     del_keys = []
 
-    for fuel_type, value in values.items():
+    for key, value in values.items():
         if np.sum(np.abs(value)) < threshold:
-            del_keys.append(fuel_type)
+            del_keys.append(key)
 
     for key in del_keys:
         del values[key]
 
 
-def to_cumulative(dateline, value):
-    # translate to cumulative cost
+def to_cumulative(dateline: DateArray, value: FloatArray) -> FloatArray:
     timeline = dates_to_years(dateline)
-    time_step = np.insert(
-        np.diff(timeline), 0, 1.0
-    )  # length of first time-step is undefined, assume 1 year.
+    # the first time step has no predecessor; assume it spans 1 year
+    time_step = np.insert(np.diff(timeline), 0, 1.0)
 
     return np.cumsum(value * time_step)

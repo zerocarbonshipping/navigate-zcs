@@ -12,6 +12,8 @@ labels to keep in sync. To add a plot, import it and append it to ``PLOTS``.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from navigate.output.plots.computational_performance import (
     plot_computational_performance,
     plot_computational_performance_cumulative,
@@ -89,7 +91,14 @@ from navigate.output.plots.regulation_flexibility_cost import (
 from navigate.output.plots.regulation_unit_trading import plot_regulation_unit_trading
 from navigate.output.plots.technology_uptake import plot_technology_uptake
 
-PLOTS = [
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from navigate.output.plot_data import PlotData
+
+type PlotFunction = Callable[[PlotData, str], None]
+
+PLOTS: list[PlotFunction] = [
     plot_global_emission_absolute,
     plot_global_emission_intensity,
     plot_global_fuel_consumed,
@@ -143,7 +152,7 @@ PLOTS = [
 ]
 
 
-def plot_label(func):
+def plot_label(func: PlotFunction) -> str:
     """Return a plot function's label (its name without the ``plot_`` prefix)."""
     return func.__name__[len("plot_") :]
 

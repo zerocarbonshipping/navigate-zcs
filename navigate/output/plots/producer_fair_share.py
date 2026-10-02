@@ -1,7 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Plot the fair share of each producer per fuel."""
+
 from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from navigate.output.plots._colors import center_color_saturation
 from navigate.output.plots._figure import (
@@ -9,18 +13,24 @@ from navigate.output.plots._figure import (
     save_figure,
     subplot_grid,
 )
-from navigate.output.plots._illu_util import trim_axes
 from navigate.output.plots._labels import FUEL_LABEL, extract_label
+from navigate.output.plots._layout import trim_axes
+
+if TYPE_CHECKING:
+    from matplotlib.legend import Legend
+
+    from navigate.output.plot_data import PlotData
 
 
-def plot_producer_fair_share(manager, directory):
-    dateline = manager.dateline
-
-    fuels = manager.nodes.fuels
+def plot_producer_fair_share(plot_data: PlotData, directory: str) -> None:
+    """Plot the fair share of each producer per fuel."""
+    dateline = plot_data.dateline
     fuels = {
-        fuel_name: fuel for fuel_name, fuel in fuels.items() if not fuel.liquid_market
+        fuel_name: fuel
+        for fuel_name, fuel in plot_data.nodes.fuels.items()
+        if not fuel.liquid_market
     }
-    producers = manager.nodes.producers
+    producers = plot_data.nodes.producers
 
     if not producers:
         return
@@ -40,17 +50,21 @@ def plot_producer_fair_share(manager, directory):
                 continue
 
             fair_share = fair_shares[producer_name][fuel_name]
-
-            label = producer_name
-            ax.plot(dateline[1:], fair_share[1:], color=colors[i], label=label, lw=2.0)
+            ax.plot(
+                dateline[1:],
+                fair_share[1:],
+                color=colors[i],
+                label=producer_name,
+                lw=2.0,
+            )
             added_lines = True
 
-        ax.set_ylim([0.0, 1.03])
+        ax.set_ylim(0.0, 1.03)
 
         ax.set_ylabel("Fair-share [-]")
         ax.set_title(extract_label(fuel, FUEL_LABEL))
 
-        legend = None
+        legend: Legend | None = None
         if added_lines:
             legend = ax.legend()
 

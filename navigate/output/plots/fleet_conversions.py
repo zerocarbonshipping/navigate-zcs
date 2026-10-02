@@ -1,7 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Plot the cumulative vessel fuel conversions per fleet."""
+
 from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -11,25 +15,33 @@ from navigate.output.plots._figure import (
     save_figure,
     subplot_grid,
 )
-from navigate.output.plots._illu_util import trim_axes
 from navigate.output.plots._labels import (
     FLEET_LABEL,
     FUEL_TYPE_COLOR,
     FUEL_TYPE_ORDER,
     extract_label,
 )
+from navigate.output.plots._layout import trim_axes
 from navigate.util import TOLERANCE, dates_to_years, sum_by_first_key, sum_by_second_key
 
+if TYPE_CHECKING:
+    from matplotlib.typing import ColorType
 
-def _vessel_series_by_fuel_type(series, vessel_map):
+    from navigate.core.nodes.vessel import Vessel
+    from navigate.output.plot_data import PlotData
+    from navigate.util.types_ import FloatArray
+
+
+def _vessel_series_by_fuel_type(
+    series: dict[str, FloatArray], vessel_map: dict[str, Vessel]
+) -> tuple[list[FloatArray], list[ColorType]]:
     """Flat (values, colors) per vessel, in fuel-type order, near-zero dropped."""
-    order = {ft: i for i, ft in enumerate(FUEL_TYPE_ORDER)}
+    order = {fuel_type: i for i, fuel_type in enumerate(FUEL_TYPE_ORDER)}
 
     names = [
         name
         for name, values in series.items()
         if not np.all(np.abs(values) < TOLERANCE)
-        and vessel_map[name].primary_fuel_type in order
     ]
     names.sort(key=lambda name: order[vessel_map[name].primary_fuel_type])
 
@@ -39,9 +51,10 @@ def _vessel_series_by_fuel_type(series, vessel_map):
     )
 
 
-def plot_fleet_conversions_cumulative(manager, directory):
-    dateline = manager.dateline
-    fleets = manager.nodes.fleets
+def plot_fleet_conversions_cumulative(plot_data: PlotData, directory: str) -> None:
+    """Plot the cumulative number of vessels converted from and to each fuel type."""
+    dateline = plot_data.dateline
+    fleets = plot_data.nodes.fleets
 
     fuel_conversions = {
         fleet_name: fleet.profile.get_fuel_conversions()
@@ -54,18 +67,14 @@ def plot_fleet_conversions_cumulative(manager, directory):
 
     fig, axes = subplot_grid(len(fuel_conversions))
 
-    count = 0
     for ax, (fleet_name, conversions) in zip(
         axes, fuel_conversions.items(), strict=False
     ):
-        # used for trimming
-        count += 1
-
         vessel_map = {vessel.name: vessel for vessel in fleets[fleet_name].vessels}
 
-        conversions_from = sum_by_first_key(conversions)
         conversions_from = {
-            key: -conversion for key, conversion in conversions_from.items()
+            key: -conversion
+            for key, conversion in sum_by_first_key(conversions).items()
         }
         conversions_to = sum_by_second_key(conversions)
 
@@ -74,24 +83,20 @@ def plot_fleet_conversions_cumulative(manager, directory):
         )
         values_to, colors_to = _vessel_series_by_fuel_type(conversions_to, vessel_map)
 
-        dt = np.diff(dates_to_years(dateline))
-        values_from = [np.cumsum(v[1:] * dt) for v in values_from]
-        values_to = [np.cumsum(v[1:] * dt) for v in values_to]
+        time_steps = np.diff(dates_to_years(dateline))
+        values_from = [np.cumsum(value[1:] * time_steps) for value in values_from]
+        values_to = [np.cumsum(value[1:] * time_steps) for value in values_to]
 
-        # plot stacks
         plot_stack_with_lines(ax, dateline[1:], values_from, [], colors_from)
         plot_stack_with_lines(ax, dateline[1:], values_to, [], colors_to)
 
-        # plot zero line
         ax.plot([dateline[1], dateline[-1]], [0.0, 0.0], c="k", lw=2)
 
         ax.set_ylabel("Number of vessels")
         ax.set_title(extract_label(fleets[fleet_name], FLEET_LABEL))
 
-        format_axes(
-            ax, len(fuel_conversions), dateline[1:], legend=None, y_lim=(None, None)
-        )
+        format_axes(ax, len(fuel_conversions), dateline[1:], y_lim=(None, None))
 
-    trim_axes(axes, count)
+    trim_axes(axes, len(fuel_conversions))
 
     save_figure(fig, directory, "fleet_conversions_cumulative.png")

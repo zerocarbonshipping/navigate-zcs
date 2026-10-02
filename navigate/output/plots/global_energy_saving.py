@@ -1,7 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Plot the global energy saving by demand type and by source."""
+
 from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from navigate.core.enum_ import EnergyDemandTypeID
 from navigate.output.plots._colors import (
@@ -16,13 +20,17 @@ from navigate.output.plots._figure import (
     subplot_grid,
 )
 
+if TYPE_CHECKING:
+    from navigate.output.plot_data import PlotData
 
-def plot_global_energy_saving(manager, directory):
-    dateline = manager.dateline
+
+def plot_global_energy_saving(plot_data: PlotData, directory: str) -> None:
+    """Plot the global energy saving by demand type and by source."""
+    dateline = plot_data.dateline
 
     fig, axes = subplot_grid(6, sharey=True)
 
-    profile = manager.profile
+    profile = plot_data.profile
     saving = profile.get_saving()
     propulsion_saving = saving[EnergyDemandTypeID.PROPULSION] * 100.0
     electrical_saving = saving[EnergyDemandTypeID.ELECTRICAL] * 100.0
@@ -67,6 +75,6 @@ def plot_global_energy_saving(manager, directory):
 
     if max_value > 0.0:
         for ax in axes:
-            ax.set_ylim([0.0, 1.1 * max_value])
+            ax.set_ylim(0.0, 1.1 * max_value)
 
     save_figure(fig, directory, "global_energy_saving.png")

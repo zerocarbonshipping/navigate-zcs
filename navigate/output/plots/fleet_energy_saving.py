@@ -1,7 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Plot the energy intensity saving per fleet."""
+
 from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -15,17 +19,20 @@ from navigate.output.plots._figure import (
     save_figure,
     subplot_grid,
 )
-from navigate.output.plots._illu_util import trim_axes
 from navigate.output.plots._labels import FLEET_LABEL, extract_label
+from navigate.output.plots._layout import trim_axes
 from navigate.output.plots._style import LEGEND_OPTIONS
 
+if TYPE_CHECKING:
+    from navigate.output.plot_data import PlotData
 
-def plot_fleet_energy_saving(manager, directory):
-    dateline = manager.dateline
 
-    fleets = manager.nodes.fleets
+def plot_fleet_energy_saving(plot_data: PlotData, directory: str) -> None:
+    """Plot the operational, technology and total energy intensity saving per fleet."""
+    dateline = plot_data.dateline
+    fleets = plot_data.nodes.fleets
 
-    fig, axes = subplot_grid(len(fleets), sharey=False)
+    fig, axes = subplot_grid(len(fleets))
 
     min_saving = 0.0
     max_saving = 0.0
@@ -33,26 +40,46 @@ def plot_fleet_energy_saving(manager, directory):
     for ax, fleet in zip(axes, fleets.values(), strict=False):
         fleet_profile = fleet.profile
 
-        saving_op = fleet_profile.get_operational_energy_intensity_saving() * 100.0
-        saving_tech = fleet_profile.get_technology_energy_intensity_saving() * 100.0
-        saving = fleet_profile.get_energy_intensity_saving() * 100.0
+        operational_saving = (
+            fleet_profile.get_operational_energy_intensity_saving() * 100.0
+        )
+        technology_saving = (
+            fleet_profile.get_technology_energy_intensity_saving() * 100.0
+        )
+        total_saving = fleet_profile.get_energy_intensity_saving() * 100.0
 
         min_saving = min(
-            min_saving, np.amin(saving_tech), np.amin(saving_op), np.amin(saving)
+            min_saving,
+            np.amin(technology_saving),
+            np.amin(operational_saving),
+            np.amin(total_saving),
         )
         max_saving = max(
-            max_saving, np.amax(saving_tech), np.amax(saving_op), np.amax(saving)
+            max_saving,
+            np.amax(technology_saving),
+            np.amax(operational_saving),
+            np.amax(total_saving),
         )
 
         ax.plot(
-            dateline, saving_op, label="Operational", color=CENTER_COLORS_BLUE[3], lw=2
+            dateline,
+            operational_saving,
+            label="Operational",
+            color=CENTER_COLORS_BLUE[3],
+            lw=2,
         )
         ax.plot(
-            dateline, saving_tech, label="Technology", color=CENTER_COLORS_RED[3], lw=2
+            dateline,
+            technology_saving,
+            label="Technology",
+            color=CENTER_COLORS_RED[3],
+            lw=2,
         )
-        ax.plot(dateline, saving, label="Total", color=CENTER_COLORS_GREEN[3], lw=2)
+        ax.plot(
+            dateline, total_saving, label="Total", color=CENTER_COLORS_GREEN[3], lw=2
+        )
 
-        # add zero-line in case of negative savings from increased speed
+        # zero line, as an increased speed gives a negative saving
         ax.plot(dateline, np.zeros_like(dateline, dtype=np.float64), color="k", lw=2)
 
         ax.set_ylabel("Energy Saving [%]")
@@ -64,6 +91,6 @@ def plot_fleet_energy_saving(manager, directory):
     trim_axes(axes, len(fleets))
 
     for ax in axes:
-        ax.set_ylim((min_saving - 2.0, max_saving + 2.0))
+        ax.set_ylim(min_saving - 2.0, max_saving + 2.0)
 
     save_figure(fig, directory, "fleet_energy_saving.png")

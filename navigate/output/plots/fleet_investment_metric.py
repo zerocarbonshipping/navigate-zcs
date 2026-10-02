@@ -1,7 +1,11 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""Plot the freight rates of each vessel, one figure per fleet."""
+
 from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import numpy as np
 
@@ -10,14 +14,18 @@ from navigate.output.plots._figure import (
     save_figure,
     subplot_grid,
 )
-from navigate.output.plots._illu_util import trim_axes
 from navigate.output.plots._labels import FUEL_TYPE_COLOR
+from navigate.output.plots._layout import trim_axes
 from navigate.output.plots._style import LEGEND_OPTIONS
 
+if TYPE_CHECKING:
+    from navigate.output.plot_data import PlotData
 
-def plot_fleet_investment_metric(manager, directory):
-    dateline = manager.dateline
-    fleets = manager.nodes.fleets
+
+def plot_fleet_investment_metric(plot_data: PlotData, directory: str) -> None:
+    """Plot the investment and instantaneous freight rates of each vessel per fleet."""
+    dateline = plot_data.dateline
+    fleets = plot_data.nodes.fleets
 
     unit = "USD/k cargo-mile"
     divisor = 1.0 / 1e3
@@ -63,7 +71,7 @@ def plot_fleet_investment_metric(manager, directory):
             format_axes(ax, len(vessels), dateline, legend, y_lim=None)
 
         for ax in axes:
-            ax.set_ylim([0.0, None])
+            ax.set_ylim(0.0, None)
 
         trim_axes(axes, len(vessels))
 
