@@ -57,7 +57,7 @@ A guided path from installing Navigate and running your first single-vessel
 simulation through to modular, multi-scenario studies.
 :::
 
-:::{grid-item-card} Workshop
+:::{grid-item-card} Use Navigate
 :link: workshop/index
 :link-type: doc
 

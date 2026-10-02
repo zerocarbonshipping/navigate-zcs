@@ -4,7 +4,7 @@
 # The strong-regulation basecase on the workshop's coarse timeline. Identical to
 # simulations/scenarios/basecase_strong_regulation/ except for the time step, so its
 # numbers are NOT comparable with that deck - see
-# docs/workshop/04-run-a-global-case.ipynb.
+# docs/workshop/03-run-a-global-case.ipynb.
 
 DEFINE {
 	Load DefaultModelDefinition

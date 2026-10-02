@@ -6,7 +6,7 @@
 Everything here comes from Navigate's own palette
 (`navigate/illustrations/plots/_colors.py` and `_labels.py`), so the figures the
 notebooks draw match the plots the model itself generates -- including the PNGs
-that notebooks 1 and 5 display straight from a run's output folder.
+that notebook 4 displays straight from a run's output folder.
 
 Why the two methanols are not the same colour
 ---------------------------------------------
@@ -216,7 +216,7 @@ def cost_colour(part):
 SCEN_COLOUR = {"basecase_no_regulation": to_hex(CENTER_COLORS_GREY[4]),
                "basecase_mid_regulation": to_hex(CENTER_COLORS_BLUE[5]),
                "basecase_strong_regulation": to_hex(CENTER_COLORS_BLUE[6]),
-               # notebooks 2 and 4: the deck as shipped against the reader's version of it
+               # notebooks 1 and 3: the deck as shipped against the reader's version of it
                "reference": to_hex(CENTER_COLORS_GREY[4]),
                "your scenario": to_hex(CENTER_COLORS_BLUE[6])}
 
