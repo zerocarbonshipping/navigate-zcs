@@ -439,8 +439,6 @@ def _reduce_dict(property_: dict, reduce: ReportReduceID) -> dict | np.ndarray:
         if reduce is ReportReduceID.BOTH:
             return sum_dict_results(property_)
 
-        return property_
-
     return property_
 
 

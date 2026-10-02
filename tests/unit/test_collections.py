@@ -75,7 +75,7 @@ class TestSumByFirstKey:
             ("b", "x"): np.array([100.0, 200.0]),
         }
 
-    def test_collapse_over_secondary_keys(self, result):
+    def test_sums_over_second_key(self, result):
         collapsed = sum_by_first_key(result)
         assert collapsed.keys() == {"a", "b"}
         np.testing.assert_array_equal(collapsed["a"], [11.0, 22.0])
@@ -93,7 +93,7 @@ class TestSumBySecondKey:
             ("b", "x"): np.array([100.0, 200.0]),
         }
 
-    def test_collapse_over_primary_keys(self, result):
+    def test_sums_over_first_key(self, result):
         collapsed = sum_by_second_key(result)
         assert collapsed.keys() == {"x", "y"}
         np.testing.assert_array_equal(collapsed["x"], [101.0, 202.0])
