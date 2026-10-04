@@ -300,7 +300,7 @@
     "Build it under simulations/user/[YOUR FOLDER NAME]/.\n",
     "\n",
     "THE CASE\n",
-    "Two fleets in the same market, so I can see how much the owner's choices matter\n",
+    "Two fleets in the same market, so I can see how much the owners' choices matter\n",
     "rather than the trade.\n",
     "\n",
     "- Trade: [ORIGIN] to [DESTINATION], one route, both fleets sailing it\n",
@@ -446,7 +446,7 @@
     "from the top.\n",
     "\n",
     "1. [Run a simple case](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/01-run-a-simple-case.ipynb)\n",
-    "2. [Understand Navigate with an example](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/02-understand-navigate.ipynb)\n",
+    "2. [Understand Navigate](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/02-understand-navigate.ipynb)\n",
     "3. [Run a global case](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/03-run-a-global-case.ipynb)\n",
     "4. [Run our reference scenarios](https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/04-run-our-reference-scenarios.ipynb)\n",
     "5. **Build your own case** (this session)"
