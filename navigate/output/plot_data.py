@@ -121,13 +121,19 @@ class PlotData:
         Raises
         ------
         PlotDataError
-            If the unpickled file does not hold a PlotData instance.
+            If the file is not a valid pickle, or the unpickled object does
+            not hold a PlotData instance.
         """
         if os.path.isdir(path):
             path = os.path.join(path, "plot_data.pkl")
 
-        with gzip.open(path, "rb") as f:
-            plot_data = pickle.load(f)
+        try:
+            with gzip.open(path, "rb") as f:
+                plot_data = pickle.load(f)
+        except (pickle.UnpicklingError, EOFError) as err:
+            raise PlotDataError(
+                f"'{path}' is not a pickle of the plot data of a Navigate run."
+            ) from err
 
         if not isinstance(plot_data, cls):
             raise PlotDataError(

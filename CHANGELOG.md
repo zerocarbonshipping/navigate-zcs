@@ -334,8 +334,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   the fuel types a deck declares or uses, in the standard order, instead of
   a fixed list with empty panels or legend rows for the types it does not
   (#393).
-- `--replot` on a file that is not plot data from a Navigate run now reports
-  an error instead of a traceback (#414).
+- `--replot` on a file that is not a pickle, or not the plot data of a
+  Navigate run, now reports an error instead of a traceback (#414).
 
 ## [1.0.0] - 2026-07-16
 
