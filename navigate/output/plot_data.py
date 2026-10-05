@@ -111,7 +111,7 @@ class PlotData:
 
         Parameters
         ----------
-        path : str
+        path
             Path to the pickle file or to a directory containing plot_data.pkl.
 
         Returns
@@ -121,10 +121,12 @@ class PlotData:
 
         Raises
         ------
+        OSError
+            The file cannot be opened or is not gzip-compressed.
         PlotDataError
-            If the file is not a valid pickle, is unreadable by this
-            Navigate version, or the unpickled object does not hold a
-            PlotData instance.
+            The gzip stream is corrupt, its content is not a pickle, it
+            cannot be unpickled by this Navigate version, or it does not
+            hold a PlotData instance.
         """
         if os.path.isdir(path):
             path = os.path.join(path, "plot_data.pkl")

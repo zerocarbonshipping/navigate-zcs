@@ -59,9 +59,9 @@ class PlotDataError(NavigateError, ValueError):
     """
     Raised for a plot-data problem with --replot.
 
-    Covers a file that is not a valid pickle, is unreadable by this
-    Navigate version, is a pickle that does not hold a Navigate run's plot
-    data, or holds plot data with no plot configuration to render.
+    Covers invalid or unreadable data inside a gzip-compressed plot-data
+    file, an unpickled object that is not plot data, or plot data with no
+    plot configuration to render.
 
     Inherits from both NavigateError (so the top-level CLI handler catches it)
     and ValueError (so existing callers of replot() that handle ValueError
