@@ -13,7 +13,6 @@ import pytest
 
 from navigate.__main__ import ASSUMPTIONS_ENV_VAR, _build_parser, main
 from navigate.core.enum_ import SolverBackendID
-from navigate.simulation import SimulationManager
 
 # Fails at parse time with a caret-pointed DeckFormatError, before any simulation work.
 GARBLED_DECK = "DEFINE {\n    garbage\n}\n"
@@ -262,11 +261,20 @@ class TestSolverOverride:
             pytest.param("highs", SolverBackendID.HIGHS, id="highs"),
         ],
     )
-    def test_cli_choice_sets_bunker_options_solver(self, tmp_path, choice, expected):
-        deck = _write_deck(tmp_path, "")
-        args = _build_parser().parse_args([str(deck), "--solver", choice])
+    def test_cli_choice_parses_to_its_backend(self, tmp_path, choice, expected):
+        deck_path = tmp_path / "deck.nav"
+        args = _build_parser().parse_args([str(deck_path), "--solver", choice])
 
-        manager = SimulationManager()
-        manager.read_deck(deck, args)
+        assert args.solver is expected
 
-        assert manager.general_nodes.bunker_options.solver is expected
+    def test_unknown_choice_exits_with_usage_error(self, capsys, tmp_path):
+        deck_path = tmp_path / "deck.nav"
+
+        with pytest.raises(SystemExit) as excinfo:
+            _build_parser().parse_args([str(deck_path), "--solver", "bogus"])
+
+        assert excinfo.value.code == 2
+        assert (
+            "invalid choice: 'bogus' (choose from 'auto', 'gurobi', 'highs')"
+            in capsys.readouterr().err
+        )

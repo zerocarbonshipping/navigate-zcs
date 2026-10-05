@@ -25,7 +25,6 @@ from navigate.simulation import SimulationManager
 
 ASSUMPTIONS_ENV_VAR = "ASSUMPTIONS_DATA_DIR"
 
-# the single place mapping each --solver CLI choice to its SolverBackendID member
 _SOLVER_BACKENDS: dict[str, SolverBackendID] = {
     "auto": SolverBackendID.AUTOMATIC,
     "gurobi": SolverBackendID.GUROBI,
