@@ -51,6 +51,18 @@ def test_load_rejects_gzip_file_that_is_not_a_pickle(tmp_path):
     assert str(path) in str(excinfo.value)
 
 
+def test_load_rejects_pickle_with_unsupported_protocol(tmp_path):
+    path = tmp_path / "plot_data.pkl"
+    # Protocol byte 0xff: no pickle protocol this high exists.
+    with gzip.open(path, "wb") as f:
+        f.write(b"\x80\xff")
+
+    with pytest.raises(PlotDataError) as excinfo:
+        PlotData.load(str(path))
+
+    assert str(path) in str(excinfo.value)
+
+
 def test_load_rejects_truncated_pickle(tmp_path):
     path = tmp_path / "plot_data.pkl"
     data = pickle.dumps({"a": 1, "b": [1, 2, 3] * 1000})

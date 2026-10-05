@@ -137,6 +137,11 @@ class PlotData:
             AttributeError,
             ImportError,
             IndexError,
+            gzip.BadGzipFile,
+            MemoryError,
+            OverflowError,
+            TypeError,
+            ValueError,
         ) as err:
             raise PlotDataError(
                 f"'{path}' cannot be read as the plot data of this Navigate "
