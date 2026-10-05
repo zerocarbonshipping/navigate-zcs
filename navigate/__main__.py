@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""The navigate command line: run a simulation deck or render saved plots again."""
+
 from __future__ import annotations
 
 import argparse
@@ -126,6 +128,15 @@ def _build_parser() -> argparse.ArgumentParser:
 
 
 def main() -> int:
+    """
+    Run the command line on the arguments the process was started with.
+
+    Returns
+    -------
+    int
+        The exit code: 0 on success, 1 on a reported error, 130 on interrupt.
+        A usage error exits with 2 through parser.error instead.
+    """
     parser = _build_parser()
     args = parser.parse_args()
     _validate_args(parser, args)
@@ -150,9 +161,9 @@ def _validate_args(parser: argparse.ArgumentParser, args: argparse.Namespace) ->
 
     Parameters
     ----------
-    parser : argparse.ArgumentParser
+    parser
         Parser used to report usage-style errors.
-    args : argparse.Namespace
+    args
         Parsed CLI arguments.
     """
     if args.data_dir is not None and not args.data_dir.is_dir():
@@ -186,13 +197,13 @@ def _validate_file(
 
     Parameters
     ----------
-    parser : argparse.ArgumentParser
+    parser
         Parser used to report usage-style errors.
-    path : Path
+    path
         Path to validate.
-    kind : str
+    kind
         Human-readable description of the file used in error messages.
-    suffix : str
+    suffix
         Required file extension, including the leading dot.
     """
     if not path.exists():
@@ -235,11 +246,11 @@ def _handle_error(exc: Exception, debug: bool, log_to_file: bool) -> None:
 
     Parameters
     ----------
-    exc : Exception
+    exc
         The error that terminated the run.
-    debug : bool
+    debug
         Whether the full traceback should be printed to the console.
-    log_to_file : bool
+    log_to_file
         Whether this invocation set up the file logger (--replot never does).
         Guarded further by hasHandlers() in case setup_logger itself failed
         before installing handlers.
