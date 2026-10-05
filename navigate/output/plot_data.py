@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-The plot data a run saves for its plots, written by SimulationManager.
+The plot data a run hands to the plot renderer, built by SimulationManager.
 
 PlotData is what the plot functions in output/plots/ read.
 """

@@ -199,11 +199,12 @@ Information is provided in four levels, namely:
 
 `DEBUG` is the most verbose level and adds diagnostic detail that is mainly useful when investigating a problem. Running with `-l DEBUG` also prints the full Python traceback to the console if the run fails, instead of only the error message.
 
-`INFO` stands for information and refers to general information such as which solver backend is used or which files are exported:
+`INFO` stands for information and refers to general information such as which solver backend is used or that a step such as plot rendering finished:
 
 ```
 14:29:15 [INFO] navigate.bunker.solver: Gurobi not available -- using HiGHS solver backend.
 14:29:16 [INFO] navigate.bunker.bunker_algorithm: Fair-share bunkering convergence status: Successful.
+14:29:47 [INFO] navigate.output.plots.render: Plots generated successfully.
 ```
 
 `WARNING` refers to information that has an impact on results. This could be if the code makes automated adjustments to the simulation deck or things that will impact the results in different ways:
