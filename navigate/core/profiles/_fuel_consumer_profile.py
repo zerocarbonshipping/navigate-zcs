@@ -430,7 +430,7 @@ class _FuelConsumerProfile(_FuelEmissionProfile, _FuelTypeLookup, abc.ABC):
         return self._sum_values(self.get_consumed_energy()) + self._shore_power_energy
 
     def get_converter_energy(self) -> dict[tuple[FuelTypeID, str], FloatArray]:
-        """Fuel energy burnt in the converters, keyed by (vessel fuel type, fuel)."""
+        """Energy burnt in converters, GJ/year, keyed by (vessel fuel type, fuel)."""
         return {
             (fuel_type, fuel_name): energy
             for fuel_type, mass in self._converter_mass.items()

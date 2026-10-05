@@ -335,8 +335,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   a fixed list with empty panels or legend rows for the types it does not
   (#393).
 - `ConverterEnergy` report requests with a `FIRST`, `SECOND` or `BOTH`
-  reduction now reduce over the vessel fuel type and fuel instead of failing
-  or being ignored (#405).
+  reduction now reduce over the (vessel fuel type, fuel) key instead of
+  failing or being ignored (#405).
 
 ## [1.0.0] - 2026-07-16
 
