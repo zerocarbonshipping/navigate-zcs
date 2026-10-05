@@ -223,9 +223,7 @@ def _run(path: Path, args: argparse.Namespace) -> SimulationManager:
     manager.read_deck(path, args)
     manager.run()
     logger = logging.getLogger(__name__)
-    logger.info(
-        "Simulation completed successfully in %s seconds.", manager.get_elapsed_time()
-    )
+    logger.info("Simulation completed successfully, %s.", manager.get_elapsed_time())
     logger.info(build_log_summary())
 
     if not args.profile:
