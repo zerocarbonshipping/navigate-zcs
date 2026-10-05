@@ -57,7 +57,11 @@ class ConvergenceError(NavigateError):
 
 class PlotDataError(NavigateError, ValueError):
     """
-    Raised if --replot cannot find any plot configuration to render.
+    Raised for a plot-data problem with --replot.
+
+    Covers invalid or unreadable data inside a gzip-compressed plot-data
+    file, an unpickled object that is not plot data, or plot data with no
+    plot configuration to render.
 
     Inherits from both NavigateError (so the top-level CLI handler catches it)
     and ValueError (so existing callers of replot() that handle ValueError
