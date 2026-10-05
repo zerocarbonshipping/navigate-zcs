@@ -42,17 +42,6 @@ class _Table1D(_Calculator):
         self._fill_values: tuple[NumberInput, NumberInput] | None = None
         self._is_convex: bool = False  # set with the table
 
-    def __getstate__(self) -> dict[str, object]:
-        state = self.__dict__.copy()
-        state.pop("_table", None)  # interp1d is not picklable
-        return state
-
-    def __setstate__(self, state: dict[str, object]) -> None:
-        self.__dict__.update(state)
-        # the arrays are set together, and only once the table is
-        if "x" in state:
-            self._set_table(self.x, self.y)
-
     # external methods (DSL attributes) ------------------------------------------------
     def set_interpolate(self, interpolate: str) -> None:
         """

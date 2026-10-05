@@ -55,20 +55,6 @@ class ConvergenceError(NavigateError):
     """Raised if an iterative algorithm fails to converge."""
 
 
-class PlotDataError(NavigateError, ValueError):
-    """
-    Raised for a plot-data problem with --replot.
-
-    Covers invalid or unreadable data inside a gzip-compressed plot-data
-    file, an unpickled object that is not plot data, or plot data with no
-    plot configuration to render.
-
-    Inherits from both NavigateError (so the top-level CLI handler catches it)
-    and ValueError (so existing callers of replot() that handle ValueError
-    keep working).
-    """
-
-
 def no_value_assigned_error(node: Node | _GeneralNode, attribute_name: str) -> NoReturn:
     """
     Raise a ValueError naming the node and its unassigned attribute.

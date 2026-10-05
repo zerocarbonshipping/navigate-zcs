@@ -43,17 +43,6 @@ class _Table2D(_Calculator):
         self._table: Callable[[FloatLike, FloatLike], FloatLike]
         self._is_convex: bool = False  # set with the table
 
-    def __getstate__(self) -> dict[str, object]:
-        state = self.__dict__.copy()
-        state.pop("_table", None)  # local closure is not picklable
-        return state
-
-    def __setstate__(self, state: dict[str, object]) -> None:
-        self.__dict__.update(state)
-        # the arrays are set together, and only once the table is
-        if "x" in state:
-            self._set_table(self.x, self.y, self._z)
-
     # external methods (DSL attributes) ------------------------------------------------
     def set_interpolate(self, interpolate: str) -> None:
         """

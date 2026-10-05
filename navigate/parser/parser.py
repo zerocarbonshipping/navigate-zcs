@@ -4,8 +4,7 @@
 """
 The Parser: reads a deck and its include files into nodes and a timeline of events.
 
-SimulationManager builds one to read the deck and to step through the timeline;
-replot builds one to read Plot nodes from an include file.
+SimulationManager builds one to read the deck and to step through the timeline.
 """
 
 from __future__ import annotations
@@ -103,7 +102,6 @@ if TYPE_CHECKING:
     from navigate.core.general_nodes.model_definition import ModelDefinition
     from navigate.core.nodes.curve import Curve
     from navigate.core.nodes.forecast import Forecast
-    from navigate.core.nodes.plot import Plot
     from navigate.core.nodes.surface import Surface
     from navigate.core.nodes.timetable import Timetable
     from navigate.core.types_ import Calculator
@@ -273,40 +271,6 @@ class Parser:
         self._reject_events_changing_pinned_calculators()
 
         self._current_section = SimulationSectionID.EVENTS
-
-    @classmethod
-    def parse_plot_nodes(
-        cls, path: Path, data_dir: Path | None = None
-    ) -> dict[str, Plot]:
-        """
-        Parse Plot nodes from a standalone include (.inc) file.
-
-        Used by ``--replot`` to plot from Plot node definitions supplied in an
-        include file instead of those captured in the plot data.
-
-        Parameters
-        ----------
-        path
-            Path to the .inc file containing one or more Plot node declarations.
-        data_dir
-            Assumptions data folder (only required if the include imports nodes).
-
-        Returns
-        -------
-        dict[str, Plot]
-            Parsed Plot nodes keyed by name.
-        """
-        parser = cls()
-        parser._define_internal_directories(data_dir=data_dir)
-        parser._current_section = SimulationSectionID.DEFINE
-        parser._read_include_file(str(path))
-
-        # no dependency pass runs here, so the queued add_plot commands are
-        # drained directly
-        for node in parser.nodes.plots.values():
-            parser._execute_node_commands(node)
-
-        return parser.nodes.plots
 
     def _process_deck_block(self, block: DeckBlock) -> None:
         """Process a single Define or Events block from the deck AST."""
