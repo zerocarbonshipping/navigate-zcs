@@ -10,7 +10,7 @@ import os
 import pickle
 import timeit
 import zlib
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from typing import TYPE_CHECKING
 
 from navigate.exceptions import PlotDataError
@@ -125,8 +125,9 @@ class PlotData:
             The file cannot be opened or is not gzip-compressed.
         PlotDataError
             The gzip stream is corrupt, its content is not a pickle, it
-            cannot be unpickled by this Navigate version, or it does not
-            hold a PlotData instance.
+            cannot be unpickled by this Navigate version, it does not hold
+            a PlotData instance, or it holds a PlotData instance missing
+            fields that this Navigate version expects.
         """
         if os.path.isdir(path):
             path = os.path.join(path, "plot_data.pkl")
@@ -154,6 +155,15 @@ class PlotData:
             raise PlotDataError(
                 f"'{path}' holds a {type(plot_data).__name__}, not the plot data of "
                 "a Navigate run."
+            )
+
+        missing = [
+            field.name for field in fields(cls) if field.name not in plot_data.__dict__
+        ]
+        if missing:
+            raise PlotDataError(
+                f"'{path}' was written by a Navigate version whose plot data "
+                f"differs from this one: missing {', '.join(missing)}."
             )
 
         logger.info("Loaded plot data from '%s'", path)

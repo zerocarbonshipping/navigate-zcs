@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import gzip
 import pickle
+import types
 
 import pytest
 
@@ -53,6 +54,24 @@ def _truncated_gzip(path):
     path.write_bytes(full[: len(full) // 2])
 
 
+def _missing_field(path):
+    # built the way an older Navigate version's PlotData would unpickle: a
+    # __dict__ lacking a field ("plot_configs") this version's dataclass
+    # declares. "nodes" is a stand-in object so __getstate__, which strips
+    # node dicts before pickling, has something to work with.
+    plot_data = object.__new__(PlotData)
+    plot_data.__dict__.update(
+        dateline=None,
+        timeline=None,
+        profile=None,
+        nodes=types.SimpleNamespace(),
+        general_nodes=None,
+        deck_directory="",
+    )
+    with gzip.open(path, "wb") as f:
+        pickle.dump(plot_data, f)
+
+
 def _corrupt_deflate(path):
     with gzip.open(path, "wb") as f:
         pickle.dump({"a": 1, "b": [1, 2, 3] * 1000}, f)
@@ -76,6 +95,7 @@ def _corrupt_deflate(path):
         pytest.param(_missing_module_pickle, id="missing_module"),
         pytest.param(_unsupported_protocol_pickle, id="unsupported_protocol"),
         pytest.param(_corrupt_deflate, id="corrupt_deflate"),
+        pytest.param(_missing_field, id="missing_field"),
     ],
 )
 def test_load_rejects_malformed_plot_data(tmp_path, build):
