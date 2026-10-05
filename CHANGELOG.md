@@ -106,6 +106,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - A deck whose node reference is never resolved, such as a node passed where
   a name is expected, now stops at the referencing line instead of running
   with the reference ignored (#148).
+- Bunkering at a step draws on the fuel supply planned up to the previous
+  step: a plant whose `LeadTime` is shorter than the time step, or whose
+  `Lifetime` varies within it, now reaches ports one step later than before.
 
 ### Removed
 - `BunkerLogistics`: write `LiquidMarket` on `Fuel`, and `set_fuel_transport`
@@ -347,6 +350,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - `ConverterEnergy` report requests with a `FIRST`, `SECOND` or `BOTH`
   reduction now reduce over the (vessel fuel type, fuel) key instead of
   failing or being ignored (#405).
+- Expected bunkering now sees a port or producer-export event from the step
+  it is dated, instead of acting on it only from the following step.
 
 ## [1.0.0] - 2026-07-16
 
