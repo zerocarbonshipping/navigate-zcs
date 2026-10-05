@@ -1,6 +1,13 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
+"""
+The plot data a run saves for its plots, written by SimulationManager.
+
+PlotData is what the plot functions in output/plots/ read, both after a run and
+when --replot renders the plots again from the saved file.
+"""
+
 from __future__ import annotations
 
 import copy
@@ -11,18 +18,27 @@ import pickle
 import timeit
 import zlib
 from dataclasses import dataclass, fields
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypedDict
 
 from navigate.exceptions import PlotDataError
 
 if TYPE_CHECKING:
     from navigate.core.node_registry import GeneralNodes, Nodes
     from navigate.core.profiles.manager_profile import ManagerProfile
+    from navigate.simulation import SimulationManager
     from navigate.util.types_ import DateArray, FloatArray
 
 logger = logging.getLogger(__name__)
 
 _STRIPPED_NODE_DICTS = ("plots", "reports")
+
+
+class PlotConfig(TypedDict):
+    """The settings of one Plot node, as the plot data stores them for --replot."""
+
+    name: str
+    directory: str | None
+    selected_plots: set[str]
 
 
 @dataclass(eq=False, repr=False)
@@ -35,16 +51,16 @@ class PlotData:
     nodes: Nodes
     general_nodes: GeneralNodes
     deck_directory: str
-    plot_configs: list[dict]
+    plot_configs: list[PlotConfig]
 
     @classmethod
-    def from_manager(cls, manager) -> PlotData:
+    def from_manager(cls, manager: SimulationManager) -> PlotData:
         """
         Create a PlotData instance from a completed SimulationManager.
 
         Parameters
         ----------
-        manager : SimulationManager
+        manager
             The manager after simulation has completed.
 
         Returns
@@ -52,7 +68,7 @@ class PlotData:
         PlotData
             A new PlotData instance with references to manager state.
         """
-        plot_configs = [
+        plot_configs: list[PlotConfig] = [
             {
                 "name": name,
                 "directory": node.directory,
@@ -70,7 +86,7 @@ class PlotData:
             plot_configs=plot_configs,
         )
 
-    def __getstate__(self) -> dict:
+    def __getstate__(self) -> dict[str, object]:
         """Strip node dicts not needed for plotting before pickling."""
         state = self.__dict__.copy()
         nodes = copy.copy(state["nodes"])
@@ -79,20 +95,10 @@ class PlotData:
         state["nodes"] = nodes
         return state
 
-    def save(self, directory: str | None = None) -> None:
-        """
-        Serialize PlotData to a gzip-compressed pickle file.
-
-        Parameters
-        ----------
-        directory : str, optional
-            Directory to save to. Defaults to the deck directory.
-        """
-        if directory is None:
-            directory = self.deck_directory
-
-        os.makedirs(directory, exist_ok=True)
-        path = os.path.join(directory, "plot_data.pkl")
+    def save(self) -> None:
+        """Serialize PlotData to a gzip-compressed pickle file in the deck directory."""
+        os.makedirs(self.deck_directory, exist_ok=True)
+        path = os.path.join(self.deck_directory, "plot_data.pkl")
 
         start = timeit.default_timer()
         with gzip.open(path, "wb") as f:
