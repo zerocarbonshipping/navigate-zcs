@@ -14,6 +14,7 @@ Tests verify the correctness of:
   - Convexity detection on piecewise-linear functions
   - _Table1D interpolation with transforms, reverse lookup
   - _Table2D bilinear interpolation, reverse lookup, convexity
+  - _Table1D/_Table2D deep copies stay independent of a rebuilt source
   - Variable scalar transform chain
   - Deck expressions on the transform and fill-value attributes
   - Curve and Surface settings apply wherever the definition writes them
@@ -21,6 +22,7 @@ Tests verify the correctness of:
 
 from __future__ import annotations
 
+import copy
 import logging
 
 import numpy as np
@@ -506,7 +508,55 @@ class TestTable2DReverseLookup:
 
 
 # ---------------------------------------------------------------------------
-# 8. Variable — transform chain
+# 8. _Table1D / _Table2D — deep copy independence
+# ---------------------------------------------------------------------------
+
+
+class TestTableDeepcopyIndependence:
+    """
+    A deep copy of a built table does not share state with its source.
+
+    The DSL's Copy command deep-copies nodes, and may copy one whose table is
+    already built: a default file pulled during the reference walk can copy a
+    node built on an earlier pass. The copy's lookups must read its own
+    arrays and its own fill-value expression, never the source's.
+    """
+
+    def test_table1d_matches_the_source_and_survives_a_rebuild(self):
+        t = _make_table1d()
+        clone = copy.deepcopy(t)
+
+        for x in (0.5, 1.5, 2.5):
+            assert clone.calculate(x) == pytest.approx(t.calculate(x))
+
+        t._set_table(TABLE_X, TABLE_Y * 10.0)
+        assert clone.calculate(2.0) == pytest.approx(4.0)
+
+    def test_table2d_matches_the_source_and_survives_a_rebuild(self):
+        t = _make_table2d()
+        clone = copy.deepcopy(t)
+
+        for x, y in ((0.5, 5.0), (1.5, 15.0)):
+            assert clone.calculate(x, y) == pytest.approx(t.calculate(x, y))
+
+        t._set_table(T2D_X, T2D_Y, T2D_Z * 10.0)
+        assert clone.calculate(1.0, 10.0) == pytest.approx(11.0)
+
+    def test_table2d_outside_value_matches_and_survives_a_rebuild(self):
+        t = _Table2D()
+        t.set_extrapolate("FLAT")
+        t.set_outside(9.0)
+        t._set_table(T2D_X, T2D_Y, T2D_Z)
+
+        clone = copy.deepcopy(t)
+        assert clone.calculate(100.0, 100.0) == pytest.approx(9.0)
+
+        t._set_table(T2D_X, T2D_Y, T2D_Z * 10.0)
+        assert clone.calculate(100.0, 100.0) == pytest.approx(9.0)
+
+
+# ---------------------------------------------------------------------------
+# 9. Variable — transform chain
 # ---------------------------------------------------------------------------
 
 
@@ -565,7 +615,7 @@ class TestVariable:
 
 
 # ---------------------------------------------------------------------------
-# 9. Deck expressions on the transform and fill-value attributes
+# 10. Deck expressions on the transform and fill-value attributes
 # ---------------------------------------------------------------------------
 
 
@@ -664,7 +714,7 @@ class TestFillValueExpressions:
 
 
 # ---------------------------------------------------------------------------
-# 10. Curve and Surface — settings read when the table is built
+# 11. Curve and Surface — settings read when the table is built
 # ---------------------------------------------------------------------------
 
 # y = 10 * x on 0 <= x <= 2
@@ -725,7 +775,7 @@ class TestTableSettingsOrder:
 
 
 # ---------------------------------------------------------------------------
-# 11. _Table2D — rejects fewer than two rows or columns
+# 12. _Table2D — rejects fewer than two rows or columns
 # ---------------------------------------------------------------------------
 
 _MIN_SIZE_HEADER_ONLY_MATCH = (
