@@ -696,9 +696,11 @@ def _average_wtt_over_ports(
     Where no port has supply above tolerance the result is 0. This is harmless:
     with no port able to supply the fuel, no vessel can bunker it at that time.
 
-    Relies on the import calculation having transferred bunker supply and WTT
-    to the port expectations; the two are written together there, so the
-    weights and the averaged values always stem from the same snapshot.
+    Relies on this step's fuel import having already run and transferred bunker
+    supply and WTT to the port expectations; the two are written together
+    there, so the weights and the averaged values always stem from the same
+    snapshot, producer state planned up to the previous step with this step's
+    events applied.
 
     Parameters
     ----------

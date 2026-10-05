@@ -207,6 +207,15 @@ class SimulationManager:
                 timeit.default_timer() - start_time_overhead, self._idx
             )
 
+        # one import and one coefficient pass per step, both from producer state
+        # planned up to the previous step plus this step's events: expected and
+        # existing bunkering and the coefficients then all read the same port
+        # snapshot. producer evolution later in this step only changes import
+        # output at a later index, which the next step's import picks up. the
+        # coefficient pass needs usable_fuels, set above at step 0.
+        self._calculate_fuel_import()
+        self._calculate_policy_emission_coefficients()
+
         # technology costs are excluded here: they enter the cargo charter
         # metrics below as the fleet-average carried technology charge
         self._calculate_vessel_charter_properties()
@@ -222,7 +231,6 @@ class SimulationManager:
             self._update_fleet_evolution_expectation()
 
             self._calculate_fair_share_fuel_supply(BunkerScopeID.EXPECTED)
-            self._calculate_policy_emission_coefficients()
 
             # the bunker LP takes energy demands as given, so demands must fit
             # the installed converter power for it to be feasible
@@ -243,12 +251,7 @@ class SimulationManager:
             self._perform_producer_evolution()
 
         self._missing_technology_approximation()
-        self._calculate_fuel_import()
         self._calculate_fair_share_fuel_supply(BunkerScopeID.EXISTING)
-
-        # recalculate the policy emission coefficients: this pass picks up this
-        # step's fuel import and fleet evolution
-        self._calculate_policy_emission_coefficients()
 
         # re-verify against the installed converter power: the energy demands
         # have been rewritten since the expected bunkering pass
