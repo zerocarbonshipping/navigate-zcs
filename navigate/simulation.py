@@ -113,9 +113,9 @@ class SimulationManager:
         self.parser.read_deck(path, data_dir=args.data_dir)
         self.general_nodes = self.parser.general_nodes
 
-        # apply CLI solver override (takes precedence over deck setting)
+        # the CLI solver override takes precedence over the deck setting
         if getattr(args, "solver", None) is not None:
-            self.general_nodes.bunker_options.set_solver(args.solver.upper())
+            self.general_nodes.bunker_options.solver = args.solver
 
     def run(self):
         """Run the simulation as defined in the deck, handling its high-level flow."""

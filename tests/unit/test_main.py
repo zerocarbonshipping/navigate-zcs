@@ -12,7 +12,8 @@ import sys
 
 import pytest
 
-from navigate.__main__ import ASSUMPTIONS_ENV_VAR, _run, main
+from navigate.__main__ import ASSUMPTIONS_ENV_VAR, _build_parser, _run, main
+from navigate.core.enum_ import SolverBackendID
 
 # Fails at parse time with a caret-pointed DeckFormatError, before any simulation work.
 GARBLED_DECK = "DEFINE {\n    garbage\n}\n"
@@ -280,3 +281,33 @@ class TestWorkingDirectory:
         assert "not found" not in captured.err
         assert "EVENTS" in captured.err
         assert os.getcwd() == cwd
+
+
+class TestSolverOverride:
+    # --solver's help text names 'auto' as trying Gurobi then falling back to
+    # HiGHS: the SolverBackendID member documented for that behavior is AUTOMATIC.
+    @pytest.mark.parametrize(
+        ("choice", "expected"),
+        [
+            pytest.param("auto", SolverBackendID.AUTOMATIC, id="auto"),
+            pytest.param("gurobi", SolverBackendID.GUROBI, id="gurobi"),
+            pytest.param("highs", SolverBackendID.HIGHS, id="highs"),
+        ],
+    )
+    def test_cli_choice_parses_to_its_backend(self, tmp_path, choice, expected):
+        deck_path = tmp_path / "deck.nav"
+        args = _build_parser().parse_args([str(deck_path), "--solver", choice])
+
+        assert args.solver is expected
+
+    def test_unknown_choice_exits_with_usage_error(self, capsys, tmp_path):
+        deck_path = tmp_path / "deck.nav"
+
+        with pytest.raises(SystemExit) as excinfo:
+            _build_parser().parse_args([str(deck_path), "--solver", "bogus"])
+
+        assert excinfo.value.code == 2
+        assert (
+            "invalid choice: 'bogus' (choose from 'auto', 'gurobi', 'highs')"
+            in capsys.readouterr().err
+        )

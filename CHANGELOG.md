@@ -141,6 +141,7 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `_cost` plots, and the offset lines of the emission and compliance plots.
 
 ### Fixed
+- `--solver auto` no longer fails with a traceback (#402).
 - The manual no longer says `plot_data.pkl` needs a `Plot` node; it is
   written after every run (#406).
 - Reference-manual corrections:
