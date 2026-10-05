@@ -12,6 +12,7 @@ import sys
 import traceback
 from pathlib import Path
 
+from navigate.core.enum_ import SolverBackendID
 from navigate.exceptions import NavigateError
 from navigate.logging_ import (
     LOG_LEVELS,
@@ -23,6 +24,40 @@ from navigate.output.replot import replot
 from navigate.simulation import SimulationManager
 
 ASSUMPTIONS_ENV_VAR = "ASSUMPTIONS_DATA_DIR"
+
+# the single place mapping each --solver CLI choice to its SolverBackendID member
+_SOLVER_BACKENDS: dict[str, SolverBackendID] = {
+    "auto": SolverBackendID.AUTOMATIC,
+    "gurobi": SolverBackendID.GUROBI,
+    "highs": SolverBackendID.HIGHS,
+}
+
+
+def _solver_backend(value: str) -> SolverBackendID:
+    """
+    Convert a '--solver' CLI argument to its SolverBackendID member.
+
+    Used as the argument's argparse 'type=', so 'args.solver' already holds the
+    member (or None, when '--solver' is not passed) by the time it reaches
+    SimulationManager.read_deck.
+
+    Parameters
+    ----------
+    value
+        Raw '--solver' argument from the command line.
+
+    Returns
+    -------
+    SolverBackendID
+        The member the CLI choice names.
+    """
+    try:
+        return _SOLVER_BACKENDS[value]
+    except KeyError:
+        choices = ", ".join(repr(choice) for choice in _SOLVER_BACKENDS)
+        raise argparse.ArgumentTypeError(
+            f"invalid choice: {value!r} (choose from {choices})"
+        ) from None
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -61,7 +96,8 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--solver",
         default=None,
-        choices=["auto", "gurobi", "highs"],
+        type=_solver_backend,
+        metavar="{" + ",".join(_SOLVER_BACKENDS) + "}",
         help="Solver backend: 'auto' tries Gurobi then falls back to HiGHS, "
         "'gurobi' prefers Gurobi (falls back to HiGHS if unlicensed), "
         "'highs' skips Gurobi and uses HiGHS directly. Default: auto.",

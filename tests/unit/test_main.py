@@ -11,7 +11,9 @@ import sys
 
 import pytest
 
-from navigate.__main__ import ASSUMPTIONS_ENV_VAR, main
+from navigate.__main__ import ASSUMPTIONS_ENV_VAR, _build_parser, main
+from navigate.core.enum_ import SolverBackendID
+from navigate.simulation import SimulationManager
 
 # Fails at parse time with a caret-pointed DeckFormatError, before any simulation work.
 GARBLED_DECK = "DEFINE {\n    garbage\n}\n"
@@ -247,3 +249,24 @@ class TestWorkingDirectory:
         assert "not found" not in captured.err
         assert "EVENTS" in captured.err
         assert os.getcwd() == cwd
+
+
+class TestSolverOverride:
+    # --solver's help text names 'auto' as trying Gurobi then falling back to
+    # HiGHS: the SolverBackendID member documented for that behavior is AUTOMATIC.
+    @pytest.mark.parametrize(
+        ("choice", "expected"),
+        [
+            pytest.param("auto", SolverBackendID.AUTOMATIC, id="auto"),
+            pytest.param("gurobi", SolverBackendID.GUROBI, id="gurobi"),
+            pytest.param("highs", SolverBackendID.HIGHS, id="highs"),
+        ],
+    )
+    def test_cli_choice_sets_bunker_options_solver(self, tmp_path, choice, expected):
+        deck = _write_deck(tmp_path, "")
+        args = _build_parser().parse_args([str(deck), "--solver", choice])
+
+        manager = SimulationManager()
+        manager.read_deck(deck, args)
+
+        assert manager.general_nodes.bunker_options.solver is expected

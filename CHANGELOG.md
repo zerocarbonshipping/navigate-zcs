@@ -334,6 +334,7 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   the fuel types a deck declares or uses, in the standard order, instead of
   a fixed list with empty panels or legend rows for the types it does not
   (#393).
+- `--solver auto` no longer fails with a traceback (#402).
 
 ## [1.0.0] - 2026-07-16
 
