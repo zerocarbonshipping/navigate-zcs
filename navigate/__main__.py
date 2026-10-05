@@ -38,7 +38,7 @@ def _solver_backend(value: str) -> SolverBackendID:
 
     Used as the argument's argparse 'type=', so 'args.solver' already holds the
     member (or None, when '--solver' is not passed) by the time it reaches
-    SimulationManager.read_deck.
+    SimulationManager.
 
     Parameters
     ----------
@@ -254,8 +254,7 @@ def _handle_error(exc: Exception, debug: bool, log_to_file: bool) -> None:
 
 
 def _run(path: Path, args: argparse.Namespace) -> SimulationManager:
-    manager = SimulationManager()
-    manager.read_deck(path, args)
+    manager = SimulationManager(path, data_dir=args.data_dir, solver=args.solver)
     manager.run()
     logger = logging.getLogger(__name__)
     logger.info("Simulation completed successfully, %s.", manager.get_elapsed_time())

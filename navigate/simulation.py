@@ -59,63 +59,76 @@ from navigate.policy import (
 from navigate.util import YEAR, dates_to_days, timedelta_to_days
 
 if TYPE_CHECKING:
-    import argparse
     from pathlib import Path
 
-    from navigate.core.node_registry import GeneralNodes
+    import numpy as np
+
+    from navigate.core.enum_ import SolverBackendID
+    from navigate.core.node_registry import GeneralNodes, Nodes
+    from navigate.util.types_ import DateArray, FloatArray
 
 logger = logging.getLogger(__name__)
 
 
 class SimulationManager:
-    def __init__(self):
+    """
+    Run a simulation deck, from the read deck to the exported results.
 
-        # properties -------------------------------------------------------------------
-        self.name = (
-            "global"  # str, keys manager-level report sheets alongside node names
-        )
-        self._time_step = 0.0  # float, size of current time-step, days
-        self._time = 0.0  # float, time since start of simulation, days
-        self._date = None  # np.datetime64, current date
-        self._idx = 0  # int, time-step index
+    Parameters
+    ----------
+    path
+        Path to the simulation deck.
+    data_dir
+        Assumptions data folder.
+    solver
+        Solver backend that overrides the deck's BunkerOptions setting, or None
+        to keep the deck's setting.
+    """
 
-        # simulation time/date line
-        self.timeline = None  # np.ndarray, simulation calculation times, days
-        self.dateline = None  # np.ndarray, simulation calculation dates
-
-        # profile
-        self.profile = ManagerProfile()
-
-        # bunker algorithm -------------------------------------------------------------
-        self._bunker_existing = BunkerAlgorithm()
-        self._bunker_expected = BunkerAlgorithm()
+    def __init__(
+        self,
+        path: Path,
+        data_dir: Path | None = None,
+        solver: SolverBackendID | None = None,
+    ) -> None:
+        # resolved as the parser resolves it, so the deck location matches the deck read
+        deck_path = path.resolve()
 
         # parser -----------------------------------------------------------------------
-        self.parser = Parser()
-        self.nodes = self.parser.nodes
-        self.general_nodes: GeneralNodes
+        self.parser: Parser = Parser()
+        self.nodes: Nodes = self.parser.nodes
+        self.parser.read_deck(deck_path, data_dir=data_dir)
+        self.general_nodes: GeneralNodes = self.parser.general_nodes
+
+        if solver is not None:
+            self.general_nodes.bunker_options.solver = solver
+
+        # deck location, where the output is written
+        self.deck_directory: str = str(deck_path.parent)
+        self.deck_name: str = deck_path.stem
+
+        # properties -------------------------------------------------------------------
+        # keys the manager's report sheets alongside the node names
+        self.name: str = "global"
+        # the current time-step size and elapsed simulation time, in days
+        self._time_step: float = 0.0
+        self._time: float = 0.0
+        self._date: np.datetime64 = self.general_nodes.model_definition.start_date
+        self._idx: int = 0
+
+        # the simulation's dates, and the elapsed time in days since the start date
+        self.dateline: DateArray = self.parser.dates
+        self.timeline: FloatArray = dates_to_days(self.dateline)
+
+        # profile
+        self.profile: ManagerProfile = ManagerProfile()
+
+        # bunker algorithm -------------------------------------------------------------
+        self._bunker_existing: BunkerAlgorithm = BunkerAlgorithm()
+        self._bunker_expected: BunkerAlgorithm = BunkerAlgorithm()
 
         # code timing ------------------------------------------------------------------
-        self._computational_time = None
-
-    def read_deck(self, path: Path, args: argparse.Namespace) -> None:
-        """
-        Read the simulation deck using the Parser; must be called before 'run'.
-
-        Parameters
-        ----------
-        path
-            Path to the simulation deck.
-        args
-            Command line arguments parsed by the CLI.
-        """
-        # read the simulation deck
-        self.parser.read_deck(path, data_dir=args.data_dir)
-        self.general_nodes = self.parser.general_nodes
-
-        # the CLI solver override takes precedence over the deck setting
-        if getattr(args, "solver", None) is not None:
-            self.general_nodes.bunker_options.solver = args.solver
+        self._computational_time: float
 
     def run(self):
         """Run the simulation as defined in the deck, handling its high-level flow."""
@@ -127,7 +140,6 @@ class SimulationManager:
         self._computational_time = timeit.default_timer()
 
         # initialize the simulation
-        self._initialize_timeline()
         self._initialize_simulation()
 
         # perform time-stepping
@@ -139,21 +151,6 @@ class SimulationManager:
         self._export_plot_data()
 
         print(f"Finished simulation, {self.get_elapsed_time()}.")
-
-    def _initialize_timeline(self):
-        """
-        Initialize all time-related properties required throughout the simulation.
-
-        All dates at which the simulation will perform calculations are known up
-        front once the Parser has read the input deck.
-        """
-        self.dateline = self.parser.dates
-        self.timeline = dates_to_days(self.dateline)
-
-        # initial time/date and index
-        self._idx = 0
-        self._time = 0.0
-        self._date = self.general_nodes.model_definition.start_date
 
     def _initialize_simulation(self):
         """
@@ -749,7 +746,7 @@ class SimulationManager:
             self.nodes.regulations,
             self.general_nodes.bunker_options,
             BunkerScopeID.EXISTING,
-            output_directory=self.parser.deck_directory,
+            output_directory=self.deck_directory,
         )
 
         # initialize a BunkerAlgorithm for expected bunkering
@@ -763,7 +760,7 @@ class SimulationManager:
             self.nodes.regulations,
             self.general_nodes.bunker_options,
             BunkerScopeID.EXPECTED,
-            output_directory=self.parser.deck_directory,
+            output_directory=self.deck_directory,
         )
 
     def _initialize_expectations(self):
@@ -939,8 +936,8 @@ class SimulationManager:
             write_report(
                 report,
                 self,
-                self.parser.deck_directory,
-                self.parser.deck_name,
+                self.deck_directory,
+                self.deck_name,
                 self.dateline,
             )
 

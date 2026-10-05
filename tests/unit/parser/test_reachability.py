@@ -574,7 +574,7 @@ End
         assert len(calls) == 1
 
     def test_registry_dicts_pruned_in_place(self, read_fleet_deck):
-        # SimulationManager aliases parser.nodes before read_deck runs, so
+        # SimulationManager aliases parser.nodes before it reads the deck, so
         # the prune must keep the dataclass and its dicts identical objects
         parser = Parser()
         vessels_group = parser.nodes.vessels

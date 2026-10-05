@@ -11,7 +11,6 @@ decks through the same runner and universal invariants.
 
 from __future__ import annotations
 
-import argparse
 import os
 import shutil
 from pathlib import Path
@@ -53,28 +52,6 @@ def default_assumptions_dir() -> Path:
     return REPO_ROOT / "assumptions"
 
 
-def make_args(data_dir: Path | None = None) -> argparse.Namespace:
-    """
-    Build the CLI argument namespace expected by SimulationManager.read_deck.
-
-    'solver' is left as None so a deck's BunkerOptions.Solver setting wins.
-
-    Parameters
-    ----------
-    data_dir
-        Assumptions directory; resolved via default_assumptions_dir if None.
-    """
-    return argparse.Namespace(
-        data_dir=data_dir or default_assumptions_dir(),
-        suppress_plots=True,
-        solver=None,
-        log_level="WARNING",
-        profile=False,
-        replot=None,
-        filename=None,
-    )
-
-
 def run_simulation(sim_dir: Path, data_dir: Path | None = None) -> SimulationManager:
     """
     Parse and run the deck '<sim_dir>/<sim_dir.name>.nav'.
@@ -93,8 +70,9 @@ def run_simulation(sim_dir: Path, data_dir: Path | None = None) -> SimulationMan
     nav_file = sim_dir / f"{sim_dir.name}.nav"
     assert nav_file.exists(), f"Missing {nav_file}"
 
-    manager = SimulationManager()
-    manager.read_deck(nav_file, make_args(data_dir))
+    manager = SimulationManager(
+        nav_file, data_dir=data_dir or default_assumptions_dir()
+    )
     manager.run()
 
     return manager

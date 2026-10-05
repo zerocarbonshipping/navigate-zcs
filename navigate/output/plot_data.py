@@ -66,7 +66,7 @@ class PlotData:
             profile=manager.profile,
             nodes=manager.nodes,
             general_nodes=manager.general_nodes,
-            deck_directory=manager.parser.deck_directory,
+            deck_directory=manager.deck_directory,
             plot_configs=plot_configs,
         )
 
