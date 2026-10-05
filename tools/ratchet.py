@@ -207,6 +207,10 @@ def ratchet_mypy(repo: Path, paths: list[str], prune: bool) -> None:
     )
     current: set[str] = set()
     for line in out.splitlines():
+        # mypy prints a lone blank line, not an empty object, when it finds
+        # nothing to report.
+        if not line.strip():
+            continue
         d = json.loads(line)
         if d.get("severity") == "error":
             current.add(module_of(d["file"]))
