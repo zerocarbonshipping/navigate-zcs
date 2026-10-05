@@ -186,7 +186,10 @@ class Plant(Node):
         """
         Set the lifetime of the plant in years.
 
-        The plant is decommissioned when it surpasses its lifetime.
+        The plant is decommissioned when it surpasses its lifetime. Ports are
+        supplied at each time step from the production projected at the previous
+        time step, so a change in lifetime over time reaches port supply one time
+        step after it applies to the plant.
 
         Examples
         --------
@@ -207,6 +210,10 @@ class Plant(Node):
     def set_lead_time(self, lead_time: ForecastArgument) -> None:
         """
         Set the planning to production lead time of the plant in years.
+
+        Ports are supplied at each time step from the production projected at the
+        previous time step, so a plant whose lead time is shorter than the time step
+        reaches port supply at the time step after it is decided.
 
         Examples
         --------
