@@ -5,17 +5,17 @@ SPDX-License-Identifier: CC-BY-4.0
 
 # Use Navigate
 
-The aim of this workshop is to work through practical cases with the Navigate model to get a sense of:
+The aim of this section is to work through practical cases with the Navigate model to get a sense of:
 
-- how to create a model
-- what type of data are used in the model and how they are organised
-- how the model works and how inputs shape the results
 - how the model can be used in practice
+- how the model works and how it is built
+- what type of data are used in the model and how they are organised
+- how to create a Navigate model from scratch
 
-## What you'll do
+## What the different sessions propose
 
-1. **Run a simple case**: one trade, its emissions, the fuel it bunkers and what moving the cargo costs, then change the inputs and see what happens ([Session 1](01-run-a-simple-case.ipynb))
-2. **Understand Navigate**: how the same case is built, the data behind it, how the model solves it step by step, and its results in detail ([Session 2](02-understand-navigate.ipynb))
+1. **Run a simple case**: a made-up example to give an idea of what the model can show, and how changing input data can change the results ([Session 1](01-run-a-simple-case.ipynb))
+2. **Understand Navigate**: how the example was built, the data behind it, how the model solves it step by step, and its results in detail ([Session 2](02-understand-navigate.ipynb))
 3. **Run a global case**: pick one of four reference
    cases, move some of the assumptions behind it (fuel
    prices, regulatory stringency,...) and see how results change ([Session 3](03-run-a-global-case.ipynb))
@@ -36,16 +36,13 @@ Every session here except [Session 5](05-build-your-own-case.ipynb) opens with a
 For Session 5 you will need to install Navigate on your own machine.
 
 Note for Colab: a session is discarded after a period of
-inactivity. If cells suddenly start failing on imports or missing files,
-re-run the cells at the top.
+inactivity. If cells suddenly start failing on imports or missing files, re-run the cells at the top.
 
 ### Option 2: locally, no Google account needed
 
 If you would rather not use Google Colab, run the notebooks on your own machine with Jupyter. You need **Python 3.12 or newer** installed.
 
-To open a terminal: on **Windows** press Start and type `PowerShell`, then
-Enter; on **macOS** press Cmd+Space and type `Terminal`; on **Linux** press
-Ctrl+Alt+T. Then run these commands, one at a time:
+To open a terminal: on **Windows** press Start and type `PowerShell`, then Enter; on **macOS** press Cmd+Space and type `Terminal`; on **Linux** press Ctrl+Alt+T. Then run these commands, one at a time:
 
 ```bash
 git clone -b dev-workshop https://github.com/zerocarbonshipping/navigate-zcs.git
@@ -56,14 +53,12 @@ jupyter lab
 ```
 
 The last command opens Jupyter in your browser. From there, open
-`docs/workshop/` and start with the first notebook. No Google account is
-involved at any point.
+`docs/workshop/` and start with the first notebook. No Google account is involved at any point.
 
 ## Disclaimer
 
 Navigate is an open-source analytical model for research and scenario
-analysis. Outputs depend on the assumptions selected and should not be
-interpreted as forecasts, benchmarks, recommendations, or investment advice.
+analysis. Outputs depend on the assumptions selected and should not be interpreted as forecasts, benchmarks, recommendations, or investment advice.
 
 ```{toctree}
 :titlesonly:

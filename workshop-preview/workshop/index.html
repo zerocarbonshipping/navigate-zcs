@@ -451,18 +451,18 @@ SPDX-License-Identifier: CC-BY-4.0
 -->
 <section class="tex2jax_ignore mathjax_ignore" id="use-navigate">
 <h1>Use Navigate<a class="headerlink" href="#use-navigate" title="Link to this heading">#</a></h1>
-<p>The aim of this workshop is to work through practical cases with the Navigate model to get a sense of:</p>
+<p>The aim of this section is to work through practical cases with the Navigate model to get a sense of:</p>
 <ul class="simple">
-<li><p>how to create a model</p></li>
-<li><p>what type of data are used in the model and how they are organised</p></li>
-<li><p>how the model works and how inputs shape the results</p></li>
 <li><p>how the model can be used in practice</p></li>
+<li><p>how the model works and how it is built</p></li>
+<li><p>what type of data are used in the model and how they are organised</p></li>
+<li><p>how to create a Navigate model from scratch</p></li>
 </ul>
-<section id="what-you-ll-do">
-<h2>What you’ll do<a class="headerlink" href="#what-you-ll-do" title="Link to this heading">#</a></h2>
+<section id="what-the-different-sessions-propose">
+<h2>What the different sessions propose<a class="headerlink" href="#what-the-different-sessions-propose" title="Link to this heading">#</a></h2>
 <ol class="arabic simple">
-<li><p><strong>Run a simple case</strong>: one trade, its emissions, the fuel it bunkers and what moving the cargo costs, then change the inputs and see what happens (<a class="reference internal" href="01-run-a-simple-case.html"><span class="std std-doc">Session 1</span></a>)</p></li>
-<li><p><strong>Understand Navigate</strong>: how the same case is built, the data behind it, how the model solves it step by step, and its results in detail (<a class="reference internal" href="02-understand-navigate.html"><span class="std std-doc">Session 2</span></a>)</p></li>
+<li><p><strong>Run a simple case</strong>: a made-up example to give an idea of what the model can show, and how changing input data can change the results (<a class="reference internal" href="01-run-a-simple-case.html"><span class="std std-doc">Session 1</span></a>)</p></li>
+<li><p><strong>Understand Navigate</strong>: how the example was built, the data behind it, how the model solves it step by step, and its results in detail (<a class="reference internal" href="02-understand-navigate.html"><span class="std std-doc">Session 2</span></a>)</p></li>
 <li><p><strong>Run a global case</strong>: pick one of four reference
 cases, move some of the assumptions behind it (fuel
 prices, regulatory stringency,…) and see how results change (<a class="reference internal" href="03-run-a-global-case.html"><span class="std std-doc">Session 3</span></a>)</p></li>
@@ -480,15 +480,12 @@ prices, regulatory stringency,…) and see how results change (<a class="referen
 <p>Every session here except <a class="reference internal" href="05-build-your-own-case.html"><span class="std std-doc">Session 5</span></a> opens with an <strong>Open in Colab</strong> badge. Click it and the notebook runs in your browser: no installation, nothing on your laptop. You need a free Google account to use it.</p>
 <p>For Session 5 you will need to install Navigate on your own machine.</p>
 <p>Note for Colab: a session is discarded after a period of
-inactivity. If cells suddenly start failing on imports or missing files,
-re-run the cells at the top.</p>
+inactivity. If cells suddenly start failing on imports or missing files, re-run the cells at the top.</p>
 </section>
 <section id="option-2-locally-no-google-account-needed">
 <h3>Option 2: locally, no Google account needed<a class="headerlink" href="#option-2-locally-no-google-account-needed" title="Link to this heading">#</a></h3>
 <p>If you would rather not use Google Colab, run the notebooks on your own machine with Jupyter. You need <strong>Python 3.12 or newer</strong> installed.</p>
-<p>To open a terminal: on <strong>Windows</strong> press Start and type <code class="docutils literal notranslate"><span class="pre">PowerShell</span></code>, then
-Enter; on <strong>macOS</strong> press Cmd+Space and type <code class="docutils literal notranslate"><span class="pre">Terminal</span></code>; on <strong>Linux</strong> press
-Ctrl+Alt+T. Then run these commands, one at a time:</p>
+<p>To open a terminal: on <strong>Windows</strong> press Start and type <code class="docutils literal notranslate"><span class="pre">PowerShell</span></code>, then Enter; on <strong>macOS</strong> press Cmd+Space and type <code class="docutils literal notranslate"><span class="pre">Terminal</span></code>; on <strong>Linux</strong> press Ctrl+Alt+T. Then run these commands, one at a time:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>-b<span class="w"> </span>dev-workshop<span class="w"> </span>https://github.com/zerocarbonshipping/navigate-zcs.git
 <span class="nb">cd</span><span class="w"> </span>navigate-zcs
 pip<span class="w"> </span>install<span class="w"> </span>.
@@ -497,15 +494,13 @@ jupyter<span class="w"> </span>lab
 </pre></div>
 </div>
 <p>The last command opens Jupyter in your browser. From there, open
-<code class="docutils literal notranslate"><span class="pre">docs/workshop/</span></code> and start with the first notebook. No Google account is
-involved at any point.</p>
+<code class="docutils literal notranslate"><span class="pre">docs/workshop/</span></code> and start with the first notebook. No Google account is involved at any point.</p>
 </section>
 </section>
 <section id="disclaimer">
 <h2>Disclaimer<a class="headerlink" href="#disclaimer" title="Link to this heading">#</a></h2>
 <p>Navigate is an open-source analytical model for research and scenario
-analysis. Outputs depend on the assumptions selected and should not be
-interpreted as forecasts, benchmarks, recommendations, or investment advice.</p>
+analysis. Outputs depend on the assumptions selected and should not be interpreted as forecasts, benchmarks, recommendations, or investment advice.</p>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="01-run-a-simple-case.html">Session 1: Run a simple case</a></li>
@@ -570,7 +565,7 @@ interpreted as forecasts, benchmarks, recommendations, or investment advice.</p>
   </div>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-you-ll-do">What you’ll do</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-the-different-sessions-propose">What the different sessions propose</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#how-to-run-the-workshop-material">How to run the workshop material</a><ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#option-1-recommended-google-colab-nothing-to-install">Option 1 (recommended): Google Colab, nothing to install</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#option-2-locally-no-google-account-needed">Option 2: locally, no Google account needed</a></li>

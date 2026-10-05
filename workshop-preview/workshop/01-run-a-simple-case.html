@@ -467,7 +467,7 @@ voyage, and the possible fuel plants.</em></p>
 from <strong>San Antonio, Chile</strong> to <strong>Rotterdam</strong>, roughly 7,600 nautical miles each way via the Panama Canal, returning in ballast (empty).</p>
 <p>It is 2026: the segment counts 300 ships, and every one of them burns fuel oil. The fleet is ageing and most of it has to be renewed before 2050, the horizon of the simulation.</p>
 <p>The ships are also exposed to two regulations: FuelEU Maritime and the EU ETS, both of which cover half of the voyage.</p>
-<p>Navigate does not follow any one company. It represents the whole segment as a
+<p>Navigate does not follow one specific company. It represents the whole segment as a
 single <code class="docutils literal notranslate"><span class="pre">Fleet</span></code>, whose decisions stand for those of the many shipowners and
 operators in it. <strong>Operators</strong> decide which fuel to bunker and where, and how
 fast to sail. <strong>Owners</strong> decide when to retrofit ships, order new ones and fit
@@ -507,7 +507,7 @@ efficiency measures.</p>
 <section id="setup">
 <h2>Setup<a class="headerlink" href="#setup" title="Link to this heading">#</a></h2>
 <p>Run the cell below on Colab or locally to set up the Navigate model. It also loads the pre-made example that will be used to illustrate this part of the workshop.</p>
-<p><a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/04-run-our-reference-scenarios.ipynb">Session 4</a>’s “Run the scenarios” cell takes about twenty minutes, so it is worth starting it early in a separate Colab tab and coming back to it.</p>
+<p>Note: <a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/04-run-our-reference-scenarios.ipynb">Session 4</a>’s “Run the scenarios” cell takes about twenty minutes, so it is worth starting it early in a separate Colab tab and coming back to it.</p>
 <div class="cell tag_hide-input docutils container">
 <details class="admonition hide above-input">
 <summary aria-label="Toggle hidden content">
@@ -609,13 +609,13 @@ Navigate 1.0.0 is already installed.
 </section>
 <section id="run-the-case-and-see-the-results">
 <h2>Run the case and see the results<a class="headerlink" href="#run-the-case-and-see-the-results" title="Link to this heading">#</a></h2>
-<p>Run the next cell to solve the case once, from 2026 to 2050. It takes about twenty seconds, and shows the reference run in the same figure the sensitivity analysis below draws for your own scenario:</p>
+<p>Run the next cell to solve the case once, from 2026 to 2050. It takes about twenty seconds. The results that we are plotting for this example are:</p>
 <ul class="simple">
 <li><p>the fleet’s well-to-wake emissions over time;</p></li>
 <li><p>the energy the fleet bunkers each year, by fuel. A dual-fuel ship that bunkers oil counts as oil here;</p></li>
 <li><p>the <strong>instantaneous freight rate</strong> on the fleet: what the trade cost in that year, given the fuel prices and compliance bills that actually materialised.</p></li>
 </ul>
-<p>These numbers are calculated before any redistribution mechanisms of the collected taxes.</p>
+<p>These numbers are calculated before any redistribution mechanisms of the collected taxes, which are currently not modelled in Navigate.</p>
 <div class="cell tag_hide-input docutils container">
 <details class="admonition hide above-input">
 <summary aria-label="Toggle hidden content">
@@ -872,8 +872,8 @@ Navigate 1.0.0 is already installed.
 </div>
 </details>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>CPU times: total: 23.6 s
-Wall time: 28.5 s
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>CPU times: total: 47.1 s
+Wall time: 52.7 s
 the reference, 2026-2050
   well-to-wake in 2026               5,935  kt CO2e/yr
   well-to-wake in 2050               2,624  kt CO2e/yr
@@ -882,16 +882,14 @@ the reference, 2026-2050
   freight rate in 2050                4.71  USD per k cargo-mile
 </pre></div>
 </div>
-<img alt="../_images/8a8f543017f512a6df68a630da64103b0e53b6c771aebacc5dd85c133fdfd218.png" src="../_images/8a8f543017f512a6df68a630da64103b0e53b6c771aebacc5dd85c133fdfd218.png" />
+<img alt="../_images/19ae1a1043f5acda6490e0e71d0e812cf2d069edb6e482bc65db997cbdc735a3.png" src="../_images/19ae1a1043f5acda6490e0e71d0e812cf2d069edb6e482bc65db997cbdc735a3.png" />
 </div>
 </div>
 </section>
 <hr class="docutils" />
 <section id="sensitivity-analysis">
 <h2>Sensitivity analysis<a class="headerlink" href="#sensitivity-analysis" title="Link to this heading">#</a></h2>
-<section id="the-levers">
-<h3>The levers<a class="headerlink" href="#the-levers" title="Link to this heading">#</a></h3>
-<p>The cell below gives you the value of some levers in the reference scenario that we have been using throughout this part of the workshop. Use the cell below to change the original values and see what happens!</p>
+<p>Change some of the input values of the “reference scenario” to see what changes in the results.</p>
 <p>All levers that we prepared can be changed with multipliers, except two that can be used as switches:</p>
 <ul class="simple">
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">FULL_COVERAGE</span></code></strong> puts San Antonio inside both regulatory schemes.</p></li>
@@ -902,7 +900,7 @@ well as on retrofits.</p></li>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># ===========================================================================</span>
-<span class="c1">#  YOUR SCENARIO.  Set a lever, run this cell, then run the one below it.</span>
+<span class="c1">#  YOUR SCENARIO.  Set a lever, run this cell, then run the one below it to generate results.</span>
 <span class="c1">#</span>
 <span class="c1">#  Every number down to TRADE_GROWTH is a MULTIPLIER on what the deck already</span>
 <span class="c1">#  says, so 1.0 is the reference. The right-hand column says what each 1.0 is</span>
@@ -1024,7 +1022,7 @@ well as on retrofits.</p></li>
   freight rate in 2050, USD/k mile        4.71        4.77        +1.2 %
 </pre></div>
 </div>
-<img alt="../_images/daa1a187666d0f21d0b194e00bcbce69759ed2723ac8ab2bb5657a1fb999b7a7.png" src="../_images/daa1a187666d0f21d0b194e00bcbce69759ed2723ac8ab2bb5657a1fb999b7a7.png" />
+<img alt="../_images/c76c214153bc564075dde6dc5c2d735e2dbd5b4196f7bfbd348869609e416c0b.png" src="../_images/c76c214153bc564075dde6dc5c2d735e2dbd5b4196f7bfbd348869609e416c0b.png" />
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>what moved most, in percentage points of the fuel mix:
   LNG                    -5.4 pp
   e-ammonia              +5.0 pp
@@ -1036,13 +1034,13 @@ well as on retrofits.</p></li>
 </div>
 </div>
 </section>
-</section>
-<section id="do-you-want-more">
-<h2>Do you want more?<a class="headerlink" href="#do-you-want-more" title="Link to this heading">#</a></h2>
-<p>Advanced sensitivities or personalized simulations can be done by:</p>
+<section id="advanced-sensitivities">
+<h2>Advanced sensitivities<a class="headerlink" href="#advanced-sensitivities" title="Link to this heading">#</a></h2>
+<p>The levers proposed in the previous section are just a simple example of what can be changed in the model.</p>
+<p>Advanced sensitivities changing other parameters or personalized simulations can be done by:</p>
 <ul class="simple">
-<li><p>editing the deck in <code class="docutils literal notranslate"><span class="pre">simulations/examples/example_4/</span></code> itself (needs a local installation)</p></li>
-<li><p>building a new case from scratch as <a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/05-build-your-own-case.ipynb">Session 5</a> describes (needs a local installation)</p></li>
+<li><p>editing the deck in <code class="docutils literal notranslate"><span class="pre">simulations/examples/example_4/</span></code> itself (needs a <a class="reference external" href="https://github.com/zerocarbonshipping/navigate-zcs/blob/dev-workshop/README.md#installation">local installation</a>)</p></li>
+<li><p>building a new case from scratch as <a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/05-build-your-own-case.ipynb">Session 5</a> describes (needs a <a class="reference external" href="https://github.com/zerocarbonshipping/navigate-zcs/blob/dev-workshop/README.md#installation">local installation</a>)</p></li>
 <li><p>you can also check out our <a class="reference external" href="https://github.com/zerocarbonshipping/horizon-zcs/tree/main">Horizon-zcs</a> tool on GitHub for global sensitivity analysis (which is what we are using for our own analyses)</p></li>
 </ul>
 </section>
@@ -1112,11 +1110,8 @@ from the top.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-you-ll-do">What you’ll do</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#setup">Setup</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#run-the-case-and-see-the-results">Run the case and see the results</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sensitivity-analysis">Sensitivity analysis</a><ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-levers">The levers</a></li>
-</ul>
-</li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#do-you-want-more">Do you want more?</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#sensitivity-analysis">Sensitivity analysis</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#advanced-sensitivities">Advanced sensitivities</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#workshop-sessions">Workshop sessions</a></li>
 </ul>
   </nav></div>
