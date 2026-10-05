@@ -12,6 +12,8 @@ import timeit
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from navigate.exceptions import PlotDataError
+
 if TYPE_CHECKING:
     from navigate.core.node_registry import GeneralNodes, Nodes
     from navigate.core.profiles.manager_profile import ManagerProfile
@@ -115,12 +117,23 @@ class PlotData:
         -------
         PlotData
             The deserialized PlotData instance.
+
+        Raises
+        ------
+        PlotDataError
+            If the unpickled file does not hold a PlotData instance.
         """
         if os.path.isdir(path):
             path = os.path.join(path, "plot_data.pkl")
 
         with gzip.open(path, "rb") as f:
             plot_data = pickle.load(f)
+
+        if not isinstance(plot_data, cls):
+            raise PlotDataError(
+                f"'{path}' holds a {type(plot_data).__name__}, not the plot data of "
+                "a Navigate run."
+            )
 
         logger.info("Loaded plot data from '%s'", path)
         return plot_data
