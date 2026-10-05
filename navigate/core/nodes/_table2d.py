@@ -241,10 +241,10 @@ class _Table2D(_Calculator):
                 method=self._table_method,
                 bounds_error=self._table_bounds_error,
                 fill_value=fill_value,
-            )[0]  # -> np.float64
+            )[0]
             return value
 
-        # For arrays (including scalar/array mix): broadcast + stack into (..., 2)
+        # for arrays (including scalar/array mix): broadcast + stack into (..., 2)
         xb, yb = np.broadcast_arrays(x_array, y_array)
         xi = np.stack([xb, yb], axis=-1)
 
