@@ -58,9 +58,9 @@ every change. The detail lives in the files it points to.
 - `syntax/` — editor syntax highlighting for the DSL, including a committed
   VS Code `.vsix`.
 
-A run writes its output next to its deck: `plots*/`, `*.pkl`, `*.xlsx` and
-`*.log`. All of it is gitignored. Two runs of one deck at the same time
-overwrite each other's files, and the test suites run decks too.
+A run writes its output next to its deck: `plots*/`, `*.xlsx` and `*.log`.
+All of it is gitignored. Two runs of one deck at the same time overwrite
+each other's files, and the test suites run decks too.
 
 ## Environment and commands
 

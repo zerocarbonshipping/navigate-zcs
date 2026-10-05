@@ -204,7 +204,6 @@ Information is provided in four levels, namely:
 ```
 14:29:15 [INFO] navigate.bunker.solver: Gurobi not available -- using HiGHS solver backend.
 14:29:16 [INFO] navigate.bunker.bunker_algorithm: Fair-share bunkering convergence status: Successful.
-14:29:47 [INFO] navigate.output.plot_data: Exported plot data to 'plot_data.pkl' (0.1 MB, 0.2s)
 ```
 
 `WARNING` refers to information that has an impact on results. This could be if the code makes automated adjustments to the simulation deck or things that will impact the results in different ways:
@@ -223,4 +222,4 @@ If an ERROR occurs the simulation stops: the console shows the error message on 
 
 At the end of a successful run the log closes with a summary table counting the messages of each level, followed by the list of unique warnings. When warnings were logged, the console also prints their count with a pointer to the `.log` file.
 
-Besides the log file, a run always writes a `plot_data.pkl` file to the deck directory, whether or not the deck defines a [Plot](plot.md) node and even when plotting is suppressed with the `-s`/`--suppress-plots` flag; the file allows regenerating plots with the `--replot` option without rerunning the simulation. A run may also produce additional artifacts in the deck directory: plots when the deck contains a `Plot` node (unless suppressed), and Excel or CSV reports when the deck contains [Report](report.md) nodes. `--replot` rejects with an error a file it cannot read as plot data, such as a damaged or unrelated file or one written by a Navigate version whose plot data has since changed; run the deck again to produce a new one.
+Besides the log file, a run may also produce artifacts in the deck directory: plots when the deck contains a [Plot](plot.md) node, unless suppressed with the `-s`/`--suppress-plots` flag, and Excel or CSV reports when the deck contains [Report](report.md) nodes.
