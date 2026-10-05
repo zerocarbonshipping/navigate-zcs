@@ -216,8 +216,8 @@ def cost_colour(part):
 SCEN_COLOUR = {"basecase_no_regulation": to_hex(CENTER_COLORS_GREY[4]),
                "basecase_mid_regulation": to_hex(CENTER_COLORS_BLUE[5]),
                "basecase_strong_regulation": to_hex(CENTER_COLORS_BLUE[6]),
-               # notebooks 1 and 3: the deck as shipped against the reader's version of it
-               "reference": to_hex(CENTER_COLORS_GREY[4]),
+               # notebooks 1-3: the deck as shipped against the reader's version of it
+               "reference": to_hex(CENTER_COLORS_GREY[3]),
                "your scenario": to_hex(CENTER_COLORS_BLUE[6])}
 
 
