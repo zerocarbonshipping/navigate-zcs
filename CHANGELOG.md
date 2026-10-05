@@ -338,6 +338,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   (#393).
 - The completion line in the `.log` file no longer reads "in elapsed time:
   ... seconds" (#404).
+- A simulation whose timeline includes 1970-01-01 now runs past that date
+  instead of stopping there (#403).
 - `ConverterEnergy` report requests with a `FIRST`, `SECOND` or `BOTH`
   reduction now reduce over the (vessel fuel type, fuel) key instead of
   failing or being ignored (#405).
