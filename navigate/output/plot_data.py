@@ -9,6 +9,7 @@ import logging
 import os
 import pickle
 import timeit
+import zlib
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -140,6 +141,7 @@ class PlotData:
             OverflowError,
             TypeError,
             ValueError,
+            zlib.error,
         ) as err:
             raise PlotDataError(
                 f"'{path}' cannot be read as the plot data of this Navigate "

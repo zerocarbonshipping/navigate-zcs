@@ -27,7 +27,7 @@ def test_load_rejects_pickle_that_is_not_plot_data(tmp_path):
 
 def test_load_rejects_pickle_referencing_a_missing_module(tmp_path):
     path = tmp_path / "plot_data.pkl"
-    # Hand-built protocol-0 pickle: GLOBAL opcode naming a module that does
+    # hand-built protocol-0 pickle: GLOBAL opcode naming a module that does
     # not exist, as if written by a Navigate version whose classes have
     # since moved or been renamed.
     data = b"cno_such_module\nThing\n."
@@ -53,7 +53,7 @@ def test_load_rejects_gzip_file_that_is_not_a_pickle(tmp_path):
 
 def test_load_rejects_pickle_with_unsupported_protocol(tmp_path):
     path = tmp_path / "plot_data.pkl"
-    # Protocol byte 0xff: no pickle protocol this high exists.
+    # protocol byte 0xff: no pickle protocol this high exists.
     with gzip.open(path, "wb") as f:
         f.write(b"\x80\xff")
 
@@ -82,6 +82,25 @@ def test_load_rejects_truncated_gzip_file(tmp_path):
 
     full = path.read_bytes()
     path.write_bytes(full[: len(full) // 2])
+
+    with pytest.raises(PlotDataError) as excinfo:
+        PlotData.load(str(path))
+
+    assert str(path) in str(excinfo.value)
+
+
+def test_load_rejects_gzip_file_with_corrupt_deflate_body(tmp_path):
+    path = tmp_path / "plot_data.pkl"
+    with gzip.open(path, "wb") as f:
+        pickle.dump({"a": 1, "b": [1, 2, 3] * 1000}, f)
+
+    # keep the 10-byte gzip header intact and corrupt bytes in the middle of
+    # the compressed body, so decompression starts but fails mid-stream.
+    full = bytearray(path.read_bytes())
+    mid = len(full) // 2
+    for i in range(mid, mid + 20):
+        full[i] ^= 0xFF
+    path.write_bytes(bytes(full))
 
     with pytest.raises(PlotDataError) as excinfo:
         PlotData.load(str(path))
