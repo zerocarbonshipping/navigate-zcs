@@ -25,6 +25,21 @@ def test_load_rejects_pickle_that_is_not_plot_data(tmp_path):
     assert str(path) in str(excinfo.value)
 
 
+def test_load_rejects_pickle_referencing_a_missing_module(tmp_path):
+    path = tmp_path / "plot_data.pkl"
+    # Hand-built protocol-0 pickle: GLOBAL opcode naming a module that does
+    # not exist, as if written by a Navigate version whose classes have
+    # since moved or been renamed.
+    data = b"cno_such_module\nThing\n."
+    with gzip.open(path, "wb") as f:
+        f.write(data)
+
+    with pytest.raises(PlotDataError) as excinfo:
+        PlotData.load(str(path))
+
+    assert str(path) in str(excinfo.value)
+
+
 def test_load_rejects_gzip_file_that_is_not_a_pickle(tmp_path):
     path = tmp_path / "plot_data.pkl"
     with gzip.open(path, "wb") as f:
