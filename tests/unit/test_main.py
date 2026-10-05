@@ -235,7 +235,7 @@ class TestRunCompletionLogging:
         self, monkeypatch, caplog, tmp_path
     ):
         class _StubManager:
-            def read_deck(self, path, args):
+            def __init__(self, path, data_dir=None, solver=None):
                 pass
 
             def run(self):
@@ -245,7 +245,7 @@ class TestRunCompletionLogging:
                 return "elapsed time: 0m and 5s"
 
         monkeypatch.setattr("navigate.__main__.SimulationManager", _StubManager)
-        args = argparse.Namespace(profile=False)
+        args = argparse.Namespace(profile=False, data_dir=None, solver=None)
 
         with caplog.at_level(logging.INFO, logger="navigate.__main__"):
             _run(tmp_path / "deck.nav", args)

@@ -175,7 +175,6 @@ class Parser:
         # paths; the deck's are set when it is read, the assumptions folders only
         # when a data folder is given
         self.deck_directory: str | None = None
-        self.deck_name: str
         self._user_default_directory: str | None = None
         self._user_module_directory: str | None = None
         self._installation_default_directory: str | None = None
@@ -248,7 +247,6 @@ class Parser:
             raise FileNotFoundError(f"Unable to locate {path}.") from None
 
         self.deck_directory = str(path.parent)
-        self.deck_name = path.stem
         self._define_internal_directories(data_dir=data_dir)
 
         print_preamble()
