@@ -240,6 +240,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   of vessels that left a fleet no longer leak into later steps.
 - The LP is built in the same order on every run, so dual values no longer
   vary between runs in degenerate solves.
+- `--replot` on a file that is not a pickle, is unreadable by this Navigate
+  version, or is not plot data, now reports an error instead of a
+  traceback (#414).
 - Fuel-conversion expenses are booked on the elapsed-years axis, so
   calendar-date timelines no longer drop or distort the conversion year.
 - With sub-year time steps, the fuel-conversion business case no longer
@@ -338,9 +341,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   (#393).
 - The completion line in the `.log` file no longer reads "in elapsed time:
   ... seconds" (#404).
-- `--replot` on a file that is not a pickle, is unreadable by this Navigate
-  version, or is not plot data, now reports an error instead of a
-  traceback (#414).
+- A simulation whose timeline includes 1970-01-01 now runs past that date
+  instead of stopping there (#403).
 
 ## [1.0.0] - 2026-07-16
 
