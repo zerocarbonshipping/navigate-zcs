@@ -546,11 +546,11 @@ def _write_properties(ws: Worksheet, properties: dict, col: int) -> int:
     return col + 1
 
 
-def _export_dict(
-    ws: Worksheet, attribute: str, property_: dict, col: int, nested_dict: bool = False
-) -> int:
+def _export_dict(ws: Worksheet, attribute: str, property_: dict, col: int) -> int:
     """
-    Write a dict property into worksheet columns, recursing into nested dicts.
+    Write a dict property into worksheet columns, one column per key.
+
+    Each element of a tuple key goes in its own header row, from ROW_KEY down.
 
     Parameters
     ----------
@@ -559,48 +559,33 @@ def _export_dict(
     attribute
         Name of the attribute, written as column header.
     property_
-        Dict of values keyed by (tuples of) profile keys.
+        Dict of arrays keyed by profile keys or tuples of them.
     col
         Column index to start writing at.
-    nested_dict
-        Used if a dict contains a dict
 
     Returns
     -------
-    The latest column index.
+    int
+        The column index after the last column written.
     """
     first_col = col
-    offset = 1 if nested_dict else 0
 
     for key, value in property_.items():
-        # for nested dicts
-        initial_col = col
+        key_col = col
 
         if not isinstance(key, tuple):
             key = (key,)
 
-        if isinstance(value, dict):
-            # in rare cases a dict may container another dict
-            col = _export_dict(ws, *key, value, col, nested_dict=True)
+        col = _export_array(ws, attribute, value, col)
 
-            # duplicate first key across
-            for c in range(initial_col, col):
-                ws.cell(row=ROW_ATTR + 1, column=c).value = _format_header(key[0])
-
-        else:
-            col = _export_array(ws, attribute, value, col)
-
-            for k, key_ in enumerate(key):
-                ws.cell(
-                    row=ROW_KEY + k + offset, column=initial_col
-                ).value = _format_header(key_)
+        for k, key_ in enumerate(key):
+            ws.cell(row=ROW_KEY + k, column=key_col).value = _format_header(key_)
 
     # duplicate attribute name across each column header
     last_col = col
 
-    if not nested_dict:
-        for col in range(first_col, last_col):
-            ws.cell(row=ROW_ATTR, column=col).value = attribute
+    for col in range(first_col, last_col):
+        ws.cell(row=ROW_ATTR, column=col).value = attribute
 
     return last_col
 
@@ -677,20 +662,8 @@ def _flatten_to_csv(
                 key = (key,)
 
             key_str = ".".join(str(_format_header(k)) for k in key)
-            header = f"{node_name}.{attribute}.{key_str}"
-
-            if isinstance(value, dict):
-                # Nested dict - recursively flatten
-                for sub_key, sub_value in value.items():
-                    if not isinstance(sub_key, tuple):
-                        sub_key = (sub_key,)
-                    sub_key_str = ".".join(str(_format_header(k)) for k in sub_key)
-                    nested_header = f"{header}.{sub_key_str}"
-                    headers.append(nested_header)
-                    columns.append(sub_value)
-            else:
-                headers.append(header)
-                columns.append(value)
+            headers.append(f"{node_name}.{attribute}.{key_str}")
+            columns.append(value)
 
     elif isinstance(property_, list):
         for idx, value in enumerate(property_, start=1):

@@ -11,19 +11,22 @@ from __future__ import annotations
 
 import logging
 from types import SimpleNamespace
+from unittest.mock import MagicMock
 
 import numpy as np
 import openpyxl as xl
 import pytest
 
-from navigate.core.enum_ import ReportReduceID
+from navigate.core.enum_ import FuelTypeID, ReportReduceID
 from navigate.core.node_registry import Nodes
 from navigate.core.node_report import NodeReport
 from navigate.core.nodes.report import Report
 from navigate.core.nodes.vessel import Vessel
+from navigate.core.profiles.vessel_profile import VesselProfile
 from navigate.output import report_writer
 from navigate.output.report_writer import (
     ROW_RESULT,
+    _extract_properties,
     _prepare_export,
     _reduce_dict,
     write_report,
@@ -115,6 +118,68 @@ class TestReduceDict:
 
     def test_empty_dict_is_unchanged(self):
         assert _reduce_dict({}, ReportReduceID.FIRST) == {}
+
+
+class TestConverterEnergyReduction:
+    """ConverterEnergy reduces over its (vessel fuel type, fuel) key like any tuple."""
+
+    @staticmethod
+    def _node():
+        def fuel(lower_heating_value):
+            fuel_ = MagicMock()
+            fuel_.fuel_type = FuelTypeID.OIL
+            fuel_.liquid_market = False
+            fuel_.lower_heating_value.get.return_value = lower_heating_value
+            return fuel_
+
+        profile = VesselProfile()
+        profile.initialize(
+            timeline=np.array([0.0]),
+            emissions={},
+            fuels={"fuel_a": fuel(2.0), "fuel_b": fuel(10.0)},
+            emissions_lifetime=100.0,
+        )
+
+        # energy is mass times the lower heating value: OIL vessels burn 2 GJ
+        # of fuel_a and 20 GJ of fuel_b, METHANOL vessels 6 GJ and 40 GJ
+        profile.add_converter_mass(FuelTypeID.OIL, "fuel_a", 1.0)
+        profile.add_converter_mass(FuelTypeID.OIL, "fuel_b", 2.0)
+        profile.add_converter_mass(FuelTypeID.METHANOL, "fuel_a", 3.0)
+        profile.add_converter_mass(FuelTypeID.METHANOL, "fuel_b", 4.0)
+
+        return SimpleNamespace(name="vessel", profile=profile)
+
+    @classmethod
+    def _reduced(cls, reduce):
+        properties = dict(
+            _extract_properties(
+                cls._node(),
+                ["ConverterEnergy"],
+                ["get_converter_energy"],
+                [reduce],
+                "output",
+            )
+        )
+        return properties["ConverterEnergy"]
+
+    def test_first_sums_over_vessel_fuel_types_keyed_by_fuel(self):
+        result = self._reduced(ReportReduceID.FIRST)
+
+        assert result.keys() == {"fuel_a", "fuel_b"}
+        np.testing.assert_array_equal(result["fuel_a"], [8.0])
+        np.testing.assert_array_equal(result["fuel_b"], [60.0])
+
+    def test_second_sums_over_fuels_keyed_by_vessel_fuel_type(self):
+        result = self._reduced(ReportReduceID.SECOND)
+
+        assert result.keys() == set(FuelTypeID)
+        np.testing.assert_array_equal(result[FuelTypeID.OIL], [22.0])
+        np.testing.assert_array_equal(result[FuelTypeID.METHANOL], [46.0])
+        for fuel_type in set(FuelTypeID) - {FuelTypeID.OIL, FuelTypeID.METHANOL}:
+            np.testing.assert_array_equal(result[fuel_type], [0.0])
+
+    def test_both_sums_into_one_array(self):
+        np.testing.assert_array_equal(self._reduced(ReportReduceID.BOTH), [68.0])
 
 
 class TestWriteReportErrorContainment:
