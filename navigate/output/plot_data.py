@@ -137,8 +137,6 @@ class PlotData:
             AttributeError,
             ImportError,
             IndexError,
-            gzip.BadGzipFile,
-            MemoryError,
             OverflowError,
             TypeError,
             ValueError,
