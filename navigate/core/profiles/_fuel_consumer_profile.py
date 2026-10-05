@@ -429,10 +429,12 @@ class _FuelConsumerProfile(_FuelEmissionProfile, _FuelTypeLookup, abc.ABC):
     def get_total_consumed_energy(self) -> FloatArray:
         return self._sum_values(self.get_consumed_energy()) + self._shore_power_energy
 
-    def get_converter_energy(self) -> dict[FuelTypeID, dict[str, FloatArray]]:
+    def get_converter_energy(self) -> dict[tuple[FuelTypeID, str], FloatArray]:
+        """Fuel energy burnt in the converters, keyed by (vessel fuel type, fuel)."""
         return {
-            fuel_type: self._fuel_mass_to_energy(mass)
+            (fuel_type, fuel_name): energy
             for fuel_type, mass in self._converter_mass.items()
+            for fuel_name, energy in self._fuel_mass_to_energy(mass).items()
         }
 
     def get_pilot_fuel_share(self) -> dict[FuelTypeID, FloatArray]:

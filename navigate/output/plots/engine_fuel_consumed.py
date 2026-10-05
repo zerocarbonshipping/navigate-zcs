@@ -27,7 +27,9 @@ from navigate.output.plots._units import get_best_unit_energy
 if TYPE_CHECKING:
     from matplotlib.legend import Legend
 
+    from navigate.core.enum_ import FuelTypeID
     from navigate.output.plot_data import PlotData
+    from navigate.util.types_ import FloatArray
 
 
 def plot_engine_fuel_consumed(plot_data: PlotData, directory: str) -> None:
@@ -35,7 +37,11 @@ def plot_engine_fuel_consumed(plot_data: PlotData, directory: str) -> None:
     dateline = plot_data.dateline
 
     fuels = plot_data.nodes.fuels
-    engine_fuel_consumed = plot_data.profile.get_converter_energy()
+    converter_energy = plot_data.profile.get_converter_energy()
+
+    engine_fuel_consumed: dict[FuelTypeID, dict[str, FloatArray]] = {}
+    for (fuel_type, fuel_name), energy in converter_energy.items():
+        engine_fuel_consumed.setdefault(fuel_type, {})[fuel_name] = energy
 
     for consumed in engine_fuel_consumed.values():
         remove_below_threshold(consumed, 1.0)

@@ -147,7 +147,7 @@ The properties are applicable for the following commands:
 | FuelTypeEnergy                        | GJ/year                     | Fuel consumed in energy, aggregated by fuel type.                                            |
 | TotalConsumedEnergy                   | GJ/year                     | Total consumed energy across all fuels plus shore power.                                     |
 | ShorePowerEnergy                      | GJ/year                     | Shore power energy supplied.                                                                 |
-| ConverterEnergy                       | GJ/year                     | Fuel consumed in energy in vessels of a fuel type across fuels per fuel type.                |
+| ConverterEnergy                       | GJ/year                     | Fuel consumed in energy by the converters, one column per vessel fuel type and fuel.         |
 | PilotFuelShare                        | Ton/ton                     | The fraction of total fuel spent which is pilot fuel for each vessel fuel type.              |
 | EquivalentWtt                         | Ton CO<sub>2</sub>-eq./year | Emitted well-to-tank emissions per fuel and emission.                                        |
 | TotalEquivalentWtt                    | Ton CO<sub>2</sub>-eq./year | Total emitted well-to-tank emissions.                                                        |
