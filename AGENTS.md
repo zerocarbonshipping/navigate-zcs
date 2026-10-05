@@ -97,13 +97,6 @@ overwrite each other's files, and the test suites run decks too.
   tooling; CC-BY-4.0 for decks, assumptions, documentation and figures. A
   file that cannot carry a header gets an annotation in `REUSE.toml`.
   `reuse lint` catches a missing header, not a wrong licence.
-- The ratchet regions in `.ruff.toml` and `mypy.ini` list files that predate
-  the tooling, and `tools/ratchet.py` generates and prunes them. Entries are
-  only ever removed. When lint fails in a listed file, clean the whole file
-  in a style-only commit and delete its entry; a new file never gets one.
-  Never answer a ratchet entry by loosening the rule it waives: the entry
-  exists to be deleted once the file is clean, not to be made unnecessary by
-  weakening the rule for every other file.
 - No lint or type suppressions in code: no `noqa`, no `type: ignore`. The
   configuration catches only the blanket forms, through `PGH`; a targeted
   suppression passes `make lint` and is still not written. Fix the code, or

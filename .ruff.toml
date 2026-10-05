@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 # This repository's ruff configuration: lint rule selection, docstring and
-# import conventions, per-file waivers, and the legacy-file ratchet.
+# import conventions, and per-file waivers.
 
 line-length = 88
 target-version = "py313"
@@ -70,6 +70,3 @@ known-first-party = ["helpers"]
 # tests document themselves through their names and access private state of
 # the module under test (white-box testing is the suite convention)
 "tests/*" = ["D1", "SLF001"]
-
-# >>> generated ratchet - entries may only be removed, never added >>>
-# <<< generated ratchet <<<
