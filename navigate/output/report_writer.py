@@ -14,11 +14,11 @@ from __future__ import annotations
 import csv
 import logging
 import os
+from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, NamedTuple
 
-import numpy as np
 import openpyxl as xl
 
 from navigate.core.enum_ import FileFormatID, ReportReduceID
@@ -33,12 +33,16 @@ from navigate.util import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Callable, Iterator, Mapping
+
+    import numpy as np
     from openpyxl.worksheet.worksheet import Worksheet
 
-    from navigate.core.node import Node
     from navigate.core.node_report import NodeReport
     from navigate.core.nodes.report import Report
+    from navigate.core.profiles._base_profile import _BaseProfile
     from navigate.simulation import SimulationManager
+    from navigate.util.types_ import BoolArray, FloatArray
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +50,23 @@ ROW_NODE = 1
 ROW_ATTR = 2
 ROW_KEY = 3
 ROW_RESULT = 5
+
+
+@dataclass
+class CsvSheet:
+    """Headers and data columns of one CSV report file, one column per header."""
+
+    headers: list[str] = field(default_factory=list)
+    columns: list[FloatArray | BoolArray] = field(default_factory=list)
+
+
+class _Section(NamedTuple):
+    """One node type's report requests together with the profiles they resolve to."""
+
+    log_name: str
+    sheet_title: str
+    profiles: Mapping[str, _BaseProfile]
+    requests: dict[str, NodeReport]
 
 
 def write_report(
@@ -78,63 +99,79 @@ def write_report(
         Dates of the simulation timeline.
     """
     report_name = report.name
-    is_xlsx = report.file_format == FileFormatID.XLSX
 
-    wb = xl.Workbook() if is_xlsx else None
-    csv_data = None if is_xlsx else {}
+    if report.file_format == FileFormatID.XLSX:
+        wb = xl.Workbook()
 
-    sections = (
-        ("manager", "Global", {manager.name: manager}, report.manager_reports),
-        ("fleets", "Fleets", manager.nodes.fleets, report.fleet_reports),
-        ("levies", "Levies", manager.nodes.levies, report.levy_reports),
-        ("plants", "Plants", manager.nodes.plants, report.plant_reports),
-        ("ports", "Ports", manager.nodes.ports, report.port_reports),
-        ("producers", "Producers", manager.nodes.producers, report.producer_reports),
-        (
-            "regulations",
-            "Regulations",
-            manager.nodes.regulations,
-            report.regulation_reports,
-        ),
-        ("vessels", "Vessels", manager.nodes.vessels, report.vessel_reports),
-    )
+        def export_section(section: _Section) -> None:
+            export_properties_xlsx(
+                wb.create_sheet(title=section.sheet_title),
+                section.profiles,
+                section.requests,
+                report_name,
+            )
 
+        def save(directory: str) -> None:
+            write_xlsx_report(wb, directory, deck_name, report_name, dateline)
+
+    else:
+        sheets: dict[str, CsvSheet] = {}
+
+        def export_section(section: _Section) -> None:
+            export_properties_csv(
+                section.sheet_title,
+                section.profiles,
+                section.requests,
+                report_name,
+                sheets,
+            )
+
+        def save(directory: str) -> None:
+            write_csv_report(sheets, directory, deck_name, report_name, dateline)
+
+    _export_and_save(report, manager, deck_directory, export_section, save)
+
+
+def _export_and_save(
+    report: Report,
+    manager: SimulationManager,
+    deck_directory: str,
+    export_section: Callable[[_Section], None],
+    save: Callable[[str], None],
+) -> None:
+    """
+    Export each requested section, then save the report, containing failures per layer.
+
+    Parameters
+    ----------
+    report
+        Report node holding the collected export requests.
+    manager
+        Simulation manager providing the node collections.
+    deck_directory
+        Directory of the simulation deck, base for the report directory.
+    export_section
+        Exports one section into the format's pending output.
+    save
+        Writes the pending output into the given report directory.
+    """
+    report_name = report.name
     sheet_errors = 0
 
-    for section_name, sheet_title, nodes, extraction_dict in sections:
-        if not extraction_dict:
-            continue
-
+    for section in _sections(report, manager):
         try:
-            if is_xlsx:
-                export_properties_xlsx(
-                    wb.create_sheet(title=sheet_title),
-                    nodes,
-                    extraction_dict,
-                    report_name,
-                )
-            else:
-                export_properties_csv(
-                    sheet_title, nodes, extraction_dict, report_name, csv_data
-                )
+            export_section(section)
         except Exception as e:
             logger.error(
-                "Report '%s': Failed to export '%s': %s", report_name, section_name, e
+                "Report '%s': Failed to export '%s': %s",
+                report_name,
+                section.log_name,
+                e,
             )
             sheet_errors += 1
 
     try:
-        if report.directory is not None:
-            directory = os.path.join(deck_directory, report.directory)
-        else:
-            directory = deck_directory
-
-        os.makedirs(directory, exist_ok=True)
-
-        if is_xlsx:
-            write_xlsx_report(wb, directory, deck_name, report_name, dateline)
-        else:
-            write_csv_report(csv_data, directory, deck_name, report_name, dateline)
+        save(_ensure_report_directory(report, deck_directory))
     except Exception as e:
         logger.error("Report '%s': Failed to save file: %s", report_name, e)
 
@@ -142,6 +179,104 @@ def write_report(
         logger.warning(
             "Report '%s': Completed with %d sheet error(s).", report_name, sheet_errors
         )
+
+
+def _sections(report: Report, manager: SimulationManager) -> Iterator[_Section]:
+    """
+    Yield each section the report requests properties from, in sheet order.
+
+    Parameters
+    ----------
+    report
+        Report node holding the collected export requests.
+    manager
+        Simulation manager providing the node collections.
+
+    Yields
+    ------
+    _Section
+        Each section with at least one request, its profiles keyed by node name.
+    """
+    nodes = manager.nodes
+    sections = (
+        _Section(
+            "manager", "Global", {manager.name: manager.profile}, report.manager_reports
+        ),
+        _Section(
+            "fleets",
+            "Fleets",
+            {name: fleet.profile for name, fleet in nodes.fleets.items()},
+            report.fleet_reports,
+        ),
+        _Section(
+            "levies",
+            "Levies",
+            {name: levy.profile for name, levy in nodes.levies.items()},
+            report.levy_reports,
+        ),
+        _Section(
+            "plants",
+            "Plants",
+            {name: plant.profile for name, plant in nodes.plants.items()},
+            report.plant_reports,
+        ),
+        _Section(
+            "ports",
+            "Ports",
+            {name: port.profile for name, port in nodes.ports.items()},
+            report.port_reports,
+        ),
+        _Section(
+            "producers",
+            "Producers",
+            {name: producer.profile for name, producer in nodes.producers.items()},
+            report.producer_reports,
+        ),
+        _Section(
+            "regulations",
+            "Regulations",
+            {
+                name: regulation.profile
+                for name, regulation in nodes.regulations.items()
+            },
+            report.regulation_reports,
+        ),
+        _Section(
+            "vessels",
+            "Vessels",
+            {name: vessel.profile for name, vessel in nodes.vessels.items()},
+            report.vessel_reports,
+        ),
+    )
+
+    for section in sections:
+        if section.requests:
+            yield section
+
+
+def _ensure_report_directory(report: Report, deck_directory: str) -> str:
+    """
+    Create the directory the report is saved in, if missing, and return it.
+
+    Parameters
+    ----------
+    report
+        Report node, whose directory is absolute or relative to the deck directory.
+    deck_directory
+        Directory of the simulation deck.
+
+    Returns
+    -------
+    str
+        Path of the report directory.
+    """
+    if report.directory is not None:
+        directory = os.path.join(deck_directory, report.directory)
+    else:
+        directory = deck_directory
+
+    os.makedirs(directory, exist_ok=True)
+    return directory
 
 
 def write_xlsx_report(
@@ -196,7 +331,7 @@ def write_xlsx_report(
 
 
 def write_csv_report(
-    csv_data: dict,
+    sheets: dict[str, CsvSheet],
     directory: str,
     deck_name: str,
     report_name: str,
@@ -207,8 +342,8 @@ def write_csv_report(
 
     Parameters
     ----------
-    csv_data
-        Per-sheet headers and columns collected by export_properties_csv.
+    sheets
+        Sheets collected by export_properties_csv, keyed by sheet name.
     directory
         Directory to save the files in.
     deck_name
@@ -220,7 +355,7 @@ def write_csv_report(
     """
     timeline = dates_to_days(dateline)
 
-    for sheet_name, sheet_data in csv_data.items():
+    for sheet_name, sheet in sheets.items():
         base_path = os.path.join(
             directory, f"{deck_name}_{report_name}_{sheet_name}.csv"
         )
@@ -234,7 +369,7 @@ def write_csv_report(
                     writer = csv.writer(f)
 
                     # Write headers
-                    headers = ["Date", "Time (days)"] + sheet_data["headers"]
+                    headers = ["Date", "Time (days)", *sheet.headers]
                     writer.writerow(headers)
 
                     # Write data rows
@@ -243,15 +378,9 @@ def write_csv_report(
                             str(date),  # Convert numpy datetime to string
                             timeline[i],
                         ]
-                        # Extract value at index i from each column
-                        row.extend(
-                            [
-                                col[i]
-                                if (hasattr(col, "__getitem__") and i < len(col))
-                                else col
-                                for col in sheet_data["columns"]
-                            ]
-                        )
+                        # every column spans the full timeline, as profiles
+                        # are initialized on it
+                        row.extend([col[i] for col in sheet.columns])
                         writer.writerow(row)
 
                 if attempt > 0:
@@ -270,81 +399,89 @@ def write_csv_report(
 
 def export_properties_xlsx(
     ws: Worksheet,
-    nodes: dict[str, Node],
-    extraction_dict: dict[str, NodeReport],
+    profiles: Mapping[str, _BaseProfile],
+    requests: dict[str, NodeReport],
     report_name: str,
 ) -> None:
     """
-    Write the requested properties of the given nodes into a worksheet.
+    Write the requested properties of the given node profiles into a worksheet.
 
     Parameters
     ----------
     ws
         Worksheet to write into.
-    nodes
-        Dict of all nodes of a certain type.
-    extraction_dict
-        Dict of all requested node reports.
+    profiles
+        Profiles of all nodes of a certain type, keyed by node name.
+    requests
+        Node reports requested, keyed by node name or pattern.
     report_name
         Name of the Report node, used in log messages.
     """
     col = 3
 
-    export = _prepare_export(nodes, extraction_dict, report_name, ws.title)
+    export = _prepare_export(profiles, requests, report_name, ws.title)
 
     for node_name, (attributes, getters, reductions) in export.items():
-        node = nodes[node_name]
-
         properties = dict(
-            _extract_properties(node, attributes, getters, reductions, report_name)
+            _extract_properties(
+                node_name,
+                profiles[node_name],
+                attributes,
+                getters,
+                reductions,
+                report_name,
+            )
         )
 
-        col = _export_node(ws, node, properties, col)
+        col = _export_node(ws, node_name, properties, col)
 
 
 def export_properties_csv(
     sheet_name: str,
-    nodes: dict[str, Node],
-    extraction_dict: dict[str, NodeReport],
+    profiles: Mapping[str, _BaseProfile],
+    requests: dict[str, NodeReport],
     report_name: str,
-    csv_data: dict,
+    sheets: dict[str, CsvSheet],
 ) -> None:
     """
-    Flattens the requested properties of the nodes into csv_data under the sheet name.
+    Flatten the node profiles' requested properties into one sheet, added to sheets.
 
     Parameters
     ----------
     sheet_name
         Sheet name to store the flattened data under.
-    nodes
-        Dict of all nodes of a certain type.
-    extraction_dict
-        Dict of all requested node reports.
+    profiles
+        Profiles of all nodes of a certain type, keyed by node name.
+    requests
+        Node reports requested, keyed by node name or pattern.
     report_name
         Name of the Report node, used in log messages.
-    csv_data
-        Per-sheet headers and columns, modified in-place.
+    sheets
+        Sheets keyed by sheet name, modified in-place; a sheet without data
+        is not added.
     """
-    export = _prepare_export(nodes, extraction_dict, report_name, sheet_name)
+    export = _prepare_export(profiles, requests, report_name, sheet_name)
 
-    headers = []
-    columns = []
+    sheet = CsvSheet()
 
     for node_name, (attributes, getters, reductions) in export.items():
-        node = nodes[node_name]
-
         for attribute, property_ in _extract_properties(
-            node, attributes, getters, reductions, report_name
+            node_name,
+            profiles[node_name],
+            attributes,
+            getters,
+            reductions,
+            report_name,
         ):
-            _flatten_to_csv(node_name, attribute, property_, headers, columns)
+            _flatten_to_csv(sheet, node_name, attribute, property_)
 
-    # Store data for this sheet
-    if headers:  # Only add if there's data
-        csv_data[sheet_name] = {"headers": headers, "columns": columns}
+    if sheet.headers:
+        sheets[sheet_name] = sheet
 
 
 def _extract_properties(
-    node: Node,
+    node_name: str,
+    profile: _BaseProfile,
     attributes: list[str],
     getters: list[str],
     reductions: list[ReportReduceID],
@@ -355,8 +492,10 @@ def _extract_properties(
 
     Parameters
     ----------
-    node
-        Node to read properties from.
+    node_name
+        Name of the node, used in log messages.
+    profile
+        Profile of the node to read properties from.
     attributes
         Requested attribute names.
     getters
@@ -366,9 +505,6 @@ def _extract_properties(
     report_name
         Name of the Report node, used in log messages.
     """
-    profile = node.profile
-    node_name = node.name
-
     for attribute, getter, reduce in zip(attributes, getters, reductions, strict=True):
         try:
             # the parser checked every getter against the profile class of its
@@ -378,11 +514,7 @@ def _extract_properties(
             if isinstance(property_, dict):
                 property_ = _reduce_dict(property_, reduce)
 
-            elif isinstance(property_, list) and reduce != ReportReduceID.NONE:
-                property_ = np.add.reduce(property_)
-
-            if property_ is not None:
-                yield attribute, property_
+            yield attribute, property_
 
         except Exception as e:
             logger.error(
@@ -462,16 +594,16 @@ def _get_alternative_path(base_path: str, counter: int) -> str:
 
 
 def _prepare_export(
-    nodes: dict[str, Node],
-    extraction_dict: dict[str, NodeReport],
+    profiles: Mapping[str, _BaseProfile],
+    requests: dict[str, NodeReport],
     report_name: str,
     sheet_name: str,
 ) -> dict:
 
     export = {}
 
-    for key, report in extraction_dict.items():
-        node_names = matching_keys(key, nodes)
+    for key, report in requests.items():
+        node_names = matching_keys(key, profiles)
 
         if not node_names:
             logger.warning(
@@ -506,7 +638,7 @@ def _export_date_time(wb: xl.Workbook, dateline: np.ndarray) -> None:
         _export_array(ws, "", timeline, 2)
 
 
-def _export_node(ws: Worksheet, node: Node, properties: dict, col: int) -> int:
+def _export_node(ws: Worksheet, node_name: str, properties: dict, col: int) -> int:
 
     first_col = col
     last_col = _write_properties(ws, properties, col) - 1
@@ -514,7 +646,7 @@ def _export_node(ws: Worksheet, node: Node, properties: dict, col: int) -> int:
     # duplicate node name across each column header
     # if this is the first instance of the node export
     for col in range(first_col, last_col):
-        ws.cell(row=ROW_NODE, column=col).value = node.name
+        ws.cell(row=ROW_NODE, column=col).value = node_name
 
     return last_col
 
@@ -526,19 +658,8 @@ def _write_properties(ws: Worksheet, properties: dict, col: int) -> int:
             if isinstance(property_, dict):
                 col = _export_dict(ws, attribute, property_, col)
 
-            elif isinstance(property_, list):
-                col = _export_list(ws, attribute, property_, col)
-
-            elif isinstance(property_, np.ndarray):
-                col = _export_array(ws, attribute, property_, col)
-
             else:
-                logger.error(
-                    "Skipping attribute '%s': unsupported type %s.",
-                    attribute,
-                    type(property_),
-                )
-                continue
+                col = _export_array(ws, attribute, property_, col)
         except Exception as e:
             logger.error("Skipping attribute '%s': %s", attribute, e)
             continue
@@ -590,26 +711,6 @@ def _export_dict(ws: Worksheet, attribute: str, property_: dict, col: int) -> in
     return last_col
 
 
-def _export_list(ws: Worksheet, attribute: str, property_: list, col: int) -> int:
-
-    first_col = col
-
-    n = len(property_)
-    indexes = range(1, n + 1)
-
-    for idx, value in zip(indexes, property_, strict=True):
-        ws.cell(row=ROW_KEY, column=col).value = f"Index {idx}"
-        col = _export_array(ws, attribute, value, col)
-
-    # duplicate attribute name across each column header
-    last_col = col
-
-    for col in range(first_col, last_col):
-        ws.cell(row=2, column=col).value = attribute
-
-    return last_col
-
-
 def _export_array(
     ws: Worksheet, attribute: str, property_: np.ndarray, col: int
 ) -> int:
@@ -636,24 +737,20 @@ def _format_header(header):
         return header
 
 
-def _flatten_to_csv(
-    node_name: str, attribute: str, property_, headers: list, columns: list
-) -> None:
+def _flatten_to_csv(sheet: CsvSheet, node_name: str, attribute: str, property_) -> None:
     """
-    Flatten a property structure into CSV headers and column data.
+    Flatten a property into CSV headers and columns, one column per array.
 
     Parameters
     ----------
+    sheet
+        Sheet to append the headers and columns to, modified in-place.
     node_name
-        Name of the node
+        Name of the node.
     attribute
-        Name of the attribute
+        Name of the attribute.
     property_
-        The property data to flatten (dict, list, or np.ndarray).
-    headers
-        List to append header names to (modified in-place)
-    columns
-        List to append column data to (modified in-place)
+        The property to flatten, an array or a dict of arrays.
     """
     if isinstance(property_, dict):
         for key, value in property_.items():
@@ -662,25 +759,9 @@ def _flatten_to_csv(
                 key = (key,)
 
             key_str = ".".join(str(_format_header(k)) for k in key)
-            headers.append(f"{node_name}.{attribute}.{key_str}")
-            columns.append(value)
-
-    elif isinstance(property_, list):
-        for idx, value in enumerate(property_, start=1):
-            header = f"{node_name}.{attribute}.Index{idx}"
-            headers.append(header)
-            columns.append(value)
-
-    elif isinstance(property_, np.ndarray):
-        header = f"{node_name}.{attribute}"
-        headers.append(header)
-        columns.append(property_)
+            sheet.headers.append(f"{node_name}.{attribute}.{key_str}")
+            sheet.columns.append(value)
 
     else:
-        logger.error(
-            "Skipping CSV attribute '%s' for node '%s': unsupported type %s.",
-            attribute,
-            node_name,
-            type(property_),
-        )
-        return
+        sheet.headers.append(f"{node_name}.{attribute}")
+        sheet.columns.append(property_)

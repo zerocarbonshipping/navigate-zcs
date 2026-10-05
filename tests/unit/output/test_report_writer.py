@@ -20,12 +20,15 @@ import pytest
 from navigate.core.enum_ import FuelTypeID, ReportReduceID
 from navigate.core.node_registry import Nodes
 from navigate.core.node_report import NodeReport
+from navigate.core.nodes.fleet import Fleet
 from navigate.core.nodes.report import Report
 from navigate.core.nodes.vessel import Vessel
+from navigate.core.profiles.manager_profile import ManagerProfile
 from navigate.core.profiles.vessel_profile import VesselProfile
 from navigate.output import report_writer
 from navigate.output.report_writer import (
     ROW_RESULT,
+    CsvSheet,
     _extract_properties,
     _prepare_export,
     _reduce_dict,
@@ -41,19 +44,21 @@ def _node_report(attribute="Lifetime"):
 
 class TestPrepareExport:
     def test_matched_name_exports(self):
-        nodes = {"vessel": Vessel("vessel")}
+        profiles = {"vessel": VesselProfile()}
 
-        export = _prepare_export(nodes, {"vessel": _node_report()}, "output", "Vessels")
+        export = _prepare_export(
+            profiles, {"vessel": _node_report()}, "output", "Vessels"
+        )
 
         assert set(export) == {"vessel"}
         assert export["vessel"][0] == ["Lifetime"]
 
     def test_unmatched_name_warns_and_skips(self, caplog):
-        nodes = {"vessel": Vessel("vessel")}
+        profiles = {"vessel": VesselProfile()}
 
         with caplog.at_level(logging.WARNING):
             export = _prepare_export(
-                nodes, {"ghost": _node_report()}, "output", "Vessels"
+                profiles, {"ghost": _node_report()}, "output", "Vessels"
             )
 
         assert export == {}
@@ -124,7 +129,7 @@ class TestConverterEnergyReduction:
     """ConverterEnergy reduces over its (vessel fuel type, fuel) key like any tuple."""
 
     @staticmethod
-    def _node():
+    def _profile():
         def fuel(lower_heating_value):
             fuel_ = MagicMock()
             fuel_.fuel_type = FuelTypeID.OIL
@@ -147,13 +152,14 @@ class TestConverterEnergyReduction:
         profile.add_converter_mass(FuelTypeID.METHANOL, "fuel_a", 3.0)
         profile.add_converter_mass(FuelTypeID.METHANOL, "fuel_b", 4.0)
 
-        return SimpleNamespace(name="vessel", profile=profile)
+        return profile
 
     @classmethod
     def _reduced(cls, reduce):
         properties = dict(
             _extract_properties(
-                cls._node(),
+                "vessel",
+                cls._profile(),
                 ["ConverterEnergy"],
                 ["get_converter_energy"],
                 [reduce],
@@ -190,7 +196,11 @@ class TestWriteReportErrorContainment:
         report.add_vessel_property("vessel", "Lifetime")
 
         manager = SimpleNamespace(
-            name="global", nodes=Nodes(fleets={"fleet": None}, vessels={"vessel": None})
+            name="global",
+            profile=ManagerProfile(),
+            nodes=Nodes(
+                fleets={"fleet": Fleet("fleet")}, vessels={"vessel": Vessel("vessel")}
+            ),
         )
         return report, manager
 
@@ -199,7 +209,7 @@ class TestWriteReportErrorContainment:
     ):
         report, manager = self._report_and_manager()
 
-        def fail_on_fleets(ws, nodes, extraction_dict, report_name):
+        def fail_on_fleets(ws, profiles, requests, report_name):
             if ws.title == "Fleets":
                 raise RuntimeError("boom")
             ws.cell(row=ROW_RESULT, column=3).value = "exported"
@@ -221,13 +231,12 @@ class TestWriteReportErrorContainment:
         report, manager = self._report_and_manager()
         report.set_file_format("CSV")
 
-        def fail_on_fleets(sheet_name, nodes, extraction_dict, report_name, csv_data):
+        def fail_on_fleets(sheet_name, profiles, requests, report_name, sheets):
             if sheet_name == "Fleets":
                 raise RuntimeError("boom")
-            csv_data[sheet_name] = {
-                "headers": ["marker"],
-                "columns": [np.array([1.0, 2.0])],
-            }
+            sheets[sheet_name] = CsvSheet(
+                headers=["marker"], columns=[np.array([1.0, 2.0])]
+            )
 
         monkeypatch.setattr(report_writer, "export_properties_csv", fail_on_fleets)
         dateline = np.array(["2030-01-01", "2031-01-01"], dtype="datetime64[D]")
