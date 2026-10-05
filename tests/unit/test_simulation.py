@@ -1,14 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""
-Tests for the time-stepping loop in ``SimulationManager._run_simulation``.
-
-``Parser.progress_timeline`` returns ``None`` once every date is read, and a date
-otherwise. ``np.datetime64("1970-01-01")`` holds the integer 0 and is therefore falsy,
-so the loop must compare the returned date against ``None`` rather than its truthiness,
-or a timeline date of 1970-01-01 ends the simulation early (#403).
-"""
+"""Tests for the time-stepping loop of SimulationManager."""
 
 from __future__ import annotations
 
