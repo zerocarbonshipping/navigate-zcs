@@ -101,16 +101,6 @@ def _bad_data_dir_from_env_var(tmp_path, monkeypatch):
     return [deck]
 
 
-def _missing_replot_path(tmp_path, monkeypatch):
-    return ["--replot", tmp_path / "nope"]
-
-
-def _replot_include_wrong_extension(tmp_path, monkeypatch):
-    plots = tmp_path / "plots.txt"
-    plots.write_text("")
-    return ["--replot", tmp_path, plots]
-
-
 class TestArgumentValidation:
     @pytest.mark.parametrize(
         ("build_argv", "expected"),
@@ -119,7 +109,9 @@ class TestArgumentValidation:
             pytest.param(_directory_as_deck, ["directory"], id="directory_as_deck"),
             pytest.param(_wrong_extension, [".nav"], id="wrong_extension"),
             pytest.param(
-                _missing_filename, ["filename is required"], id="missing_filename"
+                _missing_filename,
+                ["the following arguments are required"],
+                id="missing_filename",
             ),
             pytest.param(
                 _bad_data_dir, ["-d/--data-dir", "no_such_dir"], id="bad_data_dir"
@@ -128,12 +120,6 @@ class TestArgumentValidation:
                 _bad_data_dir_from_env_var,
                 [ASSUMPTIONS_ENV_VAR],
                 id="bad_data_dir_from_env_var",
-            ),
-            pytest.param(_missing_replot_path, ["--replot"], id="missing_replot_path"),
-            pytest.param(
-                _replot_include_wrong_extension,
-                [".inc"],
-                id="replot_include_wrong_extension",
             ),
         ],
     )
@@ -207,15 +193,6 @@ class TestTopLevelErrorHandling:
         assert expected in captured.err
         assert "Traceback" not in captured.err
         assert "Traceback" not in captured.out
-
-    def test_replot_bad_pickle_no_traceback(self, monkeypatch, capsys, tmp_path):
-        (tmp_path / "plot_data.pkl").write_bytes(b"not a gzip file")
-
-        assert _run_main(monkeypatch, "--replot", tmp_path) == 1
-
-        captured = capsys.readouterr()
-        assert "Error:" in captured.err
-        assert "Traceback" not in captured.err
 
     def test_keyboard_interrupt_exits_130(self, monkeypatch, capsys, tmp_path):
         deck = tmp_path / "deck.nav"

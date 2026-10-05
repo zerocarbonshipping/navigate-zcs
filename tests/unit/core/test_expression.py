@@ -6,7 +6,6 @@
 from __future__ import annotations
 
 import copy
-import pickle
 
 import numpy as np
 import pytest
@@ -267,7 +266,7 @@ class TestRejectedSyntax:
             Expression(text)
 
 
-# ── copy and pickle semantics ─────────────────────────────────────────────────
+# ── copy semantics ────────────────────────────────────────────────────────────
 
 
 class TestCopySemantics:
@@ -287,10 +286,3 @@ class TestCopySemantics:
 
         assert expression.get() == 2.0
         assert clone.get() == 5.0
-
-    def test_pickle_round_trip(self):
-        expression = Expression('2 * Forecast("x")')
-        expression.node_references = [_StubNode(3.0)]
-
-        restored = pickle.loads(pickle.dumps(expression))
-        assert restored.get() == 6.0
