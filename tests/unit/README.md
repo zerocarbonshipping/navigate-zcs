@@ -37,6 +37,11 @@ its signal, not its size.
   carries input data (`tests/unit/test_emission_coefficient.py`'s ports) is
   fine; mock choreography that mirrors the implementation's call sequence, or
   screens of setup, means the test sits at the wrong altitude.
+- A contract of the time-step loop in `SimulationManager`, such as which
+  step's inputs a calculation sees, is tested by running a minimal deck from
+  `simulations/` for a few steps, its solver pinned through
+  `simulations/0_includes/options.inc`, and asserting a result whose value
+  follows from the deck's inputs.
 - Private functions are a normal test surface: test at whatever level the
   contract can be stated without reference to the caller (a formula, a
   validation rule), underscore or not. What pins a decomposition is a test

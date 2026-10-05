@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: CC-BY-4.0
+
+# ------------------------------------------------------------------------------
+# UNIT DECK: PORT EVENT TIMING
+#
+# One oil container fleet that can bunker either of two liquid-market oil
+# fuels, identical but for their port price. An EVENTS block raises the
+# handling cost of the cheaper fuel at 01-01-2028, making it the dearer one
+# from that step on. tests/unit/test_simulation.py asserts which fuel that
+# step's expected bunkering uses.
+# ------------------------------------------------------------------------------
+
+DEFINE {
+	Load DefaultModelDefinition
+
+	Include "../0_includes/options.inc"
+	Include "includes/fleet.inc"
+	Include "includes/ports.inc"
+
+	Load DefaultEmission
+}
+
+EVENTS {
+	Include "includes/events.inc"
+}
