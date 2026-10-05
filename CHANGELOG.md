@@ -141,6 +141,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `_cost` plots, and the offset lines of the emission and compliance plots.
 
 ### Fixed
+- The manual no longer says `plot_data.pkl` needs a `Plot` node; it is
+  written after every run (#406).
 - Reference-manual corrections:
   - default nodes and modules live under `<data_dir>/defaults/` and
     `<data_dir>/modules/`, and a separate reference to a Copy source pulls
@@ -334,6 +336,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   the fuel types a deck declares or uses, in the standard order, instead of
   a fixed list with empty panels or legend rows for the types it does not
   (#393).
+- The completion line in the `.log` file no longer reads "in elapsed time:
+  ... seconds" (#404).
 - A simulation whose timeline includes 1970-01-01 now runs past that date
   instead of stopping there (#403).
 

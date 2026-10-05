@@ -5,13 +5,14 @@
 
 from __future__ import annotations
 
+import argparse
 import logging
 import os
 import sys
 
 import pytest
 
-from navigate.__main__ import ASSUMPTIONS_ENV_VAR, main
+from navigate.__main__ import ASSUMPTIONS_ENV_VAR, _run, main
 
 # Fails at parse time with a caret-pointed DeckFormatError, before any simulation work.
 GARBLED_DECK = "DEFINE {\n    garbage\n}\n"
@@ -226,6 +227,38 @@ class TestTopLevelErrorHandling:
 
         assert _run_main(monkeypatch, deck) == 130
         assert "Interrupted" in capsys.readouterr().err
+
+
+class TestRunCompletionLogging:
+    def test_logs_elapsed_time_without_doubled_unit(
+        self, monkeypatch, caplog, tmp_path
+    ):
+        class _StubManager:
+            def read_deck(self, path, args):
+                pass
+
+            def run(self):
+                pass
+
+            def get_elapsed_time(self):
+                return "elapsed time: 0m and 5s"
+
+        monkeypatch.setattr("navigate.__main__.SimulationManager", _StubManager)
+        args = argparse.Namespace(profile=False)
+
+        with caplog.at_level(logging.INFO, logger="navigate.__main__"):
+            _run(tmp_path / "deck.nav", args)
+
+        completed = [
+            record.getMessage()
+            for record in caplog.records
+            if "completed successfully" in record.getMessage()
+        ]
+        assert len(completed) == 1
+        message = completed[0]
+        assert message == "Simulation completed successfully, elapsed time: 0m and 5s."
+        assert message.count("elapsed time:") == 1
+        assert "seconds" not in message
 
 
 class TestWorkingDirectory:
