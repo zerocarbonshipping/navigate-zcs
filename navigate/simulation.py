@@ -201,8 +201,9 @@ class SimulationManager:
         # read the first date after initialization
         date = self.parser.progress_timeline()
 
-        # time-stepping loop
-        while date:
+        # time-stepping loop; compared against None, not truthiness, because
+        # a 1970-01-01 np.datetime64 (underlying integer 0) is falsy
+        while date is not None:
             # update current time information
             self._progress_date_time(date)
 

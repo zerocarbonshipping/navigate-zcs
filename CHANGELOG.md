@@ -334,6 +334,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   the fuel types a deck declares or uses, in the standard order, instead of
   a fixed list with empty panels or legend rows for the types it does not
   (#393).
+- A simulation whose timeline includes 1970-01-01 now runs past that date
+  instead of stopping there (#403).
 
 ## [1.0.0] - 2026-07-16
 
