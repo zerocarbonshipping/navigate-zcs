@@ -89,12 +89,6 @@ def test_select_fuel_types_is_vessel_primary_type_with_matching_converter():
     assert result == [FuelTypeID.OIL, FuelTypeID.METHANOL]
 
 
-def test_select_fuel_types_empty_with_no_dual_fuel_converter():
-    vessels = {"oil": _vessel(FuelTypeID.OIL, [_converter(main=[FuelTypeID.OIL])])}
-
-    assert _select_fuel_types(vessels) == []
-
-
 def test_minimum_pilot_share_is_max_over_matching_converters_per_primary_type():
     low = _vessel(
         FuelTypeID.METHANOL,

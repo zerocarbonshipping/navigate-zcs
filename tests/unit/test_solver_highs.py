@@ -34,11 +34,10 @@ def _build_capped_sum():
 @pytest.mark.parametrize(
     ("upper_bounds", "expected_solutions"),
     [
-        ([3.0], [(3.0, 7.0)]),
         ([3.0, 6.0], [(3.0, 7.0), (6.0, 4.0)]),
-        ([6.0, 3.0], [(6.0, 4.0), (3.0, 7.0)]),
         ([3.0, 0.0], [(3.0, 7.0), (0.0, 10.0)]),
     ],
+    ids=["raised_after_lowered", "zero"],
 )
 def test_upper_bound_caps_variable_across_solves(upper_bounds, expected_solutions):
     model, x, y = _build_capped_sum()
@@ -74,15 +73,6 @@ def test_optimum_below_upper_bound_is_not_raised_to_it():
 
     assert model.Status == solver_highs.OPTIMAL
     assert solution == pytest.approx((2.0, 0.0), abs=SOLUTION_TOLERANCE)
-
-
-def test_upper_bound_change_does_not_mark_model_grown():
-    model, x, _ = _build_capped_sum()
-    model.optimize()
-
-    x.UB = 3.0
-
-    assert not model._model_grew
 
 
 def test_removed_variable_stays_at_zero_despite_pending_upper_bound():

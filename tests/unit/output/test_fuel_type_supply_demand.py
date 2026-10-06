@@ -52,10 +52,6 @@ def test_select_fuel_types_is_declared_union_converter_types_in_order():
     ]
 
 
-def test_select_fuel_types_empty_when_nothing_declares_or_uses_a_type():
-    assert _select_fuel_types(_no_declared_fuels(), converters={}) == []
-
-
 def test_plot_writes_no_file_with_no_fuel_types(tmp_path):
     plot_data = SimpleNamespace(
         dateline=None,

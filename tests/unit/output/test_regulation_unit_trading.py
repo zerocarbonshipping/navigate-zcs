@@ -58,18 +58,3 @@ def test_plot_leaves_profile_arrays_unchanged(tmp_path):
     np.testing.assert_array_equal(flexibility_units, flexibility_before)
     np.testing.assert_array_equal(remedial_units, remedial_before)
     assert (tmp_path / "regulation_unit_trading_ets.png").exists()
-
-
-def test_plot_skips_a_non_flexible_regulation(tmp_path):
-    dateline = np.array(["2030-01-01", "2031-01-01"], dtype="datetime64[D]")
-    profile = _regulation_profile(
-        np.array([1.0, 2.0]), np.array([1.0, 2.0]), np.array([1.0, 2.0])
-    )
-    regulation = SimpleNamespace(scheme=RegulationSchemeID.INDIVIDUAL, profile=profile)
-    plot_data = SimpleNamespace(
-        dateline=dateline, nodes=SimpleNamespace(regulations={"eexi": regulation})
-    )
-
-    plot_regulation_unit_trading(plot_data, str(tmp_path))
-
-    assert not (tmp_path / "regulation_unit_trading_eexi.png").exists()

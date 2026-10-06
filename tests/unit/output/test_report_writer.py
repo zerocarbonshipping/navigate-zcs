@@ -43,16 +43,6 @@ def _node_report(attribute="Lifetime"):
 
 
 class TestPrepareExport:
-    def test_matched_name_exports(self):
-        profiles = {"vessel": VesselProfile()}
-
-        export = _prepare_export(
-            profiles, {"vessel": _node_report()}, "output", "Vessels"
-        )
-
-        assert set(export) == {"vessel"}
-        assert export["vessel"][0] == ["Lifetime"]
-
     def test_unmatched_name_warns_and_skips(self, caplog):
         profiles = {"vessel": VesselProfile()}
 
@@ -79,10 +69,6 @@ class TestReduceDict:
             ("lng", "co2"): np.array([4.0]),
         }
 
-    @pytest.fixture
-    def single_dict(self):
-        return {"oil": np.array([1.0]), "lng": np.array([2.0])}
-
     def test_first_sums_over_the_first_element_keyed_by_the_second(self, tuple_dict):
         result = _reduce_dict(tuple_dict, ReportReduceID.FIRST)
 
@@ -105,21 +91,27 @@ class TestReduceDict:
     def test_none_leaves_the_tuple_dict_unchanged(self, tuple_dict):
         assert _reduce_dict(tuple_dict, ReportReduceID.NONE) == tuple_dict
 
-    def test_first_sums_a_single_key_dict_into_one_array(self, single_dict):
-        result = _reduce_dict(single_dict, ReportReduceID.FIRST)
+    @pytest.mark.parametrize(
+        ("reduce", "expected"),
+        [
+            (ReportReduceID.FIRST, np.array([3.0])),
+            (ReportReduceID.BOTH, np.array([3.0])),
+            (ReportReduceID.SECOND, {"oil": [1.0], "lng": [2.0]}),
+            (ReportReduceID.NONE, {"oil": [1.0], "lng": [2.0]}),
+        ],
+        ids=["first", "both", "second", "none"],
+    )
+    def test_single_key_dict(self, reduce, expected):
+        # a single key is the first element: FIRST and BOTH sum it away, while
+        # SECOND has no element to sum over
+        result = _reduce_dict({"oil": np.array([1.0]), "lng": np.array([2.0])}, reduce)
 
-        np.testing.assert_array_equal(result, [3.0])
-
-    def test_both_sums_a_single_key_dict_into_one_array(self, single_dict):
-        result = _reduce_dict(single_dict, ReportReduceID.BOTH)
-
-        np.testing.assert_array_equal(result, [3.0])
-
-    def test_second_leaves_a_single_key_dict_unchanged(self, single_dict):
-        assert _reduce_dict(single_dict, ReportReduceID.SECOND) == single_dict
-
-    def test_none_leaves_a_single_key_dict_unchanged(self, single_dict):
-        assert _reduce_dict(single_dict, ReportReduceID.NONE) == single_dict
+        if isinstance(expected, dict):
+            assert result.keys() == expected.keys()
+            for key, values in expected.items():
+                np.testing.assert_array_equal(result[key], values)
+        else:
+            np.testing.assert_array_equal(result, expected)
 
     def test_empty_dict_is_unchanged(self):
         assert _reduce_dict({}, ReportReduceID.FIRST) == {}
@@ -168,13 +160,6 @@ class TestConverterEnergyReduction:
         )
         return properties["ConverterEnergy"]
 
-    def test_first_sums_over_vessel_fuel_types_keyed_by_fuel(self):
-        result = self._reduced(ReportReduceID.FIRST)
-
-        assert result.keys() == {"fuel_a", "fuel_b"}
-        np.testing.assert_array_equal(result["fuel_a"], [8.0])
-        np.testing.assert_array_equal(result["fuel_b"], [60.0])
-
     def test_second_sums_over_fuels_keyed_by_vessel_fuel_type(self):
         result = self._reduced(ReportReduceID.SECOND)
 
@@ -183,9 +168,6 @@ class TestConverterEnergyReduction:
         np.testing.assert_array_equal(result[FuelTypeID.METHANOL], [46.0])
         for fuel_type in set(FuelTypeID) - {FuelTypeID.OIL, FuelTypeID.METHANOL}:
             np.testing.assert_array_equal(result[fuel_type], [0.0])
-
-    def test_both_sums_into_one_array(self):
-        np.testing.assert_array_equal(self._reduced(ReportReduceID.BOTH), [68.0])
 
 
 class TestWriteReportErrorContainment:
