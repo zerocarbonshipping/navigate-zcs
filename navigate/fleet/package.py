@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Technology package calculations: effects, cost flows, NPVs and levelized costs."""
+"""Combined effects, cost flows, NPVs and levelized costs of technology packages."""
 
 from __future__ import annotations
 
@@ -45,26 +45,23 @@ def _refresh_combined_effects(package: TechnologyPackage) -> None:
     """
     technologies = package.technologies
 
-    package.shore_power_capacity = float(
-        np.sum(np.array([t.shore_power_capacity.get() for t in technologies]))
-    )
+    arr_sp = np.array([t.shore_power_capacity.get() for t in technologies])
+    package.shore_power_capacity = float(np.sum(arr_sp))
+
+    compound_savings: dict[EnergyDemandTypeID, float] = {}
+    compound_powers: dict[EnergyDemandTypeID, float] = {}
 
     # savings compound: each technology saves its fraction of what the others leave
-    package.compound_savings = {
-        energy_id: 1.0
-        - float(
-            np.prod(
-                1.0 - np.array([t.energy_saving[energy_id].get() for t in technologies])
-            )
-        )
-        for energy_id in EnergyDemandTypeID
-    }
-    package.compound_powers = {
-        energy_id: float(
-            np.sum(np.array([t.external_power[energy_id].get() for t in technologies]))
-        )
-        for energy_id in EnergyDemandTypeID
-    }
+    for energy_id in EnergyDemandTypeID:
+        arr = np.array([t.energy_saving[energy_id].get() for t in technologies])
+        compound_savings[energy_id] = 1.0 - float(np.prod(1.0 - arr))
+
+    for energy_id in EnergyDemandTypeID:
+        arr = np.array([t.external_power[energy_id].get() for t in technologies])
+        compound_powers[energy_id] = float(np.sum(arr))
+
+    package.compound_savings = compound_savings
+    package.compound_powers = compound_powers
 
     transfer_curves: dict[
         tuple[EnergyDemandTypeID, EnergyDemandTypeID], list[CurveInput]
