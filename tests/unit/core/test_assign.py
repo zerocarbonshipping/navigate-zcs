@@ -498,7 +498,7 @@ class TestAssignValue:
     )
     def test_unrecognized_value_rejected(self, assignment, arguments, message):
         # a typo such as 'Capex = FLAT' arrives as a str, and an int or a bool
-        # is deliberately left unwrapped by as_scalar (test_wrap.py), so this
+        # is deliberately left unwrapped by as_scalar, so this
         # is the boundary that has to refuse all of them. An int is named by
         # its kind, never echoed: 'but got 3' under 'only allows scalars'
         # contradicts itself for anyone who has not read as_scalar
