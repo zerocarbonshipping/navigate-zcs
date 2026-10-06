@@ -19,7 +19,7 @@ from navigate.core import (
 from navigate.core.enum_ import FuelTypeID
 from navigate.core.node_type import CONVERTER, FORECAST, VARIABLE
 from navigate.core.nodes._machinery import _Machinery
-from navigate.exceptions import no_value_assigned_error
+from navigate.exceptions import UnassignedAttributeError
 from navigate.util import list_is_unique
 
 if TYPE_CHECKING:
@@ -223,7 +223,7 @@ class Converter(_Machinery):
     def check_requirements(self) -> None:
 
         if not self.main_fuel_types:
-            no_value_assigned_error(self, "MainFuelTypes")
+            raise UnassignedAttributeError(str(self), "MainFuelTypes")
 
     def check_consistency(self) -> None:
 

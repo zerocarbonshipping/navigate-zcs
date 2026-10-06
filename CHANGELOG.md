@@ -107,6 +107,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - A deck whose node reference is never resolved, such as a node passed where
   a name is expected, now stops at the referencing line instead of running
   with the reference ignored (#148).
+- A deck that leaves a required attribute unassigned now stops with a one-line
+  `Error:` message naming the node and the attribute, instead of a Python
+  traceback.
 
 ### Removed
 - `BunkerLogistics`: write `LiquidMarket` on `Fuel`, and `set_fuel_transport`

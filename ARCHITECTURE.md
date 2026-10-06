@@ -87,7 +87,7 @@ on `Node`; a node overrides the hooks they call, never the entry points.
 Before `initialize()`, the parser checks the required attributes. The attribute
 registry in `navigate/parser/_attributes.py` lists, per node type, the
 attributes a deck must assign; the parser records every setter it runs, and
-once the DEFINE block is read it raises `no_value_assigned_error` for a
+once the DEFINE block is read it raises `UnassignedAttributeError` for a
 required attribute no setter reached. The check runs after the
 unreachable-node prune, so a pruned node is never checked, and before
 `initialize_dependencies(...)`, the commands and the hooks, so no node reads

@@ -28,7 +28,7 @@ from navigate.core.node_type import FORECAST, PLANT, PRODUCER, VARIABLE
 from navigate.core.nodes._asset_manager import _AssetManager
 from navigate.core.nodes.plant import Plant
 from navigate.core.profiles import ProducerProfile
-from navigate.exceptions import no_value_assigned_error
+from navigate.exceptions import UnassignedAttributeError
 from navigate.util import is_non_strictly_increasing
 
 if TYPE_CHECKING:
@@ -390,7 +390,7 @@ class Producer(_AssetManager[Plant, PlantIncrement]):
     def check_requirements(self) -> None:
 
         if not self.assets:
-            no_value_assigned_error(self, "Plants")
+            raise UnassignedAttributeError(str(self), "Plants")
 
     def check_consistency(self) -> None:
 

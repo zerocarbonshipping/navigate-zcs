@@ -29,7 +29,7 @@ from navigate.core.node_type import (
     VESSEL,
 )
 from navigate.core.profiles import VesselProfile
-from navigate.exceptions import no_value_assigned_error
+from navigate.exceptions import UnassignedAttributeError
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -422,7 +422,7 @@ class Vessel(Node):
     def check_requirements(self) -> None:
 
         if not self.tanks:
-            no_value_assigned_error(self, "Tanks")
+            raise UnassignedAttributeError(str(self), "Tanks")
 
     def initialize_expectation(self, length: int, fuels: dict[str, Fuel]) -> None:
         self.expectation.initialize(length, self.route, fuels)

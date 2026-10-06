@@ -13,7 +13,7 @@ from navigate.core import assign_value
 from navigate.core.node import Node
 from navigate.core.node_type import VARIABLE
 from navigate.core.nodes._calculator import _Calculator, evaluate_number
-from navigate.exceptions import no_value_assigned_error
+from navigate.exceptions import UnassignedAttributeError
 
 if TYPE_CHECKING:
     from navigate.core.types_ import NumberInput
@@ -56,7 +56,7 @@ class Variable(Node, _Calculator):
     # internal methods -----------------------------------------------------------------
     def check_requirements(self) -> None:
         if self._value is None:
-            no_value_assigned_error(self, "Value")
+            raise UnassignedAttributeError(str(self), "Value")
 
     @overload
     def get(self, x: FloatArray, y: FloatLike | None = None) -> FloatArray: ...
@@ -83,7 +83,7 @@ class Variable(Node, _Calculator):
         """
         # unset only on a variable read before check_requirements has run
         if self._value is None:
-            no_value_assigned_error(self, "Value")
+            raise UnassignedAttributeError(str(self), "Value")
 
         # the inputs are dummies, so every expression is evaluated without them
         value = self._transform(evaluate_number(self._value))
