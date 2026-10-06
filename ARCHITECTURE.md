@@ -47,27 +47,42 @@ behavior are documented in `docs/reference_manual/`.
 ## Layering
 
 ```
-util        → (nothing)
-core        → util
-economics   → core, util
-policy      → core, util
-fleet, fuel → core, economics, util
-bunker      → core, policy, util
-output      → core, util
-parser      → core, util
-simulation  → everything
+util, __init__       → (nothing)
+exceptions, logging_ → util
+core                 → foundation
+economics, policy    → core, foundation
+fleet, fuel          → economics, core, foundation
+bunker               → policy, logging_, core, foundation
+parser, output       → core, foundation
+simulation           → every unit except __main__
+__main__             → simulation, logging_, core, foundation
 ```
 
-`exceptions.py` and `logging_.py` are foundation modules that import only
-`util`. `exceptions.py` is available to every layer alongside `util`;
-`logging_.py` to every layer above `core` except `parser/`, which does no
-interface work.
-`tests/unit/test_layering.py` enforces that `core/` imports nothing from
-`navigate` beyond `core/`, `util/` and `exceptions.py`, type-only imports
-included, that `output/` imports nothing beyond `output/`, `core/`, `util/`
-and the foundation modules, that `parser/` imports nothing beyond `parser/`,
-`core/`, `util/` and `exceptions.py`, and that `exceptions.py` and
-`logging_.py` import only `util`.
+A unit is a package or module under `navigate/` with a row, named by its
+dotted path; `__init__` is `navigate/__init__.py`. A file belongs to the
+longest unit that contains it. A unit imports itself and the units in its
+row, and nothing else from `navigate`. The foundation is `util/` and
+`exceptions.py`.
+`logging_.py` is run logging: besides `simulation.py` and the CLI in
+`__main__.py`, only `bunker/` imports it.
+
+`fleet/` and `fuel/` never import each other, nor do `parser/` and
+`output/`, and neither `parser/` nor `output/` imports `simulation.py` or any
+of `economics/`, `policy/`, `fleet/`, `fuel/`, `bunker/`.
+
+Inside `core/`, runtime imports follow an order: `nodes/` imports
+`expectations/`, `profiles/` and the flat modules directly in `core/`,
+`core/__init__.py` included; `expectations/`, `profiles/` and
+`general_nodes/` import only the flat modules; the flat modules import only
+one another. Each subpackage also imports itself.
+
+Imports inside `navigate` are absolute, so `tests/unit/test_layering.py`,
+which rejects relative ones, sees every import. It enforces all of this,
+type-only imports included except for the order inside `core/`. Its tables
+are exact and acyclic: every file belongs to a unit, every unit exists on
+disk, and the order inside `core/` names every directory directly in
+`core/` (a deeper one belongs to the subpackage that contains it) and
+nothing else.
 
 ## Data-flow invariants
 
