@@ -14,7 +14,7 @@ Curve "technology_uptake" {
 		 5	0.050
 		 6	0.010
 		 7	0.000
-	   1e9	0.000  # included to supress extrapolation warnings
+	   1e9	0.000
 	]
 	
 	Extrapolate = FLAT

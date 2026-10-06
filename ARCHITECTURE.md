@@ -35,7 +35,8 @@ behavior are documented in `docs/reference_manual/`.
 - `output/` — turns a run into artifacts: Excel/CSV reports and figures;
   `output/plots/` renders the latter.
 - `util/` — dependency-free helpers (collections, dates, naming, numerics and
-  the unit conversion factors in `units.py`); imports nothing from `navigate`.
+  unit conversion factors in `units.py`); imports nothing from `navigate`
+  outside `util/`.
 - `logging_.py` — run logging; `exceptions.py` — the `NavigateError`
   hierarchy; `__main__.py` — the CLI.
 
