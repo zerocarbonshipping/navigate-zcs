@@ -48,11 +48,11 @@ def test_plot_leaves_profile_arrays_unchanged(tmp_path):
 
     profile = _regulation_profile(surplus_units, flexibility_units, remedial_units)
     regulation = SimpleNamespace(scheme=RegulationSchemeID.FLEXIBLE, profile=profile)
-    plot_data = SimpleNamespace(
+    results = SimpleNamespace(
         dateline=dateline, nodes=SimpleNamespace(regulations={"ets": regulation})
     )
 
-    plot_regulation_unit_trading(plot_data, str(tmp_path))
+    plot_regulation_unit_trading(results, str(tmp_path))
 
     np.testing.assert_array_equal(surplus_units, surplus_before)
     np.testing.assert_array_equal(flexibility_units, flexibility_before)
@@ -66,10 +66,10 @@ def test_plot_skips_a_non_flexible_regulation(tmp_path):
         np.array([1.0, 2.0]), np.array([1.0, 2.0]), np.array([1.0, 2.0])
     )
     regulation = SimpleNamespace(scheme=RegulationSchemeID.INDIVIDUAL, profile=profile)
-    plot_data = SimpleNamespace(
+    results = SimpleNamespace(
         dateline=dateline, nodes=SimpleNamespace(regulations={"eexi": regulation})
     )
 
-    plot_regulation_unit_trading(plot_data, str(tmp_path))
+    plot_regulation_unit_trading(results, str(tmp_path))
 
     assert not (tmp_path / "regulation_unit_trading_eexi.png").exists()

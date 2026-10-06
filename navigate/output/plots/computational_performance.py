@@ -26,14 +26,14 @@ from navigate.output.plots._figure import (
 from navigate.output.plots._style import LEGEND_OPTIONS
 
 if TYPE_CHECKING:
-    from navigate.output.plot_data import PlotData
+    from navigate.core.simulation_results import SimulationResults
 
 
 def _plot_computational_performance(
-    plot_data: PlotData, directory: str, cumulative: bool
+    results: SimulationResults, directory: str, cumulative: bool
 ) -> None:
-    dateline = plot_data.dateline
-    profile = plot_data.profile
+    dateline = results.dateline
+    profile = results.profile
 
     fig, ax = single_panel()
 
@@ -132,13 +132,13 @@ def _plot_computational_performance(
     save_figure(fig, directory, f"computational_performance{suffix}.png")
 
 
-def plot_computational_performance(plot_data: PlotData, directory: str) -> None:
+def plot_computational_performance(results: SimulationResults, directory: str) -> None:
     """Plot the computational time per time step by run phase."""
-    _plot_computational_performance(plot_data, directory, cumulative=False)
+    _plot_computational_performance(results, directory, cumulative=False)
 
 
 def plot_computational_performance_cumulative(
-    plot_data: PlotData, directory: str
+    results: SimulationResults, directory: str
 ) -> None:
     """Plot the cumulative computational time by run phase."""
-    _plot_computational_performance(plot_data, directory, cumulative=True)
+    _plot_computational_performance(results, directory, cumulative=True)

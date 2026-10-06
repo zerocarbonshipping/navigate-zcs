@@ -26,14 +26,14 @@ from navigate.output.plots._layout import (
 from navigate.output.plots._style import LEGEND_OPTIONS
 
 if TYPE_CHECKING:
-    from navigate.output.plot_data import PlotData
+    from navigate.core.simulation_results import SimulationResults
     from navigate.util.types_ import FloatArray
 
 
-def plot_technology_uptake(plot_data: PlotData, directory: str) -> None:
+def plot_technology_uptake(results: SimulationResults, directory: str) -> None:
     """Plot the fleet, newbuild and retrofit technology uptake, one figure per fleet."""
-    dateline = plot_data.dateline
-    fleets = plot_data.nodes.fleets
+    dateline = results.dateline
+    fleets = results.nodes.fleets
 
     for fleet_name, fleet in fleets.items():
         profile = fleet.profile

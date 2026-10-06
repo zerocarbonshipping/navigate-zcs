@@ -26,16 +26,16 @@ from navigate.output.plots._units import get_best_unit_mass
 from navigate.util import divide_nonzero
 
 if TYPE_CHECKING:
-    from navigate.output.plot_data import PlotData
+    from navigate.core.simulation_results import SimulationResults
 
 
-def plot_port_bunker_supply(plot_data: PlotData, directory: str) -> None:
+def plot_port_bunker_supply(results: SimulationResults, directory: str) -> None:
     """Plot the bunkered fuel against supply and limit, one figure per port."""
-    dateline = plot_data.dateline
-    ports = plot_data.nodes.ports
+    dateline = results.dateline
+    ports = results.nodes.ports
     fuels = {
         fuel_name: fuel
-        for fuel_name, fuel in plot_data.nodes.fuels.items()
+        for fuel_name, fuel in results.nodes.fuels.items()
         if not fuel.liquid_market
     }
 

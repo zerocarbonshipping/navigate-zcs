@@ -30,13 +30,13 @@ from navigate.output.plots._units import find_best_metric_prefix
 if TYPE_CHECKING:
     from matplotlib.artist import Artist
 
-    from navigate.output.plot_data import PlotData
+    from navigate.core.simulation_results import SimulationResults
 
 
-def plot_regulation_compliance(plot_data: PlotData, directory: str) -> None:
+def plot_regulation_compliance(results: SimulationResults, directory: str) -> None:
     """Plot the compliance against the threshold, one figure per regulation."""
-    dateline = plot_data.dateline
-    regulations = plot_data.nodes.regulations
+    dateline = results.dateline
+    regulations = results.nodes.regulations
 
     for regulation_name, regulation in regulations.items():
         scheme = regulation.scheme

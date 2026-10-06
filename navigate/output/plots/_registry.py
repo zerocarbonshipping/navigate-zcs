@@ -94,9 +94,9 @@ from navigate.output.plots.technology_uptake import plot_technology_uptake
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from navigate.output.plot_data import PlotData
+    from navigate.core.simulation_results import SimulationResults
 
-type PlotFunction = Callable[[PlotData, str], None]
+type PlotFunction = Callable[[SimulationResults, str], None]
 
 PLOTS: list[PlotFunction] = [
     plot_global_emission_absolute,

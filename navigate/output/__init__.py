@@ -5,4 +5,4 @@
 
 from __future__ import annotations
 
-from navigate.output.plot_data import PlotData
+from navigate.output.report_writer import write_report

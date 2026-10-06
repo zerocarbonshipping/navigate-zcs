@@ -28,16 +28,16 @@ if TYPE_CHECKING:
     from matplotlib.legend import Legend
 
     from navigate.core.enum_ import FuelTypeID
-    from navigate.output.plot_data import PlotData
+    from navigate.core.simulation_results import SimulationResults
     from navigate.util.types_ import FloatArray
 
 
-def plot_engine_fuel_consumed(plot_data: PlotData, directory: str) -> None:
+def plot_engine_fuel_consumed(results: SimulationResults, directory: str) -> None:
     """Plot the fuels consumed by the engines of each fuel type."""
-    dateline = plot_data.dateline
+    dateline = results.dateline
 
-    fuels = plot_data.nodes.fuels
-    converter_energy = plot_data.profile.get_converter_energy()
+    fuels = results.nodes.fuels
+    converter_energy = results.profile.get_converter_energy()
 
     engine_fuel_consumed: dict[FuelTypeID, dict[str, FloatArray]] = {}
     for (fuel_type, fuel_name), energy in converter_energy.items():

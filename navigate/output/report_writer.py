@@ -4,9 +4,9 @@
 """
 Excel and CSV writing engine behind the Report node.
 
-The Report node collects which properties to extract per node type; write_report,
-driven by the simulation manager, resolves those requests against the node profiles
-and writes the workbook or CSV files.
+The Report node collects which properties to extract per node type; write_report
+resolves those requests against the profiles in a run's SimulationResults and writes
+the workbook or CSV files.
 """
 
 from __future__ import annotations
@@ -22,6 +22,7 @@ from typing import TYPE_CHECKING, NamedTuple
 import openpyxl as xl
 
 from navigate.core.enum_ import FileFormatID, ReportReduceID
+from navigate.core.node_report import GLOBAL_PROFILE_KEY
 from navigate.util import (
     dates_to_days,
     is_single_dict,
@@ -40,7 +41,7 @@ if TYPE_CHECKING:
     from navigate.core.node_report import NodeReport
     from navigate.core.nodes.report import Report
     from navigate.core.profiles._base_profile import _BaseProfile
-    from navigate.simulation import SimulationManager
+    from navigate.core.simulation_results import SimulationResults
     from navigate.util.types_ import BoolArray, DateArray, FloatArray
 
 logger = logging.getLogger(__name__)
@@ -81,10 +82,9 @@ class _Section(NamedTuple):
 
 def write_report(
     report: Report,
-    manager: SimulationManager,
+    results: SimulationResults,
     deck_directory: str,
     deck_name: str,
-    dateline: DateArray,
 ) -> None:
     """
     Write one report node's requested properties to an XLSX or CSV file.
@@ -92,23 +92,19 @@ def write_report(
     Failures are contained per layer: a failed sheet is logged and skipped so the
     remaining sheets still export, and a failed save aborts only this report.
 
-    The manager exports under its node name 'global', which is what the key of
-    Report.add_property requests must match.
-
     Parameters
     ----------
     report
         Report node holding the collected export requests.
-    manager
-        Simulation manager providing the node collections.
+    results
+        Results of the finished run.
     deck_directory
         Directory of the simulation deck, base for the report directory.
     deck_name
         Name of the simulation deck, used in the filenames.
-    dateline
-        Dates of the simulation timeline.
     """
     report_name = report.name
+    dateline = results.dateline
 
     if report.file_format == FileFormatID.XLSX:
         wb = xl.Workbook()
@@ -139,12 +135,12 @@ def write_report(
         def save(directory: str) -> None:
             write_csv_report(sheets, directory, deck_name, report_name, dateline)
 
-    _export_and_save(report, manager, deck_directory, export_section, save)
+    _export_and_save(report, results, deck_directory, export_section, save)
 
 
 def _export_and_save(
     report: Report,
-    manager: SimulationManager,
+    results: SimulationResults,
     deck_directory: str,
     export_section: Callable[[_Section], None],
     save: Callable[[str], None],
@@ -156,8 +152,8 @@ def _export_and_save(
     ----------
     report
         Report node holding the collected export requests.
-    manager
-        Simulation manager providing the node collections.
+    results
+        Results of the finished run.
     deck_directory
         Directory of the simulation deck, base for the report directory.
     export_section
@@ -168,7 +164,7 @@ def _export_and_save(
     report_name = report.name
     sheet_errors = 0
 
-    for section in _sections(report, manager):
+    for section in _sections(report, results):
         try:
             export_section(section)
         except Exception as e:
@@ -191,7 +187,7 @@ def _export_and_save(
         )
 
 
-def _sections(report: Report, manager: SimulationManager) -> Iterator[_Section]:
+def _sections(report: Report, results: SimulationResults) -> Iterator[_Section]:
     """
     Yield each section the report requests properties from, in sheet order.
 
@@ -199,18 +195,21 @@ def _sections(report: Report, manager: SimulationManager) -> Iterator[_Section]:
     ----------
     report
         Report node holding the collected export requests.
-    manager
-        Simulation manager providing the node collections.
+    results
+        Results of the finished run.
 
     Yields
     ------
     _Section
         Each section with at least one request, its profiles keyed by node name.
     """
-    nodes = manager.nodes
+    nodes = results.nodes
     sections = (
         _Section(
-            "manager", "Global", {manager.name: manager.profile}, report.manager_reports
+            "manager",
+            "Global",
+            {GLOBAL_PROFILE_KEY: results.profile},
+            report.manager_reports,
         ),
         _Section(
             "fleets",

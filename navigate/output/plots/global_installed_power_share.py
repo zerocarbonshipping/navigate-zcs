@@ -20,14 +20,16 @@ from navigate.output.plots._labels import FUEL_TYPE_ORDER
 from navigate.output.plots._layout import trim_axes
 
 if TYPE_CHECKING:
-    from navigate.output.plot_data import PlotData
+    from navigate.core.simulation_results import SimulationResults
 
 
-def plot_global_installed_power_share(plot_data: PlotData, directory: str) -> None:
+def plot_global_installed_power_share(
+    results: SimulationResults, directory: str
+) -> None:
     """Plot the share of the global installed engine power per fuel type."""
-    dateline = plot_data.dateline
+    dateline = results.dateline
 
-    installed_power = plot_data.profile.get_installed_power()
+    installed_power = results.profile.get_installed_power()
     engine_power = {
         fuel_type: installed_power[fuel_type] for fuel_type in FUEL_TYPE_ORDER
     }

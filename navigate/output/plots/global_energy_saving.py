@@ -21,16 +21,16 @@ from navigate.output.plots._figure import (
 )
 
 if TYPE_CHECKING:
-    from navigate.output.plot_data import PlotData
+    from navigate.core.simulation_results import SimulationResults
 
 
-def plot_global_energy_saving(plot_data: PlotData, directory: str) -> None:
+def plot_global_energy_saving(results: SimulationResults, directory: str) -> None:
     """Plot the global energy saving by demand type and by source."""
-    dateline = plot_data.dateline
+    dateline = results.dateline
 
     fig, axes = subplot_grid(6, sharey=True)
 
-    profile = plot_data.profile
+    profile = results.profile
     saving = profile.get_saving()
     propulsion_saving = saving[EnergyDemandTypeID.PROPULSION] * 100.0
     electrical_saving = saving[EnergyDemandTypeID.ELECTRICAL] * 100.0

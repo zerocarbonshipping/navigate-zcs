@@ -26,14 +26,14 @@ from navigate.output.plots._units import get_best_unit_energy
 from navigate.util import divide_nonzero
 
 if TYPE_CHECKING:
-    from navigate.output.plot_data import PlotData
+    from navigate.core.simulation_results import SimulationResults
 
 
-def plot_fuel_supply_demand(plot_data: PlotData, directory: str) -> None:
+def plot_fuel_supply_demand(results: SimulationResults, directory: str) -> None:
     """Plot the consumption against the production per fuel."""
-    dateline = plot_data.dateline
-    fuels = plot_data.nodes.fuels
-    profile = plot_data.profile
+    dateline = results.dateline
+    fuels = results.nodes.fuels
+    profile = results.profile
 
     fig, axes = subplot_grid(len(fuels))
 

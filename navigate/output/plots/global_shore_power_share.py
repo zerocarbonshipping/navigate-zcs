@@ -16,16 +16,16 @@ from navigate.output.plots._figure import (
 from navigate.util import divide_nonzero
 
 if TYPE_CHECKING:
-    from navigate.output.plot_data import PlotData
+    from navigate.core.simulation_results import SimulationResults
 
 
-def plot_global_shore_power_share(plot_data: PlotData, directory: str) -> None:
+def plot_global_shore_power_share(results: SimulationResults, directory: str) -> None:
     """Plot the global shore power share of the port energy."""
-    dateline = plot_data.dateline
+    dateline = results.dateline
 
     fig, ax = single_panel()
 
-    profile = plot_data.profile
+    profile = results.profile
     shore_power = profile.get_shore_power_energy()
     port_energy = profile.get_total_energy_port()
 

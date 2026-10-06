@@ -19,18 +19,18 @@ from navigate.output.plots._layout import trim_axes
 if TYPE_CHECKING:
     from matplotlib.legend import Legend
 
-    from navigate.output.plot_data import PlotData
+    from navigate.core.simulation_results import SimulationResults
 
 
-def plot_producer_fair_share(plot_data: PlotData, directory: str) -> None:
+def plot_producer_fair_share(results: SimulationResults, directory: str) -> None:
     """Plot the fair share of each producer per fuel."""
-    dateline = plot_data.dateline
+    dateline = results.dateline
     fuels = {
         fuel_name: fuel
-        for fuel_name, fuel in plot_data.nodes.fuels.items()
+        for fuel_name, fuel in results.nodes.fuels.items()
         if not fuel.liquid_market
     }
-    producers = plot_data.nodes.producers
+    producers = results.nodes.producers
 
     if not producers:
         return

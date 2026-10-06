@@ -19,15 +19,15 @@ from navigate.output.plots._labels import FUEL_COLOR
 from navigate.output.plots._layout import trim_axes
 
 if TYPE_CHECKING:
-    from navigate.output.plot_data import PlotData
+    from navigate.core.simulation_results import SimulationResults
 
 
-def plot_plant_production_cost(plot_data: PlotData, directory: str) -> None:
+def plot_plant_production_cost(results: SimulationResults, directory: str) -> None:
     """Plot the levelized production cost per plant, one figure per region."""
-    dateline = plot_data.dateline
-    fuels = plot_data.nodes.fuels
-    regions = plot_data.nodes.regions
-    plants = plot_data.nodes.plants
+    dateline = results.dateline
+    fuels = results.nodes.fuels
+    regions = results.nodes.regions
+    plants = results.nodes.plants
 
     colors = generate_color_dict(fuels, FUEL_COLOR)
 

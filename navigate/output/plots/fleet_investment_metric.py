@@ -19,13 +19,13 @@ from navigate.output.plots._layout import trim_axes
 from navigate.output.plots._style import LEGEND_OPTIONS
 
 if TYPE_CHECKING:
-    from navigate.output.plot_data import PlotData
+    from navigate.core.simulation_results import SimulationResults
 
 
-def plot_fleet_investment_metric(plot_data: PlotData, directory: str) -> None:
+def plot_fleet_investment_metric(results: SimulationResults, directory: str) -> None:
     """Plot the investment and instantaneous freight rates of each vessel per fleet."""
-    dateline = plot_data.dateline
-    fleets = plot_data.nodes.fleets
+    dateline = results.dateline
+    fleets = results.nodes.fleets
 
     unit = "USD/k cargo-mile"
     divisor = 1.0 / 1e3

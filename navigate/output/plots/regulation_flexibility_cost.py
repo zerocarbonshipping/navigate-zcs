@@ -19,13 +19,15 @@ from navigate.output.plots._figure import (
 )
 
 if TYPE_CHECKING:
-    from navigate.output.plot_data import PlotData
+    from navigate.core.simulation_results import SimulationResults
 
 
-def plot_regulation_flexibility_cost(plot_data: PlotData, directory: str) -> None:
+def plot_regulation_flexibility_cost(
+    results: SimulationResults, directory: str
+) -> None:
     """Plot the remedial and flexibility cost of flexible regulations."""
-    dateline = plot_data.dateline
-    regulations = plot_data.nodes.regulations
+    dateline = results.dateline
+    regulations = results.nodes.regulations
 
     for regulation_name, regulation in regulations.items():
         if regulation.scheme != RegulationSchemeID.FLEXIBLE:
