@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Technology packages: precomputed combined effects, cost flows and their NPVs."""
+"""Combined effects, cost flows, NPVs and levelized costs of technology packages."""
 
 from __future__ import annotations
 
@@ -24,130 +24,69 @@ from navigate.economics.metric import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator
-
     from navigate.core.nodes.technology import Technology
     from navigate.core.nodes.vessel import Vessel
+    from navigate.core.technology_package import TechnologyPackage
     from navigate.core.types_ import CurveInput
     from navigate.util.types_ import FloatArray
 
 
-class Package:
+def _refresh_combined_effects(package: TechnologyPackage) -> None:
     """
-    A bundle of technologies with their combined effects precomputed.
+    Refresh a package's combined savings, powers and transfer curves.
 
-    The residual-energy calculation reads the combined savings, external powers and
-    non-zero transfer curves instead of recombining the technologies on every call.
-    ``preprocess_packages`` refreshes them every time-step, as technology properties
-    may depend on time.
+    The residual-energy calculation reads these instead of recombining the
+    technologies on every call.
 
     Parameters
     ----------
-    technologies
-        Technologies in the package.
+    package
+        Technology package whose combined effects are refreshed in place.
     """
+    technologies = package.technologies
 
-    def __init__(self, technologies: list[Technology]) -> None:
-        self._technologies: list[Technology] = technologies
+    arr_sp = np.array([t.shore_power_capacity.get() for t in technologies])
+    package.shore_power_capacity = float(np.sum(arr_sp))
 
-        self._compound_savings: dict[EnergyDemandTypeID, float] = {}
-        self._compound_powers: dict[EnergyDemandTypeID, float] = {}
-        self._transfer_curves: dict[
-            tuple[EnergyDemandTypeID, EnergyDemandTypeID], list[CurveInput]
-        ] = {}
-        self._shore_power_capacity: float = 0.0
+    compound_savings: dict[EnergyDemandTypeID, float] = {}
+    compound_powers: dict[EnergyDemandTypeID, float] = {}
 
-        self.cost_flow: FloatArray = np.zeros(0, dtype=float)
+    # savings compound: each technology saves its fraction of what the others leave
+    for energy_id in EnergyDemandTypeID:
+        arr = np.array([t.energy_saving[energy_id].get() for t in technologies])
+        compound_savings[energy_id] = 1.0 - float(np.prod(1.0 - arr))
 
-    @property
-    def is_empty(self) -> bool:
-        """Whether the package holds no technology."""
-        return len(self._technologies) == 0
+    for energy_id in EnergyDemandTypeID:
+        arr = np.array([t.external_power[energy_id].get() for t in technologies])
+        compound_powers[energy_id] = float(np.sum(arr))
 
-    @property
-    def technologies(self) -> list[Technology]:
-        """Technologies in the package."""
-        return self._technologies
+    package.compound_savings = compound_savings
+    package.compound_powers = compound_powers
 
-    @property
-    def compound_savings(self) -> dict[EnergyDemandTypeID, float]:
-        """Combined energy-saving fraction per energy demand type."""
-        return self._compound_savings
+    transfer_curves: dict[
+        tuple[EnergyDemandTypeID, EnergyDemandTypeID], list[CurveInput]
+    ] = {}
 
-    @property
-    def compound_powers(self) -> dict[EnergyDemandTypeID, float]:
-        """Summed external power per energy demand type, MW."""
-        return self._compound_powers
+    for source in EnergyDemandTypeID:
+        for destination in EnergyDemandTypeID:
+            curves: list[CurveInput] = []
 
-    @property
-    def transfer_curves(
-        self,
-    ) -> dict[tuple[EnergyDemandTypeID, EnergyDemandTypeID], list[CurveInput]]:
-        """Power-transfer curves per (source, destination) pair with any transfer."""
-        return self._transfer_curves
+            for tech in technologies:
+                obj = tech.power_transfer[(source, destination)]
 
-    @property
-    def includes_transfer(self) -> bool:
-        """Whether any technology transfers power between energy demand types."""
-        return bool(self._transfer_curves)
+                if isinstance(obj, Scalar) and obj.get() == 0.0:
+                    continue
 
-    @property
-    def shore_power_capacity(self) -> float:
-        """Summed shore power connection capacity, MW."""
-        return self._shore_power_capacity
+                curves.append(obj)
 
-    def __len__(self) -> int:
-        return len(self._technologies)
+            if curves:
+                transfer_curves[(source, destination)] = curves
 
-    def __iter__(self) -> Iterator[Technology]:
-        return iter(self._technologies)
-
-    def __getitem__(self, index: int) -> Technology:
-        return self._technologies[index]
-
-    def __bool__(self) -> bool:
-        return len(self._technologies) > 0
-
-    def precompute(self) -> None:
-        """Refresh the combined savings, powers and transfer curves."""
-        self._compound_savings.clear()
-        self._compound_powers.clear()
-        self._transfer_curves.clear()
-
-        arr_sp = np.array([t.shore_power_capacity.get() for t in self._technologies])
-        self._shore_power_capacity = float(np.sum(arr_sp))
-
-        # savings compound: each technology saves its fraction of what the others leave
-        for energy_id in EnergyDemandTypeID:
-            arr = np.array(
-                [t.energy_saving[energy_id].get() for t in self._technologies]
-            )
-            self._compound_savings[energy_id] = 1.0 - float(np.prod(1.0 - arr))
-
-        for energy_id in EnergyDemandTypeID:
-            arr = np.array(
-                [t.external_power[energy_id].get() for t in self._technologies]
-            )
-            self._compound_powers[energy_id] = float(np.sum(arr))
-
-        for source in EnergyDemandTypeID:
-            for destination in EnergyDemandTypeID:
-                curves: list[CurveInput] = []
-
-                for tech in self._technologies:
-                    obj = tech.power_transfer[(source, destination)]
-
-                    if isinstance(obj, Scalar) and obj.get() == 0.0:
-                        continue
-
-                    curves.append(obj)
-
-                if curves:
-                    self._transfer_curves[(source, destination)] = curves
+    package.transfer_curves = transfer_curves
 
 
 def preprocess_packages(
-    packages: list[Package], vessels: list[Vessel], time: float
+    packages: list[TechnologyPackage], vessels: list[Vessel], time: float
 ) -> None:
     """
     Refresh every package's combined effects and cumulative CAPEX and OPEX cost flow.
@@ -182,11 +121,13 @@ def preprocess_packages(
 
     for pkg in packages:
         if not pkg.is_empty:
-            pkg.precompute()
+            _refresh_combined_effects(pkg)
 
 
 def npv_for_newbuilds(
-    packages_saving: list[FloatArray], packages: list[Package], discount_rate: float
+    packages_saving: list[FloatArray],
+    packages: list[TechnologyPackage],
+    discount_rate: float,
 ) -> FloatArray:
     """
     Calculate the NPV of installing each package on a newbuild.
@@ -218,7 +159,7 @@ def npv_for_newbuilds(
 def npv_for_retrofit_steps(
     pkg_idx: int,
     package_savings: list[FloatArray],
-    packages: list[Package],
+    packages: list[TechnologyPackage],
     remaining: float,
     discount_rate: float,
 ) -> FloatArray:
@@ -262,7 +203,7 @@ def npv_for_retrofit_steps(
 
 
 def _incremental_cost_flow(
-    packages: list[Package], pkg_idx: int, step: int, remaining: float
+    packages: list[TechnologyPackage], pkg_idx: int, step: int, remaining: float
 ) -> FloatArray:
     """Cost flow from `pkg_idx` to `pkg_idx + step`, trimmed to remaining lifetime."""
     inc_cost_flow = packages[pkg_idx + step].cost_flow - packages[pkg_idx].cost_flow
@@ -271,7 +212,10 @@ def _incremental_cost_flow(
 
 
 def annual_costs_for_retrofit_steps(
-    pkg_idx: int, packages: list[Package], remaining: float, discount_rate: float
+    pkg_idx: int,
+    packages: list[TechnologyPackage],
+    remaining: float,
+    discount_rate: float,
 ) -> FloatArray:
     """
     Levelize the cost of each retrofit step over the remaining lifetime.

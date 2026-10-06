@@ -19,12 +19,14 @@ behavior are documented in `docs/reference_manual/`.
 - `core/` — the model definition: DSL value infrastructure (assignment
   validation, expressions, tables), the node classes (`core/nodes/`, one per
   DSL keyword), maps between nodes derived from static node attributes
-  (`node_maps.py`), singleton general nodes, `expectations/` (cross-module
-  dynamic state) and `profiles/` (end-of-run output containers).
+  (`node_maps.py`), the records nodes hold (`increment.py`
+  asset cohorts, `technology_package.py`), singleton general nodes, `expectations/`
+  (cross-module dynamic state) and `profiles/` (end-of-run output containers).
 - `parser/` — reads `.nav`/`.inc` decks into nodes (Lark grammar).
 - `fleet/` — the shipowner domain: voyage physics and energy demand,
-  valuation (charter rates, technology packages, marginal-saving heuristics)
-  and the speed, technology, fuel-conversion and newbuild/scrap decisions.
+  valuation (charter rates, technology package calculations, marginal-saving
+  heuristics) and the speed, technology, fuel-conversion and newbuild/scrap
+  decisions.
 - `fuel/` — the fuel-supply domain: production and delivery economics,
   supply/demand balancing, port fuel supply, and producer capacity planning.
 - `economics/` — asset-agnostic valuation-and-choice toolkit (cash flows,
@@ -57,8 +59,8 @@ simulation  → everything
 `util`. `exceptions.py` is available to every layer alongside `util`;
 `logging_.py` to every layer above `core`.
 `tests/unit/test_layering.py` enforces that `core/` imports nothing from
-`navigate` at runtime beyond `core/`, `util/` and `exceptions.py`, and that
-`exceptions.py` and `logging_.py` import only `util`.
+`navigate` beyond `core/`, `util/` and `exceptions.py`, type-only imports
+included, and that `exceptions.py` and `logging_.py` import only `util`.
 
 ## Data-flow invariants
 

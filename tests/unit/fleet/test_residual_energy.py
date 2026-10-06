@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Mathematical coherence tests for the Technology → Package → Residual Energy pipeline.
+Mathematical coherence tests for the technology package → residual energy pipeline.
 
 Tests verify the correctness of:
   - Compound savings formula: 1 - prod(1 - s_i)
@@ -27,7 +27,8 @@ from navigate.core.nodes.curve import Curve
 from navigate.core.nodes.technology import Technology
 from navigate.core.nodes.variable import Variable
 from navigate.core.table_data import TableData
-from navigate.fleet.package import Package
+from navigate.core.technology_package import TechnologyPackage
+from navigate.fleet.package import _refresh_combined_effects
 from navigate.fleet.residual_energy import (
     _calculate_power_transfer,
     _energy_to_power,
@@ -90,10 +91,10 @@ def _make_technology(name: str, **kwargs) -> Technology:
     return tech
 
 
-def _make_package(*technologies: Technology) -> Package:
-    """Build a Package and precompute compound state."""
-    pkg = Package(list(technologies))
-    pkg.precompute()
+def _make_package(*technologies: Technology) -> TechnologyPackage:
+    """Build a TechnologyPackage and precompute compound state."""
+    pkg = TechnologyPackage(list(technologies))
+    _refresh_combined_effects(pkg)
     return pkg
 
 
@@ -272,7 +273,7 @@ class TestPowerEnergyConversion:
 
 
 class TestTransferCurves:
-    """Verify Package filters zero-transfer curves; _calculate_power_transfer sums."""
+    """Verify zero-transfer curves are filtered out and transfers are summed."""
 
     def test_zero_transfer_filtered_out(self):
         """Technologies with no power transfer produce no transfer_curves entries."""
@@ -297,12 +298,12 @@ class TestTransferCurves:
         """
         A Curve and a Variable transferring the same pair sum without a shape crash.
 
-        Through the real path (Technology.set_power_transfer -> Package.precompute ->
-        _calculate_power_transfer): a Variable's getter used to ignore the array load
-        and answer a bare float, while the Curve's answered one value per load point.
-        Stacking the two into one array to sum them then raised
-        "setting an array element with a sequence" for any pair more than one
-        technology contributes to.
+        Through the real path (Technology.set_power_transfer ->
+        _refresh_combined_effects -> _calculate_power_transfer): a Variable's getter
+        used to ignore the array load and answer a bare float, while the Curve's
+        answered one value per load point. Stacking the two into one array to sum them
+        then raised "setting an array element with a sequence" for any pair more
+        than one technology contributes to.
         """
         curve = Curve("whrs_curve")
         curve.set_table(TableData(rows=[[0.0, 0.0], [1.0, 1.0]]))  # identity: y = x

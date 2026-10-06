@@ -49,13 +49,13 @@ if TYPE_CHECKING:
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.technology import Technology
+    from navigate.core.technology_package import TechnologyPackage
     from navigate.core.types_ import (
         ForecastArgument,
         ForecastInput,
         ScalarArgument,
         ScalarInput,
     )
-    from navigate.fleet.package import Package
     from navigate.util.types_ import FloatArray
 
 logger = logging.getLogger(__name__)
@@ -117,7 +117,7 @@ class Fleet(_AssetManager[Vessel, VesselIncrement]):
         self.newbuild_package_uptake: list[FloatArray] = []
         self.orders_delivered: FloatArray = np.empty(0)
         self.orders_postponed: FloatArray = np.empty(0)
-        self.technology_packages: list[Package] = []
+        self.technology_packages: list[TechnologyPackage] = []
         self.package_to_technology_map: dict[int, int] = {}
 
     # external methods (DSL attributes) ------------------------------------------------
