@@ -27,7 +27,7 @@ Copy this checklist and tick it off:
 - [ ] 2. Write the title
 - [ ] 3. Read the type's reference and write the body
 - [ ] 4. Create the pull request and report its URL
-- [ ] 5. For a large diff, post a review guide
+- [ ] 5. Post a review guide if the substance is hard to find
 ```
 
 ## 1. Pick the type
@@ -54,29 +54,35 @@ wrong value. The label is the `labels` value of the matching issue form in
 
 ## 2. Write the title
 
-One imperative sentence stating the outcome, with no prefix, under about 72
-characters (`CONTRIBUTING.md`, Pull request expectations). It becomes the
-squash-commit subject. For example: "Reject a negative bunkering limit when
-the deck is read". For a single-commit pull request, make the commit subject
-equal the title.
+Follow the title rule in `CONTRIBUTING.md`, Pull request expectations. For
+example: "Reject a negative bunkering limit when the deck is read".
 
 ## 3. Read the type's reference and write the body
 
 Read the reference for the type, from the table above, then the template.
-Follow each HTML comment and leave the comments and the SPDX header out of
-the body.
+Follow each HTML comment and leave the comments out of the body.
 
-- Only the opening paragraph and Why are required. Delete an optional
-  section that has nothing to say; never write "None" or "N/A".
+- The opening paragraph and Why are always required; Evidence is required
+  as the template says. Delete any other empty section; never write "None"
+  or "N/A".
 - Length follows the change: a small fix may be the opening paragraph and
   Why alone.
 - Put each issue on its own `Addresses #N` line under Why. With no issue,
   write no such line and nothing in its place. Closing keywords never fire:
   pull requests merge into `dev`, and GitHub honours them only on the
   default branch, `main`. The issue is closed by hand after the merge.
-- A rejected approach goes in Decisions, not in a story of the work.
+- Decisions holds only genuine choices. Never invent a rejected
+  alternative. A design explanation with no alternative belongs in the
+  opening paragraph or Why. A rejected approach goes in Decisions, not in a
+  story of the work.
 
 ## 4. Create the pull request and report its URL
+
+The squash commit carries the branch's commit messages, not this
+description; a later reader reaches the description through the `(#N)` in
+the commit subject. Keep the branch's commit messages fit for that history:
+no "address review" or "fix typo" commits left unsquashed where a reader
+would meet them.
 
 Write the body to a file outside the repository, push the branch, then:
 
@@ -92,13 +98,19 @@ Every edit to the title, body or base reruns CI, because the workflows
 trigger on `edited`. Edit only to fix wrong content or to retarget. Report
 the URL that `gh pr create` prints.
 
-## 5. For a large diff, post a review guide
+## 5. Post a review guide if the substance is hard to find
 
-Right after creating the pull request, post one comment with
-`gh pr comment`: where the substance is, what is mechanical (moves,
-renames), and a reading order. It is a comment, not part of the
-description, because the description is the durable record and the guide
-matters only during review.
+Post one when the diff mixes mechanical moves or renames with substantive
+changes, or a reviewer could not find the substance from the file list
+alone. Right after creating the pull request, post one comment with
+`gh pr comment` holding the reading order and per-file pointers. A stacked
+pull request says there which pull request it builds on and which commits
+are its own.
+
+The guide is a comment because the description is the record of the change
+on GitHub; the guide only helps the review. The description still says, in
+one line of the opening paragraph, which part is mechanical and which is
+substance.
 
 ## Rules
 
@@ -110,22 +122,9 @@ matters only during review.
 
 ## Evidence
 
-Evidence holds only what CI does not show.
+The standard is `CONTRIBUTING.md`, Evidence in a pull request. Beyond it:
 
-- **Neutrality** is shown base versus branch, for every deck under
-  `simulations/examples/` and `tutorials/` whose run reaches the changed
-  code. Report CSVs must be byte-identical and xlsx reports identical cell
-  by cell; xlsx bytes differ between saves. For a deck that writes no
-  report, pickle every node's profile and expectation after a full run on
-  base and on branch, and compare.
-- The regression suite is not a neutrality proof: its baselines cover few
-  decks and carry a noise floor (`tests/regression/README.md`).
-- A change that touches nothing under `navigate/` or `assumptions/`, no
-  deck or include, and no dependency in `pyproject.toml` needs no
-  neutrality evidence. Say so in one line, or drop Evidence when nothing
-  else applies.
-- Naming what a new test pins is fine; counting tests is not.
-- What was not run lists only checks a reviewer would expect and that were
-  skipped. Never fill it by inference.
-- When results move, show the difference, explain its cause, and name the
-  baseline-regeneration commit.
+- A change that only reads state and writes none may argue in one sentence
+  why a profile dump cannot differ, instead of taking one.
+- Never invent or reconstruct output. Rerun the command, or say the output
+  is not at hand.

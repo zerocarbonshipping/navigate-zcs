@@ -43,9 +43,11 @@ values, so that the provenance of the model inputs stays traceable.
   refactors belong in separate pull requests.
 - Fill in the pull request template.
 - Title the pull request with one imperative sentence stating the outcome,
-  with no prefix. Pull requests are squash-merged, so the title becomes the
-  commit subject. For a single-commit pull request GitHub proposes the
-  commit subject instead, so make the commit subject equal the title.
+  with no prefix and under about 65 characters. Pull requests are
+  squash-merged, so the title becomes the commit subject, and GitHub appends
+  " (#N)" to it; the title carries no "(#N)" itself. For a single-commit pull
+  request GitHub proposes the commit subject instead, so make the commit
+  subject equal the title.
 - Follow the code style: `ruff` and `mypy` enforce the mechanical rules
   (`make lint`), [`CODESTYLE.md`](CODESTYLE.md) carries the conventions the
   tooling cannot check. Run
@@ -84,11 +86,42 @@ All tests must pass before a pull request can be merged. Run the full suite
 with `make test-all`, or the individual suites during development.
 
 New code needs appropriate test coverage: `tests/AGENTS.md` says which suite
-a check belongs in and points to each suite's conventions. Changes that alter
-simulation results should explain the difference in the pull request
-description; the regression baselines they move are regenerated only with
-`make regen-regression` and committed as their own commit, with the baseline
-diff as review material (`tests/regression/README.md`).
+a check belongs in and points to each suite's conventions. The regression
+baselines a change moves are regenerated only with `make regen-regression`
+and committed as their own commit, with the baseline diff as review material
+(`tests/regression/README.md`).
+
+## Evidence in a pull request
+
+The Evidence section of a pull request description shows what CI does not.
+CI already reports the test suites, lint and the documentation build, so the
+description never lists suites, their results or test counts. Naming what a
+new test pins is fine.
+
+- **Results unchanged.** Run every deck under `simulations/examples/` and
+  `tutorials/` whose run reaches the changed code, on the base commit and on
+  the branch. Report CSVs must be byte-identical, and xlsx reports identical
+  cell by cell, since xlsx bytes differ between saves. For a deck that
+  writes no report, pickle every node's profile and expectation after a full
+  run on each side, and compare. Name the base commit and the decks run.
+- The regression suite is not this proof: its baselines cover few decks and
+  carry a noise floor (`tests/regression/README.md`).
+- A change that touches nothing under `navigate/` or `assumptions/`, no deck
+  or include, and no dependency in `pyproject.toml` needs no neutrality
+  evidence and says nothing about it.
+- **Results that move.** Give a table of the quantities and years that
+  matter, base → branch, with the deck and the base commit, and explain each
+  shift by the mechanism that causes it. Say that the regression baselines
+  were regenerated with `make regen-regression` in a commit of their own,
+  named by its subject.
+- **Deck errors.** A new or changed deck error is shown by running the same
+  deck through the CLI on base and branch: the command, the exit code and
+  the trimmed message.
+- **New checks.** A new test, lint rule or deck check gets a deliberate-break
+  table: each break applied alone, and the failure it caused.
+- **Not run.** End Evidence with a `Not run:` line naming any check a
+  reviewer would expect that was skipped, and why. Never fill it by
+  inference.
 
 ## Questions
 

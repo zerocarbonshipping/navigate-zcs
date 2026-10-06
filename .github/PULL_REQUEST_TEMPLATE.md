@@ -1,14 +1,7 @@
-<!--
-SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
-SPDX-License-Identifier: Apache-2.0
--->
-
-<!-- Thank you for contributing! See CONTRIBUTING.md for the full guidelines. -->
-
-<!-- Say what the change does in one to three sentences. Describe what a user
-or developer notices, not the files you edited. Then say what a deck author
-or a reader of the output now sees differently, or write "No user-visible
-effect." -->
+<!-- One to three sentences on what the change does: the behaviour or the end
+state, not the files you edited. If much of the diff is moves or renames, say
+in one line which part is mechanical. End with the effect a deck author or a
+reader of the output sees, or "No user-visible effect." -->
 
 ## Why
 
@@ -25,15 +18,13 @@ why. -->
 
 ## Evidence
 
-<!-- Delete this section if it is empty. Show only what CI does not show:
-proof that results are unchanged, runs before and after the change, a table
-of deliberate breaks showing a new check fails when it should, manual checks,
-or runs CI does not do, such as a reference scenario under
-simulations/scenarios/. Do not list the test suites CI runs, pass counts or
-"lint passes". If simulation results move, show the difference and explain
-its cause. -->
+<!-- Required for a bug fix, a new or changed deck error or check, and any
+change that moves results; otherwise delete it if empty. Show what CI does
+not show, such as proof that results are unchanged, runs before and after the
+change, or manual checks. What counts as evidence: CONTRIBUTING.md, Evidence
+in a pull request. -->
 
 ## Limitations
 
-<!-- Delete this section if it is empty. Known shortcomings, what was left
-out, and follow-up issues. -->
+<!-- Delete this section if it is empty. Known shortcomings of the change,
+scope deliberately left out, and follow-up issues. -->
