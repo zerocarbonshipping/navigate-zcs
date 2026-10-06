@@ -85,10 +85,10 @@ This attribute defines the scope of emission targeted by the policy.
 This attribute determines the emissions lifetime used in the GWP (Global Warming Potential) calculation of emissions.
 
 * **Data type**: `Float`, `Variable`
-* **Example values**: `20`
+* **Example value**: `20`
 * **Unit**: Years
 * **Minimum value**: 0
-* **Default**: 100
+* **Default**: Not set. The `EmissionsLifetime` of the [ModelDefinition](model_definition.md) is used.
 
 ### IncludeSlip
 
@@ -102,7 +102,9 @@ This attribute defines whether emissions slip is included in the calculation of 
 This attribute determines the level of the penalty or subsidy, paid per ton of emission by which a fuel differs from the threshold: the difference in emission intensity times the effective energy of the fuel, (1 − slip) · LHV (see `LowerThreshold`).
 
 * **Data type**: `Float`, `Forecast`, `Variable`
-* **Example values**: `100`
+* **Example values**:
+  + `100`
+  + `Forecast("name")`
 * **Unit**: USD/ton emission
 * **Minimum value**: 0
 * **Default**: 0
@@ -133,52 +135,55 @@ This attribute sets the upper emission intensity threshold of the levy, per GJ o
   + `Forecast("name")`
 * **Minimum value**: 0
 * **Unit**: kg emission / GJ
-* **Default**: None (no upper cap)
+* **Default**: Not set. There is no upper cap on the penalty.
 
 ## Commands
 
 ### set\_include\_vessel
 
-This command allows the user to include or exclude certain vessels from the levy.
+This command allows the user to include or exclude certain vessels from the levy. Vessels are excluded unless included explicitly, e.g. with `set_include_vessel("*", TRUE)`.
 
-* **Primary key type**: String (Vessel name)
+* **Primary key type**: String (Vessel name; supports wildcards)
 * **Data type**: `Boolean`
-* **Default**: TRUE
+* **Example values**:
+  + `"vessel_name", TRUE`
+  + `"*", TRUE`
+* **Default**: FALSE
 
 ### set\_global\_warming\_potential
 
 This command allows the user to set the global warming potential (GWP) for a specific emission. If the GWP is assigned on the levy then it overwrites the physical GWP defined on the emission during the calculation of emission factors. A `Curve` is read at the emissions lifetime, like the GWP of the emission: the `EmissionsLifetime` of the levy if assigned, otherwise that of the model.
 
-* **Primary key type**: String (Emission name)
+* **Primary key type**: String (Emission name; supports wildcards)
 * **Data type**: `Float`, `Curve`, `Variable`
 * **Example values**:
   + `"emission_name", 25`
   + `"emission_name", Curve("name")`
 * **Unit**: ton CO<sub>2</sub>eq/ton emission
-* **Default**: The physical global warming potential assigned to the specific emissions
+* **Default**: Not set. The global warming potential assigned on the `Emission` is used.
 
 ### set\_fuel\_wtt
 
-This command allows the user to set the WTT (Well-to-Tank) emission factor for a given fuel and emission as it is defined under a certain policy. If these emission factor values are assigned under a levy, they override the emission factor values that are otherwise used in Navigate
+This command allows the user to set the WTT (Well-to-Tank) emission factor for a given fuel and emission as it is defined under a certain policy. If these emission factor values are assigned under a levy, they override the emission factor values that are otherwise used in Navigate.
 
-* **Primary key type**: String (Fuel name)
-* **Secondary key type**: String (Emission name)
+* **Primary key type**: String (Fuel name; supports wildcards)
+* **Secondary key type**: String (Emission name; supports wildcards)
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
   + `"fuel_name", "emission_name", 3.2`
   + `"fuel_name", "emission_name", Forecast("name")`
 * **Unit**: ton emission/ton fuel
-* **Default**: Determined through internal calculations
+* **Default**: Not set. At each port in the jurisdiction, the port's `set_bunker_wtt_overwrite` is used if assigned, otherwise an estimate from the plants producing the fuel.
 
 ### set\_fuel\_ttw
 
-This command allows the user to set the TTW (Tank-to-Wake) emission factor for a given fuel and emission as it is defined under a certain policy. If these emission factor values are assigned under a levy, they override the emission factor values that are otherwise used in Navigate
+This command allows the user to set the TTW (Tank-to-Wake) emission factor for a given fuel and emission as it is defined under a certain policy. If these emission factor values are assigned under a levy, they override the emission factor values that are otherwise used in Navigate.
 
-* **Primary key type**: String (Fuel name)
-* **Secondary key type**: String (Emission name)
+* **Primary key type**: String (Fuel name; supports wildcards)
+* **Secondary key type**: String (Emission name; supports wildcards)
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
   + `"fuel_name", "emission_name", 3.2`
   + `"fuel_name", "emission_name", Forecast("name")`
 * **Unit**: ton emission/ton fuel
-* **Default**: Determined through internal calculations
+* **Default**: Not set. The TTW emission factor is calculated from the fuel's TTW emission factor and the slip fraction and consumption emissions of the vessel's converters, weighted by power capacity over efficiency.

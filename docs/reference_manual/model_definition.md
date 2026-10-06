@@ -24,6 +24,7 @@ ModelDefinition {
 This attribute sets the start date of the simulation.
 
 * **Data type**: `date`
+* **Format**: dd-mm-yyyy, separated by hyphens or slashes
 * **Example values**:
   + `"01-01-2024"`
   + `"01/01/2024"`
@@ -34,7 +35,7 @@ This attribute sets the start date of the simulation.
 This attribute determines the emission lifetime used to calculate the Global Warming Potential (GWP) value for the computation of CO<sub>2</sub> equivalent emissions.
 
 * **Data type**: `Float`
-* Example value: `20`
+* **Example value**: `20`
 * **Unit**: Years
 * **Minimum value**: 0
 * **Default**: 100

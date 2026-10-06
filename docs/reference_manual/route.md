@@ -6,7 +6,7 @@ SPDX-License-Identifier: CC-BY-4.0
 # Route
 
 A `Route` node defines the operational profile of a vessel. A route can either be specific with an ordered
-list of visited ports (typical of liner shipping) or a more regional definition with a unordered list
+list of visited ports (typical of liner shipping) or a more regional definition with an unordered list
 (typical of tramp shipping). Examples of routes are Rotterdam-Singapore (if specific) and domestic in
 Europe (if regional).
 
@@ -43,8 +43,8 @@ If RouteType is defined as ROUND\_TRIP:
 
 If RouteType is defined as REGIONAL\_TRIP:
 
-* Several attributes under the node ‘Route’ are irrelevant (Distances, PortDurations)
-* Values for TimeAtSea must be provided by the user.
+* Several attributes under the node ‘Route’ are irrelevant (Distances, PortDurations).
+* Values for TimeAtSea and ConditionDistribution must be provided by the user.
 * The number of defined ConditionDistribution fractions and Speeds must correspond.
 * All ports must be unique.
 * The number of defined Ports and PortCalls must correspond.
@@ -57,106 +57,107 @@ This attribute sets the route type to either ROUND\_TRIP or REGIONAL\_TRIP.
 
 In a ROUND\_TRIP, the end port is the same as the start port. Additionally, *individual legs of the journey are specified*, allowing inputs for different distances, speeds, and capacity utilizations etc. on separate legs. These legs are *sequential*. This means that when the Ports are defined as the list [Port("name1"), Port("name2"), Port("name3")], then the route is specified as starting from Port("name1") to Port("name2") to Port("name3") to ending at Port("name1"). Ports can be visited more than once.
 
-In a REGIONAL\_TRIP, *individual legs of the journey are not specified*. Instead, a distribution of fraction of time spent at different speeds and cargo capacity can be defined. This also means that there is no definition of a start or end port. Ports in the pool can also be visited more than once.
+In a REGIONAL\_TRIP, *individual legs of the journey are not specified*. Instead, a distribution of fraction of time spent at different speeds and cargo capacity can be defined. This also means that there is no definition of a start or end port. Each port appears in the list only once; repeated visits to a port are set through [PortCalls](#portcalls).
 
 * **Data type**: `ID`
 * **Legal values**: [RouteTypeID](appendix_ids.md#routetypeid)
-* **Default**: None. Must be provided by user
+* **Default**: None. Must be provided by the user.
 
 ### Ports 
 
-This attribute sets the list of ports available for bunkering on the route. The number of ports and bunker regions must correspond. This is the only attribute that keeps a `Port` in the simulation — a port on no route is removed (see [Unreachable nodes](dsl_reference.md#unreachable-nodes)).
+This attribute sets the list of ports available for bunkering on the route. The rules on the number and order of ports depend on the RouteType; see [Conditions](#conditions). This is the only attribute that keeps a `Port` in the simulation — a port on no route is removed (see [Unreachable nodes](dsl_reference.md#unreachable-nodes)).
 
 * **Data type**: List of `Port` nodes
 * **Example values**:
-    - [Port("name")]
-    - [Port("name1"), Port("name2"), Port("name3")]
-    - [Port("\*")]
-* **Default**: None. Must be provided by user
+  + `[Port("name")]`
+  + `[Port("name1"), Port("name2"), Port("name3")]`
+  + `[Port("*")]`
+* **Default**: None. Must be provided by the user.
 
 ### TimeAtSea 
 
 This attribute sets the fraction of time spent at sea. This is only applicable if 'RouteType' is REGIONAL\_TRIP. Refer to the section ‘Conditions’.
 
 * **Data type**: `Float`, `Forecast`, `Variable`
-* Example vaues: 0.75
+* **Example values**:
+  + `0.75`
+  + `Forecast("name")`
 * **Unit**: Fraction of time spent at sea per total time
 * **Minimum value**: 0
 * **Maximum value**: 1
-* **Default**: None. Must be provided by the user if RouteType is REGIONAL\_TRIP.
+* **Default**: None. Must be provided by the user when RouteType is REGIONAL\_TRIP.
 
 ### PortDurations 
 
 This attribute sets the duration spent at each port call of the trip in days. It is only applicable if 'RouteType' is ROUND\_TRIP. Refer to the section ‘Conditions’.
 
-* **Data type**: List of `float`, `Forecast`, `Variable`
+* **Data type**: List of `Float`, `Forecast`, `Variable`
 * **Example values**:
-    - [3.5, 5]
-    - [Forecast("name"), Variable("name")]
+  + `[3.5, 5]`
+  + `[Forecast("name"), Variable("name")]`
 * **Unit**: Days
 * **Minimum value**: 0
-* **Default**: None. Must be provided by the user if RouteType is ROUND\_TRIP.
+* **Default**: None. Must be provided by the user when RouteType is ROUND\_TRIP.
 
 ### PortCalls
 
 This attribute sets the number of port calls per port over the reference duration. This is only applicable if 'RouteType' is REGIONAL\_TRIP. Refer to the section ‘Conditions’.
 
-* **Data type**: List of `float`, `Forecast`, `Variable`
+* **Data type**: List of `Float`, `Forecast`, `Variable`
 * **Example values**:
-    - [20, 15.5]
-    - [Forecast("name"), Variable("name")]
+  + `[20, 15.5]`
+  + `[Forecast("name"), Variable("name")]`
 * **Unit**: Number of port calls per port over the reference duration
-* **Minimum value**: 0
-* **Default**: List of 0s (Number of 0s corresponding to the number of Ports).
+* **Minimum value**: >0
+* **Default**: A list of 1s, one per Port.
 
 ### Distances 
 
 This attribute sets the distance of the various legs of the trip in nautical miles. It is only applicable if RouteType is ROUND\_TRIP. Refer to the section ‘Conditions’.
 
-* **Data type**: List of `Floats`
-* **Example values**:
-    - [1470, 150.8]
-* **Unit**: Nautical Miles
-* **Minimum value**: 0
-* **Default**: None. Must be provided by the user if RouteType is ROUND\_TRIP.
+* **Data type**: List of `Float`
+* **Example value**: `[1470, 150.8]`
+* **Unit**: Nautical miles
+* **Minimum value**: >0
+* **Default**: None. Must be provided by the user when RouteType is ROUND\_TRIP.
 
 ### ConditionDistribution 
 
 This attribute sets the fraction of time spent on the various legs of the trip. Entries must be finite, non-negative numbers. The list should sum to 1; its total, rounded to five decimals, is rescaled proportionally when it is other than 1, and a deviation of more than 1% is logged at `WARNING`. A list whose rounded total is 0 (an all-zero or empty list included), an `INF` entry, or a total too large to represent is an error. This is only applicable if 'RouteType' is REGIONAL\_TRIP. Refer to the section ‘Conditions’.
 
-* **Data type**: List of `Floats`
+* **Data type**: List of `Float`
 * **Example values**:
-    - [1]
-    - [0.3, 0.7]
+  + `[1]`
+  + `[0.3, 0.7]`
 * **Unit**: Fraction of time spent on the various legs of the trip
 * **Minimum value**: 0
 * **Maximum value**: 1
-* **Default**: None.
+* **Default**: None. Must be provided by the user when RouteType is REGIONAL\_TRIP.
 
 ### Speeds 
 
 This attribute sets the speed of the various legs of the trip in knots. The number of defined Speeds must be equal to the number of defined CapacityUtilizations – this corresponds to the number of legs of the trip. Also refer to the section ‘Conditions’.
 
-* **Data type**: List of `Floats` OR `Forecasts` OR `Variables`
+* **Data type**: List of `Float`, `Forecast`, `Variable`
 * **Example values**:
-    - [12, 14]
-    - [Forecast("name"), Variable("name")]
+  + `[12, 14]`
+  + `[Forecast("name"), Variable("name")]`
 * **Unit**: Knots
-* **Minimum value**: 0
+* **Minimum value**: >0
 * **Default**: None. Must be provided by the user.
 
 ### CapacityUtilizations
 
 This attribute sets the cargo capacity utilization of the various legs of the trip. The number of defined CapacityUtilizations must be equal to the number of defined Speeds – this corresponds to the number of legs of the trip. Also refer to the section ‘Conditions’.
 
-* **Data type**: List of `Floats` OR `Forecasts` OR `Variables`
+* **Data type**: List of `Float`, `Forecast`, `Variable`
 * **Example values**:
-    - [1, 0]
-    - [Forecast("name"), Variable("name")]
+  + `[1, 0]`
+  + `[Forecast("name"), Variable("name")]`
 * **Unit**: Fraction of cargo capacity
 * **Minimum value**: 0
 * **Maximum value**: 1
-* **Default**: List of 1s
+* **Default**: A list of 1s, one per leg.
 
 ## Commands
 
@@ -164,11 +165,15 @@ This attribute sets the cargo capacity utilization of the various legs of the tr
 
 This command sets the fraction of total sailing time spent traveling from 'port\_from' to 'port\_to'. The fraction is evaluated once when the deck's DEFINE block is read and again whenever an EVENTS block is read, so it does not vary between those reads.
 
-* **Primary key type**: String (Port name)
-* **Secondary key type**: String (Port name)
+Every ordered pair of the route's ports, a port with itself included, holds a fraction. The fractions are rescaled to sum to 1; if they are all 0, every pair gets an equal share.
+
+* **Primary key type**: String (Port name; supports wildcards)
+* **Secondary key type**: String (Port name; supports wildcards)
 * **Data type**: `Float`, `Variable`
 * **Example values**:
   + `"port_name_from", "port_name_to", 0.5`
   + `"port_name_from", "port_name_to", Variable("name")`
 * **Unit**: Fraction
-* **Default**: Determined through internal calculations.
+* **Minimum value**: 0
+* **Maximum value**: 1
+* **Default**: 0 for every pair of ports.

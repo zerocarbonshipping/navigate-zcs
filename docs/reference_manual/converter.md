@@ -6,7 +6,7 @@ SPDX-License-Identifier: CC-BY-4.0
 # Converter
 
 A `Converter` node defines a machinery that converts potential energy from fuels (or electricity) into
-kinetic energy for propulsion, electricity, or heat. Examples of converters are internal combusion engines,
+kinetic energy for propulsion, electricity, or heat. Examples of converters are internal combustion engines,
 fuel cells, and motors.
 
 Example:
@@ -62,8 +62,8 @@ This attribute sets the lifetime of the machinery.
   + `25.0`
   + `Forecast("name")`
 * **Unit**: Years
-* **Minimum value**: 0
-* **Default**: Vessel lifetime.
+* **Minimum value**: >0
+* **Default**: Not set. The machinery lasts as long as the vessel it is installed on, with no replacement.
 
 ### Replacement
 
@@ -88,7 +88,7 @@ This attribute sets the minimum load as a fraction of power capacity.
 * **Unit**: Fraction
 * **Minimum value**: 0
 * **Maximum value**: 1
-* **Default**: None
+* **Default**: Not set. No minimum load applies.
 
 ### PowerCapacity 
 
@@ -115,14 +115,14 @@ This attribute sets the main fuel types that the Converter can use. All 'MainFue
 
 ### PilotFuelTypes
 
-This attribute sets the pilot fuel types that a Converter can use. All 'PilotFuelTypes' must be unique. If PilotFuelTypes is defined by the user, at least one fuel type must be assigned.
+This attribute sets the pilot fuel types that a Converter can use. All 'PilotFuelTypes' must be unique, and no fuel type may appear in both MainFuelTypes and PilotFuelTypes. If PilotFuelTypes is defined by the user, at least one fuel type must be assigned. A Converter with PilotFuelTypes is dual-fuel.
 
 * **Data type**: List of `IDs`
 * **Legal values**: [FuelTypeID](appendix_ids.md#fueltypeid)
 * **Example values**:
   + `OIL`
   + `[OIL, LPG]`
-* **Default**: None.
+* **Default**: Not set. The Converter uses its MainFuelTypes only.
 
 ### MinimumPilotFuel
 
@@ -132,9 +132,9 @@ This attribute sets the minimum fraction of pilot fuel required out of the total
 * **Example values**:
   + `0.05`
   + `Forecast("name")`
+* **Unit**: GJ/GJ
 * **Minimum value**: 0
 * **Maximum value**: 1
-* **Unit**: GJ/GJ
 * **Default**: 0
 
 ### Efficiency 
@@ -145,18 +145,20 @@ This attribute sets the fraction of the potential energy that is converted to ki
 * **Example values**:
   + `0.5`
   + `Variable("name")`
+* **Unit**: GJ/GJ
 * **Minimum value**: 0
 * **Maximum value**: 1
-* **Unit**: GJ/GJ
-* **Default**: None
+* **Default**: None. Must be provided by the user.
 
 ## Commands
 
 ### set\_consumption\_ttw
 
-This command sets the emissions in the converter as a fraction of the amount of total fuel consumption. Hence, the command must specify a) the fuel type, b) the emission type, c) the fraction tons of emissions per ton of fuel consumed. The command is used to define emissions which does not pertain to the stoichiometric combustion process, but are converter specific, e.g., NOx or SOx.
+This command sets the emissions in the converter as a fraction of the amount of total fuel consumption. Hence, the command must specify a) the fuel type, b) the emission type, c) the fraction tons of emissions per ton of fuel consumed. The command is used to define emissions which do not pertain to the stoichiometric combustion process, but are converter specific, e.g., NOx or SOx.
 
-* **Primary key type**: ID ([FuelTypeID](appendix_ids.md#fueltypeid))
+The value is per ton of fuel fed into the converter, so it already accounts for any slip set with `set_slip_fraction`. The fuel type must be one of the Converter's MainFuelTypes or PilotFuelTypes.
+
+* **Primary key type**: [FuelTypeID](appendix_ids.md#fueltypeid) (supports wildcards)
 * **Secondary key type**: String (Emission name; supports wildcards)
 * **Data type**: `Float`, `Variable`
 * **Example values**:
@@ -168,9 +170,9 @@ This command sets the emissions in the converter as a fraction of the amount of 
 
 ### set\_slip\_fraction
 
-This command sets the fraction of fuel mass that escapes unburned (slip) when using a specific fuel type, e.g., methane slip. Hence, the command must specify a) the fuel type, b) the fraction of fuel mass escaping unburned.
+This command sets the fraction of fuel mass that escapes unburned (slip) when using a specific fuel type, e.g., methane slip. Hence, the command must specify a) the fuel type, b) the fraction of fuel mass escaping unburned. The fuel type must be one of the Converter's MainFuelTypes or PilotFuelTypes.
 
-* **Primary key type**: ID ([FuelTypeID](appendix_ids.md#fueltypeid))
+* **Primary key type**: [FuelTypeID](appendix_ids.md#fueltypeid) (supports wildcards)
 * **Data type**: `Float`, `Variable`
 * **Example values**:
   + `METHANE, 0.03`

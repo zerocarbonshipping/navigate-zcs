@@ -23,9 +23,9 @@ Emission "methane" {
 This attribute specifies the Global Warming Potential (GWP) of the emission. The global warming potential indicates the level of radiative forcing (i.e., warming) that is expected of a certain emission over time. It thereby allows for comparison across different types of emissions, e.g., carbon dioxide and methane.
 
 * **Data type**: `Float`, `Curve`, `Variable`
-* **Example Values**:
-  + 36.6
-  + Curve("name")
+* **Example values**:
+  + `36.6`
+  + `Curve("name")`
 * **Unit**: ton CO<sub>2</sub> equivalent / ton emission
 * **Minimum value**: 0
 * **Default**: 0
@@ -36,4 +36,4 @@ This attribute sets the fuel type associated with the emission for slip gating. 
 
 * **Data type**: `ID`
 * **Legal values**: [FuelTypeID](appendix_ids.md#fueltypeid)
-* **Default**: None. Without it the emission receives no slip contributions.
+* **Default**: Not set. The emission receives no slip contributions.

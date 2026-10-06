@@ -60,8 +60,8 @@ This attribute sets the lifetime of the machinery.
   + `25`
   + `Forecast("name")`
 * **Unit**: Years
-* **Minimum value**: 0
-* **Default**: Vessel lifetime.
+* **Minimum value**: >0
+* **Default**: Not set. The lifetime of the vessel is used.
 
 ### Replacement
 
@@ -77,25 +77,24 @@ This attribute sets the fraction of CAPEX paid when part of the machinery is rep
 
 ### Propulsion \*
 
-This attribute defines the converter used to satisfy the propulsion demand.
+This attribute defines the converter used to satisfy the propulsion demand. It must differ from the `Electrical` and `Heat` converters.
 
 * **Data type**: `Converter`
-* **Example values**:
-  + `Converter("name")`
+* **Example value**: `Converter("name")`
 * **Default**: None. Must be provided by the user.
 
 ### Electrical \*
 
-This attribute defines the converter used to satisfy the electrical demand.
+This attribute defines the converter used to satisfy the electrical demand. It must differ from the `Propulsion` and `Heat` converters.
 
 * **Data type**: `Converter`
-* **Example values**:
-  + `Converter("name")`
+* **Example value**: `Converter("name")`
+* **Default**: None. Must be provided by the user.
 
 ### Heat \*
 
-This attribute defines the converter used to satisfy the heat demand.
+This attribute defines the converter used to satisfy the heat demand. It must differ from the `Propulsion` and `Electrical` converters.
 
 * **Data type**: `Converter`
-* **Example values**:
-  + `Converter("name")`
+* **Example value**: `Converter("name")`
+* **Default**: None. Must be provided by the user.

@@ -20,8 +20,8 @@ Source "grid" {
 
 ### Dependency
 
-This attribute sets dependency of the source. Namely whether it has stand-alone energy production or is connected to an external source such as a countries power grid.
+This attribute sets dependency of the source. Namely whether it has stand-alone energy production or is connected to an external source such as a country's power grid.
 
 * **Data type**: `ID`
 * **Legal values**: [SourceDependencyID](appendix_ids.md#sourcedependencyid)
-* **Default**: CONNECTED
+* **Default**: None. Must be provided by the user.
