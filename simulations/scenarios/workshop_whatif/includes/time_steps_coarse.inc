@@ -3,9 +3,9 @@
 
 # Four years, not five. RetrofitFrequency defaults to 5, and is_retrofit_cycle
 # tests `age % frequency < time_step`, so a 5-year step makes that always true
-# and the drydock gate stops gating: the deck converts zero hulls. At four years
-# it converts 1,544, and 2050 emissions land at 637 Mt against the yearly run's
-# 639 rather than 693.
+# and the drydock gate stops gating. On main the fleet converts late (from 2042
+# in the yearly run), so this grid still converts far fewer hulls than the yearly
+# run - 112 against 1,140 - and lands 2050 emissions at 711 Mt against 676.
 #
 # 2027 and 2030 are not a choice: DefaultConverterAvailable declares them, and
 # every date the parser sees is merged into one timeline. They are listed here
