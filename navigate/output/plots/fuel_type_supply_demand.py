@@ -35,7 +35,7 @@ if TYPE_CHECKING:
     from navigate.core.enum_ import FuelTypeID
     from navigate.core.nodes.converter import Converter
     from navigate.core.nodes.fuel import Fuel
-    from navigate.output.plot_data import PlotData
+    from navigate.core.simulation_results import SimulationResults
     from navigate.util.types_ import FloatArray
 
 
@@ -62,13 +62,13 @@ def _select_fuel_types(
     ]
 
 
-def plot_fuel_type_supply_demand(plot_data: PlotData, directory: str) -> None:
+def plot_fuel_type_supply_demand(results: SimulationResults, directory: str) -> None:
     """Plot fuel supply against demand for each fuel type a deck uses."""
-    dateline = plot_data.dateline
-    ports = plot_data.nodes.ports
-    fuels = plot_data.nodes.fuels
-    converters = plot_data.nodes.converters
-    profile = plot_data.profile
+    dateline = results.dateline
+    ports = results.nodes.ports
+    fuels = results.nodes.fuels
+    converters = results.nodes.converters
+    profile = results.profile
 
     fuel_type_to_fuels = get_fuels_per_fuel_type(fuels)
     fuel_types = _select_fuel_types(fuel_type_to_fuels, converters)

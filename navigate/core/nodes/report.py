@@ -4,8 +4,8 @@
 """
 Collect which node properties to export at the end of a simulation.
 
-The actual Excel/CSV writing is done by navigate.output.report_writer.write_report,
-driven by the simulation manager. The Report node is not assigned on any other node.
+navigate.output.report_writer.write_report writes the Excel/CSV files from the
+SimulationResults of a finished run. The Report node is not assigned on any other node.
 """
 
 from __future__ import annotations
@@ -15,6 +15,7 @@ from navigate.core.enum_ import FileFormatID, ReportReduceID
 from navigate.core.node import Node
 from navigate.core.node_report import NodeReport
 from navigate.core.node_type import REPORT
+from navigate.core.simulation_results import GLOBAL_PROFILE_KEY
 
 
 class Report(Node):
@@ -87,7 +88,9 @@ class Report(Node):
             Reduction axis applied to the tuple keys of the property; None
             applies no reduction.
         """
-        self._add_property("global", self.manager_reports, attribute, reduce=reduce)
+        self._add_property(
+            GLOBAL_PROFILE_KEY, self.manager_reports, attribute, reduce=reduce
+        )
 
     def add_fleet_property(
         self, fleet_name: str, attribute: str, reduce: str | None = None

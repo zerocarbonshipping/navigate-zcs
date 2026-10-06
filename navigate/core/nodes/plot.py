@@ -4,8 +4,8 @@
 """
 Collect which plots to render and where.
 
-The rendering itself is done by navigate.output.plots.render.generate_plots, driven
-by the simulation manager. The Plot node is not assigned on any other node.
+navigate.output.plots.render.generate_plots renders them from the SimulationResults
+of a finished run. The Plot node is not assigned on any other node.
 """
 
 from __future__ import annotations

@@ -24,7 +24,7 @@ from navigate.output.plots._layout import trim_axes
 if TYPE_CHECKING:
     from navigate.core.enum_ import FuelTypeID
     from navigate.core.nodes.vessel import Vessel
-    from navigate.output.plot_data import PlotData
+    from navigate.core.simulation_results import SimulationResults
 
 
 def _select_fuel_types(vessels: dict[str, Vessel]) -> list[FuelTypeID]:
@@ -79,17 +79,17 @@ def _minimum_pilot_share(
     return minimum_share
 
 
-def plot_engine_pilot_fuel_share(plot_data: PlotData, directory: str) -> None:
+def plot_engine_pilot_fuel_share(results: SimulationResults, directory: str) -> None:
     """Plot pilot fuel share per primary fuel type with a matching dual-fuel vessel."""
-    dateline = plot_data.dateline
-    vessels = plot_data.nodes.vessels
+    dateline = results.dateline
+    vessels = results.nodes.vessels
 
     relevant_fuel_types = _select_fuel_types(vessels)
 
     if not relevant_fuel_types:
         return
 
-    fleet_pilot_fuel_share = plot_data.profile.get_pilot_fuel_share()
+    fleet_pilot_fuel_share = results.profile.get_pilot_fuel_share()
     pilot_fuel_share = {
         fuel_type: np.where(
             fleet_pilot_fuel_share[fuel_type] > 0.0,

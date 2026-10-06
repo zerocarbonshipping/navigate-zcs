@@ -17,13 +17,13 @@ from navigate.output.plots._figure import (
 from navigate.output.plots._layout import trim_axes
 
 if TYPE_CHECKING:
-    from navigate.output.plot_data import PlotData
+    from navigate.core.simulation_results import SimulationResults
 
 
-def plot_fleet_evolution(plot_data: PlotData, directory: str) -> None:
+def plot_fleet_evolution(results: SimulationResults, directory: str) -> None:
     """Plot the number of existing vessels per fleet, by fuel type."""
-    dateline = plot_data.dateline
-    fleets = plot_data.nodes.fleets
+    dateline = results.dateline
+    fleets = results.nodes.fleets
 
     fig, axes = subplot_grid(len(fleets), sharex=True)
 

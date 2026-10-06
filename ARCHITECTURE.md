@@ -21,7 +21,9 @@ behavior are documented in `docs/reference_manual/`.
   DSL keyword), maps between nodes derived from static node attributes
   (`node_maps.py`), the records nodes hold (`increment.py`
   asset cohorts, `technology_package.py`), singleton general nodes, `expectations/`
-  (cross-module dynamic state) and `profiles/` (end-of-run output containers).
+  (cross-module dynamic state), `profiles/` (end-of-run output containers) and
+  the `SimulationResults` record a finished run hands to output
+  (`simulation_results.py`).
 - `parser/` — reads `.nav`/`.inc` decks into nodes (Lark grammar).
 - `fleet/` — the shipowner domain: voyage physics and energy demand,
   valuation (charter rates, technology package calculations, marginal-saving
@@ -34,8 +36,8 @@ behavior are documented in `docs/reference_manual/`.
 - `bunker/` — the per-time-step bunkering LP: build → solve → transfer.
 - `policy/` — regulation/levy emission coefficients, jurisdiction
   attribution, and regulation flexibility-cost beliefs.
-- `output/` — turns a run into artifacts: Excel/CSV reports and figures;
-  `output/plots/` renders the latter.
+- `output/` — turns a run's `SimulationResults` into Excel/CSV reports and
+  figures; `output/plots/` renders the latter.
 - `util/` — dependency-free helpers: collections, dates, naming, numerics,
   internal types and unit conversion factors; imports nothing from
   `navigate` outside `util/`.
@@ -60,7 +62,8 @@ simulation  → everything
 `logging_.py` to every layer above `core`.
 `tests/unit/test_layering.py` enforces that `core/` imports nothing from
 `navigate` beyond `core/`, `util/` and `exceptions.py`, type-only imports
-included, and that `exceptions.py` and `logging_.py` import only `util`.
+included, that `output/` imports nothing beyond itself, `core/` and the
+foundation, and that `exceptions.py` and `logging_.py` import only `util`.
 
 ## Data-flow invariants
 

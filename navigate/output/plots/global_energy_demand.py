@@ -25,16 +25,16 @@ from navigate.output.plots._style import LEGEND_OPTIONS
 from navigate.output.plots._units import get_best_unit_energy
 
 if TYPE_CHECKING:
-    from navigate.output.plot_data import PlotData
+    from navigate.core.simulation_results import SimulationResults
 
 
-def plot_global_energy_demand(plot_data: PlotData, directory: str) -> None:
+def plot_global_energy_demand(results: SimulationResults, directory: str) -> None:
     """Plot the global energy demand by demand type."""
-    dateline = plot_data.dateline
+    dateline = results.dateline
 
     fig, ax = single_panel()
 
-    profile = plot_data.profile
+    profile = results.profile
     energy_sea = profile.get_energy_sea()
     energy_port = profile.get_energy_port()
 

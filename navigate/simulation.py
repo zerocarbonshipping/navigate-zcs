@@ -4,8 +4,8 @@
 """
 The simulation loop: SimulationManager runs a deck from its nodes to its output.
 
-The CLI constructs and runs it; PlotData.from_manager and write_report read the
-finished run from it.
+The CLI constructs and runs it; a finished run hands its SimulationResults to the
+reports and figures in navigate.output.
 """
 
 from __future__ import annotations
@@ -19,7 +19,7 @@ import numpy as np
 
 from navigate.bunker import BunkerAlgorithm, calculate_fair_share_fuel_supply
 from navigate.bunker.solver import set_solver_preference
-from navigate.core import get_fuels_per_fuel_type
+from navigate.core import SimulationResults, get_fuels_per_fuel_type
 from navigate.core.enum_ import BunkerScopeID
 from navigate.core.profiles import ManagerProfile
 from navigate.fleet import (
@@ -59,8 +59,7 @@ from navigate.fuel import (
     perform_progression,
 )
 from navigate.logging_ import log_model_post_process, log_start_of_simulation
-from navigate.output import PlotData
-from navigate.output.report_writer import write_report
+from navigate.output import write_report
 from navigate.parser import Parser
 from navigate.policy import (
     calculate_policy_emission_coefficients,
@@ -116,8 +115,6 @@ class SimulationManager:
         self.deck_name: str = deck_path.stem
 
         # properties -------------------------------------------------------------------
-        # keys the manager's report sheets alongside the node names
-        self.name: str = "global"
         # the current time-step size and elapsed simulation time, in days
         self._time_step: float = 0.0
         self._time: float = 0.0
@@ -135,6 +132,9 @@ class SimulationManager:
         self._bunker_existing: BunkerAlgorithm = BunkerAlgorithm()
         self._bunker_expected: BunkerAlgorithm = BunkerAlgorithm()
 
+        # results ----------------------------------------------------------------------
+        self.results: SimulationResults
+
         # code timing ------------------------------------------------------------------
         self._computational_time: float
 
@@ -147,6 +147,12 @@ class SimulationManager:
         self._run_simulation()
 
         self._post_process()
+        self.results = SimulationResults(
+            dateline=self.dateline,
+            profile=self.profile,
+            nodes=self.nodes,
+            general_nodes=self.general_nodes,
+        )
         self._export_reports()
 
         print(f"Finished simulation, {self.get_elapsed_time()}.")
@@ -774,13 +780,7 @@ class SimulationManager:
 
     def _export_reports(self) -> None:
         for report in self.nodes.reports.values():
-            write_report(
-                report,
-                self,
-                self.deck_directory,
-                self.deck_name,
-                self.dateline,
-            )
+            write_report(report, self.results, self.deck_directory, self.deck_name)
 
     def get_elapsed_time(self) -> str:
         """
@@ -793,17 +793,13 @@ class SimulationManager:
         """
         return _write_elapsed_time(timeit.default_timer() - self._computational_time)
 
-    def _export_plots(self, plot_data: PlotData) -> None:
+    def export_graphs(self) -> None:
+        """Render the plots every Plot node of the deck requests."""
         # deferred so matplotlib only loads when plots are actually rendered
         from navigate.output.plots.render import generate_plots
 
         for plot_node in self.nodes.plots.values():
-            generate_plots(plot_node, plot_data)
-
-    def export_graphs(self) -> None:
-        """Render the plots every Plot node of the deck requests."""
-        plot_data = PlotData.from_manager(self)
-        self._export_plots(plot_data)
+            generate_plots(plot_node, self.results, self.deck_directory)
 
 
 def _write_elapsed_time(elapsed: float) -> str:

@@ -25,17 +25,17 @@ from navigate.output.plots._style import LEGEND_OPTIONS
 from navigate.output.plots._units import get_best_unit_cost
 
 if TYPE_CHECKING:
-    from navigate.output.plot_data import PlotData
+    from navigate.core.simulation_results import SimulationResults
 
 
 def _plot_global_fuel_related_expenses(
-    plot_data: PlotData, directory: str, cumulative: bool
+    results: SimulationResults, directory: str, cumulative: bool
 ) -> None:
-    dateline = plot_data.dateline
+    dateline = results.dateline
 
     fig, ax = single_panel()
 
-    profile = plot_data.profile
+    profile = results.profile
     fuel_expenses = profile.get_total_fuel_expenses()
     levy_expenses = profile.get_total_levy_expenses()
     regulation_expenses = profile.get_regulation_expenses()
@@ -66,13 +66,15 @@ def _plot_global_fuel_related_expenses(
     save_figure(fig, directory, f"global_fuel_related_expenses{suffix}.png")
 
 
-def plot_global_fuel_related_expenses(plot_data: PlotData, directory: str) -> None:
+def plot_global_fuel_related_expenses(
+    results: SimulationResults, directory: str
+) -> None:
     """Plot the yearly global fuel, levy and regulation expenses."""
-    _plot_global_fuel_related_expenses(plot_data, directory, cumulative=False)
+    _plot_global_fuel_related_expenses(results, directory, cumulative=False)
 
 
 def plot_global_fuel_related_expenses_cumulative(
-    plot_data: PlotData, directory: str
+    results: SimulationResults, directory: str
 ) -> None:
     """Plot the cumulative global fuel, levy and regulation expenses."""
-    _plot_global_fuel_related_expenses(plot_data, directory, cumulative=True)
+    _plot_global_fuel_related_expenses(results, directory, cumulative=True)

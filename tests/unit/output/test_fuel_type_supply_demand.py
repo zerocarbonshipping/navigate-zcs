@@ -57,12 +57,12 @@ def test_select_fuel_types_empty_when_nothing_declares_or_uses_a_type():
 
 
 def test_plot_writes_no_file_with_no_fuel_types(tmp_path):
-    plot_data = SimpleNamespace(
+    results = SimpleNamespace(
         dateline=None,
         nodes=SimpleNamespace(ports={}, fuels={}, converters={}),
         profile=None,
     )
 
-    plot_fuel_type_supply_demand(plot_data, str(tmp_path))
+    plot_fuel_type_supply_demand(results, str(tmp_path))
 
     assert not (tmp_path / "fuel_type_supply_demand.png").exists()

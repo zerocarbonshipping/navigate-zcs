@@ -10,7 +10,6 @@ Also covers the per-sheet error containment of write_report.
 from __future__ import annotations
 
 import logging
-from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import numpy as np
@@ -18,13 +17,16 @@ import openpyxl as xl
 import pytest
 
 from navigate.core.enum_ import FuelTypeID, ReportReduceID
-from navigate.core.node_registry import Nodes
+from navigate.core.general_nodes.bunker_options import BunkerOptions
+from navigate.core.general_nodes.model_definition import ModelDefinition
+from navigate.core.node_registry import GeneralNodes, Nodes
 from navigate.core.node_report import NodeReport
 from navigate.core.nodes.fleet import Fleet
 from navigate.core.nodes.report import Report
 from navigate.core.nodes.vessel import Vessel
 from navigate.core.profiles.manager_profile import ManagerProfile
 from navigate.core.profiles.vessel_profile import VesselProfile
+from navigate.core.simulation_results import SimulationResults
 from navigate.output import report_writer
 from navigate.output.report_writer import (
     ROW_RESULT,
@@ -190,24 +192,27 @@ class TestConverterEnergyReduction:
 
 class TestWriteReportErrorContainment:
     @staticmethod
-    def _report_and_manager():
+    def _report_and_results():
         report = Report("output")
         report.add_fleet_property("fleet", "Lifetime")
         report.add_vessel_property("vessel", "Lifetime")
 
-        manager = SimpleNamespace(
-            name="global",
+        results = SimulationResults(
+            dateline=np.array(["2030-01-01", "2031-01-01"], dtype="datetime64[D]"),
             profile=ManagerProfile(),
             nodes=Nodes(
                 fleets={"fleet": Fleet("fleet")}, vessels={"vessel": Vessel("vessel")}
             ),
+            general_nodes=GeneralNodes(
+                bunker_options=BunkerOptions(), model_definition=ModelDefinition()
+            ),
         )
-        return report, manager
+        return report, results
 
     def test_failed_xlsx_sheet_is_skipped_and_the_report_still_saves(
         self, tmp_path, caplog, monkeypatch
     ):
-        report, manager = self._report_and_manager()
+        report, results = self._report_and_results()
 
         def fail_on_fleets(ws, profiles, requests, report_name):
             if ws.title == "Fleets":
@@ -215,10 +220,8 @@ class TestWriteReportErrorContainment:
             ws.cell(row=ROW_RESULT, column=3).value = "exported"
 
         monkeypatch.setattr(report_writer, "export_properties_xlsx", fail_on_fleets)
-        dateline = np.array(["2030-01-01", "2031-01-01"], dtype="datetime64[D]")
-
         with caplog.at_level(logging.WARNING):
-            write_report(report, manager, str(tmp_path), "deck", dateline)
+            write_report(report, results, str(tmp_path), "deck")
 
         wb = xl.load_workbook(tmp_path / "deck_output.xlsx")
         assert wb["Vessels"].cell(row=ROW_RESULT, column=3).value == "exported"
@@ -228,7 +231,7 @@ class TestWriteReportErrorContainment:
     def test_failed_csv_sheet_is_skipped_and_the_report_still_saves(
         self, tmp_path, caplog, monkeypatch
     ):
-        report, manager = self._report_and_manager()
+        report, results = self._report_and_results()
         report.set_file_format("CSV")
 
         def fail_on_fleets(sheet_name, profiles, requests, report_name, sheets):
@@ -239,10 +242,8 @@ class TestWriteReportErrorContainment:
             )
 
         monkeypatch.setattr(report_writer, "export_properties_csv", fail_on_fleets)
-        dateline = np.array(["2030-01-01", "2031-01-01"], dtype="datetime64[D]")
-
         with caplog.at_level(logging.WARNING):
-            write_report(report, manager, str(tmp_path), "deck", dateline)
+            write_report(report, results, str(tmp_path), "deck")
 
         assert (tmp_path / "deck_output_Vessels.csv").exists()
         assert not (tmp_path / "deck_output_Fleets.csv").exists()

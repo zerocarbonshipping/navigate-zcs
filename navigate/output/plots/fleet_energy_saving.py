@@ -24,13 +24,13 @@ from navigate.output.plots._layout import trim_axes
 from navigate.output.plots._style import LEGEND_OPTIONS
 
 if TYPE_CHECKING:
-    from navigate.output.plot_data import PlotData
+    from navigate.core.simulation_results import SimulationResults
 
 
-def plot_fleet_energy_saving(plot_data: PlotData, directory: str) -> None:
+def plot_fleet_energy_saving(results: SimulationResults, directory: str) -> None:
     """Plot the operational, technology and total energy intensity saving per fleet."""
-    dateline = plot_data.dateline
-    fleets = plot_data.nodes.fleets
+    dateline = results.dateline
+    fleets = results.nodes.fleets
 
     fig, axes = subplot_grid(len(fleets))
 

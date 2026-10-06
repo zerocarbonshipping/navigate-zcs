@@ -24,16 +24,16 @@ from navigate.output.plots._style import LEGEND_OPTIONS
 from navigate.output.plots._units import find_best_metric_prefix
 
 if TYPE_CHECKING:
-    from navigate.output.plot_data import PlotData
+    from navigate.core.simulation_results import SimulationResults
 
 
-def plot_global_installed_power(plot_data: PlotData, directory: str) -> None:
+def plot_global_installed_power(results: SimulationResults, directory: str) -> None:
     """Plot the global installed engine power by fuel type."""
-    dateline = plot_data.dateline
+    dateline = results.dateline
 
     fig, ax = single_panel()
 
-    installed_power = plot_data.profile.get_installed_power()
+    installed_power = results.profile.get_installed_power()
     engine_power = {
         fuel_type: installed_power[fuel_type] for fuel_type in FUEL_TYPE_ORDER
     }
