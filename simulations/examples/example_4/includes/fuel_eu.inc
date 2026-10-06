@@ -25,7 +25,7 @@ Regulation "fuel_eu" {
 
 	RemedialCost = Variable("fuel_eu_remedial_cost")
 
-	set_vessel_threshold("*", Forecast("fuel_eu_target_reduction"))
+	SharedThreshold = Forecast("fuel_eu_target_reduction")
 	set_include_vessel("*", TRUE)
 
 	set_global_warming_potential("carbon_dioxide", 1)

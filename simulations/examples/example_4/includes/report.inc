@@ -30,8 +30,9 @@ Report "output" {
 	# energy efficiency. TechnologyUptake is keyed by (vessel, technology), so it
 	# needs a reduction; the third argument is positional, not `reduce=`.
 	add_fleet_property("copper_trade", TechnologyUptake, BOTH)
-	add_fleet_property("copper_trade", TechnologyExpenses)
-	add_fleet_property("copper_trade", TechnologyEnergyIntensitySaving)
+	add_fleet_property("copper_trade", TechnologyNewbuildExpenses)
+	add_fleet_property("copper_trade", TechnologyRetrofitExpenses)
+	add_fleet_property("copper_trade", TechnologyEnergySaving)
 
 	# where the money went
 	add_fleet_property("copper_trade", FuelExpenses)
