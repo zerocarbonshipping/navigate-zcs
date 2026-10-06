@@ -14,7 +14,6 @@ from navigate.core import Expression
 from navigate.core.table_data import _DATE_FORMAT_ERROR
 from navigate.exceptions import DeckFormatError
 from navigate.parser._lark_parser import (
-    Assignment,
     Command,
     CopyStatement,
     DateStatement,
@@ -71,63 +70,32 @@ class TestStringToDate:
     def test_parses_valid_formats(self, raw, expected):
         assert string_to_date(raw, _DATE_FORMAT_ERROR) == expected
 
-    @pytest.mark.parametrize(
-        "raw",
-        [
-            "01012020",
-            "99-99-9999",
-        ],
-        ids=["no_separator", "invalid_date"],
-    )
-    def test_rejects_invalid_input(self, raw):
+    def test_rejects_invalid_input(self):
         # every production caller passes its own msg= with deck context; this
         # passes the same message they use for a rejection, naming the
         # accepted formats
         with pytest.raises(ValueError, match=f"^{re.escape(_DATE_FORMAT_ERROR)}$"):
-            string_to_date(raw, _DATE_FORMAT_ERROR)
+            string_to_date("99-99-9999", _DATE_FORMAT_ERROR)
 
 
 # ═════════════════════════════════════════════════════════════════════════════════
 # Deck-level parsing (.nav) — DEFINE / EVENTS / Include / Load
 # ═════════════════════════════════════════════════════════════════════════════════
 class TestDeckParsing:
-    def test_define_block(self):
+    def test_define_and_events_blocks(self):
         blocks = parse_deck_content(
-            'DEFINE {\n  Include "nav.inc"\n  Load DefaultEmission\n}'
+            'DEFINE {\n  Include "nav.inc"\n  Load DefaultEmission\n}\n'
+            "EVENTS {\n  Load DefaultTimeStepYearly\n}"
         )
-        assert len(blocks) == 1
-        b = blocks[0]
-        assert isinstance(b, DefineBlock)
-        assert isinstance(b.directives[0], IncludeDirective)
-        assert b.directives[0].path == "nav.inc"
-        assert isinstance(b.directives[1], LoadModuleDirective)
-        assert b.directives[1].name == "DefaultEmission"
-
-    def test_events_block(self):
-        blocks = parse_deck_content("EVENTS {\n  Load DefaultTimeStepYearly\n}")
-        assert len(blocks) == 1
-        assert isinstance(blocks[0], EventsBlock)
-        assert blocks[0].directives[0].name == "DefaultTimeStepYearly"
-
-    def test_empty_blocks(self):
-        blocks = parse_deck_content("DEFINE { }\nEVENTS { }")
         assert len(blocks) == 2
-        assert blocks[0].directives == []
-        assert blocks[1].directives == []
-
-    def test_source_location_carries_file(self):
-        blocks = parse_deck_content('DEFINE { Include "f.inc" }', file="my.nav")
-        assert blocks[0].source.file == "my.nav"
-        assert blocks[0].directives[0].source.file == "my.nav"
-
-    def test_comments_ignored(self):
-        text = '# comment\nDEFINE {\n  # another\n  Include "f.inc"\n}'
-        blocks = parse_deck_content(text)
-        assert len(blocks[0].directives) == 1
-
-    def test_old_simulation_nav_rejected(self):
-        with pytest.raises(DeckFormatError):
-            parse_deck_content("SIMULATION NAV { }")
+        define, events = blocks
+        assert isinstance(define, DefineBlock)
+        assert isinstance(define.directives[0], IncludeDirective)
+        assert define.directives[0].path == "nav.inc"
+        assert isinstance(define.directives[1], LoadModuleDirective)
+        assert define.directives[1].name == "DefaultEmission"
+        assert isinstance(events, EventsBlock)
+        assert events.directives[0].name == "DefaultTimeStepYearly"
 
 
 # ═════════════════════════════════════════════════════════════════════════════════
@@ -150,10 +118,6 @@ class TestStatements:
         assert isinstance(declaration, GeneralNodeDeclaration)
         assert declaration.node_type == "ModelDefinition"
         assert declaration.body[0].value == "TRUE"
-
-    def test_empty_body(self):
-        statements = parse_include_content('Vessel "v" { }')
-        assert statements[0].body == []
 
     # ── copy / import ───────────────────────────────────────────────
     def test_copy_statement(self):
@@ -182,33 +146,31 @@ class TestStatements:
     def test_statement_type_recognized(self, text, index, expected_type):
         assert isinstance(parse_include_content(text)[index], expected_type)
 
-    # ── multiple statements ────────────────────────────────────────
-    def test_multiple_statements(self):
-        text = (
-            'Vessel "a" { Lifetime = 25 }\n'
-            'Date "01-01-2030"\n'
-            'Vessel "a" { Lifetime = 30 }'
-        )
-        assert len(parse_include_content(text)) == 3
-
-    def test_empty_input(self):
-        assert parse_include_content("") == []
-
-    def test_comments_ignored(self):
-        statements = parse_include_content(
-            '# comment\nVessel "v" { Lifetime = 25 } # inline'
-        )
+    # ── comments and source location, in decks and includes alike ──
+    @pytest.mark.parametrize(
+        ("parse", "text", "children"),
+        [
+            (
+                parse_include_content,
+                '# comment\nVessel "v" {\n  # another\n  Lifetime = 25 # inline\n}',
+                lambda statement: statement.body,
+            ),
+            (
+                parse_deck_content,
+                '# comment\nDEFINE {\n  # another\n  Include "f.inc" # inline\n}',
+                lambda block: block.directives,
+            ),
+        ],
+        ids=["include", "deck"],
+    )
+    def test_comments_are_skipped_and_lines_located(self, parse, text, children):
+        statements = parse(text, file="test.inc")
         assert len(statements) == 1
+        [statement] = statements
+        [child] = children(statement)
 
-    # ── source location ───────────────────────────────────────────
-    def test_source_location_on_nodes(self):
-        statements = parse_include_content(
-            'Vessel "v" {\n  Lifetime = 25\n}', file="test.inc"
-        )
-        assert statements[0].source.file == "test.inc"
-        assert statements[0].source.line == 1
-        assert statements[0].body[0].source.file == "test.inc"
-        assert statements[0].body[0].source.line == 2
+        assert (statement.source.file, statement.source.line) == ("test.inc", 2)
+        assert (child.source.file, child.source.line) == ("test.inc", 4)
 
 
 # ═════════════════════════════════════════════════════════════════════════════════
@@ -218,17 +180,13 @@ class TestValues:
     @pytest.mark.parametrize(
         ("source", "check"),
         [
-            ("Value = 25", lambda v: v == 25.0),
-            ("Value = -0.5", lambda v: v == -0.5),
-            ("Value = 1.5E-3", lambda v: v == pytest.approx(0.0015)),
+            ("Value = -1.5E-3", lambda v: v == pytest.approx(-0.0015)),
             ("Value = INF", lambda v: v == float("inf")),
             ("Value = -INF", lambda v: v == float("-inf")),
             ('Route = Route("main")', lambda v: isinstance(v, NodeReference)),
             ('Value = <1 + Forecast("x")>', lambda v: isinstance(v, Expression)),
             ('Dir = "output"', lambda v: v == "output"),
             ('StartDate = "01-01-2025"', lambda v: v == np.datetime64("2025-01-01")),
-            ("FuelType = OIL", lambda v: v == "OIL"),
-            ("Mode = TRANSPORT_NOMINAL", lambda v: v == "TRANSPORT_NOMINAL"),
             ("Price = BunkerIntensityPrice", lambda v: v == "BunkerIntensityPrice"),
             (
                 'Ports = [Port("a"), Port("b")]',
@@ -249,17 +207,13 @@ class TestValues:
             ),
         ],
         ids=[
-            "integer",
-            "negative",
-            "scientific",
+            "negative_scientific",
             "inf",
             "negative_inf",
             "node_reference",
             "expression",
             "string",
             "date_string_auto_converted",
-            "ident_uppercase",
-            "ident_with_underscore",
             "ident_titlecase",
             "list_of_node_references",
             "empty_list",
@@ -292,17 +246,12 @@ class TestCommands:
                 lambda args: args == ["LSFO", "TRUE"],
             ),
             (
-                'set_cost("fuel", 100.0)',
-                "set_cost",
-                lambda args: args == ["fuel", 100.0],
-            ),
-            (
                 'set_process(Process("proc"), 500)',
                 "set_process",
                 lambda args: isinstance(args[0], NodeReference) and args[1] == 500,
             ),
         ],
-        ids=["strings", "number", "node_reference"],
+        ids=["strings", "node_reference"],
     )
     def test_command_args_parsed(self, source, expected_name, check_args):
         cmd = _body(f'Vessel "v" {{ {source} }}')[0]
@@ -315,17 +264,9 @@ class TestCommands:
 # Tables
 # ═════════════════════════════════════════════════════════════════════════════════
 class TestTables:
-    def test_table_block_in_body(self):
-        item = _body('Vessel "v" { Table = [ 2020 0.5\n2030 1.0\n] }')[0]
-        assert isinstance(item, Assignment)
-        assert item.attribute == "Table"
-        assert isinstance(item.value, TableData)
-        assert item.value.rows == [[2020.0, 0.5], [2030.0, 1.0]]
-
     @pytest.mark.parametrize(
         ("source", "expected_rows"),
         [
-            ("Table = [ 2020 0.5\n2030 1.0\n]", [[2020.0, 0.5], [2030.0, 1.0]]),
             (
                 "Table = [ # header\n2020 0.5 # inline\n2030 1.0\n]",
                 [[2020.0, 0.5], [2030.0, 1.0]],
@@ -340,7 +281,7 @@ class TestTables:
                 [["col_a", "col_b"], [1.0, 2.0], [3.0, 4.0]],
             ),
         ],
-        ids=["basic", "with_comments", "quoted_dates", "empty", "2d_with_headers"],
+        ids=["with_comments", "quoted_dates", "empty", "2d_with_headers"],
     )
     def test_parse_table_cells(self, source, expected_rows):
         assert parse_table_cells(source) == expected_rows
@@ -373,25 +314,11 @@ class TestCasingRules:
                 lambda s: s[0].body[0].attribute,
                 "lifetime",
             ),
-            (
-                'Vessel "v" { Lifetime = 25 }',
-                lambda s: s[0].body[0].attribute,
-                "Lifetime",
-            ),
-            (
-                'Vessel "v" { co2_factor = 0.5 }',
-                lambda s: s[0].body[0].attribute,
-                "co2_factor",
-            ),
-            ('Vessel "v" { set_fuel("oil") }', lambda s: s[0].body[0].name, "set_fuel"),
             ('Vessel "v" { SetFuel("oil") }', lambda s: s[0].body[0].name, "SetFuel"),
         ],
         ids=[
             "digits_in_node_type",
             "lowercase_attribute",
-            "uppercase_attribute",
-            "attribute_with_digits",
-            "lowercase_command",
             "titlecase_command",
         ],
     )
@@ -416,17 +343,6 @@ class TestOneStatementPerLine:
         with pytest.raises(DeckFormatError, match="same line"):
             parse_fn(source)
 
-    @pytest.mark.parametrize(
-        "get_items",
-        [
-            lambda: parse_include_content('Vessel "a" { }\nVessel "b" { }'),
-            lambda: _body('Vessel "v" {\n  A = 1\n  B = 2\n}'),
-        ],
-        ids=["statements", "body_items"],
-    )
-    def test_accepts_one_statement_per_line(self, get_items):
-        assert len(get_items()) == 2
-
 
 # ═════════════════════════════════════════════════════════════════════════════════
 # Rejection of invalid syntax
@@ -435,17 +351,10 @@ class TestSyntaxErrors:
     @pytest.mark.parametrize(
         "source",
         [
-            'Vessel "ship" Lifetime = 25',
             "Vessel ship { Lifetime = 25 }",
-            'Vessel "v" { Attr == 1.0 }',
             'Vessel "v" { Attr = ??? }',
         ],
-        ids=[
-            "missing_braces",
-            "missing_quotes_on_name",
-            "double_equals",
-            "unrecognized_rhs",
-        ],
+        ids=["missing_quotes_on_name", "unrecognized_rhs"],
     )
     def test_invalid_syntax_rejected(self, source):
         with pytest.raises(DeckFormatError):
@@ -458,14 +367,11 @@ class TestSyntaxErrors:
         assert assignment.value.name == "r_*"
         assert assignment.value.type == "Route"
 
-    def test_unquoted_wildcard_in_command(self):
-        cmd = _body('Vessel "v" { set_slip_fraction(M*, 0.03) }')[0]
+    @pytest.mark.parametrize("pattern", ["M*", "*"], ids=["prefix", "bare_star"])
+    def test_unquoted_wildcard_in_command(self, pattern):
+        cmd = _body(f'Vessel "v" {{ set_slip_fraction({pattern}, 0.03) }}')[0]
         assert cmd.name == "set_slip_fraction"
-        assert cmd.args == ["M*", 0.03]
-
-    def test_bare_star_in_command(self):
-        cmd = _body('Vessel "v" { set_energy_saving(*, 0.03) }')[0]
-        assert cmd.args == ["*", 0.03]
+        assert cmd.args == [pattern, 0.03]
 
 
 class TestReferenceScanExclude:

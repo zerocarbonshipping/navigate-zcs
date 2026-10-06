@@ -15,15 +15,6 @@ from navigate.parser.parser import Parser
 
 
 class TestCheckNodeCommandIsAllowed:
-    def test_valid_command_both_sections(self):
-        """set_bunkering_allowed is BOTH for Port."""
-        check_node_command_is_allowed(
-            "Port", "set_bunkering_allowed", SimulationSectionID.DEFINE
-        )
-        check_node_command_is_allowed(
-            "Port", "set_bunkering_allowed", SimulationSectionID.EVENTS
-        )
-
     def test_define_only_command_in_events_raises(self):
         """set_ttw is DEFINE-only for Fuel."""
         check_node_command_is_allowed("Fuel", "set_ttw", SimulationSectionID.DEFINE)

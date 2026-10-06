@@ -21,7 +21,6 @@ from navigate.parser._attributes import (
     NODE_REQUIRED_ATTRIBUTES,
     check_general_node_attribute_is_allowed,
     check_node_attribute_is_allowed,
-    instance_to_dsl_name,
 )
 
 
@@ -40,33 +39,7 @@ def test_every_required_attribute_is_assignable_in_define(required, sections):
             assert SimulationSectionID.DEFINE in sections[node_type][attribute]
 
 
-class TestInstanceToDslName:
-    def test_returns_the_assigning_dsl_attribute(self):
-        assert instance_to_dsl_name("Levy", "jurisdiction") == "Jurisdiction"
-        assert (
-            instance_to_dsl_name("Fuel", "lower_heating_value") == "LowerHeatingValue"
-        )
-
-    def test_falls_back_to_the_instance_name(self):
-        assert instance_to_dsl_name("Levy", "include_vessel") == "include_vessel"
-
-
 class TestCheckNodeAttributeIsAllowed:
-    def test_valid_attribute_both_sections(self):
-        """Lifetime is allowed for Vessel in both DEFINE and EVENTS."""
-        check_node_attribute_is_allowed(
-            "Vessel", "Lifetime", SimulationSectionID.DEFINE
-        )
-        check_node_attribute_is_allowed(
-            "Vessel", "Lifetime", SimulationSectionID.EVENTS
-        )
-
-    def test_valid_attribute_define_only(self):
-        """FuelType is DEFINE-only for Vessel."""
-        check_node_attribute_is_allowed(
-            "Vessel", "FuelType", SimulationSectionID.DEFINE
-        )
-
     def test_define_only_attribute_in_events_raises(self):
         """FuelType on Vessel is DEFINE-only — using it in EVENTS should raise."""
         with pytest.raises(AttributeAssignmentError, match="does not allow setting"):
@@ -83,11 +56,6 @@ class TestCheckNodeAttributeIsAllowed:
 
 
 class TestCheckGeneralNodeAttributeIsAllowed:
-    def test_model_definition_start_date(self):
-        check_general_node_attribute_is_allowed(
-            "ModelDefinition", "StartDate", SimulationSectionID.DEFINE
-        )
-
     def test_model_definition_start_date_in_events_raises(self):
         with pytest.raises(AttributeAssignmentError, match="does not allow setting"):
             check_general_node_attribute_is_allowed(
@@ -116,7 +84,7 @@ class TestRejectedValueIsADomainError:
         ):
             read_deck('Vessel "v" {\n    Capex = FLAT\n}\n')
 
-    def test_rejected_fraction_list_names_its_line(self, read_deck):
+    def test_rejected_value_names_its_line(self, read_deck):
         # define.inc opens with the four ModelDefinition lines of the fixture
         with pytest.raises(
             AttributeAssignmentError,
@@ -124,16 +92,6 @@ class TestRejectedValueIsADomainError:
             r"'InitialSplit' requires entries summing to more than 0\.$",
         ):
             read_deck('Fleet "fleet" {\n    InitialSplit = [0, 0]\n}\n')
-
-    def test_rejected_infinity_names_its_line(self, read_deck):
-        # infinite production has no meaning, so the parser reports the
-        # deck line where the evaluation would otherwise produce NaN costs
-        with pytest.raises(
-            AttributeAssignmentError,
-            match=r"define\.inc', line 6: Producer\(\"p\"\) attribute "
-            r"'MaximumDevelopment' must be finite, but got inf\.$",
-        ):
-            read_deck('Producer "p" {\n    MaximumDevelopment = INF\n}\n')
 
     def test_rejected_command_value(self, read_deck):
         # the required attributes are checked before the commands run

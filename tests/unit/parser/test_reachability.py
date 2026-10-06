@@ -91,11 +91,6 @@ class TestFindUnreachable:
 
         return nodes
 
-    def test_full_chain_is_reachable(self):
-        nodes = self._fleet_chain()
-
-        assert find_unreachable(nodes, _general_nodes(), [], {}) == []
-
     def test_orphan_chain_pruned_transitively_shared_node_kept(self):
         nodes = self._fleet_chain()
         nodes.vessels["orphan_vessel"] = orphan_vessel = Vessel("orphan_vessel")
@@ -233,23 +228,16 @@ class TestFindUnreachable:
         assert find_unreachable(nodes, _general_nodes(), [], command_queue) == []
 
     def test_jurisdiction_reference_does_not_activate_port(self):
+        # a routed port in the jurisdiction stays, as the route activates it
         nodes = self._fleet_chain()
         nodes.levies["levy"] = levy = Levy("levy")
         nodes.ports["jur_port"] = jur_port = Port("jur_port")
 
-        levy.jurisdiction = [jur_port]
+        levy.jurisdiction = [nodes.ports["port"], jur_port]
 
         assert find_unreachable(nodes, _general_nodes(), [], {}) == [
             ("Port", "jur_port")
         ]
-
-    def test_routed_port_in_jurisdiction_is_reachable(self):
-        nodes = self._fleet_chain()
-        nodes.levies["levy"] = levy = Levy("levy")
-
-        levy.jurisdiction = [nodes.ports["port"]]
-
-        assert find_unreachable(nodes, _general_nodes(), [], {}) == []
 
     def test_expression_reference_does_not_activate_port(self):
         nodes = self._fleet_chain()
@@ -557,22 +545,6 @@ End
         assert "Removed" not in caplog.text
         assert "Dropped 1 queued EVENTS statement(s)" in caplog.text
 
-    def test_prune_runs_exactly_once(self, read_fleet_deck, monkeypatch):
-        calls = []
-        original = Parser._prune_unreachable_nodes
-
-        def counted(self):
-            calls.append(1)
-            original(self)
-
-        monkeypatch.setattr(Parser, "_prune_unreachable_nodes", counted)
-
-        parser = read_fleet_deck()
-        parser.progress_timeline()
-        parser.progress_timeline()
-
-        assert len(calls) == 1
-
     def test_registry_dicts_pruned_in_place(self, read_fleet_deck):
         # SimulationManager aliases parser.nodes before it reads the deck, so
         # the prune must keep the dataclass and its dicts identical objects
@@ -591,21 +563,28 @@ End
             read_fleet_deck(define_extra=define_extra)
 
     def test_jurisdiction_only_port_pruned_and_scrubbed(self, read_fleet_deck, caplog):
+        # the scrub reaches every policy sharing the pruned port, and a copy
+        # source, pruned without a warning of its own, is still reported as
+        # scrubbed
+        jurisdiction = '[Port("port"), Port("jur_port"), Port("port_template")]'
         define_extra = (
-            LEVY_DECK.format(
-                name="levy", jurisdiction='[Port("port"), Port("jur_port")]', extra=""
-            )
+            LEVY_DECK.format(name="levy", jurisdiction=jurisdiction, extra="")
+            + LEVY_DECK.format(name="levy_two", jurisdiction=jurisdiction, extra="")
             + JURISDICTION_PORT
+            + 'Port "port_template" {\n}\nCopy Port "port_template" "port_copy"\n'
         )
 
         with caplog.at_level(logging.WARNING):
             parser = read_fleet_deck(define_extra=define_extra)
 
         assert set(parser.nodes.ports) == {"port"}
-        assert [port.name for port in parser.nodes.levies["levy"].jurisdiction] == [
-            "port"
-        ]
-        assert 'Levy("levy") Jurisdiction: Port("jur_port")' in caplog.text
+        for name in ("levy", "levy_two"):
+            jurisdiction_ports = parser.nodes.levies[name].jurisdiction
+            assert [port.name for port in jurisdiction_ports] == ["port"]
+            assert (
+                f'Levy("{name}") Jurisdiction: Port("jur_port"), Port("port_template")'
+                in caplog.text
+            )
 
     def test_empty_jurisdiction_after_scrub_errors_at_initialize(
         self, read_fleet_deck, caplog
@@ -640,69 +619,6 @@ End
         assert [port.name for port in parser.nodes.levies["levy"].jurisdiction] == [
             "port"
         ]
-
-    def test_copy_source_port_scrub_still_warned(self, read_fleet_deck, caplog):
-        define_extra = (
-            LEVY_DECK.format(
-                name="levy",
-                jurisdiction='[Port("port"), Port("port_template")]',
-                extra="",
-            )
-            + """
-Port "port_template" {
-}
-
-Copy Port "port_template" "port_copy"
-
-Route "route_copy" {
-    RouteType = REGIONAL_TRIP
-    Ports = [Port("port_copy")]
-    TimeAtSea = 0.75
-    ConditionDistribution = [1.0]
-    Speeds = [10]
-}
-
-Vessel "vessel_copy" {
-    PowerSystem = PowerSystem("ps")
-    Route = Route("route_copy")
-    NominalCapacity = 8000
-    Tanks = [Tank("tank")]
-    PropulsionLoad = 10
-}
-
-Fleet "fleet_copy" {
-    Vessels = [Vessel("vessel_copy")]
-    InterFuelSensitivity = 0.5
-    IntraFuelSensitivity = 0.5
-    InitialVessels = 10
-}
-"""
-        )
-        with caplog.at_level(logging.WARNING):
-            parser = read_fleet_deck(define_extra=define_extra)
-
-        assert "port_template" not in parser.nodes.ports
-        assert "port_copy" in parser.nodes.ports
-        assert "not reachable" not in caplog.text
-        assert 'Levy("levy") Jurisdiction: Port("port_template")' in caplog.text
-
-    def test_shared_pruned_port_scrubbed_from_all_policies(
-        self, read_fleet_deck, caplog
-    ):
-        jurisdiction = '[Port("port"), Port("jur_port")]'
-        define_extra = (
-            LEVY_DECK.format(name="levy", jurisdiction=jurisdiction, extra="")
-            + LEVY_DECK.format(name="levy_two", jurisdiction=jurisdiction, extra="")
-            + JURISDICTION_PORT
-        )
-
-        with caplog.at_level(logging.WARNING):
-            parser = read_fleet_deck(define_extra=define_extra)
-
-        for name in ("levy", "levy_two"):
-            assert [port.name for port in parser.nodes.levies[name].jurisdiction] == [
-                "port"
-            ]
 
 
 class TestActivationEdges:

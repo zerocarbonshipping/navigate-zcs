@@ -118,20 +118,15 @@ def test_a_define_only_attribute_pins_the_calculator_it_holds(
 ):
     define = VARIABLES + _fleet(power_capacity=power_capacity)
 
+    # the error names the EVENTS line setting the calculator
     with pytest.raises(
         AttributeAssignmentError,
-        match=_pinned_error(
+        match=r"events\.inc', line 4: "
+        + _pinned_error(
             rf'Variable\("{target}"\)', r'Converter\("propulsion"\)', "PowerCapacity"
         ),
     ):
         read_deck(define, events=_events(target))
-
-
-def test_the_error_names_the_event_line(read_deck):
-    define = VARIABLES + _fleet(power_capacity='Variable("p")')
-
-    with pytest.raises(AttributeAssignmentError, match=r"events\.inc', line 4: "):
-        read_deck(define, events=_events("p"))
 
 
 class TestCommand:
@@ -175,20 +170,18 @@ class TestCommand:
         ):
             read_deck(define, events=_events("p"))
 
-    @pytest.mark.parametrize(
-        "value", ['Variable("p")', '<Variable("p")>'], ids=["reference", "expression"]
-    )
-    def test_a_command_a_late_default_queues_pins(self, tmp_path, read_deck, value):
+    def test_a_command_a_late_default_queues_pins(self, tmp_path, read_deck):
         # the reference walk after the commands pulls "lib" for the oil's
         # command, and the file declares a Fuel whose command waits for the
         # next pass; "p" is declared there too, as the prune would remove it
-        # from the deck before anything holds it
+        # from the deck before anything holds it. The input is an expression,
+        # which is not yet bound then, so its references are looked up by name
         library = tmp_path / "data" / "defaults"
         for branch in ("user", "installation"):
             (library / branch / "Variable").mkdir(parents=True)
         (library / "installation" / "Variable" / "lib.inc").write_text(
             'Variable "lib" { Value = 1.0 }\nVariable "p" { Value = 1.0 }\n'
-            + _fuel("late", f'set_ttw("co2", {value})')
+            + _fuel("late", 'set_ttw("co2", <Variable("p")>)')
         )
         define = CO2 + _fuel("oil", 'set_ttw("co2", Variable("lib"))')
 

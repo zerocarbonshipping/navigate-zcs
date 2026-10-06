@@ -43,23 +43,24 @@ def test_an_unknown_node_type_queued_in_events_is_rejected(read_deck):
         read_deck(events=EVENTS)
 
 
-def test_a_named_general_node_queued_in_events_is_rejected(read_deck):
+@pytest.mark.parametrize(
+    ("define", "events", "location"),
+    [
+        (
+            "",
+            EVENTS_NAMED_GENERAL_NODE,
+            r"line 2, include file '.*events\.inc', line 4",
+        ),
+        (NAMED_GENERAL_NODE, None, r"line 1, include file '.*define\.inc', line 6"),
+    ],
+    ids=["events", "define"],
+)
+def test_a_named_general_node_is_rejected(read_deck, define, events, location):
     with pytest.raises(
         DeckKeywordError,
         match=(
-            r"^Error in deck file, line 2, include file '.*events\.inc', line 4: "
+            rf"^Error in deck file, {location}: "
             r"'ModelDefinition' is a general node and is declared without a name\.$"
         ),
     ):
-        read_deck(events=EVENTS_NAMED_GENERAL_NODE)
-
-
-def test_a_named_general_node_in_define_is_rejected(read_deck):
-    with pytest.raises(
-        DeckKeywordError,
-        match=(
-            r"^Error in deck file, line 1, include file '.*define\.inc', line 6: "
-            r"'ModelDefinition' is a general node and is declared without a name\.$"
-        ),
-    ):
-        read_deck(NAMED_GENERAL_NODE)
+        read_deck(define, events=events)

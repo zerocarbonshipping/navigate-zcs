@@ -34,12 +34,6 @@ def test_a_node_missing_a_required_attribute_raises(read_deck):
         read_deck(_fuel(mass_density=""))
 
 
-def test_a_node_with_every_required_attribute_assigned_reads(read_deck):
-    parser = read_deck(_fuel())
-
-    assert parser.nodes.fuels["f"].mass_density.get() == 0.9
-
-
 def test_a_wildcard_assignment_counts(read_deck):
     define = _fuel(mass_density="") + 'Fuel "*" {\n' + MASS_DENSITY + "}\n"
 

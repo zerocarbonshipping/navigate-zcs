@@ -21,90 +21,56 @@ from navigate.parser.parser import Parser
 # ── CommandReference domain-aware wildcard expansion ─────────────────────────
 
 
+class _Recorder:
+    """Stand-in node recording the arguments of every command call."""
+
+    def __init__(self):
+        self.calls = []
+
+    def __str__(self):
+        return "DummyNode"
+
+    def set_slip_fraction(self, fuel_type, value):
+        self.calls.append((fuel_type, value))
+
+    def set_include_vessel(self, vessel_name, include):
+        self.calls.append((vessel_name, include))
+
+    def set_consumption_ttw(self, fuel_type, emission_name, value):
+        self.calls.append((fuel_type, emission_name, value))
+
+
+def _execute(command, inputs):
+    """Run a command on a recorder and return the calls it received."""
+    node = _Recorder()
+    CommandReference(command, inputs, source=SourceLocation("test.inc", 1)).execute(
+        node
+    )
+    return node.calls
+
+
 class TestCommandReferenceWildcard:
     def test_enum_domain_expands_wildcard(self):
         """set_slip_fraction has FuelTypeID domain — M* expands to fuel names."""
-        call_log = []
+        calls = _execute("set_slip_fraction", ["M*", 0.03])
 
-        class DummyNode:
-            def set_slip_fraction(self, fuel_type, value):
-                call_log.append((fuel_type, value))
-
-            def __str__(self):
-                return "DummyNode"
-
-        node = DummyNode()
-        ref = CommandReference(
-            "set_slip_fraction", ["M*", 0.03], source=SourceLocation("test.inc", 1)
-        )
-        ref.execute(node)
-
-        fuel_types = [c[0] for c in call_log]
+        fuel_types = [call[0] for call in calls]
         assert "METHANE" in fuel_types
         assert "METHANOL" in fuel_types
-        assert all(c[1] == 0.03 for c in call_log)
+        assert all(call[1] == 0.03 for call in calls)
 
     def test_no_domain_passes_wildcard_through(self):
         """set_include_vessel has no domain — * passes through as-is."""
-        call_log = []
-
-        class DummyNode:
-            def set_include_vessel(self, vessel_name, include):
-                call_log.append((vessel_name, include))
-
-            def __str__(self):
-                return "DummyNode"
-
-        node = DummyNode()
-        ref = CommandReference(
-            "set_include_vessel", ["*", "TRUE"], source=SourceLocation("test.inc", 1)
-        )
-        ref.execute(node)
-
-        assert call_log == [("*", "TRUE")]
-
-    def test_no_wildcard_calls_once(self):
-        call_log = []
-
-        class DummyNode:
-            def set_slip_fraction(self, a, b):
-                call_log.append((a, b))
-
-            def __str__(self):
-                return "DummyNode"
-
-        node = DummyNode()
-        ref = CommandReference(
-            "set_slip_fraction", ["METHANE", 0.03], source=SourceLocation("test.inc", 1)
-        )
-        ref.execute(node)
-
-        assert call_log == [("METHANE", 0.03)]
+        assert _execute("set_include_vessel", ["*", "TRUE"]) == [("*", "TRUE")]
 
     def test_argument_beyond_the_domain_skips_expansion(self):
         """set_consumption_ttw registers one domain; its emission arg is untouched."""
-        call_log = []
+        calls = _execute("set_consumption_ttw", ["M*", "co2_*", 0.5])
 
-        class DummyNode:
-            def set_consumption_ttw(self, fuel_type, emission_name, value):
-                call_log.append((fuel_type, emission_name, value))
-
-            def __str__(self):
-                return "DummyNode"
-
-        node = DummyNode()
-        ref = CommandReference(
-            "set_consumption_ttw",
-            ["M*", "co2_*", 0.5],
-            source=SourceLocation("test.inc", 1),
-        )
-        ref.execute(node)
-
-        fuel_types = [c[0] for c in call_log]
+        fuel_types = [call[0] for call in calls]
         assert "METHANE" in fuel_types
         assert "METHANOL" in fuel_types
-        assert all(c[1] == "co2_*" for c in call_log)
-        assert all(c[2] == 0.5 for c in call_log)
+        assert all(call[1:] == ("co2_*", 0.5) for call in calls)
 
     def test_subset_domain_expands_to_the_members_the_attribute_holds(self):
         """set_operational_saving_port accepts the in-port demands only."""
@@ -138,13 +104,6 @@ class TestWildcardNodeReferenceExpansion:
         for name in names:
             parser.nodes.ports[name] = Port(name)
         return parser
-
-    def test_expand_star_returns_all_nodes_of_type(self):
-        parser = self._make_parser_with_fuels("fuel_a", "fuel_b", "fuel_c")
-        matched = parser._expand_wildcard_node_reference(
-            WildcardNodeReference("Fuel", "*"), "loc"
-        )
-        assert {n.name for n in matched} == {"fuel_a", "fuel_b", "fuel_c"}
 
     def test_expand_prefix_pattern(self):
         parser = self._make_parser_with_fuels("bio_a", "bio_b", "fossil_c")

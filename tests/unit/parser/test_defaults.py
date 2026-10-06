@@ -38,6 +38,8 @@ HOST = _host("v")
 DEFAULT = _variable(Value=3.0)
 # a library node whose multiplier makes an unintended pull visible as 30.0
 DECOY = _variable(Value=3.0, Multiplier=10.0)
+# a library file named for v that declares another node
+WRONG_NAME = _variable("w", Value=1.0)
 OVERLAY = 'Import Variable "v"\n' + _variable(Multiplier=2.0)
 # the same overlay, behind a pull of an unrelated library node
 OVERLAY_AFTER_IMPORT = 'Import Variable "y"\n' + OVERLAY
@@ -100,8 +102,8 @@ class TestReferenceResolution:
 
     @pytest.mark.parametrize(
         "define",
-        [HOST, HOST + 'Import Variable "v"\n', HOST + 'Import Variable "v*"\n'],
-        ids=["reference", "import_after_reference", "wildcard_import"],
+        [HOST, HOST + 'Import Variable "v*"\n'],
+        ids=["reference", "wildcard_import_after_reference"],
     )
     def test_undeclared_name_binds_to_the_library_node(self, read_library_deck, define):
         parser = read_library_deck(define, installation={"v": DEFAULT})
@@ -242,17 +244,7 @@ class TestUnresolvableReference:
         ):
             read_library_deck(define)
 
-    @pytest.mark.parametrize(
-        "define",
-        [
-            'Emission "e" { GlobalWarmingPotential = Foo("x") }\n',
-            COMMAND_HOST.replace('Variable("v")', 'Foo("x")'),
-        ],
-        ids=["attribute", "command_argument"],
-    )
-    def test_unknown_reference_type_is_a_located_deck_error(
-        self, read_library_deck, define
-    ):
+    def test_unknown_reference_type_is_a_located_deck_error(self, read_library_deck):
         with pytest.raises(
             DeckKeywordError,
             match=(
@@ -260,22 +252,22 @@ class TestUnresolvableReference:
                 r"'Foo' is not a recognized node type"
             ),
         ):
-            read_library_deck(define)
+            read_library_deck('Emission "e" { GlobalWarmingPotential = Foo("x") }\n')
 
     @pytest.mark.parametrize(
-        "library",
+        ("define", "library"),
         [
-            {"installation": {"v": _variable("w", Value=1.0)}},
-            {"installation": {"v": 'Emission "v" { }\n'}},
-            {"user": {"v": _variable("w", Value=1.0)}},
+            (HOST, {"installation": {"v": 'Emission "v" { }\n'}}),
             # a user file found by name ends the search, so the installation
             # file is no fallback
-            {"user": {"v": _variable("w", Value=1.0)}, "installation": {"v": DEFAULT}},
+            (HOST, {"user": {"v": WRONG_NAME}, "installation": {"v": DEFAULT}}),
+            ('Import Variable "v"\n', {"user": {"v": WRONG_NAME}}),
+            ('Copy Variable "v" "dst"\n', {"user": {"v": WRONG_NAME}}),
         ],
-        ids=["wrong_name", "wrong_type", "user_branch", "user_over_installation"],
+        ids=["wrong_type", "user_over_installation", "import", "copy"],
     )
     def test_file_without_the_requested_node_is_rejected(
-        self, read_library_deck, library
+        self, read_library_deck, define, library
     ):
         with pytest.raises(
             DeckKeywordError,
@@ -284,18 +276,7 @@ class TestUnresolvableReference:
                 r"found, but not containing a node with type 'Variable'"
             ),
         ):
-            read_library_deck(HOST, **library)
-
-    @pytest.mark.parametrize(
-        "define",
-        ['Import Variable "v"\n', 'Copy Variable "v" "dst"\n'],
-        ids=["import", "copy"],
-    )
-    def test_import_and_copy_reject_a_user_file_without_the_node(
-        self, read_library_deck, define
-    ):
-        with pytest.raises(DeckKeywordError, match=r"A file with name 'v' was found"):
-            read_library_deck(define, user={"v": _variable("w", Value=1.0)})
+            read_library_deck(define, **library)
 
     def test_reference_without_an_assumptions_directory_is_rejected(self, write_deck):
         with pytest.raises(

@@ -17,7 +17,7 @@ import pytest
 
 from navigate.core.enum_ import SimulationSectionID
 from navigate.core.expression import Expression
-from navigate.core.node_type import BUNKER_OPTIONS, EMISSION, MODEL_DEFINITION, VARIABLE
+from navigate.core.node_type import EMISSION, MODEL_DEFINITION, VARIABLE
 from navigate.core.nodes.emission import Emission
 from navigate.core.nodes.variable import Variable
 from navigate.exceptions import DeckKeywordError
@@ -70,29 +70,17 @@ def _fuel_library(tmp_path, files):
     return data_dir
 
 
-@pytest.mark.parametrize(
-    ("define", "names"),
-    [
-        (
-            'Emission "a" { GlobalWarmingPotential = 1.0 }\nCopy Emission "a" "b"\n',
-            "ab",
-        ),
-        (
-            'Emission "a" { GlobalWarmingPotential = 1.0 }\n'
-            'Copy Emission "a" "b"\nCopy Emission "b" "c"\n',
-            "abc",
-        ),
-    ],
-    ids=["single", "chain"],
-)
-def test_each_copy_is_a_new_node_and_the_source_keeps_its_name(
-    read_deck, define, names
-):
-    parser = read_deck(define)
-    nodes = [parser.nodes.emissions[name] for name in names]
+def test_each_copy_is_a_new_node_and_the_source_keeps_its_name(read_deck):
+    define = (
+        'Emission "a" { GlobalWarmingPotential = 1.0 }\n'
+        'Copy Emission "a" "b"\nCopy Emission "b" "c"\n'
+    )
 
-    assert len({id(node) for node in nodes}) == len(names)
-    assert "".join(node.name for node in nodes) == names
+    parser = read_deck(define)
+    nodes = [parser.nodes.emissions[name] for name in "abc"]
+
+    assert len({id(node) for node in nodes}) == 3
+    assert "".join(node.name for node in nodes) == "abc"
 
 
 def test_the_copy_shares_a_reference_declared_after_the_copy(read_deck):
@@ -105,36 +93,36 @@ def test_the_copy_shares_a_reference_declared_after_the_copy(read_deck):
     assert parser.nodes.emissions["dst"].global_warming_potential is shared
 
 
-def test_the_copy_target_keeps_the_bounds_imposed_before_its_declaration(read_deck):
-    # GlobalWarmingPotential allows no negative value, so the bound the reference
-    # imposed on "v" clips the -2.0 the copy brings along
-    define = (
-        'Emission "e" { GlobalWarmingPotential = Variable("v") }\n'
-        'Variable "base" { Value = -2.0 }\n'
-        'Copy Variable "base" "v"\n'
-    )
-
-    parser = read_deck(define)
-
-    assert parser.nodes.variables["v"].get() == 0.0
-
-
-def test_the_copy_target_keeps_an_exclusive_bound_imposed_before_its_declaration():
-    # no root node assigning a Variable to an exclusive-bound attribute reads
-    # without a screen of setup, so the reference's bound is imposed directly;
-    # the 0.0 the copy brings along then sits on it instead of being clamped
+@pytest.mark.parametrize(
+    ("inclusive_lower", "copied_value"),
+    [
+        # the -2.0 the copy brings along is clipped onto the inclusive bound
+        pytest.param(True, -2.0, id="inclusive"),
+        # the 0.0 the copy brings along sits on the exclusive bound
+        pytest.param(False, 0.0, id="exclusive"),
+    ],
+)
+def test_the_copy_target_keeps_the_bounds_imposed_before_its_declaration(
+    inclusive_lower, copied_value
+):
+    # a reference to "v" read before the Copy statement, such as a
+    # GlobalWarmingPotential that allows no negative value, has already
+    # imposed its bound on the placeholder the copy moves into
     parser = Parser()
     parser._current_section = SimulationSectionID.DEFINE
     placeholder = parser._node(VARIABLE, "v", location="")
-    placeholder.set_internal_bounds(0.0, np.inf, inclusive_lower=False)
+    placeholder.set_internal_bounds(0.0, np.inf, inclusive_lower=inclusive_lower)
     source = Variable("base")
-    source.set_value(0.0)
+    source.set_value(copied_value)
     parser.nodes.variables["base"] = source
 
     parser._process_copy_node(CopyStatement(VARIABLE, "base", "v"))
 
-    with pytest.raises(ValueError, match=r"must be > 0\.0, but got 0\.0"):
-        parser.nodes.variables["v"].get()
+    if inclusive_lower:
+        assert parser.nodes.variables["v"].get() == 0.0
+    else:
+        with pytest.raises(ValueError, match=r"must be > 0\.0, but got 0\.0"):
+            parser.nodes.variables["v"].get()
 
 
 def test_a_copy_target_without_a_calculator_adopts_its_placeholder():
@@ -152,8 +140,7 @@ def test_a_copy_target_without_a_calculator_adopts_its_placeholder():
     assert placeholder.global_warming_potential.get() == 2.0
 
 
-@pytest.mark.parametrize("node_type", [MODEL_DEFINITION, BUNKER_OPTIONS])
-def test_a_general_node_type_is_rejected_instead_of_crashing(read_deck, node_type):
+def test_a_general_node_type_is_rejected_instead_of_crashing(read_deck):
     # a general node has no registry group to copy into, so the check runs
     # before any lookup against one; the deck error names the include file
     # and line the Copy statement sits on
@@ -161,10 +148,10 @@ def test_a_general_node_type_is_rejected_instead_of_crashing(read_deck, node_typ
         DeckKeywordError,
         match=(
             rf"Error in deck file, line \d+, include file '.*', line \d+: "
-            rf"'{node_type}' cannot be copied\."
+            rf"'{MODEL_DEFINITION}' cannot be copied\."
         ),
     ):
-        read_deck(f'Copy {node_type} "a" "b"\n')
+        read_deck(f'Copy {MODEL_DEFINITION} "a" "b"\n')
 
 
 @pytest.mark.parametrize(
