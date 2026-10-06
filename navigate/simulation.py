@@ -206,6 +206,11 @@ class SimulationManager:
                 timeit.default_timer() - start_time_overhead, self._idx
             )
 
+        # the policy WTT reads only the plants' production and delivery WTT, which
+        # nothing later in the step changes, so one pass once the vessels' usable
+        # fuels are known serves both bunkering runs of the step
+        self._calculate_policy_emission_coefficients()
+
         # technology costs are excluded here: they enter the cargo charter
         # metrics below as the fleet-average carried technology charge
         self._calculate_vessel_charter_properties()
@@ -221,7 +226,6 @@ class SimulationManager:
             self._update_fleet_evolution_expectation()
 
             self._calculate_fair_share_fuel_supply(BunkerScopeID.EXPECTED)
-            self._calculate_policy_emission_coefficients()
 
             # the bunker LP takes energy demands as given, so demands must fit
             # the installed converter power for it to be feasible
@@ -244,10 +248,6 @@ class SimulationManager:
         self._missing_technology_approximation()
         self._calculate_fuel_import()
         self._calculate_fair_share_fuel_supply(BunkerScopeID.EXISTING)
-
-        # recalculate the policy emission coefficients: this pass picks up this
-        # step's fuel import and fleet evolution
-        self._calculate_policy_emission_coefficients()
 
         # re-verify against the installed converter power: the energy demands
         # have been rewritten since the expected bunkering pass
@@ -365,6 +365,7 @@ class SimulationManager:
             self.nodes.regulations,
             self.nodes.levies,
             self.nodes.vessels,
+            self.nodes.plants,
             self.timeline,
             self._idx,
         )

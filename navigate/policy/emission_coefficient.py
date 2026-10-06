@@ -1,7 +1,13 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""WTT, TTW and overall emission coefficients of regulations and levies."""
+"""
+WTT, TTW and overall emission coefficients of regulations and levies.
+
+The default WTT of a fuel bunkered at a port is estimated from the plants producing
+the fuel and reads no bunker supply, so the coefficients are calculated once per time
+step, before either bunkering run.
+"""
 
 from __future__ import annotations
 
@@ -11,13 +17,14 @@ import numpy as np
 
 from navigate.core.enum_ import LevySchemeID, PolicyScopeID
 from navigate.core.unit import TON_PER_GJ_TO_GRAM_PR_MJ
-from navigate.util import TOLERANCE, divide_nonzero, list_intersection, unique_list
+from navigate.util import divide_nonzero, list_intersection, unique_list
 
 if TYPE_CHECKING:
     from navigate.core.nodes.converter import Converter
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.nodes.levy import Levy
+    from navigate.core.nodes.plant import Plant
     from navigate.core.nodes.port import Port
     from navigate.core.nodes.regulation import Regulation
     from navigate.core.nodes.vessel import Vessel
@@ -28,6 +35,7 @@ def calculate_policy_emission_coefficients(
     regulations: dict[str, Regulation],
     levies: dict[str, Levy],
     vessels: dict[str, Vessel],
+    plants: dict[str, Plant],
     timeline: FloatArray,
     idx: int,
 ) -> None:
@@ -39,6 +47,9 @@ def calculate_policy_emission_coefficients(
     are used in the calculation of the emission coefficients, which are used to
     converter a ton of fuel to a ton of emissions.
 
+    Reads the plants' production and delivery WTT of the current time step, so it runs
+    after those are calculated.
+
     Parameters
     ----------
     regulations
@@ -47,27 +58,37 @@ def calculate_policy_emission_coefficients(
         All levies in the simulation.
     vessels
         All vessels in the simulation.
+    plants
+        All plants in the simulation.
     timeline
         Simulation timeline.
     idx
         Current time-step index.
     """
+    plants_by_fuel = {
+        fuel_name: [plant for plant in plants.values() if plant.fuel.name == fuel_name]
+        for fuel_name in {plant.fuel.name for plant in plants.values()}
+    }
+
     for regulation in regulations.values():
         if not regulation.is_active():
             continue
 
-        _assign_regulation_emission_factors(regulation, vessels, timeline, idx)
+        _assign_regulation_emission_factors(
+            regulation, vessels, plants_by_fuel, timeline, idx
+        )
 
     for levy in levies.values():
         if not levy.is_active():
             continue
 
-        _assign_levy_emission_factors(levy, vessels, timeline, idx)
+        _assign_levy_emission_factors(levy, vessels, plants_by_fuel, timeline, idx)
 
 
 def _assign_regulation_emission_factors(
     regulation: Regulation,
     vessels: dict[str, Vessel],
+    plants_by_fuel: dict[str, list[Plant]],
     timeline: FloatArray,
     idx: int,
 ) -> None:
@@ -80,6 +101,9 @@ def _assign_regulation_emission_factors(
         Regulation to calculate emission factor for.
     vessels
         All vessels in the simulation.
+    plants_by_fuel
+        Plants producing each fuel, keyed by fuel name; a fuel no plant produces is
+        absent.
     timeline
         Simulation timeline.
     idx
@@ -88,7 +112,9 @@ def _assign_regulation_emission_factors(
     scope = regulation.scope
 
     if scope in (PolicyScopeID.WTT, PolicyScopeID.WTW):
-        _assign_regulation_wtt_factors(regulation, vessels, timeline, idx)
+        _assign_regulation_wtt_factors(
+            regulation, vessels, plants_by_fuel, timeline, idx
+        )
 
     if scope in (PolicyScopeID.TTW, PolicyScopeID.WTW):
         _assign_regulation_ttw_factors(regulation, vessels, timeline, idx)
@@ -99,15 +125,17 @@ def _assign_regulation_emission_factors(
 def _assign_regulation_wtt_factors(
     regulation: Regulation,
     vessels: dict[str, Vessel],
+    plants_by_fuel: dict[str, list[Plant]],
     timeline: FloatArray,
     idx: int,
 ) -> None:
     """
     Calculate and assign the WTT emission factors related to a given regulation.
 
-    Unless the regulation supplies a WTT, a vessel's factor is averaged over every
-    port on its route, each counted once, as the vessel may bunker a fuel outside
-    the jurisdiction and burn it inside.
+    Unless the regulation supplies a WTT, a vessel's factor is the mean of the port
+    estimates over every port on its route, each counted once, as the vessel may
+    bunker a fuel outside the jurisdiction and burn it inside. A fuel no route port
+    has an estimate for gets a NaN factor.
 
     Parameters
     ----------
@@ -115,6 +143,9 @@ def _assign_regulation_wtt_factors(
         Regulation to calculate emission factor for.
     vessels
         All vessels in the simulation.
+    plants_by_fuel
+        Plants producing each fuel, keyed by fuel name; a fuel no plant produces is
+        absent.
     timeline
         Simulation timeline.
     idx
@@ -147,18 +178,21 @@ def _assign_regulation_wtt_factors(
 
         for fuel in target_fuels:
             fuel_name = fuel.name
+            fuel_plants = plants_by_fuel.get(fuel_name, [])
 
             for emission in target_emissions:
                 emission_name = emission.name
                 key = (fuel_name, emission_name)
 
-                # user-supplied WTT overrides the per-port average
+                # user-supplied WTT overrides the route average
                 supplied_wtt = wtt_supplied[key]
                 wtt: FloatLike
                 if supplied_wtt is not None:
                     wtt = supplied_wtt
                 else:
-                    wtt = _average_wtt_over_ports(ports, fuel, emission, idx)
+                    wtt = _average_wtt_over_route(
+                        ports, fuel, emission, fuel_plants, idx
+                    )
 
                 factor = _apply_gwp(wtt, regulation, emission)
 
@@ -269,6 +303,12 @@ def _assign_regulation_emission_coefficients(
                         regulation, vessel, converter, fuel, emission, idx
                     )
 
+                # only a WTT factor can be NaN, where no route port has an estimate
+                # for the fuel; no port then supplies it, so the LP spends none of
+                # it and reads the missing coefficient as zero
+                if np.isnan(coefficient).any():
+                    continue
+
                 key = (vessel_name, converter_name, fuel_name)
 
                 regulation.expectation.set_coefficient(idx, key, coefficient)
@@ -321,6 +361,7 @@ def _calculate_regulation_emission_factor(
 def _assign_levy_emission_factors(
     levy: Levy,
     vessels: dict[str, Vessel],
+    plants_by_fuel: dict[str, list[Plant]],
     timeline: FloatArray,
     idx: int,
 ) -> None:
@@ -333,6 +374,9 @@ def _assign_levy_emission_factors(
         Levy to calculate emission factor for.
     vessels
         All vessels in the simulation.
+    plants_by_fuel
+        Plants producing each fuel, keyed by fuel name; a fuel no plant produces is
+        absent.
     timeline
         Simulation timeline.
     idx
@@ -341,7 +385,7 @@ def _assign_levy_emission_factors(
     scope = levy.scope
 
     if scope in (PolicyScopeID.WTT, PolicyScopeID.WTW):
-        _assign_levy_wtt_factors(levy, timeline, idx)
+        _assign_levy_wtt_factors(levy, plants_by_fuel, timeline, idx)
 
     if scope in (PolicyScopeID.TTW, PolicyScopeID.WTW):
         _assign_levy_ttw_factors(levy, vessels, timeline, idx)
@@ -349,14 +393,26 @@ def _assign_levy_emission_factors(
     _assign_levy_emission_coefficients(levy, vessels, timeline, idx)
 
 
-def _assign_levy_wtt_factors(levy: Levy, timeline: FloatArray, idx: int) -> None:
+def _assign_levy_wtt_factors(
+    levy: Levy,
+    plants_by_fuel: dict[str, list[Plant]],
+    timeline: FloatArray,
+    idx: int,
+) -> None:
     """
     Calculate and assign the WTT emission factor related to a given levy.
+
+    Unless the levy supplies a WTT, the factor at each jurisdiction port is the port
+    estimate. A port that disallows bunkering the fuel gets a NaN factor, as does a
+    port without an estimate for it.
 
     Parameters
     ----------
     levy
         Levy to calculate emission factor for.
+    plants_by_fuel
+        Plants producing each fuel, keyed by fuel name; a fuel no plant produces is
+        absent.
     timeline
         Simulation timeline.
     idx
@@ -368,12 +424,13 @@ def _assign_levy_wtt_factors(levy: Levy, timeline: FloatArray, idx: int) -> None
 
     for fuel in levy.fuels:
         fuel_name = fuel.name
+        fuel_plants = plants_by_fuel.get(fuel_name, [])
 
         for emission in target_emissions:
             emission_name = emission.name
 
-            # user-supplied WTT (None falls back to the port-specific model
-            # value resolved inside the per-port loop below).
+            # user-supplied WTT (None falls back to the port estimate resolved
+            # inside the per-port loop below).
             key = (fuel_name, emission_name)
             supplied = fuel_wtts[key]
             wtt_supplied = (
@@ -391,7 +448,7 @@ def _assign_levy_wtt_factors(levy: Levy, timeline: FloatArray, idx: int) -> None
                     if wtt_supplied is not None:
                         wtt = wtt_supplied
                     else:
-                        wtt = _get_port_bunker_wtt(port, fuel, emission, idx)
+                        wtt = _estimate_port_wtt(port, fuel, emission, fuel_plants, idx)
 
                     factor = _apply_gwp(wtt, levy, emission)
 
@@ -516,6 +573,12 @@ def _assign_levy_emission_coefficients(
                         levy, vessel, port, fuel, emission, idx
                     )
 
+                # only a WTT factor can be NaN, where the port has no estimate for
+                # the fuel; the port then has no supply of it, so the LP bunkers
+                # none of it and reads the missing coefficient as zero
+                if np.isnan(coefficient).any():
+                    continue
+
                 coefficient = _calculate_threshold_adjusted_levy_emission_coefficient(
                     coefficient,
                     levy,
@@ -540,9 +603,7 @@ def _calculate_levy_emission_factor(
     """
     Calculate the emission factor, in ton emissions per ton fuel, for one emission.
 
-    Used in the calculation of a levy emission coefficient. This method takes input in
-    the form of a single time-step index during the bunker algorithm but also a slice
-    of indices for calculation of the adjusted fuel TCO.
+    Used in the calculation of a levy emission coefficient.
 
     Parameters
     ----------
@@ -676,29 +737,15 @@ def _calculate_converter_ttw(
     return ttw_consumption, ttw_slip
 
 
-def _average_wtt_over_ports(
-    ports: list[Port], fuel: Fuel, emission: Emission, idx: int
+def _average_wtt_over_route(
+    ports: list[Port], fuel: Fuel, emission: Emission, plants: list[Plant], idx: int
 ) -> FloatLike:
     """
-    Estimate a converter's WTT emissions as a supply-weighted average over ports.
+    Estimate a vessel's WTT emissions of a fuel as the mean over its route ports.
 
-    The average runs over the given ports that allow bunkering of the fuel. A port
-    listed twice counts twice, so callers pass each port once.
-
-    The weighting is evaluated per time-step, as the supply of a fuel at a port
-    may change over time (e.g. plants coming online). Ports without supply of
-    the fuel carry no weight; otherwise they would dilute the average with a
-    bunker WTT of 0 even though no fuel can be bunkered there. At time-steps
-    where one or more ports have an infinite supply (a liquid-market fuel at a
-    port with no bunkering limit) those ports dominate the market and are
-    weighted equally, ignoring the finite-supply ports.
-
-    Where no port has supply above tolerance the result is 0. This is harmless:
-    with no port able to supply the fuel, no vessel can bunker it at that time.
-
-    Relies on the import calculation having transferred bunker supply and WTT
-    to the port expectations; the two are written together there, so the
-    weights and the averaged values always stem from the same snapshot.
+    The mean weighs equally the ports that allow bunkering the fuel and have an
+    estimate for it. A port listed twice counts twice, so callers pass each port once.
+    Where no port contributes, the result is NaN.
 
     Parameters
     ----------
@@ -708,42 +755,37 @@ def _average_wtt_over_ports(
         Fuel being spent.
     emission
         Emission.
+    plants
+        Plants producing the fuel.
     idx
         Current time-step index.
 
     Returns
     -------
     FloatLike
-        Approximate converter WTT.
+        Approximate WTT from `idx` onward, in ton emission/ton fuel.
     """
     fuel_name = fuel.name
-    from_idx = np.s_[idx:]
 
-    supplies: list[FloatLike] = []
-    wtts: list[FloatLike] = []
-
+    estimates: list[FloatLike] = []
     for port in ports:
         if not port.is_bunkering_allowed(fuel_name):
             continue
 
-        supplies.append(port.expectation.get_bunker_supply(fuel_name, from_idx))
-        wtts.append(_get_port_bunker_wtt(port, fuel, emission, idx))
+        estimate = _estimate_port_wtt(port, fuel, emission, plants, idx)
 
-    if not supplies:
-        return 0.0
+        # a port is left out whole where its estimate is NaN anywhere: a plant
+        # estimate is NaN at every step or at none, and only a deck's overwrite
+        # could mix the two
+        if np.isnan(estimate).any():
+            continue
 
-    supply = np.stack(supplies)
-    wtt = np.stack(wtts)
+        estimates.append(estimate)
 
-    # ports with a supply below tolerance carry no weight
-    weights = np.where(supply > TOLERANCE, supply, 0.0)
+    if not estimates:
+        return np.nan
 
-    # ports with an infinite supply dominate the market at that time-step
-    # and are weighted equally, ignoring the finite-supply ports
-    infinite = np.isinf(supply)
-    weights = np.where(infinite.any(axis=0), infinite, weights)
-
-    return divide_nonzero((weights * wtt).sum(axis=0), weights.sum(axis=0))
+    return np.stack(estimates).mean(axis=0)
 
 
 def _converter_weights(vessel: Vessel, fuel: Fuel) -> list[tuple[Converter, float]]:
@@ -951,32 +993,60 @@ def _usable_target_fuels(
     return [fuel for fuel in policy.fuels if fuel.name in usable_fuels]
 
 
-def _get_port_bunker_wtt(
-    port: Port, fuel: Fuel, emission: Emission, idx: int
+def _estimate_port_wtt(
+    port: Port, fuel: Fuel, emission: Emission, plants: list[Plant], idx: int
 ) -> FloatLike:
     """
-    Extract the bunker WTT value at a port for a given fuel/emission, from `idx` onward.
+    Estimate the WTT emissions of a fuel bunkered at a port, from `idx` onward.
+
+    The port's WTT overwrite takes precedence. Otherwise a liquid-market fuel carries
+    no WTT, as in its import to the port, and a producer fuel takes the equal-weight
+    mean over the plants producing it of their production WTT plus their WTT of
+    delivery to the port. The estimate reads no bunker supply, so it is known before
+    the fuel import of the time step.
+
+    A fuel no plant produces has no estimate, and the result is NaN: no port has
+    supply of it, so no vessel can bunker it.
 
     Parameters
     ----------
     port
-        Port from which the WTT will be extracted.
+        Port at which the fuel is bunkered.
     fuel
-        Fuel for which the WTT will be extracted.
+        Fuel being bunkered.
     emission
-        Emission for which the WTT will be extracted.
+        Emission.
+    plants
+        Plants producing the fuel.
     idx
         Current time-step index.
 
     Returns
     -------
     FloatLike
-        Bunker WTT emissions from `idx` onward.
+        WTT emissions from `idx` onward, in ton emission/ton fuel.
     """
     from_idx = np.s_[idx:]
 
+    port_name = port.name
     fuel_name = fuel.name
     emission_name = emission.name
-    wtt = port.expectation.get_bunker_wtt(fuel_name, emission_name, from_idx)
 
-    return wtt
+    if port.bunker_wtt_overwrite[(fuel_name, emission_name)] is not None:
+        return port.expectation.get_bunker_wtt_overwrite(
+            fuel_name, emission_name, from_idx
+        )
+
+    if fuel.liquid_market:
+        return np.zeros(port.expectation.get_shape(idx))
+
+    if not plants:
+        return np.full(port.expectation.get_shape(idx), np.nan)
+
+    estimates = [
+        plant.expectation.get_production_wtt(emission_name, from_idx)
+        + plant.expectation.get_delivery_wtt(port_name, emission_name, from_idx)
+        for plant in plants
+    ]
+
+    return np.stack(estimates).mean(axis=0)
