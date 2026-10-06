@@ -1,9 +1,9 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-# Guardrail decks pin all fuel-side prices and emissions as explicit
-# constants so upstream assumption changes cannot silently re-size the
-# scenario. Values are rounded from the 2026-08-13 installation defaults.
+# All fuel-side prices and emissions pinned as explicit constants so upstream
+# assumption changes cannot silently re-size the scenario. Values are rounded
+# from the 2026-08-13 installation defaults.
 Import Port "port_global"
 Import Port "port_europe"
 

@@ -2,10 +2,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # A single fleet with only the oil and ammonia variants of the default
-# container vessel: the regulation must pull demand toward exactly one
-# alternative fuel, so the supply constraint on that fuel is the only
-# mechanism in play. Decision sensitivities come from Load DefaultCalibration
-# in the .nav.
+# container vessel: the policy signal (regulation or levy) must pull demand
+# toward exactly one alternative fuel. Decision sensitivities come from
+# fleet_calibration.inc, included after this file in the .nav.
 Import Vessel "container_15000_teu_ice_oil"
 Import Vessel "container_15000_teu_ice_ammonia"
 
@@ -17,10 +16,8 @@ Fleet "container_15000_teu" {
 
 	InitialVessels = Variable("initial_vessels_container_15000_teu")
 
-	# a substantial ammonia-capable share from the start: the deck tests the
-	# demand signal propagating from the bunker algorithm to the producer,
-	# not the speed of fleet turnover, so ammonia demand must exist at scale
-	# from the first step
+	# a substantial ammonia-capable share from the start, so ammonia demand
+	# exists at scale from the first step instead of waiting on fleet turnover
 	InitialSplit = [
 		0.300,
 		0.700

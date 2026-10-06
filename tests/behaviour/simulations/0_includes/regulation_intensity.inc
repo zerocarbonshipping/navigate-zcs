@@ -5,7 +5,7 @@
 # regulation) whose shrinking threshold imposes alternative-fuel demand. The
 # threshold trajectory and remedial cost are deck-sizing inputs (tuned so the
 # implied ammonia demand always exceeds what the constrained Producer can
-# supply); the asserted property does not depend on their exact values.
+# supply).
 
 Regulation "intensity_regulation" {
 	Measure = INTENSITY
@@ -27,8 +27,7 @@ Regulation "intensity_regulation" {
 }
 
 # The threshold shrinks from the very first time-step so the demand signal
-# exists throughout the simulation — the assertion window must not need a
-# head exclusion for regulation onset.
+# exists throughout the simulation.
 Forecast "intensity_target_reduction" {
 	Table = [
 		"01-01-2026"	1.00

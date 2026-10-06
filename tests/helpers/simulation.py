@@ -4,8 +4,8 @@
 """
 Shared helpers for test suites that run full simulations in-process.
 
-Used by tests/attribute (attribute coverage), tests/guardrails (behavior
-guardrails), and tests/regression (golden baselines), so every suite runs
+Used by tests/attribute (attribute coverage), tests/behaviour (directional
+responses), and tests/regression (golden baselines), so every suite runs
 decks through the same runner and universal invariants.
 """
 
@@ -14,23 +14,12 @@ from __future__ import annotations
 import os
 import shutil
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 import numpy as np
 
 from navigate.__main__ import ASSUMPTIONS_ENV_VAR
 from navigate.simulation import SimulationManager
 from navigate.util import YEAR
-
-if TYPE_CHECKING:
-    from navigate.core.nodes.producer import Producer
-
-# Tolerance for comparing per-step producer development against the nominal
-# per-year MaximumDevelopment in decks with yearly time steps: leap years
-# deviate by up to 366/365.25 - 1 (about 0.21%). Property tests in decks
-# with non-yearly steps need a rate-normalized comparison instead (as
-# check_invariants does).
-EPS_DEVELOPMENT_REL = 2.5e-3
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
@@ -92,36 +81,6 @@ def clear_output_dir(output_dir: Path) -> None:
         The deck's report output directory.
     """
     shutil.rmtree(output_dir, ignore_errors=True)
-
-
-def assertable_end(manager: SimulationManager, producer: Producer) -> int:
-    """
-    Last time-step index (exclusive) at which producer development is assertable.
-
-    In the final LeadTime years the foresight window runs past the simulation end and
-    the producer under-builds by construction.
-
-    Parameters
-    ----------
-    manager
-        Manager of a completed run.
-    producer
-        Producer whose first plant's LeadTime defines the excluded tail.
-
-    Returns
-    -------
-    Exclusive end index, guaranteed within (0, len(timeline)].
-    """
-    timeline = manager.timeline
-    lead_time = round(producer.assets[0].lead_time.get(timeline[0]))
-    end = len(timeline) - lead_time
-    # guard against vacuously-true assertions on empty (or, with negative
-    # indices, silently wrong) windows when a horizon shrinks or a default
-    # lead time grows
-    assert 0 < end <= len(timeline), (
-        f"Assertable window is empty: {len(timeline)} steps, lead time {lead_time}"
-    )
-    return end
 
 
 def check_invariants(manager: SimulationManager) -> None:

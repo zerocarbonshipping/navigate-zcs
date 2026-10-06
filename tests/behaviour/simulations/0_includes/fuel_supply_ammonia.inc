@@ -8,8 +8,7 @@
 #
 # MaximumDevelopment is a deck-sizing input (tuned): the value below keeps
 # supply permanently behind the regulation-imposed demand
-# (supply_constrained); supply_then_demand_constrained overrides it in its
-# own includes/ so supply catches up mid-simulation.
+# (supply_constrained); producer_headroom.inc raises it.
 
 # oil imports LiquidMarket = TRUE from the defaults: available without a
 # Producer, priced and emission-rated at the ports
@@ -36,15 +35,19 @@ Import Process "hydrogen_electro_alkaline"
 Import Process "nitrogen_air_separation"
 Import Feedstock "demineralized_water"
 
-# decision sensitivities come from Load DefaultCalibration in the .nav
 Producer "epc_europe" {
 	Plants = [Plant("plant_ammonia_electro_alkaline")]
 
 	MaximumDevelopment = 1
 
-	# no artificial utilization ramp at simulation start: the decks assert
-	# development behavior from the first step
+	# no artificial utilization ramp at simulation start
 	JumpStartFraction = 1.0
+
+	# pinned decision-process calibration (rounded from the 2026-09-14
+	# installation defaults)
+	Inertia = 0.0
+	FuelDemandSensitivity = 1.25
+	FuelCostSensitivity = 0.75
 
 	set_export_distribution("port_global", 1.)
 }

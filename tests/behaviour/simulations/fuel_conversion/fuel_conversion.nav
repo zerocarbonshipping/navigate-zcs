@@ -1,0 +1,31 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: Apache-2.0
+
+# ------------------------------------------------------------------------------
+# BEHAVIOUR DECK: FUEL CONVERSION (base of the conversion pair)
+#
+# An oil-dominated fleet whose only channel into the methane vessel type is
+# oil -> methane conversion, with LNG cheaper than oil.
+#
+# The assertions live in tests/behaviour/test_response_direction.py.
+# ------------------------------------------------------------------------------
+
+DEFINE {
+	Load DefaultModelDefinition
+
+	Include "../0_includes/options.inc"
+	Include "../0_includes/fleet_oil_methane.inc"
+	Include "../0_includes/fleet_calibration.inc"
+	Include "../0_includes/ports_oil_methane.inc"
+
+	Load DefaultEmission
+
+	# plots for manual deck inspection (run the deck without -s);
+	# tests suppress plot generation to stay fast
+	Load DefaultPlot
+	Load DebugPlot
+}
+
+EVENTS {
+	Load DefaultTimeStepYearly
+}

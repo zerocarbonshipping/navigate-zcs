@@ -101,6 +101,10 @@ jobs:
         shell: bash -el {0}
         run: make test-attribute
 
+      - name: Run behaviour tests
+        shell: bash -el {0}
+        run: make test-behaviour
+
       - name: Run regression tests
         shell: bash -el {0}
         run: make test-regression

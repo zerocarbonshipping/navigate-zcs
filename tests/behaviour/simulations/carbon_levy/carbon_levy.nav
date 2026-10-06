@@ -1,0 +1,34 @@
+# SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
+# SPDX-License-Identifier: Apache-2.0
+
+# ------------------------------------------------------------------------------
+# BEHAVIOUR DECK: CARBON LEVY (base of the levy pair)
+#
+# The oil/ammonia fleet under a ramping WTW carbon levy and no Regulation, with
+# ample e-ammonia development headroom: the levy is the only policy signal.
+#
+# The assertions live in tests/behaviour/test_response_direction.py.
+# ------------------------------------------------------------------------------
+
+DEFINE {
+	Load DefaultModelDefinition
+
+	Include "../0_includes/options.inc"
+	Include "../0_includes/fleet_oil_ammonia.inc"
+	Include "../0_includes/fleet_calibration.inc"
+	Include "../0_includes/ports_oil_ammonia.inc"
+	Include "../0_includes/fuel_supply_ammonia.inc"
+	Include "../0_includes/producer_headroom.inc"
+	Include "../0_includes/levy_carbon.inc"
+
+	Load DefaultEmission
+
+	# plots for manual deck inspection (run the deck without -s);
+	# tests suppress plot generation to stay fast
+	Load DefaultPlot
+	Load DebugPlot
+}
+
+EVENTS {
+	Load DefaultTimeStepYearly
+}
