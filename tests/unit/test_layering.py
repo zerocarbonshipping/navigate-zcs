@@ -1,12 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""
-Mechanical layering check: core must import only the foundation layers at runtime.
-
-`logging_` is allow-listed by design: the table nodes' use of it and the
-`logging_` -> `core.unit` edge are the known remainder of the layering cleanup.
-"""
+"""Mechanical layering check: core must import only the foundation layers at runtime."""
 
 from __future__ import annotations
 
@@ -20,7 +15,6 @@ FOUNDATION = (
     "navigate.core",
     "navigate.util",
     "navigate.exceptions",
-    "navigate.logging_",
 )
 
 
