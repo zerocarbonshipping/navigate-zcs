@@ -17,7 +17,7 @@ Copy this checklist and tick it off:
 ```
 - [ ] 1. Pick the type
 - [ ] 2. Write the title
-- [ ] 3. Write the body
+- [ ] 3. Read the type's reference and write the body
 - [ ] 4. Create the pull request and report its URL
 ```
 
@@ -50,9 +50,11 @@ One imperative sentence stating the outcome, with no prefix
 check's scope gating into the fleet domain" (#439). For a single-commit pull
 request, make the commit subject equal the title.
 
-## 3. Write the body
+## 3. Read the type's reference and write the body
 
-Read `.github/PULL_REQUEST_TEMPLATE.md`. Use its `## ` sections, in order,
+Read the reference for the type chosen in step 1, from the table above; it
+says what that type's sections must carry. Read
+`.github/PULL_REQUEST_TEMPLATE.md`. Use its `## ` sections, in order,
 and follow the guidance in each HTML comment. Leave the comments and the
 SPDX header out of the body. A section with nothing to say says so in one
 line. `### ` subheadings, bullets and tables are welcome inside a section.
