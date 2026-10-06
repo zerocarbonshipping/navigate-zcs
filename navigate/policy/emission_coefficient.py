@@ -10,8 +10,13 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.enum_ import LevySchemeID, PolicyScopeID
-from navigate.core.unit import TON_PER_GJ_TO_GRAM_PR_MJ
-from navigate.util import TOLERANCE, divide_nonzero, list_intersection, unique_list
+from navigate.util import (
+    TOLERANCE,
+    TON_PER_GJ_TO_GRAM_PR_MJ,
+    divide_nonzero,
+    list_intersection,
+    unique_list,
+)
 
 if TYPE_CHECKING:
     from navigate.core.nodes.converter import Converter

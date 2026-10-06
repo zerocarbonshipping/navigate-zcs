@@ -13,8 +13,8 @@ from navigate.core.nodes.fuel import Fuel
 from navigate.core.nodes.plant import Plant
 from navigate.core.nodes.region import Region
 from navigate.core.nodes.transport import Transport
-from navigate.core.unit import YEAR_TO_DAYS
 from navigate.fuel.logistics import calculate_plant_logistics_expectations
+from navigate.util import YEAR_TO_DAYS
 
 TIMELINE = np.arange(3.0) * YEAR_TO_DAYS
 EMISSIONS = {"carbon_dioxide": None}

@@ -9,6 +9,8 @@ from typing import TYPE_CHECKING, TypeIs, overload
 
 import numpy as np
 
+from navigate.util.units import YEAR_TO_DAYS
+
 if TYPE_CHECKING:
     from navigate.util.types_ import (
         DateArray,
@@ -17,7 +19,7 @@ if TYPE_CHECKING:
         TimedeltaArray,
     )
 
-YEAR = 365.25  # calendar year in days
+YEAR = YEAR_TO_DAYS  # calendar year in days
 
 
 def is_date_array(values: FloatArray | DateArray) -> TypeIs[DateArray]:

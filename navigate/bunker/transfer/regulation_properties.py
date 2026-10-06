@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 import navigate.core.enum_ as enum_
 from navigate.bunker.constraints.regulation_terms import get_regulation_vessel_threshold
 from navigate.core.enum_ import RegulationMeasureID
-from navigate.core.unit import TON_TO_KG
+from navigate.util import TON_TO_KG
 
 if TYPE_CHECKING:
     from navigate.bunker.bunker_algorithm import BunkerAlgorithm

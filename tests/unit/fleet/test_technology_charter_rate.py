@@ -25,7 +25,6 @@ from navigate.core.increment import VesselIncrement
 from navigate.core.node import Node
 from navigate.core.node_type import CURVE
 from navigate.core.nodes.fleet import Fleet
-from navigate.core.unit import YEAR_TO_DAYS
 from navigate.economics.flows import (
     correct_flow_residual,
     get_age_flow,
@@ -56,7 +55,7 @@ from navigate.fleet.technology_adoption import (
     define_initial_technology,
     transfer_technology_charter_rate,
 )
-from navigate.util import YEAR
+from navigate.util import YEAR, YEAR_TO_DAYS
 
 DISCOUNT = 0.08
 

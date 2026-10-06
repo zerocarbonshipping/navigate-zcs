@@ -28,7 +28,6 @@ from navigate.core.enum_ import (
 )
 from navigate.core.expectations.vessel_expectation import VesselExpectation
 from navigate.core.nodes.variable import Variable
-from navigate.core.unit import MWD_TO_GJ
 from navigate.exceptions import PowerCapacityError
 from navigate.fleet.power import (
     calculate_technical_speed_limits,
@@ -36,7 +35,7 @@ from navigate.fleet.power import (
     verify_power_capacity,
 )
 from navigate.simulation import SimulationManager
-from navigate.util import TOLERANCE
+from navigate.util import MWD_TO_GJ, TOLERANCE
 
 PROPULSION = EnergyDemandTypeID.PROPULSION
 ELECTRICAL = EnergyDemandTypeID.ELECTRICAL

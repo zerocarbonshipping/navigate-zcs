@@ -10,8 +10,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.unit import YEAR_TO_DAYS
-from navigate.util import ROUND_OFF, YEAR
+from navigate.util import ROUND_OFF, YEAR, YEAR_TO_DAYS
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable

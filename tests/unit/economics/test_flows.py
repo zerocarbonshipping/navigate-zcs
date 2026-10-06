@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import numpy as np
 
-from navigate.core.unit import YEAR_TO_DAYS
 from navigate.economics.flows import (
     Component,
     build_operating_flows,
@@ -15,6 +14,7 @@ from navigate.economics.flows import (
     get_flow_size,
     trim_flow_to_lifetime,
 )
+from navigate.util import YEAR_TO_DAYS
 
 
 class TestGetFlowSize:

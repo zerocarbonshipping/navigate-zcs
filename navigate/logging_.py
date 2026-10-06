@@ -17,8 +17,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 from tabulate import tabulate
 
-from navigate.core.unit import YEAR_TO_DAYS
-from navigate.util import TOLERANCE
+from navigate.util import TOLERANCE, YEAR_TO_DAYS
 
 if TYPE_CHECKING:
     from navigate.util import FloatArray
