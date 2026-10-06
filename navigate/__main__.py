@@ -19,6 +19,7 @@ from navigate.exceptions import NavigateError
 from navigate.logging_ import (
     LOG_LEVELS,
     build_log_summary,
+    print_preamble,
     print_warning_summary,
     setup_logger,
 )
@@ -180,6 +181,7 @@ def _validate_file(parser: argparse.ArgumentParser, path: Path) -> None:
 
 def _dispatch(args: argparse.Namespace) -> int:
     setup_logger(args.filename, level=logging.getLevelName(args.log_level))
+    print_preamble()
     deck = args.filename.resolve()
 
     if args.profile:

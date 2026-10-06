@@ -56,7 +56,11 @@ from navigate.fuel import (
     perform_planning,
     perform_progression,
 )
-from navigate.logging_ import log_model_post_process, log_start_of_simulation
+from navigate.logging_ import (
+    log_model_post_process,
+    log_start_of_simulation,
+    log_time_step_breaker,
+)
 from navigate.output import write_report
 from navigate.parser import Parser
 from navigate.policy import (
@@ -166,15 +170,19 @@ class SimulationManager:
         self._initialize_bunker_models()
 
     def _run_simulation(self) -> None:
-        """Step through the timeline, from the initial conditions at 'Start' on."""
-        date = self.parser.progress_timeline()
+        """
+        Step through the dateline, from the initial conditions at 'Start' on.
 
-        # None ends the timeline; a date cannot be truth-tested, as 1970-01-01 is falsy
-        while date is not None:
+        Each date logs its time-step banner, applies its events, then steps.
+        """
+        for date in self.dateline:
+            if self._idx > 0:
+                log_time_step_breaker(
+                    logger, self._idx, date, timedelta_to_days(date - self.dateline[0])
+                )
+            self.parser.read_events(date)
             self._progress_date_time(date)
             self._perform_time_step()
-
-            date = self.parser.progress_timeline()
             self._idx += 1
 
     def _progress_date_time(self, date: np.datetime64) -> None:

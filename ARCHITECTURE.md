@@ -54,17 +54,20 @@ policy      → core, util
 fleet, fuel → core, economics, util
 bunker      → core, policy, util
 output      → core, util
+parser      → core, util
 simulation  → everything
 ```
 
 `exceptions.py` and `logging_.py` are foundation modules that import only
 `util`. `exceptions.py` is available to every layer alongside `util`;
-`logging_.py` to every layer above `core`.
+`logging_.py` to every layer above `core` except `parser/`, which does no
+interface work.
 `tests/unit/test_layering.py` enforces that `core/` imports nothing from
 `navigate` beyond `core/`, `util/` and `exceptions.py`, type-only imports
 included, that `output/` imports nothing beyond `output/`, `core/`, `util/`
-and the foundation modules, and that `exceptions.py` and `logging_.py`
-import only `util`.
+and the foundation modules, that `parser/` imports nothing beyond `parser/`,
+`core/`, `util/` and `exceptions.py`, and that `exceptions.py` and
+`logging_.py` import only `util`.
 
 ## Data-flow invariants
 

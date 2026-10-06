@@ -2,10 +2,11 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Mechanical layering checks on `core`, `output` and the foundation modules.
+Mechanical layering checks on `core`, `parser`, `output` and the foundation modules.
 
 `core` may import only itself, `util` and `exceptions`; `output` only itself, `core`,
-`util`, `exceptions` and `logging_`; `exceptions` and `logging_` only `util`.
+`util`, `exceptions` and `logging_`; `parser` only itself, `core`, `util` and
+`exceptions`; `exceptions` and `logging_` only `util`.
 Type-only imports count.
 """
 
@@ -19,6 +20,13 @@ import pytest
 PACKAGE = Path(__file__).resolve().parents[2] / "navigate"
 CORE = PACKAGE / "core"
 CORE_ALLOWED = ("navigate.core", "navigate.util", "navigate.exceptions")
+PARSER = PACKAGE / "parser"
+PARSER_ALLOWED = (
+    "navigate.parser",
+    "navigate.core",
+    "navigate.util",
+    "navigate.exceptions",
+)
 OUTPUT = PACKAGE / "output"
 OUTPUT_ALLOWED = (
     "navigate.output",
@@ -71,6 +79,16 @@ def test_output_imports_only_output_core_util_and_foundation(path):
     offenders = _offending_imports(ast.walk(tree), OUTPUT_ALLOWED)
     relative_path = path.relative_to(OUTPUT)
     assert not offenders, f"navigate/output/{relative_path} imports {offenders}"
+
+
+@pytest.mark.parametrize(
+    "path", sorted(PARSER.rglob("*.py")), ids=lambda p: str(p.relative_to(PARSER))
+)
+def test_parser_imports_only_parser_core_util_and_exceptions(path):
+    tree = ast.parse(path.read_text(encoding="utf-8"))
+    offenders = _offending_imports(ast.walk(tree), PARSER_ALLOWED)
+    relative_path = path.relative_to(PARSER)
+    assert not offenders, f"navigate/parser/{relative_path} imports {offenders}"
 
 
 @pytest.mark.parametrize("path", FOUNDATION_MODULES, ids=lambda p: p.name)
