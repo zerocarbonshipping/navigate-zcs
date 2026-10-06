@@ -127,6 +127,8 @@ This command sets an overwrite of the WTT emissions for a specific fuel and emis
 
 If an overwrite is set for a specific fuel and emission, then the bottom-up calculation of production emissions is ignored.
 
+The overwrite also sets the WTT that regulations and levies assume for the fuel bunkered at this port, unless the policy sets its own with `set_fuel_wtt`.
+
 * **Primary key type**: String (Fuel name)
 * **Secondary key type**: String (Emission name)
 * **Data type**: `Float`, `Forecast`, `Variable`

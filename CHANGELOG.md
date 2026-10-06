@@ -94,6 +94,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - A regulation's default fuel WTT averages over every port on the vessel's
   route, each once, not only the jurisdiction ports, where it was 0 without
   supply. Results move where a route leaves the jurisdiction.
+- A `Regulation`'s or `Levy`'s default fuel WTT is the plain mean, over every
+  plant defined for the fuel, of its investment-time plus delivery WTT, not
+  the port supply mix or installed plants; route ports weigh equally.
 - A `Levy`'s `LowerThreshold` and `UpperThreshold` are measured per GJ of
   effective energy, (1 − slip) · LHV, as a `Regulation`'s intensity already
   is, so a threshold covers fewer emissions per ton of a fuel with converter

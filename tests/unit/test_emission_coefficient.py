@@ -5,11 +5,14 @@
 Tests for the policy emission-coefficient helpers.
 
 Tests verify the correctness of:
-  - _average_wtt_over_ports: supply-weighted averaging of port bunker WTT,
-    including exclusion of zero-supply and bunkering-disallowed ports,
-    per-time-step weighting, and the infinite-supply market regime.
-  - _assign_regulation_wtt_factors: the average runs over every port on the
-    vessel's route, jurisdiction or not, each port counted once.
+  - _estimate_port_wtt: the port's WTT overwrite wins, a fuel otherwise takes
+    the equal-weight mean of its plants' production plus delivery WTT, and a
+    fuel no plant produces is NaN.
+  - calculate_policy_emission_coefficients: only the plants producing a fuel
+    enter its estimate, read from the current time step onward.
+  - _assign_regulation_wtt_factors: the equal-weight mean runs over every port
+    on the vessel's route, jurisdiction or not, each port counted once, leaving
+    out ports that disallow the fuel or have no estimate.
   - _average_effective_lhv_over_converters: power/efficiency-weighted
     (1 - slip) * LHV over the converters able to burn the fuel.
   - _calculate_threshold_adjusted_levy_emission_coefficient: the PENALTY,
@@ -18,6 +21,8 @@ Tests verify the correctness of:
   - _assign_levy_emission_coefficients: the thresholds it evaluates once per
     pass stay sliced to timeline[idx:], not the whole timeline, and are
     compared with, and converted back on, the vessel's effective LHV.
+  - a NaN WTT factor, from a fuel without an estimate, leaves the regulation
+    or levy coefficient unwritten.
 """
 
 from __future__ import annotations
@@ -27,18 +32,23 @@ from unittest.mock import MagicMock
 import numpy as np
 import pytest
 
-from navigate.core.enum_ import LevySchemeID
+from navigate.core.enum_ import LevySchemeID, PolicyScopeID
+from navigate.core.expectations.plant_expectation import PlantExpectation
+from navigate.core.expectations.regulation_expectation import RegulationExpectation
 from navigate.core.nodes.converter import Converter
 from navigate.core.nodes.emission import Emission
 from navigate.core.nodes.fuel import Fuel
 from navigate.core.nodes.levy import Levy
 from navigate.policy.emission_coefficient import (
     _assign_levy_emission_coefficients,
+    _assign_levy_emission_factors,
+    _assign_regulation_emission_factors,
     _assign_regulation_wtt_factors,
     _average_effective_lhv_over_converters,
-    _average_wtt_over_ports,
     _calculate_threshold_adjusted_levy_emission_coefficient,
     _converter_weights,
+    _estimate_port_wtt,
+    calculate_policy_emission_coefficients,
 )
 
 # ---------------------------------------------------------------------------
@@ -52,118 +62,123 @@ EMISSION = MagicMock()
 EMISSION.name = "carbon_dioxide"
 
 
-def _make_port(allowed, supply, wtt):
+def _make_port(name, overwrite=None, allowed=True, fuel_name=FUEL.name, length=1):
+    """Stub a port; `overwrite` is its WTT overwrite of the fuel, None where unset."""
     port = MagicMock()
+    port.name = name
     port.is_bunkering_allowed.return_value = allowed
-    port.expectation.get_bunker_supply.return_value = np.asarray(supply, dtype=float)
-    port.expectation.get_bunker_wtt.return_value = np.asarray(wtt, dtype=float)
+    port.bunker_wtt_overwrite = {(fuel_name, EMISSION.name): overwrite}
+    port.expectation.get_bunker_wtt_overwrite.return_value = np.asarray(
+        overwrite, dtype=float
+    )
+    port.expectation.get_shape.return_value = (length,)
     return port
 
 
-# ---------------------------------------------------------------------------
-# 1. Zero-supply exclusion (regression for regulation WTT dilution)
-# ---------------------------------------------------------------------------
+def _make_plant(fuel_name, production, delivery):
+    """
+    Stub a plant of a fuel with its production and delivery WTT over the timeline.
 
+    `delivery` maps a port name to its delivery WTT; a port left out keeps the
+    expectation default of 0, as for a port without a transport assignment.
+    """
+    expectation = PlantExpectation()
+    expectation.initialize(
+        len(production),
+        dict.fromkeys([EMISSION.name]),
+        {},
+        dict.fromkeys(["port_a", *delivery]),
+        {},
+    )
+    for t, wtt in enumerate(production):
+        expectation.set_production_wtt(t, EMISSION.name, wtt)
+    for port_name, wtt in delivery.items():
+        expectation.set_delivery_wtt(0, port_name, EMISSION.name, np.asarray(wtt))
 
-class TestZeroSupplyExclusion:
-    def test_zero_supply_port_does_not_dilute_average(self):
-        """
-        A port that allows bunkering but has no supply must carry no weight.
-
-        Regression test: a route port without supply of a fuel has a
-        bunker WTT of 0 and previously diluted the average, halving e.g. the
-        negative WTT of bio-fuels.
-        """
-        supplied = _make_port(allowed=True, supply=[100.0], wtt=[-0.9])
-        unsupplied = _make_port(allowed=True, supply=[0.0], wtt=[0.0])
-
-        result = _average_wtt_over_ports([supplied, unsupplied], FUEL, EMISSION, idx=0)
-
-        assert result == pytest.approx([-0.9])
-
-    def test_no_supplied_ports_falls_back_to_zero(self):
-        a = _make_port(allowed=True, supply=[0.0], wtt=[-0.9])
-        b = _make_port(allowed=True, supply=[0.0], wtt=[-0.5])
-
-        result = _average_wtt_over_ports([a, b], FUEL, EMISSION, idx=0)
-
-        assert result == pytest.approx([0.0])
-
-    def test_disallowed_port_is_excluded(self):
-        allowed = _make_port(allowed=True, supply=[10.0], wtt=[-0.9])
-        disallowed = _make_port(allowed=False, supply=[10.0], wtt=[0.6])
-
-        result = _average_wtt_over_ports([allowed, disallowed], FUEL, EMISSION, idx=0)
-
-        assert result == pytest.approx([-0.9])
-
-    def test_no_allowed_ports_returns_zero(self):
-        a = _make_port(allowed=False, supply=[10.0], wtt=[-0.9])
-
-        result = _average_wtt_over_ports([a], FUEL, EMISSION, idx=0)
-
-        assert result == 0.0
+    plant = MagicMock()
+    plant.fuel.name = fuel_name
+    plant.expectation = expectation
+    return plant
 
 
 # ---------------------------------------------------------------------------
-# 2. Supply weighting
+# 1. WTT estimate of a fuel at a port
 # ---------------------------------------------------------------------------
 
 
-class TestSupplyWeighting:
-    def test_supply_weighted_average_over_unequal_ports(self):
-        large = _make_port(allowed=True, supply=[30.0], wtt=[-1.0])
-        small = _make_port(allowed=True, supply=[10.0], wtt=[-0.6])
+class TestEstimatePortWtt:
+    def test_overwrite_wins_over_the_plants(self):
+        port = _make_port("port_a", overwrite=[0.6])
+        plants = [_make_plant(FUEL.name, [-0.9], {})]
 
-        result = _average_wtt_over_ports([large, small], FUEL, EMISSION, idx=0)
-
-        # (30 * -1.0 + 10 * -0.6) / 40 = -0.9
-        assert result == pytest.approx([-0.9])
-
-    def test_supply_appearing_mid_timeline_is_weighted_per_time_step(self):
-        a = _make_port(allowed=True, supply=[10.0, 10.0], wtt=[-0.9, -0.9])
-        b = _make_port(allowed=True, supply=[0.0, 10.0], wtt=[0.0, -0.5])
-
-        result = _average_wtt_over_ports([a, b], FUEL, EMISSION, idx=0)
-
-        assert result == pytest.approx([-0.9, -0.7])
-
-
-# ---------------------------------------------------------------------------
-# 3. Infinite-supply market regime
-# ---------------------------------------------------------------------------
-
-
-class TestInfiniteSupplyRegime:
-    def test_infinite_supply_port_dominates_finite_ports(self):
-        market = _make_port(allowed=True, supply=[np.inf], wtt=[0.6])
-        plant = _make_port(allowed=True, supply=[100.0], wtt=[-0.9])
-
-        result = _average_wtt_over_ports([market, plant], FUEL, EMISSION, idx=0)
+        result = _estimate_port_wtt(port, FUEL, EMISSION, plants, idx=0)
 
         assert result == pytest.approx([0.6])
 
-    def test_infinite_supply_ports_are_weighted_equally(self):
-        a = _make_port(allowed=True, supply=[np.inf], wtt=[0.6])
-        b = _make_port(allowed=True, supply=[np.inf], wtt=[0.2])
-        c = _make_port(allowed=True, supply=[100.0], wtt=[-0.9])
+    def test_plant_mean_includes_the_delivery_wtt(self):
+        port = _make_port("port_a")
+        plants = [
+            _make_plant(FUEL.name, [-1.0], {"port_a": [0.2]}),
+            _make_plant(FUEL.name, [-0.6], {}),
+        ]
 
-        result = _average_wtt_over_ports([a, b, c], FUEL, EMISSION, idx=0)
+        result = _estimate_port_wtt(port, FUEL, EMISSION, plants, idx=0)
 
-        assert result == pytest.approx([0.4])
+        # ((-1.0 + 0.2) + (-0.6 + 0.0)) / 2 = -0.7
+        assert result == pytest.approx([-0.7])
 
-    def test_infinite_regime_is_evaluated_per_time_step(self):
-        a = _make_port(allowed=True, supply=[np.inf, 30.0], wtt=[0.6, -1.0])
-        b = _make_port(allowed=True, supply=[100.0, 10.0], wtt=[-0.9, -0.6])
+    def test_fuel_without_plant_has_no_estimate(self):
+        port = _make_port("port_a", length=2)
 
-        result = _average_wtt_over_ports([a, b], FUEL, EMISSION, idx=0)
+        result = _estimate_port_wtt(port, FUEL, EMISSION, [], idx=0)
 
-        # t=0: infinite regime, only port a counts; t=1: supply-weighted
-        assert result == pytest.approx([0.6, -0.9])
+        assert result.shape == (2,)
+        assert np.isnan(result).all()
 
 
 # ---------------------------------------------------------------------------
-# 4. Route-wide port selection
+# 2. Plants enter the estimate of their own fuel only, from idx onward
+# ---------------------------------------------------------------------------
+
+
+def _make_wtt_levy(jurisdiction):
+    """Stub an active WTT levy on FUEL whose GWP of 1 leaves the estimate as is."""
+    levy = MagicMock()
+    levy.is_active.return_value = True
+    levy.scope = PolicyScopeID.WTT
+    levy.fuels = [FUEL]
+    levy.emissions = [EMISSION]
+    levy.fuel_wtt = {(FUEL.name, EMISSION.name): None}
+    levy.jurisdiction = jurisdiction
+    levy.expectation.get_global_warming_potential.return_value = 1.0
+    return levy
+
+
+class TestPlantsByFuel:
+    def test_plants_of_other_fuels_are_excluded(self):
+        port = _make_port("port_a")
+        levy = _make_wtt_levy([port])
+        # index 0 lies before idx = 1 and must not be read
+        plants = {
+            "plant_1": _make_plant(FUEL.name, [9.0, -1.0], {"port_a": [9.0, 0.2]}),
+            "plant_2": _make_plant(FUEL.name, [9.0, -0.6], {}),
+            "plant_3": _make_plant("fuel_other", [9.0, 5.0], {}),
+        }
+
+        calculate_policy_emission_coefficients(
+            {}, {"levy": levy}, {}, plants, timeline=np.array([0.0, 365.0]), idx=1
+        )
+
+        call_idx, key, factor = levy.expectation.set_wtt.call_args.args
+        # ((-1.0 + 0.2) + (-0.6 + 0.0)) / 2 = -0.7; counting fuel_other's plant
+        # would give (-0.8 - 0.6 + 5.0) / 3 = 1.2
+        assert call_idx == 1
+        assert key == ("port_a", FUEL.name, EMISSION.name)
+        assert factor == pytest.approx([-0.7])
+
+
+# ---------------------------------------------------------------------------
+# 3. Regulation WTT: equal-weight mean over the route ports
 # ---------------------------------------------------------------------------
 
 VESSEL_NAME = "vessel"
@@ -184,8 +199,9 @@ def _assigned_regulation_wtt(route_ports, jurisdiction):
     vessel.route.ports = route_ports
     vessel.usable_fuels = {FUEL.name: FUEL}
 
+    # no plant produces FUEL, so a port without an overwrite has no estimate
     _assign_regulation_wtt_factors(
-        regulation, {VESSEL_NAME: vessel}, timeline=np.array([0.0]), idx=0
+        regulation, {VESSEL_NAME: vessel}, {}, timeline=np.array([0.0]), idx=0
     )
 
     _, key, factor = regulation.expectation.set_wtt.call_args.args
@@ -193,29 +209,47 @@ def _assigned_regulation_wtt(route_ports, jurisdiction):
     return factor
 
 
-class TestRouteWidePortSelection:
-    def test_supply_outside_jurisdiction_sets_the_wtt(self):
+PORT_A = _make_port("port_a", overwrite=[-1.0])
+PORT_B = _make_port("port_b", overwrite=[0.2])
+PORT_DISALLOWED = _make_port("port_disallowed", overwrite=[5.0], allowed=False)
+PORT_WITHOUT_ESTIMATE = _make_port("port_without_estimate")
+
+
+class TestRegulationRouteMean:
+    @pytest.mark.parametrize(
+        ("route_ports", "expected"),
+        [
+            # the disallowed port's 5.0 would give (-1.0 + 5.0) / 2 = 2.0
+            ([PORT_A, PORT_DISALLOWED], -1.0),
+            # the port without an estimate would make the mean NaN
+            ([PORT_A, PORT_WITHOUT_ESTIMATE], -1.0),
+            # (-1.0 + 0.2) / 2 = -0.4; counting port_a twice would give -0.6
+            ([PORT_A, PORT_B, PORT_A], -0.4),
+        ],
+        ids=["disallowed_port", "port_without_estimate", "repeated_port"],
+    )
+    def test_mean_over_the_contributing_route_ports(self, route_ports, expected):
+        factor = _assigned_regulation_wtt(route_ports, jurisdiction=route_ports)
+
+        assert factor == pytest.approx([expected])
+
+    def test_port_outside_the_jurisdiction_counts(self):
         """
-        A vessel bunkering only outside the jurisdiction gets that port's WTT.
+        A vessel may bunker a fuel outside the jurisdiction and burn it inside.
 
-        The jurisdiction port has no supply, so averaging over it alone would
-        give 0 instead of the WTT of the fuel the vessel actually bunkers.
+        Averaging over the jurisdiction port alone would give its -1.0.
         """
-        inside = _make_port(allowed=True, supply=[0.0], wtt=[0.0])
-        outside = _make_port(allowed=True, supply=[50.0], wtt=[-0.9])
+        factor = _assigned_regulation_wtt([PORT_A, PORT_B], jurisdiction=[PORT_A])
 
-        factor = _assigned_regulation_wtt([inside, outside], jurisdiction=[inside])
-
-        assert factor == pytest.approx([-0.9])
-
-    def test_port_visited_twice_counts_once(self):
-        a = _make_port(allowed=True, supply=[10.0], wtt=[-1.0])
-        b = _make_port(allowed=True, supply=[10.0], wtt=[0.2])
-
-        factor = _assigned_regulation_wtt([a, b, a], jurisdiction=[a, b])
-
-        # (10 * -1.0 + 10 * 0.2) / 20 = -0.4; counting a twice would give -0.6
+        # (-1.0 + 0.2) / 2 = -0.4
         assert factor == pytest.approx([-0.4])
+
+    def test_route_without_estimate_gives_a_nan_factor(self):
+        factor = _assigned_regulation_wtt(
+            [PORT_DISALLOWED, PORT_WITHOUT_ESTIMATE], jurisdiction=[PORT_DISALLOWED]
+        )
+
+        assert np.isnan(factor).all()
 
 
 # ---------------------------------------------------------------------------
@@ -475,3 +509,81 @@ class TestAssignLevyEmissionCoefficientsSlicing:
         assert key == ("vessel1", "port1", "fuel_bio")
         assert len(coefficient) == 2
         assert coefficient == pytest.approx([2.4, 2.0])
+
+
+# ---------------------------------------------------------------------------
+# 8. A NaN WTT factor leaves the coefficient unwritten
+# ---------------------------------------------------------------------------
+
+
+class TestNanWttLeavesNoCoefficient:
+    """
+    A fuel without a WTT estimate keeps its NaN factor out of the coefficients.
+
+    Written from the NaN factor, a coefficient would read back NaN; the getter's
+    0.0 for a missing key shows that none was written.
+    """
+
+    def test_regulation_route_without_estimate_writes_no_coefficient(self):
+        fuel = _make_ammonia()
+        emission = Emission("carbon_dioxide")
+        # no plant produces the fuel and the port has no overwrite
+        port = _make_port("port_a", fuel_name=fuel.name)
+        vessel = _make_vessel(fuel, MAIN_SLIP, AUXILIARY_SLIP, port)
+
+        regulation = MagicMock()
+        regulation.scope = PolicyScopeID.WTT
+        regulation.fuels = [fuel]
+        regulation.emissions = [emission]
+        regulation.fuel_wtt = {(fuel.name, emission.name): None}
+        regulation.in_jurisdiction_vessel = {vessel.name: True}
+        regulation.expectation = RegulationExpectation()
+        regulation.expectation.initialize(1, [emission.name], {})
+        regulation.expectation.set_global_warming_potential(emission.name, 1.0)
+
+        _assign_regulation_emission_factors(
+            regulation, {vessel.name: vessel}, {}, timeline=np.array([0.0]), idx=0
+        )
+
+        wtt = regulation.expectation.get_wtt((vessel.name, fuel.name, emission.name), 0)
+        coefficient = regulation.expectation.get_coefficient(
+            (vessel.name, "main", fuel.name), 0
+        )
+        assert np.isnan(wtt)
+        assert coefficient == 0.0
+
+    def test_levy_port_without_estimate_writes_no_coefficient(self):
+        fuel = _make_ammonia()
+        emission = Emission("carbon_dioxide")
+        port_with_estimate = _make_port("port_a", overwrite=[2.4], fuel_name=fuel.name)
+        port_without_estimate = _make_port("port_b", fuel_name=fuel.name)
+        vessel = _make_vessel(fuel, 0.0, 0.0, port_with_estimate)
+        vessel.route.ports = [port_with_estimate, port_without_estimate]
+
+        levy = Levy("levy")
+        levy.set_scheme("PENALTY")
+        levy.set_scope("WTT")
+        levy.fuels = [fuel]
+        levy.emissions = [emission]
+        levy.fuel_wtt = {(fuel.name, emission.name): None}
+        levy.jurisdiction = [port_with_estimate, port_without_estimate]
+        levy.expectation.initialize(1, [emission.name])
+        levy.expectation.set_global_warming_potential(emission.name, 1.0)
+
+        _assign_levy_emission_factors(
+            levy, {vessel.name: vessel}, {}, timeline=np.array([0.0]), idx=0
+        )
+
+        wtt = levy.expectation.get_wtt(("port_b", fuel.name, emission.name), 0)
+        coefficient = levy.expectation.get_coefficient(
+            (vessel.name, "port_b", fuel.name), 0
+        )
+        assert np.isnan(wtt)
+        assert coefficient == 0.0
+
+        # the port with an estimate keeps its coefficient: the overwrite of
+        # 2.4 t/t against the default lower threshold of 0
+        coefficient = levy.expectation.get_coefficient(
+            (vessel.name, "port_a", fuel.name), 0
+        )
+        assert coefficient == pytest.approx(2.4)
