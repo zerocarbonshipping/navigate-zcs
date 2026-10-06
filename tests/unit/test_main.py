@@ -12,6 +12,7 @@ import sys
 
 import pytest
 
+from navigate import __main__ as cli
 from navigate.__main__ import ASSUMPTIONS_ENV_VAR, _build_parser, _run, main
 from navigate.core.enum_ import SolverBackendID
 
@@ -201,7 +202,7 @@ class TestTopLevelErrorHandling:
         def _interrupt(args):
             raise KeyboardInterrupt
 
-        monkeypatch.setattr("navigate.__main__._dispatch", _interrupt)
+        monkeypatch.setattr(cli, "_dispatch", _interrupt)
 
         assert _run_main(monkeypatch, deck) == 130
         assert "Interrupted" in capsys.readouterr().err
@@ -221,7 +222,7 @@ class TestRunCompletionLogging:
             def get_elapsed_time(self):
                 return "elapsed time: 0m and 5s"
 
-        monkeypatch.setattr("navigate.__main__.SimulationManager", _StubManager)
+        monkeypatch.setattr(cli, "SimulationManager", _StubManager)
         args = argparse.Namespace(profile=False, data_dir=None, solver=None)
 
         with caplog.at_level(logging.INFO, logger="navigate.__main__"):
