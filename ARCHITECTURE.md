@@ -34,7 +34,8 @@ behavior are documented in `docs/reference_manual/`.
   attribution, and regulation flexibility-cost beliefs.
 - `output/` — turns a run into artifacts: Excel/CSV reports and figures;
   `output/plots/` renders the latter.
-- `util/` — dependency-free helpers; imports nothing from `navigate`.
+- `util/` — dependency-free helpers (collections, dates, naming, numerics and
+  the unit conversion factors in `units.py`); imports nothing from `navigate`.
 - `logging_.py` — run logging; `exceptions.py` — the `NavigateError`
   hierarchy; `__main__.py` — the CLI.
 
@@ -52,14 +53,10 @@ simulation  → everything
 ```
 
 `exceptions.py` and `logging_.py` are foundation modules available to every
-layer alongside `util`.
-
-Known back-edge: the core table nodes call into `logging_`, which itself
-imports `core.unit`
-([#22](https://github.com/zerocarbonshipping/navigate-zcs/issues/22)).
+layer alongside `util`; they import only `util`.
 `tests/unit/test_layering.py` enforces that `core/` imports nothing from
-`navigate` at runtime beyond `core/`, `util/`, `exceptions.py`, and
-`logging_.py`.
+`navigate` at runtime beyond `core/`, `util/` and `exceptions.py`, and that
+`exceptions.py` and `logging_.py` import only `util`.
 
 ## Data-flow invariants
 
