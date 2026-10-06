@@ -35,9 +35,9 @@ behavior are documented in `docs/reference_manual/`.
 - `output/` — turns a run into artifacts: Excel/CSV reports and figures;
   `output/plots/` renders the latter.
 - `util/` — dependency-free helpers; imports nothing from `navigate`.
-- `logging_.py` — the CLI's run logging: the log file, the handlers, the
-  preamble and the warning summary; `exceptions.py` — the `NavigateError`
-  hierarchy; `__main__.py` — the CLI.
+- `logging_.py` — run logging: the log file, the handlers, the preamble and
+  the warning summary; `exceptions.py` — the `NavigateError` hierarchy;
+  `__main__.py` — the CLI.
 
 ## Layering
 
