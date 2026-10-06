@@ -62,8 +62,9 @@ simulation  → everything
 `logging_.py` to every layer above `core`.
 `tests/unit/test_layering.py` enforces that `core/` imports nothing from
 `navigate` beyond `core/`, `util/` and `exceptions.py`, type-only imports
-included, that `output/` imports nothing beyond itself, `core/` and the
-foundation, and that `exceptions.py` and `logging_.py` import only `util`.
+included, that `output/` imports nothing beyond `output/`, `core/`, `util/`
+and the foundation modules, and that `exceptions.py` and `logging_.py`
+import only `util`.
 
 ## Data-flow invariants
 

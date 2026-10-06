@@ -13,9 +13,6 @@ if TYPE_CHECKING:
     from navigate.core.profiles.manager_profile import ManagerProfile
     from navigate.util.types_ import DateArray
 
-# the key the model-wide profile is reported under, beside the node names
-GLOBAL_PROFILE_KEY = "global"
-
 
 @dataclass(frozen=True, slots=True, eq=False)
 class SimulationResults:
@@ -27,7 +24,7 @@ class SimulationResults:
     dateline
         Dates of the simulation timeline.
     profile
-        Model-wide profile, reported under GLOBAL_PROFILE_KEY.
+        Model-wide profile.
     nodes
         Nodes of the deck, holding their profiles.
     general_nodes

@@ -4,9 +4,9 @@
 """
 Mechanical layering checks on `core`, `output` and the foundation modules.
 
-`core` may import only itself, `util` and `exceptions`; `output` only itself, `core`
-and the foundation (`util`, `exceptions`, `logging_`); `exceptions` and `logging_`
-only `util`. Type-only imports count.
+`core` may import only itself, `util` and `exceptions`; `output` only itself, `core`,
+`util`, `exceptions` and `logging_`; `exceptions` and `logging_` only `util`.
+Type-only imports count.
 """
 
 from __future__ import annotations
@@ -66,7 +66,7 @@ def test_core_imports_only_core_util_and_exceptions(path):
 @pytest.mark.parametrize(
     "path", sorted(OUTPUT.rglob("*.py")), ids=lambda p: str(p.relative_to(OUTPUT))
 )
-def test_output_imports_only_output_core_and_foundation(path):
+def test_output_imports_only_output_core_util_and_foundation(path):
     tree = ast.parse(path.read_text(encoding="utf-8"))
     offenders = _offending_imports(ast.walk(tree), OUTPUT_ALLOWED)
     relative_path = path.relative_to(OUTPUT)

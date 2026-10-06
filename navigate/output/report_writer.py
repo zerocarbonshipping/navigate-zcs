@@ -22,7 +22,7 @@ from typing import TYPE_CHECKING, NamedTuple
 import openpyxl as xl
 
 from navigate.core.enum_ import FileFormatID, ReportReduceID
-from navigate.core.simulation_results import GLOBAL_PROFILE_KEY
+from navigate.core.node_report import GLOBAL_PROFILE_KEY
 from navigate.util import (
     dates_to_days,
     is_single_dict,

@@ -13,9 +13,8 @@ from __future__ import annotations
 from navigate.core import assign_id
 from navigate.core.enum_ import FileFormatID, ReportReduceID
 from navigate.core.node import Node
-from navigate.core.node_report import NodeReport
+from navigate.core.node_report import GLOBAL_PROFILE_KEY, NodeReport
 from navigate.core.node_type import REPORT
-from navigate.core.simulation_results import GLOBAL_PROFILE_KEY
 
 
 class Report(Node):

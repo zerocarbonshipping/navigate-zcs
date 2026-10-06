@@ -4,7 +4,8 @@
 """
 Collect per-node report properties gathered by the Report node.
 
-navigate.output.report_writer consumes them.
+navigate.output.report_writer consumes them, keying the model-wide profile by
+GLOBAL_PROFILE_KEY.
 """
 
 from __future__ import annotations
@@ -15,6 +16,9 @@ from navigate.util import attribute_to_setter
 
 if TYPE_CHECKING:
     from navigate.core.enum_ import ReportReduceID
+
+# the key the model-wide profile is reported under, beside the node names
+GLOBAL_PROFILE_KEY = "global"
 
 
 class NodeReport:
