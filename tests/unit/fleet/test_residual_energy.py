@@ -469,6 +469,31 @@ class TestCombinedResidualEnergy:
         expected = 500.0 - transfer_energy  # 482.72
         assert result[HEAT][0] == pytest.approx(expected)
 
+    @pytest.mark.parametrize(
+        ("transfer", "expected"),
+        [
+            # 2 MW over 1 day = 172.8 GJ, more than the 1 MW the setter once capped
+            pytest.param(2.0, 500.0 - 2.0 * MWD_TO_GJ, id="above-one-MW"),
+            # 10 MW over 1 day = 864 GJ exceeds the 500 GJ demand: floored at zero
+            pytest.param(10.0, 0.0, id="exceeds-demand"),
+        ],
+    )
+    def test_heat_residual_with_large_transfer(self, transfer, expected):
+        """A transfer is a power in MW, not a fraction, and floors the sink at zero."""
+        whrs = _make_technology("whrs", power_transfer={(PROPULSION, HEAT): transfer})
+        pkg = _make_package(whrs)
+
+        vessel = _make_mock_vessel({PROPULSION: 20.0, HEAT: 5.0})
+        durations = [np.array([1.0])]
+        raw_demands = {
+            PROPULSION: [np.array([1000.0])],
+            HEAT: [np.array([500.0])],
+        }
+
+        result = _iterate_legs_or_ports(vessel, pkg, durations, raw_demands)
+
+        assert result[HEAT][0] == pytest.approx(expected)
+
     def test_all_residuals_non_negative(self, setup):
         """No residual energy should ever go negative."""
         vessel, pkg, durations, raw_demands = setup

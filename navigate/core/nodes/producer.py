@@ -116,6 +116,9 @@ class Producer(_AssetManager[Plant, PlantIncrement]):
         """
         Set the minimum offtake duration required for building new plants.
 
+        The duration is rounded up to whole years, so a duration under one year
+        counts as one year.
+
         Examples
         --------
         - 7
@@ -124,10 +127,13 @@ class Producer(_AssetManager[Plant, PlantIncrement]):
         Parameters
         ----------
         minimum_offtake_duration
-            The minimum offtake agreement for building new plants.
+            The minimum offtake agreement for building new plants, in years.
         """
         self.minimum_offtake_duration = assign_value(
-            as_scalar(minimum_offtake_duration), type_=(FORECAST, VARIABLE), lower=1.0
+            as_scalar(minimum_offtake_duration),
+            type_=(FORECAST, VARIABLE),
+            lower=0.0,
+            inclusive_lower=False,
         )
 
     def set_fuel_demand_sensitivity(

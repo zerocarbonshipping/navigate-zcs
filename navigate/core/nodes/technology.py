@@ -162,9 +162,7 @@ class Technology(_Machinery):
         transfer
             Power transferred, in MW, as a function of the source converter load.
         """
-        value_ = assign_value(
-            as_scalar(transfer), type_=(CURVE, VARIABLE), lower=0.0, upper=1.0
-        )
+        value_ = assign_value(as_scalar(transfer), type_=(CURVE, VARIABLE), lower=0.0)
 
         power_system_id_ = assign_id(power_system_id, EnergyDemandTypeID)
         energy_id_ = assign_id(energy_id, EnergyDemandTypeID)

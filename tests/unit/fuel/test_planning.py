@@ -11,7 +11,10 @@ import numpy as np
 import pytest
 
 from navigate.core import Scalar
-from navigate.fuel.planning import perform_pipeline_planning
+from navigate.fuel.planning import (
+    _calculate_uptake_inter_metric,
+    perform_pipeline_planning,
+)
 from navigate.util import YEAR
 
 # a daily-stepped horizon long enough to cover every plant's evaluation
@@ -151,3 +154,27 @@ class TestPerformPipelinePlanning:
             assert plant.expectation._demand_newbuilds == pytest.approx(
                 expected_demand_newbuilds
             )
+
+
+class TestMinimumOfftakeDuration:
+    # demand falls by one plant's production a year from ten plants' worth, so
+    # the plant-equivalent multiplier is 10, 9, 8, ... at the yearly points of
+    # the evaluation horizon (lead time 0, lifetime 5 years)
+    @pytest.mark.parametrize(
+        ("duration", "expected"),
+        [
+            pytest.param(0.5, 10.0, id="under-a-year-reads-one-year"),
+            pytest.param(1.0, 10.0, id="one-year"),
+            pytest.param(1.5, 9.0, id="rounded-up-to-two-years"),
+            pytest.param(3.0, 8.0, id="three-years"),
+        ],
+    )
+    def test_demand_newbuilds_is_lowest_multiplier_within_duration(
+        self, duration, expected
+    ):
+        plant = _PlanningPlant("plant_a", FUEL_A)
+        demand = {FUEL_A: 10.0 * PRODUCTION - PRODUCTION * TIMELINE / YEAR}
+
+        _calculate_uptake_inter_metric(plant, demand, Scalar(duration), TIMELINE, IDX)
+
+        assert plant.expectation.get_demand_newbuilds() == pytest.approx(expected)
