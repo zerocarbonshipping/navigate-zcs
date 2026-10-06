@@ -76,35 +76,22 @@ def _make_plant(
 
 class TestCalculatePlantLogisticsExpectations:
     @pytest.mark.parametrize(
-        ("bunkering_allowed", "set_transport"),
+        ("bunkering_allowed", "has_transport", "distance"),
         [
-            pytest.param(False, True, id="disallowed_port"),
-            pytest.param(True, False, id="no_transport"),
+            pytest.param(False, True, DISTANCE, id="disallowed_port"),
+            pytest.param(True, False, None, id="no_transport"),
+            # a transport assigned without a distance is delivered over zero
+            # miles, so nothing accrues although the port is eligible
+            pytest.param(True, True, None, id="transport_without_distance"),
         ],
     )
-    def test_skips_when_ineligible(self, bunkering_allowed, set_transport):
+    def test_skips_when_ineligible(self, bunkering_allowed, has_transport, distance):
         ports = {"port_a": _StubPort(bunkering_allowed=bunkering_allowed)}
         plant = _make_plant(ports)
-        if set_transport:
+        if has_transport:
             plant.set_fuel_transport("port_a", Transport("truck"))
-            plant.set_fuel_distance("port_a", DISTANCE)
-        plant.apply_command_defaults()
-
-        calculate_plant_logistics_expectations(
-            {"plant": plant}, ports, EMISSIONS, TIMELINE, 0
-        )
-
-        assert np.all(plant.expectation.get_levelized_delivery_cost("port_a") == 0.0)
-        assert np.all(
-            plant.expectation.get_delivery_wtt("port_a", "carbon_dioxide") == 0.0
-        )
-
-    def test_transport_without_distance_delivers_at_no_cost(self):
-        # a transport assigned without a distance is delivered over zero miles,
-        # so neither cost nor emissions accrue although the port is eligible
-        ports = {"port_a": _StubPort(bunkering_allowed=True)}
-        plant = _make_plant(ports)
-        plant.set_fuel_transport("port_a", Transport("truck"))
+        if distance is not None:
+            plant.set_fuel_distance("port_a", distance)
         plant.apply_command_defaults()
 
         calculate_plant_logistics_expectations(
