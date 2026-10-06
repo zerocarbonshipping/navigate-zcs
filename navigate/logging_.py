@@ -7,30 +7,19 @@ from __future__ import annotations
 
 import logging
 import os
-import time
 from collections import Counter
 from importlib.metadata import PackageNotFoundError, version
-from math import floor, log10
 from pathlib import Path
-from typing import TYPE_CHECKING
 
-import numpy as np
 from tabulate import tabulate
 
-from navigate.util import TOLERANCE, YEAR_TO_DAYS
-
-if TYPE_CHECKING:
-    from navigate.util import FloatArray
-
 LOG_LEVELS = ["DEBUG", "INFO", "WARNING", "ERROR"]
-HLINE = "=" * 120
 
 _MAX_DIGEST_WARNINGS = 20
 
 _COUNT_HANDLER: _CountingHandler | None = None
 _DEDUP_FILTER: _DeduplicatingFilter | None = None
 _LOG_FILE_NAME: str | None = None
-_WALL_START_TIME: float | None = None
 
 
 class _DeduplicatingFilter(logging.Filter):
@@ -128,153 +117,6 @@ def print_preamble() -> None:
     print(preamble.format(package_version))
 
 
-def log_time_step_breaker(
-    logger: logging.Logger, idx: int, date: np.datetime64, days_elapsed: float
-) -> None:
-    """
-    Log the banner separating one time-step from the next.
-
-    Parameters
-    ----------
-    logger
-        Logger to write to.
-    idx
-        Index of the time-step.
-    date
-        Date of the time-step.
-    days_elapsed
-        Days since the start of the simulation.
-    """
-    elapsed_time = time.perf_counter() - _WALL_START_TIME if _WALL_START_TIME else 0
-
-    message = (
-        f"Time-step: {idx}, current date: {date}. "
-        f"{int(days_elapsed)} days "
-        f"({int(round(days_elapsed / YEAR_TO_DAYS, 0))} years) "
-        "since start of simulation. "
-        f"Wall time since start: {elapsed_time:,.1f} s"
-    )
-
-    logger.info(_wrap_in_hlines(message))
-
-
-def log_extrapolate_bounds(
-    logger: logging.Logger,
-    node: object,
-    lookup_values: FloatArray,
-    lower: float,
-    upper: float,
-) -> None:
-    """
-    Warn that a table look-up reached beyond the tabulated range.
-
-    Parameters
-    ----------
-    logger
-        Logger to write to.
-    node
-        Node owning the table, named in the message.
-    lookup_values
-        Look-up values, reported when there are few enough to read.
-    lower
-        Lower limit of the tabulated range.
-    upper
-        Upper limit of the tabulated range.
-    """
-    # node is typed as object because the table mixins calling this are not
-    # Node subclasses statically; it is only formatted into the message
-    info = f" Value was {lookup_values}." if lookup_values.size < 5 else ""
-
-    logger.warning(
-        "%s: Extrapolating beyond table limits (%s, %s).%s", node, lower, upper, info
-    )
-
-
-def log_start_of_simulation(logger: logging.Logger, date: np.datetime64) -> None:
-    """
-    Open the simulation section of the log, timing the run from here.
-
-    Parameters
-    ----------
-    logger
-        Logger to write to.
-    date
-        Date the simulation starts from.
-    """
-    global _WALL_START_TIME
-    _WALL_START_TIME = time.perf_counter()
-
-    logger.info(_wrap_in_hlines(f"Time-step: 0, starting simulation at date: {date}"))
-
-
-def log_model_post_process(logger: logging.Logger) -> None:
-    """
-    Log the banner opening the post-processing of the model.
-
-    Parameters
-    ----------
-    logger
-        Logger to write to.
-    """
-    logger.info(_wrap_in_hlines("Post-process model after end of simulation"))
-
-
-def log_fair_share_convergence(
-    logger: logging.Logger,
-    statistics: dict[str, list[float]],
-    iterations: int,
-    converged: bool,
-) -> None:
-    """
-    Log the outcome of the fair-share bunkering algorithm and its iterations.
-
-    Parameters
-    ----------
-    logger
-        Logger to write to.
-    statistics
-        Convergence metric per name, each holding one value per iteration.
-    iterations
-        Number of iterations run.
-    converged
-        Whether the algorithm reached its convergence criterion.
-    """
-    headers = ["Iter.", *statistics.keys()]
-    columns = list(statistics.values())
-    rows = [
-        [i + 1] + [str(_round_for_display(column[i])) for column in columns]
-        for i in range(iterations)
-    ]
-
-    table = tabulate(rows, headers=headers, tablefmt="github", stralign="right")
-
-    if converged:
-        logger.info("Fair-share bunkering convergence status: Successful.")
-        logger.debug("Fair-share bunkering convergence statistics:\n\n%s", table)
-    else:
-        message = "Fair-share bunkering convergence status: Failure.\n"
-        message += f"Fair-share bunkering convergence statistics:\n\n{table}"
-
-        logger.info(message)
-
-
-def _wrap_in_hlines(message: str) -> str:
-    """
-    Frame a message in horizontal lines.
-
-    Parameters
-    ----------
-    message
-        Message to frame.
-
-    Returns
-    -------
-    str
-        Framed message.
-    """
-    return "\n" + HLINE + "\n" + message + "\n" + HLINE + "\n"
-
-
 def get_log_counts() -> dict[str, int]:
     """
     Count the records logged so far.
@@ -342,30 +184,3 @@ def print_warning_summary() -> None:
 
     if warnings and _LOG_FILE_NAME:
         print(f"{warnings} warning(s) logged - see '{_LOG_FILE_NAME}'.")
-
-
-def _round_for_display(value: float) -> float:
-    """
-    Round off a value to the appropriate decimals for visual display.
-
-    Parameters
-    ----------
-    value
-        Value to be rounded for display.
-
-    Returns
-    -------
-    float
-        Rounded value.
-    """
-    magnitude = abs(value)
-
-    if magnitude <= TOLERANCE:
-        return 0
-
-    significant = -floor(log10(magnitude))
-
-    if significant <= 0:
-        return int(np.round(value, 0))
-
-    return float(np.round(value, significant))

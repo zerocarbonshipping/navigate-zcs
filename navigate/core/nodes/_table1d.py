@@ -11,8 +11,8 @@ from scipy.interpolate import interp1d
 
 from navigate.core import assign_id, assign_value
 from navigate.core.enum_ import ExtrapolateID, Interpolate1DID
+from navigate.core.extrapolation import log_extrapolate_bounds
 from navigate.core.nodes._calculator import _Calculator, evaluate_number
-from navigate.logging_ import log_extrapolate_bounds
 from navigate.util import is_strictly_increasing
 
 if TYPE_CHECKING:

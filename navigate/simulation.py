@@ -58,7 +58,6 @@ from navigate.fuel import (
     perform_planning,
     perform_progression,
 )
-from navigate.logging_ import log_model_post_process, log_start_of_simulation
 from navigate.output import PlotData
 from navigate.output.report_writer import write_report
 from navigate.parser import Parser
@@ -66,7 +65,7 @@ from navigate.policy import (
     calculate_policy_emission_coefficients,
     update_regulation_flexibility_beliefs,
 )
-from navigate.util import YEAR, dates_to_days, timedelta_to_days
+from navigate.util import YEAR, dates_to_days, timedelta_to_days, wrap_in_hlines
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -153,7 +152,7 @@ class SimulationManager:
 
     def _initialize_simulation(self) -> None:
         """Set up the expectations, profiles and bunker models the time steps use."""
-        log_start_of_simulation(logger, self._date)
+        _log_start_of_simulation(logger, self._date)
 
         self._initialize_expectations()
         self._initialize_profiles()
@@ -751,7 +750,7 @@ class SimulationManager:
         )
 
     def _post_process(self) -> None:
-        log_model_post_process(logger)
+        _log_model_post_process(logger)
 
         # fold the recorded multipliers into the fleet output profiles before
         # the investment metric reads the in-fleet windows and before the
@@ -809,3 +808,29 @@ def _write_elapsed_time(elapsed: float) -> str:
     seconds = int(elapsed - minutes * 60.0)
 
     return f"elapsed time: {minutes}m and {seconds}s"
+
+
+def _log_start_of_simulation(logger: logging.Logger, date: np.datetime64) -> None:
+    """
+    Open the simulation section of the log.
+
+    Parameters
+    ----------
+    logger
+        Logger to write to.
+    date
+        Date the simulation starts from.
+    """
+    logger.info(wrap_in_hlines(f"Time-step: 0, starting simulation at date: {date}"))
+
+
+def _log_model_post_process(logger: logging.Logger) -> None:
+    """
+    Log the banner opening the post-processing of the model.
+
+    Parameters
+    ----------
+    logger
+        Logger to write to.
+    """
+    logger.info(wrap_in_hlines("Post-process model after end of simulation"))

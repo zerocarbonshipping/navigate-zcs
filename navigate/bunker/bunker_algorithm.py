@@ -12,9 +12,11 @@ from __future__ import annotations
 
 import logging
 import timeit
+from math import floor, log10
 from typing import TYPE_CHECKING
 
 import numpy as np
+from tabulate import tabulate
 
 import navigate.bunker.solver as gp
 import navigate.core.enum_ as enum_
@@ -83,8 +85,8 @@ from navigate.bunker.variables import (
 )
 from navigate.core import get_fuels_per_fuel_type
 from navigate.core.enum_ import BunkerScopeID
-from navigate.logging_ import log_fair_share_convergence
 from navigate.policy import policies_affecting_port
+from navigate.util import TOLERANCE
 
 if TYPE_CHECKING:
     from navigate.bunker.fair_share import FairShareSolutions
@@ -365,7 +367,7 @@ class BunkerAlgorithm:
         perform_flexibility_unit_cost_evaluation(self)
 
         if self.scope == BunkerScopeID.EXISTING:
-            log_fair_share_convergence(
+            _log_fair_share_convergence(
                 logger, self.fair_share_convergence_statistics, iterations, converged
             )
 
@@ -484,3 +486,69 @@ class BunkerAlgorithm:
             update_tank_capacity_constraints(self, vessel)
 
         update_bunkered_equals_spent_constraint(self, vessel)
+
+
+def _log_fair_share_convergence(
+    logger: logging.Logger,
+    statistics: dict[str, list[float]],
+    iterations: int,
+    converged: bool,
+) -> None:
+    """
+    Log the outcome of the fair-share bunkering algorithm and its iterations.
+
+    Parameters
+    ----------
+    logger
+        Logger to write to.
+    statistics
+        Convergence metric per name, each holding one value per iteration.
+    iterations
+        Number of iterations run.
+    converged
+        Whether the algorithm reached its convergence criterion.
+    """
+    headers = ["Iter.", *statistics.keys()]
+    columns = list(statistics.values())
+    rows = [
+        [i + 1] + [str(_round_for_display(column[i])) for column in columns]
+        for i in range(iterations)
+    ]
+
+    table = tabulate(rows, headers=headers, tablefmt="github", stralign="right")
+
+    if converged:
+        logger.info("Fair-share bunkering convergence status: Successful.")
+        logger.debug("Fair-share bunkering convergence statistics:\n\n%s", table)
+    else:
+        message = "Fair-share bunkering convergence status: Failure.\n"
+        message += f"Fair-share bunkering convergence statistics:\n\n{table}"
+
+        logger.info(message)
+
+
+def _round_for_display(value: float) -> float:
+    """
+    Round off a value to the appropriate decimals for visual display.
+
+    Parameters
+    ----------
+    value
+        Value to be rounded for display.
+
+    Returns
+    -------
+    float
+        Rounded value.
+    """
+    magnitude = abs(value)
+
+    if magnitude <= TOLERANCE:
+        return 0
+
+    significant = -floor(log10(magnitude))
+
+    if significant <= 0:
+        return int(np.round(value, 0))
+
+    return float(np.round(value, significant))

@@ -13,6 +13,7 @@ import copy
 import logging
 import os
 import re
+import time
 from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
@@ -32,7 +33,7 @@ from navigate.exceptions import (
     DeckFormatError,
     DeckKeywordError,
 )
-from navigate.logging_ import log_time_step_breaker, print_preamble
+from navigate.logging_ import print_preamble
 from navigate.parser._attributes import (
     GENERAL_NODE_REQUIRED_ATTRIBUTES,
     NODE_ATTRIBUTE_SECTIONS,
@@ -85,6 +86,7 @@ from navigate.parser._scan import (
     parse_node_reference,
 )
 from navigate.util import (
+    YEAR_TO_DAYS,
     attribute_to_instance_name,
     attribute_to_setter,
     matching_keys,
@@ -92,6 +94,7 @@ from navigate.util import (
     retrieve_keys,
     timedelta_to_days,
     wildcard_to_regex,
+    wrap_in_hlines,
 )
 
 if TYPE_CHECKING:
@@ -222,6 +225,9 @@ class Parser:
         self._current_deck_line: int = 0
         self._current_source: SourceLocation = SourceLocation()
 
+        # wall clock at the end of the deck read, the origin of the time-step banners
+        self._wall_start_time: float
+
     # deck (.nav) reading --------------------------------------------------------------
 
     def read_deck(self, path: Path, data_dir: Path | None = None) -> None:
@@ -270,6 +276,7 @@ class Parser:
         self._reject_events_changing_pinned_calculators()
 
         self._current_section = SimulationSectionID.EVENTS
+        self._wall_start_time = time.perf_counter()
 
     def _process_deck_block(self, block: DeckBlock) -> None:
         """Process a single Define or Events block from the deck AST."""
@@ -306,11 +313,12 @@ class Parser:
         date, events = self._next_event()
 
         if (self._idx_date > 1) and (date is not None):
-            log_time_step_breaker(
+            _log_time_step_breaker(
                 logger,
                 self._idx_date - 1,
                 date,
                 timedelta_to_days(date - self.dates[0]),
+                self._wall_start_time,
             )
 
         for event in events:
@@ -2187,3 +2195,39 @@ def _transplant(node: Node, copied: Node) -> None:
         inclusive_lower=bounds.inclusive_lower,
         inclusive_upper=bounds.inclusive_upper,
     )
+
+
+def _log_time_step_breaker(
+    logger: logging.Logger,
+    idx: int,
+    date: np.datetime64,
+    days_elapsed: float,
+    wall_start_time: float,
+) -> None:
+    """
+    Log the banner separating one time-step from the next.
+
+    Parameters
+    ----------
+    logger
+        Logger to write to.
+    idx
+        Index of the time-step.
+    date
+        Date of the time-step.
+    days_elapsed
+        Days since the start of the simulation.
+    wall_start_time
+        Reading of ``time.perf_counter`` the wall time is counted from.
+    """
+    elapsed_time = time.perf_counter() - wall_start_time
+
+    message = (
+        f"Time-step: {idx}, current date: {date}. "
+        f"{int(days_elapsed)} days "
+        f"({int(round(days_elapsed / YEAR_TO_DAYS, 0))} years) "
+        "since start of simulation. "
+        f"Wall time since start: {elapsed_time:,.1f} s"
+    )
+
+    logger.info(wrap_in_hlines(message))
