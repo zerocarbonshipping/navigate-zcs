@@ -5,14 +5,11 @@ SPDX-License-Identifier: Apache-2.0
 
 # Writing a bug-fix pull request
 
-- **What changed** gives the bug as the user meets it, its root cause, and
-  the fix.
-- **Verification** shows a base-versus-branch run of the reproduction: the
-  same command on both, with the exit code and the trimmed CLI output before
-  and after. For a deck that should fail, the branch output shows the error
-  the user now gets.
-- Name the test that pins the bug and what it asserts, and say that it
-  fails on the base. When the bug was found by reading code and there is no
-  reproduction, that failing test is the evidence.
-- A bug in user-visible behaviour gets a changelog entry under Fixed,
-  ending with the issue number if there is one.
+- **Opening paragraph:** the bug as the user met it, and that it is fixed.
+- **Why:** the root cause.
+- **Evidence:** a base-versus-branch run of the reproduction: the same
+  command on both, the exit code and the trimmed output. For a bug found by
+  reading code, the pinning test failing on the base instead. Name what that
+  test asserts.
+- A user-visible bug gets a CHANGELOG entry under Fixed, ending with the
+  issue number if there is one.

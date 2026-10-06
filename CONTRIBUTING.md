@@ -67,8 +67,9 @@ The format is [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Nothing else gets an entry: no refactor, move, rename or removal inside
 `navigate/`, and no change to what Python code can import. Typing, test,
 lint, CI, `make` and tooling changes get none either, and neither does a
-results-neutral change with no DSL or output effect. A pull request without
-an entry says so in its description.
+results-neutral change with no DSL or output effect. A pull request states
+its user-visible effect in its description, so a reviewer can check the entry
+against it.
 
 An entry is one to three lines; related entries may share one bullet with a
 sub-list, each item one to three lines. It states what the user sees and, for

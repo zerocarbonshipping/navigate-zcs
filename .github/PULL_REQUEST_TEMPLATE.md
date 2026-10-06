@@ -5,28 +5,35 @@ SPDX-License-Identifier: Apache-2.0
 
 <!-- Thank you for contributing! See CONTRIBUTING.md for the full guidelines. -->
 
-## What changed
-
-<!-- What does the change do? For a bug fix, describe the bug. State the
-CHANGELOG.md entry, or why there is none. Name the documentation updated:
-the reference manual for user-visible behaviour, docstrings for code. -->
+<!-- Say what the change does in one to three sentences. Describe what a user
+or developer notices, not the files you edited. Then say what a deck author
+or a reader of the output now sees differently, or write "No user-visible
+effect." -->
 
 ## Why
 
-<!-- Why is the change needed? Link the issue it addresses as "Addresses #N".
-For a model change, how it better represents the sector. For assumption
-changes, give references or a justification for the new values. -->
+<!-- What problem does this solve, and why is this change the right answer?
+Add one "Addresses #N" line for each issue. For an assumption change, give
+the references or the reasoning behind the new values. For a model change,
+say how it better represents the sector. -->
 
-## Verification
+## Decisions
 
-<!-- Only what CI does not show. Never list the suites CI runs, pass counts
-or "lint passes". A run CI does not do, such as a reference scenario under
-simulations/scenarios/, is stated with what it showed. For example:
-base-versus-branch runs showing identical output, a table of deliberate
-breaks showing a new check fails when it should, and manual checks. If
-simulation results change, explain the difference. -->
+<!-- Delete this section if it is empty. List each choice a reviewer could
+reasonably make differently: the option you took, the one you rejected, and
+why. -->
 
-## Assumptions and scope
+## Evidence
 
-<!-- Decisions made during the work, what was left out, and follow-up
-issues. -->
+<!-- Delete this section if it is empty. Show only what CI does not show:
+proof that results are unchanged, runs before and after the change, a table
+of deliberate breaks showing a new check fails when it should, manual checks,
+or runs CI does not do, such as a reference scenario under
+simulations/scenarios/. Do not list the test suites CI runs, pass counts or
+"lint passes". If simulation results move, show the difference and explain
+its cause. -->
+
+## Limitations
+
+<!-- Delete this section if it is empty. Known shortcomings, what was left
+out, and follow-up issues. -->
