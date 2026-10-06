@@ -206,9 +206,10 @@ class SimulationManager:
                 timeit.default_timer() - start_time_overhead, self._idx
             )
 
-        # the policy WTT reads only the plants' production and delivery WTT, which
-        # nothing later in the step changes, so one pass once the vessels' usable
-        # fuels are known serves both bunkering runs of the step
+        # nothing the policy coefficients read (plant production and delivery WTT,
+        # port WTT overwrites and bunkering flags, the vessels' usable fuels and
+        # converters) changes later in the step, so one pass serves both
+        # bunkering runs
         self._calculate_policy_emission_coefficients()
 
         # technology costs are excluded here: they enter the cargo charter

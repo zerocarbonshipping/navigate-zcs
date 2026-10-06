@@ -303,9 +303,11 @@ def _assign_regulation_emission_coefficients(
                         regulation, vessel, converter, fuel, emission, idx
                     )
 
-                # only a WTT factor can be NaN, where no route port has an estimate
-                # for the fuel; no port then supplies it, so the LP spends none of
-                # it and reads the missing coefficient as zero
+                # a NaN WTT factor, as where no route port has an estimate for the
+                # fuel, leaves the fuel without a coefficient, its TTW part
+                # included; without an estimate no route port supplies the fuel,
+                # so the LP spends none of it and reads the missing coefficient
+                # as zero
                 if np.isnan(coefficient).any():
                     continue
 
@@ -573,9 +575,11 @@ def _assign_levy_emission_coefficients(
                         levy, vessel, port, fuel, emission, idx
                     )
 
-                # only a WTT factor can be NaN, where the port has no estimate for
-                # the fuel; the port then has no supply of it, so the LP bunkers
-                # none of it and reads the missing coefficient as zero
+                # a NaN WTT factor, as where the port has no estimate for the fuel,
+                # leaves the fuel without a coefficient at the port, its TTW part
+                # included; without an estimate the port has no supply of the
+                # fuel, so the LP bunkers none of it there and reads the missing
+                # coefficient as zero
                 if np.isnan(coefficient).any():
                     continue
 
@@ -999,11 +1003,12 @@ def _estimate_port_wtt(
     """
     Estimate the WTT emissions of a fuel bunkered at a port, from `idx` onward.
 
-    The port's WTT overwrite takes precedence. Otherwise a liquid-market fuel carries
-    no WTT, as in its import to the port, and a producer fuel takes the equal-weight
-    mean over the plants producing it of their production WTT plus their WTT of
-    delivery to the port. The estimate reads no bunker supply, so it is known before
-    the fuel import of the time step.
+    The port's WTT overwrite takes precedence; a liquid-market fuel always has one, as
+    the port fills in 0 where the deck sets none. Otherwise the estimate is the
+    equal-weight mean, over every plant defined for the fuel, of the plant's
+    production WTT at the time of investment plus its WTT of delivery to the port.
+    The estimate reads no bunker supply, so it is known before the fuel import of the
+    time step.
 
     A fuel no plant produces has no estimate, and the result is NaN: no port has
     supply of it, so no vessel can bunker it.
@@ -1036,9 +1041,6 @@ def _estimate_port_wtt(
         return port.expectation.get_bunker_wtt_overwrite(
             fuel_name, emission_name, from_idx
         )
-
-    if fuel.liquid_market:
-        return np.zeros(port.expectation.get_shape(idx))
 
     if not plants:
         return np.full(port.expectation.get_shape(idx), np.nan)

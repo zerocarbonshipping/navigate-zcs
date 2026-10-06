@@ -5,10 +5,9 @@
 Tests for the policy emission-coefficient helpers.
 
 Tests verify the correctness of:
-  - _estimate_port_wtt: the port's WTT overwrite wins, a liquid-market fuel
-    without one carries no WTT, a producer fuel takes the equal-weight mean of
-    its plants' production plus delivery WTT, and a fuel no plant produces is
-    NaN.
+  - _estimate_port_wtt: the port's WTT overwrite wins, a fuel otherwise takes
+    the equal-weight mean of its plants' production plus delivery WTT, and a
+    fuel no plant produces is NaN.
   - calculate_policy_emission_coefficients: only the plants producing a fuel
     enter its estimate, read from the current time step onward.
   - _assign_regulation_wtt_factors: the equal-weight mean runs over every port
@@ -58,11 +57,6 @@ from navigate.policy.emission_coefficient import (
 
 FUEL = MagicMock()
 FUEL.name = "fuel_bio"
-FUEL.liquid_market = False
-
-LIQUID_FUEL = MagicMock()
-LIQUID_FUEL.name = "fuel_oil"
-LIQUID_FUEL.liquid_market = True
 
 EMISSION = MagicMock()
 EMISSION.name = "carbon_dioxide"
@@ -120,13 +114,6 @@ class TestEstimatePortWtt:
         result = _estimate_port_wtt(port, FUEL, EMISSION, plants, idx=0)
 
         assert result == pytest.approx([0.6])
-
-    def test_liquid_market_fuel_without_overwrite_carries_no_wtt(self):
-        port = _make_port("port_a", fuel_name=LIQUID_FUEL.name)
-
-        result = _estimate_port_wtt(port, LIQUID_FUEL, EMISSION, [], idx=0)
-
-        assert result == pytest.approx([0.0])
 
     def test_plant_mean_includes_the_delivery_wtt(self):
         port = _make_port("port_a")
