@@ -20,7 +20,7 @@ from navigate.core import (
 from navigate.core.enum_ import PolicyScopeID
 from navigate.core.node import Node
 from navigate.core.node_type import CURVE, EMISSION, FORECAST, FUEL, PORT, VARIABLE
-from navigate.exceptions import no_value_assigned_error
+from navigate.exceptions import UnassignedAttributeError
 
 if TYPE_CHECKING:
     from navigate.core.enum_ import LevySchemeID, RegulationSchemeID
@@ -302,13 +302,13 @@ class _Policy(Node):
     def check_requirements(self) -> None:
 
         if not self.jurisdiction:
-            no_value_assigned_error(self, "Jurisdiction")
+            raise UnassignedAttributeError(str(self), "Jurisdiction")
 
         if not self.emissions:
-            no_value_assigned_error(self, "Emissions")
+            raise UnassignedAttributeError(str(self), "Emissions")
 
         if not self.fuels:
-            no_value_assigned_error(self, "Fuels")
+            raise UnassignedAttributeError(str(self), "Fuels")
 
     def _initialize_policy_dependencies(self, vessels: dict[str, Vessel]) -> None:
 

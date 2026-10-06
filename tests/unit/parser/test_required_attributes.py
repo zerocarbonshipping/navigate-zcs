@@ -14,6 +14,8 @@ from __future__ import annotations
 
 import pytest
 
+from navigate.exceptions import UnassignedAttributeError
+
 FUEL = """
 Fuel "{name}" {{
     FuelType = OIL
@@ -29,7 +31,8 @@ def _fuel(name="f", mass_density=MASS_DENSITY):
 
 def test_a_node_missing_a_required_attribute_raises(read_deck):
     with pytest.raises(
-        ValueError, match=r"Fuel\(\"f\"\): Attribute 'MassDensity' is unassigned"
+        UnassignedAttributeError,
+        match=r"Fuel\(\"f\"\): Attribute 'MassDensity' is unassigned",
     ):
         read_deck(_fuel(mass_density=""))
 
@@ -56,6 +59,7 @@ def test_a_copy_carries_the_assignments_of_its_source(read_deck):
 
 def test_a_general_node_missing_a_required_attribute_raises(read_deck):
     with pytest.raises(
-        ValueError, match="ModelDefinition: Attribute 'StartDate' is unassigned"
+        UnassignedAttributeError,
+        match="ModelDefinition: Attribute 'StartDate' is unassigned",
     ):
         read_deck(_fuel(), define_base="ModelDefinition {\n}\n")

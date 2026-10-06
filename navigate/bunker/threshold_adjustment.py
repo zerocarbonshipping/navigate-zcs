@@ -18,8 +18,7 @@ from navigate.bunker.constraints.regulation_individual import (
 from navigate.bunker.constraints.regulation_terms import get_regulation_vessel_threshold
 from navigate.bunker.utils import get_converters
 from navigate.core.enum_ import RegulationMeasureID, RegulationSchemeID
-from navigate.core.unit import TON_TO_KG
-from navigate.util import divide_nonzero
+from navigate.util import TON_TO_KG, divide_nonzero
 
 if TYPE_CHECKING:
     from navigate.bunker.bunker_algorithm import BunkerAlgorithm

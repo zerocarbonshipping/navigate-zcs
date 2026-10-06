@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import numpy as np
 
-from navigate.core.unit import YEAR_TO_DAYS
 from navigate.economics.flows import (
     Component,
     build_operating_flows,
@@ -15,6 +14,7 @@ from navigate.economics.flows import (
     get_flow_size,
     trim_flow_to_lifetime,
 )
+from navigate.util import YEAR
 
 
 class TestGetFlowSize:
@@ -31,10 +31,10 @@ class TestGetFlowSize:
 class TestBuildOperatingFlows:
     def test_whole_years(self):
         year_flow, overlap = build_operating_flows(
-            time_initial=10.0 * YEAR_TO_DAYS, lead_time=2.0, lifetime=3.0
+            time_initial=10.0 * YEAR, lead_time=2.0, lifetime=3.0
         )
         np.testing.assert_array_almost_equal(
-            year_flow, np.array([10.0, 11.0, 12.0, 13.0, 14.0]) * YEAR_TO_DAYS
+            year_flow, np.array([10.0, 11.0, 12.0, 13.0, 14.0]) * YEAR
         )
         np.testing.assert_array_almost_equal(overlap, [0.0, 0.0, 1.0, 1.0, 1.0])
 
@@ -44,7 +44,7 @@ class TestBuildOperatingFlows:
         year_flow, overlap = build_operating_flows(
             time_initial=0.0, lead_time=1.5, lifetime=3.0
         )
-        np.testing.assert_array_almost_equal(year_flow, np.arange(5.0) * YEAR_TO_DAYS)
+        np.testing.assert_array_almost_equal(year_flow, np.arange(5.0) * YEAR)
         np.testing.assert_array_almost_equal(overlap, [0.0, 0.5, 1.0, 1.0, 1.0])
 
     def test_matches_component_window(self):
@@ -52,12 +52,10 @@ class TestBuildOperatingFlows:
         # this helper while the production-cost levelization builds it through
         # Component; both must describe the same window for the levelized
         # delivered cost to be a consistent sum of the two
-        component = Component(
-            lead_time=1.5, lifetime=3.0, time_initial=7.0 * YEAR_TO_DAYS
-        )
+        component = Component(lead_time=1.5, lifetime=3.0, time_initial=7.0 * YEAR)
 
         year_flow, overlap = build_operating_flows(
-            time_initial=7.0 * YEAR_TO_DAYS, lead_time=1.5, lifetime=3.0
+            time_initial=7.0 * YEAR, lead_time=1.5, lifetime=3.0
         )
 
         np.testing.assert_array_almost_equal(year_flow, component.year_flow)

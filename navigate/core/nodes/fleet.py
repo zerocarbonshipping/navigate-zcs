@@ -38,7 +38,7 @@ from navigate.core.nodes._asset_manager import _AssetManager
 from navigate.core.nodes.forecast import Forecast
 from navigate.core.nodes.vessel import Vessel
 from navigate.core.profiles import FleetProfile
-from navigate.exceptions import no_value_assigned_error
+from navigate.exceptions import UnassignedAttributeError
 from navigate.util import is_non_strictly_increasing
 
 if TYPE_CHECKING:
@@ -971,10 +971,10 @@ class Fleet(_AssetManager[Vessel, VesselIncrement]):
     def check_requirements(self) -> None:
 
         if not self.assets:
-            no_value_assigned_error(self, "Vessels")
+            raise UnassignedAttributeError(str(self), "Vessels")
 
         if self.technologies and self.technology_sensitivity is None:
-            no_value_assigned_error(self, "TechnologySensitivity")
+            raise UnassignedAttributeError(str(self), "TechnologySensitivity")
 
     def apply_command_defaults(self) -> None:
 

@@ -13,10 +13,10 @@ from navigate.core.nodes.fuel import Fuel
 from navigate.core.nodes.plant import Plant
 from navigate.core.nodes.region import Region
 from navigate.core.nodes.transport import Transport
-from navigate.core.unit import YEAR_TO_DAYS
 from navigate.fuel.logistics import calculate_plant_logistics_expectations
+from navigate.util import YEAR
 
-TIMELINE = np.arange(3.0) * YEAR_TO_DAYS
+TIMELINE = np.arange(3.0) * YEAR
 EMISSIONS = {"carbon_dioxide": None}
 
 LEAD_TIME = 2.0
@@ -147,7 +147,7 @@ class TestCalculatePlantLogisticsExpectations:
         # windows anchored at steps 0, 1, and 2 (lead 2, lifetime 3) average
         # (1, 1, 3), (1, 3, 3), and (3, 3, 3) respectively
         ports = {"port_a": _StubPort(bunkering_allowed=True)}
-        rate = _StepRate(early=1.0, late=3.0, step_day=3.5 * YEAR_TO_DAYS)
+        rate = _StepRate(early=1.0, late=3.0, step_day=3.5 * YEAR)
         plant = _make_plant(
             ports, cost_rate=rate, lead_time=2.0, lifetime=3.0, discount_rate=0.0
         )
@@ -171,7 +171,7 @@ class TestCalculatePlantLogisticsExpectations:
         # windows at years (2, 3, 4), (4, 5, 6), and (5, 6, 7), averaging
         # (1, 1, 3), (3, 3, 3), and (3, 3, 3) respectively
         ports = {"port_a": _StubPort(bunkering_allowed=True)}
-        rate = _StepRate(early=1.0, late=3.0, step_day=3.5 * YEAR_TO_DAYS)
+        rate = _StepRate(early=1.0, late=3.0, step_day=3.5 * YEAR)
         plant = _make_plant(
             ports, cost_rate=rate, lead_time=2.0, lifetime=3.0, discount_rate=0.0
         )

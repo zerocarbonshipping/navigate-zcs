@@ -34,7 +34,9 @@ behavior are documented in `docs/reference_manual/`.
   attribution, and regulation flexibility-cost beliefs.
 - `output/` — turns a run into artifacts: Excel/CSV reports and figures;
   `output/plots/` renders the latter.
-- `util/` — dependency-free helpers; imports nothing from `navigate`.
+- `util/` — dependency-free helpers: collections, dates, naming, numerics,
+  internal types and unit conversion factors; imports nothing from
+  `navigate` outside `util/`.
 - `logging_.py` — run logging; `exceptions.py` — the `NavigateError`
   hierarchy; `__main__.py` — the CLI.
 
@@ -51,15 +53,12 @@ output      → core, util
 simulation  → everything
 ```
 
-`exceptions.py` and `logging_.py` are foundation modules available to every
-layer alongside `util`.
-
-Known back-edge: the core table nodes call into `logging_`, which itself
-imports `core.unit`
-([#22](https://github.com/zerocarbonshipping/navigate-zcs/issues/22)).
+`exceptions.py` and `logging_.py` are foundation modules that import only
+`util`. `exceptions.py` is available to every layer alongside `util`;
+`logging_.py` to every layer above `core`.
 `tests/unit/test_layering.py` enforces that `core/` imports nothing from
-`navigate` at runtime beyond `core/`, `util/`, `exceptions.py`, and
-`logging_.py`.
+`navigate` at runtime beyond `core/`, `util/` and `exceptions.py`, and that
+`exceptions.py` and `logging_.py` import only `util`.
 
 ## Data-flow invariants
 
@@ -87,7 +86,7 @@ on `Node`; a node overrides the hooks they call, never the entry points.
 Before `initialize()`, the parser checks the required attributes. The attribute
 registry in `navigate/parser/_attributes.py` lists, per node type, the
 attributes a deck must assign; the parser records every setter it runs, and
-once the DEFINE block is read it raises `no_value_assigned_error` for a
+once the DEFINE block is read it raises `UnassignedAttributeError` for a
 required attribute no setter reached. The check runs after the
 unreachable-node prune, so a pruned node is never checked, and before
 `initialize_dependencies(...)`, the commands and the hooks, so no node reads

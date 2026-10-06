@@ -25,7 +25,6 @@ from navigate.core.increment import VesselIncrement
 from navigate.core.node import Node
 from navigate.core.node_type import CURVE
 from navigate.core.nodes.fleet import Fleet
-from navigate.core.unit import YEAR_TO_DAYS
 from navigate.economics.flows import (
     correct_flow_residual,
     get_age_flow,
@@ -260,7 +259,7 @@ class TestConversionCarriesCharterRate:
             [],
         ]
 
-        timeline = np.arange(3.0) * YEAR_TO_DAYS
+        timeline = np.arange(3.0) * YEAR
         fleet.fuel_conversion_expenses = np.zeros_like(timeline)
 
         proposals = [
@@ -412,7 +411,7 @@ class TestPostProcessTechnologyExpenses:
 
         rate = 2e6
         n = 8
-        timeline = np.arange(float(n)) * YEAR_TO_DAYS
+        timeline = np.arange(float(n)) * YEAR
 
         vessel = MagicMock()
         profile = vessel.profile
@@ -434,7 +433,7 @@ class TestPostProcessTechnologyExpenses:
 class TestCargoUnitPropertiesTechnologyCharge:
     @staticmethod
     def _freight_rate(technology_rate: float) -> tuple[float, object]:
-        timeline = np.arange(0.0, 15.0) * YEAR_TO_DAYS
+        timeline = np.arange(0.0, 15.0) * YEAR
 
         vessel = MagicMock()
         vessel.lead_time = Scalar(0.0)
@@ -462,7 +461,7 @@ class TestCargoUnitPropertiesTechnologyCharge:
 
         age_npv = calculate_net_present_value(component.constant_overlap, DISCOUNT)
         cargo = np.full(int(component.get_length()) + 5, 5e6)
-        timeline = np.arange(0.0, 15.0) * YEAR_TO_DAYS
+        timeline = np.arange(0.0, 15.0) * YEAR
         cargo_flow = build_cargo_flow(
             component=component, cargo=cargo[: timeline.size], timeline=timeline
         )

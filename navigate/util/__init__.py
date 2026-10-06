@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Domain-agnostic helpers: collections, dates, naming, numerics, internal types."""
+"""Domain-agnostic helpers: collections, dates, naming, numerics, types and units."""
 
 from __future__ import annotations
 
@@ -60,4 +60,17 @@ from navigate.util.types_ import (
     Index,
     IntArray,
     TimedeltaArray,
+)
+from navigate.util.units import (
+    DAY_TO_HOURS,
+    GJ_TO_MJ,
+    HOUR_TO_DAYS,
+    MJ_TO_GJ,
+    MWD_TO_GJ,
+    MWD_TO_MJ,
+    MWH_TO_GJ,
+    MWH_TO_MJ,
+    TON_PER_GJ_TO_GRAM_PR_MJ,
+    TON_TO_GRAM,
+    TON_TO_KG,
 )

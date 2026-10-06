@@ -5,12 +5,6 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, NoReturn
-
-if TYPE_CHECKING:
-    from navigate.core.general_nodes._general_node import _GeneralNode
-    from navigate.core.node import Node
-
 
 class NavigateError(Exception):
     """
@@ -25,6 +19,22 @@ class NavigateError(Exception):
 
 class DeckInsufficientError(NavigateError):
     """Raised if the deck contains insufficient information to run a simulation."""
+
+
+class UnassignedAttributeError(DeckInsufficientError):
+    """
+    Raised if a node attribute the deck must assign is unassigned.
+
+    Parameters
+    ----------
+    owner
+        Display text of the node or general node whose attribute is unassigned.
+    attribute_name
+        Deck attribute left unassigned.
+    """
+
+    def __init__(self, owner: str, attribute_name: str) -> None:
+        super().__init__(f"{owner}: Attribute '{attribute_name}' is unassigned.")
 
 
 class DeckFormatError(NavigateError):
@@ -53,17 +63,3 @@ class PowerCapacityError(NavigateError):
 
 class ConvergenceError(NavigateError):
     """Raised if an iterative algorithm fails to converge."""
-
-
-def no_value_assigned_error(node: Node | _GeneralNode, attribute_name: str) -> NoReturn:
-    """
-    Raise a ValueError naming the node and its unassigned attribute.
-
-    Parameters
-    ----------
-    node
-        Node whose attribute is unassigned.
-    attribute_name
-        Name of the unassigned attribute.
-    """
-    raise ValueError(f"{node}: Attribute '{attribute_name}' is unassigned.")

@@ -97,13 +97,13 @@ Save your edits.
 2. Verify that you are in the folder `tutorial_1`
 3. Type `navigate tutorial_1.nav`
 
-This should throw the following error message:
+This should stop with the following error message:
 
 ```
-ValueError: Fleet("fleet"): Attribute 'Vessel' is unassigned.
+Error: Fleet("fleet"): Attribute 'InitialVessels' is unassigned.
 ```
 
-This is because any node of the type Fleet requires a set of attributes, namely the attributes Vessels and the fuel sensitivities (`InterFuelSensitivity` and `IntraFuelSensitivity`). If the model is run while one of these attributes is not defined, there will be an error message notifying you of the missing attribute, as you saw just now. 
+This is because any node of the type Fleet requires a set of attributes, namely the attributes `InitialVessels`, `Vessels` and the fuel sensitivities (`InterFuelSensitivity` and `IntraFuelSensitivity`). If the model is run while one of these attributes is not defined, there will be an error message notifying you of the missing attribute, as you saw just now. 
 
 Other nodes can also have mandatory attributes. An error message will tell you if these are not defined yet.
 
@@ -115,7 +115,7 @@ In the next steps, we will define the attributes that are required for a Fleet n
 
 We are going to define a vessel node `"vessel_ice_oil"`.
 
-1. As the error message told you, the node Vessel needs to be defined. 
+1. A Fleet needs vessels, so the node Vessel needs to be defined. 
 Define Vessel with the node called `"vessel_ice_oil"`.
 
 ```python
@@ -133,7 +133,7 @@ The `InterFuelSensitivity` and `IntraFuelSensitivity` attributes calibrate the d
 
 3. The `InterFuelSensitivity` attribute controls how strongly the choice *between fuel types* responds to the levelized cost of transport (LCOT) of each vessel option. Its value is an odds ratio: a value of `0.5` means a fuel whose LCOT is 10% higher receives half the odds of an otherwise identical fuel (lower cost is better, so use a value below `1`).
 4. The `IntraFuelSensitivity` attribute does the same for the choice *between engine technologies within a single fuel type* (different engine technologies are for example combustion engines vs. fuel cells). A value of `0.5` likewise means a 10% higher LCOT halves the odds.
-5. `InitialVessels` describes the number of vessels present at the defined start date. `InitialVessels` is not a mandatory attribute for the node "fleet" and therefore not necessary to run the model, but necessary if we want an output. 
+5. `InitialVessels` describes the number of vessels present at the defined start date. `InitialVessels` is a mandatory attribute for the node "fleet", as the error message you saw earlier told you. 
 
 
 

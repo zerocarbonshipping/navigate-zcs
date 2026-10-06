@@ -37,7 +37,7 @@ from navigate.core.nodes.route import Route
 from navigate.core.nodes.tank import Tank
 from navigate.core.nodes.variable import Variable
 from navigate.core.nodes.vessel import Vessel
-from navigate.exceptions import CommandError
+from navigate.exceptions import CommandError, UnassignedAttributeError
 from navigate.parser._attributes import NODE_ATTRIBUTE_SECTIONS
 from navigate.parser._commands import CommandReference
 from navigate.parser._event import Event
@@ -617,7 +617,9 @@ End
 
         with (
             caplog.at_level(logging.WARNING),
-            pytest.raises(ValueError, match="Attribute 'Jurisdiction' is unassigned"),
+            pytest.raises(
+                UnassignedAttributeError, match="Attribute 'Jurisdiction' is unassigned"
+            ),
         ):
             read_fleet_deck(define_extra=define_extra)
 

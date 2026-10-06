@@ -25,10 +25,9 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.enum_ import EnergyDemandTypeID, EnergyDemandTypePortID, RouteTypeID
-from navigate.core.unit import DAY_TO_HOURS, HOUR_TO_DAYS, MWD_TO_GJ
 from navigate.core.wrap import to_numpy
 from navigate.fleet.power import calculate_technical_speed_limits
-from navigate.util import YEAR, divide_nonzero
+from navigate.util import DAY_TO_HOURS, HOUR_TO_DAYS, MWD_TO_GJ, YEAR, divide_nonzero
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence

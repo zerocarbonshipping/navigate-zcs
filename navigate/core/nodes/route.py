@@ -26,7 +26,7 @@ from navigate.core.enum_ import RouteTypeID
 from navigate.core.node import Node
 from navigate.core.node_type import FORECAST, PORT, ROUTE, VARIABLE
 from navigate.core.wrap import to_numpy
-from navigate.exceptions import no_value_assigned_error
+from navigate.exceptions import UnassignedAttributeError
 from navigate.util import ROUND_OFF, divide_nonzero, unique_list
 
 if TYPE_CHECKING:
@@ -310,22 +310,22 @@ class Route(Node):
     def check_requirements(self) -> None:
 
         if not self.ports:
-            no_value_assigned_error(self, "Ports")
+            raise UnassignedAttributeError(str(self), "Ports")
 
         if not self.speeds:
-            no_value_assigned_error(self, "Speeds")
+            raise UnassignedAttributeError(str(self), "Speeds")
 
         # each route type reads a different set of the leg and port attributes
         if self.route_type == RouteTypeID.ROUND_TRIP:
             if not self.port_durations:
-                no_value_assigned_error(self, "PortDurations")
+                raise UnassignedAttributeError(str(self), "PortDurations")
 
             if not self.distances:
-                no_value_assigned_error(self, "Distances")
+                raise UnassignedAttributeError(str(self), "Distances")
 
         elif self.route_type == RouteTypeID.REGIONAL_TRIP:
             if self.time_at_sea is None:
-                no_value_assigned_error(self, "TimeAtSea")
+                raise UnassignedAttributeError(str(self), "TimeAtSea")
 
     def apply_defaults(self) -> None:
 

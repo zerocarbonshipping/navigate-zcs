@@ -6,8 +6,6 @@
 from __future__ import annotations
 
 # time
-YEAR_TO_DAYS = 365.25
-DAY_TO_YEARS = 1.0 / YEAR_TO_DAYS
 DAY_TO_HOURS = 24.0
 HOUR_TO_DAYS = 1.0 / DAY_TO_HOURS
 

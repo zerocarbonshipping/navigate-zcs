@@ -31,7 +31,7 @@ from navigate.exceptions import (
     CommandError,
     DeckFormatError,
     DeckKeywordError,
-    no_value_assigned_error,
+    UnassignedAttributeError,
 )
 from navigate.logging_ import log_time_step_breaker, print_preamble
 from navigate.parser._attributes import (
@@ -1162,7 +1162,7 @@ class Parser:
 
         for attribute in required:
             if attribute not in assigned:
-                no_value_assigned_error(node, attribute)
+                raise UnassignedAttributeError(str(node), attribute)
 
     def _update_dependencies(self) -> None:
         """
