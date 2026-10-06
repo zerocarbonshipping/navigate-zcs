@@ -511,11 +511,11 @@ Later, you will define intermediate annual time steps until 2050.</p></li>
 <li><p>Verify that you are in the folder <code class="docutils literal notranslate"><span class="pre">tutorial_1</span></code></p></li>
 <li><p>Type <code class="docutils literal notranslate"><span class="pre">navigate</span> <span class="pre">tutorial_1.nav</span></code></p></li>
 </ol>
-<p>This should throw the following error message:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="ne">ValueError</span><span class="p">:</span> <span class="n">Fleet</span><span class="p">(</span><span class="s2">"fleet"</span><span class="p">):</span> <span class="n">Attribute</span> <span class="s1">'Vessel'</span> <span class="ow">is</span> <span class="n">unassigned</span><span class="o">.</span>
+<p>This should stop with the following error message:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Error</span><span class="p">:</span> <span class="n">Fleet</span><span class="p">(</span><span class="s2">"fleet"</span><span class="p">):</span> <span class="n">Attribute</span> <span class="s1">'InitialVessels'</span> <span class="ow">is</span> <span class="n">unassigned</span><span class="o">.</span>
 </pre></div>
 </div>
-<p>This is because any node of the type Fleet requires a set of attributes, namely the attributes Vessels and the fuel sensitivities (<code class="docutils literal notranslate"><span class="pre">InterFuelSensitivity</span></code> and <code class="docutils literal notranslate"><span class="pre">IntraFuelSensitivity</span></code>). If the model is run while one of these attributes is not defined, there will be an error message notifying you of the missing attribute, as you saw just now.</p>
+<p>This is because any node of the type Fleet requires a set of attributes, namely the attributes <code class="docutils literal notranslate"><span class="pre">InitialVessels</span></code>, <code class="docutils literal notranslate"><span class="pre">Vessels</span></code> and the fuel sensitivities (<code class="docutils literal notranslate"><span class="pre">InterFuelSensitivity</span></code> and <code class="docutils literal notranslate"><span class="pre">IntraFuelSensitivity</span></code>). If the model is run while one of these attributes is not defined, there will be an error message notifying you of the missing attribute, as you saw just now.</p>
 <p>Other nodes can also have mandatory attributes. An error message will tell you if these are not defined yet.</p>
 <p>If you encounter other errors, read the error message. If it says that a name is not recognized, check for errors in spelling, extra or missing indents or signs by comparing to the code in the tables.</p>
 <p>In the next steps, we will define the attributes that are required for a Fleet node.</p>
@@ -525,7 +525,7 @@ Later, you will define intermediate annual time steps until 2050.</p></li>
 <h3>Definition of a <code class="docutils literal notranslate"><span class="pre">Fleet</span></code><a class="headerlink" href="#definition-of-a-fleet" title="Link to this heading">#</a></h3>
 <p>We are going to define a vessel node <code class="docutils literal notranslate"><span class="pre">&quot;vessel_ice_oil&quot;</span></code>.</p>
 <ol class="arabic simple">
-<li><p>As the error message told you, the node Vessel needs to be defined.
+<li><p>A Fleet needs vessels, so the node Vessel needs to be defined.
 Define Vessel with the node called <code class="docutils literal notranslate"><span class="pre">&quot;vessel_ice_oil&quot;</span></code>.</p></li>
 </ol>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Vessel</span> <span class="s2">"vessel_ice_oil"</span> <span class="p">{</span>
@@ -543,7 +543,7 @@ This is a naming convention we use but is not required; a node can be named anyt
 <ol class="arabic simple" start="3">
 <li><p>The <code class="docutils literal notranslate"><span class="pre">InterFuelSensitivity</span></code> attribute controls how strongly the choice <em>between fuel types</em> responds to the levelized cost of transport (LCOT) of each vessel option. Its value is an odds ratio: a value of <code class="docutils literal notranslate"><span class="pre">0.5</span></code> means a fuel whose LCOT is 10% higher receives half the odds of an otherwise identical fuel (lower cost is better, so use a value below <code class="docutils literal notranslate"><span class="pre">1</span></code>).</p></li>
 <li><p>The <code class="docutils literal notranslate"><span class="pre">IntraFuelSensitivity</span></code> attribute does the same for the choice <em>between engine technologies within a single fuel type</em> (different engine technologies are for example combustion engines vs. fuel cells). A value of <code class="docutils literal notranslate"><span class="pre">0.5</span></code> likewise means a 10% higher LCOT halves the odds.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">InitialVessels</span></code> describes the number of vessels present at the defined start date. <code class="docutils literal notranslate"><span class="pre">InitialVessels</span></code> is not a mandatory attribute for the node “fleet” and therefore not necessary to run the model, but necessary if we want an output.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">InitialVessels</span></code> describes the number of vessels present at the defined start date. <code class="docutils literal notranslate"><span class="pre">InitialVessels</span></code> is a mandatory attribute for the node “fleet”, as the error message you saw earlier told you.</p></li>
 </ol>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Fleet</span> <span class="s2">"fleet"</span> <span class="p">{</span>	 
     <span class="n">Vessels</span> <span class="o">=</span> <span class="p">[</span><span class="n">Vessel</span><span class="p">(</span><span class="s2">"vessel_ice_oil"</span><span class="p">)]</span>  
