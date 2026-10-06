@@ -16,14 +16,14 @@ if TYPE_CHECKING:
 
     from navigate.core.enum_ import EnergyDemandTypeID
     from navigate.core.nodes.vessel import Vessel
+    from navigate.core.technology_package import TechnologyPackage
     from navigate.core.types_ import CurveInput
-    from navigate.fleet.package import Package
     from navigate.util.types_ import FloatLike
 
 
 def calculate_residual_energy(
     vessel: Vessel,
-    package: Package,
+    package: TechnologyPackage,
     idx: int | slice,
 ) -> tuple[
     dict[EnergyDemandTypeID, list[FloatLike]],
@@ -41,7 +41,7 @@ def calculate_residual_energy(
     vessel
         Vessel providing the operational energy demand and the power system.
     package
-        Package holding the precomputed savings, powers and transfer curves.
+        Technology package holding the precomputed savings, powers and transfer curves.
     idx
         Time-step index or slice of the evaluation.
 
@@ -94,7 +94,7 @@ def net_energy_from_raw(
 
 def _iterate_legs_or_ports(
     vessel: Vessel,
-    package: Package,
+    package: TechnologyPackage,
     durations: Sequence[FloatLike],
     raw_demands: Mapping[EnergyDemandTypeID, Sequence[FloatLike]],
 ) -> dict[EnergyDemandTypeID, list[FloatLike]]:
@@ -112,7 +112,7 @@ def _iterate_legs_or_ports(
     vessel
         Vessel whose converters set the loads.
     package
-        Package installed on the vessel.
+        Technology package installed on the vessel.
     durations
         Time spent on each step, days/year.
     raw_demands

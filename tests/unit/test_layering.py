@@ -4,8 +4,8 @@
 """
 Mechanical layering checks on `core` and the foundation modules.
 
-`core` may import only itself, `util` and `exceptions` at runtime; `exceptions`
-and `logging_` may import only `util`, type-only imports included.
+`core` may import only itself, `util` and `exceptions`; `exceptions` and `logging_`
+may import only `util`. Type-only imports count.
 """
 
 from __future__ import annotations
@@ -47,27 +47,11 @@ def _offending_imports(nodes, allowed):
     return offenders
 
 
-def _is_type_checking_guard(test):
-    return "TYPE_CHECKING" in (getattr(test, "id", ""), getattr(test, "attr", ""))
-
-
-def _runtime_nodes(node):
-    for child in ast.iter_child_nodes(node):
-        if isinstance(child, ast.If) and _is_type_checking_guard(child.test):
-            for branch in child.orelse:
-                yield from _runtime_nodes(branch)
-            continue
-        yield child
-        yield from _runtime_nodes(child)
-
-
 @pytest.mark.parametrize("path", sorted(CORE.rglob("*.py")), ids=lambda p: p.name)
-def test_core_imports_only_core_util_and_exceptions_at_runtime(path):
+def test_core_imports_only_core_util_and_exceptions(path):
     tree = ast.parse(path.read_text(encoding="utf-8"))
-    offenders = _offending_imports(_runtime_nodes(tree), CORE_ALLOWED)
-    assert not offenders, (
-        f"navigate/core/{path.relative_to(CORE)} imports {offenders} at runtime"
-    )
+    offenders = _offending_imports(ast.walk(tree), CORE_ALLOWED)
+    assert not offenders, f"navigate/core/{path.relative_to(CORE)} imports {offenders}"
 
 
 @pytest.mark.parametrize("path", FOUNDATION_MODULES, ids=lambda p: p.name)

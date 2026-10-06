@@ -30,6 +30,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core.enum_ import EnergyDemandTypeID, EnergyDemandTypePortID, UtilityID
+from navigate.core.technology_package import TechnologyPackage
 from navigate.economics.decision import calculate_asset_shares
 from navigate.economics.flows import timeline_to_yearly
 from navigate.fleet.conversion import is_retrofit_cycle
@@ -39,7 +40,6 @@ from navigate.fleet.operation import (
     transfer_operational_saving_to_vessels,
 )
 from navigate.fleet.package import (
-    Package,
     annual_costs_for_retrofit_steps,
     levelize_package_cost,
     npv_for_newbuilds,
@@ -234,7 +234,7 @@ class _TechnologyEffect:
 
 def build_technology_packages(
     technologies: list[Technology],
-) -> tuple[list[Package], dict[int, int]]:
+) -> tuple[list[TechnologyPackage], dict[int, int]]:
     """
     Sort technologies by CAPEX and organize them into cumulative packages.
 
@@ -245,15 +245,17 @@ def build_technology_packages(
 
     Returns
     -------
-    list[Package]
-        Packages from empty to full.
+    list[TechnologyPackage]
+        Technology packages from empty to full.
     dict[int, int]
         Map from a package index to the index, in ``technologies``, of the technology
         that package adds.
     """
     sorted_pairs = sorted(enumerate(technologies), key=lambda p: p[1].capex.get())
     sorted_techs = [t for _, t in sorted_pairs]
-    packages = [Package(sorted_techs[:i]) for i in range(len(sorted_techs) + 1)]
+    packages = [
+        TechnologyPackage(sorted_techs[:i]) for i in range(len(sorted_techs) + 1)
+    ]
     package_to_technology_map = {
         i: sorted_pairs[i - 1][0] for i in range(1, len(sorted_pairs) + 1)
     }
@@ -262,7 +264,7 @@ def build_technology_packages(
 
 
 def calculate_package_charter_rates(
-    packages: list[Package], vessel: Vessel
+    packages: list[TechnologyPackage], vessel: Vessel
 ) -> FloatArray:
     """
     Levelize each package's cost, installed at build, over the vessel lifetime.
@@ -375,7 +377,9 @@ def _seed_vessel_initial_uptake(fleet: Fleet, vessel: Vessel, vessel_idx: int) -
 
 
 def _shares_to_package_mix(
-    technologies: list[Technology], packages: list[Package], shares: FloatArray
+    technologies: list[Technology],
+    packages: list[TechnologyPackage],
+    shares: FloatArray,
 ) -> tuple[FloatArray, set[str]]:
     """
     Convert per-technology shares into per-package shares.
@@ -407,7 +411,7 @@ def _shares_to_package_mix(
 
     for p in range(len(packages) - 1, 0, -1):
         pkg = packages[p]
-        idxs = [tech_to_idx[t] for t in pkg]
+        idxs = [tech_to_idx[t] for t in pkg.technologies]
         take = remaining[idxs].min()
         if take > 0:
             pkg_shares[p] = take
@@ -422,7 +426,7 @@ def _shares_to_package_mix(
 
 
 def _calculate_packages_saving(
-    vessel: Vessel, packages: list[Package], timeline: FloatArray, idx: int
+    vessel: Vessel, packages: list[TechnologyPackage], timeline: FloatArray, idx: int
 ) -> list[FloatArray]:
     """
     Calculate each technology package's marginal saving on the vessel's year grid.

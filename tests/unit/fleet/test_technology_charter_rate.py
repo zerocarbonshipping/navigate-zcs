@@ -25,6 +25,7 @@ from navigate.core.increment import VesselIncrement
 from navigate.core.node import Node
 from navigate.core.node_type import CURVE
 from navigate.core.nodes.fleet import Fleet
+from navigate.core.technology_package import TechnologyPackage
 from navigate.economics.flows import (
     correct_flow_residual,
     get_age_flow,
@@ -43,7 +44,6 @@ from navigate.fleet.conversion import (
 )
 from navigate.fleet.evolution import clean_up_multipliers
 from navigate.fleet.package import (
-    Package,
     annual_costs_for_retrofit_steps,
     levelize_package_cost,
 )
@@ -298,8 +298,8 @@ class _ShareCurve(Node):
         return self._value
 
 
-def _make_cost_package(technologies: list, cost_flow: np.ndarray) -> Package:
-    package = Package(technologies)
+def _make_cost_package(technologies: list, cost_flow: np.ndarray) -> TechnologyPackage:
+    package = TechnologyPackage(technologies)
     package.cost_flow = cost_flow
     return package
 

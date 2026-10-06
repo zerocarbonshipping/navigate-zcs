@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
     from navigate.core.enum_ import EnergyDemandTypeID
     from navigate.core.nodes.vessel import Vessel
-    from navigate.fleet.package import Package
+    from navigate.core.technology_package import TechnologyPackage
     from navigate.util.types_ import FloatArray, FloatLike
 
 
@@ -81,7 +81,7 @@ def get_smoothed_energy_duals_speed(
 
 
 def calculate_marginal_technology_saving(
-    vessel: Vessel, package: Package, idx: slice
+    vessel: Vessel, package: TechnologyPackage, idx: slice
 ) -> FloatArray:
     """
     Calculate the marginal cost saving of installing a technology package.
@@ -99,7 +99,7 @@ def calculate_marginal_technology_saving(
     vessel
         Vessel on which the package is evaluated.
     package
-        Package holding the precomputed savings, powers and transfer curves.
+        Technology package holding the precomputed savings, powers and transfer curves.
     idx
         Time-steps of the evaluation.
 
