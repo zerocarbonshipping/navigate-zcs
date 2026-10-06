@@ -16,6 +16,7 @@ from navigate.core.increment import VesselIncrement
 from navigate.core.nodes.fleet import Fleet
 from navigate.economics.flows import expand_to_flow
 from navigate.economics.metric import calculate_net_present_value
+from navigate.fleet import conversion
 from navigate.fleet.conversion import (
     _ConversionCandidate,
     _ConversionProposal,
@@ -83,7 +84,6 @@ def _oil_to_ammonia_fleet(
     return fleet
 
 
-_DCM = "navigate.fleet.conversion.calculate_asset_shares"
 _SHARES = (np.array([0.25, 0.75]), "")
 
 
@@ -115,7 +115,7 @@ def _make_proposal(
 
 
 def _assert_no_proposals(fleet: Fleet) -> None:
-    with patch(_DCM) as dcm:
+    with patch.object(conversion, "calculate_asset_shares") as dcm:
         assert propose_fuel_conversions(fleet, idx=3, time_step=YEAR) == []
 
     dcm.assert_not_called()
@@ -137,7 +137,9 @@ class TestProposeFuelConversions:
     def test_dcm_receives_business_case(self):
         fleet = _oil_to_ammonia_fleet()
 
-        with patch(_DCM, return_value=_SHARES) as dcm:
+        with patch.object(
+            conversion, "calculate_asset_shares", return_value=_SHARES
+        ) as dcm:
             proposals = propose_fuel_conversions(fleet, idx=3, time_step=YEAR)
 
         # age 10 with age_span 1 gives avg_age 10.5 and 14.5 remaining years: 14 full
@@ -166,7 +168,7 @@ class TestProposeFuelConversions:
     def test_charge_levelizes_conversion_cost(self):
         fleet = _oil_to_ammonia_fleet()
 
-        with patch(_DCM, return_value=_SHARES):
+        with patch.object(conversion, "calculate_asset_shares", return_value=_SHARES):
             proposals = propose_fuel_conversions(fleet, idx=3, time_step=YEAR)
 
         # discounting the constant charge over the remaining lifetime recovers
@@ -193,7 +195,9 @@ class TestProposeFuelConversions:
         fleet = _oil_to_ammonia_fleet()
         fleet.assets[1].lifetime = Scalar(30.0)
 
-        with patch(_DCM, return_value=_SHARES) as dcm:
+        with patch.object(
+            conversion, "calculate_asset_shares", return_value=_SHARES
+        ) as dcm:
             proposals = propose_fuel_conversions(fleet, idx=3, time_step=YEAR)
 
         expected_cash = np.full(15, 8.0 - 3.0)
@@ -225,7 +229,9 @@ class TestProposeFuelConversions:
             VesselIncrement(4.0, 10.0, 5.0, package_uptake=np.array([1.0])),
         ]
 
-        with patch(_DCM, return_value=_SHARES) as dcm:
+        with patch.object(
+            conversion, "calculate_asset_shares", return_value=_SHARES
+        ) as dcm:
             proposals = propose_fuel_conversions(fleet, idx=3, time_step=YEAR)
 
         assert dcm.call_count == 1
@@ -234,7 +240,7 @@ class TestProposeFuelConversions:
     def test_expectation_flows_not_mutated(self):
         fleet = _oil_to_ammonia_fleet()
 
-        with patch(_DCM, return_value=_SHARES):
+        with patch.object(conversion, "calculate_asset_shares", return_value=_SHARES):
             propose_fuel_conversions(fleet, idx=3, time_step=YEAR)
 
         np.testing.assert_array_equal(
@@ -253,7 +259,11 @@ class TestProposeFuelConversions:
             VesselIncrement(4.0, 10.0, 1.0, package_uptake=np.array([1.0])),
         ]
 
-        with patch(_DCM, return_value=(np.array([0.5, 0.5]), "")) as dcm:
+        with patch.object(
+            conversion,
+            "calculate_asset_shares",
+            return_value=(np.array([0.5, 0.5]), ""),
+        ) as dcm:
             propose_fuel_conversions(fleet, idx=3, time_step=YEAR)
 
         limits = [call.kwargs["limits"][0] for call in dcm.call_args_list]
@@ -268,7 +278,9 @@ class TestProposeFuelConversions:
 
         with (
             np.errstate(divide="ignore"),
-            patch(_DCM, return_value=_SHARES) as dcm,
+            patch.object(
+                conversion, "calculate_asset_shares", return_value=_SHARES
+            ) as dcm,
         ):
             propose_fuel_conversions(fleet, idx=3, time_step=YEAR)
 
