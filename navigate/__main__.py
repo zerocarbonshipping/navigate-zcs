@@ -190,13 +190,18 @@ def _dispatch(args: argparse.Namespace, run_log: RunLog) -> int:
     deck = args.filename.resolve()
 
     if args.profile:
-        _run_with_profile(deck, args, run_log)
+        # a profiled run keeps its console output to the profile statistics
+        _run_with_profile(deck, args)
+        run_log.log_summary()
         return 0
 
-    manager = _run(deck, args, run_log)
+    manager = _run(deck, args)
 
     if not args.suppress_plots:
         manager.export_graphs()
+
+    run_log.log_summary()
+    run_log.print_warning_notice()
 
     return 0
 
@@ -222,23 +227,19 @@ def _print_error(exc: Exception, debug: bool) -> None:
         print(f"Error: {exc}", file=sys.stderr)
 
 
-def _run(path: Path, args: argparse.Namespace, run_log: RunLog) -> SimulationManager:
+def _run(path: Path, args: argparse.Namespace) -> SimulationManager:
     manager = SimulationManager(path, data_dir=args.data_dir, solver=args.solver)
     manager.run()
 
     logger.info("Simulation completed successfully, %s.", manager.get_elapsed_time())
-    run_log.log_summary()
-
-    if not args.profile:
-        run_log.print_warning_notice()
 
     return manager
 
 
-def _run_with_profile(path: Path, args: argparse.Namespace, run_log: RunLog) -> None:
+def _run_with_profile(path: Path, args: argparse.Namespace) -> None:
     profiler = cProfile.Profile()
     profiler.enable()
-    _run(path, args, run_log)
+    _run(path, args)
     profiler.disable()
     stats = pstats.Stats(profiler).sort_stats("cumtime")
     stats.dump_stats(str(path.parent / "profile"))

@@ -217,14 +217,10 @@ class TestRunCompletionLogging:
                 return "elapsed time: 0m and 5s"
 
         monkeypatch.setattr(cli, "SimulationManager", _StubManager)
-        deck = tmp_path / "deck.nav"
-        args = argparse.Namespace(profile=False, data_dir=None, solver=None)
+        args = argparse.Namespace(data_dir=None, solver=None)
 
-        with (
-            caplog.at_level(logging.INFO, logger="navigate.__main__"),
-            RunLog(deck, "INFO") as run_log,
-        ):
-            _run(deck, args, run_log)
+        with caplog.at_level(logging.INFO, logger="navigate.__main__"):
+            _run(tmp_path / "deck.nav", args)
 
         completed = [
             record.getMessage()
