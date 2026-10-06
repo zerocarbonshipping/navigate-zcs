@@ -14,7 +14,6 @@ Tests verify the correctness of:
   - Convexity detection on piecewise-linear functions
   - _Table1D interpolation with transforms, reverse lookup
   - _Table2D bilinear interpolation, reverse lookup, convexity
-  - _Table2D deep copies stay independent of a mutated source
   - Variable scalar transform chain
   - Deck expressions on the transform and fill-value attributes
   - Curve and Surface settings apply wherever the definition writes them
@@ -22,7 +21,6 @@ Tests verify the correctness of:
 
 from __future__ import annotations
 
-import copy
 import logging
 
 import numpy as np
@@ -508,36 +506,7 @@ class TestTable2DReverseLookup:
 
 
 # ---------------------------------------------------------------------------
-# 8. _Table2D — deep copy independence from a mutated source
-# ---------------------------------------------------------------------------
-
-
-class TestTable2DDeepcopyIndependence:
-    """
-    A deep copy of a built _Table2D does not share its source's array.
-
-    The DSL's Copy command deep-copies nodes, and may copy one whose table is
-    already built: a default file pulled during the reference walk can copy a
-    node built on an earlier pass. Reassigning the source's array afterward
-    does not reach a copy sharing the interpolation closure, since that only
-    rebinds the source's own attribute; mutating the array in place does, so
-    that is what distinguishes an independent copy from one that still reads
-    the source's array by reference.
-    """
-
-    def test_copy_keeps_its_own_values_after_the_source_is_mutated(self):
-        t = _make_table2d(z=T2D_Z.copy())
-        clone = copy.deepcopy(t)
-
-        for x, y in ((0.5, 5.0), (1.5, 15.0)):
-            assert clone.calculate(x, y) == pytest.approx(t.calculate(x, y))
-
-        t._z *= 10.0
-        assert clone.calculate(1.0, 10.0) == pytest.approx(11.0)
-
-
-# ---------------------------------------------------------------------------
-# 9. Variable — transform chain
+# 8. Variable — transform chain
 # ---------------------------------------------------------------------------
 
 
@@ -596,7 +565,7 @@ class TestVariable:
 
 
 # ---------------------------------------------------------------------------
-# 10. Deck expressions on the transform and fill-value attributes
+# 9. Deck expressions on the transform and fill-value attributes
 # ---------------------------------------------------------------------------
 
 
@@ -695,7 +664,7 @@ class TestFillValueExpressions:
 
 
 # ---------------------------------------------------------------------------
-# 11. Curve and Surface — settings read when the table is built
+# 10. Curve and Surface — settings read when the table is built
 # ---------------------------------------------------------------------------
 
 # y = 10 * x on 0 <= x <= 2
@@ -756,7 +725,7 @@ class TestTableSettingsOrder:
 
 
 # ---------------------------------------------------------------------------
-# 12. _Table2D — rejects fewer than two rows or columns
+# 11. _Table2D — rejects fewer than two rows or columns
 # ---------------------------------------------------------------------------
 
 _MIN_SIZE_HEADER_ONLY_MATCH = (

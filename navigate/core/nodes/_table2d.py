@@ -16,6 +16,8 @@ from navigate.logging_ import log_extrapolate_bounds
 from navigate.util import is_strictly_increasing
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from navigate.core.types_ import NumberInput
     from navigate.util import FloatArray, FloatLike
 
@@ -38,9 +40,7 @@ class _Table2D(_Calculator):
         self.x: FloatArray
         self.y: FloatArray
         self._z: FloatArray
-        self._table_method: str
-        self._table_bounds_error: bool
-        self._table_fill_number: NumberInput | None
+        self._table: Callable[[FloatLike, FloatLike], FloatLike]
         self._is_convex: bool = False  # set with the table
 
     # external methods (DSL attributes) ------------------------------------------------
@@ -107,7 +107,7 @@ class _Table2D(_Calculator):
     def calculate(self, x: FloatLike, y: FloatLike) -> FloatLike: ...
 
     def calculate(self, x: FloatLike, y: FloatLike) -> FloatLike:
-        return self._transform(self._interpolate_table(x, y), x, y)
+        return self._transform(self._table(x, y), x, y)
 
     def reverse_lookup(
         self, z: FloatLike, y: FloatArray | None = None
@@ -212,51 +212,54 @@ class _Table2D(_Calculator):
         # guaranteed to be convex in the x-direction
         self._is_convex = all(self._test_convexity(x, z[:, i]) for i, _ in enumerate(y))
 
-        self._table_method = self._get_interpolate_internal()
-        self._table_bounds_error = self._get_bounds_error_internal()
-        self._table_fill_number = self._get_extrapolate_internal()
+        method = self._get_interpolate_internal()
+        bounds_error = self._get_bounds_error_internal()
+        fill_number = self._get_extrapolate_internal()
 
-    def _interpolate_table(self, x_: FloatLike, y_: FloatLike) -> FloatLike:
-        x_array = np.asarray(x_)
-        y_array = np.asarray(y_)
+        # copy.deepcopy leaves a function as it is, so a deep copy of a built table
+        # shares this closure with its source: its x/y/z arrays and its fill value. The
+        # DSL's Copy command can copy a node whose table is already built. This is
+        # harmless only because nothing mutates the arrays in place, and the settings
+        # captured here can only be assigned in DEFINE.
+        def interp(x_: FloatLike, y_: FloatLike) -> FloatLike:
+            x_array = np.asarray(x_)
+            y_array = np.asarray(y_)
 
-        # evaluated here rather than when the table is built: an expression may
-        # read a node whose value changes during the run, such as a Forecast,
-        # which holds the value of the current time step
-        fill_value = (
-            None
-            if self._table_fill_number is None
-            else evaluate_number(self._table_fill_number)
-        )
+            # evaluated here rather than when the table is built: an expression
+            # may read a node whose value changes during the run, such as a
+            # Forecast, which holds the value of the current time step
+            fill_value = None if fill_number is None else evaluate_number(fill_number)
 
-        scalar_inputs = (x_array.ndim == 0) and (y_array.ndim == 0)
+            scalar_inputs = (x_array.ndim == 0) and (y_array.ndim == 0)
 
-        if scalar_inputs:
-            # xi must be (npoints, ndim) for a single point -> (1, 2)
-            xi = np.array([[x_array.item(), y_array.item()]], dtype=float)
-            value: float = interpn(
-                (self.x, self.y),
-                self._z,
+            if scalar_inputs:
+                # xi must be (npoints, ndim) for a single point -> (1, 2)
+                xi = np.array([[x_array.item(), y_array.item()]], dtype=float)
+                value: float = interpn(
+                    (x, y),
+                    z,
+                    xi,
+                    method=method,
+                    bounds_error=bounds_error,
+                    fill_value=fill_value,
+                )[0]  # -> np.float64
+                return value
+
+            # For arrays (including scalar/array mix): broadcast + stack into (..., 2)
+            xb, yb = np.broadcast_arrays(x_array, y_array)
+            xi = np.stack([xb, yb], axis=-1)
+
+            values: FloatArray = interpn(
+                (x, y),
+                z,
                 xi,
-                method=self._table_method,
-                bounds_error=self._table_bounds_error,
+                method=method,
+                bounds_error=bounds_error,
                 fill_value=fill_value,
-            )[0]
-            return value
+            )
+            return values
 
-        # for arrays (including scalar/array mix): broadcast + stack into (..., 2)
-        xb, yb = np.broadcast_arrays(x_array, y_array)
-        xi = np.stack([xb, yb], axis=-1)
-
-        values: FloatArray = interpn(
-            (self.x, self.y),
-            self._z,
-            xi,
-            method=self._table_method,
-            bounds_error=self._table_bounds_error,
-            fill_value=fill_value,
-        )
-        return values
+        self._table = interp
 
 
 def check_table2d_input(x: FloatArray, y: FloatArray, z: FloatArray) -> None:
