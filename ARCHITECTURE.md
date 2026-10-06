@@ -58,25 +58,29 @@ simulation           → every unit except __main__
 __main__             → simulation, logging_, core, foundation
 ```
 
-A unit is a package or a module directly under `navigate/`; `__init__` is
-`navigate/__init__.py`. A unit imports itself and the units in its row, and
-nothing else from `navigate`. The foundation is `util/` and `exceptions.py`.
+A unit is a package or module under `navigate/` with a row, named by its
+dotted path; `__init__` is `navigate/__init__.py`. A file belongs to the longest unit that
+contains it. A unit imports itself and the units in its row, and nothing
+else from `navigate`. The foundation is `util/` and `exceptions.py`.
 `logging_.py` is run logging: besides `simulation.py` and the CLI in
-`__main__.py`, only `bunker/` imports it, to log fair-share convergence.
+`__main__.py`, only `bunker/` imports it.
 
 `fleet/` and `fuel/` never import each other, nor do `parser/` and
-`output/`, and neither of those two imports `simulation.py` or a domain
-(`economics/`, `policy/`, `fleet/`, `fuel/`, `bunker/`).
+`output/`, and neither `parser/` nor `output/` imports `simulation.py` or any
+of `economics/`, `policy/`, `fleet/`, `fuel/`, `bunker/`.
 
 Inside `core/`, runtime imports follow an order: `nodes/` imports
-`expectations/`, `profiles/` and the flat modules directly in `core/`, its
-`__init__.py` included; `expectations/`, `profiles/` and `general_nodes/`
-import only the flat modules; the flat modules import only one another.
-Each subpackage also imports itself.
+`expectations/`, `profiles/` and the flat modules directly in `core/`,
+`core/__init__.py` included; `expectations/`, `profiles/` and
+`general_nodes/` import only the flat modules; the flat modules import only
+one another. Each subpackage also imports itself.
 
-`tests/unit/test_layering.py` enforces all of this, type-only imports
-included except for the order inside `core/`; its tables must name every
-unit and every `core/` subpackage.
+Imports inside `navigate` are absolute, so `tests/unit/test_layering.py`,
+which rejects relative ones, sees every import. It enforces all of this,
+type-only imports included except for the order inside `core/`. Its tables
+are exact and acyclic: every file belongs to a unit, every unit exists on
+disk, and the order inside `core/` names every `core/` subpackage and
+nothing else.
 
 ## Data-flow invariants
 

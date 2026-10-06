@@ -2,31 +2,36 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Mechanical layering checks on every top-level module and package of `navigate`.
+Mechanical layering checks on every module and package of `navigate`.
 
-`LAYERS` mirrors the Layering section of ARCHITECTURE.md. Each unit, a package or
-a module directly under `navigate/`, imports only itself and the units in its
-row, type-only imports included, and the table names exactly the units on disk.
-`INDEPENDENT_PAIRS` and `MODEL_FREE` state which units never list one another,
-checked against the table itself. `CORE_ORDER` orders the runtime imports between
-the subpackages of `core` and its flat modules.
+`LAYERS` mirrors the Layering section of ARCHITECTURE.md. Its keys are units,
+modules or packages named by their dotted path under `navigate`; a file belongs
+to the longest key that contains it, and imports only its own unit and the units
+in its row, type-only imports included. Every file belongs to a unit, every key
+exists on disk and the table is acyclic. `INDEPENDENT_PAIRS` and
+`SIMULATION_FREE` state which units never list one another, checked against the
+table itself. `CORE_ORDER` orders the runtime imports between the subpackages
+of `core` and its flat modules.
 """
 
 from __future__ import annotations
 
 import ast
+import graphlib
 from pathlib import Path
 
 import pytest
 
 PACKAGE = Path(__file__).resolve().parents[2] / "navigate"
 CORE = PACKAGE / "core"
+SOURCES = sorted(PACKAGE.rglob("*.py"))
+CORE_SOURCES = sorted(CORE.rglob("*.py"))
 
 FOUNDATION = frozenset({"util", "exceptions"})
 DOMAINS = frozenset({"economics", "policy", "fleet", "fuel", "bunker"})
 
 # unit -> the other units it may import; a unit may always import itself, and
-# `__init__` is navigate/__init__.py
+# `__init__` is navigate/__init__.py, the unit of a bare `navigate` import
 LAYERS = {
     "util": frozenset(),
     "__init__": frozenset(),
@@ -40,18 +45,17 @@ LAYERS = {
     "bunker": frozenset({"policy", "logging_", "core"}) | FOUNDATION,
     "parser": frozenset({"core"}) | FOUNDATION,
     "output": frozenset({"core"}) | FOUNDATION,
-    # every unit but __main__
-    "simulation": DOMAINS
-    | frozenset({"parser", "output", "logging_", "core", "__init__"})
-    | FOUNDATION,
     "__main__": frozenset({"simulation", "logging_", "core"}) | FOUNDATION,
 }
+# simulation.py may import every unit but the CLI
+LAYERS["simulation"] = frozenset(LAYERS) - {"__main__"}
 
 # neither unit of a pair may list the other
 INDEPENDENT_PAIRS = (("fleet", "fuel"), ("parser", "output"))
-# units that may list no part of the model
-MODEL_FREE = frozenset({"parser", "output"})
-MODEL = DOMAINS | {"simulation"}
+# the simulation is simulation.py and the packages it steps through; the units
+# in SIMULATION_FREE never import any of it
+SIMULATION = DOMAINS | {"simulation"}
+SIMULATION_FREE = frozenset({"parser", "output"})
 
 # core group -> the other groups it may import at runtime; a group may always
 # import itself, and FLAT is every module directly in core/, __init__.py included
@@ -63,32 +67,48 @@ CORE_ORDER = {
     "general_nodes": frozenset({FLAT}),
     FLAT: frozenset(),
 }
+# every directory under core/ holding Python source, package or not
+CORE_SUBPACKAGES = {
+    path.relative_to(CORE).parts[0]
+    for path in CORE_SOURCES
+    if len(path.relative_to(CORE).parts) > 1
+}
 
 
-def _packages_in(directory):
-    return {
-        path.name for path in directory.iterdir() if (path / "__init__.py").is_file()
-    }
+def _is_navigate(module):
+    return module == "navigate" or module.startswith("navigate.")
 
 
-CORE_SUBPACKAGES = _packages_in(CORE)
+def _parts_of_module(module):
+    return tuple(module.split(".")[1:])
 
 
-def _is_module(dotted):
-    path = PACKAGE.parent.joinpath(*dotted.split("."))
-    return path.with_suffix(".py").is_file() or (path / "__init__.py").is_file()
+def _parts_of_path(path):
+    parts = path.relative_to(PACKAGE).with_suffix("").parts
+    return parts[:-1] if parts[-1] == "__init__" else parts
 
 
-def _imported_modules(node):
+def _exists(parts):
+    path = PACKAGE.joinpath(*parts)
+    return path.with_suffix(".py").is_file() or path.is_dir()
+
+
+def _imported_parts(node):
+    """Return each `navigate` module an import reaches, as parts below `navigate`."""
     if isinstance(node, ast.Import):
-        return [alias.name for alias in node.names]
+        return [
+            _parts_of_module(alias.name)
+            for alias in node.names
+            if _is_navigate(alias.name)
+        ]
+    if not _is_navigate(node.module):
+        return []
 
     # `from package import name` imports the submodule `name` where one exists,
     # and otherwise a name the package's __init__.py defines
+    package = _parts_of_module(node.module)
     return [
-        f"{node.module}.{alias.name}"
-        if _is_module(f"{node.module}.{alias.name}")
-        else node.module
+        (*package, alias.name) if _exists((*package, alias.name)) else package
         for alias in node.names
     ]
 
@@ -102,12 +122,11 @@ def _offending_imports(nodes, is_allowed):
             )
         elif isinstance(node, ast.Import | ast.ImportFrom):
             offenders += [
-                module
-                for module in _imported_modules(node)
-                if (module == "navigate" or module.startswith("navigate."))
-                and not is_allowed(module)
+                ".".join(("navigate", *parts))
+                for parts in _imported_parts(node)
+                if not is_allowed(parts)
             ]
-    return offenders
+    return list(dict.fromkeys(offenders))
 
 
 def _is_type_checking(test):
@@ -132,13 +151,10 @@ def _runtime_nodes(tree):
             pending += ast.iter_child_nodes(node)
 
 
-def _unit_of_module(module):
-    parts = module.split(".")
-    return parts[1] if len(parts) > 1 else "__init__"
-
-
-def _unit_of_path(path):
-    return path.relative_to(PACKAGE).parts[0].removesuffix(".py")
+def _unit_of(parts):
+    parts = parts or ("__init__",)
+    keys = (".".join(parts[:length]) for length in range(len(parts), 0, -1))
+    return next((key for key in keys if key in LAYERS), None)
 
 
 def _core_group(parts):
@@ -149,29 +165,51 @@ def _relative_id(path):
     return str(path.relative_to(PACKAGE))
 
 
-@pytest.mark.parametrize("path", sorted(PACKAGE.rglob("*.py")), ids=_relative_id)
-def test_imports_stay_in_the_units_row(path):
-    unit = _unit_of_path(path)
-    assert unit in LAYERS, f"navigate/{_relative_id(path)}: unit {unit} has no row"
+def _unknown_names(table):
+    return {
+        name: sorted(row - set(table))
+        for name, row in table.items()
+        if row - set(table)
+    }
+
+
+def _assert_acyclic(table):
+    sorter = graphlib.TopologicalSorter(
+        {name: row - {name} for name, row in table.items()}
+    )
+    try:
+        tuple(sorter.static_order())
+    except graphlib.CycleError as error:
+        pytest.fail(f"import cycle: {error.args[1]}")
+
+
+@pytest.mark.parametrize("path", SOURCES, ids=_relative_id)
+def test_each_unit_imports_only_its_row(path):
+    unit = _unit_of(_parts_of_path(path))
+    assert unit is not None, f"navigate/{_relative_id(path)} belongs to no unit"
 
     allowed = LAYERS[unit] | {unit}
     tree = ast.parse(path.read_text(encoding="utf-8"))
     offenders = _offending_imports(
-        ast.walk(tree), lambda module: _unit_of_module(module) in allowed
+        ast.walk(tree), lambda parts: _unit_of(parts) in allowed
     )
     assert not offenders, f"navigate/{_relative_id(path)} imports {offenders}"
 
 
-def test_layers_cover_exactly_the_top_level_units():
-    units = {path.stem for path in PACKAGE.glob("*.py")} | _packages_in(PACKAGE)
-    rows = set(LAYERS)
-    assert rows == units, (
-        f"units without a row: {sorted(units - rows)}; "
-        f"rows without a unit: {sorted(rows - units)}"
-    )
+def test_layers_name_existing_units_only():
+    missing = sorted(key for key in LAYERS if not _exists(key.split(".")))
+    assert not missing, f"keys naming no module or package: {missing}"
 
-    unknown = {unit: sorted(row - rows) for unit, row in LAYERS.items() if row - rows}
-    assert not unknown, f"rows list units that do not exist: {unknown}"
+    unknown = _unknown_names(LAYERS)
+    assert not unknown, f"rows list units that are not keys: {unknown}"
+
+    named = {name for pair in INDEPENDENT_PAIRS for name in pair}
+    stale = sorted((named | SIMULATION | SIMULATION_FREE) - set(LAYERS))
+    assert not stale, f"independence rules name units that are not keys: {stale}"
+
+
+def test_layers_are_acyclic():
+    _assert_acyclic(LAYERS)
 
 
 @pytest.mark.parametrize(
@@ -179,7 +217,11 @@ def test_layers_cover_exactly_the_top_level_units():
     [
         *INDEPENDENT_PAIRS,
         *((second, first) for first, second in INDEPENDENT_PAIRS),
-        *((unit, model) for unit in sorted(MODEL_FREE) for model in sorted(MODEL)),
+        *(
+            (unit, simulation_unit)
+            for unit in sorted(SIMULATION_FREE)
+            for simulation_unit in sorted(SIMULATION)
+        ),
     ],
 )
 def test_independent_units_do_not_list_each_other(unit, other):
@@ -193,15 +235,15 @@ def test_core_order_covers_exactly_the_core_subpackages():
         f"rows without a subpackage: {sorted(groups - CORE_SUBPACKAGES)}"
     )
 
-    unknown = {
-        group: sorted(row - set(CORE_ORDER))
-        for group, row in CORE_ORDER.items()
-        if row - set(CORE_ORDER)
-    }
+    unknown = _unknown_names(CORE_ORDER)
     assert not unknown, f"rows list groups that do not exist: {unknown}"
 
 
-@pytest.mark.parametrize("path", sorted(CORE.rglob("*.py")), ids=_relative_id)
+def test_core_order_is_acyclic():
+    _assert_acyclic(CORE_ORDER)
+
+
+@pytest.mark.parametrize("path", CORE_SOURCES, ids=_relative_id)
 def test_core_runtime_imports_follow_the_core_order(path):
     group = _core_group(path.relative_to(CORE).parts[:-1])
     assert group in CORE_ORDER, f"navigate/{_relative_id(path)}: {group} has no row"
@@ -210,9 +252,6 @@ def test_core_runtime_imports_follow_the_core_order(path):
     tree = ast.parse(path.read_text(encoding="utf-8"))
     offenders = _offending_imports(
         _runtime_nodes(tree),
-        lambda module: (
-            _unit_of_module(module) != "core"
-            or _core_group(module.split(".")[2:]) in allowed
-        ),
+        lambda parts: parts[:1] != ("core",) or _core_group(parts[1:]) in allowed,
     )
     assert not offenders, f"navigate/{_relative_id(path)} ({group}) imports {offenders}"
