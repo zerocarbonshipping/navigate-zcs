@@ -20,7 +20,7 @@
 #                AllowSpeedManagement, MaximumSpeedChange, SpeedAlignment,
 #                AssumeReferenceSpeedOptimal, TechnologySensitivity, RetrofitFrequency,
 #                FuelConversionSensitivity, FuelConversionMinimumAge,
-#                AllowTechnologyApproximation
+#                AllowTechnologyApproximation, TechnologyHorizon, SpeedHorizon
 #
 # Commands covered:
 #   Converter:  set_slip_fraction, set_consumption_ttw
@@ -261,6 +261,8 @@ Fleet "fleet_a" {
 	FuelConversionSensitivity = 2
 	FuelConversionMinimumAge = 5
 	AllowTechnologyApproximation = TRUE
+	TechnologyHorizon = 3
+	SpeedHorizon = 1
 	set_fuel_conversion_cost("vessel_oil", "vessel_methane", 10e6)
 	set_allow_vessel("vessel_oil", TRUE)
 	set_allow_vessel("vessel_methane", TRUE)

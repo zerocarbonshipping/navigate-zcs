@@ -7,7 +7,7 @@
 #   Regulation: Active, Scheme, Jurisdiction, Emissions, Fuels, Scope,
 #               EmissionsLifetime, IncludeSlip, Measure,
 #               IntraFraction, InterFraction, ExtraFraction, RemedialCost,
-#               AllowThresholdAdjustment
+#               AllowThresholdAdjustment, FlexibilityHorizon
 #   Levy:       Active, Scheme, Jurisdiction, Emissions, Fuels, Scope,
 #               EmissionsLifetime, IncludeSlip, Level,
 #               LowerThreshold, UpperThreshold
@@ -58,6 +58,7 @@ Regulation "reg_intensity" {
 	Active = TRUE
 	IncludeSlip = FALSE
 	RemedialCost = Forecast("fc_remedial_cost")
+	FlexibilityHorizon = 3
 	set_include_vessel("*", TRUE)
 	set_vessel_threshold("*", Forecast("fc_regulation_threshold"))
 	# specific assignment after the wildcard overrides it (declaration order),

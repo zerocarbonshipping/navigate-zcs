@@ -3,8 +3,8 @@
 
 # EVENTS: timeline + SECTION_BOTH attribute updates grouped by theme
 #
-# Every SECTION_BOTH attribute is updated at least once in this file.
-# Commands with SECTION_BOTH are also exercised here.
+# Most SECTION_BOTH attributes and commands are updated here at least once,
+# so their runtime update path runs too.
 
 Start
 
@@ -73,6 +73,7 @@ Fleet "fleet_a" {
 	FuelConversionSensitivity = 3
 	FuelConversionMinimumAge = 4
 	AllowTechnologyApproximation = FALSE
+	TechnologyHorizon = 4
 	set_fuel_conversion_cost("vessel_oil", "vessel_methane", 12e6)
 	set_newbuild_available("vessel_methane", TRUE)
 	set_conversion_available("vessel_methane", TRUE)
@@ -110,7 +111,8 @@ Date "01-01-2030"
 
 Fleet "fleet_a" {
 	AllowSpeedManagement = TRUE
-	MaximumSpeedChange = 0.4
+	MaximumSpeedChange = INF
+	SpeedHorizon = 2
 	SpeedAlignment = AVERAGE
 	AssumeReferenceSpeedOptimal = TRUE
 	set_operational_saving_sea(PROPULSION, 0.06)
@@ -162,6 +164,7 @@ Regulation "reg_absolute" {
 
 Regulation "reg_intensity" {
 	RemedialCost = 80
+	FlexibilityHorizon = 2
 	set_vessel_threshold("*", 45)
 }
 
@@ -213,7 +216,7 @@ Producer "producer_global" {
 	MaximumRampUp = 0.6
 	JumpStartFraction = 0.15
 	set_allow_plant("plant_methanol", TRUE)
-	set_feed_constraint("water", 1.2e6)
+	set_feed_constraint("water", INF)
 	set_export_distribution("port_a", 1.0)
 }
 

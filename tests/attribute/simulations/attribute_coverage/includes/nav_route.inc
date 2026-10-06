@@ -18,6 +18,7 @@
 Port "port_a" {
 	ShorePowerCost = 50
 	ShorePowerConnectionShare = 0.1
+	set_bunkering_limit("lng", INF)
 	set_handling_cost("hfo", 20)
 	set_bunker_price_overwrite("hfo", 600)
 	set_bunker_price_overwrite("lng", 800)
