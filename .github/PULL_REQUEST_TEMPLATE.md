@@ -5,26 +5,26 @@ SPDX-License-Identifier: Apache-2.0
 
 <!-- Thank you for contributing! See CONTRIBUTING.md for the full guidelines. -->
 
-## What
+## What changed
 
-<!-- What does this change do? For bug fixes, describe the bug. -->
+<!-- What does the change do? For a bug fix, describe the bug. State the
+CHANGELOG.md entry, or why there is none. Name the documentation updated:
+the reference manual for user-visible behaviour, docstrings for code. -->
 
 ## Why
 
-<!-- Why is the change needed? For assumption changes, provide references or
-a justification for the new values. -->
+<!-- Why is the change needed? Link the issue it addresses as "Addresses #N".
+For assumption changes, give references or a justification for the new
+values. -->
 
-## How it was verified
+## Verification
 
-<!-- How did you check that the change works? If simulation results change,
-explain the difference. How does the new mechanic better represent the sector. -->
+<!-- Only what CI does not show: no suites run, pass counts or lint results.
+For example: base-versus-branch runs showing identical output, a
+deliberate-break table for a new check, manual checks, and what was not run.
+If simulation results change, explain the difference. -->
 
-## Checklist
+## Assumptions and scope
 
-- [ ] `make test-all` and `make lint` passes.
-- [ ] New attributes are covered by the attribute tests; new non-trivial
-      calculations have a unit test.
-- [ ] Documentation is updated where behavior changes (user manual,
-      docstrings).
-- [ ] `CHANGELOG.md` is updated if the change needs an entry (see Changelog
-      in CONTRIBUTING.md).
+<!-- Decisions made during the work, what was left out, and follow-up
+issues. -->

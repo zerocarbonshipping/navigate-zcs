@@ -26,4 +26,7 @@ body:
     id: verification
     attributes:
       label: Verification
-      description: How to show the change is behavior-preserving — suites to run and the expected baseline.
+      description: >
+        How to show the change preserves behavior beyond what CI runs: for
+        example byte-identical report output for the affected decks, or
+        nothing under `navigate/` changing.

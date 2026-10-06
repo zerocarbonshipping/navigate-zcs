@@ -35,6 +35,9 @@ every change. The detail lives in the files it points to.
   READMEs.
 - `CHANGELOG.md` — Keep a Changelog format; what gets an entry is in
   `CONTRIBUTING.md`.
+- `.agents/skills/` — the procedures for filing issues and for writing and
+  opening pull requests, as Agent Skills. Claude Code finds them through the
+  symlinks in `.claude/skills/`.
 - `make help` — the list of targets.
 
 ## Layout
@@ -57,6 +60,8 @@ every change. The detail lives in the files it points to.
   `gh-pages`; `dev` publishes to `/staging/`.
 - `syntax/` — editor syntax highlighting for the DSL, including a committed
   VS Code `.vsix`.
+- `.agents/` — Agent Skills for coding agents; `.claude/skills/` links to
+  them.
 
 A run writes its output next to its deck: `plots*/`, `*.xlsx` and `*.log`.
 All of it is gitignored. Two runs of one deck at the same time overwrite
@@ -91,8 +96,7 @@ each other's files, and the test suites run decks too.
 
 - No pull request targets `main`; it is the release branch. The base is
   `dev`, or the integration branch of the larger effort the work belongs
-  to. Pull requests are squash-merged, so the title becomes the commit
-  subject: one imperative sentence stating the outcome, no prefix.
+  to.
 - Every new file carries a licence header: Apache-2.0 for code, tests and
   tooling; CC-BY-4.0 for decks, assumptions, documentation and figures. A
   file that cannot carry a header gets an annotation in `REUSE.toml`.
@@ -105,14 +109,13 @@ each other's files, and the test suites run decks too.
   entry, and its form, is under Changelog in `CONTRIBUTING.md`.
 - A change to an assumption value carries references or a justification.
 
-## Filing an issue
+## Issues and pull requests
 
-The issue forms in `.github/ISSUE_TEMPLATE/` apply a label and set the
-body's sections, but `gh issue create` and the API bypass them. An issue
-filed that way therefore carries the label of the matching form,
-passed as `--label` with `gh issue create` or the `labels` field of an
-API request: `bug`, `enhancement`, `documentation`, `maintenance`, or
-`performance`. It uses that form's section headings.
+A coding agent files issues with `.agents/skills/filing-issues/` and
+writes and opens pull requests with `.agents/skills/writing-pull-requests/`.
+The skills read their sections from the issue forms in
+`.github/ISSUE_TEMPLATE/` and from `.github/PULL_REQUEST_TEMPLATE.md`, which
+humans fill in through the GitHub web interface.
 
 ## What a change touches
 

@@ -41,8 +41,8 @@ values, so that the provenance of the model inputs stays traceable.
 - Target the `dev` branch.
 - Keep each pull request focused on a single change. Unrelated fixes and
   refactors belong in separate pull requests.
-- Write a clear description: what the change does, why it is needed, and how
-  it was verified.
+- Fill in the pull request template. Its Verification section states what
+  CI does not show, rather than repeating CI's results.
 - Follow the code style: `ruff` and `mypy` enforce the mechanical rules
   (`make lint`), [`CODESTYLE.md`](CODESTYLE.md) carries the conventions the
   tooling cannot check. Run
@@ -99,3 +99,5 @@ discouraged. You are responsible for the quality of your own contributions,
 and we kindly ask that you do not clutter the repository with code or inputs
 you do not fully understand. `AGENTS.md` at the repository root is the entry
 point for anyone starting to work here; coding agents read it automatically.
+The procedures for filing issues and writing pull requests are Agent Skills
+in `.agents/skills/`.
