@@ -12,8 +12,8 @@ Tests verify the correctness of:
   - Exclusive bounds: a value reaching one raises instead of being clamped
   - Public bounds: each accepts the infinity on its own side only
   - Convexity detection on piecewise-linear functions
-  - _Table1D interpolation with transforms, reverse lookup, pickle round-trip
-  - _Table2D bilinear interpolation, reverse lookup, convexity, pickle round-trip
+  - _Table1D interpolation with transforms, reverse lookup
+  - _Table2D bilinear interpolation, reverse lookup, convexity
   - Variable scalar transform chain
   - Deck expressions on the transform and fill-value attributes
   - Curve and Surface settings apply wherever the definition writes them
@@ -22,7 +22,6 @@ Tests verify the correctness of:
 from __future__ import annotations
 
 import logging
-import pickle
 
 import numpy as np
 import pytest
@@ -410,40 +409,7 @@ class TestTable1DReverseLookup:
 
 
 # ---------------------------------------------------------------------------
-# 5. _Table1D — pickle round-trip
-# ---------------------------------------------------------------------------
-
-
-class TestTable1DPickle:
-    """interp1d is not picklable; _Table1D handles it via __getstate__/__setstate__."""
-
-    def test_pickle_preserves_results(self):
-        t = _make_table1d()
-        original = t.calculate(np.array([0.5, 1.5, 2.5]))
-
-        data = pickle.dumps(t)
-        t2 = pickle.loads(data)
-
-        np.testing.assert_array_almost_equal(
-            t2.calculate(np.array([0.5, 1.5, 2.5])), original
-        )
-
-    def test_pickle_preserves_settings(self):
-        t = _make_table1d()
-        t.set_multiplier(2.0)
-        t.set_addition(3.0)
-        t.set_lower_bound(1.0)
-
-        data = pickle.dumps(t)
-        t2 = pickle.loads(data)
-
-        assert t2.multiplier == pytest.approx(2.0)
-        assert t2.addition == pytest.approx(3.0)
-        assert t2.calculate(0.0) == pytest.approx(max(2.0 * (0.0 + 3.0), 1.0))
-
-
-# ---------------------------------------------------------------------------
-# 6. _Table2D — bilinear interpolation
+# 5. _Table2D — bilinear interpolation
 # ---------------------------------------------------------------------------
 
 # Simple 3x3 grid: z = x + y
@@ -484,7 +450,7 @@ class TestTable2DInterpolation:
 
 
 # ---------------------------------------------------------------------------
-# 7. _Table2D — convexity
+# 6. _Table2D — convexity
 # ---------------------------------------------------------------------------
 
 
@@ -509,7 +475,7 @@ class TestTable2DConvexity:
 
 
 # ---------------------------------------------------------------------------
-# 8. _Table2D — reverse lookup
+# 7. _Table2D — reverse lookup
 # ---------------------------------------------------------------------------
 
 
@@ -540,25 +506,7 @@ class TestTable2DReverseLookup:
 
 
 # ---------------------------------------------------------------------------
-# 9. _Table2D — pickle round-trip
-# ---------------------------------------------------------------------------
-
-
-class TestTable2DPickle:
-    def test_pickle_preserves_results(self):
-        t = _make_table2d()
-        original = t.calculate(np.array([0.5, 1.5]), np.array([5.0, 15.0]))
-
-        data = pickle.dumps(t)
-        t2 = pickle.loads(data)
-
-        np.testing.assert_array_almost_equal(
-            t2.calculate(np.array([0.5, 1.5]), np.array([5.0, 15.0])), original
-        )
-
-
-# ---------------------------------------------------------------------------
-# 10. Variable — transform chain
+# 8. Variable — transform chain
 # ---------------------------------------------------------------------------
 
 
@@ -617,7 +565,7 @@ class TestVariable:
 
 
 # ---------------------------------------------------------------------------
-# 11. Deck expressions on the transform and fill-value attributes
+# 9. Deck expressions on the transform and fill-value attributes
 # ---------------------------------------------------------------------------
 
 
@@ -716,7 +664,7 @@ class TestFillValueExpressions:
 
 
 # ---------------------------------------------------------------------------
-# 12. Curve and Surface — settings read when the table is built
+# 10. Curve and Surface — settings read when the table is built
 # ---------------------------------------------------------------------------
 
 # y = 10 * x on 0 <= x <= 2
@@ -777,7 +725,7 @@ class TestTableSettingsOrder:
 
 
 # ---------------------------------------------------------------------------
-# 13. _Table2D — rejects fewer than two rows or columns
+# 11. _Table2D — rejects fewer than two rows or columns
 # ---------------------------------------------------------------------------
 
 _MIN_SIZE_HEADER_ONLY_MATCH = (

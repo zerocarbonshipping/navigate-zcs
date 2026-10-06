@@ -43,17 +43,6 @@ class _Table2D(_Calculator):
         self._table: Callable[[FloatLike, FloatLike], FloatLike]
         self._is_convex: bool = False  # set with the table
 
-    def __getstate__(self) -> dict[str, object]:
-        state = self.__dict__.copy()
-        state.pop("_table", None)  # local closure is not picklable
-        return state
-
-    def __setstate__(self, state: dict[str, object]) -> None:
-        self.__dict__.update(state)
-        # the arrays are set together, and only once the table is
-        if "x" in state:
-            self._set_table(self.x, self.y, self._z)
-
     # external methods (DSL attributes) ------------------------------------------------
     def set_interpolate(self, interpolate: str) -> None:
         """
@@ -227,6 +216,11 @@ class _Table2D(_Calculator):
         bounds_error = self._get_bounds_error_internal()
         fill_number = self._get_extrapolate_internal()
 
+        # copy.deepcopy leaves a function as it is, so a deep copy of a built table
+        # shares this closure with its source: its x/y/z arrays and its fill value. The
+        # DSL's Copy command can copy a node whose table is already built. This is
+        # harmless only because nothing mutates the arrays in place, and the settings
+        # captured here can only be assigned in DEFINE.
         def interp(x_: FloatLike, y_: FloatLike) -> FloatLike:
             x_array = np.asarray(x_)
             y_array = np.asarray(y_)

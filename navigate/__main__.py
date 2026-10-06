@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""The navigate command line: run a simulation deck or render saved plots again."""
+"""The navigate command line: run a simulation deck."""
 
 from __future__ import annotations
 
@@ -22,7 +22,6 @@ from navigate.logging_ import (
     print_warning_summary,
     setup_logger,
 )
-from navigate.output.replot import replot
 from navigate.simulation import SimulationManager
 
 ASSUMPTIONS_ENV_VAR = "ASSUMPTIONS_DATA_DIR"
@@ -104,25 +103,10 @@ def _build_parser() -> argparse.ArgumentParser:
         "'highs' skips Gurobi and uses HiGHS directly. Default: auto.",
     )
     parser.add_argument(
-        "-r",
-        "--replot",
-        type=Path,
-        metavar="PATH",
-        help="Regenerate plots from previously exported plot data. "
-        "Provide path to directory containing plot_data.pkl "
-        "or to the file directly. Skips simulation. Optionally pass a "
-        ".inc file with Plot node(s) as the trailing argument to use "
-        "those instead of the plot nodes stored in the plot data.",
-    )
-    parser.add_argument(
         "filename",
         type=Path,
         metavar="PATH",
-        nargs="?",
-        default=None,
-        help="Path to the .nav simulation deck to run. When combined with "
-        "--replot, an optional .inc file with Plot node(s) to use instead "
-        "of the plot nodes stored in the plot data.",
+        help="Path to the .nav simulation deck to run.",
     )
     return parser
 
@@ -147,9 +131,7 @@ def main() -> int:
         print("Interrupted.", file=sys.stderr)
         return 130
     except (NavigateError, OSError) as exc:
-        _handle_error(
-            exc, debug=(args.log_level == "DEBUG"), log_to_file=not args.replot
-        )
+        _handle_error(exc, debug=(args.log_level == "DEBUG"))
         return 1
 
 
@@ -172,28 +154,12 @@ def _validate_args(parser: argparse.ArgumentParser, args: argparse.Namespace) ->
             f"(set via -d/--data-dir or the {ASSUMPTIONS_ENV_VAR} environment variable)"
         )
 
-    if args.replot:
-        if not args.replot.exists():
-            parser.error(f"--replot path not found: '{args.replot}'")
-
-        if args.filename is not None:
-            _validate_file(
-                parser, args.filename, kind="plot include file", suffix=".inc"
-            )
-
-        return
-
-    if not args.filename:
-        parser.error("filename is required unless --replot is used")
-
-    _validate_file(parser, args.filename, kind="deck file", suffix=".nav")
+    _validate_file(parser, args.filename)
 
 
-def _validate_file(
-    parser: argparse.ArgumentParser, path: Path, *, kind: str, suffix: str
-) -> None:
+def _validate_file(parser: argparse.ArgumentParser, path: Path) -> None:
     """
-    Exit via parser.error() (code 2) unless `path` is an existing file with the suffix.
+    Exit via parser.error() (code 2) unless `path` is an existing '.nav' deck file.
 
     Parameters
     ----------
@@ -201,26 +167,18 @@ def _validate_file(
         Parser used to report usage-style errors.
     path
         Path to validate.
-    kind
-        Human-readable description of the file used in error messages.
-    suffix
-        Required file extension, including the leading dot.
     """
     if not path.exists():
-        parser.error(f"{kind} not found: '{path}'")
+        parser.error(f"deck file not found: '{path}'")
 
     if path.is_dir():
-        parser.error(f"{kind} is a directory, not a file: '{path}'")
+        parser.error(f"deck file is a directory, not a file: '{path}'")
 
-    if path.suffix.lower() != suffix or not path.stem.strip("."):
-        parser.error(f"{kind} must have a '{suffix}' extension: '{path}'")
+    if path.suffix.lower() != ".nav" or not path.stem.strip("."):
+        parser.error(f"deck file must have a '.nav' extension: '{path}'")
 
 
 def _dispatch(args: argparse.Namespace) -> int:
-    if args.replot:
-        replot(args.replot, plot_inc=args.filename, data_dir=args.data_dir)
-        return 0
-
     setup_logger(args.filename, level=logging.getLevelName(args.log_level))
     deck = args.filename.resolve()
 
@@ -236,7 +194,7 @@ def _dispatch(args: argparse.Namespace) -> int:
     return 0
 
 
-def _handle_error(exc: Exception, debug: bool, log_to_file: bool) -> None:
+def _handle_error(exc: Exception, debug: bool) -> None:
     """
     Report a fatal error at the CLI boundary.
 
@@ -250,12 +208,10 @@ def _handle_error(exc: Exception, debug: bool, log_to_file: bool) -> None:
         The error that terminated the run.
     debug
         Whether the full traceback should be printed to the console.
-    log_to_file
-        Whether this invocation set up the file logger (--replot never does).
-        Guarded further by hasHandlers() in case setup_logger itself failed
-        before installing handlers.
     """
-    if log_to_file and logging.getLogger().hasHandlers():
+    # guarded by hasHandlers() in case setup_logger itself failed before
+    # installing handlers
+    if logging.getLogger().hasHandlers():
         logging.getLogger(__name__).error("Fatal error: %s", exc, exc_info=True)
 
     if debug:

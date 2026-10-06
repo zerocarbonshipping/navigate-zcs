@@ -91,8 +91,6 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   assignment is read, so the calculator keeps them if the attribute is
   re-assigned later in `DEFINE`, as it always did across `EVENTS`.
 - The minimum supported Python version is 3.13 (was 3.12).
-- `plot_data.pkl` files saved by earlier versions cannot be loaded with
-  `--replot`; replot them with the version that produced them.
 - A regulation's default fuel WTT averages over every port on the vessel's
   route, each once, not only the jurisdiction ports, where it was 0 without
   supply. Results move where a route leaves the jurisdiction.
@@ -113,6 +111,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `set_transport_cost`/`set_transport_wtt`. The examples lose their flat
   transport costs.
 - The `-e`/`--export-assumptions` CLI flag.
+- The `-r`/`--replot` CLI flag and the `plot_data.pkl` file every run wrote;
+  rerun the deck to regenerate the plots.
 - The `SharedThreshold` attribute of `Regulation`; write
   `set_vessel_threshold("*", <value>)`. The `SharedThreshold` report property
   remains, as the fleet-level effective target of a `FLEXIBLE` regulation.
@@ -142,8 +142,6 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ### Fixed
 - `--solver auto` no longer fails with a traceback (#402).
-- The manual no longer says `plot_data.pkl` needs a `Plot` node; it is
-  written after every run (#406).
 - Reference-manual corrections:
   - default nodes and modules live under `<data_dir>/defaults/` and
     `<data_dir>/modules/`, and a separate reference to a Copy source pulls
@@ -241,9 +239,6 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   of vessels that left a fleet no longer leak into later steps.
 - The LP is built in the same order on every run, so dual values no longer
   vary between runs in degenerate solves.
-- `--replot` on a file that is not a pickle, is unreadable by this Navigate
-  version, or is not plot data, now reports an error instead of a
-  traceback (#414).
 - Fuel-conversion expenses are booked on the elapsed-years axis, so
   calendar-date timelines no longer drop or distort the conversion year.
 - With sub-year time steps, the fuel-conversion business case no longer

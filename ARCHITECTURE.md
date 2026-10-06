@@ -32,8 +32,8 @@ behavior are documented in `docs/reference_manual/`.
 - `bunker/` — the per-time-step bunkering LP: build → solve → transfer.
 - `policy/` — regulation/levy emission coefficients, jurisdiction
   attribution, and regulation flexibility-cost beliefs.
-- `output/` — turns a run into artifacts: Excel/CSV reports and plot data;
-  `output/plots/` renders the figures.
+- `output/` — turns a run into artifacts: Excel/CSV reports and figures;
+  `output/plots/` renders the latter.
 - `util/` — dependency-free helpers; imports nothing from `navigate`.
 - `logging_.py` — run logging; `exceptions.py` — the `NavigateError`
   hierarchy; `__main__.py` — the CLI.

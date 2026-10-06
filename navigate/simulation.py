@@ -148,7 +148,6 @@ class SimulationManager:
 
         self._post_process()
         self._export_reports()
-        self._export_plot_data()
 
         print(f"Finished simulation, {self.get_elapsed_time()}.")
 
@@ -792,13 +791,8 @@ class SimulationManager:
         """
         return _write_elapsed_time(timeit.default_timer() - self._computational_time)
 
-    def _export_plot_data(self) -> None:
-        plot_data = PlotData.from_manager(self)
-        plot_data.save()
-
     def _export_plots(self, plot_data: PlotData) -> None:
-        # deferred so matplotlib only loads when plots are actually rendered (see also
-        # replot.py)
+        # deferred so matplotlib only loads when plots are actually rendered
         from navigate.output.plots.render import generate_plots
 
         for plot_node in self.nodes.plots.values():
