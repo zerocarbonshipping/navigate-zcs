@@ -110,18 +110,6 @@ The formatter owns spacing within statements; blank lines are yours:
 - Group related local variables; do not interleave them with logic.
 - If a function can only be named with "and", split it.
 
-## Logging
-
-- A module logs through its own logger, defined once at module level as
-  `logger = logging.getLogger(__name__)`, and imports nothing from `navigate`
-  to log. Handlers, levels and the line format belong to the run log in
-  `navigate/app/`; no other module configures logging.
-- Values enter the message as lazy `%` arguments, pre-formatted only where
-  `%` has no matching conversion (`format(seconds, ",.1f")`).
-- A heading or a table is passed through `extra` (`heading=True`,
-  `table={column name: values}`) and drawn by the run log's formatter, never
-  assembled into the message.
-
 ## Input validation and dynamic access
 
 - Validate at the input boundary and raise domain-specific errors carrying the
@@ -197,6 +185,13 @@ The formatter owns spacing within statements; blank lines are yours:
 - Calculator classes (`Curve`, `Forecast`, `Surface`, `Timetable`, `Variable`)
   and wrappers (`Scalar`) are read through `.get`, which may take a variable
   number of inputs and can return defaults or pre-computed values.
+
+### Logging
+
+- A module logs through a module-level `logger = logging.getLogger(__name__)`
+  and imports nothing from `navigate` to log.
+- An emitter passes a heading or a table through `extra` (`heading=True`,
+  `table={column name: values}`), never assembled into the message.
 
 ### Boundary modules
 

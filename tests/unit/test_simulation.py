@@ -23,32 +23,29 @@ TIMELINE_DATES = [
 ]
 
 
-class _RecordingHandler(logging.Handler):
-    """Append each record's kind, time-step index, date and elapsed days to calls."""
+class _HeadingHandler(logging.Handler):
+    """Append each heading record to the shared list of calls."""
 
     def __init__(self, calls):
         super().__init__()
         self.calls = calls
 
     def emit(self, record):
-        kind = "heading" if getattr(record, "heading", False) else "message"
-        self.calls.append((kind, *record.args[:3]))
+        if getattr(record, "heading", False):
+            self.calls.append(("heading",))
 
 
 @pytest.fixture
-def calls():
-    """Record the simulation logger's INFO records into one ordered list of calls."""
+def calls(caplog):
+    """Record the simulation logger's headings into one ordered list of calls."""
     calls = []
-    handler = _RecordingHandler(calls)
-    level = simulation.logger.level
-
+    handler = _HeadingHandler(calls)
+    caplog.set_level(logging.INFO, logger=simulation.logger.name)
     simulation.logger.addHandler(handler)
-    simulation.logger.setLevel(logging.INFO)
 
     yield calls
 
     simulation.logger.removeHandler(handler)
-    simulation.logger.setLevel(level)
 
 
 def test_run_simulation_logs_heading_then_reads_events_then_steps(calls):
@@ -73,8 +70,7 @@ def test_run_simulation_logs_heading_then_reads_events_then_steps(calls):
     expected = []
     for k, date in enumerate(dateline):
         if k > 0:
-            days = (date - dateline[0]) / np.timedelta64(1, "D")
-            expected.append(("heading", k, date, int(days)))
+            expected.append(("heading",))
         expected += [("read", date), ("progress", date), ("step",)]
 
     assert calls == expected

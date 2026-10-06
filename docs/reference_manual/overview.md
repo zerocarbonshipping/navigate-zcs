@@ -221,6 +221,6 @@ Information is provided in four levels, namely:
 
 If an ERROR occurs the simulation stops: the console shows the error message on its own (run with `-l DEBUG` to also see the full Python traceback there), and the `.log` file records the error together with its full traceback regardless of the chosen log level.
 
-At the end of a successful run the log closes with a summary table counting the messages of each level, followed by the list of unique warnings. When warnings were logged, the console also prints their count with a pointer to the `.log` file.
+At the end of a successful run the log closes with a summary table counting the messages of each level, followed by the unique warnings with how often each was logged. When warnings were logged, the console also prints their count with a pointer to the `.log` file.
 
 Besides the log file, a run may also produce artifacts in the deck directory: plots when the deck contains a [Plot](plot.md) node, unless suppressed with the `-s`/`--suppress-plots` flag, and Excel or CSV reports when the deck contains [Report](report.md) nodes.

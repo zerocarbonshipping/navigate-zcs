@@ -87,6 +87,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - The fuel-conversion warning about differing installed power is logged once
   per vessel pair, and the fleet reference speed at a step with no vessels is
   NaN.
+- The `.log` file is written in UTF-8; its fair-share convergence tables show
+  three significant figures, and its end-of-run summary, logged under
+  `navigate.app.logs`, lists how often each unique warning was logged.
 - An attribute's bounds reach the calculator it references when the
   assignment is read, so the calculator keeps them if the attribute is
   re-assigned later in `DEFINE`, as it always did across `EVENTS`.

@@ -2,10 +2,11 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-The run log of a CLI run: its file, warning ledger and summary, and the preamble.
+The run log of a CLI run and the console preamble.
 
-The CLI in ``navigate.__main__`` holds a ``RunLog`` open for the whole run; the
-modules it runs log through their own module loggers and never import this one.
+The run log owns the log file, its line format, the warning ledger and the
+end-of-run summary. The CLI in ``navigate.__main__`` holds a ``RunLog`` open for
+the whole run; the modules it runs log through their own module loggers.
 """
 
 from __future__ import annotations
@@ -13,17 +14,14 @@ from __future__ import annotations
 import logging
 from collections import Counter
 from importlib.metadata import PackageNotFoundError, version
-from math import floor, log10
+from itertools import islice
 from pathlib import Path
 from typing import TYPE_CHECKING, Self, override
 
-import numpy as np
 from tabulate import tabulate
 
-from navigate.util import TOLERANCE
-
 if TYPE_CHECKING:
-    from collections.abc import Mapping, Sequence
+    from collections.abc import Iterable, Mapping
     from types import TracebackType
 
 LOG_LEVELS = ["DEBUG", "INFO", "WARNING", "ERROR"]
@@ -34,6 +32,8 @@ _HLINE = "=" * 120
 
 _MAX_DIGEST_WARNINGS = 20
 _MAX_DIGEST_LENGTH = 120
+
+logger = logging.getLogger(__name__)
 
 
 class RunLog:
@@ -49,7 +49,10 @@ class RunLog:
     """
 
     def __init__(self, path: Path, level: str) -> None:
-        self._filename: Path = path.with_suffix(".log")
+        if level not in LOG_LEVELS:
+            raise ValueError(f"log level must be one of {LOG_LEVELS}, not {level!r}")
+
+        self._log_path: Path = path.with_suffix(".log")
         self._level: str = level
         self._ledger: _WarningLedger = _WarningLedger()
 
@@ -60,14 +63,14 @@ class RunLog:
     def __enter__(self) -> Self:
         # the file opens before the root logger changes, so a file that cannot be
         # opened leaves the logging configuration as it was
-        handler = logging.FileHandler(self._filename, mode="w")
+        handler = logging.FileHandler(self._log_path, mode="w", encoding="utf-8")
         handler.setFormatter(_RunLogFormatter())
-        # a filter on the handler, unlike one on a logger, sees the records that
-        # propagate from every module logger
+        # on the handler, the ledger sees every record propagated from the
+        # module loggers
         handler.addFilter(self._ledger)
 
-        # a record below the root's level is never created, so the level is set
-        # on the root rather than on the handler
+        # module loggers inherit their effective level from the root, and a
+        # record below its logger's effective level is never created
         root = logging.getLogger()
         self._previous_level = root.level
         root.addHandler(handler)
@@ -87,65 +90,46 @@ class RunLog:
         root.setLevel(self._previous_level)
         self._handler.close()
 
-    def build_summary(self) -> str:
-        """
-        Build the end-of-run summary: the record counts and the warning digest.
+    def log_summary(self) -> None:
+        """Log the end-of-run summary: the record counts, then the unique warnings."""
+        level_counts = self._ledger.level_counts
+        warning_counts = self._ledger.warning_counts
+        levels = LOG_LEVELS + [
+            level for level in level_counts if level not in LOG_LEVELS
+        ]
 
-        Returns
-        -------
-        str
-            Count of the records logged so far per level, extended with the unique
-            warnings when any were logged.
-        """
-        ledger = self._ledger
-        counts = ledger.counts
-        levels = LOG_LEVELS + [level for level in counts if level not in LOG_LEVELS]
-        rows = [[level, counts[level]] for level in levels]
-        table = tabulate(
-            rows, headers=["Level", "Count"], tablefmt="github", stralign="right"
+        # read before the summary is logged, so its own records are not counted
+        table = {"Level": levels, "Count": [level_counts[level] for level in levels]}
+
+        logger.info("Log summary:", extra={"table": table})
+
+        if not warning_counts:
+            return
+
+        unique_count = len(warning_counts)
+
+        logger.info(
+            "Unique warnings (%d unique, %d duplicates suppressed):\n%s",
+            unique_count,
+            warning_counts.total() - unique_count,
+            _list_warnings(warning_counts),
         )
-
-        summary = f"\nLog summary:\n{table}"
-
-        if not ledger.seen:
-            return summary
-
-        unique_count = len(ledger.seen)
-        summary += (
-            f"\n\nUnique warnings ({unique_count} unique, "
-            f"{ledger.suppressed} duplicates suppressed):"
-        )
-
-        for i, message in enumerate(ledger.digest, 1):
-            short = (
-                message[:_MAX_DIGEST_LENGTH] + "..."
-                if len(message) > _MAX_DIGEST_LENGTH
-                else message
-            )
-            summary += f"\n  {i}. {short}"
-
-        if unique_count > _MAX_DIGEST_WARNINGS:
-            summary += f"\n  ... and {unique_count - _MAX_DIGEST_WARNINGS} more"
-
-        return summary
 
     def print_warning_notice(self) -> None:
         """Print the number of warnings logged so far to the console, if any were."""
-        warnings = self._ledger.counts["WARNING"]
+        warnings = self._ledger.level_counts["WARNING"]
 
         if warnings:
-            print(f"{warnings} warning(s) logged - see '{self._filename.name}'.")
+            print(f"{warnings} warning(s) logged - see '{self._log_path.name}'.")
 
 
 class _WarningLedger(logging.Filter):
-    """Count the records of a run per level, and drop the repeats of a warning."""
+    """Count every record of a run per level, and drop repeats at WARNING and above."""
 
     def __init__(self) -> None:
         super().__init__()
-        self.counts: Counter[str] = Counter()
-        self.seen: set[str] = set()
-        self.digest: list[str] = []
-        self.suppressed: int = 0
+        self.level_counts: Counter[str] = Counter()
+        self.warning_counts: Counter[str] = Counter()
 
     @override
     def filter(self, record: logging.LogRecord) -> bool:
@@ -162,22 +146,15 @@ class _WarningLedger(logging.Filter):
         bool
             Whether the record is written.
         """
-        # counted before a repeat is dropped, so the counts stay honest
-        self.counts[record.levelname] += 1
+        self.level_counts[record.levelname] += 1
 
         if record.levelno < logging.WARNING:
             return True
 
         message = record.getMessage()
-        if message in self.seen:
-            self.suppressed += 1
-            return False
+        self.warning_counts[message] += 1
 
-        self.seen.add(message)
-        if len(self.digest) < _MAX_DIGEST_WARNINGS:
-            self.digest.append(message)
-
-        return True
+        return self.warning_counts[message] == 1
 
 
 class _RunLogFormatter(logging.Formatter):
@@ -215,8 +192,8 @@ class _RunLogFormatter(logging.Formatter):
         if getattr(record, "heading", False):
             message = "\n" + _HLINE + "\n" + message + "\n" + _HLINE + "\n"
 
-        # every handler formats the same record, so the entry is formatted from
-        # the record's attributes rather than by writing the message back to it
+        # every handler formats the same record, so the extended message goes
+        # into the line format and the record keeps the message it was logged with
         return _LINE_FORMAT % {**vars(record), "message": message}
 
 
@@ -234,9 +211,42 @@ def print_preamble() -> None:
     print(preamble.format(package_version))
 
 
-def _render_table(columns: Mapping[str, Sequence[float]]) -> str:
+def _list_warnings(warning_counts: Counter[str]) -> str:
     """
-    Render columns of values as a table, each value rounded for display.
+    List the first unique warnings as numbered lines, each with its repeat count.
+
+    Parameters
+    ----------
+    warning_counts
+        Number of times each warning was logged, in the order first logged.
+
+    Returns
+    -------
+    str
+        One line per warning, and a closing line counting those left out.
+    """
+    lines = []
+    first = islice(warning_counts.items(), _MAX_DIGEST_WARNINGS)
+
+    for i, (message, count) in enumerate(first, 1):
+        # the count leads, so truncating a long message never hides it
+        times = f"({count}x) " if count > 1 else ""
+        short = (
+            message[:_MAX_DIGEST_LENGTH] + "..."
+            if len(message) > _MAX_DIGEST_LENGTH
+            else message
+        )
+        lines.append(f"  {i}. {times}{short}")
+
+    if len(warning_counts) > _MAX_DIGEST_WARNINGS:
+        lines.append(f"  ... and {len(warning_counts) - _MAX_DIGEST_WARNINGS} more")
+
+    return "\n".join(lines)
+
+
+def _render_table(columns: Mapping[str, Iterable[object]]) -> str:
+    """
+    Render columns of values as a table, with floats to three significant figures.
 
     Parameters
     ----------
@@ -248,40 +258,13 @@ def _render_table(columns: Mapping[str, Sequence[float]]) -> str:
     str
         The table in github format, without a trailing newline.
     """
-    cells = [
-        [str(_round_for_display(value)) for value in values]
-        for values in columns.values()
-    ]
-    rows = list(zip(*cells, strict=True))
+    rows = list(zip(*columns.values(), strict=True))
     table: str = tabulate(
-        rows, headers=list(columns), tablefmt="github", stralign="right"
+        rows,
+        headers=list(columns),
+        tablefmt="github",
+        stralign="right",
+        floatfmt=".3g",
     )
 
     return table
-
-
-def _round_for_display(value: float) -> float:
-    """
-    Round off a value to the appropriate decimals for visual display.
-
-    Parameters
-    ----------
-    value
-        Value to be rounded for display.
-
-    Returns
-    -------
-    float
-        Rounded value.
-    """
-    magnitude = abs(value)
-
-    if magnitude <= TOLERANCE:
-        return 0
-
-    significant = -floor(log10(magnitude))
-
-    if significant <= 0:
-        return int(np.round(value, 0))
-
-    return float(np.round(value, significant))

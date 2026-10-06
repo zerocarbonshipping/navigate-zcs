@@ -47,8 +47,7 @@ LAYERS = {
     "app": FOUNDATION,
     "__main__": frozenset({"simulation", "app", "core"}) | FOUNDATION,
 }
-# simulation.py may import every unit but the interfaces that run it, the CLI
-# and app/
+# simulation.py may import every unit but the interfaces above it: the CLI and app/
 LAYERS["simulation"] = frozenset(LAYERS) - {"__main__", "app"}
 
 # neither unit of a pair may list the other

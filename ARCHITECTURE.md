@@ -42,7 +42,8 @@ behavior are documented in `docs/reference_manual/`.
   internal types and unit conversion factors; imports nothing from
   `navigate` outside `util/`.
 - `app/` — the interfaces Navigate is run through: `logs.py`, the run log
-  of a CLI run (its log file, warning ledger, summary and preamble).
+  of a CLI run (its log file, line format, warning ledger and summary) and
+  the console preamble.
 - `exceptions.py` — the `NavigateError` hierarchy; `__main__.py` — the CLI.
 
 ## Layering
@@ -86,16 +87,15 @@ nothing else.
 
 ## Logging
 
-Every module logs through its own module logger,
-`logger = logging.getLogger(__name__)`, and imports nothing from `navigate`
-to do so. Only `app/` configures logging: the CLI holds a `RunLog` open for
-the whole run, which attaches the log file's handler to the root logger,
-counts every record for the end-of-run summary and writes a repeated warning
-once.
-The run log's formatter decides how a record reads in the file, from two
-optional keys an emitter passes through `extra`: `heading=True` frames the
-message in horizontal rules, and `table={column name: values}` renders the
-columns as a table under the message, rounded for display.
+Records propagate from the module loggers to the root logger. `RunLog` in
+`app/logs.py` is the only code that configures logging, and the CLI holds
+it open for the whole run. It owns the log file's handler on the root
+logger; the ledger, a filter on that handler that counts every record per
+level and writes a repeated warning once; and the formatter. The formatter
+reads two optional record attributes, the contract an emitter passes
+through `extra`: `heading=True` frames the message in horizontal rules, and
+`table={column name: values}` renders the columns as a table under the
+message.
 
 ## Data-flow invariants
 

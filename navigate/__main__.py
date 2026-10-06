@@ -27,6 +27,9 @@ _SOLVER_BACKENDS: dict[str, SolverBackendID] = {
     "highs": SolverBackendID.HIGHS,
 }
 
+# the errors a run reports: logged with their traceback, printed to the console
+_FATAL_ERRORS = (NavigateError, OSError)
+
 logger = logging.getLogger(__name__)
 
 
@@ -126,7 +129,7 @@ def main() -> int:
         with RunLog(args.filename, args.log_level) as run_log:
             try:
                 return _dispatch(args, run_log)
-            except (NavigateError, OSError) as exc:
+            except _FATAL_ERRORS as exc:
                 # recorded while the run log is open; the console report below
                 # also covers an error that kept the log from opening
                 logger.exception("Fatal error: %s", exc)
@@ -134,8 +137,8 @@ def main() -> int:
     except KeyboardInterrupt:
         print("Interrupted.", file=sys.stderr)
         return 130
-    except (NavigateError, OSError) as exc:
-        _handle_error(exc, debug=(args.log_level == "DEBUG"))
+    except _FATAL_ERRORS as exc:
+        _print_error(exc, debug=(args.log_level == "DEBUG"))
         return 1
 
 
@@ -198,9 +201,9 @@ def _dispatch(args: argparse.Namespace, run_log: RunLog) -> int:
     return 0
 
 
-def _handle_error(exc: Exception, debug: bool) -> None:
+def _print_error(exc: Exception, debug: bool) -> None:
     """
-    Report a fatal error on the console.
+    Print a fatal error to the console.
 
     The run log has recorded the full traceback, unless the error kept the log
     from opening; the console gets either a one-line message or, with -l DEBUG,
@@ -224,7 +227,7 @@ def _run(path: Path, args: argparse.Namespace, run_log: RunLog) -> SimulationMan
     manager.run()
 
     logger.info("Simulation completed successfully, %s.", manager.get_elapsed_time())
-    logger.info(run_log.build_summary())
+    run_log.log_summary()
 
     if not args.profile:
         run_log.print_warning_notice()

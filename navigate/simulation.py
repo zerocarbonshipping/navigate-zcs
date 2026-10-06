@@ -181,12 +181,12 @@ class SimulationManager:
 
                 logger.info(
                     "Time-step: %d, current date: %s. %d days (%d years) since start "
-                    "of simulation. Wall time since start: %s s",
+                    "of simulation. Wall time since start: %.1f s",
                     self._idx,
                     date,
-                    int(days_elapsed),
+                    days_elapsed,
                     round(days_elapsed / YEAR),
-                    format(wall_time, ",.1f"),
+                    wall_time,
                     extra={"heading": True},
                 )
 
