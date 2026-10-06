@@ -7,7 +7,8 @@ Tests for converter power-capacity verification and vessel load-function checks.
 The power-capacity check asserts, per leg and per port, that the energy a
 converter delivers cannot exceed its power capacity times the time spent on
 the step. Port demands must fit the onboard converter alone: shore power gives
-no allowance.
+no allowance. Only vessels whose multiplier admits them into a bunkering scope are
+checked.
 
 The load-function checks decide, from a vessel's propulsion, electrical, and
 heat loads, its technical speed limits and whether its loads are convex.
@@ -33,8 +34,8 @@ from navigate.fleet.power import (
     calculate_technical_speed_limits,
     loads_are_convex,
     verify_power_capacity,
+    verify_vessel_power_capacity,
 )
-from navigate.simulation import SimulationManager
 from navigate.util import MWD_TO_GJ, TOLERANCE
 
 PROPULSION = EnergyDemandTypeID.PROPULSION
@@ -124,7 +125,7 @@ def _make_vessel(**overrides) -> _StubVessel:
     return _StubVessel(**defaults)
 
 
-class TestVerifyPowerCapacity:
+class TestVerifyVesselPowerCapacity:
     @pytest.mark.parametrize(
         ("load_factor", "raises"),
         [
@@ -146,9 +147,9 @@ class TestVerifyPowerCapacity:
 
         if raises:
             with pytest.raises(PowerCapacityError):
-                verify_power_capacity(vessel, IDX)
+                verify_vessel_power_capacity(vessel, IDX)
         else:
-            verify_power_capacity(vessel, IDX)
+            verify_vessel_power_capacity(vessel, IDX)
 
     def test_sea_overload_errors_naming_converter_and_leg(self):
         overload = 12.0 * 10.0 * MWD_TO_GJ
@@ -162,7 +163,7 @@ class TestVerifyPowerCapacity:
         )
 
         with pytest.raises(PowerCapacityError) as excinfo:
-            verify_power_capacity(vessel, IDX)
+            verify_vessel_power_capacity(vessel, IDX)
 
         message = str(excinfo.value)
         assert "propulsion demand on leg 1" in message
@@ -184,14 +185,14 @@ class TestVerifyPowerCapacity:
         vessel = _make_vessel(energies_port=energies_port)
 
         with pytest.raises(PowerCapacityError, match=message):
-            verify_power_capacity(vessel, IDX)
+            verify_vessel_power_capacity(vessel, IDX)
 
     def test_zero_time_zero_energy_passes(self):
         vessel = _make_vessel(
             energies_sea={PROPULSION: [0.0], ELECTRICAL: [0.0], HEAT: [0.0]},
             times_sea=[0.0],
         )
-        verify_power_capacity(vessel, IDX)
+        verify_vessel_power_capacity(vessel, IDX)
 
     def test_zero_time_with_energy_errors(self):
         vessel = _make_vessel(
@@ -200,7 +201,7 @@ class TestVerifyPowerCapacity:
         )
 
         with pytest.raises(PowerCapacityError, match="inf MW"):
-            verify_power_capacity(vessel, IDX)
+            verify_vessel_power_capacity(vessel, IDX)
 
     def test_multiple_violations_reported_in_one_error(self):
         overload = 12.0 * 10.0 * MWD_TO_GJ
@@ -209,18 +210,82 @@ class TestVerifyPowerCapacity:
         )
 
         with pytest.raises(PowerCapacityError) as excinfo:
-            verify_power_capacity(vessel, IDX)
+            verify_vessel_power_capacity(vessel, IDX)
 
         message = str(excinfo.value)
         assert "propulsion demand on leg 0" in message
         assert "heat demand on leg 0" in message
 
 
+class TestVerifyPowerCapacity:
+    """Scope gating only verifies vessels whose multiplier admits them into LP scope."""
+
+    @staticmethod
+    def _make_fleets(vessel, existing_multiplier, expected_multipliers):
+        expectation = SimpleNamespace(
+            get_existing_multipliers=lambda v, idx: existing_multiplier,
+            get_expected_multipliers=lambda v, idx: np.asarray(expected_multipliers)[
+                idx
+            ],
+        )
+        fleet = SimpleNamespace(vessels=[vessel], expectation=expectation)
+        return {"fleet": fleet}
+
+    @staticmethod
+    def _make_overloaded_vessel():
+        return _make_vessel(
+            energies_sea={
+                PROPULSION: [12.0 * 10.0 * MWD_TO_GJ],
+                ELECTRICAL: [0.0],
+                HEAT: [0.0],
+            }
+        )
+
+    def test_zero_multiplier_vessel_is_skipped(self):
+        fleets = self._make_fleets(
+            self._make_overloaded_vessel(),
+            existing_multiplier=0.0,
+            expected_multipliers=[0.0] * (IDX + 3),
+        )
+
+        verify_power_capacity(fleets, IDX, BunkerScopeID.EXISTING)
+        verify_power_capacity(fleets, IDX, BunkerScopeID.EXPECTED)
+
+    def test_scope_selects_its_own_multiplier(self):
+        fleets = self._make_fleets(
+            self._make_overloaded_vessel(),
+            existing_multiplier=0.0,
+            expected_multipliers=[0.0] * IDX + [1.0, 1.0, 1.0],
+        )
+
+        verify_power_capacity(fleets, IDX, BunkerScopeID.EXISTING)
+
+        with pytest.raises(PowerCapacityError):
+            verify_power_capacity(fleets, IDX, BunkerScopeID.EXPECTED)
+
+    def test_expected_gating_covers_the_remaining_horizon(self):
+        """
+        A vessel entering only at a later forecast step is still verified.
+
+        Expected bunkering builds one LP per future step, so the gate spans the horizon.
+        """
+        fleets = self._make_fleets(
+            self._make_overloaded_vessel(),
+            existing_multiplier=0.0,
+            expected_multipliers=[0.0] * (IDX + 2) + [1.0],
+        )
+
+        verify_power_capacity(fleets, IDX, BunkerScopeID.EXISTING)
+
+        with pytest.raises(PowerCapacityError):
+            verify_power_capacity(fleets, IDX, BunkerScopeID.EXPECTED)
+
+
 class TestExpectationHorizonBroadcast:
     """
     Pins the horizon-broadcast contract that expected-scope power gating relies on.
 
-    The expected-scope gating in SimulationManager._verify_power_capacity checks demands
+    The expected-scope gating in verify_power_capacity checks demands
     only at the current index; that is valid because a vessel-expectation write at idx
     broadcasts over the whole remaining horizon, so every future expected-bunkering
     build reads the same demands and times.
@@ -262,70 +327,6 @@ class TestExpectationHorizonBroadcast:
             assert expectation.get_energy_port(idx=idx) == {
                 d: [50.0] for d in EnergyDemandTypePortID
             }
-
-
-class TestSimulationGating:
-    """The driver only verifies vessels whose multiplier admits them into LP scope."""
-
-    @staticmethod
-    def _make_manager(vessel, existing_multiplier, expected_multipliers):
-        expectation = SimpleNamespace(
-            get_existing_multipliers=lambda v, idx: existing_multiplier,
-            get_expected_multipliers=lambda v, idx: np.asarray(expected_multipliers)[
-                idx
-            ],
-        )
-        fleet = SimpleNamespace(vessels=[vessel], expectation=expectation)
-        return SimpleNamespace(nodes=SimpleNamespace(fleets={"fleet": fleet}), _idx=IDX)
-
-    @staticmethod
-    def _make_overloaded_vessel():
-        return _make_vessel(
-            energies_sea={
-                PROPULSION: [12.0 * 10.0 * MWD_TO_GJ],
-                ELECTRICAL: [0.0],
-                HEAT: [0.0],
-            }
-        )
-
-    def test_zero_multiplier_vessel_is_skipped(self):
-        manager = self._make_manager(
-            self._make_overloaded_vessel(),
-            existing_multiplier=0.0,
-            expected_multipliers=[0.0] * (IDX + 3),
-        )
-
-        SimulationManager._verify_power_capacity(manager, BunkerScopeID.EXISTING)
-        SimulationManager._verify_power_capacity(manager, BunkerScopeID.EXPECTED)
-
-    def test_scope_selects_its_own_multiplier(self):
-        manager = self._make_manager(
-            self._make_overloaded_vessel(),
-            existing_multiplier=0.0,
-            expected_multipliers=[0.0] * IDX + [1.0, 1.0, 1.0],
-        )
-
-        SimulationManager._verify_power_capacity(manager, BunkerScopeID.EXISTING)
-
-        with pytest.raises(PowerCapacityError):
-            SimulationManager._verify_power_capacity(manager, BunkerScopeID.EXPECTED)
-
-    def test_expected_gating_covers_the_remaining_horizon(self):
-        """
-        A vessel entering only at a later forecast step is still verified.
-
-        Expected bunkering builds one LP per future step, so the gate spans the horizon.
-        """
-        manager = self._make_manager(
-            self._make_overloaded_vessel(),
-            existing_multiplier=0.0,
-            expected_multipliers=[0.0] * (IDX + 2) + [1.0],
-        )
-
-        SimulationManager._verify_power_capacity(manager, BunkerScopeID.EXISTING)
-
-        with pytest.raises(PowerCapacityError):
-            SimulationManager._verify_power_capacity(manager, BunkerScopeID.EXPECTED)
 
 
 class TestCalculateTechnicalSpeedLimits:

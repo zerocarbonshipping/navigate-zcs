@@ -15,8 +15,6 @@ import math
 import timeit
 from typing import TYPE_CHECKING
 
-import numpy as np
-
 from navigate.bunker import BunkerAlgorithm, calculate_fair_share_fuel_supply
 from navigate.bunker.solver import set_solver_preference
 from navigate.core import SimulationResults, get_fuels_per_fuel_type
@@ -69,6 +67,8 @@ from navigate.util import YEAR, dates_to_days, timedelta_to_days
 
 if TYPE_CHECKING:
     from pathlib import Path
+
+    import numpy as np
 
     from navigate.core.enum_ import SolverBackendID
     from navigate.core.node_registry import GeneralNodes, Nodes
@@ -236,7 +236,7 @@ class SimulationManager:
 
             # the bunker LP takes energy demands as given, so demands must fit
             # the installed converter power for it to be feasible
-            self._verify_power_capacity(BunkerScopeID.EXPECTED)
+            verify_power_capacity(self.nodes.fleets, self._idx, BunkerScopeID.EXPECTED)
             self._calculate_expected_bunkering()
 
             # smooth the energy-conservation LP duals into scarcity belief paths
@@ -258,7 +258,7 @@ class SimulationManager:
 
         # re-verify against the installed converter power: the energy demands
         # have been rewritten since the expected bunkering pass
-        self._verify_power_capacity(BunkerScopeID.EXISTING)
+        verify_power_capacity(self.nodes.fleets, self._idx, BunkerScopeID.EXISTING)
         self._perform_existing_bunkering()
 
         self._calculate_profile()
@@ -453,37 +453,6 @@ class SimulationManager:
         self.profile.add_fleet_state_time(
             timeit.default_timer() - start_time, self._idx
         )
-
-    def _verify_power_capacity(self, scope: BunkerScopeID) -> None:
-        """
-        Verify converter power capacity for every vessel entering a bunkering scope.
-
-        Mirrors the multiplier gating of BunkerAlgorithm.build: only vessels with a
-        positive multiplier enter the LP. Expected bunkering builds one LP per future
-        time-step, each gated by that step's expected multiplier; the demands and
-        times it reads are constant over the remaining horizon within a time-step,
-        so gating on the horizon maximum covers every one of those builds.
-
-        Parameters
-        ----------
-        scope
-            Bunkering scope about to be solved.
-        """
-        for fleet in self.nodes.fleets.values():
-            for vessel in fleet.vessels:
-                if scope == BunkerScopeID.EXISTING:
-                    multiplier = fleet.expectation.get_existing_multipliers(
-                        vessel.name, self._idx
-                    )
-                else:
-                    multiplier = np.max(
-                        fleet.expectation.get_expected_multipliers(
-                            vessel.name, slice(self._idx, None)
-                        )
-                    )
-
-                if multiplier > 0.0:
-                    verify_power_capacity(vessel, self._idx)
 
     def _calculate_expected_bunkering(self) -> None:
         for vessel in self.nodes.vessels.values():

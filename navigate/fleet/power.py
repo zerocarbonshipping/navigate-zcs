@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Power capacity, technical speed limits and load convexity of each vessel."""
+"""Power capacity checks, technical speed limits and load convexity of vessels."""
 
 from __future__ import annotations
 
@@ -10,7 +10,11 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core import Expression, Scalar
-from navigate.core.enum_ import EnergyDemandTypeID, EnergyDemandTypePortID
+from navigate.core.enum_ import (
+    BunkerScopeID,
+    EnergyDemandTypeID,
+    EnergyDemandTypePortID,
+)
 from navigate.core.node_type import is_surface, is_variable
 from navigate.core.wrap import to_numpy
 from navigate.exceptions import PowerCapacityError
@@ -19,6 +23,7 @@ from navigate.util import MWD_TO_GJ, TOLERANCE
 if TYPE_CHECKING:
     from navigate.core.nodes.converter import Converter
     from navigate.core.nodes.curve import Curve
+    from navigate.core.nodes.fleet import Fleet
     from navigate.core.nodes.surface import Surface
     from navigate.core.nodes.vessel import Vessel
     from navigate.core.types_ import SurfaceInput
@@ -142,7 +147,51 @@ def loads_are_convex(vessel: Vessel) -> bool:
     return propulsion and electrical and heat
 
 
-def verify_power_capacity(vessel: Vessel, idx: int) -> None:
+def verify_power_capacity(
+    fleets: dict[str, Fleet], idx: int, scope: BunkerScopeID
+) -> None:
+    """
+    Verify converter power capacity for every vessel entering a bunkering scope.
+
+    Mirrors the multiplier gating of BunkerAlgorithm.build: only vessels with a
+    positive multiplier enter the LP. Expected bunkering builds one LP per future
+    time-step, each gated by that step's expected multiplier; the demands and
+    times it reads are constant over the remaining horizon within a time-step,
+    so gating on the horizon maximum covers every one of those builds.
+
+    Parameters
+    ----------
+    fleets
+        Fleets by name; each vessel the scope admits is verified.
+    idx
+        Current time-step index.
+    scope
+        Bunkering scope about to be solved.
+
+    Raises
+    ------
+    PowerCapacityError
+        If any vessel entering the scope has an energy demand that exceeds what its
+        serving converter can deliver.
+    """
+    for fleet in fleets.values():
+        for vessel in fleet.vessels:
+            if scope == BunkerScopeID.EXISTING:
+                multiplier = fleet.expectation.get_existing_multipliers(
+                    vessel.name, idx
+                )
+            else:
+                multiplier = np.max(
+                    fleet.expectation.get_expected_multipliers(
+                        vessel.name, slice(idx, None)
+                    )
+                )
+
+            if multiplier > 0.0:
+                verify_vessel_power_capacity(vessel, idx)
+
+
+def verify_vessel_power_capacity(vessel: Vessel, idx: int) -> None:
     """
     Verify that installed converter power covers every energy demand of a vessel.
 
