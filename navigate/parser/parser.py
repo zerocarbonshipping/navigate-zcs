@@ -225,7 +225,7 @@ class Parser:
         self._current_deck_line: int = 0
         self._current_source: SourceLocation = SourceLocation()
 
-        # wall clock at the end of the deck read, the origin of the time-step banners
+        # wall clock at the first time step, the origin of the time-step banners
         self._wall_start_time: float
 
     # deck (.nav) reading --------------------------------------------------------------
@@ -276,7 +276,6 @@ class Parser:
         self._reject_events_changing_pinned_calculators()
 
         self._current_section = SimulationSectionID.EVENTS
-        self._wall_start_time = time.perf_counter()
 
     def _process_deck_block(self, block: DeckBlock) -> None:
         """Process a single Define or Events block from the deck AST."""
@@ -310,6 +309,9 @@ class Parser:
             Date of the next event in the timeline, or None once every date is
             read.
         """
+        if self._idx_date == 0:
+            self._wall_start_time = time.perf_counter()
+
         date, events = self._next_event()
 
         if (self._idx_date > 1) and (date is not None):
