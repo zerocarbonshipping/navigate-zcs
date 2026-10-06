@@ -226,7 +226,7 @@ This command allows the user to set the WTT (Well-to-Tank) emission factor for a
   + `"fuel_name", "emission_name", 3.2`
   + `"fuel_name", "emission_name", Forecast("name")`
 * **Unit**: ton emission/ton fuel
-* **Default**: Determined through internal calculations: the average, each port weighing equally, of the WTT estimated at every port on the vessel's route that allows bunkering the fuel, inside the jurisdiction or not, since the vessel may bunker the fuel outside the jurisdiction and burn it inside; each port counts once. The estimate at a port is the port's `set_bunker_wtt_overwrite` where set (always for a liquid-market fuel, 0 by default). Otherwise it is the average, each plant weighing equally, over every plant defined for the fuel, built or not and whatever it exports, of the plant's WTT at the time of investment (the `EquivalentInvestmentWtt` plant property in the [Report](report.md), before the GWP weighting) plus its WTT of delivery to the port. The WTT and output of the plants already installed are not considered. A port has no estimate where no plant is defined for the fuel and no overwrite is set, and is left out of the average. Where no port on the route has an estimate, the regulation sets no emission factor for the fuel at all, so under `WTW` its TTW part is dropped too; this is harmless, as no port can supply the fuel and it is never bunkered
+* **Default**: Determined through internal calculations
 
 ### set\_fuel\_ttw
 
