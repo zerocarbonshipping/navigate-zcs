@@ -65,12 +65,15 @@ class RunLog:
         # opened leaves the logging configuration as it was
         handler = logging.FileHandler(self._log_path, mode="w", encoding="utf-8")
         handler.setFormatter(_RunLogFormatter())
-        # on the handler, the ledger sees every record propagated from the
-        # module loggers
+        # propagation does not recheck the root's level, so the handler holds the
+        # level for a logger that a host program has set lower
+        handler.setLevel(self._level)
+        # on the handler, the ledger sees every record at the run's level that
+        # propagates from the module loggers
         handler.addFilter(self._ledger)
 
-        # module loggers inherit their effective level from the root, and a
-        # record below its logger's effective level is never created
+        # module loggers inherit their effective level from the root, so a record
+        # below the run's level is not even created
         root = logging.getLogger()
         self._previous_level = root.level
         root.addHandler(handler)

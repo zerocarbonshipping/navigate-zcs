@@ -190,7 +190,8 @@ def _dispatch(args: argparse.Namespace, run_log: RunLog) -> int:
     deck = args.filename.resolve()
 
     if args.profile:
-        # a profiled run keeps its console output to the profile statistics
+        # a profiled run ends its console output with the profile statistics, so
+        # it prints no warning notice
         _run_with_profile(deck, args)
         run_log.log_summary()
         return 0
