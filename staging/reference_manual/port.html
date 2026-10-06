@@ -611,6 +611,7 @@ unrouted port is removed (see <a class="reference internal" href="dsl_reference.
 <h3>set_bunker_wtt_overwrite<a class="headerlink" href="#set-bunker-wtt-overwrite" title="Link to this heading">#</a></h3>
 <p>This command sets an overwrite of the WTT emissions for a specific fuel and emission in the port in ton emission/ton fuel.</p>
 <p>If an overwrite is set for a specific fuel and emission, then the bottom-up calculation of production emissions is ignored.</p>
+<p>The overwrite also sets the WTT that regulations and levies assume for the fuel bunkered at this port, unless the policy sets its own with <code class="docutils literal notranslate"><span class="pre">set_fuel_wtt</span></code>.</p>
 <ul class="simple">
 <li><p><strong>Primary key type</strong>: String (Fuel name)</p></li>
 <li><p><strong>Secondary key type</strong>: String (Emission name)</p></li>

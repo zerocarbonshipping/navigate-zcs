@@ -226,7 +226,7 @@ This command allows the user to set the WTT (Well-to-Tank) emission factor for a
   + `"fuel_name", "emission_name", 3.2`
   + `"fuel_name", "emission_name", Forecast("name")`
 * **Unit**: ton emission/ton fuel
-* **Default**: Determined through internal calculations (a supply-weighted average of the production-based bunker WTT across all ports on the vessel's route, inside the jurisdiction or not, since the vessel may bunker the fuel outside the jurisdiction and burn it inside; each port counts once, and ports without supply of the fuel carry no weight)
+* **Default**: Determined through internal calculations
 
 ### set\_fuel\_ttw
 
