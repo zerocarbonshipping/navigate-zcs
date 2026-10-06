@@ -269,6 +269,10 @@ class Vessel(Node):
         """
         Set the list of tanks used for onboard fuel storage.
 
+        The tanks must be unique. Each converter in the PowerSystem needs a tank for
+        one of its main fuel types, or, if dual-fuel with a minimum pilot fuel above 0,
+        for one of its pilot fuel types.
+
         Examples
         --------
         - Tank("name")
@@ -401,8 +405,8 @@ class Vessel(Node):
         """
         Set the cost of capital used in calculating the finance costs of the vessel.
 
-        Also used as the discount rate for net present cost calculations for investment
-        decisions.
+        Also the discount rate of the charter rate (levelized cost of cargo moved) and
+        of the technology investment and fuel conversion decisions.
 
         Examples
         --------

@@ -34,6 +34,8 @@ class PowerSystem(_Machinery):
         """
         Set the converter used to satisfy the propulsion demand.
 
+        It must differ from the electrical and heat converters.
+
         Examples
         --------
         - Converter("name")
@@ -49,6 +51,8 @@ class PowerSystem(_Machinery):
         """
         Set the converter used to satisfy the electrical demand.
 
+        It must differ from the propulsion and heat converters.
+
         Examples
         --------
         - Converter("name")
@@ -63,6 +67,8 @@ class PowerSystem(_Machinery):
     def set_heat(self, heat: Converter) -> None:
         """
         Set the converter used to satisfy the heat demand.
+
+        It must differ from the propulsion and electrical converters.
 
         Examples
         --------

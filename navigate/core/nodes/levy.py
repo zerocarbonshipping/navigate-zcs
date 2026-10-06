@@ -109,7 +109,9 @@ class Levy(_Policy):
         Emissions above this threshold are not additionally penalized (for PENALTY/BOTH
         scheme). The penalty is only paid for emissions between the lower and upper
         threshold. If not set, there is no upper cap on the penalty. The energy is the
-        effective energy, (1 - slip) * LHV, as for the lower threshold.
+        effective energy, (1 - slip) * LHV, as for the lower threshold. For an active
+        PENALTY or BOTH levy it must not fall below the lower threshold at any time
+        step.
 
         Examples
         --------

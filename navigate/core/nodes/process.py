@@ -31,6 +31,9 @@ class Process(Node):
         """
         Set the list of feedstocks or output from other processes used in the process.
 
+        The feeds must be unique, and the list must have the same length as
+        Conversions.
+
         Examples
         --------
         - Feedstock("name")
@@ -48,6 +51,8 @@ class Process(Node):
     ) -> None:
         """
         Set the conversion factors required for turning the feed into fuel.
+
+        The list must have the same length as Feeds.
 
         Examples
         --------

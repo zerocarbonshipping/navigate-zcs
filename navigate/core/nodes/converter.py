@@ -113,6 +113,8 @@ class Converter(_Machinery):
         """
         Set the pilot fuel types of the converter.
 
+        No fuel type may appear in both MainFuelTypes and PilotFuelTypes.
+
         Examples
         --------
         - OIL
@@ -171,6 +173,8 @@ class Converter(_Machinery):
         """
         Set the fraction of fuel mass escaping unburned (slip) for a specific fuel type.
 
+        The fuel type must be one of the converter's main or pilot fuel types.
+
         Examples
         --------
         - METHANE, 0.03
@@ -197,7 +201,8 @@ class Converter(_Machinery):
 
         Notice that this number is given in the unit ton emission / ton fuel into the
         engine. I.e., if the engine has slip (e.g., methane slip) then this number is
-        already adjusted for this.
+        already adjusted for this. The fuel type must be one of the converter's main or
+        pilot fuel types.
 
         Examples
         --------
@@ -209,7 +214,7 @@ class Converter(_Machinery):
         fuel_type
             Type of fuel which has a consumption related emission when used.
         emission_name
-            Name of emission emitted as particles, possibly including wildcards.
+            Name of the emission, possibly including wildcards.
         value
             Ton of emission emitted per ton of fuel consumed.
         """

@@ -124,7 +124,7 @@ class Plant(Node):
 
     def set_source(self, source: Source) -> None:
         """
-        Set the energy source which is to generate power for the plant.
+        Set the energy source which is used to generate power for the plant.
 
         Examples
         --------
@@ -216,7 +216,7 @@ class Plant(Node):
         Parameters
         ----------
         lead_time
-            Construction lead time of the plant in years.
+            Planning to production lead time of the plant in years.
         """
         self.lead_time = assign_value(
             as_scalar(lead_time), type_=(FORECAST, VARIABLE), lower=0.0
@@ -270,6 +270,9 @@ class Plant(Node):
         """
         Set the feedstock or process transport distance to the plant, nautical miles.
 
+        Requires a transport assigned to the same feed with set_feed_transport. A feed
+        with a transport but no distance gets a distance of 0.
+
         Examples
         --------
         - "feedstock_name", 100
@@ -317,6 +320,9 @@ class Plant(Node):
     def set_fuel_distance(self, port_name: str, value: ForecastArgument) -> None:
         """
         Set the distance the produced fuel is transported to a port, in nautical miles.
+
+        Requires a transport assigned to the same port with set_fuel_transport. A port
+        with a transport but no distance gets a distance of 0.
 
         Examples
         --------

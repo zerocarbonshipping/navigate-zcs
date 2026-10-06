@@ -135,6 +135,8 @@ class Region(Node):
         """
         Set the lifetime of a production process in years.
 
+        If not set, the process lives as long as its plant, with no replacement.
+
         Examples
         --------
         - "process_name", 25
@@ -187,8 +189,8 @@ class Region(Node):
 
         Examples
         --------
-        - "process_name", "emission_name",  0.5
-        - "process_name", "emission_name",  Forecast("name")
+        - "process_name", "emission_name", 0.5
+        - "process_name", "emission_name", Forecast("name")
 
         Parameters
         ----------
@@ -258,8 +260,8 @@ class Region(Node):
 
         Examples
         --------
-        - "source_name", "emission_name",  0.5
-        - "source_name", "emission_name",  Forecast("name")
+        - "source_name", "emission_name", 0.5
+        - "source_name", "emission_name", Forecast("name")
 
         Parameters
         ----------
@@ -306,8 +308,8 @@ class Region(Node):
 
         Examples
         --------
-        - "feedstock_name", "emission_name",  0.5
-        - "feedstock_name", "emission_name",  Forecast("name")
+        - "feedstock_name", "emission_name", 0.5
+        - "feedstock_name", "emission_name", Forecast("name")
 
         Parameters
         ----------
@@ -355,8 +357,8 @@ class Region(Node):
 
         Examples
         --------
-        - "transport_name", "emission_name",  0.5
-        - "transport_name", "emission_name",  Forecast("name")
+        - "transport_name", "emission_name", 0.5
+        - "transport_name", "emission_name", Forecast("name")
 
         Parameters
         ----------

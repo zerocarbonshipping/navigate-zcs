@@ -46,7 +46,7 @@ class Tank(_Machinery):
 
     def set_size(self, size: ScalarArgument) -> None:
         """
-        Set the volumetric size of the tank in cubic meter.
+        Set the volumetric size of the tank in cubic meters.
 
         Examples
         --------
@@ -55,7 +55,7 @@ class Tank(_Machinery):
         Parameters
         ----------
         size
-            Volumetric size of the tank in cubic meter.
+            Volumetric size of the tank in cubic meters.
         """
         self.size = assign_value(as_scalar(size), type_=VARIABLE, lower=0.0)
 

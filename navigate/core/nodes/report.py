@@ -42,7 +42,8 @@ class Report(Node):
         """
         Set the directory for where to export the report.
 
-        Can be either a relative or absolute path. The directory will be created
+        Can be either a relative or absolute path; a relative path is resolved
+        against the directory of the deck. The directory will be created
         automatically if it doesn't exist.
 
         Examples

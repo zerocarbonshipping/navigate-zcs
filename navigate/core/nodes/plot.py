@@ -42,7 +42,8 @@ class Plot(Node):
         Select a plot to render, by its label.
 
         Call once per plot; every available plot is rendered when no 'add_plot'
-        command is given at all.
+        command is given at all. Only allowed in the DEFINE section. A label naming
+        no plot is warned about and skipped when the plots are rendered.
 
         Examples
         --------

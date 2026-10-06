@@ -173,7 +173,7 @@ class Port(Node):
         Set an overwrite cost for a specific fuel in the port in USD/ton.
 
         If an overwrite is set for a specific fuel, then the bottom-up calculation of
-        production cost is ignored.
+        production cost is ignored. If not set, a liquid-market fuel gets 0.
 
         Examples
         --------
@@ -200,7 +200,8 @@ class Port(Node):
         Set an overwrite WTT emissions for a fuel/emission pair, ton emission/ton fuel.
 
         If an overwrite is set for a specific fuel and emission, then the bottom-up
-        calculation of production emissions is ignored.
+        calculation of production emissions is ignored. If not set, a liquid-market
+        fuel gets 0.
 
         Examples
         --------

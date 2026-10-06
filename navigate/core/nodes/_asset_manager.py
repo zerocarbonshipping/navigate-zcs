@@ -85,8 +85,10 @@ class _AssetManager[A: Vessel | Plant, I: Increment](Node):
 
         The list must have a length corresponding to the number of asset types. Each
         entry is either a Curve reference (where the Curve's x-values are ages in
-        increasing order and y-values are the corresponding fractions) or 0 for asset
-        types with no custom distribution. The Curve's values must be finite.
+        increasing order and y-values are the corresponding fractions) or a number for
+        asset types with no custom distribution. Any number, conventionally 0, gives a
+        uniform age spread over the lifetime, as does leaving the attribute unset. The
+        Curve's values must be finite.
 
         Examples
         --------
@@ -95,7 +97,7 @@ class _AssetManager[A: Vessel | Plant, I: Increment](Node):
         Parameters
         ----------
         initial_age_distribution
-            Curve reference or 0, or a list of them, one per asset type.
+            Curve reference or number, or a list of them, one per asset type.
         """
         entries: list[float | Curve] = as_list(initial_age_distribution)
         self._initial_age_distribution = assign_list(

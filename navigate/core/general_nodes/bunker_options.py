@@ -31,6 +31,8 @@ class BunkerOptions(_GeneralNode):
         """
         Set the solver backend for the bunker algorithm.
 
+        The --solver command-line option overrides this setting.
+
         Examples
         --------
         - AUTOMATIC

@@ -99,7 +99,7 @@ class Fuel(Node):
 
     def set_mass_density(self, mass_density: ScalarArgument) -> None:
         """
-        Set the mass density of the fuel.
+        Set the mass density of the fuel in ton/m3.
 
         Examples
         --------
@@ -108,7 +108,7 @@ class Fuel(Node):
         Parameters
         ----------
         mass_density
-            The mass density of the fuel.
+            The mass density of the fuel in ton/m3.
         """
         self.mass_density = assign_value(
             as_scalar(mass_density), type_=VARIABLE, lower=0.0
@@ -118,6 +118,8 @@ class Fuel(Node):
     def set_ttw(self, emission_name: str, ttw: ScalarArgument) -> None:
         """
         Set the TTW emission factor for the stoichiometric conversion of fuel to energy.
+
+        Only allowed in the DEFINE section.
 
         Examples
         --------

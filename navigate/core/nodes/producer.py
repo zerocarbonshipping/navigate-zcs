@@ -293,7 +293,8 @@ class Producer(_AssetManager[Plant, PlantIncrement]):
         plant_name
             Name of plant for which pipeline is being assigned.
         existing_pipeline
-            Forecast of existing pipelines.
+            Forecast of the cumulative capacity committed by each delivery date, in
+            tons/day.
         """
         write_matching_keys(
             plant_name,
@@ -331,7 +332,7 @@ class Producer(_AssetManager[Plant, PlantIncrement]):
         self, feed_name: str, feed_constraint: ForecastArgument
     ) -> None:
         """
-        Set a static feed (feedstock or process) constraint for the region, tons/year.
+        Set a static feed (feedstock or process) constraint for the producer, tons/year.
 
         INF means no constraint.
 
@@ -428,7 +429,7 @@ class Producer(_AssetManager[Plant, PlantIncrement]):
                     f"{self}: Pipeline ({pipeline}) must hold finite values."
                 )
 
-            # a pipeline is a cumulative count of the plants committed to
+            # a pipeline is the cumulative capacity committed to, in tons/day
             if not is_non_strictly_increasing(pipeline.y):
                 raise ValueError(
                     f"{self}: Pipeline ({pipeline}) is not non-strictly increasing."

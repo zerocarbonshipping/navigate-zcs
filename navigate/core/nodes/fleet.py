@@ -123,9 +123,9 @@ class Fleet(_AssetManager[Vessel, VesselIncrement]):
     # external methods (DSL attributes) ------------------------------------------------
     def set_vessels(self, vessels: Vessel | list[Vessel]) -> None:
         """
-        Set the list of vessel types that exists for the fleet.
+        Set the list of vessel types that exist for the fleet.
 
-        The list of vessel types can be though of as a discretization of the fuel types
+        The list of vessel types can be thought of as a discretization of the fuel types
         and technologies of the fleet.
 
         Examples
@@ -225,9 +225,7 @@ class Fleet(_AssetManager[Vessel, VesselIncrement]):
 
     def set_initial_vessels(self, initial_vessels: ScalarArgument) -> None:
         """
-        Set the initial amount of vessels in the fleet.
-
-        A minimum of one vessel is necessary to compound the trade-growth.
+        Set the initial number of vessels in the fleet, which must be greater than 0.
 
         Examples
         --------
@@ -462,6 +460,8 @@ class Fleet(_AssetManager[Vessel, VesselIncrement]):
         """
         Set the list of orderbooks used to determine newbuild uptake.
 
+        Each orderbook is the cumulative number of vessels of its vessel type ordered
+        up to each date, not the number delivered per year.
         The list must have the same length as the list of vessels.
         If the orderbook is a forecast it must be non-strictly increasing.
 
@@ -505,7 +505,7 @@ class Fleet(_AssetManager[Vessel, VesselIncrement]):
         """
         Set the maximum speed change per year during dynamic speed management.
 
-        INF means no limit.
+        INF means no limit. Only used when AllowSpeedManagement is TRUE.
 
         Examples
         --------
@@ -515,7 +515,7 @@ class Fleet(_AssetManager[Vessel, VesselIncrement]):
         Parameters
         ----------
         maximum_speed_change
-            The maximum speed change permissible.
+            The maximum speed change permissible, in knots/year.
         """
         self.maximum_speed_change = assign_value(
             as_scalar(maximum_speed_change),
@@ -614,7 +614,7 @@ class Fleet(_AssetManager[Vessel, VesselIncrement]):
         Parameters
         ----------
         fuel_conversion_minimum_age
-            Minimum age a which a vessel can perform a fuel conversion.
+            Minimum age at which a vessel can perform a fuel conversion.
         """
         self.fuel_conversion_minimum_age = assign_value(
             as_scalar(fuel_conversion_minimum_age),
@@ -657,6 +657,8 @@ class Fleet(_AssetManager[Vessel, VesselIncrement]):
     ) -> None:
         """
         Set the cost of converting a vessel's fuel type from one to another, in USD.
+
+        A pair without a cost cannot be converted.
 
         Examples
         --------
@@ -748,7 +750,8 @@ class Fleet(_AssetManager[Vessel, VesselIncrement]):
         """
         Set a boolean flag for whether a given vessel is allowed as a newbuild.
 
-        If allow vessel is set to FALSE the vessel cannot enter the fleet as a newbuild.
+        If newbuild available is set to FALSE the vessel cannot enter the fleet as a
+        newbuild.
 
         Examples
         --------
@@ -772,8 +775,8 @@ class Fleet(_AssetManager[Vessel, VesselIncrement]):
         """
         Set a boolean flag for whether a given vessel is allowed to be converted to.
 
-        If allow vessel is set to FALSE it is not possible to perform fuel conversions
-        to vessels of that type.
+        If conversion available is set to FALSE it is not possible to perform fuel
+        conversions to vessels of that type.
 
         Examples
         --------
@@ -801,7 +804,8 @@ class Fleet(_AssetManager[Vessel, VesselIncrement]):
         Set the initial technology uptake as a function of vessel age.
 
         The Curve x-axis is vessel age, y-axis is uptake fraction [0, 1].
-        Supports wildcards for vessel_name and technology_name.
+        Supports wildcards for vessel_name and technology_name. Only allowed in the
+        DEFINE section.
 
         Examples
         --------
@@ -827,11 +831,11 @@ class Fleet(_AssetManager[Vessel, VesselIncrement]):
 
     def set_newbuild_limit(self, vessel_name: str, limit: ForecastArgument) -> None:
         """
-        Set the maximum newbuild cargo-miles share deliverable by the given vessel type.
+        Set the maximum yearly newbuilds of the vessel type, as a fleet-count fraction.
 
-        The limit is enforced across the orderbook, inertia, and modelled-uptake
-        newbuild sources, so the cumulative share across the three sources cannot exceed
-        the configured value.
+        Cap is enforced as ``newbuilds_per_year <= limit * y``, where ``y`` is the
+        pre-newbuild vessel count of the fleet. The cap is shared by the orderbook,
+        inertia, and modelled-uptake newbuild sources.
 
         Examples
         --------
@@ -843,7 +847,7 @@ class Fleet(_AssetManager[Vessel, VesselIncrement]):
         vessel_name
             Name of the vessel (wildcards supported).
         limit
-            Maximum share in [0, 1].
+            Maximum yearly newbuild share of the fleet's vessel count, in [0, 1].
         """
         write_matching_keys(
             vessel_name,

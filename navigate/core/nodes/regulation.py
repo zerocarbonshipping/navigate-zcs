@@ -91,9 +91,10 @@ class Regulation(_Policy):
         Set the emission measure of the regulation.
 
         If 'ABSOLUTE' the absolute emissions in tons/year are targeted. If 'INTENSITY'
-        the emission intensity in g/MJ are targeted. If 'TRANSPORT' the carbon intensity
-        index in gCO2-eq/actual cargo-miles is targeted. If 'TRANSPORT_NOMINAL' the
-        carbon intensity index in gCO2-eq/nominal cargo-miles is targeted.
+        the emission intensity in kg/GJ of effective energy, (1 - slip) * LHV, is
+        targeted. If 'TRANSPORT' the carbon intensity index in gCO2-eq/actual
+        cargo-miles is targeted. If 'TRANSPORT_NOMINAL' the carbon intensity index in
+        gCO2-eq/nominal cargo-miles is targeted.
 
         Examples
         --------
@@ -221,10 +222,10 @@ class Regulation(_Policy):
         Set the threshold that a specific vessel must satisfy in the measure unit.
 
         If 'ABSOLUTE' the threshold is on absolute emissions in tons/year. If
-        'INTENSITY' the threshold is on emission intensity in g/MJ. If 'TRANSPORT' the
-        threshold is on carbon intensity index in gCO2-eq/actual cargo-miles. If
-        'TRANSPORT_NOMINAL' the threshold is on carbon intensity index in
-        gCO2-eq/nominal cargo-miles.
+        'INTENSITY' the threshold is on emission intensity in kg/GJ of effective energy.
+        If 'TRANSPORT' the threshold is on carbon intensity index in gCO2-eq/actual
+        cargo-miles. If 'TRANSPORT_NOMINAL' the threshold is on carbon intensity index
+        in gCO2-eq/nominal cargo-miles.
 
         Every vessel included in the regulation must have a threshold; use the wildcard
         "*" to assign the same threshold to all vessels. If 'Scheme' is 'FLEXIBLE' the
@@ -253,6 +254,7 @@ class Regulation(_Policy):
         Set the capacity of a specific vessel for use in transport calculations.
 
         This is only relevant if 'Measure' is set to 'TRANSPORT_NOMINAL' or 'TRANSPORT'.
+        If not set, the vessel's NominalCapacity is used.
 
         Examples
         --------
@@ -264,7 +266,7 @@ class Regulation(_Policy):
         vessel_name
             Name of vessel for which the capacity is assigned.
         capacity
-            Capacity of a vessel.
+            Capacity of a vessel, in the unit of its NominalCapacity.
         """
         write_matching_keys(
             vessel_name,

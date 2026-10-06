@@ -283,7 +283,8 @@ class Route(Node):
 
         The fraction is evaluated once when the deck's DEFINE block is read and
         again whenever an EVENTS block is read, so it does not vary between
-        those reads.
+        those reads. Unset pairs are 0; the fractions over all port pairs are
+        rescaled to sum to 1, and split equally if they are all 0.
 
         Examples
         --------

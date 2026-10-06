@@ -91,10 +91,14 @@ class _Policy(Node):
         """
         Set the list of ports that are under the jurisdiction of the policy.
 
+        A listed port on no route is removed from the simulation and from this list
+        with a warning.
+
         Examples
         --------
         - Port("name")
         - [Port("name1"), Port("name2")]
+        - Port("*")
 
         Parameters
         ----------
@@ -178,6 +182,8 @@ class _Policy(Node):
         """
         Set the emission lifetime used in the GWP calculation of emissions.
 
+        If not set, the EmissionsLifetime of the ModelDefinition is used.
+
         Examples
         --------
         - 100
@@ -195,6 +201,8 @@ class _Policy(Node):
     def set_include_vessel(self, vessel_name: str, include_vessel: str) -> None:
         """
         Set whether a specific vessel is impacted by the policy.
+
+        Vessels default to FALSE, so a vessel is only impacted once included.
 
         Examples
         --------
@@ -275,8 +283,9 @@ class _Policy(Node):
         """
         Set the TTW emission factor for a given fuel and emission.
 
-        If this value is not assigned the production specific calculation of the TTW is
-        used instead.
+        If this value is not assigned, the TTW is calculated from the fuel's TTW
+        emission factor and the slip and consumption emissions of the vessel's
+        converters.
 
         Examples
         --------
