@@ -18,9 +18,8 @@ from navigate.core import (
     write_matching_keys,
 )
 from navigate.core.enum_ import PolicyScopeID
-from navigate.core.node import Node
+from navigate.core.node import Node, no_value_assigned_error
 from navigate.core.node_type import CURVE, EMISSION, FORECAST, FUEL, PORT, VARIABLE
-from navigate.exceptions import no_value_assigned_error
 
 if TYPE_CHECKING:
     from navigate.core.enum_ import LevySchemeID, RegulationSchemeID

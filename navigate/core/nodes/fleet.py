@@ -33,12 +33,12 @@ from navigate.core.enum_ import (
 )
 from navigate.core.expectations import FleetExpectation
 from navigate.core.increment import VesselIncrement
+from navigate.core.node import no_value_assigned_error
 from navigate.core.node_type import CURVE, FLEET, FORECAST, TECHNOLOGY, VARIABLE, VESSEL
 from navigate.core.nodes._asset_manager import _AssetManager
 from navigate.core.nodes.forecast import Forecast
 from navigate.core.nodes.vessel import Vessel
 from navigate.core.profiles import FleetProfile
-from navigate.exceptions import no_value_assigned_error
 from navigate.util import is_non_strictly_increasing
 
 if TYPE_CHECKING:

@@ -17,7 +17,7 @@ from navigate.core import (
 )
 from navigate.core.enum_ import FuelTypeID
 from navigate.core.expectations import VesselExpectation
-from navigate.core.node import Node
+from navigate.core.node import Node, no_value_assigned_error
 from navigate.core.node_type import (
     CURVE,
     FORECAST,
@@ -29,7 +29,6 @@ from navigate.core.node_type import (
     VESSEL,
 )
 from navigate.core.profiles import VesselProfile
-from navigate.exceptions import no_value_assigned_error
 
 if TYPE_CHECKING:
     from collections.abc import Sequence

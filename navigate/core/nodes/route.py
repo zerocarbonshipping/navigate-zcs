@@ -23,10 +23,9 @@ from navigate.core import (
     write_matching_key_pairs,
 )
 from navigate.core.enum_ import RouteTypeID
-from navigate.core.node import Node
+from navigate.core.node import Node, no_value_assigned_error
 from navigate.core.node_type import FORECAST, PORT, ROUTE, VARIABLE
 from navigate.core.wrap import to_numpy
-from navigate.exceptions import no_value_assigned_error
 from navigate.util import ROUND_OFF, divide_nonzero, unique_list
 
 if TYPE_CHECKING:

@@ -22,7 +22,7 @@ import numpy as np
 from navigate.core import Expression
 from navigate.core.enum_ import SimulationSectionID
 from navigate.core.general_nodes.bunker_options import BunkerOptions
-from navigate.core.node import Node
+from navigate.core.node import Node, no_value_assigned_error
 from navigate.core.node_registry import GeneralNodes, Nodes
 from navigate.core.node_type import MODEL_DEFINITION, is_calculator
 from navigate.core.table_data import string_to_date
@@ -31,7 +31,6 @@ from navigate.exceptions import (
     CommandError,
     DeckFormatError,
     DeckKeywordError,
-    no_value_assigned_error,
 )
 from navigate.logging_ import log_time_step_breaker, print_preamble
 from navigate.parser._attributes import (

@@ -17,9 +17,9 @@ from navigate.core import (
     write_matching_keys,
 )
 from navigate.core.enum_ import FuelTypeID
+from navigate.core.node import no_value_assigned_error
 from navigate.core.node_type import CONVERTER, FORECAST, VARIABLE
 from navigate.core.nodes._machinery import _Machinery
-from navigate.exceptions import no_value_assigned_error
 from navigate.util import list_is_unique
 
 if TYPE_CHECKING:

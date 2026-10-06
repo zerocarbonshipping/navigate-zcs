@@ -10,10 +10,9 @@ from typing import TYPE_CHECKING, overload
 import numpy as np
 
 from navigate.core import assign_value
-from navigate.core.node import Node
+from navigate.core.node import Node, no_value_assigned_error
 from navigate.core.node_type import VARIABLE
 from navigate.core.nodes._calculator import _Calculator, evaluate_number
-from navigate.exceptions import no_value_assigned_error
 
 if TYPE_CHECKING:
     from navigate.core.types_ import NumberInput
