@@ -22,7 +22,7 @@ The aim of this section is to work through practical cases with the Navigate mod
 4. **Run our reference scenarios**: pre-made assumptions set and models maintained by the Center ([Session 4](04-run-our-reference-scenarios.ipynb))
 5. **Build your own case with an AI assistant**: example prompts that turn a description of your case into a working model ([Session 5](05-build-your-own-case.ipynb))
 
-[Session 4](04-run-our-reference-scenarios.ipynb)'s "Run the scenarios" cell takes about twenty minutes, so it is worth starting it early in a separate Colab tab and coming back to it.
+[Session 4](04-run-our-reference-scenarios.ipynb)'s "Run the scenarios" cell takes about twenty-five minutes, so it is worth starting it early in a separate Colab tab and coming back to it.
 
 To understand the details behind Navigate you can also check our [Tutorials](../tutorials/index.md) and
 [Reference Manual](../reference_manual/index.md).

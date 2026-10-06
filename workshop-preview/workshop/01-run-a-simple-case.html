@@ -380,10 +380,6 @@
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
 <li class="toctree-l1 current active"><a aria-current="page" class="current reference internal" href="#">Session 1: Run a simple case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="02-understand-navigate.html">Session 2: Understand Navigate</a></li>
-
-
-
-
 <li class="toctree-l1"><a class="reference internal" href="03-run-a-global-case.html">Session 3: Run a global case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="04-run-our-reference-scenarios.html">Session 4: Run our reference scenarios</a></li>
 <li class="toctree-l1"><a class="reference internal" href="05-build-your-own-case.html">Session 5: Build your own case</a></li>
@@ -507,7 +503,7 @@ efficiency measures.</p>
 <section id="setup">
 <h2>Setup<a class="headerlink" href="#setup" title="Link to this heading">#</a></h2>
 <p>Run the cell below on Colab or locally to set up the Navigate model. It also loads the pre-made example that will be used to illustrate this part of the workshop.</p>
-<p>Note: <a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/04-run-our-reference-scenarios.ipynb">Session 4</a>’s “Run the scenarios” cell takes about twenty minutes, so it is worth starting it early in a separate Colab tab and coming back to it.</p>
+<p>Note: <a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/04-run-our-reference-scenarios.ipynb">Session 4</a>’s “Run the scenarios” cell takes about twenty-five minutes, so it is worth starting it early in a separate Colab tab and coming back to it.</p>
 <div class="cell tag_hide-input docutils container">
 <details class="admonition hide above-input">
 <summary aria-label="Toggle hidden content">
@@ -872,17 +868,17 @@ Navigate 1.0.0 is already installed.
 </div>
 </details>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>CPU times: total: 47.1 s
-Wall time: 52.7 s
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>CPU times: total: 49.6 s
+Wall time: 55.4 s
 the reference, 2026-2050
   well-to-wake in 2026               5,935  kt CO2e/yr
-  well-to-wake in 2050               2,624  kt CO2e/yr
-  cumulative over the horizon      117,856  kt CO2e
-  alternative fuels in 2050           55.0  %
-  freight rate in 2050                4.71  USD per k cargo-mile
+  well-to-wake in 2050               2,753  kt CO2e/yr
+  cumulative over the horizon      120,350  kt CO2e
+  alternative fuels in 2050           52.7  %
+  freight rate in 2050                4.56  USD per k cargo-mile
 </pre></div>
 </div>
-<img alt="../_images/19ae1a1043f5acda6490e0e71d0e812cf2d069edb6e482bc65db997cbdc735a3.png" src="../_images/19ae1a1043f5acda6490e0e71d0e812cf2d069edb6e482bc65db997cbdc735a3.png" />
+<img alt="../_images/7d023f3ad57590b7b9e3e5968b2e138c036c784e5cf3245084073a69e6e11648.png" src="../_images/7d023f3ad57590b7b9e3e5968b2e138c036c784e5cf3245084073a69e6e11648.png" />
 </div>
 </div>
 </section>
@@ -1016,19 +1012,19 @@ well as on retrofits.</p></li>
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>                                     reference       yours        change
-  well-to-wake in 2050, kt/yr            2,624       1,324       -49.6 %
-  cumulative, kt                       117,856     111,382        -5.5 %
-  alternative fuels in 2050, %            55.0        77.8      +22.8 pp
-  freight rate in 2050, USD/k mile        4.71        4.77        +1.2 %
+  well-to-wake in 2050, kt/yr            2,753       1,876       -31.9 %
+  cumulative, kt                       120,350     114,043        -5.2 %
+  alternative fuels in 2050, %            52.7        68.1      +15.4 pp
+  freight rate in 2050, USD/k mile        4.56        4.89        +7.4 %
 </pre></div>
 </div>
-<img alt="../_images/c76c214153bc564075dde6dc5c2d735e2dbd5b4196f7bfbd348869609e416c0b.png" src="../_images/c76c214153bc564075dde6dc5c2d735e2dbd5b4196f7bfbd348869609e416c0b.png" />
+<img alt="../_images/f11acdd2ebe4415a0e77c32b1ec5d2ba7549a529da1b5ac5d12dc680e126fac5.png" src="../_images/f11acdd2ebe4415a0e77c32b1ec5d2ba7549a529da1b5ac5d12dc680e126fac5.png" />
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>what moved most, in percentage points of the fuel mix:
-  LNG                    -5.4 pp
-  e-ammonia              +5.0 pp
-  Fuel oil               +1.3 pp
-  e-methanol             -0.8 pp
-  Bio-methanol           -0.1 pp
+  LNG                    -5.8 pp
+  e-ammonia              +3.8 pp
+  Fuel oil               +1.4 pp
+  e-methanol             +0.6 pp
+  Bio-methanol           +0.1 pp
 </pre></div>
 </div>
 </div>

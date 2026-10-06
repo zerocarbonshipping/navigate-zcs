@@ -380,10 +380,6 @@
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="01-run-a-simple-case.html">Session 1: Run a simple case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="02-understand-navigate.html">Session 2: Understand Navigate</a></li>
-
-
-
-
 <li class="toctree-l1 current active"><a aria-current="page" class="current reference internal" href="#">Session 3: Run a global case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="04-run-our-reference-scenarios.html">Session 4: Run our reference scenarios</a></li>
 <li class="toctree-l1"><a class="reference internal" href="05-build-your-own-case.html">Session 5: Build your own case</a></li>
@@ -882,7 +878,7 @@ sound but the absolute figures are different from the Center’s base simulation
 </section>
 <section id="why-this-runs-in-a-minute-or-two">
 <h2>Why this runs in a minute or two<a class="headerlink" href="#why-this-runs-in-a-minute-or-two" title="Link to this heading">#</a></h2>
-<p>The reference scenarios in <a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/04-run-our-reference-scenarios.ipynb">Session 4</a> take between six and twenty-two minutes
+<p>The reference scenarios in <a class="reference external" href="https://colab.research.google.com/github/zerocarbonshipping/navigate-zcs/blob/workshop-colab/docs/workshop/04-run-our-reference-scenarios.ipynb">Session 4</a> take between twelve and twenty-five minutes
 each.
 To have a faster solving time, we change the <code class="docutils literal notranslate"><span class="pre">EVENTS</span></code> block in this simulation to reduce the number of time steps.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Start</span>
@@ -907,20 +903,20 @@ To have a faster solving time, we change the <code class="docutils literal notra
 </thead>
 <tbody>
 <tr class="row-even"><td><p>well-to-wake emissions in 2050</p></td>
-<td><p>639 Mt/yr</p></td>
-<td><p>637 Mt/yr</p></td>
+<td><p>676 Mt/yr</p></td>
+<td><p>711 Mt/yr</p></td>
 </tr>
 <tr class="row-odd"><td><p>alternative fuels in 2050</p></td>
-<td><p>58.3 %</p></td>
-<td><p>60.0 %</p></td>
+<td><p>55.0 %</p></td>
+<td><p>51.8 %</p></td>
 </tr>
 <tr class="row-even"><td><p>fossil fuel oil, share of energy</p></td>
-<td><p>67.3 %</p></td>
-<td><p>68.9 %</p></td>
+<td><p>69.0 %</p></td>
+<td><p>72.8 %</p></td>
 </tr>
 <tr class="row-odd"><td><p>hulls converted over the horizon</p></td>
-<td><p>1,924</p></td>
-<td><p>1,544</p></td>
+<td><p>1,140</p></td>
+<td><p>112</p></td>
 </tr>
 </tbody>
 </table>
@@ -1146,6 +1142,14 @@ To have a faster solving time, we change the <code class="docutils literal notra
 <span class="n">FOSSIL</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"fossil_fuel_oil"</span><span class="p">,</span> <span class="s2">"liquefied_natural_gas"</span><span class="p">}</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">fleet_cargo_miles</span><span class="p">(</span><span class="n">fleet</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Cargo-miles the whole fleet sailed each year: per-ship cargo-miles times hulls."""</span>
+    <span class="n">hulls</span> <span class="o">=</span> <span class="n">fleet</span><span class="o">.</span><span class="n">profile</span><span class="o">.</span><span class="n">get_existing_vessels</span><span class="p">()</span>
+    <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">hulls</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">get_name</span><span class="p">()],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">))</span>
+               <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">profile</span><span class="o">.</span><span class="n">get_cargo_miles</span><span class="p">(),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">))</span>
+               <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">fleet</span><span class="o">.</span><span class="n">get_vessels</span><span class="p">())</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">summarise</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""The whole world fleet, summed over every fleet in the deck."""</span>
     <span class="n">years</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">get_dateline</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">"datetime64[Y]"</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1970</span>
@@ -1160,8 +1164,7 @@ To have a faster solving time, we change the <code class="docutils literal notra
     <span class="k">for</span> <span class="n">fleet</span> <span class="ow">in</span> <span class="n">m</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">fleets</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
         <span class="n">wtw</span> <span class="o">=</span> <span class="n">wtw</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span>
             <span class="n">fleet</span><span class="o">.</span><span class="n">profile</span><span class="o">.</span><span class="n">get_total_equivalent_WTW</span><span class="p">(),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">))</span>
-        <span class="n">cargo_miles</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span>
-            <span class="n">fleet</span><span class="o">.</span><span class="n">profile</span><span class="o">.</span><span class="n">get_cargo_miles</span><span class="p">(),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">))</span>
+        <span class="n">cargo_miles</span> <span class="o">=</span> <span class="n">fleet_cargo_miles</span><span class="p">(</span><span class="n">fleet</span><span class="p">)</span>
         <span class="n">rate_x_miles</span> <span class="o">=</span> <span class="n">rate_x_miles</span> <span class="o">+</span> <span class="n">cargo_miles</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span>
             <span class="n">fleet</span><span class="o">.</span><span class="n">profile</span><span class="o">.</span><span class="n">get_instantaneous_freight_rate</span><span class="p">(),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">))</span>
         <span class="n">miles</span> <span class="o">=</span> <span class="n">miles</span> <span class="o">+</span> <span class="n">cargo_miles</span>
@@ -1305,23 +1308,22 @@ decks you can start from:
 solving the reference scenario ...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  solved in 221 s
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  solved in 186 s
 
 time grid: 8 steps, 2026, 2027, 2030, 2034, 2038, 2042, 2046, 2050
 
   well-to-wake in 2026               1,189  Mt CO2e/yr
-  well-to-wake in 2050                 637  Mt CO2e/yr
-  cumulative over the horizon       24,980  Mt CO2e
-  alternative fuels in 2050           60.0  %
+  well-to-wake in 2050                 711  Mt CO2e/yr
+  cumulative over the horizon       25,595  Mt CO2e
+  alternative fuels in 2050           51.8  %
 
   fuel                         % of energy over the horizon
-  Fuel oil                                             68.9
-  Blue ammonia                                         14.8
-  Bio-methane                                           9.6
-  LNG                                                   5.7
-  e-methanol                                            0.6
+  Fuel oil                                             72.8
+  Blue ammonia                                         10.1
+  Bio-methane                                           9.3
+  LNG                                                   5.9
+  Bio-methanol                                          1.6
   FAME                                                  0.2
-  Bio-methanol                                          0.1
   e-diesel                                              0.0
   Bio-ethanol                                           0.0
 
@@ -1547,25 +1549,27 @@ repeated in the code comments are a convenience copy of the same thing.</p>
 </details>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>solving your scenario:
-  BIO_SUPPLY    x 2.0
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  solved in 220 s
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  BIO_SUPPLY    x 2.0
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  solved in 195 s
 
                                  reference       yours        change
-  well-to-wake in 2050, Mt/yr          637         585        -8.1 %
-  cumulative, Mt                    24,980      24,393        -2.4 %
-  alternative fuels in 2050, %        60.0        64.6       +4.6 pp
+  well-to-wake in 2050, Mt/yr          711         614       -13.7 %
+  cumulative, Mt                    25,595      24,929        -2.6 %
+  alternative fuels in 2050, %        51.8        60.8       +9.0 pp
 </pre></div>
 </div>
-<img alt="../_images/a9feb74d0909b315e1a5df3cb5652a2a3f42b8c6bb97a4132e19d3dcf0156385.png" src="../_images/a9feb74d0909b315e1a5df3cb5652a2a3f42b8c6bb97a4132e19d3dcf0156385.png" />
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>freight rate in 2050: reference 15.1, yours 14.6 USD per thousand cargo-miles (-3.1 %)
+<img alt="../_images/3bd0d0c20d8cb873673338006d4a9a31813b75b80bff1b22a6fa2ff689611175.png" src="../_images/3bd0d0c20d8cb873673338006d4a9a31813b75b80bff1b22a6fa2ff689611175.png" />
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>freight rate in 2050: reference 14.7, yours 14.5 USD per thousand cargo-miles (-1.2 %)
 what moved most, in percentage points of the fuel mix:
-  Bio-methane                    +6.1 pp
-  Blue ammonia                   -4.4 pp
-  LNG                            -1.6 pp
-  Bio-methanol                   +0.8 pp
-  e-methanol                     -0.5 pp
+  Bio-methane                    +2.8 pp
+  Fuel oil                       -2.3 pp
+  LNG                            -1.2 pp
+  Blue ammonia                   +0.4 pp
+  FAME                           +0.2 pp
 </pre></div>
 </div>
 </div>

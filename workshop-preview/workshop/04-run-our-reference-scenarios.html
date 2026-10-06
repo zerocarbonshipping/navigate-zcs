@@ -380,10 +380,6 @@
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="01-run-a-simple-case.html">Session 1: Run a simple case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="02-understand-navigate.html">Session 2: Understand Navigate</a></li>
-
-
-
-
 <li class="toctree-l1"><a class="reference internal" href="03-run-a-global-case.html">Session 3: Run a global case</a></li>
 <li class="toctree-l1 current active"><a aria-current="page" class="current reference internal" href="#">Session 4: Run our reference scenarios</a></li>
 <li class="toctree-l1"><a class="reference internal" href="05-build-your-own-case.html">Session 5: Build your own case</a></li>
@@ -574,7 +570,7 @@ Since this step takes a while, run it at the beginning of the workshop and come 
 <span class="c1"># the scenario the rest of this notebook inspects</span>
 <span class="n">scenario</span> <span class="o">=</span> <span class="s2">"basecase_mid_regulation"</span>
 
-<span class="c1"># This is the ~22 minute step: all three decks run at once.</span>
+<span class="c1"># This is the ~25 minute step: all three decks run at once.</span>
 <span class="n">processes</span> <span class="o">=</span> <span class="p">{}</span>
 <span class="n">console_logs</span> <span class="o">=</span> <span class="p">{}</span>
 <span class="n">started</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
@@ -603,20 +599,20 @@ Since this step takes a while, run it at the beginning of the workshop and come 
 </div>
 </details>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>started basecase_no_regulation (pid 34392) -&gt; simulations/scenarios/basecase_no_regulation/basecase_no_regulation_console.log
-started basecase_mid_regulation (pid 11616) -&gt; simulations/scenarios/basecase_mid_regulation/basecase_mid_regulation_console.log
-started basecase_strong_regulation (pid 6920) -&gt; simulations/scenarios/basecase_strong_regulation/basecase_strong_regulation_console.log
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>started basecase_no_regulation (pid 34504) -&gt; simulations/scenarios/basecase_no_regulation/basecase_no_regulation_console.log
+started basecase_mid_regulation (pid 20316) -&gt; simulations/scenarios/basecase_mid_regulation/basecase_mid_regulation_console.log
+started basecase_strong_regulation (pid 10496) -&gt; simulations/scenarios/basecase_strong_regulation/basecase_strong_regulation_console.log
 
 waiting for all three to finish ...
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  basecase_no_regulation       ok                      557 s elapsed
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  basecase_no_regulation       ok                      730 s elapsed
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  basecase_mid_regulation      ok                     1254 s elapsed
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  basecase_mid_regulation      ok                     1431 s elapsed
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  basecase_strong_regulation   ok                     1277 s elapsed
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  basecase_strong_regulation   ok                     1518 s elapsed
 </pre></div>
 </div>
 </div>
@@ -663,29 +659,29 @@ for emissions, or <code class="docutils literal notranslate"><span class="pre">r
 </details>
 <div class="cell_output docutils container">
 <p class="rubric" id="engine-fuel-consumed">Engine fuel consumed</p>
-<img alt="../_images/e50c9ebf3f71f25fdbf24aba20045adb273ff84e610fe64e09415a73e0988627.png" src="../_images/e50c9ebf3f71f25fdbf24aba20045adb273ff84e610fe64e09415a73e0988627.png" />
+<img alt="../_images/798dbcb15e8f2675e0c3fe475f50deb134bc56fe47af5cdec556be98ff693ede.png" src="../_images/798dbcb15e8f2675e0c3fe475f50deb134bc56fe47af5cdec556be98ff693ede.png" />
 <p class="rubric" id="fuel-type-supply-demand">Fuel type supply demand</p>
-<img alt="../_images/e5160fc19aa373243da2095110b0f301669f810c29c3ccec4f711f92db44aab1.png" src="../_images/e5160fc19aa373243da2095110b0f301669f810c29c3ccec4f711f92db44aab1.png" />
+<img alt="../_images/a7fcdc7404c4d0cf3ca1ad99122519cf159f8bab00c8e806065e742606603058.png" src="../_images/a7fcdc7404c4d0cf3ca1ad99122519cf159f8bab00c8e806065e742606603058.png" />
 <p class="rubric" id="global-emission-absolute">Global emission absolute</p>
-<img alt="../_images/ef9ec61d71c77f3d8f9b1623286a125ea78e876d77f7a689b281dd3a275ae188.png" src="../_images/ef9ec61d71c77f3d8f9b1623286a125ea78e876d77f7a689b281dd3a275ae188.png" />
+<img alt="../_images/3c41b6f7e3496b2248865ebcb685bb24ce290abb8b4a159ec8babcf3ef628f6f.png" src="../_images/3c41b6f7e3496b2248865ebcb685bb24ce290abb8b4a159ec8babcf3ef628f6f.png" />
 <p class="rubric" id="global-energy-saving">Global energy saving</p>
-<img alt="../_images/fa06989cf1e4bf0ab206c6e5c7fe0de7e9b5fc4b2ae8540683ac4a2c79482a6c.png" src="../_images/fa06989cf1e4bf0ab206c6e5c7fe0de7e9b5fc4b2ae8540683ac4a2c79482a6c.png" />
+<img alt="../_images/fc7f692fbbfad4ab574fc608cee3e34e141d70c2242a7e6d8e64f63d0a6469f9.png" src="../_images/fc7f692fbbfad4ab574fc608cee3e34e141d70c2242a7e6d8e64f63d0a6469f9.png" />
 <p class="rubric" id="global-fuel-consumed">Global fuel consumed</p>
-<img alt="../_images/451e1fe3693217ea0a518b32b649451a17572924309f53a006828ce81ac5c443.png" src="../_images/451e1fe3693217ea0a518b32b649451a17572924309f53a006828ce81ac5c443.png" />
+<img alt="../_images/493750caad7cdf3450e7e95e6ce294dab46298dccc806f53fad00a0f1eacf980.png" src="../_images/493750caad7cdf3450e7e95e6ce294dab46298dccc806f53fad00a0f1eacf980.png" />
 <p class="rubric" id="global-installed-power">Global installed power</p>
-<img alt="../_images/359a04e04a67b5c33a349be560c21f1b0d2390bca2accff76059ccb451813e74.png" src="../_images/359a04e04a67b5c33a349be560c21f1b0d2390bca2accff76059ccb451813e74.png" />
+<img alt="../_images/69fd4f74bcd8439296d6ce5a01b5844b4d57364ad03b0aada5d9ed2deab591f9.png" src="../_images/69fd4f74bcd8439296d6ce5a01b5844b4d57364ad03b0aada5d9ed2deab591f9.png" />
 <p class="rubric" id="producer-development">Producer development</p>
-<img alt="../_images/0783f7cefb65f2672e4dde2ebc2a1519f098d499cb68f39a0d47e0e4a3a58fe5.png" src="../_images/0783f7cefb65f2672e4dde2ebc2a1519f098d499cb68f39a0d47e0e4a3a58fe5.png" />
+<img alt="../_images/3568709e0b1df3132424e2ec2a23a5e49714d96149d031c49ebc08a6f2f9574c.png" src="../_images/3568709e0b1df3132424e2ec2a23a5e49714d96149d031c49ebc08a6f2f9574c.png" />
 <p class="rubric" id="regulation-compliance-eu-ets">Regulation compliance eu ets</p>
-<img alt="../_images/2983ddb171c3e4d1b53299f6b1e3dc8ba998dcf17aafed243c87b000d4084735.png" src="../_images/2983ddb171c3e4d1b53299f6b1e3dc8ba998dcf17aafed243c87b000d4084735.png" />
+<img alt="../_images/170114d0e8658eab842a1278a1022cbdb5e37a861bd0b490b08052492a62112e.png" src="../_images/170114d0e8658eab842a1278a1022cbdb5e37a861bd0b490b08052492a62112e.png" />
 <p class="rubric" id="regulation-compliance-fuel-eu">Regulation compliance fuel eu</p>
-<img alt="../_images/274ae28464e88881c453776b5f4f227087cb94c277e5699912bdcab26ab74190.png" src="../_images/274ae28464e88881c453776b5f4f227087cb94c277e5699912bdcab26ab74190.png" />
+<img alt="../_images/979c9212223b2bfccbd300e38eed8607357f801ab68b157ee740cbc6ca6d5856.png" src="../_images/979c9212223b2bfccbd300e38eed8607357f801ab68b157ee740cbc6ca6d5856.png" />
 <p class="rubric" id="regulation-compliance-gfs">Regulation compliance gfs</p>
-<img alt="../_images/201da0c3c9582c14f8b11374beccffb807ffb436ee6ea0e455e3c52284650fbc.png" src="../_images/201da0c3c9582c14f8b11374beccffb807ffb436ee6ea0e455e3c52284650fbc.png" />
+<img alt="../_images/714116b98dc3b67836285dd08d680f6367c7c7ebcbd14918a207da669f7076ef.png" src="../_images/714116b98dc3b67836285dd08d680f6367c7c7ebcbd14918a207da669f7076ef.png" />
 <p class="rubric" id="regulation-flexibility-cost-fuel-eu">Regulation flexibility cost fuel eu</p>
-<img alt="../_images/baf02a5599809968286253a421205717820cfa22bce6c97fc169830a6801cd01.png" src="../_images/baf02a5599809968286253a421205717820cfa22bce6c97fc169830a6801cd01.png" />
+<img alt="../_images/9350073843004df76860b678d6571e418c5cb46613580d5dea0d263865153362.png" src="../_images/9350073843004df76860b678d6571e418c5cb46613580d5dea0d263865153362.png" />
 <p class="rubric" id="regulation-flexibility-cost-gfs">Regulation flexibility cost gfs</p>
-<img alt="../_images/bf3947ed1fbcd4f51a731324a2f39bdd27564530720bb93073f5f903f0f9f768.png" src="../_images/bf3947ed1fbcd4f51a731324a2f39bdd27564530720bb93073f5f903f0f9f768.png" />
+<img alt="../_images/54aee41dfa866e202a632b2190b824e596c288bdc7c1554315da118c83859188.png" src="../_images/54aee41dfa866e202a632b2190b824e596c288bdc7c1554315da118c83859188.png" />
 </div>
 </div>
 </section>
@@ -721,7 +717,9 @@ for emissions, or <code class="docutils literal notranslate"><span class="pre">r
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Exported Excel files found:
  - simulations/scenarios/basecase_mid_regulation\basecase_mid_regulation_assumptions.xlsx
  - simulations/scenarios/basecase_mid_regulation\plots\basecase_mid_regulation_report_default.xlsx
-Sheets in simulations/scenarios/basecase_mid_regulation/basecase_mid_regulation_assumptions.xlsx : ['Assumptions', 'Curves &amp; Forecasts', 'Surfaces &amp; Timetables']
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Sheets in simulations/scenarios/basecase_mid_regulation/basecase_mid_regulation_assumptions.xlsx : ['Assumptions', 'Curves &amp; Forecasts', 'Surfaces &amp; Timetables']
 </pre></div>
 </div>
 <div class="output text_html"><div>
@@ -860,6 +858,14 @@ attributable to regulatory stringency alone.</p>
 <span class="c1"># Same four series, so the two comparison figures can be read the same way:</span>
 <span class="c1"># emissions, the fuel mix year by year, what the trade cost, and the share of</span>
 <span class="c1"># alternatives at the end.</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fleet_cargo_miles</span><span class="p">(</span><span class="n">fleet</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Cargo-miles the whole fleet sailed each year: per-ship cargo-miles times hulls."""</span>
+    <span class="n">hulls</span> <span class="o">=</span> <span class="n">fleet</span><span class="o">.</span><span class="n">profile</span><span class="o">.</span><span class="n">get_existing_vessels</span><span class="p">()</span>
+    <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">hulls</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">get_name</span><span class="p">()],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">))</span>
+               <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">profile</span><span class="o">.</span><span class="n">get_cargo_miles</span><span class="p">(),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">))</span>
+               <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">fleet</span><span class="o">.</span><span class="n">get_vessels</span><span class="p">())</span>
+
+
 <span class="n">cases</span> <span class="o">=</span> <span class="p">{}</span>
 <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">solved</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
     <span class="n">years</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get_dateline</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">"datetime64[Y]"</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1970</span>
@@ -868,7 +874,7 @@ attributable to regulatory stringency alone.</p>
     <span class="n">by_year_raw</span><span class="p">,</span> <span class="n">last_alt</span><span class="p">,</span> <span class="n">last_all</span> <span class="o">=</span> <span class="p">{},</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span>
     <span class="k">for</span> <span class="n">fleet</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">fleets</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
         <span class="n">total</span> <span class="o">=</span> <span class="n">total</span> <span class="o">+</span> <span class="n">num</span><span class="p">(</span><span class="n">fleet</span><span class="o">.</span><span class="n">profile</span><span class="o">.</span><span class="n">get_total_equivalent_WTW</span><span class="p">())</span>
-        <span class="n">cargo_miles</span> <span class="o">=</span> <span class="n">num</span><span class="p">(</span><span class="n">fleet</span><span class="o">.</span><span class="n">profile</span><span class="o">.</span><span class="n">get_cargo_miles</span><span class="p">())</span>
+        <span class="n">cargo_miles</span> <span class="o">=</span> <span class="n">fleet_cargo_miles</span><span class="p">(</span><span class="n">fleet</span><span class="p">)</span>
         <span class="n">rate_x_miles</span> <span class="o">=</span> <span class="n">rate_x_miles</span> <span class="o">+</span> <span class="n">cargo_miles</span> <span class="o">*</span> <span class="n">num</span><span class="p">(</span>
             <span class="n">fleet</span><span class="o">.</span><span class="n">profile</span><span class="o">.</span><span class="n">get_instantaneous_freight_rate</span><span class="p">())</span>
         <span class="n">miles</span> <span class="o">=</span> <span class="n">miles</span> <span class="o">+</span> <span class="n">cargo_miles</span>
@@ -985,12 +991,12 @@ attributable to regulatory stringency alone.</p>
 </div>
 </details>
 <div class="cell_output docutils container">
-<img alt="../_images/ec1fb7903df3068010503eef02c6ff5476989b68480a80514cda53bdf5625762.png" src="../_images/ec1fb7903df3068010503eef02c6ff5476989b68480a80514cda53bdf5625762.png" />
+<img alt="../_images/17da42649dd6412db01ad758bc486614a5a30c23150124284b90f0609a67ad63.png" src="../_images/17da42649dd6412db01ad758bc486614a5a30c23150124284b90f0609a67ad63.png" />
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>  scenario         WTW 2026   WTW 2050   cumulative  alt fuel 2050      freight 2050
                       Mt/yr      Mt/yr           Mt              %  USD/k cargo-mile
-  no                  1,197      1,746       37,604            0.0              10.9
-  mid                 1,189        639       24,193           58.3              14.8
-  strong              1,189        439       21,851           73.1              17.8
+  no                  1,197      1,744       37,569            0.0              10.7
+  mid                 1,189        676       24,580           55.0              14.6
+  strong              1,189        509       22,433           65.6              18.1
 </pre></div>
 </div>
 </div>

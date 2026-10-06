@@ -380,10 +380,6 @@
   <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
 <li class="toctree-l1"><a class="reference internal" href="01-run-a-simple-case.html">Session 1: Run a simple case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="02-understand-navigate.html">Session 2: Understand Navigate</a></li>
-
-
-
-
 <li class="toctree-l1"><a class="reference internal" href="03-run-a-global-case.html">Session 3: Run a global case</a></li>
 <li class="toctree-l1"><a class="reference internal" href="04-run-our-reference-scenarios.html">Session 4: Run our reference scenarios</a></li>
 <li class="toctree-l1 current active"><a aria-current="page" class="current reference internal" href="#">Session 5: Build your own case</a></li>
@@ -572,8 +568,10 @@ The library already covers this vessel class - use its own values:
     assumptions/defaults/installation/Fleet/tanker_127k_dwt.inc
     assumptions/defaults/installation/Route/operational_profile_tanker_127k_dwt.inc
 Take structure from simulations/examples/example_4/ and none of its numbers.
-Anything the library genuinely lacks - port-to-port distance, for instance -
-mark INVENTED in a comment where it appears and list them in the .nav header.
+Anything the library genuinely lacks - port-to-port distance or the bunker
+transport cost, for instance - mark INVENTED in a comment where it appears and
+list them in the .nav header. BunkerLogistics takes its distances and transport
+cost as plain numbers, not as Variables.
 
 DECK RULES
 The .nav DEFINE and EVENTS blocks accept only Include and Load. Every node
@@ -708,7 +706,7 @@ HOW NAVIGATE WORKS (read this before writing anything)
   with the add_fleet_property / add_vessel_property syntax of
   simulations/examples/example_4/includes/report.inc (copy the syntax, not its
   list): per fleet FuelTypeEnergy, TotalEquivalentWTW, FuelExpenses,
-  RegulationExpenses and TechnologyExpenses, and per vessel InvestmentFreightRate.
+  RegulationExpenses, and per vessel InvestmentFreightRate.
 
 THE DECK
 Build it under simulations/user/[YOUR FOLDER NAME]/.
@@ -728,7 +726,9 @@ rather than the trade.
 Model them as two Fleet nodes sharing one Route. simulations/examples/example_3/
 does this for two vessel classes (so four fleets): follow its pattern of one
 "regular" and one "efficient" fleet, for this one class. Same costs, same route,
-same regulation - the only difference is what they fit.
+same regulation - the only difference is what they fit. Fleet A fits nothing at
+all: leave out the Fleet file's set_initial_technology_share lines for it and set
+AllowTechnologyApproximation = FALSE, as example_3's regular fleet does.
 
 As in example_4, build the Fleet nodes from the library's Vessel files with Copy
 Vessel, and build a ROUND_TRIP route between the two named ports from the class's
@@ -736,8 +736,8 @@ operational profile (not its abstract port_global / port_europe ports; example_4
 route.inc comments show the arithmetic), with a realistic sea distance marked
 INVENTED. Rebuild the ports, bunker logistics, regions and producers the same way,
 and use `Load DefaultCalibration` for the decision settings. If you rename the
-copied vessels, restate the Fleet file's set_fuel_conversion_cost lines for the
-new names: its wildcards only match the library's own names.
+copied vessels, check that the Fleet file's set_fuel_conversion_cost wildcards
+still match the new names, and restate those lines if they do not.
 
 NUMBERS
 Every number must come from assumptions/ and be referenced by name
@@ -757,8 +757,10 @@ declaration, Import and Copy goes in an .inc file that they include.
 BEFORE YOU TELL ME IT WORKS
 Run it (or have me run it) as above. Report the exit code and the warning count
 from the Log summary. Then tell me what separates the two fleets by 2050 - fuel
-mix, emissions and the freight rate - and whether the efficiency measures paid
-for themselves.
+mix, emissions and the freight rate - and how much fuel and compliance cost the
+efficient fleet saved. This version of Navigate does not report what the
+measures themselves cost, so say that rather than concluding they paid for
+themselves.
 </pre></div>
 </div>
 </section>
