@@ -7,8 +7,8 @@ SPDX-License-Identifier: Apache-2.0
 
 Small committed decks whose report CSV output is compared cell-for-cell
 against committed baselines. They answer "did results change when they
-shouldn't?" — complementary to `tests/guardrails`, which answers "are results
-still sane?" when a change is supposed to move them. A should-be-neutral
+shouldn't?" — complementary to `tests/behaviour`, which answers "does the
+model still respond the right way?" when a change is supposed to move them. A should-be-neutral
 change (refactor, cleanup, typing) must leave this suite green; an intentional
 result change must surface as a reviewable git diff of the baselines, never
 as silent drift.
@@ -28,28 +28,18 @@ tests/regression/
 ```
 
 Each deck activates one mechanism, so a failing golden names the mechanism
-that changed. Unlike guardrails there is no `BEHAVIOR.md` — the baseline is
-the contract; the test module's docstring states the mechanism and why the
-activation guards prove it fired.
+that changed. The baseline is the contract; the test module's docstring
+states the mechanism and why the activation guards prove it fired.
 
 ## Comparison policy
 
 Comparison defaults to exact (`rtol = atol = 0`), and a new deck starts
 there. Both committed decks opt into the shared runner-noise floor
 (`RUNNER_NOISE_RTOL`/`RUNNER_NOISE_ATOL` in `tests/helpers/baseline.py`, where
-the evidence for the values lives): pinning the solver fixes neither its
-thread count nor the CPU dispatch in its float kernels, so an LP with
-non-unique optima can resolve ties differently from one machine to the next.
-As of 2026-09-16 that is observed, not theoretical — one GitHub runner
-diverged on a commit whose rerun, with the same image and pinned packages,
-matched: nonzero cells at relative deviations up to 5.5e-14, exact-zero cells
-up to 4.8e-11 as degenerate ties moved between adjacent year bins.
-
-A tolerance or column exclusion (exact header tokens, no wildcards) is opted
-into per deck and carries recorded evidence where its values are defined —
-never a comparison default, and never widened to make a change pass. Failures
-are structured: the report names files, columns, dates, and per-cell
-deviations sorted by magnitude.
+the evidence for the values lives). A tolerance is opted into per deck and
+carries recorded evidence where its value is defined — never a comparison
+default, and never widened to make a change pass. A failure lists every
+missing or extra file, column and date, and every differing cell.
 
 ## Regenerating baselines
 
