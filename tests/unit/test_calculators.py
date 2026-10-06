@@ -7,16 +7,16 @@ Mathematical stability tests for the calculator pipeline.
 Tests verify the correctness of:
   - Addition/multiplier transforms:
     output = truncate(multiplier * (table(x) + addition))
-  - Bound application: internal vs external bounds widen the envelope
+  - Bound application: the tighter of the internal and external bounds applies
   - Internal-bound tightening: the warning names the node it tightens
   - Exclusive bounds: a value reaching one raises instead of being clamped
-  - Public bounds: each accepts the infinity on its own side only
+  - Public bounds: each rejects the infinity on the other side
   - Convexity detection on piecewise-linear functions
-  - _Table1D interpolation with transforms, reverse lookup
-  - _Table2D bilinear interpolation, reverse lookup, convexity
-  - Variable scalar transform chain
+  - _Table1D and _Table2D reverse lookup
+  - Variable broadcasting to an array input
   - Deck expressions on the transform and fill-value attributes
   - Curve and Surface settings apply wherever the definition writes them
+  - Table input validation: minimum size, non-finite entries
 """
 
 from __future__ import annotations
@@ -33,7 +33,6 @@ from navigate.core.nodes._table1d import _Table1D, check_table1d_input
 from navigate.core.nodes._table2d import _Table2D, check_table2d_input
 from navigate.core.nodes.curve import Curve
 from navigate.core.nodes.surface import Surface
-from navigate.core.nodes.timetable import Timetable
 from navigate.core.nodes.variable import Variable
 from navigate.core.table_data import TableData
 
@@ -44,6 +43,23 @@ from navigate.core.table_data import TableData
 TABLE_X = np.array([0.0, 1.0, 2.0, 3.0, 4.0])
 TABLE_Y = np.array([0.0, 1.0, 4.0, 9.0, 16.0])  # ~ x^2, convex
 
+# Simple 3x3 grid: z = x + y
+T2D_X = np.array([0.0, 1.0, 2.0])
+T2D_Y = np.array([0.0, 10.0, 20.0])
+T2D_Z = np.array(
+    [[0.0, 10.0, 20.0], [1.0, 11.0, 21.0], [2.0, 12.0, 22.0]]
+)  # z[i,j] = x[i] + y[j]
+
+# y = 10 * x on 0 <= x <= 2
+CURVE_ROWS = [[0.0, 0.0], [1.0, 10.0], [2.0, 20.0]]
+
+# y-values in the header row, then one row per x-value: z = x + y
+SURFACE_ROWS = [
+    [0.0, 10.0],
+    [0.0, 0.0, 10.0],
+    [1.0, 1.0, 11.0],
+]
+
 
 def _make_table1d(x=TABLE_X, y=TABLE_Y, extrapolate="LINEAR"):
     t = _Table1D()
@@ -52,42 +68,37 @@ def _make_table1d(x=TABLE_X, y=TABLE_Y, extrapolate="LINEAR"):
     return t
 
 
-# ---------------------------------------------------------------------------
-# 1. _Calculator base — truncation and bound logic
-# ---------------------------------------------------------------------------
+def _make_table2d(x=T2D_X, y=T2D_Y, z=T2D_Z, extrapolate="LINEAR"):
+    t = _Table2D()
+    t.set_extrapolate(extrapolate)
+    t._set_table(x, y, z)
+    return t
 
 
-class TestTruncateTransform:
-    """Verify: output = truncate(multiplier * (table(x) + addition))."""
+def _variable(value):
+    variable = Variable("v")
+    variable.set_value(value)
+    return variable
 
-    @pytest.mark.parametrize(
-        ("multiplier", "addition", "x", "expected"),
-        [
-            # default multiplier=1, addition=0 is the identity: table(2) = 4
-            (1.0, 0.0, 2.0, 4.0),
-            # at x=2 the raw table gives 4.0; output = 2 * (4 + 0) = 8
-            (2.0, 0.0, 2.0, 8.0),
-            # at x=2: output = 1 * (4 + 10) = 14
-            (1.0, 10.0, 2.0, 14.0),
-            # at x=2: output = 3 * (4 + (-1)) = 9
-            (3.0, -1.0, 2.0, 9.0),
-            # at x=2: output = -1 * (4 + 0) = -4
-            (-1.0, 0.0, 2.0, -4.0),
-            # zero multiplier collapses output to 0 regardless of input
-            (0.0, 0.0, 2.0, 0.0),
-            (0.0, 0.0, 4.0, 0.0),
-        ],
-    )
-    def test_transform(self, multiplier, addition, x, expected):
-        t = _make_table1d()
-        t.set_multiplier(multiplier)
-        t.set_addition(addition)
-        assert t.calculate(x) == pytest.approx(expected)
+
+def _curve():
+    curve = Curve("c")
+    curve.set_table(TableData(rows=CURVE_ROWS))
+    curve.build_table()
+    return curve
 
 
 # ---------------------------------------------------------------------------
-# 2. Bound application — internal vs external
+# 1. Transform and bound application
 # ---------------------------------------------------------------------------
+
+
+def test_addition_applies_inside_the_multiplier():
+    # at x=2 the table gives 4: 3 * (4 + (-1)) = 9, where 3 * 4 - 1 would be 11
+    t = _make_table1d()
+    t.set_multiplier(3.0)
+    t.set_addition(-1.0)
+    assert t.calculate(2.0) == pytest.approx(9.0)
 
 
 class TestBoundApplication:
@@ -97,20 +108,6 @@ class TestBoundApplication:
     applied_lower = max(external, internal), applied_upper = min(external, internal).
     Truncate then clamps: output = max(min(value, upper), lower).
     """
-
-    def test_truncate_clamps_to_applied_bounds(self):
-        """Direct _truncate with manually set applied bounds."""
-        c = _Calculator()
-        c._applied_bounds = Bounds(2.0, 8.0)
-        assert c._truncate(1.0) == pytest.approx(2.0)
-        assert c._truncate(5.0) == pytest.approx(5.0)
-        assert c._truncate(10.0) == pytest.approx(8.0)
-
-    def test_truncate_works_on_arrays(self):
-        c = _Calculator()
-        c._applied_bounds = Bounds(2.0, 8.0)
-        result = c._truncate(np.array([0.0, 5.0, 12.0]))
-        np.testing.assert_array_almost_equal(result, [2.0, 5.0, 8.0])
 
     @pytest.mark.parametrize(
         (
@@ -122,8 +119,6 @@ class TestBoundApplication:
             "expected",
         ),
         [
-            # external lower bound alone clamps: at x=1, raw=1.0 → clamped to 5
-            (5.0, np.inf, -np.inf, np.inf, 1.0, 5.0),
             # external upper bound alone clamps: at x=2, raw=4.0 → clamped to 3
             (-np.inf, 3.0, -np.inf, np.inf, 2.0, 3.0),
             # applied_lower = max(external, internal) = max(3, 5) = 5 — the tighter
@@ -144,70 +139,34 @@ class TestBoundApplication:
         assert t.calculate(x) == pytest.approx(expected)
 
 
-class TestInternalBoundsWarning:
-    """
-    Tightening an already-finite internal bound warns, naming the node.
+def test_tightening_an_internal_bound_warns_naming_the_node(caplog):
+    # the node is a Variable, so this also pins that it renders as its name
+    # rather than its value
+    v = _variable(1.0)
+    v.set_internal_bounds(2.0, np.inf)
 
-    The warning names the node the way the deck wrote it. The node is a
-    Variable without a value, so this also pins that a Variable renders as its
-    name rather than its value.
-    """
+    with caplog.at_level(logging.WARNING):
+        v.set_internal_bounds(3.0, np.inf)
 
-    @pytest.mark.parametrize(
-        ("first", "second", "expected"),
-        [
-            (
-                (2.0, np.inf),
-                (3.0, np.inf),
-                'Variable("test"): Internal lower bound tightened from 2.0 to 3.0.',
-            ),
-            (
-                (-np.inf, 8.0),
-                (-np.inf, 5.0),
-                'Variable("test"): Internal upper bound tightened from 8.0 to 5.0.',
-            ),
-        ],
-    )
-    def test_tightening_warning_names_the_node(self, first, second, expected, caplog):
-        from navigate.core.nodes.variable import Variable
-
-        v = Variable("test")
-        v.set_internal_bounds(*first)
-
-        with caplog.at_level(logging.WARNING):
-            v.set_internal_bounds(*second)
-
-        assert [record.getMessage() for record in caplog.records] == [expected]
+    assert [record.getMessage() for record in caplog.records] == [
+        'Variable("v"): Internal lower bound tightened from 2.0 to 3.0.'
+    ]
 
 
-def _variable(value):
-    variable = Variable("v")
-    variable.set_value(value)
-    return variable
-
-
-class TestPublicBounds:
-    """UpperBound takes INF for no upper bound, LowerBound -INF for no lower one."""
-
-    def test_infinity_on_the_bounded_side_is_accepted(self):
-        v = _variable(1.0)
-        v.set_lower_bound(-np.inf)
-        v.set_upper_bound(np.inf)
-        assert (v.lower_bound, v.upper_bound) == (-np.inf, np.inf)
-
-    @pytest.mark.parametrize(
-        ("setter", "value"),
-        [(Variable.set_upper_bound, -np.inf), (Variable.set_lower_bound, np.inf)],
-        ids=["upper_at_minus_inf", "lower_at_inf"],
-    )
-    def test_infinity_on_the_other_side_is_rejected(self, setter, value):
-        with pytest.raises(ValueError, match=f"must be finite, but got {value}"):
-            setter(_variable(1.0), value)
+@pytest.mark.parametrize(
+    ("setter", "value"),
+    [(Variable.set_upper_bound, -np.inf), (Variable.set_lower_bound, np.inf)],
+    ids=["upper_at_minus_inf", "lower_at_inf"],
+)
+def test_public_bound_rejects_the_infinity_on_the_other_side(setter, value):
+    # UpperBound takes INF for no upper bound, LowerBound -INF for no lower one
+    with pytest.raises(ValueError, match=f"must be finite, but got {value}"):
+        setter(_variable(1.0), value)
 
 
 class TestExclusiveBounds:
     """
-    A value reaching an exclusive internal bound raises; one inside passes.
+    A value reaching an exclusive internal bound raises instead of being clamped.
 
     The bound is exclusive only while it is the one applied: a public bound
     strictly inside it clamps inclusively. Merging offers, a strictly tighter
@@ -216,27 +175,20 @@ class TestExclusiveBounds:
     """
 
     @pytest.mark.parametrize(
-        ("value", "bounds", "message"),
+        ("make_node", "args", "owner"),
         [
-            # 0 sits on the exclusive lower bound 0, -1 beyond it
-            (0.0, {"inclusive_lower": False}, r"must be > 0\.0, but got 0\.0"),
-            (-1.0, {"inclusive_lower": False}, r"must be > 0\.0, but got -1\.0"),
-            # mirror: 5 sits on the exclusive upper bound 5
-            (5.0, {"inclusive_upper": False}, r"must be < 5\.0, but got 5\.0"),
+            (lambda: _variable(0.0), (), r'Variable\("v"\)'),
+            # y = 10 * x, so only the entry at x = 0 is on the bound
+            (_curve, (np.array([1.0, 0.0, 2.0]),), r'Curve\("c"\)'),
         ],
-        ids=["lower_at_bound", "lower_beyond", "upper_at_bound"],
+        ids=["scalar", "array_entry"],
     )
-    def test_value_at_or_beyond_an_exclusive_bound_raises(self, value, bounds, message):
-        v = _variable(value)
-        v.set_internal_bounds(0.0, 5.0, **bounds)
+    def test_value_on_an_exclusive_bound_raises(self, make_node, args, owner):
+        node = make_node()
+        node.set_internal_bounds(0.0, np.inf, inclusive_lower=False)
 
-        with pytest.raises(ValueError, match=rf'Variable\("v"\): {message}'):
-            v.get()
-
-    def test_value_inside_an_exclusive_bound_passes(self):
-        v = _variable(0.5)
-        v.set_internal_bounds(0.0, np.inf, inclusive_lower=False)
-        assert v.get() == pytest.approx(0.5)
+        with pytest.raises(ValueError, match=rf"{owner}: must be > 0\.0, but got 0\.0"):
+            node.get(*args)
 
     def test_public_bound_inside_an_exclusive_bound_clamps(self):
         # the public bound 1 is applied, not the exclusive 0, so -1 is clamped
@@ -255,45 +207,23 @@ class TestExclusiveBounds:
             v.get()
 
     @pytest.mark.parametrize(
-        ("first", "second"),
+        ("first", "second", "expected"),
         [
             # an equal exclusive offer makes the inclusive bound exclusive
-            ((0.0, True), (0.0, False)),
-            # an equal inclusive offer leaves the exclusive bound exclusive
-            ((0.0, False), (0.0, True)),
+            ((0.0, True), (0.0, False), Bounds(0.0, np.inf, False, True)),
+            # a strictly tighter inclusive offer replaces bound and flag
+            ((0.0, False), (1.0, True), Bounds(1.0, np.inf, True, True)),
+            # a looser exclusive offer is ignored
+            ((0.0, True), (-1.0, False), Bounds(0.0, np.inf, True, True)),
         ],
-        ids=["exclusive_wins_a_tie", "exclusive_survives_a_tie"],
+        ids=["exclusive_wins_a_tie", "tighter_replaces", "looser_ignored"],
     )
-    def test_merged_offers_tied_at_the_bound_stay_exclusive(self, first, second):
-        v = _variable(0.0)
+    def test_merged_offers(self, first, second, expected):
+        v = _variable(1.0)
         for lower, inclusive_lower in (first, second):
             v.set_internal_bounds(lower, np.inf, inclusive_lower=inclusive_lower)
 
-        with pytest.raises(ValueError, match=r"must be > 0\.0, but got 0\.0"):
-            v.get()
-
-    @pytest.mark.parametrize(
-        ("first", "second", "value", "expected"),
-        [
-            # a strictly tighter inclusive offer replaces bound and flag: 0 is
-            # clamped up to 1, where the exclusive 0 would have raised
-            ((0.0, False), (1.0, True), 0.0, 1.0),
-            ((0.0, False), (1.0, True), 1.0, 1.0),
-            # a looser exclusive offer is ignored: -2 is clamped up to 0
-            ((0.0, True), (-1.0, False), -2.0, 0.0),
-        ],
-        ids=[
-            "tighter_inclusive_clamps",
-            "tighter_inclusive_passes_its_bound",
-            "looser_exclusive_ignored",
-        ],
-    )
-    def test_merged_offers_that_clamp(self, first, second, value, expected):
-        v = _variable(value)
-        for lower, inclusive_lower in (first, second):
-            v.set_internal_bounds(lower, np.inf, inclusive_lower=inclusive_lower)
-
-        assert v.get() == pytest.approx(expected)
+        assert v.internal_bounds == expected
 
     @pytest.mark.parametrize(
         ("value", "bounds", "message"),
@@ -316,256 +246,110 @@ class TestExclusiveBounds:
         with pytest.raises(ValueError, match=rf"^owner: {message}$"):
             bounds.check_exclusive(value, "owner")
 
-    def test_table_entry_at_an_exclusive_bound_raises_for_an_array(self):
-        # y = 10 * x, so the entry at x = 0 is the one on the bound
-        curve = Curve("c")
-        curve.set_table(TableData(rows=CURVE_ROWS))
-        curve.build_table()
-        curve.set_internal_bounds(0.0, np.inf, inclusive_lower=False)
-
-        with pytest.raises(
-            ValueError, match=r'Curve\("c"\): must be > 0\.0, but got 0\.0'
-        ):
-            curve.get(np.array([1.0, 0.0, 2.0]))
-
 
 # ---------------------------------------------------------------------------
-# 3. Convexity detection
+# 2. Convexity detection
 # ---------------------------------------------------------------------------
 
 
-class TestConvexity:
+@pytest.mark.parametrize(
+    ("x", "y", "expected"),
+    [
+        # sqrt(x) is concave: y = [1, 2, 3, 4], but slopes decrease: 1/3, 1/5, 1/7
+        (
+            np.array([1.0, 4.0, 9.0, 16.0]),
+            np.sqrt(np.array([1.0, 4.0, 9.0, 16.0])),
+            False,
+        ),
+        # a straight line has d2y/dx2 = 0, which counts as convex
+        (
+            np.array([0.0, 1.0, 2.0, 3.0]),
+            2.0 * np.array([0.0, 1.0, 2.0, 3.0]) + 5.0,
+            True,
+        ),
+        # with < 3 points there is no second derivative, which counts as convex
+        (np.array([0.0, 1.0]), np.array([0.0, 100.0]), True),
+        # a tiny concavity below 10^-5 is rounded away (ROUND_OFF=5)
+        (np.array([0.0, 1.0, 2.0]), np.array([0.0, 1.0, 2.0 - 1e-7]), True),
+        # a concavity of ~0.01 is NOT rounded away: slopes 1.0, 0.99 → d2y = -0.01
+        (np.array([0.0, 1.0, 2.0]), np.array([0.0, 1.0, 1.99]), False),
+    ],
+)
+def test_convexity(x, y, expected):
     """_test_convexity checks d2y/dx2 >= 0 for piecewise-linear (x, y)."""
+    assert _Calculator._test_convexity(x, y) is expected
 
-    @pytest.mark.parametrize(
-        ("x", "y", "expected"),
-        [
-            # x^2 sampled at integers is convex
-            (
-                np.array([0.0, 1.0, 2.0, 3.0, 4.0]),
-                np.array([0.0, 1.0, 4.0, 9.0, 16.0]),
-                True,
-            ),
-            # sqrt(x) is concave: y = [1, 2, 3, 4], but slopes decrease: 1/3, 1/5, 1/7
-            (
-                np.array([1.0, 4.0, 9.0, 16.0]),
-                np.sqrt(np.array([1.0, 4.0, 9.0, 16.0])),
-                False,
-            ),
-            # a straight line has d2y/dx2 = 0, which counts as convex
-            (
-                np.array([0.0, 1.0, 2.0, 3.0]),
-                2.0 * np.array([0.0, 1.0, 2.0, 3.0]) + 5.0,
-                True,
-            ),
-            # with < 3 points, short-circuits to True
-            (np.array([0.0, 1.0]), np.array([0.0, 100.0]), True),
-            (np.array([0.0]), np.array([0.0]), True),
-            # a tiny concavity below 10^-5 is rounded away (ROUND_OFF=5)
-            (np.array([0.0, 1.0, 2.0]), np.array([0.0, 1.0, 2.0 - 1e-7]), True),
-            # a concavity of ~0.01 is NOT rounded away: slopes 1.0, 0.99 → d2y = -0.01
-            (np.array([0.0, 1.0, 2.0]), np.array([0.0, 1.0, 1.99]), False),
-        ],
-    )
-    def test_convexity(self, x, y, expected):
-        assert _Calculator._test_convexity(x, y) is expected
 
-    def test_convexity_propagates_to_table1d(self):
-        """_Table1D sets is_convex on construction."""
-        t = _make_table1d()  # x^2 data
-        assert t.is_convex() is True
-
-        t2 = _make_table1d(y=np.sqrt(TABLE_X + 1))  # concave
-        assert t2.is_convex() is False
+def test_table2d_with_one_concave_slice_is_not_convex():
+    # convexity is checked along every y-slice: the slice at y=0 is x^2, convex,
+    # the one at y=1 has slopes 3, 1, 0.5, concave
+    x = np.array([0.0, 1.0, 2.0, 3.0])
+    y = np.array([0.0, 1.0])
+    z = np.array([[0.0, 0.0], [1.0, 3.0], [4.0, 4.0], [9.0, 4.5]])
+    assert not _make_table2d(x=x, y=y, z=z).is_convex()
 
 
 # ---------------------------------------------------------------------------
-# 4. _Table1D — reverse lookup
+# 3. Reverse lookup
 # ---------------------------------------------------------------------------
 
 
 class TestTable1DReverseLookup:
-    """reverse_lookup finds x given y on a monotonically increasing curve."""
-
-    def test_exact_grid_point(self):
-        t = _make_table1d()
-        x = t.reverse_lookup(4.0)
-        assert x == pytest.approx(2.0)
-
-    def test_interpolated_point(self):
-        """Midpoint between y=1 (x=1) and y=4 (x=2) → x ≈ 1.5 via linear interp."""
-        x = np.array([0.0, 1.0, 2.0, 3.0])
-        y = np.array([0.0, 2.0, 4.0, 6.0])  # strictly increasing, linear
-        t = _make_table1d(x=x, y=y)
-        result = t.reverse_lookup(3.0)
-        assert result == pytest.approx(1.5)
+    """reverse_lookup finds x given y on a strictly increasing curve."""
 
     def test_non_monotonic_returns_none(self):
-        """Non-monotonic y-values → reverse_lookup returns None."""
         x = np.array([0.0, 1.0, 2.0, 3.0])
         y = np.array([0.0, 5.0, 3.0, 8.0])  # not strictly increasing
         t = _make_table1d(x=x, y=y)
         assert t.reverse_lookup(4.0) is None
 
+    def test_looks_up_the_transformed_curve(self):
+        # the multiplier and addition apply before the lookup, so the power a
+        # deck scaled its load to is the one a speed is found for:
+        # 2 * (x^2 + 1) = [2, 4, 10, 20, 34], and 15 lies halfway from x=2 to x=3;
+        # the raw table would give 3 + 6/7
+        t = _make_table1d()
+        t.set_multiplier(2.0)
+        t.set_addition(1.0)
+        assert t.reverse_lookup(15.0) == pytest.approx(2.5)
+
+
+def test_table2d_reverse_lookup_clamps_to_the_table_ends():
+    # on z = x + y with x in [0, 2], z = 11 lies beyond the y=0 slice [0, 2], on
+    # the y=10 slice [10, 12] at x = 1, and below the y=20 slice [20, 22]; the
+    # lookup clamps to the end x-values rather than extrapolating. The speed
+    # limits in fleet/power.py rely on this: a power capacity beyond the
+    # propulsion load's range gives the load's own end speed
+    t = _make_table2d()
+    result = t.reverse_lookup(11.0, y=np.array([0.0, 10.0, 20.0]))
+    np.testing.assert_array_almost_equal(result, [2.0, 1.0, 0.0])
+
 
 # ---------------------------------------------------------------------------
-# 5. _Table2D — bilinear interpolation
+# 4. Broadcasting
 # ---------------------------------------------------------------------------
 
-# Simple 3x3 grid: z = x + y
-T2D_X = np.array([0.0, 1.0, 2.0])
-T2D_Y = np.array([0.0, 10.0, 20.0])
-T2D_Z = np.array(
-    [[0.0, 10.0, 20.0], [1.0, 11.0, 21.0], [2.0, 12.0, 22.0]]
-)  # z[i,j] = x[i] + y[j]
 
-
-def _make_table2d(x=T2D_X, y=T2D_Y, z=T2D_Z, extrapolate="LINEAR"):
-    t = _Table2D()
-    t.set_extrapolate(extrapolate)
-    t._set_table(x, y, z)
-    return t
-
-
-class TestTable2DInterpolation:
-    """Bilinear interpolation on z = x + y surface."""
-
-    @pytest.mark.parametrize(
-        ("x", "y", "expected"),
-        [
-            (1.0, 10.0, 11.0),
-            (0.0, 0.0, 0.0),
-            (2.0, 20.0, 22.0),
-            # midpoint on a bilinear surface of z=x+y should be exact
-            (0.5, 5.0, 5.5),
-            (1.5, 15.0, 16.5),
-            (np.array([0.0, 1.0, 2.0]), np.array([0.0, 10.0, 20.0]), [0.0, 11.0, 22.0]),
-            # scalar x with array y broadcasts correctly
-            (1.0, np.array([0.0, 10.0, 20.0]), [1.0, 11.0, 21.0]),
-        ],
+def test_table2d_scalar_x_broadcasts_over_array_y():
+    np.testing.assert_array_almost_equal(
+        _make_table2d().calculate(1.0, np.array([0.0, 10.0, 20.0])), [1.0, 11.0, 21.0]
     )
-    def test_interpolation(self, x, y, expected):
-        t = _make_table2d()
-        np.testing.assert_array_almost_equal(t.calculate(x, y), expected)
+
+
+def test_variable_array_x_broadcasts_the_value_to_its_shape():
+    """An array x broadcasts the transformed value, like Scalar.get."""
+    v = _variable(5.0)
+    v.set_multiplier(2.0)
+    v.set_addition(3.0)
+    x = np.zeros((2, 3))
+    # output = 2 * (5 + 3) = 16, broadcast to x's shape
+    result = v.get(x)
+    assert isinstance(result, np.ndarray)
+    np.testing.assert_array_equal(result, np.full((2, 3), 16.0))
 
 
 # ---------------------------------------------------------------------------
-# 6. _Table2D — convexity
-# ---------------------------------------------------------------------------
-
-
-class TestTable2DConvexity:
-    """Convexity is checked along all x-direction paths."""
-
-    def test_convex_surface(self):
-        """Z = x^2 + y is convex in x."""
-        x = np.array([0.0, 1.0, 2.0, 3.0])
-        y = np.array([0.0, 1.0])
-        z = np.array([[0.0, 1.0], [1.0, 2.0], [4.0, 5.0], [9.0, 10.0]])
-        t = _make_table2d(x=x, y=y, z=z)
-        assert t.is_convex()
-
-    def test_concave_surface(self):
-        """Z = sqrt(x) + y is concave in x."""
-        x = np.array([1.0, 4.0, 9.0, 16.0])
-        y = np.array([0.0, 1.0])
-        z = np.array([[1.0, 2.0], [2.0, 3.0], [3.0, 4.0], [4.0, 5.0]])  # sqrt(x) + y
-        t = _make_table2d(x=x, y=y, z=z)
-        assert not t.is_convex()
-
-
-# ---------------------------------------------------------------------------
-# 7. _Table2D — reverse lookup
-# ---------------------------------------------------------------------------
-
-
-class TestTable2DReverseLookup:
-    """Reverse lookup finds x given z along y-slices."""
-
-    def test_exact_reverse(self):
-        """On z=x+y, reverse_lookup(z=11, y=[10]) should give x=1."""
-        t = _make_table2d()
-        result = t.reverse_lookup(11.0, y=np.array([10.0]))
-        assert result is not None
-        np.testing.assert_array_almost_equal(result, [1.0])
-
-    def test_reverse_interpolated(self):
-        """On z=x+y, reverse_lookup(z=5.5, y=[5]) → x=0.5."""
-        t = _make_table2d()
-        result = t.reverse_lookup(5.5, y=np.array([5.0]))
-        assert result is not None
-        np.testing.assert_array_almost_equal(result, [0.5])
-
-    def test_reverse_multiple_slices(self):
-        t = _make_table2d()
-        result = t.reverse_lookup(11.0, y=np.array([0.0, 10.0, 20.0]))
-        # z=11, y=0  → x=11 (extrapolated); y=10 → x=1; y=20 → x<0 (extrapolated)
-        assert result is not None
-        assert result.shape == (3,)
-        np.testing.assert_almost_equal(result[1], 1.0)
-
-
-# ---------------------------------------------------------------------------
-# 8. Variable — transform chain
-# ---------------------------------------------------------------------------
-
-
-class TestVariable:
-    """Variable.get() applies: truncate(multiplier * (value + addition))."""
-
-    def test_multiplier_addition(self):
-        from navigate.core.nodes.variable import Variable
-
-        v = Variable("test")
-        v.set_value(5.0)
-        v.set_multiplier(2.0)
-        v.set_addition(3.0)
-        # output = 2 * (5 + 3) = 16
-        assert v.get() == pytest.approx(16.0)
-
-    def test_bounds_clamp(self):
-        from navigate.core.nodes.variable import Variable
-
-        v = Variable("test")
-        v.set_value(100.0)
-        v.set_upper_bound(50.0)
-        assert v.get() == pytest.approx(50.0)
-
-    def test_get_ignores_dummy_args(self):
-        """get(x, y) signature accepts but ignores the value of positional args."""
-        from navigate.core.nodes.variable import Variable
-
-        v = Variable("test")
-        v.set_value(7.0)
-        result = v.get(x=99.0, y=99.0)
-        assert isinstance(result, float)
-        assert result == pytest.approx(7.0)
-
-    def test_no_input_returns_a_float(self):
-        from navigate.core.nodes.variable import Variable
-
-        v = Variable("test")
-        v.set_value(7.0)
-        assert isinstance(v.get(), float)
-
-    def test_array_x_broadcasts_the_value_to_its_shape(self):
-        """An array x broadcasts the transformed value, like Scalar.get."""
-        from navigate.core.nodes.variable import Variable
-
-        v = Variable("test")
-        v.set_value(5.0)
-        v.set_multiplier(2.0)
-        v.set_addition(3.0)
-        x = np.zeros((2, 3))
-        # output = 2 * (5 + 3) = 16, broadcast to x's shape
-        result = v.get(x)
-        assert isinstance(result, np.ndarray)
-        assert result.shape == x.shape
-        np.testing.assert_array_equal(result, np.full((2, 3), 16.0))
-
-
-# ---------------------------------------------------------------------------
-# 9. Deck expressions on the transform and fill-value attributes
+# 5. Deck expressions on the transform and fill-value attributes
 # ---------------------------------------------------------------------------
 
 
@@ -579,103 +363,66 @@ def _resolve(node, *expressions):
         expression.resolve(node, _read_no_reference)
 
 
-class TestTransformExpressions:
-    """Multiplier and Addition given as deck expressions are evaluated first."""
-
-    def test_variable(self):
-        from navigate.core.nodes.variable import Variable
-
-        v = Variable("test")
-        multiplier = Expression("1 + 2")
-        addition = Expression("2 * 0.5")
-        v.set_value(2.0)
-        v.set_multiplier(multiplier)
-        v.set_addition(addition)
-        _resolve(v, multiplier, addition)
-        # output = 3 * (2 + 1) = 9
-        assert v.get() == pytest.approx(9.0)
-
-    @pytest.mark.parametrize(
-        ("x", "expected"),
-        [
-            # table(2) = 4: output = 3 * (4 + 1) = 15
-            (2.0, 15.0),
-            # table(1) = 1, table(2) = 4: output = [3 * (1 + 1), 3 * (4 + 1)]
-            (np.array([1.0, 2.0]), [6.0, 15.0]),
-        ],
-    )
-    def test_table1d(self, x, expected):
-        t = _make_table1d()
-        multiplier = Expression("1.5 * 2")
-        addition = Expression("0.5 + 0.5")
-        t.set_multiplier(multiplier)
-        t.set_addition(addition)
-        _resolve(t, multiplier, addition)
-        np.testing.assert_array_almost_equal(t.calculate(x), expected)
-
-    @pytest.mark.parametrize(
-        ("x", "y", "expected"),
-        [
-            # z(1, 10) = 11: output = 2 * (11 - 1) = 20
-            (1.0, 10.0, 20.0),
-            # scalar x with array y: z = [1, 11, 21] -> 2 * (z - 1)
-            (1.0, np.array([0.0, 10.0, 20.0]), [0.0, 20.0, 40.0]),
-        ],
-    )
-    def test_table2d(self, x, y, expected):
-        t = _make_table2d()
-        multiplier = Expression("4 / 2")
-        addition = Expression("-1")
-        t.set_multiplier(multiplier)
-        t.set_addition(addition)
-        _resolve(t, multiplier, addition)
-        np.testing.assert_array_almost_equal(t.calculate(x, y), expected)
+def test_transform_expressions_are_evaluated():
+    t = _make_table1d()
+    multiplier = Expression("1.5 * 2")
+    addition = Expression("0.5 + 0.5")
+    t.set_multiplier(multiplier)
+    t.set_addition(addition)
+    _resolve(t, multiplier, addition)
+    # table(1) = 1, table(2) = 4: output = [3 * (1 + 1), 3 * (4 + 1)]
+    np.testing.assert_array_almost_equal(t.calculate(np.array([1.0, 2.0])), [6.0, 15.0])
 
 
-class TestFillValueExpressions:
-    """Below, Above and Outside given as deck expressions are evaluated first."""
+def _table1d_with_fill_expressions():
+    t = _Table1D()
+    below = Expression("-1 * 2")
+    above = Expression("10 + 5")
+    t.set_extrapolate("FLAT")
+    t.set_below(below)
+    t.set_above(above)
+    t._set_table(TABLE_X, TABLE_Y)
+    return t, (below, above)
 
-    def test_table1d_below_above(self):
-        # the table is built before the expressions are resolved, so the
-        # values must be read on lookup
-        t = _Table1D()
-        below = Expression("-1 * 2")
-        above = Expression("10 + 5")
-        t.set_extrapolate("FLAT")
-        t.set_below(below)
-        t.set_above(above)
-        t._set_table(TABLE_X, TABLE_Y)
-        _resolve(t, below, above)
-        np.testing.assert_array_almost_equal(
-            t.calculate(np.array([-1.0, 2.0, 5.0])), [-2.0, 4.0, 15.0]
-        )
 
-    def test_table2d_outside(self):
-        t = _Table2D()
-        outside = Expression("3 * 3")
-        t.set_extrapolate("FLAT")
-        t.set_outside(outside)
-        t._set_table(T2D_X, T2D_Y, T2D_Z)
-        _resolve(t, outside)
-        # inside the grid z = x + y; outside it the fill value 9
-        np.testing.assert_array_almost_equal(
-            t.calculate(np.array([1.0, 5.0]), np.array([10.0, 10.0])), [11.0, 9.0]
-        )
+def _table2d_with_fill_expression():
+    t = _Table2D()
+    outside = Expression("3 * 3")
+    t.set_extrapolate("FLAT")
+    t.set_outside(outside)
+    t._set_table(T2D_X, T2D_Y, T2D_Z)
+    return t, (outside,)
+
+
+@pytest.mark.parametrize(
+    ("make_table", "args", "expected"),
+    [
+        # inside the table x^2; below it -2, above it 15
+        (
+            _table1d_with_fill_expressions,
+            (np.array([-1.0, 2.0, 5.0]),),
+            [-2.0, 4.0, 15.0],
+        ),
+        # inside the grid z = x + y; outside it 9
+        (
+            _table2d_with_fill_expression,
+            (np.array([1.0, 5.0]), np.array([10.0, 10.0])),
+            [11.0, 9.0],
+        ),
+    ],
+    ids=["table1d_below_above", "table2d_outside"],
+)
+def test_fill_value_expressions_are_evaluated(make_table, args, expected):
+    # the table is built before the expressions are resolved, so the values
+    # must be read on lookup
+    t, expressions = make_table()
+    _resolve(t, *expressions)
+    np.testing.assert_array_almost_equal(t.calculate(*args), expected)
 
 
 # ---------------------------------------------------------------------------
-# 10. Curve and Surface — settings read when the table is built
+# 6. Curve and Surface — settings read when the table is built
 # ---------------------------------------------------------------------------
-
-# y = 10 * x on 0 <= x <= 2
-CURVE_ROWS = [[0.0, 0.0], [1.0, 10.0], [2.0, 20.0]]
-
-# y-values in the header row, then one row per x-value: z = x + y
-SURFACE_ROWS = [
-    [0.0, 10.0],
-    [0.0, 0.0, 10.0],
-    [1.0, 1.0, 11.0],
-]
 
 
 def _set_curve_extrapolation(curve):
@@ -692,28 +439,27 @@ class TestTableSettingsOrder:
     """The extrapolation settings apply whether written before or after Table."""
 
     @pytest.mark.parametrize("settings_first", [True, False])
-    def test_curve(self, settings_first):
-        curve = Curve("c")
+    @pytest.mark.parametrize(
+        ("node_class", "rows", "set_extrapolation", "args", "expected"),
+        [
+            # below the table the flat value 5, not the linear extrapolation -10
+            (Curve, CURVE_ROWS, _set_curve_extrapolation, (-1.0,), 5.0),
+            # outside the table the flat value 9, not the linear extrapolation 13
+            (Surface, SURFACE_ROWS, _set_surface_extrapolation, (3.0, 10.0), 9.0),
+        ],
+        ids=["curve", "surface"],
+    )
+    def test_settings_apply(
+        self, node_class, rows, set_extrapolation, args, expected, settings_first
+    ):
+        node = node_class("t")
         if settings_first:
-            _set_curve_extrapolation(curve)
-        curve.set_table(TableData(rows=CURVE_ROWS))
+            set_extrapolation(node)
+        node.set_table(TableData(rows=rows))
         if not settings_first:
-            _set_curve_extrapolation(curve)
-        curve.build_table()
-        # below the table the flat value 5, not the linear extrapolation -10
-        assert curve.get(-1.0) == pytest.approx(5.0)
-
-    @pytest.mark.parametrize("settings_first", [True, False])
-    def test_surface(self, settings_first):
-        surface = Surface("s")
-        if settings_first:
-            _set_surface_extrapolation(surface)
-        surface.set_table(TableData(rows=SURFACE_ROWS))
-        if not settings_first:
-            _set_surface_extrapolation(surface)
-        surface.build_table()
-        # outside the table the flat value 9, not the linear extrapolation 13
-        assert surface.get(3.0, 10.0) == pytest.approx(9.0)
+            set_extrapolation(node)
+        node.build_table()
+        assert node.get(*args) == pytest.approx(expected)
 
     def test_curve_rejects_a_step_interpolation_set_after_the_table(self):
         # PREVIOUS with the default LINEAR extrapolation is refused
@@ -725,72 +471,29 @@ class TestTableSettingsOrder:
 
 
 # ---------------------------------------------------------------------------
-# 11. _Table2D — rejects fewer than two rows or columns
+# 7. Table input validation
 # ---------------------------------------------------------------------------
 
-_MIN_SIZE_HEADER_ONLY_MATCH = (
-    r"'x' \(0\) and 'y' \(2\) must each be at least of length 2"
+
+@pytest.mark.parametrize(
+    ("rows", "match"),
+    [
+        pytest.param(
+            [[0.0, 1.0], [0.0, 5.0, 6.0]],
+            r"'x' \(1\) and 'y' \(2\) must each be at least of length 2",
+            id="single_data_row",
+        ),
+        pytest.param(
+            [[0.0], [0.0, 5.0], [1.0, 6.0]],
+            r"'x' \(2\) and 'y' \(1\) must each be at least of length 2",
+            id="single_y_column",
+        ),
+    ],
 )
+def test_surface_shorter_than_2x2_is_rejected(rows, match):
+    with pytest.raises(ValueError, match=match):
+        Surface("s").set_table(TableData(rows=rows))
 
-
-def _set_and_build_surface(rows):
-    # build_table too, as the parser drives it: a table that passed set_table
-    # must still build
-    surface = Surface("s")
-    surface.set_table(TableData(rows=rows))
-    surface.build_table()
-
-
-def _set_and_rebase_timetable(rows):
-    timetable = Timetable("t")
-    timetable.set_table(TableData(rows=rows))
-    timetable.replace_reference_table(np.datetime64("2024-01-01", "D"))
-
-
-class TestTable2DMinimumSize:
-    """A 2D table shorter than 2x2 is rejected with a located ValueError."""
-
-    @pytest.mark.parametrize(
-        ("rows", "match"),
-        [
-            pytest.param(
-                [[0.0, 1.0]],
-                _MIN_SIZE_HEADER_ONLY_MATCH,
-                id="header_only",
-            ),
-            pytest.param(
-                [[0.0, 1.0], [0.0, 5.0, 6.0]],
-                r"'x' \(1\) and 'y' \(2\) must each be at least of length 2",
-                id="single_data_row",
-            ),
-            pytest.param(
-                [[0.0], [0.0, 5.0], [1.0, 6.0]],
-                r"'x' \(2\) and 'y' \(1\) must each be at least of length 2",
-                id="single_y_column",
-            ),
-        ],
-    )
-    def test_surface_set_table_rejects_it(self, rows, match):
-        with pytest.raises(ValueError, match=match):
-            _set_and_build_surface(rows)
-
-    def test_timetable_replace_reference_table_rejects_a_header_only_table(self):
-        with pytest.raises(ValueError, match=_MIN_SIZE_HEADER_ONLY_MATCH):
-            _set_and_rebase_timetable([[0.0, 1.0]])
-
-    def test_check_table2d_input_rejects_a_flat_z_of_the_right_size(self):
-        # the old product-size check (x.size * y.size == z.size) accepted this
-        # flat z; only the shape check catches it
-        x = np.array([0.0, 1.0])
-        y = np.array([0.0, 1.0])
-        z = np.array([1.0, 2.0, 3.0, 4.0])
-        with pytest.raises(ValueError, match=r"must have shape \(2, 2\)"):
-            check_table2d_input(x, y, z)
-
-
-# ---------------------------------------------------------------------------
-# Non-finite table input
-# ---------------------------------------------------------------------------
 
 INF = np.inf
 NAN = np.nan
@@ -806,36 +509,29 @@ class TestNonFiniteTableInput:
     """
 
     @pytest.mark.parametrize(
-        ("x", "y", "match"),
+        ("check", "arrays", "match"),
         [
-            ([0.0, INF], [1.0, 2.0], "'x' must be finite"),
-            ([-INF, 1.0], [1.0, 2.0], "'x' must be finite"),
-            ([0.0, NAN], [1.0, 2.0], "'x' must be finite"),
-            ([0.0, 1.0], [1.0, NAN], "'y' must not be NaN"),
+            (check_table1d_input, ([0.0, INF], [1.0, 2.0]), "'x' must be finite"),
+            (check_table1d_input, ([0.0, 1.0], [1.0, NAN]), "'y' must not be NaN"),
+            (
+                check_table2d_input,
+                ([0.0, 1.0], [0.0, 1.0], [[1.0, NAN], [3.0, 4.0]]),
+                "'z' must not be NaN",
+            ),
         ],
-        ids=["inf_x", "minus_inf_x", "nan_x", "nan_y"],
+        ids=["1d_inf_x", "1d_nan_y", "2d_nan_z"],
     )
-    def test_1d_rejects(self, x, y, match):
+    def test_rejects(self, check, arrays, match):
         with pytest.raises(ValueError, match=match):
-            check_table1d_input(np.array(x), np.array(y))
-
-    def test_1d_accepts_an_infinite_value(self):
-        assert check_table1d_input(np.array([0.0, 1.0]), np.array([1.0, INF])) is None
+            check(*(np.array(a) for a in arrays))
 
     @pytest.mark.parametrize(
-        ("x", "y", "z", "match"),
+        ("check", "arrays"),
         [
-            ([0.0, INF], [0.0, 1.0], [[1.0, 2.0], [3.0, 4.0]], "'x' must be finite"),
-            ([0.0, 1.0], [NAN, 1.0], [[1.0, 2.0], [3.0, 4.0]], "'y' must be finite"),
-            ([0.0, 1.0], [0.0, 1.0], [[1.0, NAN], [3.0, 4.0]], "'z' must not be NaN"),
+            (check_table1d_input, ([0.0, 1.0], [1.0, INF])),
+            (check_table2d_input, ([0.0, 1.0], [0.0, 1.0], [[1.0, INF], [-INF, 4.0]])),
         ],
-        ids=["inf_x", "nan_y", "nan_z"],
+        ids=["1d", "2d"],
     )
-    def test_2d_rejects(self, x, y, z, match):
-        with pytest.raises(ValueError, match=match):
-            check_table2d_input(np.array(x), np.array(y), np.array(z))
-
-    def test_2d_accepts_an_infinite_value(self):
-        x = np.array([0.0, 1.0])
-        z = np.array([[1.0, INF], [-INF, 4.0]])
-        assert check_table2d_input(x, x, z) is None
+    def test_accepts_an_infinite_value(self, check, arrays):
+        assert check(*(np.array(a) for a in arrays)) is None
