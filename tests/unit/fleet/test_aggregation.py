@@ -13,7 +13,7 @@ Verifies:
   - The fuel-type totals reset between time-steps instead of accumulating
     across them.
   - The carried technology charter rate accumulates multiplier-weighted into
-    the profile technology expenses.
+    the profile technology expenses, alongside the demand.
 """
 
 from __future__ import annotations
@@ -66,7 +66,7 @@ def _fleet(vessel: MagicMock, increment: VesselIncrement | None = None) -> Fleet
 
 
 class TestFuelTypeTotals:
-    def test_demand_accumulates_and_transfers_to_profile(self):
+    def test_demand_and_charter_rate_accumulate_and_transfer_to_profile(self):
         vessel = _vessel()
         vessel.expectation.get_spend_energy.return_value = 2.0
 
@@ -79,7 +79,16 @@ class TestFuelTypeTotals:
 
         vessel.power_system.get_converters.return_value = [main, dual]
 
-        fleet = _fleet(vessel)
+        fleet = _fleet(
+            vessel,
+            VesselIncrement(
+                4.0,
+                2.0,
+                1.0,
+                package_uptake=np.array([1.0]),
+                technology_charter_rate=12.0,
+            ),
+        )
         calculate_fleet_profile(fleet, fuels={}, timeline=np.arange(4.0) * YEAR, idx=1)
 
         # per converter 2. spend energy x 4 vessels: c0 adds 8 oil, c1 splits its 8 as 6
@@ -88,6 +97,8 @@ class TestFuelTypeTotals:
         assert fleet.expectation.get_fuel_type_demand(FuelTypeID.METHANOL) == 2.0
         fleet.profile.add_fuel_type_demand.assert_any_call(FuelTypeID.OIL, 14.0, 1)
         fleet.profile.add_fuel_type_demand.assert_any_call(FuelTypeID.METHANOL, 2.0, 1)
+        # the carried charter rate of 12. per vessel x 4 vessels
+        fleet.profile.add_technology_expenses.assert_called_once_with(12.0 * 4.0, 1)
 
     def test_supply_accumulates_fair_share(self):
         vessel = _vessel()
@@ -131,23 +142,3 @@ class TestFuelTypeTotals:
         calculate_fleet_profile(fleet, fuels={}, timeline=np.arange(4.0) * YEAR, idx=2)
 
         assert fleet.expectation.get_fuel_type_demand(FuelTypeID.OIL) == 8.0
-
-
-class TestFleetProfileTechnologyExpenses:
-    def test_carried_rate_accumulates_multiplier_weighted(self):
-        vessel = _vessel()
-        vessel.power_system.get_converters.return_value = []
-
-        fleet = _fleet(
-            vessel,
-            VesselIncrement(
-                4.0,
-                2.0,
-                1.0,
-                package_uptake=np.array([1.0]),
-                technology_charter_rate=12.0,
-            ),
-        )
-        calculate_fleet_profile(fleet, fuels={}, timeline=np.arange(4.0) * YEAR, idx=1)
-
-        fleet.profile.add_technology_expenses.assert_called_once_with(12.0 * 4.0, 1)

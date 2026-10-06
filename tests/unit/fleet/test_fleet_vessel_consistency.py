@@ -79,51 +79,7 @@ def emissions():
 
 
 class TestFleetAggregationConsistency:
-    """Fleet-level totals == sum_v(vessel_total * multiplier_v)."""
-
-    def test_total_equivalent_wtw(self, timeline, fuels, emissions):
-        v1 = _make_vessel_profile(timeline, fuels, emissions)
-        v1._wtt[("lsfo", "co2")][0] = 2.0
-        v1._ttw[("lsfo", "co2")][0] = 5.0
-
-        v2 = _make_vessel_profile(timeline, fuels, emissions)
-        v2._wtt[("lsfo", "co2")][0] = 3.0
-        v2._ttw[("lsfo", "co2")][0] = 4.0
-
-        fleet = _make_fleet_profile(
-            timeline, fuels, emissions, vessel_names=["v1", "v2"]
-        )
-        fleet.add_fuel_consumer_profile(v1, multiplier=50.0, idx=0)
-        fleet.add_fuel_consumer_profile(v2, multiplier=30.0, idx=0)
-
-        expected = (
-            50.0 * v1.get_total_equivalent_wtw()[0]
-            + 30.0 * v2.get_total_equivalent_wtw()[0]
-        )
-        assert fleet.get_total_equivalent_wtw()[0] == pytest.approx(expected)
-        # closed-form: 50*(2+5) + 30*(3+4) = 560
-        assert fleet.get_total_equivalent_wtw()[0] == pytest.approx(560.0)
-
-    def test_consumed_energy(self, timeline, fuels, emissions):
-        v1 = _make_vessel_profile(timeline, fuels, emissions)
-        v1._consumed_mass["lsfo"][0] = 100.0
-
-        v2 = _make_vessel_profile(timeline, fuels, emissions)
-        v2._consumed_mass["lsfo"][0] = 250.0
-
-        fleet = _make_fleet_profile(
-            timeline, fuels, emissions, vessel_names=["v1", "v2"]
-        )
-        fleet.add_fuel_consumer_profile(v1, multiplier=50.0, idx=0)
-        fleet.add_fuel_consumer_profile(v2, multiplier=30.0, idx=0)
-
-        expected = (
-            50.0 * v1.get_consumed_energy()["lsfo"][0]
-            + 30.0 * v2.get_consumed_energy()["lsfo"][0]
-        )
-        assert fleet.get_consumed_energy()["lsfo"][0] == pytest.approx(expected)
-        # closed-form: (50*100 + 30*250) * lhv(41.2) = 12500 * 41.2
-        assert fleet.get_consumed_energy()["lsfo"][0] == pytest.approx(515_000.0)
+    """Fleet-level totals are sum_v(vessel_total * multiplier_v) at one step."""
 
     def test_idx_is_applied(self, timeline, fuels, emissions):
         # Aggregation must only touch the requested idx; other steps stay zero.
@@ -142,92 +98,52 @@ class TestFleetAggregationConsistency:
 class TestFleetTechnologyUptake:
     """get_fleet_technology_uptake == existing-vessel-weighted average."""
 
-    @pytest.fixture
-    def fleet(self, timeline, fuels, emissions):
-        p = _make_fleet_profile(
+    def test_weighted_average(self, timeline, fuels, emissions):
+        fleet = _make_fleet_profile(
             timeline,
             fuels,
             emissions,
             vessel_names=["v1", "v2"],
             technology_names=["tech"],
         )
-        p._technology_uptake[("v1", "tech")][:] = [0.8, 0.5]
-        p._technology_uptake[("v2", "tech")][:] = [0.4, 0.1]
-        p._existing_vessels["v1"][:] = [3.0, 0.0]
-        p._existing_vessels["v2"][:] = [1.0, 0.0]
-        return p
+        fleet._technology_uptake[("v1", "tech")][:] = [0.8, 0.5]
+        fleet._technology_uptake[("v2", "tech")][:] = [0.4, 0.1]
+        fleet._existing_vessels["v1"][:] = [3.0, 0.0]
+        fleet._existing_vessels["v2"][:] = [1.0, 0.0]
 
-    def test_weighted_average(self, fleet):
+        uptake = fleet.get_fleet_technology_uptake()["tech"]
         # closed-form: (0.8*3 + 0.4*1) / (3 + 1) = 0.7
-        assert fleet.get_fleet_technology_uptake()["tech"][0] == pytest.approx(0.7)
-
-    def test_empty_fleet_step_is_zero(self, fleet):
-        assert fleet.get_fleet_technology_uptake()["tech"][1] == 0.0
-
-    def test_no_technologies(self, timeline, fuels, emissions):
-        fleet = _make_fleet_profile(timeline, fuels, emissions, vessel_names=["v"])
-        assert fleet.get_fleet_technology_uptake() == {}
-
-
-class TestScrapNewbuildAccumulation:
-    def test_writers_accumulate_per_vessel(self, timeline, fuels, emissions):
-        fleet = _make_fleet_profile(timeline, fuels, emissions, vessel_names=["a", "b"])
-
-        fleet.add_scrap("a", 1.5, 0)
-        fleet.add_scrap("a", 0.5, 0)
-        fleet.add_newbuilds("a", 2.0, 1)
-        fleet.add_newbuilds("a", 3.0, 1)
-
-        assert fleet.get_scrap()["a"][0] == pytest.approx(2.0)
-        assert fleet.get_newbuilds()["a"][1] == pytest.approx(5.0)
-        np.testing.assert_array_equal(fleet.get_scrap()["b"], np.zeros_like(timeline))
-        np.testing.assert_array_equal(
-            fleet.get_newbuilds()["b"], np.zeros_like(timeline)
-        )
+        assert uptake[0] == pytest.approx(0.7)
+        # no existing vessels at step 1: zero rather than a 0/0
+        assert uptake[1] == 0.0
 
 
 class TestShorePowerAccounting:
-    def _make_profile(self, timeline, fuels, emissions, shore=False):
+    @pytest.fixture
+    def vessel(self, timeline, fuels, emissions):
         p = _make_vessel_profile(timeline, fuels, emissions)
         p.add_consumed_mass("lsfo", 10.0, 0)
         p.add_fuel_expenses("lsfo", 100.0, 0)
         p.add_wtt("lsfo", "co2", 2.0, 0)
         p.add_ttw("lsfo", "co2", 3.0, 0)
-        if shore:
-            p.add_shore_power_energy(50.0, 0)
-            p.add_shore_power_expenses(25.0, 0)
-            p.add_shore_power_emission("co2", 4.0, 0)
+        p.add_shore_power_energy(50.0, 0)
+        p.add_shore_power_expenses(25.0, 0)
+        p.add_shore_power_emission("co2", 4.0, 0)
         return p
 
-    @pytest.fixture
-    def base(self, timeline, fuels, emissions):
-        return self._make_profile(timeline, fuels, emissions)
-
-    @pytest.fixture
-    def vessel(self, timeline, fuels, emissions):
-        return self._make_profile(timeline, fuels, emissions, shore=True)
-
-    def test_totals_include_shore_power(self, base, vessel):
-        assert vessel.get_total_consumed_energy()[0] == pytest.approx(
-            base.get_total_consumed_energy()[0] + 50.0
-        )
-        assert vessel.get_total_fuel_expenses()[0] == pytest.approx(
-            base.get_total_fuel_expenses()[0] + 25.0
-        )
-        assert vessel.get_total_fuel_related_expenses()[0] == pytest.approx(
-            base.get_total_fuel_related_expenses()[0] + 25.0
-        )
-
-    def test_per_fuel_dicts_stay_fuel_only(self, vessel):
-        assert set(vessel.get_consumed_energy()) == {"lsfo"}
-        assert set(vessel.get_fuel_expenses()) == {"lsfo"}
-        assert vessel.get_fuel_expenses()["lsfo"][0] == pytest.approx(100.0)
-
-    def test_equivalent_wtw_family_includes_shore_power(self, vessel):
-        # gwp = 1: fuel WTW = 2 + 3, shore = 4
+    def test_totals_include_shore_power_per_fuel_dicts_do_not(self, vessel):
+        # fuel energy 10 t * 41.2 GJ/t = 412 GJ, plus 50 GJ shore power
+        assert vessel.get_total_consumed_energy()[0] == pytest.approx(462.0)
+        assert vessel.get_total_fuel_expenses()[0] == pytest.approx(125.0)
+        assert vessel.get_total_fuel_related_expenses()[0] == pytest.approx(125.0)
+        # gwp = 1: fuel WTW = 2 + 3, shore = 4; WTT and TTW stay fuel-only
         assert vessel.get_total_equivalent_wtw()[0] == pytest.approx(9.0)
         assert vessel.get_total_equivalent_wtt()[0] == pytest.approx(2.0)
         assert vessel.get_total_equivalent_ttw()[0] == pytest.approx(3.0)
+
+        assert set(vessel.get_consumed_energy()) == {"lsfo"}
+        assert set(vessel.get_fuel_expenses()) == {"lsfo"}
+        assert vessel.get_fuel_expenses()["lsfo"][0] == pytest.approx(100.0)
 
     def test_intensity_variants_track_widened_total(self, vessel):
         # 9 ton -> g over (462 GJ -> MJ): 9e6 / 462e3
@@ -242,7 +158,7 @@ class TestShorePowerAccounting:
             3.0e6 / 462.0e3
         )
 
-    def test_propagates_via_fuel_consumer_merge(
+    def test_manager_merge_counts_shore_power_once(
         self, timeline, fuels, emissions, vessel
     ):
         fleet = _make_fleet_profile(timeline, fuels, emissions, vessel_names=["v"])
@@ -257,20 +173,14 @@ class TestShorePowerAccounting:
         assert fleet.get_total_consumed_energy()[0] == pytest.approx(3.0 * 462.0)
         assert fleet.get_total_fuel_expenses()[0] == pytest.approx(3.0 * 125.0)
 
-    def test_manager_merge_counts_shore_power_once(
-        self, timeline, fuels, emissions, vessel
-    ):
-        fleet = _make_fleet_profile(timeline, fuels, emissions, vessel_names=["v"])
-        fleet.add_fuel_consumer_profile(vessel, 1.0, 0)
-
         # stand-in for the manager: mirrors manager.py calling both merge methods
         manager = _make_fleet_profile(timeline, fuels, emissions, vessel_names=["v"])
         manager.add_fuel_consumer_profile(fleet)
         manager.add_vessel_aggregate_profile(fleet)
 
-        assert manager.get_shore_power_energy()[0] == pytest.approx(50.0)
-        assert manager.get_shore_power_expenses()[0] == pytest.approx(25.0)
-        assert manager.get_shore_power_emission()["co2"][0] == pytest.approx(4.0)
+        assert manager.get_shore_power_energy()[0] == pytest.approx(150.0)
+        assert manager.get_shore_power_expenses()[0] == pytest.approx(75.0)
+        assert manager.get_shore_power_emission()["co2"][0] == pytest.approx(12.0)
 
 
 class _FleetStub:

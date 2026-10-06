@@ -27,7 +27,8 @@ from navigate.core.enum_ import (
     EnergyDemandTypePortID,
 )
 from navigate.core.expectations.vessel_expectation import VesselExpectation
-from navigate.core.nodes.variable import Variable
+from navigate.core.nodes.curve import Curve
+from navigate.core.table_data import TableData
 from navigate.core.unit import MWD_TO_GJ
 from navigate.exceptions import PowerCapacityError
 from navigate.fleet.power import (
@@ -125,31 +126,44 @@ def _make_vessel(**overrides) -> _StubVessel:
     return _StubVessel(**defaults)
 
 
+_LIMIT = 10.0 * 10.0 * MWD_TO_GJ  # 10 MW converter over a 10-day leg
+
+
 class TestVerifyPowerCapacity:
     @pytest.mark.parametrize(
-        ("load_factor", "raises"),
+        ("energy", "time", "error"),
         [
             # a load equal to the installed power is feasible, not a violation
-            pytest.param(1.0, False, id="exactly_at_capacity"),
-            pytest.param(1.0 + TOLERANCE / 2.0, False, id="just_inside_tolerance_band"),
-            pytest.param(1.0 + 2.0 * TOLERANCE, True, id="just_outside_tolerance_band"),
+            pytest.param(_LIMIT, 10.0, None, id="exactly_at_capacity"),
+            pytest.param(
+                _LIMIT * (1.0 + TOLERANCE / 2.0),
+                10.0,
+                None,
+                id="just_inside_tolerance_band",
+            ),
+            pytest.param(
+                _LIMIT * (1.0 + 2.0 * TOLERANCE),
+                10.0,
+                "propulsion demand on leg 0",
+                id="just_outside_tolerance_band",
+            ),
+            # a leg with no time and no energy demands no power
+            pytest.param(0.0, 0.0, None, id="zero_time_zero_energy"),
+            # energy over no time is an unbounded power demand
+            pytest.param(100.0, 0.0, "inf MW", id="zero_time_with_energy"),
         ],
     )
-    def test_capacity_tolerance_boundary(self, load_factor, raises):
-        limit = 10.0 * 10.0 * MWD_TO_GJ
+    def test_capacity_tolerance_boundary(self, energy, time, error):
         vessel = _make_vessel(
-            energies_sea={
-                PROPULSION: [limit * load_factor],
-                ELECTRICAL: [0.0],
-                HEAT: [0.0],
-            }
+            energies_sea={PROPULSION: [energy], ELECTRICAL: [0.0], HEAT: [0.0]},
+            times_sea=[time],
         )
 
-        if raises:
-            with pytest.raises(PowerCapacityError):
-                verify_power_capacity(vessel, IDX)
-        else:
+        if error is None:
             verify_power_capacity(vessel, IDX)
+        else:
+            with pytest.raises(PowerCapacityError, match=error):
+                verify_power_capacity(vessel, IDX)
 
     def test_sea_overload_errors_naming_converter_and_leg(self):
         overload = 12.0 * 10.0 * MWD_TO_GJ
@@ -171,36 +185,11 @@ class TestVerifyPowerCapacity:
         assert "12.00 MW" in message
         assert "10.00 MW" in message
 
-    @pytest.mark.parametrize(
-        ("demand_type", "message"),
-        [
-            pytest.param(HEAT, "heat demand on port 0", id="heat"),
-            pytest.param(ELECTRICAL, "electrical demand on port 0", id="electrical"),
-        ],
-    )
-    def test_port_overload_errors_by_demand_type(self, demand_type, message):
+    def test_port_overload_errors(self):
         """Port demand must fit onboard converter; shore power gives no allowance."""
-        energies_port = {ELECTRICAL: [0.0], HEAT: [0.0]}
-        energies_port[demand_type] = [11.0 * 10.0 * MWD_TO_GJ]
-        vessel = _make_vessel(energies_port=energies_port)
+        vessel = _make_vessel(energies_port={ELECTRICAL: [0.0], HEAT: [1.1 * _LIMIT]})
 
-        with pytest.raises(PowerCapacityError, match=message):
-            verify_power_capacity(vessel, IDX)
-
-    def test_zero_time_zero_energy_passes(self):
-        vessel = _make_vessel(
-            energies_sea={PROPULSION: [0.0], ELECTRICAL: [0.0], HEAT: [0.0]},
-            times_sea=[0.0],
-        )
-        verify_power_capacity(vessel, IDX)
-
-    def test_zero_time_with_energy_errors(self):
-        vessel = _make_vessel(
-            energies_sea={PROPULSION: [100.0], ELECTRICAL: [0.0], HEAT: [0.0]},
-            times_sea=[0.0],
-        )
-
-        with pytest.raises(PowerCapacityError, match="inf MW"):
+        with pytest.raises(PowerCapacityError, match="heat demand on port 0"):
             verify_power_capacity(vessel, IDX)
 
     def test_multiple_violations_reported_in_one_error(self):
@@ -289,87 +278,114 @@ class TestSimulationGating:
             }
         )
 
-    def test_zero_multiplier_vessel_is_skipped(self):
+    @pytest.mark.parametrize(
+        ("expected_multipliers", "expected_raises"),
+        [
+            # out of scope in both: the overloaded vessel is skipped
+            pytest.param([0.0] * (IDX + 3), False, id="zero_multiplier_skipped"),
+            # only the expected scope admits the vessel, and only it errors
+            pytest.param(
+                [0.0] * IDX + [1.0, 1.0, 1.0], True, id="scope_selects_own_multiplier"
+            ),
+            # expected bunkering builds one LP per future step, so a vessel entering
+            # only at a later forecast step is still verified
+            pytest.param(
+                [0.0] * (IDX + 2) + [1.0], True, id="expected_spans_remaining_horizon"
+            ),
+        ],
+    )
+    def test_gating(self, expected_multipliers, expected_raises):
         manager = self._make_manager(
             self._make_overloaded_vessel(),
             existing_multiplier=0.0,
-            expected_multipliers=[0.0] * (IDX + 3),
-        )
-
-        SimulationManager._verify_power_capacity(manager, BunkerScopeID.EXISTING)
-        SimulationManager._verify_power_capacity(manager, BunkerScopeID.EXPECTED)
-
-    def test_scope_selects_its_own_multiplier(self):
-        manager = self._make_manager(
-            self._make_overloaded_vessel(),
-            existing_multiplier=0.0,
-            expected_multipliers=[0.0] * IDX + [1.0, 1.0, 1.0],
+            expected_multipliers=expected_multipliers,
         )
 
         SimulationManager._verify_power_capacity(manager, BunkerScopeID.EXISTING)
 
-        with pytest.raises(PowerCapacityError):
+        if expected_raises:
+            with pytest.raises(PowerCapacityError):
+                SimulationManager._verify_power_capacity(
+                    manager, BunkerScopeID.EXPECTED
+                )
+        else:
             SimulationManager._verify_power_capacity(manager, BunkerScopeID.EXPECTED)
 
-    def test_expected_gating_covers_the_remaining_horizon(self):
-        """
-        A vessel entering only at a later forecast step is still verified.
 
-        Expected bunkering builds one LP per future step, so the gate spans the horizon.
-        """
-        manager = self._make_manager(
-            self._make_overloaded_vessel(),
-            existing_multiplier=0.0,
-            expected_multipliers=[0.0] * (IDX + 2) + [1.0],
-        )
+def _curve(rows: list[list[float]]) -> Curve:
+    curve = Curve("load")
+    curve.set_table(TableData(rows=rows))
+    curve.build_table()
+    return curve
 
-        SimulationManager._verify_power_capacity(manager, BunkerScopeID.EXISTING)
 
-        with pytest.raises(PowerCapacityError):
-            SimulationManager._verify_power_capacity(manager, BunkerScopeID.EXPECTED)
+# propulsion power against speed: slopes 0.6 then 1.0 MW/kn, so strictly increasing
+# and convex
+_CONVEX_ROWS = [[10.0, 2.0], [15.0, 5.0], [20.0, 10.0]]
+
+# slopes 1.2 then 0.4 MW/kn: concave
+_CONCAVE_ROWS = [[10.0, 2.0], [15.0, 8.0], [20.0, 10.0]]
 
 
 class TestCalculateTechnicalSpeedLimits:
-    """A propulsion load with no speed-power curve sets no technical limit, per leg."""
+    """The speed limits are the reverse lookup of the converter power on the load."""
 
-    @pytest.mark.parametrize(
-        "load",
-        [Expression("1 + 2"), Scalar(1.0), Variable("v")],
-        ids=["expression", "scalar", "variable"],
-    )
-    def test_curveless_propulsion_load_gives_no_technical_limit(self, load):
+    def test_curveless_propulsion_load_gives_no_technical_limit(self):
         route = SimpleNamespace(get_number_of_legs=lambda: 3)
-        vessel = SimpleNamespace(propulsion_load=load, route=route)
+        vessel = SimpleNamespace(propulsion_load=Expression("1 + 2"), route=route)
 
         speed_min, speed_max = calculate_technical_speed_limits(vessel)
 
         np.testing.assert_array_equal(speed_min, np.full(3, -np.inf))
         np.testing.assert_array_equal(speed_max, np.full(3, np.inf))
 
+    @pytest.mark.parametrize(
+        ("capacity", "minimum_load", "expected_min", "expected_max"),
+        [
+            # 8 MW capacity at 50 % minimum load: 4 MW lies two thirds of the way up
+            # the 2-5 MW segment (10 + 10/3 kn), 8 MW three fifths up the 5-10 MW
+            # segment (15 + 3 kn)
+            (8.0, 0.5, 10.0 + 10.0 / 3.0, 18.0),
+            # no minimum load: the curve's first speed; 12 MW exceeds the load's
+            # largest power, so the curve's last speed
+            (12.0, None, 10.0, 20.0),
+        ],
+    )
+    def test_curve_load_reverse_lookup(
+        self, capacity, minimum_load, expected_min, expected_max
+    ):
+        converter = SimpleNamespace(
+            power_capacity=Scalar(capacity),
+            minimum_load=None if minimum_load is None else Scalar(minimum_load),
+        )
+        vessel = SimpleNamespace(
+            propulsion_load=_curve(_CONVEX_ROWS),
+            power_system=SimpleNamespace(propulsion=converter),
+            route=SimpleNamespace(get_number_of_legs=lambda: 2),
+        )
+
+        speed_min, speed_max = calculate_technical_speed_limits(vessel)
+
+        np.testing.assert_allclose(speed_min, [expected_min] * 2)
+        np.testing.assert_allclose(speed_max, [expected_max] * 2)
+
 
 class TestLoadsAreConvex:
-    """An expression's shape is unknown, so it is treated as non-convex."""
-
     @pytest.mark.parametrize(
-        "expression_attribute",
-        ["propulsion_load", "electrical_load_at_sea", "heat_load_at_sea"],
+        ("propulsion_load", "expected"),
+        [
+            # an expression's shape is unknown, so it is treated as non-convex
+            pytest.param(Expression("1 + 2"), False, id="expression"),
+            pytest.param(Scalar(1.0), True, id="scalar"),
+            pytest.param(_curve(_CONVEX_ROWS), True, id="convex_curve"),
+            pytest.param(_curve(_CONCAVE_ROWS), False, id="concave_curve"),
+        ],
     )
-    def test_any_expression_load_is_not_convex(self, expression_attribute):
-        loads = {
-            "propulsion_load": Scalar(1.0),
-            "electrical_load_at_sea": Scalar(1.0),
-            "heat_load_at_sea": Scalar(1.0),
-        }
-        loads[expression_attribute] = Expression("1 + 2")
-        vessel = SimpleNamespace(**loads)
-
-        assert loads_are_convex(vessel) is False
-
-    def test_all_scalar_loads_are_convex(self):
+    def test_loads_are_convex(self, propulsion_load, expected):
         vessel = SimpleNamespace(
-            propulsion_load=Scalar(1.0),
+            propulsion_load=propulsion_load,
             electrical_load_at_sea=Scalar(1.0),
             heat_load_at_sea=Scalar(1.0),
         )
 
-        assert loads_are_convex(vessel) is True
+        assert loads_are_convex(vessel) is expected

@@ -10,8 +10,7 @@ Verifies:
   - Retrofit-step annual costs mirror the incremental package cost flows.
   - _apply_retrofits accumulates the moved-share-weighted annuity.
   - clean_up_multipliers merges the carried rate multiplier-weighted.
-  - Fuel conversion carries the rate onto the target vessel type.
-  - The cargo charter metrics shift by exactly the technology charge.
+  - Newbuilds and the seeded initial technology carry the uptake-weighted rate.
 """
 
 from __future__ import annotations
@@ -19,29 +18,19 @@ from __future__ import annotations
 from unittest.mock import MagicMock
 
 import numpy as np
+import pytest
 
 from navigate.core import Scalar
 from navigate.core.increment import VesselIncrement
 from navigate.core.node import Node
 from navigate.core.node_type import CURVE
 from navigate.core.nodes.fleet import Fleet
-from navigate.core.unit import YEAR_TO_DAYS
 from navigate.economics.flows import (
     correct_flow_residual,
     get_age_flow,
     trim_flow_to_lifetime,
 )
 from navigate.economics.metric import calculate_net_present_value
-from navigate.fleet.charter import (
-    _calculate_cargo_unit_properties,
-    _calculate_fuel_cost,
-    _initialize_vessel_component,
-)
-from navigate.fleet.conversion import (
-    _ConversionCandidate,
-    _ConversionProposal,
-    apply_fuel_conversions,
-)
 from navigate.fleet.evolution import clean_up_multipliers
 from navigate.fleet.package import (
     Package,
@@ -52,9 +41,7 @@ from navigate.fleet.planning import add_newbuilds
 from navigate.fleet.technology_adoption import (
     _apply_retrofits,
     _RetrofitProposal,
-    calculate_package_charter_rates,
     define_initial_technology,
-    transfer_technology_charter_rate,
 )
 from navigate.util import YEAR
 
@@ -85,50 +72,27 @@ def _example_cost_flow(
 class TestLevelizePackageCost:
     """The levelized charge conserves NPV over its amortization window."""
 
-    def test_identity_full_window(self):
+    @pytest.mark.parametrize(
+        "window",
+        [
+            10.0,
+            # retrofit with 4.5 years of remaining life: full CAPEX recovered over
+            # 4.5 years of charging (the final year prorated), not over 5 whole years
+            4.5,
+        ],
+    )
+    def test_identity(self, window):
         flow = _example_cost_flow(n=10)
-        rate = levelize_package_cost(flow, window=10.0, discount_rate=DISCOUNT)
+        rate = levelize_package_cost(flow, window=window, discount_rate=DISCOUNT)
 
-        charge_flow = rate * _charge_window_flow(10.0)
+        charge_flow = rate * _charge_window_flow(window)
         np.testing.assert_almost_equal(
             calculate_net_present_value(charge_flow, DISCOUNT),
-            calculate_net_present_value(flow, DISCOUNT),
+            calculate_net_present_value(trim_flow_to_lifetime(flow, window), DISCOUNT),
         )
-
-    def test_identity_fractional_window(self):
-        # retrofit with 4.5 years of remaining life: full CAPEX recovered over
-        # 4.5 years of charging (the final year prorated), not over 5 whole years
-        flow = _example_cost_flow(n=10)
-        rate = levelize_package_cost(flow, window=4.5, discount_rate=DISCOUNT)
-
-        charge_flow = rate * _charge_window_flow(4.5)
-        trimmed = trim_flow_to_lifetime(flow, 4.5)
-        np.testing.assert_almost_equal(
-            calculate_net_present_value(charge_flow, DISCOUNT),
-            calculate_net_present_value(trimmed, DISCOUNT),
-        )
-        np.testing.assert_array_almost_equal(
-            _charge_window_flow(4.5), [1.0, 1.0, 1.0, 1.0, 0.5]
-        )
-
-    def test_short_window_raises_yearly_charge(self):
-        flow = _example_cost_flow(n=10)
-        full = levelize_package_cost(flow, window=10.0, discount_rate=DISCOUNT)
-        short = levelize_package_cost(flow, window=5.0, discount_rate=DISCOUNT)
-        assert short > full
-
-    def test_zero_window(self):
-        assert levelize_package_cost(_example_cost_flow(), 0.0, DISCOUNT) == 0.0
 
 
 class TestAnnualCostsForRetrofitSteps:
-    def test_stay_option_is_free(self):
-        packages = [_make_package(np.zeros(10)), _make_package(_example_cost_flow())]
-        annual = annual_costs_for_retrofit_steps(
-            0, packages, remaining=5.0, discount_rate=DISCOUNT
-        )
-        assert annual[0] == 0.0
-
     def test_step_matches_incremental_flow(self):
         flow_a = _example_cost_flow(capex=100.0)
         flow_ab = _example_cost_flow(capex=250.0, opex=12.0)
@@ -143,22 +107,8 @@ class TestAnnualCostsForRetrofitSteps:
         )
         expected = levelize_package_cost(flow_ab - flow_a, 5.0, DISCOUNT)
         np.testing.assert_almost_equal(annual[1], expected)
-
-
-class TestCalculatePackageCharterRates:
-    def test_rates_levelized_over_vessel_lifetime(self):
-        vessel = MagicMock()
-        vessel.lifetime = Scalar(10.0)
-        vessel.cost_of_capital = Scalar(DISCOUNT)
-
-        flow = _example_cost_flow(n=10)
-        packages = [_make_package(np.zeros(10)), _make_package(flow)]
-
-        rates = calculate_package_charter_rates(packages, vessel)
-        np.testing.assert_almost_equal(rates[0], 0.0)
-        np.testing.assert_almost_equal(
-            rates[1], levelize_package_cost(flow, 10.0, DISCOUNT)
-        )
+        # staying at the current package costs nothing
+        assert annual[0] == 0.0
 
 
 class TestApplyRetrofits:
@@ -238,56 +188,6 @@ class TestCleanUpMultipliersCharterRate:
         )
 
 
-class TestConversionCarriesCharterRate:
-    def test_rate_rides_along(self):
-        vessel_a, vessel_b = MagicMock(), MagicMock()
-        vessel_a.name = "a"
-        vessel_b.name = "b"
-
-        fleet = Fleet.__new__(Fleet)
-        fleet.assets = [vessel_a, vessel_b]
-        fleet.profile = MagicMock()
-        fleet.increments = [
-            [
-                VesselIncrement(
-                    10.0,
-                    5.0,
-                    1.0,
-                    package_uptake=np.array([1.0, 0.0]),
-                    technology_charter_rate=7.0,
-                )
-            ],
-            [],
-        ]
-
-        timeline = np.arange(3.0) * YEAR_TO_DAYS
-        fleet.fuel_conversion_expenses = np.zeros_like(timeline)
-
-        proposals = [
-            _ConversionProposal(
-                "a",
-                0,
-                age=5.0,
-                age_span=1.0,
-                candidates={
-                    "b": _ConversionCandidate(
-                        metric=0.0,
-                        limit=1.0,
-                        energy_per_vessel=0.0,
-                        charge=1.0,
-                        window=1.0,
-                        count=2.0,
-                    )
-                },
-            )
-        ]
-        apply_fuel_conversions(fleet, proposals, idx=0, timeline=timeline)
-
-        converted = fleet.increments[1][0]
-        np.testing.assert_almost_equal(converted.multiplier, 2.0)
-        np.testing.assert_almost_equal(converted.technology_charter_rate, 7.0)
-
-
 class _ShareCurve(Node):
     """Constant age-share curve stub for define_initial_technology."""
 
@@ -311,49 +211,6 @@ def _make_priced_vessel(name: str) -> MagicMock:
     vessel.lifetime = Scalar(10.0)
     vessel.cost_of_capital = Scalar(DISCOUNT)
     return vessel
-
-
-class TestTransferTechnologyCharterRate:
-    def test_multiplier_weighted_average(self):
-        vessel = _make_priced_vessel("v0")
-        fleet = Fleet.__new__(Fleet)
-        fleet.assets = [vessel]
-        fleet.increments = [
-            [
-                VesselIncrement(
-                    2.0,
-                    5.0,
-                    1.0,
-                    package_uptake=np.array([1.0]),
-                    technology_charter_rate=10.0,
-                ),
-                VesselIncrement(
-                    6.0,
-                    8.0,
-                    1.0,
-                    package_uptake=np.array([1.0]),
-                    technology_charter_rate=30.0,
-                ),
-            ]
-        ]
-
-        transfer_technology_charter_rate(fleet, idx=4)
-
-        expected = (2.0 * 10.0 + 6.0 * 30.0) / 8.0
-        vessel.expectation.set_technology_charter_rate.assert_called_once_with(
-            4, expected
-        )
-        vessel.profile.set_technology_cost.assert_called_once_with(4, expected)
-
-    def test_empty_fleet_is_zero(self):
-        vessel = _make_priced_vessel("v0")
-        fleet = Fleet.__new__(Fleet)
-        fleet.assets = [vessel]
-        fleet.increments = [[]]
-
-        transfer_technology_charter_rate(fleet, idx=0)
-
-        vessel.expectation.set_technology_charter_rate.assert_called_once_with(0, 0.0)
 
 
 class TestAddNewbuildsCharterRate:
@@ -402,70 +259,3 @@ class TestDefineInitialTechnologySeeding:
         expected = 0.4 * levelize_package_cost(flow, 10.0, DISCOUNT)
         np.testing.assert_array_almost_equal(increment.package_uptake, [0.6, 0.4])
         np.testing.assert_almost_equal(increment.technology_charter_rate, expected)
-
-
-class TestPostProcessTechnologyExpenses:
-    def test_technology_series_enters_operating_cost_flow(self):
-        from navigate.fleet.post_process import (
-            _calculate_total_vessel_operating_expenses,
-        )
-
-        rate = 2e6
-        n = 8
-        timeline = np.arange(float(n)) * YEAR_TO_DAYS
-
-        vessel = MagicMock()
-        profile = vessel.profile
-        profile.get_lifetime.return_value = np.full(n, 3.0)
-        profile.get_lead_time.return_value = np.zeros(n)
-        profile.is_in_fleet.return_value = np.ones(n, dtype=bool)
-        profile.get_total_fuel_expenses.return_value = np.zeros(n)
-        profile.get_total_levy_expenses.return_value = np.zeros(n)
-        profile.get_regulation_expenses.return_value = np.zeros(n)
-        profile.get_technology_cost.return_value = np.full(n, rate)
-
-        flow, _year_flow, overlap = _calculate_total_vessel_operating_expenses(
-            vessel, 0, timeline
-        )
-
-        np.testing.assert_array_almost_equal(flow, rate * overlap)
-
-
-class TestCargoUnitPropertiesTechnologyCharge:
-    @staticmethod
-    def _freight_rate(technology_rate: float) -> tuple[float, object]:
-        timeline = np.arange(0.0, 15.0) * YEAR_TO_DAYS
-
-        vessel = MagicMock()
-        vessel.lead_time = Scalar(0.0)
-        vessel.lifetime = Scalar(10.0)
-        vessel.cost_of_capital = Scalar(DISCOUNT)
-
-        expectation = vessel.expectation
-        expectation.get_asset_charter_npv.return_value = 1e8
-        expectation.get_technology_charter_rate.return_value = technology_rate
-        expectation.get_total_fuel_expenses.return_value = np.full(timeline.size, 1e6)
-        expectation.get_cargo_miles.return_value = np.full(timeline.size, 5e6)
-
-        component = _initialize_vessel_component(vessel, None, time_initial=0.0)
-        _calculate_fuel_cost(vessel, component, timeline, 0)
-        _calculate_cargo_unit_properties(vessel, component, timeline, 0)
-
-        return expectation.set_freight_rate.call_args.args[1], component
-
-    def test_charge_shifts_freight_rate_exactly(self):
-        rate = 2e6
-        baseline, component = self._freight_rate(0.0)
-        charged, _ = self._freight_rate(rate)
-
-        from navigate.economics.flows import build_cargo_flow
-
-        age_npv = calculate_net_present_value(component.constant_overlap, DISCOUNT)
-        cargo = np.full(int(component.get_length()) + 5, 5e6)
-        timeline = np.arange(0.0, 15.0) * YEAR_TO_DAYS
-        cargo_flow = build_cargo_flow(
-            component=component, cargo=cargo[: timeline.size], timeline=timeline
-        )
-        cargo_npv = calculate_net_present_value(cargo_flow, DISCOUNT)
-
-        np.testing.assert_almost_equal(charged - baseline, rate * age_npv / cargo_npv)

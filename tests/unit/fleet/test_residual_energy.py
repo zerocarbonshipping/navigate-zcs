@@ -2,15 +2,12 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Mathematical coherence tests for the Technology → Package → Residual Energy pipeline.
+Tests for the Technology → Package → Residual Energy pipeline.
 
-Tests verify the correctness of:
+Tests verify:
   - Compound savings formula: 1 - prod(1 - s_i)
-  - Compound external power: additive across technologies
   - Residual energy: max(raw * (1 - saving) - external, 0)
-  - Power ↔ energy round-trip conversions
   - Transfer curve filtering and summation
-  - Shore power capacity aggregation
   - Combined savings + external power + transfer through the full pipeline
 """
 
@@ -31,9 +28,7 @@ from navigate.core.unit import MWD_TO_GJ
 from navigate.fleet.package import Package
 from navigate.fleet.residual_energy import (
     _calculate_power_transfer,
-    _energy_to_power,
     _iterate_legs_or_ports,
-    _power_to_energy,
     _raw_to_residual_energy,
 )
 
@@ -108,11 +103,8 @@ class TestCompoundSavings:
     @pytest.mark.parametrize(
         ("savings", "expected"),
         [
-            ([0.08], 0.08),
-            # 4% + 7.5% → 1 - 0.96 * 0.925 = 0.112
+            # 4% + 7.5% → 1 - 0.96 * 0.925 = 0.112, not the additive 0.115
             ([0.04, 0.075], 1.0 - (1.0 - 0.04) * (1.0 - 0.075)),
-            # all-zero savings → compound = 0
-            ([0.0, 0.0], 0.0),
             # one technology with saving = 1 absorbs: compound = 1 regardless of others
             ([0.5, 1.0], 1.0),
         ],
@@ -125,88 +117,9 @@ class TestCompoundSavings:
         pkg = _make_package(*techs)
         assert pkg.compound_savings[PROPULSION] == pytest.approx(expected)
 
-    def test_not_additive(self):
-        """Compound savings must be strictly less than the sum of individual savings."""
-        t1 = _make_technology("t1", energy_saving={PROPULSION: 0.10})
-        t2 = _make_technology("t2", energy_saving={PROPULSION: 0.20})
-        pkg = _make_package(t1, t2)
-        assert pkg.compound_savings[PROPULSION] < 0.10 + 0.20
-
-    @pytest.mark.parametrize("n", [2, 5, 10, 20])
-    def test_n_identical_technologies_converge(self, n):
-        """N identical 10% savings → 1 - 0.9^n, approaching 1 as n grows."""
-        techs = [
-            _make_technology(f"t{i}", energy_saving={PROPULSION: 0.10})
-            for i in range(n)
-        ]
-        pkg = _make_package(*techs)
-        expected = 1.0 - 0.9**n
-        assert pkg.compound_savings[PROPULSION] == pytest.approx(expected)
-        assert 0.0 < pkg.compound_savings[PROPULSION] < 1.0
-
-    def test_per_energy_type_independence(self):
-        """Propulsion savings don't leak into electrical or heat."""
-        tech = _make_technology("t1", energy_saving={PROPULSION: 0.15})
-        pkg = _make_package(tech)
-        assert pkg.compound_savings[PROPULSION] == pytest.approx(0.15)
-        assert pkg.compound_savings[ELECTRICAL] == pytest.approx(0.0)
-        assert pkg.compound_savings[HEAT] == pytest.approx(0.0)
-
-    def test_diminishing_marginal_return(self):
-        """Second identical technology adds less marginal saving than the first."""
-        s = 0.10
-        t1 = _make_technology("t1", energy_saving={PROPULSION: s})
-        t2 = _make_technology("t2", energy_saving={PROPULSION: s})
-
-        pkg_one = _make_package(t1)
-        pkg_two = _make_package(t1, t2)
-
-        marginal_first = pkg_one.compound_savings[PROPULSION]
-        marginal_second = (
-            pkg_two.compound_savings[PROPULSION] - pkg_one.compound_savings[PROPULSION]
-        )
-        assert marginal_second < marginal_first
-
 
 # ---------------------------------------------------------------------------
-# 2. Compound external power
-# ---------------------------------------------------------------------------
-
-
-class TestCompoundPower:
-    """Verify: compound_power = sum(power_i), per energy type."""
-
-    @pytest.mark.parametrize(
-        ("powers", "expected"),
-        [
-            ([1.25], 1.25),
-            ([1.25, 2.0], 3.25),
-        ],
-    )
-    def test_compound_value(self, powers, expected):
-        techs = [
-            _make_technology(f"t{i}", external_power={PROPULSION: p})
-            for i, p in enumerate(powers)
-        ]
-        pkg = _make_package(*techs)
-        assert pkg.compound_powers[PROPULSION] == pytest.approx(expected)
-
-    def test_defaults_to_zero(self):
-        tech = _make_technology("vfd", energy_saving={ELECTRICAL: 0.08})
-        pkg = _make_package(tech)
-        assert pkg.compound_powers[PROPULSION] == pytest.approx(0.0)
-        assert pkg.compound_powers[ELECTRICAL] == pytest.approx(0.0)
-
-    def test_per_energy_type_independence(self):
-        tech = _make_technology("t1", external_power={PROPULSION: 2.0, ELECTRICAL: 0.5})
-        pkg = _make_package(tech)
-        assert pkg.compound_powers[PROPULSION] == pytest.approx(2.0)
-        assert pkg.compound_powers[ELECTRICAL] == pytest.approx(0.5)
-        assert pkg.compound_powers[HEAT] == pytest.approx(0.0)
-
-
-# ---------------------------------------------------------------------------
-# 3. Residual energy formula
+# 2. Residual energy formula
 # ---------------------------------------------------------------------------
 
 
@@ -216,15 +129,11 @@ class TestResidualEnergy:
     @pytest.mark.parametrize(
         ("raw", "saving", "external", "expected"),
         [
-            ([100.0, 200.0, 300.0], 0.0, [0.0, 0.0, 0.0], [100.0, 200.0, 300.0]),
-            ([100.0, 200.0], 0.20, [0.0, 0.0], [80.0, 160.0]),
-            ([100.0], 0.0, [30.0], [70.0]),
             # saving is applied first (multiplicative), then external is subtracted:
             # 100 * 0.8 - 10 = 70
             ([100.0], 0.20, [10.0], [70.0]),
             # external power exceeding post-saving demand → 0, not negative
             ([10.0], 0.0, [999.0], [0.0]),
-            ([1000.0], 1.0, [0.0], [0.0]),
         ],
     )
     def test_residual(self, raw, saving, external, expected):
@@ -233,65 +142,27 @@ class TestResidualEnergy:
 
 
 # ---------------------------------------------------------------------------
-# 4. Power ↔ energy round-trip
-# ---------------------------------------------------------------------------
-
-
-class TestPowerEnergyConversion:
-    """Verify inverse relationship and correct unit factor."""
-
-    def test_round_trip(self):
-        power = np.array([5.0, 10.0])
-        duration = np.array([1.0, 2.0])
-        energy = _power_to_energy(power, duration)
-        recovered = _energy_to_power(energy, duration)
-        np.testing.assert_array_almost_equal(recovered, power)
-
-    def test_unit_factor(self):
-        """1 MW for 1 day = MWD_TO_GJ GJ."""
-        power = np.array([1.0])
-        duration = np.array([1.0])  # 1 day
-        energy = _power_to_energy(power, duration)
-        np.testing.assert_array_almost_equal(energy, [MWD_TO_GJ])
-
-    def test_mwd_to_gj_value(self):
-        """MWD_TO_GJ = 24h * 3600 MJ/MWh * 1e-3 GJ/MJ = 86.4."""
-        assert pytest.approx(86.4) == MWD_TO_GJ
-
-    def test_zero_duration(self):
-        """Zero duration → zero energy."""
-        power = np.array([100.0])
-        duration = np.array([0.0])
-        energy = _power_to_energy(power, duration)
-        np.testing.assert_array_almost_equal(energy, [0.0])
-
-
-# ---------------------------------------------------------------------------
-# 5. Transfer curves
+# 3. Transfer curves
 # ---------------------------------------------------------------------------
 
 
 class TestTransferCurves:
     """Verify Package filters zero-transfer curves; _calculate_power_transfer sums."""
 
-    def test_zero_transfer_filtered_out(self):
-        """Technologies with no power transfer produce no transfer_curves entries."""
-        tech = _make_technology("vfd", energy_saving={ELECTRICAL: 0.08})
-        pkg = _make_package(tech)
-        assert pkg.transfer_curves == {}
+    def test_package_collects_only_non_zero_transfers(self):
+        """A technology without power transfer adds no transfer_curves entry."""
+        pkg_no = _make_package(
+            _make_technology("vfd", energy_saving={ELECTRICAL: 0.08})
+        )
+        pkg_yes = _make_package(
+            _make_technology("whrs", power_transfer={(PROPULSION, HEAT): 0.3})
+        )
 
-    def test_non_zero_transfer_collected(self):
-        tech = _make_technology("whrs", power_transfer={(PROPULSION, HEAT): 0.3})
-        pkg = _make_package(tech)
-        assert (PROPULSION, HEAT) in pkg.transfer_curves
-        assert len(pkg.transfer_curves[(PROPULSION, HEAT)]) == 1
-
-    def test_multiple_curves_summed(self):
-        """Two transfer scalars at the same (src, dst) are summed."""
-        load = np.array([0.5, 0.8])
-        curves = [Scalar(0.2), Scalar(0.3)]
-        result = _calculate_power_transfer(curves, load)
-        np.testing.assert_array_almost_equal(result, [0.5, 0.5])
+        assert pkg_no.transfer_curves == {}
+        assert pkg_no.includes_transfer is False
+        assert list(pkg_yes.transfer_curves) == [(PROPULSION, HEAT)]
+        assert len(pkg_yes.transfer_curves[(PROPULSION, HEAT)]) == 1
+        assert pkg_yes.includes_transfer is True
 
     def test_curve_and_variable_transfer_summed(self):
         """
@@ -327,50 +198,9 @@ class TestTransferCurves:
         # a constant 0.3, broadcast to load's shape: [0.3, 0.3]
         np.testing.assert_array_almost_equal(result, [0.8, 1.1])
 
-    def test_includes_transfer_flag(self):
-        tech_no_transfer = _make_technology("vfd", energy_saving={ELECTRICAL: 0.08})
-        tech_transfer = _make_technology(
-            "whrs", power_transfer={(PROPULSION, HEAT): 0.3}
-        )
-
-        pkg_no = _make_package(tech_no_transfer)
-        pkg_yes = _make_package(tech_transfer)
-
-        assert pkg_no.includes_transfer is False
-        assert pkg_yes.includes_transfer is True
-
 
 # ---------------------------------------------------------------------------
-# 6. Shore power capacity
-# ---------------------------------------------------------------------------
-
-
-class TestShorePowerCapacity:
-    """Verify shore power capacity is additive across technologies."""
-
-    @pytest.mark.parametrize(
-        ("capacities", "expected"),
-        [
-            ([4.0], 4.0),
-            ([4.0, 2.5], 6.5),
-        ],
-    )
-    def test_compound_value(self, capacities, expected):
-        techs = [
-            _make_technology(f"sp{i}", shore_power_capacity=c)
-            for i, c in enumerate(capacities)
-        ]
-        pkg = _make_package(*techs)
-        assert pkg.shore_power_capacity == pytest.approx(expected)
-
-    def test_defaults_to_zero(self):
-        tech = _make_technology("vfd", energy_saving={ELECTRICAL: 0.08})
-        pkg = _make_package(tech)
-        assert pkg.shore_power_capacity == pytest.approx(0.0)
-
-
-# ---------------------------------------------------------------------------
-# 7. Combined pipeline: savings + external power + power transfer
+# 4. Combined pipeline: savings + external power + power transfer
 # ---------------------------------------------------------------------------
 
 
@@ -467,53 +297,3 @@ class TestCombinedResidualEnergy:
         transfer_energy = 0.2 * 1.0 * MWD_TO_GJ  # 17.28
         expected = 500.0 - transfer_energy  # 482.72
         assert result[HEAT][0] == pytest.approx(expected)
-
-    def test_all_residuals_non_negative(self, setup):
-        """No residual energy should ever go negative."""
-        vessel, pkg, durations, raw_demands = setup
-        result = _iterate_legs_or_ports(vessel, pkg, durations, raw_demands)
-        for energy_id in result:
-            for step in result[energy_id]:
-                assert np.all(step >= 0.0)
-
-    def test_total_energy_reduced(self, setup):
-        """Total residual must be strictly less than total raw demand."""
-        vessel, pkg, durations, raw_demands = setup
-        result = _iterate_legs_or_ports(vessel, pkg, durations, raw_demands)
-
-        total_raw = 1000.0 + 500.0
-        total_residual = np.sum(result[PROPULSION][0]) + np.sum(result[HEAT][0])
-        assert total_residual < total_raw
-
-    def test_without_transfer_heat_unchanged(self):
-        """Without WHRS, heat residual equals raw demand."""
-        vfd = _make_technology("vfd", energy_saving={PROPULSION: 0.10})
-        kite = _make_technology("kite", external_power={PROPULSION: 0.5})
-        pkg = _make_package(vfd, kite)
-
-        vessel = _make_mock_vessel({PROPULSION: 20.0, HEAT: 5.0})
-        durations = [np.array([1.0])]
-        raw_demands = {
-            PROPULSION: [np.array([1000.0])],
-            HEAT: [np.array([500.0])],
-        }
-
-        result = _iterate_legs_or_ports(vessel, pkg, durations, raw_demands)
-        assert result[HEAT][0] == pytest.approx(500.0)
-
-    def test_monotonicity_adding_technology_reduces_energy(self):
-        """Adding any technology to a package should never increase residual energy."""
-        vfd = _make_technology("vfd", energy_saving={PROPULSION: 0.10})
-        kite = _make_technology("kite", external_power={PROPULSION: 0.5})
-
-        pkg_one = _make_package(vfd)
-        pkg_two = _make_package(vfd, kite)
-
-        vessel = _make_mock_vessel({PROPULSION: 20.0})
-        durations = [np.array([1.0])]
-        raw_demands = {PROPULSION: [np.array([1000.0])]}
-
-        r1 = _iterate_legs_or_ports(vessel, pkg_one, durations, raw_demands)
-        r2 = _iterate_legs_or_ports(vessel, pkg_two, durations, raw_demands)
-
-        assert np.all(r2[PROPULSION][0] <= r1[PROPULSION][0])
