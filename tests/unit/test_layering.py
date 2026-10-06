@@ -2,10 +2,10 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-Mechanical layering check of the foundation modules.
+Mechanical layering checks on `core` and the foundation modules.
 
 `core` may import only itself, `util` and `exceptions` at runtime; `exceptions`
-and `logging_` may import only `util`, under `TYPE_CHECKING` too.
+and `logging_` may import only `util`, type-only imports included.
 """
 
 from __future__ import annotations
@@ -62,7 +62,7 @@ def _runtime_nodes(node):
 
 
 @pytest.mark.parametrize("path", sorted(CORE.rglob("*.py")), ids=lambda p: p.name)
-def test_core_imports_only_foundation_layers_at_runtime(path):
+def test_core_imports_only_core_util_and_exceptions_at_runtime(path):
     tree = ast.parse(path.read_text(encoding="utf-8"))
     offenders = _offending_imports(_runtime_nodes(tree), CORE_ALLOWED)
     assert not offenders, (

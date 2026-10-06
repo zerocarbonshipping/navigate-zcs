@@ -28,7 +28,7 @@ class UnassignedAttributeError(DeckInsufficientError):
     Parameters
     ----------
     owner
-        Name of the node or general node whose attribute is unassigned.
+        Display text of the node or general node whose attribute is unassigned.
     attribute_name
         Deck attribute left unassigned.
     """
