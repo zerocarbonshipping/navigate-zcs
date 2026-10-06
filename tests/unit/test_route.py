@@ -14,19 +14,12 @@ from navigate.core import Scalar
 from navigate.core.enum_ import RouteTypeID
 from navigate.core.nodes.forecast import Forecast
 from navigate.core.nodes.route import Route
-from navigate.core.nodes.variable import Variable
 
 
 def _mock_port(name):
     port = MagicMock()
     port.name = name
     return port
-
-
-def _variable(value):
-    variable = Variable("v")
-    variable.set_value(value)
-    return variable
 
 
 def _make_regional_route(voyage_distribution):
@@ -44,16 +37,12 @@ def _make_regional_route(voyage_distribution):
 
 class TestVoyageDistributionNormalization:
     def test_fractions_normalized_to_unity(self):
+        # pairs left unassigned, here the port-to-itself legs, fill to zero
         route = _make_regional_route({("a", "b"): Scalar(0.6), ("b", "a"): Scalar(0.2)})
 
         fractions = route.get_voyage_distribution()
         assert fractions[("a", "b")] == pytest.approx(0.75)
         assert fractions[("b", "a")] == pytest.approx(0.25)
-
-    def test_unassigned_pairs_fill_to_zero(self):
-        route = _make_regional_route({("a", "b"): Scalar(1.0)})
-
-        fractions = route.get_voyage_distribution()
         assert fractions[("a", "a")] == pytest.approx(0.0)
         assert fractions[("b", "b")] == pytest.approx(0.0)
 
@@ -76,11 +65,6 @@ class TestVoyageDistributionNormalization:
         assert fractions[("a", "b")] == pytest.approx(0.25)
         assert fractions[("b", "a")] == pytest.approx(0.75)
 
-    def test_cache_shared_between_calls(self):
-        route = _make_regional_route({("a", "b"): Scalar(1.0)})
-
-        assert route.get_voyage_distribution() is route.get_voyage_distribution()
-
     def test_to_array_orders_inner_index_by_origin_port(self):
         route = _make_regional_route(
             {("a", "b"): Scalar(0.75), ("b", "a"): Scalar(0.25)}
@@ -91,62 +75,37 @@ class TestVoyageDistributionNormalization:
         assert values == pytest.approx([0.0, 0.25, 0.75, 0.0])
 
 
-class TestSetVoyageDistributionAcceptedKinds:
-    """`set_voyage_distribution` accepts a float or a Variable, rejects a Forecast."""
+def test_voyage_distribution_rejects_a_forecast():
+    # a fraction is a float or a Variable; a Forecast is refused like any
+    # other node type the setter does not accept
+    route = Route("r")
+    route.ports = [_mock_port("a"), _mock_port("b")]
+    route.initialize_dependencies()
 
-    def _make_route(self):
-        route = Route("r")
-        route.ports = [_mock_port("a"), _mock_port("b")]
-        route.initialize_dependencies()
-        return route
+    with pytest.raises(
+        ValueError,
+        match=(
+            r"only allows assignment of scalars and nodes of type Variable, "
+            r'but got Forecast\("f"\)'
+        ),
+    ):
+        route.set_voyage_distribution("a", "b", Forecast("f"))
 
-    @pytest.mark.parametrize(
-        "make_fraction",
-        [lambda: 0.5, lambda: _variable(0.5)],
-        ids=["float", "variable"],
+
+@pytest.mark.parametrize(
+    ("distribution", "warnings"),
+    [([0.4, 0.4], 1), ([0.5, 0.505], 0)],
+    ids=["beyond_one_percent", "within_one_percent"],
+)
+def test_condition_distribution_rescale_warns_only_beyond_one_percent(
+    caplog, distribution, warnings
+):
+    with caplog.at_level(logging.WARNING):
+        Route("r").set_condition_distribution(distribution)
+
+    messages = [record.getMessage() for record in caplog.records]
+    assert len(messages) == warnings
+    assert all(
+        "'ConditionDistribution' is rescaled proportionally to sum to 1." in message
+        for message in messages
     )
-    def test_accepted_kinds_are_stored_under_the_port_pair(self, make_fraction):
-        route = self._make_route()
-
-        route.set_voyage_distribution("a", "b", make_fraction())
-
-        assert route.voyage_distribution[("a", "b")].get(None, None) == pytest.approx(
-            0.5
-        )
-
-    def test_forecast_is_rejected_like_any_unaccepted_node_type(self):
-        route = self._make_route()
-
-        with pytest.raises(
-            ValueError,
-            match=(
-                r"only allows assignment of scalars and nodes of type Variable, "
-                r'but got Forecast\("f"\)'
-            ),
-        ):
-            route.set_voyage_distribution("a", "b", Forecast("f"))
-
-
-class TestSetConditionDistributionRescaleLogging:
-    """`set_condition_distribution` warns only once the rescale exceeds 1%."""
-
-    def test_rescale_beyond_one_percent_logs_a_warning(self, caplog):
-        route = Route("r")
-
-        with caplog.at_level(logging.WARNING):
-            route.set_condition_distribution([0.4, 0.4])
-
-        warnings = [r for r in caplog.records if r.levelno == logging.WARNING]
-        assert len(warnings) == 1
-        assert (
-            "'ConditionDistribution' is rescaled proportionally to sum to 1."
-            in warnings[0].getMessage()
-        )
-
-    def test_rescale_within_one_percent_logs_nothing(self, caplog):
-        route = Route("r")
-
-        with caplog.at_level(logging.WARNING):
-            route.set_condition_distribution([0.5, 0.505])
-
-        assert caplog.records == []

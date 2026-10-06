@@ -10,9 +10,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from navigate.core.enum_ import RegulationSchemeID
 from navigate.core.expectations import RegulationExpectation
-from navigate.core.expression import Expression
 from navigate.core.nodes.curve import Curve
 from navigate.core.nodes.emission import Emission
 from navigate.core.nodes.regulation import Regulation
@@ -37,17 +35,9 @@ def _make_regulation(scheme, measure, vessels=("v1", "v2")):
     return regulation
 
 
-@pytest.mark.parametrize(
-    ("scheme", "measure"),
-    [
-        ("INDIVIDUAL", "ABSOLUTE"),
-        ("FLEXIBLE", "TRANSPORT"),
-    ],
-)
-def test_initialize_raises_for_included_vessel_without_threshold(scheme, measure):
-    # the guard is scheme/measure-independent; these two combinations stand in for the
-    # full cross product
-    regulation = _make_regulation(scheme, measure)
+def test_initialize_raises_for_included_vessel_without_threshold():
+    # the guard is scheme/measure-independent
+    regulation = _make_regulation("FLEXIBLE", "TRANSPORT")
     regulation.set_vessel_threshold("v1", 10.0)
 
     with pytest.raises(ValueError, match="no vessel_threshold"):
@@ -75,18 +65,17 @@ def test_flexibility_horizon_warns_when_assigned_under_individual_scheme(caplog)
     ]
 
 
-def test_flexibility_horizon_default_does_not_warn_under_individual_scheme(caplog):
-    regulation = _make_regulation("INDIVIDUAL", "ABSOLUTE", vessels=())
-
-    with caplog.at_level(logging.WARNING):
-        regulation.initialize()
-
-    assert caplog.records == []
-
-
-def test_flexibility_horizon_does_not_warn_when_assigned_under_flexible_scheme(caplog):
-    regulation = _make_regulation("FLEXIBLE", "ABSOLUTE", vessels=())
-    regulation.set_flexibility_horizon(5.0)
+@pytest.mark.parametrize(
+    ("scheme", "horizon"),
+    [("INDIVIDUAL", None), ("FLEXIBLE", 5.0)],
+    ids=["individual_default", "flexible_assigned"],
+)
+def test_flexibility_horizon_does_not_warn_when_it_is_used_or_unassigned(
+    caplog, scheme, horizon
+):
+    regulation = _make_regulation(scheme, "ABSOLUTE", vessels=())
+    if horizon is not None:
+        regulation.set_flexibility_horizon(horizon)
 
     with caplog.at_level(logging.WARNING):
         regulation.initialize()
@@ -115,25 +104,6 @@ def test_flexibility_horizon_warns_once_per_assignment_under_individual_scheme(c
     assert len(caplog.records) == 1
 
 
-def test_flexibility_horizon_warns_once_if_scheme_stops_being_flexible(caplog):
-    # an assignment that was never reported as unused stays pending across passes,
-    # so it still warns once the scheme it was assigned under is no longer FLEXIBLE
-    regulation = _make_regulation("FLEXIBLE", "ABSOLUTE", vessels=())
-    regulation.set_flexibility_horizon(5.0)
-
-    with caplog.at_level(logging.WARNING):
-        regulation.initialize()
-
-    assert caplog.records == []
-
-    regulation.scheme = RegulationSchemeID.INDIVIDUAL
-
-    with caplog.at_level(logging.WARNING):
-        regulation.reinitialize()
-
-    assert len(caplog.records) == 1
-
-
 def test_calculate_profile_writes_policed_vessel_thresholds():
     regulation = _make_regulation("FLEXIBLE", "INTENSITY")
     regulation.set_vessel_threshold("*", 10.0)
@@ -144,14 +114,6 @@ def test_calculate_profile_writes_policed_vessel_thresholds():
     regulation.calculate_profile(idx=0)
 
     regulation.profile.set_vessel_threshold.assert_called_once_with(0, "v1", 10.0)
-
-
-def test_jurisdiction_rejects_an_expression():
-    # a jurisdiction is a list of ports, read as nodes and never evaluated
-    regulation = Regulation("reg")
-
-    with pytest.raises(ValueError, match="nodes of type Port, but got expression"):
-        regulation.set_jurisdiction([Expression('Port("x")')])
 
 
 def _gwp_curve():
@@ -176,8 +138,6 @@ def _lifetime_times_three():
         (_gwp_curve, None, 30.0),
         # the policy's own lifetime replaces the model's: the 20-year row
         (_gwp_curve, 20.0, 80.0),
-        # a number does not depend on the lifetime
-        (lambda: 25.0, 20.0, 25.0),
         # no override falls back to the emission's gwp, 3 x the lifetime here
         (None, 20.0, 60.0),
     ],

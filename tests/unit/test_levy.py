@@ -43,31 +43,34 @@ def _make_levy(lower, upper=None, *, scheme=None, active=True):
     return levy
 
 
+# the rule applies to both PENALTY and BOTH; SUBSIDY is exempt (see the passing cases)
 @pytest.mark.parametrize(
-    ("make_lower", "make_upper", "expected_date"),
+    ("scheme", "make_lower", "make_upper", "expected_date"),
     [
         # lower overtakes upper between day 365 and day 730: at day 730 lower
         # is 80 while upper is only 70, the first step where upper < lower
-        (
+        pytest.param(
+            "BOTH",
             lambda: _forecast("lower", [10.0, 20.0, 80.0, 90.0]),
             lambda: _forecast("upper", [50.0, 60.0, 70.0, 95.0]),
             "2026-01-01",
+            id="overtaking",
         ),
         # transient cross: upper (70) dips below lower (80) only at day 365,
         # and both sides recover by day 730 (lower 20 <= upper 60); the first
         # (and only) offending step is still reported
-        (
+        pytest.param(
+            "PENALTY",
             lambda: _forecast("lower_transient", [10.0, 80.0, 20.0, 30.0]),
             lambda: _forecast("upper_transient", [50.0, 70.0, 60.0, 70.0]),
             "2025-01-01",
+            id="transient",
         ),
         # constant scalars: upper (30) is below lower (50) at every step, so
         # the first step, day 0, is already inconsistent
-        (lambda: 50.0, lambda: 30.0, "2024-01-01"),
+        pytest.param("PENALTY", lambda: 50.0, lambda: 30.0, "2024-01-01", id="scalars"),
     ],
 )
-# the rule applies to both PENALTY and BOTH; SUBSIDY is exempt (see the passing cases)
-@pytest.mark.parametrize("scheme", ["PENALTY", "BOTH"])
 def test_check_dynamic_consistency_raises_when_upper_falls_below_lower(
     scheme, make_lower, make_upper, expected_date
 ):

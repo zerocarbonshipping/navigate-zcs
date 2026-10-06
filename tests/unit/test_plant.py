@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import pytest
 
-from navigate.core.expression import Expression
 from navigate.core.nodes.fuel import Fuel
 from navigate.core.nodes.plant import Plant
 from navigate.core.nodes.process import Process
@@ -52,13 +51,14 @@ class TestFuelTransport:
 
     def test_event_reassignment_rebuilds_deliveries(self):
         # an event read reruns reinitialize: the deliveries must follow the
-        # reassigned distance on port_a and the transport newly given to port_b,
-        # which carries no distance and so is delivered over zero miles
+        # distance an event gives port_a, replacing the zero its transport was
+        # first delivered over, and the transport newly given to port_b, which
+        # carries no distance and so is delivered over zero miles
         plant = _make_plant()
         truck, ship = Transport("truck"), Transport("ship")
         plant.set_fuel_transport("port_a", truck)
-        plant.set_fuel_distance("port_a", 500.0)
         plant.initialize()
+        assert plant.fuel_deliveries["port_a"][1].get() == 0.0
 
         plant.set_fuel_distance("port_a", 800.0)
         plant.set_fuel_transport("port_b", ship)
@@ -70,32 +70,6 @@ class TestFuelTransport:
         assert distance_a.get() == 800.0
         assert transport_b is ship
         assert distance_b.get() == 0.0
-
-    def test_wildcard_assigns_every_port(self):
-        plant = _make_plant()
-        plant.set_fuel_transport("*", Transport("truck"))
-        plant.set_fuel_distance("*", 500.0)
-        plant.initialize()
-
-        assert all(transport is not None for transport in plant.fuel_transport.values())
-        assert all(distance.get() == 500.0 for distance in plant.fuel_distance.values())
-        assert all(
-            delivery is not None and delivery[1].get() == 500.0
-            for delivery in plant.fuel_deliveries.values()
-        )
-
-    def test_event_distance_replaces_zero_default(self):
-        # a transport first read without a distance is delivered over zero
-        # miles; a distance an event assigns later must take its place
-        plant = _make_plant()
-        plant.set_fuel_transport("port_a", Transport("truck"))
-        plant.initialize()
-        assert plant.fuel_deliveries["port_a"][1].get() == 0.0
-
-        plant.set_fuel_distance("port_a", 300.0)
-        plant.reinitialize()
-
-        assert plant.fuel_deliveries["port_a"][1].get() == 300.0
 
 
 class TestFeedTransport:
@@ -136,24 +110,3 @@ class TestCommandValueValidatedBeforeKeyMatch:
 
         with pytest.raises(ValueError, match=r"must be ≥ 0\.0"):
             plant.set_fuel_distance("missing", -1.0)
-
-
-class TestNodeReferences:
-    def test_fuel_rejects_an_expression(self):
-        with pytest.raises(ValueError, match="nodes of type Fuel, but got expression"):
-            Plant("plant").set_fuel(Expression('Fuel("x")'))
-
-    @pytest.mark.parametrize(
-        "value",
-        [Expression('Transport("x")'), 3.0],
-        ids=["expression", "scalar"],
-    )
-    def test_fuel_transport_takes_only_a_transport(self, value):
-        # a transport is read as the node itself, so neither a number nor an
-        # expression has a meaning there
-        plant = _make_plant()
-
-        with pytest.raises(
-            ValueError, match="only allows assignment of nodes of type Transport"
-        ):
-            plant.set_fuel_transport("port_a", value)

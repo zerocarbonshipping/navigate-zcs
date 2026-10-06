@@ -16,7 +16,7 @@ Tests verify the correctness of:
     SUBSIDY and upper-threshold capping arithmetic, given already-evaluated
     threshold arrays and an effective LHV.
   - _assign_levy_emission_coefficients: the thresholds it evaluates once per
-    pass stay sliced to timeline[idx:], not the whole timeline, and are
+    pass are read over timeline[idx:], not the whole timeline, and are
     compared with, and converted back on, the vessel's effective LHV.
 """
 
@@ -30,8 +30,10 @@ import pytest
 from navigate.core.enum_ import LevySchemeID
 from navigate.core.nodes.converter import Converter
 from navigate.core.nodes.emission import Emission
+from navigate.core.nodes.forecast import Forecast
 from navigate.core.nodes.fuel import Fuel
 from navigate.core.nodes.levy import Levy
+from navigate.core.table_data import TableData
 from navigate.policy.emission_coefficient import (
     _assign_levy_emission_coefficients,
     _assign_regulation_wtt_factors,
@@ -81,13 +83,18 @@ class TestZeroSupplyExclusion:
 
         assert result == pytest.approx([-0.9])
 
-    def test_no_supplied_ports_falls_back_to_zero(self):
-        a = _make_port(allowed=True, supply=[0.0], wtt=[-0.9])
-        b = _make_port(allowed=True, supply=[0.0], wtt=[-0.5])
+    @pytest.mark.parametrize(
+        ("allowed", "supply"),
+        [(True, 0.0), (False, 10.0)],
+        ids=["no_supply", "no_allowed_port"],
+    )
+    def test_no_weighted_port_falls_back_to_zero(self, allowed, supply):
+        a = _make_port(allowed=allowed, supply=[supply], wtt=[-0.9])
+        b = _make_port(allowed=allowed, supply=[supply], wtt=[-0.5])
 
         result = _average_wtt_over_ports([a, b], FUEL, EMISSION, idx=0)
 
-        assert result == pytest.approx([0.0])
+        assert np.all(np.asarray(result) == 0.0)
 
     def test_disallowed_port_is_excluded(self):
         allowed = _make_port(allowed=True, supply=[10.0], wtt=[-0.9])
@@ -96,13 +103,6 @@ class TestZeroSupplyExclusion:
         result = _average_wtt_over_ports([allowed, disallowed], FUEL, EMISSION, idx=0)
 
         assert result == pytest.approx([-0.9])
-
-    def test_no_allowed_ports_returns_zero(self):
-        a = _make_port(allowed=False, supply=[10.0], wtt=[-0.9])
-
-        result = _average_wtt_over_ports([a], FUEL, EMISSION, idx=0)
-
-        assert result == 0.0
 
 
 # ---------------------------------------------------------------------------
@@ -295,21 +295,30 @@ class TestEffectiveHeatingValue:
     @pytest.mark.parametrize(
         ("main_slip", "auxiliary_slip", "expected"),
         [
-            # effective LHV 48: 2.4 / 48 * 1000 = 50 g/MJ, 30 above the
-            # threshold, back to 30 * 48 / 1000 = 1.44 t/t
-            (MAIN_SLIP, AUXILIARY_SLIP, 1.44),
-            # no slip, the raw LHV 50: 2.4 / 50 * 1000 = 48 g/MJ, 28 above
-            # the threshold, back to 28 * 50 / 1000 = 1.4 t/t
-            (0.0, 0.0, 1.4),
+            # effective LHV 48: 2.4 / 48 * 1000 = 50 g/MJ, [30, 20] above the
+            # thresholds, back to [30, 20] * 48 / 1000 t/t
+            (MAIN_SLIP, AUXILIARY_SLIP, [1.44, 0.96]),
+            # no slip, the raw LHV 50: 2.4 / 50 * 1000 = 48 g/MJ, [28, 18]
+            # above the thresholds, back to [28, 18] * 50 / 1000 t/t
+            (0.0, 0.0, [1.4, 0.9]),
             # full slip, an effective LHV of 0: the fuel delivers no energy, so
             # the threshold allows nothing and the whole 2.4 t/t is levied
-            (1.0, 1.0, 2.4),
+            (1.0, 1.0, [2.4, 2.4]),
         ],
         ids=["slip", "no_slip", "full_slip"],
     )
     def test_levy_threshold_is_measured_on_the_effective_lhv(
         self, main_slip, auxiliary_slip, expected
     ):
+        # the threshold rises from 10 g/MJ at day 0 to 30 at day 730, so read
+        # from idx 1 onward it is [20, 30]; reading the whole timeline instead
+        # would return three values starting at 10
+        idx = 1
+        timeline = np.array([0.0, 365.0, 730.0])
+        threshold = Forecast("threshold")
+        threshold.set_table(TableData(rows=[[0.0, 10.0], [730.0, 30.0]]))
+        threshold.replace_reference_table(np.datetime64("2026-01-01"))
+
         fuel = _make_ammonia()
         emission = Emission("carbon_dioxide")
         port = MagicMock()
@@ -319,23 +328,22 @@ class TestEffectiveHeatingValue:
 
         levy = Levy("levy")
         levy.set_scheme("PENALTY")
-        levy.set_lower_threshold(20.0)
+        levy.set_lower_threshold(threshold)
         levy.fuels = [fuel]
         levy.emissions = [emission]
         levy.jurisdiction = [port]
-        levy.expectation.initialize(1, [emission.name])
+        levy.expectation.initialize(timeline.size, [emission.name])
         levy.expectation.set_ttw_consumption(
-            0, (vessel.name, fuel.name, emission.name), 2.4
+            idx, (vessel.name, fuel.name, emission.name), 2.4
         )
 
         _assign_levy_emission_coefficients(
-            levy, {vessel.name: vessel}, timeline=np.array([0.0]), idx=0
+            levy, {vessel.name: vessel}, timeline=timeline, idx=idx
         )
 
-        result = levy.expectation.get_coefficient(
-            (vessel.name, port.name, fuel.name), 0
-        )
-        assert np.isfinite(result)
+        key = (vessel.name, port.name, fuel.name)
+        result = [levy.expectation.get_coefficient(key, i) for i in (1, 2)]
+        assert np.all(np.isfinite(result))
         assert result == pytest.approx(expected)
 
 
@@ -399,79 +407,3 @@ class TestThresholdAdjustedLevyEmissionCoefficient:
         # capped at upper - lower = [40, 90]: [40, 65];
         # back to ton/ton fuel: * 40 / 1000
         assert result == pytest.approx([1.6, 2.6])
-
-
-# ---------------------------------------------------------------------------
-# 7. Levy emission coefficients: thresholds stay sliced to the remaining
-#    timeline once their evaluation moves out of the vessel/port/fuel loop
-# ---------------------------------------------------------------------------
-
-TIMELINE = np.array([0.0, 365.0, 730.0])
-
-
-class _ThresholdLookup:
-    """
-    Stand-in for a Forecast whose value depends on the times it is asked for.
-
-    Bare ``get()`` answers the value cached at the current time step; ``get(times)``
-    looks up each of ``times`` in a table, so a slice with the wrong times reads back
-    the wrong values, and one with the wrong length raises or fails a length check.
-    """
-
-    def __init__(self, table: dict[float, float], current: float) -> None:
-        self._table = table
-        self._current = current
-
-    def get(self, times=None):
-        if times is None:
-            return self._current
-
-        return np.array([self._table[time] for time in times], dtype=float)
-
-
-class TestAssignLevyEmissionCoefficientsSlicing:
-    def test_threshold_is_sliced_to_the_remaining_timeline(self):
-        """
-        The threshold, evaluated once before the loops, must cover only idx onward.
-
-        Regression test: moving the evaluation out of the vessel/port/fuel loop
-        must keep it reading timeline[idx:], not the whole timeline.
-        """
-        idx = 1  # timeline[idx:] == [365.0, 730.0]
-
-        fuel = _make_fuel(40.0)
-        fuel.name = "fuel_bio"
-
-        port = MagicMock()
-        port.name = "port1"
-        port.is_bunkering_allowed.return_value = True
-
-        vessel = MagicMock()
-        vessel.name = "vessel1"
-        vessel.usable_fuels = {"fuel_bio": fuel}
-        vessel.route.ports = [port]
-        # no converter weighs, so the effective LHV falls back to the fuel's raw LHV
-        vessel.power_system.get_converters.return_value = []
-
-        levy = _make_levy(LevySchemeID.PENALTY)
-        levy.emissions = [EMISSION]
-        levy.fuels = [fuel]
-        levy.jurisdiction = [port]
-        levy.lower_threshold = _ThresholdLookup(
-            {0.0: 10.0, 365.0: 20.0, 730.0: 30.0}, current=10.0
-        )
-        levy.upper_threshold = None
-        levy.expectation.get_wtt.return_value = np.array([3.2, 3.2])
-        levy.expectation.get_ttw_consumption.return_value = 0.0
-        levy.expectation.get_ttw_slip.return_value = 0.0
-
-        _assign_levy_emission_coefficients(levy, {"vessel1": vessel}, TIMELINE, idx)
-
-        call_idx, key, coefficient = levy.expectation.set_coefficient.call_args[0]
-
-        # lower threshold at idx onward is [20, 30]; g/MJ: 3.2 / 40 * 1000 = 80
-        # for both steps; minus [20, 30] = [60, 50]; back to ton/ton fuel: * 40 / 1000
-        assert call_idx == idx
-        assert key == ("vessel1", "port1", "fuel_bio")
-        assert len(coefficient) == 2
-        assert coefficient == pytest.approx([2.4, 2.0])
