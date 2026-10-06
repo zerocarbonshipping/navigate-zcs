@@ -28,7 +28,7 @@ from navigate.core.nodes.technology import Technology
 from navigate.core.nodes.variable import Variable
 from navigate.core.table_data import TableData
 from navigate.core.technology_package import TechnologyPackage
-from navigate.fleet.package import precompute_combined_effects
+from navigate.fleet.package import _refresh_combined_effects
 from navigate.fleet.residual_energy import (
     _calculate_power_transfer,
     _energy_to_power,
@@ -94,7 +94,7 @@ def _make_technology(name: str, **kwargs) -> Technology:
 def _make_package(*technologies: Technology) -> TechnologyPackage:
     """Build a TechnologyPackage and precompute compound state."""
     pkg = TechnologyPackage(list(technologies))
-    precompute_combined_effects(pkg)
+    _refresh_combined_effects(pkg)
     return pkg
 
 
@@ -299,7 +299,7 @@ class TestTransferCurves:
         A Curve and a Variable transferring the same pair sum without a shape crash.
 
         Through the real path (Technology.set_power_transfer ->
-        precompute_combined_effects -> _calculate_power_transfer): a Variable's getter
+        _refresh_combined_effects -> _calculate_power_transfer): a Variable's getter
         used to ignore the array load and answer a bare float, while the Curve's
         answered one value per load point. Stacking the two into one array to sum them
         then raised "setting an array element with a sequence" for any pair more

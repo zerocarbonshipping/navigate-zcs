@@ -17,14 +17,13 @@ if TYPE_CHECKING:
     from navigate.util.types_ import FloatArray
 
 
-@dataclass(slots=True)
+@dataclass(slots=True, eq=False)
 class TechnologyPackage:
     """
-    Represent a bundle of technologies with their combined effects.
+    Represent a bundle of technologies with their combined effects and cost flow.
 
-    The fleet domain fills the combined effects and the cost flow every time-step, as
-    technology properties may depend on time; the residual-energy calculation reads
-    them instead of recombining the technologies on every call.
+    The combined effects and the cost flow derive from the technologies and are
+    refreshed every time-step, as technology properties may depend on time.
 
     Parameters
     ----------

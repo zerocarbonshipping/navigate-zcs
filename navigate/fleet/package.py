@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Calculations on technology packages: combined effects, cost flows and NPVs."""
+"""Technology package calculations: effects, cost flows, NPVs and levelized costs."""
 
 from __future__ import annotations
 
@@ -31,9 +31,12 @@ if TYPE_CHECKING:
     from navigate.util.types_ import FloatArray
 
 
-def precompute_combined_effects(package: TechnologyPackage) -> None:
+def _refresh_combined_effects(package: TechnologyPackage) -> None:
     """
     Refresh a package's combined savings, powers and transfer curves.
+
+    The residual-energy calculation reads these instead of recombining the
+    technologies on every call.
 
     Parameters
     ----------
@@ -42,23 +45,30 @@ def precompute_combined_effects(package: TechnologyPackage) -> None:
     """
     technologies = package.technologies
 
-    arr_sp = np.array([t.shore_power_capacity.get() for t in technologies])
-    shore_power_capacity = float(np.sum(arr_sp))
+    package.shore_power_capacity = float(
+        np.sum(np.array([t.shore_power_capacity.get() for t in technologies]))
+    )
 
-    compound_savings: dict[EnergyDemandTypeID, float] = {}
-    compound_powers: dict[EnergyDemandTypeID, float] = {}
+    # savings compound: each technology saves its fraction of what the others leave
+    package.compound_savings = {
+        energy_id: 1.0
+        - float(
+            np.prod(
+                1.0 - np.array([t.energy_saving[energy_id].get() for t in technologies])
+            )
+        )
+        for energy_id in EnergyDemandTypeID
+    }
+    package.compound_powers = {
+        energy_id: float(
+            np.sum(np.array([t.external_power[energy_id].get() for t in technologies]))
+        )
+        for energy_id in EnergyDemandTypeID
+    }
+
     transfer_curves: dict[
         tuple[EnergyDemandTypeID, EnergyDemandTypeID], list[CurveInput]
     ] = {}
-
-    # savings compound: each technology saves its fraction of what the others leave
-    for energy_id in EnergyDemandTypeID:
-        arr = np.array([t.energy_saving[energy_id].get() for t in technologies])
-        compound_savings[energy_id] = 1.0 - float(np.prod(1.0 - arr))
-
-    for energy_id in EnergyDemandTypeID:
-        arr = np.array([t.external_power[energy_id].get() for t in technologies])
-        compound_powers[energy_id] = float(np.sum(arr))
 
     for source in EnergyDemandTypeID:
         for destination in EnergyDemandTypeID:
@@ -75,9 +85,6 @@ def precompute_combined_effects(package: TechnologyPackage) -> None:
             if curves:
                 transfer_curves[(source, destination)] = curves
 
-    package.shore_power_capacity = shore_power_capacity
-    package.compound_savings = compound_savings
-    package.compound_powers = compound_powers
     package.transfer_curves = transfer_curves
 
 
@@ -117,7 +124,7 @@ def preprocess_packages(
 
     for pkg in packages:
         if not pkg.is_empty:
-            precompute_combined_effects(pkg)
+            _refresh_combined_effects(pkg)
 
 
 def npv_for_newbuilds(

@@ -19,8 +19,8 @@ behavior are documented in `docs/reference_manual/`.
 - `core/` — the model definition: DSL value infrastructure (assignment
   validation, expressions, tables), the node classes (`core/nodes/`, one per
   DSL keyword), maps between nodes derived from static node attributes
-  (`node_maps.py`), the technology package record held by `Fleet`
-  (`technology_package.py`), singleton general nodes, `expectations/`
+  (`node_maps.py`), the records nodes hold (`increment.py`
+  asset cohorts, `technology_package.py`), singleton general nodes, `expectations/`
   (cross-module dynamic state) and `profiles/` (end-of-run output containers).
 - `parser/` — reads `.nav`/`.inc` decks into nodes (Lark grammar).
 - `fleet/` — the shipowner domain: voyage physics and energy demand,

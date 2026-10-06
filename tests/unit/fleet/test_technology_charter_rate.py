@@ -299,9 +299,7 @@ class _ShareCurve(Node):
 
 
 def _make_cost_package(technologies: list, cost_flow: np.ndarray) -> TechnologyPackage:
-    package = TechnologyPackage(technologies)
-    package.cost_flow = cost_flow
-    return package
+    return TechnologyPackage(technologies, cost_flow=cost_flow)
 
 
 def _make_priced_vessel(name: str) -> MagicMock:
