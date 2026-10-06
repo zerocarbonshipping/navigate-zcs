@@ -60,8 +60,6 @@ every change. The detail lives in the files it points to.
   `gh-pages`; `dev` publishes to `/staging/`.
 - `syntax/` — editor syntax highlighting for the DSL, including a committed
   VS Code `.vsix`.
-- `.agents/` — Agent Skills for coding agents; `.claude/skills/` links to
-  them.
 
 A run writes its output next to its deck: `plots*/`, `*.xlsx` and `*.log`.
 All of it is gitignored. Two runs of one deck at the same time overwrite
@@ -108,14 +106,9 @@ each other's files, and the test suites run decks too.
 - `CHANGELOG.md` takes user-facing changes and bugs only; what gets an
   entry, and its form, is under Changelog in `CONTRIBUTING.md`.
 - A change to an assumption value carries references or a justification.
-
-## Issues and pull requests
-
-A coding agent files issues with `.agents/skills/filing-issues/` and
-writes and opens pull requests with `.agents/skills/writing-pull-requests/`.
-The skills read their sections from the issue forms in
-`.github/ISSUE_TEMPLATE/` and from `.github/PULL_REQUEST_TEMPLATE.md`, which
-humans fill in through the GitHub web interface.
+- Issues and pull requests are written with the skills in `.agents/skills/`:
+  `filing-issues` and `writing-pull-requests`. They take their sections from
+  the issue forms and the pull request template.
 
 ## What a change touches
 

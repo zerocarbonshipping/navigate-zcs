@@ -16,5 +16,4 @@ SPDX-License-Identifier: Apache-2.0
     grows with vessels, ports, fuels or years.
 - **Proposed resolution** names the remedy and the benchmark to rerun to
   confirm it: the same deck, solver and machine.
-- A fix leaves results unchanged. A remedy that would move them says so and
-  why.
+- A remedy that would move results says so and why.

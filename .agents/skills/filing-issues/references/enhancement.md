@@ -5,9 +5,6 @@ SPDX-License-Identifier: Apache-2.0
 
 # Filing an enhancement
 
-An enhancement adds or changes something a user can see. A change with no
-user-visible effect is maintenance.
-
 - **Motivation** comes from the user's side: what a deck author cannot
   express today, or what a reader of the output cannot see, and why it
   matters for the modelled sector.
@@ -19,6 +16,3 @@ user-visible effect is maintenance.
   reason it was not chosen.
 - New assumption values proposed with the feature come with references or a
   justification.
-- Large features, such as new policies, new node types and major refactors,
-  need this issue, and agreement on its design, before a pull request
-  (`CONTRIBUTING.md`). Smaller ones may go straight to a pull request.

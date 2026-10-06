@@ -11,8 +11,5 @@ SPDX-License-Identifier: Apache-2.0
 - Errors in the reference manual get a changelog entry like bugs
   (`CONTRIBUTING.md`, Changelog). Other documentation changes get none; say
   so.
-- The reference manual describes behaviour as users see it, with no
-  modelling derivations. Internals go in the root files and the folder
-  READMEs.
 - The docs build runs in CI, so Verification does not report it. When
   nothing else was checked, Verification says so in one line.

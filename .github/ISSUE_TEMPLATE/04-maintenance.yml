@@ -28,5 +28,7 @@ body:
       label: Verification
       description: >
         How to show the change preserves behavior beyond what CI runs: for
-        example byte-identical report output for the affected decks, or
-        nothing under `navigate/` changing.
+        the affected decks, byte-identical report CSVs and xlsx reports
+        identical cell by cell, base versus branch. A change that touches
+        nothing under `navigate/` or `assumptions/`, no deck or include, and
+        no dependency in `pyproject.toml` only needs to say so.

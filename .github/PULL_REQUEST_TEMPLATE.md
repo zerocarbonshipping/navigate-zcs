@@ -14,15 +14,17 @@ the reference manual for user-visible behaviour, docstrings for code. -->
 ## Why
 
 <!-- Why is the change needed? Link the issue it addresses as "Addresses #N".
-For assumption changes, give references or a justification for the new
-values. -->
+For a model change, how it better represents the sector. For assumption
+changes, give references or a justification for the new values. -->
 
 ## Verification
 
-<!-- Only what CI does not show: no suites run, pass counts or lint results.
-For example: base-versus-branch runs showing identical output, a
-deliberate-break table for a new check, manual checks, and what was not run.
-If simulation results change, explain the difference. -->
+<!-- Only what CI does not show. Never list the suites CI runs, pass counts
+or "lint passes". A run CI does not do, such as a reference scenario under
+simulations/scenarios/, is stated with what it showed. For example:
+base-versus-branch runs showing identical output, a table of deliberate
+breaks showing a new check fails when it should, and manual checks. If
+simulation results change, explain the difference. -->
 
 ## Assumptions and scope
 

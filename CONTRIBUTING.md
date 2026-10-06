@@ -29,9 +29,9 @@ and how the fix addresses it. If you have found a bug but do not plan to fix
 it yourself, please open an issue instead.
 
 **Large features**, such as new policies, new node types, and major
-refactors, should start as a feature request issue. This lets us align on
-scope and design before you invest significant effort. Smaller features can
-be submitted directly as a pull request.
+refactors, should start as an issue. This lets us align on scope and design
+before you invest significant effort. Smaller features can be submitted
+directly as a pull request.
 
 **Assumption changes** must include references or a justification for the new
 values, so that the provenance of the model inputs stays traceable.
@@ -41,8 +41,11 @@ values, so that the provenance of the model inputs stays traceable.
 - Target the `dev` branch.
 - Keep each pull request focused on a single change. Unrelated fixes and
   refactors belong in separate pull requests.
-- Fill in the pull request template. Its Verification section states what
-  CI does not show, rather than repeating CI's results.
+- Fill in the pull request template.
+- Title the pull request with one imperative sentence stating the outcome,
+  with no prefix. Pull requests are squash-merged, so the title becomes the
+  commit subject. For a single-commit pull request GitHub proposes the
+  commit subject instead, so make the commit subject equal the title.
 - Follow the code style: `ruff` and `mypy` enforce the mechanical rules
   (`make lint`), [`CODESTYLE.md`](CODESTYLE.md) carries the conventions the
   tooling cannot check. Run
@@ -89,8 +92,8 @@ diff as review material (`tests/regression/README.md`).
 ## Questions
 
 Issues are the preferred way to ask. Whether you are unsure if a change needs
-a feature request first, want to discuss a design, or have a question about
-the model, open an issue and we will get back to you.
+an issue first, want to discuss a design, or have a question about the
+model, open an issue and we will get back to you.
 
 ## AI tools
 

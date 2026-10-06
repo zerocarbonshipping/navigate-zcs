@@ -10,12 +10,10 @@ SPDX-License-Identifier: Apache-2.0
   parser table (`navigate/parser/_attributes.py`, `_commands.py`), or the
   code path. Give both sides (#425).
 - **When it is unclear which side is wrong**, say so. If the code turns out
-  to be wrong, the fix is a bug fix.
+  to be wrong, the issue is a bug.
 - Several mismatches of one kind, found in one pass, make one issue.
 - **Location** names the documentation file and the source file it was
   checked against.
-- Errors in the reference manual get a changelog entry like bugs
-  (`CONTRIBUTING.md`, Changelog), so the fix carries one.
 - The reference manual describes behaviour as users see it, with no
   modelling derivations. Codebase internals belong in the root files and the
   folder READMEs (`AGENTS.md`), so an issue about them names those files,

@@ -10,9 +10,11 @@ SPDX-License-Identifier: Apache-2.0
   reference-manual pages updated, and the changelog entry. A new attribute
   or command lives in four places (`AGENTS.md`, What a change touches); name
   each.
-- **Why** links the issue where the design was agreed, for a large feature.
-- **Assumptions and scope** carries a `### Decisions` subsection for the
-  choices made during the work, each with its reason.
+- **Why** says how the change better represents the sector, when it changes
+  the model. For a large feature, it links the issue where the design was
+  agreed.
+- Choices made during the work go under Assumptions and scope, each with its
+  reason.
 - **When outputs move**, Verification carries a results table: the
   quantities and years that matter, base → branch, with the commit and the
   deck. Explain each shift by the mechanism that causes it.
