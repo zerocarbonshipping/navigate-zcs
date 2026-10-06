@@ -67,7 +67,8 @@ CORE_ORDER = {
     "general_nodes": frozenset({FLAT}),
     FLAT: frozenset(),
 }
-# every directory under core/ holding Python source, package or not
+# the directories directly in core/ that hold Python source at any depth,
+# package or not; a deeper directory belongs to its top-level group
 CORE_SUBPACKAGES = {
     path.relative_to(CORE).parts[0]
     for path in CORE_SOURCES
