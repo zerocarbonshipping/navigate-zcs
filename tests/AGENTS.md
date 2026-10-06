@@ -8,6 +8,7 @@ SPDX-License-Identifier: Apache-2.0
 Four pytest suites, two make targets that smoke-run committed decks, shared
 helpers in `tests/helpers/`, and each simulating suite's decks under its own
 `simulations/`. The layout encodes which suite answers which question.
+`README.md` in this folder is the short version for a first test.
 
 ## What earns a test
 

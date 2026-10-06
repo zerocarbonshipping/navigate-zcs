@@ -79,8 +79,9 @@ works belongs in the pull request, not the changelog.
 All tests must pass before a pull request can be merged. Run the full suite
 with `make test-all`, or the individual suites during development.
 
-New code needs appropriate test coverage: `tests/AGENTS.md` says which suite
-a check belongs in and points to each suite's conventions. Changes that alter
+New code needs appropriate test coverage. `tests/README.md` is the short
+guide to when a change needs a test and where it goes; `tests/AGENTS.md`
+says which suite a check belongs in and points to each suite's conventions. Changes that alter
 simulation results should explain the difference in the pull request
 description; the regression baselines they move are regenerated only with
 `make regen-regression` and committed as their own commit, with the baseline
