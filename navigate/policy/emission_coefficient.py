@@ -1,13 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""
-WTT, TTW and overall emission coefficients of regulations and levies.
-
-The default WTT of a fuel bunkered at a port is estimated from the plants producing
-the fuel and reads no bunker supply, so the coefficients are calculated once per time
-step, before either bunkering run.
-"""
+"""WTT, TTW and overall emission coefficients of regulations and levies."""
 
 from __future__ import annotations
 
