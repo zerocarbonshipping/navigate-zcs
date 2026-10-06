@@ -162,7 +162,7 @@ def verify_power_capacity(
     Parameters
     ----------
     fleets
-        Fleets whose vessels are gated, by name.
+        Fleets by name; each vessel the scope admits is verified.
     idx
         Current time-step index.
     scope

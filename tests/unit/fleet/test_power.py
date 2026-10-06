@@ -7,7 +7,8 @@ Tests for converter power-capacity verification and vessel load-function checks.
 The power-capacity check asserts, per leg and per port, that the energy a
 converter delivers cannot exceed its power capacity times the time spent on
 the step. Port demands must fit the onboard converter alone: shore power gives
-no allowance.
+no allowance. Only vessels whose multiplier admits them into a bunkering scope are
+checked.
 
 The load-function checks decide, from a vessel's propulsion, electrical, and
 heat loads, its technical speed limits and whether its loads are convex.
@@ -124,7 +125,7 @@ def _make_vessel(**overrides) -> _StubVessel:
     return _StubVessel(**defaults)
 
 
-class TestVerifyPowerCapacity:
+class TestVerifyVesselPowerCapacity:
     @pytest.mark.parametrize(
         ("load_factor", "raises"),
         [
@@ -216,55 +217,7 @@ class TestVerifyPowerCapacity:
         assert "heat demand on leg 0" in message
 
 
-class TestExpectationHorizonBroadcast:
-    """
-    Pins the horizon-broadcast contract that expected-scope power gating relies on.
-
-    The expected-scope gating in fleet.power.verify_power_capacity checks demands
-    only at the current index; that is valid because a vessel-expectation write at idx
-    broadcasts over the whole remaining horizon, so every future expected-bunkering
-    build reads the same demands and times.
-    """
-
-    LENGTH = 6
-    WRITE_IDX = 2
-
-    @pytest.fixture
-    def expectation(self):
-        expectation = VesselExpectation()
-        expectation._initialize_expectation(self.LENGTH)
-        expectation._time_sea = expectation._default_list_array(1)
-        expectation._time_port = expectation._default_list_array(1)
-        expectation._energy_sea = expectation._default_dict_list_array(
-            EnergyDemandTypeID, 1
-        )
-        expectation._energy_port = expectation._default_dict_list_array(
-            EnergyDemandTypePortID, 1
-        )
-        return expectation
-
-    def test_writes_broadcast_over_the_remaining_horizon(self, expectation):
-        expectation.set_time_sea(self.WRITE_IDX, [3.0])
-        expectation.set_time_port(self.WRITE_IDX, [4.0])
-        expectation.set_energy_sea(
-            self.WRITE_IDX, {d: [100.0] for d in EnergyDemandTypeID}
-        )
-        expectation.set_energy_port(
-            self.WRITE_IDX, {d: [50.0] for d in EnergyDemandTypePortID}
-        )
-
-        for idx in range(self.WRITE_IDX, self.LENGTH):
-            assert expectation.get_time_sea(idx) == [3.0]
-            assert expectation.get_time_port(idx) == [4.0]
-            assert expectation.get_energy_sea(idx=idx) == {
-                d: [100.0] for d in EnergyDemandTypeID
-            }
-            assert expectation.get_energy_port(idx=idx) == {
-                d: [50.0] for d in EnergyDemandTypePortID
-            }
-
-
-class TestScopeGating:
+class TestVerifyPowerCapacity:
     """Scope gating only verifies vessels whose multiplier admits them into LP scope."""
 
     @staticmethod
@@ -326,6 +279,54 @@ class TestScopeGating:
 
         with pytest.raises(PowerCapacityError):
             verify_power_capacity(fleets, IDX, BunkerScopeID.EXPECTED)
+
+
+class TestExpectationHorizonBroadcast:
+    """
+    Pins the horizon-broadcast contract that expected-scope power gating relies on.
+
+    The expected-scope gating in verify_power_capacity checks demands
+    only at the current index; that is valid because a vessel-expectation write at idx
+    broadcasts over the whole remaining horizon, so every future expected-bunkering
+    build reads the same demands and times.
+    """
+
+    LENGTH = 6
+    WRITE_IDX = 2
+
+    @pytest.fixture
+    def expectation(self):
+        expectation = VesselExpectation()
+        expectation._initialize_expectation(self.LENGTH)
+        expectation._time_sea = expectation._default_list_array(1)
+        expectation._time_port = expectation._default_list_array(1)
+        expectation._energy_sea = expectation._default_dict_list_array(
+            EnergyDemandTypeID, 1
+        )
+        expectation._energy_port = expectation._default_dict_list_array(
+            EnergyDemandTypePortID, 1
+        )
+        return expectation
+
+    def test_writes_broadcast_over_the_remaining_horizon(self, expectation):
+        expectation.set_time_sea(self.WRITE_IDX, [3.0])
+        expectation.set_time_port(self.WRITE_IDX, [4.0])
+        expectation.set_energy_sea(
+            self.WRITE_IDX, {d: [100.0] for d in EnergyDemandTypeID}
+        )
+        expectation.set_energy_port(
+            self.WRITE_IDX, {d: [50.0] for d in EnergyDemandTypePortID}
+        )
+
+        for idx in range(self.WRITE_IDX, self.LENGTH):
+            assert expectation.get_time_sea(idx) == [3.0]
+            assert expectation.get_time_port(idx) == [4.0]
+            assert expectation.get_energy_sea(idx=idx) == {
+                d: [100.0] for d in EnergyDemandTypeID
+            }
+            assert expectation.get_energy_port(idx=idx) == {
+                d: [50.0] for d in EnergyDemandTypePortID
+            }
 
 
 class TestCalculateTechnicalSpeedLimits:
