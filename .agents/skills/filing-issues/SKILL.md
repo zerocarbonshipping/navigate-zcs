@@ -41,7 +41,9 @@ request rather than filing.
   the model's intent.
 - **enhancement:** changes what a user can do or sees.
 - **documentation:** fixes text only.
-- **maintenance:** leaves behaviour as it is.
+- **maintenance:** improves the code without changing what the model
+  computes; a deliberate change to its output is allowed and is stated as a
+  user-visible effect.
 - **performance:** changes speed or memory, not results.
 
 | Type | Form |

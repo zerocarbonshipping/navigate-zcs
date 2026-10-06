@@ -20,8 +20,8 @@ why. -->
 
 <!-- Required for a bug fix, a new or changed deck error or check, and any
 change that moves results; otherwise delete it if empty. Show what CI does
-not show, such as proof that results are unchanged, runs before and after the
-change, or manual checks. What counts as evidence: CONTRIBUTING.md, Evidence
+not show, such as proof that computed results are unchanged, runs before and after
+the change, or manual checks. What counts as evidence: CONTRIBUTING.md, Evidence
 in a pull request. -->
 
 ## Limitations

@@ -98,12 +98,16 @@ CI already reports the test suites, lint and the documentation build, so the
 description never lists suites, their results or test counts. Naming what a
 new test pins is fine.
 
-- **Results unchanged.** Run every deck under `simulations/examples/` and
-  `tutorials/` whose run reaches the changed code, on the base commit and on
-  the branch. Report CSVs must be byte-identical, and xlsx reports identical
-  cell by cell, since xlsx bytes differ between saves. For a deck that
-  writes no report, pickle every node's profile and expectation after a full
-  run on each side, and compare. Name the base commit and the decks run.
+- **Results unchanged.** The proof concerns what the model computes, not
+  how the output presents it. Run every deck under `simulations/examples/`
+  and `tutorials/` whose run reaches the changed code, on the base commit and
+  on the branch. Report CSVs must be byte-identical, and xlsx reports
+  identical cell by cell, since xlsx bytes differ between saves. For a deck
+  that writes no report, pickle every node's profile and expectation after a
+  full run on each side, and compare. Where the change deliberately alters an
+  output's layout, format or wording, compare the values instead, and state
+  the output change as a user-visible effect. Name the base commit and the
+  decks run.
 - The regression suite is not this proof: its baselines cover few decks and
   carry a noise floor (`tests/regression/README.md`).
 - A change that touches nothing under `navigate/` or `assumptions/`, no deck
