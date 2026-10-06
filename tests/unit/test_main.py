@@ -12,6 +12,7 @@ import sys
 
 import pytest
 
+from navigate import __main__ as cli
 from navigate.__main__ import ASSUMPTIONS_ENV_VAR, _build_parser, _run, main
 from navigate.core.enum_ import SolverBackendID
 
@@ -237,6 +238,39 @@ class TestRunCompletionLogging:
         assert message == "Simulation completed successfully, elapsed time: 0m and 5s."
         assert message.count("elapsed time:") == 1
         assert "seconds" not in message
+
+
+class TestPreamble:
+    @pytest.mark.parametrize("profile", [False, True], ids=["plain", "profile"])
+    def test_dispatch_prints_the_preamble_once(self, monkeypatch, tmp_path, profile):
+        class _StubManager:
+            def __init__(self, path, data_dir=None, solver=None):
+                pass
+
+            def run(self):
+                pass
+
+            def get_elapsed_time(self):
+                return "elapsed time: 0m and 5s"
+
+            def export_graphs(self):
+                pass
+
+        preambles = []
+        monkeypatch.setattr(cli, "print_preamble", lambda: preambles.append(1))
+        monkeypatch.setattr(cli, "setup_logger", lambda *args, **kwargs: None)
+        monkeypatch.setattr(cli, "SimulationManager", _StubManager)
+        args = argparse.Namespace(
+            filename=tmp_path / "deck.nav",
+            log_level="INFO",
+            profile=profile,
+            suppress_plots=False,
+            data_dir=None,
+            solver=None,
+        )
+
+        assert cli._dispatch(args) == 0
+        assert len(preambles) == 1
 
 
 class TestWorkingDirectory:

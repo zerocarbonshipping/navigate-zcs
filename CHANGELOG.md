@@ -110,6 +110,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - A deck that leaves a required attribute unassigned now stops with a one-line
   `Error:` message naming the node and the attribute, instead of a Python
   traceback.
+- The time-step banner lines in the `.log` file carry the logger name
+  `navigate.simulation` instead of `navigate.parser.parser`.
 
 ### Removed
 - `BunkerLogistics`: write `LiquidMarket` on `Fuel`, and `set_fuel_transport`
@@ -238,6 +240,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   a key: `only allows assignment of ELECTRICAL, HEAT, but got X`.
 - `set_initial_technology_share` values built from expressions are honored
   instead of being ignored.
+- The warning count at the end of a run no longer counts a repeated
+  consistency warning once more after the last time step.
 - `set_fuel_wtt`, `set_fuel_ttw` and `set_global_warming_potential` on a
   `Levy` or `Regulation` hold beyond the first time step. Results change for
   decks using them, including `simulations/examples/example_1`.

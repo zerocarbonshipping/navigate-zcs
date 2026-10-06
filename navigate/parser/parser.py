@@ -4,7 +4,8 @@
 """
 The Parser: reads a deck and its include files into nodes and a timeline of events.
 
-SimulationManager builds one to read the deck and to step through the timeline.
+SimulationManager builds one to read the deck, then applies the events of each date
+in `dates` with `read_events`.
 """
 
 from __future__ import annotations
@@ -33,7 +34,6 @@ from navigate.exceptions import (
     DeckKeywordError,
     UnassignedAttributeError,
 )
-from navigate.logging_ import log_time_step_breaker, print_preamble
 from navigate.parser._attributes import (
     GENERAL_NODE_REQUIRED_ATTRIBUTES,
     NODE_ATTRIBUTE_SECTIONS,
@@ -91,7 +91,6 @@ from navigate.util import (
     matching_keys,
     name_contains_wildcards,
     retrieve_keys,
-    timedelta_to_days,
     wildcard_to_regex,
 )
 
@@ -163,7 +162,6 @@ class Parser:
         self.dates: DateArray
         self._start_events: list[Event] = []
         self._event_queue: dict[np.datetime64, list[Event]] = {}
-        self._idx_date: int = 0
         self._current_event: Event | None = None
 
         # timeline state
@@ -247,8 +245,6 @@ class Parser:
         self.deck_directory = str(path.parent)
         self._define_internal_directories(data_dir=data_dir)
 
-        print_preamble()
-
         blocks = parse_deck_content(content, file=str(path))
 
         for block in blocks:
@@ -294,32 +290,20 @@ class Parser:
 
         self._end_reading_section(section)
 
-    def progress_timeline(self) -> np.datetime64 | None:
+    def read_events(self, date: np.datetime64) -> None:
         """
-        Progress the timeline to the next date and process events.
+        Apply the events queued at a date and refresh the dependent nodes.
 
-        Returns
-        -------
-        np.datetime64 | None
-            Date of the next event in the timeline, or None once every date is
-            read.
+        Parameters
+        ----------
+        date
+            A date from ``dates``; a date with no queued events only refreshes
+            the dependencies.
         """
-        date, events = self._next_event()
-
-        if (self._idx_date > 1) and (date is not None):
-            log_time_step_breaker(
-                logger,
-                self._idx_date - 1,
-                date,
-                timedelta_to_days(date - self.dates[0]),
-            )
-
-        for event in events:
+        for event in self._event_queue.get(date, []):
             self._read_event(event)
 
         self._update_dependencies()
-
-        return date
 
     # error formatting -----------------------------------------------------------------
 
@@ -481,15 +465,6 @@ class Parser:
         handler(statement)
 
     # event queue and timeline ---------------------------------------------------------
-
-    def _next_event(self) -> tuple[np.datetime64 | None, list[Event]]:
-        if self._idx_date >= len(self.dates):
-            return None, []
-
-        date = self.dates[self._idx_date]
-        events = self._event_queue.get(date, [])
-        self._idx_date += 1
-        return date, events
 
     def _read_event(self, event: Event) -> None:
         """Process stored AST statements from a queued event."""

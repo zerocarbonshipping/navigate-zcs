@@ -9,6 +9,7 @@ from types import SimpleNamespace
 
 import numpy as np
 
+from navigate import simulation
 from navigate.simulation import SimulationManager
 
 # a start date before 1970 with a yearly step landing on 1970-01-01, continuing past it
@@ -20,28 +21,37 @@ TIMELINE_DATES = [
 ]
 
 
-def test_run_simulation_steps_through_every_date_including_the_epoch():
-    """``_run_simulation`` must process 1970-01-01 and every date after it."""
-    remaining_dates = iter([*TIMELINE_DATES, None])
-    parser = SimpleNamespace(progress_timeline=lambda: next(remaining_dates))
+def test_run_simulation_logs_banner_then_reads_events_then_steps(monkeypatch):
+    """
+    Each date after the first logs its banner before its events are read.
 
-    progressed_dates = []
-    stepped_dates = []
+    The dates cross 1970-01-01, and every one of them is still stepped.
+    """
+    calls = []
+    dateline = np.array(TIMELINE_DATES, dtype="datetime64[D]")
 
-    manager = SimpleNamespace(parser=parser, _idx=0, _date=None)
+    monkeypatch.setattr(
+        simulation,
+        "log_time_step_breaker",
+        lambda logger, idx, date, days: calls.append(("banner", idx, date, days)),
+    )
 
-    def _progress_date_time(date):
-        progressed_dates.append(date)
-        manager._date = date
-
-    def _perform_time_step():
-        stepped_dates.append(manager._date)
-
-    manager._progress_date_time = _progress_date_time
-    manager._perform_time_step = _perform_time_step
+    manager = SimpleNamespace(
+        parser=SimpleNamespace(read_events=lambda date: calls.append(("read", date))),
+        dateline=dateline,
+        _idx=0,
+    )
+    manager._progress_date_time = lambda date: calls.append(("progress", date))
+    manager._perform_time_step = lambda: calls.append(("step",))
 
     SimulationManager._run_simulation(manager)
 
-    assert progressed_dates == TIMELINE_DATES
-    assert stepped_dates == TIMELINE_DATES
+    expected = []
+    for k, date in enumerate(dateline):
+        if k > 0:
+            days = (date - dateline[0]) / np.timedelta64(1, "D")
+            expected.append(("banner", k, date, days))
+        expected += [("read", date), ("progress", date), ("step",)]
+
+    assert calls == expected
     assert manager._idx == len(TIMELINE_DATES)

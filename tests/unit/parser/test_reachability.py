@@ -568,8 +568,8 @@ End
         monkeypatch.setattr(Parser, "_prune_unreachable_nodes", counted)
 
         parser = read_fleet_deck()
-        parser.progress_timeline()
-        parser.progress_timeline()
+        parser.read_events(parser.dates[0])
+        parser.read_events(parser.dates[1])
 
         assert len(calls) == 1
 

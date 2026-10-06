@@ -439,4 +439,4 @@ class TestEventsTarget:
         with pytest.raises(
             DeckKeywordError, match="Unable to define new nodes outside DEFINE"
         ):
-            parser.progress_timeline()
+            parser.read_events(parser.dates[0])
