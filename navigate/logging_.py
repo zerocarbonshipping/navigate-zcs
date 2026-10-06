@@ -12,16 +12,12 @@ from collections import Counter
 from importlib.metadata import PackageNotFoundError, version
 from math import floor, log10
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 import numpy as np
 from tabulate import tabulate
 
 from navigate.core.unit import YEAR_TO_DAYS
 from navigate.util import TOLERANCE
-
-if TYPE_CHECKING:
-    from navigate.util import FloatArray
 
 LOG_LEVELS = ["DEBUG", "INFO", "WARNING", "ERROR"]
 HLINE = "=" * 120
@@ -157,38 +153,6 @@ def log_time_step_breaker(
     )
 
     logger.info(_wrap_in_hlines(message))
-
-
-def log_extrapolate_bounds(
-    logger: logging.Logger,
-    node: object,
-    lookup_values: FloatArray,
-    lower: float,
-    upper: float,
-) -> None:
-    """
-    Warn that a table look-up reached beyond the tabulated range.
-
-    Parameters
-    ----------
-    logger
-        Logger to write to.
-    node
-        Node owning the table, named in the message.
-    lookup_values
-        Look-up values, reported when there are few enough to read.
-    lower
-        Lower limit of the tabulated range.
-    upper
-        Upper limit of the tabulated range.
-    """
-    # node is typed as object because the table mixins calling this are not
-    # Node subclasses statically; it is only formatted into the message
-    info = f" Value was {lookup_values}." if lookup_values.size < 5 else ""
-
-    logger.warning(
-        "%s: Extrapolating beyond table limits (%s, %s).%s", node, lower, upper, info
-    )
 
 
 def log_start_of_simulation(logger: logging.Logger, date: np.datetime64) -> None:
