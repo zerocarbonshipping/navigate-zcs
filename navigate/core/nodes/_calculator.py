@@ -72,9 +72,6 @@ class _Calculator:
         self.upper_bound: float = np.inf
 
         # internal variables -----------------------------------------------------------
-        # extrapolation warning
-        self._extrapolation_warned: bool = False
-
         # internal bounds are assigned when setting
         # attributes which have certain limits
         self._internal_bounds: Bounds = Bounds()

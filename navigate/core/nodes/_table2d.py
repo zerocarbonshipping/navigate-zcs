@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING, overload
 
 import numpy as np
@@ -11,7 +10,6 @@ from scipy.interpolate import interpn
 
 from navigate.core import assign_id, assign_value
 from navigate.core.enum_ import ExtrapolateID, Interpolate2DID
-from navigate.core.extrapolation import log_extrapolate_bounds
 from navigate.core.nodes._calculator import _Calculator, evaluate_number
 from navigate.util import is_strictly_increasing
 
@@ -20,8 +18,6 @@ if TYPE_CHECKING:
 
     from navigate.core.types_ import NumberInput
     from navigate.util import FloatArray, FloatLike
-
-logger = logging.getLogger(__name__)
 
 
 class _Table2D(_Calculator):
@@ -153,33 +149,6 @@ class _Table2D(_Calculator):
             x.append(np.interp(z, zp, self.x))
 
         return np.array(x)
-
-    def _check_extrapolation(self, x: FloatArray, y: FloatArray) -> None:
-        x_range = self.x[-1] - self.x[0]
-        y_range = self.y[-1] - self.y[0]
-        x_atol = max(x_range * 1e-4, 1e-9)
-        y_atol = max(y_range * 1e-4, 1e-9)
-
-        x_oob = np.any(x < self.x[0] - x_atol) or np.any(x > self.x[-1] + x_atol)
-        y_oob = np.any(y < self.y[0] - y_atol) or np.any(y > self.y[-1] + y_atol)
-
-        if x_oob or y_oob:
-            if not self._extrapolation_warned:
-                if x_oob:
-                    log_extrapolate_bounds(logger, self, x, *self._get_x_limits())
-                if y_oob:
-                    log_extrapolate_bounds(logger, self, y, *self._get_y_limits())
-                self._extrapolation_warned = True
-            else:
-                logger.debug(
-                    "%s: Extrapolating beyond table limits (suppressed repeat).", self
-                )
-
-    def _get_x_limits(self) -> tuple[float, float]:
-        return self.x[0], self.x[-1]
-
-    def _get_y_limits(self) -> tuple[float, float]:
-        return self.y[0], self.y[-1]
 
     def _get_interpolate_internal(self) -> str:
         match self._interpolate:
