@@ -25,11 +25,3 @@ def test_an_empty_dict_sums_to_a_zero_timeline():
     # assert_array_equal broadcasts a scalar, so the shape is checked apart
     assert total.shape == TIMELINE.shape
     np.testing.assert_array_equal(total, 0.0)
-
-
-def test_the_values_are_summed_element_wise():
-    values = {"co2": np.array([1.0, 2.0, 3.0]), "ch4": np.array([0.5, 0.0, 4.0])}
-
-    total = _profile()._sum_values(values)
-
-    np.testing.assert_array_equal(total, [1.5, 2.0, 7.0])

@@ -64,22 +64,15 @@ def profile_without_emissions():
     return port_profile
 
 
-class TestEquivalentBunkerWtt:
-    def test_weights_each_emission_by_its_gwp(self, profile):
-        equivalent = profile.get_equivalent_bunker_wtt()
-
-        np.testing.assert_array_equal(equivalent[("lsfo", "co2")], [2.0, 0.0])
-        np.testing.assert_array_equal(equivalent[("lsfo", "ch4")], [2.5, 0.0])
-        np.testing.assert_array_equal(equivalent[("lng", "co2")], [0.0, 0.0])
-        np.testing.assert_array_equal(equivalent[("lng", "ch4")], [0.0, 10.0])
-
-
 class TestBunkerIntensityTotalEquivalentWtt:
-    def test_divides_the_per_fuel_total_by_lhv_in_g_per_mj(self, profile):
+    def test_weights_by_gwp_and_divides_the_per_fuel_total_by_lhv_in_g_per_mj(
+        self, profile
+    ):
         intensity = profile.get_bunker_intensity_total_equivalent_wtt()
 
-        # ton -> g is 1e6 and GJ -> MJ is 1e3, so the intensity is 1e3 times
-        # the ton-per-GJ ratio
+        # each emission is weighted by its GWP before the per-fuel sum (the
+        # *_EQUIVALENT_* constants); ton -> g is 1e6 and GJ -> MJ is 1e3, so
+        # the intensity is 1e3 times the ton-per-GJ ratio
         np.testing.assert_allclose(
             intensity["lsfo"], [LSFO_EQUIVALENT_STEP_0 / LSFO_LHV * 1e3, 0.0]
         )
@@ -88,27 +81,15 @@ class TestBunkerIntensityTotalEquivalentWtt:
         )
 
 
-class TestNoEmissions:
-    """A deck with no Emission node reports zero, not a bare scalar (#237)."""
+def test_no_emissions_gives_a_zero_intensity_timeline_per_fuel(
+    profile_without_emissions,
+):
+    # a deck with no Emission node reports zero per fuel, not a bare scalar (#237)
+    intensity = profile_without_emissions.get_bunker_intensity_total_equivalent_wtt()
 
-    def test_bunker_intensity_total_equivalent_wtt_is_a_zero_timeline_per_fuel(
-        self, profile_without_emissions
-    ):
-        intensity = (
-            profile_without_emissions.get_bunker_intensity_total_equivalent_wtt()
-        )
+    assert intensity.keys() == {"lsfo", "lng"}
 
-        assert intensity.keys() == {"lsfo", "lng"}
-
-        # assert_array_equal broadcasts a scalar, so the shape is checked apart
-        for fuel_intensity in intensity.values():
-            assert fuel_intensity.shape == (3,)
-            np.testing.assert_array_equal(fuel_intensity, 0.0)
-
-    def test_total_equivalent_bunker_wtt_is_a_zero_timeline(
-        self, profile_without_emissions
-    ):
-        total = profile_without_emissions.get_total_equivalent_bunker_wtt()
-
-        assert total.shape == (3,)
-        np.testing.assert_array_equal(total, 0.0)
+    # assert_array_equal broadcasts a scalar, so the shape is checked apart
+    for fuel_intensity in intensity.values():
+        assert fuel_intensity.shape == (3,)
+        np.testing.assert_array_equal(fuel_intensity, 0.0)

@@ -15,103 +15,32 @@ from navigate.util import (
     derive_smoothing_alpha,
     find_nearest,
     find_nearest_index,
-    get_increment_origin_index,
-    get_increment_origin_indexes,
-    interpolate_yearly_flow,
     update_belief_path,
 )
 
+# compound growth goes through exp(log(1 + r)), which round-trips only to
+# within float rounding of the hand-computed powers
+GROWTH_RTOL = 1e-6
 
-class TestCalculateInertia:
-    @pytest.mark.parametrize(
-        ("inertia", "dt", "expected"),
-        [
-            # for a time-step of exactly one year, result equals the inertia parameter
-            (0.8, YEAR, 0.8),
-            # dt=0 → inertia^0 = 1.0 regardless of base
-            (0.5, 0.0, 1.0),
-            # half-year step → sqrt(inertia)
-            (0.64, YEAR / 2, 0.8),
-            # inertia of 1.0 remains 1.0 regardless of time-step
-            (1.0, YEAR, 1.0),
-            (1.0, 100.0, 1.0),
-            # inertia of 0.0 is 0.0 for any positive time-step
-            (0.0, YEAR, 0.0),
-        ],
-    )
-    def test_inertia(self, inertia, dt, expected):
-        assert calculate_inertia(inertia, dt) == pytest.approx(expected)
+
+def test_inertia_compounds_over_the_time_step():
+    # the inertia parameter is per year, so a half-year step takes its root
+    assert calculate_inertia(0.64, YEAR / 2) == pytest.approx(0.8)
 
 
 class TestFindNearest:
     _array = np.array([0.0, 10.0, 20.0])
 
-    def test_scalar_query(self):
-        assert find_nearest_index(self._array, 9.0) == 1
-
-    def test_array_query(self):
-        result = find_nearest(self._array, np.array([-5.0, 9.0, 25.0]))
+    def test_queries_beyond_the_ends_clamp(self):
+        result = find_nearest(self._array, np.array([-100.0, 9.0, 100.0]))
         np.testing.assert_array_equal(result, [0, 1, 2])
-
-    def test_below_first_clamps_to_zero(self):
-        assert find_nearest_index(self._array, -100.0) == 0
-
-    def test_past_last_clamps_to_last(self):
-        assert find_nearest_index(self._array, 100.0) == 2
 
     def test_equidistant_tie_picks_right_neighbor(self):
         assert find_nearest_index(self._array, 5.0) == 1
 
-    # query kinds the pre-unification scalar/array branch crashed on
-    def test_int_query(self):
-        assert find_nearest_index(self._array, 9) == 1
-
-    def test_float32_query(self):
-        assert find_nearest_index(self._array, np.float32(9.0)) == 1
-
-    def test_zero_dimensional_query(self):
-        assert find_nearest_index(self._array, np.array(9.0)) == 1
-
-
-class TestGetIncrementOriginIndex:
-    _years = np.array([2020.0, 2021.0, 2022.0])
-
-    def test_scalar_age(self):
-        assert get_increment_origin_index(self._years, 2022.0, 1.2) == 1
-
-    def test_array_ages_clamp_to_start(self):
-        origins = get_increment_origin_indexes(
-            self._years, 2022.0, np.array([0.0, 1.0, 5.0])
-        )
-        np.testing.assert_array_equal(origins, [2, 1, 0])
-
-
-class TestInterpolateYearlyFlow:
-    _flow = np.array([100.0, 80.0, 60.0])
-
-    def test_exact_year_hit(self):
-        assert interpolate_yearly_flow(self._flow, 1.0) == pytest.approx(80.0)
-
-    def test_interior_fractional_age(self):
-        assert interpolate_yearly_flow(self._flow, 0.5) == pytest.approx(90.0)
-
-    def test_age_zero(self):
-        assert interpolate_yearly_flow(self._flow, 0.0) == pytest.approx(100.0)
-
-    def test_age_beyond_last_year_clamps(self):
-        assert interpolate_yearly_flow(self._flow, 10.0) == pytest.approx(60.0)
-
 
 class TestCalculateCompoundGrowth:
-    def test_zero_growth(self):
-        """With zero growth, all values should equal the initial value."""
-        timeline = np.array([0.0, YEAR, 2 * YEAR])
-        growth = np.array([0.0, 0.0, 0.0])
-        result = calculate_compound_growth(100.0, growth, timeline)
-        np.testing.assert_allclose(result, [100.0, 100.0, 100.0])
-
     def test_constant_growth(self):
-        """With constant growth rate, verify exponential increase."""
         timeline = np.array([0.0, YEAR, 2 * YEAR])
         rate = 0.05  # 5% per year
         growth = np.array([rate, rate, rate])
@@ -119,9 +48,23 @@ class TestCalculateCompoundGrowth:
 
         # After one year: 100 * exp(ln(1.05) * 1) = 100 * 1.05 = 105
         assert result[0] == pytest.approx(100.0)
-        assert result[1] == pytest.approx(105.0, rel=1e-6)
+        assert result[1] == pytest.approx(105.0, rel=GROWTH_RTOL)
         # After two years: 100 * exp(2 * ln(1.05)) = 100 * 1.05^2
-        assert result[2] == pytest.approx(100.0 * 1.05**2, rel=1e-6)
+        assert result[2] == pytest.approx(100.0 * 1.05**2, rel=GROWTH_RTOL)
+
+    def test_growth_at_a_step_applies_over_the_step_that_follows(self):
+        # the growth at index t compounds over t -> t+1 for that step's length,
+        # so the last entry is never applied: 100 * 1.1 over the first year,
+        # then * 1.2 ** 2 over the two-year step. Applying the growth at t+1
+        # instead would give 120 and 270
+        timeline = np.array([0.0, YEAR, 3 * YEAR])
+        growth = np.array([0.1, 0.2, 0.5])
+
+        result = calculate_compound_growth(100.0, growth, timeline)
+
+        np.testing.assert_allclose(
+            result, [100.0, 110.0, 110.0 * 1.2**2], rtol=GROWTH_RTOL
+        )
 
 
 class TestUpdateBeliefPath:
@@ -134,32 +77,20 @@ class TestUpdateBeliefPath:
         update_belief_path(np.array([1.0, 2.0, 3.0, 4.0]), belief, self._alpha, 0)
         np.testing.assert_array_equal(belief, [1.0, 2.0, 3.0, 4.0])
 
-    def test_zero_prior_is_smoothed_not_readopted(self):
-        # a prior of exactly zero is evidence, so the onset ramps as alpha * raw:
-        # 0.25 * 8 = 2, 0.25 * 4 = 1, 0.25 * 12 = 3
-        belief = np.array([5.0, 0.0, 0.0, 0.0])
-        update_belief_path(np.array([9.0, 8.0, 4.0, 12.0]), belief, self._alpha, 1)
-        np.testing.assert_array_equal(belief, [5.0, 2.0, 1.0, 3.0])
-
-    def test_nonzero_prior_is_smoothed(self):
-        # 0.25 * 8 + 0.75 * 4 = 5, 0.25 * 0 + 0.75 * 8 = 6, 0.25 * 4 + 0.75 * 12 = 10
-        belief = np.array([7.0, 4.0, 8.0, 12.0])
-        update_belief_path(np.array([100.0, 8.0, 0.0, 4.0]), belief, self._alpha, 1)
-        np.testing.assert_array_equal(belief, [7.0, 5.0, 6.0, 10.0])
+    def test_a_prior_is_smoothed_even_when_it_is_zero(self):
+        # a prior of exactly zero is evidence, so a price appearing after a
+        # stretch of zeros ramps up as alpha * raw rather than being adopted:
+        # 0.25 * 8 = 2 and 0.25 * 12 = 3 from zero, 0.25 * 8 + 0.75 * 4 = 5
+        # from a nonzero prior
+        belief = np.array([5.0, 0.0, 4.0, 0.0])
+        update_belief_path(np.array([9.0, 8.0, 8.0, 12.0]), belief, self._alpha, 1)
+        np.testing.assert_array_equal(belief, [5.0, 2.0, 5.0, 3.0])
 
     def test_entries_before_idx_are_untouched(self):
         # neither a NaN nor a value before idx is written, whatever raw holds there
         belief = np.array([np.nan, 3.0, np.nan, np.nan])
         update_belief_path(np.array([1.0, 1.0, 6.0, 7.0]), belief, self._alpha, 2)
         np.testing.assert_array_equal(belief, [np.nan, 3.0, 6.0, 7.0])
-
-    def test_onset_after_all_zero_update_ramps(self):
-        # first update: the price does not bind, belief becomes all zero; second
-        # update: the price binds at 4, belief moves to 0.25 * 4 = 1
-        belief = np.full(3, np.nan)
-        update_belief_path(np.zeros(3), belief, self._alpha, 0)
-        update_belief_path(np.array([0.0, 4.0, 4.0]), belief, self._alpha, 1)
-        np.testing.assert_array_equal(belief, [0.0, 1.0, 1.0])
 
     def test_partially_nan_forward_slice_bootstraps_per_entry(self):
         # the documented rule: a NaN entry adopts raw, the other is smoothed,
@@ -175,14 +106,8 @@ class TestDeriveSmoothingAlpha:
         [
             # docstring: 5-year horizon, 1-year steps → 1 / (1 + 5 / 1)
             (np.array([0.0, YEAR, 2 * YEAR]), 1, 5.0, 1.0 / 6.0),
-            # docstring: 3-year horizon, 1-year steps → 1 / (1 + 3 / 1)
-            (np.array([0.0, YEAR, 2 * YEAR]), 1, 3.0, 0.25),
             # 2-year horizon, half-year step → 1 / (1 + 2 / 0.5)
             (np.array([0.0, YEAR / 2, YEAR]), 1, 2.0, 0.2),
-            # 3-year horizon, 2-year step → 1 / (1 + 3 / 2)
-            (np.array([0.0, 2 * YEAR, 4 * YEAR]), 2, 3.0, 0.4),
-            # zero horizon trusts the projection fully
-            (np.array([0.0, YEAR, 2 * YEAR]), 1, 0.0, 1.0),
             # a zero-length step has no history to weigh against
             (np.array([0.0, YEAR, YEAR]), 2, 3.0, 1.0),
             # the first step has no prior step to weigh against

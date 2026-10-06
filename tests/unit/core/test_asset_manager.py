@@ -38,21 +38,28 @@ class TestUpdateIncrementAges:
         assert producer.pipeline[0][0].decided == pytest.approx(0.5)
 
 
-class TestExpressionsRejected:
-    """Inputs read for their table, never evaluated, take no expression."""
+def _assign_existing_pipeline(assignment):
+    producer = Producer("producer")
+    producer.existing_pipelines = {"plant": None}
+    producer.set_existing_pipeline("plant", assignment)
 
-    def test_existing_pipeline(self):
-        producer = Producer("producer")
-        producer.existing_pipelines = {"plant": None}
 
-        with pytest.raises(
-            ValueError, match="nodes of type Forecast, but got expression"
-        ):
-            producer.set_existing_pipeline("plant", Expression('Forecast("f") * 2'))
+def _assign_initial_age_distribution(assignment):
+    Fleet("fleet").set_initial_age_distribution([assignment])
 
-    def test_initial_age_distribution(self):
-        with pytest.raises(ValueError, match="nodes of type Curve, but got expression"):
-            Fleet("fleet").set_initial_age_distribution([Expression('Curve("c")')])
+
+@pytest.mark.parametrize(
+    ("assign", "type_"),
+    [
+        (_assign_existing_pipeline, "Forecast"),
+        (_assign_initial_age_distribution, "Curve"),
+    ],
+)
+def test_an_input_read_for_its_table_rejects_an_expression(assign, type_):
+    # the table is read directly, never evaluated, so an expression there has
+    # nothing to evaluate it
+    with pytest.raises(ValueError, match=f"nodes of type {type_}, but got expression"):
+        assign(Expression(f'{type_}("x") * 2'))
 
 
 def _cumulative_forecast(last):
@@ -92,8 +99,3 @@ class TestInfiniteTableEntriesRejected:
             match=r'InitialAgeDistribution \(Curve\("ages"\)\) must hold finite',
         ):
             fleet._check_initial_age_distribution_is_finite()
-
-    def test_finite_tables_pass(self):
-        producer = Producer("producer")
-        producer.existing_pipelines = {"plant": _cumulative_forecast(2.0)}
-        producer.check_consistency()

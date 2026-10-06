@@ -17,12 +17,9 @@ from navigate.core.nodes._calculator import _Calculator
 from navigate.parser._keywords import NODE_CLASS
 
 
-class TestNodeTypeAttribute:
-    @pytest.mark.parametrize(("type_", "cls"), NODE_CLASS.items())
-    def test_every_node_class_carries_its_type(self, type_: str, cls: type):
-        node = cls("n")
-        assert node.type == type_
+@pytest.mark.parametrize(("type_", "cls"), NODE_CLASS.items())
+def test_every_node_class_carries_its_type_and_calculator_tag(type_: str, cls: type):
+    node = cls("n")
 
-    @pytest.mark.parametrize("cls", NODE_CLASS.values())
-    def test_is_calculator_agrees_with_the_calculator_hierarchy(self, cls: type):
-        assert is_calculator(cls("n")) == issubclass(cls, _Calculator)
+    assert node.type == type_
+    assert is_calculator(node) == issubclass(cls, _Calculator)

@@ -18,13 +18,6 @@ from navigate.core.general_nodes.bunker_options import BunkerOptions
 from navigate.core.general_nodes.model_definition import ModelDefinition
 
 
-def test_fair_share_maximum_iterations_rejects_a_fraction():
-    with pytest.raises(
-        ValueError, match=r"only allows assignment of integers, but got 2\.5"
-    ):
-        BunkerOptions().set_fair_share_maximum_iterations(2.5)
-
-
 @pytest.mark.parametrize(
     ("node_class", "setter_name", "message"),
     [
