@@ -41,21 +41,23 @@ behavior are documented in `docs/reference_manual/`.
 - `util/` — dependency-free helpers: collections, dates, naming, numerics,
   internal types and unit conversion factors; imports nothing from
   `navigate` outside `util/`.
-- `logging_.py` — run logging; `exceptions.py` — the `NavigateError`
-  hierarchy; `__main__.py` — the CLI.
+- `app/` — the interfaces Navigate is run through: `logs.py`, the run log
+  of a CLI run (its log file, warning ledger, summary and preamble).
+- `exceptions.py` — the `NavigateError` hierarchy; `__main__.py` — the CLI.
 
 ## Layering
 
 ```
 util, __init__       → (nothing)
-exceptions, logging_ → util
+exceptions           → util
 core                 → foundation
 economics, policy    → core, foundation
 fleet, fuel          → economics, core, foundation
-bunker               → policy, logging_, core, foundation
+bunker               → policy, core, foundation
 parser, output       → core, foundation
-simulation           → every unit except __main__
-__main__             → simulation, logging_, core, foundation
+app                  → foundation
+simulation           → every unit except __main__ and app
+__main__             → simulation, app, core, foundation
 ```
 
 A unit is a package or module under `navigate/` with a row, named by its
@@ -63,8 +65,6 @@ dotted path; `__init__` is `navigate/__init__.py`. A file belongs to the
 longest unit that contains it. A unit imports itself and the units in its
 row, and nothing else from `navigate`. The foundation is `util/` and
 `exceptions.py`.
-`logging_.py` is run logging: besides `simulation.py` and the CLI in
-`__main__.py`, only `bunker/` imports it.
 
 `fleet/` and `fuel/` never import each other, nor do `parser/` and
 `output/`, and neither `parser/` nor `output/` imports `simulation.py` or any
@@ -83,6 +83,19 @@ are exact and acyclic: every file belongs to a unit, every unit exists on
 disk, and the order inside `core/` names every directory directly in
 `core/` (a deeper one belongs to the subpackage that contains it) and
 nothing else.
+
+## Logging
+
+Every module logs through its own module logger,
+`logger = logging.getLogger(__name__)`, and imports nothing from `navigate`
+to do so. Only `app/` configures logging: the CLI holds a `RunLog` open for
+the whole run, which attaches the log file's handler to the root logger,
+counts every record for the end-of-run summary and writes a repeated warning
+once.
+The run log's formatter decides how a record reads in the file, from two
+optional keys an emitter passes through `extra`: `heading=True` frames the
+message in horizontal rules, and `table={column name: values}` renders the
+columns as a table under the message, rounded for display.
 
 ## Data-flow invariants
 

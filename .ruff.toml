@@ -32,6 +32,8 @@ select = [
     "ICN", # canonical import aliases (numpy as np, pandas as pd, ...)
     "PGH", # bans blanket noqa/type-ignore; malformed mock assertions
     "PT",  # pytest style and failure quality
+    "G",   # flake8-logging-format: lazy % arguments, extra keys clear of LogRecord's
+    "LOG", # flake8-logging: no root-logger calls, exc_info only in except handlers
 ]
 extend-select = [
     "D213",   # multi-line docstring summaries start on the second line
@@ -39,8 +41,6 @@ extend-select = [
     "DOC102", # every documented parameter exists in the signature
     "DOC202", # no Returns section on a function that returns nothing
     "ERA001", # no commented-out code
-    "G001",   # no str.format in logging calls - pass lazy % arguments
-    "G004",   # no f-strings in logging calls - pass lazy % arguments
 ]
 ignore = [
     "E731", # lambda assignments are allowed

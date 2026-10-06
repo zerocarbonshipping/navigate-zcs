@@ -83,7 +83,6 @@ from navigate.bunker.variables import (
 )
 from navigate.core import get_fuels_per_fuel_type
 from navigate.core.enum_ import BunkerScopeID
-from navigate.logging_ import log_fair_share_convergence
 from navigate.policy import policies_affecting_port
 
 if TYPE_CHECKING:
@@ -357,17 +356,15 @@ class BunkerAlgorithm:
         A regulation that is non-compliant and allows threshold adjustment has its
         threshold adjusted, and the LP is solved again against the adjusted thresholds.
         """
-        iterations, converged = run_fair_share_solve(self)
+        converged = run_fair_share_solve(self)
 
         if adjust_regulation_thresholds(self):
-            iterations, converged = run_fair_share_solve(self)
+            converged = run_fair_share_solve(self)
 
         perform_flexibility_unit_cost_evaluation(self)
 
         if self.scope == BunkerScopeID.EXISTING:
-            log_fair_share_convergence(
-                logger, self.fair_share_convergence_statistics, iterations, converged
-            )
+            self._log_fair_share_convergence(converged)
 
         # the fair-share iterations rebuild constraints between solves; that time
         # counts as build time, while optimize accumulates the solve time
@@ -484,3 +481,28 @@ class BunkerAlgorithm:
             update_tank_capacity_constraints(self, vessel)
 
         update_bunkered_equals_spent_constraint(self, vessel)
+
+    def _log_fair_share_convergence(self, converged: bool) -> None:
+        """
+        Log the outcome of the fair-share iterations, with a table of their statistics.
+
+        Parameters
+        ----------
+        converged
+            Whether the iterations reached the convergence criterion.
+        """
+        statistics = self.fair_share_convergence_statistics
+        iterations = len(statistics["Norm"])
+        table = {"Iter.": range(1, iterations + 1), **statistics}
+
+        if converged:
+            logger.info("Fair-share bunkering convergence status: Successful.")
+            logger.debug(
+                "Fair-share bunkering convergence statistics:", extra={"table": table}
+            )
+        else:
+            logger.info(
+                "Fair-share bunkering convergence status: Failure.\n"
+                "Fair-share bunkering convergence statistics:",
+                extra={"table": table},
+            )

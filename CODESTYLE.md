@@ -110,6 +110,18 @@ The formatter owns spacing within statements; blank lines are yours:
 - Group related local variables; do not interleave them with logic.
 - If a function can only be named with "and", split it.
 
+## Logging
+
+- A module logs through its own logger, defined once at module level as
+  `logger = logging.getLogger(__name__)`, and imports nothing from `navigate`
+  to log. Handlers, levels and the line format belong to the run log in
+  `navigate/app/`; no other module configures logging.
+- Values enter the message as lazy `%` arguments, pre-formatted only where
+  `%` has no matching conversion (`format(seconds, ",.1f")`).
+- A heading or a table is passed through `extra` (`heading=True`,
+  `table={column name: values}`) and drawn by the run log's formatter, never
+  assembled into the message.
+
 ## Input validation and dynamic access
 
 - Validate at the input boundary and raise domain-specific errors carrying the
@@ -189,7 +201,8 @@ The formatter owns spacing within statements; blank lines are yours:
 ### Boundary modules
 
 - Dynamic attribute access (`hasattr`/`getattr`/`setattr`) is confined to
-  `navigate/parser/` (DSL dispatch) and `navigate/output/`.
+  `navigate/parser/` (DSL dispatch), `navigate/output/` and `navigate/app/`
+  (the `extra` keys of a log record).
 - Dictionaries keyed by nodes or enum members are prepopulated at
   initialization: all nodes are known after parsing, and the enum types in
   `navigate/core/enum_.py` are fixed.

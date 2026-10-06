@@ -5,7 +5,6 @@
 
 from __future__ import annotations
 
-import logging
 from typing import TYPE_CHECKING
 
 from navigate.core import (
@@ -29,8 +28,6 @@ if TYPE_CHECKING:
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.types_ import ForecastArgument, ForecastInput
     from navigate.util import FloatArray
-
-logger = logging.getLogger(__name__)
 
 
 class Port(Node):

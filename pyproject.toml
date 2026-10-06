@@ -58,7 +58,7 @@ exclude = ["assumptions*", "simulations*", "tutorials*", "tests*", "syntax*", "d
     "build*", "dist*", "*.egg-info*", "bdist*"]
 
 [tool.setuptools.package-data]
-"navigate" = ["preamble.txt"]
+"navigate.app" = ["preamble.txt"]
 "navigate.parser" = ["grammar.lark"]
 
 [project.scripts]

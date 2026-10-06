@@ -14,6 +14,7 @@ import pytest
 
 from navigate import __main__ as cli
 from navigate.__main__ import ASSUMPTIONS_ENV_VAR, _build_parser, _run, main
+from navigate.app import RunLog
 from navigate.core.enum_ import SolverBackendID
 
 # Fails at parse time with a caret-pointed DeckFormatError, before any simulation work.
@@ -34,15 +35,8 @@ REJECTED_COMMAND_VALUE = (
 
 @pytest.fixture(autouse=True)
 def _clean_environment(monkeypatch):
-    """Isolate tests from the caller's env var and setup_logger's root handlers."""
+    """Isolate tests from the caller's env var."""
     monkeypatch.delenv(ASSUMPTIONS_ENV_VAR, raising=False)
-
-    yield
-
-    root = logging.getLogger()
-    for handler in root.handlers[:]:
-        handler.close()
-        root.removeHandler(handler)
 
 
 def _write_deck(tmp_path, define_body):
@@ -199,7 +193,7 @@ class TestTopLevelErrorHandling:
         deck = tmp_path / "deck.nav"
         deck.write_text(GARBLED_DECK)
 
-        def _interrupt(args):
+        def _interrupt(args, run_log):
             raise KeyboardInterrupt
 
         monkeypatch.setattr(cli, "_dispatch", _interrupt)
@@ -223,10 +217,14 @@ class TestRunCompletionLogging:
                 return "elapsed time: 0m and 5s"
 
         monkeypatch.setattr(cli, "SimulationManager", _StubManager)
+        deck = tmp_path / "deck.nav"
         args = argparse.Namespace(profile=False, data_dir=None, solver=None)
 
-        with caplog.at_level(logging.INFO, logger="navigate.__main__"):
-            _run(tmp_path / "deck.nav", args)
+        with (
+            caplog.at_level(logging.INFO, logger="navigate.__main__"),
+            RunLog(deck, "INFO") as run_log,
+        ):
+            _run(deck, args, run_log)
 
         completed = [
             record.getMessage()
@@ -258,7 +256,6 @@ class TestPreamble:
 
         preambles = []
         monkeypatch.setattr(cli, "print_preamble", lambda: preambles.append(1))
-        monkeypatch.setattr(cli, "setup_logger", lambda *args, **kwargs: None)
         monkeypatch.setattr(cli, "SimulationManager", _StubManager)
         args = argparse.Namespace(
             filename=tmp_path / "deck.nav",
@@ -269,7 +266,9 @@ class TestPreamble:
             solver=None,
         )
 
-        assert cli._dispatch(args) == 0
+        with RunLog(args.filename, args.log_level) as run_log:
+            assert cli._dispatch(args, run_log) == 0
+
         assert len(preambles) == 1
 
 

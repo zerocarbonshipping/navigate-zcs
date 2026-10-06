@@ -83,7 +83,7 @@ def perform_fair_share_iteration(alg: BunkerAlgorithm) -> bool:
     return False
 
 
-def run_fair_share_solve(alg: BunkerAlgorithm) -> tuple[int, bool]:
+def run_fair_share_solve(alg: BunkerAlgorithm) -> bool:
     """
     Run the full fair-share solve loop.
 
@@ -97,9 +97,8 @@ def run_fair_share_solve(alg: BunkerAlgorithm) -> tuple[int, bool]:
 
     Returns
     -------
-    tuple[int, bool]
-        The number of fair-share iterations performed and whether the solution
-        converged.
+    bool
+        Whether the solution converged.
     """
     initialize_fair_share_allocation(alg)
     update_fair_share_constraints(alg)
@@ -107,15 +106,11 @@ def run_fair_share_solve(alg: BunkerAlgorithm) -> tuple[int, bool]:
     optimize(alg)
     update_fair_share_solution(alg)
 
-    max_iter = alg.options.fair_share_maximum_iterations
-    converged = False
-    i = 0
+    for _ in range(alg.options.fair_share_maximum_iterations):
+        if perform_fair_share_iteration(alg):
+            return True
 
-    while (not converged) and i < max_iter:
-        converged = perform_fair_share_iteration(alg)
-        i += 1
-
-    return i, converged
+    return False
 
 
 def perform_flexibility_unit_cost_evaluation(alg: BunkerAlgorithm) -> None:

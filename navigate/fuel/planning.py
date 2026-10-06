@@ -5,7 +5,6 @@
 
 from __future__ import annotations
 
-import logging
 from math import ceil
 from typing import TYPE_CHECKING
 
@@ -22,8 +21,6 @@ if TYPE_CHECKING:
     from navigate.core.nodes.producer import Producer
     from navigate.core.types_ import ForecastInput
     from navigate.util.types_ import FloatArray, FloatLike
-
-logger = logging.getLogger(__name__)
 
 
 def perform_pipeline_planning(

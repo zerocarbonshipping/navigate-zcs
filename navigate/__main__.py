@@ -14,15 +14,9 @@ import sys
 import traceback
 from pathlib import Path
 
+from navigate.app import LOG_LEVELS, RunLog, print_preamble
 from navigate.core.enum_ import SolverBackendID
 from navigate.exceptions import NavigateError
-from navigate.logging_ import (
-    LOG_LEVELS,
-    build_log_summary,
-    print_preamble,
-    print_warning_summary,
-    setup_logger,
-)
 from navigate.simulation import SimulationManager
 
 ASSUMPTIONS_ENV_VAR = "ASSUMPTIONS_DATA_DIR"
@@ -32,6 +26,8 @@ _SOLVER_BACKENDS: dict[str, SolverBackendID] = {
     "gurobi": SolverBackendID.GUROBI,
     "highs": SolverBackendID.HIGHS,
 }
+
+logger = logging.getLogger(__name__)
 
 
 def _solver_backend(value: str) -> SolverBackendID:
@@ -127,7 +123,14 @@ def main() -> int:
     _validate_args(parser, args)
 
     try:
-        return _dispatch(args)
+        with RunLog(args.filename, args.log_level) as run_log:
+            try:
+                return _dispatch(args, run_log)
+            except (NavigateError, OSError) as exc:
+                # recorded while the run log is open; the console report below
+                # also covers an error that kept the log from opening
+                logger.exception("Fatal error: %s", exc)
+                raise
     except KeyboardInterrupt:
         print("Interrupted.", file=sys.stderr)
         return 130
@@ -179,16 +182,15 @@ def _validate_file(parser: argparse.ArgumentParser, path: Path) -> None:
         parser.error(f"deck file must have a '.nav' extension: '{path}'")
 
 
-def _dispatch(args: argparse.Namespace) -> int:
-    setup_logger(args.filename, level=logging.getLevelName(args.log_level))
+def _dispatch(args: argparse.Namespace, run_log: RunLog) -> int:
     print_preamble()
     deck = args.filename.resolve()
 
     if args.profile:
-        _run_with_profile(deck, args)
+        _run_with_profile(deck, args, run_log)
         return 0
 
-    manager = _run(deck, args)
+    manager = _run(deck, args, run_log)
 
     if not args.suppress_plots:
         manager.export_graphs()
@@ -198,10 +200,10 @@ def _dispatch(args: argparse.Namespace) -> int:
 
 def _handle_error(exc: Exception, debug: bool) -> None:
     """
-    Report a fatal error at the CLI boundary.
+    Report a fatal error on the console.
 
-    The full traceback is recorded in the run's .log file (ERROR passes every
-    -l level); the console gets either a one-line message or, with -l DEBUG,
+    The run log has recorded the full traceback, unless the error kept the log
+    from opening; the console gets either a one-line message or, with -l DEBUG,
     the full traceback.
 
     Parameters
@@ -211,34 +213,29 @@ def _handle_error(exc: Exception, debug: bool) -> None:
     debug
         Whether the full traceback should be printed to the console.
     """
-    # guarded by hasHandlers() in case setup_logger itself failed before
-    # installing handlers
-    if logging.getLogger().hasHandlers():
-        logging.getLogger(__name__).error("Fatal error: %s", exc, exc_info=True)
-
     if debug:
         traceback.print_exc()
     else:
         print(f"Error: {exc}", file=sys.stderr)
 
 
-def _run(path: Path, args: argparse.Namespace) -> SimulationManager:
+def _run(path: Path, args: argparse.Namespace, run_log: RunLog) -> SimulationManager:
     manager = SimulationManager(path, data_dir=args.data_dir, solver=args.solver)
     manager.run()
-    logger = logging.getLogger(__name__)
+
     logger.info("Simulation completed successfully, %s.", manager.get_elapsed_time())
-    logger.info(build_log_summary())
+    logger.info(run_log.build_summary())
 
     if not args.profile:
-        print_warning_summary()
+        run_log.print_warning_notice()
 
     return manager
 
 
-def _run_with_profile(path: Path, args: argparse.Namespace) -> None:
+def _run_with_profile(path: Path, args: argparse.Namespace, run_log: RunLog) -> None:
     profiler = cProfile.Profile()
     profiler.enable()
-    _run(path, args)
+    _run(path, args, run_log)
     profiler.disable()
     stats = pstats.Stats(profiler).sort_stats("cumtime")
     stats.dump_stats(str(path.parent / "profile"))
