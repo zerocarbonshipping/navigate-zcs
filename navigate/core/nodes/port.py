@@ -20,7 +20,7 @@ from navigate.core.expectations import PortExpectation
 from navigate.core.node import Node
 from navigate.core.node_type import FORECAST, PORT, VARIABLE
 from navigate.core.profiles import PortProfile
-from navigate.core.unit import MWH_TO_GJ
+from navigate.util import MWH_TO_GJ
 
 if TYPE_CHECKING:
     import numpy as np

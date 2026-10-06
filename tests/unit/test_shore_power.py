@@ -17,7 +17,7 @@ from navigate.core.enum_ import (
     BunkerScopeID,
     RegulationMeasureID,
 )
-from navigate.core.unit import TON_TO_KG
+from navigate.util import TON_TO_KG
 
 
 def _make_emission(name):

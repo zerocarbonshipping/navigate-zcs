@@ -12,10 +12,9 @@ import numpy as np
 from navigate.core import Expression, Scalar
 from navigate.core.enum_ import EnergyDemandTypeID, EnergyDemandTypePortID
 from navigate.core.node_type import is_surface, is_variable
-from navigate.core.unit import MWD_TO_GJ
 from navigate.core.wrap import to_numpy
 from navigate.exceptions import PowerCapacityError
-from navigate.util import TOLERANCE
+from navigate.util import MWD_TO_GJ, TOLERANCE
 
 if TYPE_CHECKING:
     from navigate.core.nodes.converter import Converter

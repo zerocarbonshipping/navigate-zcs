@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 
 from navigate.bunker.utils import get_converters
 from navigate.core.enum_ import RegulationMeasureID
-from navigate.core.unit import TON_TO_KG
+from navigate.util import TON_TO_KG
 
 if TYPE_CHECKING:
     from navigate.bunker.bunker_algorithm import BunkerAlgorithm

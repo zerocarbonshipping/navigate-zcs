@@ -12,8 +12,7 @@ import numpy as np
 
 import navigate.core.enum_ as enum_
 from navigate.core.enum_ import BunkerScopeID
-from navigate.core.unit import MWD_TO_GJ
-from navigate.util import TOLERANCE
+from navigate.util import MWD_TO_GJ, TOLERANCE
 
 if TYPE_CHECKING:
     from navigate.bunker.bunker_algorithm import BunkerAlgorithm

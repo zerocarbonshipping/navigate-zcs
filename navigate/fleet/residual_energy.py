@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.unit import MWD_TO_GJ
+from navigate.util import MWD_TO_GJ
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence

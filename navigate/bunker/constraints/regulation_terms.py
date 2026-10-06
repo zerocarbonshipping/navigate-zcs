@@ -11,12 +11,12 @@ import navigate.bunker.solver as gp
 import navigate.core.enum_ as enum_
 from navigate.bunker.utils import get_converters, get_port_converters
 from navigate.core.enum_ import RegulationMeasureID
-from navigate.core.unit import TON_TO_GRAM
 from navigate.policy import (
     calculate_cargo_miles_in_policy_jurisdiction,
     calculate_nominal_cargo_miles_in_policy_jurisdiction,
     leg_jurisdiction_fraction,
 )
+from navigate.util import TON_TO_GRAM
 
 if TYPE_CHECKING:
     from navigate.bunker.bunker_algorithm import BunkerAlgorithm

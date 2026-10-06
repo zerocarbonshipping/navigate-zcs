@@ -10,7 +10,6 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.unit import YEAR_TO_DAYS
 from navigate.util import ROUND_OFF, YEAR
 
 if TYPE_CHECKING:
@@ -126,10 +125,9 @@ class Component:
         self.time_initial = time_initial
         self.time_commence = _future_time(time_initial, self.lead_time)
         self.time_end = _future_time(time_initial, self.get_length())
-        self.year_flow = time_initial + self._year_offset * YEAR_TO_DAYS
+        self.year_flow = time_initial + self._year_offset * YEAR
         self.constant_overlap = (
-            _overlap_year_bins(self.year_flow, self.time_commence, self.time_end)
-            / YEAR_TO_DAYS
+            _overlap_year_bins(self.year_flow, self.time_commence, self.time_end) / YEAR
         )
 
     def reset_flow(self, time_initial: float) -> None:
@@ -459,11 +457,11 @@ def build_operating_age_flow(lead_time: float, lifetime: float) -> FloatArray:
         `lead_time + lifetime`.
     """
     n = get_flow_size(lead_time, lifetime)
-    year_starts = np.arange(n, dtype=float) * YEAR_TO_DAYS
-    commence = lead_time * YEAR_TO_DAYS
-    end = n * YEAR_TO_DAYS
+    year_starts = np.arange(n, dtype=float) * YEAR
+    commence = lead_time * YEAR
+    end = n * YEAR
 
-    return _overlap_year_bins(year_starts, commence, end) / YEAR_TO_DAYS
+    return _overlap_year_bins(year_starts, commence, end) / YEAR
 
 
 def build_operating_flows(
@@ -492,7 +490,7 @@ def build_operating_flows(
         Absolute year grid (days) and per-year operating fraction.
     """
     overlap = build_operating_age_flow(lead_time, lifetime)
-    year_flow = time_initial + np.arange(overlap.size, dtype=float) * YEAR_TO_DAYS
+    year_flow = time_initial + np.arange(overlap.size, dtype=float) * YEAR
 
     return year_flow, overlap
 
@@ -627,7 +625,7 @@ def _add_recurring_capex_flow(
 
         if partial:
             lifetime_t = cycle.lifetime(time_replace)
-            remaining_years = (time_end - time_replace) / YEAR_TO_DAYS
+            remaining_years = (time_end - time_replace) / YEAR
             if remaining_years < lifetime_t:
                 capex_t *= max(remaining_years, 0.0) / lifetime_t
 
@@ -685,7 +683,7 @@ def _add_initial_tied_capital_flow(component: Component, delta: FloatArray) -> N
     basis_component = basis * replace_t
 
     year_flow = component.year_flow
-    lifetime_full = (component.time_end - year_flow[commence_idx]) / YEAR_TO_DAYS
+    lifetime_full = (component.time_end - year_flow[commence_idx]) / YEAR
 
     # non-replaceable share depreciates over full asset horizon
     _add_straight_line_depreciation(component, commence_idx, basis_asset, lifetime_full)
@@ -726,7 +724,7 @@ def _add_straight_line_depreciation(
     time_start = year_flow[idx_start]
 
     for i in range(idx_start, tied_capital_flow.size):
-        age = (year_flow[i] - time_start) / YEAR_TO_DAYS
+        age = (year_flow[i] - time_start) / YEAR
         remaining = basis * (1.0 - age / years_total)
 
         if remaining <= 0.0:
@@ -781,7 +779,7 @@ def _compute_staircase_segments(
         if x_end <= x_start:
             continue
         overlap_days = _overlap_year_bins(year_flow, x_start, x_end)
-        segments.append((anchors[i], overlap_days / YEAR_TO_DAYS))
+        segments.append((anchors[i], overlap_days / YEAR))
 
     return segments
 
@@ -915,9 +913,7 @@ def _build_variable_flow(
 
     overlap_days = _overlap_year_bins(year_flow, time_commence, time_end)
 
-    flow: FloatArray = np.interp(year_flow, timeline, value) * (
-        overlap_days / YEAR_TO_DAYS
-    )
+    flow: FloatArray = np.interp(year_flow, timeline, value) * (overlap_days / YEAR)
     return flow
 
 
@@ -935,9 +931,9 @@ def _future_time(time: float, years: float) -> float:
     Returns
     -------
     float
-        New absolute time in days (time + years * YEAR_TO_DAYS).
+        New absolute time in days (time + years * YEAR).
     """
-    return time + years * YEAR_TO_DAYS
+    return time + years * YEAR
 
 
 def _bin_index(time: float, time_initial: float, n_years: int) -> int:
@@ -958,7 +954,7 @@ def _bin_index(time: float, time_initial: float, n_years: int) -> int:
     int
         Zero-based bin index clamped to [0, n_years-1].
     """
-    idx = int((time - time_initial) // YEAR_TO_DAYS)
+    idx = int((time - time_initial) // YEAR)
     if idx < 0:
         return 0
     if idx >= n_years:
@@ -968,7 +964,7 @@ def _bin_index(time: float, time_initial: float, n_years: int) -> int:
 
 def _overlap_year_bins(times: FloatArray, a: float, b: float) -> FloatArray:
     """
-    Vectorized overlap between [a, b) and each calendar bin [t_i, t_i + YEAR_TO_DAYS).
+    Vectorized overlap between [a, b) and each calendar bin [t_i, t_i + YEAR).
 
     Parameters
     ----------
@@ -985,8 +981,8 @@ def _overlap_year_bins(times: FloatArray, a: float, b: float) -> FloatArray:
         Overlap length per bin in days (same length as `times`).
     """
     left = np.maximum(times, a)
-    right = np.minimum(times + YEAR_TO_DAYS, b)
-    overlap: FloatArray = np.clip(right - left, 0.0, YEAR_TO_DAYS)
+    right = np.minimum(times + YEAR, b)
+    overlap: FloatArray = np.clip(right - left, 0.0, YEAR)
     return overlap
 
 

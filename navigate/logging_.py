@@ -16,8 +16,7 @@ from pathlib import Path
 import numpy as np
 from tabulate import tabulate
 
-from navigate.core.unit import YEAR_TO_DAYS
-from navigate.util import TOLERANCE
+from navigate.util import TOLERANCE, YEAR
 
 LOG_LEVELS = ["DEBUG", "INFO", "WARNING", "ERROR"]
 HLINE = "=" * 120
@@ -147,7 +146,7 @@ def log_time_step_breaker(
     message = (
         f"Time-step: {idx}, current date: {date}. "
         f"{int(days_elapsed)} days "
-        f"({int(round(days_elapsed / YEAR_TO_DAYS, 0))} years) "
+        f"({int(round(days_elapsed / YEAR, 0))} years) "
         "since start of simulation. "
         f"Wall time since start: {elapsed_time:,.1f} s"
     )
