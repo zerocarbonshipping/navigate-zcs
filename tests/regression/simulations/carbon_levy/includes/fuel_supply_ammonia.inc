@@ -34,7 +34,7 @@ Import Feedstock "demineralized_water"
 Producer "epc_europe" {
 	Plants = [Plant("plant_ammonia_electro_alkaline")]
 
-	# ample headroom (the supply-constrained guardrail decks use 1 and 8)
+	# ample headroom (the supply decks in tests/behaviour use 1 and 8)
 	MaximumDevelopment = 8
 
 	# no artificial utilization ramp at simulation start

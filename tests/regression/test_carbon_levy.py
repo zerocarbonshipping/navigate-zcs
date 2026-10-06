@@ -46,7 +46,7 @@ def check_activation(manager):
         "prices emissions"
     )
 
-    # the first step only initializes expectations (guardrail convention)
+    # the first step only initializes expectations
     collected = levy.profile.get_collected()
     assert np.all(collected[1:] > 0.0), (
         "The levy stopped collecting: the deck no longer exercises the levy "

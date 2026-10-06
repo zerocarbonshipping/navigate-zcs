@@ -23,10 +23,16 @@ its signal, not its size.
    logic — a shared base or pure kernel (interpolation in `_Table1D`, not in
    each calculator node built on it). Subclasses and callers are tested only
    for their own delta.
-3. **It pins a breakable decision.** Validation, math, boundary and edge
-   handling — behavior a future change could plausibly and silently get
-   wrong. Never construction or field assignment, `__repr__`, `isinstance`,
-   or pass-through delegation.
+3. **It pins a breakable decision.** Validation, boundary and edge
+   handling, a unit or time-step convention, an algorithm — behavior a
+   future change could plausibly and silently get wrong. Never construction
+   or field assignment, `__repr__`, `isinstance`, pass-through delegation, a
+   one-line formula restated in the test, or a guarantee of numpy, scipy or
+   Python itself.
+
+One rule is tested once, at the helper that owns it: a validation message
+shared by every assigner is one table at the shared helper, plus at most one
+case per caller that proves the caller reaches it.
 
 ## Style
 
@@ -44,7 +50,7 @@ its signal, not its size.
   shapes, call ordering, orchestration state with no contract of its own;
   test the enclosing function instead.
 - Numeric tolerances are module-level constants whose rationale lives in a
-  comment on the constant (same convention as the guardrail suite).
+  comment on the constant (same convention as the behaviour suite).
 
 ## Refactoring
 

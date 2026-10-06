@@ -77,15 +77,13 @@ each other's files, and the test suites run decks too.
   plots. `ASSUMPTIONS_DATA_DIR` replaces `-d`.
 - `make lint` runs `ruff check` and `ruff format --check` over `navigate/`
   and `tests/`, `mypy` over `navigate/` only, and `reuse lint`.
-- The test targets are `test-unit`, `test-attribute`, `test-guardrails`,
+- The test targets are `test-unit`, `test-attribute`, `test-behaviour`,
   `test-regression`, `test-tutorials`, `test-examples` and `test-all`. What
   each suite answers, how long it takes and its conventions are documented
-  under `tests/`. `test-guardrails` is suspended and is not part of
-  `test-all`; the status note in `tests/guardrails/README.md` has the
-  detail.
+  under `tests/`, starting at `tests/AGENTS.md`.
 - `make docs` builds the user manual.
 - CI runs on every pull request: Lint, Build package, and Run tests with the
-  unit, attribute, regression, tutorial and example suites.
+  unit, attribute, behaviour, regression, tutorial and example suites.
 
 ## Rules for every change
 
@@ -125,10 +123,11 @@ API request: `bug`, `enhancement`, `documentation`, `maintenance`, or
   the registries in both directions by
   `tests/attribute/test_reference_manual_coverage.py`; the report-property
   appendix of `docs/reference_manual/report.md` is checked against the
-  profile getters the same way by `test_report_property_docs.py`. Nothing
-  checks the coverage deck against the registries.
+  profile getters the same way by `test_report_property_docs.py`. The
+  coverage deck is checked against the registries by
+  `tests/attribute/test_attribute_coverage.py`.
 - A change that moves simulation results explains the difference in the
-  pull request and regenerates the regression baselines with
+  pull request, keeps `tests/behaviour` green, and regenerates the regression baselines with
   `make regen-regression` in a commit of their own. Baselines are never
   edited by hand.
 - A new non-trivial calculation gets a unit test whose expected value is
