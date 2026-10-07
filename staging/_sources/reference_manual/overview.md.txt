@@ -202,15 +202,15 @@ Information is provided in four levels, namely:
 `INFO` stands for information and refers to general information such as which solver backend is used or that plot rendering finished:
 
 ```
-14:29:15 [INFO] navigate.bunker.solver: Gurobi not available -- using HiGHS solver backend.
-14:29:16 [INFO] navigate.bunker.bunker_algorithm: Fair-share bunkering convergence status: Successful.
+14:29:15 [INFO] navigate.simulation.bunker.solver: Gurobi not available -- using HiGHS solver backend.
+14:29:16 [INFO] navigate.simulation.bunker.bunker_algorithm: Fair-share bunkering convergence status: Successful.
 14:29:47 [INFO] navigate.output.plots.render: Plots generated successfully.
 ```
 
 `WARNING` refers to information that has an impact on results. This could be if the code makes automated adjustments to the simulation deck or things that will impact the results in different ways:
 
 ```
-14:29:16 [WARNING] navigate.fleet.speed: Vessel("bulk_carrier_handysize"): Does not have convex load functions which may lead to suboptimal speed management results.
+14:29:16 [WARNING] navigate.simulation.fleet.speed: Vessel("bulk_carrier_handysize"): Does not have convex load functions which may lead to suboptimal speed management results.
 ```
 
 `ERROR` means a problem was encountered which was detrimental to the continuation of the simulation. This will occur if there is a spurious formulation in the simulation deck which is not recognized by Navigate. Deck errors state the deck file, the include file, and the line at which the problem occurred:
