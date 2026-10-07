@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Tests the CLI entry point: up-front path validation and top-level error handling."""
+"""Tests the command line: up-front path validation and top-level error handling."""
 
 from __future__ import annotations
 
@@ -11,9 +11,9 @@ import sys
 
 import pytest
 
-from navigate import __main__ as cli
-from navigate.__main__ import ASSUMPTIONS_ENV_VAR, _build_parser, main
-from navigate.app import RunLog
+from navigate.app import cli
+from navigate.app.cli import ASSUMPTIONS_ENV_VAR, _build_parser, main
+from navigate.app.logs import RunLog
 
 # Fails at parse time with a caret-pointed DeckFormatError, before any simulation work.
 GARBLED_DECK = "DEFINE {\n    garbage\n}\n"

@@ -18,7 +18,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.__main__ import ASSUMPTIONS_ENV_VAR
+from navigate.app.cli import ASSUMPTIONS_ENV_VAR
 from navigate.driver import run_deck
 from navigate.util import YEAR, dates_to_days
 

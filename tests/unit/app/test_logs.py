@@ -9,7 +9,7 @@ import logging
 
 import pytest
 
-from navigate.app import RunLog
+from navigate.app.logs import RunLog
 
 # 4 warnings, 2 of them distinct: the first logged 3 times, the second once
 WARNINGS = ["first warning", "second warning", "first warning", "first warning"]
