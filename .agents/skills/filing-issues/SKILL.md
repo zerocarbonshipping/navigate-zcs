@@ -10,11 +10,14 @@ description: Use when asked to file, open or write up a GitHub issue on Navigate
 Found during another task: keep the current branch clear of the problem,
 file it, then resume the task.
 
-**Search first:** `gh issue list --state all --search "<terms>"` and
-`gh pr list --state all --search "<terms>"`. Existing issue: comment there,
-don't file. Open PR that addresses it: don't file. A closed, unmerged PR
-does not stop filing. After a merged PR, check the problem persists on
-`origin/dev` before deciding not to file.
+**Confirm on dev first:** `git fetch`, then read `origin/dev:<path>`; your
+branch may be behind a fix that a search does not find.
+
+**Then search:** `gh issue list --state all --search "<terms>"` and
+`gh pr list --state all --search "<terms>"`. Existing issue: comment only
+what it lacks, such as new evidence or a PR that fixed part of it; never
+close it. Open PR that addresses it: don't file. A closed, unmerged PR
+does not stop filing.
 
 ## Form
 
@@ -34,15 +37,16 @@ ones omitted, never "N/A".
   fresh session chooses the solution from the issue alone.
 - Standalone: no reference to a conversation, plan or scratch file; cite
   issues and PRs by number.
-- Evidence must hold on `origin/dev`. If your branch changes the code or
-  assumptions involved, produce it from a worktree of `origin/dev` with its
-  own `make pip-setup`: `navigate` on PATH is one checkout's editable
-  install, and a worktree without its own environment imports the primary
-  checkout's code.
-- Pin the commit that produced the evidence: in Version for a bug,
-  otherwise `<branch> @ <short SHA>` by the evidence; none for an
-  enhancement without code evidence.
-- Locations: `path:line` plus symbol.
+- Evidence holds on `origin/dev`. Code-reading evidence comes from
+  `git show origin/dev:<path>`. Run evidence needs a worktree of
+  `origin/dev` with its own `make pip-setup` only when your branch differs
+  from `origin/dev` in the code or assumptions involved: `navigate` on PATH
+  is one checkout's editable install, and a worktree without its own
+  environment imports the primary checkout's code.
+- Pin `origin/dev @ <short SHA>`: in Version for a bug, otherwise next to
+  the evidence; none for an enhancement without code evidence.
+- Locations: code as `path:line` plus symbol, documentation as page and
+  heading.
 - One problem per issue; a second problem gets its own issue, linked as
   `#N`. No assignee or milestone unless asked. No test-run statistics.
 - Title under ~80 characters, no prefix or type tag. Bug, documentation,
@@ -56,8 +60,7 @@ ones omitted, never "N/A".
   to the deck's own directory, and scenario, regression and guardrail decks
   include `../0_includes/*.inc`: copy everything the deck reaches through
   relative includes with the layout kept, e.g. the parent folder. Run
-  `<checkout>/.venv/bin/navigate <copy>/<deck>.nav -d <checkout>/assumptions -s`
-  from the checkout whose commit you pin.
+  `<checkout>/.venv/bin/navigate <copy>/<deck>.nav -d <checkout>/assumptions -s`.
 - **documentation:** Code wrong: a bug. Several mismatches of one kind found
   in one pass make one issue. The reference manual covers user-visible
   behaviour only, no modelling derivations; internals belong in root files

@@ -105,10 +105,9 @@ each other's files, and the test suites run decks too.
 - `CHANGELOG.md` takes user-facing changes and bugs only; what gets an
   entry, and its form, is under Changelog in `CONTRIBUTING.md`.
 - A change to an assumption value carries references or a justification.
-- A problem found during a task and outside its scope is filed as an issue
-  (the `filing-issues` skill), not fixed in the task's branch.
 - Issues and pull requests follow the `filing-issues` and
-  `writing-pull-requests` skills.
+  `writing-pull-requests` skills; a problem found during a task and outside
+  its scope is filed as an issue, not fixed in the task's branch.
 
 ## What a change touches
 

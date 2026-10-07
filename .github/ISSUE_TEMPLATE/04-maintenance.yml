@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 name: Maintenance
-description: Improves code without changing what the model computes; a deliberate output change is stated as its user-visible effect
+description: Improves code without changing what the model computes
 labels: ["maintenance"]
 body:
   - type: textarea

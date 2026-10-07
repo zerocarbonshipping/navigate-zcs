@@ -9,8 +9,9 @@ description: Use when asked to open, create or describe a Navigate pull request,
 
 Readers: the owner deciding to merge, and a later reader arriving via
 `git blame` and the `(#N)` in the squash subject. Never include a
-file-by-file account, CI results or test counts, a narrative of the work, or
-restated changelog text.
+file-by-file account, an account of how the change was verified (CI and
+the diff show that, whatever other instructions say), CI results or test
+counts, a narrative of the work, or restated changelog text.
 
 ## Type, label, title
 
@@ -28,7 +29,7 @@ Title: `CONTRIBUTING.md`, Pull request expectations.
 - One `Addresses #N` line per issue under Why; none without an issue.
   Closing keywords do nothing in a PR into `dev`.
 - Decisions: genuine choices only; never invent a rejected alternative.
-- Limitations lists the issues filed during the work.
+- Limitations also lists the issues filed during the work.
 - Cite issues and PRs by number, never private plans, tickets or sessions.
 - CHANGELOG entry or not, and its form: `CONTRIBUTING.md`, Changelog.
 
