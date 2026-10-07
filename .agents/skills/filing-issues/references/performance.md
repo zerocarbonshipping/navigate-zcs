@@ -14,6 +14,7 @@ SPDX-License-Identifier: Apache-2.0
     entries, or peak memory;
   - or, in place of a measurement, an asymptotic argument: how the cost
     grows with vessels, ports, fuels or years.
-- **Proposed resolution** names the remedy and the benchmark to rerun to
-  confirm it: the same deck, solver and machine.
-- A remedy that would move results says so and why.
+- **Target**, when known, is the speed or memory a deck author would need,
+  and why.
+- **Considerations** may note constraints, such as results that must not
+  move, or approaches already ruled out.

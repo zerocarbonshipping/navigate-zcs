@@ -8,7 +8,7 @@ SPDX-License-Identifier: Apache-2.0
 - **Quote the wrong or missing text**, with its page and heading, and name
   the source of truth it disagrees with: the setter and its docstring, the
   parser table (`navigate/parser/_attributes.py`, `_commands.py`), or the
-  code path. Give both sides (#425).
+  code path. Give both sides.
 - **When it is unclear which side is wrong**, say so. If the code turns out
   to be wrong, the issue is a bug.
 - Several mismatches of one kind, found in one pass, make one issue.

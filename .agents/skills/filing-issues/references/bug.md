@@ -14,16 +14,15 @@ SPDX-License-Identifier: Apache-2.0
   of the output.
 - **Reproduce it before filing.** Prefer a minimal deck, or an edit to a
   copy of an existing deck such as `simulations/examples/example_1`, shown
-  as a diff (#376). Copy the deck folder outside the repository, so the run
-  writes no output next to the committed deck, and run it with
+  as a diff. Copy the deck folder outside the repository, so the run writes
+  no output next to the committed deck, and run it with
   `navigate <copy>/<deck>.nav -d <repo>/assumptions -s`. Give:
   - that exact command;
   - the error or output, trimmed to the lines that show the defect;
   - what the unmodified copy does, so the edit is shown to be the trigger.
 - **A defect found by reading code**, with no run, says so. Give the
   argument step by step: which value reaches which operation, and why the
-  result is wrong (#344).
+  result is wrong.
 - **Location** is where the defect is, not only where it surfaces.
-- **Proposed resolution** is optional. When given, it names the fix, says
-  whether it moves results, and names the test that would pin it. When the
-  right fix is open, it lists the options and what each would entail.
+- **Considerations** may note other code paths with the same pattern, a
+  constraint the fix must respect, or a cause already ruled out.

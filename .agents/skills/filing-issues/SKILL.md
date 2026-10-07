@@ -12,6 +12,15 @@ found in. The issue forms in `.github/ISSUE_TEMPLATE/` set each type's label,
 its sections, their order, which are required and what goes in each. `gh`
 bypasses the forms, so this procedure reads them and applies them by hand.
 
+An issue states the problem, never the solution. It gives what is wrong, the
+intended behaviour or property, the evidence and the location as facts. It
+never prescribes a fix, a design, an implementation, the test to write or how
+to verify the fix; the test suite, run by CI, proves a fix. A fresh session
+that reads only the issue must be able to understand the problem and choose
+the solution itself. Facts the solver should keep in mind, such as
+constraints, related code paths, pitfalls, things already ruled out and
+options already known, go under Considerations, with no option recommended.
+
 Copy this checklist and tick it off:
 
 ```
@@ -79,12 +88,13 @@ except a `type: markdown` entry, which produces none:
 ## 5. Write the title
 
 - A bug, documentation or performance title states the symptom as the user
-  meets it; a performance title gives its scale. Examples: "Shore-power
-  upper bound is dropped on the HiGHS backend" (#364),
-  "set_voyage_distribution docs claim Forecast values, which the setter
-  rejects" (#108).
-- A maintenance or enhancement title states the outcome as an imperative:
-  "Type the report reductions without a bare dict" (#415).
+  meets it; a performance title gives its scale. Examples: "Fuel cost report
+  is empty when a deck sets no carbon price", "Ports deck takes ten minutes
+  to parse a thousand-port network".
+- A maintenance or enhancement title states the intended outcome as a
+  behaviour or a property, not the mechanism that would reach it. Examples:
+  "Let a deck set a bunkering limit per port", "Keep every package's imports
+  within its layer".
 - Every title is one specific sentence, under about 80 characters, with no
   prefix and no type tag. The detail goes in the body.
 

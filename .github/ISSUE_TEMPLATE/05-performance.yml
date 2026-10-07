@@ -20,12 +20,20 @@ body:
     validations:
       required: true
   - type: textarea
+    id: target
+    attributes:
+      label: Target
+      description: If known, the speed or memory a deck author would need.
+  - type: textarea
     id: location
     attributes:
       label: Location
       description: "If known: `path/to/file.py:LINE` and symbol names."
   - type: textarea
-    id: resolution
+    id: considerations
     attributes:
-      label: Proposed resolution
-      description: The remedy, and the benchmark to re-run to confirm it.
+      label: Considerations
+      description: >
+        Anything a fixer should keep in mind: constraints, related code,
+        pitfalls, things already ruled out, options already known. Not a
+        proposed fix.

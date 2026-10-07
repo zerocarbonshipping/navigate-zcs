@@ -32,7 +32,10 @@ body:
       label: Version
       description: Navigate version or commit.
   - type: textarea
-    id: resolution
+    id: considerations
     attributes:
-      label: Proposed resolution
-      description: If you have one — the remedy and the test that should cover it.
+      label: Considerations
+      description: >
+        Anything a fixer should keep in mind: constraints, related code,
+        pitfalls, things already ruled out, options already known. Not a
+        proposed fix.
