@@ -23,26 +23,26 @@ Process "haber_bosch_electro" {
 
 ### Feeds
 
-This attribute defines a list of feeds used in the production process of a fuel. In this terminology a feeds can also be a Process node in which case it is interpreted as the output from that process.
+This attribute defines a list of feeds used in the production process of a fuel. In this terminology a feed can also be a Process node in which case it is interpreted as the output from that process.
 
 The number of Feeds and the number of Conversions must correspond.
 
 All 'Feeds' must be unique, i.e., a feedstock cannot be duplicated in the input list.
 
-* **Data type**: List of `Feedstock`, `Process` nodes
+* **Data type**: List of `Feedstock` and/or `Process` nodes
 * **Example values**:
   + `[Feedstock("name")]`
   + `[Feedstock("name"), Process("name")]`
-* **Default**: None
+* **Default**: Not set. The process has no feeds.
 
 ### Conversions
 
 This attribute specifies a list of conversion factors. A conversion factor describes how many tons of feed are needed to produce one ton of fuel. The number of Feeds and the number of Conversions must correspond.
 
-* **Data type**: List of `Floats`, `Forecast`, `Variables`
+* **Data type**: List of `Float`, `Forecast` and/or `Variable` nodes
 * **Example values**:
   + `[0.5, 2.5]`
   + `[Forecast("name"), Variable("name")]`
 * **Unit**: ton feeds / ton output
 * **Minimum value**: 0
-* **Default**: None
+* **Default**: None. Must be provided by the user when Feeds is set.

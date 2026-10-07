@@ -125,8 +125,16 @@ The formatter owns spacing within statements; blank lines are yours:
 
 - Any variable on a `Node` or `_GeneralNode` subclass exposed via the DSL needs
   a setter (e.g. `set_propulsion_load` on the `Vessel` node).
-- DSL setters are public-facing API and always carry a docstring; the node
-  lifecycle methods (`initialize`, `reinitialize`, `check_requirements`,
+- DSL setters always carry a docstring, written for developers: one line
+  naming what the setter stores, e.g. `"""Set the volumetric size of the
+  tank."""`. It carries no `Parameters` or `Examples` section, and no
+  units, limits, defaults, legal values or explanation of the behaviour;
+  all of that is the user's, and lives in the attribute's or command's
+  entry on the node's reference-manual page, the one place it is written.
+  A second paragraph is added only for an implementation note the code
+  cannot show. A `set_` method the model calls rather than the deck
+  (`set_internal_bounds`) is no DSL setter and follows the shared rules.
+- The node lifecycle methods (`initialize`, `reinitialize`, `check_requirements`,
   `apply_defaults`, `apply_command_defaults`, `check_consistency`,
   `check_dynamic_consistency`, `initialize_dependencies`,
   `calculate_expectation`, `calculate_profile`)
@@ -145,8 +153,7 @@ The formatter owns spacing within statements; blank lines are yours:
   caller-instantiated classes - `Scalar` and the calculators - document
   constructor parameters in the class docstring per the shared rule.
 - Every attribute under a node's external variables group has a DSL setter
-  whose docstring is what its reference-manual page is written from, so
-  anything said about the attribute is said there. The internal variables
+  and an entry on the node's reference-manual page. The internal variables
   group holds what the model sets, and has no DSL setter.
 - The kinds a setter may be handed and store are named once, in
   `navigate/core/types_.py`, and used at every attribute definition and

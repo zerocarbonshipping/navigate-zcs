@@ -38,20 +38,7 @@ class Surface(Node, _Table2D):
         self._temporary_table: tuple[FloatArray, FloatArray, FloatArray] | None = None
 
     def set_table(self, table: TableData) -> None:
-        """
-        Set the table of x-, y- and z-values the surface interpolates in.
-
-        There must be at least two x-values and two y-values, each strictly
-        increasing, and the z-values must fill a grid of their lengths. The
-        table is built once the whole definition has been read, so the order of
-        the attributes within the definition does not matter.
-
-        Parameters
-        ----------
-        table
-            Parsed table: y-values in the header row, x-values down the first
-            column of every row below it, z-values filling the rest.
-        """
+        """Set the table of x-, y- and z-values the surface interpolates in."""
         x, y, z = build_table_2d(table)
         check_table2d_input(x, y, z)
         self._temporary_table = (x, y, z)

@@ -33,56 +33,17 @@ class _Machinery(Node):
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_capex(self, capex: ForecastArgument) -> None:
-        """
-        Set the CAPEX related to installing the machinery.
-
-        Examples
-        --------
-        - 1e6
-        - Forecast("name")
-
-        Parameters
-        ----------
-        capex
-            CAPEX cost of installing the machinery.
-        """
+        """Set the CAPEX of installing the machinery."""
         self.capex = assign_value(
             as_scalar(capex), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
     def set_opex(self, opex: ForecastArgument) -> None:
-        """
-        Set the OPEX related to maintaining the machinery.
-
-        Examples
-        --------
-        - 1e4
-        - Forecast("name")
-
-        Parameters
-        ----------
-        opex
-            OPEX cost per year of maintaining the machinery.
-        """
+        """Set the yearly OPEX of maintaining the machinery."""
         self.opex = assign_value(as_scalar(opex), type_=(FORECAST, VARIABLE), lower=0.0)
 
     def set_lifetime(self, lifetime: ForecastArgument) -> None:
-        """
-        Set the lifetime of the machinery.
-
-        If no lifetime is defined, the lifetime will default to the lifetime of vessel
-        it is assigned to.
-
-        Examples
-        --------
-        - 25.0
-        - Forecast("name")
-
-        Parameters
-        ----------
-        lifetime
-            Lifetime of the machinery.
-        """
+        """Set the lifetime of the machinery."""
         self.lifetime = assign_value(
             as_scalar(lifetime),
             type_=(FORECAST, VARIABLE),
@@ -91,19 +52,7 @@ class _Machinery(Node):
         )
 
     def set_replacement(self, replacement: ForecastArgument) -> None:
-        """
-        Set the CAPEX replacement fraction to reinstall machinery at end of lifetime.
-
-        Examples
-        --------
-        - 0.5
-        - Forecast("name")
-
-        Parameters
-        ----------
-        replacement
-            Fraction of CAPEX for re-installing the machinery at end of lifetime.
-        """
+        """Set the CAPEX fraction paid to reinstall the machinery at end of lifetime."""
         self.replacement = assign_value(
             as_scalar(replacement), type_=(FORECAST, VARIABLE), lower=0.0
         )

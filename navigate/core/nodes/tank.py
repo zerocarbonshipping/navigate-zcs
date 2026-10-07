@@ -28,35 +28,11 @@ class Tank(_Machinery):
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_fuel_types(self, fuel_types: str | list[str]) -> None:
-        """
-        Set the fuel types that can be stored in the tank.
-
-        Examples
-        --------
-        - OIL
-        - [OIL, METHANOL]
-        - [METHANOL]
-
-        Parameters
-        ----------
-        fuel_types
-            Fuel type or list of fuel types which can be stored in the tank.
-        """
+        """Set the fuel types that can be stored in the tank."""
         self.fuel_types = assign_id_list(fuel_types, FuelTypeID, min_length=1)
 
     def set_size(self, size: ScalarArgument) -> None:
-        """
-        Set the volumetric size of the tank in cubic meter.
-
-        Examples
-        --------
-        - 8000
-
-        Parameters
-        ----------
-        size
-            Volumetric size of the tank in cubic meter.
-        """
+        """Set the volumetric size of the tank."""
         self.size = assign_value(as_scalar(size), type_=VARIABLE, lower=0.0)
 
     # internal methods -----------------------------------------------------------------

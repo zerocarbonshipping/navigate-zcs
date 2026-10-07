@@ -32,7 +32,7 @@ Regulation "cii" {
 
 ### Active
 
-This attribute sets whether the regulation is active in the current time-step. This attribute can be changed during the `EVENTS` simulation to either introduce a regulation assuming there was no foresight to its implementation or to discontinue an already existing regulation.
+This attribute sets whether the regulation is active in the current time-step. An inactive regulation is ignored in both the expectations and the results. This attribute can be changed during the `EVENTS` simulation to either introduce a regulation assuming there was no foresight to its implementation or to discontinue an already existing regulation.
 
 * **Data type**: `Boolean`
 * **Default**: TRUE
@@ -90,10 +90,10 @@ This attribute defines the scope of emission targeted by the regulation.
 This attribute determines the emissions lifetime used in the GWP (Global Warming Potential) calculation of emissions.
 
 * **Data type**: `Float`, `Variable`
-* **Example values**: `20`
+* **Example value**: `20`
 * **Unit**: Years
 * **Minimum value**: 0
-* **Default**: 100
+* **Default**: Not set. The `EmissionsLifetime` of the [ModelDefinition](model_definition.md) is used.
 
 ### IncludeSlip
 
@@ -107,18 +107,18 @@ This attribute defines whether emissions slip is included in the calculation of 
 This attribute sets the emission measure of the regulation.
 
 If 'ABSOLUTE' the absolute emissions in tons/year are targeted.
-If 'INTENSITY' the emission intensity in kg/GJ are targeted, per GJ of effective energy, (1 − slip) · LHV: the lower heating value of the fuel net of the fraction the converter burning it lets escape unburned (`set_slip_fraction` on the `Converter`).
-If 'TRANSPORT\_NOMINAL' the carbon intensity index in CO<sub>2</sub>-eq/nominal cargo-miles is targeted.
-If 'TRANSPORT' the carbon intensity index in CO<sub>2</sub>-eq/actual cargo-miles is targeted.
+If 'INTENSITY' the emission intensity in kg/GJ is targeted, per GJ of effective energy, (1 − slip) · LHV: the lower heating value of the fuel net of the fraction the converter burning it lets escape unburned (`set_slip_fraction` on the `Converter`).
+If 'TRANSPORT\_NOMINAL' the carbon intensity index in g CO<sub>2</sub>-eq/nominal cargo-miles is targeted.
+If 'TRANSPORT' the carbon intensity index in g CO<sub>2</sub>-eq/actual cargo-miles is targeted.
 
 * **Data type**: `ID`
 * **Legal values**: [RegulationMeasureID](appendix_ids.md#regulationmeasureid)
 * **Unit**: Different units depending on the value of ‘Measure’
-  + ABSOLUTE: ton emissions
+  + ABSOLUTE: ton emissions/year
   + INTENSITY: kg emissions / GJ
   + TRANSPORT\_NOMINAL: g emissions / nominal cargo miles
   + TRANSPORT: g emissions / actual cargo miles
-* **Default**: None. Must be provided by the user
+* **Default**: None. Must be provided by the user.
 
 ### IntraFraction
 
@@ -128,9 +128,9 @@ This attribute sets the fraction for how much of the emissions between two ports
 * **Example values**:
   + `0.5`
   + `Forecast("name")`
+* **Unit**: Fraction
 * **Minimum value**: 0
-* Maxiumum value: 1
-* **Unit**: Fraction of emissions counted during intra jurisdiction travel
+* **Maximum value**: 1
 * **Default**: 1
 
 ### InterFraction
@@ -162,7 +162,7 @@ This attribute sets the fraction for how much of the emissions between two ports
 
 ### RemedialCost
 
-This attribute sets the level of the regulation being paid or received dependent on the scheme in USD/ton emission.
+This attribute sets the cost of a remedial compliance unit. A vessel that does not meet its threshold, or under a FLEXIBLE scheme the pooled fleet, buys remedial units at this cost to cover the shortfall. Remedial units are only bought, never sold; under a FLEXIBLE scheme the remedial cost also caps the price of the flexibility units traded between vessels.
 
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
@@ -199,64 +199,67 @@ This attribute sets whether the regulation threshold is automatically adjusted w
 
 This command allows the user to set the global warming potential (GWP) for a specific emission. If the GWP is assigned on the regulation then it overwrites the physical GWP defined on the emission during the calculation of emission factors. A `Curve` is read at the emissions lifetime, like the GWP of the emission: the `EmissionsLifetime` of the regulation if assigned, otherwise that of the model.
 
-* **Primary key type**: String (Emission name)
+* **Primary key type**: String (Emission name; supports wildcards)
 * **Data type**: `Float`, `Curve`, `Variable`
 * **Example values**:
   + `"emission_name", 25`
   + `"emission_name", Curve("name")`
 * **Unit**: ton CO<sub>2</sub>eq/ton emission
-* **Default**: The physical global warming potential assigned to the specific emissions
+* **Default**: Not set. The global warming potential assigned on the `Emission` is used.
 
 ### set\_include\_vessel
 
-This command allows the user to include or exclude certain vessels from the regulation.
+This command allows the user to include or exclude certain vessels from the regulation. Vessels are excluded unless included explicitly, e.g. with `set_include_vessel("*", TRUE)`.
 
-* **Primary key type**: String (Vessel name)
+* **Primary key type**: String (Vessel name; supports wildcards)
 * **Data type**: `Boolean`
-* **Default**: TRUE
+* **Example values**:
+  + `"vessel_name", TRUE`
+  + `"*", TRUE`
+* **Default**: FALSE
 
 ### set\_fuel\_wtt
 
-This command allows the user to set the WTT (Well-to-Tank) emission factor for a given fuel and emission as it is defined under a certain policy. If these emission factor values are assigned under a regulation, they override the emission factor values that are otherwise used in Navigate
+This command allows the user to set the WTT (Well-to-Tank) emission factor for a given fuel and emission as it is defined under a certain policy. If these emission factor values are assigned under a regulation, they override the emission factor values that are otherwise used in Navigate.
 
-* **Primary key type**: String (Fuel name)
-* **Secondary key type**: String (Emission name)
+* **Primary key type**: String (Fuel name; supports wildcards)
+* **Secondary key type**: String (Emission name; supports wildcards)
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
   + `"fuel_name", "emission_name", 3.2`
   + `"fuel_name", "emission_name", Forecast("name")`
 * **Unit**: ton emission/ton fuel
-* **Default**: Determined through internal calculations
+* **Default**: Not set. The WTT emission factor is averaged over the ports of the vessel's route, using each port's `set_bunker_wtt_overwrite` if assigned, otherwise an estimate from the plants producing the fuel.
 
 ### set\_fuel\_ttw
 
-This command allows the user to set the TTW (Tank-to-Wake) emission factor for a given fuel and emission as it is defined under a certain policy. If these emission factor values are assigned under a regulation, they override the emission factor values that are otherwise used in Navigate
+This command allows the user to set the TTW (Tank-to-Wake) emission factor for a given fuel and emission as it is defined under a certain policy. If these emission factor values are assigned under a regulation, they override the emission factor values that are otherwise used in Navigate.
 
-* **Primary key type**: String (Fuel name)
-* **Secondary key type**: String (Emission name)
+* **Primary key type**: String (Fuel name; supports wildcards)
+* **Secondary key type**: String (Emission name; supports wildcards)
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
   + `"fuel_name", "emission_name", 3.2`
   + `"fuel_name", "emission_name", Forecast("name")`
 * **Unit**: ton emission/ton fuel
-* **Default**: Determined through internal calculations
+* **Default**: Not set. The TTW emission factor is calculated per converter from the fuel's TTW emission factor and the converter's slip fraction and consumption emissions.
 
 ### set\_vessel\_threshold
 
 This command sets the threshold that a specific vessel must satisfy in the measure unit. Every vessel included in the regulation must have a threshold; use the wildcard `"*"` to assign the same threshold to all vessels. If ‘Scheme’ is FLEXIBLE the per-vessel thresholds pool into a single fleet-level constraint.
 
-* **Primary key type**: String (Vessel name)
+* **Primary key type**: String (Vessel name; supports wildcards)
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
   + `"vessel_name", 90`
   + `"*", Forecast("name")`
 * **Unit**: Different units depending on the value of ‘Measure’
-  + ABSOLUTE: ton emissions
+  + ABSOLUTE: ton emissions/year
   + INTENSITY: kg emissions / GJ
   + TRANSPORT\_NOMINAL: g emissions / nominal cargo miles
   + TRANSPORT: g emissions / actual cargo miles
 * **Minimum value**: 0
-* **Default**: None
+* **Default**: None. Must be provided by the user for every vessel included in the regulation.
 
 ### set\_vessel\_capacity
 
@@ -264,10 +267,11 @@ This command sets the capacity of a specific vessel for use in transport calcula
 
 This is only relevant if 'Measure' is set to 'TRANSPORT\_NOMINAL' or 'TRANSPORT'.
 
-* **Primary key type**: String (Vessel name)
+* **Primary key type**: String (Vessel name; supports wildcards)
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
   + `"vessel_name", 75000`
   + `"vessel_name", Forecast("name")`
+* **Unit**: Same as the vessel's `NominalCapacity` (e.g., TEU, CEU, dwt)
 * **Minimum value**: 0
-* **Default**: None
+* **Default**: Not set. The vessel's `NominalCapacity` is used.

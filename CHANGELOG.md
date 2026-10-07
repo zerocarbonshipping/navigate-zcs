@@ -26,6 +26,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   requested; they used to produce no column.
 
 ### Changed
+- `MinimumOfftakeDuration` (Producer) accepts any duration above 0 instead of
+  at least 1; a duration under one year counts as one year.
 - A calculator (`Variable`, `Forecast`, `Curve`, `Timetable`, `Surface`)
   assigned in `DEFINE` to an attribute or command that `EVENTS` cannot change
   cannot be changed in `EVENTS` either; re-assigning its attributes there is a
@@ -152,6 +154,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   `_cost` plots, and the offset lines of the emission and compliance plots.
 
 ### Fixed
+- `set_power_transfer` (Technology) accepts a transfer above 1 MW; the value
+  is a power in MW and was capped at 1.
 - `--solver auto` no longer fails with a traceback (#402).
 - Reference-manual corrections:
   - default nodes and modules live under `<data_dir>/defaults/` and
@@ -175,7 +179,35 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
     `Forecast`, and `PowerCapacity` takes a `Variable`;
   - `set_voyage_distribution` on `Route` takes no `Forecast`;
   - the port properties are `EquivalentBunkerWtt` and
-    `TotalEquivalentBunkerWtt`.
+    `TotalEquivalentBunkerWtt`;
+  - `set_include_vessel` on Levy and Regulation defaults to FALSE, so a vessel
+    is only covered once included;
+  - defaults that differed from the code: `Threads` 0, `MaximumRampUp` 1,
+    `JumpStartFraction` 0.1, `PortCalls` a list of 1s, the Region WTT commands
+    0, and `EmissionsLifetime` on a policy falls back to the ModelDefinition's;
+  - `Dependency` (Source), `Efficiency` (Converter), `LowerHeatingValue`,
+    `MassDensity`, `Source` (Plant), `MaximumDevelopment`, and `Electrical`
+    and `Heat` (PowerSystem) are marked as required;
+  - minimums that exclude 0 read `>0`, and missing minimums and maximums are
+    added;
+  - `ShorePowerCapacity` and `NominalCapacity` take no `Forecast`, Region
+    `set_source_capex` and `set_source_opex` take no `Timetable`, and
+    `Tank` `Size` and `InitialVessels` take a `Variable`;
+  - `Orderbooks` is a cumulative count, `set_newbuild_limit` caps yearly
+    newbuilds as a fraction of the fleet's vessel count, and ports on a
+    REGIONAL_TRIP must be unique;
+  - `set_process_opex` (Region) accepts negative values, and
+    `MaximumRampUp` and `set_existing_pipeline` (Producer) have the right
+    units;
+  - the calculator pages show how `Addition`, `Multiplier` and the bounds
+    combine, and which attributes take an expression or `INF`;
+  - commands that accept wildcards and commands allowed only in `DEFINE`
+    say so;
+  - `TechnologyHorizon` (Fleet) shapes retrofits as well as newbuilds,
+    `JumpStartFraction` (Producer) blends into the expected uptake in every
+    time-step, and `SolutionTolerance` is also the LP solver's tolerance;
+  - a Plant's `Fuel` must not be a liquid-market fuel, a Fleet's `Vessels`
+    must be unique, and an inactive Levy or Regulation is ignored.
 - Deck errors that ended in a Python traceback, named no deck line or were
   badly worded now read as located deck errors:
   - a rejected attribute or command value prints the one-line error and

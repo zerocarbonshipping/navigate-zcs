@@ -35,3 +35,25 @@ class TestJumpStartFraction:
         producer.set_jump_start_fraction(jump_start_fraction)
 
         assert producer.jump_start_fraction.get() == pytest.approx(expected)
+
+
+class TestMinimumOfftakeDuration:
+    """
+    MinimumOfftakeDuration accepts any duration above zero.
+
+    Pipeline planning rounds the duration up to whole years and reads that many
+    years of demand, so a zero duration would read none.
+    """
+
+    @pytest.mark.parametrize("duration", [0.0, -1.0])
+    def test_rejects_non_positive(self, duration):
+        producer = Producer("producer")
+
+        with pytest.raises(ValueError, match=r"must be > 0\.0"):
+            producer.set_minimum_offtake_duration(duration)
+
+    def test_accepts_sub_year(self):
+        producer = Producer("producer")
+        producer.set_minimum_offtake_duration(0.5)
+
+        assert producer.minimum_offtake_duration.get() == pytest.approx(0.5)

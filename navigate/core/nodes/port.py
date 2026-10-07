@@ -62,46 +62,11 @@ class Port(Node):
 
     # external methods (DSL commands) --------------------------------------------------
     def set_bunkering_allowed(self, fuel_name: str, value: str) -> None:
-        """
-        Set whether it is allowed to bunker a specific fuel in the port.
-
-        Examples
-        --------
-        - "fuel_name", TRUE
-        - "fuel_name", FALSE
-
-        Parameters
-        ----------
-        fuel_name
-            The name of a fuel.
-        value
-            Whether the fuel is allowed to be bunkered in the port.
-        """
+        """Set whether a fuel may be bunkered in the port."""
         command_assignment_to_boolean_dict(fuel_name, value, self.bunkering_allowed)
 
     def set_bunkering_limit(self, fuel_name: str, value: ForecastArgument) -> None:
-        """
-        Set a limit for the fuel that can be bunkered in the port, tons/year.
-
-        A Producer's fuel imported above the limit is redistributed to the other
-        ports allowed to bunker it, in proportion to how far each is under its own
-        limit; a port the producer sends no fuel to receives no share. Any surplus
-        the limited ports cannot absorb is split equally across the ports with no
-        limit set, and dropped where none exist. A liquid-market fuel is
-        unaffected: its supply is the limit itself. INF means no limit.
-
-        Examples
-        --------
-        - "fuel_name", 1e6
-        - "fuel_name", Forecast("name")
-
-        Parameters
-        ----------
-        fuel_name
-            The name of a fuel.
-        value
-            The amount of fuel available for bunkering in tons/year.
-        """
+        """Set the limit on the amount of a fuel bunkered in the port."""
         write_matching_keys(
             fuel_name,
             assign_value(
@@ -114,24 +79,7 @@ class Port(Node):
         )
 
     def set_bunkering_inertia(self, fuel_name: str, value: ForecastArgument) -> None:
-        """
-        Set the inertia of a fuel being bunkered in fraction/year.
-
-        The inertia refers to the fraction of the amount bunkered in the previous
-        time-step that must at minimum be bunkered in the current time-step.
-
-        Examples
-        --------
-        - "fuel_name", 0.66
-        - "fuel_name", Forecast("name")
-
-        Parameters
-        ----------
-        fuel_name
-            The name of a fuel.
-        value
-            The inertia of the bunkering of the fuel.
-        """
+        """Set the bunkering inertia of a fuel in the port."""
         write_matching_keys(
             fuel_name,
             assign_value(
@@ -141,22 +89,7 @@ class Port(Node):
         )
 
     def set_handling_cost(self, fuel_name: str, value: ForecastArgument) -> None:
-        """
-        Set the storage and bunkering service cost for a fuel in the port, USD/ton.
-
-        Examples
-        --------
-        - "fuel_name", 50
-        - "fuel_name", Forecast("name")
-
-        Parameters
-        ----------
-        fuel_name
-            The name of a fuel.
-        value
-            The cost of storage and the service of bunkering a specific fuel in the port
-            in USD/ton.
-        """
+        """Set the storage and bunkering service cost of a fuel in the port."""
         write_matching_keys(
             fuel_name,
             assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
@@ -166,24 +99,7 @@ class Port(Node):
     def set_bunker_price_overwrite(
         self, fuel_name: str, value: ForecastArgument
     ) -> None:
-        """
-        Set an overwrite cost for a specific fuel in the port in USD/ton.
-
-        If an overwrite is set for a specific fuel, then the bottom-up calculation of
-        production cost is ignored.
-
-        Examples
-        --------
-        - "fuel_name", 600
-        - "fuel_name", Forecast("name")
-
-        Parameters
-        ----------
-        fuel_name
-            The name of a fuel.
-        value
-            The overwrite price of a specific fuel in the port in USD/ton.
-        """
+        """Set the overwrite price of a fuel in the port."""
         write_matching_keys(
             fuel_name,
             assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
@@ -193,26 +109,7 @@ class Port(Node):
     def set_bunker_wtt_overwrite(
         self, fuel_name: str, emission_name: str, value: ForecastArgument
     ) -> None:
-        """
-        Set an overwrite WTT emissions for a fuel/emission pair, ton emission/ton fuel.
-
-        If an overwrite is set for a specific fuel and emission, then the bottom-up
-        calculation of production emissions is ignored.
-
-        Examples
-        --------
-        - "fuel_name", "emission_name", 600
-        - "fuel_name", "emission_name", Forecast("name")
-
-        Parameters
-        ----------
-        fuel_name
-            The name of a fuel.
-        emission_name
-            The name of an emission.
-        value
-            The overwrite WTT emission in ton emission/ton fuel.
-        """
+        """Set the overwrite WTT emissions of a fuel in the port for an emission."""
         write_matching_key_pairs(
             (fuel_name, emission_name),
             assign_value(as_scalar(value), type_=(FORECAST, VARIABLE)),
@@ -220,44 +117,13 @@ class Port(Node):
         )
 
     def set_shore_power_cost(self, value: ForecastArgument) -> None:
-        """
-        Set the shore power electricity tariff in USD/MWh.
-
-        Internally converted to USD/GJ for consistency with the energy model.
-
-        Examples
-        --------
-        - 80
-        - Forecast("shore_power_cost_europe")
-
-        Parameters
-        ----------
-        value
-            Shore power cost in USD/MWh.
-        """
+        """Set the shore power electricity tariff of the port."""
         self.shore_power_cost = assign_value(
             as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
     def set_shore_power_connection_share(self, value: ForecastArgument) -> None:
-        """
-        Set the fraction of port time during which shore power connection is available.
-
-        A value of 0.0 (the default) means shore power is not available at this port.
-        A vessel's shore power use here is capped at this share of its time in port,
-        times the lesser of its combined shore power capacity and its electrical load
-        in port.
-
-        Examples
-        --------
-        - 0.8
-        - Forecast("shore_power_connection_share")
-
-        Parameters
-        ----------
-        value
-            Fraction of port time with shore power connection [0, 1].
-        """
+        """Set the fraction of port time with a shore power connection."""
         self.shore_power_connection_share = assign_value(
             as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
         )
@@ -265,23 +131,7 @@ class Port(Node):
     def set_shore_power_emission_factor(
         self, emission_name: str, value: ForecastArgument
     ) -> None:
-        """
-        Set the WTW emission factor for shore power electricity, ton emission/MWh.
-
-        Internally converted to ton/GJ.
-
-        Examples
-        --------
-        - "carbon_dioxide", 0.180
-        - "carbon_dioxide", Forecast("grid_emission_factor")
-
-        Parameters
-        ----------
-        emission_name
-            Name of the emission.
-        value
-            Emission factor in ton emission/MWh.
-        """
+        """Set the shore power emission factor for an emission."""
         write_matching_keys(
             emission_name,
             assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),

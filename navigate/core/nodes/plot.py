@@ -26,31 +26,10 @@ class Plot(Node):
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_directory(self, directory: str) -> None:
-        """
-        Set the plot output directory.
-
-        Parameters
-        ----------
-        directory
-            Relative or absolute path for plot output.
-        """
+        """Set the plot output directory."""
         self.directory = directory
 
     # external methods (DSL commands) --------------------------------------------------
     def add_plot(self, label: str) -> None:
-        """
-        Select a plot to render, by its label.
-
-        Call once per plot; every available plot is rendered when no 'add_plot'
-        command is given at all.
-
-        Examples
-        --------
-        - "global_fuel_consumed"
-
-        Parameters
-        ----------
-        label
-            Plot label, one of the labels listed in the reference manual.
-        """
+        """Select a plot to render, by its label."""
         self.selected_plots.add(label)

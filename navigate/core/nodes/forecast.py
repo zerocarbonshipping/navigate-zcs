@@ -41,19 +41,7 @@ class Forecast(Node, _Table1D):
         self._temporary_table: tuple[FloatArray | DateArray, FloatArray] | None = None
 
     def set_table(self, table: TableData) -> None:
-        """
-        Set the table of x- and y-values the forecast interpolates in.
-
-        The x-values are dates, or days since the start of the simulation. The
-        table is held until 'replace_reference_table' rebases a dated table to
-        the start date and validates it: at that point it must hold at least two
-        rows, with x-values strictly increasing.
-
-        Parameters
-        ----------
-        table
-            Parsed table, x-values in the first column and y-values in the second.
-        """
+        """Set the table of x- and y-values the forecast interpolates in."""
         x, y = build_table_1d_dated(table)
         self._temporary_table = (x, y)
 

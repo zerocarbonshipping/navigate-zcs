@@ -62,74 +62,21 @@ class Technology(_Machinery):
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_shore_power_capacity(self, capacity: ScalarArgument) -> None:
-        """
-        Set the vessel-side shore power connection capacity in MW.
-
-        A vessel's shore power use in a port is capped at the port's shore power
-        connection share of its time in port, times the lesser of the combined
-        capacity of its technologies and its electrical load in port.
-
-        Examples
-        --------
-        - 4.0
-        - Variable("name")
-
-        Parameters
-        ----------
-        capacity
-            Vessel-side shore power connection rating in MW.
-        """
+        """Set the vessel-side shore power connection capacity."""
         self.shore_power_capacity = assign_value(
             as_scalar(capacity), type_=VARIABLE, lower=0.0
         )
 
     # external methods (DSL commands) --------------------------------------------------
     def set_energy_saving(self, energy_type: str, saving: ScalarArgument) -> None:
-        """
-        Set the fraction of the raw energy demand the technology saves.
-
-        The saving scales the raw demand of the energy type before any external power
-        is subtracted: the residual energy is raw * (1 - saving) - external, floored at
-        zero. The savings of the technologies in one package compound as
-        1 - prod(1 - saving).
-
-        Examples
-        --------
-        - PROPULSION, 0.04
-        - HEAT, Variable("name")
-
-        Parameters
-        ----------
-        energy_type
-            Energy demand type the saving applies to.
-        saving
-            Fraction of the raw energy demand saved.
-        """
+        """Set the fraction of the raw energy demand the technology saves."""
         value_ = assign_value(as_scalar(saving), type_=VARIABLE, lower=0.0)
 
         id_ = assign_id(energy_type, EnergyDemandTypeID)
         write_matching_keys(id_, value_, self.energy_saving)
 
     def set_external_power(self, energy_type: str, power: ScalarArgument) -> None:
-        """
-        Set the external power the technology supplies to an energy demand type, in MW.
-
-        The power is converted to energy over the duration of each leg or port stay and
-        subtracted from the demand left after the energy savings, floored at zero. The
-        external powers of the technologies in one package add up.
-
-        Examples
-        --------
-        - PROPULSION, 1.25
-        - HEAT, Variable("name")
-
-        Parameters
-        ----------
-        energy_type
-            Energy demand type the external power supplies.
-        power
-            External power supplied, in MW.
-        """
+        """Set the external power the technology supplies to an energy demand type."""
         value_ = assign_value(as_scalar(power), type_=VARIABLE, lower=0.0)
 
         id_ = assign_id(energy_type, EnergyDemandTypeID)
@@ -138,33 +85,8 @@ class Technology(_Machinery):
     def set_power_transfer(
         self, power_system_id: str, energy_id: str, transfer: CurveArgument
     ) -> None:
-        """
-        Set the power transferred from a source energy type to a sink energy type.
-
-        The transfer is evaluated at the load of the source converter: the residual
-        power of the source energy type divided by that converter's power capacity. A
-        Curve therefore maps the load (-) to the transferred power (MW); a number is a
-        constant power. The power is converted to energy over the duration of each leg
-        or port stay and subtracted from the residual demand of the sink energy type,
-        floored at zero.
-
-        Examples
-        --------
-        - PROPULSION, ELECTRICAL, Curve("name")
-        - PROPULSION, ELECTRICAL, 0.5
-
-        Parameters
-        ----------
-        power_system_id
-            Energy demand type whose converter supplies the transferred power.
-        energy_id
-            Energy demand type receiving the transferred power.
-        transfer
-            Power transferred, in MW, as a function of the source converter load.
-        """
-        value_ = assign_value(
-            as_scalar(transfer), type_=(CURVE, VARIABLE), lower=0.0, upper=1.0
-        )
+        """Set the power transferred from a source energy type to a sink energy type."""
+        value_ = assign_value(as_scalar(transfer), type_=(CURVE, VARIABLE), lower=0.0)
 
         power_system_id_ = assign_id(power_system_id, EnergyDemandTypeID)
         energy_id_ = assign_id(energy_id, EnergyDemandTypeID)

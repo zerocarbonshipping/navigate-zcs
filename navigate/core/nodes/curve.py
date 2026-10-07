@@ -34,18 +34,7 @@ class Curve(Node, _Table1D):
         self._temporary_table: tuple[FloatArray, FloatArray] | None = None
 
     def set_table(self, table: TableData) -> None:
-        """
-        Set the table of x- and y-values the curve interpolates in.
-
-        The table must hold at least two rows, and its x-values must be strictly
-        increasing. It is built once the whole definition has been read, so the
-        order of the attributes within the definition does not matter.
-
-        Parameters
-        ----------
-        table
-            Parsed table, x-values in the first column and y-values in the second.
-        """
+        """Set the table of x- and y-values the curve interpolates in."""
         x, y = build_table_1d(table)
         check_table1d_input(x, y)
         self._temporary_table = (x, y)
