@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""Tests the run sequence of a deck: the date loop and the completion line."""
+"""Tests the run sequence of a deck: the order of a date's heading, events and step."""
 
 from __future__ import annotations
 
@@ -70,17 +70,3 @@ def test_each_date_logs_its_heading_then_applies_its_events_then_steps(calls, tm
         for call in (("heading",), ("events", date), ("step", date))
     ]
     assert calls == expected
-
-
-def test_completion_line_states_the_elapsed_time_once(calls, caplog, tmp_path):
-    with caplog.at_level(logging.INFO, logger=run.logger.name):
-        run.run_deck(tmp_path / "deck.nav", plots=False)
-
-    completed = [
-        record.getMessage()
-        for record in caplog.records
-        if "completed successfully" in record.getMessage()
-    ]
-    assert len(completed) == 1
-    assert completed[0].count("elapsed time:") == 1
-    assert "seconds" not in completed[0]

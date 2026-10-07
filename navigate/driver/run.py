@@ -32,9 +32,9 @@ logger = logging.getLogger(__name__)
 
 def run_deck(
     deck: Path,
+    *,
     data_dir: Path | None = None,
     solver: SolverBackendID | None = None,
-    *,
     plots: bool,
 ) -> SimulationResults:
     """
@@ -85,10 +85,10 @@ def run_deck(
     for report in results.nodes.reports.values():
         write_report(report, results, deck_directory, deck_path.stem)
 
-    elapsed = _format_elapsed_time(timeit.default_timer() - start_time)
+    elapsed = _format_duration(timeit.default_timer() - start_time)
 
-    print(f"Finished simulation, {elapsed}.")
-    logger.info("Simulation completed successfully, %s.", elapsed)
+    print(f"Finished simulation, elapsed time: {elapsed}.")
+    logger.info("Simulation completed successfully, elapsed time: %s.", elapsed)
 
     if plots:
         _render_plots(results, deck_directory)
@@ -113,11 +113,11 @@ def _log_time_step(
     )
 
 
-def _format_elapsed_time(elapsed: float) -> str:
-    minutes = math.floor(elapsed / 60.0)
-    seconds = int(elapsed - minutes * 60.0)
+def _format_duration(seconds: float) -> str:
+    whole_minutes = math.floor(seconds / 60.0)
+    whole_seconds = int(seconds - whole_minutes * 60.0)
 
-    return f"elapsed time: {minutes}m and {seconds}s"
+    return f"{whole_minutes}m and {whole_seconds}s"
 
 
 def _render_plots(results: SimulationResults, deck_directory: str) -> None:

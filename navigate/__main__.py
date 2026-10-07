@@ -7,17 +7,22 @@ from __future__ import annotations
 
 import argparse
 import cProfile
+import functools
 import logging
 import os
 import pstats
 import sys
 import traceback
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from navigate.app import LOG_LEVELS, RunLog, print_preamble
 from navigate.core.enum_ import SolverBackendID
 from navigate.driver import run_deck
 from navigate.exceptions import NavigateError
+
+if TYPE_CHECKING:
+    from navigate.core import SimulationResults
 
 ASSUMPTIONS_ENV_VAR = "ASSUMPTIONS_DATA_DIR"
 
@@ -187,18 +192,18 @@ def _validate_file(parser: argparse.ArgumentParser, path: Path) -> None:
 
 def _dispatch(args: argparse.Namespace, run_log: RunLog) -> int:
     print_preamble()
-    deck = args.filename.resolve()
+    run = functools.partial(
+        run_deck, args.filename, data_dir=args.data_dir, solver=args.solver
+    )
 
     if args.profile:
         # a profiled run ends its console output with the profile statistics, so
         # it prints no warning notice
-        _run_with_profile(deck, args)
+        _run_with_profile(run, args.filename.parent)
         run_log.log_summary()
         return 0
 
-    run_deck(
-        deck, data_dir=args.data_dir, solver=args.solver, plots=not args.suppress_plots
-    )
+    run(plots=not args.suppress_plots)
 
     run_log.log_summary()
     run_log.print_warning_notice()
@@ -227,13 +232,15 @@ def _print_error(exc: Exception, debug: bool) -> None:
         print(f"Error: {exc}", file=sys.stderr)
 
 
-def _run_with_profile(path: Path, args: argparse.Namespace) -> None:
+def _run_with_profile(
+    run: functools.partial[SimulationResults], deck_directory: Path
+) -> None:
     profiler = cProfile.Profile()
     profiler.enable()
-    run_deck(path, data_dir=args.data_dir, solver=args.solver, plots=False)
+    run(plots=False)
     profiler.disable()
     stats = pstats.Stats(profiler).sort_stats("cumtime")
-    stats.dump_stats(str(path.parent / "profile"))
+    stats.dump_stats(str(deck_directory / "profile"))
     stats.print_stats(100)
 
 
