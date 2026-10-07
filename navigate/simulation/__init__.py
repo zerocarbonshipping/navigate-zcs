@@ -2,3 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """The model, which steps the nodes of a read deck through its dates."""
+
+from __future__ import annotations
+
+from navigate.simulation.time_stepping import Simulation

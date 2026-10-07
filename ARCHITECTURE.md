@@ -187,6 +187,4 @@ before the commands run.
 - A leading underscore on a module or class means package-private; anything
   used across package boundaries carries a public name.
 - Each package's `__init__.py` re-exports its externally consumed entry
-  points — read it first to learn the package's API. `simulation/__init__.py`
-  is the exception and stays empty: re-exporting `Simulation` would load
-  every domain on any import of the package.
+  points — read it first to learn the package's API.

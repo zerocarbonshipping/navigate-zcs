@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING
 
 from navigate.output import write_report
 from navigate.parser import Parser
-from navigate.simulation.time_stepping import Simulation
+from navigate.simulation import Simulation
 from navigate.util import YEAR, timedelta_to_days
 
 if TYPE_CHECKING:
