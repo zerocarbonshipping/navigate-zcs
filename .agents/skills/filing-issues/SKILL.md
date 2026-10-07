@@ -38,11 +38,12 @@ ones omitted, never "N/A".
 - Standalone: no reference to a conversation, plan or scratch file; cite
   issues and PRs by number.
 - Evidence holds on `origin/dev`. Code-reading evidence comes from
-  `git show origin/dev:<path>`. Run evidence needs a worktree of
-  `origin/dev` with its own `make pip-setup` only when your branch differs
-  from `origin/dev` in the code or assumptions involved: `navigate` on PATH
-  is one checkout's editable install, and a worktree without its own
-  environment imports the primary checkout's code.
+  `git show origin/dev:<path>`. Run evidence comes from an environment
+  whose editable install is the checkout run, `.venv` or conda:
+  `python -c "import navigate; print(navigate.__file__)"` prints a path
+  inside it. When your branch differs from `origin/dev` in the code or
+  assumptions involved, that checkout is a worktree of `origin/dev` with
+  its own environment.
 - Pin `origin/dev @ <short SHA>`: in Version for a bug, otherwise next to
   the evidence; none for an enhancement without code evidence.
 - Locations: code as `path:line` plus symbol, documentation as page and
@@ -59,8 +60,8 @@ ones omitted, never "N/A".
 - **bug:** Reproduce on a copy outside the repo. Includes resolve relative
   to the deck's own directory, and scenario, regression and guardrail decks
   include `../0_includes/*.inc`: copy everything the deck reaches through
-  relative includes with the layout kept, e.g. the parent folder. Run
-  `<checkout>/.venv/bin/navigate <copy>/<deck>.nav -d <checkout>/assumptions -s`.
+  relative includes with the layout kept, e.g. the parent folder. In that
+  environment, run `navigate <copy>/<deck>.nav -d <checkout>/assumptions -s`.
 - **documentation:** Code wrong: a bug. Several mismatches of one kind found
   in one pass make one issue. The reference manual covers user-visible
   behaviour only, no modelling derivations; internals belong in root files
