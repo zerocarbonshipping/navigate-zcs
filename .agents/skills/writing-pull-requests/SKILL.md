@@ -27,7 +27,8 @@ Title: `CONTRIBUTING.md`, Pull request expectations.
   Results when simulation results move; delete other empty sections, never
   "None" or "N/A".
 - One `Addresses #N` line per issue under Why; none without an issue.
-  Closing keywords do nothing in a PR into `dev`.
+  Closing keywords do nothing in a PR into `dev`: once the PR has merged,
+  close each addressed issue yourself (`gh issue close N`).
 - Decisions: genuine choices only; never invent a rejected alternative.
 - Limitations also lists the issues filed during the work.
 - Cite issues and PRs by number, never private plans, tickets or sessions.
