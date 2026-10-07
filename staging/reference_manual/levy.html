@@ -488,7 +488,7 @@ CO<sub>2</sub>-taxes and subsidy schemes.</p>
 <h2>Attributes<a class="headerlink" href="#attributes" title="Link to this heading">#</a></h2>
 <section id="active">
 <h3>Active<a class="headerlink" href="#active" title="Link to this heading">#</a></h3>
-<p>This attribute sets whether the levy is active in the current time-step. This attribute can be changed during the <code class="docutils literal notranslate"><span class="pre">EVENTS</span></code> simulation to either introduce a levy assuming there was no foresight to its implementation or to discontinue an already existing levy.</p>
+<p>This attribute sets whether the levy is active in the current time-step. An inactive levy is ignored in both the expectations and the results. This attribute can be changed during the <code class="docutils literal notranslate"><span class="pre">EVENTS</span></code> simulation to either introduce a levy assuming there was no foresight to its implementation or to discontinue an already existing levy.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Boolean</span></code></p></li>
 <li><p><strong>Default</strong>: TRUE</p></li>
@@ -561,10 +561,10 @@ CO<sub>2</sub>-taxes and subsidy schemes.</p>
 <p>This attribute determines the emissions lifetime used in the GWP (Global Warming Potential) calculation of emissions.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
-<li><p><strong>Example values</strong>: <code class="docutils literal notranslate"><span class="pre">20</span></code></p></li>
+<li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">20</span></code></p></li>
 <li><p><strong>Unit</strong>: Years</p></li>
 <li><p><strong>Minimum value</strong>: 0</p></li>
-<li><p><strong>Default</strong>: 100</p></li>
+<li><p><strong>Default</strong>: Not set. The <code class="docutils literal notranslate"><span class="pre">EmissionsLifetime</span></code> of the <a class="reference internal" href="model_definition.html"><span class="std std-doc">ModelDefinition</span></a> is used.</p></li>
 </ul>
 </section>
 <section id="includeslip">
@@ -580,7 +580,12 @@ CO<sub>2</sub>-taxes and subsidy schemes.</p>
 <p>This attribute determines the level of the penalty or subsidy, paid per ton of emission by which a fuel differs from the threshold: the difference in emission intensity times the effective energy of the fuel, (1 − slip) · LHV (see <code class="docutils literal notranslate"><span class="pre">LowerThreshold</span></code>).</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
-<li><p><strong>Example values</strong>: <code class="docutils literal notranslate"><span class="pre">100</span></code></p></li>
+<li><p><strong>Example values</strong>:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">100</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Forecast(&quot;name&quot;)</span></code></p></li>
+</ul>
+</li>
 <li><p><strong>Unit</strong>: USD/ton emission</p></li>
 <li><p><strong>Minimum value</strong>: 0</p></li>
 <li><p><strong>Default</strong>: 0</p></li>
@@ -617,7 +622,7 @@ CO<sub>2</sub>-taxes and subsidy schemes.</p>
 </li>
 <li><p><strong>Minimum value</strong>: 0</p></li>
 <li><p><strong>Unit</strong>: kg emission / GJ</p></li>
-<li><p><strong>Default</strong>: None (no upper cap)</p></li>
+<li><p><strong>Default</strong>: Not set. There is no upper cap on the penalty.</p></li>
 </ul>
 </section>
 </section>
@@ -625,18 +630,24 @@ CO<sub>2</sub>-taxes and subsidy schemes.</p>
 <h2>Commands<a class="headerlink" href="#commands" title="Link to this heading">#</a></h2>
 <section id="set-include-vessel">
 <h3>set_include_vessel<a class="headerlink" href="#set-include-vessel" title="Link to this heading">#</a></h3>
-<p>This command allows the user to include or exclude certain vessels from the levy.</p>
+<p>This command allows the user to include or exclude certain vessels from the levy. Vessels are excluded unless included explicitly, e.g. with <code class="docutils literal notranslate"><span class="pre">set_include_vessel(&quot;*&quot;,</span> <span class="pre">TRUE)</span></code>.</p>
 <ul class="simple">
-<li><p><strong>Primary key type</strong>: String (Vessel name)</p></li>
+<li><p><strong>Primary key type</strong>: String (Vessel name; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Boolean</span></code></p></li>
-<li><p><strong>Default</strong>: TRUE</p></li>
+<li><p><strong>Example values</strong>:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;vessel_name&quot;,</span> <span class="pre">TRUE</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;*&quot;,</span> <span class="pre">TRUE</span></code></p></li>
+</ul>
+</li>
+<li><p><strong>Default</strong>: FALSE</p></li>
 </ul>
 </section>
 <section id="set-global-warming-potential">
 <h3>set_global_warming_potential<a class="headerlink" href="#set-global-warming-potential" title="Link to this heading">#</a></h3>
 <p>This command allows the user to set the global warming potential (GWP) for a specific emission. If the GWP is assigned on the levy then it overwrites the physical GWP defined on the emission during the calculation of emission factors. A <code class="docutils literal notranslate"><span class="pre">Curve</span></code> is read at the emissions lifetime, like the GWP of the emission: the <code class="docutils literal notranslate"><span class="pre">EmissionsLifetime</span></code> of the levy if assigned, otherwise that of the model.</p>
 <ul class="simple">
-<li><p><strong>Primary key type</strong>: String (Emission name)</p></li>
+<li><p><strong>Primary key type</strong>: String (Emission name; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Curve</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
@@ -645,15 +656,15 @@ CO<sub>2</sub>-taxes and subsidy schemes.</p>
 </ul>
 </li>
 <li><p><strong>Unit</strong>: ton CO<sub>2</sub>eq/ton emission</p></li>
-<li><p><strong>Default</strong>: The physical global warming potential assigned to the specific emissions</p></li>
+<li><p><strong>Default</strong>: Not set. The global warming potential assigned on the <code class="docutils literal notranslate"><span class="pre">Emission</span></code> is used.</p></li>
 </ul>
 </section>
 <section id="set-fuel-wtt">
 <h3>set_fuel_wtt<a class="headerlink" href="#set-fuel-wtt" title="Link to this heading">#</a></h3>
-<p>This command allows the user to set the WTT (Well-to-Tank) emission factor for a given fuel and emission as it is defined under a certain policy. If these emission factor values are assigned under a levy, they override the emission factor values that are otherwise used in Navigate</p>
+<p>This command allows the user to set the WTT (Well-to-Tank) emission factor for a given fuel and emission as it is defined under a certain policy. If these emission factor values are assigned under a levy, they override the emission factor values that are otherwise used in Navigate.</p>
 <ul class="simple">
-<li><p><strong>Primary key type</strong>: String (Fuel name)</p></li>
-<li><p><strong>Secondary key type</strong>: String (Emission name)</p></li>
+<li><p><strong>Primary key type</strong>: String (Fuel name; supports wildcards)</p></li>
+<li><p><strong>Secondary key type</strong>: String (Emission name; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
@@ -662,15 +673,15 @@ CO<sub>2</sub>-taxes and subsidy schemes.</p>
 </ul>
 </li>
 <li><p><strong>Unit</strong>: ton emission/ton fuel</p></li>
-<li><p><strong>Default</strong>: Determined through internal calculations</p></li>
+<li><p><strong>Default</strong>: Not set. At each port in the jurisdiction, the port’s <code class="docutils literal notranslate"><span class="pre">set_bunker_wtt_overwrite</span></code> is used if assigned, otherwise an estimate from the plants producing the fuel.</p></li>
 </ul>
 </section>
 <section id="set-fuel-ttw">
 <h3>set_fuel_ttw<a class="headerlink" href="#set-fuel-ttw" title="Link to this heading">#</a></h3>
-<p>This command allows the user to set the TTW (Tank-to-Wake) emission factor for a given fuel and emission as it is defined under a certain policy. If these emission factor values are assigned under a levy, they override the emission factor values that are otherwise used in Navigate</p>
+<p>This command allows the user to set the TTW (Tank-to-Wake) emission factor for a given fuel and emission as it is defined under a certain policy. If these emission factor values are assigned under a levy, they override the emission factor values that are otherwise used in Navigate.</p>
 <ul class="simple">
-<li><p><strong>Primary key type</strong>: String (Fuel name)</p></li>
-<li><p><strong>Secondary key type</strong>: String (Emission name)</p></li>
+<li><p><strong>Primary key type</strong>: String (Fuel name; supports wildcards)</p></li>
+<li><p><strong>Secondary key type</strong>: String (Emission name; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
@@ -679,7 +690,7 @@ CO<sub>2</sub>-taxes and subsidy schemes.</p>
 </ul>
 </li>
 <li><p><strong>Unit</strong>: ton emission/ton fuel</p></li>
-<li><p><strong>Default</strong>: Determined through internal calculations</p></li>
+<li><p><strong>Default</strong>: Not set. The TTW emission factor is calculated from the fuel’s TTW emission factor and the slip fraction and consumption emissions of the vessel’s converters, weighted by power capacity over efficiency.</p></li>
 </ul>
 </section>
 </section>

@@ -524,7 +524,7 @@ unrouted port is removed (see <a class="reference internal" href="dsl_reference.
 <h3>set_bunkering_allowed<a class="headerlink" href="#set-bunkering-allowed" title="Link to this heading">#</a></h3>
 <p>This command sets whether it is allowed to bunker a specific fuel in the port.</p>
 <ul class="simple">
-<li><p><strong>Primary key type</strong>: String (Fuel name)</p></li>
+<li><p><strong>Primary key type</strong>: String (Fuel name; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Boolean</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
@@ -539,7 +539,7 @@ unrouted port is removed (see <a class="reference internal" href="dsl_reference.
 <h3>set_handling_cost<a class="headerlink" href="#set-handling-cost" title="Link to this heading">#</a></h3>
 <p>This command sets the costs related to storage and the service of bunkering of a specific fuel in the port in USD/ton.</p>
 <ul class="simple">
-<li><p><strong>Primary key type</strong>: String (Fuel name)</p></li>
+<li><p><strong>Primary key type</strong>: String (Fuel name; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
@@ -555,9 +555,9 @@ unrouted port is removed (see <a class="reference internal" href="dsl_reference.
 <section id="set-bunkering-limit">
 <h3>set_bunkering_limit<a class="headerlink" href="#set-bunkering-limit" title="Link to this heading">#</a></h3>
 <p>This command sets a limitation for the amount of fuel that can be bunkered in the port in tons/year.</p>
-<p>A Producer’s fuel imported above the limit is redistributed to the other ports allowed to bunker it, in proportion to how far each is under its own limit; a port the producer sends no fuel to receives no share. Any surplus the limited ports cannot absorb is split equally across the ports with no limit set, and dropped where none exist. A liquid-market fuel is unaffected: its supply is the limit itself.</p>
+<p>A Producer’s fuel imported above the limit is redistributed to the other ports allowed to bunker it, in proportion to how far each is under its own limit; a port the producer sends no fuel to receives no share. Any surplus the limited ports cannot absorb is split equally across the ports with no limit set, and dropped where none exist. A liquid-market fuel is unaffected: its supply is the limit itself. <code class="docutils literal notranslate"><span class="pre">INF</span></code> means no limit.</p>
 <ul class="simple">
-<li><p><strong>Primary key type</strong>: String (Fuel name)</p></li>
+<li><p><strong>Primary key type</strong>: String (Fuel name; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
@@ -567,7 +567,7 @@ unrouted port is removed (see <a class="reference internal" href="dsl_reference.
 </li>
 <li><p><strong>Unit</strong>: tons/year</p></li>
 <li><p><strong>Minimum value</strong>: 0</p></li>
-<li><p><strong>Default</strong>: INF</p></li>
+<li><p><strong>Default</strong>: Not set. Bunkering of the fuel is unlimited, as with <code class="docutils literal notranslate"><span class="pre">INF</span></code>.</p></li>
 </ul>
 </section>
 <section id="set-bunkering-inertia">
@@ -575,7 +575,7 @@ unrouted port is removed (see <a class="reference internal" href="dsl_reference.
 <p>This command sets the inertia of a fuel being bunkered in fraction/year.</p>
 <p>The inertia refers to the fraction of the amount bunkered in the previous time-step that must at minimum be bunkered in the current time-step.</p>
 <ul class="simple">
-<li><p><strong>Primary key type</strong>: String (Fuel name)</p></li>
+<li><p><strong>Primary key type</strong>: String (Fuel name; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
@@ -583,7 +583,7 @@ unrouted port is removed (see <a class="reference internal" href="dsl_reference.
 <li><p><code class="docutils literal notranslate"><span class="pre">&quot;fuel_name&quot;,</span> <span class="pre">Forecast(&quot;name&quot;)</span></code></p></li>
 </ul>
 </li>
-<li><p><strong>Unit</strong>: Fraction</p></li>
+<li><p><strong>Unit</strong>: fraction/year</p></li>
 <li><p><strong>Minimum value</strong>: 0</p></li>
 <li><p><strong>Maximum value</strong>: 1</p></li>
 <li><p><strong>Default</strong>: 0</p></li>
@@ -594,7 +594,7 @@ unrouted port is removed (see <a class="reference internal" href="dsl_reference.
 <p>This command sets the price of a specific fuel in the port in USD/ton.</p>
 <p>If an overwrite is set for a specific fuel, then the bottom-up calculation of production cost is ignored.</p>
 <ul class="simple">
-<li><p><strong>Primary key type</strong>: String (Fuel name)</p></li>
+<li><p><strong>Primary key type</strong>: String (Fuel name; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
@@ -604,7 +604,7 @@ unrouted port is removed (see <a class="reference internal" href="dsl_reference.
 </li>
 <li><p><strong>Unit</strong>: USD/ton</p></li>
 <li><p><strong>Minimum value</strong>: 0</p></li>
-<li><p><strong>Default</strong>: None</p></li>
+<li><p><strong>Default</strong>: Not set. The price is calculated bottom-up from production; for a liquid-market fuel it is 0.</p></li>
 </ul>
 </section>
 <section id="set-bunker-wtt-overwrite">
@@ -613,8 +613,8 @@ unrouted port is removed (see <a class="reference internal" href="dsl_reference.
 <p>If an overwrite is set for a specific fuel and emission, then the bottom-up calculation of production emissions is ignored.</p>
 <p>The overwrite also sets the WTT that regulations and levies assume for the fuel bunkered at this port, unless the policy sets its own with <code class="docutils literal notranslate"><span class="pre">set_fuel_wtt</span></code>.</p>
 <ul class="simple">
-<li><p><strong>Primary key type</strong>: String (Fuel name)</p></li>
-<li><p><strong>Secondary key type</strong>: String (Emission name)</p></li>
+<li><p><strong>Primary key type</strong>: String (Fuel name; supports wildcards)</p></li>
+<li><p><strong>Secondary key type</strong>: String (Emission name; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
@@ -623,14 +623,14 @@ unrouted port is removed (see <a class="reference internal" href="dsl_reference.
 </ul>
 </li>
 <li><p><strong>Unit</strong>: ton emission / ton fuel</p></li>
-<li><p><strong>Default</strong>: None</p></li>
+<li><p><strong>Default</strong>: Not set. The WTT emissions are calculated bottom-up from production; for a liquid-market fuel they are 0.</p></li>
 </ul>
 </section>
 <section id="set-shore-power-emission-factor">
 <h3>set_shore_power_emission_factor<a class="headerlink" href="#set-shore-power-emission-factor" title="Link to this heading">#</a></h3>
 <p>This command sets the WTW (Well-to-Wake) emission factor of the shore power grid electricity for a specific emission in the port in ton emission/MWh. It is converted internally to ton emission/GJ.</p>
 <ul class="simple">
-<li><p><strong>Primary key type</strong>: String (Emission name)</p></li>
+<li><p><strong>Primary key type</strong>: String (Emission name; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>

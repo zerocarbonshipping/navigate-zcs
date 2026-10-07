@@ -498,6 +498,7 @@ Examples of fleets are handymax bulk carriers and LR1 tankers.</p>
 <section id="vessels">
 <h3>Vessels<a class="headerlink" href="#vessels" title="Link to this heading">#</a></h3>
 <p>This attribute sets the list of vessel types that exist for the fleet. Vessel types can be viewed as a discretization of the fuel types and technologies of the fleet.</p>
+<p>Every Vessel node assigned must be unique.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: List of <code class="docutils literal notranslate"><span class="pre">Vessel</span></code> nodes</p></li>
 <li><p><strong>Example values</strong>:</p>
@@ -556,7 +557,7 @@ Examples of fleets are handymax bulk carriers and LR1 tankers.</p>
 <li><p><strong>Unit</strong>: Fraction/year</p></li>
 <li><p><strong>Minimum value</strong>: 0</p></li>
 <li><p><strong>Maximum value</strong>: 1</p></li>
-<li><p><strong>Default</strong>: None.</p></li>
+<li><p><strong>Default</strong>: Not set. Vessels are scrapped by age at the end of their lifetime.</p></li>
 </ul>
 </section>
 <section id="allowsecondaryscrapping">
@@ -573,8 +574,13 @@ Examples of fleets are handymax bulk carriers and LR1 tankers.</p>
 <p>The value is an odds ratio against a 10% increase: a fuel whose LCOT is 10% higher receives this many times the odds of an otherwise identical fuel. For example <code class="docutils literal notranslate"><span class="pre">0.5</span></code> means a 10%-higher LCOT halves the odds, and <code class="docutils literal notranslate"><span class="pre">1</span></code> means no preference. LCOT is lower-is-better, so use a value below <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
-<li><p><strong>Example values</strong>: <code class="docutils literal notranslate"><span class="pre">0.5</span></code></p></li>
-<li><p><strong>Minimum value</strong>: 0 (exclusive)</p></li>
+<li><p><strong>Example values</strong>:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">0.5</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Forecast(&quot;name&quot;)</span></code></p></li>
+</ul>
+</li>
+<li><p><strong>Minimum value</strong>: &gt;0</p></li>
 <li><p><strong>Default</strong>: None. Must be provided by the user.</p></li>
 </ul>
 </section>
@@ -584,8 +590,13 @@ Examples of fleets are handymax bulk carriers and LR1 tankers.</p>
 <p>The value is an odds ratio against a 10% increase: a variant whose LCOT is 10% higher receives this many times the odds of an otherwise identical variant. For example <code class="docutils literal notranslate"><span class="pre">0.5</span></code> means a 10%-higher LCOT halves the odds, and <code class="docutils literal notranslate"><span class="pre">1</span></code> means no preference. Use a value below <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
-<li><p><strong>Example values</strong>: <code class="docutils literal notranslate"><span class="pre">0.5</span></code></p></li>
-<li><p><strong>Minimum value</strong>: 0 (exclusive)</p></li>
+<li><p><strong>Example values</strong>:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">0.5</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Forecast(&quot;name&quot;)</span></code></p></li>
+</ul>
+</li>
+<li><p><strong>Minimum value</strong>: &gt;0</p></li>
 <li><p><strong>Default</strong>: None. Must be provided by the user.</p></li>
 </ul>
 </section>
@@ -595,14 +606,19 @@ Examples of fleets are handymax bulk carriers and LR1 tankers.</p>
 <p>The value is an odds ratio against an advantage equal to 5% of the summed ship CAPEX: a package whose NPV advantage equals 5% of the ship CAPEX receives this many times the odds of an otherwise identical package. For example <code class="docutils literal notranslate"><span class="pre">2</span></code> means such an advantage doubles the odds, and <code class="docutils literal notranslate"><span class="pre">1</span></code> means no preference. NPV is higher-is-better, so use a value above <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
-<li><p><strong>Example values</strong>: <code class="docutils literal notranslate"><span class="pre">2</span></code></p></li>
-<li><p><strong>Minimum value</strong>: 0 (exclusive)</p></li>
-<li><p><strong>Default</strong>: None. Must be provided by the user when technologies are defined.</p></li>
+<li><p><strong>Example values</strong>:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">2</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Forecast(&quot;name&quot;)</span></code></p></li>
+</ul>
+</li>
+<li><p><strong>Minimum value</strong>: &gt;0</p></li>
+<li><p><strong>Default</strong>: None. Must be provided by the user when Technologies are assigned.</p></li>
 </ul>
 </section>
 <section id="technologycostofcapital">
 <h3>TechnologyCostOfCapital<a class="headerlink" href="#technologycostofcapital" title="Link to this heading">#</a></h3>
-<p>This attribute sets the cost of capital used for evaluating technology investments. It represents the discount rate used to evaluate the net present value of technology investments and retrofits.</p>
+<p>This attribute sets the cost of capital used for evaluating technology investments. It represents the discount rate used to evaluate the net present value of technology investments and retrofits, and reflects the opportunity cost of capital and the risk associated with technology adoption.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
@@ -613,12 +629,12 @@ Examples of fleets are handymax bulk carriers and LR1 tankers.</p>
 </li>
 <li><p><strong>Unit</strong>: Fraction</p></li>
 <li><p><strong>Minimum value</strong>: 0</p></li>
-<li><p><strong>Default</strong>: None. When not supplied, each vessel’s own <a class="reference internal" href="vessel.html#costofcapital"><span class="std std-ref">CostOfCapital</span></a> is used for its technology adoption decisions, which typically leads to a higher uptake of technologies.</p></li>
+<li><p><strong>Default</strong>: Not set. Each vessel’s own <a class="reference internal" href="vessel.html#costofcapital"><span class="std std-ref">CostOfCapital</span></a> is used for its technology adoption decisions, which typically leads to a higher uptake of technologies.</p></li>
 </ul>
 </section>
 <section id="technologyhorizon">
 <h3>TechnologyHorizon<a class="headerlink" href="#technologyhorizon" title="Link to this heading">#</a></h3>
-<p>Smoothing horizon (in years) for the energy-scarcity belief that scales technology marginal-saving evaluations. A longer horizon dampens transient LP shadow-price spikes, so newbuild technology choices respond to persistent scarcity rather than year-to-year noise.</p>
+<p>Smoothing horizon (in years) for the energy-scarcity belief that scales technology marginal-saving evaluations. A longer horizon dampens transient LP shadow-price spikes, so technology choices on newbuilds and retrofits respond to persistent scarcity rather than year-to-year noise.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
@@ -628,6 +644,7 @@ Examples of fleets are handymax bulk carriers and LR1 tankers.</p>
 </ul>
 </li>
 <li><p><strong>Unit</strong>: Years</p></li>
+<li><p><strong>Minimum value</strong>: 0</p></li>
 <li><p><strong>Default</strong>: 3</p></li>
 </ul>
 </section>
@@ -643,6 +660,7 @@ Examples of fleets are handymax bulk carriers and LR1 tankers.</p>
 </ul>
 </li>
 <li><p><strong>Unit</strong>: Years</p></li>
+<li><p><strong>Minimum value</strong>: 0</p></li>
 <li><p><strong>Default</strong>: 1</p></li>
 </ul>
 </section>
@@ -664,13 +682,12 @@ Examples of fleets are handymax bulk carriers and LR1 tankers.</p>
 <section id="initialvessels">
 <h3>InitialVessels<a class="headerlink" href="#initialvessels" title="Link to this heading">#</a></h3>
 <p>This attribute sets the initial number of vessels in the fleet.</p>
-<p>A minimum of one vessel is necessary to compound the trade-growth.</p>
 <ul class="simple">
-<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code></p></li>
-<li><p><strong>Example values</strong>: <code class="docutils literal notranslate"><span class="pre">150</span></code></p></li>
+<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
+<li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">150</span></code></p></li>
 <li><p><strong>Unit</strong>: Number of vessels</p></li>
-<li><p><strong>Minimum value</strong>: 1</p></li>
-<li><p><strong>Default</strong>: None. Must be defined by the user.</p></li>
+<li><p><strong>Minimum value</strong>: &gt;0</p></li>
+<li><p><strong>Default</strong>: None. Must be provided by the user.</p></li>
 </ul>
 </section>
 <section id="initialsplit">
@@ -679,31 +696,24 @@ Examples of fleets are handymax bulk carriers and LR1 tankers.</p>
 <p>The list must have the same length as the list of vessels.</p>
 <p>Entries must be finite, non-negative numbers. The list should sum to 1; its total, rounded to five decimals, is rescaled proportionally when it is other than 1, and a deviation of more than 1% is logged at <code class="docutils literal notranslate"><span class="pre">WARNING</span></code>. A list whose rounded total is 0 (an all-zero or empty list included), an <code class="docutils literal notranslate"><span class="pre">INF</span></code> entry, or a total too large to represent is an error; omit <code class="docutils literal notranslate"><span class="pre">InitialSplit</span></code> for a uniform split over the vessels.</p>
 <ul class="simple">
-<li><p><strong>Data type</strong>: List of <code class="docutils literal notranslate"><span class="pre">floats</span></code></p></li>
-<li><p><strong>Example values</strong>:</p>
-<ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">[0.3,</span> <span class="pre">0.7]</span></code></p></li>
-</ul>
-</li>
+<li><p><strong>Data type</strong>: List of <code class="docutils literal notranslate"><span class="pre">Float</span></code></p></li>
+<li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">[0.3,</span> <span class="pre">0.7]</span></code></p></li>
 <li><p><strong>Unit</strong>: Fraction</p></li>
 <li><p><strong>Minimum value</strong>: 0</p></li>
 <li><p><strong>Maximum value</strong>: 1</p></li>
-<li><p><strong>Default</strong>: Determined through internal calculations.</p></li>
+<li><p><strong>Default</strong>: Not set. The split is uniform over the vessels.</p></li>
 </ul>
 </section>
 <section id="initialagedistribution">
 <h3>InitialAgeDistribution<a class="headerlink" href="#initialagedistribution" title="Link to this heading">#</a></h3>
 <p>This attribute sets the initial age distribution of each vessel type in the fleet.</p>
 <p>The list must have a length corresponding to the number of vessel types. Each entry is either a Curve reference (where the Curve’s x-values are ages in increasing order and y-values are the corresponding fractions) or <code class="docutils literal notranslate"><span class="pre">0</span></code> for vessel types with no custom distribution. The Curve’s values must be finite.</p>
+<p>A number in place of a Curve gives a uniform age spread over the vessel type’s lifetime, shortened to 1/<a class="reference internal" href="#fixedscraprate">FixedScrapRate</a> when that is lower. <code class="docutils literal notranslate"><span class="pre">0</span></code> is the conventional entry, but any other non-negative number behaves the same.</p>
 <ul class="simple">
-<li><p><strong>Data type</strong>: List of <code class="docutils literal notranslate"><span class="pre">Curve</span></code> nodes and/or <code class="docutils literal notranslate"><span class="pre">0</span></code></p></li>
-<li><p><strong>Example values</strong>:</p>
-<ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">[Curve(&quot;age_dist_1&quot;),</span> <span class="pre">0,</span> <span class="pre">Curve(&quot;age_dist_3&quot;)]</span></code></p></li>
-</ul>
-</li>
+<li><p><strong>Data type</strong>: List of <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Curve</span></code></p></li>
+<li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">[Curve(&quot;age_dist_1&quot;),</span> <span class="pre">0,</span> <span class="pre">Curve(&quot;age_dist_3&quot;)]</span></code></p></li>
 <li><p><strong>Minimum value</strong>: 0</p></li>
-<li><p><strong>Default</strong>: None</p></li>
+<li><p><strong>Default</strong>: Not set. Every vessel type gets a uniform age spread over its lifetime.</p></li>
 </ul>
 </section>
 <section id="retrofitfrequency">
@@ -724,41 +734,38 @@ Examples of fleets are handymax bulk carriers and LR1 tankers.</p>
 </section>
 <section id="orderbooks">
 <h3>Orderbooks<a class="headerlink" href="#orderbooks" title="Link to this heading">#</a></h3>
-<p>This attribute sets the list of orderbooks used for determining the newbuild uptake from orderbooks, i.e. defines the number of new vessels of a certain vessel type in a given year.</p>
+<p>This attribute sets the list of orderbooks used for determining the newbuild uptake from orderbooks. Each orderbook is the cumulative number of vessels of that vessel type ordered up to each date, not the number of new vessels per year. The vessels delivered in a time-step are the increase over the orders already delivered or postponed.</p>
 <p>The list must have the same length as the list of vessels.</p>
 <p>If the orderbook is a forecast, it must be non-strictly increasing (meaning that it cannot decrease as time progresses in the forecast).</p>
 <ul class="simple">
-<li><p><strong>Data type</strong>: List of <code class="docutils literal notranslate"><span class="pre">floats</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecasts</span></code>, <code class="docutils literal notranslate"><span class="pre">Variables</span></code></p></li>
-<li><p><strong>Example values</strong>:</p>
-<ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">[Forecast(&quot;name&quot;),</span> <span class="pre">0]</span></code></p></li>
-</ul>
-</li>
-<li><p><strong>Unit</strong>: Number of vessels.</p></li>
+<li><p><strong>Data type</strong>: List of <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
+<li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">[Forecast(&quot;name&quot;),</span> <span class="pre">0]</span></code></p></li>
+<li><p><strong>Unit</strong>: Number of vessels</p></li>
 <li><p><strong>Minimum value</strong>: 0</p></li>
-<li><p><strong>Default</strong>: None</p></li>
+<li><p><strong>Default</strong>: Not set. No vessels are delivered from orderbooks.</p></li>
 </ul>
 </section>
 <section id="allowspeedmanagement">
 <h3>AllowSpeedManagement<a class="headerlink" href="#allowspeedmanagement" title="Link to this heading">#</a></h3>
 <p>This attribute sets the flag for whether speed management is allowed.</p>
-<p>Speed management dynamically optimizes the speed profile of each vessel type based on a cost optimal approach between adding newbuilds to the model versus the change in fuel expenses,</p>
+<p>Speed management dynamically optimizes the speed profile of each vessel type based on a cost optimal approach between adding newbuilds to the model versus the change in fuel expenses.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Boolean</span></code></p></li>
-<li><p><strong>Default</strong>: None</p></li>
+<li><p><strong>Default</strong>: FALSE</p></li>
 </ul>
 </section>
 <section id="maximumspeedchange">
 <h3>MaximumSpeedChange<a class="headerlink" href="#maximumspeedchange" title="Link to this heading">#</a></h3>
-<p>This attribute sets the maximum speed change permissible per year during dynamic speed management.</p>
+<p>This attribute sets the maximum speed change permissible per year during dynamic speed management. <code class="docutils literal notranslate"><span class="pre">INF</span></code> means no limit. It is only used when <a class="reference internal" href="#allowspeedmanagement">AllowSpeedManagement</a> is TRUE.</p>
 <ul class="simple">
-<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
+<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">0.5</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">Forecast(&quot;name&quot;)</span></code></p></li>
 </ul>
 </li>
+<li><p><strong>Unit</strong>: Knots/year</p></li>
 <li><p><strong>Minimum value</strong>: 0</p></li>
 <li><p><strong>Default</strong>: INF</p></li>
 </ul>
@@ -786,14 +793,19 @@ Examples of fleets are handymax bulk carriers and LR1 tankers.</p>
 <p>The value is an odds ratio against an advantage equal to 5% of the summed ship CAPEX: a conversion whose NPV advantage equals 5% of the ship CAPEX receives this many times the odds of an otherwise identical conversion (the do-nothing option has an NPV of zero). For example <code class="docutils literal notranslate"><span class="pre">2</span></code> means such an advantage doubles the odds, and <code class="docutils literal notranslate"><span class="pre">1</span></code> means no preference. NPV is higher-is-better, so use a value above <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
-<li><p><strong>Example values</strong>: <code class="docutils literal notranslate"><span class="pre">2</span></code></p></li>
-<li><p><strong>Minimum value</strong>: 0 (exclusive)</p></li>
+<li><p><strong>Example values</strong>:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">2</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Forecast(&quot;name&quot;)</span></code></p></li>
+</ul>
+</li>
+<li><p><strong>Minimum value</strong>: &gt;0</p></li>
 <li><p><strong>Default</strong>: 2</p></li>
 </ul>
 </section>
 <section id="fuelconversionminimumage">
 <h3>FuelConversionMinimumAge<a class="headerlink" href="#fuelconversionminimumage" title="Link to this heading">#</a></h3>
-<p>This method sets the minimum age for fuel conversion in years.</p>
+<p>This attribute sets the minimum age, in years, at which a vessel can perform a fuel conversion.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
@@ -813,12 +825,8 @@ Examples of fleets are handymax bulk carriers and LR1 tankers.</p>
 <p>Every Technology node assigned must be unique.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: List of <code class="docutils literal notranslate"><span class="pre">Technology</span></code> nodes</p></li>
-<li><p><strong>Example values</strong>:</p>
-<ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">[Technology(&quot;name1&quot;),</span> <span class="pre">Technology(&quot;name2&quot;)]</span></code></p></li>
-</ul>
-</li>
-<li><p><strong>Default</strong>: None</p></li>
+<li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">[Technology(&quot;name1&quot;),</span> <span class="pre">Technology(&quot;name2&quot;)]</span></code></p></li>
+<li><p><strong>Default</strong>: Not set. No technologies can be installed on the fleet’s vessels.</p></li>
 </ul>
 </section>
 <section id="allowtechnologyapproximation">
@@ -835,10 +843,11 @@ Examples of fleets are handymax bulk carriers and LR1 tankers.</p>
 <section id="set-initial-technology-share">
 <h3>set_initial_technology_share<a class="headerlink" href="#set-initial-technology-share" title="Link to this heading">#</a></h3>
 <p>This command sets the initial technology uptake as a function of vessel age. The Curve’s x-axis is vessel age and its y-axis is the uptake fraction in <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">1]</span></code>. Wildcards are supported in both keys.</p>
+<p>This command is only allowed in the <code class="docutils literal notranslate"><span class="pre">DEFINE</span></code> section.</p>
 <ul class="simple">
 <li><p><strong>Primary key type</strong>: String (Vessel name; supports wildcards)</p></li>
 <li><p><strong>Secondary key type</strong>: String (Technology name; supports wildcards)</p></li>
-<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Curve</span></code> node</p></li>
+<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Curve</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">&quot;vessel_name&quot;,</span> <span class="pre">&quot;technology_name&quot;,</span> <span class="pre">Curve(&quot;uptake_curve&quot;)</span></code></p></li>
@@ -848,15 +857,15 @@ Examples of fleets are handymax bulk carriers and LR1 tankers.</p>
 <li><p><strong>Unit</strong>: x: Years, y: Fraction</p></li>
 <li><p><strong>Minimum value</strong>: 0</p></li>
 <li><p><strong>Maximum value</strong>: 1</p></li>
-<li><p><strong>Default</strong>: None</p></li>
+<li><p><strong>Default</strong>: Not set. The vessel type starts with no uptake of the technology.</p></li>
 </ul>
 </section>
 <section id="set-fuel-conversion-cost">
 <h3>set_fuel_conversion_cost<a class="headerlink" href="#set-fuel-conversion-cost" title="Link to this heading">#</a></h3>
-<p>This command sets the cost of performing a fuel conversion from one vessel type to another, in USD.</p>
+<p>This command sets the cost of performing a fuel conversion from one vessel type to another, in USD. A pair of vessel types without a cost cannot be converted.</p>
 <ul class="simple">
-<li><p><strong>Primary key type</strong>: String (Vessel name)</p></li>
-<li><p><strong>Secondary key type</strong>: String (Vessel name)</p></li>
+<li><p><strong>Primary key type</strong>: String (Vessel name being converted from; supports wildcards)</p></li>
+<li><p><strong>Secondary key type</strong>: String (Vessel name being converted to; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
@@ -866,7 +875,7 @@ Examples of fleets are handymax bulk carriers and LR1 tankers.</p>
 </li>
 <li><p><strong>Unit</strong>: USD</p></li>
 <li><p><strong>Minimum value</strong>: 0</p></li>
-<li><p><strong>Default</strong>: None</p></li>
+<li><p><strong>Default</strong>: Not set. The pair cannot be converted.</p></li>
 </ul>
 </section>
 <section id="set-allow-vessel">
@@ -874,9 +883,9 @@ Examples of fleets are handymax bulk carriers and LR1 tankers.</p>
 <p>This command sets a boolean flag indicating whether a specific vessel from the list is allowed in the fleet.</p>
 <p>If this command is set to FALSE, the vessel can neither enter the fleet as a newbuild nor enter the fleet through a fuel conversion.</p>
 <p>Any existing vessels in the fleet however are unaffected.</p>
-<p>This flag supersedes both attributes ‘Newbuild Available’ and ‘Conversion Available’.</p>
+<p>This flag supersedes both <code class="docutils literal notranslate"><span class="pre">set_newbuild_available</span></code> and <code class="docutils literal notranslate"><span class="pre">set_conversion_available</span></code>.</p>
 <ul class="simple">
-<li><p><strong>Primary key type</strong>: String (Vessel name)</p></li>
+<li><p><strong>Primary key type</strong>: String (Vessel name; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Boolean</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
@@ -890,9 +899,9 @@ Examples of fleets are handymax bulk carriers and LR1 tankers.</p>
 <section id="set-newbuild-available">
 <h3>set_newbuild_available<a class="headerlink" href="#set-newbuild-available" title="Link to this heading">#</a></h3>
 <p>This command sets a boolean flag indicating whether a specific vessel from the list is allowed as a newbuild in the fleet.</p>
-<p>If this attribute is set to FALSE the vessel cannot enter the fleet as a newbuild.</p>
+<p>If this command is set to FALSE the vessel cannot enter the fleet as a newbuild.</p>
 <ul class="simple">
-<li><p><strong>Primary key type</strong>: String (Vessel name)</p></li>
+<li><p><strong>Primary key type</strong>: String (Vessel name; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Boolean</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
@@ -905,10 +914,10 @@ Examples of fleets are handymax bulk carriers and LR1 tankers.</p>
 </section>
 <section id="set-conversion-available">
 <h3>set_conversion_available<a class="headerlink" href="#set-conversion-available" title="Link to this heading">#</a></h3>
-<p>This command sets a boolean flag indicating whether a specific vessel is allowed to undergo fuel conversion in the fleet.</p>
+<p>This command sets a boolean flag indicating whether a specific vessel type is allowed as the target of a fuel conversion in the fleet.</p>
 <p>If this command is set to FALSE it is not possible to perform fuel conversions to vessels of that type.</p>
 <ul class="simple">
-<li><p><strong>Primary key type</strong>: String (Vessel name)</p></li>
+<li><p><strong>Primary key type</strong>: String (Vessel name; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Boolean</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
@@ -921,7 +930,7 @@ Examples of fleets are handymax bulk carriers and LR1 tankers.</p>
 </section>
 <section id="set-newbuild-limit">
 <h3>set_newbuild_limit<a class="headerlink" href="#set-newbuild-limit" title="Link to this heading">#</a></h3>
-<p>This command sets the maximum share of a single time-step’s newbuild cargo-miles that can be delivered by a given vessel type. The limit is enforced across the orderbook, inertia, and modelled-uptake newbuild sources, so the cumulative share across the three sources cannot exceed the configured value.</p>
+<p>This command caps the number of newbuilds of a given vessel type per year, as a fraction of the fleet’s vessel count before newbuilds. For example, in a fleet of 100 vessels, a limit of 0.05 allows at most 5 newbuilds of that vessel type per year. The cap is shared by the orderbook, inertia, and modelled-uptake newbuild sources, so their combined newbuilds cannot exceed it; orderbook deliveries above the cap are postponed.</p>
 <ul class="simple">
 <li><p><strong>Primary key type</strong>: String (Vessel name; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
@@ -997,7 +1006,7 @@ Examples of fleets are handymax bulk carriers and LR1 tankers.</p>
 <p>This command sets the fraction of energy saved at sea through operational measures that are not modeled through technology business cases. Examples include Just-In-Time (JIT) arrival, weather routing, trim optimization, and similar zero-cost energy reduction methods.</p>
 <p>The operational saving is applied as an intermediate step between the raw energy demand (from speed/operation) and the technology-adjusted energy demand. It reduces the baseline energy against which technology savings are evaluated.</p>
 <ul class="simple">
-<li><p><strong>Primary key type</strong>: <a class="reference internal" href="appendix_ids.html#energydemandtypeid"><span class="std std-ref">EnergyDemandTypeID</span></a></p></li>
+<li><p><strong>Primary key type</strong>: <a class="reference internal" href="appendix_ids.html#energydemandtypeid"><span class="std std-ref">EnergyDemandTypeID</span></a> (supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
@@ -1016,7 +1025,7 @@ Examples of fleets are handymax bulk carriers and LR1 tankers.</p>
 <p>This command sets the fraction of energy saved in port through operational measures that are not modeled through technology business cases.</p>
 <p>The operational saving is applied as an intermediate step between the raw energy demand and the technology-adjusted energy demand.</p>
 <ul class="simple">
-<li><p><strong>Primary key type</strong>: <a class="reference internal" href="appendix_ids.html#energydemandtypeid"><span class="std std-ref">EnergyDemandTypeID</span></a>, restricted to the demands a vessel has in port: <code class="docutils literal notranslate"><span class="pre">ELECTRICAL</span></code> and <code class="docutils literal notranslate"><span class="pre">HEAT</span></code></p></li>
+<li><p><strong>Primary key type</strong>: <a class="reference internal" href="appendix_ids.html#energydemandtypeid"><span class="std std-ref">EnergyDemandTypeID</span></a>, restricted to the demands a vessel has in port: <code class="docutils literal notranslate"><span class="pre">ELECTRICAL</span></code> and <code class="docutils literal notranslate"><span class="pre">HEAT</span></code> (supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>

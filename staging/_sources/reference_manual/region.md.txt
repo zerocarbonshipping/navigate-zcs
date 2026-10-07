@@ -41,7 +41,7 @@ Region "africa" {
 
 This command sets the CAPEX associated with a production process in USD/ton.
 
-* **Primary key type**: String (Process name)
+* **Primary key type**: String (Process name; supports wildcards)
 * **Data type**: `Float`, `Forecast`, `Timetable`, `Variable`
 * **Example values**:
   + `"process_name", 500`
@@ -52,22 +52,21 @@ This command sets the CAPEX associated with a production process in USD/ton.
 
 ### set\_process\_opex
 
-This command sets the OPEX associated with a production process in USD/ton/year.
+This command sets the OPEX associated with a production process in USD/ton/year. Negative values are allowed, so that revenue from byproducts can be subtracted from the costs.
 
-* **Primary key type**: String (Process name)
+* **Primary key type**: String (Process name; supports wildcards)
 * **Data type**: `Float`, `Forecast`, `Timetable`, `Variable`
 * **Example values**:
   + `"process_name", 50`
   + `"process_name", Forecast("name")`
 * **Unit**: USD/ton/year
-* **Minimum value**: 0
 * **Default**: 0
 
 ### set\_process\_energy
 
 This command sets the energy demand required to run a production process in MWh/ton.
 
-* **Primary key type**: String (Process name)
+* **Primary key type**: String (Process name; supports wildcards)
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
   + `"process_name", 3.7`
@@ -80,20 +79,20 @@ This command sets the energy demand required to run a production process in MWh/
 
 This command sets the lifetime of a production process in years.
 
-* **Primary key type**: String (Process name)
+* **Primary key type**: String (Process name; supports wildcards)
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
   + `"process_name", 25`
   + `"process_name", Forecast("name")`
 * **Unit**: years
 * **Minimum value**: 0
-* **Default**: None
+* **Default**: Not set. The process lives as long as its plant, with no replacement.
 
 ### set\_process\_replacement
 
 This command sets the replacement fraction of CAPEX repaid at the end of a process's lifetime.
 
-* **Primary key type**: String (Process name)
+* **Primary key type**: String (Process name; supports wildcards)
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
   + `"process_name", 0.5`
@@ -107,21 +106,21 @@ This command sets the replacement fraction of CAPEX repaid at the end of a proce
 
 This command sets the WTT emissions of a specific emission type emitted during a production process in ton emission/ton fuel.
 
-* **Primary key type**: String (Process name)
-* **Secondary key type**: String (Emission name)
+* **Primary key type**: String (Process name; supports wildcards)
+* **Secondary key type**: String (Emission name; supports wildcards)
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
   + `"process_name", "emission_name", 0.5`
   + `"process_name", "emission_name", Forecast("name")`
 * **Unit**: ton emission/ton fuel
-* **Default**: None
+* **Default**: 0
 
 ### set\_source\_capex
 
 This command sets the CAPEX associated with a source in USD/MWh.
 
-* **Primary key type**: String (Source name)
-* **Data type**: `Float`, `Forecast`, `Timetable`, `Variable`
+* **Primary key type**: String (Source name; supports wildcards)
+* **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
   + `"source_name", 50`
   + `"source_name", Forecast("name")`
@@ -133,8 +132,8 @@ This command sets the CAPEX associated with a source in USD/MWh.
 
 This command sets the OPEX associated with a source in USD/MWh/year.
 
-* **Primary key type**: String (Source name)
-* **Data type**: `Float`, `Forecast`, `Timetable`, `Variable`
+* **Primary key type**: String (Source name; supports wildcards)
+* **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
   + `"source_name", 50`
   + `"source_name", Forecast("name")`
@@ -146,20 +145,20 @@ This command sets the OPEX associated with a source in USD/MWh/year.
 
 This command sets the WTT emissions of a specific emission type emitted by using a source in ton emission/MWh.
 
-* **Primary key type**: String (Source name)
-* **Secondary key type**: String (Emission name)
+* **Primary key type**: String (Source name; supports wildcards)
+* **Secondary key type**: String (Emission name; supports wildcards)
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
   + `"source_name", "emission_name", 0.5`
   + `"source_name", "emission_name", Forecast("name")`
 * **Unit**: ton emission/MWh
-* **Default**: None
+* **Default**: 0
 
 ### set\_feedstock\_cost
 
 This command sets the cost of a feedstock in USD/ton.
 
-* **Primary key type**: String (Feedstock name)
+* **Primary key type**: String (Feedstock name; supports wildcards)
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
   + `"feedstock_name", 45`
@@ -170,27 +169,27 @@ This command sets the cost of a feedstock in USD/ton.
 
 ### set\_feedstock\_wtt
 
-This command sets the WTT emissions of a specific emission type emitted by using the feedstock in ton emission/ton.
+This command sets the WTT emissions of a specific emission type emitted by using the feedstock in ton emission/ton feedstock.
 
-* **Primary key type**: String (Feedstock name)
-* **Secondary key type**: String (Emission name)
+* **Primary key type**: String (Feedstock name; supports wildcards)
+* **Secondary key type**: String (Emission name; supports wildcards)
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
   + `"feedstock_name", "emission_name", 0.5`
   + `"feedstock_name", "emission_name", Forecast("name")`
-* **Unit**: ton emission/ton
-* **Default**: None
+* **Unit**: ton emission/ton feedstock
+* **Default**: 0
 
 ### set\_transport\_cost
 
 This command sets the cost associated with a transport in USD/ton-nautical mile.
 
-* **Primary key type**: String (Transport name)
+* **Primary key type**: String (Transport name; supports wildcards)
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
   + `"transport_name", 45`
   + `"transport_name", Forecast("name")`
-* **Unit**: USD/ton-nautical miles
+* **Unit**: USD/ton-nautical mile
 * **Minimum value**: 0
 * **Default**: 0
 
@@ -198,11 +197,11 @@ This command sets the cost associated with a transport in USD/ton-nautical mile.
 
 This command sets the WTT emissions of a specific emission emitted by using a transport in ton emission/ton-nautical mile.
 
-* **Primary key type**: String (Transport name)
-* **Secondary key type**: String (Emission name)
+* **Primary key type**: String (Transport name; supports wildcards)
+* **Secondary key type**: String (Emission name; supports wildcards)
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
   + `"transport_name", "emission_name", 0.5`
   + `"transport_name", "emission_name", Forecast("name")`
 * **Unit**: ton emission/ton-nautical mile
-* **Default**: None
+* **Default**: 0

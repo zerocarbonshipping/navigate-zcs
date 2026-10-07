@@ -508,9 +508,10 @@ are a mono-fuel capesize bulk carrier and a dual-fuel methanol handy-max tanker.
 <li><p><code class="docutils literal notranslate"><span class="pre">Surface(&quot;name&quot;)</span></code></p></li>
 </ul>
 </li>
-<li><p>Unit x: Knots</p></li>
-<li><p>Unit y: Fraction</p></li>
-<li><p>Unit z: MW</p></li>
+<li><p><strong>Unit</strong>: MW</p></li>
+<li><p><strong>Unit x</strong>: Knots (Curve and Surface)</p></li>
+<li><p><strong>Unit y</strong>: MW (Curve); Fraction of cargo capacity (Surface)</p></li>
+<li><p><strong>Unit z</strong>: MW (Surface)</p></li>
 <li><p><strong>Minimum value</strong>: 0</p></li>
 <li><p><strong>Default</strong>: 0</p></li>
 </ul>
@@ -528,9 +529,10 @@ are a mono-fuel capesize bulk carrier and a dual-fuel methanol handy-max tanker.
 <li><p><code class="docutils literal notranslate"><span class="pre">Surface(&quot;name&quot;)</span></code></p></li>
 </ul>
 </li>
-<li><p>Unit x: Knots</p></li>
-<li><p>Unit y: Fraction</p></li>
-<li><p>Unit z: MW</p></li>
+<li><p><strong>Unit</strong>: MW</p></li>
+<li><p><strong>Unit x</strong>: Knots (Curve and Surface)</p></li>
+<li><p><strong>Unit y</strong>: MW (Curve); Fraction of cargo capacity (Surface)</p></li>
+<li><p><strong>Unit z</strong>: MW (Surface)</p></li>
 <li><p><strong>Minimum value</strong>: 0</p></li>
 <li><p><strong>Default</strong>: 0</p></li>
 </ul>
@@ -540,7 +542,7 @@ are a mono-fuel capesize bulk carrier and a dual-fuel methanol handy-max tanker.
 <p>This attribute sets the electrical load level in port in MW. This is the power required to run auxiliary systems on the vessel in port. Per definition, the load levels in port cannot depend on speed/draft as the vessel is not moving in port.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
-<li><p><strong>Example values</strong>: <code class="docutils literal notranslate"><span class="pre">16.5</span></code></p></li>
+<li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">16.5</span></code></p></li>
 <li><p><strong>Unit</strong>: MW</p></li>
 <li><p><strong>Minimum value</strong>: 0</p></li>
 <li><p><strong>Default</strong>: 0</p></li>
@@ -559,9 +561,10 @@ are a mono-fuel capesize bulk carrier and a dual-fuel methanol handy-max tanker.
 <li><p><code class="docutils literal notranslate"><span class="pre">Surface(&quot;name&quot;)</span></code></p></li>
 </ul>
 </li>
-<li><p>Unit x: Knots</p></li>
-<li><p>Unit y: Fraction</p></li>
-<li><p>Unit z: MW</p></li>
+<li><p><strong>Unit</strong>: MW</p></li>
+<li><p><strong>Unit x</strong>: Knots (Curve and Surface)</p></li>
+<li><p><strong>Unit y</strong>: MW (Curve); Fraction of cargo capacity (Surface)</p></li>
+<li><p><strong>Unit z</strong>: MW (Surface)</p></li>
 <li><p><strong>Minimum value</strong>: 0</p></li>
 <li><p><strong>Default</strong>: 0</p></li>
 </ul>
@@ -570,8 +573,8 @@ are a mono-fuel capesize bulk carrier and a dual-fuel methanol handy-max tanker.
 <h3>HeatLoadInPort<a class="headerlink" href="#heatloadinport" title="Link to this heading">#</a></h3>
 <p>This attribute sets the heat load level in port in MW. This is the power required to produce heat on the vessel in port. Per definition, the load levels in port cannot depend on speed/draft as the vessel is not moving in port.</p>
 <ul class="simple">
-<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code> OR <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
-<li><p><strong>Example values</strong>: <code class="docutils literal notranslate"><span class="pre">16.5</span></code></p></li>
+<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
+<li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">16.5</span></code></p></li>
 <li><p><strong>Unit</strong>: MW</p></li>
 <li><p><strong>Minimum value</strong>: 0</p></li>
 <li><p><strong>Default</strong>: 0</p></li>
@@ -583,7 +586,8 @@ are a mono-fuel capesize bulk carrier and a dual-fuel methanol handy-max tanker.
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">ID</span></code></p></li>
 <li><p><strong>Legal values</strong>: <a class="reference internal" href="appendix_ids.html#fueltypeid"><span class="std std-ref">FuelTypeID</span></a></p></li>
-<li><p><strong>Default</strong>: If not assigned, the value is defaulted to the main fuel type with the largest power capacity summed over the converters in the power system. A tie between fuel types is broken by the size of the tanks that store them.</p></li>
+<li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">METHANOL</span></code></p></li>
+<li><p><strong>Default</strong>: Not set. The main fuel type with the largest power capacity summed over the converters in the power system is used. A tie between fuel types is broken by the size of the tanks that store them.</p></li>
 </ul>
 </section>
 <section id="powersystem">
@@ -591,24 +595,24 @@ are a mono-fuel capesize bulk carrier and a dual-fuel methanol handy-max tanker.
 <p>This attribute specifies the PowerSystem that is used to convert fuel to energy.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">PowerSystem</span></code> node</p></li>
-<li><p><strong>Example values</strong>: <code class="docutils literal notranslate"><span class="pre">PowerSystem(&quot;name&quot;)</span></code></p></li>
-<li><p><strong>Default</strong>: None. Must be defined by the user.</p></li>
+<li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">PowerSystem(&quot;name&quot;)</span></code></p></li>
+<li><p><strong>Default</strong>: None. Must be provided by the user.</p></li>
 </ul>
 </section>
 <section id="tanks">
 <h3>Tanks<a class="headerlink" href="#tanks" title="Link to this heading">#</a></h3>
 <p>This attribute sets the list of tanks used for onboard fuel storage. All Tanks assigned must be unique, i.e., they cannot be duplicated in the input list.</p>
-<p>The list of tanks must include at least one tank suitable for the vessel’s primary fuel type (and its pilot fuel type if applicable).</p>
+<p>The list of tanks must include, for each converter in the PowerSystem, at least one tank that stores one of the converter’s MainFuelTypes; for a dual-fuel converter with a MinimumPilotFuel above 0, one of its PilotFuelTypes instead.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: List of <code class="docutils literal notranslate"><span class="pre">Tank</span></code> nodes</p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">[Tank(&quot;name&quot;)],</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[Tank(&quot;name&quot;)]</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">[Tank(&quot;name1&quot;),</span> <span class="pre">Tank(&quot;name2&quot;)]</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">[Tank(&quot;*&quot;)]</span></code></p></li>
 </ul>
 </li>
-<li><p><strong>Default</strong>: None. Must be defined by the user.</p></li>
+<li><p><strong>Default</strong>: None. Must be provided by the user.</p></li>
 </ul>
 </section>
 <section id="route">
@@ -616,19 +620,15 @@ are a mono-fuel capesize bulk carrier and a dual-fuel methanol handy-max tanker.
 <p>This attribute defines the route the vessel is sailing on.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Route</span></code> node</p></li>
-<li><p><strong>Example values</strong>:</p>
-<ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">Route(&quot;name&quot;)</span></code></p></li>
-</ul>
-</li>
-<li><p><strong>Default</strong>: None. Must be defined by the user.</p></li>
+<li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">Route(&quot;name&quot;)</span></code></p></li>
+<li><p><strong>Default</strong>: None. Must be provided by the user.</p></li>
 </ul>
 </section>
 <section id="nominalcapacity">
 <h3>NominalCapacity<a class="headerlink" href="#nominalcapacity" title="Link to this heading">#</a></h3>
 <p>This attribute sets the nominal cargo capacity of the vessel. This describes how much cargo the vessel is designed to be able to carry (while the amount of cargo actually being carried might be lower). The unit is not strictly defined but should match the ‘Trade’ attribute of the Fleet node that the vessel is assigned to. In general, the most logical unit for the vessel segment is applied, such as TEU for Container, CEU for RoRo, and dwt for Bulk Carrier.</p>
 <ul class="simple">
-<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
+<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">8000</span></code></p></li>
@@ -637,7 +637,7 @@ are a mono-fuel capesize bulk carrier and a dual-fuel methanol handy-max tanker.
 </li>
 <li><p><strong>Unit</strong>: Varies depending on vessel type (e.g., TEU, CEU, dwt)</p></li>
 <li><p><strong>Minimum value</strong>: 0</p></li>
-<li><p><strong>Default</strong>: None. Must be defined by the user.</p></li>
+<li><p><strong>Default</strong>: None. Must be provided by the user.</p></li>
 </ul>
 </section>
 <section id="lifetime">
@@ -645,9 +645,14 @@ are a mono-fuel capesize bulk carrier and a dual-fuel methanol handy-max tanker.
 <p>This attribute defines the lifetime of the vessel in years. The vessel is scrapped when it surpasses its lifetime.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
-<li><p><strong>Example values</strong>: <code class="docutils literal notranslate"><span class="pre">25</span></code></p></li>
+<li><p><strong>Example values</strong>:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">25</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Forecast(&quot;name&quot;)</span></code></p></li>
+</ul>
+</li>
 <li><p><strong>Unit</strong>: Years</p></li>
-<li><p><strong>Minimum value</strong>: 0</p></li>
+<li><p><strong>Minimum value</strong>: &gt;0</p></li>
 <li><p><strong>Default</strong>: 25</p></li>
 </ul>
 </section>
@@ -656,7 +661,12 @@ are a mono-fuel capesize bulk carrier and a dual-fuel methanol handy-max tanker.
 <p>This attribute defines the lead time of the vessel in years. The lead time is only used for the calculation of the levelized cost of a vessel (charter rate) and does not impact the delivery of vessels.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
-<li><p><strong>Example values</strong>: <code class="docutils literal notranslate"><span class="pre">2</span></code></p></li>
+<li><p><strong>Example values</strong>:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">2</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Forecast(&quot;name&quot;)</span></code></p></li>
+</ul>
+</li>
 <li><p><strong>Unit</strong>: Years</p></li>
 <li><p><strong>Minimum value</strong>: 0</p></li>
 <li><p><strong>Default</strong>: 0</p></li>
@@ -696,7 +706,7 @@ are a mono-fuel capesize bulk carrier and a dual-fuel methanol handy-max tanker.
 </section>
 <section id="costofcapital">
 <h3>CostOfCapital<a class="headerlink" href="#costofcapital" title="Link to this heading">#</a></h3>
-<p>This attribute sets the cost of capital used to calculate the costs associated with financing the investment (through debt and equity) as well as the discount rate used in calculating the levelized cost of cargo moved.</p>
+<p>This attribute sets the cost of capital used to calculate the costs associated with financing the investment (through debt and equity). It is the discount rate used in calculating the levelized cost of cargo moved (the charter rate), and in the vessel’s technology investment and fuel conversion decisions. The fleet’s <a class="reference internal" href="fleet.html#technologycostofcapital"><span class="std std-ref">TechnologyCostOfCapital</span></a>, when set, replaces it as the discount rate of the technology adoption decision.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>

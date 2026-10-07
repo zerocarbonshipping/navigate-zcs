@@ -468,7 +468,7 @@ SPDX-License-Identifier: CC-BY-4.0
 -->
 <section class="tex2jax_ignore mathjax_ignore" id="plant">
 <h1>Plant<a class="headerlink" href="#plant" title="Link to this heading">#</a></h1>
-<p>A <code class="docutils literal notranslate"><span class="pre">Plant</span></code> node defines a fuel production plant which are part of the modeling of the available fuel supply.
+<p>A <code class="docutils literal notranslate"><span class="pre">Plant</span></code> node defines a fuel production plant which is part of the modeling of the available fuel supply.
 Examples of plants are e-methanol plants and blue ammonia plants.</p>
 <p>Example:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Plant</span> <span class="s2">"plant_methanol_electro"</span> <span class="p">{</span>
@@ -489,11 +489,12 @@ Examples of plants are e-methanol plants and blue ammonia plants.</p>
 <h2>Attributes<a class="headerlink" href="#attributes" title="Link to this heading">#</a></h2>
 <section id="fuel">
 <h3>Fuel<a class="headerlink" href="#fuel" title="Link to this heading">#</a></h3>
-<p>This attribute sets the fuel that is produced by the plant</p>
+<p>This attribute sets the fuel that is produced by the plant.</p>
+<p>The fuel must not belong to a liquid market (<code class="docutils literal notranslate"><span class="pre">LiquidMarket</span> <span class="pre">=</span> <span class="pre">TRUE</span></code>); see <a class="reference internal" href="fuel.html#liquidmarket"><span class="std std-ref">Fuel</span></a>.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Fuel</span></code> node</p></li>
-<li><p><strong>Example values</strong>: <code class="docutils literal notranslate"><span class="pre">Fuel(&quot;name&quot;)</span></code></p></li>
-<li><p><strong>Default</strong>: None. Must be defined by the user.</p></li>
+<li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">Fuel(&quot;name&quot;)</span></code></p></li>
+<li><p><strong>Default</strong>: None. Must be provided by the user.</p></li>
 </ul>
 </section>
 <section id="process">
@@ -501,8 +502,8 @@ Examples of plants are e-methanol plants and blue ammonia plants.</p>
 <p>This attribute sets the production process used by the plant.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Process</span></code> node</p></li>
-<li><p><strong>Example values</strong>: <code class="docutils literal notranslate"><span class="pre">Process(&quot;name&quot;)</span></code></p></li>
-<li><p><strong>Default</strong>: None. Must be defined by the user.</p></li>
+<li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">Process(&quot;name&quot;)</span></code></p></li>
+<li><p><strong>Default</strong>: None. Must be provided by the user.</p></li>
 </ul>
 </section>
 <section id="region">
@@ -510,8 +511,8 @@ Examples of plants are e-methanol plants and blue ammonia plants.</p>
 <p>This attribute sets the region in which the plant is built.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Region</span></code> node</p></li>
-<li><p><strong>Example values</strong>: <code class="docutils literal notranslate"><span class="pre">Region(&quot;name&quot;)</span></code></p></li>
-<li><p><strong>Default</strong>: None. Must be defined by the user.</p></li>
+<li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">Region(&quot;name&quot;)</span></code></p></li>
+<li><p><strong>Default</strong>: None. Must be provided by the user.</p></li>
 </ul>
 </section>
 <section id="source">
@@ -519,8 +520,8 @@ Examples of plants are e-methanol plants and blue ammonia plants.</p>
 <p>This attribute sets the energy source which is used to generate power for the plant.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Source</span></code> node</p></li>
-<li><p><strong>Example values</strong>: <code class="docutils literal notranslate"><span class="pre">Source(&quot;name&quot;)</span></code></p></li>
-<li><p><strong>Default</strong>: None</p></li>
+<li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">Source(&quot;name&quot;)</span></code></p></li>
+<li><p><strong>Default</strong>: None. Must be provided by the user.</p></li>
 </ul>
 </section>
 <section id="capacity">
@@ -535,15 +536,15 @@ Examples of plants are e-methanol plants and blue ammonia plants.</p>
 </ul>
 </li>
 <li><p><strong>Unit</strong>: tons / day</p></li>
-<li><p><strong>Minimum value</strong>: 0</p></li>
-<li><p><strong>Default</strong>: None. Must be defined by the user.</p></li>
+<li><p><strong>Minimum value</strong>: &gt;0</p></li>
+<li><p><strong>Default</strong>: None. Must be provided by the user.</p></li>
 </ul>
 </section>
 <section id="uptime">
 <h3>Uptime<a class="headerlink" href="#uptime" title="Link to this heading">#</a></h3>
 <p>This attribute sets the production uptime of the plant in time/time.</p>
 <ul class="simple">
-<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code>.</p></li>
+<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">0.95</span></code></p></li>
@@ -551,7 +552,7 @@ Examples of plants are e-methanol plants and blue ammonia plants.</p>
 </ul>
 </li>
 <li><p><strong>Unit</strong>: Fraction</p></li>
-<li><p><strong>Minimum value</strong>: 0</p></li>
+<li><p><strong>Minimum value</strong>: &gt;0</p></li>
 <li><p><strong>Maximum value</strong>: 1</p></li>
 <li><p><strong>Default</strong>: 1</p></li>
 </ul>
@@ -562,13 +563,9 @@ Examples of plants are e-methanol plants and blue ammonia plants.</p>
 <p>The plant is decommissioned when it surpasses its lifetime.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
-<li><p><strong>Example values</strong>:</p>
-<ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">30</span></code></p></li>
-</ul>
-</li>
+<li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">30</span></code></p></li>
 <li><p><strong>Unit</strong>: Years</p></li>
-<li><p><strong>Minimum value</strong>: 0</p></li>
+<li><p><strong>Minimum value</strong>: &gt;0</p></li>
 <li><p><strong>Default</strong>: 30</p></li>
 </ul>
 </section>
@@ -611,22 +608,22 @@ Examples of plants are e-methanol plants and blue ammonia plants.</p>
 <h3>set_feed_transport<a class="headerlink" href="#set-feed-transport" title="Link to this heading">#</a></h3>
 <p>This command sets the transport mode used for transporting a specific feedstock or process output to the plant.</p>
 <ul class="simple">
-<li><p><strong>Primary key type</strong>: String (Name of feedstock or process)</p></li>
+<li><p><strong>Primary key type</strong>: String (Name of feedstock or process; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Transport</span></code> node</p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">&quot;feedstock_name&quot;,</span> <span class="pre">Transport(&quot;name&quot;)</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">&quot;Process_name&quot;,</span> <span class="pre">Transport(&quot;name&quot;)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;process_name&quot;,</span> <span class="pre">Transport(&quot;name&quot;)</span></code></p></li>
 </ul>
 </li>
-<li><p><strong>Default</strong>: None</p></li>
+<li><p><strong>Default</strong>: Not set. The feed is not transported, so no transport cost or emissions accrue.</p></li>
 </ul>
 </section>
 <section id="set-feed-distance">
 <h3>set_feed_distance<a class="headerlink" href="#set-feed-distance" title="Link to this heading">#</a></h3>
-<p>This command sets the distance a given feedstock or process output is transported to the plant in nautical miles.</p>
+<p>This command sets the distance a given feedstock or process output is transported to the plant in nautical miles. A distance can only be assigned to a feed that is also assigned a transport with <code class="docutils literal notranslate"><span class="pre">set_feed_transport</span></code>.</p>
 <ul class="simple">
-<li><p><strong>Primary key type</strong>: String (Name of feedstock or process)</p></li>
+<li><p><strong>Primary key type</strong>: String (Name of feedstock or process; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
@@ -635,28 +632,26 @@ Examples of plants are e-methanol plants and blue ammonia plants.</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">&quot;process_name&quot;,</span> <span class="pre">Forecast(&quot;name&quot;)</span></code></p></li>
 </ul>
 </li>
-<li><p><strong>Default</strong>: None</p></li>
+<li><p><strong>Unit</strong>: nautical miles</p></li>
+<li><p><strong>Minimum value</strong>: 0</p></li>
+<li><p><strong>Default</strong>: 0 for a feed assigned a transport</p></li>
 </ul>
 </section>
 <section id="set-fuel-transport">
 <h3>set_fuel_transport<a class="headerlink" href="#set-fuel-transport" title="Link to this heading">#</a></h3>
 <p>This command sets the transport mode used for delivering the produced fuel to a given port. The cost and WTT emissions of the delivery are given by the transport rates of the plant’s region, see <code class="docutils literal notranslate"><span class="pre">set_transport_cost</span></code> and <code class="docutils literal notranslate"><span class="pre">set_transport_wtt</span></code> on the <a class="reference internal" href="region.html"><span class="std std-doc">Region</span></a> node.</p>
 <ul class="simple">
-<li><p><strong>Primary key type</strong>: String (Name of port)</p></li>
+<li><p><strong>Primary key type</strong>: String (Name of port; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Transport</span></code> node</p></li>
-<li><p><strong>Example values</strong>:</p>
-<ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">&quot;port_name&quot;,</span> <span class="pre">Transport(&quot;name&quot;)</span></code></p></li>
-</ul>
-</li>
-<li><p><strong>Default</strong>: None</p></li>
+<li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">&quot;port_name&quot;,</span> <span class="pre">Transport(&quot;name&quot;)</span></code></p></li>
+<li><p><strong>Default</strong>: Not set. The fuel is not transported to the port, so no delivery cost or emissions accrue.</p></li>
 </ul>
 </section>
 <section id="set-fuel-distance">
 <h3>set_fuel_distance<a class="headerlink" href="#set-fuel-distance" title="Link to this heading">#</a></h3>
-<p>This command sets the distance the produced fuel is transported to a given port in nautical miles.</p>
+<p>This command sets the distance the produced fuel is transported to a given port in nautical miles. A distance can only be assigned to a port that is also assigned a transport with <code class="docutils literal notranslate"><span class="pre">set_fuel_transport</span></code>.</p>
 <ul class="simple">
-<li><p><strong>Primary key type</strong>: String (Name of port)</p></li>
+<li><p><strong>Primary key type</strong>: String (Name of port; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
@@ -664,7 +659,9 @@ Examples of plants are e-methanol plants and blue ammonia plants.</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">&quot;port_name&quot;,</span> <span class="pre">Forecast(&quot;name&quot;)</span></code></p></li>
 </ul>
 </li>
-<li><p><strong>Default</strong>: None</p></li>
+<li><p><strong>Unit</strong>: nautical miles</p></li>
+<li><p><strong>Minimum value</strong>: 0</p></li>
+<li><p><strong>Default</strong>: 0 for a port assigned a transport</p></li>
 </ul>
 </section>
 </section>

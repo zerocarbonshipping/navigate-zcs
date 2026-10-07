@@ -501,7 +501,7 @@ with production in that region. Examples of regions are Africa and the Middle Ea
 <h3>set_process_capex<a class="headerlink" href="#set-process-capex" title="Link to this heading">#</a></h3>
 <p>This command sets the CAPEX associated with a production process in USD/ton.</p>
 <ul class="simple">
-<li><p><strong>Primary key type</strong>: String (Process name)</p></li>
+<li><p><strong>Primary key type</strong>: String (Process name; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Timetable</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
@@ -516,9 +516,9 @@ with production in that region. Examples of regions are Africa and the Middle Ea
 </section>
 <section id="set-process-opex">
 <h3>set_process_opex<a class="headerlink" href="#set-process-opex" title="Link to this heading">#</a></h3>
-<p>This command sets the OPEX associated with a production process in USD/ton/year.</p>
+<p>This command sets the OPEX associated with a production process in USD/ton/year. Negative values are allowed, so that revenue from byproducts can be subtracted from the costs.</p>
 <ul class="simple">
-<li><p><strong>Primary key type</strong>: String (Process name)</p></li>
+<li><p><strong>Primary key type</strong>: String (Process name; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Timetable</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
@@ -527,7 +527,6 @@ with production in that region. Examples of regions are Africa and the Middle Ea
 </ul>
 </li>
 <li><p><strong>Unit</strong>: USD/ton/year</p></li>
-<li><p><strong>Minimum value</strong>: 0</p></li>
 <li><p><strong>Default</strong>: 0</p></li>
 </ul>
 </section>
@@ -535,7 +534,7 @@ with production in that region. Examples of regions are Africa and the Middle Ea
 <h3>set_process_energy<a class="headerlink" href="#set-process-energy" title="Link to this heading">#</a></h3>
 <p>This command sets the energy demand required to run a production process in MWh/ton.</p>
 <ul class="simple">
-<li><p><strong>Primary key type</strong>: String (Process name)</p></li>
+<li><p><strong>Primary key type</strong>: String (Process name; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
@@ -552,7 +551,7 @@ with production in that region. Examples of regions are Africa and the Middle Ea
 <h3>set_process_lifetime<a class="headerlink" href="#set-process-lifetime" title="Link to this heading">#</a></h3>
 <p>This command sets the lifetime of a production process in years.</p>
 <ul class="simple">
-<li><p><strong>Primary key type</strong>: String (Process name)</p></li>
+<li><p><strong>Primary key type</strong>: String (Process name; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
@@ -562,14 +561,14 @@ with production in that region. Examples of regions are Africa and the Middle Ea
 </li>
 <li><p><strong>Unit</strong>: years</p></li>
 <li><p><strong>Minimum value</strong>: 0</p></li>
-<li><p><strong>Default</strong>: None</p></li>
+<li><p><strong>Default</strong>: Not set. The process lives as long as its plant, with no replacement.</p></li>
 </ul>
 </section>
 <section id="set-process-replacement">
 <h3>set_process_replacement<a class="headerlink" href="#set-process-replacement" title="Link to this heading">#</a></h3>
 <p>This command sets the replacement fraction of CAPEX repaid at the end of a process’s lifetime.</p>
 <ul class="simple">
-<li><p><strong>Primary key type</strong>: String (Process name)</p></li>
+<li><p><strong>Primary key type</strong>: String (Process name; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
@@ -587,8 +586,8 @@ with production in that region. Examples of regions are Africa and the Middle Ea
 <h3>set_process_wtt<a class="headerlink" href="#set-process-wtt" title="Link to this heading">#</a></h3>
 <p>This command sets the WTT emissions of a specific emission type emitted during a production process in ton emission/ton fuel.</p>
 <ul class="simple">
-<li><p><strong>Primary key type</strong>: String (Process name)</p></li>
-<li><p><strong>Secondary key type</strong>: String (Emission name)</p></li>
+<li><p><strong>Primary key type</strong>: String (Process name; supports wildcards)</p></li>
+<li><p><strong>Secondary key type</strong>: String (Emission name; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
@@ -597,15 +596,15 @@ with production in that region. Examples of regions are Africa and the Middle Ea
 </ul>
 </li>
 <li><p><strong>Unit</strong>: ton emission/ton fuel</p></li>
-<li><p><strong>Default</strong>: None</p></li>
+<li><p><strong>Default</strong>: 0</p></li>
 </ul>
 </section>
 <section id="set-source-capex">
 <h3>set_source_capex<a class="headerlink" href="#set-source-capex" title="Link to this heading">#</a></h3>
 <p>This command sets the CAPEX associated with a source in USD/MWh.</p>
 <ul class="simple">
-<li><p><strong>Primary key type</strong>: String (Source name)</p></li>
-<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Timetable</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
+<li><p><strong>Primary key type</strong>: String (Source name; supports wildcards)</p></li>
+<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">&quot;source_name&quot;,</span> <span class="pre">50</span></code></p></li>
@@ -621,8 +620,8 @@ with production in that region. Examples of regions are Africa and the Middle Ea
 <h3>set_source_opex<a class="headerlink" href="#set-source-opex" title="Link to this heading">#</a></h3>
 <p>This command sets the OPEX associated with a source in USD/MWh/year.</p>
 <ul class="simple">
-<li><p><strong>Primary key type</strong>: String (Source name)</p></li>
-<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Timetable</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
+<li><p><strong>Primary key type</strong>: String (Source name; supports wildcards)</p></li>
+<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">&quot;source_name&quot;,</span> <span class="pre">50</span></code></p></li>
@@ -638,8 +637,8 @@ with production in that region. Examples of regions are Africa and the Middle Ea
 <h3>set_source_wtt<a class="headerlink" href="#set-source-wtt" title="Link to this heading">#</a></h3>
 <p>This command sets the WTT emissions of a specific emission type emitted by using a source in ton emission/MWh.</p>
 <ul class="simple">
-<li><p><strong>Primary key type</strong>: String (Source name)</p></li>
-<li><p><strong>Secondary key type</strong>: String (Emission name)</p></li>
+<li><p><strong>Primary key type</strong>: String (Source name; supports wildcards)</p></li>
+<li><p><strong>Secondary key type</strong>: String (Emission name; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
@@ -648,14 +647,14 @@ with production in that region. Examples of regions are Africa and the Middle Ea
 </ul>
 </li>
 <li><p><strong>Unit</strong>: ton emission/MWh</p></li>
-<li><p><strong>Default</strong>: None</p></li>
+<li><p><strong>Default</strong>: 0</p></li>
 </ul>
 </section>
 <section id="set-feedstock-cost">
 <h3>set_feedstock_cost<a class="headerlink" href="#set-feedstock-cost" title="Link to this heading">#</a></h3>
 <p>This command sets the cost of a feedstock in USD/ton.</p>
 <ul class="simple">
-<li><p><strong>Primary key type</strong>: String (Feedstock name)</p></li>
+<li><p><strong>Primary key type</strong>: String (Feedstock name; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
@@ -670,10 +669,10 @@ with production in that region. Examples of regions are Africa and the Middle Ea
 </section>
 <section id="set-feedstock-wtt">
 <h3>set_feedstock_wtt<a class="headerlink" href="#set-feedstock-wtt" title="Link to this heading">#</a></h3>
-<p>This command sets the WTT emissions of a specific emission type emitted by using the feedstock in ton emission/ton.</p>
+<p>This command sets the WTT emissions of a specific emission type emitted by using the feedstock in ton emission/ton feedstock.</p>
 <ul class="simple">
-<li><p><strong>Primary key type</strong>: String (Feedstock name)</p></li>
-<li><p><strong>Secondary key type</strong>: String (Emission name)</p></li>
+<li><p><strong>Primary key type</strong>: String (Feedstock name; supports wildcards)</p></li>
+<li><p><strong>Secondary key type</strong>: String (Emission name; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
@@ -681,15 +680,15 @@ with production in that region. Examples of regions are Africa and the Middle Ea
 <li><p><code class="docutils literal notranslate"><span class="pre">&quot;feedstock_name&quot;,</span> <span class="pre">&quot;emission_name&quot;,</span> <span class="pre">Forecast(&quot;name&quot;)</span></code></p></li>
 </ul>
 </li>
-<li><p><strong>Unit</strong>: ton emission/ton</p></li>
-<li><p><strong>Default</strong>: None</p></li>
+<li><p><strong>Unit</strong>: ton emission/ton feedstock</p></li>
+<li><p><strong>Default</strong>: 0</p></li>
 </ul>
 </section>
 <section id="set-transport-cost">
 <h3>set_transport_cost<a class="headerlink" href="#set-transport-cost" title="Link to this heading">#</a></h3>
 <p>This command sets the cost associated with a transport in USD/ton-nautical mile.</p>
 <ul class="simple">
-<li><p><strong>Primary key type</strong>: String (Transport name)</p></li>
+<li><p><strong>Primary key type</strong>: String (Transport name; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
@@ -697,7 +696,7 @@ with production in that region. Examples of regions are Africa and the Middle Ea
 <li><p><code class="docutils literal notranslate"><span class="pre">&quot;transport_name&quot;,</span> <span class="pre">Forecast(&quot;name&quot;)</span></code></p></li>
 </ul>
 </li>
-<li><p><strong>Unit</strong>: USD/ton-nautical miles</p></li>
+<li><p><strong>Unit</strong>: USD/ton-nautical mile</p></li>
 <li><p><strong>Minimum value</strong>: 0</p></li>
 <li><p><strong>Default</strong>: 0</p></li>
 </ul>
@@ -706,8 +705,8 @@ with production in that region. Examples of regions are Africa and the Middle Ea
 <h3>set_transport_wtt<a class="headerlink" href="#set-transport-wtt" title="Link to this heading">#</a></h3>
 <p>This command sets the WTT emissions of a specific emission emitted by using a transport in ton emission/ton-nautical mile.</p>
 <ul class="simple">
-<li><p><strong>Primary key type</strong>: String (Transport name)</p></li>
-<li><p><strong>Secondary key type</strong>: String (Emission name)</p></li>
+<li><p><strong>Primary key type</strong>: String (Transport name; supports wildcards)</p></li>
+<li><p><strong>Secondary key type</strong>: String (Emission name; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
@@ -716,7 +715,7 @@ with production in that region. Examples of regions are Africa and the Middle Ea
 </ul>
 </li>
 <li><p><strong>Unit</strong>: ton emission/ton-nautical mile</p></li>
-<li><p><strong>Default</strong>: None</p></li>
+<li><p><strong>Default</strong>: 0</p></li>
 </ul>
 </section>
 </section>

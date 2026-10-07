@@ -485,12 +485,12 @@ suppressed with the <code class="docutils literal notranslate"><span class="pre"
 <h2>Attributes<a class="headerlink" href="#attributes" title="Link to this heading">#</a></h2>
 <section id="directory">
 <h3>Directory<a class="headerlink" href="#directory" title="Link to this heading">#</a></h3>
-<p>This attribute defines the directory in which the plots are stored, relative to the <code class="docutils literal notranslate"><span class="pre">.nav</span></code> file.
-The folder is created automatically if it does not already exist.</p>
+<p>This attribute defines the directory in which the plots are stored, as a path relative to the <code class="docutils literal notranslate"><span class="pre">.nav</span></code>
+file or an absolute path. The folder is created automatically if it does not already exist.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">String</span></code></p></li>
-<li><p>Format: Must be a valid directory readable by the Python ‘os’ module.</p></li>
-<li><p><strong>Default</strong>: A <code class="docutils literal notranslate"><span class="pre">plots</span></code> folder next to the <code class="docutils literal notranslate"><span class="pre">.nav</span></code> file</p></li>
+<li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">&quot;./plots/&quot;</span></code></p></li>
+<li><p><strong>Default</strong>: A <code class="docutils literal notranslate"><span class="pre">plots</span></code> folder next to the <code class="docutils literal notranslate"><span class="pre">.nav</span></code> file.</p></li>
 </ul>
 </section>
 </section>
@@ -499,10 +499,11 @@ The folder is created automatically if it does not already exist.</p>
 <section id="add-plot">
 <h3>add_plot<a class="headerlink" href="#add-plot" title="Link to this heading">#</a></h3>
 <p>This command selects a single plot to be produced, by its label. Call it once per plot. If no
-<code class="docutils literal notranslate"><span class="pre">add_plot</span></code> command is given, every available plot is produced.</p>
+<code class="docutils literal notranslate"><span class="pre">add_plot</span></code> command is given, every available plot is produced. A label that names no plot is
+skipped with a warning. This command is only allowed in the <code class="docutils literal notranslate"><span class="pre">DEFINE</span></code> section.</p>
 <p>The label must be given as a quoted string, e.g. <code class="docutils literal notranslate"><span class="pre">add_plot(&quot;global_fuel_consumed&quot;)</span></code>.</p>
 <ul class="simple">
-<li><p>Label: All available plot labels are listed in the <a class="reference internal" href="#appendix-plot-node-labels">Plot Labels</a> section.</p></li>
+<li><p><strong>Label</strong>: All available plot labels are listed in the <a class="reference internal" href="#appendix-plot-node-labels">Plot Labels</a> section.</p></li>
 </ul>
 </section>
 </section>

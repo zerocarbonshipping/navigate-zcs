@@ -526,8 +526,8 @@ tanks for storage of heavy fuel oil and cylindrical tanks for storing liquefied 
 </ul>
 </li>
 <li><p><strong>Unit</strong>: Years</p></li>
-<li><p><strong>Minimum value</strong>: 0</p></li>
-<li><p><strong>Default</strong>: Vessel lifetime.</p></li>
+<li><p><strong>Minimum value</strong>: &gt;0</p></li>
+<li><p><strong>Default</strong>: Not set. The machinery lasts as long as the vessel it is installed on, with no replacement.</p></li>
 </ul>
 </section>
 <section id="replacement">
@@ -565,9 +565,14 @@ tanks for storage of heavy fuel oil and cylindrical tanks for storing liquefied 
 <h3>Size<a class="headerlink" href="#size" title="Link to this heading">#</a></h3>
 <p>This attribute sets the volumetric size of the tank in cubic meters.</p>
 <ul class="simple">
-<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code></p></li>
-<li><p>Example value: <code class="docutils literal notranslate"><span class="pre">8000</span></code></p></li>
-<li><p><strong>Unit</strong>: Cubic Meter (m3)</p></li>
+<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
+<li><p><strong>Example values</strong>:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">8000</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Variable(&quot;name&quot;)</span></code></p></li>
+</ul>
+</li>
+<li><p><strong>Unit</strong>: m<sup>3</sup></p></li>
 <li><p><strong>Minimum value</strong>: 0</p></li>
 <li><p><strong>Default</strong>: None. Must be provided by the user.</p></li>
 </ul>

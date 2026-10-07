@@ -470,15 +470,16 @@ SPDX-License-Identifier: CC-BY-4.0
 -->
 <section class="tex2jax_ignore mathjax_ignore" id="forecast">
 <h1>Forecast<a class="headerlink" href="#forecast" title="Link to this heading">#</a></h1>
-<p>A <code class="docutils literal notranslate"><span class="pre">forecast</span></code> node defines a two-dimensional relation between t- and y-values where the t-values are dates.
-Several attributes of other nodes allows the assignment of a forecast. An example is the assignment of the
-expected increase in plant capacity over time which return the expected plant capacity as a y-value for
+<p>A <code class="docutils literal notranslate"><span class="pre">Forecast</span></code> node defines a two-dimensional relation between t- and y-values where the t-values are dates.
+Several attributes of other nodes allow the assignment of a forecast. An example is the assignment of the
+expected increase in plant capacity over time which returns the expected plant capacity as a y-value for
 a given time-step in the simulation.</p>
-<p>Calculations in forecasts are done using the following formula:</p>
+<p>Calculations in forecasts are done using the following formula, where <span class="math notranslate nohighlight">\(y(t)\)</span> is the value looked up in the table:</p>
 <div class="math notranslate nohighlight">
 \[
 y = \min\left(\max\left(\text{Multiplier} \cdot (y(t) + \text{Addition}), \text{LowerBound}\right), \text{UpperBound}\right)
 \]</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">Addition</span></code> is applied before the <code class="docutils literal notranslate"><span class="pre">Multiplier</span></code>, and the bounds are applied last.</p>
 <p>An attribute that references the node holds <span class="math notranslate nohighlight">\(y\)</span> to its own minimum and maximum value as well: an inclusive one clamps <span class="math notranslate nohighlight">\(y\)</span>, and <span class="math notranslate nohighlight">\(y\)</span> reaching an exclusive one stops the run with an error. See <a class="reference internal" href="dsl_reference.html#assigning-attributes"><span class="std std-ref">Assigning attributes</span></a>.</p>
 <p>Example:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Forecast</span> <span class="s2">"methanol_plant_capacity"</span> <span class="p">{</span>
@@ -497,51 +498,51 @@ y = \min\left(\max\left(\text{Multiplier} \cdot (y(t) + \text{Addition}), \text{
 <h2>Attributes<a class="headerlink" href="#attributes" title="Link to this heading">#</a></h2>
 <section id="table">
 <h3>Table<a class="headerlink" href="#table" title="Link to this heading">#</a></h3>
-<p>This attribute sets the table of x- and y-values that the forecast interpolates in, where the x-values are dates or days since the start of the simulation. The table must hold at least two rows and its x-values must be strictly increasing. The syntax is described under <a class="reference internal" href="dsl_reference.html#forecast"><span class="std std-ref">Assigning tables</span></a>.</p>
+<p>This attribute sets the table of x- and y-values that the forecast interpolates in, where the x-values are dates or days since the start of the simulation. The table must hold at least two rows and its x-values must be finite and strictly increasing. A y-value may be <code class="docutils literal notranslate"><span class="pre">INF</span></code> or <code class="docutils literal notranslate"><span class="pre">-INF</span></code>, but not <code class="docutils literal notranslate"><span class="pre">nan</span></code>. The syntax is described under <a class="reference internal" href="dsl_reference.html#forecast"><span class="std std-ref">Assigning tables</span></a>.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Table</span></code></p></li>
-<li><p><strong>Default</strong>: None. Must be defined by the user.</p></li>
+<li><p><strong>Default</strong>: None. Must be provided by the user.</p></li>
 </ul>
 </section>
 <section id="addition">
 <h3>Addition<a class="headerlink" href="#addition" title="Link to this heading">#</a></h3>
-<p>Sets an addition that is added on the y-values. The addition occurs according to the formula</p>
+<p>Sets a value that is added to the y-value looked up in the table, before the <code class="docutils literal notranslate"><span class="pre">Multiplier</span></code> is applied, according to the <a class="reference internal" href="#forecast">formula</a> at the top of this page. The value may be an <a class="reference internal" href="dsl_reference.html#expressions"><span class="std std-ref">expression</span></a> of numbers; an expression that references a node is rejected. <code class="docutils literal notranslate"><span class="pre">INF</span></code> and <code class="docutils literal notranslate"><span class="pre">-INF</span></code> are rejected.</p>
 <ul class="simple">
-<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code></p></li>
-<li><p>Example value: <code class="docutils literal notranslate"><span class="pre">10</span></code></p></li>
+<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Expression</span></code></p></li>
+<li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">10</span></code></p></li>
 <li><p><strong>Default</strong>: 0</p></li>
 </ul>
 </section>
 <section id="multiplier">
 <h3>Multiplier<a class="headerlink" href="#multiplier" title="Link to this heading">#</a></h3>
-<p>Sets a multiplier that is multiplied to the y-values. The multiplication occurs according to the formula</p>
+<p>Sets a factor that the y-value looked up in the table, plus the <code class="docutils literal notranslate"><span class="pre">Addition</span></code>, is multiplied by, according to the <a class="reference internal" href="#forecast">formula</a> at the top of this page. The value may be an <a class="reference internal" href="dsl_reference.html#expressions"><span class="std std-ref">expression</span></a> of numbers; an expression that references a node is rejected. <code class="docutils literal notranslate"><span class="pre">INF</span></code> and <code class="docutils literal notranslate"><span class="pre">-INF</span></code> are rejected.</p>
 <ul class="simple">
-<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code></p></li>
-<li><p>Example value: <code class="docutils literal notranslate"><span class="pre">2.5</span></code></p></li>
+<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Expression</span></code></p></li>
+<li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">2.5</span></code></p></li>
 <li><p><strong>Default</strong>: 1</p></li>
 </ul>
 </section>
 <section id="lowerbound">
 <h3>LowerBound<a class="headerlink" href="#lowerbound" title="Link to this heading">#</a></h3>
-<p>Sets the lower bound. The lower bound is used according to the formula:</p>
+<p>Sets the lower bound that the result is clamped to after the <code class="docutils literal notranslate"><span class="pre">Addition</span></code> and the <code class="docutils literal notranslate"><span class="pre">Multiplier</span></code> are applied, according to the <a class="reference internal" href="#forecast">formula</a> at the top of this page. <code class="docutils literal notranslate"><span class="pre">-INF</span></code> means no lower bound; <code class="docutils literal notranslate"><span class="pre">INF</span></code> is rejected.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code></p></li>
-<li><p>Example value: <code class="docutils literal notranslate"><span class="pre">-5</span></code></p></li>
+<li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">-5</span></code></p></li>
 <li><p><strong>Default</strong>: -INF</p></li>
 </ul>
 </section>
 <section id="upperbound">
 <h3>UpperBound<a class="headerlink" href="#upperbound" title="Link to this heading">#</a></h3>
-<p>Sets the upper bound. The upper bound is used according to the formula:</p>
+<p>Sets the upper bound that the result is clamped to after the <code class="docutils literal notranslate"><span class="pre">Addition</span></code> and the <code class="docutils literal notranslate"><span class="pre">Multiplier</span></code> are applied, according to the <a class="reference internal" href="#forecast">formula</a> at the top of this page. <code class="docutils literal notranslate"><span class="pre">INF</span></code> means no upper bound; <code class="docutils literal notranslate"><span class="pre">-INF</span></code> is rejected.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code></p></li>
-<li><p>Example value: <code class="docutils literal notranslate"><span class="pre">5</span></code></p></li>
+<li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">5</span></code></p></li>
 <li><p><strong>Default</strong>: INF</p></li>
 </ul>
 </section>
 <section id="interpolate">
 <h3>Interpolate<a class="headerlink" href="#interpolate" title="Link to this heading">#</a></h3>
-<p>This attribute sets the interpolation method used to interpolate in the table.</p>
+<p>This attribute sets the interpolation method used to interpolate in the table. <code class="docutils literal notranslate"><span class="pre">PREVIOUS</span></code> and <code class="docutils literal notranslate"><span class="pre">NEXT</span></code> cannot be combined with <code class="docutils literal notranslate"><span class="pre">Extrapolate</span> <span class="pre">=</span> <span class="pre">LINEAR</span></code>; such a forecast is rejected.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">ID</span></code></p></li>
 <li><p><strong>Legal values</strong>: <a class="reference internal" href="appendix_ids.html#interpolate1did"><span class="std std-ref">Interpolate1DID</span></a></p></li>
@@ -550,7 +551,7 @@ y = \min\left(\max\left(\text{Multiplier} \cdot (y(t) + \text{Addition}), \text{
 </section>
 <section id="extrapolate">
 <h3>Extrapolate<a class="headerlink" href="#extrapolate" title="Link to this heading">#</a></h3>
-<p>This attribute sets the extrapolation method used extrapolate outside the table.</p>
+<p>This attribute sets the extrapolation method used to extrapolate outside the table. With <code class="docutils literal notranslate"><span class="pre">FLAT</span></code>, the values of <code class="docutils literal notranslate"><span class="pre">Below</span></code> and <code class="docutils literal notranslate"><span class="pre">Above</span></code> are used.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">ID</span></code></p></li>
 <li><p><strong>Legal values</strong>: <a class="reference internal" href="appendix_ids.html#extrapolateid"><span class="std std-ref">ExtrapolateID</span></a></p></li>
@@ -559,20 +560,20 @@ y = \min\left(\max\left(\text{Multiplier} \cdot (y(t) + \text{Addition}), \text{
 </section>
 <section id="below">
 <h3>Below<a class="headerlink" href="#below" title="Link to this heading">#</a></h3>
-<p>Sets the flat extrapolation value below the table. If no value is defined and the extrapolation is set to flat the first y-value in the table is used:</p>
+<p>Sets the flat extrapolation value before the first date of the table. It is only used when <code class="docutils literal notranslate"><span class="pre">Extrapolate</span></code> is <code class="docutils literal notranslate"><span class="pre">FLAT</span></code>, and it then takes the place of the table’s y-value in the <a class="reference internal" href="#forecast">formula</a> at the top of this page. The value may be an <a class="reference internal" href="dsl_reference.html#expressions"><span class="std std-ref">expression</span></a> of numbers; an expression that references a node is rejected. <code class="docutils literal notranslate"><span class="pre">INF</span></code> and <code class="docutils literal notranslate"><span class="pre">-INF</span></code> are accepted, and are checked against each attribute the forecast is assigned to (see <a class="reference internal" href="dsl_reference.html#assigning-attributes"><span class="std std-ref">Assigning attributes</span></a>).</p>
 <ul class="simple">
-<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code></p></li>
-<li><p>Example value: <code class="docutils literal notranslate"><span class="pre">-5</span></code></p></li>
-<li><p><strong>Default</strong>: None</p></li>
+<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Expression</span></code></p></li>
+<li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">-5</span></code></p></li>
+<li><p><strong>Default</strong>: Not set. The first y-value in the table is used.</p></li>
 </ul>
 </section>
 <section id="above">
 <h3>Above<a class="headerlink" href="#above" title="Link to this heading">#</a></h3>
-<p>Sets the flat extrapolation value above the table. If no value is defined and the extrapolation is set to flat the last y-value in the table is used:</p>
+<p>Sets the flat extrapolation value after the last date of the table. It is only used when <code class="docutils literal notranslate"><span class="pre">Extrapolate</span></code> is <code class="docutils literal notranslate"><span class="pre">FLAT</span></code>, and it then takes the place of the table’s y-value in the <a class="reference internal" href="#forecast">formula</a> at the top of this page. The value may be an <a class="reference internal" href="dsl_reference.html#expressions"><span class="std std-ref">expression</span></a> of numbers; an expression that references a node is rejected. <code class="docutils literal notranslate"><span class="pre">INF</span></code> and <code class="docutils literal notranslate"><span class="pre">-INF</span></code> are accepted, and are checked against each attribute the forecast is assigned to (see <a class="reference internal" href="dsl_reference.html#assigning-attributes"><span class="std std-ref">Assigning attributes</span></a>).</p>
 <ul class="simple">
-<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code></p></li>
-<li><p>Example value: <code class="docutils literal notranslate"><span class="pre">5</span></code></p></li>
-<li><p><strong>Default</strong>: None</p></li>
+<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Expression</span></code></p></li>
+<li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">5</span></code></p></li>
+<li><p><strong>Default</strong>: Not set. The last y-value in the table is used.</p></li>
 </ul>
 </section>
 </section>

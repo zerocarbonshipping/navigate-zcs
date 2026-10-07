@@ -490,16 +490,16 @@ liquefied natural gas and e-ammonia.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">ID</span></code></p></li>
 <li><p><strong>Legal values</strong>: <a class="reference internal" href="appendix_ids.html#fueltypeid"><span class="std std-ref">FuelTypeID</span></a></p></li>
-<li><p><strong>Default</strong>: None. Must be defined by the user.</p></li>
+<li><p><strong>Default</strong>: None. Must be provided by the user.</p></li>
 </ul>
 </section>
 <section id="liquidmarket">
 <h3>LiquidMarket<a class="headerlink" href="#liquidmarket" title="Link to this heading">#</a></h3>
 <p>This attribute specifies whether the fuel belongs to a liquid market. Fuels which belong to a liquid market cannot be modelled bottom-up via <code class="docutils literal notranslate"><span class="pre">Plant</span></code> and <code class="docutils literal notranslate"><span class="pre">Producer</span></code> nodes but require manual assignment of supply, price, and WTT emissions at <code class="docutils literal notranslate"><span class="pre">Port</span></code> level (see <code class="docutils literal notranslate"><span class="pre">set_bunker_price_overwrite</span></code> and <code class="docutils literal notranslate"><span class="pre">set_bunker_wtt_overwrite</span></code> on the <a class="reference internal" href="port.html"><span class="std std-doc">Port</span></a> node).</p>
 <ul class="simple">
-<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Bool</span></code></p></li>
-<li><p><strong>Example values</strong>: <code class="docutils literal notranslate"><span class="pre">TRUE</span></code></p></li>
-<li><p><strong>Default</strong>: <code class="docutils literal notranslate"><span class="pre">FALSE</span></code></p></li>
+<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Boolean</span></code></p></li>
+<li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">TRUE</span></code></p></li>
+<li><p><strong>Default</strong>: FALSE</p></li>
 </ul>
 </section>
 <section id="lowerheatingvalue">
@@ -507,21 +507,31 @@ liquefied natural gas and e-ammonia.</p>
 <p>This attribute sets the lower heating value of the fuel in GJ/ton.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
-<li><p><strong>Example values</strong>: <code class="docutils literal notranslate"><span class="pre">42.6</span></code></p></li>
+<li><p><strong>Example values</strong>:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">42.6</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Variable(&quot;name&quot;)</span></code></p></li>
+</ul>
+</li>
 <li><p><strong>Unit</strong>: GJ/ton</p></li>
 <li><p><strong>Minimum value</strong>: &gt;0</p></li>
-<li><p><strong>Default</strong>: None</p></li>
+<li><p><strong>Default</strong>: None. Must be provided by the user.</p></li>
 </ul>
 </section>
 <section id="massdensity">
 <h3>MassDensity<a class="headerlink" href="#massdensity" title="Link to this heading">#</a></h3>
-<p>This attribute describes the mass density of the fuel.</p>
+<p>This attribute sets the mass density of the fuel in ton/m<sup>3</sup>.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
-<li><p><strong>Example values</strong>: <code class="docutils literal notranslate"><span class="pre">0.96</span></code></p></li>
+<li><p><strong>Example values</strong>:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">0.96</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Variable(&quot;name&quot;)</span></code></p></li>
+</ul>
+</li>
 <li><p><strong>Unit</strong>: ton/m<sup>3</sup></p></li>
 <li><p><strong>Minimum value</strong>: &gt;0</p></li>
-<li><p><strong>Default</strong>: None</p></li>
+<li><p><strong>Default</strong>: None. Must be provided by the user.</p></li>
 </ul>
 </section>
 </section>
@@ -529,9 +539,10 @@ liquefied natural gas and e-ammonia.</p>
 <h2>Commands<a class="headerlink" href="#commands" title="Link to this heading">#</a></h2>
 <section id="set-ttw">
 <h3>set_ttw<a class="headerlink" href="#set-ttw" title="Link to this heading">#</a></h3>
-<p>This command allows the user to set the tank-to-wake (TTW) emission factor.</p>
+<p>This command sets the tank-to-wake (TTW) emission factor of the fuel for an emission, from the stoichiometric conversion of the fuel to energy.</p>
+<p>This command is only allowed in the <code class="docutils literal notranslate"><span class="pre">DEFINE</span></code> section.</p>
 <ul class="simple">
-<li><p><strong>Primary key type</strong>: String (Emission name)</p></li>
+<li><p><strong>Primary key type</strong>: String (Emission name; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
@@ -540,6 +551,7 @@ liquefied natural gas and e-ammonia.</p>
 </ul>
 </li>
 <li><p><strong>Unit</strong>: ton emission / ton fuel</p></li>
+<li><p><strong>Minimum value</strong>: 0</p></li>
 <li><p><strong>Default</strong>: 0</p></li>
 </ul>
 </section>

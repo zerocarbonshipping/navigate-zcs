@@ -482,11 +482,12 @@ of results both on a node basis and on a global basis.</p>
 <h2>Attributes<a class="headerlink" href="#attributes" title="Link to this heading">#</a></h2>
 <section id="directory">
 <h3>Directory<a class="headerlink" href="#directory" title="Link to this heading">#</a></h3>
-<p>This attribute defines the directory in which the report is stored.</p>
+<p>This attribute defines the directory in which the report is stored, as a path relative to the <code class="docutils literal notranslate"><span class="pre">.nav</span></code>
+file or an absolute path. The folder is created automatically if it does not already exist.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">String</span></code></p></li>
-<li><p>Format: Must be a valid directory readable by the Python ‘os’ module.</p></li>
-<li><p><strong>Default</strong>: Same folder as the <code class="docutils literal notranslate"><span class="pre">.nav</span></code> file</p></li>
+<li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">&quot;./report/&quot;</span></code></p></li>
+<li><p><strong>Default</strong>: The folder of the <code class="docutils literal notranslate"><span class="pre">.nav</span></code> file.</p></li>
 </ul>
 </section>
 <section id="fileformat">
@@ -503,84 +504,88 @@ of results both on a node basis and on a global basis.</p>
 <h2>Commands<a class="headerlink" href="#commands" title="Link to this heading">#</a></h2>
 <p>Each command reports only the properties listed for it in the
 <a class="reference internal" href="#appendix-report-node-properties">Report Properties</a> section; naming any
-other property is a deck error at its line.</p>
+other property is a deck error at its line. The key of a node command may
+contain wildcards, which are matched against the nodes of the simulation when
+the report is written; a key that matches no node is skipped with a warning.
+A property added more than once for the same key is reported once, with the
+reduction of the first command.</p>
 <section id="add-property">
 <h3>add_property<a class="headerlink" href="#add-property" title="Link to this heading">#</a></h3>
-<p>This command adds a specified global property to the report.</p>
+<p>This command adds a specified global property to the report. This command is only allowed in the <code class="docutils literal notranslate"><span class="pre">DEFINE</span></code> section.</p>
 <p>The parameters are:</p>
 <ul class="simple">
-<li><p>Attribute**:** All allowed attributes are listed in the <a class="reference internal" href="#appendix-report-node-properties">Report Properties</a> section.</p></li>
-<li><p>Reduce: Reduction axis; see <a class="reference internal" href="appendix_ids.html#reportreduceid"><span class="std std-ref">ReportReduceID</span></a>. Default: None (no reduction).</p></li>
+<li><p><strong>Attribute</strong>: All allowed attributes are listed in the <a class="reference internal" href="#appendix-report-node-properties">Report Properties</a> section.</p></li>
+<li><p><strong>Reduce</strong>: Reduction axis; see <a class="reference internal" href="appendix_ids.html#reportreduceid"><span class="std std-ref">ReportReduceID</span></a>. Default: None (no reduction).</p></li>
 </ul>
 </section>
 <section id="add-fleet-property">
 <h3>add_fleet_property<a class="headerlink" href="#add-fleet-property" title="Link to this heading">#</a></h3>
-<p>This command adds a specified property of a fleet to the report.</p>
+<p>This command adds a specified property of a fleet to the report. This command is only allowed in the <code class="docutils literal notranslate"><span class="pre">DEFINE</span></code> section.</p>
 <p>The parameters are:</p>
 <ul class="simple">
-<li><p>Key: Fleet name</p></li>
-<li><p>Attribute: All allowed attributes are listed in the <a class="reference internal" href="#appendix-report-node-properties">Report Properties</a> section.</p></li>
-<li><p>Reduce: Reduction axis; see <a class="reference internal" href="appendix_ids.html#reportreduceid"><span class="std std-ref">ReportReduceID</span></a>. Default: None (no reduction).</p></li>
+<li><p><strong>Key</strong>: String (Fleet name; supports wildcards)</p></li>
+<li><p><strong>Attribute</strong>: All allowed attributes are listed in the <a class="reference internal" href="#appendix-report-node-properties">Report Properties</a> section.</p></li>
+<li><p><strong>Reduce</strong>: Reduction axis; see <a class="reference internal" href="appendix_ids.html#reportreduceid"><span class="std std-ref">ReportReduceID</span></a>. Default: None (no reduction).</p></li>
 </ul>
 </section>
 <section id="add-vessel-property">
 <h3>add_vessel_property<a class="headerlink" href="#add-vessel-property" title="Link to this heading">#</a></h3>
-<p>This command adds a specified property of a vessel to the report.</p>
+<p>This command adds a specified property of a vessel to the report. This command is only allowed in the <code class="docutils literal notranslate"><span class="pre">DEFINE</span></code> section.</p>
 <p>The parameters are:</p>
 <ul class="simple">
-<li><p>Key: Vessel name.</p></li>
-<li><p>Attribute: All allowed attributes are listed in the <a class="reference internal" href="#appendix-report-node-properties">Report Properties</a> section.</p></li>
-<li><p>Reduce: Reduction axis; see <a class="reference internal" href="appendix_ids.html#reportreduceid"><span class="std std-ref">ReportReduceID</span></a>. Default: None (no reduction).</p></li>
+<li><p><strong>Key</strong>: String (Vessel name; supports wildcards)</p></li>
+<li><p><strong>Attribute</strong>: All allowed attributes are listed in the <a class="reference internal" href="#appendix-report-node-properties">Report Properties</a> section.</p></li>
+<li><p><strong>Reduce</strong>: Reduction axis; see <a class="reference internal" href="appendix_ids.html#reportreduceid"><span class="std std-ref">ReportReduceID</span></a>. Default: None (no reduction).</p></li>
 </ul>
 </section>
 <section id="add-plant-property">
 <h3>add_plant_property<a class="headerlink" href="#add-plant-property" title="Link to this heading">#</a></h3>
-<p>This command adds a specified property of a plant to the report.</p>
+<p>This command adds a specified property of a plant to the report. This command is only allowed in the <code class="docutils literal notranslate"><span class="pre">DEFINE</span></code> section.</p>
 <p>The parameters are:</p>
 <ul class="simple">
-<li><p>Key: Plant name</p></li>
-<li><p>Attribute: All allowed attributes are listed in the <a class="reference internal" href="#appendix-report-node-properties">Report Properties</a> section.</p></li>
-<li><p>Reduce: Reduction axis; see <a class="reference internal" href="appendix_ids.html#reportreduceid"><span class="std std-ref">ReportReduceID</span></a>. Default: None (no reduction).</p></li>
+<li><p><strong>Key</strong>: String (Plant name; supports wildcards)</p></li>
+<li><p><strong>Attribute</strong>: All allowed attributes are listed in the <a class="reference internal" href="#appendix-report-node-properties">Report Properties</a> section.</p></li>
+<li><p><strong>Reduce</strong>: Reduction axis; see <a class="reference internal" href="appendix_ids.html#reportreduceid"><span class="std std-ref">ReportReduceID</span></a>. Default: None (no reduction).</p></li>
 </ul>
 </section>
 <section id="add-port-property">
 <h3>add_port_property<a class="headerlink" href="#add-port-property" title="Link to this heading">#</a></h3>
-<p>This command adds a specified property of a port to the report.</p>
+<p>This command adds a specified property of a port to the report. This command is only allowed in the <code class="docutils literal notranslate"><span class="pre">DEFINE</span></code> section.</p>
 <p>The parameters are:</p>
 <ul class="simple">
-<li><p>Key: Port name</p></li>
-<li><p>Attribute: All allowed attributes are listed in the <a class="reference internal" href="#appendix-report-node-properties">Report Properties</a> section.</p></li>
-<li><p>Reduce: Reduction axis; see <a class="reference internal" href="appendix_ids.html#reportreduceid"><span class="std std-ref">ReportReduceID</span></a>. Default: None (no reduction).</p></li>
+<li><p><strong>Key</strong>: String (Port name; supports wildcards)</p></li>
+<li><p><strong>Attribute</strong>: All allowed attributes are listed in the <a class="reference internal" href="#appendix-report-node-properties">Report Properties</a> section.</p></li>
+<li><p><strong>Reduce</strong>: Reduction axis; see <a class="reference internal" href="appendix_ids.html#reportreduceid"><span class="std std-ref">ReportReduceID</span></a>. Default: None (no reduction).</p></li>
 </ul>
 </section>
 <section id="add-regulation-property">
 <h3>add_regulation_property<a class="headerlink" href="#add-regulation-property" title="Link to this heading">#</a></h3>
-<p>This command adds a specified property of a regulation to the report.</p>
+<p>This command adds a specified property of a regulation to the report. This command is only allowed in the <code class="docutils literal notranslate"><span class="pre">DEFINE</span></code> section.</p>
 <p>The parameters are:</p>
 <ul class="simple">
-<li><p>Key: Regulation name</p></li>
-<li><p>Attribute: All allowed attributes are listed in the <a class="reference internal" href="#appendix-report-node-properties">Report Properties</a> section.</p></li>
-<li><p>Reduce: Reduction axis; see <a class="reference internal" href="appendix_ids.html#reportreduceid"><span class="std std-ref">ReportReduceID</span></a>. Default: None (no reduction).</p></li>
+<li><p><strong>Key</strong>: String (Regulation name; supports wildcards)</p></li>
+<li><p><strong>Attribute</strong>: All allowed attributes are listed in the <a class="reference internal" href="#appendix-report-node-properties">Report Properties</a> section.</p></li>
+<li><p><strong>Reduce</strong>: Reduction axis; see <a class="reference internal" href="appendix_ids.html#reportreduceid"><span class="std std-ref">ReportReduceID</span></a>. Default: None (no reduction).</p></li>
 </ul>
 </section>
 <section id="add-levy-property">
 <h3>add_levy_property<a class="headerlink" href="#add-levy-property" title="Link to this heading">#</a></h3>
-<p>This command adds a specified property of a levy to the report.</p>
+<p>This command adds a specified property of a levy to the report. This command is only allowed in the <code class="docutils literal notranslate"><span class="pre">DEFINE</span></code> section.</p>
 <p>The parameters are:</p>
 <ul class="simple">
-<li><p>Key: Levy name</p></li>
-<li><p>Attribute: All allowed attributes are listed in the <a class="reference internal" href="#appendix-report-node-properties">Report Properties</a> section.</p></li>
-<li><p>Reduce: Reduction axis; see <a class="reference internal" href="appendix_ids.html#reportreduceid"><span class="std std-ref">ReportReduceID</span></a>. Default: None (no reduction).</p></li>
+<li><p><strong>Key</strong>: String (Levy name; supports wildcards)</p></li>
+<li><p><strong>Attribute</strong>: All allowed attributes are listed in the <a class="reference internal" href="#appendix-report-node-properties">Report Properties</a> section.</p></li>
+<li><p><strong>Reduce</strong>: Reduction axis; see <a class="reference internal" href="appendix_ids.html#reportreduceid"><span class="std std-ref">ReportReduceID</span></a>. Default: None (no reduction).</p></li>
 </ul>
 </section>
 <section id="add-producer-property">
 <h3>add_producer_property<a class="headerlink" href="#add-producer-property" title="Link to this heading">#</a></h3>
-<p>This command adds a specified property of a producer to the report.</p>
+<p>This command adds a specified property of a producer to the report. This command is only allowed in the <code class="docutils literal notranslate"><span class="pre">DEFINE</span></code> section.</p>
 <p>The parameters are:</p>
 <ul class="simple">
-<li><p>Key: Producer name</p></li>
-<li><p>Attribute: All allowed attributes are listed in the <a class="reference internal" href="#appendix-report-node-properties">Report Properties</a> section.</p></li>
-<li><p>Reduce: Reduction axis; see <a class="reference internal" href="appendix_ids.html#reportreduceid"><span class="std std-ref">ReportReduceID</span></a>. Default: None (no reduction).</p></li>
+<li><p><strong>Key</strong>: String (Producer name; supports wildcards)</p></li>
+<li><p><strong>Attribute</strong>: All allowed attributes are listed in the <a class="reference internal" href="#appendix-report-node-properties">Report Properties</a> section.</p></li>
+<li><p><strong>Reduce</strong>: Reduction axis; see <a class="reference internal" href="appendix_ids.html#reportreduceid"><span class="std std-ref">ReportReduceID</span></a>. Default: None (no reduction).</p></li>
 </ul>
 </section>
 </section>

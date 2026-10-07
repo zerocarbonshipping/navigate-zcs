@@ -483,7 +483,7 @@ It helps define various tolerances and iteration limits that guide how the model
 <h2>Attributes<a class="headerlink" href="#attributes" title="Link to this heading">#</a></h2>
 <section id="solver">
 <h3>Solver<a class="headerlink" href="#solver" title="Link to this heading">#</a></h3>
-<p>This attribute selects the solver backend for the bunker algorithm. It can also be set from the command line with <code class="docutils literal notranslate"><span class="pre">--solver</span></code>, which accepts lowercase values (<code class="docutils literal notranslate"><span class="pre">auto</span></code>, <code class="docutils literal notranslate"><span class="pre">gurobi</span></code>, <code class="docutils literal notranslate"><span class="pre">highs</span></code>) and takes precedence over the deck setting.</p>
+<p>This attribute selects the solver backend for the bunker algorithm. AUTOMATIC uses Gurobi when a license is available and HiGHS otherwise. GUROBI also falls back to HiGHS, with a warning, when no Gurobi license is available. HIGHS uses HiGHS without trying Gurobi. It can also be set from the command line with <code class="docutils literal notranslate"><span class="pre">--solver</span></code>, which accepts lowercase values (<code class="docutils literal notranslate"><span class="pre">auto</span></code>, <code class="docutils literal notranslate"><span class="pre">gurobi</span></code>, <code class="docutils literal notranslate"><span class="pre">highs</span></code>) and takes precedence over the deck setting.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">ID</span></code></p></li>
 <li><p><strong>Legal values</strong>: <a class="reference internal" href="appendix_ids.html#solverbackendid"><span class="std std-ref">SolverBackendID</span></a></p></li>
@@ -501,23 +501,23 @@ It helps define various tolerances and iteration limits that guide how the model
 </section>
 <section id="solutiontolerance">
 <h3>SolutionTolerance<a class="headerlink" href="#solutiontolerance" title="Link to this heading">#</a></h3>
-<p>This attribute sets the tolerance of the solution for the bunker algorithm. The SolutionTolerance defines the lower tolerance for what to consider in results, i.e., if a fuel is bunkered in an amount smaller than the SolutionTolerance, it is rounded to 0 and thus not brought into reports and plots.</p>
+<p>This attribute sets the tolerance of the solution for the bunker algorithm. The SolutionTolerance defines the lower tolerance for what to consider in results, i.e., if a fuel is bunkered in an amount smaller than the SolutionTolerance, it is rounded to 0 and thus not brought into reports and plots. The same value is passed to the LP solver as its feasibility and optimality tolerance, so it also affects how the solver converges.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code></p></li>
 <li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">1e-6</span></code></p></li>
-<li><p><strong>Minimum value</strong>: 0 (exclusive)</p></li>
+<li><p><strong>Minimum value</strong>: &gt;0</p></li>
 <li><p><strong>Default</strong>: 1e-6</p></li>
 </ul>
 </section>
 <section id="threads">
 <h3>Threads<a class="headerlink" href="#threads" title="Link to this heading">#</a></h3>
 <p>This attribute sets the number of threads used by the LP solver to solve the bunker algorithm.</p>
-<p>Notice that ‘0’ corresponds to the solver’s default setting.</p>
+<p>Notice that ‘0’ lets the solver choose the number of threads automatically.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Integer</span></code></p></li>
 <li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">2</span></code></p></li>
 <li><p><strong>Minimum value</strong>: 0</p></li>
-<li><p><strong>Default</strong>: 2</p></li>
+<li><p><strong>Default</strong>: 0</p></li>
 </ul>
 </section>
 <section id="fairsharemaximumiterations">
@@ -525,7 +525,7 @@ It helps define various tolerances and iteration limits that guide how the model
 <p>This attribute sets the maximum iterations of the fair-share sequential LP of the bunker algorithm.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Integer</span></code></p></li>
-<li><p>Example value: <code class="docutils literal notranslate"><span class="pre">10</span></code></p></li>
+<li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">10</span></code></p></li>
 <li><p><strong>Minimum value</strong>: 1</p></li>
 <li><p><strong>Default</strong>: 50</p></li>
 </ul>
@@ -536,7 +536,7 @@ It helps define various tolerances and iteration limits that guide how the model
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code></p></li>
 <li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">1e-2</span></code></p></li>
-<li><p><strong>Minimum value</strong>: 0 (exclusive)</p></li>
+<li><p><strong>Minimum value</strong>: &gt;0</p></li>
 <li><p><strong>Default</strong>: 1e-1</p></li>
 </ul>
 </section>

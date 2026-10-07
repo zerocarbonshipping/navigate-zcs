@@ -22,11 +22,12 @@ Report "report_name" {
 
 ### Directory
 
-This attribute defines the directory in which the report is stored.
+This attribute defines the directory in which the report is stored, as a path relative to the `.nav`
+file or an absolute path. The folder is created automatically if it does not already exist.
 
 * **Data type**: `String`
-* Format: Must be a valid directory readable by the Python 'os' module.
-* **Default**: Same folder as the `.nav` file
+* **Example value**: `"./report/"`
+* **Default**: The folder of the `.nav` file.
 
 ### FileFormat
 
@@ -40,86 +41,90 @@ This attribute sets the file format used to export the report.
 
 Each command reports only the properties listed for it in the
 [Report Properties](#appendix---report-node-properties) section; naming any
-other property is a deck error at its line.
+other property is a deck error at its line. The key of a node command may
+contain wildcards, which are matched against the nodes of the simulation when
+the report is written; a key that matches no node is skipped with a warning.
+A property added more than once for the same key is reported once, with the
+reduction of the first command.
 
 ### add\_property
 
-This command adds a specified global property to the report.
+This command adds a specified global property to the report. This command is only allowed in the `DEFINE` section.
 
 The parameters are:
 
-* Attribute**:** All allowed attributes are listed in the [Report Properties](#appendix---report-node-properties) section.
-* Reduce: Reduction axis; see [ReportReduceID](appendix_ids.md#reportreduceid). Default: None (no reduction).
+* **Attribute**: All allowed attributes are listed in the [Report Properties](#appendix---report-node-properties) section.
+* **Reduce**: Reduction axis; see [ReportReduceID](appendix_ids.md#reportreduceid). Default: None (no reduction).
 
 ### add\_fleet\_property
 
-This command adds a specified property of a fleet to the report.
+This command adds a specified property of a fleet to the report. This command is only allowed in the `DEFINE` section.
 
 The parameters are:
 
-* Key: Fleet name
-* Attribute: All allowed attributes are listed in the [Report Properties](#appendix---report-node-properties) section.
-* Reduce: Reduction axis; see [ReportReduceID](appendix_ids.md#reportreduceid). Default: None (no reduction).
+* **Key**: String (Fleet name; supports wildcards)
+* **Attribute**: All allowed attributes are listed in the [Report Properties](#appendix---report-node-properties) section.
+* **Reduce**: Reduction axis; see [ReportReduceID](appendix_ids.md#reportreduceid). Default: None (no reduction).
 
 ### add\_vessel\_property
 
-This command adds a specified property of a vessel to the report.
+This command adds a specified property of a vessel to the report. This command is only allowed in the `DEFINE` section.
 
 The parameters are:
 
-* Key: Vessel name.
-* Attribute: All allowed attributes are listed in the [Report Properties](#appendix---report-node-properties) section.
-* Reduce: Reduction axis; see [ReportReduceID](appendix_ids.md#reportreduceid). Default: None (no reduction).
+* **Key**: String (Vessel name; supports wildcards)
+* **Attribute**: All allowed attributes are listed in the [Report Properties](#appendix---report-node-properties) section.
+* **Reduce**: Reduction axis; see [ReportReduceID](appendix_ids.md#reportreduceid). Default: None (no reduction).
 
 ### add\_plant\_property
 
-This command adds a specified property of a plant to the report.
+This command adds a specified property of a plant to the report. This command is only allowed in the `DEFINE` section.
 
 The parameters are:
 
-* Key: Plant name
-* Attribute: All allowed attributes are listed in the [Report Properties](#appendix---report-node-properties) section.
-* Reduce: Reduction axis; see [ReportReduceID](appendix_ids.md#reportreduceid). Default: None (no reduction).
+* **Key**: String (Plant name; supports wildcards)
+* **Attribute**: All allowed attributes are listed in the [Report Properties](#appendix---report-node-properties) section.
+* **Reduce**: Reduction axis; see [ReportReduceID](appendix_ids.md#reportreduceid). Default: None (no reduction).
 
 ### add\_port\_property
 
-This command adds a specified property of a port to the report.
+This command adds a specified property of a port to the report. This command is only allowed in the `DEFINE` section.
 
 The parameters are:
 
-* Key: Port name
-* Attribute: All allowed attributes are listed in the [Report Properties](#appendix---report-node-properties) section.
-* Reduce: Reduction axis; see [ReportReduceID](appendix_ids.md#reportreduceid). Default: None (no reduction).
+* **Key**: String (Port name; supports wildcards)
+* **Attribute**: All allowed attributes are listed in the [Report Properties](#appendix---report-node-properties) section.
+* **Reduce**: Reduction axis; see [ReportReduceID](appendix_ids.md#reportreduceid). Default: None (no reduction).
 
 ### add\_regulation\_property
 
-This command adds a specified property of a regulation to the report.
+This command adds a specified property of a regulation to the report. This command is only allowed in the `DEFINE` section.
 
 The parameters are:
 
-* Key: Regulation name
-* Attribute: All allowed attributes are listed in the [Report Properties](#appendix---report-node-properties) section.
-* Reduce: Reduction axis; see [ReportReduceID](appendix_ids.md#reportreduceid). Default: None (no reduction).
+* **Key**: String (Regulation name; supports wildcards)
+* **Attribute**: All allowed attributes are listed in the [Report Properties](#appendix---report-node-properties) section.
+* **Reduce**: Reduction axis; see [ReportReduceID](appendix_ids.md#reportreduceid). Default: None (no reduction).
 
 ### add\_levy\_property
 
-This command adds a specified property of a levy to the report.
+This command adds a specified property of a levy to the report. This command is only allowed in the `DEFINE` section.
 
 The parameters are:
 
-* Key: Levy name
-* Attribute: All allowed attributes are listed in the [Report Properties](#appendix---report-node-properties) section.
-* Reduce: Reduction axis; see [ReportReduceID](appendix_ids.md#reportreduceid). Default: None (no reduction).
+* **Key**: String (Levy name; supports wildcards)
+* **Attribute**: All allowed attributes are listed in the [Report Properties](#appendix---report-node-properties) section.
+* **Reduce**: Reduction axis; see [ReportReduceID](appendix_ids.md#reportreduceid). Default: None (no reduction).
 
 ### add\_producer\_property
 
-This command adds a specified property of a producer to the report.
+This command adds a specified property of a producer to the report. This command is only allowed in the `DEFINE` section.
 
 The parameters are:
 
-* Key: Producer name
-* Attribute: All allowed attributes are listed in the [Report Properties](#appendix---report-node-properties) section.
-* Reduce: Reduction axis; see [ReportReduceID](appendix_ids.md#reportreduceid). Default: None (no reduction).
+* **Key**: String (Producer name; supports wildcards)
+* **Attribute**: All allowed attributes are listed in the [Report Properties](#appendix---report-node-properties) section.
+* **Reduce**: Reduction axis; see [ReportReduceID](appendix_ids.md#reportreduceid). Default: None (no reduction).
 
 ## Appendix - Report Node Properties
 

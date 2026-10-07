@@ -482,25 +482,25 @@ Examples of processes are Haber-Bosch and methane liquefaction.</p>
 <h2>Attributes<a class="headerlink" href="#attributes" title="Link to this heading">#</a></h2>
 <section id="feeds">
 <h3>Feeds<a class="headerlink" href="#feeds" title="Link to this heading">#</a></h3>
-<p>This attribute defines a list of feeds used in the production process of a fuel. In this terminology a feeds can also be a Process node in which case it is interpreted as the output from that process.</p>
+<p>This attribute defines a list of feeds used in the production process of a fuel. In this terminology a feed can also be a Process node in which case it is interpreted as the output from that process.</p>
 <p>The number of Feeds and the number of Conversions must correspond.</p>
 <p>All ‘Feeds’ must be unique, i.e., a feedstock cannot be duplicated in the input list.</p>
 <ul class="simple">
-<li><p><strong>Data type</strong>: List of <code class="docutils literal notranslate"><span class="pre">Feedstock</span></code>, <code class="docutils literal notranslate"><span class="pre">Process</span></code> nodes</p></li>
+<li><p><strong>Data type</strong>: List of <code class="docutils literal notranslate"><span class="pre">Feedstock</span></code> and/or <code class="docutils literal notranslate"><span class="pre">Process</span></code> nodes</p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">[Feedstock(&quot;name&quot;)]</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">[Feedstock(&quot;name&quot;),</span> <span class="pre">Process(&quot;name&quot;)]</span></code></p></li>
 </ul>
 </li>
-<li><p><strong>Default</strong>: None</p></li>
+<li><p><strong>Default</strong>: Not set. The process has no feeds.</p></li>
 </ul>
 </section>
 <section id="conversions">
 <h3>Conversions<a class="headerlink" href="#conversions" title="Link to this heading">#</a></h3>
 <p>This attribute specifies a list of conversion factors. A conversion factor describes how many tons of feed are needed to produce one ton of fuel. The number of Feeds and the number of Conversions must correspond.</p>
 <ul class="simple">
-<li><p><strong>Data type</strong>: List of <code class="docutils literal notranslate"><span class="pre">Floats</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variables</span></code></p></li>
+<li><p><strong>Data type</strong>: List of <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code> and/or <code class="docutils literal notranslate"><span class="pre">Variable</span></code> nodes</p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">[0.5,</span> <span class="pre">2.5]</span></code></p></li>
@@ -509,7 +509,7 @@ Examples of processes are Haber-Bosch and methane liquefaction.</p>
 </li>
 <li><p><strong>Unit</strong>: ton feeds / ton output</p></li>
 <li><p><strong>Minimum value</strong>: 0</p></li>
-<li><p><strong>Default</strong>: None</p></li>
+<li><p><strong>Default</strong>: None. Must be provided by the user when Feeds is set.</p></li>
 </ul>
 </section>
 </section>

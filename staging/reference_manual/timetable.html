@@ -470,15 +470,16 @@ SPDX-License-Identifier: CC-BY-4.0
 -->
 <section class="tex2jax_ignore mathjax_ignore" id="timetable">
 <h1>Timetable<a class="headerlink" href="#timetable" title="Link to this heading">#</a></h1>
-<p>A <code class="docutils literal notranslate"><span class="pre">Timetable</span></code> node defines a three-dimensional relation between t-, y-, and z-values. Where the t-values are
-dates. Several attributes of other nodes allows the assignment of a timetable. An example is the assignment
+<p>A <code class="docutils literal notranslate"><span class="pre">Timetable</span></code> node defines a three-dimensional relation between t-, y-, and z-values, where the t-values are
+dates. Several attributes of other nodes allow the assignment of a timetable. An example is the assignment
 of the CAPEX of a fuel production process which takes the date as a t-value, the plant capacity as a y-value
 and returns the capital expenditure as a z-value.</p>
-<p>Calculations in timetables are done using the following formula:</p>
+<p>Calculations in timetables are done using the following formula, where <span class="math notranslate nohighlight">\(z(t, y)\)</span> is the value looked up in the table:</p>
 <div class="math notranslate nohighlight">
 \[
 z = \min\left( \max\left( \text{Multiplier} \cdot (z(t, y) + \text{Addition}), \text{LowerBound} \right), \text{UpperBound} \right)
 \]</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">Addition</span></code> is applied before the <code class="docutils literal notranslate"><span class="pre">Multiplier</span></code>, and the bounds are applied last.</p>
 <p>An attribute that references the node holds <span class="math notranslate nohighlight">\(z\)</span> to its own minimum and maximum value as well: an inclusive one clamps <span class="math notranslate nohighlight">\(z\)</span>, and <span class="math notranslate nohighlight">\(z\)</span> reaching an exclusive one stops the run with an error. See <a class="reference internal" href="dsl_reference.html#assigning-attributes"><span class="std std-ref">Assigning attributes</span></a>.</p>
 <p>Example:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Timetable</span> <span class="s2">"methanol_synthesis_capex"</span> <span class="p">{</span>
@@ -496,45 +497,45 @@ z = \min\left( \max\left( \text{Multiplier} \cdot (z(t, y) + \text{Addition}), \
 <h2>Attributes<a class="headerlink" href="#attributes" title="Link to this heading">#</a></h2>
 <section id="table">
 <h3>Table<a class="headerlink" href="#table" title="Link to this heading">#</a></h3>
-<p>This attribute sets the table of x-, y- and z-values that the timetable interpolates in, where the x-values are dates or days since the start of the simulation. There must be at least two x-values and two y-values, each strictly increasing, and the number of z-values must equal the number of x-values times the number of y-values. The syntax is described under <a class="reference internal" href="dsl_reference.html#timetable"><span class="std std-ref">Assigning tables</span></a>.</p>
+<p>This attribute sets the table of x-, y- and z-values that the timetable interpolates in, where the x-values are dates or days since the start of the simulation. There must be at least two x-values and two y-values, each finite and strictly increasing, and the number of z-values must equal the number of x-values times the number of y-values. A z-value may be <code class="docutils literal notranslate"><span class="pre">INF</span></code> or <code class="docutils literal notranslate"><span class="pre">-INF</span></code>, but not <code class="docutils literal notranslate"><span class="pre">nan</span></code>. The syntax is described under <a class="reference internal" href="dsl_reference.html#timetable"><span class="std std-ref">Assigning tables</span></a>.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Table</span></code></p></li>
-<li><p><strong>Default</strong>: None. Must be defined by the user.</p></li>
+<li><p><strong>Default</strong>: None. Must be provided by the user.</p></li>
 </ul>
 </section>
 <section id="addition">
 <h3>Addition<a class="headerlink" href="#addition" title="Link to this heading">#</a></h3>
-<p>Sets an addition that is added on the z-values. The addition occurs according to the formula</p>
+<p>Sets a value that is added to the z-value looked up in the table, before the <code class="docutils literal notranslate"><span class="pre">Multiplier</span></code> is applied, according to the <a class="reference internal" href="#timetable">formula</a> at the top of this page. The value may be an <a class="reference internal" href="dsl_reference.html#expressions"><span class="std std-ref">expression</span></a> of numbers; an expression that references a node is rejected. <code class="docutils literal notranslate"><span class="pre">INF</span></code> and <code class="docutils literal notranslate"><span class="pre">-INF</span></code> are rejected.</p>
 <ul class="simple">
-<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code></p></li>
-<li><p>Example value: <code class="docutils literal notranslate"><span class="pre">10</span></code></p></li>
+<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Expression</span></code></p></li>
+<li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">10</span></code></p></li>
 <li><p><strong>Default</strong>: 0</p></li>
 </ul>
 </section>
 <section id="multiplier">
 <h3>Multiplier<a class="headerlink" href="#multiplier" title="Link to this heading">#</a></h3>
-<p>Sets a multiplier that is multiplied to the z-values. The multiplication occurs according to the formula</p>
+<p>Sets a factor that the z-value looked up in the table, plus the <code class="docutils literal notranslate"><span class="pre">Addition</span></code>, is multiplied by, according to the <a class="reference internal" href="#timetable">formula</a> at the top of this page. The value may be an <a class="reference internal" href="dsl_reference.html#expressions"><span class="std std-ref">expression</span></a> of numbers; an expression that references a node is rejected. <code class="docutils literal notranslate"><span class="pre">INF</span></code> and <code class="docutils literal notranslate"><span class="pre">-INF</span></code> are rejected.</p>
 <ul class="simple">
-<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code></p></li>
-<li><p>Example value: <code class="docutils literal notranslate"><span class="pre">2.5</span></code></p></li>
+<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Expression</span></code></p></li>
+<li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">2.5</span></code></p></li>
 <li><p><strong>Default</strong>: 1</p></li>
 </ul>
 </section>
 <section id="lowerbound">
 <h3>LowerBound<a class="headerlink" href="#lowerbound" title="Link to this heading">#</a></h3>
-<p>Sets the lower bound. The lower bound is used according to the formula:</p>
+<p>Sets the lower bound that the result is clamped to after the <code class="docutils literal notranslate"><span class="pre">Addition</span></code> and the <code class="docutils literal notranslate"><span class="pre">Multiplier</span></code> are applied, according to the <a class="reference internal" href="#timetable">formula</a> at the top of this page. <code class="docutils literal notranslate"><span class="pre">-INF</span></code> means no lower bound; <code class="docutils literal notranslate"><span class="pre">INF</span></code> is rejected.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code></p></li>
-<li><p>Example value: <code class="docutils literal notranslate"><span class="pre">-5</span></code></p></li>
+<li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">-5</span></code></p></li>
 <li><p><strong>Default</strong>: -INF</p></li>
 </ul>
 </section>
 <section id="upperbound">
 <h3>UpperBound<a class="headerlink" href="#upperbound" title="Link to this heading">#</a></h3>
-<p>Sets the upper bound. The upper bound is used according to the formula:</p>
+<p>Sets the upper bound that the result is clamped to after the <code class="docutils literal notranslate"><span class="pre">Addition</span></code> and the <code class="docutils literal notranslate"><span class="pre">Multiplier</span></code> are applied, according to the <a class="reference internal" href="#timetable">formula</a> at the top of this page. <code class="docutils literal notranslate"><span class="pre">INF</span></code> means no upper bound; <code class="docutils literal notranslate"><span class="pre">-INF</span></code> is rejected.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code></p></li>
-<li><p>Example value: <code class="docutils literal notranslate"><span class="pre">5</span></code></p></li>
+<li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">5</span></code></p></li>
 <li><p><strong>Default</strong>: INF</p></li>
 </ul>
 </section>
@@ -549,7 +550,7 @@ z = \min\left( \max\left( \text{Multiplier} \cdot (z(t, y) + \text{Addition}), \
 </section>
 <section id="extrapolate">
 <h3>Extrapolate<a class="headerlink" href="#extrapolate" title="Link to this heading">#</a></h3>
-<p>This attribute sets the extrapolation method used extrapolate outside the table.</p>
+<p>This attribute sets the extrapolation method used to extrapolate outside the table. With <code class="docutils literal notranslate"><span class="pre">FLAT</span></code>, the value of <code class="docutils literal notranslate"><span class="pre">Outside</span></code> is used.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">ID</span></code></p></li>
 <li><p><strong>Legal values</strong>: <a class="reference internal" href="appendix_ids.html#extrapolateid"><span class="std std-ref">ExtrapolateID</span></a></p></li>
@@ -558,11 +559,11 @@ z = \min\left( \max\left( \text{Multiplier} \cdot (z(t, y) + \text{Addition}), \
 </section>
 <section id="outside">
 <h3>Outside<a class="headerlink" href="#outside" title="Link to this heading">#</a></h3>
-<p>This attribute sets the flat extrapolation value outside the table. This value must be defined if ‘Extrapolate’ is set to FLAT.</p>
+<p>This attribute sets the flat extrapolation value outside the table. It is only used when <code class="docutils literal notranslate"><span class="pre">Extrapolate</span></code> is <code class="docutils literal notranslate"><span class="pre">FLAT</span></code>, and it then takes the place of the table’s z-value in the <a class="reference internal" href="#timetable">formula</a> at the top of this page; when <code class="docutils literal notranslate"><span class="pre">Extrapolate</span></code> is not <code class="docutils literal notranslate"><span class="pre">FLAT</span></code>, a value set here is ignored with a warning. The value may be an <a class="reference internal" href="dsl_reference.html#expressions"><span class="std std-ref">expression</span></a> of numbers; an expression that references a node is rejected. <code class="docutils literal notranslate"><span class="pre">INF</span></code> and <code class="docutils literal notranslate"><span class="pre">-INF</span></code> are accepted, and are checked against each attribute the timetable is assigned to (see <a class="reference internal" href="dsl_reference.html#assigning-attributes"><span class="std std-ref">Assigning attributes</span></a>).</p>
 <ul class="simple">
-<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code></p></li>
-<li><p>Example value: <code class="docutils literal notranslate"><span class="pre">20</span></code></p></li>
-<li><p><strong>Default</strong>: None</p></li>
+<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Expression</span></code></p></li>
+<li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">20</span></code></p></li>
+<li><p><strong>Default</strong>: None. Must be provided by the user when <code class="docutils literal notranslate"><span class="pre">Extrapolate</span></code> is <code class="docutils literal notranslate"><span class="pre">FLAT</span></code>.</p></li>
 </ul>
 </section>
 </section>

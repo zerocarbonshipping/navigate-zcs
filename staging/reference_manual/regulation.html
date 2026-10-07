@@ -492,7 +492,7 @@ transport based regulation such as the IMO CII regulation.</p>
 <h2>Attributes<a class="headerlink" href="#attributes" title="Link to this heading">#</a></h2>
 <section id="active">
 <h3>Active<a class="headerlink" href="#active" title="Link to this heading">#</a></h3>
-<p>This attribute sets whether the regulation is active in the current time-step. This attribute can be changed during the <code class="docutils literal notranslate"><span class="pre">EVENTS</span></code> simulation to either introduce a regulation assuming there was no foresight to its implementation or to discontinue an already existing regulation.</p>
+<p>This attribute sets whether the regulation is active in the current time-step. An inactive regulation is ignored in both the expectations and the results. This attribute can be changed during the <code class="docutils literal notranslate"><span class="pre">EVENTS</span></code> simulation to either introduce a regulation assuming there was no foresight to its implementation or to discontinue an already existing regulation.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Boolean</span></code></p></li>
 <li><p><strong>Default</strong>: TRUE</p></li>
@@ -565,10 +565,10 @@ transport based regulation such as the IMO CII regulation.</p>
 <p>This attribute determines the emissions lifetime used in the GWP (Global Warming Potential) calculation of emissions.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
-<li><p><strong>Example values</strong>: <code class="docutils literal notranslate"><span class="pre">20</span></code></p></li>
+<li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">20</span></code></p></li>
 <li><p><strong>Unit</strong>: Years</p></li>
 <li><p><strong>Minimum value</strong>: 0</p></li>
-<li><p><strong>Default</strong>: 100</p></li>
+<li><p><strong>Default</strong>: Not set. The <code class="docutils literal notranslate"><span class="pre">EmissionsLifetime</span></code> of the <a class="reference internal" href="model_definition.html"><span class="std std-doc">ModelDefinition</span></a> is used.</p></li>
 </ul>
 </section>
 <section id="includeslip">
@@ -583,21 +583,21 @@ transport based regulation such as the IMO CII regulation.</p>
 <h3>Measure<a class="headerlink" href="#measure" title="Link to this heading">#</a></h3>
 <p>This attribute sets the emission measure of the regulation.</p>
 <p>If ‘ABSOLUTE’ the absolute emissions in tons/year are targeted.
-If ‘INTENSITY’ the emission intensity in kg/GJ are targeted, per GJ of effective energy, (1 − slip) · LHV: the lower heating value of the fuel net of the fraction the converter burning it lets escape unburned (<code class="docutils literal notranslate"><span class="pre">set_slip_fraction</span></code> on the <code class="docutils literal notranslate"><span class="pre">Converter</span></code>).
-If ‘TRANSPORT_NOMINAL’ the carbon intensity index in CO<sub>2</sub>-eq/nominal cargo-miles is targeted.
-If ‘TRANSPORT’ the carbon intensity index in CO<sub>2</sub>-eq/actual cargo-miles is targeted.</p>
+If ‘INTENSITY’ the emission intensity in kg/GJ is targeted, per GJ of effective energy, (1 − slip) · LHV: the lower heating value of the fuel net of the fraction the converter burning it lets escape unburned (<code class="docutils literal notranslate"><span class="pre">set_slip_fraction</span></code> on the <code class="docutils literal notranslate"><span class="pre">Converter</span></code>).
+If ‘TRANSPORT_NOMINAL’ the carbon intensity index in g CO<sub>2</sub>-eq/nominal cargo-miles is targeted.
+If ‘TRANSPORT’ the carbon intensity index in g CO<sub>2</sub>-eq/actual cargo-miles is targeted.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">ID</span></code></p></li>
 <li><p><strong>Legal values</strong>: <a class="reference internal" href="appendix_ids.html#regulationmeasureid"><span class="std std-ref">RegulationMeasureID</span></a></p></li>
 <li><p><strong>Unit</strong>: Different units depending on the value of ‘Measure’</p>
 <ul>
-<li><p>ABSOLUTE: ton emissions</p></li>
+<li><p>ABSOLUTE: ton emissions/year</p></li>
 <li><p>INTENSITY: kg emissions / GJ</p></li>
 <li><p>TRANSPORT_NOMINAL: g emissions / nominal cargo miles</p></li>
 <li><p>TRANSPORT: g emissions / actual cargo miles</p></li>
 </ul>
 </li>
-<li><p><strong>Default</strong>: None. Must be provided by the user</p></li>
+<li><p><strong>Default</strong>: None. Must be provided by the user.</p></li>
 </ul>
 </section>
 <section id="intrafraction">
@@ -611,9 +611,9 @@ If ‘TRANSPORT’ the carbon intensity index in CO<sub>2</sub>-eq/actual cargo-
 <li><p><code class="docutils literal notranslate"><span class="pre">Forecast(&quot;name&quot;)</span></code></p></li>
 </ul>
 </li>
+<li><p><strong>Unit</strong>: Fraction</p></li>
 <li><p><strong>Minimum value</strong>: 0</p></li>
-<li><p>Maxiumum value: 1</p></li>
-<li><p><strong>Unit</strong>: Fraction of emissions counted during intra jurisdiction travel</p></li>
+<li><p><strong>Maximum value</strong>: 1</p></li>
 <li><p><strong>Default</strong>: 1</p></li>
 </ul>
 </section>
@@ -654,7 +654,7 @@ jurisdiction (inter) should be counted in the calculation.</p>
 </section>
 <section id="remedialcost">
 <h3>RemedialCost<a class="headerlink" href="#remedialcost" title="Link to this heading">#</a></h3>
-<p>This attribute sets the level of the regulation being paid or received dependent on the scheme in USD/ton emission.</p>
+<p>This attribute sets the cost of a remedial compliance unit. A vessel that does not meet its threshold, or under a FLEXIBLE scheme the pooled fleet, buys remedial units at this cost to cover the shortfall. Remedial units are only bought, never sold; under a FLEXIBLE scheme the remedial cost also caps the price of the flexibility units traded between vessels.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
@@ -700,7 +700,7 @@ jurisdiction (inter) should be counted in the calculation.</p>
 <h3>set_global_warming_potential<a class="headerlink" href="#set-global-warming-potential" title="Link to this heading">#</a></h3>
 <p>This command allows the user to set the global warming potential (GWP) for a specific emission. If the GWP is assigned on the regulation then it overwrites the physical GWP defined on the emission during the calculation of emission factors. A <code class="docutils literal notranslate"><span class="pre">Curve</span></code> is read at the emissions lifetime, like the GWP of the emission: the <code class="docutils literal notranslate"><span class="pre">EmissionsLifetime</span></code> of the regulation if assigned, otherwise that of the model.</p>
 <ul class="simple">
-<li><p><strong>Primary key type</strong>: String (Emission name)</p></li>
+<li><p><strong>Primary key type</strong>: String (Emission name; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Curve</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
@@ -709,24 +709,30 @@ jurisdiction (inter) should be counted in the calculation.</p>
 </ul>
 </li>
 <li><p><strong>Unit</strong>: ton CO<sub>2</sub>eq/ton emission</p></li>
-<li><p><strong>Default</strong>: The physical global warming potential assigned to the specific emissions</p></li>
+<li><p><strong>Default</strong>: Not set. The global warming potential assigned on the <code class="docutils literal notranslate"><span class="pre">Emission</span></code> is used.</p></li>
 </ul>
 </section>
 <section id="set-include-vessel">
 <h3>set_include_vessel<a class="headerlink" href="#set-include-vessel" title="Link to this heading">#</a></h3>
-<p>This command allows the user to include or exclude certain vessels from the regulation.</p>
+<p>This command allows the user to include or exclude certain vessels from the regulation. Vessels are excluded unless included explicitly, e.g. with <code class="docutils literal notranslate"><span class="pre">set_include_vessel(&quot;*&quot;,</span> <span class="pre">TRUE)</span></code>.</p>
 <ul class="simple">
-<li><p><strong>Primary key type</strong>: String (Vessel name)</p></li>
+<li><p><strong>Primary key type</strong>: String (Vessel name; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Boolean</span></code></p></li>
-<li><p><strong>Default</strong>: TRUE</p></li>
+<li><p><strong>Example values</strong>:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;vessel_name&quot;,</span> <span class="pre">TRUE</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;*&quot;,</span> <span class="pre">TRUE</span></code></p></li>
+</ul>
+</li>
+<li><p><strong>Default</strong>: FALSE</p></li>
 </ul>
 </section>
 <section id="set-fuel-wtt">
 <h3>set_fuel_wtt<a class="headerlink" href="#set-fuel-wtt" title="Link to this heading">#</a></h3>
-<p>This command allows the user to set the WTT (Well-to-Tank) emission factor for a given fuel and emission as it is defined under a certain policy. If these emission factor values are assigned under a regulation, they override the emission factor values that are otherwise used in Navigate</p>
+<p>This command allows the user to set the WTT (Well-to-Tank) emission factor for a given fuel and emission as it is defined under a certain policy. If these emission factor values are assigned under a regulation, they override the emission factor values that are otherwise used in Navigate.</p>
 <ul class="simple">
-<li><p><strong>Primary key type</strong>: String (Fuel name)</p></li>
-<li><p><strong>Secondary key type</strong>: String (Emission name)</p></li>
+<li><p><strong>Primary key type</strong>: String (Fuel name; supports wildcards)</p></li>
+<li><p><strong>Secondary key type</strong>: String (Emission name; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
@@ -735,15 +741,15 @@ jurisdiction (inter) should be counted in the calculation.</p>
 </ul>
 </li>
 <li><p><strong>Unit</strong>: ton emission/ton fuel</p></li>
-<li><p><strong>Default</strong>: Determined through internal calculations</p></li>
+<li><p><strong>Default</strong>: Not set. The WTT emission factor is averaged over the ports of the vessel’s route, using each port’s <code class="docutils literal notranslate"><span class="pre">set_bunker_wtt_overwrite</span></code> if assigned, otherwise an estimate from the plants producing the fuel.</p></li>
 </ul>
 </section>
 <section id="set-fuel-ttw">
 <h3>set_fuel_ttw<a class="headerlink" href="#set-fuel-ttw" title="Link to this heading">#</a></h3>
-<p>This command allows the user to set the TTW (Tank-to-Wake) emission factor for a given fuel and emission as it is defined under a certain policy. If these emission factor values are assigned under a regulation, they override the emission factor values that are otherwise used in Navigate</p>
+<p>This command allows the user to set the TTW (Tank-to-Wake) emission factor for a given fuel and emission as it is defined under a certain policy. If these emission factor values are assigned under a regulation, they override the emission factor values that are otherwise used in Navigate.</p>
 <ul class="simple">
-<li><p><strong>Primary key type</strong>: String (Fuel name)</p></li>
-<li><p><strong>Secondary key type</strong>: String (Emission name)</p></li>
+<li><p><strong>Primary key type</strong>: String (Fuel name; supports wildcards)</p></li>
+<li><p><strong>Secondary key type</strong>: String (Emission name; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
@@ -752,14 +758,14 @@ jurisdiction (inter) should be counted in the calculation.</p>
 </ul>
 </li>
 <li><p><strong>Unit</strong>: ton emission/ton fuel</p></li>
-<li><p><strong>Default</strong>: Determined through internal calculations</p></li>
+<li><p><strong>Default</strong>: Not set. The TTW emission factor is calculated per converter from the fuel’s TTW emission factor and the converter’s slip fraction and consumption emissions.</p></li>
 </ul>
 </section>
 <section id="set-vessel-threshold">
 <h3>set_vessel_threshold<a class="headerlink" href="#set-vessel-threshold" title="Link to this heading">#</a></h3>
 <p>This command sets the threshold that a specific vessel must satisfy in the measure unit. Every vessel included in the regulation must have a threshold; use the wildcard <code class="docutils literal notranslate"><span class="pre">&quot;*&quot;</span></code> to assign the same threshold to all vessels. If ‘Scheme’ is FLEXIBLE the per-vessel thresholds pool into a single fleet-level constraint.</p>
 <ul class="simple">
-<li><p><strong>Primary key type</strong>: String (Vessel name)</p></li>
+<li><p><strong>Primary key type</strong>: String (Vessel name; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
@@ -769,14 +775,14 @@ jurisdiction (inter) should be counted in the calculation.</p>
 </li>
 <li><p><strong>Unit</strong>: Different units depending on the value of ‘Measure’</p>
 <ul>
-<li><p>ABSOLUTE: ton emissions</p></li>
+<li><p>ABSOLUTE: ton emissions/year</p></li>
 <li><p>INTENSITY: kg emissions / GJ</p></li>
 <li><p>TRANSPORT_NOMINAL: g emissions / nominal cargo miles</p></li>
 <li><p>TRANSPORT: g emissions / actual cargo miles</p></li>
 </ul>
 </li>
 <li><p><strong>Minimum value</strong>: 0</p></li>
-<li><p><strong>Default</strong>: None</p></li>
+<li><p><strong>Default</strong>: None. Must be provided by the user for every vessel included in the regulation.</p></li>
 </ul>
 </section>
 <section id="set-vessel-capacity">
@@ -784,7 +790,7 @@ jurisdiction (inter) should be counted in the calculation.</p>
 <p>This command sets the capacity of a specific vessel for use in transport calculations.</p>
 <p>This is only relevant if ‘Measure’ is set to ‘TRANSPORT_NOMINAL’ or ‘TRANSPORT’.</p>
 <ul class="simple">
-<li><p><strong>Primary key type</strong>: String (Vessel name)</p></li>
+<li><p><strong>Primary key type</strong>: String (Vessel name; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Forecast</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
@@ -792,8 +798,9 @@ jurisdiction (inter) should be counted in the calculation.</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">&quot;vessel_name&quot;,</span> <span class="pre">Forecast(&quot;name&quot;)</span></code></p></li>
 </ul>
 </li>
+<li><p><strong>Unit</strong>: Same as the vessel’s <code class="docutils literal notranslate"><span class="pre">NominalCapacity</span></code> (e.g., TEU, CEU, dwt)</p></li>
 <li><p><strong>Minimum value</strong>: 0</p></li>
-<li><p><strong>Default</strong>: None</p></li>
+<li><p><strong>Default</strong>: Not set. The vessel’s <code class="docutils literal notranslate"><span class="pre">NominalCapacity</span></code> is used.</p></li>
 </ul>
 </section>
 </section>

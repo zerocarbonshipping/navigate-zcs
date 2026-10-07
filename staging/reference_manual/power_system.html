@@ -530,8 +530,8 @@ power system; the same converter may, however, be reused across different power 
 </ul>
 </li>
 <li><p><strong>Unit</strong>: Years</p></li>
-<li><p><strong>Minimum value</strong>: 0</p></li>
-<li><p><strong>Default</strong>: Vessel lifetime.</p></li>
+<li><p><strong>Minimum value</strong>: &gt;0</p></li>
+<li><p><strong>Default</strong>: Not set. The lifetime of the vessel is used.</p></li>
 </ul>
 </section>
 <section id="replacement">
@@ -552,39 +552,29 @@ power system; the same converter may, however, be reused across different power 
 </section>
 <section id="propulsion">
 <h3>Propulsion *<a class="headerlink" href="#propulsion" title="Link to this heading">#</a></h3>
-<p>This attribute defines the converter used to satisfy the propulsion demand.</p>
+<p>This attribute defines the converter used to satisfy the propulsion demand. It must differ from the <code class="docutils literal notranslate"><span class="pre">Electrical</span></code> and <code class="docutils literal notranslate"><span class="pre">Heat</span></code> converters.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Converter</span></code></p></li>
-<li><p><strong>Example values</strong>:</p>
-<ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">Converter(&quot;name&quot;)</span></code></p></li>
-</ul>
-</li>
+<li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">Converter(&quot;name&quot;)</span></code></p></li>
 <li><p><strong>Default</strong>: None. Must be provided by the user.</p></li>
 </ul>
 </section>
 <section id="electrical">
 <h3>Electrical *<a class="headerlink" href="#electrical" title="Link to this heading">#</a></h3>
-<p>This attribute defines the converter used to satisfy the electrical demand.</p>
+<p>This attribute defines the converter used to satisfy the electrical demand. It must differ from the <code class="docutils literal notranslate"><span class="pre">Propulsion</span></code> and <code class="docutils literal notranslate"><span class="pre">Heat</span></code> converters.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Converter</span></code></p></li>
-<li><p><strong>Example values</strong>:</p>
-<ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">Converter(&quot;name&quot;)</span></code></p></li>
-</ul>
-</li>
+<li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">Converter(&quot;name&quot;)</span></code></p></li>
+<li><p><strong>Default</strong>: None. Must be provided by the user.</p></li>
 </ul>
 </section>
 <section id="heat">
 <h3>Heat *<a class="headerlink" href="#heat" title="Link to this heading">#</a></h3>
-<p>This attribute defines the converter used to satisfy the heat demand.</p>
+<p>This attribute defines the converter used to satisfy the heat demand. It must differ from the <code class="docutils literal notranslate"><span class="pre">Propulsion</span></code> and <code class="docutils literal notranslate"><span class="pre">Electrical</span></code> converters.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Converter</span></code></p></li>
-<li><p><strong>Example values</strong>:</p>
-<ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">Converter(&quot;name&quot;)</span></code></p></li>
-</ul>
-</li>
+<li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">Converter(&quot;name&quot;)</span></code></p></li>
+<li><p><strong>Default</strong>: None. Must be provided by the user.</p></li>
 </ul>
 </section>
 </section>

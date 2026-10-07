@@ -471,12 +471,13 @@ SPDX-License-Identifier: CC-BY-4.0
 <section class="tex2jax_ignore mathjax_ignore" id="variable">
 <h1>Variable<a class="headerlink" href="#variable" title="Link to this heading">#</a></h1>
 <p>A <code class="docutils literal notranslate"><span class="pre">Variable</span></code> node defines a single value that can be used across multiple attributes. Examples of variables
-are physical properties such as mass densities lower heating values.</p>
+are physical properties such as mass densities and lower heating values.</p>
 <p>Calculations in variables are done using the following formula:</p>
 <div class="math notranslate nohighlight">
 \[
 y = \min\left( \max\left( \text{Multiplier} \cdot (\text{Value} + \text{Addition}), \text{LowerBound} \right), \text{UpperBound} \right)
 \]</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">Addition</span></code> is applied before the <code class="docutils literal notranslate"><span class="pre">Multiplier</span></code>, and the bounds are applied last.</p>
 <p>An attribute that references the node holds <span class="math notranslate nohighlight">\(y\)</span> to its own minimum and maximum value as well: an inclusive one clamps <span class="math notranslate nohighlight">\(y\)</span>, and <span class="math notranslate nohighlight">\(y\)</span> reaching an exclusive one stops the run with an error. See <a class="reference internal" href="dsl_reference.html#assigning-attributes"><span class="std std-ref">Assigning attributes</span></a>.</p>
 <p>Example:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Variable</span> <span class="s2">"lower_heating_value_diesel"</span> <span class="p">{</span>
@@ -488,46 +489,46 @@ y = \min\left( \max\left( \text{Multiplier} \cdot (\text{Value} + \text{Addition
 <h2>Attributes<a class="headerlink" href="#attributes" title="Link to this heading">#</a></h2>
 <section id="value">
 <h3>Value<a class="headerlink" href="#value" title="Link to this heading">#</a></h3>
-<p>Sets the value of the variable.</p>
+<p>Sets the value of the variable, which enters the <a class="reference internal" href="#variable">formula</a> at the top of this page. The value may be an <a class="reference internal" href="dsl_reference.html#expressions"><span class="std std-ref">expression</span></a> of numbers; an expression that references a node is rejected. <code class="docutils literal notranslate"><span class="pre">INF</span></code> and <code class="docutils literal notranslate"><span class="pre">-INF</span></code> are accepted, and are checked against each attribute the variable is assigned to (see <a class="reference internal" href="dsl_reference.html#assigning-attributes"><span class="std std-ref">Assigning attributes</span></a>).</p>
 <ul class="simple">
-<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code></p></li>
-<li><p>Example value: <code class="docutils literal notranslate"><span class="pre">42.7</span></code></p></li>
+<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Expression</span></code></p></li>
+<li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">42.7</span></code></p></li>
 <li><p><strong>Default</strong>: None. Must be provided by the user.</p></li>
 </ul>
 </section>
 <section id="addition">
 <h3>Addition<a class="headerlink" href="#addition" title="Link to this heading">#</a></h3>
-<p>Sets an addition that is added on the value. The addition occurs according to the formula</p>
+<p>Sets a value that is added to the <code class="docutils literal notranslate"><span class="pre">Value</span></code>, before the <code class="docutils literal notranslate"><span class="pre">Multiplier</span></code> is applied, according to the <a class="reference internal" href="#variable">formula</a> at the top of this page. The value may be an <a class="reference internal" href="dsl_reference.html#expressions"><span class="std std-ref">expression</span></a> of numbers; an expression that references a node is rejected. <code class="docutils literal notranslate"><span class="pre">INF</span></code> and <code class="docutils literal notranslate"><span class="pre">-INF</span></code> are rejected.</p>
 <ul class="simple">
-<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code></p></li>
-<li><p>Example value: <code class="docutils literal notranslate"><span class="pre">10</span></code></p></li>
+<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Expression</span></code></p></li>
+<li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">10</span></code></p></li>
 <li><p><strong>Default</strong>: 0</p></li>
 </ul>
 </section>
 <section id="multiplier">
 <h3>Multiplier<a class="headerlink" href="#multiplier" title="Link to this heading">#</a></h3>
-<p>Sets a multiplier that is multiplied to the value. The multiplication occurs according to the formula</p>
+<p>Sets a factor that the <code class="docutils literal notranslate"><span class="pre">Value</span></code>, plus the <code class="docutils literal notranslate"><span class="pre">Addition</span></code>, is multiplied by, according to the <a class="reference internal" href="#variable">formula</a> at the top of this page. The value may be an <a class="reference internal" href="dsl_reference.html#expressions"><span class="std std-ref">expression</span></a> of numbers; an expression that references a node is rejected. <code class="docutils literal notranslate"><span class="pre">INF</span></code> and <code class="docutils literal notranslate"><span class="pre">-INF</span></code> are rejected.</p>
 <ul class="simple">
-<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code></p></li>
-<li><p>Example value: <code class="docutils literal notranslate"><span class="pre">2.5</span></code></p></li>
+<li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Expression</span></code></p></li>
+<li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">2.5</span></code></p></li>
 <li><p><strong>Default</strong>: 1</p></li>
 </ul>
 </section>
 <section id="lowerbound">
 <h3>LowerBound<a class="headerlink" href="#lowerbound" title="Link to this heading">#</a></h3>
-<p>Sets the lower bound. The lower bound is used according to the formula:</p>
+<p>Sets the lower bound that the result is clamped to after the <code class="docutils literal notranslate"><span class="pre">Addition</span></code> and the <code class="docutils literal notranslate"><span class="pre">Multiplier</span></code> are applied, according to the <a class="reference internal" href="#variable">formula</a> at the top of this page. <code class="docutils literal notranslate"><span class="pre">-INF</span></code> means no lower bound; <code class="docutils literal notranslate"><span class="pre">INF</span></code> is rejected.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code></p></li>
-<li><p>Example value: <code class="docutils literal notranslate"><span class="pre">-5</span></code></p></li>
+<li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">-5</span></code></p></li>
 <li><p><strong>Default</strong>: -INF</p></li>
 </ul>
 </section>
 <section id="upperbound">
 <h3>UpperBound<a class="headerlink" href="#upperbound" title="Link to this heading">#</a></h3>
-<p>Sets the upper bound. The upper bound is used according to the formula:</p>
+<p>Sets the upper bound that the result is clamped to after the <code class="docutils literal notranslate"><span class="pre">Addition</span></code> and the <code class="docutils literal notranslate"><span class="pre">Multiplier</span></code> are applied, according to the <a class="reference internal" href="#variable">formula</a> at the top of this page. <code class="docutils literal notranslate"><span class="pre">INF</span></code> means no upper bound; <code class="docutils literal notranslate"><span class="pre">-INF</span></code> is rejected.</p>
 <ul class="simple">
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code></p></li>
-<li><p>Example value: <code class="docutils literal notranslate"><span class="pre">5</span></code></p></li>
+<li><p><strong>Example value</strong>: <code class="docutils literal notranslate"><span class="pre">5</span></code></p></li>
 <li><p><strong>Default</strong>: INF</p></li>
 </ul>
 </section>
