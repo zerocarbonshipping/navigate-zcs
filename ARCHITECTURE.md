@@ -47,11 +47,12 @@ This file maps the code; the DSL and model behavior are documented in
 - `driver/` — the run sequence: `run.py` reads a deck, steps the
   `Simulation` through its dates with each date's events applied first, and
   writes the reports and plots.
-- `app/` — the interfaces Navigate is run through: `logs.py`, the run log
-  of a CLI run (its log file, line format, warning ledger and summary) and
-  the console preamble.
-- `exceptions.py` — the `NavigateError` hierarchy; `__main__.py` — the CLI,
-  which runs a deck through `driver/`.
+- `app/` — the interfaces Navigate is run through: `cli.py`, the command
+  line (arguments, input validation, error handling, profiling), which runs
+  a deck through `driver/`; and `logs.py`, the run log of a CLI run (its log
+  file, line format, warning ledger and summary) and the console preamble.
+- `exceptions.py` — the `NavigateError` hierarchy; `__main__.py` runs
+  `app/`'s `main` under `python -m navigate`.
 
 ## Layering
 
@@ -63,10 +64,10 @@ economics, policy    → core, foundation
 fleet, fuel          → economics, core, foundation
 bunker               → policy, core, foundation
 parser, output       → core, foundation
-app                  → foundation
+app                  → driver, foundation
 simulation           → economics, policy, fleet, fuel, bunker, core, foundation
 driver               → simulation, parser, output, core, foundation
-__main__             → driver, app, core, foundation
+__main__             → app
 ```
 
 A unit is a package or module under `navigate/` with a row, named by its

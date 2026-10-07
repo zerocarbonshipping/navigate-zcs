@@ -12,7 +12,7 @@ class NavigateError(Exception):
 
     Deck, command, attribute, and LP-solver errors raised anywhere in the
     package inherit from this common base so the top-level CLI handler in
-    ``navigate.__main__`` can catch them as one group and present a friendly
+    ``navigate.app.cli`` can catch them as one group and present a friendly
     message.
     """
 
