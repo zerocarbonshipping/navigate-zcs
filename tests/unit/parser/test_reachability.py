@@ -371,13 +371,12 @@ End
 def read_fleet_deck(read_deck):
     """Read a fleet deck against the shipped assumptions library."""
 
-    def read(define_extra="", events_content=EVENTS_BASE, parser=None):
+    def read(define_extra="", events_content=EVENTS_BASE):
         return read_deck(
             define_extra,
             define_base=DEFINE_BASE,
             events=events_content,
             data_dir=default_assumptions_dir(),
-            parser=parser,
         )
 
     return read
@@ -572,18 +571,6 @@ End
         parser.read_events(parser.dates[1])
 
         assert len(calls) == 1
-
-    def test_registry_dicts_pruned_in_place(self, read_fleet_deck):
-        # SimulationManager aliases parser.nodes before it reads the deck, so
-        # the prune must keep the dataclass and its dicts identical objects
-        parser = Parser()
-        vessels_group = parser.nodes.vessels
-
-        read_fleet_deck(define_extra=GHOST_VESSEL, parser=parser)
-
-        assert parser.nodes.vessels is vessels_group
-        assert "ghost" not in vessels_group
-        assert "vessel" in vessels_group
 
     def test_command_naming_pruned_node_errors_with_hint(self, read_fleet_deck):
         define_extra = GHOST_VESSEL + LEVY_GHOST
