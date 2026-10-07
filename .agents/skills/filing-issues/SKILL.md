@@ -29,7 +29,7 @@ Copy this checklist and tick it off:
 - [ ] 3. Read the form
 - [ ] 4. Read the type's reference
 - [ ] 5. Write the title
-- [ ] 6. Write the body, create the issue and report its URL
+- [ ] 6. Write the body and create the issue
 ```
 
 ## 1. Search for an existing issue or pull request
@@ -98,7 +98,7 @@ except a `type: markdown` entry, which produces none:
 - Every title is one specific sentence, under about 80 characters, with no
   prefix and no type tag. The detail goes in the body.
 
-## 6. Write the body, create the issue and report its URL
+## 6. Write the body and create the issue
 
 Write the body to a temporary file outside the repository, then:
 
@@ -106,8 +106,7 @@ Write the body to a temporary file outside the repository, then:
 gh issue create --title "<title>" --label <label> --body-file <file>
 ```
 
-The label is passed explicitly because `gh` does not apply the form. Report
-the URL that `gh issue create` prints.
+The label is passed explicitly because `gh` does not apply the form.
 
 ## Rules for every issue
 
