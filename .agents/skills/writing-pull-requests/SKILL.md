@@ -64,12 +64,18 @@ it corrects a wrong value. Label: `labels` of the matching form in
 ## Create
 
 - The squash commit body is the branch's commit messages, not the
-  description: no unsquashed "address review" commits.
+  description: each commit message describes its own change, fit for that
+  body. No commit message carries a closing keyword; it would fire when
+  `dev` reaches `main`, the default branch, at release.
 - Body in a file outside the repo; push; then
   `gh pr create --base <base> --title "<title>" --label <label> --body-file <file>`.
 - Base: `dev` or the integration branch of the larger effort, never
-  `main`. A stacked PR bases on its parent branch, retargeted to `dev` once
-  the parent merges.
+  `main`. A stacked PR bases on its parent branch. Once the parent is
+  squash-merged, the child still carries the parent's commits, whose
+  messages would land in its squash body: commit the child's own net diff
+  (`git diff <parent head> <child head>`) onto `origin/dev`, not
+  `git rebase` (these branches contain merge commits), force-push, then
+  retarget to `dev`.
 - Every title, body or base edit reruns CI (`edited` trigger): edit only to
   fix wrong content or to retarget.
 - Substance hard to find, e.g. mixed with moves or renames: post a

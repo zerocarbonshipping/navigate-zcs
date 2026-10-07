@@ -53,13 +53,20 @@ none. Required fields always present; empty optional ones omitted, never
 
 ## Per type
 
-- **bug:** Confirm on current `origin/dev`; pin that commit. Kind: crash,
-  wrong result, bad deck accepted silently, or valid deck rejected. Copy the
-  deck folder outside the repo (includes come with it); show the edit as a
-  diff. Run `navigate <copy>/<deck>.nav -d <repo>/assumptions -s`; give the
-  command, trimmed output, and what the unmodified copy does. Found by
-  reading code: say so, give the argument. Location is the defect, not where
-  it surfaces.
+- **bug:** Kind: crash, wrong result, bad deck accepted silently, or valid
+  deck rejected. Reproduce on a copy outside the repo. Includes resolve
+  relative to the deck's own directory, and scenario, regression and
+  guardrail decks include `../0_includes/*.inc`: copy everything the deck
+  reaches through relative includes with the layout kept, e.g. the parent
+  folder. Show the edit as a diff. Run
+  `<checkout>/.venv/bin/navigate <copy>/<deck>.nav -d <checkout>/assumptions -s`;
+  give the command, trimmed output, and what the unmodified copy does. Pin
+  the commit of `<checkout>`. If your branch changes the code or assumptions
+  involved, `<checkout>` is a worktree of `origin/dev` with its own
+  `make pip-setup`: `navigate` on PATH is one checkout's editable install,
+  and a worktree without its own environment imports the primary checkout's
+  code. Found by reading code: say so, give the argument. Location is the
+  defect, not where it surfaces.
 - **documentation:** Quote the wrong text, or name what is missing, with
   page and heading; give the source of truth it contradicts: setter,
   `navigate/parser/_attributes.py`/`_commands.py`, or code path. Unclear
