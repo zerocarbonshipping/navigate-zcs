@@ -17,8 +17,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from navigate.app import LOG_LEVELS, RunLog, print_preamble
-from navigate.core.enum_ import SolverBackendID
-from navigate.driver import run_deck
+from navigate.driver import SOLVER_BACKENDS, run_deck
 from navigate.exceptions import NavigateError
 
 if TYPE_CHECKING:
@@ -26,43 +25,10 @@ if TYPE_CHECKING:
 
 ASSUMPTIONS_ENV_VAR = "ASSUMPTIONS_DATA_DIR"
 
-_SOLVER_BACKENDS: dict[str, SolverBackendID] = {
-    "auto": SolverBackendID.AUTOMATIC,
-    "gurobi": SolverBackendID.GUROBI,
-    "highs": SolverBackendID.HIGHS,
-}
-
 # the errors a run reports: logged with their traceback, printed to the console
 _FATAL_ERRORS = (NavigateError, OSError)
 
 logger = logging.getLogger(__name__)
-
-
-def _solver_backend(value: str) -> SolverBackendID:
-    """
-    Convert a '--solver' CLI argument to its SolverBackendID member.
-
-    Used as the argument's argparse 'type=', so 'args.solver' already holds the
-    member (or None, when '--solver' is not passed) by the time it reaches
-    run_deck.
-
-    Parameters
-    ----------
-    value
-        Raw '--solver' argument from the command line.
-
-    Returns
-    -------
-    SolverBackendID
-        The member the CLI choice names.
-    """
-    try:
-        return _SOLVER_BACKENDS[value]
-    except KeyError:
-        choices = ", ".join(repr(choice) for choice in _SOLVER_BACKENDS)
-        raise argparse.ArgumentTypeError(
-            f"invalid choice: {value!r} (choose from {choices})"
-        ) from None
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -101,8 +67,8 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--solver",
         default=None,
-        type=_solver_backend,
-        metavar="{" + ",".join(_SOLVER_BACKENDS) + "}",
+        choices=SOLVER_BACKENDS,
+        metavar="{" + ",".join(SOLVER_BACKENDS) + "}",
         help="Solver backend: 'auto' tries Gurobi then falls back to HiGHS, "
         "'gurobi' prefers Gurobi (falls back to HiGHS if unlicensed), "
         "'highs' skips Gurobi and uses HiGHS directly. Default: auto.",

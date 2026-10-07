@@ -14,6 +14,7 @@ import math
 import timeit
 from typing import TYPE_CHECKING
 
+from navigate.core.enum_ import SolverBackendID
 from navigate.output import write_report
 from navigate.parser import Parser
 from navigate.simulation import Simulation
@@ -25,7 +26,13 @@ if TYPE_CHECKING:
     import numpy as np
 
     from navigate.core import SimulationResults
-    from navigate.core.enum_ import SolverBackendID
+
+# the names the solver choice goes by, for the CLI's '--solver' and run_deck's 'solver'
+SOLVER_BACKENDS: dict[str, SolverBackendID] = {
+    "auto": SolverBackendID.AUTOMATIC,
+    "gurobi": SolverBackendID.GUROBI,
+    "highs": SolverBackendID.HIGHS,
+}
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +41,7 @@ def run_deck(
     deck: Path,
     *,
     data_dir: Path | None = None,
-    solver: SolverBackendID | None = None,
+    solver: str | None = None,
     plots: bool,
 ) -> SimulationResults:
     """
@@ -47,8 +54,8 @@ def run_deck(
     data_dir
         Assumptions data folder.
     solver
-        Solver backend that overrides the deck's BunkerOptions setting, or None
-        to keep the deck's setting.
+        Name of the solver backend, a key of SOLVER_BACKENDS, that overrides the
+        deck's BunkerOptions setting, or None to keep the deck's setting.
     plots
         Whether to render the plots the deck's Plot nodes request.
 
@@ -66,7 +73,7 @@ def run_deck(
     parser.includes_necessary_information()
 
     if solver is not None:
-        parser.general_nodes.bunker_options.solver = solver
+        parser.general_nodes.bunker_options.solver = SOLVER_BACKENDS[solver]
 
     start_time = timeit.default_timer()
     simulation = Simulation(
