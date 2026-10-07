@@ -15,12 +15,12 @@ from typing import TYPE_CHECKING, Literal
 import navigate.simulation.bunker.solver as gp
 
 if TYPE_CHECKING:
-    from navigate.core.enum_ import EnergyDemandTypeID
+    from navigate.core.enum_ import EnergyDemandID
     from navigate.simulation.bunker.bunker_algorithm import BunkerAlgorithm
 
 # the key of an LP element within its family: a single name, or the node names,
 # route indices and energy demand type the element spans
-type _ElementKey = str | tuple[str | int | EnergyDemandTypeID, ...]
+type _ElementKey = str | tuple[str | int | EnergyDemandID, ...]
 
 # the model's spelling of each sense get_constraint accepts
 _MODEL_SENSES = {"==": gp.EQUAL, "<=": gp.LESS_EQUAL, ">=": gp.GREATER_EQUAL}

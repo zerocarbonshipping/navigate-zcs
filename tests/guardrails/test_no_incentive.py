@@ -19,7 +19,7 @@ import numpy as np
 import pytest
 
 from helpers.simulation import check_invariants, run_simulation
-from navigate.core.enum_ import EnergyDemandTypeID, FuelTypeID
+from navigate.core.enum_ import EnergyDemandID, FuelTypeID
 
 SIMULATIONS_DIR = Path(__file__).resolve().parent / "simulations"
 
@@ -132,9 +132,9 @@ class TestNoIncentive:
         profile = results.profile
         saving = profile.get_saving()
         savings = {
-            "propulsion": saving[EnergyDemandTypeID.PROPULSION],
-            "electrical": saving[EnergyDemandTypeID.ELECTRICAL],
-            "heat": saving[EnergyDemandTypeID.HEAT],
+            "propulsion": saving[EnergyDemandID.PROPULSION],
+            "electrical": saving[EnergyDemandID.ELECTRICAL],
+            "heat": saving[EnergyDemandID.HEAT],
             "technology": profile.get_technology_energy_intensity_saving(),
             "operational": profile.get_operational_energy_intensity_saving(),
             "total": profile.get_energy_intensity_saving(),

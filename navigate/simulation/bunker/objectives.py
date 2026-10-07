@@ -71,7 +71,7 @@ def update_vessel_objectives(alg: BunkerAlgorithm, vessel: Vessel) -> None:
     time_port = vessel.expectation.get_time_port(alg.idx)
     vessel_capacity = vessel.expectation.get_shore_power_capacity(alg.idx)
     electrical_demand = vessel.expectation.get_energy_port(idx=alg.idx).get(
-        enum_.EnergyDemandTypeID.ELECTRICAL, [0.0] * len(ports)
+        enum_.EnergyDemandID.ELECTRICAL, [0.0] * len(ports)
     )
 
     for p, port in enumerate(ports):

@@ -8,11 +8,7 @@ from __future__ import annotations
 import pytest
 
 from navigate.core.assign import assign_id_list, expand_id_wildcard
-from navigate.core.enum_ import (
-    EnergyDemandTypeID,
-    EnergyDemandTypePortID,
-    FuelTypeID,
-)
+from navigate.core.enum_ import PORT_ENERGY_DEMANDS, EnergyDemandID, FuelTypeID
 from navigate.util import matching_keys, retrieve_keys
 
 # -- expand_id_wildcard --------------------------------------------------------
@@ -44,16 +40,16 @@ class TestExpandIdWildcard:
     @pytest.mark.parametrize(
         ("pattern", "expected"),
         [
-            ("*", {EnergyDemandTypeID.ELECTRICAL, EnergyDemandTypeID.HEAT}),
-            ("H*", {EnergyDemandTypeID.HEAT}),
-            ("?LECTRICAL", {EnergyDemandTypeID.ELECTRICAL}),
+            ("*", {EnergyDemandID.ELECTRICAL, EnergyDemandID.HEAT}),
+            ("H*", {EnergyDemandID.HEAT}),
+            ("?LECTRICAL", {EnergyDemandID.ELECTRICAL}),
         ],
         ids=["star", "prefix", "question_mark"],
     )
     def test_member_tuple_domain_expands_to_its_members(self, pattern, expected):
         # a command whose attribute holds a subset of the enum registers that
         # subset, so the expansion stays inside what the attribute holds
-        result = expand_id_wildcard(pattern, EnergyDemandTypePortID)
+        result = expand_id_wildcard(pattern, PORT_ENERGY_DEMANDS)
         assert set(result) == expected
 
     def test_member_tuple_domain_rejects_excluded_member(self):
@@ -61,7 +57,7 @@ class TestExpandIdWildcard:
             ValueError,
             match=r"wildcard 'P\*' did not match any of ELECTRICAL, HEAT$",
         ):
-            expand_id_wildcard("P*", EnergyDemandTypePortID)
+            expand_id_wildcard("P*", PORT_ENERGY_DEMANDS)
 
 
 # -- assign_id_list with wildcards ---------------------------------------------

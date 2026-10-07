@@ -11,7 +11,7 @@ import numpy as np
 import pytest
 
 from navigate.core import Scalar
-from navigate.core.enum_ import EnergyDemandTypeID
+from navigate.core.enum_ import EnergyDemandID
 from navigate.core.increment import VesselIncrement
 from navigate.core.node_type import FLEET, VESSEL
 from navigate.core.nodes.fleet import Fleet
@@ -118,33 +118,24 @@ class TestNetEnergyFromRaw:
         ("raw", "sav", "expected"),
         [
             (
-                {EnergyDemandTypeID.PROPULSION: [100.0, 200.0]},
-                {EnergyDemandTypeID.PROPULSION: [0.0, 0.0]},
-                {EnergyDemandTypeID.PROPULSION: [100.0, 200.0]},
+                {EnergyDemandID.PROPULSION: [100.0, 200.0]},
+                {EnergyDemandID.PROPULSION: [0.0, 0.0]},
+                {EnergyDemandID.PROPULSION: [100.0, 200.0]},
             ),
             (
-                {EnergyDemandTypeID.PROPULSION: [100.0, 200.0]},
-                {EnergyDemandTypeID.PROPULSION: [0.5, 0.5]},
-                {EnergyDemandTypeID.PROPULSION: [50.0, 100.0]},
+                {EnergyDemandID.PROPULSION: [100.0, 200.0]},
+                {EnergyDemandID.PROPULSION: [0.5, 0.5]},
+                {EnergyDemandID.PROPULSION: [50.0, 100.0]},
             ),
             (
-                {EnergyDemandTypeID.PROPULSION: [100.0]},
-                {EnergyDemandTypeID.PROPULSION: [1.0]},
-                {EnergyDemandTypeID.PROPULSION: [0.0]},
+                {EnergyDemandID.PROPULSION: [100.0]},
+                {EnergyDemandID.PROPULSION: [1.0]},
+                {EnergyDemandID.PROPULSION: [0.0]},
             ),
             (
-                {
-                    EnergyDemandTypeID.PROPULSION: [100.0],
-                    EnergyDemandTypeID.ELECTRICAL: [50.0],
-                },
-                {
-                    EnergyDemandTypeID.PROPULSION: [0.1],
-                    EnergyDemandTypeID.ELECTRICAL: [0.2],
-                },
-                {
-                    EnergyDemandTypeID.PROPULSION: [90.0],
-                    EnergyDemandTypeID.ELECTRICAL: [40.0],
-                },
+                {EnergyDemandID.PROPULSION: [100.0], EnergyDemandID.ELECTRICAL: [50.0]},
+                {EnergyDemandID.PROPULSION: [0.1], EnergyDemandID.ELECTRICAL: [0.2]},
+                {EnergyDemandID.PROPULSION: [90.0], EnergyDemandID.ELECTRICAL: [40.0]},
             ),
         ],
     )

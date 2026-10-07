@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.enum_ import EnergyDemandTypeID, EnergyDemandTypePortID
+from navigate.core.enum_ import PORT_ENERGY_DEMANDS, EnergyDemandID
 from navigate.core.initial_values import EMPTY_BOOL, EMPTY_FLOAT, EMPTY_NAN
 from navigate.core.profiles._fuel_consumer_profile import _FuelConsumerProfile
 from navigate.util import divide_nonzero
@@ -160,39 +160,35 @@ class VesselProfile(_FuelConsumerProfile):
         self._investment_signal_speed[idx] = investment_signal
 
     def set_raw_energy_sea(
-        self, idx: int, energy: Mapping[EnergyDemandTypeID, float]
+        self, idx: int, energy: Mapping[EnergyDemandID, float]
     ) -> None:
-        for energy_id in EnergyDemandTypeID:
+        for energy_id in EnergyDemandID:
             self._raw_energy_sea[energy_id][idx] = energy[energy_id]
 
     def set_raw_energy_port(
-        self, idx: int, energy: Mapping[EnergyDemandTypeID, float]
+        self, idx: int, energy: Mapping[EnergyDemandID, float]
     ) -> None:
-        for energy_id in EnergyDemandTypePortID:
+        for energy_id in PORT_ENERGY_DEMANDS:
             self._raw_energy_port[energy_id][idx] = energy[energy_id]
 
     def set_operational_energy_sea(
-        self, idx: int, energy: Mapping[EnergyDemandTypeID, float]
+        self, idx: int, energy: Mapping[EnergyDemandID, float]
     ) -> None:
-        for energy_id in EnergyDemandTypeID:
+        for energy_id in EnergyDemandID:
             self._operational_energy_sea[energy_id][idx] = energy[energy_id]
 
     def set_operational_energy_port(
-        self, idx: int, energy: Mapping[EnergyDemandTypeID, float]
+        self, idx: int, energy: Mapping[EnergyDemandID, float]
     ) -> None:
-        for energy_id in EnergyDemandTypePortID:
+        for energy_id in PORT_ENERGY_DEMANDS:
             self._operational_energy_port[energy_id][idx] = energy[energy_id]
 
-    def set_energy_sea(
-        self, idx: int, energy: Mapping[EnergyDemandTypeID, float]
-    ) -> None:
-        for energy_id in EnergyDemandTypeID:
+    def set_energy_sea(self, idx: int, energy: Mapping[EnergyDemandID, float]) -> None:
+        for energy_id in EnergyDemandID:
             self._energy_sea[energy_id][idx] = energy[energy_id]
 
-    def set_energy_port(
-        self, idx: int, energy: Mapping[EnergyDemandTypeID, float]
-    ) -> None:
-        for energy_id in EnergyDemandTypePortID:
+    def set_energy_port(self, idx: int, energy: Mapping[EnergyDemandID, float]) -> None:
+        for energy_id in PORT_ENERGY_DEMANDS:
             self._energy_port[energy_id][idx] = energy[energy_id]
 
     def set_technology_cost(self, idx: int, cost: float) -> None:

@@ -26,8 +26,8 @@ from navigate.core import (
     write_matching_keys,
 )
 from navigate.core.enum_ import (
-    EnergyDemandTypeID,
-    EnergyDemandTypePortID,
+    PORT_ENERGY_DEMANDS,
+    EnergyDemandID,
     ExtrapolateID,
     SpeedAlignmentID,
 )
@@ -93,11 +93,11 @@ class Fleet(_AssetManager[Vessel, VesselIncrement]):
         ] = {}
         self.orderbooks: list[ForecastInput] = []
         self.technologies: list[Technology] = []
-        self.operational_saving_sea: dict[EnergyDemandTypeID, ForecastInput] = {
-            d: Scalar(0.0) for d in EnergyDemandTypeID
+        self.operational_saving_sea: dict[EnergyDemandID, ForecastInput] = {
+            d: Scalar(0.0) for d in EnergyDemandID
         }
-        self.operational_saving_port: dict[EnergyDemandTypeID, ForecastInput] = {
-            d: Scalar(0.0) for d in EnergyDemandTypePortID
+        self.operational_saving_port: dict[EnergyDemandID, ForecastInput] = {
+            d: Scalar(0.0) for d in PORT_ENERGY_DEMANDS
         }
         self.fuel_conversion_cost: dict[tuple[str, str], ForecastInput | None] = {}
         self.fuel_conversion_limit: dict[tuple[str, str], ForecastInput] = {}
@@ -402,7 +402,7 @@ class Fleet(_AssetManager[Vessel, VesselIncrement]):
             as_scalar(saving), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
         )
 
-        id_ = assign_id(energy_type, EnergyDemandTypeID)
+        id_ = assign_id(energy_type, EnergyDemandID)
         write_matching_keys(id_, value_, self.operational_saving_sea)
 
     def set_operational_saving_port(
@@ -413,7 +413,7 @@ class Fleet(_AssetManager[Vessel, VesselIncrement]):
             as_scalar(saving), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
         )
 
-        id_ = assign_member(energy_type, EnergyDemandTypePortID)
+        id_ = assign_member(energy_type, PORT_ENERGY_DEMANDS)
         write_matching_keys(id_, value_, self.operational_saving_port)
 
     # internal methods -----------------------------------------------------------------

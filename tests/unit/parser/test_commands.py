@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import pytest
 
-from navigate.core.enum_ import SimulationSectionID
+from navigate.core.enum_ import SectionID
 from navigate.exceptions import CommandError
 from navigate.parser._commands import CommandReference, check_node_command_is_allowed
 from navigate.parser._lark_parser import Command, GeneralNodeDeclaration, SourceLocation
@@ -17,30 +17,26 @@ from navigate.parser.parser import Parser
 class TestCheckNodeCommandIsAllowed:
     def test_valid_command_both_sections(self):
         """set_bunkering_allowed is BOTH for Port."""
-        check_node_command_is_allowed(
-            "Port", "set_bunkering_allowed", SimulationSectionID.DEFINE
-        )
-        check_node_command_is_allowed(
-            "Port", "set_bunkering_allowed", SimulationSectionID.EVENTS
-        )
+        check_node_command_is_allowed("Port", "set_bunkering_allowed", SectionID.DEFINE)
+        check_node_command_is_allowed("Port", "set_bunkering_allowed", SectionID.EVENTS)
 
     def test_define_only_command_in_events_raises(self):
         """set_ttw is DEFINE-only for Fuel."""
-        check_node_command_is_allowed("Fuel", "set_ttw", SimulationSectionID.DEFINE)
+        check_node_command_is_allowed("Fuel", "set_ttw", SectionID.DEFINE)
         with pytest.raises(CommandError, match="does not allow use of command"):
-            check_node_command_is_allowed("Fuel", "set_ttw", SimulationSectionID.EVENTS)
+            check_node_command_is_allowed("Fuel", "set_ttw", SectionID.EVENTS)
 
     def test_unknown_command_raises(self):
         with pytest.raises(CommandError, match="has no command"):
             check_node_command_is_allowed(
-                "Port", "nonexistent_command", SimulationSectionID.DEFINE
+                "Port", "nonexistent_command", SectionID.DEFINE
             )
 
 
 class TestGeneralNodeCommands:
     def test_command_on_general_node_raises(self):
         parser = Parser()
-        parser._current_section = SimulationSectionID.DEFINE
+        parser._current_section = SectionID.DEFINE
         declaration = GeneralNodeDeclaration(
             node_type="BunkerOptions",
             body=[

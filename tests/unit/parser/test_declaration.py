@@ -11,7 +11,7 @@ no declaration ever fills.
 
 from __future__ import annotations
 
-from navigate.core.enum_ import SimulationSectionID
+from navigate.core.enum_ import SectionID
 from navigate.core.node_type import PROCESS
 from navigate.parser._lark_parser import Assignment, NodeDeclaration
 from navigate.parser._node_reference import NodeReference
@@ -20,7 +20,7 @@ from navigate.parser.parser import Parser
 
 def test_a_body_reference_to_its_own_node_binds_to_it():
     parser = Parser()
-    parser._current_section = SimulationSectionID.DEFINE
+    parser._current_section = SectionID.DEFINE
     body = [Assignment("Feeds", [NodeReference(PROCESS, "p")])]
 
     parser._process_node_declaration(NodeDeclaration(PROCESS, "p", body))

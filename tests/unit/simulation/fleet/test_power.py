@@ -22,11 +22,7 @@ import numpy as np
 import pytest
 
 from navigate.core import Expression, Scalar
-from navigate.core.enum_ import (
-    BunkerScopeID,
-    EnergyDemandTypeID,
-    EnergyDemandTypePortID,
-)
+from navigate.core.enum_ import PORT_ENERGY_DEMANDS, BunkerScopeID, EnergyDemandID
 from navigate.core.expectations.vessel_expectation import VesselExpectation
 from navigate.core.nodes.variable import Variable
 from navigate.exceptions import PowerCapacityError
@@ -38,9 +34,9 @@ from navigate.simulation.fleet.power import (
 )
 from navigate.util import MWD_TO_GJ, TOLERANCE
 
-PROPULSION = EnergyDemandTypeID.PROPULSION
-ELECTRICAL = EnergyDemandTypeID.ELECTRICAL
-HEAT = EnergyDemandTypeID.HEAT
+PROPULSION = EnergyDemandID.PROPULSION
+ELECTRICAL = EnergyDemandID.ELECTRICAL
+HEAT = EnergyDemandID.HEAT
 
 IDX = 3
 
@@ -301,31 +297,29 @@ class TestExpectationHorizonBroadcast:
         expectation._time_sea = expectation._default_list_array(1)
         expectation._time_port = expectation._default_list_array(1)
         expectation._energy_sea = expectation._default_dict_list_array(
-            EnergyDemandTypeID, 1
+            EnergyDemandID, 1
         )
         expectation._energy_port = expectation._default_dict_list_array(
-            EnergyDemandTypePortID, 1
+            PORT_ENERGY_DEMANDS, 1
         )
         return expectation
 
     def test_writes_broadcast_over_the_remaining_horizon(self, expectation):
         expectation.set_time_sea(self.WRITE_IDX, [3.0])
         expectation.set_time_port(self.WRITE_IDX, [4.0])
-        expectation.set_energy_sea(
-            self.WRITE_IDX, {d: [100.0] for d in EnergyDemandTypeID}
-        )
+        expectation.set_energy_sea(self.WRITE_IDX, {d: [100.0] for d in EnergyDemandID})
         expectation.set_energy_port(
-            self.WRITE_IDX, {d: [50.0] for d in EnergyDemandTypePortID}
+            self.WRITE_IDX, {d: [50.0] for d in PORT_ENERGY_DEMANDS}
         )
 
         for idx in range(self.WRITE_IDX, self.LENGTH):
             assert expectation.get_time_sea(idx) == [3.0]
             assert expectation.get_time_port(idx) == [4.0]
             assert expectation.get_energy_sea(idx=idx) == {
-                d: [100.0] for d in EnergyDemandTypeID
+                d: [100.0] for d in EnergyDemandID
             }
             assert expectation.get_energy_port(idx=idx) == {
-                d: [50.0] for d in EnergyDemandTypePortID
+                d: [50.0] for d in PORT_ENERGY_DEMANDS
             }
 
 

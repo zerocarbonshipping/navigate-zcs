@@ -87,7 +87,7 @@ This attribute sets the vessel-side shore power connection capacity. A vessel's 
 
 This command sets the fraction of the raw energy demand of an energy demand type saved by the technology. The saving is applied before any external power is subtracted, and the savings of several technologies installed together compound: two savings of 0.1 give a combined saving of 1 − 0.9 × 0.9 = 0.19.
 
-* **Primary key type**: [EnergyDemandTypeID](appendix_ids.md#energydemandtypeid) (supports wildcards)
+* **Primary key type**: [EnergyDemandID](appendix_ids.md#energydemandid) (supports wildcards)
 * **Data type**: `Float`, `Variable`
 * **Example values**:
   + `PROPULSION, 0.2`
@@ -100,7 +100,7 @@ This command sets the fraction of the raw energy demand of an energy demand type
 
 This command sets the external power the technology supplies to an energy demand type. The power is converted to energy over the time spent on each leg or in each port and subtracted from the demand left after the energy savings, floored at 0. The external powers of several technologies installed together add up.
 
-* **Primary key type**: [EnergyDemandTypeID](appendix_ids.md#energydemandtypeid) (supports wildcards)
+* **Primary key type**: [EnergyDemandID](appendix_ids.md#energydemandid) (supports wildcards)
 * **Data type**: `Float`, `Variable`
 * **Example values**:
   + `PROPULSION, 1.25`
@@ -113,8 +113,8 @@ This command sets the external power the technology supplies to an energy demand
 
 This command sets the power transferred from a source energy demand type to a sink energy demand type, e.g. from propulsion to electrical for a shaft generator. A Curve maps the load of the source's converter (its residual power divided by its power capacity) to the transferred power; a number is a constant power. The power is converted to energy over the time spent on each leg or in each port and subtracted from the sink's residual demand, floored at 0. The transfers of several technologies installed together add up.
 
-* **Primary key type**: [EnergyDemandTypeID](appendix_ids.md#energydemandtypeid) (source; supports wildcards)
-* **Secondary key type**: [EnergyDemandTypeID](appendix_ids.md#energydemandtypeid) (sink; supports wildcards)
+* **Primary key type**: [EnergyDemandID](appendix_ids.md#energydemandid) (source; supports wildcards)
+* **Secondary key type**: [EnergyDemandID](appendix_ids.md#energydemandid) (sink; supports wildcards)
 * **Data type**: `Float`, `Curve`, `Variable`
 * **Example values**:
   + `PROPULSION, ELECTRICAL, Curve("name")`

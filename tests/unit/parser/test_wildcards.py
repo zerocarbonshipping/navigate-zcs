@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import pytest
 
-from navigate.core.enum_ import SimulationSectionID
+from navigate.core.enum_ import SectionID
 from navigate.core.nodes.fleet import Fleet
 from navigate.core.nodes.fuel import Fuel
 from navigate.core.nodes.port import Port
@@ -186,7 +186,7 @@ class TestWildcardNodeReferenceExpansion:
         # the setter never sees the wildcard: the parser holds the assignment
         # back and flushes it once the registry is complete
         parser = self._make_parser_with_ports("port_a", "port_b")
-        parser._current_section = SimulationSectionID.DEFINE
+        parser._current_section = SectionID.DEFINE
         route = Route("r")
         parser.nodes.routes["r"] = route
 

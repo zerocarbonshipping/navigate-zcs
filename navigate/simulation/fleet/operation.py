@@ -24,7 +24,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.enum_ import EnergyDemandTypeID, EnergyDemandTypePortID, RouteTypeID
+from navigate.core.enum_ import PORT_ENERGY_DEMANDS, EnergyDemandID, RouteTypeID
 from navigate.core.wrap import to_numpy
 from navigate.simulation.fleet.power import calculate_technical_speed_limits
 from navigate.util import DAY_TO_HOURS, HOUR_TO_DAYS, MWD_TO_GJ, YEAR, divide_nonzero
@@ -95,8 +95,8 @@ class Operations:
     cargo_miles_leg_nominal: FloatArray = field(default_factory=lambda: np.empty(0))
 
     # energy
-    energy_sea: dict[EnergyDemandTypeID, FloatArray] = field(default_factory=dict)
-    energy_port: dict[EnergyDemandTypeID, FloatArray] = field(default_factory=dict)
+    energy_sea: dict[EnergyDemandID, FloatArray] = field(default_factory=dict)
+    energy_port: dict[EnergyDemandID, FloatArray] = field(default_factory=dict)
 
 
 def update_operational_profile(
@@ -211,9 +211,8 @@ def transfer_operational_profile(
 
 
 def convert_to_regional_steps(
-    vessel: Vessel,
-    energy_sea: Mapping[EnergyDemandTypeID, Sequence[FloatLike]],
-) -> dict[EnergyDemandTypeID, list[FloatLike]]:
+    vessel: Vessel, energy_sea: Mapping[EnergyDemandID, Sequence[FloatLike]]
+) -> dict[EnergyDemandID, list[FloatLike]]:
     """
     Redistribute the sea energy demand onto regional steps by the voyage distribution.
 
@@ -226,7 +225,7 @@ def convert_to_regional_steps(
 
     Returns
     -------
-    dict[EnergyDemandTypeID, list[FloatLike]]
+    dict[EnergyDemandID, list[FloatLike]]
         Energy demand at sea redistributed across regional legs; a fresh copy of the
         input, per leg, if the route is not a regional trip.
     """
@@ -236,7 +235,7 @@ def convert_to_regional_steps(
         return {demand_type: list(energy) for demand_type, energy in energy_sea.items()}
 
     n_leg = route.get_number_of_regional_legs()
-    out_sea: dict[EnergyDemandTypeID, list[FloatLike]] = {
+    out_sea: dict[EnergyDemandID, list[FloatLike]] = {
         demand_type: [0.0 for _ in range(n_leg)] for demand_type in energy_sea
     }
     sailing_fractions = route.get_voyage_distribution(to_array=True)
@@ -449,15 +448,13 @@ def _calculate_energy_sea(operations: Operations, vessel: Vessel) -> None:
     load_electrical = vessel.electrical_load_at_sea.get(speeds, capacity_utilizations)
     load_heat = vessel.heat_load_at_sea.get(speeds, capacity_utilizations)
 
-    operations.energy_sea[EnergyDemandTypeID.PROPULSION] = _load_to_energy(
+    operations.energy_sea[EnergyDemandID.PROPULSION] = _load_to_energy(
         load_propulsion, times_sea
     )
-    operations.energy_sea[EnergyDemandTypeID.ELECTRICAL] = _load_to_energy(
+    operations.energy_sea[EnergyDemandID.ELECTRICAL] = _load_to_energy(
         load_electrical, times_sea
     )
-    operations.energy_sea[EnergyDemandTypeID.HEAT] = _load_to_energy(
-        load_heat, times_sea
-    )
+    operations.energy_sea[EnergyDemandID.HEAT] = _load_to_energy(load_heat, times_sea)
 
 
 def _calculate_energy_port(operations: Operations, vessel: Vessel) -> None:
@@ -476,12 +473,10 @@ def _calculate_energy_port(operations: Operations, vessel: Vessel) -> None:
     load_electrical = vessel.electrical_load_in_port.get()
     load_heat = vessel.heat_load_in_port.get()
 
-    operations.energy_port[EnergyDemandTypeID.ELECTRICAL] = _load_to_energy(
+    operations.energy_port[EnergyDemandID.ELECTRICAL] = _load_to_energy(
         load_electrical, times_port
     )
-    operations.energy_port[EnergyDemandTypeID.HEAT] = _load_to_energy(
-        load_heat, times_port
-    )
+    operations.energy_port[EnergyDemandID.HEAT] = _load_to_energy(load_heat, times_port)
 
 
 def _load_to_energy(load: FloatLike, time: FloatArray) -> FloatArray:
@@ -512,9 +507,9 @@ def transfer_operational_saving_to_vessels(fleet: Fleet) -> None:
     fleet
         Fleet whose saving fractions are transferred.
     """
-    saving_sea = {d: fleet.operational_saving_sea[d].get() for d in EnergyDemandTypeID}
+    saving_sea = {d: fleet.operational_saving_sea[d].get() for d in EnergyDemandID}
     saving_port = {
-        d: fleet.operational_saving_port[d].get() for d in EnergyDemandTypePortID
+        d: fleet.operational_saving_port[d].get() for d in PORT_ENERGY_DEMANDS
     }
     for vessel in fleet.assets:
         vessel.expectation.set_operational_saving_fraction_sea(saving_sea)

@@ -10,11 +10,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core import Expression, Scalar
-from navigate.core.enum_ import (
-    BunkerScopeID,
-    EnergyDemandTypeID,
-    EnergyDemandTypePortID,
-)
+from navigate.core.enum_ import PORT_ENERGY_DEMANDS, BunkerScopeID, EnergyDemandID
 from navigate.core.node_type import is_surface, is_variable
 from navigate.core.wrap import to_numpy
 from navigate.exceptions import PowerCapacityError
@@ -221,8 +217,8 @@ def verify_vessel_power_capacity(vessel: Vessel, idx: int) -> None:
     energies_port = expectation.get_energy_port(idx=idx)
 
     domains = (
-        (energies_sea, times_sea, "leg", EnergyDemandTypeID),
-        (energies_port, times_port, "port", EnergyDemandTypePortID),
+        (energies_sea, times_sea, "leg", EnergyDemandID),
+        (energies_port, times_port, "port", PORT_ENERGY_DEMANDS),
     )
 
     violations = []
@@ -268,7 +264,7 @@ def get_total_power_capacity(vessel: Vessel) -> float:
 
 def _find_capacity_violations(
     converter: Converter,
-    demand_type: EnergyDemandTypeID,
+    demand_type: EnergyDemandID,
     energies: list[float],
     times: list[float],
     step_label: str,

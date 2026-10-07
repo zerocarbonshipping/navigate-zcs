@@ -15,7 +15,7 @@ from navigate.simulation.fleet.residual_energy import calculate_residual_energy
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
 
-    from navigate.core.enum_ import EnergyDemandTypeID
+    from navigate.core.enum_ import EnergyDemandID
     from navigate.core.nodes.vessel import Vessel
     from navigate.core.technology_package import TechnologyPackage
     from navigate.util.types_ import FloatArray, FloatLike
@@ -24,8 +24,7 @@ if TYPE_CHECKING:
 def get_smoothed_energy_duals_technology(
     vessel: Vessel,
 ) -> tuple[
-    dict[EnergyDemandTypeID, list[FloatArray]],
-    dict[EnergyDemandTypeID, list[FloatArray]],
+    dict[EnergyDemandID, list[FloatArray]], dict[EnergyDemandID, list[FloatArray]]
 ]:
     """
     Return the per-leg shadow-price beliefs amortised over the technology horizon.
@@ -40,9 +39,9 @@ def get_smoothed_energy_duals_technology(
 
     Returns
     -------
-    dict[EnergyDemandTypeID, list[FloatArray]]
+    dict[EnergyDemandID, list[FloatArray]]
         Smoothed shadow prices at sea per energy demand type and leg, USD/GJ.
-    dict[EnergyDemandTypeID, list[FloatArray]]
+    dict[EnergyDemandID, list[FloatArray]]
         Smoothed shadow prices in port per energy demand type and port, USD/GJ.
     """
     expectation = vessel.expectation
@@ -55,8 +54,7 @@ def get_smoothed_energy_duals_technology(
 def get_smoothed_energy_duals_speed(
     vessel: Vessel,
 ) -> tuple[
-    dict[EnergyDemandTypeID, list[FloatArray]],
-    dict[EnergyDemandTypeID, list[FloatArray]],
+    dict[EnergyDemandID, list[FloatArray]], dict[EnergyDemandID, list[FloatArray]]
 ]:
     """
     Return the per-leg shadow-price beliefs amortised over the speed horizon.
@@ -71,9 +69,9 @@ def get_smoothed_energy_duals_speed(
 
     Returns
     -------
-    dict[EnergyDemandTypeID, list[FloatArray]]
+    dict[EnergyDemandID, list[FloatArray]]
         Smoothed shadow prices at sea per energy demand type and leg, USD/GJ.
-    dict[EnergyDemandTypeID, list[FloatArray]]
+    dict[EnergyDemandID, list[FloatArray]]
         Smoothed shadow prices in port per energy demand type and port, USD/GJ.
     """
     expectation = vessel.expectation
@@ -140,12 +138,12 @@ def calculate_marginal_technology_saving(
 
 def calculate_marginal_speed_saving(
     vessel: Vessel,
-    residual_energy_sea: Mapping[EnergyDemandTypeID, Sequence[FloatLike]],
-    residual_energy_port: Mapping[EnergyDemandTypeID, Sequence[FloatLike]],
+    residual_energy_sea: Mapping[EnergyDemandID, Sequence[FloatLike]],
+    residual_energy_port: Mapping[EnergyDemandID, Sequence[FloatLike]],
     idx: int,
     smoothed_duals: tuple[
-        Mapping[EnergyDemandTypeID, Sequence[FloatArray]],
-        Mapping[EnergyDemandTypeID, Sequence[FloatArray]],
+        Mapping[EnergyDemandID, Sequence[FloatArray]],
+        Mapping[EnergyDemandID, Sequence[FloatArray]],
     ],
 ) -> float:
     """
@@ -197,12 +195,12 @@ def calculate_marginal_speed_saving(
 
 
 def _calculate_marginal_saving(
-    residual_energy_sea: Mapping[EnergyDemandTypeID, Sequence[FloatLike]],
-    residual_energy_port: Mapping[EnergyDemandTypeID, Sequence[FloatLike]],
-    baseline_energy_sea: Mapping[EnergyDemandTypeID, Sequence[FloatArray]],
-    baseline_energy_port: Mapping[EnergyDemandTypeID, Sequence[FloatArray]],
-    shadow_price_sea: Mapping[EnergyDemandTypeID, Sequence[FloatArray]],
-    shadow_price_port: Mapping[EnergyDemandTypeID, Sequence[FloatArray]],
+    residual_energy_sea: Mapping[EnergyDemandID, Sequence[FloatLike]],
+    residual_energy_port: Mapping[EnergyDemandID, Sequence[FloatLike]],
+    baseline_energy_sea: Mapping[EnergyDemandID, Sequence[FloatArray]],
+    baseline_energy_port: Mapping[EnergyDemandID, Sequence[FloatArray]],
+    shadow_price_sea: Mapping[EnergyDemandID, Sequence[FloatArray]],
+    shadow_price_port: Mapping[EnergyDemandID, Sequence[FloatArray]],
     idx: int | slice,
 ) -> FloatLike:
     """
@@ -241,9 +239,9 @@ def _calculate_marginal_saving(
 
 
 def _iterate_steps(
-    energies_residual: Mapping[EnergyDemandTypeID, Sequence[FloatLike]],
-    energies_baseline: Mapping[EnergyDemandTypeID, Sequence[FloatArray]],
-    shadow_prices: Mapping[EnergyDemandTypeID, Sequence[FloatArray]],
+    energies_residual: Mapping[EnergyDemandID, Sequence[FloatLike]],
+    energies_baseline: Mapping[EnergyDemandID, Sequence[FloatArray]],
+    shadow_prices: Mapping[EnergyDemandID, Sequence[FloatArray]],
     idx: int | slice,
 ) -> FloatLike:
     """
@@ -308,8 +306,8 @@ def _calculate_dual_variable_saving(
 
 
 def _as_step_arrays(
-    energies: Mapping[EnergyDemandTypeID, Sequence[FloatLike]],
-) -> dict[EnergyDemandTypeID, list[FloatArray]]:
+    energies: Mapping[EnergyDemandID, Sequence[FloatLike]],
+) -> dict[EnergyDemandID, list[FloatArray]]:
     """
     Narrow a whole-timeline energy read to one array per step, for time indexing.
 
@@ -320,7 +318,7 @@ def _as_step_arrays(
 
     Returns
     -------
-    dict[EnergyDemandTypeID, list[FloatArray]]
+    dict[EnergyDemandID, list[FloatArray]]
         The same arrays, typed as arrays.
     """
     return {

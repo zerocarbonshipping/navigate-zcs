@@ -11,7 +11,7 @@ import numpy as np
 
 if TYPE_CHECKING:
     import navigate.simulation.bunker.solver as gp
-    from navigate.core.enum_ import EnergyDemandTypeID
+    from navigate.core.enum_ import EnergyDemandID
     from navigate.simulation.bunker.bunker_algorithm import BunkerAlgorithm
 
 
@@ -110,7 +110,7 @@ def remove_redundant_regulations(alg: BunkerAlgorithm) -> None:
 
 
 def _remove_vessel_elements[
-    K: tuple[str, *tuple[str | int | EnergyDemandTypeID, ...]],
+    K: tuple[str, *tuple[str | int | EnergyDemandID, ...]],
     E: (gp.Var, gp.Constr),
 ](alg: BunkerAlgorithm, v: str, container: dict[K, E]) -> None:
     """

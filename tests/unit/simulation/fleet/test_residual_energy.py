@@ -22,7 +22,7 @@ import numpy as np
 import pytest
 
 from navigate.core import Scalar
-from navigate.core.enum_ import EnergyDemandTypeID
+from navigate.core.enum_ import EnergyDemandID
 from navigate.core.nodes.curve import Curve
 from navigate.core.nodes.technology import Technology
 from navigate.core.nodes.variable import Variable
@@ -38,9 +38,9 @@ from navigate.simulation.fleet.residual_energy import (
 )
 from navigate.util import MWD_TO_GJ
 
-PROPULSION = EnergyDemandTypeID.PROPULSION
-ELECTRICAL = EnergyDemandTypeID.ELECTRICAL
-HEAT = EnergyDemandTypeID.HEAT
+PROPULSION = EnergyDemandID.PROPULSION
+ELECTRICAL = EnergyDemandID.ELECTRICAL
+HEAT = EnergyDemandID.HEAT
 
 
 # ---------------------------------------------------------------------------
@@ -57,11 +57,11 @@ def _make_technology(name: str, **kwargs) -> Technology:
     name : str
         Name of the technology node.
     kwargs :
-        energy_saving : dict[EnergyDemandTypeID, float]
-        external_power : dict[EnergyDemandTypeID, float]
+        energy_saving : dict[EnergyDemandID, float]
+        external_power : dict[EnergyDemandID, float]
         shore_power_capacity : float
         power_transfer :
-            dict[tuple[EnergyDemandTypeID, EnergyDemandTypeID], float | Curve]
+            dict[tuple[EnergyDemandID, EnergyDemandID], float | Curve]
         capex : float
         opex : float
         lifetime : float
@@ -375,7 +375,7 @@ class TestShorePowerCapacity:
 # ---------------------------------------------------------------------------
 
 
-def _make_mock_vessel(converter_capacities: dict[EnergyDemandTypeID, float]):
+def _make_mock_vessel(converter_capacities: dict[EnergyDemandID, float]):
     """
     Build a mock vessel whose only role is to provide converter capacities.
 
