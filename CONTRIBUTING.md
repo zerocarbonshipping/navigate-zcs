@@ -48,9 +48,7 @@ values, so that the provenance of the model inputs stays traceable.
   GitHub proposes the commit subject instead, so make the two equal.
 - Follow the code style: `ruff` and `mypy` enforce the mechanical rules
   (`make lint`), [`CODESTYLE.md`](CODESTYLE.md) carries the conventions the
-  tooling cannot check. Run
-  `git config blame.ignoreRevsFile .git-blame-ignore-revs` once so `git blame`
-  skips the whole-repo reformat commit.
+  tooling cannot check.
 - Update documentation when behavior changes: the reference manual
   (`docs/reference_manual/`) for user-facing changes and docstrings for code changes.
 
