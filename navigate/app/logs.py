@@ -5,7 +5,7 @@
 The run log of a CLI run and the console preamble.
 
 The run log owns the log file, its line format, the warning ledger and the
-end-of-run summary. The CLI in ``navigate.__main__`` holds a ``RunLog`` open for
+end-of-run summary. The CLI in ``navigate.app.cli`` holds a ``RunLog`` open for
 the whole run; the modules it runs log through their own module loggers.
 """
 

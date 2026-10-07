@@ -52,13 +52,13 @@ LAYERS = {
     "simulation.bunker": frozenset({"simulation.policy", "core"}) | FOUNDATION,
     "parser": frozenset({"core"}) | FOUNDATION,
     "output": frozenset({"core"}) | FOUNDATION,
-    "app": FOUNDATION,
+    "app": frozenset({"driver"}) | FOUNDATION,
     "simulation.time_stepping": DOMAINS | {"core"} | FOUNDATION,
     "simulation": frozenset(),
     "driver": (
         DOMAINS | {"simulation.time_stepping", "parser", "output", "core"} | FOUNDATION
     ),
-    "__main__": frozenset({"driver", "app", "core"}) | FOUNDATION,
+    "__main__": frozenset({"app"}),
 }
 
 # the simulation is its time stepping, the domains it steps through and the
