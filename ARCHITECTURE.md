@@ -13,8 +13,8 @@ step, and `driver/` runs it from a read deck to its output.
 
 ## Package map
 
-- `simulation/` — the model. `Simulation` only orchestrates, calling the
-  domains and the node methods listed under Domains in a fixed order.
+- `simulation/` — the model. `Simulation` does no model work of its own: it
+  orchestrates the domains in a fixed phase order.
   - `simulation/fleet/` — the shipowner domain: operation and decisions.
   - `simulation/fuel/` — the fuel-supply domain: production and planning.
     The two mirror each other: `initialization.py`, `evolution.py`,
