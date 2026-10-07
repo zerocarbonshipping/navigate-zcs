@@ -312,7 +312,7 @@ class TestRegenOrCompare:
         assert not (baselines / "f.csv").exists()
 
     def test_compare_mode_runs_no_guards(self, dirs):
-        # comparison never calls the guards (the dedicated tests own them) —
+        # comparison never calls the guards (the dedicated tests own them) -
         # a guard failure must not be able to mask the golden diff
         baselines, output = dirs
         for directory in dirs:

@@ -6,10 +6,10 @@ Tests for the TableData-to-numpy builders behind ``Table = [...]`` assignments.
 
 The undated builders feed ``Curve``/``Surface`` and the dated ones
 ``Forecast``/``Timetable``, which dispatch on the returned dtype in
-``replace_reference_table`` — so the numeric-table cases pin the dated
+``replace_reference_table`` - so the numeric-table cases pin the dated
 builders' float arrays as much as the dated ones pin their dates.
 
-The returned arrays are described positionally here — first, second, third —
+The returned arrays are described positionally here - first, second, third -
 because ``dsl_reference.md`` and the code disagree on which one is "the
 x-axis". The consumers fix the meaning: ``check_table2d_input`` requires
 ``z.shape == (x.size, y.size)`` and ``Surface.get(x, y)`` indexes in that
@@ -34,7 +34,7 @@ DATE_A = np.datetime64("2024-01-01", "D")
 DATE_B = np.datetime64("2030-01-01", "D")
 
 
-# ── build_table_1d ────────────────────────────────────────────────────────────
+# -- build_table_1d ------------------------------------------------------------
 
 
 class TestBuildTable1D:
@@ -101,7 +101,7 @@ class TestBuildTable1D:
             build_table_1d(TableData([row]))
 
 
-# ── build_table_2d ────────────────────────────────────────────────────────────
+# -- build_table_2d ------------------------------------------------------------
 
 # the Surface example from dsl_reference.md: 3 header values, 3 data rows of 4
 SURFACE_ROWS = [

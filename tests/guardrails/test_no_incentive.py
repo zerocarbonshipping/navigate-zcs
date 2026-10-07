@@ -29,14 +29,14 @@ SIMULATIONS_DIR = Path(__file__).resolve().parent / "simulations"
 # a share that is off by a factor of two.
 EPS_SHARE = 0.005
 
-# Share ceilings, enforced at every time step — see BEHAVIOR.md.
+# Share ceilings, enforced at every time step - see BEHAVIOR.md.
 MAX_METHANOL_SHARE = 0.10
 MAX_AMMONIA_SHARE = 0.05
 MIN_OIL_METHANE_SHARE = 1.0 - MAX_METHANOL_SHARE - MAX_AMMONIA_SHARE
 
 # Drift bands for the efficiency levers, each measured against
 # the series' initial value; the saving and uptake bands are absolute
-# fractions, the speed band relative — see BEHAVIOR.md.
+# fractions, the speed band relative - see BEHAVIOR.md.
 MAX_SAVING_DRIFT = 0.05
 MAX_UPTAKE_DRIFT = 0.10
 MAX_SPEED_DRIFT_REL = 0.10
@@ -84,7 +84,7 @@ def technology_uptake(fleet):
     assert np.all(np.sum(list(existing.values()), axis=0) > 0.0)
 
     uptake = fleet.profile.get_fleet_technology_uptake()
-    # every configured technology must be measured — a technology silently
+    # every configured technology must be measured - a technology silently
     # missing from the profile must not pass by omission
     assert set(uptake) == {technology.name for technology in fleet.technologies}
     return uptake

@@ -147,7 +147,7 @@ class TestRedistributeProportional:
         limits = np.array([0.2, 1.0, 1.0, 1.0])
         result = _redistribute_proportional(shares, limits)
         # surplus 0.3 spread across [0.1, 0.3, 0.1] proportionally
-        # → factor 0.8/0.5 = 1.6
+        # -> factor 0.8/0.5 = 1.6
         np.testing.assert_array_almost_equal(result, [0.2, 0.16, 0.48, 0.16])
         assert result.sum() == pytest.approx(1.0)
 

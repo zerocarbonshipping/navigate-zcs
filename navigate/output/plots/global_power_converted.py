@@ -28,11 +28,13 @@ from navigate.util import (
 )
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from navigate.core.simulation_results import SimulationResults
 
 
 def plot_global_power_converted_cumulative(
-    results: SimulationResults, directory: str
+    results: SimulationResults, directory: Path
 ) -> None:
     """Plot the cumulative engine power converted from and to each fuel type."""
     dateline = results.dateline

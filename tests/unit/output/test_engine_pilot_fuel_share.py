@@ -141,6 +141,6 @@ def test_plot_writes_no_file_with_no_dual_fuel_vessel(tmp_path):
         dateline=None, nodes=SimpleNamespace(vessels=vessels), profile=None
     )
 
-    plot_engine_pilot_fuel_share(results, str(tmp_path))
+    plot_engine_pilot_fuel_share(results, tmp_path)
 
     assert not (tmp_path / "engine_pilot_fuel_share.png").exists()

@@ -28,7 +28,7 @@ def update_pilot_fuel_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> None:
 
     i.e. the pilot fuels carry at least the fraction \phi of the converter's fuel
     energy, where \phi is the converter's minimum pilot fuel fraction and \lambda
-    the effective lower heating value (GJ/t). Dual-fuel combustion needs a
+    the effective lower heating value in GJ/t. Dual-fuel combustion needs a
     pilot-fuel share to ignite the main fuel. The propulsion converter gets no
     port rows: it serves no port energy demand.
 
@@ -106,13 +106,13 @@ def update_pilot_fuel_constraints(alg: BunkerAlgorithm, vessel: Vessel) -> None:
             )
 
 
-def _apply_pilot_fuel_coefficients(
+def _apply_pilot_fuel_coefficients[*Indices](
     alg: BunkerAlgorithm,
     constraint: gp.Constr,
-    spend: dict[tuple, gp.Var],
+    spend: dict[tuple[str, str, str, *Indices], gp.Var],
     v: str,
     c: str,
-    indices: tuple[int, ...],
+    indices: tuple[*Indices],
     pilot_fuels: list[str],
     main_fuels: list[str],
     fraction: float,

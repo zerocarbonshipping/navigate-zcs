@@ -361,7 +361,7 @@ def _expand_inputs(
     """
     Expand wildcard arguments against their registered enum domains.
 
-    Yields argument tuples — one per combination when wildcards match
+    Yields argument tuples - one per combination when wildcards match
     multiple enum members, or a single tuple when no expansion applies.
     """
     domains = _WILDCARD_DOMAINS.get(command)

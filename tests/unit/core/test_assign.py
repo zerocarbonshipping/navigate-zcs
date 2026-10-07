@@ -4,7 +4,7 @@
 """
 Tests for navigate.core.assign, the validation boundary behind every setter.
 
-CODESTYLE's "Input validation and dynamic access" makes this module the one
+CODESTYLE's "Validation and dynamic access" makes this module the one
 place that checks deck input, so these pin the messages and the accept/reject
 rules the DSL reference promises. Messages are sentence fragments because
 ``Parser._call_setter`` prefixes them with the node and attribute.
@@ -67,7 +67,7 @@ from navigate.core.table_data import TableData
 DATE = np.datetime64("2024-01-01", "D")
 
 
-# ── assign_id ─────────────────────────────────────────────────────────────────
+# -- assign_id -----------------------------------------------------------------
 
 
 class TestAssignId:
@@ -102,7 +102,7 @@ class TestAssignId:
             assign_id(assignment, FuelTypeID)
 
 
-# ── assign_member ─────────────────────────────────────────────────────────────
+# -- assign_member -------------------------------------------------------------
 
 
 class TestAssignMember:
@@ -176,7 +176,7 @@ class TestAssignMember:
             Fleet("fleet").set_operational_saving_port("PROPULSION", 0.1)
 
 
-# ── assign_id_list ────────────────────────────────────────────────────────────
+# -- assign_id_list ------------------------------------------------------------
 
 
 class TestAssignIdList:
@@ -198,7 +198,7 @@ class TestAssignIdList:
             assign_id_list([element], FuelTypeID)
 
 
-# ── assign_bound ──────────────────────────────────────────────────────────────
+# -- assign_bound --------------------------------------------------------------
 
 
 class TestAssignBound:
@@ -258,7 +258,7 @@ class TestAssignBound:
             assign_bound(assignment)
 
 
-# ── assign_boolean ────────────────────────────────────────────────────────────
+# -- assign_boolean ------------------------------------------------------------
 
 
 class TestAssignBoolean:
@@ -303,7 +303,7 @@ class TestAssignBoolean:
             assign_boolean(assignment)
 
 
-# ── assign_date ───────────────────────────────────────────────────────────────
+# -- assign_date ---------------------------------------------------------------
 
 
 class TestAssignDate:
@@ -317,7 +317,7 @@ class TestAssignDate:
             assign_date(5.0)
 
 
-# ── _check_scalar ─────────────────────────────────────────────────────────────
+# -- _check_scalar -------------------------------------------------------------
 
 
 class TestCheckScalar:
@@ -367,7 +367,7 @@ class TestCheckScalar:
             _check_scalar(value, **bounds)
 
 
-# ── assign_integer ────────────────────────────────────────────────────────────
+# -- assign_integer ------------------------------------------------------------
 
 
 class TestAssignInteger:
@@ -430,7 +430,7 @@ class TestAssignInteger:
             assign_integer(assignment, **bounds)
 
 
-# ── assign_value ──────────────────────────────────────────────────────────────
+# -- assign_value --------------------------------------------------------------
 
 
 class TestAssignValue:
@@ -684,7 +684,7 @@ class TestAssignValue:
             )
 
 
-# ── assign_list ───────────────────────────────────────────────────────────────
+# -- assign_list ---------------------------------------------------------------
 
 
 class TestAssignList:
@@ -721,7 +721,7 @@ class TestAssignList:
         assert assign_list([1.0, value], allow_infinite=True) == [1.0, value]
 
 
-# ── assign_reference ──────────────────────────────────────────────────────────
+# -- assign_reference ----------------------------------------------------------
 
 
 class TestAssignReference:
@@ -815,7 +815,7 @@ class TestAssignReference:
         assert str(rejected.value) == f"{message}, but got expression"
 
 
-# ── assign_reference_list ─────────────────────────────────────────────────────
+# -- assign_reference_list -----------------------------------------------------
 
 
 class TestAssignReferenceList:
@@ -845,7 +845,7 @@ class TestAssignReferenceList:
         )
 
 
-# ── assign_fraction_list ──────────────────────────────────────────────────────
+# -- assign_fraction_list ------------------------------------------------------
 
 
 class TestAssignFractionList:
@@ -963,7 +963,7 @@ class TestAssignFractionList:
         assert is_rescaled_result is is_rescaled
 
 
-# ── write_matching_keys ───────────────────────────────────────────────────────
+# -- write_matching_keys -------------------------------------------------------
 
 
 class TestWriteMatchingKeys:
@@ -987,7 +987,7 @@ class TestWriteMatchingKeys:
             write_matching_keys("missing", 1.0, {"oil": None})
 
 
-# ── write_matching_key_pairs ──────────────────────────────────────────────────
+# -- write_matching_key_pairs --------------------------------------------------
 
 
 class TestWriteMatchingKeyPairs:
@@ -1023,7 +1023,7 @@ class TestWriteMatchingKeyPairs:
             write_matching_key_pairs(key, 1.0, {})
 
 
-# ── command_assignment_to_boolean_dict ────────────────────────────────────────
+# -- command_assignment_to_boolean_dict ----------------------------------------
 
 
 class TestCommandAssignmentToBooleanDict:
@@ -1061,7 +1061,7 @@ class TestCommandAssignmentToBooleanDict:
             )
 
 
-# ── setters that accept infinity ──────────────────────────────────────────────
+# -- setters that accept infinity ----------------------------------------------
 
 
 def _bunkering_limit(value):

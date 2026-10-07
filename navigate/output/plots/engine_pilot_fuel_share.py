@@ -22,6 +22,8 @@ from navigate.output.plots._labels import (
 from navigate.output.plots._layout import trim_axes
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from navigate.core.enum_ import FuelTypeID
     from navigate.core.nodes.vessel import Vessel
     from navigate.core.simulation_results import SimulationResults
@@ -79,7 +81,7 @@ def _minimum_pilot_share(
     return minimum_share
 
 
-def plot_engine_pilot_fuel_share(results: SimulationResults, directory: str) -> None:
+def plot_engine_pilot_fuel_share(results: SimulationResults, directory: Path) -> None:
     """Plot pilot fuel share per primary fuel type with a matching dual-fuel vessel."""
     dateline = results.dateline
     vessels = results.nodes.vessels

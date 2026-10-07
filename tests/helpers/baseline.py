@@ -54,7 +54,7 @@ _REGEN_HINT = (
     "triage steps for a red suite."
 )
 
-# (field name, report label) — ok(), the summary line, and the report body
+# (field name, report label) - ok(), the summary line, and the report body
 # all derive from this one table
 _STRUCTURAL_FIELDS = (
     ("missing_files", "files missing from run"),
@@ -177,11 +177,11 @@ def regen_or_compare(
     exclude_columns: tuple[str, ...] = (),
 ) -> None:
     """
-    Compare against the baselines, or regenerate them — every deck's golden test body.
+    Compare against the baselines, or regenerate them - every deck's golden test body.
 
     Regeneration re-runs the universal invariants and the deck's activation
     guards before replacing anything, so the guard-before-regen ordering is
-    mechanical for every deck — a vacuous baseline cannot be regenerated even
+    mechanical for every deck - a vacuous baseline cannot be regenerated even
     by targeting one deck's golden test directly.
 
     Parameters
@@ -238,7 +238,7 @@ def compare_baselines(
         README).
     exclude_columns
         Exact header tokens excluded from comparison entirely (presence and
-        value) — no wildcards, so an exclusion can never silently widen.
+        value) - no wildcards, so an exclusion can never silently widen.
         Every use requires an evidence comment at the call site.
 
     Returns

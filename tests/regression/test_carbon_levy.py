@@ -8,7 +8,7 @@ An oil/ammonia fleet under a ramping WTW carbon levy and no Regulation: the
 levy prices fossil oil's pinned CO2 factor and is the only policy signal in
 the deck, exercising the Levy node and the levy terms in the bunker LP, which
 no other committed deck activates. The activation guards prove the levy is
-actually collected throughout — a levy that stops collecting (an emission
+actually collected throughout - a levy that stops collecting (an emission
 factor pinned to zero, a jurisdiction emptied, include_vessel unset) would
 leave the golden baseline covering nothing.
 """

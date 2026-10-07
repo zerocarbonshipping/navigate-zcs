@@ -23,6 +23,8 @@ from navigate.output.plots._style import LEGEND_OPTIONS
 from navigate.output.plots._units import get_best_unit_energy
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from navigate.core.enum_ import FuelTypeID
     from navigate.core.nodes.fuel import Fuel
     from navigate.core.simulation_results import SimulationResults
@@ -40,7 +42,7 @@ def _select_fuel_types(
     return [fuel_type for fuel_type in FUEL_TYPE_ORDER if fuel_type_to_fuels[fuel_type]]
 
 
-def plot_global_fuel_type_consumed(results: SimulationResults, directory: str) -> None:
+def plot_global_fuel_type_consumed(results: SimulationResults, directory: Path) -> None:
     """Plot fuel consumed over time, stacked by fuel type a deck uses."""
     dateline = results.dateline
     fuels = results.nodes.fuels

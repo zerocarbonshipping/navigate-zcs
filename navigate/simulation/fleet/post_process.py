@@ -339,7 +339,7 @@ def post_process_investment_metric(
 
 def _aggregate_fleet_freight_rate(fleet: Fleet, timeline: FloatArray) -> None:
     """
-    Aggregate a fleet-level instantaneous freight rate (USD/cargo-mile).
+    Aggregate a fleet-level instantaneous freight rate, in USD/cargo-mile.
 
     The fleet rate is the multiplier-weighted total achieved charter cost divided by the
     multiplier-weighted cargo-miles delivered, making it the cargo-mile-consistent

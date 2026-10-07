@@ -127,6 +127,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
     under `navigate.simulation.time_stepping`;
   - the model's modules log under `navigate.simulation.<domain>.<module>`,
     such as `navigate.simulation.bunker.solver`.
+- A path written with `./` or a doubled `/` in an `Include` or a report
+  `Directory` now appears normalised in error and log messages, such as
+  `/deck/includes/x.inc` instead of `/deck/./includes/x.inc`.
 
 ### Removed
 - `BunkerLogistics`: write `LiquidMarket` on `Fuel`, and `set_fuel_transport`

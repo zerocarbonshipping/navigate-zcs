@@ -15,7 +15,7 @@ from navigate.core.enum_ import (
 )
 from navigate.util import matching_keys, retrieve_keys
 
-# ── expand_id_wildcard ────────────────────────────────────────────────────────
+# -- expand_id_wildcard --------------------------------------------------------
 
 
 class TestExpandIdWildcard:
@@ -64,7 +64,7 @@ class TestExpandIdWildcard:
             expand_id_wildcard("P*", EnergyDemandTypePortID)
 
 
-# ── assign_id_list with wildcards ─────────────────────────────────────────────
+# -- assign_id_list with wildcards ---------------------------------------------
 
 
 class TestAssignIdListWildcard:
@@ -88,7 +88,7 @@ class TestAssignIdListWildcard:
         assert result == [FuelTypeID.HYDROGEN]
 
 
-# ── retrieve_keys ─────────────────────────────────────────────────────────────
+# -- retrieve_keys -------------------------------------------------------------
 
 
 class TestRetrieveKeys:
@@ -116,7 +116,7 @@ class TestRetrieveKeys:
             retrieve_keys(FuelTypeID.OIL, allowed_keys)
 
 
-# ── matching_keys ─────────────────────────────────────────────────────────────
+# -- matching_keys -------------------------------------------------------------
 
 
 class TestMatchingKeys:

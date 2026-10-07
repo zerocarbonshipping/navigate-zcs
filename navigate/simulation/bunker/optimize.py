@@ -5,7 +5,6 @@
 
 from __future__ import annotations
 
-import os
 import timeit
 from typing import TYPE_CHECKING
 
@@ -74,8 +73,8 @@ def check_solution(alg: BunkerAlgorithm) -> None:
             if infeasible
         ]
 
-        alg.model.write(os.path.join(alg.output_directory, "bunkering_infeasible.ilp"))
-        alg.model.write(os.path.join(alg.output_directory, "bunkering_infeasible.lp"))
+        alg.model.write(str(alg.output_directory / "bunkering_infeasible.ilp"))
+        alg.model.write(str(alg.output_directory / "bunkering_infeasible.lp"))
 
         scope = "existing" if alg.scope == BunkerScopeID.EXISTING else "expected"
         raise InfeasibleLPError(

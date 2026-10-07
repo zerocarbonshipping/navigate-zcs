@@ -8,9 +8,9 @@ Provides the single source of truth for both .nav (deck) and .inc (include)
 file syntax.  The grammar lives in ``grammar.lark``; this module contains:
 
 * AST dataclasses for deck directives and include statements
-* ``_NavTransformer`` and its two start-rule subclasses — convert Lark
+* ``_NavTransformer`` and its two start-rule subclasses - convert Lark
   parse-trees into AST nodes
-* ``parse_include_content()`` / ``parse_deck_content()`` — public API
+* ``parse_include_content()`` / ``parse_deck_content()`` - public API
 """
 
 from __future__ import annotations

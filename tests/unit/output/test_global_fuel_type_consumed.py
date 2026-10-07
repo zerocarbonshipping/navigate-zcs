@@ -46,6 +46,6 @@ def test_plot_writes_no_file_with_no_fuel_types(tmp_path):
         profile=SimpleNamespace(get_fuel_type_energy=lambda: {}),
     )
 
-    plot_global_fuel_type_consumed(results, str(tmp_path))
+    plot_global_fuel_type_consumed(results, tmp_path)
 
     assert not (tmp_path / "global_fuel_type_consumed.png").exists()

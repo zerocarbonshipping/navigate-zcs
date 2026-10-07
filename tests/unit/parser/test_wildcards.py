@@ -18,12 +18,12 @@ from navigate.parser._lark_parser import Assignment, SourceLocation
 from navigate.parser._node_reference import WildcardNodeReference
 from navigate.parser.parser import Parser
 
-# ── CommandReference domain-aware wildcard expansion ─────────────────────────
+# -- CommandReference domain-aware wildcard expansion -------------------------
 
 
 class TestCommandReferenceWildcard:
     def test_enum_domain_expands_wildcard(self):
-        """set_slip_fraction has FuelTypeID domain — M* expands to fuel names."""
+        """set_slip_fraction has FuelTypeID domain - M* expands to fuel names."""
         call_log = []
 
         class DummyNode:
@@ -45,7 +45,7 @@ class TestCommandReferenceWildcard:
         assert all(c[1] == 0.03 for c in call_log)
 
     def test_no_domain_passes_wildcard_through(self):
-        """set_include_vessel has no domain — * passes through as-is."""
+        """set_include_vessel has no domain - * passes through as-is."""
         call_log = []
 
         class DummyNode:
@@ -121,7 +121,7 @@ class TestCommandReferenceWildcard:
         assert all(value.get() == 0.1 for value in saving.values())
 
 
-# ── WildcardNodeReference expansion via Parser ────────────────────────────────
+# -- WildcardNodeReference expansion via Parser --------------------------------
 
 
 class TestWildcardNodeReferenceExpansion:

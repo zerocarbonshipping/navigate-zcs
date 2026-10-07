@@ -32,8 +32,8 @@ def update_energy_conservation_constraints(
         + s_p [d = electrical] = E_{d,p}
 
     where \eta is the converter efficiency, \lambda the effective lower heating
-    value (GJ/t), x and y the annual fuel mass spend at sea and in port, s the
-    annual shore power (GJ), and E the annual energy demand (GJ). Converts fuel
+    value in GJ/t, x and y the annual fuel mass spend at sea and in port, s the
+    annual shore power in GJ, and E the annual energy demand in GJ. Converts fuel
     mass to delivered energy and pins it to the demand; shore power substitutes
     fuel for the electrical demand in port.
 

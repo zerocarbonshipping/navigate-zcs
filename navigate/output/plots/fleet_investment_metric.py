@@ -19,10 +19,12 @@ from navigate.output.plots._layout import trim_axes
 from navigate.output.plots._style import LEGEND_OPTIONS
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from navigate.core.simulation_results import SimulationResults
 
 
-def plot_fleet_investment_metric(results: SimulationResults, directory: str) -> None:
+def plot_fleet_investment_metric(results: SimulationResults, directory: Path) -> None:
     """Plot the investment and instantaneous freight rates of each vessel per fleet."""
     dateline = results.dateline
     fleets = results.nodes.fleets

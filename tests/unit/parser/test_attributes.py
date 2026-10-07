@@ -68,7 +68,7 @@ class TestCheckNodeAttributeIsAllowed:
         )
 
     def test_define_only_attribute_in_events_raises(self):
-        """FuelType on Vessel is DEFINE-only — using it in EVENTS should raise."""
+        """FuelType on Vessel is DEFINE-only - using it in EVENTS should raise."""
         with pytest.raises(AttributeAssignmentError, match="does not allow setting"):
             check_node_attribute_is_allowed(
                 "Vessel", "FuelType", SimulationSectionID.EVENTS

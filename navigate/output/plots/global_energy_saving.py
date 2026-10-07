@@ -21,10 +21,12 @@ from navigate.output.plots._figure import (
 )
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from navigate.core.simulation_results import SimulationResults
 
 
-def plot_global_energy_saving(results: SimulationResults, directory: str) -> None:
+def plot_global_energy_saving(results: SimulationResults, directory: Path) -> None:
     """Plot the global energy saving by demand type and by source."""
     dateline = results.dateline
 

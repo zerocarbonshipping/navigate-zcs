@@ -182,15 +182,15 @@ def _iter_references(value: object, nodes: Nodes) -> Iterator[tuple[str, str]]:
 
     The walks share their containers but read different leaves: the parser
     materializes every attribute value and command input when the deck is read
-    (Parser._materialize, which recurses lists only — the grammar's one
+    (Parser._materialize, which recurses lists only - the grammar's one
     container value) and expands every wildcard before the setter stores it,
     so Parser._replace_references_on_attribute sees nodes only, while this one
     also scans the parsed AST of queued EVENTS bodies, where a reference is
     still a NodeReference or a WildcardNodeReference token. A container shape
     added to one walk must be recognized by the others, or nodes referenced
     through it are wrongly pruned. The whole yield is attributed to the one
-    attribute the value sits under, so a reference nested anywhere inside —
-    Expression strings included — activates a restricted type only when that
+    attribute the value sits under, so a reference nested anywhere inside -
+    Expression strings included - activates a restricted type only when that
     attribute is one of its declared edges.
 
     Parameters

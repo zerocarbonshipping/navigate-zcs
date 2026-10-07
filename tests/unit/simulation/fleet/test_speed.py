@@ -39,7 +39,7 @@ class TestMeanToSpeeds:
                 [30.0, 30.0, 30.0],
                 [13.0, 15.0, 17.0],
             ),
-            # below minimum clamped up: 10 - 5 = 5 → 8
+            # below minimum clamped up: 10 - 5 = 5 -> 8
             (
                 10.0,
                 [-5.0, 0.0, 5.0],
@@ -47,7 +47,7 @@ class TestMeanToSpeeds:
                 [30.0, 30.0, 30.0],
                 [8.0, 10.0, 15.0],
             ),
-            # above maximum clamped down: 19 + 2 = 21 → 20
+            # above maximum clamped down: 19 + 2 = 21 -> 20
             (
                 19.0,
                 [-2.0, 0.0, 2.0],
@@ -85,7 +85,7 @@ class TestUpdateMeanSpeed:
             (14.0, 20.0, 0.5, 14.5),
             (14.0, 5.0, np.inf, 5.0),
             (14.0, 25.0, np.inf, 25.0),
-            # zero max_change → speed cannot change at all
+            # zero max_change -> speed cannot change at all
             (14.0, 20.0, 0.0, 14.0),
         ],
     )
@@ -135,7 +135,7 @@ class TestDualVariableSaving:
             (80.0, 100.0, 10.0, 200.0),
             (120.0, 100.0, 10.0, -200.0),
             (100.0, 100.0, 10.0, 0.0),
-            # zero shadow price → zero saving regardless of energy change
+            # zero shadow price -> zero saving regardless of energy change
             (50.0, 100.0, 0.0, 0.0),
         ],
     )

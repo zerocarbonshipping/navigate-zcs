@@ -23,10 +23,12 @@ from navigate.output.plots._labels import FLEET_LABEL, extract_label
 from navigate.output.plots._layout import trim_axes
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from navigate.core.simulation_results import SimulationResults
 
 
-def plot_fleet_speed(results: SimulationResults, directory: str) -> None:
+def plot_fleet_speed(results: SimulationResults, directory: Path) -> None:
     """Plot the fleet speeds against their bounds per fleet."""
     dateline = results.dateline
     fleets = results.nodes.fleets

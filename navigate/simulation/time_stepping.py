@@ -62,6 +62,8 @@ from navigate.simulation.policy import (
 from navigate.util import YEAR, dates_to_days, timedelta_to_days
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     import numpy as np
 
     from navigate.core.node_registry import GeneralNodes, Nodes
@@ -91,11 +93,11 @@ class Simulation:
         nodes: Nodes,
         general_nodes: GeneralNodes,
         dateline: DateArray,
-        output_directory: str,
+        output_directory: Path,
     ) -> None:
         self.nodes: Nodes = nodes
         self.general_nodes: GeneralNodes = general_nodes
-        self._output_directory: str = output_directory
+        self._output_directory: Path = output_directory
 
         # properties -------------------------------------------------------------------
         # the current time-step size and elapsed simulation time, in days

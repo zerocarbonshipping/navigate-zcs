@@ -19,11 +19,13 @@ from navigate.output.plots._figure import (
 )
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from navigate.core.simulation_results import SimulationResults
 
 
 def plot_regulation_flexibility_cost(
-    results: SimulationResults, directory: str
+    results: SimulationResults, directory: Path
 ) -> None:
     """Plot the remedial and flexibility cost of flexible regulations."""
     dateline = results.dateline
