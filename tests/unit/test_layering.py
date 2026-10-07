@@ -28,7 +28,15 @@ SOURCES = sorted(PACKAGE.rglob("*.py"))
 CORE_SOURCES = sorted(CORE.rglob("*.py"))
 
 FOUNDATION = frozenset({"util", "exceptions"})
-DOMAINS = frozenset({"economics", "policy", "fleet", "fuel", "bunker"})
+DOMAINS = frozenset(
+    {
+        "simulation.economics",
+        "simulation.policy",
+        "simulation.fleet",
+        "simulation.fuel",
+        "simulation.bunker",
+    }
+)
 
 # unit -> the other units it may import; a unit may always import itself, and
 # `__init__` is navigate/__init__.py, the unit of a bare `navigate` import
@@ -37,24 +45,28 @@ LAYERS = {
     "__init__": frozenset(),
     "exceptions": frozenset({"util"}),
     "core": FOUNDATION,
-    "economics": frozenset({"core"}) | FOUNDATION,
-    "policy": frozenset({"core"}) | FOUNDATION,
-    "fleet": frozenset({"economics", "core"}) | FOUNDATION,
-    "fuel": frozenset({"economics", "core"}) | FOUNDATION,
-    "bunker": frozenset({"policy", "core"}) | FOUNDATION,
+    "simulation.economics": frozenset({"core"}) | FOUNDATION,
+    "simulation.policy": frozenset({"core"}) | FOUNDATION,
+    "simulation.fleet": frozenset({"simulation.economics", "core"}) | FOUNDATION,
+    "simulation.fuel": frozenset({"simulation.economics", "core"}) | FOUNDATION,
+    "simulation.bunker": frozenset({"simulation.policy", "core"}) | FOUNDATION,
     "parser": frozenset({"core"}) | FOUNDATION,
     "output": frozenset({"core"}) | FOUNDATION,
     "app": FOUNDATION,
-    "simulation": DOMAINS | {"core"} | FOUNDATION,
-    "driver": frozenset({"simulation", "parser", "output", "core"}) | FOUNDATION,
+    "simulation.time_stepping": DOMAINS | {"core"} | FOUNDATION,
+    "simulation": frozenset(),
+    "driver": (
+        DOMAINS | {"simulation.time_stepping", "parser", "output", "core"} | FOUNDATION
+    ),
     "__main__": frozenset({"driver", "app", "core"}) | FOUNDATION,
 }
 
-# the simulation is the simulation package and the domains it steps through
-SIMULATION = DOMAINS | {"simulation"}
+# the simulation is its time stepping, the domains it steps through and the
+# package around them
+SIMULATION = DOMAINS | {"simulation.time_stepping", "simulation"}
 # neither unit of a pair may list the other
 INDEPENDENT_PAIRS = (
-    ("fleet", "fuel"),
+    ("simulation.fleet", "simulation.fuel"),
     ("parser", "output"),
     *itertools.product(("parser", "output"), sorted(SIMULATION)),
 )
