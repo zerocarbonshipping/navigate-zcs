@@ -350,8 +350,8 @@ class Expression:
         if bounds.exclusive:
             bounds.check_exclusive(evaluated, f"{self._node}: Expression <{self.text}>")
 
-        # np.clip answers a scalar with an np.float64, a float, where numpy's
-        # stubs promise an array
+        # numpy's stubs type np.clip over a float or an array as an array,
+        # though a float comes back as an np.float64, a float
         value: FloatLike = np.clip(evaluated, bounds.lower, bounds.upper)
 
         # a float result is broadcast so an expression over scalars answers
