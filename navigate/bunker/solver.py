@@ -36,7 +36,7 @@ if TYPE_CHECKING:
     from navigate.bunker.solver_highs import Model as Model
     from navigate.bunker.solver_highs import Var as Var
 
-_logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 _GUROBI_AVAILABLE = False
 
@@ -107,14 +107,14 @@ def _configure(preference: SolverBackendID) -> None:
     use_gurobi = False
 
     if preference == SolverBackendID.HIGHS:
-        _logger.info("HiGHS solver backend selected by user preference.")
+        logger.info("HiGHS solver backend selected by user preference.")
 
     elif preference == SolverBackendID.GUROBI:
         if _GUROBI_AVAILABLE:
             use_gurobi = True
-            _logger.info("Gurobi solver backend selected by user preference.")
+            logger.info("Gurobi solver backend selected by user preference.")
         else:
-            _logger.warning(
+            logger.warning(
                 "Gurobi preferred but not available -- falling back to HiGHS solver "
                 "backend."
             )
@@ -123,9 +123,9 @@ def _configure(preference: SolverBackendID) -> None:
         # automatic
         if _GUROBI_AVAILABLE:
             use_gurobi = True
-            _logger.info("Gurobi license verified -- using Gurobi solver backend.")
+            logger.info("Gurobi license verified -- using Gurobi solver backend.")
         else:
-            _logger.info("Gurobi not available -- using HiGHS solver backend.")
+            logger.info("Gurobi not available -- using HiGHS solver backend.")
 
     if use_gurobi:
         CONTINUOUS = _grb.GRB.CONTINUOUS

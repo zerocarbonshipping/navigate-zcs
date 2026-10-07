@@ -36,19 +36,19 @@ LAYERS = {
     "util": frozenset(),
     "__init__": frozenset(),
     "exceptions": frozenset({"util"}),
-    "logging_": frozenset({"util"}),
     "core": FOUNDATION,
     "economics": frozenset({"core"}) | FOUNDATION,
     "policy": frozenset({"core"}) | FOUNDATION,
     "fleet": frozenset({"economics", "core"}) | FOUNDATION,
     "fuel": frozenset({"economics", "core"}) | FOUNDATION,
-    "bunker": frozenset({"policy", "logging_", "core"}) | FOUNDATION,
+    "bunker": frozenset({"policy", "core"}) | FOUNDATION,
     "parser": frozenset({"core"}) | FOUNDATION,
     "output": frozenset({"core"}) | FOUNDATION,
-    "__main__": frozenset({"simulation", "logging_", "core"}) | FOUNDATION,
+    "app": FOUNDATION,
+    "__main__": frozenset({"simulation", "app", "core"}) | FOUNDATION,
 }
-# simulation.py may import every unit but the CLI
-LAYERS["simulation"] = frozenset(LAYERS) - {"__main__"}
+# simulation.py may import every unit but the interfaces above it: the CLI and app/
+LAYERS["simulation"] = frozenset(LAYERS) - {"__main__", "app"}
 
 # neither unit of a pair may list the other
 INDEPENDENT_PAIRS = (("fleet", "fuel"), ("parser", "output"))

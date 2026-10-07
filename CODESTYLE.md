@@ -186,10 +186,18 @@ The formatter owns spacing within statements; blank lines are yours:
   and wrappers (`Scalar`) are read through `.get`, which may take a variable
   number of inputs and can return defaults or pre-computed values.
 
+### Logging
+
+- A module logs through a module-level `logger = logging.getLogger(__name__)`
+  and imports nothing from `navigate` to log.
+- An emitter passes a heading or a table through `extra` (`heading=True`,
+  `table={column name: values}`), never assembled into the message.
+
 ### Boundary modules
 
 - Dynamic attribute access (`hasattr`/`getattr`/`setattr`) is confined to
-  `navigate/parser/` (DSL dispatch) and `navigate/output/`.
+  `navigate/parser/` (DSL dispatch), `navigate/output/` and `navigate/app/`
+  (the `extra` keys of a log record).
 - Dictionaries keyed by nodes or enum members are prepopulated at
   initialization: all nodes are known after parsing, and the enum types in
   `navigate/core/enum_.py` are fixed.

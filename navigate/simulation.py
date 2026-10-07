@@ -56,11 +56,6 @@ from navigate.fuel import (
     perform_planning,
     perform_progression,
 )
-from navigate.logging_ import (
-    log_model_post_process,
-    log_start_of_simulation,
-    log_time_step_breaker,
-)
 from navigate.output import write_report
 from navigate.parser import Parser
 from navigate.policy import (
@@ -163,7 +158,11 @@ class SimulationManager:
 
     def _initialize_simulation(self) -> None:
         """Set up the expectations, profiles and bunker models the time steps use."""
-        log_start_of_simulation(logger, self._date)
+        logger.info(
+            "Time-step: 0, starting simulation at date: %s",
+            self._date,
+            extra={"heading": True},
+        )
 
         self._initialize_expectations()
         self._initialize_profiles()
@@ -173,13 +172,24 @@ class SimulationManager:
         """
         Step through the dateline, from the initial conditions at 'Start' on.
 
-        Each date logs its time-step banner, applies its events, then steps.
+        Each date logs its time-step heading, applies its events, then steps.
         """
         for date in self.dateline:
             if self._idx > 0:
-                log_time_step_breaker(
-                    logger, self._idx, date, timedelta_to_days(date - self.dateline[0])
+                days_elapsed = timedelta_to_days(date - self.dateline[0])
+                wall_time = timeit.default_timer() - self._computational_time
+
+                logger.info(
+                    "Time-step: %d, current date: %s. %d days (%d years) since start "
+                    "of simulation. Wall time since start: %.1f s",
+                    self._idx,
+                    date,
+                    days_elapsed,
+                    round(days_elapsed / YEAR),
+                    wall_time,
+                    extra={"heading": True},
                 )
+
             self.parser.read_events(date)
             self._progress_date_time(date)
             self._perform_time_step()
@@ -736,7 +746,9 @@ class SimulationManager:
         )
 
     def _post_process(self) -> None:
-        log_model_post_process(logger)
+        logger.info(
+            "Post-process model after end of simulation", extra={"heading": True}
+        )
 
         # fold the recorded multipliers into the fleet output profiles before
         # the investment metric reads the in-fleet windows and before the
