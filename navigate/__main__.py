@@ -199,7 +199,7 @@ def _dispatch(args: argparse.Namespace, run_log: RunLog) -> int:
     if args.profile:
         # a profiled run ends its console output with the profile statistics, so
         # it prints no warning notice
-        _run_with_profile(run, args.filename.parent)
+        _run_with_profile(run, args.filename.resolve().parent)
         run_log.log_summary()
         return 0
 
