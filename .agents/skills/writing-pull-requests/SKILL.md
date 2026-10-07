@@ -127,6 +127,7 @@ substance.
 The standard is `CONTRIBUTING.md`, Evidence in a pull request. Beyond it:
 
 - A change that only reads state and writes none may argue in one sentence
-  why a profile dump cannot differ, instead of taking one.
+  why the computed results of a deck without a report cannot differ, instead
+  of comparing them.
 - Never invent or reconstruct output. Rerun the command, or say the output
   is not at hand.
