@@ -33,8 +33,8 @@ its signal, not its size.
 - A table of (input, expected) pairs is one parametrized test, not one
   function per pair.
 - Prefer real nodes (`set_*` + `initialize()`) where construction is cheap —
-  `tests/unit/fleet/test_residual_energy.py` is the pattern. A stub that only
-  carries input data (`tests/unit/test_emission_coefficient.py`'s ports) is
+  `tests/unit/simulation/fleet/test_residual_energy.py` is the pattern. A stub that only
+  carries input data (`tests/unit/simulation/policy/test_emission_coefficient.py`'s ports) is
   fine; mock choreography that mirrors the implementation's call sequence, or
   screens of setup, means the test sits at the wrong altitude.
 - Private functions are a normal test surface: test at whatever level the

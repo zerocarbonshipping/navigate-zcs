@@ -7,7 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 
 ## Mechanism isolated
 
-The fleet's investment decisions (`navigate/fleet/`) in the complete
+The fleet's investment decisions (`navigate/simulation/fleet/`) in the complete
 absence of GHG pricing: no `Regulation`, no `Levy`. Two decision models are
 exercised:
 

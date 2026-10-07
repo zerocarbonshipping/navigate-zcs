@@ -6,7 +6,7 @@
 #
 # An oil-dominated container fleet with a cheap liquid-market alternative fuel
 # (LNG) and a pinned conversion lane: existing vessels convert oil -> methane
-# on their retrofit cycles (navigate/fleet/conversion.py). Methane newbuilds
+# on their retrofit cycles (navigate/simulation/fleet/conversion.py). Methane newbuilds
 # are disabled, so conversion is the only channel into the methane vessel
 # type, and the destination type's discounting inputs are pinned nonzero and
 # different from the source's so the conversion NPV and its levelized expense
