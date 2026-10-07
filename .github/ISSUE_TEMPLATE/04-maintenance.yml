@@ -18,7 +18,7 @@ body:
       label: Intended state
       description: >
         The property the code should have, such as "no package imports a
-        layer above it". Not the steps.
+        layer above it". Not the steps or the mechanism.
     validations:
       required: true
   - type: textarea

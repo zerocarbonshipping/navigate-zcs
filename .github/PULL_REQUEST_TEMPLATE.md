@@ -1,6 +1,7 @@
 <!-- One to three sentences on what the change does: the behaviour or end
-state, not the files edited. Say in one line which part, if any, is moves or
-renames. End with the effect a user sees, or "No user-visible effect." -->
+state, not the files edited. If much of the diff is moves or renames, say in
+one line which part. End with the effect a deck author or a reader of the
+output sees, or "No user-visible effect." -->
 
 ## Why
 

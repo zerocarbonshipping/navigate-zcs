@@ -28,10 +28,10 @@ it corrects a wrong value. Label: `labels` of the matching form in
 
 ## Body
 
-- Sections of `.github/PULL_REQUEST_TEMPLATE.md`, in order, without the
-  comments. Opening paragraph and Why always; Results when simulation results
-  move. Delete other empty sections, never "None" or "N/A". Length follows
-  the change.
+- Sections of `.github/PULL_REQUEST_TEMPLATE.md`, in order; follow each
+  template comment, then delete it. Opening paragraph and Why always;
+  Results when simulation results move. Delete other empty sections, never
+  "None" or "N/A". Length follows the change.
 - One `Addresses #N` line per issue under Why; none without an issue.
   Closing keywords never fire (PRs merge into `dev`; GitHub honours them only
   on `main`): close the issue by hand after the merge.
@@ -41,13 +41,15 @@ it corrects a wrong value. Label: `labels` of the matching form in
 ## Per type
 
 - **bug:** Opening: the bug as the user met it, now fixed. Why: root cause.
-  CHANGELOG under Fixed, ending with the issue number if any.
+  A user-visible bug: CHANGELOG under Fixed, ending with the issue number if
+  any.
 - **enhancement:** Opening: the capability in DSL terms; a new attribute or
   command lives in four places (`AGENTS.md`, What a change touches). Why: how
   it better represents the sector; link the design issue for a large feature.
-  Results: a table of what moves, each change explained by its mechanism.
-  CHANGELOG under Added or Changed.
-- **documentation:** Opening: what was wrong. Why only if not obvious, e.g.
+  Results: a before → after table of the quantities and years that move,
+  each change explained by its mechanism. CHANGELOG under Added or Changed.
+- **documentation:** Opening: what was wrong or missing. Why: what the
+  opening leaves out, e.g. who the error misled; otherwise one line naming
   the source the old text contradicted. Reference-manual errors get a
   CHANGELOG entry like bugs; other documentation none.
 - **maintenance:** Opening: the end state; Why: what the old shape cost. A
@@ -57,7 +59,7 @@ it corrects a wrong value. Label: `labels` of the matching form in
   it, a before/after table on a named deck: same machine and solver, number
   of runs, base commit and branch, wall time or peak memory; CI measures
   neither. No CHANGELOG entry: `CONTRIBUTING.md` excludes results-neutral
-  changes.
+  changes with no DSL or output effect.
 
 ## Create
 
@@ -65,12 +67,13 @@ it corrects a wrong value. Label: `labels` of the matching form in
   description: no unsquashed "address review" commits.
 - Body in a file outside the repo; push; then
   `gh pr create --base <base> --title "<title>" --label <label> --body-file <file>`.
-  Do not report the URL.
-- Base: `dev` or the integration branch, never `main`. A stacked PR bases on
-  its parent branch, retargeted to `dev` once the parent merges.
+- Base: `dev` or the integration branch of the larger effort, never
+  `main`. A stacked PR bases on its parent branch, retargeted to `dev` once
+  the parent merges.
 - Every title, body or base edit reruns CI (`edited` trigger): edit only to
   fix wrong content or to retarget.
 - Substance hard to find, e.g. mixed with moves or renames: post a
-  review-guide comment with reading order and per-file pointers; a stacked PR
-  names its parent and its own commits there. The opening still says in one
-  line which part is mechanical.
+  review-guide comment with reading order and per-file pointers. The opening
+  still says in one line which part is mechanical.
+- A stacked PR always posts a review-guide comment naming its parent and its
+  own commits.

@@ -9,9 +9,9 @@ description: Use when asked to file, open or write up a GitHub issue on Navigate
 
 **Search first:** `gh issue list --state all --search "<terms>"` and
 `gh pr list --state all --search "<terms>"`. Existing issue: comment there,
-don't file. Open PR that addresses it: link it, don't file. A closed,
-unmerged PR does not stop filing. After a merged PR, check the problem
-persists on `origin/dev` before deciding not to file.
+don't file. Open PR that addresses it: don't file. A closed, unmerged PR
+does not stop filing. After a merged PR, check the problem persists on
+`origin/dev` before deciding not to file.
 
 ## Type and form
 
@@ -26,11 +26,12 @@ Forms are in `.github/ISSUE_TEMPLATE/`; the label is the form's top-level
   the model computes; a deliberate output change is allowed, stated as a
   user-visible effect.
 - **performance** (`05-performance.yml`): speed or memory, not results.
-- Fits none: blank issue, `--label question`.
+- A question that fits no type: blank issue, `--label question`.
 
 `gh` bypasses forms. Each `body` field's `label` is a `###` heading, in form
-order; `type: markdown` gives none. Required fields always present; empty
-optional ones omitted, never "N/A".
+order, and its `description` says what goes there; `type: markdown` gives
+none. Required fields always present; empty optional ones omitted, never
+"N/A".
 
 ## Rules
 
@@ -43,32 +44,37 @@ optional ones omitted, never "N/A".
 - Pin the commit: bug in Version, otherwise `<branch> @ <short SHA>` by the
   evidence; none for an enhancement without code evidence.
 - Locations: `path:line` plus symbol.
-- One problem per issue. No assignee or milestone unless asked. No test-run
-  statistics.
+- One problem per issue; a second problem gets its own issue, linked as
+  `#N`. No assignee or milestone unless asked. No test-run statistics.
 - Title under ~80 characters, no prefix or type tag. Bug, documentation,
-  performance: the symptom, performance with scale. Maintenance, enhancement:
-  the intended outcome as behaviour or property, not mechanism.
+  performance: the symptom as the user meets it, performance with scale.
+  Maintenance, enhancement: the intended outcome as behaviour or property,
+  not mechanism.
 
 ## Per type
 
 - **bug:** Confirm on current `origin/dev`; pin that commit. Kind: crash,
-  wrong result, bad deck accepted silently, or valid deck rejected. Reproduce
-  from a deck copy outside the repo:
-  `navigate <copy>/<deck>.nav -d <repo>/assumptions -s`; give the command,
-  trimmed output, and what the unmodified copy does. Found by reading code:
-  say so, give the argument. Location is the defect, not where it surfaces.
-- **documentation:** Quote the text and the source of truth it contradicts:
-  setter, `navigate/parser/_attributes.py`/`_commands.py`, or code path.
-  Unclear which side is wrong: say so. Code wrong: a bug. The reference
-  manual covers user-visible behaviour only, no modelling derivations;
-  internals belong in root files and folder READMEs.
+  wrong result, bad deck accepted silently, or valid deck rejected. Copy the
+  deck folder outside the repo (includes come with it); show the edit as a
+  diff. Run `navigate <copy>/<deck>.nav -d <repo>/assumptions -s`; give the
+  command, trimmed output, and what the unmodified copy does. Found by
+  reading code: say so, give the argument. Location is the defect, not where
+  it surfaces.
+- **documentation:** Quote the wrong text, or name what is missing, with
+  page and heading; give the source of truth it contradicts: setter,
+  `navigate/parser/_attributes.py`/`_commands.py`, or code path. Unclear
+  which side is wrong: say so. Code wrong: a bug. Several mismatches of one
+  kind found in one pass make one issue. The reference manual covers
+  user-visible behaviour only, no modelling derivations; internals belong in
+  root files and folder READMEs.
 - **enhancement:** Motivation and Intended behavior from the user's side, not
   attributes, commands or code; a DSL idea only under Considerations.
   Assumption values need references or a justification.
 - **maintenance:** The debt and its cost. Intended state: a property, not
-  steps. A grep for scattered sites. "Decide whether…": the decision and why
-  it matters, known options under Considerations. Name any output change the
-  intended state itself requires.
+  the steps or the mechanism. Location: every site, or the grep that finds
+  them. "Decide whether…": the decision and why it matters, known options
+  under Considerations. Name any output change the intended state itself
+  requires.
 - **performance:** Prefer a small deck; `simulations/scenarios/` runs take
   ~25 minutes. Measurement: deck, solver, commit, machine; then wall time
   with run count, trimmed profile, or peak memory; or an asymptotic argument.
@@ -77,5 +83,4 @@ optional ones omitted, never "N/A".
 ## Create
 
 Body in a file outside the repo, then
-`gh issue create --title "<title>" --label <label> --body-file <file>`. Do
-not report the URL.
+`gh issue create --title "<title>" --label <label> --body-file <file>`.
