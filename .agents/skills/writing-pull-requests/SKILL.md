@@ -27,7 +27,7 @@ Copy this checklist and tick it off:
 - [ ] 1. Pick the type
 - [ ] 2. Write the title
 - [ ] 3. Read the type's reference and write the body
-- [ ] 4. Create the pull request and report its URL
+- [ ] 4. Create the pull request
 - [ ] 5. Post a review guide if the substance is hard to find
 ```
 
@@ -79,7 +79,7 @@ Follow each HTML comment and leave the comments out of the body.
   opening paragraph or Why. A rejected approach goes in Decisions, not in a
   story of the work.
 
-## 4. Create the pull request and report its URL
+## 4. Create the pull request
 
 The squash commit carries the branch's commit messages, not this
 description; a later reader reaches the description through the `(#N)` in
@@ -98,8 +98,7 @@ belongs to; never `main`. A stacked pull request bases on its parent branch
 and is retargeted to `dev` once the parent merges.
 
 Every edit to the title, body or base reruns CI, because the workflows
-trigger on `edited`. Edit only to fix wrong content or to retarget. Report
-the URL that `gh pr create` prints.
+trigger on `edited`. Edit only to fix wrong content or to retarget.
 
 ## 5. Post a review guide if the substance is hard to find
 
