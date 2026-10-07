@@ -364,22 +364,7 @@ class BunkerAlgorithm:
         perform_flexibility_unit_cost_evaluation(self)
 
         if self.scope == BunkerScopeID.EXISTING:
-            statistics = self.fair_share_convergence_statistics
-            iterations = len(statistics["Norm"])
-            table = {"Iter.": range(1, iterations + 1), **statistics}
-
-            if converged:
-                logger.info("Fair-share bunkering convergence status: Successful.")
-                logger.debug(
-                    "Fair-share bunkering convergence statistics:",
-                    extra={"table": table},
-                )
-            else:
-                logger.info(
-                    "Fair-share bunkering convergence status: Failure.\n"
-                    "Fair-share bunkering convergence statistics:",
-                    extra={"table": table},
-                )
+            self._log_fair_share_convergence(converged)
 
         # the fair-share iterations rebuild constraints between solves; that time
         # counts as build time, while optimize accumulates the solve time
@@ -496,3 +481,28 @@ class BunkerAlgorithm:
             update_tank_capacity_constraints(self, vessel)
 
         update_bunkered_equals_spent_constraint(self, vessel)
+
+    def _log_fair_share_convergence(self, converged: bool) -> None:
+        """
+        Log the outcome of the fair-share iterations, with a table of their statistics.
+
+        Parameters
+        ----------
+        converged
+            Whether the iterations reached the convergence criterion.
+        """
+        statistics = self.fair_share_convergence_statistics
+        iterations = len(statistics["Norm"])
+        table = {"Iter.": range(1, iterations + 1), **statistics}
+
+        if converged:
+            logger.info("Fair-share bunkering convergence status: Successful.")
+            logger.debug(
+                "Fair-share bunkering convergence statistics:", extra={"table": table}
+            )
+        else:
+            logger.info(
+                "Fair-share bunkering convergence status: Failure.\n"
+                "Fair-share bunkering convergence statistics:",
+                extra={"table": table},
+            )
