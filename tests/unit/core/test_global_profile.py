@@ -53,7 +53,7 @@ TIMING_ATTRIBUTES = frozenset(
 )
 
 
-def test_global_state_is_the_three_branches_plus_its_own_timings():
+def test_global_profile_state_is_the_three_branches_plus_its_own_timings():
     # a global profile aggregates vessels, plants and infrastructure, so constructing
     # one has to run all three branches' constructors and nothing else
     branches = (
