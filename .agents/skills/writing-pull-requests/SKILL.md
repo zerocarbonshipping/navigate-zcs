@@ -9,9 +9,10 @@ description: Opens Navigate pull requests when asked to open, create or describe
 
 A pull request description has two readers. The reviewer decides whether to
 merge: what the change does and its user-visible effect, why, which choices
-they might make differently, and evidence beyond what CI shows. A later
-reader arriving from `git blame` needs why, the alternatives rejected, and
-the known limits.
+they might make differently, and how simulation results move, if they do.
+The tests in the diff and CI show that the change works. A later reader
+arriving from `git blame` needs why, the alternatives rejected, and the
+known limits.
 
 So the description never carries a file-by-file account of the diff, CI
 results, a narrative of how the work went, or restated changelog text; the
@@ -64,9 +65,9 @@ example: "Reject a negative bunkering limit when the deck is read".
 Read the reference for the type, from the table above, then the template.
 Follow each HTML comment and leave the comments out of the body.
 
-- The opening paragraph and Why are always required; Evidence is required
-  as the template says. Delete any other empty section; never write "None"
-  or "N/A".
+- The opening paragraph and Why are always required; Results is required
+  when simulation results move. Delete any other empty section; never write
+  "None" or "N/A".
 - Length follows the change: a small fix may be the opening paragraph and
   Why alone.
 - Put each issue on its own `Addresses #N` line under Why. With no issue,
@@ -121,13 +122,3 @@ substance.
 - Name a file or symbol only where it is needed to understand the design or
   to point to the substance. Put code, paths and symbols in backticks.
 - Write plain, short declarative sentences.
-
-## Evidence
-
-The standard is `CONTRIBUTING.md`, Evidence in a pull request. Beyond it:
-
-- A change that only reads state and writes none may argue in one sentence
-  why the computed results of a deck without a report cannot differ, instead
-  of comparing them.
-- Never invent or reconstruct output. Rerun the command, or say the output
-  is not at hand.

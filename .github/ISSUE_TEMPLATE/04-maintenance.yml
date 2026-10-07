@@ -26,9 +26,4 @@ body:
     id: verification
     attributes:
       label: Verification
-      description: >
-        How to show, base versus branch on the affected decks, that what the
-        model computes is unchanged, naming any deliberate change to log,
-        console or report output. A change that touches
-        nothing under `navigate/` or `assumptions/`, no deck or include, and
-        no dependency in `pyproject.toml` only needs to say so.
+      description: How to show the change is behavior-preserving — suites to run and the expected baseline.

@@ -7,9 +7,5 @@ SPDX-License-Identifier: Apache-2.0
 
 - **Opening paragraph:** the bug as the user met it, and that it is fixed.
 - **Why:** the root cause.
-- **Evidence:** a base-versus-branch run of the reproduction: the same
-  command on both, the exit code and the trimmed output. For a bug found by
-  reading code, the pinning test failing on the base instead. Name what that
-  test asserts.
 - A user-visible bug gets a CHANGELOG entry under Fixed, ending with the
   issue number if there is one.

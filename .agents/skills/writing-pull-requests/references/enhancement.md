@@ -11,6 +11,7 @@ SPDX-License-Identifier: Apache-2.0
 - **Why:** how the change better represents the sector. For a large
   feature, link the issue where its design was agreed.
 - **Decisions:** the design choices.
-- **Evidence:** required when results move, with the results table of
-  `CONTRIBUTING.md`, Evidence in a pull request.
+- **Results:** when outputs move, a table of the quantities and years that
+  move, before → after, with each shift explained by the mechanism that
+  causes it.
 - A user-visible enhancement gets a CHANGELOG entry under Added or Changed.

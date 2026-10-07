@@ -9,9 +9,5 @@ SPDX-License-Identifier: Apache-2.0
 - **Why:** only what the opening does not already say, such as who the
   error misled or how it arose. Otherwise one line naming the source the
   old text contradicted.
-- **Evidence:** how each corrected statement was confirmed against its
-  source of truth: the setter and its docstring, the parser table, or the
-  code path. Say which statements were confirmed by running a deck and
-  which only by reading the code.
 - Errors in the reference manual get a CHANGELOG entry like bugs
   (`CONTRIBUTING.md`, Changelog). Other documentation changes get none.
