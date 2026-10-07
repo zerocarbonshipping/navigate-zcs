@@ -62,6 +62,7 @@ def _stub_run(monkeypatch, caplog, calls, parser):
     )
     monkeypatch.setattr(run, "Parser", lambda: parser)
     monkeypatch.setattr(run, "Simulation", lambda *args: simulation)
+    monkeypatch.setattr(run, "write_results", lambda *args: None)
 
     handler = _HeadingHandler(calls)
     caplog.set_level(logging.INFO, logger=run.logger.name)

@@ -211,6 +211,7 @@ class TestPreamble:
             log_level="INFO",
             profile=profile,
             suppress_plots=False,
+            results=None,
             data_dir=None,
             solver=None,
         )

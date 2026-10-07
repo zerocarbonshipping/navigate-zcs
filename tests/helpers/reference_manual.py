@@ -25,7 +25,13 @@ MANUAL_DIR = REPO_ROOT / "docs" / "reference_manual"
 
 # pages describing no node, so no node type may ever resolve to one
 NON_NODE_PAGES = frozenset(
-    {"index.md", "overview.md", "dsl_reference.md", "appendix_ids.md"}
+    {
+        "index.md",
+        "overview.md",
+        "dsl_reference.md",
+        "results_file.md",
+        "appendix_ids.md",
+    }
 )
 
 REPORT_PAGE = MANUAL_DIR / "report.md"

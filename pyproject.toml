@@ -28,6 +28,7 @@ dependencies = [
     "scipy",
     "tabulate",
     "openpyxl",
+    "pyarrow>=15",
     "lark"
 ]
 

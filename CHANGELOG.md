@@ -14,6 +14,14 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 ## [Unreleased]
 
 ### Added
+- Results file: every run writes all its results to `<deck>.parquet` next to
+  the deck, or to the path given with `-o`/`--results`: every profile result
+  of the global profile and of each fleet, vessel, port, plant, producer,
+  regulation and levy, one row per series and date, with the unit of each
+  result in the file metadata. [Lantern](https://github.com/zerocarbonshipping/lantern-zcs)
+  opens it to plot the results in the browser; the built-in plots are kept
+  for now. The layout is described on the new reference-manual page "Results
+  file".
 - The console prints the number of logged warnings at the end of a run,
   pointing at the `.log` file.
 - Vessel report properties `SpeedEnergyIntensitySaving`,
