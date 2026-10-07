@@ -38,6 +38,8 @@ class Node:
         """
         Raise where an attribute the node cannot run without is unassigned.
 
+        Holds what the parser's required-attribute check cannot see: a list
+        left empty, or an attribute required only under a condition on others.
         Runs once, after the DEFINE block has been read.
         """
 

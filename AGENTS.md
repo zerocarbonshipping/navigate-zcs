@@ -17,8 +17,8 @@ every change. The detail lives in the files it points to.
 - `README.md` — installing, running, the CLI flags, and which licence
   covers which content.
 - `ARCHITECTURE.md` — the package map, the layering, the data-flow
-  invariants and the naming conventions inside `navigate/`. Read it before
-  changing code there.
+  invariants, where model work lives and the node lifecycle inside
+  `navigate/`. Read it before changing code there.
 - `CODESTYLE.md` — the conventions the tooling cannot check.
 - `.ruff.toml` — this repository's lint rules and ruff settings. They are
   owned here and changed here.
