@@ -121,7 +121,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
     `Time-step: 0, current date: …` like every later one;
   - the time-step headings and the completion line log under
     `navigate.driver.run`, the initialization and post-processing headings
-    under `navigate.simulation.time_stepping`.
+    under `navigate.simulation.time_stepping`;
+  - the domain modules log under `navigate.simulation.<domain>`, for example
+    `navigate.simulation.bunker.solver` instead of `navigate.bunker.solver`.
 
 ### Removed
 - `BunkerLogistics`: write `LiquidMarket` on `Fuel`, and `set_fuel_transport`
