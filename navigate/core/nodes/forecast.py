@@ -95,5 +95,5 @@ class Forecast(Node, _Table1D):
         """
         if x is not None:
             return self.calculate(x)
-        else:
-            return self._current_value
+
+        return self._current_value

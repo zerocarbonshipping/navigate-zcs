@@ -333,8 +333,8 @@ class Route(Node):
                 for pj in self.ports
                 for pi in self.ports
             ]
-        else:
-            return self._voyage_fractions
+
+        return self._voyage_fractions
 
     def get_number_of_legs(self) -> int:
         return len(self.speeds)
@@ -355,21 +355,21 @@ class Route(Node):
         if self.route_type == RouteTypeID.ROUND_TRIP:
             n_legs = self.get_number_of_legs()
             return tuple((i, (i + 1) % n_legs) for i in range(n_legs))
-        else:
-            n_ports = self.get_number_of_ports()
-            return tuple((i, j) for i in range(n_ports) for j in range(n_ports))
+
+        n_ports = self.get_number_of_ports()
+        return tuple((i, j) for i in range(n_ports) for j in range(n_ports))
 
     def local_to_global_leg_idx(self, p1: int, p2: int) -> int:
         if self.route_type == RouteTypeID.ROUND_TRIP:
             return p1
-        else:
-            return p1 * self.get_number_of_ports() + p2
+
+        return p1 * self.get_number_of_ports() + p2
 
     def get_number_of_regional_legs(self) -> int:
         if self.route_type == RouteTypeID.ROUND_TRIP:
             return self.get_number_of_legs()
-        else:
-            return self.get_number_of_ports() ** 2
+
+        return self.get_number_of_ports() ** 2
 
     def _normalize_voyage_distribution(self) -> dict[tuple[str, str], FloatArray]:
         """
@@ -394,5 +394,5 @@ class Route(Node):
     def get_number_of_port_calls(self) -> FloatArray:
         if self.route_type == RouteTypeID.ROUND_TRIP:
             return np.ones((self.get_number_of_ports(),))
-        else:
-            return to_numpy(self.port_calls)
+
+        return to_numpy(self.port_calls)

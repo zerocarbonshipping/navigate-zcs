@@ -34,6 +34,7 @@ select = [
     "PT",  # pytest style and failure quality
     "G",   # flake8-logging-format: lazy % arguments, extra keys clear of LogRecord's
     "LOG", # flake8-logging: no root-logger calls, exc_info only in except handlers
+    "RET", # flake8-return: no else after an exit, no assign-then-return
 ]
 extend-select = [
     "D213",   # multi-line docstring summaries start on the second line
@@ -43,7 +44,6 @@ extend-select = [
     "ERA001", # no commented-out code
 ]
 ignore = [
-    "E731", # lambda assignments are allowed
     "D105", # magic methods need no docstring
 ]
 

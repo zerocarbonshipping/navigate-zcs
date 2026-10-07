@@ -406,9 +406,7 @@ def timeline_to_yearly(vessel: Vessel, idx: int, timeline: FloatArray) -> FloatA
     start = timeline[idx]
     end = start + lifetime * YEAR
 
-    times = np.arange(start, end, YEAR)
-
-    return times
+    return np.arange(start, end, YEAR)
 
 
 def get_age_flow(lead_time: float, lifetime: float) -> FloatArray:

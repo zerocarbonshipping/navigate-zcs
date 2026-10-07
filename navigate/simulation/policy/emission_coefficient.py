@@ -944,9 +944,7 @@ def _calculate_emission_factor(
     # results are adjusted for scope, inclusion
     # of slip, etc. so that reconstruction of the
     # emission factor can be made without checks
-    factor = wtt + ttw_consumption + ttw_slip
-
-    return factor
+    return wtt + ttw_consumption + ttw_slip
 
 
 def _apply_gwp(

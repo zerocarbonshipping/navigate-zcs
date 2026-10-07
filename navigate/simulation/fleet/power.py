@@ -93,34 +93,33 @@ def calculate_technical_speed_limits(vessel: Vessel) -> tuple[FloatArray, FloatA
     if isinstance(load, Scalar) or is_variable(load):
         return _unbounded_speed_limits(vessel)
 
+    # the load is a Curve or a Surface
+    converter = vessel.power_system.propulsion
+    power_maximum = converter.power_capacity.get()
+    minimum_load = converter.minimum_load
+
+    if minimum_load is not None:
+        power_minimum = minimum_load.get() * power_maximum
+        speed_minimum = _calculate_speed_extremum(vessel, power_minimum, load)
+
     else:
-        # the load is a Curve or a Surface
-        converter = vessel.power_system.propulsion
-        power_maximum = converter.power_capacity.get()
-        minimum_load = converter.minimum_load
+        speed_minimum = load.x[0]
 
-        if minimum_load is not None:
-            power_minimum = minimum_load.get() * power_maximum
-            speed_minimum = _calculate_speed_extremum(vessel, power_minimum, load)
+    # the power capacity may cap the speed below the load's largest speed
+    speed_maximum = _calculate_speed_extremum(vessel, power_maximum, load)
 
-        else:
-            speed_minimum = load.x[0]
+    # the reverse lookup returns None for a load that is not strictly increasing
+    if speed_minimum is None:
+        speed_minimum = load.x[0]
 
-        # the power capacity may cap the speed below the load's largest speed
-        speed_maximum = _calculate_speed_extremum(vessel, power_maximum, load)
+    if speed_maximum is None:
+        speed_maximum = load.x[-1]
 
-        # the reverse lookup returns None for a load that is not strictly increasing
-        if speed_minimum is None:
-            speed_minimum = load.x[0]
+    # the limits are per leg, as the capacity utilization moves the power limit
+    speeds_minimum = _expand_speed_to_legs(vessel, speed_minimum)
+    speeds_maximum = _expand_speed_to_legs(vessel, speed_maximum)
 
-        if speed_maximum is None:
-            speed_maximum = load.x[-1]
-
-        # the limits are per leg, as the capacity utilization moves the power limit
-        speeds_minimum = _expand_speed_to_legs(vessel, speed_minimum)
-        speeds_maximum = _expand_speed_to_legs(vessel, speed_maximum)
-
-        return speeds_minimum, speeds_maximum
+    return speeds_minimum, speeds_maximum
 
 
 def loads_are_convex(vessel: Vessel) -> bool:
@@ -391,6 +390,5 @@ def _load_is_convex(load: SurfaceInput) -> bool:
     if isinstance(load, Scalar) or is_variable(load):
         return True
 
-    else:
-        # the load is a Curve or a Surface
-        return load.is_convex()
+    # the load is a Curve or a Surface
+    return load.is_convex()

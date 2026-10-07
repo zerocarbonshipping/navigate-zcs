@@ -255,14 +255,13 @@ def perform_fixed_trade_scrapping(
 
             break
 
-        else:
-            # the gap exceeds the age group's capacity: scrap all of its increments
-            trade_gap -= capacity
+        # the gap exceeds the age group's capacity: scrap all of its increments
+        trade_gap -= capacity
 
-            for v, ii in group:
-                multiplier = fleet.increments[v][ii].multiplier
-                youngest_index[v] = ii + 1
-                fleet.profile.add_scrap(fleet.assets[v].name, multiplier, idx)
+        for v, ii in group:
+            multiplier = fleet.increments[v][ii].multiplier
+            youngest_index[v] = ii + 1
+            fleet.profile.add_scrap(fleet.assets[v].name, multiplier, idx)
 
     # drop the increments scrapped in full
     for v, i in enumerate(youngest_index):
