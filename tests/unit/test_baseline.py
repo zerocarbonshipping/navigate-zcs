@@ -271,7 +271,7 @@ class TestRegenOrCompare:
         monkeypatch.setattr(
             helpers.baseline,
             "check_invariants",
-            lambda manager: calls.append("invariants"),
+            lambda results: calls.append("invariants"),
         )
         return calls
 
@@ -285,7 +285,7 @@ class TestRegenOrCompare:
             baselines,
             output,
             regen=True,
-            check_activation=lambda manager: calls.append("activation"),
+            check_activation=lambda results: calls.append("activation"),
         )
 
         assert calls == ["invariants", "activation"]
@@ -296,7 +296,7 @@ class TestRegenOrCompare:
         write_csv(baselines, "keep.csv", ["Date", "a"], [["d1", "1"]])
         write_csv(output, "f.csv", ["Date", "a"], [["d1", "1"]])
 
-        def failing_activation(manager):
+        def failing_activation(results):
             raise AssertionError("mechanism did not fire")
 
         with pytest.raises(AssertionError, match="mechanism did not fire"):
@@ -323,5 +323,5 @@ class TestRegenOrCompare:
             baselines,
             output,
             regen=False,
-            check_activation=lambda manager: pytest.fail("guard called"),
+            check_activation=lambda results: pytest.fail("guard called"),
         )

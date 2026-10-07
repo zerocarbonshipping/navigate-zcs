@@ -28,17 +28,17 @@ SIMULATIONS_DIR = Path(__file__).resolve().parent / "simulations"
 
 
 @pytest.fixture(scope="module")
-def manager():
+def results():
     return run_simulation(SIMULATIONS_DIR / "supply_constrained")
 
 
 @pytest.fixture(scope="module")
-def producer(manager):
-    return manager.nodes.producers["epc_europe"]
+def producer(results):
+    return results.nodes.producers["epc_europe"]
 
 
 @pytest.fixture(scope="module")
-def window(manager, producer):
+def window(results, producer):
     """
     Build the window of assertable steps.
 
@@ -46,15 +46,15 @@ def window(manager, producer):
     and the final LeadTime years are excluded per assertable_end — a known, explicitly
     not-desired limitation (see BEHAVIOR.md); the exclusion is not an endorsement.
     """
-    end = assertable_end(manager, producer)
+    end = assertable_end(results, producer)
     assert end > 1, "Assertable window is empty — the horizon is too short"
     return slice(1, end)
 
 
 @pytest.mark.slow
 class TestSupplyConstrained:
-    def test_invariants(self, manager):
-        check_invariants(manager)
+    def test_invariants(self, results):
+        check_invariants(results)
 
     def test_development_pinned_to_constraint(self, producer, window):
         development = producer.profile.get_development()
@@ -65,12 +65,12 @@ class TestSupplyConstrained:
             <= EPS_DEVELOPMENT_REL * maximum[window]
         )
 
-    def test_demand_remains_unmet(self, manager, window):
+    def test_demand_remains_unmet(self, results, window):
         """
         Deck validity: the scenario must stay supply-constrained.
 
         This shows up as the fleet still paying remedial costs near the end.
         """
-        regulation = manager.nodes.regulations["intensity_regulation"]
+        regulation = results.nodes.regulations["intensity_regulation"]
         remedial = regulation.profile.get_remedial_units()
         assert np.all(remedial[window] > 0.0)

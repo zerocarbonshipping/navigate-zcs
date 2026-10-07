@@ -54,23 +54,23 @@ MAX_SURPLUS = 0.12
 
 
 @pytest.fixture(scope="module")
-def manager():
+def results():
     return run_simulation(SIMULATIONS_DIR / "supply_then_demand_constrained")
 
 
 @pytest.fixture(scope="module")
-def producer(manager):
-    return manager.nodes.producers["epc_europe"]
+def producer(results):
+    return results.nodes.producers["epc_europe"]
 
 
 @pytest.fixture(scope="module")
-def post_window(manager, producer):
+def post_window(results, producer):
     """
     Post-catch-up steps, with the same tail exclusion as supply_constrained.
 
     See BEHAVIOR.md, Known limitations.
     """
-    end = assertable_end(manager, producer)
+    end = assertable_end(results, producer)
     # > +1 because test_surplus_band additionally skips the catch-up step
     assert end > CATCHUP_STEP + 1, (
         "Post-catch-up window is empty — re-derive CATCHUP_STEP from a tuning run"
@@ -86,8 +86,8 @@ def deliverable(producer):
 
 @pytest.mark.slow
 class TestSupplyThenDemandConstrained:
-    def test_invariants(self, manager):
-        check_invariants(manager)
+    def test_invariants(self, results):
+        check_invariants(results)
 
     def test_supply_limited_before_catchup(self, producer):
         development = producer.profile.get_development()
@@ -107,7 +107,7 @@ class TestSupplyThenDemandConstrained:
             < maximum[post_window] * (1.0 - EPS_DEVELOPMENT_REL)
         )
 
-    def test_demand_met_after_catchup(self, manager, post_window):
+    def test_demand_met_after_catchup(self, results, post_window):
         """
         Supply >= demand is not observable directly from consumption.
 
@@ -115,7 +115,7 @@ class TestSupplyThenDemandConstrained:
         regulation buying remedial units instead — see BEHAVIOR.md. After catch-up,
         demand must be met, i.e. no remedial units.
         """
-        regulation = manager.nodes.regulations["intensity_regulation"]
+        regulation = results.nodes.regulations["intensity_regulation"]
         remedial = regulation.profile.get_remedial_units()
 
         # deck validity: before catch-up the scenario is supply-constrained,
@@ -125,9 +125,9 @@ class TestSupplyThenDemandConstrained:
 
         assert np.all(remedial[post_window] <= EPS_REMEDIAL_REL * pre_catchup.max())
 
-    def test_surplus_band(self, manager, deliverable, post_window):
-        consumption = manager.profile.get_consumed_energy()[FUEL]
-        total = manager.profile.get_total_consumed_energy()
+    def test_surplus_band(self, results, deliverable, post_window):
+        consumption = results.profile.get_consumed_energy()[FUEL]
+        total = results.profile.get_total_consumed_energy()
 
         # the catch-up step itself is transitional: the surplus builds up
         # from zero while development leaves the constraint

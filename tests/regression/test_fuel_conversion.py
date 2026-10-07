@@ -40,14 +40,14 @@ MINIMUM_CONVERTING_STEPS = 2
 
 
 @pytest.fixture(scope="module")
-def manager():
+def results():
     clear_output_dir(DECK_DIR / "output")
     return run_simulation(DECK_DIR)
 
 
-def check_activation(manager):
+def check_activation(results):
     """Deck validity: conversions occur and stay discounting-sensitive."""
-    fleet = manager.nodes.fleets["container_15000_teu"]
+    fleet = results.nodes.fleets["container_15000_teu"]
     conversions = fleet.profile.get_fuel_conversions()[(VESSEL_OIL, VESSEL_METHANE)]
 
     assert conversions.sum() > MINIMUM_CONVERTED_VESSELS, (
@@ -58,8 +58,8 @@ def check_activation(manager):
         "Conversions collapsed into a single time-step"
     )
 
-    oil = manager.nodes.vessels[VESSEL_OIL]
-    methane = manager.nodes.vessels[VESSEL_METHANE]
+    oil = results.nodes.vessels[VESSEL_OIL]
+    methane = results.nodes.vessels[VESSEL_METHANE]
     assert methane.cost_of_capital.get() > 0.0, (
         "Destination CostOfCapital is zero: the conversion NPV no longer "
         "responds to discounting changes"
@@ -72,15 +72,15 @@ def check_activation(manager):
 
 @pytest.mark.slow
 class TestFuelConversion:
-    def test_invariants(self, manager):
-        check_invariants(manager)
+    def test_invariants(self, results):
+        check_invariants(results)
 
-    def test_conversions_occur(self, manager):
-        check_activation(manager)
+    def test_conversions_occur(self, results):
+        check_activation(results)
 
-    def test_matches_baseline(self, manager, regen_baselines_flag):
+    def test_matches_baseline(self, results, regen_baselines_flag):
         regen_or_compare(
-            manager,
+            results,
             BASELINE_DIR,
             DECK_DIR / "output",
             regen=regen_baselines_flag,
