@@ -460,7 +460,7 @@ This command sets the fraction of energy saved at sea through operational measur
 
 The operational saving is applied as an intermediate step between the raw energy demand (from speed/operation) and the technology-adjusted energy demand. It reduces the baseline energy against which technology savings are evaluated.
 
-* **Primary key type**: [EnergyDemandTypeID](appendix_ids.md#energydemandtypeid) (supports wildcards)
+* **Primary key type**: [EnergyDemandID](appendix_ids.md#energydemandid) (supports wildcards)
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
   + `PROPULSION, 0.1`
@@ -476,7 +476,7 @@ This command sets the fraction of energy saved in port through operational measu
 
 The operational saving is applied as an intermediate step between the raw energy demand and the technology-adjusted energy demand.
 
-* **Primary key type**: [EnergyDemandTypeID](appendix_ids.md#energydemandtypeid), restricted to the demands a vessel has in port: `ELECTRICAL` and `HEAT` (supports wildcards)
+* **Primary key type**: [EnergyDemandID](appendix_ids.md#energydemandid), restricted to the demands a vessel has in port: `ELECTRICAL` and `HEAT` (supports wildcards)
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
   + `ELECTRICAL, 0.05`

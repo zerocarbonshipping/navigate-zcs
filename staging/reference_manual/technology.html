@@ -568,7 +568,7 @@ Examples are air lubrication, wind assisted propulsion or shaft generators respe
 <h3>set_energy_saving<a class="headerlink" href="#set-energy-saving" title="Link to this heading">#</a></h3>
 <p>This command sets the fraction of the raw energy demand of an energy demand type saved by the technology. The saving is applied before any external power is subtracted, and the savings of several technologies installed together compound: two savings of 0.1 give a combined saving of 1 − 0.9 × 0.9 = 0.19.</p>
 <ul class="simple">
-<li><p><strong>Primary key type</strong>: <a class="reference internal" href="appendix_ids.html#energydemandtypeid"><span class="std std-ref">EnergyDemandTypeID</span></a> (supports wildcards)</p></li>
+<li><p><strong>Primary key type</strong>: <a class="reference internal" href="appendix_ids.html#energydemandid"><span class="std std-ref">EnergyDemandID</span></a> (supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
@@ -585,7 +585,7 @@ Examples are air lubrication, wind assisted propulsion or shaft generators respe
 <h3>set_external_power<a class="headerlink" href="#set-external-power" title="Link to this heading">#</a></h3>
 <p>This command sets the external power the technology supplies to an energy demand type. The power is converted to energy over the time spent on each leg or in each port and subtracted from the demand left after the energy savings, floored at 0. The external powers of several technologies installed together add up.</p>
 <ul class="simple">
-<li><p><strong>Primary key type</strong>: <a class="reference internal" href="appendix_ids.html#energydemandtypeid"><span class="std std-ref">EnergyDemandTypeID</span></a> (supports wildcards)</p></li>
+<li><p><strong>Primary key type</strong>: <a class="reference internal" href="appendix_ids.html#energydemandid"><span class="std std-ref">EnergyDemandID</span></a> (supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
@@ -602,8 +602,8 @@ Examples are air lubrication, wind assisted propulsion or shaft generators respe
 <h3>set_power_transfer<a class="headerlink" href="#set-power-transfer" title="Link to this heading">#</a></h3>
 <p>This command sets the power transferred from a source energy demand type to a sink energy demand type, e.g. from propulsion to electrical for a shaft generator. A Curve maps the load of the source’s converter (its residual power divided by its power capacity) to the transferred power; a number is a constant power. The power is converted to energy over the time spent on each leg or in each port and subtracted from the sink’s residual demand, floored at 0. The transfers of several technologies installed together add up.</p>
 <ul class="simple">
-<li><p><strong>Primary key type</strong>: <a class="reference internal" href="appendix_ids.html#energydemandtypeid"><span class="std std-ref">EnergyDemandTypeID</span></a> (source; supports wildcards)</p></li>
-<li><p><strong>Secondary key type</strong>: <a class="reference internal" href="appendix_ids.html#energydemandtypeid"><span class="std std-ref">EnergyDemandTypeID</span></a> (sink; supports wildcards)</p></li>
+<li><p><strong>Primary key type</strong>: <a class="reference internal" href="appendix_ids.html#energydemandid"><span class="std std-ref">EnergyDemandID</span></a> (source; supports wildcards)</p></li>
+<li><p><strong>Secondary key type</strong>: <a class="reference internal" href="appendix_ids.html#energydemandid"><span class="std std-ref">EnergyDemandID</span></a> (sink; supports wildcards)</p></li>
 <li><p><strong>Data type</strong>: <code class="docutils literal notranslate"><span class="pre">Float</span></code>, <code class="docutils literal notranslate"><span class="pre">Curve</span></code>, <code class="docutils literal notranslate"><span class="pre">Variable</span></code></p></li>
 <li><p><strong>Example values</strong>:</p>
 <ul>
