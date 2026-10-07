@@ -26,22 +26,23 @@ from helpers.baseline import (
     regen_or_compare,
 )
 from helpers.simulation import check_invariants, clear_output_dir, run_simulation
+from navigate.util import dates_to_days
 
 DECK_DIR = Path(__file__).resolve().parent / "simulations" / "carbon_levy"
 BASELINE_DIR = Path(__file__).resolve().parent / "baselines" / "carbon_levy"
 
 
 @pytest.fixture(scope="module")
-def manager():
+def results():
     clear_output_dir(DECK_DIR / "output")
     return run_simulation(DECK_DIR)
 
 
-def check_activation(manager):
+def check_activation(results):
     """Deck validity: the levy is live and collects on every decision step."""
-    levy = manager.nodes.levies["carbon_levy"]
+    levy = results.nodes.levies["carbon_levy"]
 
-    assert np.all(levy.level.get(manager.timeline) > 0.0), (
+    assert np.all(levy.level.get(dates_to_days(results.dateline)) > 0.0), (
         "The levy level is not positive over the horizon: the deck no longer "
         "prices emissions"
     )
@@ -56,7 +57,7 @@ def check_activation(manager):
     # the ramp is sized to cross the deck's oil-vs-ammonia break-even
     # mid-horizon: without an actual transition the supply chain in the deck
     # is dead weight and the baseline covers only the collection arithmetic
-    ammonia = manager.profile.get_consumed_energy()["ammonia_electro"]
+    ammonia = results.profile.get_consumed_energy()["ammonia_electro"]
     assert ammonia[-1] > 0.0, (
         "The levy no longer flips any consumption to ammonia: the transition "
         "phase of the deck is inert"
@@ -65,15 +66,15 @@ def check_activation(manager):
 
 @pytest.mark.slow
 class TestCarbonLevy:
-    def test_invariants(self, manager):
-        check_invariants(manager)
+    def test_invariants(self, results):
+        check_invariants(results)
 
-    def test_levy_collects(self, manager):
-        check_activation(manager)
+    def test_levy_collects(self, results):
+        check_activation(results)
 
-    def test_matches_baseline(self, manager, regen_baselines_flag):
+    def test_matches_baseline(self, results, regen_baselines_flag):
         regen_or_compare(
-            manager,
+            results,
             BASELINE_DIR,
             DECK_DIR / "output",
             regen=regen_baselines_flag,

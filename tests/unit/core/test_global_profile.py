@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""A constructed manager profile carries the state of every branch it aggregates."""
+"""A constructed global profile carries the state of every branch it aggregates."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ from navigate.core.profiles._fuel_infrastructure_profile import (
 )
 from navigate.core.profiles._plant_aggregate_profile import _PlantAggregateProfile
 from navigate.core.profiles._vessel_aggregate_profile import _VesselAggregateProfile
-from navigate.core.profiles.manager_profile import ManagerProfile
+from navigate.core.profiles.global_profile import GlobalProfile
 from navigate.core.profiles.port_profile import PortProfile
 
 
@@ -27,7 +27,7 @@ def _fuel():
     return fuel
 
 
-# the wall-clock breakdown of one simulation, read back through the manager's
+# the wall-clock breakdown of one simulation, read back through the global profile's
 # get_*_time readers; no branch it aggregates declares any of it
 TIMING_ATTRIBUTES = frozenset(
     {
@@ -53,8 +53,8 @@ TIMING_ATTRIBUTES = frozenset(
 )
 
 
-def test_manager_state_is_the_three_branches_plus_its_own_timings():
-    # a manager aggregates vessels, plants and infrastructure, so constructing
+def test_global_profile_state_is_the_three_branches_plus_its_own_timings():
+    # a global profile aggregates vessels, plants and infrastructure, so constructing
     # one has to run all three branches' constructors and nothing else
     branches = (
         set(vars(_VesselAggregateProfile()))
@@ -62,7 +62,7 @@ def test_manager_state_is_the_three_branches_plus_its_own_timings():
         | set(vars(_FuelInfrastructureProfile()))
     )
 
-    assert set(vars(ManagerProfile())) == branches | TIMING_ATTRIBUTES
+    assert set(vars(GlobalProfile())) == branches | TIMING_ATTRIBUTES
 
 
 class TestBunkerSupplyMassAggregation:
@@ -77,9 +77,9 @@ class TestBunkerSupplyMassAggregation:
         return port
 
     @staticmethod
-    def _manager(fuels, timeline):
-        manager = ManagerProfile()
-        manager.initialize(
+    def _global_profile(fuels, timeline):
+        profile = GlobalProfile()
+        profile.initialize(
             timeline=timeline,
             emissions={},
             feedstocks={},
@@ -87,7 +87,7 @@ class TestBunkerSupplyMassAggregation:
             processes={},
             emissions_lifetime=100.0,
         )
-        return manager
+        return profile
 
     def test_finite_ports_aggregate_to_their_finite_sum(self):
         fuels = {"fuel_a": _fuel()}
@@ -99,8 +99,8 @@ class TestBunkerSupplyMassAggregation:
         port_b = self._port(fuels, timeline)
         port_b.set_bunker_supply_mass(0, "fuel_a", 50.0)
 
-        manager = self._manager(fuels, timeline)
-        manager.add_fuel_infrastructure_profile(port_a)
-        manager.add_fuel_infrastructure_profile(port_b)
+        profile = self._global_profile(fuels, timeline)
+        profile.add_fuel_infrastructure_profile(port_a)
+        profile.add_fuel_infrastructure_profile(port_b)
 
-        assert manager.get_bunker_supply_mass()["fuel_a"][0] == 150.0
+        assert profile.get_bunker_supply_mass()["fuel_a"][0] == 150.0

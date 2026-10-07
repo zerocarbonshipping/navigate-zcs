@@ -2,16 +2,15 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-The simulation loop: SimulationManager runs a deck from its nodes to its output.
+The model's time stepping: Simulation steps the nodes of a read deck through its dates.
 
-The CLI constructs and runs it; a finished run hands its SimulationResults to the
-reports and figures in navigate.output.
+navigate.driver runs it: initialized once, stepped at each date once the date's events
+are applied, and finished into the SimulationResults that navigate.output reads.
 """
 
 from __future__ import annotations
 
 import logging
-import math
 import timeit
 from typing import TYPE_CHECKING
 
@@ -19,7 +18,7 @@ from navigate.bunker import BunkerAlgorithm, calculate_fair_share_fuel_supply
 from navigate.bunker.solver import set_solver_preference
 from navigate.core import SimulationResults, get_fuels_per_fuel_type
 from navigate.core.enum_ import BunkerScopeID
-from navigate.core.profiles import ManagerProfile
+from navigate.core.profiles import GlobalProfile
 from navigate.fleet import (
     approximate_missing_technology,
     assign_vessels_to_fleets,
@@ -56,8 +55,6 @@ from navigate.fuel import (
     perform_planning,
     perform_progression,
 )
-from navigate.output import write_report
-from navigate.parser import Parser
 from navigate.policy import (
     calculate_policy_emission_coefficients,
     update_regulation_flexibility_beliefs,
@@ -65,135 +62,104 @@ from navigate.policy import (
 from navigate.util import YEAR, dates_to_days, timedelta_to_days
 
 if TYPE_CHECKING:
-    from pathlib import Path
-
     import numpy as np
 
-    from navigate.core.enum_ import SolverBackendID
     from navigate.core.node_registry import GeneralNodes, Nodes
     from navigate.util.types_ import DateArray, FloatArray
 
 logger = logging.getLogger(__name__)
 
 
-class SimulationManager:
+class Simulation:
     """
-    Run a simulation deck, from the read deck to the exported results.
+    Step the nodes of a read deck through its dates, from initial conditions to results.
 
     Parameters
     ----------
-    path
-        Path to the simulation deck.
-    data_dir
-        Assumptions data folder.
-    solver
-        Solver backend that overrides the deck's BunkerOptions setting, or None
-        to keep the deck's setting.
+    nodes
+        Nodes of the deck.
+    general_nodes
+        General nodes of the deck.
+    dateline
+        Dates of the simulation timeline, the start date first.
+    output_directory
+        Folder the bunkering LP writes an infeasible model into.
     """
 
     def __init__(
         self,
-        path: Path,
-        data_dir: Path | None = None,
-        solver: SolverBackendID | None = None,
+        nodes: Nodes,
+        general_nodes: GeneralNodes,
+        dateline: DateArray,
+        output_directory: str,
     ) -> None:
-        # resolved as the parser resolves it, so the deck location matches the deck read
-        deck_path = path.resolve()
-
-        # parser -----------------------------------------------------------------------
-        self.parser: Parser = Parser()
-        self.nodes: Nodes = self.parser.nodes
-        self.parser.read_deck(deck_path, data_dir=data_dir)
-        self.general_nodes: GeneralNodes = self.parser.general_nodes
-
-        if solver is not None:
-            self.general_nodes.bunker_options.solver = solver
-
-        # deck location, where the output is written
-        self.deck_directory: str = str(deck_path.parent)
-        self.deck_name: str = deck_path.stem
+        self.nodes: Nodes = nodes
+        self.general_nodes: GeneralNodes = general_nodes
+        self._output_directory: str = output_directory
 
         # properties -------------------------------------------------------------------
         # the current time-step size and elapsed simulation time, in days
         self._time_step: float = 0.0
         self._time: float = 0.0
-        self._date: np.datetime64 = self.general_nodes.model_definition.start_date
+        self._date: np.datetime64 = dateline[0]
         self._idx: int = 0
 
         # the simulation's dates, and the elapsed time in days since the start date
-        self.dateline: DateArray = self.parser.dates
+        self.dateline: DateArray = dateline
         self.timeline: FloatArray = dates_to_days(self.dateline)
 
         # profile
-        self.profile: ManagerProfile = ManagerProfile()
+        self.profile: GlobalProfile = GlobalProfile()
 
         # bunker algorithm -------------------------------------------------------------
         self._bunker_existing: BunkerAlgorithm = BunkerAlgorithm()
         self._bunker_expected: BunkerAlgorithm = BunkerAlgorithm()
 
-        # results ----------------------------------------------------------------------
-        self.results: SimulationResults
-
         # code timing ------------------------------------------------------------------
         self._computational_time: float
 
-    def run(self) -> None:
-        """Run the simulation as defined in the deck, handling its high-level flow."""
-        self.parser.includes_necessary_information()
+    def initialize(self) -> None:
+        """Set up the expectations, profiles and bunker models the time steps use."""
         self._computational_time = timeit.default_timer()
 
-        self._initialize_simulation()
-        self._run_simulation()
-
-        self._post_process()
-        self.results = SimulationResults(
-            dateline=self.dateline,
-            profile=self.profile,
-            nodes=self.nodes,
-            general_nodes=self.general_nodes,
-        )
-        self._export_reports()
-
-        print(f"Finished simulation, {self.get_elapsed_time()}.")
-
-    def _initialize_simulation(self) -> None:
-        """Set up the expectations, profiles and bunker models the time steps use."""
         logger.info(
-            "Time-step: 0, starting simulation at date: %s",
-            self._date,
-            extra={"heading": True},
+            "Initialize model before start of simulation", extra={"heading": True}
         )
 
         self._initialize_expectations()
         self._initialize_profiles()
         self._initialize_bunker_models()
 
-    def _run_simulation(self) -> None:
+    def step(self, date: np.datetime64) -> None:
         """
-        Step through the dateline, from the initial conditions at 'Start' on.
+        Perform the time step of the next date in the dateline.
 
-        Each date logs its time-step heading, applies its events, then steps.
+        Parameters
+        ----------
+        date
+            The date stepped to, its events already applied.
         """
-        for date in self.dateline:
-            if self._idx > 0:
-                days_elapsed = timedelta_to_days(date - self.dateline[0])
-                wall_time = timeit.default_timer() - self._computational_time
+        self._progress_date_time(date)
+        self._perform_time_step()
+        self._idx += 1
 
-                logger.info(
-                    "Time-step: %d, current date: %s. %d days (%d years) since start "
-                    "of simulation. Wall time since start: %.1f s",
-                    self._idx,
-                    date,
-                    days_elapsed,
-                    round(days_elapsed / YEAR),
-                    wall_time,
-                    extra={"heading": True},
-                )
+    def finish(self) -> SimulationResults:
+        """
+        Post-process the completed time steps into the results of the run.
 
-            self.parser.read_events(date)
-            self._progress_date_time(date)
-            self._perform_time_step()
-            self._idx += 1
+        Returns
+        -------
+        SimulationResults
+            The dateline, the global profile and the nodes of the run.
+        """
+        self._post_process()
+
+        return SimulationResults(
+            dateline=self.dateline,
+            profile=self.profile,
+            nodes=self.nodes,
+            general_nodes=self.general_nodes,
+        )
 
     def _progress_date_time(self, date: np.datetime64) -> None:
         self._time_step = timedelta_to_days(date - self._date)
@@ -206,8 +172,6 @@ class SimulationManager:
             self._time_step = YEAR
 
     def _perform_time_step(self) -> None:
-        print(f"Date: {self._date}")
-
         self._check_dynamic_consistency()
 
         # temporal calculators get the current time assigned or their value
@@ -596,7 +560,7 @@ class SimulationManager:
             self.nodes.regulations,
             self.general_nodes.bunker_options,
             BunkerScopeID.EXISTING,
-            output_directory=self.deck_directory,
+            output_directory=self._output_directory,
         )
         self._bunker_expected.initialize(
             self.nodes.emissions,
@@ -608,7 +572,7 @@ class SimulationManager:
             self.nodes.regulations,
             self.general_nodes.bunker_options,
             BunkerScopeID.EXPECTED,
-            output_directory=self.deck_directory,
+            output_directory=self._output_directory,
         )
 
     def _initialize_expectations(self) -> None:
@@ -766,33 +730,3 @@ class SimulationManager:
         for producer in self.nodes.producers.values():
             self.profile.add_fuel_producer_profile(producer.profile)
             self.profile.add_plant_aggregate_profile(producer.profile)
-
-    def _export_reports(self) -> None:
-        for report in self.nodes.reports.values():
-            write_report(report, self.results, self.deck_directory, self.deck_name)
-
-    def get_elapsed_time(self) -> str:
-        """
-        Format the wall-clock time since the run started.
-
-        Returns
-        -------
-        str
-            The elapsed time in whole minutes and seconds.
-        """
-        return _write_elapsed_time(timeit.default_timer() - self._computational_time)
-
-    def export_graphs(self) -> None:
-        """Render the plots every Plot node of the deck requests."""
-        # deferred so matplotlib only loads when plots are actually rendered
-        from navigate.output.plots.render import generate_plots
-
-        for plot_node in self.nodes.plots.values():
-            generate_plots(plot_node, self.results, self.deck_directory)
-
-
-def _write_elapsed_time(elapsed: float) -> str:
-    minutes = math.floor(elapsed / 60.0)
-    seconds = int(elapsed - minutes * 60.0)
-
-    return f"elapsed time: {minutes}m and {seconds}s"

@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from navigate.core.node_registry import GeneralNodes, Nodes
-    from navigate.core.profiles.manager_profile import ManagerProfile
+    from navigate.core.profiles.global_profile import GlobalProfile
     from navigate.util.types_ import DateArray
 
 
@@ -32,6 +32,6 @@ class SimulationResults:
     """
 
     dateline: DateArray
-    profile: ManagerProfile
+    profile: GlobalProfile
     nodes: Nodes
     general_nodes: GeneralNodes

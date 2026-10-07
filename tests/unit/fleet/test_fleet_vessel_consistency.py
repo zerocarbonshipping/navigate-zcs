@@ -257,20 +257,21 @@ class TestShorePowerAccounting:
         assert fleet.get_total_consumed_energy()[0] == pytest.approx(3.0 * 462.0)
         assert fleet.get_total_fuel_expenses()[0] == pytest.approx(3.0 * 125.0)
 
-    def test_manager_merge_counts_shore_power_once(
+    def test_global_merge_counts_shore_power_once(
         self, timeline, fuels, emissions, vessel
     ):
         fleet = _make_fleet_profile(timeline, fuels, emissions, vessel_names=["v"])
         fleet.add_fuel_consumer_profile(vessel, 1.0, 0)
 
-        # stand-in for the manager: mirrors manager.py calling both merge methods
-        manager = _make_fleet_profile(timeline, fuels, emissions, vessel_names=["v"])
-        manager.add_fuel_consumer_profile(fleet)
-        manager.add_vessel_aggregate_profile(fleet)
+        # a fleet profile stands in for the global profile, which merges each
+        # fleet through both methods the same way
+        aggregate = _make_fleet_profile(timeline, fuels, emissions, vessel_names=["v"])
+        aggregate.add_fuel_consumer_profile(fleet)
+        aggregate.add_vessel_aggregate_profile(fleet)
 
-        assert manager.get_shore_power_energy()[0] == pytest.approx(50.0)
-        assert manager.get_shore_power_expenses()[0] == pytest.approx(25.0)
-        assert manager.get_shore_power_emission()["co2"][0] == pytest.approx(4.0)
+        assert aggregate.get_shore_power_energy()[0] == pytest.approx(50.0)
+        assert aggregate.get_shore_power_expenses()[0] == pytest.approx(25.0)
+        assert aggregate.get_shore_power_emission()["co2"][0] == pytest.approx(4.0)
 
 
 class _FleetStub:
@@ -326,7 +327,7 @@ class TestEnergyIntensitySaving:
         assert saving[1] == pytest.approx(1.0 - 1010.0 / 1200.0)
         assert abs(saving[1] - 0.084) > 0.05
 
-    def test_manager_merge_sums_baseline_energy(self, timeline, fuels, emissions):
+    def test_global_merge_sums_baseline_energy(self, timeline, fuels, emissions):
         # fleet 1: constant trade; operational then technology savings
         f1 = _make_fleet_profile(timeline, fuels, emissions, vessel_names=["v"])
         f1._raw_energy_sea[EnergyDemandTypeID.PROPULSION][:] = [1000.0, 1000.0]
@@ -343,24 +344,23 @@ class TestEnergyIntensitySaving:
         f2.set_baseline_energy(0, 1000.0)
         f2.set_baseline_energy(1, 2000.0)
 
-        manager = _make_fleet_profile(timeline, fuels, emissions, vessel_names=["v"])
+        # a fleet profile stands in for the global profile, which merges each
+        # fleet through both methods the same way
+        aggregate = _make_fleet_profile(timeline, fuels, emissions, vessel_names=["v"])
         for f in (f1, f2):
-            manager.add_fuel_consumer_profile(f)
-            manager.add_vessel_aggregate_profile(f)
+            aggregate.add_fuel_consumer_profile(f)
+            aggregate.add_vessel_aggregate_profile(f)
 
-        np.testing.assert_allclose(manager.get_baseline_energy(), [2000.0, 3000.0])
-        assert manager.get_speed_energy_intensity_saving()[1] == pytest.approx(
-            1.0 - 2600.0 / 3000.0
-        )
-        assert manager.get_operational_energy_intensity_saving()[1] == pytest.approx(
-            1.0 - 2500.0 / 3000.0
-        )
-        assert manager.get_technology_energy_intensity_saving()[1] == pytest.approx(
-            1.0 - 2410.0 / 2500.0
-        )
-        assert manager.get_energy_intensity_saving()[1] == pytest.approx(
-            1.0 - 2410.0 / 3000.0
-        )
+        np.testing.assert_allclose(aggregate.get_baseline_energy(), [2000.0, 3000.0])
+
+        speed = aggregate.get_speed_energy_intensity_saving()
+        operational = aggregate.get_operational_energy_intensity_saving()
+        technology = aggregate.get_technology_energy_intensity_saving()
+        total = aggregate.get_energy_intensity_saving()
+        assert speed[1] == pytest.approx(1.0 - 2600.0 / 3000.0)
+        assert operational[1] == pytest.approx(1.0 - 2500.0 / 3000.0)
+        assert technology[1] == pytest.approx(1.0 - 2410.0 / 2500.0)
+        assert total[1] == pytest.approx(1.0 - 2410.0 / 3000.0)
 
     def test_fleet_empty_at_start_has_no_baseline(self, timeline, fuels, emissions):
         # no year-0 intensity exists: baseline stays 0 and savings read 0,

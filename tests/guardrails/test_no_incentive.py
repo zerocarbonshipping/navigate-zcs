@@ -43,13 +43,13 @@ MAX_SPEED_DRIFT_REL = 0.10
 
 
 @pytest.fixture(scope="module")
-def manager():
+def results():
     return run_simulation(SIMULATIONS_DIR / "no_incentive")
 
 
 @pytest.fixture(scope="module")
-def fleet(manager):
-    return manager.nodes.fleets["container_15000_teu"]
+def fleet(results):
+    return results.nodes.fleets["container_15000_teu"]
 
 
 @pytest.fixture(scope="module")
@@ -92,17 +92,17 @@ def technology_uptake(fleet):
 
 @pytest.mark.slow
 class TestNoIncentive:
-    def test_invariants(self, manager):
-        check_invariants(manager)
+    def test_invariants(self, results):
+        check_invariants(results)
 
-    def test_supply_never_binding(self, manager):
+    def test_supply_never_binding(self, results):
         """
         Deck validity: ample supply, so the discrete choice model drives fuel shares.
 
         It is the choice model, not a supply constraint, that keeps the alternative-fuel
         shares small (see BEHAVIOR.md, Mechanism isolated).
         """
-        for name, producer in manager.nodes.producers.items():
+        for name, producer in results.nodes.producers.items():
             development = producer.profile.get_development()
             maximum = producer.profile.get_maximum_development()
             assert np.all(development <= 0.5 * maximum), (
@@ -123,13 +123,13 @@ class TestNoIncentive:
         dominant = market_shares[FuelTypeID.OIL] + market_shares[FuelTypeID.METHANE]
         assert np.all(dominant >= MIN_OIL_METHANE_SHARE - EPS_SHARE)
 
-    def test_global_savings_stable(self, manager):
+    def test_global_savings_stable(self, results):
         """
         The global_energy_saving series must all stay at their initial values.
 
         With no incentive, nothing should drive additional energy-saving effort.
         """
-        profile = manager.profile
+        profile = results.profile
         saving = profile.get_saving()
         savings = {
             "propulsion": saving[EnergyDemandTypeID.PROPULSION],

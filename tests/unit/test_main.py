@@ -6,14 +6,13 @@
 from __future__ import annotations
 
 import argparse
-import logging
 import os
 import sys
 
 import pytest
 
 from navigate import __main__ as cli
-from navigate.__main__ import ASSUMPTIONS_ENV_VAR, _build_parser, _run, main
+from navigate.__main__ import ASSUMPTIONS_ENV_VAR, _build_parser, main
 from navigate.app import RunLog
 from navigate.core.enum_ import SolverBackendID
 
@@ -202,57 +201,12 @@ class TestTopLevelErrorHandling:
         assert "Interrupted" in capsys.readouterr().err
 
 
-class TestRunCompletionLogging:
-    def test_logs_elapsed_time_without_doubled_unit(
-        self, monkeypatch, caplog, tmp_path
-    ):
-        class _StubManager:
-            def __init__(self, path, data_dir=None, solver=None):
-                pass
-
-            def run(self):
-                pass
-
-            def get_elapsed_time(self):
-                return "elapsed time: 0m and 5s"
-
-        monkeypatch.setattr(cli, "SimulationManager", _StubManager)
-        args = argparse.Namespace(data_dir=None, solver=None)
-
-        with caplog.at_level(logging.INFO, logger="navigate.__main__"):
-            _run(tmp_path / "deck.nav", args)
-
-        completed = [
-            record.getMessage()
-            for record in caplog.records
-            if "completed successfully" in record.getMessage()
-        ]
-        assert len(completed) == 1
-        message = completed[0]
-        assert message == "Simulation completed successfully, elapsed time: 0m and 5s."
-        assert message.count("elapsed time:") == 1
-        assert "seconds" not in message
-
-
 class TestPreamble:
     @pytest.mark.parametrize("profile", [False, True], ids=["plain", "profile"])
     def test_dispatch_prints_the_preamble_once(self, monkeypatch, tmp_path, profile):
-        class _StubManager:
-            def __init__(self, path, data_dir=None, solver=None):
-                pass
-
-            def run(self):
-                pass
-
-            def get_elapsed_time(self):
-                return "elapsed time: 0m and 5s"
-
-            def export_graphs(self):
-                pass
-
         preambles = []
         monkeypatch.setattr(cli, "print_preamble", lambda: preambles.append(1))
-        monkeypatch.setattr(cli, "SimulationManager", _StubManager)
+        monkeypatch.setattr(cli, "run_deck", lambda *args, **kwargs: None)
         args = argparse.Namespace(
             filename=tmp_path / "deck.nav",
             log_level="INFO",

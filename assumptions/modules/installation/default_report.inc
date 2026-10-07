@@ -18,7 +18,7 @@ Report "report_default" {
 	# # levies
 	# add_levy_property("*", Collected)
 
-	# manager
+	# global
 	add_property(TotalEquivalentWtt)
 	add_property(TotalEquivalentTtw)
 	add_property(TotalEquivalentWtw)

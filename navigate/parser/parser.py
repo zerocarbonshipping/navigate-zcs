@@ -4,8 +4,8 @@
 """
 The Parser: reads a deck and its include files into nodes and a timeline of events.
 
-SimulationManager builds one to read the deck, then applies the events of each date
-in `dates` with `read_events`.
+navigate.driver's run_deck builds one to read the deck, then applies the events of each
+date in `dates` with `read_events`.
 """
 
 from __future__ import annotations

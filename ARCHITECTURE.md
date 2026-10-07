@@ -7,14 +7,17 @@ SPDX-License-Identifier: CC-BY-4.0
 
 Navigate simulates the maritime transition as two decision-making domains —
 shipowners (`fleet/`) and fuel producers (`fuel/`) — built on shared
-foundations and coordinated by a per-time-step loop in `simulation.py`. The
-domains never import each other: they interact only through `core`
-expectations and the bunkering LP. This file maps the code; the DSL and model
-behavior are documented in `docs/reference_manual/`.
+foundations and coordinated per time step by the model in `simulation/`, which
+`driver/` runs from a read deck to its output. The domains never import each
+other: they interact only through `core` expectations and the bunkering LP.
+This file maps the code; the DSL and model behavior are documented in
+`docs/reference_manual/`.
 
 ## Package map
 
-- `simulation.py` — the simulation loop (`SimulationManager`); pure
+- `simulation/` — the model: `time_stepping.py`'s `Simulation` initializes
+  the nodes' dynamic state, performs one date's time step in a fixed phase
+  order and post-processes the run into its `SimulationResults`; pure
   orchestration: each phase calls a domain entry point.
 - `core/` — the model definition: DSL value infrastructure (assignment
   validation, expressions, tables), the node classes (`core/nodes/`, one per
@@ -41,10 +44,14 @@ behavior are documented in `docs/reference_manual/`.
 - `util/` — dependency-free helpers: collections, dates, naming, numerics,
   internal types and unit conversion factors; imports nothing from
   `navigate` outside `util/`.
+- `driver/` — the run sequence: `run.py` reads a deck, steps the
+  `Simulation` through its dates with each date's events applied first, and
+  writes the reports and plots.
 - `app/` — the interfaces Navigate is run through: `logs.py`, the run log
   of a CLI run (its log file, line format, warning ledger and summary) and
   the console preamble.
-- `exceptions.py` — the `NavigateError` hierarchy; `__main__.py` — the CLI.
+- `exceptions.py` — the `NavigateError` hierarchy; `__main__.py` — the CLI,
+  which runs a deck through `driver/`.
 
 ## Layering
 
@@ -57,8 +64,9 @@ fleet, fuel          → economics, core, foundation
 bunker               → policy, core, foundation
 parser, output       → core, foundation
 app                  → foundation
-simulation           → every unit except __main__ and app
-__main__             → simulation, app, core, foundation
+simulation           → economics, policy, fleet, fuel, bunker, core, foundation
+driver               → simulation, parser, output, core, foundation
+__main__             → driver, app, core, foundation
 ```
 
 A unit is a package or module under `navigate/` with a row, named by its
@@ -67,9 +75,9 @@ longest unit that contains it. A unit imports itself and the units in its
 row, and nothing else from `navigate`. The foundation is `util/` and
 `exceptions.py`.
 
-`fleet/` and `fuel/` never import each other, nor do `parser/` and
-`output/`, and neither `parser/` nor `output/` imports `simulation.py` or any
-of `economics/`, `policy/`, `fleet/`, `fuel/`, `bunker/`.
+`fleet/` and `fuel/` never import each other, and `parser/`, `output/` and
+the simulation (`simulation/` plus `economics/`, `policy/`, `fleet/`, `fuel/`,
+`bunker/`) never import one another.
 
 Inside `core/`, runtime imports follow an order: `nodes/` imports
 `expectations/`, `profiles/` and the flat modules directly in `core/`,
@@ -104,11 +112,13 @@ message.
   `get_*`.
 - `profile` is output storage for end-of-simulation reports and plots; it is
   never read as an input to a simulation decision. Inside the
-  profile-aggregation phase (`SimulationManager._calculate_profile`) and
+  profile-aggregation phase (`Simulation._calculate_profile`) and
   post-processing, deriving one profile value from an already-written one is
   fine — nothing downstream of those phases feeds a decision.
 - Direct attribute access (`node.some_input.get()`) is reserved for
   DSL-defined inputs.
+- `simulation/` handles no files, console output or arguments; its one file
+  write is the bunker's infeasible-LP dump into the directory it is given.
 
 ## Node lifecycle
 
@@ -149,8 +159,8 @@ What each hook holds:
   warns where one is unused.
 - `check_dynamic_consistency(times, dates)` raises where time-varying
   attributes contradict each other anywhere over the remaining timeline. Not
-  part of `initialize()`/`reinitialize()`: `SimulationManager` calls it once
-  per time step, before the expectations, over `timeline[idx:]` and
+  part of `initialize()`/`reinitialize()`: `Simulation` calls it once per
+  time step, before the expectations, over `timeline[idx:]` and
   `dateline[idx:]`, because a Forecast's value over the future is only known
   against the timeline, which `check_consistency()` does not see.
 

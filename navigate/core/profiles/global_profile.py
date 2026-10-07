@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""ManagerProfile, the model-wide output storage the simulation manager fills."""
+"""GlobalProfile, the model-wide output storage the simulation fills."""
 
 from __future__ import annotations
 
@@ -26,7 +26,7 @@ if TYPE_CHECKING:
     from navigate.util.types_ import FloatArray
 
 
-class ManagerProfile(
+class GlobalProfile(
     _VesselAggregateProfile, _PlantAggregateProfile, _FuelInfrastructureProfile
 ):
     """Totals over every vessel, plant and port, plus the timings of the run."""

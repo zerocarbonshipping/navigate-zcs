@@ -21,7 +21,7 @@ def _report(*commands):
 @pytest.mark.parametrize(
     ("call", "reports", "key", "getter"),
     [
-        ("add_property(ConsumedEnergy)", "manager", "global", "get_consumed_energy"),
+        ("add_property(ConsumedEnergy)", "global", "global", "get_consumed_energy"),
         ('add_fleet_property("f", CargoMiles)', "fleet", "f", "get_cargo_miles"),
         ('add_levy_property("l", Collected)', "levy", "l", "get_collected"),
         (

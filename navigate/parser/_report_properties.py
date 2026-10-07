@@ -16,8 +16,8 @@ from typing import TYPE_CHECKING
 
 from navigate.core.profiles import (
     FleetProfile,
+    GlobalProfile,
     LevyProfile,
-    ManagerProfile,
     PlantProfile,
     PortProfile,
     ProducerProfile,
@@ -32,7 +32,7 @@ if TYPE_CHECKING:
     from navigate.core.profiles._base_profile import _BaseProfile
 
 PROFILE_CLASSES: dict[str, type[_BaseProfile]] = {
-    "add_property": ManagerProfile,
+    "add_property": GlobalProfile,
     "add_fleet_property": FleetProfile,
     "add_levy_property": LevyProfile,
     "add_plant_property": PlantProfile,

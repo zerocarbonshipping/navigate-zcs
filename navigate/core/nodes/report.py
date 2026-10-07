@@ -28,7 +28,7 @@ class Report(Node):
         self.file_format: FileFormatID = FileFormatID.XLSX
 
         # internal variables -----------------------------------------------------------
-        self.manager_reports: dict[str, NodeReport] = {}
+        self.global_reports: dict[str, NodeReport] = {}
         self.fleet_reports: dict[str, NodeReport] = {}
         self.levy_reports: dict[str, NodeReport] = {}
         self.plant_reports: dict[str, NodeReport] = {}
@@ -50,7 +50,7 @@ class Report(Node):
     def add_property(self, attribute: str, reduce: str | None = None) -> None:
         """Record a global property to export."""
         self._add_property(
-            GLOBAL_PROFILE_KEY, self.manager_reports, attribute, reduce=reduce
+            GLOBAL_PROFILE_KEY, self.global_reports, attribute, reduce=reduce
         )
 
     def add_fleet_property(

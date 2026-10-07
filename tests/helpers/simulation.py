@@ -19,10 +19,11 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.__main__ import ASSUMPTIONS_ENV_VAR
-from navigate.simulation import SimulationManager
-from navigate.util import YEAR
+from navigate.driver import run_deck
+from navigate.util import YEAR, dates_to_days
 
 if TYPE_CHECKING:
+    from navigate.core import SimulationResults
     from navigate.core.nodes.producer import Producer
 
 # Tolerance for comparing per-step producer development against the nominal
@@ -52,9 +53,9 @@ def default_assumptions_dir() -> Path:
     return REPO_ROOT / "assumptions"
 
 
-def run_simulation(sim_dir: Path, data_dir: Path | None = None) -> SimulationManager:
+def run_simulation(sim_dir: Path, data_dir: Path | None = None) -> SimulationResults:
     """
-    Parse and run the deck '<sim_dir>/<sim_dir.name>.nav'.
+    Run the deck '<sim_dir>/<sim_dir.name>.nav' without rendering its plots.
 
     Parameters
     ----------
@@ -65,17 +66,14 @@ def run_simulation(sim_dir: Path, data_dir: Path | None = None) -> SimulationMan
 
     Returns
     -------
-    The manager after a completed run, exposing profiles and nodes.
+    The results of the completed run, exposing profiles and nodes.
     """
     nav_file = sim_dir / f"{sim_dir.name}.nav"
     assert nav_file.exists(), f"Missing {nav_file}"
 
-    manager = SimulationManager(
-        nav_file, data_dir=data_dir or default_assumptions_dir()
+    return run_deck(
+        nav_file, data_dir=data_dir or default_assumptions_dir(), plots=False
     )
-    manager.run()
-
-    return manager
 
 
 def clear_output_dir(output_dir: Path) -> None:
@@ -94,7 +92,7 @@ def clear_output_dir(output_dir: Path) -> None:
     shutil.rmtree(output_dir, ignore_errors=True)
 
 
-def assertable_end(manager: SimulationManager, producer: Producer) -> int:
+def assertable_end(results: SimulationResults, producer: Producer) -> int:
     """
     Last time-step index (exclusive) at which producer development is assertable.
 
@@ -103,8 +101,8 @@ def assertable_end(manager: SimulationManager, producer: Producer) -> int:
 
     Parameters
     ----------
-    manager
-        Manager of a completed run.
+    results
+        Results of a completed run.
     producer
         Producer whose first plant's LeadTime defines the excluded tail.
 
@@ -112,7 +110,7 @@ def assertable_end(manager: SimulationManager, producer: Producer) -> int:
     -------
     Exclusive end index, guaranteed within (0, len(timeline)].
     """
-    timeline = manager.timeline
+    timeline = dates_to_days(results.dateline)
     lead_time = round(producer.assets[0].lead_time.get(timeline[0]))
     end = len(timeline) - lead_time
     # guard against vacuously-true assertions on empty (or, with negative
@@ -124,30 +122,27 @@ def assertable_end(manager: SimulationManager, producer: Producer) -> int:
     return end
 
 
-def check_invariants(manager: SimulationManager) -> None:
+def check_invariants(results: SimulationResults) -> None:
     """
     Verify universal invariants that must hold for every completed simulation.
 
     Parameters
     ----------
-    manager
-        Manager of a completed run.
+    results
+        Results of a completed run.
     """
-    dateline = manager.dateline
-    timeline = manager.timeline
-    assert dateline is not None
-    assert len(dateline) >= 2
-    assert len(timeline) == len(dateline)
+    timeline = dates_to_days(results.dateline)
+    assert len(timeline) >= 2
     assert np.all(np.diff(timeline) > 0), "Timeline is not strictly increasing"
     assert not np.any(np.isnan(timeline))
     assert not np.any(np.isinf(timeline))
 
-    fleets = manager.nodes.fleets
+    fleets = results.nodes.fleets
     assert len(fleets) > 0, "No fleets defined"
     total_vessels = sum(len(f.vessels) for f in fleets.values())
     assert total_vessels > 0, "No vessels in any fleet"
 
-    for fuel_name, energy in manager.profile.get_consumed_energy().items():
+    for fuel_name, energy in results.profile.get_consumed_energy().items():
         assert not np.any(np.isnan(energy)), f"NaN consumed energy for '{fuel_name}'"
         assert not np.any(np.isinf(energy)), (
             f"Infinite consumed energy for '{fuel_name}'"
@@ -160,7 +155,7 @@ def check_invariants(manager: SimulationManager) -> None:
     step_years = np.ones(len(timeline))
     step_years[1:] = np.diff(timeline) / YEAR
 
-    for producer_name, producer in manager.nodes.producers.items():
+    for producer_name, producer in results.nodes.producers.items():
         development = producer.profile.get_development()
         maximum = producer.profile.get_maximum_development()
         assert not np.any(np.isnan(development)), (
