@@ -2,25 +2,36 @@
 # SPDX-License-Identifier: Apache-2.0
 
 name: Feature request
-description: Propose a new capability or improvement
+description: Changes what a user can do or sees
 labels: ["enhancement"]
 body:
   - type: textarea
     id: motivation
     attributes:
       label: Motivation
-      description: The problem or need — what cannot be done today, and why it matters.
+      description: >
+        What cannot be done today, and why it matters. For an assumption
+        value, its references or a justification.
     validations:
       required: true
   - type: textarea
-    id: design
+    id: behavior
     attributes:
-      label: Proposed design
-      description: How it could work; alternatives you considered.
+      label: Intended behavior
+      description: >
+        What a deck author should be able to do or a reader of the output to
+        see, from the user's side, not as attributes, commands or code.
     validations:
       required: true
   - type: textarea
     id: location
     attributes:
       label: Location
-      description: If known, where in the code or model it would live.
+      description: If known, the part of the code or model concerned.
+  - type: textarea
+    id: considerations
+    attributes:
+      label: Considerations
+      description: >
+        Constraints, pitfalls, things ruled out, known options without a
+        recommendation. Not a proposed fix.

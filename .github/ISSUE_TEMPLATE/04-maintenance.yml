@@ -2,28 +2,39 @@
 # SPDX-License-Identifier: Apache-2.0
 
 name: Maintenance
-description: Refactoring, tests, typing, or tooling debt
+description: Improves code without changing what the model computes
 labels: ["maintenance"]
 body:
   - type: textarea
     id: description
     attributes:
       label: Description
-      description: The structural debt and the maintainability cost it carries.
+      description: >
+        The debt and what it costs. For an open decision: the decision and why
+        it matters.
+    validations:
+      required: true
+  - type: textarea
+    id: intended-state
+    attributes:
+      label: Intended state
+      description: >
+        The property the code should have, such as "no package imports a
+        layer above it". Not the steps or the mechanism. Name any output
+        change the intended state itself requires, as its user-visible effect.
     validations:
       required: true
   - type: textarea
     id: location
     attributes:
       label: Location
-      description: "`path/to/file.py:LINE` and symbol names."
+      description: >
+        `path/to/file.py:LINE` and symbol names: every site, or the grep that
+        finds them.
   - type: textarea
-    id: resolution
+    id: considerations
     attributes:
-      label: Proposed resolution
-      description: The remedy and the test that should cover it.
-  - type: textarea
-    id: verification
-    attributes:
-      label: Verification
-      description: How to show the change is behavior-preserving — suites to run and the expected baseline.
+      label: Considerations
+      description: >
+        Constraints, pitfalls, things ruled out, known options without a
+        recommendation. Not a proposed fix.

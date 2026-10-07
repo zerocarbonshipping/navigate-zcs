@@ -50,3 +50,10 @@ SPDX-License-Identifier = "Apache-2.0"
 path = "docs/_static/*.png"
 SPDX-FileCopyrightText = "2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping"
 SPDX-License-Identifier = "CC-BY-4.0"
+
+# Pull request template; the template's text is copied into every pull
+# request body.
+[[annotations]]
+path = ".github/PULL_REQUEST_TEMPLATE.md"
+SPDX-FileCopyrightText = "2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping"
+SPDX-License-Identifier = "Apache-2.0"

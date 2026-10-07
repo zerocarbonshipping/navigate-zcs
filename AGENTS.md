@@ -35,6 +35,8 @@ every change. The detail lives in the files it points to.
   READMEs.
 - `CHANGELOG.md` — Keep a Changelog format; what gets an entry is in
   `CONTRIBUTING.md`.
+- `.agents/skills/` — Agent Skills for filing issues and writing pull
+  requests; `.claude/skills/` symlinks them for Claude Code.
 - `make help` — the list of targets.
 
 ## Layout
@@ -91,8 +93,7 @@ each other's files, and the test suites run decks too.
 
 - No pull request targets `main`; it is the release branch. The base is
   `dev`, or the integration branch of the larger effort the work belongs
-  to. Pull requests are squash-merged, so the title becomes the commit
-  subject: one imperative sentence stating the outcome, no prefix.
+  to.
 - Every new file carries a licence header: Apache-2.0 for code, tests and
   tooling; CC-BY-4.0 for decks, assumptions, documentation and figures. A
   file that cannot carry a header gets an annotation in `REUSE.toml`.
@@ -104,15 +105,9 @@ each other's files, and the test suites run decks too.
 - `CHANGELOG.md` takes user-facing changes and bugs only; what gets an
   entry, and its form, is under Changelog in `CONTRIBUTING.md`.
 - A change to an assumption value carries references or a justification.
-
-## Filing an issue
-
-The issue forms in `.github/ISSUE_TEMPLATE/` apply a label and set the
-body's sections, but `gh issue create` and the API bypass them. An issue
-filed that way therefore carries the label of the matching form,
-passed as `--label` with `gh issue create` or the `labels` field of an
-API request: `bug`, `enhancement`, `documentation`, `maintenance`, or
-`performance`. It uses that form's section headings.
+- Issues and pull requests follow the `filing-issues` and
+  `writing-pull-requests` skills; a problem found during a task and outside
+  its scope is filed as an issue, not fixed in the task's branch.
 
 ## What a change touches
 
