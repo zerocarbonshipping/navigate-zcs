@@ -35,9 +35,8 @@ every change. The detail lives in the files it points to.
   READMEs.
 - `CHANGELOG.md` — Keep a Changelog format; what gets an entry is in
   `CONTRIBUTING.md`.
-- `.agents/skills/` — the procedures for filing issues and for writing and
-  opening pull requests, as Agent Skills. Claude Code finds them through the
-  symlinks in `.claude/skills/`.
+- `.agents/skills/` — Agent Skills for filing issues and writing pull
+  requests; `.claude/skills/` symlinks them for Claude Code.
 - `make help` — the list of targets.
 
 ## Layout
@@ -106,9 +105,8 @@ each other's files, and the test suites run decks too.
 - `CHANGELOG.md` takes user-facing changes and bugs only; what gets an
   entry, and its form, is under Changelog in `CONTRIBUTING.md`.
 - A change to an assumption value carries references or a justification.
-- Issues and pull requests are written with the skills in `.agents/skills/`:
-  `filing-issues` and `writing-pull-requests`. They take their sections from
-  the issue forms and the pull request template.
+- Issues and pull requests follow the `filing-issues` and
+  `writing-pull-requests` skills.
 
 ## What a change touches
 

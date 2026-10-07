@@ -17,9 +17,8 @@ body:
     attributes:
       label: Intended behavior
       description: >
-        What a deck author should be able to do, or a reader of the output
-        should be able to see, described from the user's side rather than as
-        an implementation.
+        What a deck author should be able to do or a reader of the output to
+        see, from the user's side, not as an implementation.
     validations:
       required: true
   - type: textarea
@@ -32,6 +31,5 @@ body:
     attributes:
       label: Considerations
       description: >
-        Anything a fixer should keep in mind: constraints, related code,
-        pitfalls, things already ruled out, options already known. Not a
-        proposed fix.
+        Constraints, related code, pitfalls, things ruled out, known options.
+        Not a proposed fix.

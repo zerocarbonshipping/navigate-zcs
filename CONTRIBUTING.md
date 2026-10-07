@@ -42,12 +42,10 @@ values, so that the provenance of the model inputs stays traceable.
 - Keep each pull request focused on a single change. Unrelated fixes and
   refactors belong in separate pull requests.
 - Fill in the pull request template.
-- Title the pull request with one imperative sentence stating the outcome,
-  with no prefix and under about 65 characters. Pull requests are
-  squash-merged, so the title becomes the commit subject, and GitHub appends
-  " (#N)" to it; the title carries no "(#N)" itself. For a single-commit pull
-  request GitHub proposes the commit subject instead, so make the commit
-  subject equal the title.
+- Title the pull request with one imperative sentence stating the outcome:
+  no prefix, no "(#N)", under about 65 characters. The squash merge makes it
+  the commit subject and appends " (#N)". For a single-commit pull request
+  GitHub proposes the commit subject instead, so make the two equal.
 - Follow the code style: `ruff` and `mypy` enforce the mechanical rules
   (`make lint`), [`CODESTYLE.md`](CODESTYLE.md) carries the conventions the
   tooling cannot check. Run
@@ -70,8 +68,7 @@ Nothing else gets an entry: no refactor, move, rename or removal inside
 `navigate/`, and no change to what Python code can import. Typing, test,
 lint, CI, `make` and tooling changes get none either, and neither does a
 results-neutral change with no DSL or output effect. A pull request states
-its user-visible effect in its description, so a reviewer can check the entry
-against it.
+its user-visible effect in its description.
 
 An entry is one to three lines; related entries may share one bullet with a
 sub-list, each item one to three lines. It states what the user sees and, for

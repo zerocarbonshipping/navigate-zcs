@@ -2,122 +2,75 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 name: writing-pull-requests
-description: Opens Navigate pull requests when asked to open, create or describe one, to write its title or description, or when finished work on a branch is ready for review. Picks the type, label, base and title, writes a description for the reviewer and the later git-blame reader from the pull request template and a per-type reference, and creates it with gh.
+description: Use when asked to open, create or describe a Navigate pull request, write its title or description, or when finished branch work is ready for review. Picks type, label, base and title, writes the body from the PR template, and creates it with gh.
 ---
 
 # Writing pull requests
 
-A pull request description has two readers. The reviewer decides whether to
-merge: what the change does and its user-visible effect, why, which choices
-they might make differently, and how simulation results move, if they do.
-The tests in the diff and CI show that the change works. A later reader
-arriving from `git blame` needs why, the alternatives rejected, and the
-known limits.
+Readers: the reviewer deciding to merge, and a later reader arriving via
+`git blame` and the `(#N)` in the squash subject. Never include a
+file-by-file account, CI results or test counts, a narrative of the work, or
+restated changelog text.
 
-So the description never carries a file-by-file account of the diff, CI
-results, a narrative of how the work went, or restated changelog text; the
-diff, the checks and the CHANGELOG diff show those.
+## Type, label, title
 
-`.github/PULL_REQUEST_TEMPLATE.md` sets the sections. `gh` does not apply
-it, so this procedure applies it by hand.
-
-Copy this checklist and tick it off:
-
-```
-- [ ] 1. Pick the type
-- [ ] 2. Write the title
-- [ ] 3. Read the type's reference and write the body
-- [ ] 4. Create the pull request
-- [ ] 5. Post a review guide if the substance is hard to find
-```
-
-## 1. Pick the type
-
-- **bug:** behaviour that differs from the reference manual, a docstring or
-  the model's intent.
+- **bug:** behaviour differs from the reference manual, a docstring or the
+  model's intent.
 - **enhancement:** changes what a user can do or sees.
-- **documentation:** fixes text only.
-- **maintenance:** improves the code without changing what the model
-  computes; a deliberate change to its output is allowed and is stated as a
-  user-visible effect.
-- **performance:** changes speed or memory, not results.
+- **documentation:** text only.
+- **maintenance:** improves code without changing what the model computes; a
+  deliberate output change is allowed, stated as a user-visible effect.
+- **performance:** speed or memory, not results.
 
-A mixed pull request takes the type of its main purpose. An
-assumption-value update is an enhancement, or a bug when it corrects a
-wrong value. The label is the `labels` value of the matching issue form in
-`.github/ISSUE_TEMPLATE/`.
+Mixed PR: its main purpose. Assumption-value update: enhancement, or bug if
+it corrects a wrong value. Label: `labels` of the matching form in
+`.github/ISSUE_TEMPLATE/`. Title: follow `CONTRIBUTING.md`.
 
-| Type | Form | Reference |
-|---|---|---|
-| bug | `01-bug.yml` | [references/bug.md](references/bug.md) |
-| enhancement | `02-enhancement.yml` | [references/enhancement.md](references/enhancement.md) |
-| documentation | `03-documentation.yml` | [references/documentation.md](references/documentation.md) |
-| maintenance | `04-maintenance.yml` | [references/maintenance.md](references/maintenance.md) |
-| performance | `05-performance.yml` | [references/performance.md](references/performance.md) |
+## Body
 
-## 2. Write the title
+- Sections of `.github/PULL_REQUEST_TEMPLATE.md`, in order, without the
+  comments. Opening paragraph and Why always; Results when simulation results
+  move. Delete other empty sections, never "None" or "N/A". Length follows
+  the change.
+- One `Addresses #N` line per issue under Why; none without an issue.
+  Closing keywords never fire (PRs merge into `dev`; GitHub honours them only
+  on `main`): close the issue by hand after the merge.
+- Decisions: genuine choices only; never invent a rejected alternative.
+- Cite issues and PRs by number, never private plans, tickets or sessions.
 
-Follow the title rule in `CONTRIBUTING.md`, Pull request expectations. For
-example: "Reject a negative bunkering limit when the deck is read".
+## Per type
 
-## 3. Read the type's reference and write the body
+- **bug:** Opening: the bug as the user met it, now fixed. Why: root cause.
+  CHANGELOG under Fixed, ending with the issue number if any.
+- **enhancement:** Opening: the capability in DSL terms; a new attribute or
+  command lives in four places (`AGENTS.md`, What a change touches). Why: how
+  it better represents the sector; link the design issue for a large feature.
+  Results: a table of what moves, each change explained by its mechanism.
+  CHANGELOG under Added or Changed.
+- **documentation:** Opening: what was wrong. Why only if not obvious, e.g.
+  the source the old text contradicted. Reference-manual errors get a
+  CHANGELOG entry like bugs; other documentation none.
+- **maintenance:** Opening: the end state; Why: what the old shape cost. A
+  deliberate output change is the user-visible effect, with a CHANGELOG
+  entry; otherwise "No user-visible effect." and no entry.
+- **performance:** Opening: the improvement with its scale. Directly under
+  it, a before/after table on a named deck: same machine and solver, number
+  of runs, base commit and branch, wall time or peak memory; CI measures
+  neither. No CHANGELOG entry: `CONTRIBUTING.md` excludes results-neutral
+  changes.
 
-Read the reference for the type, from the table above, then the template.
-Follow each HTML comment and leave the comments out of the body.
+## Create
 
-- The opening paragraph and Why are always required; Results is required
-  when simulation results move. Delete any other empty section; never write
-  "None" or "N/A".
-- Length follows the change: a small fix may be the opening paragraph and
-  Why alone.
-- Put each issue on its own `Addresses #N` line under Why. With no issue,
-  write no such line and nothing in its place. Closing keywords never fire:
-  pull requests merge into `dev`, and GitHub honours them only on the
-  default branch, `main`. The issue is closed by hand after the merge.
-- Decisions holds only genuine choices. Never invent a rejected
-  alternative. A design explanation with no alternative belongs in the
-  opening paragraph or Why. A rejected approach goes in Decisions, not in a
-  story of the work.
-
-## 4. Create the pull request
-
-The squash commit carries the branch's commit messages, not this
-description; a later reader reaches the description through the `(#N)` in
-the commit subject. Keep the branch's commit messages fit for that history:
-no "address review" or "fix typo" commits left unsquashed where a reader
-would meet them.
-
-Write the body to a file outside the repository, push the branch, then:
-
-```sh
-gh pr create --base <base> --title "<title>" --label <label> --body-file <file>
-```
-
-The base is `dev`, or the integration branch of the larger effort the work
-belongs to; never `main`. A stacked pull request bases on its parent branch
-and is retargeted to `dev` once the parent merges.
-
-Every edit to the title, body or base reruns CI, because the workflows
-trigger on `edited`. Edit only to fix wrong content or to retarget.
-
-## 5. Post a review guide if the substance is hard to find
-
-Post one when the diff mixes mechanical moves or renames with substantive
-changes, or a reviewer could not find the substance from the file list
-alone. Right after creating the pull request, post one comment with
-`gh pr comment` holding the reading order and per-file pointers. A stacked
-pull request says there which pull request it builds on and which commits
-are its own.
-
-The guide is a comment because the description is the record of the change
-on GitHub; the guide only helps the review. The description still says, in
-one line of the opening paragraph, which part is mechanical and which is
-substance.
-
-## Rules
-
-- The description stands alone. Cite issues and pull requests by number;
-  never cite private plans, tickets, sessions or scratch files.
-- Name a file or symbol only where it is needed to understand the design or
-  to point to the substance. Put code, paths and symbols in backticks.
-- Write plain, short declarative sentences.
+- The squash commit body is the branch's commit messages, not the
+  description: no unsquashed "address review" commits.
+- Body in a file outside the repo; push; then
+  `gh pr create --base <base> --title "<title>" --label <label> --body-file <file>`.
+  Do not report the URL.
+- Base: `dev` or the integration branch, never `main`. A stacked PR bases on
+  its parent branch, retargeted to `dev` once the parent merges.
+- Every title, body or base edit reruns CI (`edited` trigger): edit only to
+  fix wrong content or to retarget.
+- Substance hard to find, e.g. mixed with moves or renames: post a
+  review-guide comment with reading order and per-file pointers; a stacked PR
+  names its parent and its own commits there. The opening still says in one
+  line which part is mechanical.

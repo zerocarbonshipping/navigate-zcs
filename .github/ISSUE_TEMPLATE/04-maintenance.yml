@@ -17,9 +17,8 @@ body:
     attributes:
       label: Intended state
       description: >
-        The property the code should have once this is dealt with, such as
-        "no package imports a layer above it". Not the steps or the
-        mechanism.
+        The property the code should have, such as "no package imports a
+        layer above it". Not the steps.
     validations:
       required: true
   - type: textarea
@@ -32,6 +31,5 @@ body:
     attributes:
       label: Considerations
       description: >
-        Anything a fixer should keep in mind: constraints, related code,
-        pitfalls, things already ruled out, options already known. Not a
-        proposed fix.
+        Constraints, related code, pitfalls, things ruled out, known options.
+        Not a proposed fix.
