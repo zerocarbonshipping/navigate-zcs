@@ -4,7 +4,7 @@
 """
 Tests for the fuel-conversion business case.
 
-(navigate/simulation/fleet/conversion.py)
+Covers navigate/simulation/fleet/conversion.py.
 """
 
 from __future__ import annotations
