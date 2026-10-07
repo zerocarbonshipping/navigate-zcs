@@ -47,7 +47,7 @@ class FairShareSolutions:
         Absolute difference between the two solutions, tons.
     """
 
-    keys: list[tuple]
+    keys: list[tuple[str, int, str]]
     previous: FloatArray
     new: FloatArray
     difference: FloatArray

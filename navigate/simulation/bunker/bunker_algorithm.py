@@ -94,7 +94,7 @@ from navigate.simulation.policy import policies_affecting_port
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from navigate.core.enum_ import FuelTypeID
+    from navigate.core.enum_ import EnergyDemandTypeID, FuelTypeID
     from navigate.core.general_nodes.bunker_options import BunkerOptions
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.feedstock import Feedstock
@@ -143,51 +143,53 @@ class BunkerAlgorithm:
 
         # static converter-fuel maps, built on the first call to build, as they
         # depend on the existing fleet, which is initialized after this algorithm
-        self.fuels_per_converter: dict[tuple, dict[str, Fuel]] = {}
-        self.converters_per_fuel: dict[tuple, tuple] = {}
-        self.port_converters_per_fuel: dict[tuple, tuple] = {}
+        self.fuels_per_converter: dict[tuple[str, str], dict[str, Fuel]] = {}
+        self.converters_per_fuel: dict[tuple[str, str], tuple[str, ...]] = {}
+        self.port_converters_per_fuel: dict[tuple[str, str], tuple[str, ...]] = {}
 
         # local attributes for a specific vessel ---------------------------------------
 
         # effective LHV per (vessel, converter, fuel)
-        self.effective_lhv: dict[tuple, float] = {}
+        self.effective_lhv: dict[tuple[str, str, str], float] = {}
 
         # dynamic properties updated at every time-step --------------------------------
 
         # policies
         self.active_regulations: dict[str, Regulation] = {}
         self.port_levies: dict[str, list[Levy]] = {}
-        self.cost_levy: dict[tuple, float] = {}
-        self.regulation_vessel_threshold: dict[tuple, float] = {}
-        self.regulation_emission_factor: dict[tuple, float] = {}
-        self.regulation_spend_coefficient: dict[tuple, float] = {}
-        self.shore_power_regulation_emission_factor: dict[tuple, float] = {}
-        self.shore_power_regulation_coefficient: dict[tuple, float] = {}
-        self.regulation_rhs_individual: dict[tuple, float] = {}
-        self.regulation_rhs_flexibility: dict[tuple, float] = {}
+        self.cost_levy: dict[tuple[str, str, str, str], float] = {}
+        self.regulation_vessel_threshold: dict[tuple[str, str], float] = {}
+        self.regulation_emission_factor: dict[tuple[str, str, str, str], float] = {}
+        self.regulation_spend_coefficient: dict[tuple[str, str, str, str], float] = {}
+        self.shore_power_regulation_emission_factor: dict[
+            tuple[str, int, str], float
+        ] = {}
+        self.shore_power_regulation_coefficient: dict[tuple[str, int, str], float] = {}
+        self.regulation_rhs_individual: dict[tuple[str, str], float] = {}
+        self.regulation_rhs_flexibility: dict[tuple[str, str], float] = {}
         self.regulation_total_rhs_flexibility: dict[str, float] = {}
-        self.regulation_measure: dict[tuple, float] = {}
+        self.regulation_measure: dict[tuple[str, str], float] = {}
 
         # regulation emission and energy terms per (regulation, vessel)
-        self.regulation_emission_terms: dict[tuple, gp.LinExpr] = {}
-        self.regulation_energy_terms: dict[tuple, gp.LinExpr] = {}
+        self.regulation_emission_terms: dict[tuple[str, str], gp.LinExpr] = {}
+        self.regulation_energy_terms: dict[tuple[str, str], gp.LinExpr] = {}
 
         # flexibility units
         self.flexible_unit_cost: dict[str, float] = {}
 
         # thresholds after threshold adjustment, per (regulation, vessel) and per
         # regulation
-        self.adjusted_vessel_thresholds: dict[tuple, float] = {}
+        self.adjusted_vessel_thresholds: dict[tuple[str, str], float] = {}
         self.adjusted_shared_thresholds: dict[str, float] = {}
 
         # emission factors
-        self.emission_factor: dict[tuple, float] = {}
+        self.emission_factor: dict[tuple[str, str, str, str], float] = {}
 
         # fair-share fuel properties ---------------------------------------------------
 
-        self.previous_bunker: dict[tuple, float] = {}
-        self.allocation_fuel: dict[tuple, float] = {}
-        self.previously_released_fuel: dict[tuple, bool] = {}
+        self.previous_bunker: dict[tuple[str, int, str], float] = {}
+        self.allocation_fuel: dict[tuple[str, str, str], float] = {}
+        self.previously_released_fuel: dict[tuple[str, str, str], bool] = {}
         self.fair_share_convergence_statistics: dict[str, list[float]] = {}
         self.fair_share_solutions: FairShareSolutions | None = None
 
@@ -196,33 +198,37 @@ class BunkerAlgorithm:
         self.model: gp.Model
 
         # vessel variables
-        self.bunker: dict[tuple, gp.Var]
-        self.spend_sea: dict[tuple, gp.Var]
-        self.spend_port: dict[tuple, gp.Var]
-        self.mass_tank: dict[tuple, gp.Var]
-        self.shore_power: dict[tuple, gp.Var]
+        self.bunker: dict[tuple[str, int, str], gp.Var]
+        self.spend_sea: dict[tuple[str, str, str, int, int], gp.Var]
+        self.spend_port: dict[tuple[str, str, str, int], gp.Var]
+        self.mass_tank: dict[tuple[str, int, str], gp.Var]
+        self.shore_power: dict[tuple[str, int], gp.Var]
 
         # regulation variables
-        self.remedial_factor_individual: dict[tuple, gp.Var]
+        self.remedial_factor_individual: dict[tuple[str, str], gp.Var]
         self.remedial_factor_flexibility: dict[str, gp.Var]
 
         # vessel constraints
-        self.energy_conservation_sea: dict[tuple, gp.Constr]
-        self.energy_conservation_port: dict[tuple, gp.Constr]
-        self.pilot_fuel_sea: dict[tuple, gp.Constr]
-        self.pilot_fuel_port: dict[tuple, gp.Constr]
-        self.mass_conservation: dict[tuple, gp.Constr]
-        self.mass_sufficient: dict[tuple, gp.Constr]
-        self.tank_capacity: dict[tuple, gp.Constr]
-        self.bunker_equals_spent: dict[tuple, gp.Constr]
-        self.fuel_inertia: dict[tuple, gp.Constr]
+        self.energy_conservation_sea: dict[
+            tuple[str, int, int, EnergyDemandTypeID], gp.Constr
+        ]
+        self.energy_conservation_port: dict[
+            tuple[str, int, EnergyDemandTypeID], gp.Constr
+        ]
+        self.pilot_fuel_sea: dict[tuple[str, str, int, int], gp.Constr]
+        self.pilot_fuel_port: dict[tuple[str, str, int], gp.Constr]
+        self.mass_conservation: dict[tuple[str, int, str], gp.Constr]
+        self.mass_sufficient: dict[tuple[str, int, str], gp.Constr]
+        self.tank_capacity: dict[tuple[str, int, str], gp.Constr]
+        self.bunker_equals_spent: dict[tuple[str, str], gp.Constr]
+        self.fuel_inertia: dict[tuple[str, str, str], gp.Constr]
 
         # regulation constraints
-        self.regulation_threshold_individual: dict[tuple, gp.Constr]
+        self.regulation_threshold_individual: dict[tuple[str, str], gp.Constr]
         self.regulation_threshold_flexibility: dict[str, gp.Constr]
 
         # fair-share constraints
-        self.fair_share_fuel: dict[tuple, gp.Constr]
+        self.fair_share_fuel: dict[tuple[str, str, str], gp.Constr]
 
         # timing -----------------------------------------------------------------------
         self.build_time: float = 0.0

@@ -16,7 +16,7 @@ import logging
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import TYPE_CHECKING, NamedTuple
+from typing import TYPE_CHECKING, Any, NamedTuple
 
 import openpyxl as xl
 
@@ -532,7 +532,7 @@ def _extract_properties(
             continue
 
 
-def _reduce_dict(property_: dict, reduce: ReportReduceID) -> _ReportValue:
+def _reduce_dict(property_: dict[Any, Any], reduce: ReportReduceID) -> _ReportValue:
     """
     Apply a report reduction to a dict-valued profile result.
 
