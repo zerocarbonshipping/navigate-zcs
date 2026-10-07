@@ -3,3 +3,6 @@
 
 # reformat the codebase with ruff
 05d2c6d145da280b93fc76f809d055e0e5b5a52e
+
+# move the model's domains into the simulation package (#454)
+aa836ea95a4999cfabb53a91f64449171a06652f
