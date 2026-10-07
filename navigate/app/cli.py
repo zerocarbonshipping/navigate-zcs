@@ -62,9 +62,7 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--solver",
-        default=None,
         choices=SOLVER_BACKENDS,
-        metavar="{" + ",".join(SOLVER_BACKENDS) + "}",
         help="Solver backend: 'auto' tries Gurobi then falls back to HiGHS, "
         "'gurobi' prefers Gurobi (falls back to HiGHS if unlicensed), "
         "'highs' skips Gurobi and uses HiGHS directly. Default: auto.",

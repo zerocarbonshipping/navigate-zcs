@@ -83,8 +83,8 @@ def test_each_date_logs_its_heading_then_applies_its_events_then_steps(calls, tm
     assert calls == expected
 
 
-# --solver's help text names 'auto' as trying Gurobi then falling back to HiGHS:
-# the SolverBackendID member documented for that behavior is AUTOMATIC.
+# the reference manual's BunkerOptions Solver entry gives the lowercase names
+# 'auto', 'gurobi' and 'highs' for the members AUTOMATIC, GUROBI and HIGHS.
 @pytest.mark.parametrize(
     ("name", "expected"),
     [

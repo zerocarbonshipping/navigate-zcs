@@ -51,8 +51,8 @@ This file maps the code; the DSL and model behavior are documented in
   line (arguments, input validation, error handling, profiling), which runs
   a deck through `driver/`; and `logs.py`, the run log of a CLI run (its log
   file, line format, warning ledger and summary) and the console preamble.
-- `exceptions.py` — the `NavigateError` hierarchy; `__main__.py` —
-  `python -m navigate`, which delegates to `app/`.
+- `exceptions.py` — the `NavigateError` hierarchy; `__main__.py` runs
+  `app/`'s `main` under `python -m navigate`.
 
 ## Layering
 

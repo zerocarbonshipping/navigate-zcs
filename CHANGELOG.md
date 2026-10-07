@@ -92,9 +92,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - The `.log` file is written in UTF-8, with convergence tables to three
   significant figures. Its summary comes after the plots, counts their records
   and how often each unique warning was logged, under `navigate.app.logs`.
-- The command line's records, such as the fatal-error line, are logged under
-  `navigate.app.cli` in the `.log` file, where they were logged under
-  `navigate.__main__` (`__main__` under `python -m navigate`).
+- The command line logs its records, such as the fatal-error line, under
+  `navigate.app.cli` instead of `navigate.__main__` (`__main__` under
+  `python -m navigate`).
 - An attribute's bounds reach the calculator it references when the
   assignment is read, so the calculator keeps them if the attribute is
   re-assigned later in `DEFINE`, as it always did across `EVENTS`.

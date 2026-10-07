@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 
     from navigate.core import SimulationResults
 
-# the names the solver choice goes by, for the CLI's '--solver' and run_deck's 'solver'
+# the solver names run_deck takes, each with the backend it selects
 SOLVER_BACKENDS: dict[str, SolverBackendID] = {
     "auto": SolverBackendID.AUTOMATIC,
     "gurobi": SolverBackendID.GUROBI,
