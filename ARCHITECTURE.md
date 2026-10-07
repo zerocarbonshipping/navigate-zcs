@@ -75,10 +75,9 @@ longest unit that contains it. A unit imports itself and the units in its
 row, and nothing else from `navigate`. The foundation is `util/` and
 `exceptions.py`.
 
-`fleet/` and `fuel/` never import each other, nor do `parser/` and
-`output/`. Neither of these two imports the simulation — `simulation/` and
-the domains it steps through, `economics/`, `policy/`, `fleet/`, `fuel/` and
-`bunker/` — and the simulation imports neither of them.
+`fleet/` and `fuel/` never import each other, and `parser/`, `output/` and
+the simulation (`simulation/` plus `economics/`, `policy/`, `fleet/`, `fuel/`,
+`bunker/`) never import one another.
 
 Inside `core/`, runtime imports follow an order: `nodes/` imports
 `expectations/`, `profiles/` and the flat modules directly in `core/`,

@@ -8,8 +8,7 @@ Mechanical layering checks on every module and package of `navigate`.
 modules or packages named by their dotted path under `navigate`; a file belongs
 to the longest key that contains it, and imports only its own unit and the units
 in its row, type-only imports included. Every file belongs to a unit, every key
-exists on disk and the table is acyclic. `INDEPENDENT_PAIRS`, and
-`SIMULATION` against `SIMULATION_FREE` in both directions, state which units
+exists on disk and the table is acyclic. `INDEPENDENT_PAIRS` states which units
 never list one another, checked against the table itself. `CORE_ORDER` orders
 the runtime imports between the subpackages of `core` and its flat modules.
 """
@@ -18,6 +17,7 @@ from __future__ import annotations
 
 import ast
 import graphlib
+import itertools
 from pathlib import Path
 
 import pytest
@@ -50,12 +50,14 @@ LAYERS = {
     "__main__": frozenset({"driver", "app", "core"}) | FOUNDATION,
 }
 
-# neither unit of a pair may list the other
-INDEPENDENT_PAIRS = (("fleet", "fuel"), ("parser", "output"))
-# the simulation is the simulation package and the domains it steps through; it
-# and the units in SIMULATION_FREE never list one another
+# the simulation is the simulation package and the domains it steps through
 SIMULATION = DOMAINS | {"simulation"}
-SIMULATION_FREE = frozenset({"parser", "output"})
+# neither unit of a pair may list the other
+INDEPENDENT_PAIRS = (
+    ("fleet", "fuel"),
+    ("parser", "output"),
+    *itertools.product(("parser", "output"), sorted(SIMULATION)),
+)
 
 # core group -> the other groups it may import at runtime; a group may always
 # import itself, and FLAT is every module directly in core/, __init__.py included
@@ -205,7 +207,7 @@ def test_layers_name_existing_units_only():
     assert not unknown, f"rows list units that are not keys: {unknown}"
 
     named = {name for pair in INDEPENDENT_PAIRS for name in pair}
-    stale = sorted((named | SIMULATION | SIMULATION_FREE) - set(LAYERS))
+    stale = sorted(named - set(LAYERS))
     assert not stale, f"independence rules name units that are not keys: {stale}"
 
 
@@ -218,12 +220,6 @@ def test_layers_are_acyclic():
     [
         *INDEPENDENT_PAIRS,
         *((second, first) for first, second in INDEPENDENT_PAIRS),
-        *(
-            pair
-            for unit in sorted(SIMULATION_FREE)
-            for simulation_unit in sorted(SIMULATION)
-            for pair in ((unit, simulation_unit), (simulation_unit, unit))
-        ),
     ],
 )
 def test_independent_units_do_not_list_each_other(unit, other):
