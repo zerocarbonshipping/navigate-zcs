@@ -63,6 +63,6 @@ def test_plot_writes_no_file_with_no_fuel_types(tmp_path):
         profile=None,
     )
 
-    plot_fuel_type_supply_demand(results, str(tmp_path))
+    plot_fuel_type_supply_demand(results, tmp_path)
 
     assert not (tmp_path / "fuel_type_supply_demand.png").exists()

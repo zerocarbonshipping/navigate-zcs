@@ -26,10 +26,12 @@ from navigate.output.plots._units import get_best_unit_mass
 from navigate.util import divide_nonzero
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from navigate.core.simulation_results import SimulationResults
 
 
-def plot_port_bunker_supply(results: SimulationResults, directory: str) -> None:
+def plot_port_bunker_supply(results: SimulationResults, directory: Path) -> None:
     """Plot the bunkered fuel against supply and limit, one figure per port."""
     dateline = results.dateline
     ports = results.nodes.ports

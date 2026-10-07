@@ -208,8 +208,7 @@ def print_preamble() -> None:
         package_version = "Debug"
 
     file = Path(__file__).parent / "preamble.txt"
-    with open(file) as handle:
-        preamble = handle.read()
+    preamble = file.read_text()
 
     print(preamble.format(package_version))
 

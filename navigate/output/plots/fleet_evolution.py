@@ -17,10 +17,12 @@ from navigate.output.plots._figure import (
 from navigate.output.plots._layout import trim_axes
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from navigate.core.simulation_results import SimulationResults
 
 
-def plot_fleet_evolution(results: SimulationResults, directory: str) -> None:
+def plot_fleet_evolution(results: SimulationResults, directory: Path) -> None:
     """Plot the number of existing vessels per fleet, by fuel type."""
     dateline = results.dateline
     fleets = results.nodes.fleets

@@ -6,7 +6,6 @@
 from __future__ import annotations
 
 import logging
-import os
 import timeit
 from math import floor
 from typing import TYPE_CHECKING
@@ -17,13 +16,17 @@ from navigate.output.plots._registry import PLOT_LABELS, PLOTS, plot_label
 from navigate.output.plots._style import initialize_matplotlib
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from navigate.core.nodes.plot import Plot
     from navigate.core.simulation_results import SimulationResults
 
 logger = logging.getLogger(__name__)
 
 
-def generate_plots(plot: Plot, results: SimulationResults, deck_directory: str) -> None:
+def generate_plots(
+    plot: Plot, results: SimulationResults, deck_directory: Path
+) -> None:
     """
     Render the plots requested by one Plot node from the results of a run.
 
@@ -36,13 +39,13 @@ def generate_plots(plot: Plot, results: SimulationResults, deck_directory: str) 
     deck_directory
         Directory of the simulation deck, base for the plot directory.
     """
-    directory = os.path.join(deck_directory, plot.directory or "plots")
+    directory = deck_directory / (plot.directory or "plots")
     selected_plots = plot.selected_plots or None  # an empty set selects all plots
     render_plots(results, directory=directory, selected_plots=selected_plots)
 
 
 def render_plots(
-    results: SimulationResults, directory: str, selected_plots: set[str] | None
+    results: SimulationResults, directory: Path, selected_plots: set[str] | None
 ) -> None:
     """
     Render the selected plots into a directory, logging each plot that fails.
@@ -59,7 +62,7 @@ def render_plots(
     initialize_matplotlib()
     start = timeit.default_timer()
 
-    os.makedirs(directory, exist_ok=True)
+    directory.mkdir(parents=True, exist_ok=True)
 
     if results.dateline.size < 2:
         return

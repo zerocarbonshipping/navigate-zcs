@@ -221,7 +221,7 @@ class TestWriteReportErrorContainment:
 
         monkeypatch.setattr(report_writer, "export_properties_xlsx", fail_on_fleets)
         with caplog.at_level(logging.WARNING):
-            write_report(report, results, str(tmp_path), "deck")
+            write_report(report, results, tmp_path, "deck")
 
         wb = xl.load_workbook(tmp_path / "deck_output.xlsx")
         assert wb["Vessels"].cell(row=ROW_RESULT, column=3).value == "exported"
@@ -243,7 +243,7 @@ class TestWriteReportErrorContainment:
 
         monkeypatch.setattr(report_writer, "export_properties_csv", fail_on_fleets)
         with caplog.at_level(logging.WARNING):
-            write_report(report, results, str(tmp_path), "deck")
+            write_report(report, results, tmp_path, "deck")
 
         assert (tmp_path / "deck_output_Vessels.csv").exists()
         assert not (tmp_path / "deck_output_Fleets.csv").exists()

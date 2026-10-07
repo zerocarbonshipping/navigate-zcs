@@ -6,8 +6,8 @@
 from __future__ import annotations
 
 import argparse
-import os
 import sys
+from pathlib import Path
 
 import pytest
 
@@ -233,13 +233,13 @@ class TestWorkingDirectory:
         deck = tmp_path / "deck.nav"
         deck.write_text('DEFINE {\n    Include "sub/x.inc"\n}\n')
 
-        cwd = os.getcwd()
+        cwd = Path.cwd()
         assert _run_main(monkeypatch, deck) == 1
 
         captured = capsys.readouterr()
         assert "not found" not in captured.err
         assert "EVENTS" in captured.err
-        assert os.getcwd() == cwd
+        assert Path.cwd() == cwd
 
 
 class TestSolverOverride:

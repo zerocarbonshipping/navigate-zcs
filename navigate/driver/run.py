@@ -66,7 +66,7 @@ def run_deck(
     """
     # resolved as the parser resolves it, so the deck location matches the deck read
     deck_path = deck.resolve()
-    deck_directory = str(deck_path.parent)
+    deck_directory = deck_path.parent
 
     parser = Parser()
     parser.read_deck(deck_path, data_dir=data_dir)
@@ -127,7 +127,7 @@ def _format_duration(seconds: float) -> str:
     return f"{whole_minutes}m and {whole_seconds}s"
 
 
-def _render_plots(results: SimulationResults, deck_directory: str) -> None:
+def _render_plots(results: SimulationResults, deck_directory: Path) -> None:
     # deferred so matplotlib only loads when plots are actually rendered
     from navigate.output.plots.render import generate_plots
 

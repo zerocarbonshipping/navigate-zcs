@@ -92,6 +92,8 @@ from navigate.simulation.bunker.variables import (
 from navigate.simulation.policy import policies_affecting_port
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from navigate.core.enum_ import FuelTypeID
     from navigate.core.general_nodes.bunker_options import BunkerOptions
     from navigate.core.nodes.emission import Emission
@@ -117,7 +119,7 @@ class BunkerAlgorithm:
         # miscellaneous
         self.scope: BunkerScopeID
         self.options: BunkerOptions
-        self.output_directory: str
+        self.output_directory: Path
 
         # time
         self.current_idx: int
@@ -238,7 +240,7 @@ class BunkerAlgorithm:
         regulations: dict[str, Regulation],
         options: BunkerOptions,
         scope: BunkerScopeID,
-        output_directory: str,
+        output_directory: Path,
     ) -> None:
         """
         Initialize the algorithm once, when the simulation is initialized.

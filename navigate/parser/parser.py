@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import copy
 import logging
-import os
 import re
 from dataclasses import dataclass, replace
 from pathlib import Path
@@ -170,11 +169,11 @@ class Parser:
 
         # paths; the deck's are set when it is read, the assumptions folders only
         # when a data folder is given
-        self.deck_directory: str | None = None
-        self._user_default_directory: str | None = None
-        self._user_module_directory: str | None = None
-        self._installation_default_directory: str | None = None
-        self._installation_module_directory: str | None = None
+        self.deck_directory: Path
+        self._user_default_directory: Path | None = None
+        self._user_module_directory: Path | None = None
+        self._installation_default_directory: Path | None = None
+        self._installation_module_directory: Path | None = None
 
         # dynamic flags
         self._reading_default: bool = False
@@ -237,12 +236,11 @@ class Parser:
         path = Path(path).resolve()
 
         try:
-            with open(path, encoding="utf8") as f:
-                content = f.read()
+            content = path.read_text(encoding="utf8")
         except FileNotFoundError:
             raise FileNotFoundError(f"Unable to locate {path}.") from None
 
-        self.deck_directory = str(path.parent)
+        self.deck_directory = path.parent
         self._define_internal_directories(data_dir=data_dir)
 
         blocks = parse_deck_content(content, file=str(path))
@@ -282,7 +280,7 @@ class Parser:
 
             if isinstance(directive, IncludeDirective):
                 logger.debug('[%s] Include "%s"', section.name, directive.path)
-                self._read_include_file(directive.path)
+                self._read_include_file(Path(directive.path))
 
             elif isinstance(directive, LoadModuleDirective):
                 logger.debug("[%s] Load %s", section.name, directive.name)
@@ -344,40 +342,37 @@ class Parser:
             return
 
         assumptions_directory = Path(data_dir).resolve()
-        self._user_default_directory = str(assumptions_directory / "defaults/user")
-        self._user_module_directory = str(assumptions_directory / "modules/user")
-        self._installation_default_directory = str(
+        self._user_default_directory = assumptions_directory / "defaults/user"
+        self._user_module_directory = assumptions_directory / "modules/user"
+        self._installation_default_directory = (
             assumptions_directory / "defaults/installation"
         )
-        self._installation_module_directory = str(
+        self._installation_module_directory = (
             assumptions_directory / "modules/installation"
         )
 
     # include and import ---------------------------------------------------------------
 
-    def _read_include_file(self, path: str) -> None:
+    def _read_include_file(self, path: Path) -> None:
         """
         Read, parse, and process an include file.
 
         Parameters
         ----------
         path
-            Path of include file (relative to deck directory).
+            Path of include file, absolute or relative to the deck directory.
         """
-        if not os.path.isabs(path):
-            path = os.path.join(self.deck_directory or "", path)
+        include_path = self.deck_directory / path
 
         try:
-            with open(path, encoding="utf8") as f:
-                content = f.read()
+            content = include_path.read_text(encoding="utf8")
         except FileNotFoundError:
             raise FileNotFoundError(
-                self._deck_error_prefix() + f": Include file '{path}' not found."
+                self._deck_error_prefix()
+                + f": Include file '{include_path}' not found."
             ) from None
 
-        abs_path = os.path.abspath(path) if not os.path.isabs(path) else path
-
-        statements = parse_include_content(content, file=abs_path)
+        statements = parse_include_content(content, file=str(include_path))
 
         # the walk moves the location onto each statement it reads; a nested
         # read hands the reading frame its own location back when it returns
@@ -1046,17 +1041,17 @@ class Parser:
 
         pattern = re.compile(wildcard_to_regex(name_pattern))
 
-        user_dir = os.path.join(self._user_default_directory, node_type)
-        install_dir = os.path.join(self._installation_default_directory, node_type)
+        user_dir = self._user_default_directory / node_type
+        install_dir = self._installation_default_directory / node_type
 
-        matched_names: dict[str, str] = {}
+        matched_names: dict[str, Path] = {}
 
         for directory in (user_dir, install_dir):
-            if not os.path.isdir(directory):
+            if not directory.is_dir():
                 continue
 
-            for file_name in _get_files_in_directory(directory):
-                basename = os.path.splitext(file_name)[0]
+            for file_path in _get_files_in_directory(directory):
+                basename = file_path.stem
                 if pattern.match(basename) and basename not in matched_names:
                     matched_names[basename] = directory
 
@@ -1824,9 +1819,7 @@ class Parser:
                 + f": {_no_assumptions_directory(f'Default {node_type}("{name}")')}"
             )
 
-        installation_directory = os.path.join(
-            self._installation_default_directory, node_type
-        )
+        installation_directory = self._installation_default_directory / node_type
 
         # nothing lies beyond the installation branch, so re-entering it would
         # read the same file until the recursion limit
@@ -1852,7 +1845,7 @@ class Parser:
                 self._user_defaults_in_progress.add(name)
                 try:
                     if self._read_default_folder(
-                        name, os.path.join(self._user_default_directory, node_type)
+                        name, self._user_default_directory / node_type
                     ):
                         found_in = "User"
                 finally:
@@ -1887,17 +1880,14 @@ class Parser:
         finally:
             self._reading_default = reading_default
 
-    def _read_default_folder(self, name: str, directory: str) -> bool:
+    def _read_default_folder(self, name: str, directory: Path) -> bool:
         # a branch without a folder for the type holds no defaults of it
-        if not os.path.isdir(directory):
+        if not directory.is_dir():
             return False
 
-        file_names = _get_files_in_directory(directory)
-
-        for file_name in file_names:
-            basename = os.path.splitext(file_name)[0]
-            if name == basename:
-                self._read_include_file(os.path.join(directory, file_name))
+        for file_path in _get_files_in_directory(directory):
+            if file_path.stem == name:
+                self._read_include_file(file_path)
                 return True
 
         return False
@@ -2051,9 +2041,9 @@ def _no_assumptions_directory(subject: str) -> str:
     )
 
 
-def _get_files_in_directory(directory: str) -> list[str]:
+def _get_files_in_directory(directory: Path) -> list[Path]:
     """
-    List file names in the top level directory, excluding helper/placeholder files.
+    List the files in the top level directory, excluding helper/placeholder files.
 
     For example, ``.gitkeep``.
 
@@ -2064,16 +2054,15 @@ def _get_files_in_directory(directory: str) -> list[str]:
 
     Returns
     -------
-    list[str]
-        List of file names.
+    list[Path]
+        Paths of the files.
     """
     ignored = frozenset({".gitkeep"})
 
     return [
-        file_name
-        for file_name in os.listdir(directory)
-        if os.path.isfile(os.path.join(directory, file_name))
-        and file_name not in ignored
+        file_path
+        for file_path in directory.iterdir()
+        if file_path.is_file() and file_path.name not in ignored
     ]
 
 

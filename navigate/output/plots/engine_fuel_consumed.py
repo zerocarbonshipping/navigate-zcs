@@ -25,6 +25,8 @@ from navigate.output.plots._style import LEGEND_OPTIONS
 from navigate.output.plots._units import get_best_unit_energy
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from matplotlib.legend import Legend
 
     from navigate.core.enum_ import FuelTypeID
@@ -32,7 +34,7 @@ if TYPE_CHECKING:
     from navigate.util.types_ import FloatArray
 
 
-def plot_engine_fuel_consumed(results: SimulationResults, directory: str) -> None:
+def plot_engine_fuel_consumed(results: SimulationResults, directory: Path) -> None:
     """Plot the fuels consumed by the engines of each fuel type."""
     dateline = results.dateline
 

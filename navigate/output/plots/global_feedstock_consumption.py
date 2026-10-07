@@ -26,11 +26,13 @@ from navigate.output.plots._units import get_best_unit_mass
 from navigate.util import divide_nonzero
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from navigate.core.simulation_results import SimulationResults
 
 
 def plot_global_feedstock_consumption(
-    results: SimulationResults, directory: str
+    results: SimulationResults, directory: Path
 ) -> None:
     """Plot the consumption against the constraint per feedstock."""
     dateline = results.dateline

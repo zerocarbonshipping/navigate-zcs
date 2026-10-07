@@ -17,12 +17,14 @@ from navigate.output.plots._labels import FUEL_LABEL, extract_label
 from navigate.output.plots._layout import trim_axes
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from matplotlib.legend import Legend
 
     from navigate.core.simulation_results import SimulationResults
 
 
-def plot_producer_fair_share(results: SimulationResults, directory: str) -> None:
+def plot_producer_fair_share(results: SimulationResults, directory: Path) -> None:
     """Plot the fair share of each producer per fuel."""
     dateline = results.dateline
     fuels = {

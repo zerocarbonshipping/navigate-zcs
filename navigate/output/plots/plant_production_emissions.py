@@ -19,10 +19,14 @@ from navigate.output.plots._labels import FUEL_COLOR
 from navigate.output.plots._layout import trim_axes
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from navigate.core.simulation_results import SimulationResults
 
 
-def plot_plant_production_emissions(results: SimulationResults, directory: str) -> None:
+def plot_plant_production_emissions(
+    results: SimulationResults, directory: Path
+) -> None:
     """Plot the WTW emission intensity per plant, one figure per region."""
     dateline = results.dateline
     fuels = results.nodes.fuels
