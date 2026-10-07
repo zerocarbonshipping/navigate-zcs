@@ -31,54 +31,15 @@ class PowerSystem(_Machinery):
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_propulsion(self, propulsion: Converter) -> None:
-        """
-        Set the converter used to satisfy the propulsion demand.
-
-        It must differ from the electrical and heat converters.
-
-        Examples
-        --------
-        - Converter("name")
-
-        Parameters
-        ----------
-        propulsion
-            A converter used to satisfy the propulsion demand.
-        """
+        """Set the converter used to satisfy the propulsion demand."""
         self.propulsion = assign_reference(propulsion, CONVERTER)
 
     def set_electrical(self, electrical: Converter) -> None:
-        """
-        Set the converter used to satisfy the electrical demand.
-
-        It must differ from the propulsion and heat converters.
-
-        Examples
-        --------
-        - Converter("name")
-
-        Parameters
-        ----------
-        electrical
-            A converter used to satisfy the electrical demand.
-        """
+        """Set the converter used to satisfy the electrical demand."""
         self.electrical = assign_reference(electrical, CONVERTER)
 
     def set_heat(self, heat: Converter) -> None:
-        """
-        Set the converter used to satisfy the heat demand.
-
-        It must differ from the propulsion and electrical converters.
-
-        Examples
-        --------
-        - Converter("name")
-
-        Parameters
-        ----------
-        heat
-            A converter used to satisfy the heat demand.
-        """
+        """Set the converter used to satisfy the heat demand."""
         self.heat = assign_reference(heat, CONVERTER)
 
     # internal methods -----------------------------------------------------------------

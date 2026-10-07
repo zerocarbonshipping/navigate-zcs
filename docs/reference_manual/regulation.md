@@ -32,7 +32,7 @@ Regulation "cii" {
 
 ### Active
 
-This attribute sets whether the regulation is active in the current time-step. This attribute can be changed during the `EVENTS` simulation to either introduce a regulation assuming there was no foresight to its implementation or to discontinue an already existing regulation.
+This attribute sets whether the regulation is active in the current time-step. An inactive regulation is ignored in both the expectations and the results. This attribute can be changed during the `EVENTS` simulation to either introduce a regulation assuming there was no foresight to its implementation or to discontinue an already existing regulation.
 
 * **Data type**: `Boolean`
 * **Default**: TRUE

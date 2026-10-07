@@ -39,7 +39,7 @@ This attribute selects the LP solution method. It is passed to Gurobi as its `Me
 
 ### SolutionTolerance
 
-This attribute sets the tolerance of the solution for the bunker algorithm. The SolutionTolerance defines the lower tolerance for what to consider in results, i.e., if a fuel is bunkered in an amount smaller than the SolutionTolerance, it is rounded to 0 and thus not brought into reports and plots.
+This attribute sets the tolerance of the solution for the bunker algorithm. The SolutionTolerance defines the lower tolerance for what to consider in results, i.e., if a fuel is bunkered in an amount smaller than the SolutionTolerance, it is rounded to 0 and thus not brought into reports and plots. The same value is passed to the LP solver as its feasibility and optimality tolerance, so it also affects how the solver converges.
 
 * **Data type**: `Float`
 * **Example value**: `1e-6`

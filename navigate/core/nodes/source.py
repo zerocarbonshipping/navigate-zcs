@@ -22,17 +22,5 @@ class Source(Node):
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_dependency(self, dependency: str) -> None:
-        """
-        Set the dependency of the source.
-
-        Examples
-        --------
-        - STANDALONE
-        - CONNECTED
-
-        Parameters
-        ----------
-        dependency
-            Type of dependency.
-        """
+        """Set the dependency of the source."""
         self.dependency = assign_id(dependency, SourceDependencyID)

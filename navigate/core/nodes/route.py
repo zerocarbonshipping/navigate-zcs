@@ -73,55 +73,17 @@ class Route(Node):
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_route_type(self, route_type: str) -> None:
-        """
-        Set the route type.
-
-        Examples
-        --------
-        - ROUND_TRIP
-        - REGIONAL_TRIP
-
-        Parameters
-        ----------
-        route_type
-            Assignment read from input deck.
-        """
+        """Set the route type."""
         self.route_type = assign_id(route_type, RouteTypeID)
 
     def set_ports(self, ports: Port | list[Port]) -> None:
-        """
-        Set the list of ports available for bunkering on the route.
-
-        Examples
-        --------
-        - Port("name")
-        - [Port("name1"), Port("name2")]
-
-        Parameters
-        ----------
-        ports
-            Port node or list of Port nodes.
-        """
+        """Set the list of ports available for bunkering on the route."""
         self.ports = assign_reference_list(ports, PORT)
 
     def set_port_durations(
         self, port_durations: ForecastArgument | list[ForecastArgument]
     ) -> None:
-        """
-        Set the duration spent at each port call of the trip, days.
-
-        Only applicable if 'RouteType' is ROUND_TRIP.
-
-        Examples
-        --------
-        - [2]
-        - [3.5, 5]
-
-        Parameters
-        ----------
-        port_durations
-            Float or Forecast node, or a list of them.
-        """
+        """Set the duration of each port call of the trip."""
         entries: list[ForecastArgument] = as_list(port_durations)
         self.port_durations = assign_list(
             [as_scalar(entry) for entry in entries],
@@ -131,20 +93,7 @@ class Route(Node):
         )
 
     def set_time_at_sea(self, time_at_sea: ForecastArgument) -> None:
-        """
-        Set the fraction of time spent at sea.
-
-        Only applicable if 'RouteType' is REGIONAL_TRIP.
-
-        Examples
-        --------
-        - 0.75
-
-        Parameters
-        ----------
-        time_at_sea
-            Fraction of time spent at sea.
-        """
+        """Set the fraction of time spent at sea."""
         self.time_at_sea = assign_value(
             as_scalar(time_at_sea), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
         )
@@ -152,21 +101,7 @@ class Route(Node):
     def set_port_calls(
         self, port_calls: ForecastArgument | list[ForecastArgument]
     ) -> None:
-        """
-        Set the number of port calls per port over the reference duration.
-
-        Only applicable if 'RouteType' is REGIONAL_TRIP.
-
-        Examples
-        --------
-        - [100]
-        - [20, 15.5]
-
-        Parameters
-        ----------
-        port_calls
-            Float or Forecast node, or a list of them.
-        """
+        """Set the number of port calls per port over the reference duration."""
         entries: list[ForecastArgument] = as_list(port_calls)
         self.port_calls = assign_list(
             [as_scalar(entry) for entry in entries],
@@ -176,47 +111,14 @@ class Route(Node):
         )
 
     def set_distances(self, distances: NumberInput | list[NumberInput]) -> None:
-        """
-        Set the distance of the various legs of the trip, nautical miles.
-
-        Only applicable if 'RouteType' is ROUND_TRIP.
-
-        Examples
-        --------
-        - [6000]
-        - [1470, 150.8]
-
-        Parameters
-        ----------
-        distances
-            Float or list of floats.
-        """
+        """Set the distance of each leg of the trip."""
         entries: list[NumberInput] = as_list(distances)
         self.distances = assign_list(
             [as_scalar(entry) for entry in entries], lower=0.0, inclusive_lower=False
         )
 
     def set_condition_distribution(self, condition_distribution: list[float]) -> None:
-        """
-        Set the fraction of time spent on the various legs of the trip.
-
-        The sum of the coefficients in the list should equal unity. A total
-        other than 1, rounded to ROUND_OFF decimals, is rescaled
-        proportionally; a list whose rounded total is 0, an empty list
-        included, is rejected.
-
-        Only applicable if 'RouteType' is REGIONAL_TRIP.
-
-        Examples
-        --------
-        - [1]
-        - [0.3, 0.7]
-
-        Parameters
-        ----------
-        condition_distribution
-            A list of floats.
-        """
+        """Set the fraction of time spent on each leg of the trip."""
         self.condition_distribution, rescaled = assign_fraction_list(
             condition_distribution
         )
@@ -228,19 +130,7 @@ class Route(Node):
             )
 
     def set_speeds(self, speeds: ForecastArgument | list[ForecastArgument]) -> None:
-        """
-        Set the speed of the various legs of the trip, knots.
-
-        Examples
-        --------
-        - [10.5]
-        - [12, 14]
-
-        Parameters
-        ----------
-        speeds
-            Float or Forecast node, or a list of them.
-        """
+        """Set the speed of each leg of the trip."""
         entries: list[ForecastArgument] = as_list(speeds)
         self.speeds = assign_list(
             [as_scalar(entry) for entry in entries],
@@ -253,19 +143,7 @@ class Route(Node):
     def set_capacity_utilizations(
         self, capacity_utilizations: ForecastArgument | list[ForecastArgument]
     ) -> None:
-        """
-        Set the capacity utilization of the various legs of the trip.
-
-        Examples
-        --------
-        - [0.8]
-        - [1, 0]
-
-        Parameters
-        ----------
-        capacity_utilizations
-            Float or Forecast node, or a list of them.
-        """
+        """Set the capacity utilization of each leg of the trip."""
         entries: list[ForecastArgument] = as_list(capacity_utilizations)
         self.capacity_utilizations = assign_list(
             [as_scalar(entry) for entry in entries],
@@ -278,29 +156,7 @@ class Route(Node):
     def set_voyage_distribution(
         self, port_name_from: str, port_name_to: str, fraction: ScalarArgument
     ) -> None:
-        """
-        Set the fraction of sailing time spent traveling from 'port_from' to 'port_to'.
-
-        The fraction is evaluated once when the deck's DEFINE block is read and
-        again whenever an EVENTS block is read, so it does not vary between
-        those reads. Unset pairs are 0; the fractions over all port pairs are
-        rescaled to sum to 1, and split equally if they are all 0.
-
-        Examples
-        --------
-        - "port_name_from", "port_name_to", 0.5
-        - "port_name_from", "port_name_to", Variable("name")
-
-        Parameters
-        ----------
-        port_name_from
-            Name of port from which vessel departs.
-        port_name_to
-            Name of port to which vessel arrives.
-        fraction
-            Fraction of total sailing time spent traveling from 'port_from' to
-            'port_to'.
-        """
+        """Set the fraction of sailing time spent from one port to another."""
         write_matching_key_pairs(
             (port_name_from, port_name_to),
             assign_value(as_scalar(fraction), type_=VARIABLE, lower=0.0, upper=1.0),

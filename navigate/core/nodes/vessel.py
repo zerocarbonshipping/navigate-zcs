@@ -95,31 +95,7 @@ class Vessel(Node):
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_propulsion_load(self, propulsion_load: SurfaceArgument) -> None:
-        """
-        Set the propulsion load, in MW.
-
-        This is the power required to propel the vessel at a given speed and draft
-        (cargo utilization used as proxy).
-
-        If a Curve is assigned it should return power (MW) as a function of speed
-        (knots). If a Surface is assigned it should return power (MW) as a function of
-        speed (knots) and cargo utilization (-).
-
-        An expression assigned to this attribute is evaluated for the load, but it
-        sets no technical speed limit and counts as non-convex, so the vessel's speed
-        optimization logs a warning.
-
-        Examples
-        --------
-        - 16.5
-        - Curve("name")
-        - Surface("name")
-
-        Parameters
-        ----------
-        propulsion_load
-            The propulsion load in MW.
-        """
+        """Set the propulsion load of the vessel."""
         self.propulsion_load = assign_value(
             as_scalar(propulsion_load), type_=(CURVE, SURFACE, VARIABLE), lower=0.0
         )
@@ -127,31 +103,7 @@ class Vessel(Node):
     def set_electrical_load_at_sea(
         self, electrical_load_at_sea: SurfaceArgument
     ) -> None:
-        """
-        Set the electrical load at sea, in MW.
-
-        This is the power required to run auxiliary systems on the vessel at sea at a
-        given speed and cargo utilization.
-
-        If a Curve is assigned it should return power (MW) as a function of speed
-        (knots). If a Surface is assigned it should return power (MW) as a function of
-        speed (knots) and cargo utilization (-).
-
-        An expression assigned to this attribute is evaluated for the load, but it
-        sets no technical speed limit and counts as non-convex, so the vessel's speed
-        optimization logs a warning.
-
-        Examples
-        --------
-        - 16.5
-        - Curve("name")
-        - Surface("name")
-
-        Parameters
-        ----------
-        electrical_load_at_sea
-            The electrical load at sea in MW.
-        """
+        """Set the electrical load of the vessel at sea."""
         self.electrical_load_at_sea = assign_value(
             as_scalar(electrical_load_at_sea),
             type_=(CURVE, SURFACE, VARIABLE),
@@ -161,185 +113,47 @@ class Vessel(Node):
     def set_electrical_load_in_port(
         self, electrical_load_in_port: ScalarArgument
     ) -> None:
-        """
-        Set the electrical load in port in MW.
-
-        This is the power required to run auxiliary systems on the vessel in port.
-
-        Examples
-        --------
-        - 16.5
-
-        Parameters
-        ----------
-        electrical_load_in_port
-            The electrical load in port in MW.
-        """
+        """Set the electrical load of the vessel in port."""
         self.electrical_load_in_port = assign_value(
             as_scalar(electrical_load_in_port), type_=VARIABLE, lower=0.0
         )
 
     def set_heat_load_at_sea(self, heat_load_at_sea: SurfaceArgument) -> None:
-        """
-        Set the heat load at sea, in MW.
-
-        This is the power required to produce heat on the vessel at sea at a given
-        speed and cargo utilization.
-
-        If a Curve is assigned it should return power (MW) as a function of speed
-        (knots). If a Surface is assigned it should return power (MW) as a function of
-        speed (knots) and cargo utilization (-).
-
-        An expression assigned to this attribute is evaluated for the load, but it
-        sets no technical speed limit and counts as non-convex, so the vessel's speed
-        optimization logs a warning.
-
-        Examples
-        --------
-        - 16.5
-        - Curve("name")
-        - Surface("name")
-
-        Parameters
-        ----------
-        heat_load_at_sea
-            The heating load at sea in MW.
-        """
+        """Set the heat load of the vessel at sea."""
         self.heat_load_at_sea = assign_value(
             as_scalar(heat_load_at_sea), type_=(CURVE, SURFACE, VARIABLE), lower=0.0
         )
 
     def set_heat_load_in_port(self, heat_load_in_port: ScalarArgument) -> None:
-        """
-        Set the heating load in port in MW.
-
-        This is the power required to produce heat on the vessel in port.
-
-        Examples
-        --------
-        - 16.5
-
-        Parameters
-        ----------
-        heat_load_in_port
-            The heating load in port in MW.
-        """
+        """Set the heat load of the vessel in port."""
         self.heat_load_in_port = assign_value(
             as_scalar(heat_load_in_port), type_=VARIABLE, lower=0.0
         )
 
     def set_fuel_type(self, fuel_type: str) -> None:
-        """
-        Set the primary main fuel type of the vessel.
-
-        If not assigned, the vessel's primary fuel type is derived during
-        initialization: the main fuel type with the largest power capacity summed over
-        the converters in the PowerSystem. A tie between fuel types is broken by the
-        size of the tanks that store them.
-
-        Examples
-        --------
-        - OIL
-        - AMMONIA
-        - METHANOL
-
-        Parameters
-        ----------
-        fuel_type
-            Primary type of main fuel.
-        """
+        """Set the primary main fuel type of the vessel."""
         self.fuel_type = assign_id(fuel_type, FuelTypeID)
 
     def set_power_system(self, power_system: PowerSystem) -> None:
-        """
-        Set the PowerSystem used to convert fuel to energy.
-
-        Examples
-        --------
-        - PowerSystem("name")
-
-        Parameters
-        ----------
-        power_system
-            The powersystem used to convert fuel to energy.
-        """
+        """Set the power system converting fuel to energy."""
         self.power_system = assign_reference(power_system, POWER_SYSTEM)
 
     def set_tanks(self, tanks: Tank | list[Tank]) -> None:
-        """
-        Set the list of tanks used for onboard fuel storage.
-
-        The tanks must be unique. Each converter in the PowerSystem needs a tank for
-        one of its main fuel types, or, if dual-fuel with a minimum pilot fuel above 0,
-        for one of its pilot fuel types.
-
-        Examples
-        --------
-        - Tank("name")
-        - [Tank("name1"), Tank("name2")]
-
-        Parameters
-        ----------
-        tanks
-            Tank node or list of Tank nodes.
-        """
+        """Set the tanks used for onboard fuel storage."""
         self.tanks = assign_reference_list(tanks, TANK, unique=True)
 
     def set_route(self, route: Route) -> None:
-        """
-        Set the Route the vessel is sailing on.
-
-        Examples
-        --------
-        - Route("name")
-
-        Parameters
-        ----------
-        route
-            The route the vessel is sailing on.
-        """
+        """Set the route the vessel sails on."""
         self.route = assign_reference(route, ROUTE)
 
     def set_nominal_capacity(self, nominal_capacity: ScalarArgument) -> None:
-        """
-        Set the nominal cargo carrying capacity of the vessel.
-
-        There is not a well-defined unit, it just has to match with the
-        'Trade' attribute of the Fleet node the vessel is assigned to.
-        In general the most logical unit for the vessel segment is applied:
-        - Container: TEU (twenty-foot equivalent unit)
-        - RoRo: CEU (car equivalent unit)
-        - Bulk Carrier: DWT (dead weight tonnes)
-        - etc.
-
-        Examples
-        --------
-        - 8000
-
-        Parameters
-        ----------
-        nominal_capacity
-            The nominal cargo carrying capacity of the vessel.
-        """
+        """Set the nominal cargo carrying capacity of the vessel."""
         self.nominal_capacity = assign_value(
             as_scalar(nominal_capacity), type_=VARIABLE, lower=0.0
         )
 
     def set_lifetime(self, lifetime: ForecastArgument) -> None:
-        """
-        Set the lifetime of the vessel in years.
-
-        The vessel is scrapped when it surpasses its lifetime.
-
-        Examples
-        --------
-        - 25
-
-        Parameters
-        ----------
-        lifetime
-            Lifetime of the vessel in years.
-        """
+        """Set the lifetime of the vessel."""
         self.lifetime = assign_value(
             as_scalar(lifetime),
             type_=(FORECAST, VARIABLE),
@@ -348,76 +162,23 @@ class Vessel(Node):
         )
 
     def set_lead_time(self, lead_time: ForecastArgument) -> None:
-        """
-        Set the lead time of the vessel in years.
-
-        The lead time is only used for the calculation of the levelized cost of a vessel
-        (charter rate) and does not impact the delivery of vessels.
-
-        Examples
-        --------
-        - 2
-
-        Parameters
-        ----------
-        lead_time
-            Lead time of the vessel in years.
-        """
+        """Set the lead time of the vessel."""
         self.lead_time = assign_value(
             as_scalar(lead_time), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
     def set_capex(self, capex: ForecastArgument) -> None:
-        """
-        Set the base CAPEX of building the vessel in USD.
-
-        Examples
-        --------
-        - 100e6
-        - Forecast("name")
-
-        Parameters
-        ----------
-        capex
-            The base CAPEX of building the vessel in USD.
-        """
+        """Set the base CAPEX of building the vessel."""
         self.capex = assign_value(
             as_scalar(capex), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
     def set_opex(self, opex: ForecastArgument) -> None:
-        """
-        Set the base OPEX of maintaining the vessel in USD/year.
-
-        Examples
-        --------
-        - 10e6
-        - Forecast("name")
-
-        Parameters
-        ----------
-        opex
-            The base OPEX of maintaining the vessel in USD/year.
-        """
+        """Set the base OPEX of maintaining the vessel."""
         self.opex = assign_value(as_scalar(opex), type_=(FORECAST, VARIABLE), lower=0.0)
 
     def set_cost_of_capital(self, cost_of_capital: ForecastArgument) -> None:
-        """
-        Set the cost of capital used in calculating the finance costs of the vessel.
-
-        Also the discount rate of the charter rate (levelized cost of cargo moved) and
-        of the technology investment and fuel conversion decisions.
-
-        Examples
-        --------
-        - 0.1
-        - Forecast("name")
-
-        Parameters
-        ----------
-        cost_of_capital
-            Cost of capital.
-        """
+        """Set the cost of capital of the vessel."""
         self.cost_of_capital = assign_value(
             as_scalar(cost_of_capital), type_=(FORECAST, VARIABLE), lower=0.0
         )

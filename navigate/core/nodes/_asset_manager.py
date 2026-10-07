@@ -55,23 +55,7 @@ class _AssetManager[A: Vessel | Plant, I: Increment](Node):
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_inertia(self, inertia: ForecastArgument) -> None:
-        """
-        Set the inertia used in the uptake decision of newbuild assets.
-
-        The inertia is defined as the fraction of newbuilds that must follow the same
-        asset type distribution as the previous time-step. It is defined in
-        fraction/year.
-
-        Examples
-        --------
-        - 0.66
-        - Forecast("name")
-
-        Parameters
-        ----------
-        inertia
-            The newbuild asset type inertia.
-        """
+        """Set the inertia used in the uptake decision of newbuild assets."""
         self.inertia = assign_value(
             as_scalar(inertia), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
         )
@@ -80,25 +64,7 @@ class _AssetManager[A: Vessel | Plant, I: Increment](Node):
         self,
         initial_age_distribution: (float | Curve | list[float | Curve]),
     ) -> None:
-        """
-        Set the initial age distribution of each asset type.
-
-        The list must have a length corresponding to the number of asset types. Each
-        entry is either a Curve reference (where the Curve's x-values are ages in
-        increasing order and y-values are the corresponding fractions) or a number for
-        asset types with no custom distribution. Any number, conventionally 0, gives a
-        uniform age spread over the lifetime, as does leaving the attribute unset. The
-        Curve's values must be finite.
-
-        Examples
-        --------
-        - [Curve("age_dist_1"), 0, Curve("age_dist_3")]
-
-        Parameters
-        ----------
-        initial_age_distribution
-            Curve reference or number, or a list of them, one per asset type.
-        """
+        """Set the initial age distribution of each asset type."""
         entries: list[float | Curve] = as_list(initial_age_distribution)
         self._initial_age_distribution = assign_list(
             [as_scalar(entry) for entry in entries],

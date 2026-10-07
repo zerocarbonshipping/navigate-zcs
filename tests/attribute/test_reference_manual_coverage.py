@@ -9,10 +9,13 @@ keeps it from drifting from the parser registries in _attributes.py and
 _commands.py. One page per node type, named by the repository's own camel-to-snake
 conversion; inside it, the "## Attributes" and "## Commands" sections carry one
 "###" heading per registered name, and a node type whose registry is empty carries
-no section at all.
+no section at all. The registries in turn list exactly the DSL setters on the node
+class, so every setter has its manual entry and every entry its setter.
 """
 
 from __future__ import annotations
+
+import inspect
 
 import pytest
 
@@ -27,6 +30,8 @@ from navigate.parser._attributes import (
     NODE_ATTRIBUTE_SECTIONS,
 )
 from navigate.parser._commands import NODE_COMMAND_SECTIONS
+from navigate.parser._keywords import GENERAL_NODE_CLASS, NODE_CLASS
+from navigate.util import attribute_to_setter
 
 _ATTRIBUTE_SECTIONS = NODE_ATTRIBUTE_SECTIONS | GENERAL_NODE_ATTRIBUTE_SECTIONS
 
@@ -35,6 +40,14 @@ _ATTRIBUTE_SECTIONS = NODE_ATTRIBUTE_SECTIONS | GENERAL_NODE_ATTRIBUTE_SECTIONS
 _COMMAND_SECTIONS = NODE_COMMAND_SECTIONS | {
     node: {} for node in GENERAL_NODE_ATTRIBUTE_SECTIONS
 }
+
+_NODE_CLASSES = NODE_CLASS | GENERAL_NODE_CLASS
+
+# set_ methods the model calls rather than the deck, which CODESTYLE.md exempts
+# from the DSL setter rules
+_MODEL_SETTERS = frozenset(
+    {"set_current_time", "set_internal_bounds", "set_producer_assignment"}
+)
 
 NODE_TYPES = sorted(_ATTRIBUTE_SECTIONS)
 
@@ -78,4 +91,23 @@ def test_section_documents_the_registry(node_type, section):
         f"{page_for(node_type).name} '## {section}' has drifted: "
         f"registered but undocumented {sorted(registered - documented)}; "
         f"documented but unregistered {sorted(documented - registered)}"
+    )
+
+
+@pytest.mark.parametrize("node_type", NODE_TYPES)
+def test_registries_list_the_node_setters(node_type):
+    node_class = _NODE_CLASSES[node_type]
+    setters = {
+        name
+        for name, _ in inspect.getmembers(node_class, inspect.isfunction)
+        if name.startswith(("set_", "add_"))
+    } - _MODEL_SETTERS
+    registered = {
+        attribute_to_setter(attribute) for attribute in _ATTRIBUTE_SECTIONS[node_type]
+    } | set(_COMMAND_SECTIONS[node_type])
+
+    assert setters == registered, (
+        f"{node_class.__name__} setters and the {node_type} registries have drifted: "
+        f"setters without a registry entry {sorted(setters - registered)}; "
+        f"registry entries without a setter {sorted(registered - setters)}"
     )

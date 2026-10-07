@@ -117,13 +117,14 @@ API request: `bug`, `enhancement`, `documentation`, `maintenance`, or
 ## What a change touches
 
 - A DSL attribute or command lives in four places: the setter on the node
-  class, with a docstring; the parser table in
+  class, whose docstring is one line for developers; the parser table in
   `navigate/parser/_attributes.py` or `_commands.py`, which also lists the
-  attribute as required when every deck must assign it; the node's page in
-  `docs/reference_manual/`; and the attribute coverage test. The first two
-  are checked against each other, and the manual page is checked against
-  the registries in both directions by
-  `tests/attribute/test_reference_manual_coverage.py`; the report-property
+  attribute as required when every deck must assign it; its entry on the
+  node's page in `docs/reference_manual/`, the only place it is explained
+  to users, with its units, limits, default and examples; and the attribute
+  coverage test. `tests/attribute/test_reference_manual_coverage.py` checks
+  the registries against the setters and the manual pages against the
+  registries, both in both directions; the report-property
   appendix of `docs/reference_manual/report.md` is checked against the
   profile getters the same way by `test_report_property_docs.py`. Nothing
   checks the coverage deck against the registries.
@@ -134,5 +135,5 @@ API request: `bug`, `enhancement`, `documentation`, `maintenance`, or
 - A new non-trivial calculation gets a unit test whose expected value is
   derived independently of the implementation; `tests/unit/README.md` has
   the conventions.
-- A user-visible change in behaviour updates the reference manual, the
-  docstrings and the changelog.
+- A user-visible change in behaviour updates the reference manual and the
+  changelog.

@@ -44,95 +44,28 @@ class Fuel(Node):
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_fuel_type(self, fuel_type: str) -> None:
-        """
-        Set the fuel type of the fuel.
-
-        Examples
-        --------
-        - OIL
-        - AMMONIA
-        - METHANOL
-
-        Parameters
-        ----------
-        fuel_type
-            Type of fuel.
-        """
+        """Set the fuel type of the fuel."""
         self.fuel_type = assign_id(fuel_type, FuelTypeID)
 
     def set_liquid_market(self, liquid_market: str) -> None:
-        """
-        Set the flag for whether the fuel belongs to a liquid market.
-
-        Fuels which belong to a liquid market cannot be modelled bottom-up via Plant and
-        Producer nodes but require manual assignment of supply, price, and WTT emissions
-        at Port level.
-
-        Examples
-        --------
-        - TRUE
-        - FALSE
-
-        Parameters
-        ----------
-        liquid_market
-            Whether the fuel belongs to a liquid market.
-        """
+        """Set whether the fuel belongs to a liquid market."""
         self.liquid_market = assign_boolean(liquid_market)
 
     def set_lower_heating_value(self, lower_heating_value: ScalarArgument) -> None:
-        """
-        Set the lower heating value of the fuel in GJ/ton.
-
-        Examples
-        --------
-        - 42.6
-
-        Parameters
-        ----------
-        lower_heating_value
-            The lower heating value of the fuel in GJ/ton.
-        """
+        """Set the lower heating value of the fuel."""
         self.lower_heating_value = assign_value(
             as_scalar(lower_heating_value), type_=VARIABLE, lower=0.0
         )
 
     def set_mass_density(self, mass_density: ScalarArgument) -> None:
-        """
-        Set the mass density of the fuel in ton/m3.
-
-        Examples
-        --------
-        - 0.96
-
-        Parameters
-        ----------
-        mass_density
-            The mass density of the fuel in ton/m3.
-        """
+        """Set the mass density of the fuel."""
         self.mass_density = assign_value(
             as_scalar(mass_density), type_=VARIABLE, lower=0.0
         )
 
     # external methods (DSL commands) --------------------------------------------------
     def set_ttw(self, emission_name: str, ttw: ScalarArgument) -> None:
-        """
-        Set the TTW emission factor for the stoichiometric conversion of fuel to energy.
-
-        Only allowed in the DEFINE section.
-
-        Examples
-        --------
-        - "emission_name", 2.75
-        - "emission_name", Variable("name")
-
-        Parameters
-        ----------
-        emission_name
-            Name of emission emitted.
-        ttw
-            Ton of emissions per ton of fuel.
-        """
+        """Set the TTW emission factor of the fuel for an emission."""
         write_matching_keys(
             emission_name,
             assign_value(as_scalar(ttw), type_=VARIABLE, lower=0.0),

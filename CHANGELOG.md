@@ -199,7 +199,12 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   - the calculator pages show how `Addition`, `Multiplier` and the bounds
     combine, and which attributes take an expression or `INF`;
   - commands that accept wildcards and commands allowed only in `DEFINE`
-    say so.
+    say so;
+  - `TechnologyHorizon` (Fleet) shapes retrofits as well as newbuilds,
+    `JumpStartFraction` (Producer) blends into the expected uptake in every
+    time-step, and `SolutionTolerance` is also the LP solver's tolerance;
+  - a Plant's `Fuel` must not be a liquid-market fuel, a Fleet's `Vessels`
+    must be unique, and an inactive Levy or Regulation is ignored.
 - Deck errors that ended in a Python traceback, named no deck line or were
   badly worded now read as located deck errors:
   - a rejected attribute or command value prints the one-line error and

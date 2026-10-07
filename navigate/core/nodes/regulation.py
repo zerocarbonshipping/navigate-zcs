@@ -67,148 +67,39 @@ class Regulation(_Policy):
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_scheme(self, scheme: str) -> None:
-        """
-        Set the scheme of the regulation.
-
-        If 'INDIVIDUAL' then vessels cannot trade emission units with each other to
-        comply. If 'FLEXIBLE' then vessels can trade emission units with each other to
-        comply.
-
-        Examples
-        --------
-        - INDIVIDUAL
-        - FLEXIBLE
-
-        Parameters
-        ----------
-        scheme
-            Regulation scheme.
-        """
+        """Set the scheme of the regulation."""
         self.scheme = assign_id(scheme, RegulationSchemeID)
 
     def set_measure(self, measure: str) -> None:
-        """
-        Set the emission measure of the regulation.
-
-        If 'ABSOLUTE' the absolute emissions in tons/year are targeted. If 'INTENSITY'
-        the emission intensity in kg/GJ of effective energy, (1 - slip) * LHV, is
-        targeted. If 'TRANSPORT' the carbon intensity index in gCO2-eq/actual
-        cargo-miles is targeted. If 'TRANSPORT_NOMINAL' the carbon intensity index in
-        gCO2-eq/nominal cargo-miles is targeted.
-
-        Examples
-        --------
-        - ABSOLUTE
-        - INTENSITY
-        - TRANSPORT
-        - TRANSPORT_NOMINAL
-
-        Parameters
-        ----------
-        measure
-            Emission measure.
-        """
+        """Set the emission measure of the regulation."""
         self.measure = assign_id(measure, RegulationMeasureID)
 
     def set_intra_fraction(self, intra_fraction: ForecastArgument) -> None:
-        """
-        Set the fraction of emissions counted for intra-jurisdiction travel.
-
-        Intra travel is between two ports inside the jurisdiction.
-
-        Examples
-        --------
-        - 0.5
-
-        Parameters
-        ----------
-        intra_fraction
-            Fraction of emissions counted during intra jurisdiction travel.
-        """
+        """Set the fraction of emissions counted for intra-jurisdiction travel."""
         self.intra_fraction = assign_value(
             as_scalar(intra_fraction), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
         )
 
     def set_inter_fraction(self, inter_fraction: ForecastArgument) -> None:
-        """
-        Set the fraction of emissions counted for inter-jurisdiction travel.
-
-        Inter travel is between two ports where one is in the jurisdiction and the other
-        is outside it.
-
-        Examples
-        --------
-        - 0.5
-
-        Parameters
-        ----------
-        inter_fraction
-            Fraction of emissions counted during inter jurisdiction travel.
-        """
+        """Set the fraction of emissions counted for inter-jurisdiction travel."""
         self.inter_fraction = assign_value(
             as_scalar(inter_fraction), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
         )
 
     def set_extra_fraction(self, extra_fraction: ForecastArgument) -> None:
-        """
-        Set the fraction of emissions counted for extra-jurisdiction travel.
-
-        Extra travel is between two ports both outside the jurisdiction.
-
-        Examples
-        --------
-        - 0.5
-
-        Parameters
-        ----------
-        extra_fraction
-            Fraction of emissions counted during extra jurisdiction travel.
-        """
+        """Set the fraction of emissions counted for extra-jurisdiction travel."""
         self.extra_fraction = assign_value(
             as_scalar(extra_fraction), type_=(FORECAST, VARIABLE), lower=0.0, upper=1.0
         )
 
     def set_remedial_cost(self, remedial_cost: ForecastArgument) -> None:
-        """
-        Set the cost of purchasing a remedial compliance unit in USD/ton emission.
-
-        Examples
-        --------
-        - 1e3
-        - Forecast("name")
-
-        Parameters
-        ----------
-        remedial_cost
-            Cost of a remedial unit.
-        """
+        """Set the cost of purchasing a remedial compliance unit."""
         self.remedial_cost = assign_value(
             as_scalar(remedial_cost), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
     def set_flexibility_horizon(self, flexibility_horizon: ForecastArgument) -> None:
-        """
-        Set the decision horizon, in years, smoothing the flexibility-cost belief.
-
-        It enters the expected policy expenses of the policed vessels. Only applies
-        when 'Scheme' is FLEXIBLE; assigning it under any other scheme is unused and
-        logged as a warning.
-
-        A longer horizon makes the belief respond more slowly to changes in the
-        flexibility cost between outer time-steps, preventing small changes in future
-        fuel availability from translating into expectations of large flexibility-cost
-        differences.
-
-        Examples
-        --------
-        - 3.0
-        - Forecast("name")
-
-        Parameters
-        ----------
-        flexibility_horizon
-            Decision horizon for the flexibility cost belief, in years.
-        """
+        """Set the decision horizon smoothing the flexibility-cost belief."""
         self.flexibility_horizon = assign_value(
             as_scalar(flexibility_horizon), type_=(FORECAST, VARIABLE), lower=0.0
         )
@@ -218,31 +109,7 @@ class Regulation(_Policy):
     def set_vessel_threshold(
         self, vessel_name: str, threshold: ForecastArgument
     ) -> None:
-        """
-        Set the threshold that a specific vessel must satisfy in the measure unit.
-
-        If 'ABSOLUTE' the threshold is on absolute emissions in tons/year. If
-        'INTENSITY' the threshold is on emission intensity in kg/GJ of effective energy.
-        If 'TRANSPORT' the threshold is on carbon intensity index in gCO2-eq/actual
-        cargo-miles. If 'TRANSPORT_NOMINAL' the threshold is on carbon intensity index
-        in gCO2-eq/nominal cargo-miles.
-
-        Every vessel included in the regulation must have a threshold; use the wildcard
-        "*" to assign the same threshold to all vessels. If 'Scheme' is 'FLEXIBLE' the
-        per-vessel thresholds pool into a single fleet-level constraint.
-
-        Examples
-        --------
-        - "name", 1e3
-        - "*", Forecast("forecast_name")
-
-        Parameters
-        ----------
-        vessel_name
-            Name of vessel for which the threshold is assigned.
-        threshold
-            Threshold for a vessel.
-        """
+        """Set the threshold that a specific vessel must satisfy."""
         write_matching_keys(
             vessel_name,
             assign_value(as_scalar(threshold), type_=(FORECAST, VARIABLE), lower=0.0),
@@ -250,24 +117,7 @@ class Regulation(_Policy):
         )
 
     def set_vessel_capacity(self, vessel_name: str, capacity: ForecastArgument) -> None:
-        """
-        Set the capacity of a specific vessel for use in transport calculations.
-
-        This is only relevant if 'Measure' is set to 'TRANSPORT_NOMINAL' or 'TRANSPORT'.
-        If not set, the vessel's NominalCapacity is used.
-
-        Examples
-        --------
-        - "name", 35000
-        - "vessel_name", Forecast("forecast_name")
-
-        Parameters
-        ----------
-        vessel_name
-            Name of vessel for which the capacity is assigned.
-        capacity
-            Capacity of a vessel, in the unit of its NominalCapacity.
-        """
+        """Set the capacity of a specific vessel for use in transport calculations."""
         write_matching_keys(
             vessel_name,
             assign_value(as_scalar(capacity), type_=(FORECAST, VARIABLE), lower=0.0),
@@ -275,23 +125,7 @@ class Regulation(_Policy):
         )
 
     def set_allow_threshold_adjustment(self, allow_threshold_adjustment: str) -> None:
-        """
-        Set whether the threshold is automatically adjusted on non-compliance.
-
-        If enabled, the bunker algorithm will perform a multi-step solve where it first
-        solves normally, then adjusts the threshold to match achievable compliance
-        levels, and re-solves with the adjusted thresholds.
-
-        Examples
-        --------
-        - TRUE
-        - FALSE
-
-        Parameters
-        ----------
-        allow_threshold_adjustment
-            Whether to allow threshold adjustment (TRUE/FALSE).
-        """
+        """Set whether the threshold is automatically adjusted on non-compliance."""
         self.allow_threshold_adjustment = assign_boolean(allow_threshold_adjustment)
 
     # internal methods -----------------------------------------------------------------

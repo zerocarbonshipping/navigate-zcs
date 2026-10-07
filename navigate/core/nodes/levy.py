@@ -40,89 +40,23 @@ class Levy(_Policy):
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_scheme(self, scheme: str) -> None:
-        """
-        Set the scheme of the levy.
-
-        If 'PENALTY' then the fuel is penalized for emission factors above the
-        threshold. If 'SUBSIDY' then the fuel is subsidized for emission factors below
-        the threshold. If 'BOTH' then the fuel is penalized above and subsidized below
-        the threshold.
-
-        Examples
-        --------
-        - PENALTY
-        - SUBSIDY
-        - BOTH
-
-        Parameters
-        ----------
-        scheme
-            Levy scheme.
-        """
+        """Set the scheme of the levy."""
         self.scheme = assign_id(scheme, LevySchemeID)
 
     def set_level(self, level: ForecastArgument) -> None:
-        """
-        Set the levy level paid or received, depending on scheme, in USD/ton emission.
-
-        Examples
-        --------
-        - 100
-        - Forecast("name")
-
-        Parameters
-        ----------
-        level
-            Cost/remuneration of the levy.
-        """
+        """Set the levy level paid or received, depending on scheme."""
         self.level = assign_value(
             as_scalar(level), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
     def set_lower_threshold(self, lower_threshold: ForecastArgument) -> None:
-        """
-        Set the lower emission factor threshold of the levy in kg emissions / GJ.
-
-        Emissions below this threshold are not penalized (for PENALTY/BOTH scheme) and
-        emissions above are not subsidized (for SUBSIDY/BOTH scheme). The energy is the
-        effective energy, (1 - slip) * LHV, averaged over the vessel's converters able
-        to burn the fuel, weighted by power capacity over efficiency.
-
-        Examples
-        --------
-        - 91.2
-        - Forecast("name")
-
-        Parameters
-        ----------
-        lower_threshold
-            Lower emission factor threshold.
-        """
+        """Set the lower emission factor threshold of the levy."""
         self.lower_threshold = assign_value(
             as_scalar(lower_threshold), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
     def set_upper_threshold(self, upper_threshold: ForecastArgument) -> None:
-        """
-        Set the upper emission factor threshold of the levy in kg emissions / GJ.
-
-        Emissions above this threshold are not additionally penalized (for PENALTY/BOTH
-        scheme). The penalty is only paid for emissions between the lower and upper
-        threshold. If not set, there is no upper cap on the penalty. The energy is the
-        effective energy, (1 - slip) * LHV, as for the lower threshold. For an active
-        PENALTY or BOTH levy it must not fall below the lower threshold at any time
-        step.
-
-        Examples
-        --------
-        - 91.2
-        - Forecast("name")
-
-        Parameters
-        ----------
-        upper_threshold
-            Upper emission factor threshold.
-        """
+        """Set the upper emission factor threshold of the levy."""
         self.upper_threshold = assign_value(
             as_scalar(upper_threshold), type_=(FORECAST, VARIABLE), lower=0.0
         )

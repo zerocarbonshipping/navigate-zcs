@@ -41,52 +41,15 @@ class _Table2D(_Calculator):
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_interpolate(self, interpolate: str) -> None:
-        """
-        Set the interpolation method used within the table.
-
-        Examples
-        --------
-        - LINEAR
-        - NEAREST
-
-        Parameters
-        ----------
-        interpolate
-            Interpolation method.
-        """
+        """Set the interpolation method used within the table."""
         self._interpolate = assign_id(interpolate, Interpolate2DID)
 
     def set_extrapolate(self, extrapolate: str) -> None:
-        """
-        Set the extrapolation method used beyond the ends of the table.
-
-        Examples
-        --------
-        - FALSE
-        - FLAT
-        - LINEAR
-
-        Parameters
-        ----------
-        extrapolate
-            Extrapolation method.
-        """
+        """Set the extrapolation method used beyond the ends of the table."""
         self.extrapolate = assign_id(extrapolate, ExtrapolateID)
 
     def set_outside(self, outside: NumberInput) -> None:
-        """
-        Set the flat extrapolation value used outside the table.
-
-        Required when 'Extrapolate' is FLAT; the node's `check_consistency` rejects
-        an unset value in that case. An expression is evaluated, without inputs,
-        each time the table is looked up. INF and -INF are accepted here and
-        checked by each attribute the calculator is assigned to.
-
-        Parameters
-        ----------
-        outside
-            Flat extrapolation value outside the table.
-        """
+        """Set the flat extrapolation value used outside the table."""
         self._outside = assign_value(outside, allow_infinite=True)
 
     # internal methods -----------------------------------------------------------------

@@ -81,62 +81,22 @@ class _Calculator:
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_addition(self, addition: NumberInput) -> None:
-        """
-        Set the addition of the calculator.
-
-        An expression is evaluated each time the calculator is, with the inputs
-        its table is looked up at; a Variable, which has no table, evaluates it
-        without inputs.
-
-        Parameters
-        ----------
-        addition
-            Addition to the calculated value.
-        """
+        """Set the addition of the calculator."""
         self.addition = assign_value(addition)
 
     def set_multiplier(self, multiplier: NumberInput) -> None:
-        """
-        Set the multiplier of the calculator.
-
-        An expression is evaluated each time the calculator is, with the inputs
-        its table is looked up at; a Variable, which has no table, evaluates it
-        without inputs.
-
-        Parameters
-        ----------
-        multiplier
-            Multiplier of the calculated value.
-        """
+        """Set the multiplier of the calculator."""
         self.multiplier = assign_value(multiplier)
 
     def set_lower_bound(self, lower_bound: float | str) -> None:
-        """
-        Set the publicly defined lower bound of the calculator.
-
-        -INF means no lower bound; INF is rejected.
-
-        Parameters
-        ----------
-        lower_bound
-            Lower bound of calculated value.
-        """
+        """Set the user-defined lower bound of the calculator."""
         self.lower_bound = assign_bound(lower_bound, inclusive_upper=False)
 
         # called here in case the lower bound is changed during time-stepping
         self._assign_applied_bounds()
 
     def set_upper_bound(self, upper_bound: float | str) -> None:
-        """
-        Set the publicly defined upper bound of the calculator.
-
-        INF means no upper bound; -INF is rejected.
-
-        Parameters
-        ----------
-        upper_bound
-            Upper bound of calculated value.
-        """
+        """Set the user-defined upper bound of the calculator."""
         self.upper_bound = assign_bound(upper_bound, inclusive_lower=False)
 
         # called here in case the upper bound is changed during time-stepping

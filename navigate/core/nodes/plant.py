@@ -78,81 +78,23 @@ class Plant(Node):
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_fuel(self, fuel: Fuel) -> None:
-        """
-        Set the fuel which is produced by the plant.
-
-        Examples
-        --------
-        - Fuel("name")
-
-        Parameters
-        ----------
-        fuel
-            A Fuel node.
-        """
+        """Set the fuel produced by the plant."""
         self.fuel = assign_reference(fuel, FUEL)
 
     def set_process(self, process: Process) -> None:
-        """
-        Set the production process used by the plant.
-
-        Examples
-        --------
-        - Process("name")
-
-        Parameters
-        ----------
-        process
-            A Process node.
-        """
+        """Set the production process used by the plant."""
         self.process = assign_reference(process, PROCESS)
 
     def set_region(self, region: Region) -> None:
-        """
-        Set the region in which the plant is built.
-
-        Examples
-        --------
-        - Region("name")
-
-        Parameters
-        ----------
-        region
-            A Region node.
-        """
+        """Set the region in which the plant is built."""
         self.region = assign_reference(region, REGION)
 
     def set_source(self, source: Source) -> None:
-        """
-        Set the energy source which is used to generate power for the plant.
-
-        Examples
-        --------
-        - Source("name")
-
-        Parameters
-        ----------
-        source
-            A Source node.
-        """
+        """Set the energy source powering the plant."""
         self.source = assign_reference(source, SOURCE)
 
     def set_capacity(self, capacity: ForecastArgument) -> None:
-        """
-        Set the production capacity of the plant in tons/day.
-
-        INF is rejected.
-
-        Examples
-        --------
-        - 3000
-        - Forecast("name")
-
-        Parameters
-        ----------
-        capacity
-            Production capacity of the plant in tons/day.
-        """
+        """Set the production capacity of the plant."""
         self.capacity = assign_value(
             as_scalar(capacity),
             type_=(FORECAST, VARIABLE),
@@ -161,19 +103,7 @@ class Plant(Node):
         )
 
     def set_uptime(self, uptime: ForecastArgument) -> None:
-        """
-        Set the production uptime of the plant in time/time.
-
-        Examples
-        --------
-        - 0.95
-        - Forecast("name")
-
-        Parameters
-        ----------
-        uptime
-            Production uptime of the plant in time/time.
-        """
+        """Set the production uptime of the plant."""
         self.uptime = assign_value(
             as_scalar(uptime),
             type_=(FORECAST, VARIABLE),
@@ -183,20 +113,7 @@ class Plant(Node):
         )
 
     def set_lifetime(self, lifetime: ForecastArgument) -> None:
-        """
-        Set the lifetime of the plant in years.
-
-        The plant is decommissioned when it surpasses its lifetime.
-
-        Examples
-        --------
-        - 30
-
-        Parameters
-        ----------
-        lifetime
-            Lifetime of the plant in years.
-        """
+        """Set the lifetime of the plant."""
         self.lifetime = assign_value(
             as_scalar(lifetime),
             type_=(FORECAST, VARIABLE),
@@ -205,61 +122,20 @@ class Plant(Node):
         )
 
     def set_lead_time(self, lead_time: ForecastArgument) -> None:
-        """
-        Set the planning to production lead time of the plant in years.
-
-        Examples
-        --------
-        - 4
-        - Forecast("name")
-
-        Parameters
-        ----------
-        lead_time
-            Planning to production lead time of the plant in years.
-        """
+        """Set the planning-to-production lead time of the plant."""
         self.lead_time = assign_value(
             as_scalar(lead_time), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
     def set_cost_of_capital(self, cost_of_capital: ForecastArgument) -> None:
-        """
-        Set the cost of capital used in calculating the finance costs of the plant.
-
-        Also used as the discount rate for levelized cost calculations for investment
-        decisions.
-
-        Examples
-        --------
-        - 0.1
-        - Forecast("name")
-
-        Parameters
-        ----------
-        cost_of_capital
-            Cost of capital.
-        """
+        """Set the cost of capital of the plant."""
         self.cost_of_capital = assign_value(
             as_scalar(cost_of_capital), type_=(FORECAST, VARIABLE), lower=0.0
         )
 
     # external methods (DSL commands) --------------------------------------------------
     def set_feed_transport(self, feed_name: str, value: Transport) -> None:
-        """
-        Set the transport mode for delivering feedstock or process output to the plant.
-
-        Examples
-        --------
-        - "feedstock_name", Transport("name")
-        - "process_name", Transport("name")
-
-        Parameters
-        ----------
-        feed_name
-            The name of a feedstock or process.
-        value
-            The transport mode used to transport the feedstock or process output.
-        """
+        """Set the transport mode delivering a feedstock or process output."""
         write_matching_keys(
             feed_name,
             assign_reference(value, TRANSPORT),
@@ -267,25 +143,7 @@ class Plant(Node):
         )
 
     def set_feed_distance(self, feed_name: str, value: ForecastArgument) -> None:
-        """
-        Set the feedstock or process transport distance to the plant, nautical miles.
-
-        Requires a transport assigned to the same feed with set_feed_transport. A feed
-        with a transport but no distance gets a distance of 0.
-
-        Examples
-        --------
-        - "feedstock_name", 100
-        - "process_name", 100
-        - "process_name", Forecast("name")
-
-        Parameters
-        ----------
-        feed_name
-            The name of a feedstock or process.
-        value
-            The distance of transport in nautical miles.
-        """
+        """Set the distance a feedstock or process output is transported."""
         write_matching_keys(
             feed_name,
             assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
@@ -293,24 +151,7 @@ class Plant(Node):
         )
 
     def set_fuel_transport(self, port_name: str, value: Transport) -> None:
-        """
-        Set the transport mode used for delivering the produced fuel to a given port.
-
-        The cost and WTT emissions of the delivery are given by the transport rates of
-        the plant's region, see `Region.set_transport_cost` and
-        `Region.set_transport_wtt`.
-
-        Examples
-        --------
-        - "port_name", Transport("name")
-
-        Parameters
-        ----------
-        port_name
-            The name of a port.
-        value
-            The transport mode used to deliver the produced fuel to the port.
-        """
+        """Set the transport mode delivering the produced fuel to a port."""
         write_matching_keys(
             port_name,
             assign_reference(value, TRANSPORT),
@@ -318,24 +159,7 @@ class Plant(Node):
         )
 
     def set_fuel_distance(self, port_name: str, value: ForecastArgument) -> None:
-        """
-        Set the distance the produced fuel is transported to a port, in nautical miles.
-
-        Requires a transport assigned to the same port with set_fuel_transport. A port
-        with a transport but no distance gets a distance of 0.
-
-        Examples
-        --------
-        - "port_name", 100
-        - "port_name", Forecast("name")
-
-        Parameters
-        ----------
-        port_name
-            The name of a port.
-        value
-            The distance of transport in nautical miles.
-        """
+        """Set the distance the produced fuel is transported to a port."""
         write_matching_keys(
             port_name,
             assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),

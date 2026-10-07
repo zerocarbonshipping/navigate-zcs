@@ -40,71 +40,19 @@ class _Table1D(_Calculator):
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_interpolate(self, interpolate: str) -> None:
-        """
-        Set the interpolation method used within the table.
-
-        Examples
-        --------
-        - LINEAR
-        - PREVIOUS
-        - NEXT
-        - NEAREST
-        - NEAREST_UP
-
-        Parameters
-        ----------
-        interpolate
-            Interpolation method.
-        """
+        """Set the interpolation method used within the table."""
         self._interpolate = assign_id(interpolate, Interpolate1DID)
 
     def set_extrapolate(self, extrapolate: str) -> None:
-        """
-        Set the extrapolation method used beyond the ends of the table.
-
-        Examples
-        --------
-        - FALSE
-        - FLAT
-        - LINEAR
-
-        Parameters
-        ----------
-        extrapolate
-            Extrapolation method.
-        """
+        """Set the extrapolation method used beyond the ends of the table."""
         self.extrapolate = assign_id(extrapolate, ExtrapolateID)
 
     def set_below(self, below: NumberInput) -> None:
-        """
-        Set the flat extrapolation value below the table.
-
-        Only read when 'Extrapolate' is FLAT; the first y-value in the table is
-        used when this is left unset. An expression is evaluated, without inputs,
-        each time the table is looked up below its first x-value. INF and -INF are
-        accepted here and checked by each attribute the calculator is assigned to.
-
-        Parameters
-        ----------
-        below
-            Flat extrapolation value below the table.
-        """
+        """Set the flat extrapolation value below the table."""
         self._below = assign_value(below, allow_infinite=True)
 
     def set_above(self, above: NumberInput) -> None:
-        """
-        Set the flat extrapolation value above the table.
-
-        Only read when 'Extrapolate' is FLAT; the last y-value in the table is
-        used when this is left unset. An expression is evaluated, without inputs,
-        each time the table is looked up above its last x-value. INF and -INF are
-        accepted here and checked by each attribute the calculator is assigned to.
-
-        Parameters
-        ----------
-        above
-            Flat extrapolation value above the table.
-        """
+        """Set the flat extrapolation value above the table."""
         self._above = assign_value(above, allow_infinite=True)
 
     # internal methods -----------------------------------------------------------------

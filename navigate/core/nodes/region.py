@@ -61,21 +61,7 @@ class Region(Node):
 
     # external methods (DSL commands) --------------------------------------------------
     def set_process_capex(self, process_name: str, value: TimetableArgument) -> None:
-        """
-        Set the CAPEX associated with a production process in USD/ton.
-
-        Examples
-        --------
-        - "process_name", 500
-        - "process_name", Forecast("name")
-
-        Parameters
-        ----------
-        process_name
-            The name of a process.
-        value
-            The CAPEX cost of the process in USD/ton.
-        """
+        """Set the CAPEX of a production process."""
         write_matching_keys(
             process_name,
             assign_value(
@@ -85,24 +71,7 @@ class Region(Node):
         )
 
     def set_process_opex(self, process_name: str, value: TimetableArgument) -> None:
-        """
-        Set the OPEX associated with a production process in USD/ton/year.
-
-        Notice that OPEX allows negative values so that revenue from byproducts can be
-        subtracted from the costs, resulting in potentially negative OPEX.
-
-        Examples
-        --------
-        - "process_name", 50
-        - "process_name", Forecast("name")
-
-        Parameters
-        ----------
-        process_name
-            The name of a process.
-        value
-            The OPEX cost of the process in USD/ton/year.
-        """
+        """Set the OPEX of a production process."""
         write_matching_keys(
             process_name,
             assign_value(as_scalar(value), type_=(FORECAST, TIMETABLE, VARIABLE)),
@@ -110,21 +79,7 @@ class Region(Node):
         )
 
     def set_process_energy(self, process_name: str, value: ForecastArgument) -> None:
-        """
-        Set the energy demand required to run a production process in MWh/ton.
-
-        Examples
-        --------
-        - "process_name", 3.7
-        - "process_name", Forecast("name")
-
-        Parameters
-        ----------
-        process_name
-            The name of a process.
-        value
-            The energy demand of the process in MWh/ton.
-        """
+        """Set the energy demand of a production process."""
         write_matching_keys(
             process_name,
             assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
@@ -132,23 +87,7 @@ class Region(Node):
         )
 
     def set_process_lifetime(self, process_name: str, value: ForecastArgument) -> None:
-        """
-        Set the lifetime of a production process in years.
-
-        If not set, the process lives as long as its plant, with no replacement.
-
-        Examples
-        --------
-        - "process_name", 25
-        - "process_name", Forecast("name")
-
-        Parameters
-        ----------
-        process_name
-            The name of a process.
-        value
-            The lifetime of the process in years.
-        """
+        """Set the lifetime of a production process."""
         write_matching_keys(
             process_name,
             assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
@@ -158,21 +97,7 @@ class Region(Node):
     def set_process_replacement(
         self, process_name: str, value: ForecastArgument
     ) -> None:
-        """
-        Set the replacement fraction of CAPEX repaid at the end of a process's lifetime.
-
-        Examples
-        --------
-        - "process_name", 0.5
-        - "process_name", Forecast("name")
-
-        Parameters
-        ----------
-        process_name
-            The name of a process.
-        value
-            The replacement fraction of the CAPEX repaid at EoL (end of lifetime).
-        """
+        """Set the fraction of CAPEX repaid at the end of a process's lifetime."""
         write_matching_keys(
             process_name,
             assign_value(
@@ -184,24 +109,7 @@ class Region(Node):
     def set_process_wtt(
         self, process_name: str, emission_name: str, value: ForecastArgument
     ) -> None:
-        """
-        Set the WTT emissions from a production process, ton emission/ton fuel.
-
-        Examples
-        --------
-        - "process_name", "emission_name", 0.5
-        - "process_name", "emission_name", Forecast("name")
-
-        Parameters
-        ----------
-        process_name
-            The name of a process.
-        emission_name
-            The name of an emission.
-        value
-            The amount of emissions emitted during the production in ton emissions/ton
-            fuel.
-        """
+        """Set the WTT emissions of a production process for an emission."""
         write_matching_key_pairs(
             (process_name, emission_name),
             assign_value(as_scalar(value), type_=(FORECAST, VARIABLE)),
@@ -209,21 +117,7 @@ class Region(Node):
         )
 
     def set_source_capex(self, source_name: str, value: ForecastArgument) -> None:
-        """
-        Set the CAPEX associated with a source in USD/MWh.
-
-        Examples
-        --------
-        - "source_name", 50
-        - "source_name", Forecast("name")
-
-        Parameters
-        ----------
-        source_name
-            The name of a source.
-        value
-            The CAPEX cost of the source in USD/MWh.
-        """
+        """Set the CAPEX of a source."""
         write_matching_keys(
             source_name,
             assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
@@ -231,21 +125,7 @@ class Region(Node):
         )
 
     def set_source_opex(self, source_name: str, value: ForecastArgument) -> None:
-        """
-        Set the OPEX associated with a source in USD/MWh/year.
-
-        Examples
-        --------
-        - "source_name", 50
-        - "source_name", Forecast("name")
-
-        Parameters
-        ----------
-        source_name
-            The name of a source.
-        value
-            The OPEX cost of the source in USD/MWh/year.
-        """
+        """Set the OPEX of a source."""
         write_matching_keys(
             source_name,
             assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
@@ -255,23 +135,7 @@ class Region(Node):
     def set_source_wtt(
         self, source_name: str, emission_name: str, value: ForecastArgument
     ) -> None:
-        """
-        Set the WTT emissions of an emission type from using a source, ton emission/MWh.
-
-        Examples
-        --------
-        - "source_name", "emission_name", 0.5
-        - "source_name", "emission_name", Forecast("name")
-
-        Parameters
-        ----------
-        source_name
-            The name of a source.
-        emission_name
-            The name of an emission.
-        value
-            The amount of emissions emitted by using a source in ton emission/MWh.
-        """
+        """Set the WTT emissions of a source for an emission."""
         write_matching_key_pairs(
             (source_name, emission_name),
             assign_value(as_scalar(value), type_=(FORECAST, VARIABLE)),
@@ -279,21 +143,7 @@ class Region(Node):
         )
 
     def set_feedstock_cost(self, feedstock_name: str, value: ForecastArgument) -> None:
-        """
-        Set the cost of a feedstock in USD/ton.
-
-        Examples
-        --------
-        - "feedstock_name", 150
-        - "feedstock_name", Forecast("name")
-
-        Parameters
-        ----------
-        feedstock_name
-            The name of a feedstock.
-        value
-            The cost of a feedstock in USD/ton.
-        """
+        """Set the cost of a feedstock."""
         write_matching_keys(
             feedstock_name,
             assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
@@ -303,24 +153,7 @@ class Region(Node):
     def set_feedstock_wtt(
         self, feedstock_name: str, emission_name: str, value: ForecastArgument
     ) -> None:
-        """
-        Set the WTT emissions from a feedstock, ton emission/ton feedstock.
-
-        Examples
-        --------
-        - "feedstock_name", "emission_name", 0.5
-        - "feedstock_name", "emission_name", Forecast("name")
-
-        Parameters
-        ----------
-        feedstock_name
-            The name of a feedstock.
-        emission_name
-            The name of an emission.
-        value
-            The amount of emissions emitted by using a feedstock in ton emission/ton
-            feedstock.
-        """
+        """Set the WTT emissions of a feedstock for an emission."""
         write_matching_key_pairs(
             (feedstock_name, emission_name),
             assign_value(as_scalar(value), type_=(FORECAST, VARIABLE)),
@@ -328,21 +161,7 @@ class Region(Node):
         )
 
     def set_transport_cost(self, transport_name: str, value: ForecastArgument) -> None:
-        """
-        Set the cost associated with a transport in USD/ton-nautical mile.
-
-        Examples
-        --------
-        - "transport_name", 45
-        - "transport_name", Forecast("name")
-
-        Parameters
-        ----------
-        transport_name
-            The name of a transport.
-        value
-            The cost of the transport in USD/ton-nautical mile.
-        """
+        """Set the cost of a transport."""
         write_matching_keys(
             transport_name,
             assign_value(as_scalar(value), type_=(FORECAST, VARIABLE), lower=0.0),
@@ -352,24 +171,7 @@ class Region(Node):
     def set_transport_wtt(
         self, transport_name: str, emission_name: str, value: ForecastArgument
     ) -> None:
-        """
-        Set the WTT emissions from a transport, ton emission/ton-nautical mile.
-
-        Examples
-        --------
-        - "transport_name", "emission_name", 0.5
-        - "transport_name", "emission_name", Forecast("name")
-
-        Parameters
-        ----------
-        transport_name
-            The name of a transport.
-        emission_name
-            The name of an emission.
-        value
-            The amount of emissions emitted by using a transport in ton
-            emission/ton-nautical mile.
-        """
+        """Set the WTT emissions of a transport for an emission."""
         write_matching_key_pairs(
             (transport_name, emission_name),
             assign_value(as_scalar(value), type_=(FORECAST, VARIABLE)),

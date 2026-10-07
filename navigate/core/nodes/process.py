@@ -28,42 +28,13 @@ class Process(Node):
 
     # external methods (DSL attributes) ------------------------------------------------
     def set_feeds(self, feeds: Feedstock | Process | list[Feedstock | Process]) -> None:
-        """
-        Set the list of feedstocks or output from other processes used in the process.
-
-        The feeds must be unique, and the list must have the same length as
-        Conversions.
-
-        Examples
-        --------
-        - Feedstock("name")
-        - [Feedstock("name"), Process("name")]
-
-        Parameters
-        ----------
-        feeds
-            Feedstock or process, or a list of feedstocks and/or processes.
-        """
+        """Set the feedstocks and processes whose output feed the process."""
         self.feeds = assign_reference_list(feeds, (FEEDSTOCK, PROCESS), unique=True)
 
     def set_conversions(
         self, conversion: ForecastArgument | list[ForecastArgument]
     ) -> None:
-        """
-        Set the conversion factors required for turning the feed into fuel.
-
-        The list must have the same length as Feeds.
-
-        Examples
-        --------
-        - [0.5, 2.5]
-
-        Parameters
-        ----------
-        conversion
-            Conversion factor or list of conversion factors in tons of feed per tons
-            of fuel.
-        """
+        """Set the conversion factors of the feeds into fuel."""
         entries: list[ForecastArgument] = as_list(conversion)
         self.conversions = assign_list(
             [as_scalar(entry) for entry in entries],

@@ -32,6 +32,8 @@ Plant "plant_methanol_electro" {
 
 This attribute sets the fuel that is produced by the plant.
 
+The fuel must not belong to a liquid market (`LiquidMarket = TRUE`); see [Fuel](fuel.md#liquidmarket).
+
 * **Data type**: `Fuel` node
 * **Example value**: `Fuel("name")`
 * **Default**: None. Must be provided by the user.

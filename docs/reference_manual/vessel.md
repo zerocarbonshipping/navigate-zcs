@@ -115,6 +115,7 @@ This attribute sets the main fuel type of the vessel.
 
 * **Data type**: `ID`
 * **Legal values**: [FuelTypeID](appendix_ids.md#fueltypeid)
+* **Example value**: `METHANOL`
 * **Default**: Not set. The main fuel type with the largest power capacity summed over the converters in the power system is used. A tie between fuel types is broken by the size of the tanks that store them.
 
 ### PowerSystem 

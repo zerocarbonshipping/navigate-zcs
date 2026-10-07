@@ -40,6 +40,8 @@ Fleet "tug" {
 
 This attribute sets the list of vessel types that exist for the fleet. Vessel types can be viewed as a discretization of the fuel types and technologies of the fleet.
 
+Every Vessel node assigned must be unique.
+
 * **Data type**: List of `Vessel` nodes
 * **Example values**:
   + `[Vessel("name1"), Vessel("name2")]`
@@ -132,7 +134,7 @@ The value is an odds ratio against an advantage equal to 5% of the summed ship C
 
 ### TechnologyCostOfCapital
 
-This attribute sets the cost of capital used for evaluating technology investments. It represents the discount rate used to evaluate the net present value of technology investments and retrofits.
+This attribute sets the cost of capital used for evaluating technology investments. It represents the discount rate used to evaluate the net present value of technology investments and retrofits, and reflects the opportunity cost of capital and the risk associated with technology adoption.
 
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:
@@ -144,7 +146,7 @@ This attribute sets the cost of capital used for evaluating technology investmen
 
 ### TechnologyHorizon
 
-Smoothing horizon (in years) for the energy-scarcity belief that scales technology marginal-saving evaluations. A longer horizon dampens transient LP shadow-price spikes, so newbuild technology choices respond to persistent scarcity rather than year-to-year noise.
+Smoothing horizon (in years) for the energy-scarcity belief that scales technology marginal-saving evaluations. A longer horizon dampens transient LP shadow-price spikes, so technology choices on newbuilds and retrofits respond to persistent scarcity rather than year-to-year noise.
 
 * **Data type**: `Float`, `Forecast`, `Variable`
 * **Example values**:

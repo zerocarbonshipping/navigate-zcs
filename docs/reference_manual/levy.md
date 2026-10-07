@@ -27,7 +27,7 @@ Levy "regional_carbon_tax" {
 
 ### Active
 
-This attribute sets whether the levy is active in the current time-step. This attribute can be changed during the `EVENTS` simulation to either introduce a levy assuming there was no foresight to its implementation or to discontinue an already existing levy.
+This attribute sets whether the levy is active in the current time-step. An inactive levy is ignored in both the expectations and the results. This attribute can be changed during the `EVENTS` simulation to either introduce a levy assuming there was no foresight to its implementation or to discontinue an already existing levy.
 
 * **Data type**: `Boolean`
 * **Default**: TRUE
