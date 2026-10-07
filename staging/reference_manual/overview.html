@@ -645,7 +645,7 @@ SPDX-License-Identifier: CC-BY-4.0
 </pre></div>
 </div>
 <p>If an ERROR occurs the simulation stops: the console shows the error message on its own (run with <code class="docutils literal notranslate"><span class="pre">-l</span> <span class="pre">DEBUG</span></code> to also see the full Python traceback there), and the <code class="docutils literal notranslate"><span class="pre">.log</span></code> file records the error together with its full traceback regardless of the chosen log level.</p>
-<p>At the end of a successful run the log closes with a summary table counting the messages of each level, followed by the list of unique warnings. When warnings were logged, the console also prints their count with a pointer to the <code class="docutils literal notranslate"><span class="pre">.log</span></code> file.</p>
+<p>At the end of a successful run the log closes with a summary table counting the messages of each level, followed by the unique warnings with how often each was logged. When warnings were logged, the console also prints their count with a pointer to the <code class="docutils literal notranslate"><span class="pre">.log</span></code> file.</p>
 <p>Besides the log file, a run may also produce artifacts in the deck directory: plots when the deck contains a <a class="reference internal" href="plot.html"><span class="std std-doc">Plot</span></a> node, unless suppressed with the <code class="docutils literal notranslate"><span class="pre">-s</span></code>/<code class="docutils literal notranslate"><span class="pre">--suppress-plots</span></code> flag, and Excel or CSV reports when the deck contains <a class="reference internal" href="report.html"><span class="std std-doc">Report</span></a> nodes.</p>
 </section>
 </section>
