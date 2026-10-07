@@ -101,7 +101,7 @@ class Simulation:
         # the current time-step size and elapsed simulation time, in days
         self._time_step: float = 0.0
         self._time: float = 0.0
-        self._date: np.datetime64 = self.general_nodes.model_definition.start_date
+        self._date: np.datetime64 = dateline[0]
         self._idx: int = 0
 
         # the simulation's dates, and the elapsed time in days since the start date
