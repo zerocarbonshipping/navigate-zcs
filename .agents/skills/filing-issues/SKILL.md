@@ -7,6 +7,9 @@ description: Use when asked to file, open or write up a GitHub issue on Navigate
 
 # Filing issues
 
+Found during another task: keep the current branch clear of the problem,
+file it, then resume the task.
+
 **Search first:** `gh issue list --state all --search "<terms>"` and
 `gh pr list --state all --search "<terms>"`. Existing issue: comment there,
 don't file. Open PR that addresses it: don't file. A closed, unmerged PR

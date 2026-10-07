@@ -11,13 +11,15 @@ changes: how it better represents the sector. -->
 
 ## Decisions
 
-<!-- Delete if empty. Choices a reviewer could make differently: the option
-taken, the one rejected, and why. -->
+<!-- Delete if empty. Decisions and assumptions a reviewer could make
+differently: the option taken, the alternative, and why. Any rework beyond
+the issue's scope, and why. -->
 
 ## Results
 
 <!-- Delete unless simulation results move. What moves, by how much, and
-why. -->
+why. Name the commit that regenerates the regression baselines
+(`make regen-regression`). -->
 
 ## Limitations
 
