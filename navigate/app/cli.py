@@ -14,14 +14,10 @@ import pstats
 import sys
 import traceback
 from pathlib import Path
-from typing import TYPE_CHECKING
 
-from navigate.app import LOG_LEVELS, RunLog, print_preamble
+from navigate.app.logs import LOG_LEVELS, RunLog, print_preamble
 from navigate.driver import SOLVER_BACKENDS, run_deck
 from navigate.exceptions import NavigateError
-
-if TYPE_CHECKING:
-    from navigate.core import SimulationResults
 
 ASSUMPTIONS_ENV_VAR = "ASSUMPTIONS_DATA_DIR"
 
@@ -165,7 +161,10 @@ def _dispatch(args: argparse.Namespace, run_log: RunLog) -> int:
     if args.profile:
         # a profiled run ends its console output with the profile statistics, so
         # it prints no warning notice
-        _run_with_profile(run, args.filename.resolve().parent)
+        with cProfile.Profile() as profiler:
+            run(plots=False)
+
+        _report_profile(profiler, args.filename.resolve().parent)
         run_log.log_summary()
         return 0
 
@@ -198,17 +197,17 @@ def _print_error(exc: Exception, debug: bool) -> None:
         print(f"Error: {exc}", file=sys.stderr)
 
 
-def _run_with_profile(
-    run: functools.partial[SimulationResults], deck_directory: Path
-) -> None:
-    profiler = cProfile.Profile()
-    profiler.enable()
-    run(plots=False)
-    profiler.disable()
+def _report_profile(profiler: cProfile.Profile, deck_directory: Path) -> None:
+    """
+    Dump the profile statistics next to the deck and print the costliest calls.
+
+    Parameters
+    ----------
+    profiler
+        Profiler that has finished the run.
+    deck_directory
+        Folder the 'profile' statistics file is written to.
+    """
     stats = pstats.Stats(profiler).sort_stats("cumtime")
     stats.dump_stats(str(deck_directory / "profile"))
     stats.print_stats(100)
-
-
-if __name__ == "__main__":
-    sys.exit(main())
