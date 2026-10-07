@@ -1,8 +1,4 @@
 # SPDX-FileCopyrightText: 2026 Fonden Mærsk Mc-Kinney Møller Center for Zero Carbon Shipping
 # SPDX-License-Identifier: Apache-2.0
 
-"""The model, which steps the nodes of a read deck through its dates."""
-
-from __future__ import annotations
-
-from navigate.simulation.time_stepping import Simulation
+"""The model: the domain calculations and the time step that runs them."""

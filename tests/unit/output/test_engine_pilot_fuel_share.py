@@ -8,7 +8,7 @@ Shows a panel per vessel.primary_fuel_type that has one of its own converters
 dual-fuel and listing that primary type among its main fuel types.
 get_pilot_fuel_share() keys its data by vessel.primary_fuel_type (every fuel a
 vessel bunkers is recorded under that single type, see
-navigate/bunker/transfer/bunker.py), so a vessel whose primary type differs
+navigate/simulation/bunker/transfer/bunker.py), so a vessel whose primary type differs
 from one of its converters' main fuel types is excluded, keeping the share
 and its minimum comparable.
 """

@@ -57,10 +57,10 @@ known-first-party = ["helpers"]
 [lint.per-file-ignores]
 "__init__.py" = ["F401"]
 # external solver APIs dictate the naming in the shims
-"navigate/bunker/solver.py" = ["N802"]
+"navigate/simulation/bunker/solver.py" = ["N802"]
 # the shim's classes share one another's state, as gurobipy's do
-"navigate/bunker/solver_highs.py" = ["N802", "SLF001"]
-"tests/unit/test_bunker_build.py" = ["N802"]
+"navigate/simulation/bunker/solver_highs.py" = ["N802", "SLF001"]
+"tests/unit/simulation/bunker/test_build.py" = ["N802"]
 # expectation, profile, and node lifecycle methods carry no docstrings; the
 # DSL setters on nodes do (see CODESTYLE.md, Navigate-specific conventions)
 "navigate/core/expectations/*" = ["D102"]

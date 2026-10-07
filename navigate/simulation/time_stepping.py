@@ -14,12 +14,12 @@ import logging
 import timeit
 from typing import TYPE_CHECKING
 
-from navigate.bunker import BunkerAlgorithm, calculate_fair_share_fuel_supply
-from navigate.bunker.solver import set_solver_preference
 from navigate.core import SimulationResults, get_fuels_per_fuel_type
 from navigate.core.enum_ import BunkerScopeID
 from navigate.core.profiles import GlobalProfile
-from navigate.fleet import (
+from navigate.simulation.bunker import BunkerAlgorithm, calculate_fair_share_fuel_supply
+from navigate.simulation.bunker.solver import set_solver_preference
+from navigate.simulation.fleet import (
     approximate_missing_technology,
     assign_vessels_to_fleets,
     calculate_cargo_charter_properties,
@@ -40,7 +40,7 @@ from navigate.fleet import (
     update_vessel_scarcity_beliefs,
     verify_power_capacity,
 )
-from navigate.fuel import (
+from navigate.simulation.fuel import (
     calculate_constrained_fair_share_fuel_demand,
     calculate_development_potential,
     calculate_expected_fuel_demand,
@@ -55,7 +55,7 @@ from navigate.fuel import (
     perform_planning,
     perform_progression,
 )
-from navigate.policy import (
+from navigate.simulation.policy import (
     calculate_policy_emission_coefficients,
     update_regulation_flexibility_beliefs,
 )

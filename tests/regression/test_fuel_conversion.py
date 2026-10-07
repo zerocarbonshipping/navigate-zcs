@@ -6,10 +6,10 @@ Regression: fuel-conversion pathway.
 
 An oil-dominated fleet with a cheap liquid-market LNG alternative and methane
 newbuilds disabled: existing vessels convert oil -> methane on their retrofit
-cycles, so `navigate/fleet/conversion.py` is the only channel into the methane
-type. The activation guards prove conversions actually occur and that the
-deck's discounting inputs stay pinned (nonzero CostOfCapital, differing
-lifetimes) — without them a should-be-caught discounting change could be
+cycles, so `navigate/simulation/fleet/conversion.py` is the only channel into
+the methane type. The activation guards prove conversions actually occur and
+that the deck's discounting inputs stay pinned (nonzero CostOfCapital,
+differing lifetimes) — without them a should-be-caught discounting change could be
 numerically inert here, and the golden baseline would be vacuous.
 """
 
@@ -52,7 +52,7 @@ def check_activation(results):
 
     assert conversions.sum() > MINIMUM_CONVERTED_VESSELS, (
         "No meaningful oil -> methane conversion occurred: the deck no longer "
-        "exercises navigate/fleet/conversion.py"
+        "exercises navigate/simulation/fleet/conversion.py"
     )
     assert np.count_nonzero(conversions > 0.0) >= MINIMUM_CONVERTING_STEPS, (
         "Conversions collapsed into a single time-step"
