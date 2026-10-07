@@ -9,16 +9,20 @@ Navigate simulates the maritime transition as two decision-making domains —
 shipowners (`simulation/fleet/`) and fuel producers (`simulation/fuel/`) —
 built on shared foundations and coordinated per time step by `Simulation` in
 `simulation/time_stepping.py`, which `driver/` runs from a read deck to its
-output. The domains never import each other: they interact only through
-`core` expectations and the bunkering LP. This file maps the code; the DSL
-and model behavior are documented in `docs/reference_manual/`.
+output. `simulation/fleet/` and `simulation/fuel/` never import each other:
+they interact only through `core` expectations and the bunkering LP. This
+file maps the code; the DSL and model behavior are documented in
+`docs/reference_manual/`.
 
 ## Package map
 
 - `simulation/` — the model: `time_stepping.py`'s `Simulation` initializes
   the nodes' dynamic state, performs one date's time step in a fixed phase
   order and post-processes the run into its `SimulationResults`; pure
-  orchestration: each phase calls an entry point of a domain subpackage.
+  orchestration: each phase calls the domains' entry points or the node
+  methods listed under Domains, and otherwise it only sets up and resets
+  the nodes' expectations and profiles, advances the calculators, runs the
+  dynamic consistency check and times the phases.
   - `simulation/fleet/` — the shipowner domain: voyage physics and energy
     demand, valuation (charter rates, technology package calculations,
     marginal-saving heuristics) and the speed, technology, fuel-conversion
@@ -40,8 +44,9 @@ and model behavior are documented in `docs/reference_manual/`.
   node attributes (`node_maps.py`); the state attached to nodes,
   `expectations/` (cross-module dynamic state) and `profiles/` (end-of-run
   output containers); the records nodes hold (`increment.py` asset cohorts,
-  `technology_package.py`); and the `SimulationResults` record a finished
-  run hands to output (`simulation_results.py`).
+  `technology_package.py`, `node_report.py` held by `Report`); and the
+  `SimulationResults` record a finished run hands to output
+  (`simulation_results.py`).
 - `parser/` — reads `.nav`/`.inc` decks into nodes (Lark grammar).
 - `output/` — turns a run's `SimulationResults` into Excel/CSV reports and
   figures; `output/plots/` renders the latter.
@@ -59,76 +64,69 @@ and model behavior are documented in `docs/reference_manual/`.
 
 ## Domains
 
-A domain lives in four places: its node classes in `core/nodes/`, their
-expectations in `core/expectations/`, their profiles in `core/profiles/`,
-and its calculations in `simulation/<domain>/`.
+A domain that owns nodes lives in four places: its node classes in
+`core/nodes/`, their expectations in `core/expectations/`, their profiles
+in `core/profiles/`, and its calculations in `simulation/<domain>/`.
+`simulation/economics/` owns no nodes; `simulation/bunker/`'s settings are
+the general node `core/general_nodes/bunker_options.py`.
 
-| Domain      | `core/nodes/`                        | `core/expectations/`                                                     | `core/profiles/`                                             | Calculations            |
-| ----------- | ------------------------------------ | ------------------------------------------------------------------------ | ------------------------------------------------------------ | ----------------------- |
-| `fleet`     | `fleet.py`, `vessel.py`              | `fleet_expectation.py`, `vessel_expectation.py`                          | `fleet_profile.py`, `vessel_profile.py`                      | `simulation/fleet/`     |
-| `fuel`      | `producer.py`, `plant.py`, `port.py` | `producer_expectation.py`, `plant_expectation.py`, `port_expectation.py` | `producer_profile.py`, `plant_profile.py`, `port_profile.py` | `simulation/fuel/`      |
-| `economics` | —                                    | —                                                                        | —                                                            | `simulation/economics/` |
-| `bunker`    | —                                    | —                                                                        | —                                                            | `simulation/bunker/`    |
-| `policy`    | `regulation.py`, `levy.py`           | `regulation_expectation.py`, `levy_expectation.py`                       | `regulation_profile.py`, `levy_profile.py`                   | `simulation/policy/`    |
+| Domain | `core/nodes/`   | `core/expectations/`        | `core/profiles/`        |
+| ------ | --------------- | --------------------------- | ----------------------- |
+| fleet  | `fleet.py`      | `fleet_expectation.py`      | `fleet_profile.py`      |
+|        | `vessel.py`     | `vessel_expectation.py`     | `vessel_profile.py`     |
+| fuel   | `producer.py`   | `producer_expectation.py`   | `producer_profile.py`   |
+|        | `plant.py`      | `plant_expectation.py`      | `plant_profile.py`      |
+|        | `port.py`       | `port_expectation.py`       | `port_profile.py`       |
+| policy | `regulation.py` | `regulation_expectation.py` | `regulation_profile.py` |
+|        | `levy.py`       | `levy_expectation.py`       | `levy_profile.py`       |
 
-The node classes not listed are inputs any domain reads, and the private
-modules beside the listed ones hold their shared bases. `global_profile.py`
-is `Simulation`'s own.
+Private modules in these directories hold base classes shared across node
+types. `global_profile.py` is `Simulation`'s own.
 
-Node classes hold state, and domain calculations live in `simulation/`. The
-per-node calculations below still sit on the node classes in `core/nodes/`;
-the list must not grow:
+Node classes hold state, and the calculators their value semantics; domain
+calculations live in `simulation/`. The node methods below do per-step or
+initial model work on node classes in `core/nodes/`, a known exception; the
+list must not grow:
 
 - `calculate_expectation` and `calculate_profile` on `Port`, `Regulation`
-  and `Vessel`, and `Levy.calculate_expectation`;
-- `_Policy._calculate_policy_expectations`, the global warming potentials
-  of both policies' expectations;
+  and `Vessel`, and `Levy.calculate_expectation`; `Regulation`'s and
+  `Levy`'s use the helper `_Policy._calculate_policy_expectations`;
 - the ageing: `_AssetManager.update_increment_ages` and
   `_AssetManager._age_increments`, which `Producer` overrides;
 - the initial cohorts: `_AssetManager.define_initial_age` and
   `_AssetManager.define_initial_multipliers`, with the hooks `Fleet` and
   `Producer` override, and `Producer.define_initial_decided`;
-- `Route._normalize_voyage_distribution`, the voyage normalisation;
-- `Converter.get_effective_lhv`, the heating value net of slip.
+- `Route._normalize_voyage_distribution`, the voyage normalisation.
 
 ## Layering
 
 ```
-util, __init__, simulation               → (nothing)
-exceptions                               → util
-core                                     → foundation
-simulation.economics, simulation.policy  → core, foundation
-simulation.fleet, simulation.fuel        → simulation.economics, core, foundation
-simulation.bunker                        → simulation.policy, core, foundation
-parser, output                           → core, foundation
-app                                      → foundation
-simulation.time_stepping                 → simulation.economics, simulation.policy,
-                                           simulation.fleet, simulation.fuel,
-                                           simulation.bunker, core, foundation
-driver                                   → simulation.time_stepping,
-                                           simulation.economics, simulation.policy,
-                                           simulation.fleet, simulation.fuel,
-                                           simulation.bunker, parser, output,
-                                           core, foundation
-__main__                                 → driver, app, core, foundation
+util, __init__, simulation         → (nothing)
+exceptions                         → util
+core                               → foundation
+simulation.economics               → core, foundation
+simulation.policy                  → core, foundation
+simulation.fleet, simulation.fuel  → simulation.economics, core, foundation
+simulation.bunker                  → simulation.policy, core, foundation
+parser, output                     → core, foundation
+app                                → foundation
+simulation.time_stepping           → domains, core, foundation
+driver                             → simulation.time_stepping, domains,
+                                     parser, output, core, foundation
+__main__                           → driver, app, core, foundation
 ```
 
 A unit is a package or module under `navigate/` with a row, named by its
 dotted path; `__init__` is `navigate/__init__.py`. A file belongs to the
 longest unit that contains it. A unit imports itself and the units in its
 row, and nothing else from `navigate`. The foundation is `util/` and
-`exceptions.py`.
+`exceptions.py`; the domains are the five `simulation.<domain>` units.
 
 `simulation.fleet` and `simulation.fuel` never import each other, and
 `parser`, `output` and the simulation (`simulation/` and everything under
 it) never import one another.
 
-`simulation` is a unit of its own: `simulation/__init__.py`, which imports
-nothing. A package that only groups other modules and subpackages keeps an
-empty `__init__.py`, and `simulation/` is one: re-exporting `Simulation` or
-the domains' entry points there would load every domain on any import from
-the package, and with `simulation/bunker/` the Gurobi licence probe that
-`solver.py` runs at import.
+`simulation` is `simulation/__init__.py` alone, which imports nothing.
 
 Inside `core/`, runtime imports follow an order: `nodes/` imports
 `expectations/`, `profiles/` and the flat modules directly in `core/`,
@@ -237,5 +235,10 @@ before the commands run.
 - A leading underscore on a module or class means package-private; anything
   used across package boundaries carries a public name.
 - Each package's `__init__.py` re-exports its externally consumed entry
-  points — read it first to learn the package's API. A package that only
-  groups others, such as `simulation/`, keeps it empty (see Layering).
+  points — read it first to learn the package's API — unless that would
+  make any import from the package load far more than it needs. Those
+  packages, `simulation/`, `core/nodes/`, `core/general_nodes/` and
+  `output/plots/`, keep it empty, and importers name the module, such as
+  `navigate.simulation.time_stepping`. For `simulation/`, re-exporting would
+  load every domain and, with `simulation/bunker/`, the Gurobi licence probe
+  `solver.py` runs at import.
