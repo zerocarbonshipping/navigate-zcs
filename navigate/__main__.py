@@ -16,8 +16,8 @@ from pathlib import Path
 
 from navigate.app import LOG_LEVELS, RunLog, print_preamble
 from navigate.core.enum_ import SolverBackendID
+from navigate.driver import run_deck
 from navigate.exceptions import NavigateError
-from navigate.simulation import SimulationManager
 
 ASSUMPTIONS_ENV_VAR = "ASSUMPTIONS_DATA_DIR"
 
@@ -39,7 +39,7 @@ def _solver_backend(value: str) -> SolverBackendID:
 
     Used as the argument's argparse 'type=', so 'args.solver' already holds the
     member (or None, when '--solver' is not passed) by the time it reaches
-    SimulationManager.
+    run_deck.
 
     Parameters
     ----------
@@ -196,10 +196,9 @@ def _dispatch(args: argparse.Namespace, run_log: RunLog) -> int:
         run_log.log_summary()
         return 0
 
-    manager = _run(deck, args)
-
-    if not args.suppress_plots:
-        manager.export_graphs()
+    run_deck(
+        deck, data_dir=args.data_dir, solver=args.solver, plots=not args.suppress_plots
+    )
 
     run_log.log_summary()
     run_log.print_warning_notice()
@@ -228,19 +227,10 @@ def _print_error(exc: Exception, debug: bool) -> None:
         print(f"Error: {exc}", file=sys.stderr)
 
 
-def _run(path: Path, args: argparse.Namespace) -> SimulationManager:
-    manager = SimulationManager(path, data_dir=args.data_dir, solver=args.solver)
-    manager.run()
-
-    logger.info("Simulation completed successfully, %s.", manager.get_elapsed_time())
-
-    return manager
-
-
 def _run_with_profile(path: Path, args: argparse.Namespace) -> None:
     profiler = cProfile.Profile()
     profiler.enable()
-    _run(path, args)
+    run_deck(path, data_dir=args.data_dir, solver=args.solver, plots=False)
     profiler.disable()
     stats = pstats.Stats(profiler).sort_stats("cumtime")
     stats.dump_stats(str(path.parent / "profile"))

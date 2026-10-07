@@ -27,7 +27,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
     from pathlib import Path
 
-    from navigate.simulation import SimulationManager
+    from navigate.core import SimulationResults
 
 # runner-noise floor, opted into per deck (the comparison default stays exact).
 # Pinning the solver backend fixes neither its thread count nor the CPU dispatch
@@ -166,12 +166,12 @@ class ComparisonResult:
 
 
 def regen_or_compare(
-    manager: SimulationManager,
+    results: SimulationResults,
     baseline_dir: Path,
     output_dir: Path,
     *,
     regen: bool,
-    check_activation: Callable[[SimulationManager], None],
+    check_activation: Callable[[SimulationResults], None],
     rtol: float = 0.0,
     atol: float = 0.0,
     exclude_columns: tuple[str, ...] = (),
@@ -186,8 +186,8 @@ def regen_or_compare(
 
     Parameters
     ----------
-    manager
-        Manager of the deck's completed run.
+    results
+        Results of the deck's completed run.
     baseline_dir
         Directory holding the committed baseline CSVs.
     output_dir
@@ -200,8 +200,8 @@ def regen_or_compare(
         Passed to the comparison; see compare_baselines.
     """
     if regen:
-        check_invariants(manager)
-        check_activation(manager)
+        check_invariants(results)
+        check_activation(results)
         copied = regen_baselines(baseline_dir, output_dir)
         print(f"regenerated {len(copied)} baseline file(s): {', '.join(copied)}")
     else:

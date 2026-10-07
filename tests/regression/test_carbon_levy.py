@@ -26,6 +26,7 @@ from helpers.baseline import (
     regen_or_compare,
 )
 from helpers.simulation import check_invariants, clear_output_dir, run_simulation
+from navigate.util import dates_to_days
 
 DECK_DIR = Path(__file__).resolve().parent / "simulations" / "carbon_levy"
 BASELINE_DIR = Path(__file__).resolve().parent / "baselines" / "carbon_levy"
@@ -41,7 +42,7 @@ def check_activation(manager):
     """Deck validity: the levy is live and collects on every decision step."""
     levy = manager.nodes.levies["carbon_levy"]
 
-    assert np.all(levy.level.get(manager.timeline) > 0.0), (
+    assert np.all(levy.level.get(dates_to_days(manager.dateline)) > 0.0), (
         "The levy level is not positive over the horizon: the deck no longer "
         "prices emissions"
     )

@@ -4,7 +4,7 @@
 """
 Bunkering LP of one scope, built, solved and transferred at every time step.
 
-``SimulationManager`` runs one instance for existing and one for expected bunkering;
+``Simulation`` runs one instance for existing and one for expected bunkering;
 the other modules of the package build, solve and transfer through it.
 """
 

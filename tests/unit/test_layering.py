@@ -8,10 +8,10 @@ Mechanical layering checks on every module and package of `navigate`.
 modules or packages named by their dotted path under `navigate`; a file belongs
 to the longest key that contains it, and imports only its own unit and the units
 in its row, type-only imports included. Every file belongs to a unit, every key
-exists on disk and the table is acyclic. `INDEPENDENT_PAIRS` and
-`SIMULATION_FREE` state which units never list one another, checked against the
-table itself. `CORE_ORDER` orders the runtime imports between the subpackages
-of `core` and its flat modules.
+exists on disk and the table is acyclic. `INDEPENDENT_PAIRS`, and
+`SIMULATION` against `SIMULATION_FREE` in both directions, state which units
+never list one another, checked against the table itself. `CORE_ORDER` orders
+the runtime imports between the subpackages of `core` and its flat modules.
 """
 
 from __future__ import annotations
@@ -45,15 +45,15 @@ LAYERS = {
     "parser": frozenset({"core"}) | FOUNDATION,
     "output": frozenset({"core"}) | FOUNDATION,
     "app": FOUNDATION,
-    "__main__": frozenset({"simulation", "app", "core"}) | FOUNDATION,
+    "simulation": DOMAINS | {"core"} | FOUNDATION,
+    "driver": frozenset({"simulation", "parser", "output", "core"}) | FOUNDATION,
+    "__main__": frozenset({"driver", "app", "core"}) | FOUNDATION,
 }
-# simulation.py may import every unit but the interfaces above it: the CLI and app/
-LAYERS["simulation"] = frozenset(LAYERS) - {"__main__", "app"}
 
 # neither unit of a pair may list the other
 INDEPENDENT_PAIRS = (("fleet", "fuel"), ("parser", "output"))
-# the simulation is simulation.py and the packages it steps through; the units
-# in SIMULATION_FREE never import any of it
+# the simulation is the simulation package and the domains it steps through; it
+# and the units in SIMULATION_FREE never list one another
 SIMULATION = DOMAINS | {"simulation"}
 SIMULATION_FREE = frozenset({"parser", "output"})
 
@@ -219,9 +219,10 @@ def test_layers_are_acyclic():
         *INDEPENDENT_PAIRS,
         *((second, first) for first, second in INDEPENDENT_PAIRS),
         *(
-            (unit, simulation_unit)
+            pair
             for unit in sorted(SIMULATION_FREE)
             for simulation_unit in sorted(SIMULATION)
+            for pair in ((unit, simulation_unit), (simulation_unit, unit))
         ),
     ],
 )

@@ -115,8 +115,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - A deck that leaves a required attribute unassigned now stops with a one-line
   `Error:` message naming the node and the attribute, instead of a Python
   traceback.
-- The time-step banner lines in the `.log` file carry the logger name
-  `navigate.simulation` instead of `navigate.parser.parser`.
+- The `.log` file's time-step headings and completion line carry the logger
+  name `navigate.driver.run`, its initialization and post-processing headings
+  `navigate.simulation.time_stepping`; the first time step's heading has the
+  form of every other.
 
 ### Removed
 - `BunkerLogistics`: write `LiquidMarket` on `Fuel`, and `set_fuel_transport`
