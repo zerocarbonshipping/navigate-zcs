@@ -14,17 +14,10 @@ restated changelog text.
 
 ## Type, label, title
 
-- **bug:** behaviour differs from the reference manual, a docstring or the
-  model's intent.
-- **enhancement:** changes what a user can do or sees.
-- **documentation:** text only.
-- **maintenance:** improves code without changing what the model computes; a
-  deliberate output change is allowed, stated as a user-visible effect.
-- **performance:** speed or memory, not results.
-
-Mixed PR: its main purpose. Assumption-value update: enhancement, or bug if
-it corrects a wrong value. Label: `labels` of the matching form in
-`.github/ISSUE_TEMPLATE/`. Title: follow `CONTRIBUTING.md`.
+The type is the form in `.github/ISSUE_TEMPLATE/` whose top-level
+`description` fits the PR's main purpose; its `labels` is the label.
+Assumption-value update: enhancement, or bug if it corrects a wrong value.
+Title: `CONTRIBUTING.md`, Pull request expectations.
 
 ## Body
 
@@ -37,29 +30,26 @@ it corrects a wrong value. Label: `labels` of the matching form in
   on `main`): close the issue by hand after the merge.
 - Decisions: genuine choices only; never invent a rejected alternative.
 - Cite issues and PRs by number, never private plans, tickets or sessions.
+- Whether the change gets a CHANGELOG entry, and its form:
+  `CONTRIBUTING.md`, Changelog.
 
 ## Per type
 
 - **bug:** Opening: the bug as the user met it, now fixed. Why: root cause.
-  A user-visible bug: CHANGELOG under Fixed, ending with the issue number if
-  any.
 - **enhancement:** Opening: the capability in DSL terms; a new attribute or
   command lives in four places (`AGENTS.md`, What a change touches). Why: how
   it better represents the sector; link the design issue for a large feature.
   Results: a before → after table of the quantities and years that move,
-  each change explained by its mechanism. CHANGELOG under Added or Changed.
+  each change explained by its mechanism.
 - **documentation:** Opening: what was wrong or missing. Why: what the
   opening leaves out, e.g. who the error misled; otherwise one line naming
-  the source the old text contradicted. Reference-manual errors get a
-  CHANGELOG entry like bugs; other documentation none.
+  the source the old text contradicted.
 - **maintenance:** Opening: the end state; Why: what the old shape cost. A
-  deliberate output change is the user-visible effect, with a CHANGELOG
-  entry; otherwise "No user-visible effect." and no entry.
+  deliberate output change is stated as the user-visible effect.
 - **performance:** Opening: the improvement with its scale. Directly under
   it, a before/after table on a named deck: same machine and solver, number
   of runs, base commit and branch, wall time or peak memory; CI measures
-  neither. No CHANGELOG entry: `CONTRIBUTING.md` excludes results-neutral
-  changes with no DSL or output effect.
+  neither.
 
 ## Create
 

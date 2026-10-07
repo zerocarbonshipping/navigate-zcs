@@ -2,14 +2,16 @@
 # SPDX-License-Identifier: Apache-2.0
 
 name: Bug report
-description: Wrong results, errors, or failures
+description: Behaviour differs from the reference manual, a docstring or the model's intent
 labels: ["bug"]
 body:
   - type: textarea
     id: description
     attributes:
       label: Description
-      description: Expected vs. actual behavior, and why it matters.
+      description: >
+        Expected vs. actual behavior, and why it matters. The kind: a crash, a
+        wrong result, a bad deck accepted silently, or a valid deck rejected.
     validations:
       required: true
   - type: textarea
@@ -17,24 +19,27 @@ body:
     attributes:
       label: Reproduction or evidence
       description: >
-        A minimal deck and the command that reproduce it, the error output,
-        or the reasoning that shows the defect.
+        A minimal deck with the edit shown as a diff, the command, the trimmed
+        output, and what the unmodified deck does. Found by reading code: say
+        so, and give the reasoning that shows the defect.
     validations:
       required: true
   - type: textarea
     id: location
     attributes:
       label: Location
-      description: "If known: `path/to/file.py:LINE` and symbol names."
+      description: >
+        If known: `path/to/file.py:LINE` and symbol names of the defect, not
+        where it surfaces.
   - type: input
     id: version
     attributes:
       label: Version
-      description: Navigate version or commit.
+      description: Navigate version or commit the evidence comes from.
   - type: textarea
     id: considerations
     attributes:
       label: Considerations
       description: >
-        Constraints, related code, pitfalls, things ruled out, known options.
-        Not a proposed fix.
+        Constraints, pitfalls, things ruled out, known options without a
+        recommendation. Not a proposed fix.

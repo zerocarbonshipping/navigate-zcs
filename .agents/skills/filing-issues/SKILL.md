@@ -13,36 +13,32 @@ don't file. Open PR that addresses it: don't file. A closed, unmerged PR
 does not stop filing. After a merged PR, check the problem persists on
 `origin/dev` before deciding not to file.
 
-## Type and form
+## Form
 
-Forms are in `.github/ISSUE_TEMPLATE/`; the label is the form's top-level
-`labels`.
+The forms are in `.github/ISSUE_TEMPLATE/`. The type is the form whose
+top-level `description` fits; its `labels` is the label. A question that
+fits no form: blank issue, `--label question`.
 
-- **bug** (`01-bug.yml`): behaviour differs from the reference manual, a
-  docstring or the model's intent.
-- **enhancement** (`02-enhancement.yml`): changes what a user can do or sees.
-- **documentation** (`03-documentation.yml`): text only.
-- **maintenance** (`04-maintenance.yml`): improves code without changing what
-  the model computes; a deliberate output change is allowed, stated as a
-  user-visible effect.
-- **performance** (`05-performance.yml`): speed or memory, not results.
-- A question that fits no type: blank issue, `--label question`.
-
-`gh` bypasses forms. Each `body` field's `label` is a `###` heading, in form
-order, and its `description` says what goes there; `type: markdown` gives
-none. Required fields always present; empty optional ones omitted, never
-"N/A".
+`gh` bypasses forms, so render one by hand: each `body` field's `label` is a
+`###` heading, in form order, filled as its `description` says;
+`type: markdown` gives none. Required fields always present; empty optional
+ones omitted, never "N/A".
 
 ## Rules
 
 - Problem, never solution: what is wrong, intended behaviour or property,
-  evidence, location. No fix, design, test to write or verification; CI's
-  tests prove fixes. A fresh session must choose the solution from the issue
-  alone. Facts to keep in mind go under Considerations, no option
-  recommended.
-- Standalone: no reference to a conversation, plan or scratch file.
-- Pin the commit: bug in Version, otherwise `<branch> @ <short SHA>` by the
-  evidence; none for an enhancement without code evidence.
+  evidence, location. No fix, design, test to write or verification. A
+  fresh session chooses the solution from the issue alone.
+- Standalone: no reference to a conversation, plan or scratch file; cite
+  issues and PRs by number.
+- Evidence must hold on `origin/dev`. If your branch changes the code or
+  assumptions involved, produce it from a worktree of `origin/dev` with its
+  own `make pip-setup`: `navigate` on PATH is one checkout's editable
+  install, and a worktree without its own environment imports the primary
+  checkout's code.
+- Pin the commit that produced the evidence: in Version for a bug,
+  otherwise `<branch> @ <short SHA>` by the evidence; none for an
+  enhancement without code evidence.
 - Locations: `path:line` plus symbol.
 - One problem per issue; a second problem gets its own issue, linked as
   `#N`. No assignee or milestone unless asked. No test-run statistics.
@@ -53,39 +49,17 @@ none. Required fields always present; empty optional ones omitted, never
 
 ## Per type
 
-- **bug:** Kind: crash, wrong result, bad deck accepted silently, or valid
-  deck rejected. Reproduce on a copy outside the repo. Includes resolve
-  relative to the deck's own directory, and scenario, regression and
-  guardrail decks include `../0_includes/*.inc`: copy everything the deck
-  reaches through relative includes with the layout kept, e.g. the parent
-  folder. Show the edit as a diff. Run
-  `<checkout>/.venv/bin/navigate <copy>/<deck>.nav -d <checkout>/assumptions -s`;
-  give the command, trimmed output, and what the unmodified copy does. Pin
-  the commit of `<checkout>`. If your branch changes the code or assumptions
-  involved, `<checkout>` is a worktree of `origin/dev` with its own
-  `make pip-setup`: `navigate` on PATH is one checkout's editable install,
-  and a worktree without its own environment imports the primary checkout's
-  code. Found by reading code: say so, give the argument. Location is the
-  defect, not where it surfaces.
-- **documentation:** Quote the wrong text, or name what is missing, with
-  page and heading; give the source of truth it contradicts: setter,
-  `navigate/parser/_attributes.py`/`_commands.py`, or code path. Unclear
-  which side is wrong: say so. Code wrong: a bug. Several mismatches of one
-  kind found in one pass make one issue. The reference manual covers
-  user-visible behaviour only, no modelling derivations; internals belong in
-  root files and folder READMEs.
-- **enhancement:** Motivation and Intended behavior from the user's side, not
-  attributes, commands or code; a DSL idea only under Considerations.
-  Assumption values need references or a justification.
-- **maintenance:** The debt and its cost. Intended state: a property, not
-  the steps or the mechanism. Location: every site, or the grep that finds
-  them. "Decide whether…": the decision and why it matters, known options
-  under Considerations. Name any output change the intended state itself
-  requires.
-- **performance:** Prefer a small deck; `simulations/scenarios/` runs take
-  ~25 minutes. Measurement: deck, solver, commit, machine; then wall time
-  with run count, trimmed profile, or peak memory; or an asymptotic argument.
-  Target optional.
+- **bug:** Reproduce on a copy outside the repo. Includes resolve relative
+  to the deck's own directory, and scenario, regression and guardrail decks
+  include `../0_includes/*.inc`: copy everything the deck reaches through
+  relative includes with the layout kept, e.g. the parent folder. Run
+  `<checkout>/.venv/bin/navigate <copy>/<deck>.nav -d <checkout>/assumptions -s`
+  from the checkout whose commit you pin.
+- **documentation:** Code wrong: a bug. Several mismatches of one kind found
+  in one pass make one issue. The reference manual covers user-visible
+  behaviour only, no modelling derivations; internals belong in root files
+  and folder READMEs.
+- **enhancement:** A DSL idea goes under Considerations as a known option.
 
 ## Create
 

@@ -2,20 +2,31 @@
 # SPDX-License-Identifier: Apache-2.0
 
 name: Documentation
-description: Wrong, unclear, or missing documentation
+description: "Text only: wrong, unclear or missing documentation"
 labels: ["documentation"]
 body:
   - type: textarea
     id: description
     attributes:
       label: Description
-      description: What is wrong, unclear, or missing.
+      description: >
+        Quote the wrong or unclear text, or name what is missing, and give the
+        source of truth it contradicts: the setter, the parser table in
+        `navigate/parser/_attributes.py` or `_commands.py`, or the code path.
+        If it is unclear which side is wrong, say so.
     validations:
       required: true
   - type: textarea
     id: location
     attributes:
       label: Location
-      description: The manual page, docstring, or file concerned.
+      description: The manual page and heading, docstring, or file concerned.
     validations:
       required: true
+  - type: textarea
+    id: considerations
+    attributes:
+      label: Considerations
+      description: >
+        Constraints, pitfalls, things ruled out, known options without a
+        recommendation. Not a proposed fix.
