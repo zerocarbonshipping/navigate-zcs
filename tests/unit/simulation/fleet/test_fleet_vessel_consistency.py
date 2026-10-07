@@ -8,7 +8,7 @@ from unittest.mock import MagicMock
 import numpy as np
 import pytest
 
-from navigate.core.enum_ import EnergyDemandTypeID, FuelTypeID
+from navigate.core.enum_ import EnergyDemandID, FuelTypeID
 from navigate.core.profiles.fleet_profile import FleetProfile
 from navigate.core.profiles.vessel_profile import VesselProfile
 from navigate.simulation.fleet.post_process import (
@@ -302,10 +302,10 @@ class TestEnergyIntensitySaving:
         # 1 - 1010/1200, not the 0.084 a count-weighted average of the
         # per-vessel intensities would report.
         v_a = _make_vessel_profile(timeline, fuels, emissions)
-        v_a._raw_energy_sea[EnergyDemandTypeID.PROPULSION][:] = [100.0, 72.9]
+        v_a._raw_energy_sea[EnergyDemandID.PROPULSION][:] = [100.0, 72.9]
 
         v_b = _make_vessel_profile(timeline, fuels, emissions)
-        v_b._raw_energy_sea[EnergyDemandTypeID.PROPULSION][:] = [20.0, 20.0]
+        v_b._raw_energy_sea[EnergyDemandID.PROPULSION][:] = [20.0, 20.0]
 
         fleet = _make_fleet_profile(timeline, fuels, emissions, vessel_names=["a", "b"])
         stub = _FleetStub(
@@ -333,17 +333,17 @@ class TestEnergyIntensitySaving:
     def test_global_merge_sums_baseline_energy(self, timeline, fuels, emissions):
         # fleet 1: constant trade; operational then technology savings
         f1 = _make_fleet_profile(timeline, fuels, emissions, vessel_names=["v"])
-        f1._raw_energy_sea[EnergyDemandTypeID.PROPULSION][:] = [1000.0, 1000.0]
-        f1._operational_energy_sea[EnergyDemandTypeID.PROPULSION][:] = [1000.0, 900.0]
-        f1._energy_sea[EnergyDemandTypeID.PROPULSION][:] = [1000.0, 810.0]
+        f1._raw_energy_sea[EnergyDemandID.PROPULSION][:] = [1000.0, 1000.0]
+        f1._operational_energy_sea[EnergyDemandID.PROPULSION][:] = [1000.0, 900.0]
+        f1._energy_sea[EnergyDemandID.PROPULSION][:] = [1000.0, 810.0]
         f1.set_baseline_energy(0, 1000.0)
         f1.set_baseline_energy(1, 1000.0)
 
         # fleet 2: trade doubles at a 20 % better raw intensity, no further savings
         f2 = _make_fleet_profile(timeline, fuels, emissions, vessel_names=["v"])
-        f2._raw_energy_sea[EnergyDemandTypeID.PROPULSION][:] = [1000.0, 1600.0]
-        f2._operational_energy_sea[EnergyDemandTypeID.PROPULSION][:] = [1000.0, 1600.0]
-        f2._energy_sea[EnergyDemandTypeID.PROPULSION][:] = [1000.0, 1600.0]
+        f2._raw_energy_sea[EnergyDemandID.PROPULSION][:] = [1000.0, 1600.0]
+        f2._operational_energy_sea[EnergyDemandID.PROPULSION][:] = [1000.0, 1600.0]
+        f2._energy_sea[EnergyDemandID.PROPULSION][:] = [1000.0, 1600.0]
         f2.set_baseline_energy(0, 1000.0)
         f2.set_baseline_energy(1, 2000.0)
 
@@ -369,7 +369,7 @@ class TestEnergyIntensitySaving:
         # no year-0 intensity exists: baseline stays 0 and savings read 0,
         # even after the fleet phases in vessels later
         v = _make_vessel_profile(timeline, fuels, emissions)
-        v._raw_energy_sea[EnergyDemandTypeID.PROPULSION][:] = [0.0, 500.0]
+        v._raw_energy_sea[EnergyDemandID.PROPULSION][:] = [0.0, 500.0]
 
         fleet = _make_fleet_profile(timeline, fuels, emissions, vessel_names=["v"])
         stub = _FleetStub(fleet, cargo_miles_by_idx=[0.0, 400.0], name="v")
@@ -388,9 +388,9 @@ class TestEnergyIntensitySaving:
     ):
         # 10 % slower: energy falls cubically, cargo-miles linearly
         v = _make_vessel_profile(timeline, fuels, emissions)
-        v._raw_energy_sea[EnergyDemandTypeID.PROPULSION][:] = [100.0, 72.9]
-        v._operational_energy_sea[EnergyDemandTypeID.PROPULSION][:] = [95.0, 69.255]
-        v._energy_sea[EnergyDemandTypeID.PROPULSION][:] = [85.5, 62.3295]
+        v._raw_energy_sea[EnergyDemandID.PROPULSION][:] = [100.0, 72.9]
+        v._operational_energy_sea[EnergyDemandID.PROPULSION][:] = [95.0, 69.255]
+        v._energy_sea[EnergyDemandID.PROPULSION][:] = [85.5, 62.3295]
         v.set_cargo_miles(0, 100.0)
         v.set_cargo_miles(1, 90.0)
 

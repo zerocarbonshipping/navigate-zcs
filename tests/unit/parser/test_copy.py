@@ -15,7 +15,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from navigate.core.enum_ import SimulationSectionID
+from navigate.core.enum_ import SectionID
 from navigate.core.expression import Expression
 from navigate.core.node_type import BUNKER_OPTIONS, EMISSION, MODEL_DEFINITION, VARIABLE
 from navigate.core.nodes.emission import Emission
@@ -124,7 +124,7 @@ def test_the_copy_target_keeps_an_exclusive_bound_imposed_before_its_declaration
     # without a screen of setup, so the reference's bound is imposed directly;
     # the 0.0 the copy brings along then sits on it instead of being clamped
     parser = Parser()
-    parser._current_section = SimulationSectionID.DEFINE
+    parser._current_section = SectionID.DEFINE
     placeholder = parser._node(VARIABLE, "v", location="")
     placeholder.set_internal_bounds(0.0, np.inf, inclusive_lower=False)
     source = Variable("base")
@@ -140,7 +140,7 @@ def test_the_copy_target_keeps_an_exclusive_bound_imposed_before_its_declaration
 def test_a_copy_target_without_a_calculator_adopts_its_placeholder():
     # a node without bounds to merge back is adopted all the same
     parser = Parser()
-    parser._current_section = SimulationSectionID.DEFINE
+    parser._current_section = SectionID.DEFINE
     placeholder = parser._node(EMISSION, "dst", location="")
     source = Emission("src")
     source.set_global_warming_potential(2.0)

@@ -15,7 +15,7 @@ from navigate.core import (
     write_matching_key_pairs,
     write_matching_keys,
 )
-from navigate.core.enum_ import EnergyDemandTypeID
+from navigate.core.enum_ import EnergyDemandID
 from navigate.core.node_type import CURVE, TECHNOLOGY, VARIABLE
 from navigate.core.nodes._machinery import _Machinery
 
@@ -28,9 +28,9 @@ if TYPE_CHECKING:
     )
 
 PROPULSION, ELECTRICAL, HEAT = (
-    EnergyDemandTypeID.PROPULSION,
-    EnergyDemandTypeID.ELECTRICAL,
-    EnergyDemandTypeID.HEAT,
+    EnergyDemandID.PROPULSION,
+    EnergyDemandID.ELECTRICAL,
+    EnergyDemandID.HEAT,
 )
 
 
@@ -44,20 +44,16 @@ class Technology(_Machinery):
         self.shore_power_capacity: ScalarInput = Scalar(0.0)
 
         # energy efficiency
-        self.energy_saving: dict[EnergyDemandTypeID, ScalarInput] = {
-            d: Scalar(0.0) for d in EnergyDemandTypeID
+        self.energy_saving: dict[EnergyDemandID, ScalarInput] = {
+            d: Scalar(0.0) for d in EnergyDemandID
         }
-        self.external_power: dict[EnergyDemandTypeID, ScalarInput] = {
-            d: Scalar(0.0) for d in EnergyDemandTypeID
+        self.external_power: dict[EnergyDemandID, ScalarInput] = {
+            d: Scalar(0.0) for d in EnergyDemandID
         }
 
         # external power
-        self.power_transfer: dict[
-            tuple[EnergyDemandTypeID, EnergyDemandTypeID], CurveInput
-        ] = {
-            (src, dst): Scalar(0.0)
-            for src in EnergyDemandTypeID
-            for dst in EnergyDemandTypeID
+        self.power_transfer: dict[tuple[EnergyDemandID, EnergyDemandID], CurveInput] = {
+            (src, dst): Scalar(0.0) for src in EnergyDemandID for dst in EnergyDemandID
         }
 
     # external methods (DSL attributes) ------------------------------------------------
@@ -72,14 +68,14 @@ class Technology(_Machinery):
         """Set the fraction of the raw energy demand the technology saves."""
         value_ = assign_value(as_scalar(saving), type_=VARIABLE, lower=0.0)
 
-        id_ = assign_id(energy_type, EnergyDemandTypeID)
+        id_ = assign_id(energy_type, EnergyDemandID)
         write_matching_keys(id_, value_, self.energy_saving)
 
     def set_external_power(self, energy_type: str, power: ScalarArgument) -> None:
         """Set the external power the technology supplies to an energy demand type."""
         value_ = assign_value(as_scalar(power), type_=VARIABLE, lower=0.0)
 
-        id_ = assign_id(energy_type, EnergyDemandTypeID)
+        id_ = assign_id(energy_type, EnergyDemandID)
         write_matching_keys(id_, value_, self.external_power)
 
     def set_power_transfer(
@@ -88,8 +84,8 @@ class Technology(_Machinery):
         """Set the power transferred from a source energy type to a sink energy type."""
         value_ = assign_value(as_scalar(transfer), type_=(CURVE, VARIABLE), lower=0.0)
 
-        power_system_id_ = assign_id(power_system_id, EnergyDemandTypeID)
-        energy_id_ = assign_id(energy_id, EnergyDemandTypeID)
+        power_system_id_ = assign_id(power_system_id, EnergyDemandID)
+        energy_id_ = assign_id(energy_id, EnergyDemandID)
 
         write_matching_key_pairs(
             (power_system_id_, energy_id_), value_, self.power_transfer

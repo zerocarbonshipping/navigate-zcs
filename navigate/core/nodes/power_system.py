@@ -8,7 +8,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from navigate.core import assign_reference
-from navigate.core.enum_ import EnergyDemandTypeID
+from navigate.core.enum_ import EnergyDemandID
 from navigate.core.node_type import CONVERTER, POWER_SYSTEM
 from navigate.core.nodes._machinery import _Machinery
 from navigate.util import list_is_unique
@@ -56,13 +56,11 @@ class PowerSystem(_Machinery):
     def get_converters(self) -> tuple[Converter, Converter, Converter]:
         return self.propulsion, self.electrical, self.heat
 
-    def get_converter_by_energy_type(
-        self, demand_type: EnergyDemandTypeID
-    ) -> Converter:
+    def get_converter_by_energy_type(self, demand_type: EnergyDemandID) -> Converter:
         match demand_type:
-            case EnergyDemandTypeID.PROPULSION:
+            case EnergyDemandID.PROPULSION:
                 return self.propulsion
-            case EnergyDemandTypeID.ELECTRICAL:
+            case EnergyDemandID.ELECTRICAL:
                 return self.electrical
-            case EnergyDemandTypeID.HEAT:
+            case EnergyDemandID.HEAT:
                 return self.heat

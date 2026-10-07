@@ -14,7 +14,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from navigate.core.enum_ import EnergyDemandTypeID, EnergyDemandTypePortID
+from navigate.core.enum_ import PORT_ENERGY_DEMANDS, EnergyDemandID
 from navigate.core.expectations.regulation_expectation import RegulationExpectation
 from navigate.core.expectations.vessel_expectation import VesselExpectation
 
@@ -59,10 +59,10 @@ def test_regulation_flexibility_cost_belief_is_all_nan():
 @pytest.mark.parametrize(
     ("getter", "keys", "n_legs"),
     [
-        ("get_belief_pi_sea_technology", set(EnergyDemandTypeID), N_REGIONAL_LEG),
-        ("get_belief_pi_port_technology", set(EnergyDemandTypePortID), N_PORT),
-        ("get_belief_pi_sea_speed", set(EnergyDemandTypeID), N_REGIONAL_LEG),
-        ("get_belief_pi_port_speed", set(EnergyDemandTypePortID), N_PORT),
+        ("get_belief_pi_sea_technology", set(EnergyDemandID), N_REGIONAL_LEG),
+        ("get_belief_pi_port_technology", set(PORT_ENERGY_DEMANDS), N_PORT),
+        ("get_belief_pi_sea_speed", set(EnergyDemandID), N_REGIONAL_LEG),
+        ("get_belief_pi_port_speed", set(PORT_ENERGY_DEMANDS), N_PORT),
     ],
     ids=["pi_sea_technology", "pi_port_technology", "pi_sea_speed", "pi_port_speed"],
 )

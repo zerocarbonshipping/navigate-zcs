@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from navigate.core import Scalar
-from navigate.core.enum_ import EnergyDemandTypeID
+from navigate.core.enum_ import EnergyDemandID
 from navigate.simulation.economics.flows import (
     Component,
     add_capex_flow,
@@ -48,27 +48,25 @@ def _refresh_combined_effects(package: TechnologyPackage) -> None:
     arr_sp = np.array([t.shore_power_capacity.get() for t in technologies])
     package.shore_power_capacity = float(np.sum(arr_sp))
 
-    compound_savings: dict[EnergyDemandTypeID, float] = {}
-    compound_powers: dict[EnergyDemandTypeID, float] = {}
+    compound_savings: dict[EnergyDemandID, float] = {}
+    compound_powers: dict[EnergyDemandID, float] = {}
 
     # savings compound: each technology saves its fraction of what the others leave
-    for energy_id in EnergyDemandTypeID:
+    for energy_id in EnergyDemandID:
         arr = np.array([t.energy_saving[energy_id].get() for t in technologies])
         compound_savings[energy_id] = 1.0 - float(np.prod(1.0 - arr))
 
-    for energy_id in EnergyDemandTypeID:
+    for energy_id in EnergyDemandID:
         arr = np.array([t.external_power[energy_id].get() for t in technologies])
         compound_powers[energy_id] = float(np.sum(arr))
 
     package.compound_savings = compound_savings
     package.compound_powers = compound_powers
 
-    transfer_curves: dict[
-        tuple[EnergyDemandTypeID, EnergyDemandTypeID], list[CurveInput]
-    ] = {}
+    transfer_curves: dict[tuple[EnergyDemandID, EnergyDemandID], list[CurveInput]] = {}
 
-    for source in EnergyDemandTypeID:
-        for destination in EnergyDemandTypeID:
+    for source in EnergyDemandID:
+        for destination in EnergyDemandID:
             curves: list[CurveInput] = []
 
             for tech in technologies:

@@ -35,11 +35,7 @@ from navigate.core.assign import (
     write_matching_keys,
 )
 from navigate.core.bounds import Bounds
-from navigate.core.enum_ import (
-    EnergyDemandTypeID,
-    EnergyDemandTypePortID,
-    FuelTypeID,
-)
+from navigate.core.enum_ import PORT_ENERGY_DEMANDS, EnergyDemandID, FuelTypeID
 from navigate.core.expression import Expression
 from navigate.core.node_type import (
     CURVE,
@@ -116,8 +112,8 @@ class TestAssignMember:
 
     def test_accepted_member(self):
         assert (
-            assign_member("ELECTRICAL", EnergyDemandTypePortID)
-            is EnergyDemandTypeID.ELECTRICAL
+            assign_member("ELECTRICAL", PORT_ENERGY_DEMANDS)
+            is EnergyDemandID.ELECTRICAL
         )
 
     @pytest.mark.parametrize(
@@ -130,7 +126,7 @@ class TestAssignMember:
         # setter is reached, so one arriving here is an unaccepted name like
         # any other
         with pytest.raises(ValueError, match="ELECTRICAL, HEAT") as rejected:
-            assign_member(assignment, EnergyDemandTypePortID)
+            assign_member(assignment, PORT_ENERGY_DEMANDS)
 
         assert str(rejected.value) == (
             f"only allows assignment of ELECTRICAL, HEAT, but got {assignment}"
@@ -150,7 +146,7 @@ class TestAssignMember:
         with pytest.raises(
             ValueError, match=f"only allows assignment of IDs, but got {kind}"
         ):
-            assign_member(assignment, EnergyDemandTypePortID)
+            assign_member(assignment, PORT_ENERGY_DEMANDS)
 
     def test_agrees_with_the_wildcard_rejection(self):
         # both spellings of a command must name one accepted set, or a deck
@@ -158,10 +154,10 @@ class TestAssignMember:
         accepted = "ELECTRICAL, HEAT"
 
         with pytest.raises(ValueError, match=accepted) as literal:
-            assign_member("PROPULSION", EnergyDemandTypePortID)
+            assign_member("PROPULSION", PORT_ENERGY_DEMANDS)
 
         with pytest.raises(ValueError, match=accepted) as wildcard:
-            expand_id_wildcard("P*", EnergyDemandTypePortID)
+            expand_id_wildcard("P*", PORT_ENERGY_DEMANDS)
 
         assert str(literal.value) == (
             f"only allows assignment of {accepted}, but got PROPULSION"

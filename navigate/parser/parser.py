@@ -20,7 +20,7 @@ from typing import TYPE_CHECKING, ClassVar
 import numpy as np
 
 from navigate.core import Expression
-from navigate.core.enum_ import SimulationSectionID
+from navigate.core.enum_ import SectionID
 from navigate.core.general_nodes.bunker_options import BunkerOptions
 from navigate.core.node import Node
 from navigate.core.node_registry import GeneralNodes, Nodes
@@ -213,8 +213,8 @@ class Parser:
 
         # section flags; the current section outlives its block, as it also
         # selects the pass once every block is read
-        self._current_section: SimulationSectionID
-        self._finished_sections: list[SimulationSectionID] = []
+        self._current_section: SectionID
+        self._finished_sections: list[SectionID] = []
 
         # source tracking, set per include-file processing pass
         self._current_deck_line: int = 0
@@ -255,7 +255,7 @@ class Parser:
 
         self._initialize_general_nodes()
 
-        self._current_section = SimulationSectionID.DEFINE
+        self._current_section = SectionID.DEFINE
         self._update_dependencies()
         self._reject_unresolved_references()
         self._pin_define_only_calculators()
@@ -264,14 +264,14 @@ class Parser:
         self._timeline_is_consistent()
         self._reject_events_changing_pinned_calculators()
 
-        self._current_section = SimulationSectionID.EVENTS
+        self._current_section = SectionID.EVENTS
 
     def _process_deck_block(self, block: DeckBlock) -> None:
         """Process a single Define or Events block from the deck AST."""
         if isinstance(block, DefineBlock):
-            section = SimulationSectionID.DEFINE
+            section = SectionID.DEFINE
         else:
-            section = SimulationSectionID.EVENTS
+            section = SectionID.EVENTS
 
         self._begin_reading_section(section)
 
@@ -470,12 +470,12 @@ class Parser:
             self._current_source = statement.source
             self._process_event_statement(statement)
 
-    def _begin_reading_section(self, section: SimulationSectionID) -> None:
+    def _begin_reading_section(self, section: SectionID) -> None:
         self._check_section(section)
         self._current_section = section
         logger.debug("Reading section %s", section.name)
 
-    def _check_section(self, section: SimulationSectionID) -> None:
+    def _check_section(self, section: SectionID) -> None:
         if section in self._finished_sections:
             raise DeckFormatError(
                 self._deck_error_prefix()
@@ -485,10 +485,7 @@ class Parser:
                 ).format(", ".join(SECTION_NAME.values()))
             )
 
-        if (
-            section == SimulationSectionID.DEFINE
-            and SimulationSectionID.EVENTS in self._finished_sections
-        ):
+        if section == SectionID.DEFINE and SectionID.EVENTS in self._finished_sections:
             raise DeckFormatError(
                 self._deck_error_prefix()
                 + (
@@ -497,7 +494,7 @@ class Parser:
                 ).format(", ".join(SECTION_NAME.values()))
             )
 
-    def _end_reading_section(self, section: SimulationSectionID) -> None:
+    def _end_reading_section(self, section: SectionID) -> None:
         self._finished_sections.append(section)
         self._current_event = None
 
@@ -987,7 +984,7 @@ class Parser:
         return general_node
 
     def _check_allow_new_node(self, action: str) -> None:
-        if self._current_section != SimulationSectionID.DEFINE:
+        if self._current_section != SectionID.DEFINE:
             raise DeckKeywordError(
                 self._error_prefix() + f": Unable to {action} new nodes outside DEFINE."
             )
@@ -1152,7 +1149,7 @@ class Parser:
         # prune before the dependency dicts are seeded so no dict carries a
         # key for a node that is absent from the registry; the per-time-step
         # calls arrive under EVENTS, so the prune runs exactly once
-        if self._current_section == SimulationSectionID.DEFINE:
+        if self._current_section == SectionID.DEFINE:
             self._prune_unreachable_nodes()
 
             # before anything reads a node's attributes, including another
@@ -1647,7 +1644,7 @@ class Parser:
         re-runs every pass, because a command may add a dictionary key and most
         attributes may be re-assigned under EVENTS.
         """
-        first_pass = self._current_section == SimulationSectionID.DEFINE
+        first_pass = self._current_section == SectionID.DEFINE
 
         # a node a command argument named arrives with the reference pass after
         # the commands, so the check runs again over it

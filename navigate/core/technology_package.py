@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 if TYPE_CHECKING:
-    from navigate.core.enum_ import EnergyDemandTypeID
+    from navigate.core.enum_ import EnergyDemandID
     from navigate.core.nodes.technology import Technology
     from navigate.core.types_ import CurveInput
     from navigate.util.types_ import FloatArray
@@ -42,11 +42,11 @@ class TechnologyPackage:
     """
 
     technologies: list[Technology]
-    compound_savings: dict[EnergyDemandTypeID, float] = field(default_factory=dict)
-    compound_powers: dict[EnergyDemandTypeID, float] = field(default_factory=dict)
-    transfer_curves: dict[
-        tuple[EnergyDemandTypeID, EnergyDemandTypeID], list[CurveInput]
-    ] = field(default_factory=dict)
+    compound_savings: dict[EnergyDemandID, float] = field(default_factory=dict)
+    compound_powers: dict[EnergyDemandID, float] = field(default_factory=dict)
+    transfer_curves: dict[tuple[EnergyDemandID, EnergyDemandID], list[CurveInput]] = (
+        field(default_factory=dict)
+    )
     shore_power_capacity: float = 0.0
     cost_flow: FloatArray = field(default_factory=lambda: np.zeros(0, dtype=float))
 

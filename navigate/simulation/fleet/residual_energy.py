@@ -14,7 +14,7 @@ from navigate.util import MWD_TO_GJ
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
 
-    from navigate.core.enum_ import EnergyDemandTypeID
+    from navigate.core.enum_ import EnergyDemandID
     from navigate.core.nodes.vessel import Vessel
     from navigate.core.technology_package import TechnologyPackage
     from navigate.core.types_ import CurveInput
@@ -26,8 +26,7 @@ def calculate_residual_energy(
     package: TechnologyPackage,
     idx: int | slice,
 ) -> tuple[
-    dict[EnergyDemandTypeID, list[FloatLike]],
-    dict[EnergyDemandTypeID, list[FloatLike]],
+    dict[EnergyDemandID, list[FloatLike]], dict[EnergyDemandID, list[FloatLike]]
 ]:
     """
     Calculate a vessel's residual energy demand at sea and in port with a package.
@@ -47,9 +46,9 @@ def calculate_residual_energy(
 
     Returns
     -------
-    dict[EnergyDemandTypeID, list[FloatLike]]
+    dict[EnergyDemandID, list[FloatLike]]
         Residual energy at sea per energy demand type and leg, GJ/year.
-    dict[EnergyDemandTypeID, list[FloatLike]]
+    dict[EnergyDemandID, list[FloatLike]]
         Residual energy in port per energy demand type and port, GJ/year.
     """
     times_sea = vessel.expectation.get_time_sea(idx)
@@ -67,9 +66,9 @@ def calculate_residual_energy(
 
 
 def net_energy_from_raw(
-    raw_energies: Mapping[EnergyDemandTypeID, Sequence[FloatLike]],
-    savings: Mapping[EnergyDemandTypeID, Sequence[FloatLike]],
-) -> dict[EnergyDemandTypeID, list[FloatLike]]:
+    raw_energies: Mapping[EnergyDemandID, Sequence[FloatLike]],
+    savings: Mapping[EnergyDemandID, Sequence[FloatLike]],
+) -> dict[EnergyDemandID, list[FloatLike]]:
     """
     Apply per-step saving fractions to the raw energy demand of each energy type.
 
@@ -82,10 +81,10 @@ def net_energy_from_raw(
 
     Returns
     -------
-    dict[EnergyDemandTypeID, list[FloatLike]]
+    dict[EnergyDemandID, list[FloatLike]]
         Net energy demand per energy demand type and step, GJ/year.
     """
-    out: dict[EnergyDemandTypeID, list[FloatLike]] = {}
+    out: dict[EnergyDemandID, list[FloatLike]] = {}
     for k, raw in raw_energies.items():
         sav = savings[k]
         out[k] = [(1.0 - s) * e for e, s in zip(raw, sav, strict=True)]
@@ -96,8 +95,8 @@ def _iterate_legs_or_ports(
     vessel: Vessel,
     package: TechnologyPackage,
     durations: Sequence[FloatLike],
-    raw_demands: Mapping[EnergyDemandTypeID, Sequence[FloatLike]],
-) -> dict[EnergyDemandTypeID, list[FloatLike]]:
+    raw_demands: Mapping[EnergyDemandID, Sequence[FloatLike]],
+) -> dict[EnergyDemandID, list[FloatLike]]:
     """
     Calculate the residual energy of each leg or port.
 
@@ -120,18 +119,18 @@ def _iterate_legs_or_ports(
 
     Returns
     -------
-    dict[EnergyDemandTypeID, list[FloatLike]]
+    dict[EnergyDemandID, list[FloatLike]]
         Residual energy per energy demand type and step, GJ/year.
     """
     keys = list(raw_demands.keys())
     n_steps = len(durations)
-    residual_energy_all: dict[EnergyDemandTypeID, list[FloatLike]] = {
+    residual_energy_all: dict[EnergyDemandID, list[FloatLike]] = {
         energy_id: [] for energy_id in keys
     }
 
     for i in range(n_steps):
-        residual_energy: dict[EnergyDemandTypeID, FloatLike] = {}
-        loads: dict[EnergyDemandTypeID, FloatLike] = {}
+        residual_energy: dict[EnergyDemandID, FloatLike] = {}
+        loads: dict[EnergyDemandID, FloatLike] = {}
         duration = durations[i]
 
         for energy_id in keys:
@@ -205,7 +204,7 @@ def _calculate_power_transfer(curves: list[CurveInput], load: FloatLike) -> Floa
 
 
 def _calculate_converter_load(
-    vessel: Vessel, power_system_id: EnergyDemandTypeID, residual_power: FloatLike
+    vessel: Vessel, power_system_id: EnergyDemandID, residual_power: FloatLike
 ) -> FloatLike:
     """Return the load of the converter serving a demand, fraction of capacity."""
     converter = vessel.power_system.get_converter_by_energy_type(power_system_id)

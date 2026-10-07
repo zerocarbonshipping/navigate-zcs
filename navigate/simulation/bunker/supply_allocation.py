@@ -9,12 +9,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from navigate.core.enum_ import (
-    BunkerScopeID,
-    EnergyDemandTypeID,
-    FuelTypeID,
-    RouteTypeID,
-)
+from navigate.core.enum_ import BunkerScopeID, EnergyDemandID, FuelTypeID, RouteTypeID
 from navigate.util import divide_nonzero
 
 if TYPE_CHECKING:
@@ -176,7 +171,7 @@ def _calculate_fuel_type_demand_in_port_jurisdiction(
 
     fuel_type_demand: dict[FuelTypeID, FloatLike] = dict.fromkeys(FuelTypeID, 0.0)
 
-    for energy_id in EnergyDemandTypeID:
+    for energy_id in EnergyDemandID:
         converter = vessel.power_system.get_converter_by_energy_type(energy_id)
         energy = raw_energy[energy_id]
 
@@ -204,7 +199,7 @@ def _calculate_fuel_type_demand_in_port_jurisdiction(
 
 def _calculate_operational_demand_in_port_jurisdiction(
     vessel: Vessel, port: Port, idx: int | slice
-) -> dict[EnergyDemandTypeID, FloatArray]:
+) -> dict[EnergyDemandID, FloatArray]:
     """
     Calculate operational energy demand for a vessel within a port's jurisdiction.
 
@@ -219,7 +214,7 @@ def _calculate_operational_demand_in_port_jurisdiction(
 
     Returns
     -------
-    dict[EnergyDemandTypeID, FloatArray]
+    dict[EnergyDemandID, FloatArray]
         Operational energy used within the port jurisdiction.
     """
     expectation = vessel.expectation
@@ -235,9 +230,9 @@ def _calculate_operational_demand_in_port_jurisdiction(
 def _calculate_energy_in_port_jurisdiction(
     vessel: Vessel,
     port: Port,
-    energy_sea: dict[EnergyDemandTypeID, list[FloatLike]],
-    energy_port: dict[EnergyDemandTypeID, list[FloatLike]],
-) -> dict[EnergyDemandTypeID, FloatArray]:
+    energy_sea: dict[EnergyDemandID, list[FloatLike]],
+    energy_port: dict[EnergyDemandID, list[FloatLike]],
+) -> dict[EnergyDemandID, FloatArray]:
     """
     Calculate the energy demand or spend for a vessel within a port's jurisdiction.
 
@@ -254,15 +249,15 @@ def _calculate_energy_in_port_jurisdiction(
 
     Returns
     -------
-    dict[EnergyDemandTypeID, FloatArray]
+    dict[EnergyDemandID, FloatArray]
         Energy used within the port jurisdiction.
     """
     route = vessel.route
     route_type = route.route_type
     ports = route.ports
 
-    timeline_shape = np.shape(energy_sea[EnergyDemandTypeID.PROPULSION][0])
-    energy = {energy_id: np.zeros(timeline_shape) for energy_id in EnergyDemandTypeID}
+    timeline_shape = np.shape(energy_sea[EnergyDemandID.PROPULSION][0])
+    energy = {energy_id: np.zeros(timeline_shape) for energy_id in EnergyDemandID}
 
     if port not in ports:
         return energy
@@ -276,7 +271,7 @@ def _calculate_energy_in_port_jurisdiction(
 
         voyage_distribution = route.get_voyage_distribution()
 
-        for energy_id in EnergyDemandTypeID:
+        for energy_id in EnergyDemandID:
             total_energy_sea = np.add.reduce(np.asarray(energy_sea[energy_id]))
 
             for (p_from, p_to), fraction in voyage_distribution.items():
@@ -288,15 +283,15 @@ def _calculate_energy_in_port_jurisdiction(
                         jurisdiction_fraction * total_energy_sea * fraction
                     )
 
-            if energy_id != EnergyDemandTypeID.PROPULSION:
+            if energy_id != EnergyDemandID.PROPULSION:
                 energy[energy_id] += energy_port[energy_id][port_idx]
 
     else:
         n_legs = route.get_number_of_legs()
 
-        for energy_id in EnergyDemandTypeID:
+        for energy_id in EnergyDemandID:
             for p, route_port in enumerate(ports):
-                if route_port == port and energy_id != EnergyDemandTypeID.PROPULSION:
+                if route_port == port and energy_id != EnergyDemandID.PROPULSION:
                     energy[energy_id] += energy_port[energy_id][p]
 
             for leg in range(n_legs):

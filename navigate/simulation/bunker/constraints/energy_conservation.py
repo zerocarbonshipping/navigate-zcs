@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from navigate.core.enum_ import EnergyDemandTypeID
+from navigate.core.enum_ import EnergyDemandID
 from navigate.simulation.bunker._build import get_constraint
 
 if TYPE_CHECKING:
@@ -56,30 +56,20 @@ def update_energy_conservation_constraints(
 
     # at sea all three demands are served
     _update_sea_energy_conservation(
-        alg,
-        v,
-        EnergyDemandTypeID.PROPULSION,
-        power_system.propulsion,
-        demands_sea,
-        leg_idx,
+        alg, v, EnergyDemandID.PROPULSION, power_system.propulsion, demands_sea, leg_idx
     )
     _update_sea_energy_conservation(
-        alg,
-        v,
-        EnergyDemandTypeID.ELECTRICAL,
-        power_system.electrical,
-        demands_sea,
-        leg_idx,
+        alg, v, EnergyDemandID.ELECTRICAL, power_system.electrical, demands_sea, leg_idx
     )
     _update_sea_energy_conservation(
-        alg, v, EnergyDemandTypeID.HEAT, power_system.heat, demands_sea, leg_idx
+        alg, v, EnergyDemandID.HEAT, power_system.heat, demands_sea, leg_idx
     )
 
     # in port there is no propulsion demand
     _update_port_energy_conservation(
         alg,
         v,
-        EnergyDemandTypeID.ELECTRICAL,
+        EnergyDemandID.ELECTRICAL,
         power_system.electrical,
         demands_port,
         port_idx,
@@ -89,22 +79,20 @@ def update_energy_conservation_constraints(
     change_coefficient = alg.model.chgCoeff
     for p in port_idx:
         if (v, p) in alg.shore_power:
-            constraint = alg.energy_conservation_port[
-                (v, p, EnergyDemandTypeID.ELECTRICAL)
-            ]
+            constraint = alg.energy_conservation_port[(v, p, EnergyDemandID.ELECTRICAL)]
             change_coefficient(constraint, alg.shore_power[v, p], 1.0)
 
     _update_port_energy_conservation(
-        alg, v, EnergyDemandTypeID.HEAT, power_system.heat, demands_port, port_idx
+        alg, v, EnergyDemandID.HEAT, power_system.heat, demands_port, port_idx
     )
 
 
 def _update_sea_energy_conservation(
     alg: BunkerAlgorithm,
     v: str,
-    energy_type: EnergyDemandTypeID,
+    energy_type: EnergyDemandID,
     converter: Converter,
-    demands: dict[EnergyDemandTypeID, list[FloatLike]],
+    demands: dict[EnergyDemandID, list[FloatLike]],
     leg_idx: tuple[tuple[int, int], ...],
 ) -> None:
     """
@@ -152,9 +140,9 @@ def _update_sea_energy_conservation(
 def _update_port_energy_conservation(
     alg: BunkerAlgorithm,
     v: str,
-    energy_type: EnergyDemandTypeID,
+    energy_type: EnergyDemandID,
     converter: Converter,
-    demands: dict[EnergyDemandTypeID, list[FloatLike]],
+    demands: dict[EnergyDemandID, list[FloatLike]],
     port_idx: range,
 ) -> None:
     """

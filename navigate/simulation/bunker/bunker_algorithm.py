@@ -94,7 +94,7 @@ from navigate.simulation.policy import policies_affecting_port
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from navigate.core.enum_ import EnergyDemandTypeID, FuelTypeID
+    from navigate.core.enum_ import EnergyDemandID, FuelTypeID
     from navigate.core.general_nodes.bunker_options import BunkerOptions
     from navigate.core.nodes.emission import Emission
     from navigate.core.nodes.feedstock import Feedstock
@@ -210,11 +210,9 @@ class BunkerAlgorithm:
 
         # vessel constraints
         self.energy_conservation_sea: dict[
-            tuple[str, int, int, EnergyDemandTypeID], gp.Constr
+            tuple[str, int, int, EnergyDemandID], gp.Constr
         ]
-        self.energy_conservation_port: dict[
-            tuple[str, int, EnergyDemandTypeID], gp.Constr
-        ]
+        self.energy_conservation_port: dict[tuple[str, int, EnergyDemandID], gp.Constr]
         self.pilot_fuel_sea: dict[tuple[str, str, int, int], gp.Constr]
         self.pilot_fuel_port: dict[tuple[str, str, int], gp.Constr]
         self.mass_conservation: dict[tuple[str, int, str], gp.Constr]

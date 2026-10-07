@@ -42,7 +42,7 @@ from navigate.parser._keywords import SECTION_BOTH, SECTION_DEFINE, SECTION_NAME
 from navigate.util import attribute_to_instance_name
 
 if TYPE_CHECKING:
-    from navigate.core.enum_ import SimulationSectionID
+    from navigate.core.enum_ import SectionID
     from navigate.parser._keywords import AllowedSections
 
 # high-level class attributes to multiple nodes ----------------------------------------
@@ -391,7 +391,7 @@ def instance_to_dsl_name(node_type: str, attribute_name: str) -> str:
 
 
 def check_node_attribute_is_allowed(
-    node_type: str, attribute_name: str, section: SimulationSectionID
+    node_type: str, attribute_name: str, section: SectionID
 ) -> None:
     """
     Raise if a node type may not set an attribute in a section.
@@ -420,7 +420,7 @@ def check_node_attribute_is_allowed(
 
 
 def check_general_node_attribute_is_allowed(
-    type_: str, attribute_name: str, section: SimulationSectionID
+    type_: str, attribute_name: str, section: SectionID
 ) -> None:
     """
     Raise if a general node type may not set an attribute in a section.

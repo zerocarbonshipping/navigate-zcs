@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import pytest
 
-from navigate.core.enum_ import SimulationSectionID
+from navigate.core.enum_ import SectionID
 from navigate.exceptions import AttributeAssignmentError, CommandError
 from navigate.parser._attributes import (
     GENERAL_NODE_ATTRIBUTE_SECTIONS,
@@ -37,7 +37,7 @@ def test_every_required_attribute_is_assignable_in_define(required, sections):
     # a required attribute outside DEFINE could never be met by the check
     for node_type, attributes in required.items():
         for attribute in attributes:
-            assert SimulationSectionID.DEFINE in sections[node_type][attribute]
+            assert SectionID.DEFINE in sections[node_type][attribute]
 
 
 class TestInstanceToDslName:
@@ -54,50 +54,42 @@ class TestInstanceToDslName:
 class TestCheckNodeAttributeIsAllowed:
     def test_valid_attribute_both_sections(self):
         """Lifetime is allowed for Vessel in both DEFINE and EVENTS."""
-        check_node_attribute_is_allowed(
-            "Vessel", "Lifetime", SimulationSectionID.DEFINE
-        )
-        check_node_attribute_is_allowed(
-            "Vessel", "Lifetime", SimulationSectionID.EVENTS
-        )
+        check_node_attribute_is_allowed("Vessel", "Lifetime", SectionID.DEFINE)
+        check_node_attribute_is_allowed("Vessel", "Lifetime", SectionID.EVENTS)
 
     def test_valid_attribute_define_only(self):
         """FuelType is DEFINE-only for Vessel."""
-        check_node_attribute_is_allowed(
-            "Vessel", "FuelType", SimulationSectionID.DEFINE
-        )
+        check_node_attribute_is_allowed("Vessel", "FuelType", SectionID.DEFINE)
 
     def test_define_only_attribute_in_events_raises(self):
         """FuelType on Vessel is DEFINE-only - using it in EVENTS should raise."""
         with pytest.raises(AttributeAssignmentError, match="does not allow setting"):
-            check_node_attribute_is_allowed(
-                "Vessel", "FuelType", SimulationSectionID.EVENTS
-            )
+            check_node_attribute_is_allowed("Vessel", "FuelType", SectionID.EVENTS)
 
     def test_unknown_attribute_raises(self):
         """An attribute that doesn't exist on any node should raise."""
         with pytest.raises(AttributeAssignmentError, match="has no attribute"):
             check_node_attribute_is_allowed(
-                "Vessel", "NonExistentAttribute", SimulationSectionID.DEFINE
+                "Vessel", "NonExistentAttribute", SectionID.DEFINE
             )
 
 
 class TestCheckGeneralNodeAttributeIsAllowed:
     def test_model_definition_start_date(self):
         check_general_node_attribute_is_allowed(
-            "ModelDefinition", "StartDate", SimulationSectionID.DEFINE
+            "ModelDefinition", "StartDate", SectionID.DEFINE
         )
 
     def test_model_definition_start_date_in_events_raises(self):
         with pytest.raises(AttributeAssignmentError, match="does not allow setting"):
             check_general_node_attribute_is_allowed(
-                "ModelDefinition", "StartDate", SimulationSectionID.EVENTS
+                "ModelDefinition", "StartDate", SectionID.EVENTS
             )
 
     def test_unknown_general_node_attribute_raises(self):
         with pytest.raises(AttributeAssignmentError, match="has no attribute"):
             check_general_node_attribute_is_allowed(
-                "ModelDefinition", "Bogus", SimulationSectionID.DEFINE
+                "ModelDefinition", "Bogus", SectionID.DEFINE
             )
 
 
